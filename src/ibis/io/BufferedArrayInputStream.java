@@ -6,28 +6,36 @@ import java.io.IOException;
 import ibis.ipl.IbisIOException;
 
 /**
- *
- * Extends OutputStream with read of array of primitives and readSingleInt
+ * Implementation of <code>ArrayInputStream</code> on top of an
+ * <code>InputStream</code>.
  */
 
-public final class BufferedArrayInputStream
-    extends ibis.io.ArrayInputStream {
+public final class BufferedArrayInputStream extends ArrayInputStream {
 
-//	static {
-//		ArrayOutputStream.classInit();
-//	}
+    /**
+     * When set to <code>true</code>, debugging prints are enabled.
+     */
+    private static final boolean DEBUG = false;
 
-    public static final boolean DEBUG = false;
-
+    /**
+     * The underlying <code>InputStream</code>.
+     */
     private InputStream in;
 
+    /**
+     * The buffer size.
+     */
     private static final int BUF_SIZE = 8*1024;
+
+    /**
+     * The buffer.
+     */
     private byte [] buffer;
     private int index, buffered_bytes;
 
     public BufferedArrayInputStream(InputStream in) {
-        this.in = in;
-        buffer = new byte[BUF_SIZE];
+	this.in = in;
+	buffer = new byte[BUF_SIZE];
     }
 
     private void dump(byte[] buffer, int off, int len, String caller) {
@@ -51,12 +59,12 @@ public final class BufferedArrayInputStream
 	// This ensures that there are at least 'len' bytes in the buffer
 	// PRECONDITION: 'index + buffered_bytes' should never be larger than BUF_SIZE!!
 
-        try {
+	try {
 	    while (buffered_bytes < len) {
 		// System.err.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
-		
+
 		int n = in.read(buffer, index + buffered_bytes,
-				      BUF_SIZE-(index+buffered_bytes));
+			BUF_SIZE-(index+buffered_bytes));
 		if (n < 0) {
 		    throw new IOException("EOF encountered");
 		}
@@ -64,64 +72,64 @@ public final class BufferedArrayInputStream
 		buffered_bytes += n;
 	    }
 	    // System.err.println(buffered_bytes + " in buffer");
-        } catch (IOException e) {
+	} catch (IOException e) {
 	    throw new IbisIOException(e);
-        }
+	}
     }
 
     public final int available() throws IbisIOException {
-        try {
+	try {
 	    return (buffered_bytes + in.available());
-        } catch (IOException e) {
+	} catch (IOException e) {
 	    throw new IbisIOException(e);
-        }
+	}
     }
 
     public void readArray(boolean[] a, int off, int len)
-		throws IbisIOException {
+	throws IbisIOException {
 
-		if (DEBUG) {
-			System.err.println("readArray(boolean[" + off +
-							   " ... " + (off+len) + "])");
+	if (DEBUG) {
+	    System.err.println("readArray(boolean[" + off +
+		    " ... " + (off+len) + "])");
+	}
+
+	int useable, converted;
+	int to_convert = len * SIZEOF_BOOLEAN;
+
+	while (buffered_bytes < to_convert) {
+	    // not enough data in the buffer
+
+	    if (buffered_bytes == 0) {
+		index = 0;
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    } else {
+		// first, copy the data we do have to 'a' .
+		useable = buffered_bytes / SIZEOF_BOOLEAN;
+		Conversion.byte2boolean(buffer, index, a, off, useable);
+
+		len -= useable;
+		off += useable;
+
+		converted = useable * SIZEOF_BOOLEAN;
+		index += converted;
+		buffered_bytes -= converted;
+		to_convert -= converted;
+
+		// second, copy the leftovers to the start of the buffer.
+		for (int i=0;i<buffered_bytes;i++) {
+		    buffer[i] = buffer[index+i];
 		}
+		index = 0;
 
-		int useable, converted;
-		int to_convert = len * SIZEOF_BOOLEAN;
-		
-		while (buffered_bytes < to_convert) {
-			// not enough data in the buffer
+		// third, fill the buffer as far as possible.
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    }
+	}
 
-			if (buffered_bytes == 0) {
-				index = 0;
-				fillBuffer(min(BUF_SIZE, to_convert));
-			} else {
-				// first, copy the data we do have to 'a' .
-				useable = buffered_bytes / SIZEOF_BOOLEAN;
-				Conversion.byte2boolean(buffer, index, a, off, useable);
-
-				len -= useable;
-				off += useable;
-				
-				converted = useable * SIZEOF_BOOLEAN;
-				index += converted;
-				buffered_bytes -= converted;
-				to_convert -= converted;
-
-				// second, copy the leftovers to the start of the buffer.
-				for (int i=0;i<buffered_bytes;i++) {
-					buffer[i] = buffer[index+i];
-				}
-				index = 0;
-
-				// third, fill the buffer as far as possible.
-				fillBuffer(min(BUF_SIZE, to_convert));
-			}
-		}
-
-		// enough data in the buffer
-		Conversion.byte2boolean(buffer, index, a, off, len);
-		buffered_bytes -= to_convert;
-		index += to_convert;
+	// enough data in the buffer
+	Conversion.byte2boolean(buffer, index, a, off, len);
+	buffered_bytes -= to_convert;
+	index += to_convert;
     }
 
     public void readArray(byte[] a, int off, int len) throws IbisIOException {
@@ -173,302 +181,302 @@ public final class BufferedArrayInputStream
     }
 
 
-	//	static int R = 0;
-	//	static int W = 0;
+    //	static int R = 0;
+    //	static int W = 0;
 
     public void readArray(short[] a, int off, int len)
-		throws IbisIOException {
+	throws IbisIOException {
 
-		int useable, converted;
-		int to_convert = len * SIZEOF_SHORT;
+	int useable, converted;
+	int to_convert = len * SIZEOF_SHORT;
 
-		while (buffered_bytes < to_convert) {
-			// not enough data in the buffer
+	while (buffered_bytes < to_convert) {
+	    // not enough data in the buffer
 
-			if (buffered_bytes == 0) {
-				index = 0;
-				fillBuffer(min(BUF_SIZE, to_convert));
-			} else {
-				// first, copy the data we do have to 'a' .
-				useable = buffered_bytes / SIZEOF_SHORT;
-				Conversion.byte2short(buffer, index, a, off, useable);
+	    if (buffered_bytes == 0) {
+		index = 0;
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    } else {
+		// first, copy the data we do have to 'a' .
+		useable = buffered_bytes / SIZEOF_SHORT;
+		Conversion.byte2short(buffer, index, a, off, useable);
 
-				len -= useable;
-				off += useable;
+		len -= useable;
+		off += useable;
 
-				converted = useable * SIZEOF_SHORT;
-				index += converted;
-				buffered_bytes -= converted;
-				to_convert -= converted;
+		converted = useable * SIZEOF_SHORT;
+		index += converted;
+		buffered_bytes -= converted;
+		to_convert -= converted;
 
-				// second, copy the leftovers to the start of the buffer.
-				for (int i=0;i<buffered_bytes;i++) {
-					buffer[i] = buffer[index+i];
-				}
-				index = 0;
-
-				// third, fill the buffer as far as possible.
-				fillBuffer(min(BUF_SIZE, to_convert));
-			}
+		// second, copy the leftovers to the start of the buffer.
+		for (int i=0;i<buffered_bytes;i++) {
+		    buffer[i] = buffer[index+i];
 		}
+		index = 0;
 
-		// enough data in the buffer
-		Conversion.byte2short(buffer, index, a, off, len);
-		buffered_bytes -= to_convert;
-		index += to_convert;
+		// third, fill the buffer as far as possible.
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    }
+	}
 
-		if (DEBUG) {
-			System.err.print("readArray(short[");
-			for (int i=0;i<len;i++) {
-				System.err.print(a[off+i] + ",");
-			}
-			System.err.println("]");
-			System.err.flush();
-		}
+	// enough data in the buffer
+	Conversion.byte2short(buffer, index, a, off, len);
+	buffered_bytes -= to_convert;
+	index += to_convert;
+
+	if (DEBUG) {
+	    System.err.print("readArray(short[");
+	    for (int i=0;i<len;i++) {
+		System.err.print(a[off+i] + ",");
+	    }
+	    System.err.println("]");
+	    System.err.flush();
+	}
     }
 
     public void readArray(char[] a, int off, int len)
-		throws IbisIOException {
+	throws IbisIOException {
 
-		if (DEBUG) {
-			System.err.println("readArray(char[" + off + " ... " + (off+len) + "])");
+	if (DEBUG) {
+	    System.err.println("readArray(char[" + off + " ... " + (off+len) + "])");
+	}
+
+	int useable, converted;
+	int to_convert = len * SIZEOF_CHAR;
+
+	while (buffered_bytes < to_convert) {
+	    // not enough data in the buffer
+
+	    if (buffered_bytes == 0) {
+		index = 0;
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    } else {
+		// first, copy the data we do have to 'a' .
+		useable = buffered_bytes / SIZEOF_CHAR;
+		Conversion.byte2char(buffer, index, a, off, useable);
+
+		len -= useable;
+		off += useable;
+
+		converted = useable * SIZEOF_CHAR;
+		index += converted;
+		buffered_bytes -= converted;
+		to_convert -= converted;
+
+		// second, copy the leftovers to the start of the buffer.
+		for (int i=0;i<buffered_bytes;i++) {
+		    buffer[i] = buffer[index+i];
 		}
+		index = 0;
 
-		int useable, converted;
-		int to_convert = len * SIZEOF_CHAR;
+		// third, fill the buffer as far as possible.
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    }
+	}
 
-		while (buffered_bytes < to_convert) {
-			// not enough data in the buffer
-
-			if (buffered_bytes == 0) {
-				index = 0;
-				fillBuffer(min(BUF_SIZE, to_convert));
-			} else {
-				// first, copy the data we do have to 'a' .
-				useable = buffered_bytes / SIZEOF_CHAR;
-				Conversion.byte2char(buffer, index, a, off, useable);
-
-				len -= useable;
-				off += useable;
-
-				converted = useable * SIZEOF_CHAR;
-				index += converted;
-				buffered_bytes -= converted;
-				to_convert -= converted;
-
-				// second, copy the leftovers to the start of the buffer.
-				for (int i=0;i<buffered_bytes;i++) {
-					buffer[i] = buffer[index+i];
-				}
-				index = 0;
-
-				// third, fill the buffer as far as possible.
-				fillBuffer(min(BUF_SIZE, to_convert));
-			}
-		}
-
-		// enough data in the buffer
-		Conversion.byte2char(buffer, index, a, off, len);
-		buffered_bytes -= to_convert;
-		index += to_convert;
+	// enough data in the buffer
+	Conversion.byte2char(buffer, index, a, off, len);
+	buffered_bytes -= to_convert;
+	index += to_convert;
     }
 
     public void readArray(int[] a, int off, int len)
-		throws IbisIOException {
+	throws IbisIOException {
 
-		if (DEBUG) {
-			System.err.println("readArray(int[" + off + " ... " + (off+len) + "])");
+	if (DEBUG) {
+	    System.err.println("readArray(int[" + off + " ... " + (off+len) + "])");
+	}
+
+	int useable, converted;
+	int to_convert = len * SIZEOF_INT;
+
+	//		System.err.println("To convert " + to_convert);
+	//		System.err.println("Buffered " + buffered_bytes);
+
+	while (buffered_bytes < to_convert) {
+	    // not enough data in the buffer
+
+	    if (buffered_bytes == 0) {
+		index = 0;
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    } else {
+		// first, copy the data we do have to 'a' .
+		useable = buffered_bytes / SIZEOF_INT;
+
+		//				System.err.println("converting " + useable + " ints from " + off);
+		Conversion.byte2int(buffer, index, a, off, useable);
+
+		len -= useable;
+		off += useable;
+
+		converted = useable * SIZEOF_INT;
+		index += converted;
+		buffered_bytes -= converted;
+		to_convert -= converted;
+
+		//				System.err.println("Leftover " + len + " ints to convert, " + buffered_bytes + " bytes buffered" + 
+		//						   to_convert + " bytes to convert");
+
+		// second, copy the leftovers to the start of the buffer.
+		for (int i=0;i<buffered_bytes;i++) {
+		    buffer[i] = buffer[index+i];
 		}
+		index = 0;
 
-		int useable, converted;
-		int to_convert = len * SIZEOF_INT;
+		// third, fill the buffer as far as possible.
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    }
+	}
 
-		//		System.err.println("To convert " + to_convert);
-		//		System.err.println("Buffered " + buffered_bytes);
+	// enough data in the buffer
+	//		System.err.println("converting " + len + " ints from " + index + " to " + off);
 
-		while (buffered_bytes < to_convert) {
-			// not enough data in the buffer
+	Conversion.byte2int(buffer, index, a, off, len);
+	buffered_bytes -= to_convert;
+	index += to_convert;
 
-			if (buffered_bytes == 0) {
-				index = 0;
-				fillBuffer(min(BUF_SIZE, to_convert));
-			} else {
-				// first, copy the data we do have to 'a' .
-				useable = buffered_bytes / SIZEOF_INT;
-
-				//				System.err.println("converting " + useable + " ints from " + off);
-				Conversion.byte2int(buffer, index, a, off, useable);
-
-				len -= useable;
-				off += useable;
-
-				converted = useable * SIZEOF_INT;
-				index += converted;
-				buffered_bytes -= converted;
-				to_convert -= converted;
-
-				//				System.err.println("Leftover " + len + " ints to convert, " + buffered_bytes + " bytes buffered" + 
-				//						   to_convert + " bytes to convert");
-
-				// second, copy the leftovers to the start of the buffer.
-				for (int i=0;i<buffered_bytes;i++) {
-					buffer[i] = buffer[index+i];
-				}
-				index = 0;
-
-				// third, fill the buffer as far as possible.
-				fillBuffer(min(BUF_SIZE, to_convert));
-			}
-		}
-
-		// enough data in the buffer
-		//		System.err.println("converting " + len + " ints from " + index + " to " + off);
-    
-		Conversion.byte2int(buffer, index, a, off, len);
-		buffered_bytes -= to_convert;
-		index += to_convert;
-
-		//	System.err.println("Done converting int [], buffer contains " + buffered_bytes + " bytes (starting at " + index + ")");
+	//	System.err.println("Done converting int [], buffer contains " + buffered_bytes + " bytes (starting at " + index + ")");
 
 
     }
 
     public void readArray(long[] a, int off, int len)
-		throws IbisIOException {
+	throws IbisIOException {
 
-		if (DEBUG) {
-			System.err.println("readArray(long[" + off + " ... " + (off+len) + "])");
+	if (DEBUG) {
+	    System.err.println("readArray(long[" + off + " ... " + (off+len) + "])");
+	}
+
+	int useable, converted;
+	int to_convert = len * SIZEOF_LONG;
+
+	while (buffered_bytes < to_convert) {
+	    // not enough data in the buffer
+
+	    if (buffered_bytes == 0) {
+		index = 0;
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    } else {
+		// first, copy the data we do have to 'a' .
+		useable = buffered_bytes / SIZEOF_LONG;
+		Conversion.byte2long(buffer, index, a, off, useable);
+
+		len -= useable;
+		off += useable;
+
+		converted = useable * SIZEOF_LONG;
+		index += converted;
+		buffered_bytes -= converted;
+		to_convert -= converted;
+
+		// second, copy the leftovers to the start of the buffer.
+		for (int i=0;i<buffered_bytes;i++) {
+		    buffer[i] = buffer[index+i];
 		}
+		index = 0;
 
-		int useable, converted;
-		int to_convert = len * SIZEOF_LONG;
+		// third, fill the buffer as far as possible.
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    }
+	}
 
-		while (buffered_bytes < to_convert) {
-			// not enough data in the buffer
-
-			if (buffered_bytes == 0) {
-				index = 0;
-				fillBuffer(min(BUF_SIZE, to_convert));
-			} else {
-				// first, copy the data we do have to 'a' .
-				useable = buffered_bytes / SIZEOF_LONG;
-				Conversion.byte2long(buffer, index, a, off, useable);
-
-				len -= useable;
-				off += useable;
-
-				converted = useable * SIZEOF_LONG;
-				index += converted;
-				buffered_bytes -= converted;
-				to_convert -= converted;
-
-				// second, copy the leftovers to the start of the buffer.
-				for (int i=0;i<buffered_bytes;i++) {
-					buffer[i] = buffer[index+i];
-				}
-				index = 0;
-
-				// third, fill the buffer as far as possible.
-				fillBuffer(min(BUF_SIZE, to_convert));
-			}
-		}
-
-		// enough data in the buffer
-		Conversion.byte2long(buffer, index, a, off, len);
-		buffered_bytes -= to_convert;
-		index += to_convert;
+	// enough data in the buffer
+	Conversion.byte2long(buffer, index, a, off, len);
+	buffered_bytes -= to_convert;
+	index += to_convert;
     }
 
 
     public void readArray(float[] a, int off, int len)
-		throws IbisIOException {
-		if (DEBUG) {
-			System.err.println("readArray(float[" + off + " ... " + (off+len) + "])");
+	throws IbisIOException {
+	if (DEBUG) {
+	    System.err.println("readArray(float[" + off + " ... " + (off+len) + "])");
+	}
+
+	int useable, converted;
+	int to_convert = len * SIZEOF_FLOAT;
+
+	while (buffered_bytes < to_convert) {
+	    // not enough data in the buffer
+
+	    if (buffered_bytes == 0) {
+		index = 0;
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    } else {
+		// first, copy the data we do have to 'a' .
+		useable = buffered_bytes / SIZEOF_FLOAT;
+		Conversion.byte2float(buffer, index, a, off, useable);
+
+		len -= useable;
+		off += useable;
+
+		converted = useable * SIZEOF_FLOAT;
+		index += converted;
+		buffered_bytes -= converted;
+		to_convert -= converted;
+
+		// second, copy the leftovers to the start of the buffer.
+		for (int i=0;i<buffered_bytes;i++) {
+		    buffer[i] = buffer[index+i];
 		}
+		index = 0;
 
-		int useable, converted;
-		int to_convert = len * SIZEOF_FLOAT;
+		// third, fill the buffer as far as possible.
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    }
+	}
 
-		while (buffered_bytes < to_convert) {
-			// not enough data in the buffer
-
-			if (buffered_bytes == 0) {
-				index = 0;
-				fillBuffer(min(BUF_SIZE, to_convert));
-			} else {
-				// first, copy the data we do have to 'a' .
-				useable = buffered_bytes / SIZEOF_FLOAT;
-				Conversion.byte2float(buffer, index, a, off, useable);
-
-				len -= useable;
-				off += useable;
-
-				converted = useable * SIZEOF_FLOAT;
-				index += converted;
-				buffered_bytes -= converted;
-				to_convert -= converted;
-
-				// second, copy the leftovers to the start of the buffer.
-				for (int i=0;i<buffered_bytes;i++) {
-					buffer[i] = buffer[index+i];
-				}
-				index = 0;
-
-				// third, fill the buffer as far as possible.
-				fillBuffer(min(BUF_SIZE, to_convert));
-			}
-		}
-
-		// enough data in the buffer
-		Conversion.byte2float(buffer, index, a, off, len);
-		buffered_bytes -= to_convert;
-		index += to_convert;
+	// enough data in the buffer
+	Conversion.byte2float(buffer, index, a, off, len);
+	buffered_bytes -= to_convert;
+	index += to_convert;
     }
 
     public void readArray(double[] a, int off, int len)
-		throws IbisIOException {
+	throws IbisIOException {
 
-		if (DEBUG) {
-			System.err.println("readArray(double[" + off + " ... " + (off+len) + "])");
+	if (DEBUG) {
+	    System.err.println("readArray(double[" + off + " ... " + (off+len) + "])");
+	}
+
+	int useable, converted;
+	int to_convert = len * SIZEOF_DOUBLE;
+
+	while (buffered_bytes < to_convert) {
+	    // not enough data in the buffer
+
+	    if (buffered_bytes == 0) {
+		index = 0;
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    } else {
+		// first, copy the data we do have to 'a' .
+		useable = buffered_bytes / SIZEOF_DOUBLE;
+		Conversion.byte2double(buffer, index, a, off, useable);
+
+		len -= useable;
+		off += useable;
+
+		converted = useable * SIZEOF_DOUBLE;
+		index += converted;
+		buffered_bytes -= converted;
+		to_convert -= converted;
+
+		// second, copy the leftovers to the start of the buffer.
+		for (int i=0;i<buffered_bytes;i++) {
+		    buffer[i] = buffer[index+i];
 		}
+		index = 0;
 
-		int useable, converted;
-		int to_convert = len * SIZEOF_DOUBLE;
+		// third, fill the buffer as far as possible.
+		fillBuffer(min(BUF_SIZE, to_convert));
+	    }
+	}
 
-		while (buffered_bytes < to_convert) {
-			// not enough data in the buffer
-
-			if (buffered_bytes == 0) {
-				index = 0;
-				fillBuffer(min(BUF_SIZE, to_convert));
-			} else {
-				// first, copy the data we do have to 'a' .
-				useable = buffered_bytes / SIZEOF_DOUBLE;
-				Conversion.byte2double(buffer, index, a, off, useable);
-
-				len -= useable;
-				off += useable;
-
-				converted = useable * SIZEOF_DOUBLE;
-				index += converted;
-				buffered_bytes -= converted;
-				to_convert -= converted;
-
-				// second, copy the leftovers to the start of the buffer.
-				for (int i=0;i<buffered_bytes;i++) {
-					buffer[i] = buffer[index+i];
-				}
-				index = 0;
-
-				// third, fill the buffer as far as possible.
-				fillBuffer(min(BUF_SIZE, to_convert));
-			}
-		}
-
-		// enough data in the buffer
-		Conversion.byte2double(buffer, index, a, off, len);
-		buffered_bytes -= to_convert;
-		index += to_convert;
+	// enough data in the buffer
+	Conversion.byte2double(buffer, index, a, off, len);
+	buffered_bytes -= to_convert;
+	index += to_convert;
     }
 
     public void close() throws IOException {

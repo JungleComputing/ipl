@@ -98,7 +98,7 @@ public interface IbisAccumulator {
     public void writeDouble(double value) throws IbisIOException;
 
     /**
-     * Writes a (slice of) an array of Booleans into the accumulator.
+     * Writes (a slice of) an array of Booleans into the accumulator.
      * @param	source		the array to write to the accumulator
      * @param	offset		the offset at which to start
      * @param	size		the number of elements to be copied
@@ -109,7 +109,7 @@ public interface IbisAccumulator {
 	    int size) throws IbisIOException;
 
     /**
-     * Writes a (slice of) an array of Bytes into the accumulator.
+     * Writes (a slice of) an array of Bytes into the accumulator.
      * @param	source		the array to write to the accumulator
      * @param	offset		the offset at which to start
      * @param	size		the number of elements to be copied
@@ -120,7 +120,7 @@ public interface IbisAccumulator {
 	    int size) throws IbisIOException;
 
     /**
-     * Writes a (slice of) an array of Characters into the accumulator.
+     * Writes (a slice of) an array of Characters into the accumulator.
      * @param	source		the array to write to the accumulator
      * @param	offset		the offset at which to start
      * @param	size		the number of elements to be copied
@@ -131,7 +131,7 @@ public interface IbisAccumulator {
 	    int size) throws IbisIOException;
 
     /**
-     * Writes a (slice of) an array of Short Integers into the accumulator.
+     * Writes (a slice of) an array of Short Integers into the accumulator.
      * @param	source		the array to write to the accumulator
      * @param	offset		the offset at which to start
      * @param	size		the number of elements to be copied
@@ -142,7 +142,7 @@ public interface IbisAccumulator {
 	    int size) throws IbisIOException;
 
     /**
-     * Writes a (slice of) an array of Integers into the accumulator.
+     * Writes (a slice of) an array of Integers into the accumulator.
      * @param	source		the array to write to the accumulator
      * @param	offset		the offset at which to start
      * @param	size		the number of elements to be copied
@@ -153,7 +153,7 @@ public interface IbisAccumulator {
 	    int size) throws IbisIOException;
 
     /**
-     * Writes a (slice of) an array of Long Integers into the accumulator.
+     * Writes (a slice of) an array of Long Integers into the accumulator.
      * @param	source		the array to write to the accumulator
      * @param	offset		the offset at which to start
      * @param	size		the number of elements to be copied
@@ -164,7 +164,7 @@ public interface IbisAccumulator {
 	    int size) throws IbisIOException;
 
     /**
-     * Writes a (slice of) an array of Floats into the accumulator.
+     * Writes (a slice of) an array of Floats into the accumulator.
      * @param	source		the array to write to the accumulator
      * @param	offset		the offset at which to start
      * @param	size		the number of elements to be copied
@@ -175,7 +175,7 @@ public interface IbisAccumulator {
 	    int size) throws IbisIOException;
 
     /**
-     * Writes a (slice of) an array of Doubles into the accumulator.
+     * Writes (a slice of) an array of Doubles into the accumulator.
      * @param	source		the array to write to the accumulator
      * @param	offset		the offset at which to start
      * @param	size		the number of elements to be copied

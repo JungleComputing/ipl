@@ -7,38 +7,140 @@ import java.io.IOException;
  * An inputstream for reading arrays of primitive types.
  */
 
-public abstract class ArrayInputStream
-	implements IbisStreamFlags {
+public abstract class ArrayInputStream implements IbisStreamFlags {
 
+    /**
+     * Each "bunch" of data is preceded by a header array, telling for
+     * each type, how many of those must be read. This header array is
+     * read into <code>indices_short</code>.
+     */
     protected short[]	indices_short  = new short[PRIMITIVE_TYPES + 1];
 
+    /**
+     * Storage for bytes (or booleans) read.
+     */
     public byte[]	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
+
+    /**
+     * Storage for chars read.
+     */
     public char[]	char_buffer    = new char[CHAR_BUFFER_SIZE];
+
+    /**
+     * Storage for shorts read.
+     */
     public short[]	short_buffer   = new short[SHORT_BUFFER_SIZE];
+
+    /**
+     * Storage for ints read.
+     */
     public int[]	int_buffer     = new int[INT_BUFFER_SIZE];
+
+    /**
+     * Storage for longs read.
+     */
     public long[]	long_buffer    = new long[LONG_BUFFER_SIZE];
+
+    /**
+     * Storage for floats read.
+     */
     public float[]	float_buffer   = new float[FLOAT_BUFFER_SIZE];
+
+    /**
+     * Storage for doubles read.
+     */
     public double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
+
+    /**
+     * Storage for handles read.
+     */
     public int[]	handle_buffer  = new int[HANDLE_BUFFER_SIZE];
 
+    /**
+     * Current index in <code>byte_buffer</code>.
+     */
     public int		byte_index;
+
+    /**
+     * Current index in <code>char_buffer</code>.
+     */
     public int		char_index;
+
+    /**
+     * Current index in <code>short_buffer</code>.
+     */
     public int		short_index;
+
+    /**
+     * Current index in <code>int_buffer</code>.
+     */
     public int		int_index;
+
+    /**
+     * Current index in <code>long_buffer</code>.
+     */
     public int		long_index;
+
+    /**
+     * Current index in <code>float_buffer</code>.
+     */
     public int		float_index;
+
+    /**
+     * Current index in <code>double_buffer</code>.
+     */
     public int		double_index;
+
+    /**
+     * Current index in <code>handle_buffer</code>.
+     */
     public int		handle_index;
 
+    /**
+     * Number of bytes in <code>byte_buffer</code>.
+     */
     public int		max_byte_index;
+
+    /**
+     * Number of chars in <code>char_buffer</code>.
+     */
     public int		max_char_index;
+
+    /**
+     * Number of shorts in <code>short_buffer</code>.
+     */
     public int		max_short_index;
+
+    /**
+     * Number of ints in <code>int_buffer</code>.
+     */
     public int		max_int_index;
+
+    /**
+     * Number of longs in <code>long_buffer</code>.
+     */
     public int		max_long_index;
+
+    /**
+     * Number of floats in <code>float_buffer</code>.
+     */
     public int		max_float_index;
+
+    /**
+     * Number of doubles in <code>double_buffer</code>.
+     */
     public int		max_double_index;
+
+    /**
+     * Number of handles in <code>handle_buffer</code>.
+     */
     public int		max_handle_index;
 
+    /**
+     * Receive a new bunch of data.
+     *
+     * @exception IOException gets thrown when any of the reads throws it.
+     */
     public void receive() throws IOException {
 	if(ASSERTS) {
 	    int sum = (max_byte_index - byte_index) + 
@@ -122,33 +224,89 @@ public abstract class ArrayInputStream
 	}
     }
 
-
+    /**
+     * Reads (a slice of) an array of booleans in place.
+     *
+     * @param a		array where data is to be stored
+     * @param off	offset in <code>a</code> where the slice begins
+     * @param len	the number of elements to be read
+     *
+     * @exception IOException on IO error.
+     */
     public abstract void readArray(boolean[] a, int off, int len)
 	    throws IbisIOException;
 
+    /**
+     * Reads (a slice of) an array of bytes in place.
+     * See {@link #readArray(boolean[], int, int) for a description of
+     * the parameters and exceptions.
+     */
     public abstract void readArray(byte[] a, int off, int len)
 	    throws IbisIOException;
 
+    /**
+     * Reads (a slice of) an array of shorts in place.
+     * See {@link #readArray(boolean[], int, int) for a description of
+     * the parameters and exceptions.
+     */
     public abstract void readArray(short[] a, int off, int len)
 	    throws IbisIOException;
 
+    /**
+     * Reads (a slice of) an array of chars in place.
+     * See {@link #readArray(boolean[], int, int) for a description of
+     * the parameters and exceptions.
+     */
     public abstract void readArray(char[] a, int off, int len)
 	    throws IbisIOException;
 
+    /**
+     * Reads (a slice of) an array of ints in place.
+     * See {@link #readArray(boolean[], int, int) for a description of
+     * the parameters and exceptions.
+     */
     public abstract void readArray(int[] a, int off, int len)
 	    throws IbisIOException;
 
+    /**
+     * Reads (a slice of) an array of longs in place.
+     * See {@link #readArray(boolean[], int, int) for a description of
+     * the parameters and exceptions.
+     */
     public abstract void readArray(long[] a, int off, int len)
 	    throws IbisIOException;
 
+    /**
+     * Reads (a slice of) an array of floats in place.
+     * See {@link #readArray(boolean[], int, int) for a description of
+     * the parameters and exceptions.
+     */
     public abstract void readArray(float[] a, int off, int len)
 	    throws IbisIOException;
 
+    /**
+     * Reads (a slice of) an array of doubles in place.
+     * See {@link #readArray(boolean[], int, int) for a description of
+     * the parameters and exceptions.
+     */
     public abstract void readArray(double[] a, int off, int len)
 	    throws IbisIOException;
 
+    /**
+     * Returns the number of bytes that can safely be read without
+     * blocking.
+     *
+     * @return number of bytes.
+     * @exception IOException on IO error.
+     */
     public abstract int available()
 	    throws IbisIOException;
 
+    /**
+     * Tells the underlying implementation that this input stream is
+     * closing down.
+     *
+     * @exception IOException on IO error.
+     */
     public abstract void close() throws IOException;
 }
