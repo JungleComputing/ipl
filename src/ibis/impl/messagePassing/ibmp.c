@@ -297,6 +297,7 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
 void
 Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, jint out)
 {
+    ibmp_byte_output_stream_report(env);
     ibp_report(env, out);
 }
 

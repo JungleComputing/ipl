@@ -177,7 +177,7 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
 		mp_sends[cpu]++, port, cpu, ibmp_iovec_len(iov, iov_size), env));
     hdr->port = port;
     pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, PAN_MP_DELAYED);
-    IBP_VPRINTF(200, env, ("Done a Panda MP send\n"));
+    IBP_VPRINTF(800, env, ("Done a Panda MP send\n"));
     ibp_unset_JNIEnv();
 }
 
@@ -200,6 +200,8 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
     pan_mp_send_async(cpu, ibp_mp_port, iov, iov_size,
 		      proto, proto_size, PAN_MP_DELAYED,
 		      sent_upcall, arg);
+    IBP_VPRINTF(800, env, ("Done a Panda MP send %d async to %d size %d\n",
+		mp_sends[cpu], cpu, ibmp_iovec_len(iov, iov_size)));
 
     ibp_unset_JNIEnv();
 }

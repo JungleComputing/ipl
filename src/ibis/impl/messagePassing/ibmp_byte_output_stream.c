@@ -31,11 +31,15 @@ int	ibmp_byte_stream_proto_start;
 static int	sent_data = 0;
 #endif
 
+#define DISABLE_SENDER_INTERRUPTS	1
+
 #if DISABLE_SENDER_INTERRUPTS
 static int	intr_enable = 0;
 static int	intr_disable = 0;
 #endif
 static int	send_frag = 0;
+static int	send_first_frag = 0;
+static int	send_last_frag = 0;
 static int	send_msg = 0;
 static int	send_frag_skip = 0;
 
@@ -397,16 +401,16 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 //    pan_time_get(&st.t);
 
     send_frag++;
+    if (msg != NULL && msg->firstFrag) send_first_frag++;
+    if (lastFrag && lastSplitter) send_last_frag++;
 
     if (msg == NULL || (! (lastFrag && msg->firstFrag) && msg->iov_len == 0)) {
 	IBP_VPRINTF(250, env, ("Skip send of an empty non-single fragment msg seqno %d\n", msgSeqno));
 
-	if (msg != NULL && lastFrag && lastSplitter) {
+	if (msg != NULL && lastFrag && lastSplitter && msg->firstFrag) {
 #if DISABLE_SENDER_INTERRUPTS
-	    if (! msg->firstFrag) {
-		// ibp_intr_enable(env);
-		intr_enable++;
-	    }
+	    // ibp_intr_enable(env);
+	    intr_enable++;
 #endif
 	    msg->firstFrag = 1;	/* Reset for next time round */
 	}
@@ -416,13 +420,13 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     }
 
     if (lastFrag && lastSplitter) {
-#if DISABLE_SENDER_INTERRUPTS
 	if (! msg->firstFrag) {
+#if DISABLE_SENDER_INTERRUPTS
 	    // ibp_intr_enable(env);
 	    intr_enable++;
-	}
 #endif
-	msg->firstFrag = 1;	/* Reset for next time round */
+	    msg->firstFrag = 1;	/* Reset for next time round */
+	}
 	send_msg++;
     } else {
 #if DISABLE_SENDER_INTERRUPTS
@@ -703,6 +707,22 @@ ARRAY_WRITE(Double, jdouble)
 
 
 void
+ibmp_byte_output_stream_report(JNIEnv *env)
+{
+#ifdef IBP_VERBOSE
+    fprintf(stderr, "%2d: PandaBufferedOutputStream.sent data %d\n", ibmp_me, sent_data);
+#endif
+#if DISABLE_SENDER_INTERRUPTS
+    fprintf(stderr, "%2d: IBP intr enable %d disable %d send msg %d frag %d (first %d last %d skip %d) \n",
+	    ibmp_me, intr_enable, intr_disable, send_msg, send_frag, send_first_frag, send_last_frag, send_frag_skip);
+#else
+    fprintf(stderr, "%2d: IBP send msg %d frag %d (skip %d) \n",
+	    ibmp_me, send_msg, send_frag, send_frag_skip);
+#endif
+}
+
+
+void
 ibmp_byte_output_stream_init(JNIEnv *env)
 {
     cls_PandaByteOutputStream = (*env)->FindClass(env,
@@ -763,14 +783,5 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 void
 ibmp_byte_output_stream_end(JNIEnv *env)
 {
-#ifdef IBP_VERBOSE
-    fprintf(stderr, "%2d: PandaBufferedOutputStream.sent data %d\n", ibmp_me, sent_data);
-#endif
-#if DISABLE_SENDER_INTERRUPTS
-    fprintf(stderr, "%2d: IBP intr enable %d disable %d send msg %d frag %d (skip %d) \n",
-	    ibmp_me, intr_enable, intr_disable, send_msg, send_frag, send_frag_skip);
-#else
-    fprintf(stderr, "%2d: IBP send msg %d frag %d (skip %d) \n",
-	    ibmp_me, send_msg, send_frag, send_frag_skip);
-#endif
+    ibmp_byte_output_stream_report(env);
 }

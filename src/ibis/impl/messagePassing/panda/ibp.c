@@ -292,7 +292,7 @@ ibp_intr_poll(void)
     // fprintf(stderr, "Do a poll from interrupt handler\n");
     ibmp_lock_check_owned(env);
     for (i = 0; i < POLLS_PER_INTERRUPT; i++) {
-	// fprintf(stderr, "Do a poll[%d] from interrupt handler\n", i);
+	IBP_VPRINTF(2100, env, ("Do a poll[%d] from interrupt handler\n", i));
 	while (ibmp_poll(env));
     }
 
@@ -310,6 +310,8 @@ ibp_intr_lock(void)
 {
     JNIEnv *env = intpt_env_get();
 
+    IBP_VPRINTF(2100, env, ("Enter interrupt LOCK\n"));
+
 #ifdef MANTA_JNI
     MANTA_RTS_POST_BLOCK_SYS_CALL(thread_list_current_thread());
 #endif
@@ -324,6 +326,8 @@ static void
 ibp_intr_unlock(void)
 {
     JNIEnv *env = intpt_env_get();
+
+    IBP_VPRINTF(2100, env, ("Enter interrupt UNLOCK\n"));
 
     ibmp_unlock(env);
 
@@ -569,11 +573,14 @@ ibp_start(JNIEnv *env)
     IBP_VPRINTF(10, env, ("%s.%d: ibp_start\n", __FILE__, __LINE__));
 
     if (ibp_intr_enabled) {
-	// fprintf(stderr, "Don't enable Panda interrupts (yet)\n");
-	if (0 && ibmp_me == 0) {
+	if (ibmp_me == 0) {
 	    fprintf(stderr, "Enable Panda interrupts\n");
 	}
 	pan_comm_intr_enable();
+    } else {
+	if (ibmp_me == 0) {
+	    fprintf(stderr, "Don't enable Panda interrupts (yet)\n");
+	}
     }
 }
 

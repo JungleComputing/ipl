@@ -7,7 +7,7 @@ import ibis.ipl.IbisIOException;
 
 final class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
-    ObjectOutputStream obj_out;
+    ibis.io.SunSerializationOutputStream obj_out;
 
     SerializeWriteMessage() {
     }

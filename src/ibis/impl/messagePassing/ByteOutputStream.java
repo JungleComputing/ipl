@@ -34,7 +34,7 @@ final class ByteOutputStream
     void send(boolean lastFrag) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 // if (lastFrag)
-// System.err.println("L");
+// System.err.print("L");
 
 	int n = sport.splitter.length;
 

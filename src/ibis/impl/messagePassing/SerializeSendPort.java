@@ -8,7 +8,7 @@ import ibis.io.Replacer;
 
 final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 
-    ObjectOutputStream obj_out;
+    ibis.io.SunSerializationOutputStream obj_out;
 
 
     SerializeSendPort() {
@@ -78,11 +78,9 @@ final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPo
 	}
 
 	try {
+	    obj_out = new ibis.io.SunSerializationOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
 	    if (replacer != null) {
-		obj_out = new ibis.rmi.RMIOutputStream(new BufferedOutputStream((java.io.OutputStream)out), replacer);
-	    }
-	    else {
-	        obj_out = new ObjectOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
+		obj_out.setReplacer(replacer);
 	    }
 	    if (message != null) {
 		((SerializeWriteMessage)message).obj_out = obj_out;
