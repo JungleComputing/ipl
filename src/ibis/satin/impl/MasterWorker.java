@@ -3,19 +3,16 @@ package ibis.satin.impl;
 /** The master-worker distribution algorithm. */
 
 final class MasterWorker extends Algorithm {
-	Satin satin;
 
 	MasterWorker(Satin s) {
-		this.satin = s;
+	    super(s);
 	}
 
-	// @@@ cache the master victim in a variable here --Rob
 	public void clientIteration() {
 		InvocationRecord r;
 		Victim v;
 
 		if (satin.master) {
-			//			Thread.yield();
 			return;
 		}
 
@@ -24,14 +21,6 @@ final class MasterWorker extends Algorithm {
 		}
 
 		satin.stealJob(v, true); // blocks at the server side
-	}
-
-	public void stealReplyHandler(InvocationRecord ir, int opcode) {
-		synchronized (satin) {
-			satin.gotStealReply = true;
-			satin.stolenJob = ir;
-			satin.notifyAll();
-		}
 	}
 
 	void jobAdded() {
@@ -44,9 +33,5 @@ final class MasterWorker extends Algorithm {
 		synchronized (satin) {
 			satin.notifyAll();
 		}
-	}
-
-	public void printStats(java.io.PrintStream out) {
-		// Satin already prints everything..
 	}
 }

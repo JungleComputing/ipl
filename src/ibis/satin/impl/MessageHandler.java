@@ -199,7 +199,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 			try {
 				WriteMessage m = s.newMessage();
-				if (opcode == STEAL_REQUEST) {
+				if (opcode == STEAL_REQUEST || opcode == BLOCKING_STEAL_REQUEST) {
 					m.writeByte(STEAL_REPLY_FAILED);
 				} else if (opcode == ASYNC_STEAL_REQUEST) {
 					m.writeByte(ASYNC_STEAL_REPLY_FAILED);
@@ -217,6 +217,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					} else {
 						m.writeByte(ASYNC_STEAL_REPLY_FAILED);
 					}
+				} else {
+				    System.err.println("UNHANDLED opcode in handleStealRequest");
+				    System.exit(1);
 				}
 				m.send();
 				long cnt = m.finish();
@@ -270,7 +273,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				satin.invocationRecordWriteTimer.start();
 			}
 			WriteMessage m = s.newMessage();
-			if (opcode == STEAL_REQUEST) {
+			if (opcode == STEAL_REQUEST || opcode == BLOCKING_STEAL_REQUEST) {
 				m.writeByte(STEAL_REPLY_SUCCESS);
 			} else if (opcode == ASYNC_STEAL_REQUEST) {
 				m.writeByte(ASYNC_STEAL_REPLY_SUCCESS);
@@ -290,6 +293,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					System.err.println("SATIN '" + satin.ident.name()
 							+ "': EEK!! sending a job but not a table !?");
 				}
+			} else {
+			    System.err.println("UNHANDLED opcode in handleStealRequest");
+			    System.exit(1);
 			}
 
 			if (satin.sequencer != null) { // ordered communication

@@ -1,6 +1,13 @@
 package ibis.satin.impl;
 
 abstract class Algorithm {
+
+    Satin satin;
+
+    protected Algorithm(Satin s) {
+	satin = s;
+    }
+
 	/**
 	 * Handler that is called when new work is added to the queue. Default
 	 * implementation does nothing.
@@ -19,7 +26,9 @@ abstract class Algorithm {
 	 * algorithm knows about the reply (this is needed with asynchronous
 	 * communication)
 	 */
-	abstract public void stealReplyHandler(InvocationRecord ir, int opcode);
+    public void stealReplyHandler(InvocationRecord ir, int opcode) {
+	satin.gotJobResult(ir);
+    }
 
 	/**
 	 * This one is called in the exit procedure so the algorithm can clean up,
@@ -27,6 +36,9 @@ abstract class Algorithm {
 	 * nothing.
 	 */
 	public void exit() {
+		synchronized (satin) {
+			satin.notifyAll();
+		}
 	}
 
 	/**

@@ -4,10 +4,8 @@ package ibis.satin.impl;
 
 final class RandomWorkStealing extends Algorithm implements Config {
 
-	Satin satin;
-
 	RandomWorkStealing(Satin s) {
-		this.satin = s;
+	    super(s);
 	}
 
 	public void clientIteration() {
@@ -27,23 +25,7 @@ final class RandomWorkStealing extends Algorithm implements Config {
 		}
 		if (v == null)
 			return; //can happen with open world if nobody joined.
+
 		satin.stealJob(v, false);
-	}
-
-	public void stealReplyHandler(InvocationRecord ir, int opcode) {
-		synchronized (satin) {
-			satin.gotStealReply = true;
-			satin.stolenJob = ir;
-			satin.currentVictim = null;
-			satin.notifyAll();
-		}
-	}
-
-	public void exit() {
-		// Everything's synchronous, we don't have to wait for/do anything
-	}
-
-	public void printStats(java.io.PrintStream out) {
-		// Satin already prints everything..
 	}
 }

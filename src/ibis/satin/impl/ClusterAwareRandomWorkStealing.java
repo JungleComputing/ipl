@@ -7,26 +7,22 @@ class ClusterAwareRandomWorkStealing extends Algorithm
 			Protocol,
 			Config {
 
-	private Satin satin;
-
 	private boolean gotAsyncStealReply = false;
-
 	private InvocationRecord asyncStolenJob = null;
-
 	private IbisIdentifier asyncCurrentVictim = null;
 
 	private long asyncStealAttempts = 0;
 	private long asyncStealSuccess = 0;
-
-	ClusterAwareRandomWorkStealing(Satin s) {
-		this.satin = s;
-	}
 
 	/**
 	 * This means we have sent an ASYNC request, and are waiting for the reply.
 	 * These are/should only (be) used in clientIteration.
 	 */
 	private boolean asyncStealInProgress = false;
+
+	ClusterAwareRandomWorkStealing(Satin s) {
+	    super(s);
+	}
 
 	public void clientIteration() {
 		Victim localVictim;
@@ -103,12 +99,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm
 			case STEAL_REPLY_FAILED :
 			case STEAL_REPLY_SUCCESS_TABLE :
 			case STEAL_REPLY_FAILED_TABLE :
-				synchronized (satin) {
-					satin.gotStealReply = true;
-					satin.stolenJob = ir;
-					satin.currentVictim = null;
-					satin.notifyAll();
-				}
+			    satin.gotJobResult(ir);
 				break;
 			case ASYNC_STEAL_REPLY_SUCCESS :
 			case ASYNC_STEAL_REPLY_FAILED :
@@ -117,7 +108,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm
 				synchronized (satin) {
 					gotAsyncStealReply = true;
 					asyncStolenJob = ir;
-					notifyAll();
+					satin.notifyAll();
 				}
 				break;
 		}

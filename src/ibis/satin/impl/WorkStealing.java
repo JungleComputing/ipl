@@ -315,7 +315,7 @@ public abstract class WorkStealing extends Stats {
 		}
 
 		// Don't call the method, just add it to the queue
-//		q.addToHead(myJob);
+//		q.addToTail(myJob);
 		callSatinFunction(myJob);
 
 		return true;
@@ -425,4 +425,11 @@ public abstract class WorkStealing extends Stats {
 		}
 		outstandingJobs.add(r);
 	}
+
+    protected synchronized void gotJobResult(InvocationRecord ir) {
+	gotStealReply = true;
+	stolenJob = ir;
+	currentVictim = null;
+	notifyAll();
+    }
 }
