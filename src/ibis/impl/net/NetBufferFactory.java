@@ -224,6 +224,7 @@ public class NetBufferFactory {
                                 System.err.println(this + ": Install predefined allocator, mtu " + mtu);
                                 Thread.dumpStack();
                         }
+			allocator.addClient();
                 }
                 this.allocator = allocator;
         }

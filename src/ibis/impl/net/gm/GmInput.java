@@ -50,24 +50,24 @@ public final class GmInput extends NetBufferedInput {
 	/**
 	 * The buffer block allocator.
 	 */
-	private NetAllocator          allocator       = null;
+	private NetAllocator    allocator       = null;
 
-        private long                  deviceHandle   =    0;
-	private long                  inputHandle    =    0;
-        private int                   lnodeId        =   -1;
-        private int                   lportId        =   -1;
-        private int                   lmuxId         =   -1;
-        private int                   lockId         =   -1;
-        private int []                lockIds        = null;
-        private int                   rnodeId        =   -1;
-        private int                   rportId        =   -1;
-        private int                   rmuxId         =   -1;
-        private int                   blockLen       =    0;
-        private boolean               firstBlock     = true;
+        private long            deviceHandle   =    0;
+	private long            inputHandle    =    0;
+        private int             lnodeId        =   -1;
+        private int             lportId        =   -1;
+        private int             lmuxId         =   -1;
+        private int             lockId         =   -1;
+        private int []          lockIds        = null;
+        private int             rnodeId        =   -1;
+        private int             rportId        =   -1;
+        private int             rmuxId         =   -1;
+        private int             blockLen       =    0;
+        private boolean         firstBlock     = true;
 	private int		receivedMessages;
 	private int		pendingMessage;
 
-        private Driver               gmDriver     = null;
+        private Driver          gmDriver     = null;
 
 
 	native long nInitInput(long deviceHandle) throws IOException;
@@ -409,9 +409,9 @@ rcvd++;
 	    try {
                 freeBuffer();
 
-		firstBlock();
-
                 while (l > 0) {
+			firstBlock();
+
                         int _l = Math.min(l, mtu);
 
 			if (Driver.TIMINGS) Driver.t_native_post.start();
@@ -452,9 +452,9 @@ rcvd++;
 // System.err.println(this + ": read Byte array, off " + o + " len " + l);
 // Thread.dumpStack();
 
-		firstBlock();
-
                 while (l > 0) {
+			firstBlock();
+
                         int _l = Math.min(l, mtu);
 
 			if (Driver.TIMINGS) Driver.t_native_post.start();
@@ -484,12 +484,12 @@ rcvd++;
 	    try {
                 freeBuffer();
 
-		firstBlock();
-
                 l <<= 1;
                 o <<= 1;
 
                 while (l > 0) {
+			firstBlock();
+
                         int _l = Math.min(l, mtu);
 
 			if (Driver.TIMINGS) Driver.t_native_post.start();
@@ -519,12 +519,12 @@ rcvd++;
 	    try {
                 freeBuffer();
 
-		firstBlock();
-
                 l <<= 1;
                 o <<= 1;
 
                 while (l > 0) {
+			firstBlock();
+
                         int _l = Math.min(l, mtu);
 
 			int result;
@@ -560,12 +560,12 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 	    try {
 		freeBuffer();
 
-		firstBlock();
-
                 l <<= 2;
                 o <<= 2;
 
                 while (l > 0) {
+			firstBlock();
+
                         int _l = Math.min(l, mtu);
 
 			if (Driver.TIMINGS) Driver.t_native_post.start();
@@ -596,12 +596,12 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 	    try {
                 freeBuffer();
 
-		firstBlock();
-
                 l <<= 3;
                 o <<= 3;
 
                 while (l > 0) {
+			firstBlock();
+
                         int _l = Math.min(l, mtu);
 
 			if (Driver.TIMINGS) Driver.t_native_post.start();
@@ -631,12 +631,12 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 	    try {
                 freeBuffer();
 
-		firstBlock();
-
                 l <<= 2;
                 o <<= 2;
 
                 while (l > 0) {
+			firstBlock();
+
                         int _l = Math.min(l, mtu);
 
 			if (Driver.TIMINGS) Driver.t_native_post.start();
@@ -666,12 +666,12 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 	    try {
                 freeBuffer();
 
-		firstBlock();
-
                 l <<= 3;
                 o <<= 3;
 
                 while (l > 0) {
+			firstBlock();
+
                         int _l = Math.min(l, mtu);
 
 			if (Driver.TIMINGS) Driver.t_native_post.start();

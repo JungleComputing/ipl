@@ -3835,8 +3835,10 @@ mtu_init(JNIEnv *env)
 	b = (*env)->NewByteArray(env, mtu);
 	buffer  = (*env)->GetByteArrayElements(env, b, &ni_gm_copy_get_elts);
 
+#if VERBOSE
 	fprintf(stderr, "%s: NetGM native array: makes %s copy\n",
 		hostname, ni_gm_copy_get_elts ? "a" : "no");
+#endif
 
         __out__();
 
@@ -4496,8 +4498,8 @@ Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
     assert(cls_Driver != NULL);
     stats.yield = (*env)->GetStaticIntField(env, cls_Driver, fld_yields);
 
-    fprintf(stderr, "%s: Net GM: sent: eager %d; rndvz req %d data %d bytes %d intr %d yield %d\n", hostname, stats.sent_eager, stats.sent_rndvz_req, stats.sent_rndvz_data, stats.bytes, stats.intr, stats.yield);
-    fprintf(stderr, "%s: Net GM: native calls %d; locks: access %d; unlocks: array %d fast-array %d access %d input %d\n",
+    fprintf(stdout, "%s: Net GM: sent: eager %d; rndvz req %d data %d bytes %d intr %d yield %d\n", hostname, stats.sent_eager, stats.sent_rndvz_req, stats.sent_rndvz_data, stats.bytes, stats.intr, stats.yield);
+    fprintf(stdout, "%s: Net GM: native calls %d; locks: access %d; unlocks: array %d fast-array %d access %d input %d\n",
 	    hostname, stats.native, stats.access_lock_lock, stats.array_lock_unlock,
 	    stats.array_lock_unlock_fast, stats.access_lock_unlock,
 	    stats.input_lock_unlock);
@@ -4510,7 +4512,7 @@ Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
 	int i;
 
 	for (i = 0; i < sizeof(net_gm_events) / sizeof(net_gm_events[0]); i++) {
-	    fprintf(stderr, "%s: %s: %u\n", hostname, _gm_recv_event_name(i), net_gm_events[i]);
+	    fprintf(stdout, "%s: %s: %u\n", hostname, _gm_recv_event_name(i), net_gm_events[i]);
 	}
     }
 }

@@ -109,13 +109,8 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 		return retval;
 	}
 
-	/**
-	 * Unconditionaly completes the message transmission and
-	 * releases the send port.
-	 */
 	public void reset() throws IOException {
 		log.in();
-		flushBuffer();
 		super.reset();
 		log.out();
 	}

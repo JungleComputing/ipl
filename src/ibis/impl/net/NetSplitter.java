@@ -195,7 +195,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	return 0;
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -223,6 +222,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
      */
     public void free() throws IOException {
 	log.in();
+
 	if (outputMap != null) {
 	    Iterator i = outputMap.values().iterator();
 

@@ -897,8 +897,9 @@ pollerThread = null;
                         return null;
                 */
 
-                if (activeSendPortNum == null)
+                if (activeSendPortNum == null) {
                         throw new Error("no active sendPort");
+		}
 
                 NetConnection cnx = (NetConnection)connectionTable.get(activeSendPortNum);
                 if (cnx.getSendId() == null) {

@@ -36,7 +36,7 @@ public final class Driver extends NetDriver {
 
 	static final boolean	PRIORITY = TypedProperties.booleanProperty("ibis.net.gm.prioritymutex", true);
 
-	static final int        mtu = 2*1024*1024;
+	static final int        mtu = TypedProperties.intProperty("ibis.net.gm.mtu", 128 * 1024);
 
         static final int	packetMTU = 16384; // 4096;
 

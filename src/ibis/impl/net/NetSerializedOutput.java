@@ -136,6 +136,11 @@ public abstract class NetSerializedOutput extends NetOutput {
         }
 
 
+	public void reset() throws IOException {
+	    oss.reset();
+	}
+
+
         public synchronized void close(Integer num) throws IOException {
                 if (subOutput != null) {
                         subOutput.close(num);

@@ -1,5 +1,7 @@
 package ibis.impl.net;
 
+import ibis.util.TypedProperties;
+
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -7,18 +9,21 @@ import java.util.Iterator;
  *The {@link NetAllocator} class provides cached fixed-size memory block allocation.
  */
 public final class NetAllocator {
-        /* Dummy object for display synchronization */
-        private static String dummy = Runtime.getRuntime().toString();
 
         /**
          * Activate allocator stats.
          */
-        private static  final   boolean                 STATISTICS      = false;
+        private static  final   boolean                 STATISTICS      = TypedProperties.booleanProperty("ibis.net.allocator.stats", false);
 
         /**
          * Activate alloc-without-free checking.
          */
         private static  final   boolean                 DEBUG           = false;
+
+        /**
+         * Print on allocation of a new NetAllocator
+         */
+        private static  final   boolean                 VERBOSE         = false;
 
         /**
          * The default size of the cache stack.
@@ -31,10 +36,18 @@ public final class NetAllocator {
         private static  final   int                     defaultMaxBigBlock = 1;
 
         /**
-         *  If {link #blockSize} > {link #bigBlockThreshold} the maxBlock value is set to {#link defaultMaxBigBlock} instead of {#link defaultMaxBlock} to limit the risk of memory overflow.
+         * If {link #blockSize} > {link #bigBlockThreshold} the maxBlock
+	 * value is set to {#link defaultMaxBigBlock} instead of
+	 * {#link defaultMaxBlock} to limit the risk of memory overflow.
+	 *
+	 * Judicially choose the mtu of net.gm as the default value...
          */
-        private static  final   int                     bigBlockThreshold  = 64*1024;
+        private static  final   int                     bigBlockThreshold  = TypedProperties.intProperty("ibis.net.allocator.bigThr", 128*1024);
 
+	/**
+	 * Allocate buffers in chunks
+	 */
+	private static final int                        BLOCK_CHUNK        = 16;
         /**
          * Store the block caches.
          *
@@ -59,12 +72,19 @@ public final class NetAllocator {
                  *
                  * The use of a stack as the data structure means that the last freed block will be reallocated first.
                  */
-                public byte[][] stack    = null;
+                byte[][] stack          = null;
 
                 /**
                  * Store the number of blocks in the cache stack.
                  */
-                public int      stackPtr =    0;
+                int      stackPtr       = 0;
+
+		/**
+		 * The number of clients for this allocator size
+		 */
+		int      clients        = 0;
+
+		int      warningIssued  = 32 * bigBlockThreshold;
         }
 
         /**
@@ -226,35 +246,22 @@ public final class NetAllocator {
          * @param blockSize The size of the memory blocks provided by this allocator.
          */
         public NetAllocator(int blockSize) {
-                int maxBlock = (blockSize >bigBlockThreshold )?defaultMaxBigBlock:defaultMaxBlock;
 
                 if (blockSize < 1) {
                         throw new IllegalArgumentException("invalid block size");
                 }
 
-                if (maxBlock < 1) {
-                        throw new IllegalArgumentException("invalid maximum block number");
-                }
-
-                stat = new NetAllocatorStat(STATISTICS, "blockSize = "+blockSize+", maxBlock = "+maxBlock);
-
                 this.blockSize = blockSize;
 
-                synchronized(stackMap) {
-                        stack = (BlockStack)stackMap.get(new Integer(blockSize));
+		addClient();
 
-                        if (stack == null) {
-                                stack = new BlockStack();
-                                stack.stack = new byte[maxBlock][];
-                                stackMap.put(new Integer(blockSize), stack);
-                        }
-                }
+                stat = new NetAllocatorStat(STATISTICS, "blockSize = "+blockSize+", maxBlock = "+stack.stack.length);
 
                 if (DEBUG) {
                         debugMap = new HashMap();
                         Runtime.getRuntime().addShutdownHook(new Thread("NetAllocator ShutdownHook") {
 			        public void run() {
-                                        synchronized (dummy) {
+                                        synchronized (debugMap) {
                                                 shutdownHook();
                                         }
 			        }
@@ -262,6 +269,70 @@ public final class NetAllocator {
                 }
                 
         }
+
+	/**
+	 * Notify the allocator that it has one more client.
+	 * The allocator may adapt its cache size to the number of clients.
+	 */
+	void addClient() {
+	    synchronized (stackMap) {
+
+		Integer key = new Integer(blockSize);
+		stack = (BlockStack)stackMap.get(key);
+		int clients = (stack == null) ? 1 : (stack.clients + 1);
+
+                int maxBlock = (blockSize >bigBlockThreshold )?defaultMaxBigBlock:defaultMaxBlock;
+
+                if (maxBlock < 1) {
+                        throw new IllegalArgumentException("invalid maximum block number");
+                }
+
+		maxBlock = Math.max(maxBlock, clients);
+
+		if (stack == null) {
+		    stack = new BlockStack();
+		    stack.stack = new byte[maxBlock][];
+		    if (VERBOSE) {
+			System.err.println(this + ": blockSize " + blockSize
+				+ " new stack[" + maxBlock + "]");
+		    }
+		    stackMap.put(key, stack);
+		} else if (stack.stack.length < maxBlock) {
+		    maxBlock = ((maxBlock + BLOCK_CHUNK - 1) / BLOCK_CHUNK) * BLOCK_CHUNK;
+		    if (VERBOSE) {
+			System.err.println(this + ": blockSize " + blockSize
+				+ " resize stack[" + maxBlock +"]");
+		    }
+		    // Upround maxBlock to a BLOCK_CHUNK-fold to decrease
+		    // realloc costs
+		    byte[][] s = new byte[maxBlock][];
+		    System.arraycopy(stack.stack, 0, s, 0, stack.stack.length);
+		    stack.stack = s;
+		    // Don't even have to replace stack in the stackMap
+		} else {
+		    if (VERBOSE) {
+			System.err.println(this + ": blockSize " + blockSize
+				+ " reuse stack[" + maxBlock + "]");
+		    }
+		}
+		if (maxBlock * blockSize > 2 * stack.warningIssued) {
+		    stack.warningIssued = maxBlock * blockSize;
+		    System.err.println(this + ": WARNING: buffered cache for blocksize " + blockSize + " is going to exceed " + (maxBlock * blockSize / (1 << 20)) + " MB");
+		}
+
+		stack.clients++;
+	    }
+	}
+
+	/**
+	 * Notify the allocator that it has one fewer clients.
+	 * The allocator may adapt its cache size to the number of clients.
+	 */
+	void removeClient() {
+	    synchronized (stackMap) {
+		stack.clients--;
+	    }
+	}
 
         /**
          * Print some information at shutdown about the blocks that were not freed, for debugging purpose.
@@ -305,7 +376,7 @@ public final class NetAllocator {
         public byte[] allocate() {
                 byte []b = null;
 
-                synchronized(stack) {
+                synchronized (stackMap) {
                         if (stack.stackPtr == 0) {
                                 stat.incUncachedAlloc();
                                 b = new byte[blockSize];
@@ -348,7 +419,7 @@ public final class NetAllocator {
                         }
                 }
 
-                synchronized(stack) {
+                synchronized (stackMap) {
                         if (block.length != blockSize) {
                                 __.abort__("invalid block");
                         }

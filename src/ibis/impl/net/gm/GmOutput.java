@@ -95,7 +95,7 @@ public final class GmOutput extends NetBufferedOutput {
      * @param driver the GM driver instance.
      */
     GmOutput(NetPortType pt, NetDriver driver, String context)
-	throws IOException {
+	    throws IOException {
 	super(pt, driver, context);
 
 	gmDriver = (Driver)driver;
@@ -123,7 +123,8 @@ public final class GmOutput extends NetBufferedOutput {
      * @param is {@inheritDoc}
      * @param os {@inheritDoc}
      */
-    public synchronized void setupConnection(NetConnection cnx) throws IOException {
+    public synchronized void setupConnection(NetConnection cnx)
+	    throws IOException {
 	log.in();
 	if (this.rpn != null) {
 		throw new Error("connection already established");

@@ -58,13 +58,6 @@ public final class DefOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
 	 */
-        public void reset() throws IOException{
-		send();
-        }
-
-	/*
-	 * {@inheritDoc}
-	 */
 	public void sendByteBuffer(NetSendBuffer b) throws IOException {
 		Conversion.defaultConversion.int2byte(b.length, b.data, 0);
 		//System.err.println("writing "+b.length+" bytes");

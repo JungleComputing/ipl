@@ -878,11 +878,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	public void reset() throws IOException {
 		log.in();
-		send();
-		_finish();
 		output.reset();
-		emptyMsg = true;
-		output.initSend();
 		log.out();
 	}
 
