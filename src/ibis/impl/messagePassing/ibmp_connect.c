@@ -15,9 +15,10 @@
 #include "ibmp_send_port.h"
 
 
-static jmethodID	md_wakeup;
+static jmethodID	md_signal;
 
 static jfieldID		fld_connect_allowed;
+static jfieldID		fld_acks;
 
 
 static int	ibmp_connect_reply_proto_start;
@@ -75,9 +76,9 @@ ibmp_connect_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 
     ibmp_lock_check_owned(env);
 
-    IBP_VPRINTF(10, env, ("Do %sconnect ack from %d, syncer %p\n", hdr->type == IBMP_CONNECT ? "" : "dis", ibp_msg_sender(msg), hdr->syncer));
+    IBP_VPRINTF(10, env, ("Do %sconnect ack from %d, syncer %p accept %d\n", hdr->type == IBMP_CONNECT ? "" : "dis", ibp_msg_sender(msg), hdr->syncer, hdr->accept));
 
-    (*env)->CallVoidMethod(env, hdr->syncer, md_wakeup, hdr->accept);
+    (*env)->CallVoidMethod(env, hdr->syncer, md_signal, hdr->accept);
 
     (*env)->DeleteGlobalRef(env, hdr->syncer);
 
@@ -228,7 +229,7 @@ ibmp_connect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 void
 ibmp_connect_init(JNIEnv *env)
 {
-    jclass	cls_Syncer;
+    jclass	cls_ConnectAcker;
     jclass	cls_ShadowSendPort;
 
     ibmp_connect_port = ibp_mp_port_register(ibmp_connect_handle);
@@ -251,18 +252,20 @@ ibmp_connect_init(JNIEnv *env)
     fld_connect_allowed = (*env)->GetFieldID(env, cls_ShadowSendPort,
 					     "connect_allowed", "Z");
 
-    cls_Syncer = (*env)->FindClass(env, "ibis/impl/messagePassing/ConnectAcker");
-    if (cls_Syncer == NULL) {
+    cls_ConnectAcker = (*env)->FindClass(env, "ibis/impl/messagePassing/ConnectAcker");
+    if (cls_ConnectAcker == NULL) {
 	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ConnectAcker\n");
     }
 
-    md_wakeup = (*env)->GetMethodID(env,
-					  cls_Syncer,
-					  "wakeup",
+    md_signal = (*env)->GetMethodID(env,
+					  cls_ConnectAcker,
+					  "signal",
 					  "(Z)V");
-    if (md_wakeup == NULL) {
-	ibmp_error(env, "Cannot find method wakeup(Z)V\n");
+    if (md_signal == NULL) {
+	ibmp_error(env, "Cannot find method signal(Z)V\n");
     }
+
+    fld_acks = (*env)->GetFieldID(env, cls_ConnectAcker, "acks", "I");
 
 }
 

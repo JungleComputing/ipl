@@ -55,6 +55,8 @@ public class SendPort implements ibis.ipl.SendPort {
     private ConditionVariable portIsFree;
     private int newMessageWaiters;
 
+    private boolean connecting = false;
+
     /*
      * If one of the connections is a Home connection, do some polls
      * after our send to see to it that the receive side doesn't have
@@ -111,20 +113,13 @@ public class SendPort implements ibis.ipl.SendPort {
 	this(type, name, true, false);
     }
 
-    protected int addConnection(ReceivePortIdentifier rid) throws IOException {
-
-	int	my_split;
-	if (splitter == null) {
-	    my_split = 0;
-	} else {
-	    my_split = splitter.length;
-	}
+    protected synchronized int addConnection(ReceivePortIdentifier rid) throws IOException {
 
 	if (rid.cpu < 0) {
 	    throw new IllegalArgumentException("invalid ReceivePortIdentifier");
 	}
 
-	Ibis.myIbis.checkLockNotOwned();
+	Ibis.myIbis.checkLockOwned();
 
 	if (DEBUG) {
 	    System.out.println(name + " connecting to " + rid);
@@ -134,29 +129,29 @@ public class SendPort implements ibis.ipl.SendPort {
 	    throw new PortMismatchException("Cannot connect ports of different PortTypes: " + type.name() + " vs. " + rid.type());
 	}
 
-	int n;
+	int my_split;
 
 	if (splitter == null) {
-	    n = 0;
+	    my_split = 0;
 	} else {
-	    n = splitter.length;
+	    my_split = splitter.length;
 	}
 
-	ReceivePortIdentifier[] v = new ReceivePortIdentifier[n + 1];
-	for (int i = 0; i < n; i++) {
+	ReceivePortIdentifier[] v = new ReceivePortIdentifier[my_split + 1];
+	for (int i = 0; i < my_split; i++) {
 	    if (splitter[i].cpu == rid.cpu && splitter[i].port == rid.port) {
 		throw new Error("Double connection between two ports not allowed");
 	    }
 	    v[i] = splitter[i];
 	}
-	v[n] = rid;
+	v[my_split] = rid;
 	splitter = v;
 
-	ConnectAcker[] s = new ConnectAcker[n + 1];
-	for (int i = 0; i < n; i++) {
+	ConnectAcker[] s = new ConnectAcker[my_split + 1];
+	for (int i = 0; i < my_split; i++) {
 	    s[i] = syncer[i];
 	}
-	s[n] = new ConnectAcker();
+	s[my_split] = new ConnectAcker();
 	syncer = s;
 
 	if (connectedCpu == null) {
@@ -342,6 +337,10 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 	    throws IOException {
 
 	Ibis.myIbis.lock();
+	if (connecting) {
+	    throw new Error("No concurrent connecting");
+	}
+	connecting = true;
 	try {
 	    ReceivePortIdentifier rid = (ReceivePortIdentifier)receiver;
 
@@ -372,14 +371,14 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 			 syncer[my_split], null, messageCount,
 			 group, out.getMsgSeqno());
 	    if (DEBUG) {
-		System.err.println(Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident);
+		System.err.println(Ibis.myIbis.myCpu + "-" + Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident + " syncer[" + my_split + "] " + syncer[my_split]);
 	    }
 
 	    if (! syncer[my_split].waitPolling(timeout)) {
 		throw new ConnectionTimedOutException("No connection to " + rid);
 	    }
 	    if (! syncer[my_split].accepted()) {
-		throw new ConnectionRefusedException("No connection to " + rid);
+		throw new ConnectionRefusedException("No connection to " + rid + " syncer[" + my_split + "] " + syncer);
 	    }
 
 	    if (ident.ibis().equals(receiver.ibis())) {
@@ -390,6 +389,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 // Thread.dumpStack();
 	    }
 	} finally {
+	    connecting = false;
 	    Ibis.myIbis.unlock();
 	}
     }

@@ -91,7 +91,7 @@ final class ReceivePortNameServerClient
 	    System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
 	}
 	bind.bound = true;
-	bind.wakeup();
+	bind.signal();
     }
 
     private native void ns_bind(String name, byte[] recvPortId);
@@ -115,7 +115,7 @@ final class ReceivePortNameServerClient
 
 	private ReceivePortIdentifier ri;
 
-	private static final int BACKOFF_MILLIS = 1000;
+	private static final int BACKOFF_MILLIS = 100;
 
 	public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout)
 		throws IOException {
@@ -199,7 +199,7 @@ final class ReceivePortNameServerClient
 	if (rcvePortId != null) {
 	    try {
 		lookup.ri = (ReceivePortIdentifier)Conversion.byte2object(rcvePortId);
-		lookup.wakeup();
+		lookup.signal();
 	    } catch (ClassNotFoundException e) {
 		System.err.println("Cannot deserialize ReceivePortId");
 		Thread.dumpStack();

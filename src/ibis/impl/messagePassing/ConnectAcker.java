@@ -7,6 +7,7 @@ public class ConnectAcker extends Syncer {
 
     public void setAcks(int acks) {
 	this.acks = acks;
+	this.accepted = false;
     }
 
     public boolean satisfied() {
@@ -17,14 +18,17 @@ public class ConnectAcker extends Syncer {
 	return accepted;
     }
 
-    public void wakeup() {
+    public void signal() {
+	if (acks <= 0) {
+	    throw new Error(this + ": wakeup but acks " + acks); 
+	}
 	--acks;
-	super.wakeup();
+	wakeup();
     }
 
-    public void wakeup(boolean accepted) {
+    public void signal(boolean accepted) {
 	this.accepted = accepted;
-	wakeup();
+	signal();
     }
 
 }

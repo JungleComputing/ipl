@@ -71,7 +71,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 	    fragmentTail.next = f;
 	}
 	fragmentTail = f;
-	fragmentArrived.wakeup();
+	fragmentArrived.signal();
     }
 
 

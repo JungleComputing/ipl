@@ -32,13 +32,27 @@ public abstract class Syncer implements PollClient {
 
     public abstract boolean satisfied();
 
-    public void wakeup() {
+    /**
+     * Override this to modify the satisfaction condition of this Syncer
+     * and call wakeup as a chained function.
+     */
+    public void signal() {
+	wakeup();
+    }
+
+    /**
+     * Wake up one waiting thread. satisfied() need not be true.
+     */
+    public final void wakeup() {
 	if (waiters > 0) {
 	    cv.cv_signal();
 	}
     }
 
-    public void wakeupAll() {
+    /**
+     * Wake up all waiting threads. satisfied() need not be true.
+     */
+    public final void wakeupAll() {
 	if (waiters > 0) {
 	    cv.cv_bcast();
 	}

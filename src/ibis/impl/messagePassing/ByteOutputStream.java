@@ -176,8 +176,7 @@ final class ByteOutputStream
     /* Called from native */
     private void finished_upcall() {
 	Ibis.myIbis.checkLockOwned();
-	outstandingFrags--;
-	sendComplete.wakeup();
+	sendComplete.signal();
 	if (fragWaiting) {
 	    fragCv.cv_signal();
 	}
@@ -188,6 +187,12 @@ final class ByteOutputStream
 
 	public boolean satisfied() {
 	    return outstandingFrags == 0;
+	}
+
+	public void signal() {
+	    Ibis.myIbis.checkLockOwned();
+	    outstandingFrags--;
+	    wakeup();
 	}
 
     }

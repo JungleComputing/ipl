@@ -98,7 +98,7 @@ final public class SerializeSendPort extends SendPort {
 	    for (int i = 0; i < splitter.length; i++) {
 		ReceivePortIdentifier r = splitter[i];
 		if (DEBUG) {
-		    System.err.println(Thread.currentThread() + "Now do native connect call to " + r + "; me = " + ident + " group " + group + " seqno " + out.getMsgSeqno());
+		    System.err.println(Thread.currentThread() + "Now do native connect call to " + r + "; delayed_syncer " + connectAcker + " me = " + ident + " group " + group + " seqno " + out.getMsgSeqno());
 		    // System.err.println("Ibis.myIbis " + Ibis.myIbis);
 		    // System.err.println("Ibis.myIbis.identifier() " + Ibis.myIbis.identifier());
 		    // System.err.println("Ibis.myIbis.identifier().name() " + Ibis.myIbis.identifier().name());

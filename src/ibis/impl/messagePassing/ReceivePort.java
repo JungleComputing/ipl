@@ -1,5 +1,7 @@
 package ibis.impl.messagePassing;
 
+import ibis.ipl.ReceivePortConnectUpcall;
+
 import ibis.util.ConditionVariable;
 import ibis.util.TypedProperties;
 
@@ -60,7 +62,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     private volatile boolean stop = false;
 
-    private ibis.ipl.ReceivePortConnectUpcall connectUpcall;
+    private ReceivePortConnectUpcall connectUpcall;
     private boolean allowConnections = false;
     private AcceptThread acceptThread;
     private boolean allowUpcalls = false;
@@ -113,7 +115,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     ReceivePort(PortType type,
 	        String name,
 		ibis.ipl.Upcall upcall,
-		ibis.ipl.ReceivePortConnectUpcall connectUpcall,
+		ReceivePortConnectUpcall connectUpcall,
 		boolean connectionAdministration)
 	    throws IOException {
 	Ibis.myIbis.registerReceivePort(this);
@@ -233,7 +235,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	Ibis.myIbis.checkLockOwned();
 	connections.remove(sp);
 	if (connections.size() == 0) {
-	    shutdown.wakeup();
+	    shutdown.signal();
 	}
 	if (connectUpcall != null) {
 	    Ibis.myIbis.unlock();
@@ -319,12 +321,12 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
 	if (arrivedWaiters > 0 && ! mePolling) {
 // System.err.println("Receiveport signalled");
-	    messageArrived.wakeup();
+	    messageArrived.signal();
 	}
 
 	if (upcall != null) {
 //	    This wakeup() call is not needed. It is already done above. (wakeup does a
-//	    messageArrived.wakeup()).
+//	    messageArrived.signal()).
 //	    wakeup();
 
 	    if (Ibis.STATISTICS) {
@@ -389,7 +391,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
 	if (queueFront != null) {
 	    if (arrivedWaiters > 0) {
-		messageArrived.wakeup();
+		messageArrived.signal();
 	    }
 	    else if (upcall != null && availableUpcallThread == 0) {
 // System.err.println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
@@ -627,6 +629,13 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	    return livingPorts == 0;
 	}
 
+	public void signal() {
+	    livingPorts--;
+	    if (livingPorts == 0) {
+		wakeup();
+	    }
+	}
+
     }
 
 
@@ -679,10 +688,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	}
 
 	Ibis.myIbis.lock();
-	livingPorts--;
-	if (livingPorts == 0) {
-	    portCounter.wakeup();
-	}
+	portCounter.signal();
     }
 
 

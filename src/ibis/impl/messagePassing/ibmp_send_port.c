@@ -25,7 +25,7 @@ static jfieldID		fld_connect_allowed;
 
 static int		global_group_count = 0;
 
-static jmethodID	md_wakeup;
+static jmethodID	md_signal;
 
 static jfieldID		fld_group;
 
@@ -82,9 +82,9 @@ ibmp_group_id_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     ibmp_group_id_hdr_p hdr = ibmp_group_id_hdr(proto);
 
-    IBP_VPRINTF(10, env, ("%2d: receive group id %d for sendport %p\n", ibmp_me, hdr->group_id, hdr->port));
+    IBP_VPRINTF(10, env, ("receive group id %d for sendport %p\n", hdr->group_id, hdr->port));
     (*env)->SetIntField(env, hdr->port, fld_group, hdr->group_id);
-    (*env)->CallVoidMethod(env, hdr->syncer, md_wakeup);
+    (*env)->CallVoidMethod(env, hdr->syncer, md_signal);
     (*env)->DeleteGlobalRef(env, hdr->port);
     (*env)->DeleteGlobalRef(env, hdr->syncer);
 
@@ -204,6 +204,7 @@ ibmp_send_port_new(JNIEnv *env,
 {
     jobject s;
     jthrowable exc;
+    jboolean accept;
 
     IBP_VPRINTF(900, env, ("Now call this method createShadowSendPort...\n"));
     s = (*env)->CallStaticObjectMethod(env,
@@ -219,10 +220,13 @@ ibmp_send_port_new(JNIEnv *env,
     ibp_set_JNIEnv(env);
 
     if ((exc = (*env)->ExceptionOccurred(env)) != NULL) {
+fprintf(stderr, "%2d: Uh oh --- createShadowSendPort has thrown an exception\n", ibmp_me);
 	(*env)->ExceptionDescribe(env);
     }
 
-    return (*env)->GetBooleanField(env, s, fld_connect_allowed);
+    accept = (*env)->GetBooleanField(env, s, fld_connect_allowed);
+if (! accept)
+fprintf(stderr, "%2d: Uh oh -- ShadowSendPort has a 'false' connect_allowed field\n", ibmp_me);
 }
 
 
@@ -241,7 +245,7 @@ ibmp_send_port_disconnect(JNIEnv *env,
 				 syncer,
 				 messageCount);
 
-    /* The call to md_createSSP may have mucked up ibp_JNIEnv. Restore it. */
+    /* The call to md_disconnet may have mucked up ibp_JNIEnv. Restore it. */
     ibp_set_JNIEnv(env);
 }
 
@@ -304,12 +308,12 @@ ibmp_send_port_init(JNIEnv *env)
     }
     cls_Syncer = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Syncer);
 
-    md_wakeup = (*env)->GetMethodID(env,
+    md_signal = (*env)->GetMethodID(env,
 				      cls_Syncer,
-				      "wakeup",
+				      "signal",
 				      "()V");
-    if (md_wakeup == NULL) {
-	ibmp_error(env, "Cannot find method wakeup()V\n");
+    if (md_signal == NULL) {
+	ibmp_error(env, "Cannot find method signal()V\n");
     }
 
     ibmp_bind_group_port = ibp_mp_port_register(ibmp_bind_group_handle);
