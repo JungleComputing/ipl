@@ -116,11 +116,16 @@ class ByteOutputStream
     }
 
     public void wakeup() {
-	sendComplete.cv_signal();
+	if (outstandingFrags == 0) {
+// System.err.println("ByteOutputStream wakeup");
+		sendComplete.cv_signal();
+	}
     }
 
     public void poll_wait(long timeout) {
+// System.err.println("ByteOutputStream poll_wait");
 	sendComplete.cv_wait(timeout);
+// System.err.println("ByteOutputStream woke up");
     }
 
     private Thread me;
