@@ -1,0 +1,13 @@
+<project
+    name="ibis.apps.satin.tsp"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+
+</project>
+
+

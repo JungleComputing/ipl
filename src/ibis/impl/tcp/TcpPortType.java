@@ -47,6 +47,8 @@ class TcpPortType implements PortType, Config {
 				serializationType = SERIALIZATION_IBIS;
 			} else if (ser.equals("manta")) {
 				// backwards compatibility ...
+				System.err.println("manta serialization is depricated -> use ibis");
+				new Exception().printStackTrace();
 
 //				System.err.println("serializationType = SERIALIZATION_IBIS");
 				serializationType = SERIALIZATION_IBIS;

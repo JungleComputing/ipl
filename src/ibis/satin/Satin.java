@@ -11,8 +11,9 @@ import java.util.Vector;
 import java.util.Enumeration;
 
 import java.io.IOException;
+import java.io.Serializable;
 
-//@@@ because a method has an outstandingSpawns list, the spawn counter is no longer needed!
+//@@@ because a method has an outstandingSpawns list, the spawn counter is no longer needed! --Rob
 
 /* 
    One important invariant: there is only one thread per machine that spawns
@@ -40,6 +41,9 @@ import java.io.IOException;
 */
 
 public final class Satin implements Config, Protocol, ResizeHandler {
+
+	static Satin me = null;
+
 	private Ibis ibis;
 	IbisIdentifier ident; // used in messageHandler
 
@@ -107,6 +111,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	long abortMessages = 0;
 	private long stealAttempts = 0;
 	private long stealSuccess = 0;
+	private long tupleMsgs = 0;
+	private long tupleBytes = 0;
 
 	long stolenJobs = 0; // used in messageHandler
 	long stealRequests = 0; // used in messageHandler
@@ -140,6 +146,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 
 	public Satin(String[] args) {
+
+		if(me != null) {
+			throw new IbisError("multiple satin instances are currently not supported");
+		}
+		me = this;
+
 		if(stealTimer == null) {
 			System.err.println("Native timers not found, using (less accurate) java timers.");
 		}
@@ -415,6 +427,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				    "': ABORT_STATS 1: aborts = " + aborts +
 				    " abort msgs = " + abortMessages +
 				    " aborted jobs = " + abortedJobs);
+		}
+		if(TUPLE_STATS && stats) {
+			out.println("SATIN '" + ident.name() + 
+				    "': TUPLE_STATS: tuple msgs: " + tupleMsgs +
+				    ", bytes = " + tupleBytes);
 		}
 		if(STEAL_STATS && stats) {
 			out.println("SATIN '" + ident.name() + 
@@ -745,11 +762,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			throw new IbisError("EEEK, trying to steal while an unhandled stolen job is available.");
 		}
 /*
-		synchronized(this) {
-			q.print(System.err);
-			outstandingJobs.print(System.err);
-			onStack.print(System.err);
-		}
+  synchronized(this) {
+  q.print(System.err);
+  outstandingJobs.print(System.err);
+  onStack.print(System.err);
+  }
 */
 		if(STEAL_TIMING) {
 			stealTimer.start();
@@ -782,7 +799,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeByte(synchronous ? STEAL_REQUEST :
 					       ASYNC_STEAL_REQUEST);
 			writeMessage.send();
-			writeMessage.finish();
 			if(STEAL_STATS) {
 				if(inDifferentCluster(v.ident)) {
 					interClusterMessages++;
@@ -792,6 +808,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					intraClusterBytes += writeMessage.getCount();
 				}
 			}
+			writeMessage.finish();
 		} catch (IOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 					   "': Got Exception while sending " +
@@ -1140,10 +1157,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		} else {
 			if(ABORT_DEBUG) {
 				out.println("SATIN '" + ident.name() + 
-						  "': got result for aborted job, ignoring.");
+					    "': got result for aborted job, ignoring.");
 			} else {
 				out.println("SATIN '" + ident.name() + 
-						  "': got result for unknown job!");
+					    "': got result for unknown job!");
 				System.exit(1);
 			}
 		}
@@ -1657,6 +1674,39 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.err.println("AssertLocked failed!: ");
 			new Exception().printStackTrace();
 			System.exit(1);
+		}
+	}
+
+
+        /* ------------------- tuple space stuff ---------------------- */
+
+	protected synchronized void broadcastTuple(String key, Serializable data) {
+
+		if(TUPLE_DEBUG) {
+			System.err.println("SATIN '" + ident.name() + 
+					   "': bcasting tuple" + key);
+		}
+
+		for(int i=0; i<victims.size(); i++) {
+			try {
+				SendPort s = victims.getPort(i);
+				WriteMessage writeMessage = s.newMessage();
+				writeMessage.writeByte(TUPLE_ADD);
+				writeMessage.writeObject(key);
+				writeMessage.writeObject(data);
+				writeMessage.send();
+
+				if(TUPLE_STATS) {
+					tupleMsgs++;
+					tupleBytes += writeMessage.getCount();
+				}
+				writeMessage.finish();
+
+			} catch (IOException e) {
+				System.err.println("SATIN '" + ident.name() + 
+						   "': Got Exception while sending tuple update: " + e);
+				System.exit(1);
+			}
 		}
 	}
 }

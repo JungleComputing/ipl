@@ -12,4 +12,5 @@ interface Protocol {
 	static final byte ASYNC_STEAL_REPLY_SUCCESS = 9;
 	static final byte JOB_RESULT =               10;
 	static final byte ABORT =                    11;
+	static final byte TUPLE_ADD =                12;
 }

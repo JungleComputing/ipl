@@ -1,6 +1,7 @@
 package ibis.satin;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import ibis.ipl.*;
 
@@ -246,6 +247,18 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 	}
 
+	private void handleTupleAdd(ReadMessage m) {
+		try {
+			String key = (String) m.readObject();
+			Serializable data = (Serializable) m.readObject();
+			SatinTupleSpace.remoteAdd(key, data);
+		} catch (Exception e) {
+			System.err.println("SATIN '" + satin.ident.name() + 
+					   "': Got Exception while reading tuple update: " + e);
+			System.exit(1);
+		}
+	}
+
 	public void upcall(ReadMessage m) {
 		SendPortIdentifier ident;
 
@@ -298,6 +311,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				break;
 			case ABORT:
 				handleAbort(m);
+				break;
+			case TUPLE_ADD:
+				handleTupleAdd(m);
 				break;
 			default:
 				System.err.println("SATIN '" + satin.ident.name() + 

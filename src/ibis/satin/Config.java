@@ -6,6 +6,7 @@ public interface Config {
 	static final boolean SPAWN_STATS = true;
 	static final boolean STEAL_STATS = true;
 	static final boolean ABORT_STATS = false;
+	static final boolean TUPLE_STATS = true;
 
 	/* Enable or disable timings */
 	static final boolean STEAL_TIMING = false;
@@ -38,4 +39,5 @@ public interface Config {
 	static final boolean SPAWN_DEBUG = false;
 	static final boolean INLET_DEBUG = false;
 	static final boolean ABORT_DEBUG = false;
+	static final boolean TUPLE_DEBUG = true;
 }
