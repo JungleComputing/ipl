@@ -454,6 +454,8 @@ public class SuffixArray implements Configuration, Magic {
         }
         StepList steps = selectBestSteps( top );
 
+        System.out.println( "Choices: " + steps.getLength() );
+
         // For now, just pick the best move.
         Step mv = steps.getBestStep();
         if( mv != null && mv.getGain()>0 ){

@@ -21,11 +21,12 @@ public class StepList {
     public void add( Step s )
     {
         int gain = s.getGain();
+
         if( ix<steps.length ){
             steps[ix++] = s;
         }
         else {
-            int i = steps.length-1;
+            int i = ix-1;
 
             if( steps[i].getGain()>=gain ){
                 // The new one does not even improve on the worst
@@ -38,13 +39,13 @@ public class StepList {
         // Now move the entry up until it has reached its rightful
         // position.
         int pos = ix;
-        while( ix>1 ){
-            ix--;
-            if( steps[ix].getGain()>steps[ix-1].getGain() ){
+        while( pos>1 ){
+            pos--;
+            if( steps[pos].getGain()>steps[pos-1].getGain() ){
                 // Move the entry up.
-                Step tmp = steps[ix];
-                steps[ix] = steps[ix-1];
-                steps[ix-1] = tmp;
+                Step tmp = steps[pos];
+                steps[pos] = steps[pos-1];
+                steps[pos-1] = tmp;
             }
             else {
                 break;
@@ -62,4 +63,7 @@ public class StepList {
         }
         return steps[0];
     }
+
+    /** Returns the length of the step list. */
+    public int getLength() { return ix; }
 }
