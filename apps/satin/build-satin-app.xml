@@ -22,7 +22,11 @@
 	<if>
 	    <isreference refid="src.excludes-ref"/>
 	    <then>
-		<property name="src.excludes" refid="src.excludes-ref"/>
+		<property name="pwd" location="."/>
+		<pathconvert pathsep="${line.separator}" property="src.excludes" refid="src.excludes-ref">
+		    <map from="${pwd}${file.separator}" to=""/>
+		</pathconvert>
+		<echo message="${src.excludes}" file="${build}/excludes"/>
 	    </then>
 	</if>
 
@@ -31,7 +35,7 @@
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
 	    <include name="**/*.java"/>
-	    <exclude name="${src.excludes}" if="src.excludes"/>
+	    <excludesfile name="${build}/excludes" if="src.excludes"/>
 	</javac>
     </target>
 
