@@ -173,12 +173,27 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     public void writeClass(Class ref) throws IOException {
-	writeUTF(ref.getName());
+	if (ref == null) {
+	    writeHandle(NUL_HANDLE);
+	    return;
+	}
+	int handle = references.find(ref);
+	if (handle == 0) {
+	    handle = next_handle++;
+	    references.put(ref, handle);
+	    writeType(classClass);
+	    writeUTF(ref.getName());
+	} else {
+	    writeHandle(handle);
+	}
     }
 
     public void writeBoolean(boolean v) throws IOException {
 	if (out.byte_index + 1 == BYTE_BUFFER_SIZE) {
 	    partial_flush();
+	}
+	if (DEBUG) {
+	    System.out.println("writeBoolean: " + v);
 	}
 	out.byte_buffer[out.byte_index++] = (byte) (v ? 1 : 0);
     }
@@ -559,6 +574,32 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    pop_current_object();
 	} catch (IllegalAccessException e) {
 	    throw new RuntimeException("Serializable failed for : " + clazz.getName());
+	}
+    }
+
+    public void writeString(String ref) throws IOException {
+	if (ref == null) {
+	    if (DEBUG) {
+		System.out.println("writeString: --> null");
+	    }
+	    writeHandle(NUL_HANDLE);
+	    return;
+	}
+
+	int handle = references.find(ref);
+	if (handle == 0) {
+	    handle = next_handle++;
+	    references.put(ref, handle);
+	    writeType(stringClass);
+	    if (DEBUG) {
+		System.out.println("writeString: " + ref);
+	    }
+	    writeUTF(ref);
+	} else {
+	    if (DEBUG) {
+		System.out.println("writeString: found handle " + handle);
+	    }
+	    writeHandle(handle);
 	}
     }
 

@@ -1,6 +1,6 @@
 package ibis.io;
 
-class IbisTypeInfo { 
+class IbisTypeInfo implements IbisStreamFlags { 
     Class clazz;		
     boolean isArray;
     boolean isString;
@@ -24,10 +24,31 @@ class IbisTypeInfo {
 	    gen = null;
 	}
 	else {
+	    Class gen_class = null;
+	    String name = clazz.getName() + "_ibis_io_Generator";
 	    try {
-		Class gen_class = Class.forName(clazz.getName() + "_ibis_io_Generator");
-		gen = (Generator) gen_class.newInstance();
-	    } catch(Exception e) {
+		gen_class = Class.forName(name);
+	    } catch (ClassNotFoundException e) {
+		// The loading of the class failed.
+		// Maybe, Ibis was loaded using the primordial classloader
+		// and the needed class was not.
+		try {
+		    gen_class = Thread.currentThread().getContextClassLoader()
+				.loadClass(name);
+		} catch(ClassNotFoundException e1) {
+		    if (DEBUG) {
+			System.out.println("Class " + name + " not found!");
+		    }
+		}
+	    }
+	    if (gen_class != null) {
+		try {
+		    gen = (Generator) gen_class.newInstance();
+		} catch(Exception e) {
+		    if (DEBUG) {
+			System.out.println("Could not instantiate " + name);
+		    }
+		}
 	    }
 	}
 

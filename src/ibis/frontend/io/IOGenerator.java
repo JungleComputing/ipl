@@ -318,7 +318,7 @@ public class IOGenerator {
 		il = new InstructionList();
 		il.append(new RETURN());
 
-		MethodGen read_cons = new MethodGen(Constants.ACC_PROTECTED,
+		MethodGen read_cons = new MethodGen(Constants.ACC_PUBLIC,
 						    Type.VOID,
 						    ibis_input_stream_arrtp,
 						    new String[] { "is" },
@@ -332,7 +332,7 @@ public class IOGenerator {
 	    else if (hasReadObject()) {
 		il = new InstructionList();
 		il.append(new RETURN());
-		MethodGen readobjectWrapper = new MethodGen(Constants.ACC_PROTECTED,
+		MethodGen readobjectWrapper = new MethodGen(Constants.ACC_PUBLIC,
 							    Type.VOID,
 							    ibis_input_stream_arrtp,
 							    new String[] { "is" },
@@ -454,10 +454,10 @@ public class IOGenerator {
 		if (field_class != null && field_class.isFinal()) isfinal = true;
 	    }
 	    if (isfinal &&
+		( isIbisSerializable(field_class) ||
+		  (isSerializable(field_class) && force_generated_calls)) &&
 		(! (Repository.implementationOf(field_class, "java.rmi.Remote") ||
-		    Repository.implementationOf(field_class, "ibis.rmi.Remote"))) &&
-		!field_type.getSignature().startsWith("Ljava/")) {
-
+		    Repository.implementationOf(field_class, "ibis.rmi.Remote")))) {
 		write_il.append(new ALOAD(1));
 		write_il.append(new ALOAD(0));
 		write_il.append(factory.createFieldAccess(classname,
@@ -637,6 +637,26 @@ public class IOGenerator {
 		return serialPersistentWrites(write_gen);
 	    }
 
+	    /* handle the primitive fields */
+
+	    for (int i=0;i<fields.length;i++) {
+		Field field = fields[i];
+
+		/* Don't send fields that are STATIC, or TRANSIENT */
+		if (! (field.isStatic() ||
+		       field.isTransient())) {
+		    Type field_type = Type.getType(field.getSignature());
+
+		    if (field_type instanceof BasicType) {
+			if (verbose) System.out.println("    writing basic field " + field.getName() + " of type " + field.getSignature());
+
+			write_il.append(writeInstructions(field));
+		    }
+		}
+	    }
+
+	    /* handle the reference fields */
+
 	    for (int i=0;i<fields.length;i++) {
 		Field field = fields[i];
 
@@ -645,51 +665,19 @@ public class IOGenerator {
 		       field.isTransient())) {
 		    Type field_type = Type.getType(field.getSignature());
 
-		    if ((field_type instanceof ReferenceType) &&
-			! field_type.equals(Type.STRING) &&
-			! field_type.equals(java_lang_class_type)) {
-			write_il.append(writeReferenceField(field));
+		    if (field_type instanceof ReferenceType) {
+			if (verbose) System.out.println("    writing field " + field.getName() + " of type " + field.getSignature());
+			if (! field_type.equals(Type.STRING) &&
+			    ! field_type.equals(java_lang_class_type)) {
+			    write_il.append(writeReferenceField(field));
+			}
+			else {
+			    write_il.append(writeInstructions(field));
+			}
 		    }
 		}
 	    }
 
-	    /* then handle java.lang.String and java.lang.Class */
-
-	    for (int i=0;i<fields.length;i++) {
-		Field field = fields[i];
-
-		/* Don't send fields that are STATIC or TRANSIENT  */
-		if (! (field.isStatic() ||
-		       field.isTransient())) {
-		    String sig = field.getSignature();
-		    Type field_type = Type.getType(sig);
-
-		    if (field_type.equals(Type.STRING) || field_type.equals(java_lang_class_type)) {
-			if (verbose) System.out.println("    writing field " + field.getName() + " of type " + sig);
-
-			write_il.append(writeInstructions(field));
-		    }
-		}
-	    }
-
-	    /* then handle the primitive fields */
-
-	    for (int i=0;i<fields.length;i++) {
-		Field field = fields[i];
-
-		/* Don't send fields that are STATIC, or TRANSIENT */
-		if (! (field.isStatic() ||
-		       field.isTransient())) {
-		    String sig = field.getSignature();
-		    Type field_type = Type.getType(sig);
-
-		    if (field_type instanceof BasicType) {
-			if (verbose) System.out.println("    writing basic field " + field.getName() + " of type " + field_type.getSignature());
-
-			write_il.append(writeInstructions(field));
-		    }
-		}
-	    }
 	    return write_il;
 	}
 
@@ -710,8 +698,7 @@ public class IOGenerator {
 		( hasIbisConstructor(field_class) ||
 		  (isSerializable(field_class) && force_generated_calls)) &&
 		(! (Repository.implementationOf(field_class, "java.rmi.Remote") ||
-		    Repository.implementationOf(field_class, "ibis.rmi.Remote"))) &&
-		!field_type.getSignature().startsWith("Ljava/")) {
+		    Repository.implementationOf(field_class, "ibis.rmi.Remote")))) {
 
 		read_il.append(new ALOAD(1));
 		read_il.append(factory.createInvoke(ibis_input_stream_name,
@@ -924,41 +911,7 @@ public class IOGenerator {
 		return serialPersistentReads(from_constructor, read_gen);
 	    }
 
-	    for (int i=0;i<fields.length;i++) {
-		Field field = fields[i];
-
-		/* Don't send fields that are STATIC or TRANSIENT */
-		if (! (field.isStatic() ||
-		       field.isTransient())) {
-		    Type field_type = Type.getType(field.getSignature());
-
-		    if ((field_type instanceof ReferenceType) &&
-			! field_type.equals(Type.STRING) &&
-			! field_type.equals(java_lang_class_type)) {
-			read_il.append(readReferenceField(field, from_constructor));
-		    }
-		}
-	    }
-
-	    /* then handle Strings */
-
-	    for (int i=0;i<fields.length;i++) {
-		Field field = fields[i];
-
-		/* Don't send fields that are STATIC or TRANSIENT  */
-		if (! (field.isStatic() ||
-		       field.isTransient())) {
-		    Type field_type = Type.getType(field.getSignature());
-
-		    if (field_type.equals(Type.STRING) || field_type.equals(java_lang_class_type)) {
-			if (verbose) System.out.println("    writing field " + field.getName() + " of type " + field_type.getSignature());
-
-			read_il.append(readInstructions(field, from_constructor));
-		    }
-		}
-	    }
-
-	    /* then handle the primitive fields */
+	    /* handle the primitive fields */
 
 	    for (int i=0;i<fields.length;i++) {
 		Field field = fields[i];
@@ -975,6 +928,31 @@ public class IOGenerator {
 		    }
 		}
 	    }
+
+	    /* handle the reference fields. */
+
+	    for (int i=0;i<fields.length;i++) {
+		Field field = fields[i];
+
+		/* Don't send fields that are STATIC or TRANSIENT */
+		if (! (field.isStatic() ||
+		       field.isTransient())) {
+		    Type field_type = Type.getType(field.getSignature());
+
+		    if (verbose) System.out.println("    writing field " + field.getName() + " of type " + field.getSignature());
+
+		    if (field_type instanceof ReferenceType) {
+			if (! field_type.equals(Type.STRING) &&
+			    ! field_type.equals(java_lang_class_type)) {
+			    read_il.append(readReferenceField(field, from_constructor));
+			}
+			else {
+			    read_il.append(readInstructions(field, from_constructor));
+			}
+		    }
+		}
+	    }
+
 	    return read_il;
 	}
 
@@ -1526,7 +1504,7 @@ public class IOGenerator {
 	primitiveSerialization.put(Type.FLOAT, new SerializationInfo("writeFloat", "readFloat", "readFieldFloat", Type.FLOAT, Type.FLOAT, true));
 
 	primitiveSerialization.put(Type.DOUBLE, new SerializationInfo("writeDouble", "readDouble", "readFieldDouble", Type.DOUBLE, Type.DOUBLE, true));
-	primitiveSerialization.put(Type.STRING, new SerializationInfo("writeUTF", "readUTF", "readFieldUTF", Type.STRING, Type.STRING, true));
+	primitiveSerialization.put(Type.STRING, new SerializationInfo("writeString", "readString", "readFieldString", Type.STRING, Type.STRING, true));
 	primitiveSerialization.put(java_lang_class_type, new SerializationInfo("writeClass", "readClass", "readFieldClass", java_lang_class_type, java_lang_class_type, true));
 
 	referenceSerialization = new SerializationInfo("writeObject", "readObject", "readFieldObject", Type.OBJECT, Type.OBJECT, false);

@@ -134,7 +134,14 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	while (in.byte_index == in.max_byte_index) {
 	    receive();
 	}
-	return (in.byte_buffer[in.byte_index++] == 1);
+	byte b = in.byte_buffer[in.byte_index++];
+	if (DEBUG) {
+	    System.out.println("readBoolean: got " + b);
+	    if (b != 0 && b != 1) {
+		System.out.println("readBoolean: expected 0 or 1, but got " + b);
+	    }
+	}
+	return (b == 1);
     }
 
     public byte readByte() throws IOException {
@@ -268,8 +275,33 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     public Class readClass() throws IOException, ClassNotFoundException {
-	String name = readUTF();
-	return Class.forName(name);
+	int handle = readHandle();
+
+	while (handle == RESET_HANDLE) {
+	    reset();
+	    handle = readHandle();
+	}
+
+	if (handle == NUL_HANDLE) {
+	    return null;
+	}
+
+	if ((handle & TYPE_BIT) == 0) {
+	    /* Ah, it's a handle. Look it up, return the stored ptr */
+	    Class o = (Class) objects.get(handle);
+
+	    if (DEBUG) {
+		System.err.println("readobj: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
+	    }
+	    return o;
+	}
+
+	IbisTypeInfo t = readType(handle & TYPE_MASK);
+
+	String s = readUTF();
+	Class c = Class.forName(s);
+	addObjectToCycleCheck(c);
+	return c;
     }
 
     private void readArrayHeader(Class clazz, int len)
@@ -382,9 +414,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
     public void addObjectToCycleCheck(Object o) {
 	objects.add(next_object, o);
+/* No print here. The object may not have been initialized yet, so a toString may fail.
 	if (DEBUG) {
 	    System.out.println("objects[" + next_object + "] = " + (o == null ? "null" : o));
 	}
+*/
 	next_object++;
     }
 
@@ -582,8 +616,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	setFieldBoolean(ref, fieldname, readBoolean());
     }
 
-    public void readFieldUTF(Object ref, String fieldname) throws IOException {
-	setFieldObject(ref, fieldname, "Ljava/lang/String;", readUTF());
+    public void readFieldString(Object ref, String fieldname) throws IOException {
+	setFieldObject(ref, fieldname, "Ljava/lang/String;", readString());
     }
 
     public void readFieldClass(Object ref, String fieldname) throws IOException, ClassNotFoundException {
@@ -685,7 +719,19 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		    setFieldObject(ref, fieldname, fieldtype, readObject());
 		}
 		else {
-		    t.serializable_fields[temp].set(ref, readObject());
+		    Object o = readObject();
+		    if (DEBUG) {
+			if (o == null) {
+			    System.out.println("Assigning null to field " +
+				    t.serializable_fields[temp].getName());
+			}
+			else {
+			    System.out.println("Assigning an object of type " +
+				    o.getClass().getName() + " to field " +
+				    t.serializable_fields[temp].getName());
+			}
+		    }
+		    t.serializable_fields[temp].set(ref, o);
 		}
 		temp++;
 	    }
@@ -792,6 +838,41 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	current_getfield = getfield_stack[stack_size];
     }
 
+    public String readString() throws IOException {
+	int handle = readHandle();
+
+	while (handle == RESET_HANDLE) {
+	    reset();
+	    handle = readHandle();
+	}
+
+	if (handle == NUL_HANDLE) {
+	    if (DEBUG) {
+		System.out.println("readString: --> null");
+	    }
+	    return null;
+	}
+
+	if ((handle & TYPE_BIT) == 0) {
+	    /* Ah, it's a handle. Look it up, return the stored ptr */
+	    String o = (String) objects.get(handle);
+
+	    if (DEBUG) {
+		System.err.println("readString: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
+	    }
+	    return o;
+	}
+
+	IbisTypeInfo t = readType(handle & TYPE_MASK);
+
+	String s = readUTF();
+	if (DEBUG) {
+	    System.out.println("readString returns " + s);
+	}
+	addObjectToCycleCheck(s);
+	return s;
+    }
+
     public Object doReadObject() throws IOException, ClassNotFoundException {
 
 	/*
@@ -816,7 +897,14 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    Object o = objects.get(handle_or_type);
 
 	    if (DEBUG) {
-		System.err.println("readobj: handle = " + (handle_or_type - CONTROL_HANDLES) + " obj = " + o);
+		try {
+		    System.err.println("readobj: handle = " + (handle_or_type - CONTROL_HANDLES) + " obj = " + o);
+		} catch (Exception e) {
+		    System.out.println("Object print got an exception:" + e);
+		    System.out.println("Stacktrace: ------------");
+		    e.printStackTrace();
+		    System.out.println("------------------------");
+		}
 	    }
 	    return o;
 	}
