@@ -75,6 +75,7 @@ public class ConditionVariable {
     }
 
     static public void report(java.io.PrintStream out) {
+	if (! Monitor.DEBUG) return;
 	Monitor.report(out);
 	out.println("Condition variables: wait " + waits +
 		    " timed wait " + timed_waits +

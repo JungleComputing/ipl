@@ -98,7 +98,7 @@ public class Monitor {
 
 
     static public void report(java.io.PrintStream out) {
-	out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " <waiters> " + ((double)unlock_waiters) / unlock_waiting);
+	if (DEBUG) out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " <waiters> " + ((double)unlock_waiters) / unlock_waiting);
     }
 
 }
