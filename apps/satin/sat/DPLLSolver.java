@@ -18,7 +18,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
-    private static final boolean putProblemInTuple = true;
+    private static final boolean problemInTuple = true;
     private static int label = 0;
 
     /**
@@ -181,10 +181,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	if( p.isSatisfied() ){
 	    return new SATSolution( p.buildInitialAssignments() );
 	}
-        if( putProblemInTuple ){
-            ibis.satin.SatinTupleSpace.add( "problem", p );
-            p = null;
-        }
         DPLLSolver s = new DPLLSolver();
 
         // Now recursively try to find a solution.
@@ -216,6 +212,11 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    if( traceSolver ){
 		System.err.println( "Top level: branching on variable " + nextvar );
 	    }
+
+            if( problemInTuple ){
+                ibis.satin.SatinTupleSpace.add( "problem", p );
+                p = null;
+            }
 
 	    DPLLContext negctx = (DPLLContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );

@@ -35,7 +35,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             if( traceLearning ){
                 System.err.println( "Adding conflict clause " + cl );
             }
-            //p.addConflictClause( cl );
+            p.addConflictClause( cl );
         }
     }
 
@@ -183,7 +183,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        if( needMoreJobs() ){
+        if( true ){
+        //if( needMoreJobs() ){
             try {
                 // We have variable 'nextvar' to branch on.
                 SATContext firstctx = (SATContext) ctx.clone();
@@ -288,7 +289,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	}
 	catch( SATResultException r ){
 	    if( r.s == null ){
-		System.err.println( "A null solution thrown???" );
+		System.err.println( "A null result thrown???" );
 	    }
 	    res = r.s;
 	    s.abort();
