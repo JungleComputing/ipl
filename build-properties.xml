@@ -170,9 +170,11 @@
     <!--
 	Auxilliary target to run applications from ant
     -->
-    <target name="run">
-	<property name="IBIS" value="panda"/>
-	<property name="SER"  value="ibis"/>
+    <target name="run" depends="property-init">
+	<property name="IBIS"      value="panda"/>
+	<property name="SER"       value="ibis"/>
+	<property name="HOSTS"     value="2"/>
+	<property name="HOSTNAMES" value="athlon-win2000 p3"/>
 	<exec outputproperty="hostname" executable="hostname"/>
 	<echo message="My hostname is ${hostname}"/>
 	<if>
@@ -196,8 +198,8 @@
 	    <sysproperty key="ibis.name_server.port"  value="7654"/>
 	    <sysproperty key="ibis.name_server.key"   value="rutger.0001"/>
 	    <sysproperty key="ibis.pool.host_number"  value="${host.number}"/>
-	    <sysproperty key="ibis.pool.total_hosts"  value="2"/>
-	    <sysproperty key="ibis.pool.host_names"   value="athlon-win2000 p3"/>
+	    <sysproperty key="ibis.pool.total_hosts"  value="${HOSTS}"/>
+	    <sysproperty key="ibis.pool.host_names"   value="${HOSTNAMES}"/>
 	    <sysproperty key="ibis.name"              value="${IBIS}"/>
 	    <sysproperty key="ibis.serialization"     value="${SER}"/>
 	    <arg line="${ARGS}"/>

@@ -189,6 +189,11 @@
 	    <include name="ibis/ipl/impl/nameServer/**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
+	<java	classname="ibis.ipl.impl.nameServer.NameServer"
+		fork="true">
+	    <classpath refid="default.classpath"/>
+	    <arg line="-port 7654"/>
+	</java>
     </target>
 
 
