@@ -291,7 +291,7 @@
 	</pathconvert>
 	<echo	level="debug"
 		message="Now try iogen over files ${iogen-one-files}"/>
-	<antcall target="iogen-files">
+	<antcall inheritRefs="true" target="iogen-files">
 	    <param name="iogen-files" value="${iogen-one-files}"/>
 	    <param name="iogen-build" value="${rewritten-classlibs}"/>
 	</antcall>

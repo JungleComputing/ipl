@@ -20,91 +20,90 @@
 		optimize
 		debug
 
-	    property c.compiler is one of the list in cpp-tasks cc.
+	    property c.compiler is one from the list in cpp-tasks cc.
 	    Suggestions:
 		gcc			if unix
-		msvc			if windows
-    -->
-
-    <property file="${ibis}/build-properties"/>
-
-    <property environment="env"/>
-    <property name="JAVA_HOME"    value="${env.JAVA_HOME}"/>
-
-
-    <!--
-	Choose a value from
-	    debug
-	    optimize
-    -->
-    <property name="optimization" value="optimize"/>
-
-
-
-    <!--
-	Defines shared by the whole build
+		msvc or bcc		if windows
     -->
 
 
-    <target name="contrib-init" unless="contrib.initialized">
-	<echo level="verbose"
-		message="ant-contrib home is ${package.home.ant-contrib}"/>
-	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
-	    <classpath>
-		<pathelement location="${package.home.ant-contrib}/ant-contrib-0.3.jar"/>
-	    </classpath>
-	</taskdef>
-	<property name="contrib.initialized" value="true"/>
+
+    <target name="property-init" depends="property-config-init,property-compiler-init,contrib-init,proprietary-tasks">
     </target>
 
 
-    <target name="proprietry-tasks">
-	<mkdir dir="${ibis}/ant-tasks/tasks"/>
-	<javac
-		srcdir="${ibis}/ant-tasks"
-		destdir="${ibis}/ant-tasks/tasks">
-	    <include name="**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-	<taskdef
-		name="maplibrary"
-		classname="MapLibraryName"
-		classpath="${ibis}/ant-tasks/tasks"/>
-    </target>
-
-    <target name="property-init" depends="contrib-init,proprietry-tasks">
+    <target name="property-config-init">
 	<!--
-	    Find the switches that indicate debug/optimize
+	    Defines shared by all projects under ibis
 	-->
-	<condition property="native.debug">
-	    <equals arg1="${optimization}" arg2="debug"/>
-	</condition>
-	<condition property="native.optimize">
-	    <equals arg1="${optimization}" arg2="optimize"/>
-	</condition>
-	<condition property="java.debug">
-	    <equals arg1="${optimization}" arg2="debug"/>
-	</condition>
-	<condition property="java.optimize">
-	    <equals arg1="${optimization}" arg2="optimize"/>
-	</condition>
 
-	<condition property="java.debug.value"   value="true">
+	<property file="${ibis}/build-properties"/>
+
+	<property environment="env"/>
+	<property name="JAVA_HOME"    value="${env.JAVA_HOME}"/>
+
+	<property name="ibisBuild"   location="${ibis}/build"/>
+    </target>
+
+
+    <target name="property-compiler-init" depends="property-config-init,contrib-init">
+
+	<path id="default.classpath">
+	    <pathelement path="${ibisBuild}"/>
+	    <pathelement path="${build}"/>
+	    <pathelement path="${package.home.bcel-additions}"/>
+	    <pathelement path="${package.home.bcel}/bcel-5.1.jar"/>
+	</path>
+
+	<echo message="Now set default.classpath to ${default.classpath}"/>
+
+	<!--
+	    Choose a value from
+		debug
+		optimize
+	<property name="optimization" value="optimize"/>
+	<property name="optimization" value="debug"/>
+	-->
+	<property name="optimization" value="optimize"/>
+
+	<!--
+	    if you want debug info in java or native, define these properties
+	-->
+	<property name="java.debug" value="true"/>
+	<property name="native.debug" value="true"/>
+
+	<if>
+	    <equals arg1="${optimization}" arg2="optimize"/>
+	    <then>
+		<property name="java.optimize" value="true"/>
+		<property name="java.optimize.value" value="true"/>
+		<property name="native.optimize" value="true"/>
+		<property name="native.optimize.value" value="true"/>
+	    </then>
+	    <else>
+		<!-- The tric is to NOT set native.optimize or java.optimize -->
+		<property name="java.optimize.value" value="false"/>
+		<property name="native.optimize.value" value="false"/>
+	    </else>
+	</if>
+	<if>
 	    <isset property="java.debug"/>
-	</condition>
-	<condition property="java.debug.value"   value="false">
-	    <not>
-		<isset property="java.debug"/>
-	    </not>
-	</condition>
-	<condition property="native.debug.value" value="true">
+	    <then>
+		<property name="java.debug.value" value="true"/>
+	    </then>
+	    <else>
+		<property name="java.debug.value" value="false"/>
+	    </else>
+	</if>
+	<if>
 	    <isset property="native.debug"/>
-	</condition>
-	<condition property="native.debug.value" value="false">
-	    <not>
-		<isset property="native.debug"/>
-	    </not>
-	</condition>
+	    <then>
+		<property name="native.debug.value" value="true"/>
+	    </then>
+	    <else>
+		<property name="native.debug.value" value="false"/>
+	    </else>
+	</if>
 
 	<!--
 	    Choose the C compiler of your liking.
@@ -133,16 +132,44 @@
 	</if>
     </target>
 
-    <property name="ibisBuild"   location="${ibis}/build"/>
 
-    <path id="default.classpath">
-	<pathelement path="${ibisBuild}"/>
-	<pathelement path="${build}"/>
-	<pathelement path="${package.home.bcel-additions}"/>
-	<pathelement path="${package.home.bcel}/bcel-5.1.jar"/>
-    </path>
+    <target
+	    name="contrib-init"
+	    unless="contrib.initialized"
+	    depends="property-config-init">
+	<echo level="verbose"
+		message="ant-contrib home is ${package.home.ant-contrib}"/>
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	    <classpath>
+		<pathelement location="${package.home.ant-contrib}/ant-contrib-0.3.jar"/>
+	    </classpath>
+	</taskdef>
+	<property name="contrib.initialized" value="true"/>
+    </target>
 
 
+    <target
+	    name="proprietary-tasks"
+	    unless="proprietary-initialized"
+	    depends="property-config-init">
+	<mkdir dir="${ibis}/ant-tasks/tasks"/>
+	<javac
+		srcdir="${ibis}/ant-tasks"
+		destdir="${ibis}/ant-tasks/tasks">
+	    <include name="**/*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+	<taskdef
+		name="maplibrary"
+		classname="MapLibraryName"
+		classpath="${ibis}/ant-tasks/tasks"/>
+	<property name="proprietary-initialized" value="true"/>
+    </target>
+
+
+    <!--
+	Auxilliary target to run applications from ant
+    -->
     <target name="run">
 	<property name="IBIS" value="panda"/>
 	<property name="SER"  value="ibis"/>

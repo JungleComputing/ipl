@@ -13,7 +13,7 @@
     </target>
 
     <target name="satin-init"
-	    depends="property-satin-build"/>
+	    depends="property-satin-build,property-init"/>
 
     <target name="-satin-one">
 	<property name="satin-class-path" refid="default.classpath"/>
@@ -67,7 +67,8 @@
 	<foreach
 		list="${satin-classes}"
 		target="-satin-one"
-		param="satin-class">
-	</foreach>
+		param="satin-class"
+		inheritall="true"
+		inheritrefs="true"/>
 
     </target>

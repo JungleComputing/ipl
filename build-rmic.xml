@@ -13,7 +13,7 @@
     </target>
 
     <target name="rmic-init"
-	    depends="property-rmic-build"/>
+	    depends="property-rmic-build,property-init"/>
 
     <target name="rmic"
 	depends="rmic-init">

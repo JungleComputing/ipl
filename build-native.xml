@@ -22,8 +22,9 @@
     </target>
 
     <target name="javah-init"
-	    depends="property-javah-build">
+	    depends="property-javah-build,property-init">
 	<mkdir dir="${build}/include"/>
+	<echo level="warning" message="default.classpath = ${default.classpath}"/>
     </target>
 
 
@@ -179,7 +180,10 @@
 		    list="${classes.native}"
 		    delimiter=" "
 		    target="-one-javah"
-		    param="native.class"/>
+		    param="native.class"
+		    inheritall="true"
+		    inheritrefs="true"
+		    />
 	</then>
 	</if>
     </target>
@@ -305,13 +309,14 @@
 	    </targetfiles>
 
 	    <sequential>
-		<cc	debug="${native.debug.value}"
+		<cc	debug="${native.debug}"
 			objdir="${build}/ibis/${native-path}"
 			outfile="${build}/lib/${local.lib}"
 			outtype="${cc.outtype}"
 			name="${c.compiler}"
 			warnings="severe">
-		    <fileset dir="${native.dir}" includes="*.c"/>
+		    <fileset dir="${native.dir}" includes="*.c" unless="native.src"/>
+		    <fileset dir="${native.dir}" includes="${native.src}" if="native.src"/>
 		    <defineset>
 			<define name="NDEBUG" if="native.optimize"/>
 		    </defineset>
