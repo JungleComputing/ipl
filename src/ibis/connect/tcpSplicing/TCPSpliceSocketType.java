@@ -3,6 +3,7 @@ package ibis.connect.tcpSplicing;
 import ibis.connect.socketFactory.BrokeredSocketFactory;
 import ibis.connect.socketFactory.PlainTCPSocketType;
 import ibis.connect.socketFactory.SocketType;
+import ibis.connect.socketFactory.ConnectProperties;
 import ibis.connect.util.MyDebug;
 
 import java.io.BufferedInputStream;

@@ -6,17 +6,24 @@ import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
+import ibis.impl.net.NetIO;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPollInterruptible;
+import ibis.impl.net.NetPort;
+import ibis.impl.net.NetReceivePort;
+import ibis.impl.net.NetSendPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+
+import ibis.connect.socketFactory.ConnectProperties;
 
 import ibis.io.Conversion;
 
 import ibis.util.TypedProperties;
 
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.DynamicProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -142,10 +149,40 @@ public final class TcpInput extends NetBufferedInput
 		OutputStream brokered_out =
 		    cnx.getServiceLink().getOutputSubStream(this, "tcp_blk_brokering");
 
+		NetPort port = cnx.getPort();
+
+		final DynamicProperties p;
+		if (port != null) {
+		    if (port instanceof NetReceivePort) {
+			p = ((NetReceivePort) port).properties();
+		    }
+		    else if (port instanceof NetSendPort) {
+			p = ((NetSendPort) port).properties();
+		    }
+		    else {
+			p = null;
+		    }
+		} else {
+		    p = null;
+		}
+
+		final NetIO nn = this;
+		ConnectProperties props = 
+		    new ConnectProperties() {
+			    public String getProperty(String name) {
+				if (p != null) {
+				    String result = (String) p.find(name);
+				    if (result != null) return result;
+				}
+				return nn.getProperty(name);
+			    }
+			};
+
 		tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
 			brokered_in,
 			brokered_out,
-			true);
+			true,
+			props);
 
 		brokered_in.close();
 		brokered_out.close();

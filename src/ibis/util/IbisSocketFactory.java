@@ -1,5 +1,7 @@
 package ibis.util;
 
+import ibis.connect.socketFactory.ConnectProperties;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -187,11 +189,13 @@ public abstract class IbisSocketFactory {
      * The default implementation just returns this socket.
      * @param s socket to negotiate on
      * @param isServer must be set to true on one side, false on the other.
+     * @param p connection properties, can be used to pass on socket-dependent
+     *   parameters.
      * @return the socket created
      * @exception IOException is thrown when the socket could not
      *   be created for some reason.
      */
-    public Socket createBrokeredSocket(Socket s, boolean isServer) throws IOException {
+    public Socket createBrokeredSocket(Socket s, boolean isServer, ConnectProperties p) throws IOException {
 	return s;
     }
 
@@ -202,11 +206,13 @@ public abstract class IbisSocketFactory {
      * @param in input stream
      * @param out output stream
      * @param isServer must be set to true on one side, false on the other.
+     * @param p connection properties, can be used to pass on socket-dependent
+     *   parameters.
      * @return the socket created
      * @exception IOException is thrown when the socket could not
      *   be created for some reason.
      */
-    public Socket createBrokeredSocket(InputStream in, OutputStream out, boolean isServer) throws IOException {
+    public Socket createBrokeredSocket(InputStream in, OutputStream out, boolean isServer, ConnectProperties p) throws IOException {
 	return null;
     }
 

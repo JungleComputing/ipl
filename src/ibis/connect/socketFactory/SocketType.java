@@ -4,13 +4,21 @@ import ibis.connect.util.ConnProps;
 
 public abstract class SocketType
 {
-    public interface ConnectProperties {
-	public String getProperty(String name);
-    }
-
     public static class DefaultConnectProperties 
-	implements ConnectProperties {
+	    implements ConnectProperties {
+	ConnectProperties prevail = null;
+	public DefaultConnectProperties() {
+	}
+	
+	public DefaultConnectProperties(ConnectProperties prevail) {
+	    this.prevail = prevail;
+	}
+
 	public String getProperty(String name) {
+	    if (prevail != null) {
+		String retval = prevail.getProperty(name);
+		if (retval != null) return retval;
+	    }
 	    return System.getProperties().getProperty(ConnProps.PROPERTY_PREFIX+name);
 	}
     }

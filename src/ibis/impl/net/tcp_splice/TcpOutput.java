@@ -1,7 +1,7 @@
 package ibis.impl.net.tcp_splice;
 
 import ibis.connect.socketFactory.ExtSocketFactory;
-import ibis.connect.socketFactory.SocketType;
+import ibis.connect.socketFactory.ConnectProperties;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
@@ -124,8 +124,8 @@ public final class TcpOutput extends NetBufferedOutput {
 		{
 		    // Socket creation
 		    final NetIO nn = this;
-		    SocketType.ConnectProperties props = 
-			new SocketType.ConnectProperties() {
+		    ConnectProperties props = 
+			new ConnectProperties() {
 				public String getProperty(String name) {
 				    return nn.getProperty(name);
 				}

@@ -11,6 +11,8 @@ import ibis.ipl.IbisError;
 import ibis.util.IbisSocketFactory;
 import ibis.util.ThreadPool;
 
+import ibis.connect.socketFactory.ConnectProperties;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -102,7 +104,17 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			s = socketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), timeout);
 
 			if (use_brokered_links) {
-			    Socket s1 = socketFactory.createBrokeredSocket(s, false);
+			    ObjectOutputStream obj_out = new ObjectOutputStream(new DummyOutputStream(s.getOutputStream()));
+			    obj_out.writeObject(receiver);
+			    obj_out.close();
+			    final DynamicProperties p = sp.properties();
+			    ConnectProperties props =
+				new ConnectProperties() {
+				    public String getProperty(String name) {
+					return (String) p.find(name);
+				    }
+				};
+			    Socket s1 = socketFactory.createBrokeredSocket(s, false, props);
 			    if (s1 != s) {
 				s.close();
 				s = s1;
@@ -387,7 +399,19 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 
 
 				if (use_brokered_links) {
-				    Socket s1 = socketFactory.createBrokeredSocket(s, true);
+				    InputStream in = s.getInputStream();
+				    ObjectInputStream obj_in  = new ObjectInputStream(new DummyInputStream(in));
+				    TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in.readObject();
+				    obj_in.close();
+				    TcpReceivePort rp = findReceivePort(receive);
+				    final DynamicProperties p = rp == null ? null : rp.properties();
+				    ConnectProperties props =
+					new ConnectProperties() {
+					    public String getProperty(String name) {
+						return (String) p.find(name);
+					    }
+					};
+				    Socket s1 = socketFactory.createBrokeredSocket(s, true, props);
 				    if (s != s1) {
 					s.close();
 					s = s1;

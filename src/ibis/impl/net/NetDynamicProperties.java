@@ -1,4 +1,4 @@
-package ibis.impl.tcp;
+package ibis.impl.net;
 
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisException;
@@ -6,7 +6,7 @@ import ibis.ipl.IbisException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-public class TcpDynamicProperties extends DynamicProperties { 
+public class NetDynamicProperties extends DynamicProperties { 
     Hashtable props = new Hashtable();
     
     /**

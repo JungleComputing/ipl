@@ -238,7 +238,7 @@ public class ExtSocketFactory
     private static Socket createBrokeredSocket(InputStream in, OutputStream out,
 					       boolean hintIsServer,
 					       SocketType t,
-					       SocketType.ConnectProperties props)
+					       ConnectProperties props)
 	throws IOException
     {
 	Socket s = null;
@@ -264,7 +264,7 @@ public class ExtSocketFactory
     {
 	SocketType t = parallel ? loadSocketType("ParallelStreams") :
 				  defaultBrokeredLink;
-	SocketType.ConnectProperties props =
+	ConnectProperties props =
 	    new SocketType.DefaultConnectProperties();
 	if(t == null)
 	    throw new Error("no socket type found!");
@@ -273,7 +273,7 @@ public class ExtSocketFactory
 
     public static Socket createBrokeredSocket(InputStream in, OutputStream out,
 					      boolean hintIsServer,
-					      SocketType.ConnectProperties props)
+					      ConnectProperties props)
 	throws IOException
     {
 	SocketType t = null;
@@ -282,18 +282,19 @@ public class ExtSocketFactory
 	if(props != null) {
 	    st = props.getProperty("SocketType");
 	}
+	props = new SocketType.DefaultConnectProperties(props);
 	if(st == null) {
-	    s = createBrokeredSocket(in, out, hintIsServer);
+	    t = parallel ? loadSocketType("ParallelStreams") :
+				      defaultBrokeredLink;
 	} else {
 	    if(MyDebug.VERBOSE()) {
 		System.err.println("# Selected socket type '"+st+"' through properties.");
 	    }
 	    t = findSocketType(st);
-	    if(t == null)
-		throw new Error("Socket type not found: "+st);
-	    s = createBrokeredSocket(in, out, hintIsServer, t, props); 
 	}
-	return s;
+	if(t == null)
+	    throw new Error("Socket type not found: "+st);
+	return createBrokeredSocket(in, out, hintIsServer, t, props); 
     }
 
     /* Helper function to automatically design the 'Brokered' part 

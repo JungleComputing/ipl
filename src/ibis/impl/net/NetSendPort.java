@@ -34,6 +34,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         private NetIbis               ibis                   = null;
 
 	/**
+	 * The dynamic properties of the port.
+	 */
+	private NetDynamicProperties	props		     = null;
+
+	/**
 	 * The port settings.
 	 */
 	private NetPortType           type       	     = null;
@@ -426,6 +431,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          */
         private void initPassiveState() throws IOException {
                 log.in();
+		props = new NetDynamicProperties();
                 initIdentifier();
                 log.out();
         }
@@ -648,14 +654,12 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	}
 
 	/**
-	 * Unimplemented.
-	 *
-	 * @return null.
+	 * {@inheritDoc}
 	 */
 	public DynamicProperties properties() {
                 log.in();
                 log.out();
-		return DynamicProperties.NoDynamicProperties;
+		return props;
 	}
 
 	/**

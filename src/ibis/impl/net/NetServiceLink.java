@@ -872,7 +872,7 @@ public final class NetServiceLink {
                  */
                 public synchronized int read() throws IOException {
                         if (closed && avail == 0) {
-                                throw new EOFException("stream closed");
+                                return -1;
                         }
 
                         int result = 0;
@@ -912,14 +912,14 @@ public final class NetServiceLink {
                  */
                 public synchronized int read(byte[] buf, int off, int len) throws IOException {
                         if (closed && avail == 0) {
-                                throw new EOFException("stream closed");
+                                return -1;
                         }
 
                         int result = 0;
 
                         while (len > 0) {
                                 if (avail == 0) {
-                                        if (closed) {
+                                        if (closed || result > 0) {
                                                 break;
                                         }
 

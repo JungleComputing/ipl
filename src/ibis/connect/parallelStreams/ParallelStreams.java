@@ -3,6 +3,7 @@ package ibis.connect.parallelStreams;
 import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.connect.socketFactory.BrokeredSocketFactory;
 import ibis.connect.socketFactory.SocketType;
+import ibis.connect.socketFactory.ConnectProperties;
 import ibis.connect.util.MyDebug;
 
 import java.io.DataInputStream;
@@ -27,11 +28,12 @@ public class ParallelStreams
     private int sendBlock = 0;
     private int recvPos = 0;
     private int recvBlock = 0;
+    private ConnectProperties props;
 
     private boolean readerBusy = false;
     private boolean writerBusy = false;
 
-    public ParallelStreams(int n, int b)
+    public ParallelStreams(int n, int b, ConnectProperties props)
     {
 	if(MyDebug.VERBOSE()) {
 	    System.err.println("# ParallelStreams: building link- numWays = "+n+"; blockSize = "+b);
@@ -41,6 +43,7 @@ public class ParallelStreams
 	sockets = new Socket[n];
 	ins  = new InputStream[n];
 	outs = new OutputStream[n];
+	this.props = props;
     }
 
     public void connect(InputStream in, OutputStream out, boolean hint)
@@ -65,7 +68,7 @@ public class ParallelStreams
 	for(i=0; i<numWays; i++) {
 	    out.flush();
 	    MyDebug.trace("PS: creating link #"+i+" (hint="+hint+")");
-	    Socket s = f.createBrokeredSocket(in, out, hint, new SocketType.DefaultConnectProperties());
+	    Socket s = f.createBrokeredSocket(in, out, hint, props);
 	    MyDebug.trace("PS: link #"+i+" done ");
 	    sockets[i] = s;
 	    ins[i] = s.getInputStream();

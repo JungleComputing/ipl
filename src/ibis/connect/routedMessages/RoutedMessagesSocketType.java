@@ -4,6 +4,7 @@ import ibis.connect.socketFactory.BrokeredSocketFactory;
 import ibis.connect.socketFactory.ClientServerSocketFactory;
 import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.connect.socketFactory.SocketType;
+import ibis.connect.socketFactory.ConnectProperties;
 
 import java.io.IOException;
 import java.io.InputStream;

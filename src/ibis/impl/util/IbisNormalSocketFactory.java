@@ -3,6 +3,7 @@ package ibis.impl.util;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.util.IbisSocketFactory;
 import ibis.util.IPUtils;
+import ibis.connect.socketFactory.ConnectProperties;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -170,7 +171,8 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 
 	public Socket createBrokeredSocket(InputStream in,
 					   OutputStream out,
-					   boolean isServer) throws IOException {
+					   boolean isServer,
+					   ConnectProperties p) throws IOException {
 	    Socket s = null;
 	    if(isServer) {
 		ServerSocket server = this.createServerSocket(0, 1, IPUtils.getLocalHostAddress());

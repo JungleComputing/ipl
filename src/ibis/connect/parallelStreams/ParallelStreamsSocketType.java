@@ -2,6 +2,7 @@ package ibis.connect.parallelStreams;
 
 import ibis.connect.socketFactory.BrokeredSocketFactory;
 import ibis.connect.socketFactory.SocketType;
+import ibis.connect.socketFactory.ConnectProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +33,7 @@ public class ParallelStreamsSocketType
 	int blockSize = ParallelStreams.defaultBlockSize;
 	if(sbs != null)
 	    blockSize = Integer.parseInt(sbs);
-	s = new PSSocket(numWays, blockSize, in, out, hint);
+	s = new PSSocket(numWays, blockSize, in, out, hint, p);
 	return s; 
     }
 }

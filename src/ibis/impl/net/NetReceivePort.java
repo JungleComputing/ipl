@@ -245,6 +245,11 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
          */
         private NetIbis               ibis                   = null;
 
+	/**
+	 * The dynamic properties of the port.
+	 */
+	private NetDynamicProperties	props		     = null;
+
         /**
          * The name of the port.
          */
@@ -680,6 +685,7 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
                 connectionLock   = new NetMutex(true);
                 inputLock        = new ibis.util.Monitor();
                 finishMutex      = new NetMutex(true);
+		props		 = new NetDynamicProperties();
                 log.out();
         }
 
@@ -887,11 +893,13 @@ pollerThread = null;
                 return _receive();
         }
 
-
+        /**
+         * {@inheritDoc}
+         */
         public DynamicProperties properties() {
                 log.in();
                 log.out();
-                return DynamicProperties.NoDynamicProperties;
+                return props;
         }
 
         /**

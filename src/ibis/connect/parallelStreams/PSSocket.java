@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
+import ibis.connect.socketFactory.ConnectProperties;
+
 
 public class PSSocket extends Socket
 {
@@ -18,10 +20,10 @@ public class PSSocket extends Socket
      */
     protected PSSocket(int numWays, int blockSize,
 		       InputStream ctrlIs, OutputStream ctrlOs,
-		       boolean hint)
+		       boolean hint, ConnectProperties p)
 	throws IOException
     {
-	ps = new ParallelStreams(numWays, blockSize);
+	ps = new ParallelStreams(numWays, blockSize, p);
 	ps.connect(ctrlIs, ctrlOs, hint);
 	in = new PSInputStream();
 	out = new PSOutputStream();
