@@ -41,11 +41,21 @@ public class Splice
 	NumServer() {
 	    try {
 		server = new ServerSocket(serverPort);
+		MyDebug.trace("# Splice: numserver created");
+		Runtime.getRuntime().addShutdownHook(new Thread("NumServer killer") {
+		    public void run() {
+			try {
+			    server.close();
+			} catch(Exception e) {
+			}
+		    }
+		});
 	    } catch(Exception e) {
 		// Assumption here is that another JVM has created this server.
 		// System.out.println("Could not create server socket");
 		// e.printStackTrace();
 		server = null;
+		MyDebug.trace("# Splice: numserver refused");
 	    }
 	}
 

@@ -61,7 +61,7 @@ public class RMServerSocket extends ServerSocket
 	throws IOException
     {
 	Socket s = null;
-	MyDebug.out.println("# RMServerSocket.accept()- waiting...");
+	MyDebug.out.println("# RMServerSocket.accept()- waiting on port " + serverPort);
 	hub = HubLinkFactory.getHubLink();
 	Request r = null;
 	synchronized(this)
@@ -78,7 +78,7 @@ public class RMServerSocket extends ServerSocket
 	    }
 
 	int localPort = hub.newPort(0);
-	MyDebug.out.println("# RMServerSocket.accept()- unlocked; from port="
+	MyDebug.out.println("# RMServerSocket.accept()- on port " + serverPort + " unlocked; from port="
 			    +r.requestPort+ "; host="+r.requestHost);
 	s = new RMSocket(r.requestHost, r.requestPort, localPort, r.requestHubPort);
 	MyDebug.out.println("# RMServerSocket.accept()- new RMSocket created on port="+localPort+"- Sending ACK.");
@@ -89,7 +89,7 @@ public class RMServerSocket extends ServerSocket
     public synchronized void close()
 	throws IOException
     {
-	MyDebug.out.println("# RMServerSocket.close()");
+	MyDebug.out.println("# RMServerSocket.close() of port " + serverPort);
 	socketOpened = false;
 	this.notifyAll();
 	hub.removeServer(serverPort);
@@ -101,7 +101,9 @@ public class RMServerSocket extends ServerSocket
     protected synchronized void enqueueConnect(String clientHost, int clientPort, int clienthubport)
     {
 	requests.add(new Request(clientPort, clientHost, clienthubport));
+	MyDebug.out.println("# RMServerSocket.enqueueConnect() for port " + serverPort + ", size = " + requests.size());
 	if (requests.size() == 1) {
+	    MyDebug.out.println("# RMServerSocket.enqueueConnect(): notify");
 	    this.notify();
 	}
     }

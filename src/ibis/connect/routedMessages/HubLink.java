@@ -157,6 +157,9 @@ public class HubLink extends Thread
 					 // Ceriel: Done.
 			    s.enqueueConnect(p.getHost(), p.clientPort, p.getPort());
 			}
+			else {
+			    MyDebug.out.println("# HubLink.run()- Received CONNECT for non-existingh port!");
+			}
 		    }
 		    break;
 		case HubProtocol.ACCEPT:
