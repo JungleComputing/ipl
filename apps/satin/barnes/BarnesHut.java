@@ -14,18 +14,17 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
     static final double DEFAULT_DT = 0.025;
     static final double DEFAULT_THETA = 2.0;
 
-    transient Body[] bodyArray;
+    Body[] bodyArray;
+    final int maxLeafBodies;
+
     final double DT;
     final double END_TIME;
     final double THETA;
     final int ITERATIONS;
 
-    BarnesHut(int nBodies) throws RemoteException {
+    BarnesHut(int nBodies, int mlb) throws RemoteException {
 	bodyArray = new Plummer().generate(nBodies);
-	/*bodies = new ArrayList(bodyArray.length);
-	for (int i = 0; i < nBodies; i++) {
-	    bodies.add(bodyArray[i]);
-	    }*/
+	maxLeafBodies = mlb;
 
 	//some magic copied from the RMI version...
 	double scale = Math.pow( nBodies / 16384.0, -0.25 );
@@ -53,7 +52,7 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 
 	    System.out.print("application result: ");
 
-	    Arrays.sort(bodyArray);
+	    Arrays.sort(bodyArray); //??? moet straks weg
 	    //Collections.sort(bodies);
 
 	    for (i = 0; i < bodyArray.length; i++) {
@@ -72,39 +71,60 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 	int i, j;
 	BodyTreeNode btRoot;
 	long start, end;
-	List accs;
+
+	LinkedList result;
 	Iterator it;
+	int[] bNumbers;
+	Vec3[] accs;
+
 	Body b;
 	BodyManager rmiStub = null; //RMI stub to 'this'
 
 	//BodyCanvas bc = visualize();
 
-	try {
+	/*try {
 	    Registry reg = LocateRegistry.createRegistry(RMI_PORT);
 	    reg.bind("BarnesHut.BodyManager", this);
 	    rmiStub = (BodyManager) Naming.lookup("//localhost:" + RMI_PORT +
 						  "/BarnesHut.BodyManager");
-	    System.out.println(rmiStub);
-	    System.out.println(this == rmiStub);
 	} catch (Exception e) {
 	    System.err.println("EEK! Error while making RMI stub:" + e);
 	    System.exit(1);
-	}
+	    }*/
 
 	System.out.println("BarnesHut: doing " + ITERATIONS +
 			   " iterations with " + bodyArray.length + " bodies");
 	start = System.currentTimeMillis();
 		
 	for (j = 0; j < ITERATIONS; j++) {
+	    //System.out.println("Starting iteration " + j);
 	    //build tree
-	    btRoot = new BodyTreeNode(bodyArray, THETA);
+	    btRoot = new BodyTreeNode(bodyArray, maxLeafBodies, THETA);
 
 	    //compute centers of mass
-	    btRoot.computeCentersOfMass(bodyArray);
+	    btRoot.computeCentersOfMass();
 
 	    //compute forces
+
+	    //with recursive tree splitup & RMI:
 	    //btRoot.barnes(btRoot, rmiStub);
 	    //btRoot.sync();
+	    
+	    //recursive tree splitup that returns lists:
+	    /*result = btRoot.barnes(btRoot);
+	    btRoot.sync();
+	    it = result.iterator();
+	    while(it.hasNext()) {
+		bNumbers = (int []) it.next();
+		accs = (Vec3 []) it.next();
+		for (i = 0; i < bNumbers.length; i++) {
+		    bodyArray[bNumbers[i]].acc = accs[i];
+		    bodyArray[bNumbers[i]].updated = true;
+		}
+		}*/
+	    
+	    /* this version spawns a job for each body
+	       bodyArray is updated by BodyTreeNode */
 	    btRoot.barnes(bodyArray);
 
 	    //update bodies
@@ -117,6 +137,7 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 		b.computeNewPosition(j != 0, DT, b.acc);
 		//if (DEBUG) b.updated = false;
 	    }
+
 	    //try {
 	    //	Thread.sleep(400);
 	    //} catch (InterruptedException e) {}
@@ -158,17 +179,30 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
     // ??? maybe optimize by using acc.x, acc.y and acc.z as parameters
     // instead of the Vec3 object (could also be done elsewhere, eliminating
     // the Vec3 object)
-    public void setAcc(int index, Vec3 acc) throws RemoteException {
-	bodyArray[index].acc = acc;
-	if (DEBUG) {
-	    bodyArray[index].updated = true;
+    /**
+     * updates the acceleration fields of the specified bodies
+     * @param bNumbers the numbers of the bodies
+     * @param accs the corresponding accelerations
+     */
+    public void setAccs(int[] bNumbers, Vec3[] accs) throws RemoteException {
+	int i;
+
+	if (DEBUG && bNumbers.length != accs.length) {
+	    throw new IllegalArgumentException("bNumbers.length!=accs.length");
+	}
+
+	for (i = 0; i < bNumbers.length; i++) {
+	    bodyArray[bNumbers[i]].acc = accs[i];
+	    if (DEBUG) {
+		bodyArray[bNumbers[i]].updated = true;
+	    }
 	}
     }
     
 
     public static void main(String argv[]) {
 	//arguments
-	int nBodies = 0;
+	int nBodies = 0, mlb = 0;
 	boolean printResult = false;
 
 	int i;
@@ -179,8 +213,9 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 	    if (argv[i].equals("-test")) {
 		printResult = true;
 
-	    } else { //final argument
+	    } else { //final arguments
 		nBodies = Integer.parseInt(argv[i]);
+		mlb = Integer.parseInt(argv[i+1]);
 		break;
 	    }
 	}
@@ -190,7 +225,7 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 	}
 
 	try {
-	    new BarnesHut(nBodies).run(printResult);
+	    new BarnesHut(nBodies, mlb).run(printResult);
 	} catch (RemoteException e) {
 	    System.err.println("EEK! Couldn't initialize barneshut: " + e);
 	    System.exit(1);

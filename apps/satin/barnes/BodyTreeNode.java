@@ -26,24 +26,23 @@ final class BodyTreeNode extends ibis.satin.SatinObject
     implements BodyTreeNodeInterface, java.io.Serializable {
 
     BodyTreeNode children[];
-    int bodyIndex = -1; //index of the body at the main node
+    Body[] bodies;
+    int bodyCount;
 
     /* The part of space this node represents.
-       Leaf nodes might also need this in an alternative barneshut
-       implementation, to find out if a body has moved out of
-       the represented part
-       The fields are only needed during tree construction, so they can be made
+       The fields are only used during tree construction, so they can be made
        transient.
-    */
-    transient Vec3 center;
-    transient double halfSize;
+       In an alternative barneshut implementation, these fields could be
+       used (in a leaf node) to find out if a body has moved out of the
+       represented part */
+    private transient Vec3 center;
+    private transient double halfSize;
 
+    /* these 4 variables are used during the force calculation */
     static final double SOFT_SQ = 0.00000000000625;
-
-    /* these are used during the force calculation */
     private double maxTheta;  //set during initilisation
     private Vec3 centerOfMass; //set during CoM computation
-    private double totalMass;
+    private double totalMass;  //set during CoM computation
 
     /**
      * Initializes center, halfSize and maxTheta
@@ -111,22 +110,18 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	}*/
 
     /**
-     * Generates a new tree with the specified bodies, with dimensions
-     * exactly large enough to contain all bodies
+     * Generates a new tree with dimensions exactly large enough to
+     * contain all bodies.
+     * @param bodyArray the bodies to add
+     * @param maxLeafBodies the maximum number of bodies to put in a leaf node
+     * @param theta The theta value used in the computation
      */
-    public BodyTreeNode( Body[] bodyArray, double theta) {
+    public BodyTreeNode( Body[] bodyArray, int maxLeafBodies, double theta) {
 	int i;
 	Vec3 max, min;
 
-	if (bodyArray.length == 0) {
-	    center = new Vec3(0.0, 0.0, 0.0);
-	    halfSize = 0.0;
-	    return;
-	}
-
 	max = new Vec3();
 	min = new Vec3();
-		
 	for (i = 0; i < bodyArray.length; i++) {
 	    max.max(bodyArray[i].pos);
 	    min.min(bodyArray[i].pos);
@@ -135,7 +130,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	initCenterSizeMaxtheta(max, min, theta);
 
 	for (i = 0; i < bodyArray.length; i++) {
-	    addBodyNoChecks(bodyArray, i);
+	    addBody(bodyArray[i], maxLeafBodies);
 	}
     }
 
@@ -190,51 +185,50 @@ final class BodyTreeNode extends ibis.satin.SatinObject
     }
 	
     /**
-     * adds the body to the tree with this node as root, checking
-     * if the body is in range
-     * @return true: body is in range and is added
-     *        false: body is out of range and is not added
+     * Adds 'body' to 'this' or its children
      */
-    /*public boolean addBody( Body b ) {
-	if (outOfRange(b.pos)) {
-	    return false;
-	} else {
-	    addBodyNoChecks(b);
-	    return true;
-	}
-	}*/
+    private void addBody( Body b, int maxLeafBodies ) {
+	int i;
 
-    /**
-     * Adds a body to 'this' or its children
-     * @param bodyArray the array with all bodies, (used when splitting up)
-     * @param index the index of the body in 'bodyArray' to add
-     */
-    private void addBodyNoChecks( Body[] bodyArray, int index ) {
 	if (children != null) { // cell node
-	    addBody2Cell(bodyArray, index);
-	} else {
-	    if (bodyIndex == -1) { //empty tree
-		bodyIndex = index;
+
+	    addBody2Cell(b, maxLeafBodies);
+
+	} else { //leaf node
+
+	    if (BarnesHut.DEBUG && outOfRange(b.pos)) {
+		System.err.println("EEK! Adding out-of-range body!");
+		System.exit(1);
+	    }
+
+	    if (bodyCount < maxLeafBodies) { //we have room left
+		if (bodyCount == 0) bodies = new Body[maxLeafBodies];
+		bodies[bodyCount] = b;
+		bodyCount++;
+		totalMass += b.mass;
 	    } else {
 		/* we are a leaf, and we'll have to convert ourselves
 		   to a cell */
 		children = new BodyTreeNode[8];
-		addBody2Cell(bodyArray, bodyIndex);
-		addBody2Cell(bodyArray, index);
-		bodyIndex = -1;
+		addBody2Cell(b, maxLeafBodies);
+		for (i = 0; i < bodyCount; i++) {
+		    addBody2Cell(bodies[i], maxLeafBodies);
+		}
+		bodies = null;
+		// totalMass is overwritten in the CoM computation
 	    }
 	}
     }
 
     /**
      * This method is used if 'this' is a cell, to add a body to the appropiate
-     * child. It shouldn't touch the 'body' field.
+     * child.    ??? stond er nog: It shouldn't touch the 'body' field.
      */
-    private void addBody2Cell( Body[] bodyArray, int index ) {
+    private void addBody2Cell( Body b, int maxLeafBodies ) {
 	int child = 0;
 	Vec3 diff, newCenter;
 
-	diff = new Vec3(bodyArray[index].pos);
+	diff = new Vec3(b.pos);
 	diff.sub(center);
 
 	if (diff.x >= 0) child |= 1;
@@ -248,22 +242,12 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	    newCenter = computeChildCenter(child);
 	    children[child] = new BodyTreeNode(newCenter, halfSize/2.0,
 					       maxTheta / 4.0);
-	    children[child].bodyIndex = index;
+	    children[child].bodies = new Body[maxLeafBodies];
+	    children[child].bodies[0] = b;
+	    children[child].bodyCount = 1;
 	} else {
-	    children[child].addBodyNoChecks(bodyArray, index);
+	    children[child].addBody(b, maxLeafBodies);
 	}
-    }
-
-    public int bodyCount() {
-	int i, bodies = 0;
-	if (children == null) {
-	    if (bodyIndex != -1) return 1; else return 0;
-	} else {
-	    for (i = 0; i < 8; i++) {
-		if (children[i] != null) bodies += children[i].bodyCount();
-	    }
-	}
-	return bodies;
     }
 
     /*public void print(PrintStream out) {
@@ -300,27 +284,37 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	}
 	}*/
 
-    public void computeCentersOfMass(Body[] bodies) {
+    public void computeCentersOfMass() {
+	int i;
+
+	centerOfMass = new Vec3();
+	totalMass = 0.0;
+
 	if (children == null) {
 	    //leaf node
 	    
-	    if (BarnesHut.DEBUG && bodyIndex == -1) {
+	    if (BarnesHut.DEBUG && (bodyCount == 0 || bodies == null) ) {
 		System.err.println("computeCoM: Found empty leaf node!");
 		return;
 	    }
-	    centerOfMass = new Vec3(bodies[bodyIndex].pos);
-	    totalMass = bodies[bodyIndex].mass;
-	} else {
-	    /* cell node
-	       -> first process all children, then compute my center-of-mass */
-	    int i;
 
-	    //??? maybe parallize this later, then the loop has to be split up
-	    centerOfMass = new Vec3();
-	    totalMass = 0.0;
+	    for (i = 0; i < bodyCount; i++) {
+		centerOfMass.x += bodies[i].pos.x * bodies[i].mass;
+		centerOfMass.y += bodies[i].pos.y * bodies[i].mass;
+		centerOfMass.z += bodies[i].pos.z * bodies[i].mass;
+		totalMass += bodies[i].mass;
+	    }
+	    centerOfMass.div(totalMass);
+
+	} else {
+	    // cell node
+	    // -> first process all children, then compute my center-of-mass
+
+	    //??? maybe satinize this later, then the loop has to be split up
+	    //!!! if it is parallelized, watch out! Body.mass is transient!
 	    for (i = 0; i < 8; i++) {
 		if (children[i] != null) {
-		    children[i].computeCentersOfMass(bodies);
+		    children[i].computeCentersOfMass();
 		
 		    centerOfMass.x +=
 			children[i].centerOfMass.x * children[i].totalMass;
@@ -331,9 +325,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 		    totalMass += children[i].totalMass;
 		}
 	    }
-
 	    //??? then here comes a sync() and a loop to compute my CoM;
-
 	    centerOfMass.div(totalMass);
 	}
     }
@@ -351,11 +343,10 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 
 	distsq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
 
-	if (children == null || distsq >= maxTheta) {
+	if (distsq >= maxTheta) {
 
-	    /* We are calculating a body <> body interaction, or the
-	       distance was large enough to use 'tree' instead
-	       of iterating its children */
+	    /* The distance was large enough to use my centerOfMass instead
+	       of iterating my children */
 	    distsq += SOFT_SQ;
 	    dist = Math.sqrt(distsq);
 	    factor = totalMass / (distsq * dist);
@@ -365,24 +356,32 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	    return diff;
 
 	} else {
-
-	    // We are processing a cell node and the distance was too small
-	    Vec3[] accs = new Vec3[8];
 	    Vec3 totalAcc = new Vec3();
-			
-	    for (i = 0; i < 8; i++) {
-		if (children[i] != null) {
-		    //accs[i] = children[i].barnes( b );
 
-		    //??? satin semantiek hiervan??
-		    totalAcc.add( children[i].barnes( pos ) );
+	    if (children == null) {
+		// Leaf node, compute interactions with all my bodies
+		for (i = 0; i < bodyCount; i++) {
+		    diff = new Vec3(bodies[i].pos);
+		    diff.sub(pos);
+
+		    distsq = diff.x * diff.x + diff.y * diff.y;
+		    distsq += diff.z * diff.z + SOFT_SQ;
+		    dist = Math.sqrt(distsq);
+		    factor = bodies[i].mass / (distsq * dist);
+
+		    diff.mul(factor);
+
+		    totalAcc.add(diff);
+		}
+	    } else {
+		// Cell node
+		for (i = 0; i < 8; i++) {
+		    if (children[i] != null) {
+			totalAcc.add( children[i].barnes( pos ) );
+		    }
 		}
 	    }
-	    //sync();
-			
-	    /*for (i = 0; i < 8; i++) {
-	      if (accs[i] != null) totalAcc.add(accs[i]);
-	      }*/
+ 
 	    return totalAcc;
 	}
     }
@@ -394,37 +393,99 @@ final class BodyTreeNode extends ibis.satin.SatinObject
     /**
      * computes the iteractions between [ the bodies in 'this' ]
      * and [ 'interactTree' ], by recursively splitting up 'interactTree', and
-     * calling this.barnes(interactTree.centerOfMass) when we have to process
-     * a leaf node. 'centerOfMass' in a leaf node is the body position in
-     * that node
+     * calling this.barnes(iT.bodies[i].pos) for all bodies in interactTree
+     * when we have to process a leaf node.
      * @param bm (remote) reference to the object that manages the body-array
      */
     public void barnes( BodyTreeNode interactTree, BodyManager bm ) {
-	Vec3 acc;
+	int i;
+
 	if (interactTree.children == null) {
-	    if (BarnesHut.DEBUG && interactTree.bodyIndex == -1) {
+	    if (BarnesHut.DEBUG && (interactTree.bodies == null || 
+				    interactTree.bodyCount <= 0)) {
 		System.err.println("BodyTreeNode.barnesTree: " +
 				   "found empty leafnode!");
 		return;
 	    }
-	    acc = barnes(interactTree.centerOfMass);
-	    /* the bodies aren't used in the force calculation
-	       (the center-of-mass-fields in the leaf nodes are used instead)
-	       the body could thus be updated now */
+	    int [] bodyNumbers = new int[interactTree.bodyCount];
+	    Vec3[] accs = new Vec3[interactTree.bodyCount];
+	    for (i = 0; i < interactTree.bodyCount; i++) {
+		bodyNumbers[i] = interactTree.bodies[i].number;
+		accs[i] = barnes(interactTree.bodies[i].pos);
+	    }
 	    try {
-		bm.setAcc(interactTree.bodyIndex, acc);
+		bm.setAccs(bodyNumbers, accs);
 	    } catch (RemoteException e) {
-		System.err.println("EEK! RMI call to update body failed!");
+		System.err.println("EEK! RMI call to update bodies failed!");
 		System.exit(1);
 	    }
 	} else {
-	    for (int i = 0; i < 8; i++) {
+	    for (i = 0; i < 8; i++) {
 		if (interactTree.children[i] != null) {
 		    barnes(interactTree.children[i], bm);
 		}
 	    }
 	    sync();
 	}
+    }
+
+    /**
+     * computes the iteractions between [ the bodies in 'this' ]
+     * and [ 'interactTree' ], by recursively splitting up 'interactTree', and
+     * calling this.barnes(iT.bodies[i].pos) for all bodies in interactTree
+     * when we have to process a leaf node.
+     * @param bm (remote) reference to the object that manages the body-array
+     */
+    public LinkedList barnes( BodyTreeNode interactTree ) {
+	LinkedList result;
+	int i;
+
+	if (interactTree.children == null) {
+
+	    if (BarnesHut.DEBUG && (interactTree.bodies == null || 
+				    interactTree.bodyCount <= 0)) {
+		System.err.println("BodyTreeNode.barnesTree: " +
+				   "found empty leafnode!");
+		return new LinkedList();
+	    }
+	    int [] bodyNumbers = new int[interactTree.bodyCount];
+	    Vec3[] accs = new Vec3[interactTree.bodyCount];
+
+	    for (i = 0; i < interactTree.bodyCount; i++) {
+		bodyNumbers[i] = interactTree.bodies[i].number;
+		accs[i] = barnes(interactTree.bodies[i].pos);
+
+	    }
+	    result = new LinkedList();
+	    result.add(bodyNumbers);
+	    result.add(accs);
+
+	} else {
+
+	    LinkedList childres[] = new LinkedList[8];
+	    int lastValidChild = -1;
+
+	    for (i = 0; i < 8; i++) {
+		if (interactTree.children[i] != null) {
+		    childres[i] = barnes(interactTree.children[i]);
+		    lastValidChild = i;
+		}
+	    }
+	    sync();
+
+	    if (BarnesHut.DEBUG && lastValidChild < 0) {
+		System.err.println("EEK! All children are null!");
+		System.exit(1);
+	    }
+	    
+	    result = childres[lastValidChild];
+	    for (i = 0; i < lastValidChild; i++) {
+		if (childres[i] != null) {
+		    result.addAll(childres[i]);
+		}
+	    }
+	}
+	return result;
     }
 
     /**

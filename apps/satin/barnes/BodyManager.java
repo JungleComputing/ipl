@@ -3,7 +3,7 @@ import java.rmi.*;
 interface BodyManager extends Remote {     
     /**
      * This function is called during force calculation by a node to
-     * set the computed acceleration for a body
+     * set the computed accelerations for an array of bodies
      */
-    public void setAcc(int index, Vec3 acc) throws RemoteException;
+    public void setAccs(int[] bNumbers, Vec3[] accs) throws RemoteException;
 } 

@@ -1,16 +1,21 @@
-strictfp public final class Body implements Cloneable, Comparable {
+import java.io.*;
+
+strictfp public final class Body 
+    implements Cloneable, Comparable, Serializable {
 
     //  public static int InstanceCount = 0;
-
     public int number;
+
     public Vec3 pos;
-    public Vec3 vel;
-    public Vec3 oldAcc;
     public double mass; 
 
-    public Vec3 acc;
+    // these are only used by calculateNewPosition, which is done at the
+    // main node, so they can be transient
+    transient public Vec3 vel;
+    transient public Vec3 oldAcc;
+    transient public Vec3 acc;
 
-    public boolean updated = false; //used for debugging the rmi updates
+    transient public boolean updated = false; //used for debugging the rmi updates
 
     /* this field counts the number of interactions with this body
        were done in the *previous) iteration, we don't need it with satin */
@@ -21,8 +26,8 @@ strictfp public final class Body implements Cloneable, Comparable {
 	vel = new Vec3();
 	//oldAcc = acc = null;
 	mass = 1.0;
-	number = 0;
 
+	number = 0;
 	//InstanceCount++;
     }
 
@@ -44,7 +49,7 @@ strictfp public final class Body implements Cloneable, Comparable {
 	vel.z = vz;
     }
 
-    //used for sorting a list of bodies
+    //used for sorting bodies
     public int compareTo(Object o) {
 	Body other = (Body) o;
 
