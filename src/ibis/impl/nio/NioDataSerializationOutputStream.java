@@ -5,7 +5,6 @@ package ibis.impl.nio;
 import ibis.io.Accumulator;
 import ibis.io.IbisStreamFlags;
 import ibis.io.DataSerializationOutputStream;
-import ibis.ipl.IbisError;
 
 import java.io.IOException;
 
