@@ -72,9 +72,8 @@ public class GenPoller extends NetInput {
 			String subDriverName = getMandatoryProperty("Driver");
                         subDriver = driver.getIbis().getDriver(subDriverName);
 		}
-		
+                
 		NetInput ni = newSubInput(subDriver);
-
 		ni.setupConnection(rpn, is, os, nls);
 		addInput(ni);
 	}

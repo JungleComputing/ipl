@@ -137,7 +137,7 @@ public class MultiSplitter extends NetOutput {
 
                         NetOutput no = (NetOutput)outputTable.get(subContext);
 
-                        if (subDriver == null) {
+                        if (no == null) {
                                 String    subDriverName = getProperty(subContext, "Driver");
                                 NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
                                 no                      = newSubOutput(subDriver, subContext);

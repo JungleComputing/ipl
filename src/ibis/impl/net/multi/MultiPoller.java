@@ -125,7 +125,7 @@ public class MultiPoller extends NetInput {
                         
                         NetInput  ni = (NetInput)inputTable.get(subContext);
 
-                        if (subDriver == null) {
+                        if (ni == null) {
                                 String    subDriverName = getProperty(subContext, "Driver");
                                 NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
                                 ni                      = newSubInput(subDriver, subContext);
