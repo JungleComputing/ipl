@@ -3,3 +3,9 @@ package.home.bcel           = @BCEL_HOME@
 package.home.bcel-additions = @BCEL_ADDITIONS@
 package.home.ant-contrib    = @ANT_CONTRIB@
 package.home.ant-cpptasks   = @ANT_CPPTASKS@
+
+package.home.gm             = @GM_HOME@
+package.home.daslib         = @DASLIB_HOME@
+package.home.lfc            = @LFC_HOME@
+package.home.panda          = @PANDA_HOME@
+package.home.mpi            = @MPI_HOME@

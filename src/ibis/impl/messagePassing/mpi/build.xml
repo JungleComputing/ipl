@@ -26,27 +26,22 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
+    &sharedProperties;
+
     <property name="closure.lib" value="ibis_mp_mpi"/>
 
-    <property name="mpi"          location="/usr/local/mpich/mpich-gm"/>
-    <property name="daslib"       location="/usr/local/VU/daslib"/>
+    &nativeTargets;
 
     <path id="local.includes-ref">
 	<pathelement path="${native.dir}/../include"/>
-	<pathelement path="${daslib}/include"/>
-	<pathelement path="${mpi}/include"/>
+	<pathelement path="${package.home.daslib}/include"/>
+	<pathelement path="${package.home.mpi}/include"/>
     </path>
     <property name="local.includes" refid="local.includes-ref"/>
 
-    &sharedProperties;
-    &nativeTargets;
-
-
-    <property name="gm"          location="/usr/local/gm/current"/>
-
-    <property name="das.lib.dir" location="${daslib}/lib/i386_Linux"/>
-    <property name="mpi.lib.dir" location="${mpi}/lib"/>
-    <property name="gm.lib.dir"  location="${gm}/lib"/>
+    <property name="das.lib.dir" location="${package.home.daslib}/lib/i386_Linux"/>
+    <property name="mpi.lib.dir" location="${package.home.mpi}/lib"/>
+    <property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
 
     <target name="mpi-lib">
 	<maplibrary property="library.path" name="${closure.lib}"/>
@@ -86,9 +81,9 @@
 	</outofdate>
     </target>
 
-
     <target name="build"
-	    depends="property-init,native-init,native-compile,mpi-lib">
+	    depends="native-init">
+	<antcall target="mpi-lib"/>
     </target>
 
 </project>

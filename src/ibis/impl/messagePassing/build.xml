@@ -26,18 +26,12 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
+    &sharedProperties;
+
     <property name="local.lib" value="libibis_mp"/>
     <property name="cc.outtype" value="static"/>
 
-    &sharedProperties;
     &nativeTargets;
-
-    <property name="panda"        location="/usr/local/VU/panda"/>
-    <property name="daslib"       location="/usr/local/VU/daslib"/>
-    <!--
-    <property name="panda"        location="c:\werk\ibis\panda"/>
-    <property name="daslib"       location="c:\werk\ibis\daslib"/>
-    -->
 
     <target name="arch-init" depends="property-init">
 
@@ -53,9 +47,9 @@
 
 	<path id="local.includes-ref">
 	    <pathelement path="${native.dir}/include"/>
-	    <pathelement path="${panda}/panda4.0/include"/>
-	    <pathelement path="${panda}/panda4.0/include/${panda.arch}/lfc/no_threads"/>
-	    <pathelement path="${daslib}/include"/>
+	    <pathelement path="${package.home.panda}/include"/>
+	    <pathelement path="${package.home.panda}/include/${panda.arch}/lfc/no_threads"/>
+	    <pathelement path="${package.home.daslib}/include"/>
 	</path>
 	<property name="local.includes" refid="local.includes-ref"/>
 	<echo message="local.includes = ${local.includes}"/>

@@ -131,6 +131,5 @@
 	<pathelement path="${build}"/>
 	<pathelement path="${package.home.bcel-additions}"/>
 	<pathelement path="${package.home.bcel}/bcel-5.1.jar"/>
-	<pathelement path="${package.home.bcel}/lib"/>
     </path>
 
