@@ -8,6 +8,7 @@ class SpawnTest {
 		for (i = 0; i < 100; i++) {
 			x = t.spawn_test(0);
 			y = t.spawn_test(10);
+			t.sync();
 		}
 		System.out.println("application result: x = " + x + " y = " + y);
 	}
