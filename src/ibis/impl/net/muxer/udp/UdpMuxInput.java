@@ -49,6 +49,8 @@ public final class UdpMuxInput extends MuxerInput {
 
     private final static int	UDP_MAX_MTU = 16384;
 
+    private int			connections;
+
 
 
     protected UdpMuxInput(NetPortType portType,
@@ -79,7 +81,7 @@ public final class UdpMuxInput extends MuxerInput {
     }
 
 
-    // synchronized
+    synchronized
     public void setupConnection(NetConnection cnx, NetIO io)
 	    throws NetIbisException {
 
@@ -130,6 +132,9 @@ Thread.dumpStack();
 	    }
 
 	    spn = num;
+
+	    connections++;
+
 	} catch (ClassNotFoundException e) {
 	    throw new NetIbisException(e);
 	} catch (IOException e) {
@@ -262,6 +267,7 @@ System.err.println(this + ": ***************** catch Exception " + e);
 
 
     synchronized public void doClose(Integer num) throws NetIbisException {
+	System.err.println(this + ": close. connections " + connections);
 	if (num == spn) {
 	    if (socket != null) {
 		socket.close();
@@ -278,6 +284,8 @@ System.err.println(this + ": ***************** catch Exception " + e);
 
 
     public void doFree() throws NetIbisException {
+	System.err.println(this + ": doFree. connections " + connections);
+
 	if (spn == null) {
 	    return;
 	}

@@ -240,6 +240,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
     synchronized
     protected void releaseQueue(MuxerQueue key) throws NetIbisException {
+System.err.println(this + ": disconnect; connections was " + liveConnections);
 	keyHash.delete(key);
 	liveConnections--;
 	if (liveConnections == 0) {

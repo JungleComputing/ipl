@@ -236,6 +236,7 @@ dumpBufferFactoryInfo();
      * {@inheritDoc}
      */
     public void doFinish() throws NetIbisException {
+	myQueue.doFinish();
     }
 
 
@@ -243,8 +244,8 @@ dumpBufferFactoryInfo();
      * {@inheritDoc}
      */
     public synchronized void doClose(Integer num) throws NetIbisException {
-	if (Driver.DEBUG) {
-	    System.err.println(this + ": close.");
+	if (true || Driver.DEBUG) {
+	    System.err.println(this + ": doClose.");
 	    Thread.dumpStack();
 	}
 
@@ -263,6 +264,10 @@ dumpBufferFactoryInfo();
      * {@inheritDoc}
      */
     public void doFree() throws NetIbisException {
+	if (true || Driver.DEBUG) {
+	    System.err.println(this + ": doFree.");
+	    Thread.dumpStack();
+	}
 	if (spn == null) {
 	    return;
 	}

@@ -37,6 +37,8 @@ public class MuxerQueue extends MuxerKey {
 
     private Integer		spn;
 
+    private Integer		activeInput;
+
     protected int		connectionKey;
 
 
@@ -209,7 +211,7 @@ public class MuxerQueue extends MuxerKey {
     }
 
 
-    public Integer poll(boolean block) {
+    public Integer poll(boolean block) throws NetIbisException {
 	if (false && Driver.DEBUG) {
 	    System.err.println(this + ": poll; front " + front + " key " + connectionKey);
 	    if (false && connectionKey == 0) {
@@ -220,6 +222,10 @@ if (false && ! block) {
 System.err.println(this + ": Nonblocking poll");
 Thread.dumpStack();
 }
+
+	if (activeInput != null) {
+	    throw new NetIbisException(this + ": call finish before a new poll()");
+	}
 
 	if (! MuxerInput.USE_POLLER_THREAD) {
 	    try {
@@ -283,7 +289,11 @@ Thread.dumpStack();
 	    }
 	}
 
-	return (front == null) ? null : spn;
+	if (front != null) {
+	    activeInput = spn;
+	}
+
+	return activeInput;
     }
 
 
@@ -364,6 +374,14 @@ Thread.dumpStack();
 	    userBuffer.length = buffer.length;
 	    buffer.free();
 	}
+    }
+
+
+    public void doFinish() throws NetIbisException {
+	if (activeInput == null) {
+	    throw new NetIbisException(this + ": call poll before you finish");
+	}
+	activeInput = null;
     }
 
 
