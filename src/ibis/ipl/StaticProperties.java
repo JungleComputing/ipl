@@ -139,7 +139,9 @@ public class StaticProperties extends Properties {
 	    if (name.substring(0,5).equals("ibis.")) {
 		String n = name.substring(5);
 
-		user_properties.add(n, prop);
+		if (categories.containsKey(n) || n.equals("name")) {
+		    user_properties.add(n, prop);
+		}
 	    }
 	}
     }
