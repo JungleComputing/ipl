@@ -535,6 +535,8 @@ public class NameServer implements Protocol {
 				}
 			} else if (args[i].equals("-controlhub")) {
 				control_hub = true;
+			} else if (args[i].equals("-debug")) {
+				// Accepted and ignored.
 			} else {
 				System.err.println("No such option: " + args[i]);
 				System.exit(1);
