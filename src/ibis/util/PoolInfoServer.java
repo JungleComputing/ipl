@@ -33,10 +33,11 @@ public class PoolInfoServer extends Thread {
      */
     public static final int POOL_INFO_PORT = 9828;
 
-    private static boolean DEBUG = true;
+    private static boolean DEBUG = false;
 
     static class RunInfo {
 	int total_hosts;
+	int removed_hosts;
 	int connected_hosts;
 	String [] host_clusters;
 	InetAddress [] host_addresses;
@@ -47,6 +48,7 @@ public class PoolInfoServer extends Thread {
 	RunInfo(int nhosts, String key) {
 	    total_hosts = nhosts;
 	    connected_hosts = 0;
+	    removed_hosts = 0;
 	    host_clusters = new String[nhosts];
 	    host_addresses = new InetAddress[nhosts];
 	    host_sockets = new Socket[nhosts];
@@ -55,6 +57,7 @@ public class PoolInfoServer extends Thread {
 	}
 
 	boolean add(int nhosts,
+		    int remove_doubles,
 		    String cluster,
 		    Socket socket,
 		    DataInputStream in) throws IOException 
@@ -65,6 +68,23 @@ public class PoolInfoServer extends Thread {
 		socket.close();
 		return false;
 	    }
+
+	    InetAddress addr = socket.getInetAddress();
+
+	    if (remove_doubles != 0) {
+		for (int i = 0; i < connected_hosts; i++) {
+		    if (host_addresses[i].equals(addr)) {
+			ObjectOutputStream out
+			    = new ObjectOutputStream(socket.getOutputStream());
+			out.writeInt(-1);
+			out.close();
+			in.close();
+			socket.close();
+			removed_hosts++;
+			return connected_hosts + removed_hosts == total_hosts;
+		    }
+		}
+	    }
 	    if (DEBUG) {
 		System.err.println("PoolInfoServer: Key " + key +
 				   " Host " + connected_hosts +
@@ -72,11 +92,11 @@ public class PoolInfoServer extends Thread {
 				   " has connected");
 	    }
 	    host_clusters[connected_hosts] = cluster;
-	    host_addresses[connected_hosts] = socket.getInetAddress();
+	    host_addresses[connected_hosts] = addr;
 	    host_sockets[connected_hosts] = socket;
 	    host_inputs[connected_hosts] = in;
 	    connected_hosts++;
-	    return connected_hosts == total_hosts;
+	    return connected_hosts + removed_hosts == total_hosts;
 	}
 
 	void broadcast() throws IOException {
@@ -86,10 +106,13 @@ public class PoolInfoServer extends Thread {
 				   "now broadcasting host info...");
 	    }
 
+	    total_hosts -= removed_hosts;
+
 	    for (int i = 0; i < total_hosts; i++) {
 		ObjectOutputStream out
 		    = new ObjectOutputStream(host_sockets[i].getOutputStream());
 		out.writeInt(i); //give the node a rank
+		out.writeInt(total_hosts);
 		out.writeObject(host_clusters);
 		out.writeObject(host_addresses);
 
@@ -197,6 +220,7 @@ public class PoolInfoServer extends Thread {
 		in = new DataInputStream(socket.getInputStream());
 		String key = in.readUTF();
 		int total_hosts = in.readInt();
+		int remove_doubles = in.readInt();
 		String cluster = in.readUTF();
 		RunInfo r = (RunInfo) map.get(key);
 		if (r == null) {
@@ -204,7 +228,7 @@ public class PoolInfoServer extends Thread {
 		    map.put(key, r);
 		}
 
-		if (r.add(total_hosts, cluster, socket, in)) {
+		if (r.add(total_hosts, remove_doubles, cluster, socket, in)) {
 		    map.remove(key);
 		    r.broadcast();
 		    if (singleRun) {

@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.DataOutputStream;
 
+import ibis.ipl.IbisException;
+
 /**
  * The <code>PoolInfoClient</code> class provides a utility for finding out
  * information about the nodes involved in a closed-world run.
@@ -54,28 +56,36 @@ public class PoolInfoClient extends PoolInfo {
      * For testing purposes: a main program.
      */
     public static void main(String [] argv) {
-	PoolInfoClient test = create();
-	System.out.println(test.toString());
+	try {
+	    PoolInfoClient test = create();
+	    System.out.println(test.toString());
+	} catch(Exception e) {
+	    System.out.println("Got exception: ");
+	    e.printStackTrace();
+	    System.exit(1);
+	}
     }
 
     /**
      * Creates a <code>PoolInfoClient</code> if not already present.
      * @return the <code>PoolInfoClient</code>.
      */
-    public static PoolInfoClient create() {
+    public static PoolInfoClient create() throws IbisException {
 	if (instance == null) {
 	    instance = new PoolInfoClient();
 	}
 	return instance;
     }
 
-    private PoolInfoClient() {
+    private PoolInfoClient() throws IbisException {
 	super(0);
 
 	InetAddress serverAddress;
 
 	total_hosts = TypedProperties.intProperty("ibis.pool.total_hosts");
 	String cluster = TypedProperties.stringPropertyValue("ibis.pool.cluster");
+	int remove_doubles = TypedProperties.booleanProperty("ibis.pool.single") ? 1 : 0;
+
 	if (cluster == null) {
 //	    System.err.println("Warning: ibis.pool.cluster property not set, using 'unknown'");
 	    cluster = "unknown";
@@ -108,12 +118,20 @@ public class PoolInfoClient extends PoolInfo {
 		= new DataOutputStream(socket.getOutputStream());
 	    out.writeUTF(key);
 	    out.writeInt(total_hosts);
+	    out.writeInt(remove_doubles);
 	    out.writeUTF(cluster);
 	    out.flush();
 
 	    ObjectInputStream in
 		= new ObjectInputStream(socket.getInputStream());
 	    host_number = in.readInt();
+	    if (host_number == -1) {
+		in.close();
+		out.close();
+		socket.close();
+		throw new IbisException("This node is already registered");
+	    }
+	    total_hosts = in.readInt();
 	    host_clusters = (String []) in.readObject();
 	    hosts = (InetAddress []) in.readObject();
 	    host_names = new String[total_hosts];
