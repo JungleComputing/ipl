@@ -18,7 +18,7 @@ import java.util.Vector;
 import java.util.Hashtable;
 
 import ibis.ipl.*;
-import ibis.ipl.impl.generic.IbisSocketFactory;
+import ibis.ipl.impl.generic.*;
 
 public class NameServer implements NameServerProtocol, PortTypeNameServerProtocol, ReceivePortNameServerProtocol, ElectionProtocol {
 
@@ -97,11 +97,11 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), dest.ibisNameServerport, true);
 
 		try {
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
+			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
 			out.writeByte(IBIS_JOIN);
 			out.writeObject(id);
-			out.flush();
-			out.close();
+			IbisSocketFactory.close(null, out, s);
 		}  catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -109,7 +109,6 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 
 	private void handleIbisJoin() throws IbisIOException, ClassNotFoundException { 
 	    try {
-
 		String key = (String) in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
 		int port = in.readInt();
@@ -184,11 +183,11 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), 
 							     dest.ibisNameServerport, true);
 		try {
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
+			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
 			out.writeByte(IBIS_LEAVE);
 			out.writeObject(id);
-			out.flush();
-			out.close();
+			IbisSocketFactory.close(null, out, s);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -198,27 +197,26 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		try {
 			Socket s = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
 								  p.portTypeNameServer.getPort(), true);
-					ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(
-				s.getOutputStream()));
+			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
 			out.writeByte(PORTTYPE_EXIT);
-			out.flush();
-			out.close();
+			IbisSocketFactory.close(null, out, s);
 
 			Socket s2 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
 								  p.receivePortNameServer.getPort(), true);
-					ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(
-				s2.getOutputStream()));
+			DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
+
+			ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2));
 			out2.writeByte(PORT_EXIT);
-			out2.flush();
-			out2.close();
+			IbisSocketFactory.close(null, out2, s2);
 
 			Socket s3 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
 								  p.electionServer.getPort(), true);
-					ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(
-				s3.getOutputStream()));
+			DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
+			ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3));
 			out3.writeByte(ELECTION_EXIT);
-			out3.flush();
-			out3.close();
+			IbisSocketFactory.close(null, out3, s3);
 		}  catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -263,6 +261,8 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 					    forwardLeave((IbisInfo) p.pool.get(i), id);
 				    } 
 
+				    System.out.println("LEAVE: pool " + key + " now contains " + p.pool.size() + " nodes");
+
 				    if (p.pool.size() == 0) { 
 					    if (VERBOSE) { 
 						    System.err.println("NameServer: removing pool " + key);
@@ -276,8 +276,8 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			    } 
 
 			    out.writeByte(0);
+			    out.flush();
 		    }
-		    System.out.println("LEAVE: pool " + key + " now contains " + p.pool.size() + " nodes");
 		} catch (IOException e) {
 		    throw new IbisIOException(e);
 		}
@@ -292,8 +292,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		while (!stop) {
 			
 			try {
-				s = serverSocket.accept();
-				s.setTcpNoDelay(true);
+				s = IbisSocketFactory.accept(serverSocket);
 
 				if (DEBUG) { 
 					System.err.println("NameServer: incoming connection from " + s.toString());
@@ -304,8 +303,11 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			}
 
 			try {
-				in  = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
-				out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
+				DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+				out = new ObjectOutputStream(new BufferedOutputStream(dos));
+
+				DummyInputStream di = new DummyInputStream(s.getInputStream());
+				in  = new ObjectInputStream(new BufferedInputStream(di));
 
 				opcode = in.readByte();
 
@@ -313,29 +315,23 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 				case (IBIS_JOIN): 
 					handleIbisJoin();
 					break;
-
 				case (IBIS_LEAVE):
 					handleIbisLeave();
 					if (singleRun && pools.size() == 0) { 
 						stop = true;
 					}
 					break;					
-
 				default: 
 					System.err.println("NameServer got an illegal opcode " + opcode);					
 				}
 
-				out.flush();
-				out.close();
-				in.close();
-				s.close();
-								
+				IbisSocketFactory.close(in, out, s);
 			} catch (Exception e1) {
 				System.err.println("Got an exception in NameServer.run " + e1.toString());
 				e1.printStackTrace();
 				if (s != null) { 
 					try { 
-						s.close();
+						IbisSocketFactory.close(null, null, s);
 					} catch (IOException e2) { 
 						// don't care.
 					} 
@@ -349,7 +345,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			throw new RuntimeException("NameServer got an error " + e.getMessage());
 		}
 
-		if (VERBOSE) { 
+		if (VERBOSE) {
 			System.err.println("NameServer: exit");			
 		}
 	}

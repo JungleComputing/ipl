@@ -21,7 +21,6 @@ import java.io.*;
 import java.util.ArrayList;
 
 final class TcpReceivePort implements ReceivePort, TcpProtocol {
-
 	private int sequenceNr = 0;
 	private TcpPortType type;
 	private TcpReceivePortIdentifier ident;
@@ -77,7 +76,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 				// Ignore.
 			}
 		}
-	} 
+	}
 
 	public synchronized void enableConnections() {		
 		// Set 'starting' to true. This is always OK.
@@ -122,10 +121,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		return sequenceNr++;
 	}
 
-	private synchronized ReadMessage doPoll() throws IbisIOException { 
-
+	private synchronized ReadMessage doPoll() throws IbisIOException {
 		ReadMessage m = null;
-
+//		System.err.println("polling, connections = " + connectionsIndex);
 		while (aMessageIsAlive) { 
 			try { 
 				wait();
@@ -134,24 +132,42 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 			} 
 		}
 		
-		for (int i=0;i<connectionsIndex;i++) { 
+		for (int i=0; i<connectionsIndex; i++) { 
 			m = connections[i].poll();
 			
 			if (m != null) { 
 				aMessageIsAlive = true;
+//				System.err.println(ident + ": polling DONE, returned m");
+//				new Exception().printStackTrace();
 				return m;
 			}
 		}
 
-		return m;		
+//		System.err.println("polling DONE, no m");
+		return m;
+	}
+
+	public synchronized ReadMessage poll() throws IbisIOException {
+		if(upcall != null) {
+			Thread.yield();
+			return null;
+		}
+
+		return doPoll();
+	}
+
+	public synchronized ReadMessage poll(ReadMessage finishMe) throws IbisIOException {
+		if (finishMe != null) {
+			finishMe.finish();
+		}
+		return poll();
 	}
 
 	public ReadMessage receive() throws IbisIOException { 
-
 		ReadMessage m = null;
 
-		while (m == null) {		
-			m = doPoll();				
+		while (m == null) {
+			m = doPoll();
 			if (m != null) { 
 				break;
 			} 
@@ -162,22 +178,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	}
 
 	public ReadMessage receive(ReadMessage finishMe) throws IbisIOException { 
-
 		if (finishMe != null) {
 			finishMe.finish();
 		}
 
-		ReadMessage m;
-
-		while (true) {
-			m = doPoll();				
-			if (m != null) {
-				break;
-			}
-			Thread.yield();
-		}
-		
-		return m;
+		return receive();
 	}
 
 	public DynamicProperties properties() { 
@@ -189,7 +194,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	} 
 
 	synchronized void leave(ConnectionHandler leaving, TcpSendPortIdentifier si, int id) {
-
 		for (int i=0;i<connectionsIndex;i++) { 
 			if (connections[i] == leaving) { 
 				connections[i] = connections[connectionsIndex-1];
@@ -203,36 +207,46 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	}
 
 	public synchronized void free() {
-		
-		if (TcpIbis.DEBUG) { 
-			System.err.println("TcpReceive{ort.free: " + name + ": Starting");
-		}
+//		if (TcpIbis.DEBUG) { 
+			System.err.println("TcpReceivePort.free: " + name + ": Starting");
+//		}
+
+			if(aMessageIsAlive) {
+				System.err.println("EEK: a msg is alive!");
+			}
 
 		while (connectionsIndex > 0) {
 
 			if (upcall != null) { 
-				if (TcpIbis.DEBUG) { 
+//				if (TcpIbis.DEBUG) { 
 					System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
-				}
+//				}
 				try {
 					wait();
 				} catch (Exception e) {
 					// Ignore.
 				}
 			} else { 
-				if (TcpIbis.DEBUG) { 
+//				if (TcpIbis.DEBUG) { 
 					System.err.println(name + " trying to close all connections (" + connectionsIndex + ")");
-				}
+//				}
 				
 				while (connectionsIndex > 0) { 
 				
 					for (int i=0;i<connectionsIndex;i++) { 
-						if (TcpIbis.DEBUG) { 
+//						if (TcpIbis.DEBUG) { 
 							System.err.println(name + " trying to close " + i);
-						}
+//						}
 						
-						try { 
-							connections[i].poll();						
+						try {
+							ReadMessage m = connections[i].poll();
+							if(m != null) {
+								// o my, a message was in the pipe while this free was issued!
+								System.err.println("EEK, message in pipe during free, this is a bug in your code: the sender and receiver do not agree to close the channel");
+								return;
+//								System.exit(1);
+
+							}
 						} catch (IbisIOException e) {
 							// Ignore
 						}
@@ -243,21 +257,25 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 						}	catch (Exception e) {
 							// Ignore
 						}
-					}			
+					}
 				}
 			}
 		}
+
+//				if (TcpIbis.DEBUG) { 
+					System.err.println(name + " all connections closed");
+//				}
 
 		/* unregister with name server */
 		try {
 			type.freeReceivePort(name);
 		} catch (Exception e) {
-				// Ignore.
+			// Ignore.
 		}
 
-		if (TcpIbis.DEBUG) { 
+//		if (TcpIbis.DEBUG) { 
 			System.err.println(name + ":done receiveport.free");
-		}
+//		}
 	}
 
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in, int id) {	

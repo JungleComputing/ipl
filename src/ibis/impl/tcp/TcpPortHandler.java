@@ -7,6 +7,7 @@ import java.util.Vector;
 
 import java.io.*;
 import ibis.ipl.*;
+import ibis.ipl.impl.generic.*;
 
 final class TcpPortHandler implements Runnable, TcpProtocol { 
 

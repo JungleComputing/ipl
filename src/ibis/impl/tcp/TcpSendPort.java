@@ -113,6 +113,8 @@ final class TcpSendPort implements SendPort {
 	}
 	
 	public void free() {
+		// @@@ assert no message is alive
+
 		if(TcpIbis.DEBUG) {
 			System.err.println(type.ibis.name() + ": SendPort.free start");
 		}
