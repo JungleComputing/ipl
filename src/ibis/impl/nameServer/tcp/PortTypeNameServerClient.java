@@ -3,7 +3,6 @@ package ibis.impl.nameServer.tcp;
 import ibis.ipl.StaticProperties;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
-import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedInputStream;
@@ -35,7 +34,7 @@ class PortTypeNameServerClient implements Protocol {
 		DataInputStream in;
 		int result, type;
 
-		s = IbisSocketFactory.createSocket(server, port, localAddress, 0 /* retry */);
+		s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		out = new DataOutputStream(new BufferedOutputStream(dos));
 
@@ -61,7 +60,7 @@ class PortTypeNameServerClient implements Protocol {
 		in = new DataInputStream(new DummyInputStream(s.getInputStream()));
 		result = in.readByte();
 
-		IbisSocketFactory.close(in, out, s);
+		NameServerClient.socketFactory.close(in, out, s);
 
 		switch (result) { 
 		case PORTTYPE_ACCEPTED: return true;
@@ -72,7 +71,7 @@ class PortTypeNameServerClient implements Protocol {
 	}
 
 	public long getSeqno(String name) throws IOException { 
-		Socket s = IbisSocketFactory.createSocket(server, port, localAddress, 0 /* retry */);
+		Socket s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
 		
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(dos));
@@ -86,7 +85,7 @@ class PortTypeNameServerClient implements Protocol {
 		
 		long temp = in.readLong();
 
-		IbisSocketFactory.close(in, out, s);
+		NameServerClient.socketFactory.close(in, out, s);
 
 		return temp;
 	} 

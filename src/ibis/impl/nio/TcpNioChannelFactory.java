@@ -31,11 +31,13 @@ import ibis.ipl.IbisError;
 
 import ibis.util.IbisSocketFactory;
 
-
 /**
  * implements a channelfactory using the tcp implementation of nio
  */
 class TcpNioChannelFactory implements NioChannelFactory, NioProtocol {
+
+    private static IbisSocketFactory socketFactory =
+	IbisSocketFactory.createFactory("");
 
     // Server socket Channel we listen for new connection on
     private ServerSocketChannel ssc;
@@ -50,7 +52,7 @@ class TcpNioChannelFactory implements NioChannelFactory, NioProtocol {
     private NioConnectionCache cache;
 
     TcpNioChannelFactory() throws IOException {
-	int port = IbisSocketFactory.allocLocalPort();
+	int port = socketFactory.allocLocalPort();
 
 	Properties p = System.getProperties();
 

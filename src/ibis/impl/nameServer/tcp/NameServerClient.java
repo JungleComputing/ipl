@@ -11,11 +11,9 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisException;
 import ibis.util.*;
-import ibis.impl.nameServer.NameServer;
 import ibis.ipl.StaticProperties;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
-import ibis.util.IbisSocketFactory;
 import ibis.util.TypedProperties;
 
 import java.net.ServerSocket;
@@ -53,6 +51,9 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 	private int port;
 	private String poolName;
 	private InetAddress myAddress;
+
+	static IbisSocketFactory socketFactory =
+	    IbisSocketFactory.createFactory("");
 
 	public NameServerClient() {
 	}
@@ -99,7 +100,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			System.err.println("Found nameServerInet " + serverAddress);
 		}
 
-		serverSocket = IbisSocketFactory.createServerSocket(0, myAddress, true);
+		serverSocket = socketFactory.createServerSocket(0, myAddress, true);
 
 		boolean retry = TypedProperties.booleanProperty("ibis.name_server.retry");
 
@@ -107,7 +108,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 		boolean failed_once = false;
 		while(s == null) {
 		    try {
-			s = IbisSocketFactory.createSocket(serverAddress, 
+			s = socketFactory.createSocket(serverAddress, 
 				port, myAddress, -1);
 		    } catch (ConnectionTimedOutException e) {
 		        if(!retry) {
@@ -154,7 +155,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 		switch (opcode) { 
 		case IBIS_REFUSED:
-			IbisSocketFactory.close(in, out, s);
+			socketFactory.close(in, out, s);
 			throw new ConnectionRefusedException("NameServerClient: " + id.name() + " is not unique!");
 		case IBIS_ACCEPTED:
 			// read the ports for the other name servers and start the receiver thread...
@@ -190,11 +191,11 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			// Should we join ourselves?
 			ibisImpl.join(id);
 
-			IbisSocketFactory.close(in, out, s);
+			socketFactory.close(in, out, s);
 			new Thread(this, "NameServerClient accept thread").start();
 			break;
 		default:
-			IbisSocketFactory.close(in, out, s);
+			socketFactory.close(in, out, s);
 
 			throw new StreamCorruptedException("NameServerClient: got illegal opcode " + opcode);
 		}
@@ -212,7 +213,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 		if(DEBUG) {
 			System.err.println("NS client: leave");
 		}
-		Socket s = IbisSocketFactory.createSocket(serverAddress, port, myAddress, 0 /* retry */);
+		Socket s = socketFactory.createSocket(serverAddress, port, myAddress, 0 /* retry */);
 		
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -233,7 +234,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			System.err.println("NS client: leave ack received");
 		}
 
-		IbisSocketFactory.close(null, out, s);
+		socketFactory.close(null, out, s);
 
 //		stop = true;
 //		this.interrupt();
@@ -245,7 +246,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 	public void delete(IbisIdentifier ident) throws IOException {
 			System.err.println("NS client: delete");	
-			Socket s = IbisSocketFactory.createSocket(serverAddress, port, myAddress, 0 /*retry*/);
+			Socket s = socketFactory.createSocket(serverAddress, port, myAddress, 0 /*retry*/);
 		
 			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -262,12 +263,12 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			int temp = in.readByte();
 			System.err.println("NS client: delete ack received");			
 
-			IbisSocketFactory.close(in, out, s);
+			socketFactory.close(in, out, s);
 			System.err.println("NS client: delete DONE");			
 	}
 	
 	public void reconfigure() throws IOException {
-			Socket s = IbisSocketFactory.createSocket(serverAddress, port, myAddress, 0 /*retry*/);
+			Socket s = socketFactory.createSocket(serverAddress, port, myAddress, 0 /*retry*/);
 		
 			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -281,7 +282,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			
 			int temp = in.readByte();
 
-			IbisSocketFactory.close(in, out, s);
+			socketFactory.close(in, out, s);
 	}
 
 	public void run() {
@@ -295,7 +296,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			IbisIdentifier id;
 
 			try {
-				s = IbisSocketFactory.accept(serverSocket);
+				s = socketFactory.accept(serverSocket);
 
 				if (DEBUG) {
 					System.out.println("NameServerClient: incoming connection from " + s.toString());
@@ -332,12 +333,12 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 					if (DEBUG) {
 					    System.out.println("NameServerClient: receive join request " + id);
 					}
-					IbisSocketFactory.close(in, null, s);
+					socketFactory.close(in, null, s);
 					ibisImpl.join(id);
 					break;
 				case (IBIS_LEAVE):
 					id = (IbisIdentifier) in.readObject();
-					IbisSocketFactory.close(in, null, s);
+					socketFactory.close(in, null, s);
 					if(id.equals(this.id)) {
 						// received an ack from the nameserver that I left.
 						if (DEBUG) { 
@@ -350,11 +351,11 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 					break;
 				case (IBIS_DELETE):
 					id = (IbisIdentifier) in.readObject();
-					IbisSocketFactory.close(in, null, s);
+					socketFactory.close(in, null, s);
 					ibisImpl.delete(id);
 					break;
 				case (IBIS_RECONFIGURE):
-					IbisSocketFactory.close(in, null, s);
+					socketFactory.close(in, null, s);
 					ibisImpl.reconfigure();
 					break;
 				default: 
@@ -366,7 +367,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 				e1.printStackTrace();
 	  
 				if (s != null) { 
-					IbisSocketFactory.close(null, null, s);
+					socketFactory.close(null, null, s);
 				}
 	  
 			}

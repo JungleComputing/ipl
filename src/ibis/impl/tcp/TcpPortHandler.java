@@ -9,6 +9,8 @@ import ibis.util.DummyOutputStream;
 import ibis.util.IbisSocketFactory;
 import ibis.util.ThreadPool;
 
+import ibis.connect.socketFactory.ExtSocketFactory;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -19,6 +21,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Properties;
 
 final class TcpPortHandler implements Runnable, TcpProtocol { //, Config { 
 	static final boolean DEBUG = false;
@@ -26,13 +29,19 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 	private ServerSocket systemServer;
 	private ConnectionCache connectionCache = new ConnectionCache();
 	private ArrayList receivePorts;
-	private TcpIbisIdentifier me;
-	private int port;
+	private final TcpIbisIdentifier me;
+	private final int port;
 
-	TcpPortHandler(TcpIbisIdentifier me) throws IOException { 
+	private final boolean use_brokered_links;
+	private final IbisSocketFactory socketFactory;
+
+	TcpPortHandler(TcpIbisIdentifier me, boolean brokered, IbisSocketFactory fac) throws IOException { 
 		this.me = me;
 
-		systemServer = IbisSocketFactory.createServerSocket(0, me.address(), true);
+		use_brokered_links = brokered;
+		socketFactory = fac;
+
+		systemServer = socketFactory.createServerSocket(0, me.address(), true);
 		port = systemServer.getLocalPort();
 
 		if(DEBUG) {
@@ -85,12 +94,23 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			if (DEBUG) {
 				System.err.println("Creating socket for connection to " + receiver);
 			}
-			s = IbisSocketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), timeout);
+			s = socketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), timeout);
 
 			InputStream sin = s.getInputStream();
 			OutputStream sout = s.getOutputStream();
-			
+
 			sout.write(NEW_CONNECTION);
+
+			if (use_brokered_links) {
+			    Socket s1 = ExtSocketFactory.createBrokeredSocket(sin, sout, false);
+			    sin.close();
+			    sout.close();
+			    s.close();
+
+			    s = s1;
+			    sin = s.getInputStream();
+			    sout = s.getOutputStream();
+			}
 
 			ObjectOutputStream obj_out = new ObjectOutputStream(new DummyOutputStream(sout));
 			DataInputStream data_in = new DataInputStream(new DummyInputStream(sin));
@@ -152,6 +172,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				throw new IbisError("Illegal opcode in TcpPortHandler:connect");
 			}
 		} catch (IOException e) {
+			e.printStackTrace();
 			try {
 				if (s != null) {
 				    s.close();
@@ -165,7 +186,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 
 	void quit() { 
 		try { 
-			Socket s = IbisSocketFactory.createSocket(me.address(), port, me.address(), 0 /* retry */);
+			Socket s = socketFactory.createSocket(me.address(), port, me.address(), 0 /* retry */);
 			OutputStream sout = s.getOutputStream();
 			sout.write(QUIT_IBIS);
 			sout.flush();
@@ -197,33 +218,15 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 	}
 
 	/* returns: was it a close i.e. do we need to exit this thread */
-	private boolean handleRequest(Socket s) throws Exception {
+	private void handleRequest(Socket s, InputStream in, OutputStream out)
+		throws Exception
+	{
 		if (DEBUG) { 
 			System.err.println("portHandler on " + me + " got new connection from " + 
 					   s.getInetAddress() + ":" + s.getPort() + 
 					   " on local port " + s.getLocalPort());
 		}
 
-		OutputStream out = s.getOutputStream();
-		InputStream in   = s.getInputStream();
-
-		if (DEBUG) {
-			System.err.println("Getting streams DONE"); 
-		}
-
-		if (in.read() == QUIT_IBIS) { 
-			if (DEBUG) {
-				System.err.println("it is a quit"); 
-			}
-
-			systemServer.close();
-			s.close();
-			if (DEBUG) {
-				System.err.println("it is a quit: RETURN"); 
-			}
-
-			return true;
-		}
 
 		if (DEBUG) {
 			System.err.println("it isn't a quit"); 
@@ -260,7 +263,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			out.close();
 			in.close();
 			s.close();
-			return false;
+			return;
 		}
 
 		/* It accepts the connection, now we try to find an unused stream 
@@ -312,8 +315,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		if (DEBUG) {
 			System.err.println("S connect done ");
 		}
-		
-		return false;
 	}
 
 	public void run() { 
@@ -331,7 +332,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			}
 
 			try {
-				s = IbisSocketFactory.accept(systemServer);
+				s = socketFactory.accept(systemServer);
 			} catch (Exception e ) {
 				/* if the accept itself fails, we have a fatal problem.
 				   Close this receiveport.
@@ -347,21 +348,45 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				throw new IbisError("Fatal: PortHandler could not do an accept");
 			}
 
-			boolean exit = false;
 			try {
-				exit = handleRequest(s);
+				InputStream sin = s.getInputStream();
+				OutputStream sout = s.getOutputStream();
+				if (sin.read() == QUIT_IBIS) { 
+					if (DEBUG) {
+						System.err.println("it is a quit"); 
+					}
+
+					systemServer.close();
+					s.close();
+					if (DEBUG) {
+						System.err.println("it is a quit: RETURN"); 
+					}
+
+					cleanup();
+					return;
+				}
+
+				if (use_brokered_links) {
+				    Socket s1 = ExtSocketFactory.createBrokeredSocket(sin, sout, true);
+				    sin.close();
+				    sout.close();
+				    s.close();
+
+				    s = s1;
+				    sin = s.getInputStream();
+				    sout = s.getOutputStream();
+				}
+
+				handleRequest(s, sin, sout);
+
 			} catch (Exception e) { 
 				try {
 					System.err.println("EEK: TcpPortHandler:run: got exception (closing this socket only: " + e);
+					e.printStackTrace();
 					if(s != null) s.close();
 				} catch (Exception e1) {
-					e.printStackTrace();
 					e1.printStackTrace();
 				}
-			}
-			if(exit) {
-				cleanup();
-				return;
 			}
 		}
 	}

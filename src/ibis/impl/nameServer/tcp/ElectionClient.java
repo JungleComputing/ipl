@@ -2,7 +2,6 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
-import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -31,7 +30,7 @@ class ElectionClient implements Protocol {
 		ObjectInputStream in;
 		Object result = null;
 
-		s = IbisSocketFactory.createSocket(server, port, localAddress, 0 /* retry */);
+		s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
@@ -44,7 +43,7 @@ class ElectionClient implements Protocol {
 		in  = new ObjectInputStream(new BufferedInputStream(di));
 
 		result = in.readObject();
-		IbisSocketFactory.close(in, out, s);
+		NameServerClient.socketFactory.close(in, out, s);
 
 		return result;
 	}
@@ -56,7 +55,7 @@ class ElectionClient implements Protocol {
 		ObjectInputStream in;
 		Object result = null;
 
-		s = IbisSocketFactory.createSocket(server, port, localAddress, 0 /* retry */);
+		s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
 		
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -71,7 +70,7 @@ class ElectionClient implements Protocol {
 		in  = new ObjectInputStream(new BufferedInputStream(di));
 
 		result = in.readObject();
-		IbisSocketFactory.close(in, out, s);
+		NameServerClient.socketFactory.close(in, out, s);
 
 		return result;
 	}

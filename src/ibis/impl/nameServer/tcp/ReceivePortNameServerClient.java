@@ -7,7 +7,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
-import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -45,7 +44,7 @@ class ReceivePortNameServerClient implements Protocol {
 				throw new ConnectionTimedOutException("could not connect");
 			}
 
-			s = IbisSocketFactory.createSocket(server, port, localAddress, timeout);
+			s = NameServerClient.socketFactory.createSocket(server, port, localAddress, timeout);
 			
 			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 			out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -76,7 +75,7 @@ class ReceivePortNameServerClient implements Protocol {
 					throw new StreamCorruptedException("Registry: lookup got illegal opcode " + result);
 			}
 
-			IbisSocketFactory.close(in, out, s);
+			NameServerClient.socketFactory.close(in, out, s);
 
 			if (id == null) {
 				int timeLeft = (int)(startTime + timeout - System.currentTimeMillis());
@@ -111,7 +110,7 @@ class ReceivePortNameServerClient implements Protocol {
 		    System.err.println(this + ": bind \"" + name + "\" to " + id);
 		}
 
-		s = IbisSocketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
+		s = NameServerClient.socketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
 
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -126,7 +125,7 @@ class ReceivePortNameServerClient implements Protocol {
 		in  = new ObjectInputStream(new BufferedInputStream(di));
 		result = in.readByte();
 
-		IbisSocketFactory.close(in, out, s);
+		NameServerClient.socketFactory.close(in, out, s);
 
 		switch (result) {
 		case PORT_REFUSED:
@@ -153,7 +152,7 @@ class ReceivePortNameServerClient implements Protocol {
 		    System.err.println(this + ": rebind \"" + name + "\" to " + id);
 		}
 
-		s = IbisSocketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
+		s = NameServerClient.socketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
 
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -168,7 +167,7 @@ class ReceivePortNameServerClient implements Protocol {
 		in  = new ObjectInputStream(new BufferedInputStream(di));
 		result = in.readByte();
 
-		IbisSocketFactory.close(in, out, s);
+		NameServerClient.socketFactory.close(in, out, s);
 
 		switch (result) {
 		case PORT_ACCEPTED:
@@ -191,7 +190,7 @@ class ReceivePortNameServerClient implements Protocol {
 		ReceivePortIdentifier id;
 		int result;
 
-		s = IbisSocketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
+		s = NameServerClient.socketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
 
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -206,7 +205,7 @@ class ReceivePortNameServerClient implements Protocol {
 
 		byte temp = in.readByte();
 
-		IbisSocketFactory.close(in, out, s);
+		NameServerClient.socketFactory.close(in, out, s);
 	}
 
 	//gosia
@@ -216,7 +215,7 @@ class ReceivePortNameServerClient implements Protocol {
 		ObjectInputStream in;
 		String[] result;
 		
-		s = IbisSocketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
+		s = NameServerClient.socketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
 
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -236,7 +235,7 @@ class ReceivePortNameServerClient implements Protocol {
 		    result[i] = in.readUTF();
 		}
 
-		IbisSocketFactory.close(in, out, s);
+		NameServerClient.socketFactory.close(in, out, s);
 
 		return result;
 

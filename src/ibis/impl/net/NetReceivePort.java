@@ -11,8 +11,6 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 
-import ibis.util.IbisSocketFactory;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -615,7 +613,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         private void initServerSocket() throws IOException {
                 log.in();
-		serverSocket = IbisSocketFactory.createServerSocket(0, 1, InetAddress.getLocalHost());
+		serverSocket = NetIbis.socketFactory.createServerSocket(0, 1, InetAddress.getLocalHost());
                 log.out();
         }
 

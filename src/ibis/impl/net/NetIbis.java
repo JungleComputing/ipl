@@ -10,10 +10,9 @@ import ibis.ipl.Registry;
 import ibis.ipl.IbisConfigurationException;
 
 import ibis.util.IbisIdentifierTable;
+import ibis.util.IbisSocketFactory;
 
 import ibis.impl.nameServer.NameServer;
-
-import ibis.connect.socketFactory.ExtSocketFactory;
 
 import java.io.IOException;
 
@@ -35,6 +34,10 @@ public final class NetIbis extends Ibis {
          * The compiler name.
          */
 	private static final String COMPILER = java.lang.System.getProperty("java.lang.compiler");
+
+	private static final String connect_enable = System.getProperty("ibis.connect.enable");
+	static IbisSocketFactory socketFactory =
+	    IbisSocketFactory.createFactory(connect_enable != null ? "ibis-connect" : "");
 
 	/**
 	 * The driver loading mode.
@@ -471,7 +474,7 @@ public final class NetIbis extends Ibis {
 	 */
 	public void end() throws IOException {
 		nameServer.leave();
-		ExtSocketFactory.shutdown();
+		socketFactory.shutdown();
 	}
 
 	public void poll() throws IOException {

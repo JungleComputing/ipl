@@ -17,13 +17,14 @@ import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Hashtable;
 
 import ibis.ipl.*;
 import ibis.util.*;
+
+import ibis.connect.controlHub.ControlHub;
 
 public class NameServer implements Protocol {
 
@@ -89,7 +90,7 @@ public class NameServer implements Protocol {
 		}
 
 		// Create a server socket.
-		serverSocket = IbisSocketFactory.createServerSocket(port, null, true);
+		serverSocket = NameServerClient.socketFactory.createServerSocket(port, null, true);
        		       
 		pools = new Hashtable();
 
@@ -105,13 +106,13 @@ public class NameServer implements Protocol {
 		}
 		try {
 
-		    Socket s = IbisSocketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /* do not retry */);
+		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /* do not retry */);
 		    
 		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
 		    out.writeByte(IBIS_JOIN);
 		    out.writeObject(id);
-		    IbisSocketFactory.close(null, out, s);
+		    NameServerClient.socketFactory.close(null, out, s);
 		    
 		    if (DEBUG) { 
 			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + " DONE");
@@ -201,14 +202,14 @@ public class NameServer implements Protocol {
 		}
 		
 		try {
-		    Socket s = IbisSocketFactory.createSocket(dest.ibisNameServerAddress,
+		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
 							      dest.ibisNameServerport, null, -1 /* do not retry */);
 
 		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
 		    out.writeByte(IBIS_LEAVE);
 		    out.writeObject(id);
-		    IbisSocketFactory.close(null, out, s);
+		    NameServerClient.socketFactory.close(null, out, s);
 		} catch (Exception e) {
 		    if (DEBUG) {
 			System.err.println("Could not forward leave of "  + 
@@ -219,28 +220,28 @@ public class NameServer implements Protocol {
     }
     
 	private void killThreads(RunInfo p) throws IOException {
-		Socket s = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+		Socket s = NameServerClient.socketFactory.createSocket(InetAddress.getLocalHost(), 
 							  p.portTypeNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 
 		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(d));
 		out.writeByte(PORTTYPE_EXIT);
-		IbisSocketFactory.close(null, out, s);
+		NameServerClient.socketFactory.close(null, out, s);
 
-		Socket s2 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+		Socket s2 = NameServerClient.socketFactory.createSocket(InetAddress.getLocalHost(), 
 							  p.receivePortNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
 
 		ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2));
 		out2.writeByte(PORT_EXIT);
-		IbisSocketFactory.close(null, out2, s2);
+		NameServerClient.socketFactory.close(null, out2, s2);
 
-		Socket s3 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+		Socket s3 = NameServerClient.socketFactory.createSocket(InetAddress.getLocalHost(), 
 							  p.electionServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
 		ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3));
 		out3.writeByte(ELECTION_EXIT);
-		IbisSocketFactory.close(null, out3, s3);
+		NameServerClient.socketFactory.close(null, out3, s3);
 	}
 
 	
@@ -313,13 +314,13 @@ public class NameServer implements Protocol {
 		}
 
 		try {
-			Socket s = IbisSocketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /*do not retry*/);
+			Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /*do not retry*/);
 
 			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
 			out.writeByte(IBIS_DELETE);
 			out.writeObject(id);
-			IbisSocketFactory.close(null, out, s);
+			NameServerClient.socketFactory.close(null, out, s);
 		} catch (Exception e) {
 		    if (DEBUG) {
 			System.err.println("Could not forward delete of "  + 
@@ -392,12 +393,12 @@ public class NameServer implements Protocol {
 		}
 
 		try {
-			Socket s = IbisSocketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /*do not retry*/);
+			Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /*do not retry*/);
 
 			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
 			out.writeByte(IBIS_RECONFIGURE);
-			IbisSocketFactory.close(null, out, s);
+			NameServerClient.socketFactory.close(null, out, s);
 		} catch (Exception e) {
 		    if (DEBUG) {
 			System.err.println("Could not forward reconfigure to " + dest.identifier.toString() + 
@@ -449,7 +450,7 @@ public class NameServer implements Protocol {
 			    if (DEBUG) { 
 				System.err.println("NameServer: accepting incoming connections... ");
 			    }	
-			    s = IbisSocketFactory.accept(serverSocket);
+			    s = NameServerClient.socketFactory.accept(serverSocket);
 
 				if (DEBUG) { 
 					System.err.println("NameServer: incoming connection from " + s.toString());
@@ -489,12 +490,12 @@ public class NameServer implements Protocol {
 					System.err.println("NameServer got an illegal opcode: " + opcode);
 				}
 
-				IbisSocketFactory.close(in, out, s);
+				NameServerClient.socketFactory.close(in, out, s);
 			} catch (Exception e1) {
 				System.err.println("Got an exception in NameServer.run " + e1.toString());
 //				e1.printStackTrace();
 				if (s != null) { 
-					IbisSocketFactory.close(null, null, s);
+					NameServerClient.socketFactory.close(null, null, s);
 				}
 			}
 		}
@@ -512,6 +513,7 @@ public class NameServer implements Protocol {
 
 	public static void main(String [] args) { 
 		boolean single = false;
+		boolean control_hub = false;
 		NameServer ns = null;
 		int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
@@ -527,11 +529,18 @@ public class NameServer implements Protocol {
 					System.err.println("invalid port");
 					System.exit(1);
 				}
-								
+			} else if (args[i].equals("-controlhub")) {
+				control_hub = true;
 			} else {
 				System.err.println("No such option: " + args[i]);
 				System.exit(1);
 			}
+		}
+
+		if (control_hub) {
+		    ControlHub h = new ControlHub();
+		    h.setDaemon(true);
+		    h.start();
 		}
 
 		if(!single) {

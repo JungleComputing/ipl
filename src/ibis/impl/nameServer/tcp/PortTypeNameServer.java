@@ -3,7 +3,6 @@ package ibis.impl.nameServer.tcp;
 import ibis.ipl.StaticProperties;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
-import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -67,7 +66,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 	PortTypeNameServer() throws IOException { 
 		portTypes = new Hashtable();
 
-		serverSocket = IbisSocketFactory.createServerSocket(0, null, true);
+		serverSocket = NameServerClient.socketFactory.createServerSocket(0, null, true);
 		setName("PortType Name Server");
 		seq = new Sequencer();
 		start();
@@ -125,7 +124,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 		while (true) {
 
 			try {
-				s = IbisSocketFactory.accept(serverSocket);
+				s = NameServerClient.socketFactory.accept(serverSocket);
 			} catch (Exception e) {
 				throw new RuntimeException("PortTypeNameServer: got an error " + e.getMessage());
 			}
@@ -144,7 +143,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 					handlePortTypeNew();
 					break;
 				case (PORTTYPE_EXIT):
-					IbisSocketFactory.close(in, out, s);
+					NameServerClient.socketFactory.close(in, out, s);
 					return;
 				case (SEQNO):
 					handleSeqno();
@@ -152,7 +151,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 				default: 
 					System.err.println("PortTypeNameServer: got an illegal opcode " + opcode);					
 				}
-				IbisSocketFactory.close(in, out, s);
+				NameServerClient.socketFactory.close(in, out, s);
 			} catch (Exception e1) {
 				System.err.println("Got an exception in PortTypeNameServer.run " + e1);
 				e1.printStackTrace();

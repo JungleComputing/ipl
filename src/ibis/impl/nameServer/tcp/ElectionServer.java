@@ -2,7 +2,6 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
-import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -24,7 +23,7 @@ class ElectionServer extends Thread implements Protocol {
 	ElectionServer() throws IOException { 
 		elections = new Hashtable();
 
-		serverSocket = IbisSocketFactory.createServerSocket(0, null, true /* retry */);
+		serverSocket = NameServerClient.socketFactory.createServerSocket(0, null, true /* retry */);
 		setName("NameServer ElectionServer");
 		start();
 	} 
@@ -76,7 +75,7 @@ class ElectionServer extends Thread implements Protocol {
 		while (!stop) {
 
 			try {
-				s = IbisSocketFactory.accept(serverSocket);
+				s = NameServerClient.socketFactory.accept(serverSocket);
 			} catch (Exception e) {
 				throw new RuntimeException("ElectionServer: got an error " + e.getMessage());
 			}
@@ -97,13 +96,13 @@ class ElectionServer extends Thread implements Protocol {
 					handleReelection();
 					break;
 				case (ELECTION_EXIT):
-					IbisSocketFactory.close(in, out, s);
+					NameServerClient.socketFactory.close(in, out, s);
 					return;
 				default: 
 					System.err.println("ElectionServer: got an illegal opcode " + opcode);					
 				}
 
-				IbisSocketFactory.close(in, out, s);
+				NameServerClient.socketFactory.close(in, out, s);
 			} catch (Exception e1) {
 				System.err.println("Got an exception in ElectionServer.run " + e1);
 				e1.printStackTrace();

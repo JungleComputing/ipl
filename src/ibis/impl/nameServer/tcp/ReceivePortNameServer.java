@@ -3,7 +3,6 @@ package ibis.impl.nameServer.tcp;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
-import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -26,7 +25,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
 	ReceivePortNameServer() throws IOException { 
 		ports = new Hashtable();
-		serverSocket = IbisSocketFactory.createServerSocket(0, null, true);
+		serverSocket = NameServerClient.socketFactory.createServerSocket(0, null, true);
 		setName("ReceivePort Name Server");
 		start();
 	} 
@@ -122,7 +121,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 		while (!stop) {
 
 			try {
-				s = IbisSocketFactory.accept(serverSocket);
+				s = NameServerClient.socketFactory.accept(serverSocket);
 			} catch (Exception e) {
 				throw new RuntimeException("PortTypeNameServer: got an error " + e.getMessage());
 			}
@@ -158,13 +157,13 @@ class ReceivePortNameServer extends Thread implements Protocol {
 					handlePortLookup();
 					break;
 				case (PORT_EXIT):
-					IbisSocketFactory.close(in, out, s);
+					NameServerClient.socketFactory.close(in, out, s);
 					return;
 				default: 
 					System.err.println("ReceivePortNameServer: got an illegal opcode " + opcode);					
 				}
 
-				IbisSocketFactory.close(in, out, s);
+				NameServerClient.socketFactory.close(in, out, s);
 			} catch (Exception e1) {
 				System.err.println("Got an exception in ReceivePortNameServer.run " + e1);
 				e1.printStackTrace();

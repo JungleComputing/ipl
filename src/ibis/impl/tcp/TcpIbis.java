@@ -4,38 +4,26 @@ import ibis.ipl.Ibis;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.Upcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisException;
 import ibis.ipl.Registry;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.IbisIdentifier;
-import ibis.util.IbisIdentifierTable;
 import ibis.ipl.ReadMessage;
 
 import ibis.impl.nameServer.NameServer;
-import ibis.ipl.PortType;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.Registry;
-import ibis.ipl.StaticProperties;
+
 import ibis.util.IPUtils;
+import ibis.util.IbisSocketFactory;
 
-import java.net.Socket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
-import java.util.StringTokenizer;
 import java.util.Properties;
-import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 import java.io.IOException;
-import java.io.EOFException;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 
 public final class TcpIbis extends Ibis implements Config {
 
@@ -55,6 +43,30 @@ public final class TcpIbis extends Ibis implements Config {
 
 	TcpPortHandler tcpPortHandler;
 	private boolean ended = false;
+
+	private static final boolean use_brokered_links;
+	private static final IbisSocketFactory socketFactory;
+
+	static {
+	    Properties p = System.getProperties();
+	    String dl = p.getProperty("ibis.connect.enable");
+	    use_brokered_links = 
+		dl != null &&
+		! dl.equals("false") &&
+		! dl.equals("no");
+	    if (use_brokered_links) {
+		if (p.getProperty("ibis.connect.data_links") == null) {
+		    System.setProperty("ibis.connect.data_links", "TCPSplice");
+		}
+		if (p.getProperty("ibis.connect.control_links") == null) {
+		    System.setProperty("ibis.connect.control_links", "RoutedMessages");
+		}
+		socketFactory = IbisSocketFactory.createFactory("ibis-connect");
+	    }
+	    else {
+		socketFactory = IbisSocketFactory.createFactory("");
+	    }
+	}
 
 	public TcpIbis() throws IbisException {
 		// this is a 1.4 method.
@@ -127,7 +139,7 @@ public final class TcpIbis extends Ibis implements Config {
 
 		nameServer = NameServer.loadNameServer(this);
 
-		tcpPortHandler = new TcpPortHandler(ident);
+		tcpPortHandler = new TcpPortHandler(ident, use_brokered_links, socketFactory);
 		if(DEBUG) {
 			System.err.println("Out of TcpIbis.init()");
 		}
