@@ -717,10 +717,8 @@ public class NameServer implements Protocol {
 				ns = new NameServer(single, port);
 				break;
 			} catch (Throwable e) { 
-				e.printStackTrace();
-				System.err.println("Main got " + e + ", retry in 1 second");
+				System.err.println("Nameserver: could not create server socket on port " + port + ", retry in 1 second");
 				try {Thread.sleep(1000);} catch (Exception ee) {}
-//				e.printStackTrace();
 			}
 		}
 		try {
