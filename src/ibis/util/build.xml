@@ -21,8 +21,9 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
-    <property name="ibis" location=".."/>
+    <property name="ibis" location="../../.."/>
 
+    <import file="${ibis}/build-properties.xml"/>
     <import file="${ibis}/build-native.xml"/>
 
     <target name="build"

@@ -25,6 +25,7 @@
 
     <property name="ibis" location="../../../.."/>
 
+    <import file="${ibis}/build-properties.xml">
     <import file="${ibis}/build-native.xml"/>
 
     <path id="mpi-local.includes-ref">

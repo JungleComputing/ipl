@@ -5,8 +5,76 @@
 
     <import file="${ibis}/build-properties.xml"/>
     <import file="${ibis}/build-iogen.xml"/>
-    <import file="${ibis}/build-gmi.xml"/>
     <import file="${ibis}/build-native.xml"/>
+
+    <description>
+	Ibis gmi application build.
+    </description>
+
+    <target name="property-gmi-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="gmi-init"
+	    depends="property-gmi-build,property-init"/>
+
+    <target name="gmi"
+	    depends="gmi-init">
+	    <!-- commented out description
+	    description="Preprocess GMI class files in the build tree"
+	    -->
+	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
+	<path id="all-classes">
+	    <fileset dir="${build}">
+		<include name="**/*.class"/>
+		<include name="ibis/ipl/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	    <map from="${build}${file.separator}" to=""/>
+	</pathconvert>
+	<!--
+	    Do regexp from ${classes.all} -> gmi-classes
+		%s/.class//g
+		%s/\${file.separator}/./g
+	-->
+	<echo message="${classes.all}" file="${build}/GMI-Classes"/>
+	<replaceregexp
+		byline="true"
+		file="${build}/GMI-Classes"
+		flags="g"
+		match=".class"
+		replace=""/>
+	<replaceregexp
+		byline="true"
+		file="${build}/GMI-Classes"
+		flags="g"
+		match="\${file.separator}"
+		replace="."/>
+	<loadfile
+		property="gmi-classes"
+		srcFile="${build}/GMI-Classes">
+	</loadfile>
+	<echo	level="debug"
+		message="All classes to be rewritten: ${gmi-classes}"/>
+	<echo	level="debug"
+		message="Run ibis gmi over all classes under ${build}${file.separator}"/>
+	<java   classname="ibis.frontend.gmi.Main"
+		taskname="ibis gmi"
+		dir="${build}"
+		failonerror="true"
+		fork="true">
+	    <arg line="-dir ${gmi-classes}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+	<javac	destdir="${build}"
+		srcdir="${build}">
+	    <include name="**/group_*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
 
     <target name="init" depends="property-init">
 	<tstamp/>

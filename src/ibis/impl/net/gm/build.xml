@@ -23,10 +23,9 @@
 
     <property name="ibis" location="../../../.."/>
 
-    <import file="${ibis}/build-properties.xml"/>
-
     <property name="local.lib" value="net_ibis_gm"/>
 
+    <import file="${ibis}/build-properties.xml"/>
     <import file="${ibis}/build-native.xml"/>
 
     <if>

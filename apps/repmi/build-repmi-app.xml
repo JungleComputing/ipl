@@ -5,8 +5,79 @@
 
     <import file="${ibis}/build-properties.xml"/>
     <import file="${ibis}/build-iogen.xml"/>
-    <import file="${ibis}/build-repmi.xml"/>
     <import file="${ibis}/build-native.xml"/>
+
+    <description>
+	Ibis repmi application build
+    </description>
+
+    <target name="property-repmi-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="repmi-init"
+	    depends="property-repmi-build,property-init"/>
+
+    <target name="repmi"
+	    depends="repmi-init">
+	    <!-- Commented out; not toplevel target
+	    description="Preprocesses classes in the build tree for RepMI"
+	    -->
+	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
+	<path id="all-classes">
+	    <fileset dir="${build}">
+		<include name="**/*.class"/>
+		<include name="ibis/ipl/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	    <map from="${build}${file.separator}" to=""/>
+	</pathconvert>
+
+	<!--
+	    Do regexp from ${classes.all} -> repmi-classes
+		%s/.class//g
+		%s/\${file.separator}/./g
+	-->
+	<echo message="${classes.all}" file="${build}/REPMI-Classes"/>
+	<replaceregexp
+		byline="true"
+		file="${build}/REPMI-Classes"
+		flags="g"
+		match=".class"
+		replace=""/>
+	<replaceregexp
+		byline="true"
+		file="${build}/REPMI-Classes"
+		flags="g"
+		match="\${file.separator}"
+		replace="."/>
+	<loadfile
+		property="repmi-classes"
+		srcFile="${build}/REPMI-Classes">
+	</loadfile>
+
+	<echo	level="debug"
+		message="All classes to be rewritten: ${repmi-classes}"/>
+	<echo	level="debug"
+		message="Run ibis repmi over all classes under ${build}${file.separator}"/>
+	<java   classname="ibis.frontend.repmi.Main"
+		taskname="ibis repmi"
+		dir="${build}"
+		failonerror="true"
+		fork="true">
+	    <arg line="-dir ${repmi-classes}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+	<javac	destdir="${build}"
+		srcdir="${build}">
+	    <include name="**/repmi_stub_*.java"/>
+	    <include name="**/repmi_skeleton_*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
 
     <target name="init">
 	<tstamp/>

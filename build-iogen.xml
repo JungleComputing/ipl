@@ -30,8 +30,6 @@
 
     </description>
 
-    <import file="${ibis}/build-properties.xml"/>
-
     <target name="property-iogen-build"
 	    depends="property-init"
 	    unless="iogen-build">
