@@ -81,6 +81,7 @@ class ReceivePort
     private boolean firstCall = true;
 
     public synchronized void enableConnections() {
+System.err.println("Enable connections on " + this + " firstCall=" + firstCall);
 	if (firstCall) {
 	    firstCall = false;
 	    if (upcall != null) {
@@ -89,6 +90,7 @@ class ReceivePort
 	    }
 	    if (connectUpcall != null) {
 		acceptThread = new AcceptThread(this, connectUpcall);
+System.err.println("And start another AcceptThread(this=" + this + ")");
 		acceptThread.start();
 	    }
 	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
@@ -206,6 +208,7 @@ class ReceivePort
 		upcall_msgs++;
 	    }
 	    if (handlingReceive == 0) {
+System.err.println("Create another UpcallThread because the previous one didn't terminate");
 		createNewUpcallThread();
 	    }
 	}
@@ -643,7 +646,15 @@ System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
 			System.err.println("Now process this msg " + msg + " msg.fragmentFront.msgHandle " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)msg).fragmentFront.msgHandle));
 		    }
 		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+for (int x = 0; x < handlingReceive + 1; x++) {
+    System.err.print(">");
+}
+System.err.println();
 		    upcall.upcall(msg);
+for (int x = 0; x < handlingReceive + 1; x++) {
+    System.err.print("<");
+}
+System.err.println();
 		}
 	    }
 

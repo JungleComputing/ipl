@@ -11,6 +11,7 @@ public class Poll implements Runnable {
     int		preemptive_pollers;
     Thread	peeker;
     boolean	last_is_preemptive;
+    boolean	comm_lives = true;
 
     private static final boolean DEBUG = true;
 
@@ -194,7 +195,7 @@ public class Poll implements Runnable {
 
     public void run() {
 	System.err.println("Poll peeker lives");
-	while (true) {
+	while (comm_lives) {
 	    if (ibis.ipl.impl.messagePassing.Ibis.myIbis != null) {
 		// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
@@ -247,6 +248,7 @@ public class Poll implements Runnable {
     }
 
     protected void finalize() {
+	comm_lives = false;
 	report();
     }
 
