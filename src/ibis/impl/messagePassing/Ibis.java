@@ -1,5 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
+import ibis.ipl.impl.generic.IbisIdentifierTable;
+
 import java.util.Vector;
 import java.util.Hashtable;
 
@@ -17,6 +19,10 @@ public class Ibis extends ibis.ipl.Ibis {
 
     static final boolean DEBUG = false;
     static final boolean STATISTICS = true;
+
+    static Ibis globalIbis;
+
+    IbisIdentifierTable identTable = new IbisIdentifierTable();
 
     private IbisIdentifier ident;
 
@@ -65,6 +71,11 @@ public class Ibis extends ibis.ipl.Ibis {
     long tMsgSend;
 
     Ibis() throws IbisException {
+
+	if (globalIbis == null) {
+	    globalIbis = this;
+	}
+
 	// Set my properties.
 	systemProperties.add("reliability", "true");
 	systemProperties.add("multicast", "false");

@@ -1,8 +1,12 @@
 package ibis.ipl.impl.messagePassing;
 
+import ibis.io.MantaInputStream;
+import ibis.io.MantaOutputStream;
 
-// Make this final, make inlining possible
-final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Serializable
+
+// the implements should be unnecessary, but the IOGenerator does not 
+// see that the super class implents it, and rewrites the bytecode.
+final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Serializable, ibis.io.Serializable
 {
     int cpu;
 
@@ -18,6 +22,29 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Se
 	    this.name = new String(name);
 	    this.cpu  = cpu;
     }
+
+
+    public IbisIdentifier(MantaInputStream stream) throws ibis.ipl.IbisIOException {
+	stream.addObjectToCycleCheck(this);
+	int handle = stream.readInt();
+	if(handle < 0) {
+	    try {
+		address = java.net.InetAddress.getByName(stream.readUTF()); // this does not do a real lookup
+	    } catch (Exception e) {
+		System.err.println("EEK, could not create an inet address from a IP address. This should not happen");
+		System.exit(1);
+	    }
+	    name = stream.readUTF();
+	    cpu = stream.readInt();
+	    Ibis.globalIbis.identTable.addIbis(stream, -handle, this);
+	} else {
+	    IbisIdentifier ident = (IbisIdentifier) Ibis.globalIbis.identTable.getIbis(stream, handle);
+	    address = ident.address;
+	    name = ident.name;
+	    cpu = ident.cpu;
+	}
+    }
+
 
     // Compare ranks here, much faster. This is method critical for Satin. --Rob
     public boolean equals(ibis.ipl.impl.messagePassing.IbisIdentifier other) {
@@ -45,5 +72,15 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Se
 
     public int hashCode() {
 	return name.hashCode();
+    }
+
+    public final void generated_WriteObject(MantaOutputStream stream) throws ibis.ipl.IbisIOException {
+	int handle = Ibis.globalIbis.identTable.getHandle(stream, this);
+	stream.writeInt(handle);
+	if(handle < 0) { // First time, send it.
+	    stream.writeUTF(address.getHostAddress());
+	    stream.writeUTF(name);
+	    stream.writeInt(cpu);
+	}
     }
 }
