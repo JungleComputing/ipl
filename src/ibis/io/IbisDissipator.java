@@ -9,7 +9,6 @@ import java.io.IOException;
  * DataInputstream, set of nio buffers, etc.
  * Calls to read functions may block until data is available.
  */
-
 public interface IbisDissipator {
 
 	/**

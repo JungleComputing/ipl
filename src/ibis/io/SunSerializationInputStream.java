@@ -45,6 +45,16 @@ public final class SunSerializationInputStream extends SerializationInputStream 
     }
 
     /**
+     * Dummy reset. For Ibis, we want to be able to remove the object table in
+     * a SerializationInputStream.
+     * With Sun serialization, this is accomplished by sending a RESET to it.
+     * For Ibis serialization, we cannot do this because we can only send a RESET
+     * when a handle is expected.
+     */
+    public void clear() {
+    }
+
+    /**
      * No statistics are printed for the Sun serialization version.
      */
     public void statistics() {

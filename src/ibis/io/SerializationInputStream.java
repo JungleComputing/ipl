@@ -53,6 +53,13 @@ public abstract class SerializationInputStream extends ObjectInputStream {
     public abstract void statistics();
 
     /**
+     * Ibis serialization profits from an explicit clear of the object table,
+     * so that any stubs in it can be garbage-collected. This significantly reduces
+     * the number of connections kept alive.
+     */
+    public abstract void clear();
+
+    /**
      * Receives an array in place. No duplicate checks are done.
      * These methods are a shortcut for: readArray(dest, 0, dest.length);
      * The destination array should be of the correct length!
