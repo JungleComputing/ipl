@@ -56,6 +56,7 @@ action=eval
 
 Dns_port="-Dibis.name_server.port=@IBIS_NS_PORT@"
 Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
+Dns_pool="-Dibis.name_server.key=$PANDA_HOST_PORT_KEY"
 
 dir=$PWD
 
@@ -130,6 +131,10 @@ do
 
 		# echo PRUN_HOSTNAMES $PRUN_HOSTNAMES
 		;;
+	-key)
+		shift
+		Dns_pool="-Dibis.name_server.key=$PANDA_HOST_PORT_KEY"
+		;;
         *)      java_args="$java_args $qarg"
                 ;;
         esac
@@ -164,8 +169,6 @@ then
 	# JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$PRUN_CPU_RANK -Djava.compiler=NONE"
 	JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$PRUN_CPU_RANK"
 fi
-
-Dns_pool="-Dibis.name_server.key=$PANDA_HOST_PORT_KEY"
 
 DEFAULT_USE_JAVA_WRAPPER=1
 
