@@ -62,10 +62,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	/* Options. */
 	boolean closed = false; // used in TupleSpace
 	private boolean stats = false;
-	private boolean panda = false;
-	private boolean mpi = false;
-	private boolean net = false;
-	private boolean nio = false;
 	private boolean ibisSerialization = false;
 	private boolean upcallPolling = false;
 
@@ -201,23 +197,28 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.exit(1);
 		}
 
+		StaticProperties reqprops = new StaticProperties();
+		reqprops.add("serialization", "sun, ibis");
+
 		boolean doUpcalls = true;
 
 		/* Parse commandline parameters. Remove everything that starts
 		   with satin. */
 		Vector tempArgs = new Vector();
+		StaticProperties newprops = new StaticProperties(reqprops);
 		for(int i=0; i<args.length; i++) {
 			if(args[i].equals("-satin-closed")) {/* Closed world assumption. */
 				closed = true;
 			} else if(args[i].equals("-satin-panda")) {
-				panda = true;
+				reqprops.add("name", "panda");
 			} else if(args[i].equals("-satin-mpi")) {
-				mpi = true;
+				reqprops.add("name", "mpi");
 			} else if(args[i].equals("-satin-net")) {
-				net = true;
+				reqprops.add("name", "net");
 			} else if(args[i].equals("-satin-nio")) {
-				nio = true;
+				reqprops.add("name", "nio");
 			} else if(args[i].equals("-satin-tcp")) {
+				reqprops.add("name", "tcp");
 			} else if(args[i].equals("-satin-stats")) {
 				stats = true;
 			} else if(args[i].equals("-satin-ibis")) {
@@ -226,7 +227,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				doUpcalls = false;
 			} else if(args[i].equals("-satin-upcalls")) {
 				doUpcalls = true;
-			} else if(args[i].equals("-satin-upcall-polling")) {
+			} else if(SUPPORT_UPCALL_POLLING &&
+				  args[i].equals("-satin-upcall-polling")) {
 				upcallPolling = true;
 			} else if(args[i].equals("-satin-queue-size")) {
 				i++;
@@ -242,6 +244,25 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			} else {
 				tempArgs.add(args[i]);
 			}
+		}
+
+		if (closed) {
+		    reqprops.add("world", "closed");
+		}
+		else {
+		    reqprops.add("world", "open");
+		}
+
+		if (doUpcalls) {
+		    if (upcallPolling) {
+			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, Upcalls, ExplicitReceive");
+		    }
+		    else {
+			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, Upcalls, NoPollForUpcalls, ExplicitReceive");
+		    }
+		}
+		else {
+		    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, ExplicitReceive");
 		}
 
 		upcalls = doUpcalls; // upcalls is final for performance reasons :-)
@@ -266,48 +287,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			out.println("SATIN '" + hostName + "': init ibis" );
 		}
 
-		StaticProperties s = new StaticProperties();
+		try {
+			ibis = Ibis.createIbis(reqprops, this);
 
-		ibis = null;
-
-		for(int i=0; (i<10 && ibis == null); i++) {
-			try {
-				name = "ibis@" + hostName + "_" + System.currentTimeMillis();
-				if(panda) {
-					ibis = Ibis.createIbis(name,
-							       "ibis.impl.messagePassing.PandaIbis", this);
-				} else if (mpi) {
-					ibis = Ibis.createIbis(name,
-							       "ibis.impl.messagePassing.MPIIbis", this);
-				} else if (net) {
-					ibis = Ibis.createIbis(name,
-							       "ibis.impl.net.NetIbis", this);
-
-				} else if (nio) {
-					ibis = Ibis.createIbis(name,
-							       "ibis.impl.nio.NioIbis", this);
-
-				} else {
-					ibis = Ibis.createIbis(name,
-							       "ibis.impl.tcp.TcpIbis", this);
-				}
-			} catch (ConnectionRefusedException e) {
-				if(COMM_DEBUG) {
-					System.err.println("SATIN '" + hostName + 
-							   "': WARNING Could not start ibis with name '" +
-							   name + "': " + e + ", retrying.");
-				}
-			} catch (IbisException e) {
-				System.err.println("SATIN '" + hostName + 
-						   "': Could not start ibis with name '" +
-						   name + "': " + e);
-				e.printStackTrace();
-				break;
-			}
-		}
-		if(ibis == null) {
-			System.err.println("SATIN: giving up");
-			System.exit(1);
+		} catch (IbisException e) {
+			System.err.println("SATIN '" + hostName + 
+					   "': Could not start ibis: " + e);
+			e.printStackTrace();
 		}
 
 		ident = ibis.identifier();
@@ -322,7 +308,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		try {
+			StaticProperties s = new StaticProperties();
 			Registry r = ibis.registry();
+
 			masterIdent = (IbisIdentifier) r.elect("satin master", ident);
 
 			if(masterIdent.equals(ident)) {

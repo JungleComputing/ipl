@@ -185,14 +185,24 @@ public abstract class Ibis {
 
     /**
      * Creates a new Ibis instance, based on the required properties,
-     * or on the property ibis.name.
+     * or on the system property "ibis.name",
+     * or on the staticproperty "name".
+     * If the system property "ibis.name" is set, the corresponding
+     * Ibis implementation is chosen.
+     * Else, if the staticproperty "name" is set in the specified
+     * required properties, the corresponding Ibis implementation is chosen.
+     * Else, an Ibis implementation is chosen that matches the
+     * required properties.
+     *
      * The currently recognized Ibis names are:
      * <br>
      * panda	Ibis built on top of Panda.
      * <br>
-     * tcp		Ibis built on top of TCP (the current default).
+     * tcp	Ibis built on top of TCP (the current default).
      * <br>
-     * mpi		Ibis built on top of MPI.
+     * nio	Ibis built on top of Java NIO.
+     * <br>
+     * mpi	Ibis built on top of MPI.
      * <br>
      * net.*	The future version, for tcp, udp, GM, ...
      * <br>
@@ -227,9 +237,14 @@ public abstract class Ibis {
 
 	String ibisname = p.getProperty("ibis.name");
 
-	if (ibisname == null && reqprop == null) {
-	    // default Ibis
-	    ibisname = "tcp";
+	if (ibisname == null) {
+	    if (reqprop == null) {
+		// default Ibis
+		ibisname = "tcp";
+	    }
+	    else {
+		ibisname = reqprop.find("name");
+	    }
 	}
 
 	if (ibisname == null) {
@@ -255,6 +270,8 @@ public abstract class Ibis {
 		implementationname =  "ibis.impl.messagePassing.PandaIbis";
 	    } else if (ibisname.equals("mpi")) {
 		implementationname =  "ibis.impl.messagePassing.MPIIbis";
+	    } else if (ibisname.equals("nio")) {
+		implementationname =  "ibis.impl.nio.NioIbis";
 	    } else if (ibisname.startsWith("net")) {
 		implementationname =  "ibis.impl.net.NetIbis";
 		StaticProperties sp = staticProperties(implementationname);
