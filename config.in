@@ -13,9 +13,8 @@ PROFILE		= 0
 OPTIMIZE	= 1
 
 MYRINET_ROOT    = /usr/local/package/myrinet/lib/intel_linux
-GM_ROOT		= /usr/gm
 
-# -------------- end of user configuration -----------------------------
+# -------------- end of build time configuration ----------------------------
 
 PANDA		= @PANDA_ROOT@
 PANDA_NETWORK	= @PANDA_NETWORK@
@@ -28,6 +27,9 @@ ifndef IBIS_ROOT
 IBIS_ROOT	= @IBIS_ROOT@
 endif
 LFC_ROOT	= @LFC_ROOT@
+GM_ROOT		= @GM_ROOT@
+
+# -------------- end of configure time configuration ------------------------
 
 JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
 JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
@@ -60,12 +62,12 @@ endif
 GM		= $(GM_ROOT)/lib/libgm.a
 DASLIB		= /usr/local/VU/daslib
 
-GROUPC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.group.Main
+GROUPC_COMMAND	= $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.group.Main
 
-GROUP_FILES = $(SRC:%.java=%.gjava)
-CLASS_FILES = $(SRC:%.java=%.class) $(INNER_CLASS)
-MAIN_CLASS = $(MAIN:%.java=%.class)
-MAIN_CLASS_NAME = $(MAIN:%.java=%)
+GROUP_FILES	= $(SRC:%.java=%.gjava)
+CLASS_FILES	= $(SRC:%.java=%.class) $(INNER_CLASS)
+MAIN_CLASS	= $(MAIN:%.java=%.class)
+MAIN_CLASS_NAME	= $(MAIN:%.java=%)
 
 LDSO	= gcc -shared
 
@@ -89,7 +91,7 @@ ifeq ($(OPTIMIZE), 1)
 CFLAGS		+= -O3 -DNDEBUG
 else
 MANTACFLAGS	+= -no-opt-comm
-MANTACFLAGS	+= -no-inline
+MANTACFLAGS	+= -no-inline -g
 endif
 ifeq ($(PROFILE), 1)
 CFLAGS		+= -pg
@@ -115,7 +117,9 @@ MANTACFLAGS	+= -classpath $(MANTACLASSPATH)
 MANTACFLAGS	+= -g
 MANTACFLAGS	+= -no-shared-link
 MANTACFLAGS	+= -panda $(PANDA)/panda4.0
+ifeq (, $(OUT))	# Is this what we want???? No apps stuff exported... RFHH
 MANTACFLAGS	+= -output_cc $(LASM_CACHE)
+endif
 MANTACFLAGS	+= -user_cc $(LASM_CACHE)
 ifeq (lfc, $(PANDA_NETWORK))
 MANTACFLAGS	+= -myrinet
@@ -146,18 +150,49 @@ endif
 PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
 PKG_O_DOLLAR	:= $(subst $$,\$$,$(PKG_O_FILES))
 
-MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
+MANTA_LIB	= $(IBIS_ROOT)/ibis/lib/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
-
 MANTA_LDLIBS	= $(MANTA_LIB)
-ifeq (MPI, $(MP_MODE))
-MPI		= /usr/local/mpich/mpich-gm
-MANTA_LDLIBS	+= $(IBIS_ROOT)/ibis/ipl/impl/messagePassing/libibis_mp_mpi.a
-MANTA_LDLIBS	+= -L$(MPI)/lib -lmpich
-MANTA_LDLIBS	+= $(GM)
-MANTACFLAGS	:= $(filter-out -myrinet, $(MANTACFLAGS))
+
+ifeq (gm, $(MPI_MODE))
+    MPI		= /usr/local/mpich/mpich-gm
 else
-MANTA_LDLIBS	+= $(IBIS_ROOT)/ibis/ipl/impl/messagePassing/libibis_mp_panda.a
+    ifeq (panda, $(MPI_MODE))
+	MPI		= /home/rutger/mpich/mpich-panda/mpich/mpich
+    else
+	ifeq (p4, $(MPI_MODE))
+	    MPI		= /usr/local/mpich/1.2.4/ch_p4
+	    # MPI		= /home/rutger/mpich/mpich-1.2.4..8a
+	endif
+    endif
+endif
+
+ifeq (mpi, $(MP_MODE))
+    MANTA_LDLIBS	+= $(IBIS_ROOT)/ibis/lib/libibis_mp_mpi.a
+    ifeq (gm, $(MPI_MODE))
+	MANTA_LDLIBS	+= -L$(MPI)/lib -lmpich
+	MANTA_LDLIBS	+= $(GM)
+	MANTA_LDLIBS	+= -lpthread
+	MANTACFLAGS	:= $(filter-out -myrinet, $(MANTACFLAGS))
+    else
+	ifeq (panda, $(MPI_MODE))
+	    ifeq (1, $(OPTIMIZE))
+		MANTA_LDLIBS	+= $(MPI)/lib/i386/ch_panda4/optimized/libmpi.a
+	    else
+		MANTA_LDLIBS	+= $(MPI)/lib/i386/ch_panda4/libmpi.a
+	    endif
+	else
+	    ifeq (p4, $(MPI_MODE))
+		MANTA_LDLIBS	+= -L$(MPI)/lib -lmpich
+		MANTA_LDLIBS	+= -lpthread
+		MANTACFLAGS	:= $(filter-out -myrinet, $(MANTACFLAGS))
+	    else
+		@@@#$$$$$$$$$$$$$$
+	    endif
+	endif
+    endif
+else
+    MANTA_LDLIBS	+= $(IBIS_ROOT)/ibis/lib/libibis_mp_panda.a
 endif
 
 #JACKAL_PATCHERS	=

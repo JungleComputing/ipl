@@ -8,10 +8,10 @@ SERIALIZABLE	=
 SERIALIZABLE	+= Data1.java
 SERIALIZABLE	+= Data2.java
 
-# MP_MODE		= mpi
-MP_MODE		= Panda
-# MPI_MODE	= gm
-MPI_MODE	= p4
+MP_MODE		= mpi
+# MP_MODE		= Panda
+MPI_MODE	= gm
+# MPI_MODE	= p4
 # MPI_MODE	= panda
 
 include ../../../../config.mk
