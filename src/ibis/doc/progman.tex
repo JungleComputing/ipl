@@ -32,8 +32,8 @@ documentation for each class and method.
 Fragments of an actual Ibis application will be used for illustration purposes.
 Section \ref{An Ibis Program} will discuss a typical Ibis program,
 with subsections on each phase of the program.
-Section \ref{Running an Ibis Program} will discuss how to actually
-run this program.
+Section \ref{Compiling and Running an Ibis Program} will discuss how to
+actually compile and run this program.
 
 We also built several systems on top of Ibis.
 Section \ref{The Satin Divide-and-Conquer System}
@@ -303,8 +303,9 @@ as discussed in Section \ref{Creating an Ibis Instance}:
 \begin{quote}
 \begin{verbatim}
 StaticProperties portprops = new StaticProperties();
-portprops.add("communication", "OneToOne, Reliable, " + 
-			       "AutoUpcalls, ExplicitReceipt");
+portprops.add("communication",
+              "OneToOne, Reliable, " + 
+                  "AutoUpcalls, ExplicitReceipt");
 portprops.add("serialization", "object");
 PortType porttype = null;
 try {
@@ -322,7 +323,7 @@ result in an \verb+IbisException+.
 An \verb+IbisException+ could also result when the same name is
 already used for a port type with different properties.
 Port types are registered with an internal or external name server
-(this will be discussed in Section \ref{Running an Ibis Program}).
+(this will be discussed in Section \ref{Compiling and Running an Ibis Program}).
 If communication with this name server fails, a
 \verb+java.io.IOException+ is thrown.
 
@@ -396,7 +397,7 @@ a field \verb+rpc_upcall+ of this type.
 try {
     SendPort server_sender = porttype.createSendPort();
     ReceivePort server_receiver =
-	porttype.createReceivePort("server", rpc_upcall);
+        porttype.createReceivePort("server", rpc_upcall);
 } catch(java.io.IOException e) {
     ....
 }
@@ -415,7 +416,7 @@ receive port that enables explicit receipt:
 try {
     SendPort client_sender = porttype.createSendPort();
     ReceivePort client_receiver =
-	porttype.createReceivePort("client");
+        porttype.createReceivePort("client");
 } catch(java.io.IOException e) {
     ....
 }
@@ -481,11 +482,151 @@ try {
 
 This completes the connection setup.
 
+Note that a send port can set up connections to more than one
+receive port (if the port type supports the \verb+OneToMany+
+communication property). Also, multiple send ports can set up
+connections to the same receive port (if the port type supports
+the \verb+ManyToOne+ communication property).
+
 \mysubsection{Communicating}
+
+As the reader may have noticed by now, communication in Ibis
+consists of messages, sent from a send port, and received at a
+receive port. When a sender wants to send a message, it will first
+have to obtain one from the send port. Such a message is of
+type \verb+ibis.ipl.WriteMessage+ and is obtained by means of
+the \verb+newMessage+ method of \verb+SendPort+, which is specified
+as follows:
+
+\begin{quote}
+\begin{verbatim}
+WriteMessage newMessage() throws IOException;
+\end{verbatim}
+\end{quote}
+
+For a given send port, only one message can be alive at any time.
+When a new message is requested while a message is alive, the request
+is blocked until the live message is finished.
+
+Once a write message is obtained, data can be written to it.
+A write message has various methods for the different types of
+data that can be written to it. For instance, the
+\verb+writeInt+ method can be used to write an integer value,
+and the \verb+writeObject+ method can be used to write an object.
+The kind of data that can be written to the message depends on the
+serialization property specified when the port type was created.
+The most general form is object serialization, which supports 
+all write methods in a write message.
+The \verb+data+ serialization property does not allow use of the
+\verb+writeObject+ method, but does allow the use of all other write
+methods. The \verb+byte+ serialization property only allows use
+of the \verb+writeByte+ method and the \verb+writeArray(byte[])+
+method.
+
+Once there is a considerable amount of data in the message, Ibis
+can be given a hint to start sending, using the \verb+send()+
+method. This hint is not needed, however. When the message is
+complete, the message can be sent out by invoking the
+\verb+finish()+ method.
+
+Our client in the RPC example could have the following:
+\begin{quote}
+\begin{verbatim}
+int obtainLength(String s) throws IOException {
+    WriteMessage w = client_sender.newMessage();
+    w.writeObject(s);
+    w.finish();
+    ...
+\end{verbatim}
+\end{quote}
+
+At the receiving side, a message can be received in two ways,
+depending on how the receive port was created: either by means of an
+upcall, or by means of an explicit receive. For each write method
+in a write message, there is a corresponding read method in
+a read message. For a given receive port, only one message can
+be alive at any time. A read message is alive until it is
+finished (by a \verb+finish+ call), or the upcall returns.
+
+Now, let us present some more code of our RPC example, this time
+from the server:
+
+\begin{quote}
+\begin{verbatim}
+void upcall(ReadMessage m) throws IOException {
+    String s = (String) m.readObject();
+    int len = s.length;
+    m.finish();
+    WriteMessage w = server_sender.newMessage();
+    w.writeInt(len);
+    w.finish();
+}
+\end{verbatim}
+\end{quote}
+
+Note that the read message is finished before replying to the
+request. To prevent deadlocks, upcalls are not allowed to block in
+condition sychronization or network access as long as the message
+is active.
+
+Now, we can also finish the \verb+obtainLength+ method of the client:
+\begin{quote}
+\begin{verbatim}
+    ...
+    ReadMessage r = client_receiver.receive();
+    int len = r.readInt();
+    r.finish();
+    return len;
+}
+\end{verbatim}
+\end{quote}
 
 \subsection{Finishing up}
 
-\mysection{Running an Ibis Program}
+Closing of a connection is initiated by closing a send port
+(by means of the \verb+close+) method. The \verb+ReceivePort+
+class also has a \verb+close+ method, but this method blocks
+until all send ports that have a connection to it are closed.
+So, send ports have to be closed first.
+
+Our RPC client will do the following:
+
+\begin{quote}
+\begin{verbatim}
+client_sender.close();
+client_receiver.close();
+\end{verbatim}
+\end{quote}
+and the code of the server should be clear by now.
+
+Ibis itself must also be ended. Both our client and our server
+should invoke the \verb+Ibis.end+ method:
+\begin{quote}
+\begin{verbatim}
+ibis.end();
+\end{verbatim}
+\end{quote}
+
+As of Java 1.4, it is also possible to add a so-called shutdown hook.
+This could be done right after the Ibis instance is created:
+\begin{quote}
+\begin{verbatim}
+Runtime.getRuntime().addShutdownHook(new Thread() {
+    public void run() {
+        try {
+            ibis.end();
+        } catch (IOException e) {
+        }
+    }
+});
+\end{verbatim}
+\end{quote}
+
+This shutdown hook gets invoked when the program terminates.
+
+\mysection{Compiling and Running an Ibis Program}
+
+Before running an Ibis application it must be compiled.
 
 \mysection{The Satin Divide-and-Conquer System}
 
