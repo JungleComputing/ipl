@@ -117,6 +117,7 @@ public class IOGenerator {
     boolean local = true;
     boolean file = false;
     boolean force_generated_calls = false;
+    boolean verify = false;
     String pack;
 
     Hashtable primitiveSerialization;
@@ -124,7 +125,7 @@ public class IOGenerator {
 
     Vector classes_to_rewrite, target_classes, classes_to_save;
 
-    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, String[] args, int num, String pack) {
+    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify, String[] args, int num, String pack) {
 	ObjectType tp;
 
 	this.verbose = verbose;
@@ -132,6 +133,11 @@ public class IOGenerator {
 	this.file = file;
 	this.pack = pack;
 	this.force_generated_calls = force_generated_calls;
+	this.verify = verify;
+	if (force_generated_calls && verify) {
+	    System.err.println("Warning: cannot have both -force and -verify");
+	    verify = false;
+	}
 
 	classes_to_rewrite = new Vector();
 	target_classes = new Vector();
@@ -358,7 +364,7 @@ public class IOGenerator {
 	    il = new InstructionList();
 	    il.append(new RETURN());
 
-	    MethodGen read_cons = new MethodGen(Constants.ACC_PUBLIC,
+	    MethodGen read_cons = new MethodGen(Constants.ACC_PROTECTED,
 						Type.VOID,
 						new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
 						new String[] { "is" },
@@ -368,6 +374,20 @@ public class IOGenerator {
 						clazz.getConstantPool());
 	    read_cons.addException("java.io.IOException");
 	    clazz.addMethod(read_cons.getMethod());
+	}
+	else if (has_read_object(clazz)) {
+	    il = new InstructionList();
+	    il.append(new RETURN());
+	    MethodGen readobjectWrapper = new MethodGen(Constants.ACC_PROTECTED,
+							Type.VOID,
+							new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
+							new String[] { "is" },
+							"$readObjectWrapper$",
+							clazz.getClassName(),
+							il,
+							clazz.getConstantPool());
+	    readobjectWrapper.addException("java.io.IOException");
+	    clazz.addMethod(readobjectWrapper.getMethod());
 	}
     }
 
@@ -446,7 +466,13 @@ public class IOGenerator {
 	       by calling generated_DefaultReadObject.
 	    */
 	    if (has_read_object(clazz)) {
-		/* TODO !!! */
+		il.append(new ALOAD(2));
+		il.append(new ALOAD(1));
+		il.append(factory.createInvoke(clazz.getClassName(),
+					       "$readObjectWrapper$",
+					       Type.VOID,
+					       new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
+					       Constants.INVOKEVIRTUAL));
 	    }
 	    else {
 		int dpth = get_class_depth(clazz);
@@ -529,6 +555,16 @@ public class IOGenerator {
     }
 
     private static boolean has_read_object(JavaClass clazz) {
+	Method[] methods = clazz.getMethods();
+
+	for (int i = 0; i < methods.length; i++) {
+	    if (methods[i].getName().equals("readObject") &&
+	        methods[i].getSignature().equals("(Ljava/io/ObjectInputStream;)V")) return true;
+	}
+	return false;
+    }
+
+    private static boolean has_read_object(ClassGen clazz) {
 	Method[] methods = clazz.getMethods();
 
 	for (int i = 0; i < methods.length; i++) {
@@ -820,6 +856,7 @@ public class IOGenerator {
 	int default_write_method_index = -1;
 	int default_read_method_index = -1;
 	int read_cons_index = -1;
+	int read_wrapper_index = -1;
 
 	for (int i = 0; i < class_methods.length; i++) {
 	    if (class_methods[i].getName().equals("generated_WriteObject") &&
@@ -837,6 +874,10 @@ public class IOGenerator {
 	    else if (class_methods[i].getName().equals("<init>") &&
 		class_methods[i].getSignature().equals("(Libis/io/IbisSerializationInputStream;)V")) {
 		read_cons_index = i;
+	    }
+	    else if (class_methods[i].getName().equals("$readObjectWrapper$") &&
+		class_methods[i].getSignature().equals("(Libis/io/IbisSerializationInputStream;)V")) {
+		read_wrapper_index = i;
 	    }
 	}
 
@@ -1101,6 +1142,22 @@ public class IOGenerator {
 
 	    cg.setMethodAt(read_cons_gen.getMethod(), read_cons_index);
 	}
+	else if (has_read_object(clazz)) {
+	    read_il = new InstructionList();
+	    read_il.append(new ALOAD(0));
+	    read_il.append(new ALOAD(1));
+	    read_il.append(factory.createInvoke(class_name,
+						 "readObject",
+						 Type.VOID,
+						 new Type[] {new ObjectType("java.io.ObjectInputStream")},
+						 Constants.INVOKESPECIAL));
+	    MethodGen read_wrapper = new MethodGen(class_methods[read_wrapper_index], class_name, cg.getConstantPool());
+	    read_il.append(read_wrapper.getInstructionList());
+	    read_wrapper.setInstructionList(read_il);
+	    read_wrapper.setMaxStack(read_wrapper.getMaxStack(cg.getConstantPool(), read_il, read_wrapper.getExceptionHandlers()));
+	    read_wrapper.setMaxLocals();
+	    cg.setMethodAt(read_wrapper.getMethod(), read_wrapper_index);
+	}
 
 	write_gen = new MethodGen(class_methods[write_method_index], class_name, cg.getConstantPool());
 	write_il.append(write_gen.getInstructionList());
@@ -1116,13 +1173,13 @@ public class IOGenerator {
 	Repository.removeClass(class_name);
 	Repository.addClass(clazz);
 
-do_verify(clazz);
+	if (verify) do_verify(clazz);
 
 	JavaClass gen = generate_InstanceGenerator(clazz);
 
 	Repository.addClass(gen);
 
-do_verify(gen);
+	if (verify) do_verify(gen);
 
 	classes_to_save.add(clazz);
 	classes_to_save.add(gen);
@@ -1240,20 +1297,12 @@ do_verify(gen);
 		}
 	    }
 
-	    try {
-		/* BCEL throws an exception here if it cannot find some class.
-		 * In this case, we won't rewrite.
-		 */
+	    if (clazz != null) {
 		if (! isIbisSerializable(clazz)) {
 		    addClass(clazz);
 		} else {
 		    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
 		}
-	    } catch(Exception e) {
-		System.out.println("Got an exception while checking " +
-				   ((clazz == null) ? "<none>" : clazz.getClassName()) +
-				   ", not rewritten");
-		// System.out.println("Exception = " + e);
 	    }
 	}
 
@@ -1373,6 +1422,7 @@ do_verify(gen);
 	boolean local = true;
 	boolean file = false;
 	boolean force_generated_calls = false;
+	boolean verify = false;
 	Vector files = new Vector();
 	String pack = null;
 
@@ -1393,6 +1443,8 @@ do_verify(gen);
 		file = true;
 	    } else if (args[i].equals("-force")) {
 		force_generated_calls = true;
+	    } else if (args[i].equals("-verify")) {
+		verify = true;
 	    } else if (args[i].equals("-package")) {
 		pack = args[i+1];
 		i++; // skip arg
@@ -1425,6 +1477,6 @@ do_verify(gen);
 	    newArgs[i] = newArgs[i].replace(java.io.File.separatorChar, '.');
 	}
 
-	new IOGenerator(verbose, local, file, force_generated_calls, newArgs, newArgs.length, pack).scanClass(newArgs, newArgs.length);
+	new IOGenerator(verbose, local, file, force_generated_calls, verify, newArgs, newArgs.length, pack).scanClass(newArgs, newArgs.length);
     }
 }
