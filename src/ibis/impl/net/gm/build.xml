@@ -44,9 +44,9 @@
 		</path>
 	    </then>
 	<elseif>
-	    <then>
 	    <os family="windows"/>
-		<property name="gm.lib.dir"  location="${package.home.gm}"/>
+	    <then>
+		<property name="gm.lib.dir"  location="${package.home.gm}/examples"/>
 		<path id="local.includes-ref">
 		    <pathelement path="${package.home.gm}"/>
 		</path>
