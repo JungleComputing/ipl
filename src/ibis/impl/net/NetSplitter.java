@@ -193,21 +193,66 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     }
 
     public long finish() throws IOException {
+        long count = 0;
+
         log.in();
         super.finish();
         if (singleton != null) {
-            singleton.finish();
+            count = singleton.finish();
         } else {
+            // Only count first network output
+            boolean first = true;
+
             Iterator i = outputMap.values().iterator();
             do {
                 NetOutput no = (NetOutput) i.next();
-                no.finish();
+                long newcount = no.finish();
+
+                if (first) {
+                    count = newcount;
+                    first = false;
+                }
             } while (i.hasNext());
         }
         log.out();
 
-        // TODO: return byte count of message
-        return 0;
+        // return byte count of message
+        return count;
+    }
+
+    public long getCount()
+    {
+        if (singleton != null) {
+            System.out.println("NetSplitter.getCount(): singleton");
+            return singleton.getCount();
+        } else {
+            // Give bytecount of first network output
+            System.out.println("NetSplitter.getCount(): non-singleton");
+            Iterator i = outputMap.values().iterator();
+            if (i.hasNext()) {
+                NetOutput no = (NetOutput) i.next();
+                return no.getCount();
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    public void resetCount()
+    {
+        if (singleton != null) {
+            System.out.println("NetSplitter.resetCount(): singleton");
+            singleton.resetCount();
+        } else {
+            // Reset all network outputs
+            System.out.println("NetSplitter.resetCount(): non-singleton");
+
+            Iterator i = outputMap.values().iterator();
+            while (i.hasNext()) {
+                NetOutput no = (NetOutput) i.next();
+                no.resetCount();
+            }
+        }
     }
 
     public void free() throws IOException {

@@ -92,6 +92,20 @@ public final class IdOutput extends NetOutput {
         }
     }
 
+    public long getCount() {
+        if (subOutput != null) {
+            return subOutput.getCount();
+        } else {
+            return 0;
+        }
+    }
+
+    public void resetCount() {
+        if (subOutput != null) {
+            subOutput.resetCount();
+        }
+    }
+
     public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
         subOutput.writeByteBuffer(buffer);
     }

@@ -68,14 +68,14 @@ public abstract class NetSerializedOutput extends NetOutput implements NetBuffer
             subOutput = newSubOutput(subDriver);
             this.subOutput = subOutput;
 
-	    if (subOutput instanceof NetBufferedOutputSupport) {
-		subBuffered = (NetBufferedOutputSupport)subOutput;
-		if (!subBuffered.writeBufferedSupported()) {
-		    subBuffered = null;
-		}
+            if (subOutput instanceof NetBufferedOutputSupport) {
+                subBuffered = (NetBufferedOutputSupport)subOutput;
+                if (!subBuffered.writeBufferedSupported()) {
+                    subBuffered = null;
+                }
 // else
 // System.err.println("YEP YEP YEP .... sub can be buffered");
-	    }
+            }
         }
 
         replacer = cnx.getReplacer();
@@ -137,6 +137,22 @@ public abstract class NetSerializedOutput extends NetOutput implements NetBuffer
         subOutput.finish();
         // TODO: return byte count of message
         return 0;
+    }
+
+    public long getCount()
+    {
+        if (subOutput != null) {
+            return subOutput.getCount();
+        } else {
+            return 0;
+        }
+    }
+
+    public void resetCount()
+    {
+        if (subOutput != null) {
+            subOutput.resetCount();
+        }
     }
 
     public void reset() throws IOException {

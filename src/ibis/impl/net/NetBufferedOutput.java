@@ -30,6 +30,11 @@ public abstract class NetBufferedOutput extends NetOutput implements
     private NetSendBuffer buffer = null;
 
     /**
+     * Total amount of data sent over this output sofar.
+     */
+    private long byteCount = 0;
+
+    /**
      * @param portType the {@link ibis.impl.net.NetPortType NetPortType}.
      * @param driver the driver.
      * @param context the context.
@@ -80,6 +85,7 @@ public abstract class NetBufferedOutput extends NetOutput implements
                         + buffer.length);
             }
             stat.addBuffer(buffer.length);
+            byteCount += buffer.length;
             sendByteBuffer(buffer);
             buffer = null;
         }
@@ -128,6 +134,23 @@ public abstract class NetBufferedOutput extends NetOutput implements
     }
 
     /**
+     * Returns byte count of messages sent so far.
+     */
+    public long getCount()
+    {
+        log.in();
+        log.out();
+        return byteCount;
+    }
+
+    public void resetCount()
+    {
+        log.in();
+        byteCount = 0;
+        log.out();
+    }
+
+    /**
      * Flush our buffer and sync on ticket.
      *
      * @param ticket sync with this ticket
@@ -143,6 +166,7 @@ public abstract class NetBufferedOutput extends NetOutput implements
         log.in();
         flushBuffer();
         stat.addBuffer(b.length);
+        byteCount += b.length;
         sendByteBuffer(b);
         log.out();
     }

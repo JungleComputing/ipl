@@ -140,6 +140,20 @@ public final class BytesOutput extends NetOutput implements Settings,
         log.out();
     }
 
+    public long getCount() {
+        if (subOutput != null) {
+            return subOutput.getCount();
+        } else {
+            return 0;
+        }
+    }
+
+    public void resetCount() {
+        if (subOutput != null) {
+            subOutput.resetCount();
+        }
+    }
+
     private void flush() throws IOException {
         log.in();
         if (buffer != null) {

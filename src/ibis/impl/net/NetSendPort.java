@@ -60,9 +60,9 @@ public final class NetSendPort extends NetPort implements SendPort,
     private boolean messageInUse = false;
 
     /**
-     * Count how much data we sent.
+     * Port's byte counter at the start of a new message.
      */
-    private int byteCount;
+    private long startByteCount;
 
     /* ___ IMPORTANT OBJECTS ___________________________________________ */
 
@@ -567,6 +567,8 @@ public final class NetSendPort extends NetPort implements SendPort,
             writeString(messageId);
         }
 
+        startByteCount = output.getCount();
+
         log.out();
 
         return this;
@@ -798,6 +800,7 @@ public final class NetSendPort extends NetPort implements SendPort,
         try {
             _finish();
             l = output.finish();
+            // NOTE: l is currently ignored
             stat.end();
             trace.disp(sendPortTracePrefix, "message send <--");
         } finally {
@@ -805,8 +808,11 @@ public final class NetSendPort extends NetPort implements SendPort,
             outputLock.unlock();
         }
 
-        /* Should this be synchronized (this) ? */
-        byteCount += l;
+        // We now compute bytes sent in this message by looking
+        // at the port transfer statistics.  This is fine since
+        // we only have one outstanding message anyway, and avoids
+        // having to keep both per-message and per-port stats.
+        l = output.getCount() - startByteCount;
 
         log.out();
         return l;
@@ -841,13 +847,14 @@ public final class NetSendPort extends NetPort implements SendPort,
 
     public long getCount() {
         log.in();
+        long count = output.getCount();
         log.out();
-        return byteCount;
+        return count;
     }
 
     public void resetCount() {
         log.in();
-        byteCount = 0;
+        output.resetCount();
         log.out();
     }
 

@@ -43,9 +43,9 @@ public final class SIbisOutput extends NetSerializedOutput {
     private final class DummyAccumulator extends Accumulator {
 
         public void flush() throws IOException {
-	    if (subBuffered != null) {
-		subBuffered.flushBuffer();
-	    }
+            if (subBuffered != null) {
+                subBuffered.flushBuffer();
+            }
             /* nothing to flush here, no way to flush a
              netoutput */
         }
@@ -55,11 +55,13 @@ public final class SIbisOutput extends NetSerializedOutput {
         }
 
         public long bytesWritten() {
-            return subOutput.localPort().getCount();
+            // return subOutput.localPort().getCount();
+            return subOutput.getCount();
         }
 
         public void resetBytesWritten() {
-            subOutput.localPort().resetCount();
+            // subOutput.localPort().resetCount();
+            subOutput.resetCount();
         }
 
         public void writeBoolean(boolean value) throws IOException {

@@ -127,6 +127,15 @@ public final class TcpOutput extends NetOutput {
         return 0;
     }
 
+    public long getCount() {
+        // TODO
+        return 0;
+    }
+
+    public void resetCount() {
+        // TODO
+    }
+
     public void writeByte(byte b) throws IOException {
         //System.err.println("TcpOutput: writing byte "+b);
         tcpOs.write(b);

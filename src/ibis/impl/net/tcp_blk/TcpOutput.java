@@ -221,7 +221,8 @@ public final class TcpOutput extends NetBufferedOutput {
         try {
             Conversion.defaultConversion.int2byte(b.length, b.data, 0);
             tcpOs.write(b.data, 0, b.length);
-            // tcpOs.flush();
+            // added back (Mathijs):
+            tcpOs.flush();
 
             if (!b.ownershipClaimed) {
                 b.free();

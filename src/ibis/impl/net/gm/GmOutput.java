@@ -59,6 +59,8 @@ public final class GmOutput extends NetBufferedOutput {
 
     private int sentMessages;
 
+    private long byteCount;
+
     private boolean closing = false;
 
     private ConditionVariable flushFinished = Driver.gmAccessLock.createCV();
@@ -164,6 +166,22 @@ public final class GmOutput extends NetBufferedOutput {
         // // setBufferFactory(factory);
         // Try to tune writeBuffered so it takes the copy route
         arrayThreshold = mtu;
+    }
+
+    private void sentBytes(int bytes)
+    {
+        byteCount += bytes;
+    }
+
+    public long getCount()
+    {
+        // System.out.println("GmOutput.getCount()");
+        return byteCount;
+    }
+
+    public void resetCount()
+    {
+        byteCount = 0;
     }
 
     public synchronized void setupConnection(NetConnection cnx)
@@ -368,85 +386,15 @@ public final class GmOutput extends NetBufferedOutput {
         if (Driver.TIMINGS) {
             Driver.t_native_send.stop();
         }
+        sentBytes(length);
 
         // System.err.println("Wait for request sent completion");
-        // Nonono unneccessary pump();		// Wait for 'request' send completion
+        // Nonono unneccessary pump();
+        // Wait for 'request' send completion
 
         // System.err.println("Wait for rendez-vous ack");
         pump(); // Wait for 'ack' completion
         // System.err.print("]");
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * The byte buffer that has been accumulated by our super is
-     * appended in the message buffer, but in a known place.
-     * The receiver can read it immediately in this way, before
-     * other typed buffers that may have been pushed earlier.
-     */
-    public void sendByteBuffer(NetSendBuffer b) throws IOException {
-        log.in();
-
-        Driver.gmAccessLock.lock(Driver.PRIORITY);
-        boolean locked = true;
-
-        try {
-
-            if (b.length > mtu) {
-                throw new Error("Buffer size exteeds mtu");
-            }
-
-            if (b.length > Driver.packetMTU) {
-                /* Post the 'request' */
-                // System.err.print("[");
-                // System.err.println("Post a request");
-                sendRequest(b.base, b.length);
-                // System.err.println(this + ": sent RNDVZ req size " + b.length + " offset " + b.base);
-
-                /* Post the 'buffer' */
-                if (Driver.TIMINGS) {
-                    Driver.t_native_send.start();
-                }
-                nSendBuffer(outputHandle, b.data, b.base, b.length);
-                if (Driver.TIMINGS) {
-                    Driver.t_native_send.stop();
-                }
-                // System.err.println(this + ": sent RNDVZ data size " + b.length + " offset " + b.base);
-
-                pump(); // Wait for 'buffer' send completion
-                // System.err.println(this + ": received RNDVZ ack size " + b.length + " offset " + b.base);
-                // System.err.print("]");
-
-            } else {
-                // System.err.print("<*");
-                // System.err.println("Send lockId " + lockId + " byte buffer " + b + " offset " + b.base + " size " + b.length);
-                // Thread.dumpStack();
-                if (Driver.TIMINGS) {
-                    Driver.t_native_send.start();
-                }
-                toFlush = nSendBufferIntoRequest(outputHandle, b.data, b.base,
-                        b.length);
-                if (Driver.TIMINGS) {
-                    Driver.t_native_send.stop();
-                }
-
-                mustFlush = true;
-                // System.err.print(">*");
-            }
-
-            if (!b.ownershipClaimed) {
-                Driver.gmAccessLock.unlock();
-                b.free();
-                locked = false;
-            }
-
-        } finally {
-            if (locked) {
-                Driver.gmAccessLock.unlock();
-            }
-            log.out();
-        }
     }
 
     public synchronized void close(Integer num) throws IOException {
@@ -495,55 +443,119 @@ public final class GmOutput extends NetBufferedOutput {
         log.out();
     }
 
-    public void writeArray(boolean[] b, int o, int l) throws IOException {
+    private int preSendBufferChunk(int len, int off) throws java.io.IOException
+    {
+        int chunk = 0;
 
+        if (len > Driver.packetMTU) {
+            chunk = Math.min(len, mtu);
+            sendRequest(off, chunk);
+
+            if (Driver.TIMINGS) {
+                Driver.t_native_send.start();
+            }
+            sentBytes(chunk); // actually: will be sent by caller
+            return chunk;
+        } else {
+            return 0;
+        }
+    }
+
+    private void postSendBufferChunk() throws java.io.IOException
+    {
+        if (Driver.TIMINGS) {
+            Driver.t_native_send.stop();
+        }
+
+        pump(); // Wait for 'buffer' send completion
+    }
+
+    private void preSendIntoRequest(int len) throws java.io.IOException
+    {
+        tryFlush(len);
+        if (Driver.TIMINGS) {
+            Driver.t_native_send.start();
+        }
+        sentBytes(len); // actually: will be sent by caller
+    }
+
+    private void postSendIntoRequest()
+    {
+        if (Driver.TIMINGS) {
+            Driver.t_native_send.stop();
+        }
+
+        mustFlush = true;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * The byte buffer that has been accumulated by our super is
+     * appended in the message buffer, but in a known place.
+     * The receiver can read it immediately in this way, before
+     * other typed buffers that may have been pushed earlier.
+     */
+    public void sendByteBuffer(NetSendBuffer b) throws IOException {
         log.in();
-
         Driver.gmAccessLock.lock(Driver.PRIORITY);
+        boolean locked = true;
+
         try {
-            // System.err.println("Send boolean array; byte offset " + o + " size " + l);
+            if (b.length > mtu) {
+                throw new Error("Buffer size exteeds mtu");
+            }
 
-            while (l > 0) {
-                int _l = 0;
+            if (b.length > Driver.packetMTU) {
+                /* Post the 'request' */
+                // System.err.print("[");
+                // System.err.println("Post a request");
+                sendRequest(b.base, b.length);
+                // System.err.println(this + ": sent RNDVZ req size " + b.length + " offset " + b.base);
 
-                if (l > Driver.packetMTU) {
-                    _l = Math.min(l, mtu);
-
-                    sendRequest(o, _l);
-
-                    /* Post the 'buffer' */
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    nSendBooleanBuffer(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    pump(); // Wait for 'buffer' send completion
-
-                } else {
-                    _l = l;
-
-                    tryFlush(_l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    toFlush = nSendBooleanBufferIntoRequest(outputHandle, b, o,
-                            _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    mustFlush = true;
+                /* Post the 'buffer' */
+                if (Driver.TIMINGS) {
+                    Driver.t_native_send.start();
                 }
+                nSendBuffer(outputHandle, b.data, b.base, b.length);
+                if (Driver.TIMINGS) {
+                    Driver.t_native_send.stop();
+                }
+                sentBytes(b.length);
+                // System.err.println(this + ": sent RNDVZ data size " + b.length + " offset " + b.base);
 
-                l -= _l;
-                o += _l;
+                pump(); // Wait for 'buffer' send completion
+                // System.err.println(this + ": received RNDVZ ack size " + b.length + " offset " + b.base);
+                // System.err.print("]");
+
+            } else {
+                // System.err.print("<*");
+                // System.err.println("Send lockId " + lockId + " byte buffer " + b + " offset " + b.base + " size " + b.length);
+                // Thread.dumpStack();
+                if (Driver.TIMINGS) {
+                    Driver.t_native_send.start();
+                }
+                toFlush = nSendBufferIntoRequest(outputHandle, b.data, b.base,
+                                                 b.length);
+                if (Driver.TIMINGS) {
+                    Driver.t_native_send.stop();
+                }
+                sentBytes(b.length);
+
+                mustFlush = true;
+                // System.err.print(">*");
+            }
+
+            if (!b.ownershipClaimed) {
+                Driver.gmAccessLock.unlock();
+                b.free();
+                locked = false;
             }
 
         } finally {
-            Driver.gmAccessLock.unlock();
+            if (locked) {
+                Driver.gmAccessLock.unlock();
+            }
             log.out();
         }
     }
@@ -556,53 +568,57 @@ public final class GmOutput extends NetBufferedOutput {
      * with the buffering used in NetGM.
      */
     public void writeArray(byte[] b, int o, int l) throws IOException {
-
         log.in();
-
         Driver.gmAccessLock.lock(Driver.PRIORITY);
+        // System.err.println("Send byte array; offset " + o + " size " + l);
         try {
-            // System.err.println(this + ": Send byte array; byte offset " + o + " size " + l);
-            // Thread.dumpStack();
-
             while (l > 0) {
-                int _l = 0;
+                int chunk;
 
-                if (l > Driver.packetMTU) {
-                    _l = Math.min(l, mtu);
-                    // System.err.println(this + ": send Rndz-vous msg size " + l + " packet size " + _l);
-
-                    sendRequest(o, _l);
-
-                    // Post the 'buffer'
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    nSendByteBuffer(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    pump(); // Wait for 'buffer' send completion
-
+                chunk = preSendBufferChunk(l, o);
+                if (chunk > 0) {
+                    nSendByteBuffer(outputHandle, b, o, chunk);
+                    postSendBufferChunk();
                 } else {
-                    _l = l;
-
-                    tryFlush(_l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    toFlush = nSendByteBufferIntoRequest(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    mustFlush = true;
+                    chunk = l;
+                    preSendIntoRequest(chunk);
+                    toFlush = nSendByteBufferIntoRequest(outputHandle,
+                                                         b, o, chunk);
+                    postSendIntoRequest();
                 }
 
-                l -= _l;
-                o += _l;
+                l -= chunk;
+                o += chunk;
             }
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
+        }
+    }
 
+    public void writeArray(boolean[] b, int o, int l) throws IOException {
+        log.in();
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        // System.err.println("Send bool array; offset " + o + " size " + l);
+        try {
+            while (l > 0) {
+                int chunk;
+
+                chunk = preSendBufferChunk(l, o);
+                if (chunk > 0) {
+                    nSendBooleanBuffer(outputHandle, b, o, chunk);
+                    postSendBufferChunk();
+                } else {
+                    chunk = l;
+                    preSendIntoRequest(chunk);
+                    toFlush = nSendBooleanBufferIntoRequest(outputHandle,
+                                                            b, o, chunk);
+                    postSendIntoRequest();
+                }
+
+                l -= chunk;
+                o += chunk;
+            }
         } finally {
             Driver.gmAccessLock.unlock();
             log.out();
@@ -611,52 +627,29 @@ public final class GmOutput extends NetBufferedOutput {
 
     public void writeArray(char[] b, int o, int l) throws IOException {
         log.in();
-
         Driver.gmAccessLock.lock(Driver.PRIORITY);
+        l <<= 1;
+        o <<= 1;
+        // System.err.println("Send char array; offset " + o + " size " + l);
         try {
-
-            l <<= 1;
-            o <<= 1;
-            // System.err.println("Send char array; byte offset " + o + " size " + l);
-
             while (l > 0) {
-                int _l = 0;
+                int chunk;
 
-                if (l > Driver.packetMTU) {
-                    _l = Math.min(l, mtu);
-
-                    sendRequest(o, _l);
-
-                    /* Post the 'buffer' */
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    nSendCharBuffer(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    pump(); // Wait for 'buffer' send completion
-
+                chunk = preSendBufferChunk(l, o);
+                if (chunk > 0) {
+                    nSendCharBuffer(outputHandle, b, o, chunk);
+                    postSendBufferChunk();
                 } else {
-                    _l = l;
-
-                    tryFlush(_l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    toFlush = nSendCharBufferIntoRequest(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    mustFlush = true;
+                    chunk = l;
+                    preSendIntoRequest(chunk);
+                    toFlush = nSendCharBufferIntoRequest(outputHandle,
+                                                         b, o, chunk);
+                    postSendIntoRequest();
                 }
 
-                l -= _l;
-                o += _l;
+                l -= chunk;
+                o += chunk;
             }
-
         } finally {
             Driver.gmAccessLock.unlock();
             log.out();
@@ -665,56 +658,29 @@ public final class GmOutput extends NetBufferedOutput {
 
     public void writeArray(short[] b, int o, int l) throws IOException {
         log.in();
-
         Driver.gmAccessLock.lock(Driver.PRIORITY);
+        l <<= 1;
+        o <<= 1;
+        // System.err.println("Send short array; offset " + o + " size " + l);
         try {
-
-            l <<= 1;
-            o <<= 1;
-            // System.err.println(this + ": Send short array; byte offset " + o + " size " + l);
-            // Thread.dumpStack();
-            // for (int i = 0; i < b.length; i++) { System.err.print(b[i] + ","); } System.err.println();
-
             while (l > 0) {
-                int _l = 0;
+                int chunk;
 
-                if (l > Driver.packetMTU) {
-                    _l = Math.min(l, mtu);
-
-                    sendRequest(o, _l);
-
-                    /* Post the 'buffer' */
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    nSendShortBuffer(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    pump(); // Wait for 'buffer' send completion
-
+                chunk = preSendBufferChunk(l, o);
+                if (chunk > 0) {
+                    nSendShortBuffer(outputHandle, b, o, chunk);
+                    postSendBufferChunk();
                 } else {
-                    _l = l;
-
-                    // System.err.println("Locked access lock");
-                    tryFlush(_l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    toFlush = nSendShortBufferIntoRequest(outputHandle, b, o,
-                            _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    mustFlush = true;
+                    chunk = l;
+                    preSendIntoRequest(chunk);
+                    toFlush = nSendShortBufferIntoRequest(outputHandle,
+                                                          b, o, chunk);
+                    postSendIntoRequest();
                 }
 
-                l -= _l;
-                o += _l;
+                l -= chunk;
+                o += chunk;
             }
-
         } finally {
             Driver.gmAccessLock.unlock();
             log.out();
@@ -723,55 +689,29 @@ public final class GmOutput extends NetBufferedOutput {
 
     public void writeArray(int[] b, int o, int l) throws IOException {
         log.in();
-
         Driver.gmAccessLock.lock(Driver.PRIORITY);
+        l <<= 2;
+        o <<= 2;
+        // System.err.println("Send int array; offset " + o + " size " + l);
         try {
-
-            l <<= 2;
-            o <<= 2;
-            // System.err.println("Send int array; byte offset " + o + " size " + l);
-            // for (int i = 0; i < Math.min(b.length, 32); i++) System.err.print(b[i] + " "); System.err.println();
-
             while (l > 0) {
-                int _l = 0;
+                int chunk;
 
-                if (l > Driver.packetMTU) {
-                    _l = Math.min(l, mtu);
-
-                    sendRequest(o, _l);
-
-                    /* Post the 'buffer' */
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    nSendIntBuffer(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    pump(); // Wait for 'buffer' send completion
-
+                chunk = preSendBufferChunk(l, o);
+                if (chunk > 0) {
+                    nSendIntBuffer(outputHandle, b, o, chunk);
+                    postSendBufferChunk();
                 } else {
-                    // System.err.println("Send int array; byte offset " + o + " size " + l);
-                    // Thread.dumpStack();
-                    _l = l;
-
-                    tryFlush(_l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    toFlush = nSendIntBufferIntoRequest(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    mustFlush = true;
+                    chunk = l;
+                    preSendIntoRequest(chunk);
+                    toFlush = nSendIntBufferIntoRequest(outputHandle,
+                                                        b, o, chunk);
+                    postSendIntoRequest();
                 }
 
-                l -= _l;
-                o += _l;
+                l -= chunk;
+                o += chunk;
             }
-
         } finally {
             Driver.gmAccessLock.unlock();
             log.out();
@@ -780,52 +720,29 @@ public final class GmOutput extends NetBufferedOutput {
 
     public void writeArray(long[] b, int o, int l) throws IOException {
         log.in();
-
         Driver.gmAccessLock.lock(Driver.PRIORITY);
+        l <<= 3;
+        o <<= 3;
+        // System.err.println("Send long array; offset " + o + " size " + l);
         try {
-
-            l <<= 3;
-            o <<= 3;
-            // System.err.println("Send long array; byte offset " + o + " size " + l);
-
             while (l > 0) {
-                int _l = 0;
+                int chunk;
 
-                if (l > Driver.packetMTU) {
-                    _l = Math.min(l, mtu);
-
-                    sendRequest(o, _l);
-
-                    /* Post the 'buffer' */
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    nSendLongBuffer(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    pump(); // Wait for 'buffer' send completion
-
+                chunk = preSendBufferChunk(l, o);
+                if (chunk > 0) {
+                    nSendLongBuffer(outputHandle, b, o, chunk);
+                    postSendBufferChunk();
                 } else {
-                    _l = l;
-
-                    tryFlush(_l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    toFlush = nSendLongBufferIntoRequest(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    mustFlush = true;
+                    chunk = l;
+                    preSendIntoRequest(chunk);
+                    toFlush = nSendLongBufferIntoRequest(outputHandle,
+                                                         b, o, chunk);
+                    postSendIntoRequest();
                 }
 
-                l -= _l;
-                o += _l;
+                l -= chunk;
+                o += chunk;
             }
-
         } finally {
             Driver.gmAccessLock.unlock();
             log.out();
@@ -834,53 +751,29 @@ public final class GmOutput extends NetBufferedOutput {
 
     public void writeArray(float[] b, int o, int l) throws IOException {
         log.in();
-
         Driver.gmAccessLock.lock(Driver.PRIORITY);
+        l <<= 2;
+        o <<= 2;
+        // System.err.println("Send float array; offset " + o + " size " + l);
         try {
-
-            l <<= 2;
-            o <<= 2;
-            // System.err.println("Send float array; byte offset " + o + " size " + l);
-
             while (l > 0) {
-                int _l = 0;
+                int chunk;
 
-                if (l > Driver.packetMTU) {
-                    _l = Math.min(l, mtu);
-
-                    sendRequest(o, _l);
-
-                    /* Post the 'buffer' */
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    nSendFloatBuffer(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    pump(); // Wait for 'buffer' send completion
-
+                chunk = preSendBufferChunk(l, o);
+                if (chunk > 0) {
+                    nSendFloatBuffer(outputHandle, b, o, chunk);
+                    postSendBufferChunk();
                 } else {
-                    _l = l;
-
-                    tryFlush(_l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    toFlush = nSendFloatBufferIntoRequest(outputHandle, b, o,
-                            _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    mustFlush = true;
+                    chunk = l;
+                    preSendIntoRequest(chunk);
+                    toFlush = nSendFloatBufferIntoRequest(outputHandle,
+                                                          b, o, chunk);
+                    postSendIntoRequest();
                 }
 
-                l -= _l;
-                o += _l;
+                l -= chunk;
+                o += chunk;
             }
-
         } finally {
             Driver.gmAccessLock.unlock();
             log.out();
@@ -889,57 +782,32 @@ public final class GmOutput extends NetBufferedOutput {
 
     public void writeArray(double[] b, int o, int l) throws IOException {
         log.in();
-
         Driver.gmAccessLock.lock(Driver.PRIORITY);
+        l <<= 3;
+        o <<= 3;
+        // System.err.println("Send double array; offset " + o + " size " + l);
         try {
-
-            l <<= 3;
-            o <<= 3;
-            // System.err.println("Send double array; byte offset " + o + " size " + l);
-
             while (l > 0) {
-                int _l = 0;
+                int chunk;
 
-                if (l > Driver.packetMTU) {
-                    _l = Math.min(l, mtu);
-
-                    sendRequest(o, _l);
-
-                    /* Post the 'buffer' */
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    nSendDoubleBuffer(outputHandle, b, o, _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    pump(); // Wait for 'buffer' send completion
-
+                chunk = preSendBufferChunk(l, o);
+                if (chunk > 0) {
+                    nSendDoubleBuffer(outputHandle, b, o, chunk);
+                    postSendBufferChunk();
                 } else {
-                    _l = l;
-
-                    tryFlush(_l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.start();
-                    }
-                    toFlush = nSendDoubleBufferIntoRequest(outputHandle, b, o,
-                            _l);
-                    if (Driver.TIMINGS) {
-                        Driver.t_native_send.stop();
-                    }
-
-                    mustFlush = true;
+                    chunk = l;
+                    preSendIntoRequest(chunk);
+                    toFlush = nSendDoubleBufferIntoRequest(outputHandle,
+                                                           b, o, chunk);
+                    postSendIntoRequest();
                 }
 
-                l -= _l;
-                o += _l;
+                l -= chunk;
+                o += chunk;
             }
-
         } finally {
             Driver.gmAccessLock.unlock();
             log.out();
         }
     }
-
 }

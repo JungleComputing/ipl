@@ -40,9 +40,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
             conversion = Conversion.loadConversion(false);
         }
 
-	if (this instanceof NetBufferedOutputSupport) {
-	    buffered = (NetBufferedOutputSupport)this;
-	}
+        if (this instanceof NetBufferedOutputSupport) {
+            buffered = (NetBufferedOutputSupport)this;
+        }
     }
 
     /**
@@ -92,6 +92,19 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         log.out();
     }
 
+    /* Methods getCount and resetCount are now made abstract so that
+     * we are sure they are defined in the implementing module.
+     * Cannot do it properly at this level since we don't
+     * know how large all objects are until they are finally written out.
+     */
+
+    /**
+     * Returns byte count of messages sent so far.
+     */
+    public abstract long getCount();
+
+    public abstract void resetCount();
+
     /**
      * Completes the current outgoing message.
      *
@@ -130,9 +143,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
      */
     public void sync(int ticket) throws IOException {
         //
-	if (buffered != null) {
-	    buffered.flushBuffer();
-	}
+        if (buffered != null) {
+            buffered.flushBuffer();
+        }
     }
 
     protected void handleEmptyMsg() throws IOException {

@@ -162,6 +162,17 @@ public final class TcpOutput extends NetOutput {
         log.out();
     }
 
+    public long getCount()
+    {
+        // TODO
+        return 0;
+    }
+
+    public void resetCount()
+    {
+        // TODO
+    }
+
     public void writeByteBuffer(NetSendBuffer b) throws IOException {
         log.in();
         if (first) {

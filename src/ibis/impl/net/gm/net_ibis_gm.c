@@ -3955,9 +3955,11 @@ mtu_init(JNIEnv *env)
 	b = (*env)->NewByteArray(env, mtu);
 	buffer  = (*env)->GetByteArrayElements(env, b, &ni_gm_copy_get_elts);
 
-#if 1 || VERBOSE
-	fprintf(stderr, "%s: NetGM native array: makes %s copy\n",
-		hostname, ni_gm_copy_get_elts ? "a" : "no");
+#if VERBOSE
+	if (ni_gm_copy_get_elts) {
+		fprintf(stderr, "%s: NetGM native array: makes %s copy\n",
+			hostname, ni_gm_copy_get_elts ? "a" : "no");
+	}
 #endif
 
         __out__();

@@ -23,7 +23,7 @@ public final class Rdtsc extends ibis.util.Timer {
             ibis.ipl.Ibis.loadLibrary("Rdtsc");
             loaded = true;
         } catch (Throwable e) {
-            //	System.err.println("Could not load Rdtsc library");
+            //        System.err.println("Could not load Rdtsc library");
         }
 
         if (loaded) {
@@ -95,6 +95,9 @@ public final class Rdtsc extends ibis.util.Timer {
      * Timer reading in us
      */
     public double averageTimeVal() {
+        if (count == 0) {
+            return 0.0;
+        }
         return time / (count * MHz);
     }
 
@@ -102,7 +105,7 @@ public final class Rdtsc extends ibis.util.Timer {
      * Timer reading in us
      */
     public String averageTime() {
-        return format(time / (count * MHz));
+        return format(averageTimeVal());
     }
 
     /**
