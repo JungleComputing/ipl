@@ -18,7 +18,6 @@ final class IbisHash {
 
     private Object[]	dataBucket;
     private int[]	handleBucket;
-    private int[]	hashCodeBucket;
 
     // if (STATS)
     private long contains;
@@ -76,7 +75,6 @@ final class IbisHash {
     private void newBucketSet(int size) {
 	dataBucket = new Object[size];
 	handleBucket = new int[size];
-	hashCodeBucket = new int[size];
 	alloc_size = size;
     }
 
@@ -85,6 +83,9 @@ final class IbisHash {
 	// return ((b >>> SHIFT1) ^ (b >>> SHIFT2));
 	// return ((b >>> SHIFT1) ^ (b & ((1 << SHIFT3) - 1))) & (size-1);
 	return ((b >>> SHIFT3) ^ (b & ((1 << SHIFT3) - 1))) & (size-1);
+	// // This is used in java.util.IdentityHashMap:
+	// // return ((b << 1) - (b << 8)) & (size - 1);
+	// return (b - (b << 7)) & (size - 1);
     }
 
 
@@ -93,6 +94,8 @@ final class IbisHash {
 	// Jason suggests +1 to improve cache locality
 	// return 1;
 	// return (b & 0xffe) + 1;	/* some SMALL odd number */
+	// This is used in java.util.IdentityHashMap:
+	// return 1;
     }
 
     /**
@@ -174,9 +177,8 @@ System.err.println("find: ix " + ix + " data.length " + dataBucket.length);
 
 	int new_offset = 0;
 
-	int[] old_hashCode = hashCodeBucket;
-	int[] old_handle = handleBucket;
 	Object[] old_data = dataBucket;
+	int[] old_handle = handleBucket;
 
 	/* Only buy a new array when we really overflow.
 	 * If the array we allocated previously still has enough
@@ -192,7 +194,7 @@ System.err.println("find: ix " + ix + " data.length " + dataBucket.length);
 	    int ix = i + offset;
 	    Object b = old_data[ix];
 	    if (b != null) {
-		int h = old_hashCode[ix];
+		int h = System.identityHashCode(b);
 		int h0 = hash_first(h, n);
 		while (dataBucket[h0 + new_offset] != null) {
 		    int h1 = hash_second(h);
@@ -204,7 +206,6 @@ System.err.println("find: ix " + ix + " data.length " + dataBucket.length);
 		    } while (dataBucket[h0 + new_offset] != null);
 		}
 		dataBucket[h0 + new_offset] = b;
-		hashCodeBucket[h0 + new_offset] = old_hashCode[ix];
 		handleBucket[h0 + new_offset] = old_handle[ix];
 		dataBucket[ix] = null;
 	    }
@@ -250,7 +251,6 @@ System.err.println("find: ix " + ix + " data.length " + dataBucket.length);
 
 	dataBucket[h0 + offset] = ref;
 	handleBucket[h0 + offset] = handle;
-	hashCodeBucket[h0 + offset] = hashCode;
 
 	present++;
 
