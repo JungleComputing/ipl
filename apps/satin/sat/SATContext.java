@@ -529,49 +529,53 @@ public final class SATContext implements java.io.Serializable {
             }
         } while( changed );
         // Now greedily resolve clauses as long as they are smaller.
-        do {
-            changed = false;
-            int arr[] = res.pos;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
-                int a = antecedent[v];
+        if( false ){
+            do {
+                changed = false;
+                int arr[] = res.pos;
+                for( int i=0; i<arr.length; i++ ){
+                    int v = arr[i];
+                    int a = antecedent[v];
 
-                if( a>=0 ){
-                    Clause newres = Clause.resolve( res, p.clauses[a], v );
-                    if( traceLearning ){
-                        System.err.println( "Resolving on v" + v + ":" );
-                        System.err.println( "  " + res );
-                        System.err.println( "  " + p.clauses[a] + " =>" );
-                        System.err.println( "  " + newres );
-                    }
-                    if( res.getTermCount()>newres.getTermCount() ){
-                        changed = true;
-                        anyChange = true;
-                        res = newres;
+                    if( a>=0 ){
+                        Clause newres = Clause.resolve( res, p.clauses[a], v );
+                        if( traceLearning ){
+                            System.err.println( "Resolving on v" + v + ":" );
+                            System.err.println( "  " + res );
+                            System.err.println( "  " + p.clauses[a] + " =>" );
+                            System.err.println( "  " + newres );
+                        }
+                        if( res.getTermCount()>newres.getTermCount() ){
+                            changed = true;
+                            anyChange = true;
+                            res = newres;
+                            break;
+                        }
                     }
                 }
-            }
-            arr = res.neg;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
-                int a = antecedent[v];
+                arr = res.neg;
+                for( int i=0; i<arr.length; i++ ){
+                    int v = arr[i];
+                    int a = antecedent[v];
 
-                if( a>=0 && a != bestDom ){
-                    Clause newres = Clause.resolve( res, p.clauses[a], v );
-                    if( traceLearning ){
-                        System.err.println( "Resolving on v" + v + ":" );
-                        System.err.println( "  " + res );
-                        System.err.println( "  " + p.clauses[a] + " =>" );
-                        System.err.println( "  " + newres );
-                    }
-                    if( res.getTermCount()>newres.getTermCount() ){
-                        changed = true;
-                        anyChange = true;
-                        res = newres;
+                    if( a>=0 && a != bestDom ){
+                        Clause newres = Clause.resolve( res, p.clauses[a], v );
+                        if( traceLearning ){
+                            System.err.println( "Resolving on v" + v + ":" );
+                            System.err.println( "  " + res );
+                            System.err.println( "  " + p.clauses[a] + " =>" );
+                            System.err.println( "  " + newres );
+                        }
+                        if( res.getTermCount()>newres.getTermCount() ){
+                            changed = true;
+                            anyChange = true;
+                            res = newres;
+                            break;
+                        }
                     }
                 }
-            }
-        } while( changed );
+            } while( changed );
+        }
         if( !anyChange ){
             return null;
         }
