@@ -119,7 +119,7 @@ public class NameServer implements Protocol {
 		}
 
 		// Create a server socket.
-		serverSocket = NameServerClient.socketFactory.createServerSocket(port, null, true);
+		serverSocket = NameServerClient.socketFactory.createServerSocket(port, null, false);
        		       
 		pools = new Hashtable();
 
