@@ -20,6 +20,8 @@ defaultProcSet = "2:8"
 
 maxRunTime = "10:00"
 
+orderedTuples = 0
+
 results = {}
 
 #problem = "examples/qg/qg6-12.cnf.gz"
@@ -57,8 +59,9 @@ def getCommandOutput( command ):
     errfd = errfile.fileno()
     makeNonBlocking( outfd )            # don't deadlock!
     makeNonBlocking( errfd )
-    outdata = errdata = ''
+    errdata = ''
     outeof = erreof = 0
+    outdata = 'Command: ' + command + '\n'
     while 1:
 	ready = select.select([outfd,errfd],[],[]) # wait for input
 	if outfd in ready[0]:
@@ -80,7 +83,10 @@ def getCommandOutput( command ):
     return (err, outdata, errdata)
 
 def build_run_command( pno, command, port ):
-    return "prun -1 -t %s %s %d %d fs0.das2.cs.vu.nl %s -satin-closed" % (maxRunTime, run_ibis, pno, port, command)
+    ot = ''
+    if orderedTuples:
+        ot = '-Dsatin.tuplespace.ordened=true '
+    return "prun -1 -t %s %s %d %d fs0.das2.cs.vu.nl %s%s -satin-closed" % (maxRunTime, run_ibis, pno, port, ot, command)
 
 def runP( P, command, results ):
     cmd = build_run_command( P, command, nameserverport )
@@ -229,6 +235,7 @@ def usage():
     print "-h\t\t\tShow this help text."
     print "--logdir <name>\t\tUse the specified log directory."
     print "--logfile <name>\tUse the specified log file."
+    print "--ordered-tuples\tForce active tuples to be ordered."
     print "--parallel\t\tExecute the runs in parallel."
     print "--port <number>\t\tUse the given nameserver port."
     print "--procs <spec>\t\tDo runs with the given set of processor numbers (see below)."
@@ -247,9 +254,9 @@ def usage():
     print "The default processor set is `" + defaultProcSet + "'."
 
 def main():
-    global ProcNos, nameserverport, maxRunTime
+    global ProcNos, nameserverport, maxRunTime, orderedTuples
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "parallel", "logfile=", "logdir=", "tag=", "port=", "procs=", "time="])
+        opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "parallel", "logfile=", "logdir=", "tag=", "port=", "procs=", "time=","ordered-tuples"])
     except getopt.GetoptError:
         # print help information and exit:
         usage()
@@ -261,6 +268,8 @@ def main():
         #print "Option [%s][%s]" % (o, a)
         if o in ("--procs", ):
             procSet = a
+        if o in ("--ordered-tuples", ):
+            orderedTuples = 1
         if o in ("--parallel", ):
             runParallel = 1
         if o in ("-h", "--help"):
