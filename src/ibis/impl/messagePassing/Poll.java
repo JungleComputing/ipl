@@ -10,6 +10,7 @@ public abstract class Poll implements Runnable {
     PollClient waiting_threads;
     int		preemptive_pollers;
     Thread	peeker;
+    boolean	last_is_preemptive;
 
     private static final boolean DEBUG = false;
 
@@ -47,7 +48,7 @@ public abstract class Poll implements Runnable {
     private long poll_poll_direct;
     private long poll_from_thread;
 
-    final static int polls_before_yield = 500;	// 1; // 2000;
+    final static int polls_before_yield = 2000;	// 1; // 2000;
 
     private void insert(PollClient client) {
 	client.setNext(waiting_threads);
@@ -114,6 +115,7 @@ public abstract class Poll implements Runnable {
 		preemptive_pollers++;
 	    }
 	}
+	last_is_preemptive = preempt;
 
 	int polls = polls_before_yield;
 	Thread me = Thread.currentThread();
@@ -153,7 +155,7 @@ public abstract class Poll implements Runnable {
 
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-		    if (! MANTA_COMPILE && ! preempt) {
+		    if (! MANTA_COMPILE && ! preempt && last_is_preemptive) {
 			try {
 			    Thread.sleep(0,1);
 			} catch (InterruptedException e) {
