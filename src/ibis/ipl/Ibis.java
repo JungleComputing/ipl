@@ -405,10 +405,12 @@ public abstract class Ibis {
 			throw e;
 		    }
 		    else {
-			System.err.println("Warning: could not create " +
-				      (String) implementation_names.get(i) +
-				      ", trying " +
-				      (String) implementation_names.get(i+1));
+			if (combinedprops.find("verbose") != null) {
+			    System.err.println("Warning: could not create " +
+					  (String) implementation_names.get(i) +
+					  ", trying " +
+					  (String) implementation_names.get(i+1));
+			}
 			break;
 		    }
 		} catch(RuntimeException e) {
@@ -417,10 +419,12 @@ public abstract class Ibis {
 			throw e;
 		    }
 		    else {
-			System.err.println("Warning: could not create " +
-				      (String) implementation_names.get(i) +
-				      ", trying " +
-				      (String) implementation_names.get(i+1));
+			if (combinedprops.find("verbose") != null) {
+			    System.err.println("Warning: could not create " +
+					  (String) implementation_names.get(i) +
+					  ", trying " +
+					  (String) implementation_names.get(i+1));
+			}
 			break;
 		    }
 		} catch(Error e) {
