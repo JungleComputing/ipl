@@ -379,7 +379,16 @@ class OpenCell1D implements OpenConfig {
         }
         int sendCount;
         if( p.firstColumn<boardsize ){
-            sendCount = p.firstNoColumn-aimFirstNoColumn;
+            int currentAimFirstNoColumn = aimFirstNoColumn;
+
+            // Make sure we have at least two columns left.
+            if( currentAimFirstNoColumn<p.firstColumn+2 ){
+                currentAimFirstNoColumn = p.firstColumn+2;
+                if( traceLoadBalancing ){
+                    System.out.println( "P" + me + ":" + generation + ": P" + (me+1) + " cannot get all my columns, I keep 2" );
+                }
+            }
+            sendCount = p.firstNoColumn-currentAimFirstNoColumn;
             if( sendCount<0 ){
                 sendCount = 0;
             }
