@@ -17,6 +17,8 @@ public class Ibis extends ibis.ipl.Ibis {
     static final boolean CHECK_LOCKS = DEBUG;
     static final boolean STATISTICS = true;
 
+    private boolean i_joined = false;
+
     static Ibis	myIbis;
 
     static PoolInfo poolInfo = null;
@@ -180,6 +182,12 @@ public class Ibis extends ibis.ipl.Ibis {
 	}
 	if (resizeHandler != null) {
 	    resizeHandler.join(id);
+	    if (! i_joined && id.equals(ident)) {
+		synchronized(this) {
+		    i_joined = true;
+		    notifyAll();
+		}
+	    }
 	}
     }
 
@@ -287,6 +295,16 @@ public class Ibis extends ibis.ipl.Ibis {
 	myIbis.lock();
 	world.open();
 	myIbis.unlock();
+	if (resizeHandler != null) {
+	    synchronized(this) {
+		while (! i_joined) {
+		    try {
+			wait();
+		    } catch(Exception e) {
+		    }
+		}
+	    }
+	}
     }
 
     public void closeWorld() {

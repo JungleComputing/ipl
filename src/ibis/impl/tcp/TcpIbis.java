@@ -40,6 +40,8 @@ public final class TcpIbis extends Ibis implements Config {
 	private static final boolean use_brokered_links;
 	private static final IbisSocketFactory socketFactory;
 
+	private boolean i_joined = false;
+
 	static {
 	    Properties p = System.getProperties();
 	    String dl = p.getProperty("ibis.connect.enable");
@@ -154,6 +156,12 @@ public final class TcpIbis extends Ibis implements Config {
 
 		if(resizeHandler != null) {
 			resizeHandler.join(joinIdent);
+			if (! i_joined && joinIdent.equals(ident)) {
+			    synchronized(this) {
+				i_joined = true;
+				notifyAll();
+			    }
+			}
 		}
 	}
 
@@ -226,6 +234,9 @@ public final class TcpIbis extends Ibis implements Config {
 					ident = (TcpIbisIdentifier)joinedIbises.remove(0);
 				}
 				resizeHandler.join(ident); // Don't hold the lock during user upcall
+				if (ident.equals(this.ident)) {
+				    i_joined = true;
+				}
 			}
 
 			while(true) {
@@ -251,6 +262,14 @@ public final class TcpIbis extends Ibis implements Config {
 		
 		synchronized (this) {
 			open = true;
+			if (resizeHandler != null && ! i_joined) {
+			    while (! i_joined) {
+				try {
+				    wait();
+				} catch(Exception e) {
+				}
+			    }
+			}
 		}
 
 		if(DEBUG) {

@@ -58,6 +58,8 @@ public final class NetIbis extends Ibis {
 	 */
 	private   NetIbisIdentifier identifier       = null;
 
+	private	  boolean i_joined = false;
+
 	/**
 	 * This {@link NetIbis} instance <I>name server</I> client.
 	 */
@@ -378,6 +380,12 @@ public final class NetIbis extends Ibis {
 
 		if(resizeHandler != null) {
 			resizeHandler.join(joinIdent);
+			if (! i_joined && joinIdent.equals(identifier)) {
+			    synchronized(this) {
+				i_joined = true;
+				notifyAll();
+			    }
+			}
 		}
 	}
 
@@ -426,7 +434,11 @@ public final class NetIbis extends Ibis {
 	public void openWorld() {
 		if(resizeHandler != null) {
 			while(joinedIbises.size() > 0) {
-				resizeHandler.join((NetIbisIdentifier)joinedIbises.remove(0));
+				NetIbisIdentifier id = (NetIbisIdentifier)joinedIbises.remove(0);
+				resizeHandler.join(id);
+				if (id.equals(identifier)) {
+				    i_joined = true;
+				}
 				poolSize++;
 			}
 
@@ -442,6 +454,14 @@ public final class NetIbis extends Ibis {
 
 		synchronized (this) {
 			open = true;
+			if (resizeHandler != null && ! i_joined) {
+			    while (! i_joined) {
+				try {
+				    wait();
+				} catch(Exception e) {
+				}
+			    }
+			}
 		}
 	}
 

@@ -32,6 +32,8 @@ public final class NioIbis extends Ibis implements Config {
 
     private SendReceiveThread sendReceiveThread = null;
 
+    private boolean i_joined = false;
+
     public NioIbis() throws IbisException {
 	try {
 	    Runtime.getRuntime().addShutdownHook(new NioShutdown());
@@ -133,6 +135,12 @@ public final class NioIbis extends Ibis implements Config {
 
 	if(resizeHandler != null) {
 	    resizeHandler.join(joinIdent);
+	    if (!i_joined && joinIdent.equals(ident)) {
+		synchronized(this) {
+		    i_joined = true;
+		    notifyAll();
+		}
+	    }
 	}
     }
 
@@ -200,6 +208,9 @@ public final class NioIbis extends Ibis implements Config {
 		    ident = (NioIbisIdentifier)joinedIbises.remove(0);
 		}
 		resizeHandler.join(ident); // Don't hold the lock during user upcall
+		if (ident.equals(this.ident)) {
+		    i_joined = true;
+		}
 	    }
 
 	    while(true) {
@@ -215,6 +226,14 @@ public final class NioIbis extends Ibis implements Config {
 
 	synchronized (this) {
 	    open = true;
+	    if (resizeHandler != null && ! i_joined) {
+		while (! i_joined) {
+		    try {
+			wait();
+		    } catch(Exception e) {
+		    }
+		}
+	    }
 	}
 
 	if (DEBUG) {
