@@ -30,10 +30,6 @@ CYGWIN*)
     ;;
 esac
 
-if [ -n "$JAVACLASSPATH" ]
-then
-fi
-
 has_enable=0
 has_hubport=0
 has_hubhost=0
