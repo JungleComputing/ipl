@@ -14,13 +14,13 @@ class RszHandler implements ResizeHandler {
 
     public void join( IbisIdentifier id )
     {
-        System.err.println( "Join of " + id );
+        System.err.println( "Join of " + id.name() );
         members++;
     }
 
     public void leave( IbisIdentifier id )
     {
-        System.err.println( "Leave of " + id );
+        System.err.println( "Leave of " + id.name() );
         members--;
     }
 
@@ -33,17 +33,6 @@ class RszHandler implements ResizeHandler {
     {
         System.err.println( "Reconfigure" );
     }
-
-    void sync(int n) {
-        synchronized (this) {
-            while( members<n ){
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                }
-            }
-        }
-    }
 }
 
 class Computer extends Thread {
@@ -52,7 +41,8 @@ class Computer extends Thread {
 	long cycles = 0;
 	long start  = 0;
 
-	final synchronized void printCycles( String temp ) {
+	final synchronized void printCycles( String temp )
+        {
             long tmp = start;
             start = System.currentTimeMillis();
 
@@ -62,26 +52,31 @@ class Computer extends Thread {
             System.err.println( temp + " cycles/s " + result );
 	}
 
-	final synchronized void reset() {
+	final synchronized void reset()
+        {
             start = System.currentTimeMillis();
             cycles = 0;
 	}
 
-	final synchronized void setStop() {
+	final synchronized void setStop()
+        {
             stop = true;
 	}
 
-	final synchronized boolean getStop() {
+	final synchronized boolean getStop()
+        {
             return stop;
 	}
 
-	final void flip( double [] src, double [] dst, double mult ) {
+	final void flip( double [] src, double [] dst, double mult )
+        {
             for ( int i=0;i<src.length;i++ ) {
                 dst[i] = mult*src[src.length-i-1];
             }
 	}
 
-	public void run() {
+	public void run()
+        {
             double [] a = new double[4096];
             double [] b = new double[4096];
 
@@ -101,7 +96,8 @@ class Computer extends Thread {
 	}
 }
 
-class Sender implements Config {
+class Sender implements Config
+{
 	SendPort sport;
 	ReceivePort rport;
 
@@ -110,232 +106,66 @@ class Sender implements Config {
 		this.sport = sport;
 	}
 
-	void send( int count, int repeat, Computer c ) throws Exception {
+	void send( int count, int repeat, Computer c ) throws Exception
+        {
+            for ( int r=0; r<repeat; r++ ) {
+                long time = System.currentTimeMillis();
 
-		for ( int r=0; r<repeat; r++ ) {
+                for( int i = 0; i< count; i++ ) {
+                    WriteMessage writeMessage = sport.newMessage();
+                    if( DEBUG ) {
+                        System.out.println( "LAT: finish message" );
+                    }
+                    writeMessage.finish();
+                    if( DEBUG ) {
+                        System.out.println( "LAT: message done" );
+                    }
+                    ReadMessage readMessage = rport.receive();
+                    readMessage.finish();
+                }
 
-			long time = System.currentTimeMillis();
+                time = System.currentTimeMillis() - time;
 
-			for( int i = 0; i< count; i++ ) {
-				WriteMessage writeMessage = sport.newMessage();
-				if( DEBUG ) {
-					System.out.println( "LAT: finish message" );
-				}
-				writeMessage.finish();
-				if( DEBUG ) {
-					System.out.println( "LAT: message done" );
-				}
-
-				ReadMessage readMessage = rport.receive();
-				readMessage.finish();
-			}
-
-			time = System.currentTimeMillis() - time;
-
-			double speed = ( time * 1000.0 ) / ( double )count;
-			System.err.println( "Latency: " + count + " calls took " + ( time/1000.0 ) + " seconds, time/call = " + speed + " micros" );
-			if( c != null ) c.printCycles( "Sender" );
-		}
+                double speed = (time * 1000.0) / (double) count;
+                System.err.println( "Latency: " + count + " calls took " + ( time/1000.0 ) + " seconds, time/call = " + speed + " micros" );
+                if( c != null ) c.printCycles( "Sender" );
+            }
 	}
 }
 
-class ExplicitReceiver implements Config {
+class Receiver implements Config {
 
 	SendPort sport;
 	ReceivePort rport;
 	Computer c;
 
-	ExplicitReceiver( ReceivePort rport, SendPort sport, Computer c ) {
-		this.rport = rport;
-		this.sport = sport;
-		this.c = c;
+	Receiver( ReceivePort rport, SendPort sport, Computer c ) {
+            this.rport = rport;
+            this.sport = sport;
+            this.c = c;
 	}
 
 	void receive( int count, int repeat ) throws IOException {
-
-		for ( int r=0;r<repeat;r++ ) {
-			for( int i = 0; i< count; i++ ) {
-				if( DEBUG ) {
-					System.out.println( "LAT: in receive" );
-				}
-				ReadMessage readMessage = rport.receive();
-				if( DEBUG ) {
-					System.out.println( "LAT: receive done" );
-				}
-				readMessage.finish();
-				if( DEBUG ) {
-					System.out.println( "LAT: finish done" );
-				}
-
-				WriteMessage writeMessage = sport.newMessage();
-				writeMessage.finish();
-			}
-			if( c != null ) c.printCycles( "Server" );
-		}
-	}
-}
-
-class UpcallReceiver implements Upcall {
-	SendPort sport;
-	Computer c;
-	int count = 0;
-	int max;
-	int repeat;
-	boolean earlyFinish;
-	boolean delayedFinish;
-
-	UpcallReceiver( SendPort sport, int max, boolean earlyFinish, boolean delayedFinish, int repeat, Computer c ) {
-		this.sport = sport;
-		this.c = c;
-		this.repeat = repeat;
-		this.max = max;
-		this.earlyFinish = earlyFinish;
-		this.delayedFinish = delayedFinish;
-	}
-
-	public void upcall( ReadMessage readMessage ) {
-
-		//		System.err.println( "Got readMessage!!" );
-
-		try {
-			if( earlyFinish ) {
-				readMessage.finish();
-			}
-
-			WriteMessage writeMessage = sport.newMessage();
-			writeMessage.finish();
-
-			count++;
-
-			if( c != null && ( count % max == 0 ) ) c.printCycles( "Server" );
-
-			if( count == max*repeat ) {
-				synchronized ( this ) {
-					notifyAll();
-				}
-			}
-
-			if( delayedFinish ) {
-				readMessage.finish();
-			}
-
-		}
-                catch( Exception e ) {
-			System.err.println( "EEEEEK " + e );
-			e.printStackTrace();
-		}
-	}
-
-	synchronized void finish() {
-		while( count < max * repeat ) {
-			try {
-//				System.err.println( "Jikes" );
-				wait();
-			}
-                        catch( Exception e ) {
-			}
-		}
-
-		System.err.println( "Finished Receiver" );
-
-	}
-}
-
-class UpcallSender implements Upcall, Config {
-    SendPort sport;
-    int count, max;
-    long time;
-    int repeat;
-    Computer c;
-    boolean earlyFinish;
-    boolean delayedFinish;
-
-    UpcallSender( SendPort sport, int count, boolean earlyFinish, boolean delayedFinish, int repeat, Computer c ) {
-        this.sport = sport;
-        this.count = 0;
-        this.max   = count;
-        this.repeat = repeat;
-        this.c = c;
-        this.earlyFinish = earlyFinish;
-        this.delayedFinish = delayedFinish;
-    }
-
-    public void start() {
-        try {
-            System.err.println( "Starting " + count );
-            WriteMessage writeMessage = sport.newMessage();
-            writeMessage.finish();
-        }
-        catch( Exception e ) {
-            System.err.println( "EEEEEK " + e );
-            e.printStackTrace();
-        }
-    }
-
-    public void upcall( ReadMessage readMessage ) {
-        try {
-            if( earlyFinish ) {
-                readMessage.finish();
-            }
-
-//			System.err.println( "Sending " + count );
-
-            if( count == 0 ) {
-                time = System.currentTimeMillis();
-            }
-
-            count++;
-
-            if( count == max ) {
-                long temp = time;
-                time = System.currentTimeMillis();
-                double speed = ( ( time-temp ) * 1000.0 ) / ( double )max;
-                System.err.println( "Latency: " + max + " calls took " + ( ( time-temp )/1000.0 ) + " seconds, time/call = " + speed + " micros" );
-
-                count = 0;
-                repeat--;
-                if( repeat == 0 ) {
-                    synchronized ( this ) {
-                        notifyAll();
+            for ( int r=0; r<repeat; r++ ) {
+                for( int i = 0; i< count; i++ ) {
+                    if( DEBUG ) {
+                        System.out.println( "LAT: in receive" );
                     }
-                    return;
+                    ReadMessage readMessage = rport.receive();
+                    if( DEBUG ) {
+                        System.out.println( "LAT: receive done" );
+                    }
+                    readMessage.finish();
+                    if( DEBUG ) {
+                        System.out.println( "LAT: finish done" );
+                    }
+
+                    WriteMessage writeMessage = sport.newMessage();
+                    writeMessage.finish();
                 }
+                if( c != null ) c.printCycles( "Server" );
             }
-
-            if( DEBUG ) {
-                System.err.println( "SEND pre new" );
-            }
-            WriteMessage writeMessage = sport.newMessage();
-            if( DEBUG ) {
-                System.err.println( "SEND pre fin" );
-            }
-            writeMessage.finish();
-            if( DEBUG ) {
-                System.err.println( "SEND post fin" );
-            }
-
-            if( delayedFinish ) {
-                readMessage.finish();
-            }
-        }
-        catch( Exception e ) {
-            System.err.println( "EEEEEK " + e );
-            e.printStackTrace();
-        }
-    }
-
-    synchronized void finish()
-    {
-        while( repeat != 0 ) {
-            try {
-                wait();
-            }
-            catch( Exception e ) {
-            }
-        }
-
-        System.err.println( "Finished Sender " + count + " " + max );
-    }
+	}
 }
 
 class Cell1D implements Config {
@@ -388,54 +218,30 @@ class Cell1D implements Config {
 
     public static void main( String [] args )
     {
-        boolean upcalls = false;
-        boolean upcallsend = false;
-        boolean ibisSer = false;
         int count = -1;
         int repeat = 10;
-        int rank = 0, remoteRank = 1;
-        Random r = new Random();
+        int rank = 0;
+        int remoteRank = 1;
         boolean compRec = false;
         boolean compSnd = false;
         Computer c = null;
-        boolean earlyFinish = false;
-        boolean delayedFinish = false;
         boolean noneSer = false;
         RszHandler rszHandler = new RszHandler();
 
         /* Parse commandline parameters. */
-        for( int i=0; i<args.length; i++ ) {
-            if( args[i].equals( "-u" ) ) {
-                upcalls = true;
-            }
-            else if( args[i].equals( "-uu" ) ) {
-                upcalls = true;
-                upcallsend = true;
-            }
-            else if( args[i].equals( "-repeat" ) ) {
+        for( int i=0; i<args.length; i++ ){
+            if( args[i].equals( "-repeat" ) ){
                 i++;
                 repeat = Integer.parseInt( args[i] );
             }
-            else if( args[i].equals( "-ibis" ) ) {
-                ibisSer = true;
-            }
-            else if( args[i].equals( "-none" ) ) {
-                noneSer = true;
-            }
-            else if( args[i].equals( "-comp-rec" ) ) {
+            else if( args[i].equals( "-comp-rec" ) ){
                 compRec = true;
             }
-            else if( args[i].equals( "-comp-snd" ) ) {
+            else if( args[i].equals( "-comp-snd" ) ){
                 compSnd = true;
             }
-            else if( args[i].equals( "-early-finish" ) ) {
-                earlyFinish = true;
-            }
-            else if( args[i].equals( "-delayed-finish" ) ) {
-                delayedFinish = true;
-            }
             else {
-                if( count == -1 ) {
+                if( count == -1 ){
                     count = Integer.parseInt( args[i] );
                 }
                 else {
@@ -450,17 +256,8 @@ class Cell1D implements Config {
 
         try {
             StaticProperties s = new StaticProperties();
-            if( ibisSer ) {
-                s.add( "Serialization", "ibis" );
-            }
-            else if( noneSer ) {
-                s.add( "Serialization", "byte" );
-            }
-            else {
-                s.add( "Serialization", "sun" );
-            }
-
-            s.add( "Communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt" );
+            s.add( "serialization", "data" );
+            s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
             s.add( "worldmodel", "open" );
             ibis = Ibis.createIbis( s, rszHandler );
 
@@ -468,7 +265,7 @@ class Cell1D implements Config {
 
             registry = ibis.registry();
 
-            PortType t = ibis.createPortType( "test type", s );
+            PortType t = ibis.createPortType( "cell type", s );
 
             SendPort sport = t.createSendPort( "send port" );
             ReceivePort rport;
@@ -504,31 +301,16 @@ class Cell1D implements Config {
                     c.start();
                 }
 
-                if( !upcallsend ) {
-                    rport = t.createReceivePort( "test port 0" );
-                    rport.enableConnections();
-                    ReceivePortIdentifier ident = lookup( "test port 1" );
-                    connect( sport, ident );
-                    Sender sender = new Sender( rport, sport );
+                rport = t.createReceivePort( "test port 0" );
+                rport.enableConnections();
+                ReceivePortIdentifier ident = lookup( "test port 1" );
+                connect( sport, ident );
+                Sender sender = new Sender( rport, sport );
 
-                    if( DEBUG ) {
-                        System.out.println( "LAT: starting send test" );
-                    }
-                    sender.send( count, repeat, c );
+                if( DEBUG ) {
+                    System.out.println( "LAT: starting send test" );
                 }
-                else {
-                    UpcallSender sender = new UpcallSender( sport, count, earlyFinish, delayedFinish, repeat, c );
-                    rport = t.createReceivePort( "test port 0", sender );
-                    rport.enableConnections();
-
-                    ReceivePortIdentifier ident = lookup( "test port 1" );
-                    connect( sport, ident );
-
-                    rport.enableUpcalls();
-
-                    sender.start();
-                    sender.finish();
-                }
+                sender.send( count, repeat, c );
             }
             else {
                 ReceivePortIdentifier ident = lookup( "test port 0" );
@@ -540,23 +322,14 @@ class Cell1D implements Config {
                     c.start();
                 }
 
-                if( upcalls ) {
-                    UpcallReceiver receiver = new UpcallReceiver( sport, count, earlyFinish, delayedFinish, repeat, c );
-                    rport = t.createReceivePort( "test port 1", receiver );
-                    rport.enableConnections();
-                    rport.enableUpcalls();
-                    receiver.finish();
-                }
-                else {
-                    rport = t.createReceivePort( "test port 1" );
-                    rport.enableConnections();
+                rport = t.createReceivePort( "test port 1" );
+                rport.enableConnections();
 
-                    ExplicitReceiver receiver = new ExplicitReceiver( rport, sport, c );
-                    if( DEBUG ) {
-                        System.out.println( "LAT: starting test receiver" );
-                    }
-                    receiver.receive( count, repeat );
+                Receiver receiver = new Receiver( rport, sport, c );
+                if( DEBUG ) {
+                    System.out.println( "LAT: starting test receiver" );
                 }
+                receiver.receive( count, repeat );
             }
 
             /* free the send ports first */
