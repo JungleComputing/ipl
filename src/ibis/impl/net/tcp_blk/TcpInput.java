@@ -57,11 +57,6 @@ public final class TcpInput extends NetBufferedInput {
 	private OutputStream 	      tcpOs	      = null;
 
 	/**
-	 * The buffer block allocator.
-	 */
-	private NetAllocator          allocator      = null;
-
-	/**
 	 * The local MTU.
 	 */
 	private int                   lmtu            = 32768;
@@ -90,6 +85,9 @@ public final class TcpInput extends NetBufferedInput {
 		throws IbisIOException {
 		super(pt, driver, up, context);
 		headerLength = 4;
+		// Create the factory in the constructor. This allows
+		// subclasses to override the factory.
+		factory = new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl());
 	}
 
         private final class UpcallThread extends Thread {
@@ -162,7 +160,11 @@ public final class TcpInput extends NetBufferedInput {
 		}
 
 		mtu       = Math.min(lmtu, rmtu);
-		allocator = new NetAllocator(mtu);
+		// Don't create a new factory here, just specify the mtu.
+		// Possibly a subclass overrode the factory, and we must leave
+		// that factory in place.
+		factory.setMaximumTransferUnit(mtu);
+
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                 }
@@ -213,7 +215,8 @@ public final class TcpInput extends NetBufferedInput {
                         return temp;
                 }
 
-		byte [] b = allocator.allocate();
+		NetReceiveBuffer buf = createReceiveBuffer();
+		byte [] b = buf.data;
 		int     l = 0;
 
 		try {
@@ -248,7 +251,8 @@ public final class TcpInput extends NetBufferedInput {
 			throw new IbisIOException(e.getMessage());
 		} 
 
-		return new NetReceiveBuffer(b, l, allocator);
+		buf.length = l;
+		return buf;
 	}
 
 	/**

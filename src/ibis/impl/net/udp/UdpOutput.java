@@ -68,6 +68,10 @@ public final class UdpOutput extends NetBufferedOutput {
 	 */
 	private Integer        rpn    = null;
 
+
+	private long		seqno;	/* For out-of-order debugging */
+
+
 	/**
 	 * Constructor.
 	 *
@@ -79,6 +83,10 @@ public final class UdpOutput extends NetBufferedOutput {
 	UdpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
 		super(pt, driver, up, context);
+
+		if (Driver.DEBUG) {
+		    headerLength = 8;
+		}
 	}
 
 	/*
@@ -132,11 +140,18 @@ public final class UdpOutput extends NetBufferedOutput {
 	 * {@inheritDoc}
 	 */
 	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
+		if (Driver.DEBUG) {
+		    NetConvert.writeLong(seqno++, b.data, 0);
+		}
 		packet.setData(b.data, 0, b.length);
+// System.err.print("|");
 		try {
 			socket.send(packet);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
+		}
+		if (! b.ownershipClaimed) {
+		    b.free();
 		}
 	}
 

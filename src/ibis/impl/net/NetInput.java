@@ -43,6 +43,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 			   NetIO  	    up,
                            String           context) {
 		super(portType, driver, up, context);
+		setBufferFactory(new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl()));
 	}
 
         public synchronized void inputUpcall(NetInput input, Integer spn) {
@@ -78,6 +79,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 		return activeNum;
 	}
 
+
 	public void setupConnection(Integer            rpn,
                                     ObjectInputStream  is,
                                     ObjectOutputStream os,
@@ -86,7 +88,28 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 this.upcallFunc = inputUpcall;
                 setupConnection(rpn, is, os, nsl);
         }
-        
+
+	/**
+	 * Utility function to get a {@link NetReceiveBuffer} from our
+	 * {@link NetBufferFactory}.
+	 * This is only valid for a Factory with MTU.
+	 *
+	 * @throws an {@link IbisIOException} if the factory has no default MTU
+	 */
+	public NetReceiveBuffer createReceiveBuffer() throws IbisIOException {
+	    return (NetReceiveBuffer)createBuffer();
+	}
+
+	/**
+	 * Utility function to get a {@link NetReceiveBuffer} from our
+	 * {@link NetBufferFactory}.
+	 *
+	 * @param length the length of the data stored in the buffer
+	 */
+	public NetReceiveBuffer createReceiveBuffer(int length)
+		throws IbisIOException {
+	    return (NetReceiveBuffer)createBuffer(length);
+	}
 
 
 	/**
@@ -94,7 +117,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 *
 	 * Node: methods redefining this one should call it at the end.
 	 */
-	public void free() 
+	public void free()
 		throws IbisIOException {
 		activeNum = null;
 		super.free();
@@ -115,7 +138,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /* ReadMessage Interface */
 
 	/** Only one message is alive at one time for a given receiveport.
-	    This is done to prevent flow control problems. 
+	    This is done to prevent flow control problems.
 	    when a message is alive, and a new messages is requested with a receive, the requester is blocked until the
 	    live message is finished. **/
        	public void finish() throws IbisIOException {
@@ -126,7 +149,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         } catch (IOException e) {
                                 throw new IbisIOException(e.getMessage());
                         }
-                        
+
                         _inputConvertStream = null;
                 }
 
@@ -153,14 +176,14 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 */
         private ObjectInputStream        _inputConvertStream = null;
 
-        
+
 
         private final void checkConvertStream() throws IOException {
                 if (_inputConvertStream == null) {
                         DummyInputStream dis = new DummyInputStream();
                         _inputConvertStream = new ObjectInputStream(dis);
                 }
-        }        
+        }
 
         private final boolean defaultReadBoolean() throws IbisIOException {
                 boolean result = false;
@@ -171,7 +194,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (IOException e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -184,7 +207,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (IOException e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -197,7 +220,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (IOException e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -210,7 +233,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (IOException e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -223,7 +246,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (IOException e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -236,7 +259,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (IOException e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -249,7 +272,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (IOException e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -262,7 +285,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (Exception e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -275,7 +298,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 } catch (Exception e) {
                         throw new IbisIOException(e.getMessage());
                 }
-                
+
                 return result;
         }
 
@@ -379,21 +402,21 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 }
         }
 
-        
+
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
                 int len = defaultReadInt();
-                byte [] b = new byte[len];
-                defaultReadArraySliceByte(b, 0, len);
-                return new NetReceiveBuffer(b, len);
+		NetReceiveBuffer buffer = createReceiveBuffer(len);
+                defaultReadArraySliceByte(buffer.data, 0, len);
+                return buffer;
         }
-        
+
 
         public void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
                 int len = defaultReadInt();
                 defaultReadArraySliceByte(buffer.data, 0, len);
                 buffer.length = len;
         }
-        
+
 
 	public boolean readBoolean() throws IbisIOException {
                 return defaultReadBoolean();
@@ -416,7 +439,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	public long readLong() throws IbisIOException {
                 return defaultReadLong();
         }
-	
+
 	public float readFloat() throws IbisIOException {
                 return defaultReadFloat();
         }
@@ -514,7 +537,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 
                 public int read() throws IOException {
                         int result = 0;
-                        
+
                         try {
                                 result = readByte();
                                 //System.err.println("Received a byte: ["+ seq++ +"] unsigned = "+(result & 255)+", signed =" + result);

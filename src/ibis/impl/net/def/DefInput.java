@@ -102,7 +102,7 @@ public final class DefInput extends NetInput {
         }
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
-                NetReceiveBuffer b = new NetReceiveBuffer(new byte[expectedLength], 0);
+                NetReceiveBuffer b = createReceiveBuffer(expectedLength);
                 
                 try {
                         lock();

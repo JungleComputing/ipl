@@ -81,6 +81,7 @@ public final class DefOutput extends NetOutput {
                         throw new Error("full reset unimplemented");
                 }
         }
+
         public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
                 synchronized(defOs) {
                         try {
@@ -92,6 +93,9 @@ public final class DefOutput extends NetOutput {
                         } catch (IOException e) {
                                 throw new IbisIOException(e);
                         }
+		}
+		if (! b.ownershipClaimed) {
+		    b.free();
 		}
         }
         

@@ -138,6 +138,7 @@ public final class TcpOutput extends NetOutput {
                 }
                 first = true;
         }
+
         public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
                 try {
                         if (first) {
@@ -149,6 +150,10 @@ public final class TcpOutput extends NetOutput {
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
+		}
+
+		if (! b.ownershipClaimed) {
+		    b.free();
 		}
         }
         

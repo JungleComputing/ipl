@@ -3,13 +3,10 @@ package ibis.ipl.impl.net;
 /**
  * Provides a simple wrapper class for a byte array for receiving data.
  */
-public final class NetReceiveBuffer extends NetBuffer {
+public class NetReceiveBuffer extends NetBuffer {
 
 	/**
-	 * Constructor.
-	 *
-	 * @param data the buffer.
-	 * @param length the length of valid data. 
+	 * {@inheritDoc}
 	 */
 	public NetReceiveBuffer(byte[] data,
 				int    length) {
@@ -17,11 +14,16 @@ public final class NetReceiveBuffer extends NetBuffer {
 	}
 
 	/**
-	 * Constructor.
-	 *
-	 * @param data the buffer.
-	 * @param length the length of valid data. 
-	 * @param allocator the allocator that was used to allocate the buffer.
+	 * {@inheritDoc}
+	 */
+	public NetReceiveBuffer(byte[] 	     data,
+				int          base,
+				int    	     length) {
+		super(data, base, length);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public NetReceiveBuffer(byte[] 	     data,
 				int    	     length,
@@ -30,15 +32,13 @@ public final class NetReceiveBuffer extends NetBuffer {
 	}
 
 	/**
-	 * Constructor.
-         *
-	 * @param data the buffer.
-         * @param base the base index of the data stored in the buffer.
-	 * @param length the length of the data stored in the buffer.
+	 * {@inheritDoc}
 	 */
-	public NetReceiveBuffer(byte[] data,
-                                int    base,
-                                int    length) {
-		super(data, base, length);
+	public NetReceiveBuffer(byte[] 	     data,
+				int          base,
+				int    	     length,
+				NetAllocator allocator) {
+		super(data, base, length, allocator);
 	}
+
 }

@@ -48,6 +48,13 @@ public abstract class NetIO {
 
         protected String           context                = null;
 
+
+	/**
+	 * Current NetBufferFactory
+	 */
+	protected NetBufferFactory factory;
+
+
 	/**
 	 * Constructor.
 	 *
@@ -89,17 +96,17 @@ public abstract class NetIO {
 		} catch (Exception e) {
 			throw new IbisIOException(e);
 		}
-	}	
-	
+	}
+
 	/**
 	 * Helper function for receiving a set of connection data to
 	 * the connection peer.
 	 */
-	protected final Hashtable receiveInfoTable(ObjectInputStream is) 
+	protected final Hashtable receiveInfoTable(ObjectInputStream is)
 		throws IbisIOException {
 		Hashtable t = null;
 		try {
-			t = (Hashtable)is.readObject();		 
+			t = (Hashtable)is.readObject();
 		} catch (Exception e) {
 			throw new IbisIOException(e);
 		}
@@ -132,11 +139,11 @@ public abstract class NetIO {
                 }
                 return sub;
         }
-        
+
         public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws IbisIOException {
                 return subDriver.newInput(type, this, subContext(contextValue));
         }
-        
+
         public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws IbisIOException {
                 return subDriver.newOutput(type, this, subContext(contextValue));
         }
@@ -144,7 +151,7 @@ public abstract class NetIO {
         public final NetInput newSubInput(NetDriver subDriver) throws IbisIOException {
                 return newSubInput(subDriver, null);
         }
-        
+
         public final NetOutput newSubOutput(NetDriver subDriver) throws IbisIOException {
                 return newSubOutput(subDriver, null);
         }
@@ -152,29 +159,66 @@ public abstract class NetIO {
         public final String getProperty(String contextValue, String name) {
                 return type.getStringProperty(subContext(contextValue), name);
         }
-        
+
         public final String getProperty(String name) {
                 return getProperty(null, name);
         }
-        
+
         public final String getMandatoryProperty(String contextValue, String name) {
                 String s = getProperty(contextValue, name);
                 if (s == null) {
                         throw new Error(name+" property not specified");
                 }
-                
+
                 return s;
         }
-        
+
         public final String getMandatoryProperty(String name) {
                 String s = getProperty(name);
                 if (s == null) {
                         throw new Error(name+" property not specified");
                 }
-                
+
                 return s;
         }
-        
+
+
+	/**
+	 * Install a custom {@link NetBufferFactory}.
+	 *
+	 * @param factory the {@link NetBuffer} factory
+	 */
+	public void setBufferFactory(NetBufferFactory factory) {
+	    this.factory = factory;
+	}
+
+	/**
+	 * Create a {@link NetBuffer} using the installed factory.
+	 *
+	 * This is only valid for a Factory with MTU.
+	 *
+	 * @throws an {@link IbisIOException} if the factory has no default MTU
+	 */
+	public NetBuffer createBuffer() throws IbisIOException {
+	    if (factory == null) {
+		throw new IbisIOException("Need a factory with MTU");
+	    }
+	    return factory.createBuffer();
+	}
+
+	/**
+	 * Create a {@link NetBuffer} using the installed factory.
+	 *
+	 * @param length the length of the data to be stored in the buffer.
+	 *        The buffer is a new byte array
+	 */
+	public NetBuffer createBuffer(int length) throws IbisIOException {
+	    if (factory == null) {
+		factory = new NetBufferFactory();
+	    }
+	    return factory.createBuffer(length);
+	}
+
 
 	/**
 	 * Returns the maximum transfert unit for this input.
@@ -183,7 +227,7 @@ public abstract class NetIO {
 	 */
 	public final int getMaximumTransfertUnit() {
 		return mtu;
-	}	
+	}
 
 	/**
 	 * Changes the offset of the header start for this input.
@@ -205,13 +249,13 @@ public abstract class NetIO {
 
 	/**
 	 * Return this input's header length.
-	 * 
+	 *
 	 * @return This input's header length.
 	 */
 	public int getHeaderLength() {
 		return headerLength;
 	}
-	
+
 	/**
 	 * Returns the maximum atomic payload size for this input.
 	 *
@@ -241,7 +285,7 @@ public abstract class NetIO {
 	 *
 	 * Note: methods redefining this one should also call it.
 	 */
-	public void free() 
+	public void free()
 		throws IbisIOException {
 		up                  =  null;
 		mtu                 =     0;

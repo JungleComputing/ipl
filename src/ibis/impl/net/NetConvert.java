@@ -10,6 +10,29 @@ import java.io.ObjectOutputStream;
 
 public final class NetConvert {
 
+	public final static int	BITS_PER_BYTE = 8;
+
+	public final static int	SHORT_SIZE = 2;
+	public final static int	BITS_PER_SHORT = BITS_PER_BYTE * SHORT_SIZE;
+
+	public final static int	CHAR_SIZE = 2;
+	public final static int	BITS_PER_CHAR = BITS_PER_BYTE * CHAR_SIZE;
+
+	public final static int	INT_SIZE = 4;
+	public final static int	BITS_PER_INT = BITS_PER_BYTE * INT_SIZE;
+
+	public final static int	LONG_SIZE = 8;
+	public final static int	BITS_PER_LONG = BITS_PER_BYTE * LONG_SIZE;
+
+	public final static int	FLOAT_SIZE = 4;
+	public final static int	BITS_PER_FLOAT = BITS_PER_BYTE * FLOAT_SIZE;
+
+	public final static int	DOUBLE_SIZE = 8;
+	public final static int	BITS_PER_DOUBLE = BITS_PER_BYTE * DOUBLE_SIZE;
+
+	public final static int	REFERENCE_SIZE = 4;
+	public final static int	BITS_PER_REFERENCE = BITS_PER_BYTE * REFERENCE_SIZE;
+
         /* primitive types --> bytes */
 
         /* Core conversion routines. */
@@ -98,37 +121,37 @@ public final class NetConvert {
         }
 
         public static byte[] writeChar(char value) {
-                byte [] b = new byte[2];
+                byte [] b = new byte[CHAR_SIZE];
                 writeChar(value, b, 0);
                 return b;
         }
         
         public static byte[] writeShort(short value) {
-                byte [] b = new byte[2];
+                byte [] b = new byte[SHORT_SIZE];
                 writeShort(value, b, 0);
                 return b;
         }
         
         public static byte[] writeInt(int value) {
-                byte [] b = new byte[4];
+                byte [] b = new byte[INT_SIZE];
                 writeInt(value, b, 0);
                 return b;
         }
         
         public static byte[] writeLong(long value) {
-                byte [] b = new byte[8];
+                byte [] b = new byte[LONG_SIZE];
                 writeLong(value, b, 0);
                 return b;
         }
         
         public static byte[] writeFloat(float value) {
-                byte [] b = new byte[4];
+                byte [] b = new byte[FLOAT_SIZE];
                 writeFloat(value, b, 0);
                 return b;
         }
         
         public static byte[] writeDouble(double value) {
-                byte [] b = new byte[8];
+                byte [] b = new byte[DOUBLE_SIZE];
                 writeDouble(value, b, 0);
                 return b;
         }
@@ -146,7 +169,7 @@ public final class NetConvert {
         public static void writeArraySliceChar(char []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
-                        writeChar(a[oa+i], b, ob+2*i);
+                        writeChar(a[oa+i], b, ob+CHAR_SIZE*i);
                         i++;
                 }
         }
@@ -154,7 +177,7 @@ public final class NetConvert {
         public static void writeArraySliceShort(short []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
-                        writeShort(a[oa+i], b, ob+2*i);
+                        writeShort(a[oa+i], b, ob+SHORT_SIZE*i);
                         i++;
                 }
         }
@@ -162,7 +185,7 @@ public final class NetConvert {
         public static void writeArraySliceInt(int []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
-                        writeInt(a[oa+i], b, ob+4*i);
+                        writeInt(a[oa+i], b, ob+INT_SIZE*i);
                         i++;
                 }
         }
@@ -170,7 +193,7 @@ public final class NetConvert {
         public static void writeArraySliceLong(long []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
-                        writeLong(a[oa+i], b, ob+8*i);
+                        writeLong(a[oa+i], b, ob+LONG_SIZE*i);
                         i++;
                 }
         }
@@ -178,7 +201,7 @@ public final class NetConvert {
         public static void writeArraySliceFloat(float []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
-                        writeFloat(a[oa+i], b, ob+4*i);
+                        writeFloat(a[oa+i], b, ob+FLOAT_SIZE*i);
                         i++;
                 }
         }
@@ -186,7 +209,7 @@ public final class NetConvert {
         public static void writeArraySliceDouble(double []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
-                        writeDouble(a[oa+i], b, ob+8*i);
+                        writeDouble(a[oa+i], b, ob+DOUBLE_SIZE*i);
                         i++;
                 }
         }
@@ -204,7 +227,7 @@ public final class NetConvert {
         public static void writeArraySliceChar(char []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
-                        writeChar(a[oa+i], b, 2*i);
+                        writeChar(a[oa+i], b, CHAR_SIZE*i);
                         i++;
                 }
         }
@@ -212,7 +235,7 @@ public final class NetConvert {
         public static void writeArraySliceShort(short []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
-                        writeShort(a[oa+i], b, 2*i);
+                        writeShort(a[oa+i], b, SHORT_SIZE*i);
                         i++;
                 }
         }
@@ -220,7 +243,7 @@ public final class NetConvert {
         public static void writeArraySliceInt(int []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
-                        writeInt(a[oa+i], b, 4*i);
+                        writeInt(a[oa+i], b, INT_SIZE*i);
                         i++;
                 }
         }
@@ -228,7 +251,7 @@ public final class NetConvert {
         public static void writeArraySliceLong(long []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
-                        writeLong(a[oa+i], b, 8*i);
+                        writeLong(a[oa+i], b, LONG_SIZE*i);
                         i++;
                 }
         }
@@ -236,7 +259,7 @@ public final class NetConvert {
         public static void writeArraySliceFloat(float []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
-                        writeFloat(a[oa+i], b, 4*i);
+                        writeFloat(a[oa+i], b, FLOAT_SIZE*i);
                         i++;
                 }
         }
@@ -244,7 +267,7 @@ public final class NetConvert {
         public static void writeArraySliceDouble(double []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
-                        writeDouble(a[oa+i], b, 8*i);
+                        writeDouble(a[oa+i], b, DOUBLE_SIZE*i);
                         i++;
                 }
         }
@@ -378,37 +401,37 @@ public final class NetConvert {
 	}
         
         public static byte [] writeArraySliceChar(char []a, int oa, int l) {
-                byte [] b = new byte[l*2];
+                byte [] b = new byte[l*CHAR_SIZE];
                 writeArraySliceChar(a, oa, l, b, 0);
                 return b;
 	}
         
         public static byte [] writeArraySliceShort(short []a, int oa, int l) {
-                byte [] b = new byte[l*2];
+                byte [] b = new byte[l*SHORT_SIZE];
                 writeArraySliceShort(a, oa, l, b, 0);
                 return b;
 	}
         
         public static byte [] writeArraySliceInt(int []a, int oa, int l) {
-                byte [] b = new byte[l*4];
+                byte [] b = new byte[l*INT_SIZE];
                 writeArraySliceInt(a, oa, l, b, 0);
                 return b;
 	}
         
         public static byte [] writeArraySliceLong(long []a, int oa, int l) {
-                byte [] b = new byte[l*8];
+                byte [] b = new byte[l*LONG_SIZE];
                 writeArraySliceLong(a, oa, l, b, 0);
                 return b;
 	}
         
         public static byte [] writeArraySliceFloat(float []a, int oa, int l) {
-                byte [] b = new byte[l*4];
+                byte [] b = new byte[l*FLOAT_SIZE];
                 writeArraySliceFloat(a, oa, l, b, 0);
                 return b;
 	}
         
         public static byte [] writeArraySliceDouble(double []a, int oa, int l) {
-                byte [] b = new byte[l*8];
+                byte [] b = new byte[l*DOUBLE_SIZE];
                 writeArraySliceDouble(a, oa, l, b, 0);
                 return b;
 	}        
@@ -482,37 +505,37 @@ public final class NetConvert {
 	}
         
         public static byte [] writeArraySliceChar(int ob, char []a, int oa, int l) {
-                byte [] b = new byte[2*l+ob];
+                byte [] b = new byte[CHAR_SIZE*l+ob];
                 writeArraySliceChar(a, oa, l, b, ob);
                 return b;
 	}
         
         public static byte [] writeArraySliceShort(int ob, short []a, int oa, int l) {
-                byte [] b = new byte[2*l+ob];
+                byte [] b = new byte[SHORT_SIZE*l+ob];
                 writeArraySliceShort(a, oa, l, b, ob);
                 return b;
 	}
         
         public static byte [] writeArraySliceInt(int ob, int []a, int oa, int l) {
-                byte [] b = new byte[4*l+ob];
+                byte [] b = new byte[INT_SIZE*l+ob];
                 writeArraySliceInt(a, oa, l, b, ob);
                 return b;
 	}
         
         public static byte [] writeArraySliceLong(int ob, long []a, int oa, int l) {
-                byte [] b = new byte[8*l+ob];
+                byte [] b = new byte[LONG_SIZE*l+ob];
                 writeArraySliceLong(a, oa, l, b, ob);
                 return b;
 	}
         
         public static byte [] writeArraySliceFloat(int ob, float []a, int oa, int l) {
-                byte [] b = new byte[4*l+ob];
+                byte [] b = new byte[FLOAT_SIZE*l+ob];
                 writeArraySliceFloat(a, oa, l, b, ob);
                 return b;
 	}
         
         public static byte [] writeArraySliceDouble(int ob, double []a, int oa, int l) {
-                byte [] b = new byte[8*l+ob];
+                byte [] b = new byte[DOUBLE_SIZE*l+ob];
                 writeArraySliceDouble(a, oa, l, b, ob);
                 return b;
 	}        
@@ -786,7 +809,7 @@ public final class NetConvert {
         public static void readArraySliceChar(byte[] b, int ob, char []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
-                        a[oa+i] = readChar(b, ob+2*i);
+                        a[oa+i] = readChar(b, ob+CHAR_SIZE*i);
                         i++;
                 }
         }
@@ -794,7 +817,7 @@ public final class NetConvert {
         public static void readArraySliceShort(byte[] b, int ob, short []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
-                        a[oa+i] = readShort(b, ob+2*i);
+                        a[oa+i] = readShort(b, ob+SHORT_SIZE*i);
                         i++;
                 }
         }
@@ -802,7 +825,7 @@ public final class NetConvert {
         public static void readArraySliceInt(byte[] b, int ob, int []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
-                        a[oa+i] = readInt(b, ob+4*i);
+                        a[oa+i] = readInt(b, ob+INT_SIZE*i);
                         i++;
                 }
         }
@@ -810,7 +833,7 @@ public final class NetConvert {
         public static void readArraySliceLong(byte[] b, int ob, long []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
-                        a[oa+i] = readLong(b, ob+8*i);
+                        a[oa+i] = readLong(b, ob+LONG_SIZE*i);
                         i++;
                 }
         }
@@ -818,7 +841,7 @@ public final class NetConvert {
         public static void readArraySliceFloat(byte[] b, int ob, float []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
-                        a[oa+i] = readFloat(b, ob+4*i);
+                        a[oa+i] = readFloat(b, ob+FLOAT_SIZE*i);
                         i++;
                 }
         }
@@ -826,7 +849,7 @@ public final class NetConvert {
         public static void readArraySliceDouble(byte[] b, int ob, double []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
-                        a[oa+i] = readDouble(b, ob+8*i);
+                        a[oa+i] = readDouble(b, ob+DOUBLE_SIZE*i);
                         i++;
                 }
         }
@@ -1070,32 +1093,32 @@ public final class NetConvert {
         }
         
         public static char[] readArrayChar(int oa, byte[] b, int ob) {
-                int la = (b.length-ob)/2;
+                int la = (b.length-ob)/CHAR_SIZE;
                 return readArrayChar(oa, la, b, ob, la);
         }
         
         public static short[] readArrayShort(int oa, byte[] b, int ob) {
-                int la = (b.length-ob)/2;
+                int la = (b.length-ob)/SHORT_SIZE;
                 return readArrayShort(oa, la, b, ob, la);
         }
         
         public static int[] readArrayInt(int oa, byte[] b, int ob) {
-                int la = (b.length-ob)/4;
+                int la = (b.length-ob)/INT_SIZE;
                 return readArrayInt(oa, la, b, ob, la);
         }
         
         public static long[] readArrayLong(int oa, byte[] b, int ob) {
-                int la = (b.length-ob)/8;
+                int la = (b.length-ob)/LONG_SIZE;
                 return readArrayLong(oa, la, b, ob, la);
         }
         
         public static float[] readArrayFloat(int oa, byte[] b, int ob) {
-                int la = (b.length-ob)/4;
+                int la = (b.length-ob)/FLOAT_SIZE;
                 return readArrayFloat(oa, la, b, ob, la);
         }
         
         public static double[] readArrayDouble(int oa, byte[] b, int ob) {
-                int la = (b.length-ob)/8;
+                int la = (b.length-ob)/DOUBLE_SIZE;
                 return readArrayDouble(oa, la, b, ob, la);
         }
         
@@ -1211,32 +1234,32 @@ public final class NetConvert {
         }
         
         public static char[] readArrayChar(int oa, byte[] b) {
-                int la = b.length/2;
+                int la = b.length/CHAR_SIZE;
                 return readArrayChar(oa, la, b, la);
         }
         
         public static short[] readArrayShort(int oa, byte[] b) {
-                int la = b.length/2;
+                int la = b.length/SHORT_SIZE;
                 return readArrayShort(oa, la, b, la);
         }
         
         public static int[] readArrayInt(int oa, byte[] b) {
-                int la = b.length/4;
+                int la = b.length/INT_SIZE;
                 return readArrayInt(oa, la, b, la);
         }
         
         public static long[] readArrayLong(int oa, byte[] b) {
-                int la = b.length/8;
+                int la = b.length/LONG_SIZE;
                 return readArrayLong(oa, la, b, la);
         }
         
         public static float[] readArrayFloat(int oa, byte[] b) {
-                int la = b.length/4;
+                int la = b.length/FLOAT_SIZE;
                 return readArrayFloat(oa, la, b, la);
         }
         
         public static double[] readArrayDouble(int oa, byte[] b) {
-                int la = b.length/8;
+                int la = b.length/DOUBLE_SIZE;
                 return readArrayDouble(oa, la, b, la);
         }
         

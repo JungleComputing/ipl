@@ -22,12 +22,30 @@ public abstract class NetDriver {
 
 	/**
 	 * Constructor.
+	 */
+	public NetDriver() {
+	}
+
+
+	/**
+	 * Constructor.
 	 *
 	 * @param NetIbis the owning {@link NetIbis} instance.
 	 */
 	public NetDriver(NetIbis ibis) {
 		this.ibis = ibis;
 	}
+
+
+	/**
+	 * Set the owning {@link NetIbis}
+	 *
+	 * @param ibis the owning {@link NetIbis}
+	 */
+	void setIbis(NetIbis ibis) {
+	    this.ibis = ibis;
+	}
+
 
 	/**
 	 * Returns the owning {@link NetIbis} instance.

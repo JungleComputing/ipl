@@ -35,6 +35,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 			   NetIO  	    up,
                            String           context) {
 		super(portType, driver, up, context);
+		setBufferFactory(new NetBufferFactory(new NetSendBufferFactoryDefaultImpl()));
 	}
 
         /**
@@ -117,7 +118,26 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
 
+	/**
+	 * Create a {@link NetSendBuffer} using the installed factory.
+	 *
+	 * This is only valid for a Factory with MTU.
+	 *
+	 * @throws an {@link IbisIOException} if the factory has no default MTU
+	 */
+	public NetSendBuffer createSendBuffer() throws IbisIOException {
+	    return (NetSendBuffer)createBuffer();
+	}
 
+	/**
+	 * Utility function to get a NetSendBuffer from our NetBuffer factory
+	 *
+	 * @param length the length of the data stored in the buffer
+	 */
+	public NetSendBuffer createSendBuffer(int length)
+		throws IbisIOException {
+	    return (NetSendBuffer)createBuffer(length);
+	}
 
 
         /* fallback serialization implementation */
@@ -337,6 +357,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
                 defaultWriteInt(b.length);
                 defaultWriteArraySliceByte(b.data, 0, b.length);
+		if (! b.ownershipClaimed) {
+		    b.free();
+		}
         }
 
         /**

@@ -16,7 +16,6 @@ public final class PipeInput extends NetBufferedInput {
 	private int              defaultMtu   = 512;
 	private Integer          spn          = null;
 	private PipedInputStream pipeIs       = null;
-	private NetAllocator     allocator    = null;
         private NetReceiveBuffer buf          = null;
         private boolean          upcallMode   = false;
         private UpcallThread     upcallThread = null;
@@ -25,6 +24,9 @@ public final class PipeInput extends NetBufferedInput {
 	PipeInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
 		super(pt, driver, up, context);
 		headerLength = 4;
+		// Create the factory in the constructor. This allows
+		// subclasses to override the factory.
+		factory = new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl());
 	}
 
         private final class UpcallThread extends Thread {
@@ -81,7 +83,11 @@ public final class PipeInput extends NetBufferedInput {
 			throw new IbisIOException(e);
 		}
 
-		allocator = new NetAllocator(mtu);
+		// Don't create a new factory here, just specify the mtu.
+		// Possibly a subclass overrode the factory, and we must leave
+		// that factory in place.
+		factory.setMaximumTransferUnit(mtu);
+
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread("this = "+this)).start();
                 }
@@ -115,7 +121,8 @@ public final class PipeInput extends NetBufferedInput {
                 }
                 
                 final boolean upcallMode = this.upcallMode;
-		byte [] b = allocator.allocate();
+		NetReceiveBuffer buf = createReceiveBuffer();
+		byte [] b = buf.data;
 		int     l = 0;
 		
 		try {
@@ -159,7 +166,8 @@ public final class PipeInput extends NetBufferedInput {
 			throw new IbisIOException(e);
 		}
 		
-		return new NetReceiveBuffer(b, l, allocator);
+		buf.length = l;
+		return buf;
 	}
 
 	public void free() throws IbisIOException {

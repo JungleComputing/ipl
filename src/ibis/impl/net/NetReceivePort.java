@@ -591,6 +591,13 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         useUpcall = true;
                 }
 
+                if (! usePollingThread) {
+		    System.err.println("Run NetReceivePort without PollingThread");
+		}
+                if (! useUpcall) {
+		    System.err.println("Run NetReceivePort without Upcall");
+		}
+
 		try {
 			serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost());
 		} catch (IOException e) {
@@ -634,9 +641,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 * if the {@linkplain #inputLock network input lock} is not available.
 	 */
 	private boolean _doPoll() throws IbisIOException {
+// System.err.println("NetReceivePort._doPoll() attempts to grab inputLock");
+// System.err.print("[");
 		inputLock.lock();
 		activeSendPortNum = input.poll();
 		inputLock.unlock();
+// System.err.print("]");
 
 		if (activeSendPortNum == null) {
 			return false;
@@ -662,7 +672,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 * @return A {@link ReadMessage} instance.
 	 */
 	public ReadMessage receive() throws IbisIOException {
-                //System.err.println("NetReceivePort: receive-->");
+		//System.err.println(this + ".receive()-->: usePollingThread " + usePollingThread + " useUpcall " + useUpcall + " upcall " + upcall);
 		if (usePollingThread || useUpcall || upcall != null) {
                         //System.err.println("NetReceivePort: receive - blocking wait");
 			polledLock.lock();

@@ -36,6 +36,9 @@ public final class NetIbis extends Ibis {
 	 * <DT><CODE>false</CODE><DD>every driver is loaded dynamically.
 	 * </DL>
 	 */
+
+	private static final String compiler = java.lang.System.getProperty("java.lang.compiler");
+	// private static final boolean staticDriverLoading = compiler != null && compiler.equals("manta");
 	private static final boolean staticDriverLoading = false;
 
 	/**
@@ -112,19 +115,35 @@ public final class NetIbis extends Ibis {
 	 * Loads compile-time known drivers if {@link #staticDriverLoading} is set.
 	 */
 	public NetIbis() {
+// System.err.println("NetIbis ...");
 		if (globalIbis == null) {
 			globalIbis = this;
 		}
 
 		if (staticDriverLoading) {
-			driverTable.put("gen", new ibis.ipl.impl.net.gen.Driver(this));
-			driverTable.put("bytes", new ibis.ipl.impl.net.bytes.Driver(this));
-			driverTable.put("id", new ibis.ipl.impl.net.id.Driver(this));
-			driverTable.put("pipe", new ibis.ipl.impl.net.pipe.Driver(this));
-			driverTable.put("udp", new ibis.ipl.impl.net.udp.Driver(this));
-			driverTable.put("tcp", new ibis.ipl.impl.net.tcp.Driver(this));
-			driverTable.put("tcp_blk", new ibis.ipl.impl.net.tcp_blk.Driver(this));
+		    String[] drivers = { 
+					"gen"
+					, "bytes"
+					, "id"
+					, "pipe"
+					, "udp"
+					, "udp_mux"
+					, "tcp"
+					, "tcp_blk"
+					, "rel"
+					// , "gm"
+					};
+		    for (int i = 0; i < drivers.length; i++) {
+			try {
+			    Class clazz = Class.forName("ibis.ipl.impl.net." + drivers[i] + ".Driver");
+			    NetDriver d = (NetDriver)clazz.newInstance();
+			    d.setIbis(this);
+			} catch (java.lang.Exception e) {
+			    System.err.println("Cannot instantiate class " + drivers[i]);
+			}
+		    }
 		}
+// System.err.println("NetIbis created...");
 	}
 
 	/**
@@ -296,10 +315,11 @@ public final class NetIbis extends Ibis {
 	 * @param joinIdent the identifier of the joining Ibis instance.
 	 */
 	public void join(IbisIdentifier joinIdent) { 
-                //System.err.println("NetIbis: join-->");
+                System.err.println(this + ": join--> " + joinIdent);
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				joinedIbises.add(joinIdent);
+// System.err.println(this + ": join<XX");
 				return;
 			}
 			
@@ -309,7 +329,7 @@ public final class NetIbis extends Ibis {
 		if(resizeHandler != null) {
 			resizeHandler.join(joinIdent);
 		}
-                //System.err.println("NetIbis: join<--");
+                System.err.println(this + ": join<--");
 	}
 
 	/**
@@ -318,7 +338,7 @@ public final class NetIbis extends Ibis {
 	 * @param leaveIdent the identifier of the leaving Ibis instance.
 	 */
 	public void leave(IbisIdentifier leaveIdent) { 
-                //System.err.println("NetIbis: leave-->");
+                System.err.println(this + ": leave-->");
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				leftIbises.add(leaveIdent);
@@ -331,13 +351,14 @@ public final class NetIbis extends Ibis {
 		if(resizeHandler != null) {
 			resizeHandler.leave(leaveIdent);
 		}
-                //System.err.println("NetIbis: leave<--");
+                System.err.println(this + ": leave<--");
 	}
 
 	public void openWorld() {
-                //System.err.println("NetIbis: openWorld-->");
+                System.err.println(this + ": openWorld-->");
 		if(resizeHandler != null) {
 			while(joinedIbises.size() > 0) {
+// System.err.println(this+ ": join/later " + (NetIbisIdentifier)joinedIbises.elementAt(0));
 				resizeHandler.join((NetIbisIdentifier)joinedIbises.remove(0));
 				poolSize++;
 			}
@@ -351,7 +372,7 @@ public final class NetIbis extends Ibis {
 		synchronized (this) {
 			open = true;
 		}
-                //System.err.println("NetIbis: openWorld<--");
+                System.err.println(this + ": openWorld<--");
 	}
 
 	public synchronized void closeWorld() {

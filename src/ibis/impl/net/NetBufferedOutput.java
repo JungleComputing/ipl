@@ -7,15 +7,12 @@ import ibis.ipl.StaticProperties;
  * Provides an abstraction of a buffered network output.
  */
 public abstract class NetBufferedOutput extends NetOutput {
-	/**
-	 * The current memory block allocator.
-	 */
-	private NetAllocator bufferAllocator = null;
 
 	/**
-	 * The current buffer offset of the payload area.
+	 * The current buffer offset after the headers of the lower layers
+	 * into the payload area.
 	 */
-	private int dataOffset = 0;
+	protected int dataOffset = 0;
 
 	/**
 	 * The current buffer offset for appending user data.
@@ -41,18 +38,17 @@ public abstract class NetBufferedOutput extends NetOutput {
 			   NetIO  	    up,
                            String           context) {
 		super(portType, driver, up, context);
+		factory = new NetBufferFactory(new NetSendBufferFactoryDefaultImpl());
 	}
 
         protected abstract void sendByteBuffer(NetSendBuffer buffer) throws IbisIOException;
 
         public void initSend() throws IbisIOException {
-                if (mtu != 0) {
-			if (bufferAllocator == null || bufferAllocator.getBlockSize() != mtu) {
-				bufferAllocator = new NetAllocator(mtu);
-			}
-		}
-                
 		dataOffset = getHeadersLength();
+
+                if (mtu != 0) {
+			factory.setMaximumTransferUnit(mtu);
+		}
         }
         
 
@@ -62,9 +58,8 @@ public abstract class NetBufferedOutput extends NetOutput {
 	protected void flush() throws IbisIOException {
                 //System.err.println("NetBufferedOutput: flush -->");
 		if (buffer != null) {
-                        //System.err.println("NetBufferedOutput: flushing buffer, "+buffer.length+" bytes");
+                        //System.err.println(this + ": flushing buffer, "+buffer.length+" bytes");
 			sendByteBuffer(buffer);
-			buffer.free();
 			buffer = null;
                         bufferOffset = 0;
 		}
@@ -77,23 +72,20 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * @param the preferred length. This is just a hint. The
 	 * actual buffer length may differ.
 	 */
-	private void allocateBuffer(int length) {
+	private void allocateBuffer(int length) throws IbisIOException {
 		if (buffer != null) {
 			buffer.free();
 		}
-		
-		if (bufferAllocator != null) {
-			buffer = new NetSendBuffer(bufferAllocator.allocate(), dataOffset, bufferAllocator);
+
+		if (mtu != 0) {
+			buffer = createSendBuffer();
 		} else {
-			if (mtu != 0) {
-				length = mtu;
-			} else {
-				length += dataOffset;
-			}		
-			buffer = new NetSendBuffer(new byte[length], dataOffset);
-		}
-		
+			buffer = createSendBuffer(dataOffset + length);
+		}		
+
+		buffer.length = dataOffset;
 		bufferOffset = dataOffset;
+		//System.err.println(this + ": allocate buffer payload=" + length + " mtu=" + mtu + " dataOffset=" + dataOffset + " buffer.length=" + buffer.length);
 	}
 
 	// TODO: ensure that send is non-blocking
@@ -155,49 +147,37 @@ public abstract class NetBufferedOutput extends NetOutput {
 	}
 
 	public void writeArraySliceByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-		//System.err.println("write: "+offset+", "+length);
+		//System.err.println(this + ": write: "+offset+", "+length);
+//System.err.println(this + ": offset " + offset + " length " + length + " mtu " + mtu + " buffer " + buffer + " dataOffset " + dataOffset);
 		if (length == 0)
 			return;
 		
                 if (dataOffset == 0) {
                         flush();
 
+			// Here, the NetReceiveBuffer provides a view into a
+			// pre-existing Buffer at a varying offset. For that,
+			// we cannot use the BufferFactory.
                         if (mtu != 0) {
-                                int base = offset;
-
                                 do {
                                         int copyLength = Math.min(mtu, length);
-                                        buffer = new NetSendBuffer(userBuffer, base, copyLength);
+                                        buffer = new NetSendBuffer(userBuffer, offset, copyLength);
                                         flush();
 
-                                        base   += copyLength;
+                                        offset += copyLength;
                                         length -= copyLength;
                                 } while (length != 0);
                                         
                         } else {
-                                buffer = new NetSendBuffer(userBuffer, offset, length);
+                                buffer = new NetSendBuffer(userBuffer, offset + length);
                                 flush();
                         }
+
                 } else {
-                        if (buffer != null) {
-                                int availableLength = buffer.data.length - bufferOffset;
-                                int copyLength      = Math.min(availableLength, length);
-
-                                System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
-
-                                bufferOffset  	 += copyLength;
-                                buffer.length 	 += copyLength;
-                                availableLength  -= copyLength;
-                                offset        	 += copyLength;
-                                length        	 -= copyLength;
-
-                                if (availableLength == 0) {
-                                        flush();
-                                }
-                        }
-		
                         while (length > 0) {
-                                allocateBuffer(length);
+				if (buffer == null) {
+					allocateBuffer(length);
+				}
 
                                 int availableLength = buffer.data.length - bufferOffset;
                                 int copyLength   = Math.min(availableLength, length);
@@ -205,7 +185,7 @@ public abstract class NetBufferedOutput extends NetOutput {
                                 System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
 
                                 bufferOffset  	+= copyLength;
-                                buffer.length 	+= copyLength;
+                                buffer.length  	+= copyLength;
                                 availableLength -= copyLength;
                                 offset        	+= copyLength;
                                 length        	-= copyLength;

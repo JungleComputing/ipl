@@ -174,6 +174,10 @@ public final class GmOutput extends NetBufferedOutput {
                         /* Wait for 'request' send completion */
                         pump();
                 }
+
+		if (! b.ownershipClaimed) {
+			b.free();
+		}
         }
 
         /**

@@ -133,6 +133,9 @@ public final class TcpOutput extends NetBufferedOutput {
  		} catch (IOException e) {
  			throw new IbisIOException(e.getMessage());
  		} 
+		if (! b.ownershipClaimed) {
+		    b.free();
+		}
 	}
 
 	/**

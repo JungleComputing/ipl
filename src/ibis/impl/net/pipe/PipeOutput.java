@@ -61,6 +61,9 @@ public final class PipeOutput extends NetBufferedOutput {
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 
+		if (! b.ownershipClaimed) {
+			b.free();
+		}
 	}
 
 	/**
