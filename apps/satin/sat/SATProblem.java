@@ -37,6 +37,9 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     /** The variables of the problem. */
     private SATVar variables[];
 
+    /** Initial assignments of the problem. */
+    private byte assignments[];
+
     /** The number of deleted clauses. */
     private int deletedClauseCount;
 
@@ -70,6 +73,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	int clauseCount,
 	Clause clauses[],
 	SATVar variables[],
+        byte assignments[],
 	int deletedClauseCount,
 	int label,
 	ClauseReviewer r
@@ -80,6 +84,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
         this.clauseCount = clauseCount;
         this.clauses = clauses;
         this.variables = variables;
+        this.assignments = assignments;
         this.deletedClauseCount = deletedClauseCount;
         this.label = label;
 	reviewer = r;
@@ -121,6 +126,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	    clauseCount,
 	    cl,
 	    vl,
+            (byte []) assignments.clone(),
 	    deletedClauseCount,
 	    label,
 	    reviewer
@@ -168,6 +174,10 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	for( int i=0; i<n; i++ ){
 	    variables[i] = new SATVar( i );
 	}
+        assignments = new byte[n];
+        for( int i=0; i<n; i++ ){
+            assignments[i] = -1;
+        }
     }
 
     /** Returns the number of variables used in the problem.  */
@@ -432,15 +442,15 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     /**
      * Given a variable and a value, propagates this
      * assignment.
-     * @param var the variable
-     * @param val the value of the variable
+     * @param var The variable.
+     * @param val The value of the variable.
      * @return <code>true</code> iff the propagation deleted any clauses
      */
     public boolean propagateAssignment( int var, boolean val )
     {
 	boolean changed = false;
 
-	int oldAssignment = variables[var].getAssignment();
+	int oldAssignment = assignments[var];
 	if( oldAssignment != -1 ){
 	    boolean oldVal = (oldAssignment == 1);
 	    if( oldVal != val ){
@@ -449,8 +459,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	    return false;
 	}
 	knownVars++;
+	assignments[var] = val? (byte) 1: (byte) 0;
 	SATVar v = variables[var];
-	v.setAssignment( val );
 	if( v.getUseCount() == 0 ){
 	    System.err.println( "Error: zero use count of variable " + v );
 	}
@@ -506,7 +516,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 		if( !v.isUsed() ){
 		    continue;
 		}
-		if( v.isPosOnly() ){
+		if( assignments[ix] == -1 && v.isPosOnly() ){
 		    // Variable 'v' only occurs in positive terms, we may as
 		    // well assign to this variable, and propagate this
 		    // assignment.
@@ -516,7 +526,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 		    changed |= propagateAssignment( ix, true );
 		    purevars++;
 		}
-		else if( v.isNegOnly() ){
+		else if( assignments[ix] == -1 && v.isNegOnly() ){
 		    // Variable 'v' only occurs in negative terms, we may as
 		    // well assign to this variable, and propagate this
 		    // assignment.
@@ -583,12 +593,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      */
     byte [] buildInitialAssignments()
     {
-        byte res[] = new byte[vars];
-
-	for( int ix=0; ix<vars; ix++ ){
-	    res[ix] = variables[ix].getAssignment();
-	}
-	return res;
+        return (byte []) assignments.clone();
     }
 
     /**
@@ -672,9 +677,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	int bestuse = 0;
 
 	for( int i=0; i<vars; i++ ){
-	    SATVar v = variables[i];
-
-	    if( v != null && v.getAssignment() == -1 ){
+	    if( assignments[i] == -1 ){
+                SATVar v = variables[i];
 		int use = v.getUseCount();
 
 		if( bestuse<use ){
@@ -700,7 +704,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	for( int i=0; i<vars; i++ ){
 	    SATVar v = variables[i];
 
-	    if( v != null && v.getAssignment() == -1 ){
+	    if( v != null && assignments[i] == -1 ){
 		sorted_vars[varix++] = v;
 	    }
 	}

@@ -11,7 +11,6 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     private int ix;		// The index in the the original var array.
     private int pos[];	        // Clauses in which this var occurs as a pos.
     private int neg[];	        // Clauses in which this var occurs as a neg.
-    private byte assignment = -1;	// 0 or 1 if it is a known variable.
 
     /** Constructs a new SATVar with the specified label and index. */
     public SATVar( int ix )
@@ -22,12 +21,11 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     }
 
     /** Constructs a new SATVar with the specified fields. */
-    private SATVar( int ix, int pos[], int neg[], byte assignment )
+    private SATVar( int ix, int pos[], int neg[] )
     {
 	this.ix = ix;
 	this.pos = pos;
 	this.neg = neg;
-	this.assignment = assignment;
     }
 
     /** Returns a clone of this SATVar. The pos and neg vectors are also
@@ -38,8 +36,7 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
 	return new SATVar(
 	    ix,
 	    (int []) pos.clone(),
-	    (int []) neg.clone(),
-	    assignment
+	    (int []) neg.clone()
 	);
     }
 
@@ -48,9 +45,6 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
      * a positive variable.
      */
     void registerPosClause( int cno ) {
-	if( assignment != -1 ){
-	    System.err.println( "Error: registering preassigned variable " + ix + " is pointless" );
-	}
         pos = Helpers.append( pos, cno );
     }
 
@@ -59,9 +53,6 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
      * a negative variable.
      */
     void registerNegClause( int cno ) {
-	if( assignment != -1 ){
-	    System.err.println( "Error: registering preassigned variable " + ix + " is pointless" );
-	}
         neg = Helpers.append( neg, cno );
     }
 
@@ -77,19 +68,10 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     boolean isUsed() { return (pos != null && pos.length != 0) || (neg != null && neg.length != 0); }
 
     /** Returns true iff the variable only occurs in positive terms */
-    boolean isPosOnly() { return assignment == -1 && (neg == null || neg.length == 0); }
+    boolean isPosOnly() { return (neg == null || neg.length == 0); }
 
     /** Returns true iff the variable only occurs in negative terms */
-    boolean isNegOnly() { return assignment == -1 && (pos == null || pos.length == 0); }
-
-    /** Registers assignment 'v' for this variable. */
-    void setAssignment( byte v ) { assignment = v; }
-
-    /** Registers assignment 'v' for this variable. */
-    void setAssignment( boolean v ) { assignment = v? (byte) 1:(byte) 0; }
-
-    /** Returns the assignment of this variable. */
-    byte getAssignment() { return assignment; }
+    boolean isNegOnly() { return (pos == null || pos.length == 0); }
 
     /** Returns the index of this variable. */
     int getIndex() { return ix; }
