@@ -16,6 +16,9 @@ public class StaticProperties {
      */
     private final Hashtable data = new Hashtable();
 
+    public StaticProperties() {
+    }
+
     /**
      * Constructor creating a copy.
      * @param sp the properties to be copied.
@@ -26,10 +29,10 @@ public class StaticProperties {
 
 	while (e.hasMoreElements()) { 
 	    String key = (String) e.nextElement();		       			
-	    String value = (String) sp.get(key);
+	    String value = (String) sp.find(key);
 	    try {
 		add(key, value);
-	    } catch(IbisException e) {
+	    } catch(IbisException ex) {
 		// Should not happen.
 	    }
 	}
