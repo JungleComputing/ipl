@@ -185,6 +185,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 
             if( compression ){
                 if( !quiet ){
+                    Helpers.printPlatformVersion();
                     System.out.println( "Compressing " + infile );
                 }
                 Compress c = new Compress( top, lookahead );

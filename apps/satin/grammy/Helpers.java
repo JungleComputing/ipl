@@ -69,4 +69,12 @@ class Helpers {
         buf.write( output );
         output.close();
     }
+
+    /** Print the platform version that is used. */
+    static void printPlatformVersion()
+    {
+        java.util.Properties p = System.getProperties();
+
+        System.out.println( "Java " + p.getProperty( "java.version" ) + " (" + p.getProperty( "java.vendor" ) + ") on " + p.getProperty( "os.name" ) + " " + p.getProperty( "os.version" ) + " (" + p.getProperty( "os.arch" ) + ")" );
+    }
 }
