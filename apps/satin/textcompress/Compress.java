@@ -205,7 +205,6 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 // compare it to other alternatives.
                 // Evaluate the gain of just copying the character.
                 Backref mv1 = selectBestMove( text, backrefs, pos+1, pos+1, depth+1 );
-                sync();
                 mv.addGain( mv1 );
             }
             if( traceLookahead ){
