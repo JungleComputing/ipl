@@ -51,11 +51,6 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
     public double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
 
     /**
-     * Storage for handles read.
-     */
-    public int[]	handle_buffer  = new int[HANDLE_BUFFER_SIZE];
-
-    /**
      * Current index in <code>byte_buffer</code>.
      */
     public int		byte_index;
@@ -89,11 +84,6 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
      * Current index in <code>double_buffer</code>.
      */
     public int		double_index;
-
-    /**
-     * Current index in <code>handle_buffer</code>.
-     */
-    public int		handle_index;
 
     /**
      * Number of bytes in <code>byte_buffer</code>.
@@ -131,11 +121,6 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
     public int		max_double_index;
 
     /**
-     * Number of handles in <code>handle_buffer</code>.
-     */
-    public int		max_handle_index;
-
-    /**
      * Receive a new bunch of data.
      *
      * @exception IOException gets thrown when any of the reads throws it.
@@ -148,8 +133,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 		    (max_int_index - int_index) + 
 		    (max_long_index - long_index) + 
 		    (max_float_index - float_index) + 
-		    (max_double_index - double_index) +
-		    (max_handle_index - handle_index);
+		    (max_double_index - double_index);
 	    if (sum != 0) { 
 		System.err.println("EEEEK : receiving while there is data in buffer !!!");
 		System.err.println("byte_index "   + (max_byte_index - byte_index));
@@ -159,7 +143,6 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 		System.err.println("long_index "   + (max_long_index -long_index));
 		System.err.println("double_index " + (max_double_index -double_index));
 		System.err.println("float_index "  + (max_float_index - float_index));
-		System.err.println("handle_index " + (max_handle_index -handle_index));
 
 		new Exception().printStackTrace();
 		System.exit(1);
@@ -175,7 +158,6 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 	long_index    = 0;
 	float_index   = 0;
 	double_index  = 0;
-	handle_index  = 0;
 
 	max_byte_index    = indices_short[TYPE_BYTE];
 	max_char_index    = indices_short[TYPE_CHAR];
@@ -184,7 +166,6 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 	max_long_index    = indices_short[TYPE_LONG];
 	max_float_index   = indices_short[TYPE_FLOAT];
 	max_double_index  = indices_short[TYPE_DOUBLE];
-	max_handle_index  = indices_short[TYPE_HANDLE];
 
 	if(DEBUG) {
 	    System.err.println("reading bytes " + max_byte_index);
@@ -194,7 +175,6 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 	    System.err.println("reading long " + max_long_index);
 	    System.err.println("reading float " + max_float_index);
 	    System.err.println("reading double " + max_double_index);
-	    System.err.println("reading handle " + max_handle_index);
 	}
 
 	if (max_byte_index > 0) {
@@ -217,9 +197,6 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 	}
 	if (max_double_index > 0) {
 	    readArray(double_buffer, 0, max_double_index);
-	}
-	if (max_handle_index > 0) {
-	    readArray(handle_buffer, 0, max_handle_index);
 	}
     }
 

@@ -37,7 +37,6 @@ public interface IbisStreamFlags {
     static final int	SIZEOF_LONG	= 8;
     static final int	SIZEOF_FLOAT	= 4;
     static final int	SIZEOF_DOUBLE	= 8;
-    static final int	SIZEOF_HANDLE	= 4;
 
     static final int	TYPE_BOOLEAN	= 1;
     static final int	TYPE_BYTE	= 2;
@@ -47,9 +46,8 @@ public interface IbisStreamFlags {
     static final int	TYPE_LONG	= 6;
     static final int	TYPE_FLOAT	= 7;
     static final int	TYPE_DOUBLE	= 8;
-    static final int	TYPE_HANDLE	= 9;
 
-    static final int	PRIMITIVE_TYPES	= 10;
+    static final int	PRIMITIVE_TYPES	= 9;
 
     public static final int BOOLEAN_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BOOLEAN;
     public static final int BYTE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BYTE;
@@ -59,6 +57,4 @@ public interface IbisStreamFlags {
     public static final int LONG_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_LONG;
     public static final int FLOAT_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_FLOAT;
     public static final int DOUBLE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_DOUBLE;
-
-    public static final int HANDLE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_INT;
 } 

@@ -80,16 +80,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     private int stack_size = 0;
 
     /**
-     * Constructor for backwards compatibility with <code>ArrayOutputStream</code>.
-     * @param aos		the underlying <code>ArrayOutputStream</code>
-     * @exception IOException	gets thrown when an IO error occurs.
-     */
-    public IbisSerializationOutputStream(ArrayOutputStream aos)
-                                                        throws IOException {
-        this(new IbisArrayOutputStreamAccumulator(aos));
-    }
-
-    /**
      * Constructor with an <code>IbisAccumulator</code>.
      * @param out		the underlying <code>IbisAccumulator</code>
      * @exception IOException	gets thrown when an IO error occurs.

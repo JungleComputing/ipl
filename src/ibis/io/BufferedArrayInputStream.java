@@ -468,4 +468,3 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	/* Ignore */
     }
 }
-

@@ -3,11 +3,12 @@ package ibis.io;
 import java.io.IOException;
 
 /**
- * An Outputstream for writing arrays of primitive types.
+ * This is an implementation of the <code>IbisAccumulator</code> interface
+ * which is actually the (old) <code>ArrayOutputStream</code>.
+ * This way the whole thing becomes backwards
+ * compatible with older implementations.
  */
-
-public abstract class ArrayOutputStream
-	implements IbisStreamFlags {
+public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFlags {
 
     /**
      * Storage for bytes (or booleans) written.
@@ -45,11 +46,6 @@ public abstract class ArrayOutputStream
     public double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
 
     /**
-     * Storage for handles written.
-     */
-    public int[]	handle_buffer  = new int[HANDLE_BUFFER_SIZE];
-
-    /**
      * Current index in <code>byte_buffer</code>.
      */
     public int		byte_index;
@@ -85,73 +81,44 @@ public abstract class ArrayOutputStream
     public int		double_index;
 
     /**
-     * Current index in <code>handle_buffer</code>.
+     * Structure summarizing an array write.
      */
-    public int		handle_index;
+    private static final class ArrayDescriptor {
+	int	type;
+	Object	array;
+	int	offset;
+	int	len;
+    }
 
     /**
-     * Writes (a slice of) an array of booleans.
-     * @param a		the array to write
-     * @param off	the offset at which to start
-     * @param len	the number of elements to be written
-     * @exception IOException on an IO error
+     * Where the arrays to be written are collected.
      */
-    public abstract void writeArray(boolean[] a, int off, int len)
-	    throws IOException;
+    private ArrayDescriptor[] 	array = 
+	new ArrayDescriptor[ARRAY_BUFFER_SIZE];
 
     /**
-     * Like {@link #writeArray(boolean[], int, int)} but for a byte array.
+     * Index in the <code>array</code> array.
      */
-    public abstract void writeArray(byte[] a, int off, int len)
-	    throws IOException;
+    private int			array_index;
 
     /**
-     * Like {@link #writeArray(boolean[], int, int)} but for a short array.
+     * Collects all indices of the <code>..._buffer</code> arrays.
      */
-    public abstract void writeArray(short[] a, int off, int len)
-	    throws IOException;
+    protected short[]	indices_short  = new short[PRIMITIVE_TYPES + 1];
 
     /**
-     * Like {@link #writeArray(boolean[], int, int)} but for a char array.
+     * Constructor.
      */
-    public abstract void writeArray(char[] a, int off, int len)
-	    throws IOException;
+    public ArrayOutputStream() {
 
-    /**
-     * Like {@link #writeArray(boolean[], int, int)} but for a int array.
-     */
-    public abstract void writeArray(int[] a, int off, int len)
-	    throws IOException;
+	for(int i = 0; i < ARRAY_BUFFER_SIZE; i++) {
+	    array[i] = new ArrayDescriptor();
+	}
 
-    /**
-     * Like {@link #writeArray(boolean[], int, int)} but for a long array.
-     */
-    public abstract void writeArray(long[] a, int off, int len)
-	    throws IOException;
+	reset_indices();
 
-    /**
-     * Like {@link #writeArray(boolean[], int, int)} but for a float array.
-     */
-    public abstract void writeArray(float[] a, int off, int len)
-	    throws IOException;
-
-    /**
-     * Like {@link #writeArray(boolean[], int, int)} but for a double array.
-     */
-    public abstract void writeArray(double[] a, int off, int len)
-	    throws IOException;
-
-    /**
-     * Return the number of bytes that was written to the message,
-     * in the stream dependant format.
-     * This is the number of bytes that will be sent over the network.
-     */
-    public abstract int bytesWritten();
-
-    /**
-     * Reset the counter for the number of bytes written.
-     */
-    public abstract void resetBytesWritten();
+	array_index = 0;
+    }
 
     /**
      * Initialize all buffer indices to zero.
@@ -164,10 +131,50 @@ public abstract class ArrayOutputStream
 	long_index = 0;
 	float_index = 0;
 	double_index = 0;
-	handle_index = 0;
     }
 
-    protected short [] indices_short = new short[PRIMITIVE_TYPES];
+    /**
+     * Method to put a array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     * @param type	type of the array elements
+     *
+     * @exception IOException on IO error.
+     */
+    private void writeArray(Object ref, int offset, int len, int type)
+	    throws IOException {
+	if (array_index + 1 == ARRAY_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing array " + ref + " offset: " 
+		    + offset + " len: " + len + " type " + type );
+	}
+	array[array_index].type   = type;
+	array[array_index].offset = offset;
+	array[array_index].len 	  = len;
+	array[array_index].array  = ref;
+	array_index++;
+    }
+
+    /**
+     * Flushes everything collected sofar.
+     * @exception IOException on an IO error.
+     */
+    private void doFlush() throws IOException {
+	flushBuffers();
+
+	/* Retain the order in which the arrays were pushed. This 
+	 * costs a cast at send/receive.
+	 */
+	for (int i = 0; i < array_index; i++) {
+	    doWriteArray(array[i].array, array[i].offset, array[i].len, array[i].type);
+	}
+
+	array_index = 0;
+    }
 
     /**
      * Flush the primitive arrays.
@@ -183,7 +190,6 @@ public abstract class ArrayOutputStream
 	indices_short[TYPE_LONG]    = (short) long_index;
 	indices_short[TYPE_FLOAT]   = (short) float_index;
 	indices_short[TYPE_DOUBLE]  = (short) double_index;
-	indices_short[TYPE_HANDLE]  = (short) handle_index;
 
 	if (DEBUG) {
 	    System.out.println("writing bytes " + byte_index);
@@ -193,28 +199,43 @@ public abstract class ArrayOutputStream
 	    System.out.println("writing longs " + long_index);
 	    System.out.println("writing floats " + float_index);
 	    System.out.println("writing doubles " + double_index);
-	    System.out.println("writing handles " + handle_index);
 	}
 
-	writeArray(indices_short, 0, PRIMITIVE_TYPES);
+	doWriteArray(indices_short, 0, PRIMITIVE_TYPES, TYPE_SHORT);
 
-	if (byte_index > 0)    writeArray(byte_buffer, 0, byte_index);
-	if (char_index > 0)    writeArray(char_buffer, 0, char_index);
-	if (short_index > 0)   writeArray(short_buffer, 0, short_index);
-	if (int_index > 0)     writeArray(int_buffer, 0, int_index);
-	if (long_index > 0)    writeArray(long_buffer, 0, long_index);
-	if (float_index > 0)   writeArray(float_buffer, 0, float_index);
-	if (double_index > 0)  writeArray(double_buffer, 0, double_index);
-	if (handle_index > 0)  writeArray(handle_buffer, 0, handle_index);
+	if (byte_index > 0)    doWriteArray(byte_buffer, 0, byte_index, TYPE_BYTE);
+	if (char_index > 0)    doWriteArray(char_buffer, 0, char_index, TYPE_CHAR);
+	if (short_index > 0)   doWriteArray(short_buffer, 0, short_index, TYPE_SHORT);
+	if (int_index > 0)     doWriteArray(int_buffer, 0, int_index, TYPE_INT);
+	if (long_index > 0)    doWriteArray(long_buffer, 0, long_index, TYPE_LONG);
+	if (float_index > 0)   doWriteArray(float_buffer, 0, float_index, TYPE_FLOAT);
+	if (double_index > 0)  doWriteArray(double_buffer, 0, double_index, TYPE_DOUBLE);
 
 	reset_indices();
     }
+    /**
+     * Flushes the array to the underlying layer.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     * @param type	type of the array elements
+     *
+     * @exception IOException on IO error.
+     */
+    public abstract void doWriteArray(Object ref, int offset, int len, int type)
+	    throws IOException;
 
     /**
      * Tells the underlying implementation to flush all the data.
+     * An <code>ArrayOutputStream</code> implementation will probably
+     * redefine this method. If so, it must not forget to call
+     * "super.flush()" first.
+     *
      * @exception IOException on IO error.
      */
-    public abstract void flush() throws IOException;
+    public void flush() throws IOException {
+	doFlush();
+    }
 
     /**
      * Blocks until the data is written.
@@ -227,4 +248,235 @@ public abstract class ArrayOutputStream
      * @exception IOException on IO error.
      */
     public abstract void close() throws IOException;
+
+    /**
+     * Returns the number of bytes that was written to the message, 
+     * in the stream dependant format.
+     * This is the number of bytes that will be sent over the network 
+     * @return the number of bytes written
+     */
+    public abstract int bytesWritten();
+
+    /** 
+     * Resets the counter for the number of bytes written
+     */
+    public abstract void resetBytesWritten();
+
+    /**
+     * Writes a boolean value to the accumulator.
+     * @param     value             The boolean value to write.
+     * @exception IOException on IO error.
+     */
+    public void writeBoolean(boolean value) throws IOException {
+	if (byte_index + 1 == BYTE_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing boolean " + value);
+	}
+	byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
+    }
+
+
+    /**
+     * Writes a byte value to the accumulator.
+     * @param     value             The byte value to write.
+     * @exception IOException on IO error.
+     */
+    public void writeByte(byte value) throws IOException {
+	if (byte_index + 1 == BYTE_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing byte " + value);
+	}
+	byte_buffer[byte_index++] = value;
+    }
+
+    /**
+     * Writes a char value to the accumulator.
+     * @param     value             The char value to write.
+     * @exception IOException on IO error.
+     */
+    public void writeChar(char value) throws IOException {
+	if (char_index + 1 == CHAR_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing char " + value);
+	}
+	char_buffer[char_index++] = value;
+    }
+
+    /**
+     * Writes a short value to the accumulator.
+     * @param     value             The short value to write.
+     * @exception IOException on IO error.
+     */
+    public void writeShort(short value) throws IOException {
+	if (short_index + 1 == SHORT_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing short " + value);
+	}
+	short_buffer[short_index++] = value;
+    }
+
+    /**
+     * Writes a int value to the accumulator.
+     * @param     value             The int value to write.
+     * @exception IOException on IO error.
+     */
+    public void writeInt(int value) throws IOException {
+	if (int_index + 1 == INT_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing int[HEX] " + value + "[" +
+		    Integer.toHexString(value) + "]");
+	}
+	int_buffer[int_index++] = value;
+    }
+
+    /**
+     * Writes a long value to the accumulator.
+     * @param     value             The long value to write.
+     * @exception IOException on IO error.
+     */
+    public void writeLong(long value) throws IOException {
+	if (long_index + 1 == LONG_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing long " + value);
+	}
+	long_buffer[long_index++] = value;
+    }
+
+    /**
+     * Writes a float value to the accumulator.
+     * @param     value             The float value to write.
+     * @exception IOException on IO error.
+     */
+    public void writeFloat(float value) throws IOException {
+	if (float_index + 1 == FLOAT_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing float " + value);
+	}
+	float_buffer[float_index++] = value;
+    }
+
+    /**
+     * Writes a double value to the accumulator.
+     * @param     value             The double value to write.
+     * @exception IOException on IO error.
+     */
+    public void writeDouble(double value) throws IOException {
+	if (double_index + 1 == DOUBLE_BUFFER_SIZE) {
+	    doFlush();
+	}
+	if (DEBUG) {
+	    System.out.println(" Writing double " + value);
+	}
+	double_buffer[double_index++] = value;
+    }
+
+    /**
+     * Writes (a slice of) an array of Booleans into the accumulator.
+     * @param	source		The array to write to the accumulator.
+     * @param	offset		The offset at which to start.
+     * @param	size		The number of elements to be copied.
+     * @exception IOException on IO error.
+     */
+    public void writeArray(boolean [] source, int offset, int size)
+	    throws IOException {
+	writeArray(source, offset, size, TYPE_BOOLEAN); 
+    }
+
+    /**
+     * Writes (a slice of) an array of Bytes into the accumulator.
+     * @param	source		The array to write to the accumulator.
+     * @param	offset		The offset at which to start.
+     * @param	size		The number of elements to be copied.
+     * @exception IOException on IO error.
+     */
+    public void writeArray(byte [] source, int offset, int size)
+	    throws IOException {
+	writeArray(source, offset, size, TYPE_BYTE); 
+    }
+
+    /**
+     * Writes (a slice of) an array of Characters into the accumulator.
+     * @param	source		The array to write to the accumulator.
+     * @param	offset		The offset at which to start.
+     * @param	size		The number of elements to be copied.
+     * @exception IOException on IO error.
+     */
+    public void writeArray(char [] source, int offset, int size)
+	    throws IOException {
+	writeArray(source, offset, size, TYPE_CHAR); 
+    }
+
+    /**
+     * Writes (a slice of) an array of Short Integers into the accumulator.
+     * @param	source		The array to write to the accumulator.
+     * @param	offset		The offset at which to start.
+     * @param	size		The number of elements to be copied.
+     * @exception IOException on IO error.
+     */
+    public void writeArray(short [] source, int offset, int size)
+	    throws IOException {
+	writeArray(source, offset, size, TYPE_SHORT);
+    }
+
+    /**
+     * Writes (a slice of) an array of Integers into the accumulator.
+     * @param	source		The array to write to the accumulator.
+     * @param	offset		The offset at which to start.
+     * @param	size		The number of elements to be copied.
+     * @exception IOException on IO error.
+     */
+    public void writeArray(int [] source, int offset, int size)
+	    throws IOException {
+	writeArray(source, offset, size, TYPE_INT); 
+    }
+
+    /**
+     * Writes (a slice of) an array of Long Integers into the accumulator.
+     * @param	source		The array to write to the accumulator.
+     * @param	offset		The offset at which to start.
+     * @param	size		The number of elements to be copied.
+     * @exception IOException on IO error.
+     */
+    public void writeArray(long [] source, int offset, int size)
+	    throws IOException {
+	writeArray(source, offset, size, TYPE_LONG); 
+    }
+
+    /**
+     * Writes (a slice of) an array of Floats into the accumulator.
+     * @param	source		The array to write to the accumulator.
+     * @param	offset		The offset at which to start.
+     * @param	size		The number of elements to be copied.
+     * @exception IOException on IO error.
+     */
+    public void writeArray(float [] source, int offset, int size)
+	    throws IOException {
+	writeArray(source, offset, size, TYPE_FLOAT); 
+    }
+
+    /**
+     * Writes (a slice of) an array of Doubles into the accumulator.
+     * @param	source		The array to write to the accumulator.
+     * @param	offset		The offset at which to start.
+     * @param	size		The number of elements to be copied.
+     * @exception IOException on IO error.
+     */
+    public void writeArray(double [] source, int offset, int size)
+	    throws IOException {
+	writeArray(source, offset, size, TYPE_DOUBLE); 
+    }
 }
