@@ -1,4 +1,4 @@
-class Position {
+class Position implements java.io.Serializable {
 	int ply_of_game;		/* must be even for black, odd for white */
 	int ply;			/* actual ply of search                  */
 	int[] board;

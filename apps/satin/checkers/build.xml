@@ -8,6 +8,12 @@
 
     <property name="satin-main-class" value="Checkers"/>
 
+    <fileset dir="." id="src.excludes-ref">
+	<include name="no_exceptions/**/*.java"/>
+	<include name="seq/**/*.java"/>
+	<include name="seq_exception/**/*.java"/>
+    </fileset>
+
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
 </project>

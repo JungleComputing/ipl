@@ -7,7 +7,7 @@
 #				    wrong.
 */
 
-public class OrcaRandom {
+public class OrcaRandom implements java.io.Serializable {
 static final int table_size = 97;
 static final int two_16     = 65536;
 static final int two_15     = two_16 / 2;

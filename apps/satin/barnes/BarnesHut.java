@@ -63,8 +63,8 @@ final class BarnesHut {
 	   Since Rutger didn't know where it came from, and barnes from
 	   splash2 also doesn't include this code, I will omit it. - Maik. */
 
-	//ITERATIONS = (int)( (END_TIME + 0.1*DT - START_TIME) / DT);
-	ITERATIONS = 2; //debug mode
+	ITERATIONS = (int)( (END_TIME + 0.1*DT - START_TIME) / DT);
+	// ITERATIONS = 2; //debug mode
 
 	forceCalcTimes = new long[ITERATIONS];
     }

@@ -9,6 +9,14 @@
 
     <property name="satin-main-class" value="NQueens"/>
 
+    <fileset dir="." id="src.excludes-ref">
+	<include name="abort/**/*.java"/>
+	<include name="exception_threshold/**/*.java"/>
+	<include name="exceptions/**/*.java"/>
+	<include name="simple_abort/**/*.java"/>
+	<include name="simple_exception/**/*.java"/>
+    </fileset>
+
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
 </project>

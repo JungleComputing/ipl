@@ -385,6 +385,10 @@ public final class Checkers extends ibis.satin.SatinObject implements CheckersIn
 	}
 */
 	public void spawn_srch(Position oldp, int mv, int choice_ix) throws Result {
+	    srch(oldp, mv, choice_ix);
+	}
+
+	public void srch(Position oldp, int mv, int choice_ix) throws Result {
 		Position p;
 		int best_score = -INF;
 		int[] move_list = new int[32];
@@ -431,12 +435,11 @@ public final class Checkers extends ibis.satin.SatinObject implements CheckersIn
 			/* search 1st move and root moves serially */
 			if (x == 0 || p.ply == 1) {
 				try {
-					spawn_srch(p, move_list[x], x);
+					srch(p, move_list[x], x);
 				} catch (Result res) {
 					cur_score = res.score;
 					return;
 				}
-				sync();
 
 				cur_score = -cur_score;
 
