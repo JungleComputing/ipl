@@ -58,7 +58,7 @@ public class IOGenerator {
 		}
 	}
 
-	static boolean verbose = false;
+	boolean verbose = false;
 
 	Hashtable primitiveSerialization;
 	SerializationInfo referenceSerialization;
@@ -73,12 +73,17 @@ public class IOGenerator {
 
 	Vector classes_to_rewrite, target_classes, classes_to_save;
 
-	IOGenerator() { 
+	public IOGenerator(boolean verbose, String[] args, int num) { 
 		BT_Class clazz;
 		BT_Method writeMethod;
 		BT_Method readMethod;
 		SerializationInfo info;
-		
+		this.verbose = verbose;
+
+		if(args != null) { // from Ibisc, we have our own factory
+			BT_Factory.factory = new MyFactory(args, num);
+		}
+
 		classes_to_rewrite = new Vector();
 		target_classes = new Vector();
 		classes_to_save = new Vector();
@@ -528,7 +533,14 @@ public class IOGenerator {
 		classes_to_save.add(gen);
 	} 
 
-	void scanClass(String [] classnames, int num) { 
+
+	public void scanClass(String classname) {
+		String[] tmp = new String[1];
+		tmp[0] = classname;
+		scanClass(tmp, 1);
+	}
+
+	public void scanClass(String [] classnames, int num) { 
 		
 		/* do the following here....
 
@@ -598,6 +610,7 @@ public class IOGenerator {
 
 		int num = 0;
 		int size = args.length;
+		boolean verbose = false;
 
 		if (args.length == 0) { 
 			System.out.println("Usage : java IOGenerator [-v] <fully qualified classname list | classfiles>");
@@ -621,7 +634,6 @@ public class IOGenerator {
 			num++;
 		}
 
-		BT_Factory.factory = new MyFactory(args, num);
-		new IOGenerator().scanClass(args, num);
+		new IOGenerator(verbose, args, num).scanClass(args, num);
 	} 
 }
