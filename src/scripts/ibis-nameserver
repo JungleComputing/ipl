@@ -18,7 +18,21 @@ dir=`cd "$dir" && pwd`
 
 . "$dir"/../configuration.sh
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:"
+
+case "`uname`" in
+CYGWIN*)
+    IBIS_ROOT=`cygpath --unix "$IBIS_ROOT"`
+    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:"
+    JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
+    ;;
+*)
+    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:"
+    ;;
+esac
+
+if [ -n "$JAVACLASSPATH" ]
+then
+fi
 
 has_enable=0
 has_hubport=0
@@ -41,7 +55,7 @@ fi
 args=
 javaargs=
 
-function usage () {
+usage () {
     cat << 'EOF'
 Usage:
   ibis-nameserver <nameserver parameters>

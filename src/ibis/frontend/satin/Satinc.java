@@ -118,7 +118,7 @@ public final class Satinc {
     boolean print;
     boolean invocationRecordCache;
     String classname;
-    String compiler = "javac";
+    Object compiler;
     boolean inletOpt;
     boolean spawnCounterOpt;
     boolean errors = false;
@@ -205,7 +205,7 @@ public final class Satinc {
     private static Vector javalist = new Vector();
 
     public Satinc(boolean verbose, boolean local, boolean verify, boolean keep, boolean print, boolean invocationRecordCache,
-           String classname, String compiler, boolean inletOpt, boolean spawnCounterOpt) {
+           String classname, Object compiler, boolean inletOpt, boolean spawnCounterOpt) {
 
 	this.verbose = verbose;
 	this.verify = verify;
@@ -1806,12 +1806,32 @@ System.out.println("findMethod: could not find method " + name + sig);
 
     void compileGenerated(String className) {
 	try {
-	    String command = compiler + " -g " + className + ".java";
-	    if (verbose) {
-		System.out.println("Running: " + command);
-	    }
+	    RunProcess p;
+	    if (compiler instanceof String) {
+		String command = (String) compiler + " " + className + ".java";
+		if (verbose) {
+		    System.out.println("Running: " + command);
+		}
 	
-	    RunProcess p = new RunProcess(command);
+		p = new RunProcess(command);
+	    }
+	    else {
+		String[] comp = (String[]) compiler;
+		String[] cmd = new String[(comp.length+1)];
+		for (int i = 0; i < comp.length; i++) {
+		    cmd[i] = comp[i];
+		}
+		cmd[comp.length] = className + ".java";
+
+		if (verbose) {
+		    System.out.print("Running: ");
+		    for (int i = 0; i < cmd.length; i++) {
+			System.out.print(cmd[i] + " ");
+		    }
+		    System.out.println("");
+		}
+		p = new RunProcess(cmd, new String[0]);
+	    }
 	    int res = p.getExitStatus();
 	    if (res != 0) {
 		System.err.println("Error compiling generated code (" + className + ").");
@@ -2927,6 +2947,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
     public static void usage() {
 	System.err.println("Usage : java Satinc [[-no]-verbose] [[-no]-keep] [-dir|-local] [[-no]-print] [[-no]-irc] [[-no]-sc-opt]" +
+		   "[-javahome \"your java home\" ] " +
 		   "[-compiler \"your compile command\" ] [[-no]-inlet-opt] <classname>*");
 	System.exit(1);
     }
@@ -2980,10 +3001,18 @@ System.out.println("findMethod: could not find method " + name + sig);
 	boolean local = true;
 	boolean print = false;
 	boolean invocationRecordCache = false;
-	String compiler = "javac";
+	Object compiler = null;
 	boolean inletOpt = true;
 	boolean spawnCounterOpt = true;
 	Vector list = new Vector();
+
+	// Unfortunately, we need to override this. IBM gives
+	// ..../jre. Use the -javahome option instead!
+	String javadir = System.getProperty("java.home");
+	String javapath = System.getProperty("java.class.path");
+	String filesep = System.getProperty("file.separator");
+	String pathsep = System.getProperty("path.separator");
+
 
 	for (int i=0; i<args.length; i++) {
 	    if (!args[i].startsWith("-")) {
@@ -3000,6 +3029,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 		verify = false;
 	    } else if (args[i].equals("-compiler")) {
 		compiler = args[i+1];
+		i++;
+	    } else if (args[i].equals("-javahome")) {
+		javadir = args[i+1];
 		i++;
 	    } else if (args[i].equals("-keep")) {
 		keep = true;
@@ -3034,6 +3066,15 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	if (list.size() == 0) {
 	    usage();
+	}
+
+	if (compiler == null) {
+	    String[] cmd = new String[] {
+			    javadir + filesep + "bin" + filesep + "javac",
+			    "-g",
+			    "-classpath",
+			    javapath + pathsep};
+	    compiler = cmd;
 	}
 
 	for (int i = 0; i < list.size(); i++) {

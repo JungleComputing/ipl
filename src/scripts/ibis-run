@@ -29,7 +29,7 @@ action=eval
 hostnames=0
 nameserver_specified=0
 
-function usage () {
+usage () {
 	cat << 'EOF' | sed "s#ibis-run#$run_name#"
 Usage:
   $run_name <$run_name params> <jvm params> <classname> <application params>
@@ -80,8 +80,6 @@ then
 	usage
 fi
 
-JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar:.:"
-
 #needed for ibm 1.3 JITs and SMPs
 # export LD_ASSUME_KERNEL=2.2.5
 
@@ -106,15 +104,31 @@ if [ -z "$PAN_COMM_NO_IDLE_POLL" ] ; then
 	export PAN_COMM_NO_IDLE_POLL=1
 fi
 
+
 #
 # java.library.path and ibis.library.path ...
 #
 
-Dlibpath="-Djava.library.path=\"$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:\""
-
-# This is the location where all ibis native libs must go.
+# ibislib is the location where all ibis native libs must go.
 # It must be *one* dir.
-Dibislibs="-Dibis.library.path=\"$IBIS_ROOT/build/lib\""
+
+case "`uname`" in
+CYGWIN*)
+    # convert to unix format before dealing with them.
+    IBIS_ROOT=`cygpath --unix "$IBIS_ROOT"`
+    KARMI=`cygpath --unix "$KARMI"`
+    CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
+    LD_LYBRARY_PATH=`cygpath --unix --path "$LD_LYBRARY_PATH"`
+    ;;
+*)
+    ;;
+esac
+
+libpath="$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:"
+ibislib="$IBIS_ROOT/build/lib"
+
+JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar:.:"
+
 
 #
 # Some defaults ...
@@ -126,7 +140,7 @@ portno_specified=0
 ip_map=
 
 JAVA_EXEC=java
-Xbootclasspath="-Xbootclasspath/p:\"$JAVACLASSPATH\""
+needsbootclasspath=1
 
 #
 # nameserver defaults
@@ -218,12 +232,12 @@ do
 		Dns_port="-Dibis.name_server.port=$1"
 		;;
 	-karmi)
-		Xbootclasspath=""
+		needsbootclasspath=0
 		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
 		;;
 	-karmi-gm)
-		Xbootclasspath=""
-		Dlibpath="$Dlibpath$KARMI/lib:"
+		needsbootclasspath=0
+		libpath="$libpath$KARMI/lib:"
 		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
 		;;
 	-ip-map)
@@ -298,11 +312,28 @@ then
     fi
 fi
 
-$action "$JAVA_ROOT"/bin/$JAVA_EXEC \
+case "`uname`" in
+CYGWIN*)
+    JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
+    libpath=`cygpath --path --windows "$libpath"`
+    ibislib=`cygpath --windows "$ibislib"`
+    ;;
+esac
+
+Dlibpath="-Djava.library.path=\"$libpath\""
+Dibislibdir="-Dibis.library.path=\"ibislib\""
+
+Xbootclasspath=
+if [ $needsbootclasspath -eq 1 ]
+then
+    Xbootclasspath="-Xbootclasspath/p:\"$JAVACLASSPATH\""
+fi
+
+$action "\"$JAVA_ROOT/bin/$JAVA_EXEC\"" \
 	$JIT_OPTS \
-	$Dlibpath $Dibislibs \
+	"$Dlibpath" "$Dibislibdir" \
 	$Dpool_host_num $Dpool_total $Dpool_host_names \
 	$Dns_key $Dns_port $Dns_server \
-	$Xbootclasspath \
-	-classpath "$JAVACLASSPATH" \
+	"$Xbootclasspath" \
+	-classpath "\"$JAVACLASSPATH\"" \
 	"$@"

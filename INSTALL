@@ -98,3 +98,14 @@ for instance c:\Program Files\Java\jdk1.4. You can set the
 JAVA_HOME environment variable to this path by going to the
 Control Panel, System, the "Advanced" tab, Environment variables,
 add it there and reboot your system.
+
+Cygwin
+-=-=-=
+
+Set the environment variable `JAVA_HOME' to wherever it is installed
+on your windows system. You can do that as described above, or do
+it the "Unix" way. If you choose the Unix way, use quoting, so,
+for instance,
+export JAVA_HOME="/cygdrive/c/Program Files/Java/jdk1.5.0"
+or
+export JAVA_HOME="C:\Program Files\Java\jdk1.5.0"

@@ -27,6 +27,12 @@ public final class RunProcess {
 	buf(InputStream s) {
 	    this.s = s;
 	}
+
+	buf(byte[] b) {
+	    this.buffer = b;
+	    this.sz = b.length;
+	    this.done = true;
+	}
     }
 
     /** Indicates the exit status of the process. */
@@ -97,8 +103,39 @@ public final class RunProcess {
 	    p = r.exec(command);
 	} catch(Exception e) {
 	    // Should not happen. At least there is a non-zero exit status.
+	    proc_err = new buf(("Could not execute command: " + command).getBytes());
 	    return;
 	}
+
+	dealWithResult();
+    }
+
+    /**
+     * Runs the command as specified.
+     * Blocks until the command is finished.
+     * @param command the specified command and arguments.
+     * @param env the environment.
+     */
+    public RunProcess(String[] command, String env[]) {
+
+	exitstatus = -1;
+
+	try {
+	    p = r.exec(command, env);
+	} catch(Exception e) {
+	    // Should not happen. At least there is a non-zero exit status.
+	    String cmd = "";
+	    for (int i = 0; i < command.length; i++) {
+		cmd = cmd + command[i] + " ";
+	    }
+	    proc_err = new buf(("Could not execute command: " + cmd).getBytes());
+	    return;
+	}
+
+	dealWithResult();
+    }
+
+    private void dealWithResult() {
 
 	proc_out = new buf(p.getInputStream());
 	proc_err = new buf(p.getErrorStream());
@@ -144,6 +181,9 @@ public final class RunProcess {
      * @return the output buffer.
      */
     public byte[] getStdout() {
+	if (proc_out == null) {
+	    return new byte[0];
+	}
 	byte b[] = new byte[proc_out.sz];
 	System.arraycopy(proc_out.buffer, 0, b, 0, proc_out.sz);
 	return b;
