@@ -91,11 +91,14 @@ public class Poll implements Runnable {
 
 
     final boolean poll() throws IbisIOException {
+	boolean result;
+
 	if (STATISTICS) {
 	    poll_poll_direct++;
 	}
-	return (msg_poll() ||
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.inputStreamPoll());
+	
+	result = msg_poll();
+	return ibis.ipl.impl.messagePassing.Ibis.myIbis.inputStreamPoll() || result;
     }
 
 
@@ -164,10 +167,7 @@ if (false)
 		    break;
 		}
 
-		if (poll_succeeded) {
-		    go_to_sleep = true;
-
-		} else if (--polls == 0) {
+		if (--polls == 0 || poll_succeeded) {
 		    // polls = polls_before_yield;
 		    polls = 1;
 
@@ -202,6 +202,7 @@ if (false)
 			} catch (InterruptedException e) {
 			}
 		    } else {
+// System.err.println("poll_succeeded = " + poll_succeeded);
 			Thread.yield();
 		    }
 
