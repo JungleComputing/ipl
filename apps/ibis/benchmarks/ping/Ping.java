@@ -540,13 +540,16 @@ public final class Ping {
 			
 			String id   = "ibis:" + (new Random()).nextInt();
 			//String name = "ibis.ipl.impl.tcp.TcpIbis";
-			String name = "ibis.ipl.impl.messagePassing.PandaIbis";
-			//String name = "ibis.ipl.impl.net.NetIbis";
+			//String name = "ibis.ipl.impl.messagePassing.PandaIbis";
+			String name = "ibis.ipl.impl.net.NetIbis";
+			System.err.println("1");
 			ibis = Ibis.createIbis(id, name, null);
+			System.err.println("2");
 
 			// Configuration information
 			registry = ibis.registry();
 			IbisIdentifier master = (IbisIdentifier) registry.elect("ping", ibis.identifier());
+			System.err.println("3");
 
 			if(master.equals(ibis.identifier())) {
 				rank       = 0;
