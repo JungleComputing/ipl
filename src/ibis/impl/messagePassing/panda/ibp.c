@@ -36,6 +36,8 @@ static int	ibp_intr_enabled = 1;
 int		ibp_me;
 int		ibp_nr;
 
+int		ibp_intpts = 0;
+
 
 int
 ibp_pid_me(void)
@@ -391,15 +393,13 @@ intpt_env_release(JNIEnv *env)
 
 #define POLLS_PER_INTERRUPT	1	/* 4 */
 
-static int	intpts = 0;
-
 static void
 ibp_intr_poll(void)
 {
     JNIEnv *env = intpt_env_get();
     int		i;
 
-    intpts++;
+    ibp_intpts++;
 
     IBP_VPRINTF(2000, env, ("interrupt...\n"));
 
@@ -518,7 +518,7 @@ void
 ibp_report(JNIEnv *env, FILE *f)
 {
 #if INTERRUPTS_AS_UPCALLS
-    fprintf(f, "intpts %d ", intpts);
+    fprintf(f, "intpts %d ", ibp_intpts);
 #endif
 }
 

@@ -371,9 +371,10 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, jint 
 {
     FILE *f = out == 1 ? stdout : stderr;
 
-    fprintf(f, "%2d: IBP ", ibmp_me);
     ibmp_byte_output_stream_report(env, f);
+#if 0
     ibp_report(env, f);
+#endif
     fprintf(f, "\n");
 }
 

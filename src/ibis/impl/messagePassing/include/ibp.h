@@ -10,6 +10,8 @@ typedef struct IBP_MSG	ibp_msg_t, *ibp_msg_p;
 extern int	ibp_me;
 extern int	ibp_nr;
 
+extern int	ibp_intpts;
+
 int ibp_pid_me(void);
 int ibp_pid_nr(void);
 
