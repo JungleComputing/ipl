@@ -139,7 +139,7 @@ class OpenCell1D implements OpenConfig {
     static int aimFirstNoColumn;
     static int knownMembers = 0;
     static RszHandler rszHandler = new RszHandler();
-    static final int MinLoad = 2;
+    static final int minLoad = 2;
 
     // Arrays to record statistical information for each generation. Can be
     // null if we're not interested.
@@ -692,11 +692,11 @@ class OpenCell1D implements OpenConfig {
 
             // Take into account that each node should have at least
             // two columns.
-            if( aimFirstColumn<MinLoad*me ){
-                aimFirstColumn = MinLoad*me;
+            if( aimFirstColumn<minLoad*me ){
+                aimFirstColumn = minLoad*me;
             }
-            if( aimFirstNoColumn<aimFirstColumn+MinLoad ){
-                aimFirstNoColumn = aimFirstColumn+MinLoad;
+            if( aimFirstNoColumn<aimFirstColumn+minLoad ){
+                aimFirstNoColumn = aimFirstColumn+minLoad;
             }
             if( traceLoadBalancing ){
                 System.out.println( "P" + me + ":" + generation + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
@@ -878,6 +878,18 @@ class OpenCell1D implements OpenConfig {
             }
             if( showProgress && me == 0 ){
                 System.out.println();
+            }
+            if( leftSendPort != null ){
+                leftSendPort.close();
+            }
+            if( rightSendPort != null ){
+                rightSendPort.close();
+            }
+            if( leftReceivePort != null ){
+                leftReceivePort.close();
+            }
+            if( rightReceivePort != null ){
+                rightReceivePort.close();
             }
 
             // Do a sanity check.

@@ -352,6 +352,18 @@ class Cell1D implements Config {
                     System.out.println();
                 }
             }
+            if( leftSendPort != null ){
+                leftSendPort.close();
+            }
+            if( rightSendPort != null ){
+                rightSendPort.close();
+            }
+            if( leftReceivePort != null ){
+                leftReceivePort.close();
+            }
+            if( rightReceivePort != null ){
+                rightReceivePort.close();
+            }
             if( !hasTwister( board, 3, 100 ) ){
                 System.out.println( "Twister has gone missing" );
             }
