@@ -1,9 +1,7 @@
 /*
  * SOR.java
  * Successive over relaxation
- * SUN RMI version implementing a red-black SOR, based on earlier Orca source.
- * with cluster optimization, and split phase optimization, reusing a thread
- * each Wide-Area send. (All switchable)
+ * Ibis version implementing a red-black SOR, based on earlier Orca source.
  *
  * Rob van Nieuwpoort & Jason Maassen
  *
