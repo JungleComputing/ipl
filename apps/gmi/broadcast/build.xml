@@ -1,0 +1,17 @@
+<project
+    name="ibis.apps.group.broadcast"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis GMI application build.
+    </description>
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/apps/group/build-gmi-app.xml"/>
+
+</project>
+
+
