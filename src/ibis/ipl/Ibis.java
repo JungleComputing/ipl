@@ -333,7 +333,12 @@ public abstract class Ibis {
 	    StaticProperties sp =
 		staticProperties((String)implementation_names.get(0));
 	    if (! combinedprops.matchProperties(sp)) {
-		throw new IbisException("Ibis " + ibisname + " does not match the required properties");
+		StaticProperties clashes = combinedprops.unmatchedProperties(sp);
+		System.err.println("WARNING: the " + ibisname +
+		  " version of Ibis does not match the required properties.\n" +
+		  "The unsupported properties are:\n" +
+		  clashes.toString() +
+		  "This Ibis version was explicitly requested, so the run continues ...");
 	    }
 	    if (ibisname.startsWith("net")) {
 		sp.add("IbisName", ibisname);

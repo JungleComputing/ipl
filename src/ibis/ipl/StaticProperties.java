@@ -89,6 +89,13 @@ public class StaticProperties {
 	}
 
 	/**
+	 * Creates a property from the specified set.
+	 */
+	Property(HashSet h) {
+	    this.h = h;
+	}
+
+	/**
 	 * Returns <code>true</code> if the property set contains the
 	 * specified string.
 	 * @return <code>true</code> if the property set contains the
@@ -340,7 +347,7 @@ public class StaticProperties {
     }
 
     /**
-     * Matches the current required properties with the static properties
+     * Matches the current properties with the static properties
      * supplied. We have a match if the current properties are a subset
      * of the specified properties.
      * @param sp the static properties to be matched with.
@@ -358,6 +365,30 @@ public class StaticProperties {
 	    }
 	}
 	return true;
+    }
+
+    /**
+     * Matches the current properties with the static properties
+     * supplied. We have a match if the current properties are a subset
+     * of the specified properties.
+     * @param sp the static properties to be matched with.
+     * @return the properties that don't match.
+     */
+    public StaticProperties unmatchedProperties(StaticProperties sp) {
+	Iterator i = category_names.iterator();
+	StaticProperties p = new StaticProperties();
+
+	while (i.hasNext()) {
+	    String cat = (String) i.next();
+	    Set v1 = findSet(cat);
+	    Set v2 = sp.findSet(cat);
+	    if (! v2.containsAll(v1)) {
+		HashSet h = new HashSet(v1);
+		h.removeAll(v2);
+		p.add(cat, (new Property(h)).getValue());
+	    }
+	}
+	return p;
     }
 
     /**
