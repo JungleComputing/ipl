@@ -14,40 +14,50 @@ interface OpenConfig {
     static final boolean showProgress = true;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = true;
-    static final int BOARDSIZE = 3000;
+    static final int DEFAULTBOARDSIZE = 3000;
     static final int GENERATIONS = 1000;
     static final int SHOWNBOARDWIDTH = 60;
     static final int SHOWNBOARDHEIGHT = 30;
-    static final int startDelay = 100;  // ms start delay multiplier.
 }
 
 class RszHandler implements OpenConfig, ResizeHandler {
-    int members = 0;
-    IbisIdentifier prev = null;
+    private int members = 0;
+    private IbisIdentifier prev = null;
 
     public void join( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.err.println( "Join of " + id.name() );
+            System.out.println( "Machine " + id.name() + " joins the computation" );
         }
-        members++;
         if( id.equals( OpenCell1D.ibis.identifier() ) ){
            // Hey! That's me. Now I know my member number and my left
            // neighbour.
            OpenCell1D.me = members;
            OpenCell1D.leftNeighbour = prev;
+           if( traceClusterResizing ){
+               String who = "no";
+
+               if( OpenCell1D.leftNeighbour != null ){
+                   who = OpenCell1D.leftNeighbour.name() + " as";
+               }
+               System.out.println( "P" + OpenCell1D.me + ": that's me! I have " + who + " left neighbour" );
+           }
         }
         else if( prev != null && prev.equals( OpenCell1D.ibis.identifier() ) ){
-            // The next one after me. No I know my right neighbour.
+            // The next one after me. Now I know my right neighbour.
             OpenCell1D.rightNeighbour = id;
+            if( traceClusterResizing ){
+                System.out.println( "P" + OpenCell1D.me + ": that's my right neighbour" );
+            }
         }
+        members++;
         prev = id;
     }
 
     public void leave( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.err.println( "Leave of " + id.name() );
+            System.out.println( "Leave of " + id.name() );
         }
         members--;
     }
@@ -55,7 +65,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     public void delete( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.err.println( "Delete of " + id );
+            System.out.println( "Delete of " + id );
         }
         members--;
     }
@@ -63,8 +73,13 @@ class RszHandler implements OpenConfig, ResizeHandler {
     public void reconfigure()
     {
         if( traceClusterResizing ){
-            System.err.println( "Reconfigure" );
+            System.out.println( "Reconfigure" );
         }
+    }
+
+    public synchronized int getMemberCount()
+    {
+        return members;
     }
 }
 
@@ -74,16 +89,22 @@ class OpenCell1D implements OpenConfig {
     static IbisIdentifier leftNeighbour;
     static IbisIdentifier rightNeighbour;
     static IbisIdentifier myName;
-    static boolean amMaster = false;
+    static int me = -1;
     static SendPort leftSendPort;
     static SendPort rightSendPort;
     static ReceivePort leftReceivePort;
     static ReceivePort rightReceivePort;
-    static int me = -1;
+    static int generation;
+
+    /** The first column that is my responsibility. */
+    static int firstColumn = -1;
+
+    /** The first column that is no longer my responsibility. */
+    static int firstNoColumn = -1;
 
     private static void usage()
     {
-        System.out.println( "Usage: OpenCell1D [count]" );
+        System.out.println( "Usage: OpenCell1D [-size <int>] [count]" );
         System.exit( 0 );
     }
 
@@ -101,12 +122,12 @@ class OpenCell1D implements OpenConfig {
 
         SendPort res = updatePort.createSendPort( sendportname );
         if( tracePortCreation ){
-            System.err.println( myName.name() + ": created send port " + sendportname  );
+            System.out.println( myName.name() + ": created send port " + sendportname  );
         }
         ReceivePortIdentifier id = registry.lookup( receiveportname );
         res.connect( id );
         if( tracePortCreation ){
-            System.err.println( myName.name() + ": connected " + sendportname + " to " + receiveportname );
+            System.out.println( myName.name() + ": connected " + sendportname + " to " + receiveportname );
         }
         return res;
     }
@@ -123,7 +144,7 @@ class OpenCell1D implements OpenConfig {
 
         ReceivePort res = updatePort.createReceivePort( receiveportname );
         if( tracePortCreation ){
-            System.err.println( myName.name() + ": created receive port " + receiveportname  );
+            System.out.println( myName.name() + ": created receive port " + receiveportname  );
         }
         res.enableConnections();
         return res;
@@ -220,9 +241,13 @@ class OpenCell1D implements OpenConfig {
         throws java.io.IOException
     {
         if( traceCommunication ){
-            System.err.println( myName.name() + ": sending from port " + p );
+            System.out.println( myName.name() + ": sending from port " + p );
         }
         WriteMessage m = p.newMessage();
+        m.writeInt( OpenCell1D.generation );
+        m.writeInt( firstColumn );
+        m.writeInt( firstNoColumn );
+        m.writeInt( 0 );                // # of shipped columns
         m.writeArray( data );
         m.send();
         m.finish();
@@ -232,27 +257,32 @@ class OpenCell1D implements OpenConfig {
         throws java.io.IOException
     {
         if( traceCommunication ){
-            System.err.println( myName.name() + ": receiving on port " + p );
+            System.out.println( myName.name() + ": receiving on port " + p );
         }
         ReadMessage m = p.receive();
+        int gen = m.readInt();
+        int firstCol = m.readInt();
+        int lastCol = m.readInt();
+        int shippedCol = m.readInt();
         m.readArray( data );
         m.finish();
     }
 
     public static void main( String [] args )
     {
-        int count = -1;
-        int repeat = 10;
+        int count = GENERATIONS;
+        int boardsize = DEFAULTBOARDSIZE;
         int rank = 0;
         int remoteRank = 1;
         boolean noneSer = false;
         RszHandler rszHandler = new RszHandler();
+        int knownMembers = 0;
 
         /* Parse commandline parameters. */
         for( int i=0; i<args.length; i++ ){
-            if( args[i].equals( "-repeat" ) ){
+            if( args[i].equals( "-size" ) ){
                 i++;
-                repeat = Integer.parseInt( args[i] );
+                boardsize = Integer.parseInt( args[i] );
             }
             else {
                 if( count == -1 ){
@@ -264,9 +294,6 @@ class OpenCell1D implements OpenConfig {
             }
         }
 
-        if( count == -1 ) {
-            count = GENERATIONS;
-        }
         try {
             myName = ibis.identifier();
             StaticProperties s = new StaticProperties();
@@ -289,7 +316,13 @@ class OpenCell1D implements OpenConfig {
             leftReceivePort = null;
             rightReceivePort = null;
 
-            // TODO: wait until I know my left neighbour.
+            // Wait until I know my processor number (and also
+            // my left neighbour).
+
+            // TODO: use a more subtle approach than this.
+            while( me<0 ){
+                Thread.sleep( 10 );
+            }
 
             if( leftNeighbour != null ){
                 leftReceivePort = createNeighbourReceivePort( updatePort, "upstream" );
@@ -306,37 +339,39 @@ class OpenCell1D implements OpenConfig {
 
             int myColumns = 0;
             if( leftNeighbour == null ){
-                // If I'm the leftmost node, I start with the entire board.
+                // I'm the leftmost node, I start with the entire board.
                 // Workstealing will spread the load to other processors later
                 // on.
                 // TODO: do something smarter at startup.
-                myColumns = BOARDSIZE;
+                myColumns = boardsize;
+                firstColumn = 0;
+                firstNoColumn = boardsize;
             }
 
             // The Life board.
-            byte board[][] = new byte[myColumns+2][BOARDSIZE+2];
+            byte board[][] = new byte[myColumns+2][boardsize+2];
 
             // We need two extra column arrays to temporarily store the update
             // of a column. These arrays will be circulated with the columns of
             // the board.
-            byte updatecol[] = new byte[BOARDSIZE+2];
-            byte nextupdatecol[] = new byte[BOARDSIZE+2];
+            byte updatecol[] = new byte[boardsize+2];
+            byte nextupdatecol[] = new byte[boardsize+2];
 
             putTwister( board, 100, 3 );
             putPattern( board, 4, 4, glider );
 
-            if( leftNeighbour == null ){
+            if( me == 0 ){
                 System.out.println( "Started" );
             }
             long startTime = System.currentTimeMillis();
 
-            for( int iter=0; iter<count; iter++ ){
+            for( generation=0; generation<count; generation++ ){
                 byte prev[];
                 byte curr[] = board[0];
                 byte next[] = board[1];
 
                 if( showBoard && leftNeighbour == null ){
-                    System.out.println( "Generation " + iter );
+                    System.out.println( "Generation " + generation );
                     for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
                         for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
                             System.out.print( board[x][y] );
@@ -348,7 +383,7 @@ class OpenCell1D implements OpenConfig {
                     prev = curr;
                     curr = next;
                     next = board[i+1];
-                    for( int j=1; j<=BOARDSIZE; j++ ){
+                    for( int j=1; j<=boardsize; j++ ){
                         int neighbours =
                             prev[j-1] +
                             prev[j] +
@@ -413,7 +448,7 @@ class OpenCell1D implements OpenConfig {
             if( leftNeighbour == null ){
                 long endTime = System.currentTimeMillis();
                 double time = ((double) (endTime - startTime))/1000.0;
-                long updates = BOARDSIZE*BOARDSIZE*(long) GENERATIONS;
+                long updates = boardsize*boardsize*(long) count;
 
                 System.out.println( "ExecutionTime: " + time );
                 System.out.println( "Did " + updates + " updates" );
@@ -422,8 +457,8 @@ class OpenCell1D implements OpenConfig {
             ibis.end();
         }
         catch( Exception e ) {
-            System.err.println( "Got exception " + e );
-            System.err.println( "StackTrace:" );
+            System.out.println( "Got exception " + e );
+            System.out.println( "StackTrace:" );
             e.printStackTrace();
         }
     }
