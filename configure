@@ -175,6 +175,9 @@ chmod +x bin/ibis_nameserver
 cat scripts/preamble configuration scripts/jdis > bin/jdis
 chmod +x bin/jdis
 
+cat scripts/preamble configuration scripts/jp > bin/jp
+chmod +x bin/jp
+
 cat scripts/preamble configuration scripts/satinc > bin/satinc
 chmod +x bin/satinc
 
