@@ -17,6 +17,25 @@ public class StaticProperties {
     private final Hashtable data = new Hashtable();
 
     /**
+     * Constructor creating a copy.
+     * @param sp the properties to be copied.
+     */
+    public StaticProperties(StaticProperties sp) {
+
+	Enumeration e = sp.keys();
+
+	while (e.hasMoreElements()) { 
+	    String key = (String) e.nextElement();		       			
+	    String value = (String) sp.get(key);
+	    try {
+		add(key, value);
+	    } catch(IbisException e) {
+		// Should not happen.
+	    }
+	}
+    }
+
+    /**
      * Adds a key/value pair to the properties.
      * If the key is already bound, an {@link ibis.ipl.IbisException IbisException}
      * is thrown. If either the key or the value is <code>null</code>,

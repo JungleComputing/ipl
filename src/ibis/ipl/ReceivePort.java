@@ -187,8 +187,6 @@ public interface ReceivePort {
      * for explicit receive.
      * Upon startup, upcalls are disabled. They must be explicitly enabled
      * to receive upcalls.
-     * <p>
-     * This method also enables the connection upcalls.
      */
     public void enableUpcalls();
 
@@ -201,8 +199,6 @@ public interface ReceivePort {
      * time for each receiveport, so the <code>disableUpcalls</code>/<code>enableUpcalls</code>
      * mechanism is not necessary to enforce serialization of Upcalls for
      * this port.
-     * <p>
-     * This method also disables the connection upcalls.
      */
     public void disableUpcalls();
 
