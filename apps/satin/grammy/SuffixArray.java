@@ -443,6 +443,102 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	commonality[start] = 0;
     }
 
+    /* void sort(int a[], int lo0, int hi0) throws Exception { */
+    private void qsort( int indices[], int start, int end )
+    {
+	int lo = start;
+	int hi = end-1;
+	final int kC = 1;	// known commonality.
+
+	if (lo >= hi) {
+	    return;
+	}
+        if( start+2 == end ) {
+            int ixi = indices[start];
+            int ixj = indices[start+1];
+
+            // We know the first kC characters are equal...
+            int n = kC+commonLength( ixi+kC, ixj+kC );
+            if( text[ixj+n]>text[ixi+n] ){
+                indices[start] = ixj;
+                indices[start+1] = ixi;
+            }
+            return;
+	}
+
+
+        /*
+         *  Pick a pivot and move it out of the way
+         */
+        int mid = (lo+hi)/2;
+	int pivot = indices[mid];
+        indices[mid] = indices[hi];
+        indices[hi] = pivot;
+
+        while( lo < hi ) {
+            /*
+             *  Search forward from indices[lo] until an element is found that
+             *  is greater than the pivot or lo >= hi 
+             */
+            while( lo < hi ){
+                int ixi = indices[lo];
+                int n = kC+commonLength( pivot+kC, ixi+kC );
+                if( text[ixi+n]>text[pivot+n] ){
+                    break;
+                }
+                lo++;
+	    }
+
+            /*
+             *  Search backward from indices[hi] until element is found that
+             *  is less than the pivot, or lo >= hi
+             */
+	    while ( lo < hi ) {
+                int ixi = indices[hi];
+                int n = kC+commonLength( pivot+kC, ixi+kC );
+                if( text[pivot+n]>text[ixi+n] ){
+                    break;
+                }
+                hi--;
+	    }
+
+            /*
+             *  Swap elements indices[lo] and indices[hi]
+             */
+            if( lo < hi ) {
+                int T = indices[lo];
+                indices[lo] = indices[hi];
+                indices[hi] = T;
+            }
+
+	}
+
+        /*
+         *  Put the median in the "center" of the list
+         */
+        indices[end-1] = indices[hi];
+        indices[hi] = pivot;
+
+        /*
+         *  Recursive calls, elements indices[start] to indices[lo-1] are less than or
+         *  equal to pivot, elements indices[hi+1] to indices[hi0] are greater than
+         *  pivot.
+         */
+	qsort( indices, start, lo );
+	qsort( indices, hi+1, end );
+    }
+
+    private void newsort( int indices[], int commonality[], int start, int end )
+    {
+        qsort( indices, start, end );
+        commonality[start] = 0;
+
+        // TODO: see if there is a way to weave this into the qsort.
+        for( int i=start+1; i<end; i++ ){
+            commonality[i] = 1+ commonLength( indices[i-1]+1, indices[i]+1 );
+        }
+    }
+
     /** Sorts the administration arrays to implement ordering. */
     private void buildAdministrationUnused( int indices[], int commonality[] )
     {
