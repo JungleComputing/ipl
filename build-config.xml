@@ -564,15 +564,15 @@ to the command line.
 		file="${ibis}/configuration.bat"
 		flags="g"
 		match="(.*)="
-		replace="set \1="/>
+		replace="@set \1="/>
 	<replace
 		file="${ibis}/configuration.bat"
 		token="set #"
-		value="rem set"/>
+		value="@rem set"/>
 	<replace
 		file="${ibis}/configuration.bat"
 		token="#"
-		value="rem "/>
+		value="@rem "/>
 
 	<concat destfile="${ibis}/bin/run_ibis.bat">
 	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/run_ibis.bat" />
