@@ -20,7 +20,7 @@ public class Tests extends TestCase {
 	assertEquals( Helpers.decodeShort( (byte) -1, (byte) -1 ), 65535 );
     }
 
-    public void testEncoding()
+    public void testEncodingDecoding()
     {
 	ByteBuffer buf = new ByteBuffer();
 	//short codes[] = { 0, 128, 254, 255, 2000, -1 };
@@ -28,5 +28,7 @@ public class Tests extends TestCase {
 	buf.append( codes );
 
 	assertEquals( 12, buf.getLength() );
+
+        ShortBuffer sbuf = buf.decodeByteStream();
     }
 }
