@@ -99,31 +99,6 @@ class GlobalData extends UnicastRemoteObject implements GlobalDataInterface
         return diff;
     }
 
-    // used for visualization
-    public void setRawDataSize(int width, int height) throws RemoteException {
-        this.width = width;
-        this.height = height;
-        rawData = new float[height][width];
-    }
-
-    public synchronized float[][] getRawData() throws RemoteException
-    {
-        // never send the same data twice...
-        while(!newDataAvailable) {
-            try {
-                wait();
-            }
-            catch (Exception e) {
-                System.err.println("eek: " + e);
-            }
-        }
-
-        newDataAvailable = false;
-        notifyAll();
-
-        return rawData;
-    }
-
     synchronized void putMatrix(double[][] m)
     {
         if(synchronous) {
