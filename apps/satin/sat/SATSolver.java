@@ -16,6 +16,7 @@ public class SATSolver {
 	int terms[];
 	int level;
 	int assumptions;
+	boolean onesolution;
     }
 
     static final boolean traceSolver = false;
@@ -287,6 +288,13 @@ public class SATSolver {
 		// Retract this assignment
 		ctx.assignments[var] = -1;
 	    }
+	    if( ctx.onesolution && found_solution ){
+		break;
+	    }
+	}
+	if( ctx.onesolution && found_solution ){
+	    ctx.level--;
+	    return found_solution;
 	}
 
 	// Then, try all negative variables.
@@ -334,6 +342,9 @@ public class SATSolver {
 		// Retract this assignment
 		ctx.assignments[var] = -1;
 	    }
+	    if( ctx.onesolution && found_solution ){
+		break;
+	    }
 	}
 
 	// Close the branching level.
@@ -354,6 +365,7 @@ public class SATSolver {
 	ctx.solutioncount = 0;
 	ctx.level = 0;
 	ctx.assumptions = 0;
+	ctx.onesolution = false;
 	boolean ok;
 
 	label = 0;
