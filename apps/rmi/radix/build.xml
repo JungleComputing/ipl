@@ -12,6 +12,14 @@
 
     <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
 
+    <target name="test"
+	    depends="build"
+	    description="Run test">
+	<antcall target="run2">
+		<param name="runjob" value="Radix -t"/>
+	</antcall>
+    </target>
+
 </project>
 
 
