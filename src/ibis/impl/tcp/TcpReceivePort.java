@@ -161,6 +161,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 
 		while (m == null) {		
 			m = doPoll();				
+			if (m != null) { 
+				break;
+			} 
 			Thread.yield();
 		}
 		

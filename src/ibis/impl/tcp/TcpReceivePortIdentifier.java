@@ -1,92 +1,57 @@
-// Decompiled by Jad v1.5.8c. Copyright 2001 Pavel Kouznetsov.
-// Jad home page: http://www.geocities.com/kpdus/jad.html
-// Decompiler options: fullnames 
-// Source File Name:   TcpReceivePortIdentifier.java
-
 package ibis.ipl.impl.tcp;
 
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
-import ibis.ipl.IbisIOException;
-import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import java.io.Serializable;
+import ibis.ipl.PortType;
+import ibis.ipl.IbisIdentifier;
 
-// Referenced classes of package ibis.ipl.impl.tcp:
-//            TcpIbisIdentifier
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.EOFException;
 
-public final class TcpReceivePortIdentifier
-    implements ibis.ipl.ReceivePortIdentifier, java.io.Serializable, ibis.io.Serializable
-{
+public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, java.io.Serializable { 
 
-    public final boolean equals(ibis.ipl.impl.tcp.TcpReceivePortIdentifier tcpreceiveportidentifier)
-    {
-        if(tcpreceiveportidentifier == null)
-            return false;
-        else
-            return type.equals(tcpreceiveportidentifier.type) && ibis.equals(tcpreceiveportidentifier.ibis) && name.equals(tcpreceiveportidentifier.name);
-    }
+	String name;
+	String type;
+	TcpIbisIdentifier ibis;
 
-    public final boolean equals(ibis.ipl.ReceivePortIdentifier receiveportidentifier)
-    {
-        if(receiveportidentifier instanceof ibis.ipl.impl.tcp.TcpReceivePortIdentifier)
-            return equals((ibis.ipl.impl.tcp.TcpReceivePortIdentifier)receiveportidentifier);
-        else
-            return false;
-    }
+	TcpReceivePortIdentifier(String name, String type, TcpIbisIdentifier ibis) {
+		this.name = name;
+		this.type = type;
+		this.ibis = ibis;
+	}
 
-    public final java.lang.String name()
-    {
-        return name;
-    }
+	public boolean equals(TcpReceivePortIdentifier other) { 		
+		if (other == null) { 
+			return false;
+		} else { 			
+			return (type.equals(other.type) && ibis.equals(other.ibis) && name.equals(other.name));
+		}		
+	}
 
-    public final java.lang.String type()
-    {
-        return type;
-    }
+	public boolean equals(ReceivePortIdentifier other) { 
 
-    public final ibis.ipl.IbisIdentifier ibis()
-    {
-        return ibis;
-    }
+		if (other instanceof TcpReceivePortIdentifier) { 
+			return equals((TcpReceivePortIdentifier) other);
+		} else { 
+			return false;		
+		}
+	} 
 
-    public final java.lang.String toString()
-    {
-        return "(TcpRecPortIdent: name = " + name + ", type = " + type + ", ibis = " + ibis + ")";
-    }
+	public String name() {
+		return name;
+	}
 
-    TcpReceivePortIdentifier(java.lang.String s, java.lang.String s1, ibis.ipl.impl.tcp.TcpIbisIdentifier tcpibisidentifier)
-    {
-        name = s;
-        type = s1;
-        ibis = tcpibisidentifier;
-    }
+	public String type() {
+		return type;
+	}
 
-    public final void generated_WriteObject(ibis.io.MantaOutputStream mantaoutputstream)
-        throws ibis.ipl.IbisIOException
-    {
-        mantaoutputstream.writeUTF(type);
-        mantaoutputstream.writeUTF(name);
-        int i = mantaoutputstream.writeKnownObjectHeader(ibis);
-        if(i == 1)
-            ibis.generated_WriteObject(mantaoutputstream);
-    }
+	public IbisIdentifier ibis() {
+		return ibis;
+	}
 
-    public TcpReceivePortIdentifier(ibis.io.MantaInputStream mantainputstream)
-        throws ibis.ipl.IbisIOException, java.lang.ClassNotFoundException
-    {
-        mantainputstream.addObjectToCycleCheck(this);
-        type = mantainputstream.readUTF();
-        name = mantainputstream.readUTF();
-        int i = mantainputstream.readKnownTypeHeader();
-        if(i == -1)
-            ibis = new TcpIbisIdentifier(mantainputstream);
-        else
-        if(i != 0)
-            ibis = (ibis.ipl.impl.tcp.TcpIbisIdentifier)mantainputstream.getObjectFromCycleCheck(i);
-    }
+	public String toString() {
+		return ("(TcpRecPortIdent: name = " + name + ", type = " + type + ", ibis = " + ibis +")");
+	}
+}  
 
-    java.lang.String name;
-    java.lang.String type;
-    ibis.ipl.impl.tcp.TcpIbisIdentifier ibis;
-}

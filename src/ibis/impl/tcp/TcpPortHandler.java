@@ -104,7 +104,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 			obj_out.writeObject(receiver);
 			obj_out.writeObject(sp.identifier());
 			obj_out.flush();
-			obj_out.close();
+//			obj_out.close();
 
 //			System.out.println("Reading result");
 			int result = data_in.readByte();
@@ -137,6 +137,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 					data_in.close();
 					
 					p.addFreeInput(c);
+
+//					System.out.println("Created new connection to " + receiver);
 				} else { 
 					int remote_id = data_in.readInt();
 					int local_id = data_in.readInt();
@@ -146,6 +148,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 
 					c = p.findFreeOutput(local_id, remote_id);
 					p.addUsed(c);					
+//					System.out.println("Reused connection to " + receiver);
 				} 
 
 //				System.out.println("Found output " + c);
