@@ -15,7 +15,7 @@ import ibis.util.*;
 
 import java.io.IOException;
 
-class Main {
+strictfp class Main {
 
 	static PoolInfo info;
 	static Ibis ibis; 
@@ -197,24 +197,35 @@ class Main {
 			reqprops = new StaticProperties();
 			reqprops.add("serialization", "data");
 			// reqprops.add("communication", "OneToOne, Reliable, ExplicitReceipt");
-			reqprops.add("communication", "OneToMany, OneToOne, ManyToOne, Reliable, ExplicitReceipt");
+			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, ExplicitReceipt");
 			
 			PortType portTypeReduce = ibis.createPortType("SOR Reduce", reqprops);
+
+	    
+			reqprops = new StaticProperties();
+			reqprops.add("serialization", "data");
+			reqprops.add("communication", "OneToMany, OneToOne, Reliable, ExplicitReceipt");
+			
+			PortType portTypeBroadcast = ibis.createPortType("SOR Broadcast", reqprops);
 
 			ReceivePort reduceR = null;
 			SendPort reduceS = null;
 			
-			reduceR = portTypeReduce.createReceivePort(name + "reduceR");
-			reduceR.enableConnections();
-			reduceS = portTypeReduce.createSendPort(name + "reduceS");
-
 			if (info.rank() == 0) { 
 				// one-to-many to bcast result
+				reduceR = portTypeReduce.createReceivePort(name + "reduceR");
+				reduceR.enableConnections();
+				reduceS = portTypeBroadcast.createSendPort(name + "reduceS");
 				for (int i=1;i<info.size();i++) { 
 					ReceivePortIdentifier id = findReceivePort("SOR" + i + "reduceR");
 					connect(reduceS, id);
 				} 
 			} else { 
+
+				reduceR = portTypeBroadcast.createReceivePort(name + "reduceR");
+				reduceR.enableConnections();
+				reduceS = portTypeReduce.createSendPort(name + "reduceS");
+
 				// many-to-one to gather values
 				ReceivePortIdentifier id = findReceivePort("SOR0reduceR");
 				connect(reduceS, id);

@@ -12,7 +12,7 @@
 import ibis.ipl.*;
 import ibis.util.nativeCode.Rdtsc;
 
-class SOR {
+strictfp class SOR {
 
 	private static final double TOLERANCE = 0.00001;         /* termination criterion */
 	private static final double LOCAL_STEPS = 0;
@@ -174,14 +174,31 @@ class SOR {
 
 	private double reduce(double value) throws Exception { 
 
+		//sanity check
+		//if(Double.isNaN(value)) {
+		//	System.err.println(rank + ": Eek! NaN used in reduce");
+		//	new Exception().printStackTrace(System.err);
+		//	System.exit(1);
+		//}
+
 		// System.err.println(rank + ": BEGIN REDUCE");
+		//
+		//
 		if (rank == 0) { 
 			for (int i=1;i<size;i++) { 				
 				ReadMessage rm = reduceR.receive();
 				double temp = rm.readDouble();
-				if (value < temp) value = temp;
+
+				//if(Double.isNaN(value)) {
+				//	System.err.println(rank + ": Eek! NaN used in reduce");
+				//	new Exception().printStackTrace(System.err);
+				//	System.exit(1);
+				//}
+				
+				value = Math.max(value, temp);
 				rm.finish();
 			} 
+
 
 			WriteMessage wm = reduceS.newMessage();
 			wm.writeDouble(value);
@@ -198,6 +215,8 @@ class SOR {
 			rm.finish();
 		} 
 		// System.err.println(rank + ": END REDUCE result " + value);
+		
+
 		
 		return value;
 	} 
