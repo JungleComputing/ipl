@@ -139,36 +139,26 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     )
     {
         int slot[] = new int[nextcode];
-        int prev[] = new int[nextcode];
 
-        java.util.Arrays.fill( prev, -1 );
         java.util.Arrays.fill( slot, -1 );
 
-        // Fill the hash buckets
-        for( int n=start; n<end; n++ ){
-            int i = indices[n];
+        {
+            // Fill the hash buckets
+            // Walk from back to front to make sure the chains are in
+            // the right order.
+            int n = end;
+            while( n>start ){
+                n--;
+                int i = indices[n];
 
-            if( i+offset<length ){
-                short ix = text[i+offset];
+                if( i+offset<length ){
+                    short ix = text[i+offset];
 
-                if( ix != STOP ){
-                    if( prev[ix] == -1 ){
+                    if( ix != STOP ){
+                        next[i] = slot[ix];
                         slot[ix] = i;
                     }
-                    else {
-                        next[prev[ix]] = i;
-                    }
-                    prev[ix] = i;
                 }
-            }
-        }
-
-        // Terminate all lists.
-        for( int n=0; n<nextcode; n++ ){
-            int i = prev[n];
-
-            if( i != -1 ){
-                next[i] = -1;
             }
         }
 
