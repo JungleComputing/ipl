@@ -295,8 +295,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
             ){
             }
             else {
-                System.err.println( "Cannot resolve " + c1 + " and " + c2 + " on v" + var );
-                System.exit(1);
+                throw new IllegalArgumentError( "Cannot resolve " + c1 + " and " + c2 + " on v" + var );
             }
         }
         int pos[] = new int[c1.pos.length+c2.pos.length];

@@ -26,6 +26,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static int label = 0;
     static SATProblem p = null;
 
+    static {
+        System.setProperty( "satin.tuplespace.ordened", "true" );
+    }
+
     final static class ProblemAssigner implements ibis.satin.ActiveTuple {
         SATProblem p;
 
@@ -383,16 +387,15 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     public static void main( String args[] ) throws java.io.IOException
     {
         if( args.length != 1 ){
-            System.err.println( "Exactly one filename argument required, but I have " + args.length + ":" );
+            String msg = "Exactly one filename argument required, but I have " + args.length + ":";
             for( int i=0; i<args.length; i++ ){
-                System.err.println( " [" + i + "] "  + args[i] );
+                msg += " [" + i + "] "  + args[i];
             }
-            System.exit( 1 );
+            throw new IllegalArgumentError( msg );
         }
         File f = new File( args[0] );
         if( !f.exists() ){
-            System.err.println( "File does not exist: " + f );
-            System.exit( 1 );
+            throw new IllegalArgumentError( "File does not exist: " + f );
         }
 
         // Turn Satin temporarily off to prevent slowdowns of
