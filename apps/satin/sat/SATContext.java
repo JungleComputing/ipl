@@ -533,28 +533,40 @@ public final class SATContext implements java.io.Serializable {
     }
 
     /**
-     * Calculate the restart level.
+     * Given a clause and our current recursion level, calculate the level
+     * to start the recursion at.
+     * @param c The clause to calculate the restart level for.
+     * @param mylevel The current level of recursion.
+     * @return The recursion level to restart at.
+     */
+    private int calculateRestartLevel( int arr[], int mylevel )
+    {
+        int level = -1;
+
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            int l = dl[v];
+
+	    if( l != mylevel && l>level  ){
+		level = l;
+	    }
+        }
+        return level;
+    }
+
+    /**
+     * Given a clause and our current recursion level, calculate the level
+     * to start the recursion at.
+     * @param c The clause to calculate the restart level for.
+     * @param mylevel The current level of recursion.
+     * @return The recursion level to restart at.
      */
     private int calculateRestartLevel( Clause c, int mylevel )
     {
-	int level = -1;
-
-	int arr[] = c.pos;
-        
-        for( int i=0; i<arr.length; i++ ){
-            int v = arr[i];
-
-	    if( dl[v] != mylevel && dl[v]>level  ){
-		level = dl[v];
-	    }
-        }
-        arr = c.neg;
-        for( int i=0; i<arr.length; i++ ){
-            int v = arr[i];
-
-	    if( dl[v] != mylevel && dl[v]>level ){
-		level = dl[v];
-	    }
+        int level = calculateRestartLevel( c.pos, mylevel );
+        int neglevel = calculateRestartLevel( c.neg, mylevel );
+        if( neglevel>level ){
+            level = neglevel;
         }
 	return level;
     }
