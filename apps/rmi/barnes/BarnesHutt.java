@@ -5,7 +5,8 @@ import java.rmi.*;
 
 import ibis.util.PoolInfo;
 
-strictfp public class BarnesHutt {
+strictfp
+public class BarnesHutt {
 
   private GlobalData bhGd;
   private boolean bhDistributed;
@@ -107,7 +108,7 @@ strictfp public class BarnesHutt {
 			g = new ProcsImpl(nhosts);
 			Naming.bind("ProcsInfo", g);
 		} catch (Exception e) {
-			System.out.println("Caught exception! " + e.getMessage());
+			System.err.println("Caught exception! " + e.getMessage());
 		}
 	} else {
 		int i = 0;
@@ -160,7 +161,7 @@ strictfp public class BarnesHutt {
       }
 
     } catch ( InterruptedException e ) {
-      System.out.println("Caught exception! " + e.getMessage());
+      System.err.println("Caught exception! " + e.getMessage());
     }
 
     System.out.println("All threads finished!");
@@ -183,7 +184,7 @@ strictfp public class BarnesHutt {
 	System.exit(1);
     }
 
-    //    if (d.rank()==0 )
+    if (d.rank()==0 )
       System.out.println("Running distributed (" + d.size() + " nodes)" );
 
     bhGd.gdNumProcs = d.size();
@@ -205,7 +206,7 @@ strictfp public class BarnesHutt {
       p.join();
 
     } catch ( InterruptedException e ) {
-      System.out.println("Caught exception! " + e.getMessage());
+      System.err.println("Caught exception! " + e.getMessage());
     }
 
     if (d.rank()==0 ) {

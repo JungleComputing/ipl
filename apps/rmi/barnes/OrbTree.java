@@ -2,7 +2,8 @@ import java.lang.*;
 // import java.io.*;
 import java.rmi.*;
 
-strictfp class OrbTreeNode {
+strictfp
+class OrbTreeNode {
 
   vec3 lower, upper;
   int first, last;

@@ -1,7 +1,8 @@
 import java.lang.*;
 import java.io.*;
 
-strictfp public final class Body implements Serializable, Cloneable {
+strictfp
+public final class Body implements Serializable, Cloneable {
 
   public static int InstanceCount = 0;
 

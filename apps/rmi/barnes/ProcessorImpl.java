@@ -18,7 +18,7 @@ ThreadSyncer(int dest) {
 }
 
 synchronized void wakeup() {
-	System.err.println("WAKEUP");
+	// System.err.println("WAKEUP");
 	counter++;
 	if(counter == dest) notifyAll();
 }
@@ -36,11 +36,14 @@ synchronized void sync() {
 }
 
 
-strictfp class ProcessorImpl extends UnicastRemoteObject implements Processor {
+strictfp
+public class ProcessorImpl extends UnicastRemoteObject implements Processor {
 
   static final int Proc0ScanMaxRetries = 100;
   static final int Proc0ScanInterval = 500;
   static final int ProcRMIPort = 2222;
+
+  public static final boolean VERBOSE = false;
 
   PoolInfo d;
   Procs p;
@@ -97,28 +100,34 @@ strictfp class ProcessorImpl extends UnicastRemoteObject implements Processor {
   private long tBarrierExit;
 
   public void HandleException( Exception e, String description ) {
-	  System.out.println("Exception caught (" + description + "): " +
+	  System.err.println("Exception caught (" + description + "): " +
 			     e.getMessage() );
 	  
-	  e.printStackTrace();
+	  e.printStackTrace(System.err);
 	  System.exit( -1 );
   }
 
 
   private void initialize() throws RemoteException {
+    if (VERBOSE) {
 	  System.err.println("Start initialize");
+    }
     SyncCounter = 0;
 
     teReceiveInt = new int[ ProcessorCount ];
 
     threadSyncer = new ThreadSyncer(ProcessorCount-1);
+    if (VERBOSE) {
 	  System.err.println(" initialize 1");
+    }
     Processors = p.table((Processor) this, myProc);
     Processors[myProc] = this;
     if(g.gdThreads) {
 	    setEssentialThreads = new SetEssentialThread[ProcessorCount];
     }
+    if (VERBOSE) {
 	  System.err.println(" initialize 2");
+    }
     if (g.gdMyProc == 0) {
       ExchangeDestination = new int[ g.gdMaxBodies ];
     } else {
@@ -151,7 +160,9 @@ strictfp class ProcessorImpl extends UnicastRemoteObject implements Processor {
     essCenterOfMassCount = new int[ ProcessorCount ];
     essCenterOfMassCountRecv = new int[ ProcessorCount ];
     essCenterOfMassRecv = new CenterOfMass[ ProcessorCount ][];
+    if (VERBOSE) {
 	  System.err.println(" initialize 3");
+    }
     // serialization
 
       for (int i=0; i<ProcessorCount; i++ ) {
@@ -179,7 +190,9 @@ strictfp class ProcessorImpl extends UnicastRemoteObject implements Processor {
 
     barrierCallCount = 0;
     barrierMilliCount = 0;
+    if (VERBOSE) {
 	  System.err.println("end initialize");
+    }
   }
 
   ProcessorImpl( GlobalData g, int numProcs, int myProc, Procs p )  throws RemoteException {
@@ -194,7 +207,9 @@ strictfp class ProcessorImpl extends UnicastRemoteObject implements Processor {
 
   ProcessorImpl( GlobalData g, PoolInfo d, Procs p )  throws RemoteException {
 	  super();
+    if (VERBOSE) {
 	  System.err.println("ProcessorImpl()");
+    }
     this.g = g;
     this.d = d;
     this.p = p;
@@ -221,7 +236,7 @@ strictfp class ProcessorImpl extends UnicastRemoteObject implements Processor {
 			    try {
 				    wait();
 			    } catch ( InterruptedException e ) {
-				    System.out.println( "barrier: Caught exception: " + e );
+				    System.err.println( "barrier: Caught exception: " + e );
 			    }
 			    
 		    } else {
@@ -285,7 +300,7 @@ public /*synchronized*/ void register() throws RemoteException {
 			    try {
 				    wait();
 			    } catch ( InterruptedException e ) {
-				    System.out.println( "setMinMax: Caught exception: " + e );
+				    System.err.println( "setMinMax: Caught exception: " + e );
 			    }
 			    
 		    } else {

@@ -1,4 +1,5 @@
-strictfp public class SetEssentialThread extends Thread {
+strictfp
+public class SetEssentialThread extends Thread {
 
 static final int METHOD_SERIALIZE = 0;
 static final int METHOD_NORMAL = 1;

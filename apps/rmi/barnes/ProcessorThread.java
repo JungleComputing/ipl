@@ -285,7 +285,9 @@ public class ProcessorThread extends Thread {
     if (g.gdPrintBodies)
       PrintBodies();
 
-    d.printTime("Barnes, " + g.gdTotNumBodies + " bodies" , totalMillis);
+    if (g.gdMyProc == 0) {
+	d.printTime("Barnes, " + g.gdTotNumBodies + " bodies" , totalMillis);
+    }
     // System.exit( 0 );
   }
 
@@ -323,7 +325,9 @@ public class ProcessorThread extends Thread {
 
     //    g.debugStr("Creating Processor Implementation");
 
-    System.out.println("creating ProcImpl" );
+    if (ProcessorImpl.VERBOSE) {
+	System.out.println("creating ProcImpl" );
+    }
 
     try {
 
@@ -334,7 +338,9 @@ public class ProcessorThread extends Thread {
       e.printStackTrace();
       System.exit(-1);
     }
-    System.out.println("created ProcImpl" );
+    if (ProcessorImpl.VERBOSE) {
+	System.out.println("created ProcImpl" );
+    }
 
     //    g.debugStr("Created Processor Implementation");
   }

@@ -1,6 +1,7 @@
 import java.lang.*;
 
-strictfp class BodyTreeNode {
+strictfp
+class BodyTreeNode {
 
   // Instance counter;
 

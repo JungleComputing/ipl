@@ -1,7 +1,10 @@
 import java.lang.*;
 import java.io.*;
 
-strictfp public class GlobalData implements Cloneable, Serializable {
+strictfp
+public class GlobalData implements Cloneable, Serializable {
+
+    final static boolean DEBUG = false;
 
   public Body gdBodies[];
 
@@ -150,7 +153,9 @@ strictfp public class GlobalData implements Cloneable, Serializable {
       Out[gdMyProc].flush(); 
     }
 	  */
+      if (DEBUG) {
 	  System.out.println( gdMyProc + ": " + s );
+      }
   }
 
   GlobalData() {

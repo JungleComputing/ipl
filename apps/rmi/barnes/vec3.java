@@ -1,7 +1,8 @@
 import java.lang.*;
 import java.io.*;
 
-strictfp public final class vec3 implements Serializable {
+strictfp
+public final class vec3 implements Serializable {
 
   public static int InstanceCount = 0;
 

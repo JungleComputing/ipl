@@ -1,7 +1,8 @@
 import java.lang.*;
 
 
-strictfp public class BodyTree extends BodyTreeNode {
+strictfp
+public class BodyTree extends BodyTreeNode {
 
 	int side;
 	vec3 min, max;

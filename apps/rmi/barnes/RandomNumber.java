@@ -1,6 +1,7 @@
 import java.lang.*;
 
-strictfp class RandomNumber {
+strictfp
+class RandomNumber {
 
   private static final int rnMult = 1103515245;
   private static final int rnAdd  = 12345;

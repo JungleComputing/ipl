@@ -1,7 +1,8 @@
 import java.lang.*;
 import java.io.*;
 
-strictfp final public class CenterOfMass implements Serializable {
+strictfp
+final public class CenterOfMass implements Serializable {
 
   double cofmMass;
   double cofmCenter_x;

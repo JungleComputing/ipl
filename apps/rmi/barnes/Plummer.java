@@ -1,6 +1,7 @@
 import java.lang.*;
 
-strictfp class Plummer {
+strictfp
+class Plummer {
 
   private RandomNumber Rand;
 
