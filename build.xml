@@ -236,6 +236,16 @@
     </target>
 
 
+    <target name="nio" depends="init">
+	<patternset id="build.sources.nio">
+	    <include name="ibis/impl/nio/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.nio" torefid="build.sources"/>
+	</antcall>
+    </target>
+
+
     <target name="net" depends="init">
 	<patternset id="build.sources.net">
 	    <include name="ibis/impl/net/**/*.java"/>
@@ -408,6 +418,7 @@
 	    description="Build TCP Ibis">
 	<patternset id="build.sources-tcp">
 	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/nio/**/*.java"/>
 	    <exclude name="ibis/impl/net/**/*.java"/>
 	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
@@ -422,12 +433,33 @@
     </target>
 
     <!--
+	Compile, run IOGenerator, compile native code for NIO Ibis
+    -->
+    <target name="build-nio"
+	    description="Build TCP Ibis">
+	<patternset id="build.sources-nio">
+	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/tcp/**/*.java"/>
+	    <exclude name="ibis/impl/net/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
+	    <exclude name="ibis/repmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources-nio" torefid="build.sources"/>
+	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
+	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
+    </target>
+
+    <!--
 	Compile, run IOGenerator, compile native code for Net Ibis
     -->
     <target name="build-net"
 	    description="Build NetIbis">
 	<patternset id="build.sources-net">
 	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/nio/**/*.java"/>
 	    <exclude name="ibis/impl/tcp/**/*.java"/>
 	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
@@ -448,6 +480,7 @@
 	    description="Build messagePassing Ibis">
 	<patternset id="build.sources-mp">
 	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/nio/**/*.java"/>
 	    <exclude name="ibis/impl/tcp/**/*.java"/>
 	    <exclude name="ibis/impl/net/**/*.java"/>
 	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
