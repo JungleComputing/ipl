@@ -5,6 +5,8 @@ package ibis.ipl;
  * leaves the current run.
  * At most one join/leave will be active at any time (they are
  * serialized by ibis).
+ * These upcalls must be explicitly enabled, by means of the
+ * {@link ibis.ipl.Ibis#openWorld Ibis.openWorld} method.
  * Join/leave calls are totally ordered. This implies that a join
  * upcall for the current ibis is also generated locally.
  * The following also holds:

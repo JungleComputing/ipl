@@ -246,7 +246,7 @@ public abstract class Ibis {
      * <br>
      * mpi	Ibis built on top of MPI.
      * <br>
-     * net.*	The future version, for tcp, udp, GM, ...
+     * net.*	The future version, for tcp, udp, GM, ... This is work in progress.
      * <br>
      * @param reqprop static properties required by the application,
      *  or <code>null</code>.
@@ -606,6 +606,9 @@ public abstract class Ibis {
 
     /**
      * Allows for join and leave calls to be received.
+     * If a {@link ibis.ipl.ResizeHandler ResizeHandler} is installed,
+     * this call blocks until its join upcall for this Ibis is
+     * invoked.
      */
     public abstract void openWorld();
 
