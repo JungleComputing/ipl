@@ -138,95 +138,176 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 	public boolean readBoolean() throws IbisIOException {
-                return inputSerializationStream.readBoolean();
+		try {
+		    return inputSerializationStream.readBoolean();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
         
 
 	public byte readByte() throws IbisIOException {
-                return inputSerializationStream.readByte();
+		try {
+		    return inputSerializationStream.readByte();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
         
 
 	public char readChar() throws IbisIOException {
-                return inputSerializationStream.readChar();
+		try {
+		    return inputSerializationStream.readChar();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public short readShort() throws IbisIOException {
-                return inputSerializationStream.readShort();
+		try {
+		    return inputSerializationStream.readShort();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public int readInt() throws IbisIOException {
-                return inputSerializationStream.readInt();
+		try {
+		    return inputSerializationStream.readInt();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public long readLong() throws IbisIOException {
-                return inputSerializationStream.readLong();
+		try {
+		    return inputSerializationStream.readLong();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 	
 	public float readFloat() throws IbisIOException {
-                return inputSerializationStream.readFloat();
+		try {
+		    return inputSerializationStream.readFloat();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public double readDouble() throws IbisIOException {
-                return inputSerializationStream.readDouble();
+		try {
+		    return inputSerializationStream.readDouble();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public String readString() throws IbisIOException {
-                return (String)inputSerializationStream.readObject();
+		try {
+		    return (String)inputSerializationStream.readObject();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		} catch(ClassNotFoundException e2) {
+		    throw new IbisIOException("got exception", e2);
+		}
         }
 
 
 	public Object readObject() throws IbisIOException {
-                return inputSerializationStream.readObject();
+		try {
+		    return inputSerializationStream.readObject();
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		} catch(ClassNotFoundException e2) {
+		    throw new IbisIOException("got exception", e2);
+		}
         }
 
 	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceBoolean(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceBoolean(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceByte(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceByte(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceChar(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceChar(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceShort(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceShort(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceInt(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceInt(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceLong(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceLong(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceFloat(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceFloat(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 
 	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceDouble(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceDouble(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
 	public void readArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
-                inputSerializationStream.readArraySliceObject(b, o, l);
+		try {
+		    inputSerializationStream.readArraySliceObject(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		} catch(ClassNotFoundException e2) {
+		    throw new IbisIOException("got exception", e2);
+		}
         }
-
 }

@@ -4,6 +4,7 @@ import ibis.ipl.IbisIdentifier;
 
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.IbisSerializationInputStream;
+import java.io.IOException;
 
 import java.net.InetAddress;
 
@@ -30,7 +31,7 @@ public final class NetIbisIdentifier
 		__.abort__("NetIbisIdentifier default constructor called");
 	}
 
-	public NetIbisIdentifier(IbisSerializationInputStream stream) throws ibis.ipl.IbisIOException {
+	public NetIbisIdentifier(IbisSerializationInputStream stream) throws IOException {
 		stream.addObjectToCycleCheck(this);
 		int handle = stream.readInt();
 
@@ -102,7 +103,7 @@ public final class NetIbisIdentifier
 		return name.hashCode();
 	}
 
-	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws ibis.ipl.IbisIOException {
+	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws IOException {
 		int handle = NetIbis.globalIbis.identTable.getHandle(stream, this);
 		stream.writeInt(handle);
 		if (handle < 0) {

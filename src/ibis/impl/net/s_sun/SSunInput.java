@@ -26,7 +26,11 @@ public final class SSunInput extends NetSerializedInput {
         
         public SerializationInputStream newSerializationInputStream() throws IbisIOException {
                 InputStream is = new DummyInputStream();
-                return new SunSerializationInputStream(is);
+		try {
+		    return new SunSerializationInputStream(is);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
 
         private final class DummyInputStream extends InputStream {

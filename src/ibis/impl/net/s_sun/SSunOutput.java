@@ -22,7 +22,11 @@ public final class SSunOutput extends NetSerializedOutput {
 	}
         public SerializationOutputStream newSerializationOutputStream() throws IbisIOException {
                 OutputStream os = new DummyOutputStream();
-                return new SunSerializationOutputStream(os);
+		try {
+		    return new SunSerializationOutputStream(os);
+		} catch(IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
         
         private final class DummyOutputStream extends OutputStream {

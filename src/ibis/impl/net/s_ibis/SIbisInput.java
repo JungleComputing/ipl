@@ -22,9 +22,13 @@ public final class SIbisInput extends NetSerializedInput {
                 super(pt, driver, up, context);
         }
         
-        public SerializationInputStream newSerializationInputStream() {
+        public SerializationInputStream newSerializationInputStream() throws IbisIOException {
                 ArrayInputStream ais = new DummyInputStream();
-                return new IbisSerializationInputStream(ais);
+		try {
+		    return new IbisSerializationInputStream(ais);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
                 private final class DummyInputStream extends ArrayInputStream {
                 public void readArray(boolean[] a, int off, int len) throws IbisIOException {

@@ -53,6 +53,7 @@ GM_ROOT		= @GM_ROOT@
 
 JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
 JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
+JAVAP_COMMAND   = $(JPATH)/bin/javap $(JAVAPFLAGS)
 JRE		= $(JPATH)/jre/lib
 ifeq (IBMJava2-14, $(findstring IBMJava2-14,$(JPATH)))
 JAVART		= $(JRE)/core.jar:$(JRE)/server.jar
@@ -64,6 +65,7 @@ JAVABOOTCLASSPATH = $(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis
 JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/ibis/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH)
 JAVAHFLAGS      += -classpath $(JAVACLASSPATH)
+JAVAPFLAGS	+= -c -classpath $(JAVACLASSPATH)
 CLASSPATH	= $(JAVACLASSPATH)
 export CLASSPATH
 
@@ -280,7 +282,7 @@ TRASH_FILES	+= $(REMOTE_SKELETONS)
 #conversion rules
 
 .SUFFIXES:
-.SUFFIXES:      .o .class .java .c $(PKG_SUF) _ibis_io_Generator.class
+.SUFFIXES:      .o .class .java .c $(PKG_SUF) _ibis_io_Generator.class .bytecode
 
 
 # Rules and targets for java (and Manta) compilation
@@ -289,6 +291,8 @@ TRASH_FILES	+= $(REMOTE_SKELETONS)
 .java.class:
 	$(JAVAC_COMMAND) $*.java
 
+.class.bytecode:
+	$(JAVAP_COMMAND) $* > $*.bytecode
 
 .class_ibis_io_Generator.class:
 	$(IOC_COMMAND) $(PACKAGEDOT)$*

@@ -18,9 +18,13 @@ public final class SIbisOutput extends NetSerializedOutput {
         public SIbisOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
 		super(pt, driver, up, context);
 	}
-        public SerializationOutputStream newSerializationOutputStream() {
+        public SerializationOutputStream newSerializationOutputStream() throws IbisIOException {
                 ArrayOutputStream aos = new DummyOutputStream();
-                return new IbisSerializationOutputStream(aos);
+		try {
+		    return new IbisSerializationOutputStream(aos);
+		} catch(java.io.IOException e) {
+		    throw new IbisIOException("got exception", e);
+		}
         }
         
         private final class DummyOutputStream extends ArrayOutputStream {

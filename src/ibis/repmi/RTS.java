@@ -57,7 +57,7 @@ public final class RTS {
 //                      ibis.start);
 
                         StaticProperties s = new StaticProperties();
-//                        s.add("Serialization", "manta");
+//                        s.add("Serialization", "ibis");
 
                         portType = ibis.createPortType("RepMI", s);
                        

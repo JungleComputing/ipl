@@ -77,6 +77,7 @@ class ElectionServer
 	elections = new Hashtable();
 
 	Thread thr = new Thread(this, "Election Server");
+	thr.setDaemon(true);
 	thr.start();
     }
 

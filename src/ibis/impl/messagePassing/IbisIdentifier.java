@@ -33,8 +33,12 @@ final class IbisIdentifier
 	}
 
 
-	public IbisIdentifier(IbisSerializationInputStream stream) throws ibis.ipl.IbisIOException {
+	public IbisIdentifier(IbisSerializationInputStream stream) throws java.io.IOException {
 		stream.addObjectToCycleCheck(this);
+		generated_DefaultReadObject(stream, 0);
+	}
+
+	public final void generated_DefaultReadObject(IbisSerializationInputStream stream, int lvl) throws java.io.IOException {
 		int handle = stream.readInt();
 		if(handle < 0) {
 			try {
@@ -77,7 +81,7 @@ final class IbisIdentifier
 	}
 
 
-	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws ibis.ipl.IbisIOException {
+	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws java.io.IOException {
 		int handle = Ibis.myIbis.identTable.getHandle(stream, this);
 		stream.writeInt(handle);
 		if(handle < 0) { // First time, send it.
@@ -87,6 +91,9 @@ final class IbisIdentifier
 		}
 	}
 
+	public final void generated_DefaultWriteObject(IbisSerializationOutputStream stream, int lvl) throws java.io.IOException {
+		generated_WriteObject(stream);
+	}
 
 	// Compare ranks here, much faster. This is method critical for Satin. --Rob
 	public boolean equals(IbisIdentifier other) {
