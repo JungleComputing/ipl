@@ -54,7 +54,7 @@ public class Stub extends RemoteStub {
 	    if (send == null) {
 // System.out.println("Setting up connection for " + this);
 		send = RTS.getStubSendPort(skeletonPortId);
-		reply = RTS.getStubReceivePort();
+		reply = RTS.getStubReceivePort(skeletonPortId.ibis());
 	    }
 	    WriteMessage wm = newMessage();
 	    wm.writeInt(-1);
@@ -88,7 +88,7 @@ public class Stub extends RemoteStub {
 	try {
 	    /* if (send != null) send.close(); */
 	    if (reply != null) {
-		RTS.putStubReceivePort(reply);
+		RTS.putStubReceivePort(reply, skeletonPortId.ibis());
 	    }
 	} catch(Exception e) {
 	}

@@ -78,12 +78,15 @@ public final class RTS {
     private static ArrayList skeletonArray;
 
     /**
-     * Cache receiveports from stubs.
+     * Cache receiveports from stubs, hashed with an IbisIdentifier of an Ibis
+     * that has a connection to it.
      */
-    private static ArrayList receiveports;
+    private static HashMap receiveports;
 
     static String hostname;
-    static PortType portType;
+
+    private static PortType requestPortType;
+    private static PortType replyPortType;
 
     private static Ibis ibis;
     private static IbisIdentifier localID;
@@ -126,7 +129,7 @@ public final class RTS {
 	    stubs = new HashMap();
 	    sendports = new HashMap();
 	    urlHash = new Hashtable();
-	    receiveports = new ArrayList();
+	    receiveports = new HashMap();
 	    skeletonArray = new ArrayList();
 
 	    upcallHandler = new UpcallHandler();
@@ -160,9 +163,20 @@ public final class RTS {
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 
-	    portType = ibis.createPortType("RMI", null);
+	    StaticProperties requestProps = new StaticProperties();
+	    requestProps.add("serialization", "object");
+	    requestProps.add("worldmodel", "open");
+	    requestProps.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls");
+	    requestPortType = ibis.createPortType("RMI", requestProps);
 
-	    skeletonReceivePort = portType.createReceivePort("//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString(), upcallHandler);
+	    StaticProperties replyProps = new StaticProperties();
+	    replyProps.add("serialization", "object");
+	    replyProps.add("worldmodel", "open");
+	    replyProps.add("communication", "OneToOne, Reliable, ExplicitReceipt");
+	    requestPortType = ibis.createPortType("RMI request", requestProps);
+	    replyPortType = ibis.createPortType("RMI reply", replyProps);
+
+	    skeletonReceivePort = requestPortType.createReceivePort("//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString(), upcallHandler);
 	    skeletonReceivePort.enableConnections();
 	    skeletonReceivePort.enableUpcalls();
 
@@ -432,7 +446,7 @@ public final class RTS {
 	    System.out.println(hostname + ": Got sendport");
 	}
 
-	ReceivePort r = getStubReceivePort();
+	ReceivePort r = getStubReceivePort(dest.ibis());
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Created receiveport for stub  -> id = " + r.identifier());
@@ -489,83 +503,98 @@ public final class RTS {
 	return names;
     }
 
-    public static SendPort createSendPort()
+    public static SendPort createSendPort(PortType p)
 	throws IOException
     {
-	SendPort s = portType.createSendPort();
+	SendPort s = p.createSendPort();
 	s.setReplacer(new RMIReplacer());
 	return s;
     }
 
     public static synchronized SendPort getSkeletonSendPort(ReceivePortIdentifier rpi)
-	    throws IOException {
+	throws IOException
+    {
 	SendPort s = (SendPort) sendports.get(rpi);
 	if (s == null) {
-	    s = createSendPort();
+	    s = createSendPort(replyPortType);
 	    s.connect(rpi);
 	    sendports.put(rpi, s);
 	    if (DEBUG) {
 		System.out.println(hostname + ": New skeleton sendport for receiport: " + rpi);
 	    }
 	}
-	else if (DEBUG) {
-	    System.out.println(hostname + ": Reuse skeleton sendport for receiport: " + rpi);
+	else {
+	    if (DEBUG) {
+		System.out.println(hostname + ": Reuse skeleton sendport for receiport: " + rpi);
+	    }
 	}
 	return s;
     }
 
     public static synchronized SendPort getStubSendPort(ReceivePortIdentifier rpi)
-	    throws IOException {
+	throws IOException
+    {
 	SendPort s = (SendPort) sendports.get(rpi);
 	if (s == null) {
-	    s = createSendPort();
+	    s = createSendPort(requestPortType);
 	    s.connect(rpi);
 	    sendports.put(rpi, s);
 	    if (DEBUG) {
 		System.out.println(hostname + ": New stub sendport for receiport: " + rpi);
 	    }
 	}
-	else if (DEBUG) {
-	    System.out.println(hostname + ": Reuse stub sendport for receiport: " + rpi);
+	else {
+	    if (DEBUG) {
+		System.out.println(hostname + ": Reuse stub sendport for receiport: " + rpi);
+	    }
 	}
 	return s;
     }
 
-    public static synchronized ReceivePort getStubReceivePort()
-	throws IOException
+    public static synchronized ReceivePort getStubReceivePort(IbisIdentifier ibis)
+	    throws IOException
     {
+	ArrayList a = (ArrayList) receiveports.get(ibis);
 	ReceivePort r;
-	int len = receiveports.size();
 
-	if (len > 0) {
-	    r = (ReceivePort) receiveports.remove(len-1);
+	if (DEBUG) {
+	    System.out.println("receiveport wanted for ibis " + ibis);
+	}
+
+	if (a == null || a.size() == 0) {
+
+	    r = replyPortType.createReceivePort("//" + hostname + "/rmi_stub" + (new java.rmi.server.UID()).toString());
+	    if (DEBUG) {
+		System.out.println(hostname + ": New receiveport: " + r.identifier());
+	    }
+	    r.enableConnections();
+	}
+	else {
+	    r = (ReceivePort) a.remove(a.size() - 1);
 	    if (DEBUG) {
 		System.out.println(hostname + ": Reuse receiveport: " + r.identifier());
 	    }
 	}
-	else {
-	    r = portType.createReceivePort("//" + hostname + "/rmi_stub" + (new java.rmi.server.UID()).toString());
-	    if (DEBUG) {
-		System.out.println(hostname + ": New receiveport: " + r.identifier());
-	    }
-	}
-	r.enableConnections();
 	return r;
     }
 
-    public static synchronized void putStubReceivePort(ReceivePort r) {
-	r.disableConnections();
+    public static synchronized void putStubReceivePort(ReceivePort r, IbisIdentifier ibis) {
 	if (DEBUG) {
-	    System.out.println(hostname + ": receiveport returned");
+	    System.out.println("receiveport " + r + " returned for ibis " + ibis);
 	}
-	receiveports.add(r);
+	ArrayList a = (ArrayList) receiveports.get(ibis);
+	if (a == null) {
+	    a = new ArrayList();
+	    receiveports.put(ibis, a);
+	}
+	a.add(r);
     }
 
     public static void createRegistry(int port) throws RemoteException
     {
 	String url = "registry://" + hostname + ":" + port;
 	try {
-	    portType.createReceivePort(url);
+	    replyPortType.createReceivePort(url);
 	} catch (IOException e) {
 	    throw new RemoteException("there already is a registry running on port " + port);
 	}
