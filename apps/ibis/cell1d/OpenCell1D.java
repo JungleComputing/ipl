@@ -968,6 +968,7 @@ class OpenCell1D implements OpenConfig {
                     System.out.println( "P" + me + ": ready and waiting for work" );
                 }
                 receiveFromLeft( leftReceivePort, p );
+                idle = false;
             }
 
             while( generation<count ){
@@ -993,7 +994,7 @@ class OpenCell1D implements OpenConfig {
                 }
                 updateMembership( p );
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
-                    // We have some work for our lazy right neighbour.
+                    // We have some work for our idle right neighbour,
                     // give him the good news.
                     if( traceLoadBalancing ){
                         System.out.println( "P" + me + ":" + generation + ": sending work to idle neighbour P" + (me+1) );
