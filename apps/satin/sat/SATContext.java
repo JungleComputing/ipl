@@ -601,7 +601,9 @@ public final class SATContext implements java.io.Serializable {
 
     /**
      * Given a clause and our current recursion level, calculates the level
-     * to start the recursion at.
+     * to jump to.
+     * @param p The SAT problem.
+     * @param arr A list of variables.
      * @param c The clause to calculate the restart level for.
      * @return The recursion level to restart at.
      */
@@ -634,7 +636,9 @@ public final class SATContext implements java.io.Serializable {
     /**
      * Given a clause and our current recursion level, calculates the level
      * to start the recursion at.
+     * @param p The SAT problem.
      * @param c The clause to calculate the restart level for.
+     * @param c The index of the clause.
      * @return The recursion level to restart at.
      */
     private int calculateConflictLevel( SATProblem p, Clause c, int cno )
@@ -645,11 +649,6 @@ public final class SATContext implements java.io.Serializable {
             level = neglevel;
         }
 	return level;
-    }
-
-    private boolean isSmallClause( Clause c )
-    {
-	return c.getTermCount()<20;
     }
 
     /**
@@ -712,7 +711,6 @@ public final class SATContext implements java.io.Serializable {
 		    Helpers.dumpAssignments( "Assignments", assignment );
 		}
 	    }
-	    //if( doLearning && learn && isSmallClause( cc ) ){
 	    if( doLearning && learn ){
 		if( learnAsTuple ){
 		    ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
