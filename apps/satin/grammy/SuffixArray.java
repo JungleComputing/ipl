@@ -406,10 +406,14 @@ public class SuffixArray implements Configuration, Magic {
 
 		    // Now search for non-overlapping substrings that 
 		    // are equal for `len' characters. All possibilities
-		    // are the subsequent entries up to the first one
-		    // with less than 'len' characters commonality.
+		    // are the subsequent entries in the suffix array, up to
+                    // the first one with less than 'len' characters
+                    // commonality.
 		    // We must test each one for overlap with all
-		    // previous strings.
+		    // previously selected strings.
+                    // TODO: this fairly arbitrary way of gathering candidates
+                    // is not optimal, since a different subset of strings may
+                    // be larger.
 		    int j = i+1;
 		    while( j<length && commonality[j]>=len ){
 			int posj = indices[j];
