@@ -48,7 +48,7 @@ public final class BreederSolver {
 	boolean val
     ) throws SATResultException, SATRestartException, SATCutoffException
     {
-        ctx.update( p );
+        ctx.update( p, level );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );

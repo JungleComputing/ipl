@@ -145,8 +145,8 @@ public final class SATContext implements java.io.Serializable {
 	int termcount = 0;
 
         int newCount = p.getClauseCount();
-        if( newCount != terms.length ){
-            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + terms.length );
+        if( newCount != satisfied.length ){
+            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + satisfied.length );
             return;
         }
         if( satisfied[cno] ){
@@ -218,8 +218,8 @@ public final class SATContext implements java.io.Serializable {
 	int negcount = 0;
 
         int newCount = p.getClauseCount();
-        if( newCount != terms.length ){
-            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + terms.length );
+        if( newCount != satisfied.length ){
+            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + satisfied.length );
             return;
         }
 	// Count the positive clauses
@@ -242,7 +242,7 @@ public final class SATContext implements java.io.Serializable {
 	    }
 	}
 	if( posclauses[var] != poscount || negclauses[var] != negcount ){
-	    System.err.println( "Error: clause count of v" + var + " says (" + posclauses[var] + "," + negclauses[var] + "), not (" + poscount + "," + negcount + ")" );
+	    System.err.println( "Error: clause count of v" + var + " says (" + posclauses[var] + "," + negclauses[var] + "), but I count (" + poscount + "," + negcount + ")" );
 	    posclauses[var] = poscount;
 	    negclauses[var] = negcount;
 	}
@@ -732,21 +732,22 @@ public final class SATContext implements java.io.Serializable {
      * Update the adminstration for any new clauses in the specified
      * SAT problem.
      * @param p The SAT problem.
+     * @param level The decision level.
      */
-    public void update( SATProblem p )
+    public void update( SATProblem p, int level )
     {
         int newCount = p.getClauseCount();
 
         if( traceUpdates ){
-            System.err.println( "Updating context with " + (newCount-terms.length) + " new clauses" );
+            System.err.println( "S" + level + ": updating context with " + (newCount-satisfied.length) + " new clauses" );
         }
-        if( newCount>terms.length ){
-            int oldCount = terms.length;
+        if( newCount>satisfied.length ){
+            int oldCount = satisfied.length;
             // New clauses have been added. Enlarge the arrays related
             // to the clauses, and fill them with the correct values.
 
             int newterms[] = new int[newCount];
-            System.arraycopy( terms, 0, newterms, 0, terms.length );
+            System.arraycopy( terms, 0, newterms, 0, satisfied.length );
             terms = newterms;
 
             boolean newsatisfied[] = new boolean[newCount];
@@ -1091,7 +1092,7 @@ public final class SATContext implements java.io.Serializable {
         throws SATRestartException
     {
 	// Search for and propagate unit clauses.
-	for( int i=0; i<terms.length; i++ ){
+	for( int i=0; i<satisfied.length; i++ ){
 	    if( terms[i] == 1 ){
 		int res = propagateUnitClause( p, i, 0, false );
 		if( res != 0 ){

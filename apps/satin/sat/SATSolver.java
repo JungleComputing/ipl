@@ -46,7 +46,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         public void handleTuple( String key ){
             if( traceLearning ){
-                System.err.println( "Adding conflict clause " + cl );
+                System.err.println( "Adding conflict clause " + cl + " @" + p.getClauseCount() );
             }
 	    p.addConflictClause( cl );
         }
@@ -73,7 +73,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         boolean learnTuple
     ) throws SATResultException, SATRestartException
     {
-        ctx.update( p );
+        ctx.update( p, level );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
@@ -149,7 +149,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         boolean learnTuple
     ) throws SATException
     {
-        ctx.update( p );
+        ctx.update( p, level );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
