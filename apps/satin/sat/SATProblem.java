@@ -753,8 +753,13 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      */
     public static SATProblem parseDIMACSStream( File f ) throws java.io.IOException
     {
+	String fnm = f.getName();
+
 	InputStream s = new FileInputStream( f );
-	return parseDIMACSStream( new BufferedReader( new InputStreamReader( s ) ) );
+	if( fnm.endsWith( ".gz" ) ){
+	    s = new java.util.zip.GZIPInputStream( s );
+	}
+	return parseDIMACSStream( new InputStreamReader( s ) );
     }
 
     /**
