@@ -47,7 +47,7 @@
 	<condition property="define-ibis-name" value="&quot;-Dibis.name^=${ibis-name}&quot;">
 	    <os family="windows"/>
 	</condition>
-	<condition property="define-ibis-name" value="&quot;-Dibis.name=${ibis-name}&quot;">
+	<condition property="define-ibis-name" value="-Dibis.name=${ibis-name}">
 	    <not>
 		<isset property="define-ibis-name"/>
 	    </not>
