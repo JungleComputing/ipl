@@ -284,7 +284,7 @@ to the command line.
 		failonerror="false"
 		overwrite="true">
 	</copy>
-	<copy	file="${ibis}/build-properties.in"
+	<copy	file="${ibis}/src/scripts/build-properties.in"
 		tofile="${ibis}/build-properties"
 		overwrite="true">
 	</copy>
