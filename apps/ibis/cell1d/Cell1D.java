@@ -59,54 +59,10 @@ class Cell1D implements Config {
         } while( !success );
     }
 
-    public static ReceivePortIdentifier lookup( String name ) throws Exception {
-        ReceivePortIdentifier temp = null;
-
-        do {
-            temp = registry.lookup( name );
-
-            if( temp == null ) {
-                try {
-                    Thread.sleep( 500 );
-                }
-                catch( Exception e ) {
-                    // ignore
-                }
-            }
-
-        } while( temp == null );
-
-        return temp;
-    }
-
     private static void usage()
     {
         System.out.println( "Usage: Cell1D [count]" );
         System.exit( 0 );
-    }
-
-    /**
-     * Given the name of a receive port, return its identifier.
-     */
-    private static ReceivePortIdentifier findReceivePort( String name )
-        throws java.io.IOException
-    {
-        ReceivePortIdentifier id = null;
-
-        while( id == null ){
-            id = registry.lookup( name );
-
-            if( id == null ){
-                try {
-                    Thread.sleep( 1000 );
-                }
-                catch( Exception e ){
-                    // Ignore.
-                    // TODO: do somethingg a bit more subtle.
-                }
-            }
-        }
-        return id;
     }
 
     /**
@@ -129,23 +85,14 @@ class Cell1D implements Config {
         String sendportname = "send" + portclass + me;
         String receiveportname = "receive" + portclass + procno;
 
-        if( tracePortCreation ){
-            System.err.println( "Creating send port `" + sendportname + "'" );
-        }
         SendPort res = t.createSendPort( sendportname );
         if( tracePortCreation ){
-            System.err.println( "Created send port " + res  );
+            System.err.println( "P" + me + ": created send port " + sendportname  );
         }
-        if( tracePortCreation ){
-            System.err.println( "Looking for receive port `" + receiveportname + "'" );
-        }
-        ReceivePortIdentifier id = findReceivePort( receiveportname );
-        if( tracePortCreation ){
-            System.err.println( "Found: " + id );
-        }
+        ReceivePortIdentifier id = registry.lookup( receiveportname );
         res.connect( id );
         if( tracePortCreation ){
-            System.err.println( "Connected " + sendportname + " to " + receiveportname );
+            System.err.println( "P" + me + ": connected " + sendportname + " to " + receiveportname );
         }
         return res;
     }
@@ -169,12 +116,9 @@ class Cell1D implements Config {
         }
         String receiveportname = portclass + me;
 
-        if( tracePortCreation ){
-            System.err.println( "Creating receive port `" + receiveportname + "'" );
-        }
         ReceivePort res = t.createReceivePort( receiveportname );
         if( tracePortCreation ){
-            System.err.println( "Created receive port " + res  );
+            System.err.println( "P" + me + ": created receive port " + receiveportname  );
         }
         res.enableConnections();
         return res;
