@@ -58,7 +58,7 @@ public final class NetServiceLink {
         /**
          * Set to true once the link is closed.
          */
-        private volatile boolean closed = false;
+        private boolean closed = false;
 
         /**
          * Set to true for an 'accept' side {@link NetServiceLink} object, to false for a 'connect' side {@link NetServiceLink} object.
@@ -118,7 +118,7 @@ public final class NetServiceLink {
         /**
          * Store the next incoming sub-stream id.
          */
-        private volatile int       nextId       =    1;
+        private int                nextId       =    1;
 
         /**
          * Store the reference to the thread responsible of listening
@@ -751,7 +751,7 @@ public final class NetServiceLink {
                  *
                  * The stream cannot be re-opened after having been closed (same semantics as a socket stream).
                  */
-                private volatile boolean closed = false;
+                private boolean closed = false;
 
                 /**
                  * Store the packet identifier.
@@ -949,7 +949,7 @@ public final class NetServiceLink {
                 /**
                  * If set to true, the end of the thread has been requested.
                  */
-                volatile boolean exit = false;
+                boolean exit = false;
 
                 /**
                  * Provide a buffer dedicated to integer reception.
@@ -1022,7 +1022,9 @@ public final class NetServiceLink {
                  * @exception IOException it the close operation fails.
                  */
                 protected void end() throws IOException {
-                        exit = true;
+			synchronized (inputMap) {
+				exit = true;
+			}
 			is.close();
                 }
         }

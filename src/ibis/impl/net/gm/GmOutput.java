@@ -25,19 +25,19 @@ public final class GmOutput extends NetBufferedOutput {
      * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}
      * local number.
      */
-    private volatile Integer rpn          = null;
+    private Integer	rpn          = null;
 
-    private long       deviceHandle =  0;
-    private long       outputHandle =  0;
-    private int        lnodeId      = -1;
-    private int        lportId      = -1;
-    private int        lmuxId       = -1;
-    private int        lockId       = -1;
-    private int []     lockIds      = null;
-    private int        rnodeId      = -1;
-    private int        rportId      = -1;
-    private int        rmuxId       = -1;
-    private Driver     gmDriver     = null;
+    private long	deviceHandle =  0;
+    private long	outputHandle =  0;
+    private int		lnodeId      = -1;
+    private int		lportId      = -1;
+    private int		lmuxId       = -1;
+    private int		lockId       = -1;
+    private int[]	lockIds      = null;
+    private int		rnodeId      = -1;
+    private int		rportId      = -1;
+    private int		rmuxId       = -1;
+    private Driver	gmDriver     = null;
     private boolean	mustFlush;
     private int		toFlush;
     private int		flushing;

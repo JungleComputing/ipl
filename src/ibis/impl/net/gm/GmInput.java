@@ -45,7 +45,7 @@ public final class GmInput extends NetBufferedInput {
 	 * The peer {@link ibis.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
-	private volatile Integer      spn  	      = null;
+	private Integer         spn  	      = null;
 
 	/**
 	 * The buffer block allocator.

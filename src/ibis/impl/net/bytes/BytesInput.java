@@ -72,9 +72,9 @@ public final class BytesInput
 	 */
 	private int bufferOffset = 0;
 
-        private volatile Thread activeUpcallThread = null;
+        private Thread activeUpcallThread = null;
 
-        private volatile Integer activeNum = null;
+        private Integer activeNum = null;
 
 	private int waiters = 0;
 
@@ -124,7 +124,8 @@ public final class BytesInput
 	}
 
         public void initReceive(Integer num) throws IOException {
-                log.in();
+	    log.in();
+	    synchronized(this) {
 		if (activeNum != null) throw new Error("Revise your initReceive calls");
 		activeNum = num;
 		mtu          = Math.min(maxMtu, subInput.getMaximumTransfertUnit());
@@ -146,9 +147,10 @@ public final class BytesInput
 		}
 
                 dataOffset = getHeadersLength();
+	    }
 // System.err.println(this + ": initReceive; subInput " + subInput + " mtu " + mtu + " headerOffset " + headerOffset + " dataOffset " + dataOffset);
-		subInput.initReceive(num);
-                log.out();
+	    subInput.initReceive(num);
+	    log.out();
         }
 
 	/*

@@ -141,7 +141,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         /**
          * Internal send port counter, for debugging purpose.
          */
-        static private volatile int   sendPortCount          = 0;
+        static private int            sendPortCount          = 0;
 
         /**
          * Process rank, for debugging purpose.

@@ -46,7 +46,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 /**
                  * Flag indicating whether thread termination was requested.
                  */
-                private volatile boolean end = false;
+                private boolean end = false;
 
                 public AcceptThread(String name) {
                         super("NetReceivePort.AcceptThread: "+name);
@@ -176,7 +176,9 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
                 protected void end() throws IOException {
                         log.in();
-                        end = true;
+			synchronized (connectionLock) {
+			    end = true;
+			}
 
                         if (serverSocket != null) {
 				serverSocket.close();
@@ -344,18 +346,18 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
         /**
          * The current active peer port.
          */
-        private volatile Integer         activeSendPortNum   =  null;
+        private Integer      activeSendPortNum   =  null;
 
         /**
          * Flag indicating whether incoming connections are currently enabled.
          */
-        private boolean                  connectionEnabled   =  false;
+        private boolean      connectionEnabled   =  false;
 
         /**
          * Flag indicating whether successful polling operation should
          * generate an upcall or not.
          */
-        private boolean                  upcallsEnabled      = false;
+        private boolean      upcallsEnabled      = false;
 
         /**
          * The empty message detection flag.
@@ -363,27 +365,27 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
          * The flag is set on each new {@link #_receive} call and should
          * be cleared as soon as at least a byte as been added to the living message.
          */
-        private volatile boolean                  emptyMsg            =  true;
+        private boolean      emptyMsg            =  true;
 
          /**
           * Indicate whether {@link #finish} should unlock the {@link #finishMutex}.
           */
-        private volatile boolean         finishNotify        =  false;
+        private boolean      finishNotify        =  false;
          /**
           * Indicate whether {@link #finish} should unlock the {@link #pollingLock}
           */
-        private volatile boolean         pollingNotify       =  false;
+        private boolean      pollingNotify       =  false;
 
          /**
           * Reference the current upcall thread.
           *
           */
-        private volatile Runnable        currentThread       =  null;
+        private Runnable     currentThread       =  null;
 
         /**
          * Internal receive port counter, for debugging.
          */
-        static private volatile int   receivePortCount          = 0;
+        static private int   receivePortCount          = 0;
 
         /**
          * Internal receive port id, for debugging.

@@ -33,8 +33,8 @@ public class MultiPoller extends NetPoller {
         }
 
         private final class ServiceThread extends Thread {
-                private          Lane    lane =  null;
-                private volatile boolean exit = false;
+                private Lane    lane =  null;
+                private boolean exit = false;
 
                 public ServiceThread(String name, Lane lane) throws IOException {
                         super("ServiceThread: "+name);
@@ -71,7 +71,9 @@ public class MultiPoller extends NetPoller {
 
                 public void end() {
                         log.in();
-                        exit = true;
+			synchronized (lane) {
+				exit = true;
+			}
                         this.interrupt();
                         log.out();
                 }

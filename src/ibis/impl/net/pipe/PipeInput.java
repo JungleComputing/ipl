@@ -19,7 +19,7 @@ import java.util.Hashtable;
 
 public final class PipeInput extends NetBufferedInput {
 	private int              defaultMtu   = 512;
-	private volatile Integer spn          = null;
+	private Integer          spn          = null;
 	private PipedInputStream pipeIs       = null;
         private NetReceiveBuffer buf          = null;
         private boolean          upcallMode   = false;

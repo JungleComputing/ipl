@@ -15,40 +15,40 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 * Active {@link NetConnection connection} number or <code>null</code> if
 	 * no connection is active.
 	 */
-	private		volatile 	Integer                 activeNum              = null;
-        private   	volatile 	PooledUpcallThread      activeThread           = null;
-        private   	final static   	int                     threadStackSize        =  256;
-        private  	volatile        int                     threadStackPtr         =    0;
-        private  			PooledUpcallThread[] 	threadStack            = new PooledUpcallThread[threadStackSize];
-        private         		NetMutex           	threadStackLock        = new NetMutex(false);
-        private		volatile	int                  	upcallThreadNum        =    0;
-        private		volatile 	boolean        		upcallThreadNotStarted = true;
-        private                         NetThreadStat           utStat                 = null;
-        private 	volatile 	boolean        		freeCalled             = false;
-        final 		private         Integer                 takenNum               = new Integer(-1);
+	private		Integer              activeNum              = null;
+        private   	PooledUpcallThread   activeThread           = null;
+        private final static int             threadStackSize        =  256;
+        private  	int                  threadStackPtr         =    0;
+        private  	PooledUpcallThread[] threadStack            = new PooledUpcallThread[threadStackSize];
+        private         NetMutex             threadStackLock        = new NetMutex(false);
+        private		int                  upcallThreadNum        =    0;
+        private		boolean        	     upcallThreadNotStarted = true;
+        private                              NetThreadStat           utStat                 = null;
+        private 	boolean        	     freeCalled             = false;
+        final 		private              Integer                 takenNum               = new Integer(-1);
 
-	protected	long		messageSeqno = -1;
+	protected	long		     messageSeqno = -1;
 
-	private         int             pollWaiters;
+	private         int                  pollWaiters;
 
         /**
          * Upcall interface for incoming messages.
          */
-        protected          NetInputUpcall upcallFunc = null;
+        protected       NetInputUpcall       upcallFunc = null;
 
-	private		boolean		upcallSpawnMode = true;
-	private		Object		nonSpawnSyncer = new Object();
-	private         int             nonSpawnWaiters;
+	private		boolean		     upcallSpawnMode = true;
+	private		Object		     nonSpawnSyncer = new Object();
+	private         int                  nonSpawnWaiters;
 
 	/**
 	 * Synchronize between threads if an upcallFunc is installed after
 	 * this Input has been in use as a downcall receive handler
 	 */
-	private		Object		upcallInstaller = new Object();
-	private		int		upcallInstallWaiters;
+	private		Object		     upcallInstaller = new Object();
+	private		int		     upcallInstallWaiters;
 
-        static private volatile int     threadCount = 0;
-        static private          boolean globalThreadStat = false;
+        static private	int                  threadCount = 0;
+        static private	boolean              globalThreadStat = false;
         static {
                 if (globalThreadStat) {
                         Runtime.getRuntime().addShutdownHook(new Thread("NetInput ShutdownHook") {
@@ -144,7 +144,7 @@ private int finishedUpcallThreads;
 
         private final class PooledUpcallThread extends Thread {
 
-                private volatile boolean  end   = false;
+                private boolean  end   = false;
                 private NetMutex sleep = new NetMutex(true);
 private int polls;
 private int pollSuccess;
@@ -332,7 +332,9 @@ finishedUpcallThreads--;
 
                 public void end() {
                         log.in();
-                        end = true;
+			synchronized (sleep) {
+				end = true;
+			}
 			interrupt();
 // System.err.println(this + ": polls " + pollSuccess  + " (of " + polls + ") sleeps " + sleeps);
 // System.err.println(this + ": interrupt...");

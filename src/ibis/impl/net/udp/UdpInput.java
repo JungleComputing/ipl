@@ -61,7 +61,7 @@ public final class UdpInput extends NetBufferedInput {
         private int                   rport          =    0;
         private int                   rmtu           =    0;
         private NetReceiveBuffer      buffer         = null;
-        private volatile Integer      spn            = null;
+        private Integer               spn            = null;
         private int                   socketTimeout  =    0;
 
         private long            rcve_seqno;     /* For out-of-order debugging */
@@ -85,7 +85,7 @@ public final class UdpInput extends NetBufferedInput {
           To remove
         private final class UpcallThread extends Thread {
 
-                private volatile boolean end = false;
+                private boolean end = false;
 
                 public UpcallThread(String name) {
                         super("UdpInput.UpcallThread: "+name);

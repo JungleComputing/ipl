@@ -47,7 +47,7 @@ public final class TcpInput extends NetBufferedInput
 	 * The peer {@link ibis.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
-	private volatile Integer      spn  	      = null;
+	private Integer               spn  	      = null;
 
 	/**
 	 * The communication input stream.
@@ -77,7 +77,7 @@ public final class TcpInput extends NetBufferedInput
 	private InetAddress           addr            = null;
 	private int                   port            =    0;
 	private byte []               hdr             = new byte[4];
-	private volatile NetReceiveBuffer      buf    = null;
+	private NetReceiveBuffer      buf    = null;
 
 	/**
 	 * Timeout value for "interruptible" poll

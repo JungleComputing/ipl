@@ -15,7 +15,7 @@ import java.io.InputStream;
 
 public final class DefInput extends NetBufferedInput {
 
-	private volatile Integer spn          = null;
+	private Integer          spn          = null;
 	private InputStream      defIs        = null;
         private NetReceiveBuffer buf          = null;
 

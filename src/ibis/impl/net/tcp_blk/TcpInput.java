@@ -57,7 +57,7 @@ public final class TcpInput extends NetBufferedInput
 	 * The peer {@link ibis.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
-	private volatile Integer      spn  	      = null;
+	private Integer               spn  	      = null;
 
 	/**
 	 * The communication input stream.

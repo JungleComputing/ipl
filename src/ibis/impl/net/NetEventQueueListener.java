@@ -22,7 +22,7 @@ final class NetEventQueueListener extends Thread {
          * Set to true to indicated that the end of the listener has
          * been requested.
          */
-        private volatile boolean      end   = false;
+        private boolean               end   = false;
 
         /**
          * Reference the {@linkplain NetEventQueue event queue} the

@@ -51,7 +51,7 @@ public final class NioInput extends NetInput {
     /**
      * The peer NetSendPort local number.
      */
-    private volatile Integer		spn = null;
+    private Integer			spn = null;
 
     private InetAddress			addr = null;
     private int				port = 0;

@@ -26,7 +26,7 @@ import java.util.Hashtable;
 public final class TcpInput extends NetInput implements NetPollInterruptible {
 	private ServerSocket 	   tcpServerSocket    = null;
 	private Socket             tcpSocket          = null;
-	private volatile Integer   spn  	      = null;
+	private Integer            spn  	      = null;
 	private DataInputStream    tcpIs	      = null;
 	private DataOutputStream   tcpOs	      = null;
         private InetAddress        addr               = null;

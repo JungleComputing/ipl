@@ -38,7 +38,7 @@ public final class UdpMuxInput extends MuxerInput {
 
     private NetReceiveBuffer	buffer;
 
-    private volatile Integer	spn;
+    private Integer		spn;
 
     private final static int	UDP_MAX_MTU = 16384;
 

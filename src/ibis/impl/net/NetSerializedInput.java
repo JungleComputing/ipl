@@ -20,33 +20,33 @@ public abstract class NetSerializedInput extends NetInput {
 	/**
 	 * The driver used for the 'real' input.
 	 */
-	protected                       NetDriver                       subDriver               = null;
+	protected NetDriver                subDriver               = null;
 
 	/**
 	 * The 'real' input.
 	 */
-	protected                       NetInput                        subInput                = null;
+	protected NetInput                 subInput                = null;
 
         /**
          * The currently active {@linkplain SerializationInputStream serialization input stream}, or <code>null</code>.
          */
-        protected         volatile        SerializationInputStream        iss                     = null;
+        protected SerializationInputStream iss                     = null;
 
         /**
          * The table containing each {@linkplain SerializationInputStream serialization input stream}.
          *
          * The table is indexed by connection numbers.
          */
-	private                         Hashtable                       streamTable             = null;
+	private   Hashtable                streamTable             = null;
 
         /**
          * The most recently activated upcall thread if it is still alive, or <code>null</code>.
          */
-        protected       volatile        Thread                          activeUpcallThread      = null;
+        protected Thread                   activeUpcallThread      = null;
 
-        private         volatile        Integer                         activeNum               = null;
+        private   Integer                  activeNum               = null;
 
-	private         int             waiters;
+	private   int             waiters;
 
 
 	/**

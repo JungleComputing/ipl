@@ -135,7 +135,7 @@ public final class NetIbis extends Ibis {
         /**
          * The master {@link Ibis} instance for this process.
          */
-	static volatile NetIbis globalIbis;
+	static NetIbis globalIbis;
 
 	private static String hostName;
 
