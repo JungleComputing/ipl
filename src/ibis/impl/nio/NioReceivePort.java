@@ -16,7 +16,8 @@ import java.net.InetSocketAddress;
 import java.nio.channels.Channel;
 import java.util.ArrayList;
 
-abstract class NioReceivePort implements ReceivePort, Runnable, Config {
+abstract class NioReceivePort implements ReceivePort, Runnable, 
+					 Config, Protocol {
 
     protected NioPortType type;
     protected NioIbis ibis;
@@ -77,19 +78,39 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
     /**
      * Sees if the user is ok with a new connection from "spi"
      */
-    protected boolean connectionRequested(NioSendPortIdentifier spi,
+    byte connectionRequested(NioSendPortIdentifier spi,
 					  Channel channel) {
-	boolean allowed;
+	if (DEBUG) {
+	    Debug.enter("connections", this, "handling connection request");
+	}
 
 	synchronized(this) {
 	    if(!connectionsEnabled) {
-		return false;
+		if (DEBUG) {
+		    Debug.exit("connections", this, "!connections disabled");
+		}
+		return CONNECTIONS_DISABLED;
 	    }
 	}
 
+	if(!type.manyToOne && (connectedTo().length > 0)) {
+	    //many2one not supported...
+	    if (DEBUG) {
+		Debug.exit("connections", this, "!many2one not supported");
+	    }
+	    return CONNECTION_DENIED;
+	}
+
 	if(connUpcall != null) {
+	    if (DEBUG) {
+		Debug.message("connections", this, 
+			      "passing connection request to user");
+	    }
 	    if(!connUpcall.gotConnection(this, spi)) {
-		return false;
+		if (DEBUG) {
+		    Debug.exit("connections", this, "!user denied connection");
+		}
+		return CONNECTION_DENIED;
 	    }
 	}
 
@@ -99,7 +120,10 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
 	    if(connUpcall != null) {
 		connUpcall.lostConnection(this, spi, e);
 	    }
-	    return false;
+	    if (DEBUG) {
+		Debug.exit("connections", this, "!newConnection() failed");
+	    }
+	    return CONNECTION_DENIED;
 	}
 
 	synchronized(this) {
@@ -108,7 +132,10 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
 	    }
 	}
 
-	return true;
+	if (DEBUG) {
+	    Debug.exit("connections", this, "connection allowed");
+	}
+	return CONNECTION_ACCEPTED;
     }
 
     /**
@@ -392,8 +419,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
     public synchronized void disableUpcalls() {
 	upcallsEnabled = false;
     }
-
-
 
     public synchronized SendPortIdentifier[] lostConnections() {
 	SendPortIdentifier[] result;

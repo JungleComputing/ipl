@@ -161,10 +161,11 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 	    NioReceivePortIdentifier rpi, 
 	    long timeoutMillis) throws IOException {
 	int reply;
+	SocketChannel channel;
 
-	SocketChannel channel = SocketChannel.open();
 	long deadline = 0;
 	long time;
+    
 
 	if (DEBUG) {
 	    Debug.enter("connections", this, 
@@ -173,110 +174,149 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
 	if(timeoutMillis > 0) {
 	    deadline = System.currentTimeMillis() + timeoutMillis;
+	}
 
-	    channel.configureBlocking(false);
-	    channel.connect(rpi.address);
+	while (true) {
 
-	    Selector selector = Selector.open();
-	    channel.register(selector, SelectionKey.OP_CONNECT);
+	    if(deadline == 0) {
+		//do a blocking connect
+		channel = SocketChannel.open();
+		channel.connect(rpi.address);
+	    } else {
+		time = System.currentTimeMillis();
 
-	    if(selector.select(timeoutMillis) == 0) {
-		//nothing selected, so we had a timeout
+		if (time >= deadline) {
+		    if (DEBUG) {
+			Debug.exit("connections", this, 
+				"timeout on connecting");
+		    }
 
-		if (DEBUG) {
-		    Debug.exit("connections", this,
-			"!timed out while connecting socket to receiver");
+		    throw new IOException("timeout on connecting");
 		}
 
-		throw new ConnectionTimedOutException("timed out while"
-			+ " connecting socket to receiver");
+
+		channel = SocketChannel.open();
+		channel.configureBlocking(false);
+		channel.connect(rpi.address);
+
+		Selector selector = Selector.open();
+		channel.register(selector, SelectionKey.OP_CONNECT);
+
+		if(selector.select(deadline - time) == 0) {
+		    //nothing selected, so we had a timeout
+
+		    if (DEBUG) {
+			Debug.exit("connections", this,
+				"!timed out while connecting socket to receiver");
+		    }
+
+		    throw new ConnectionTimedOutException("timed out while"
+			    + " connecting socket to receiver");
+		}
+
+		if(!channel.finishConnect()) {
+		    throw new IbisError("finish connect failed while we made sure"
+			    + " it would work");
+		}
+
+		selector.close();
+		channel.configureBlocking(true);
 	    }
 
-	    if(!channel.finishConnect()) {
-		throw new IbisError("finish connect failed while we made sure"
-			+ " it would work");
+	    channel.socket().setTcpNoDelay(true);
+
+	    //write out rpi and spi
+	    ChannelAccumulator accumulator = new ChannelAccumulator(channel);
+	    accumulator.writeByte(CONNECTION_REQUEST);
+	    spi.writeTo(accumulator);
+	    rpi.writeTo(accumulator);
+	    accumulator.flush();
+
+	    if (DEBUG) { 
+		Debug.message("connections", this, 
+			"waiting for reply on connect");
 	    }
 
-	    selector.close();
-	    channel.configureBlocking(true);
-	} else {
-	    //do a blocking connect
-	    channel.connect(rpi.address);
-	}
+	    if(timeoutMillis > 0) {
+		time = System.currentTimeMillis();
 
-	channel.socket().setTcpNoDelay(true);
+		if (time >= deadline) {
+		    if (DEBUG) {
+			Debug.exit("connections", this, 
+				"timeout on waiting for reply on connecting");
+		    }
+		    throw new IOException("timeout on waiting for reply");
+		}
 
-	//write out rpi and spi
-	ChannelAccumulator accumulator = new ChannelAccumulator(channel);
-	accumulator.writeByte(CONNECTION_REQUEST);
-	spi.writeTo(accumulator);
-	rpi.writeTo(accumulator);
-	accumulator.flush();
+		channel.configureBlocking(false);
 
-	if (DEBUG) { 
-	    Debug.message("connections", this, "waiting for reply on connect");
-	}
+		Selector selector = Selector.open();
+		channel.register(selector, SelectionKey.OP_READ);
 
-	if(timeoutMillis > 0) {
-	    channel.configureBlocking(false);
+		if(selector.select(deadline - time) == 0) {
+		    //nothing selected, so we had a timeout
+		    try {
+			channel.close();
+		    } catch (IOException e) {
+			//IGNORE
+		    }
 
-	    Selector selector = Selector.open();
-	    channel.register(selector, SelectionKey.OP_READ);
+		    if (DEBUG) {
+			Debug.exit("connections", this,
+				"!timed out while for reply from receiver");
+		    }
 
-	    if(selector.select(timeoutMillis) == 0) {
-		//nothing selected, so we had a timeout
+		    throw new ConnectionTimedOutException("timed out while"
+			    + " waiting for reply from receiver");
+		}
+		selector.close();
+		channel.configureBlocking(true);
+	    }
+
+	    //see what he thinks about it
+	    ChannelDissipator dissipator = new ChannelDissipator(channel);
+	    reply = dissipator.readByte();
+	    dissipator.close();
+
+	    if(reply == CONNECTION_DENIED) {
+		if (DEBUG) {
+		    Debug.exit("connections", this,
+			    "!Receiver denied connection");
+		}
+		channel.close();
+		throw new ConnectionRefusedException(
+						"Receiver denied connection");
+	    } else if (reply == CONNECTION_ACCEPTED) {
+		if (DEBUG) {
+		    Debug.exit("connections", this, 
+			       "made new connection from \"" 
+				+ spi + "\" to \"" + rpi + "\"");
+		}
+		channel.configureBlocking(true);
+		return channel;
+	    } else if (reply == CONNECTIONS_DISABLED) {
+		//receiveport not (yet) enabled, wait for a while
 		try {
 		    channel.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
 		    //IGNORE
 		}
-
-		if (DEBUG) {
-		    Debug.exit("connections", this,
-			       "!timed out while for reply from receiver");
+		try {
+		    Thread.sleep(100);
+		} catch (Exception e) {
+		    //IGNORE
 		}
-
-		throw new ConnectionTimedOutException("timed out while"
-			+ " waiting for reply from receiver");
+		//and retry
+		continue;
+	    } else {
+		if(DEBUG) {
+		    Debug.exit("connections", this,
+			    "!illigal opcode in ChannelFactory.connect()");
+		}
+		throw new IbisError("illigal opcode in"
+				    + " ChannelFactory.connect()");
 	    }
-	    selector.close();
-	    channel.configureBlocking(true);
 	}
-
-	//see what he thinks about it
-	ChannelDissipator dissipator = new ChannelDissipator(channel);
-	reply = dissipator.readByte();
-	dissipator.close();
-
-	if(reply == CONNECTION_DENIED) {
-
-	    if (DEBUG) {
-		Debug.exit("connections", this,
-			   "!Receiver denied connection");
-	    }
-
-	    channel.close();
-	    throw new ConnectionRefusedException("Could not connect");
-	} else if (reply == CONNECTION_ACCEPTED) {
-	    if(DEBUG) {
-		Debug.message("connections", this,
-		   "Connection accepted, using new connection");
-	    }
-	} else {
-	    if(DEBUG) {
-		Debug.exit("connections", this,
-		   "!illigal opcode in ChannelFactory.connect()");
-	    }
-	    throw new IbisError("illigal opcode in ChannelFactory.connect()");
-	}
-
-	if (DEBUG) {
-	    Debug.exit("connections", this,
-	    "made new connection from \"" + spi + "\" to \"" + rpi + "\"");
-	}
-
-	channel.configureBlocking(true);
-	return channel;
     }
 
     /**
@@ -340,19 +380,19 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 	    }
 
 	    //register connection with receiveport
-	    if(rp.connectionRequested(spi, channel)) {
-		accumulator.writeByte(CONNECTION_ACCEPTED);
-		accumulator.flush();
-		accumulator.close();
-	    } else {
+	    byte reply = rp.connectionRequested(spi, channel);
+
+	    //send reply
+	    accumulator.writeByte(reply);
+	    accumulator.flush();
+	    accumulator.close();
+	    
+	    if(reply != CONNECTION_ACCEPTED) {
+		channel.close();
 		if (DEBUG) {
 		    Debug.exit("connections", this,
 			       "!receiveport rejected connection");
 		}
-		accumulator.writeByte(CONNECTION_DENIED);
-		accumulator.flush();
-		accumulator.close();
-		channel.close();
 		return;
 	    }
 	} catch (IOException e) {

@@ -10,4 +10,6 @@ interface Protocol {
     static final byte CONNECTION_REQUEST = 5;
     static final byte CONNECTION_ACCEPTED = 6;
     static final byte CONNECTION_DENIED = 7;
+
+    static final byte CONNECTIONS_DISABLED = 8;
 }

@@ -341,7 +341,7 @@ public abstract class NioDissipator extends Dissipator
 
 	while(true) {
 	    if((sis == null && available() == 0) 
-	       || (sis != null && sis.available() == 0)) {
+		    || (sis != null && sis.available() == 0)) {
 		//no data available at all
 		return false;
 	    }

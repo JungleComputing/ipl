@@ -81,6 +81,10 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
     public final synchronized void connect(ReceivePortIdentifier receiver, 
 	    long timeoutMillis) throws IOException {
+
+	//FIXME: Retry on "receiveport not ready"
+
+
 	if(DEBUG) {
 	    Debug.enter("connections", this, "Sendport " + this + " '" + 
 		    ident.name + "' connecting to " + receiver); 
