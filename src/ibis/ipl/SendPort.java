@@ -62,7 +62,7 @@ public interface SendPort {
 	public void free() throws IbisIOException;
 
 	/** Returns the set of receiveports this sendport is connected to. **/
-	public ReceivePortIdentifier connectedTo();
+	public ReceivePortIdentifier[] connectedTo();
 
 	/** Poll to find out whether any connections are lost or closed. **/
 	public ReceivePortIdentifier[] lostConnections();

@@ -130,7 +130,7 @@ public interface ReceivePort {
 	public void forcedClose(long timeoutMillis);
 
 	/** returns the set of sendports this receiveport is connected to **/
-	public SendPortIdentifier connectedTo();
+	public SendPortIdentifier[] connectedTo();
 
 	/** Poll to see whether any conncetion was lost due to an error,
 	    or because the sender disconnected. */
