@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
+import javax.swing.JFrame;
+
 class BodyCanvas extends Canvas {
 
 	// Using an image to draw the bodies does not flicker.
@@ -23,7 +25,25 @@ class BodyCanvas extends Canvas {
 
 	private BufferedImage img;
 
-	BodyCanvas(int w, int h, Body[] b) {
+	static BodyCanvas visualize(Body[] bodyArray) {
+		JFrame.setDefaultLookAndFeelDecorated(true);
+
+		//Create and set up the window.
+		JFrame frame = new JFrame("Bodies");
+		//frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		BodyCanvas bc = new BodyCanvas(800, 800, bodyArray);
+		frame.getContentPane().add(bc);
+
+		//Display the window.
+		frame.pack();
+		frame.setVisible(true);
+
+		return bc;
+	}
+
+	private BodyCanvas(int w, int h, Body[] b) {
 		width = w;
 		height = h;
 		bodies = b;

@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import javax.swing.JFrame;
-
 final class BarnesHut {
 
 	static boolean viz = true;
@@ -162,7 +160,7 @@ final class BarnesHut {
 		// printBodies();
 
 		if (viz) {
-			bc = visualize();
+			bc = BodyCanvas.visualize(bodyArray);
 		}
 
 		ibis.satin.SatinObject.pause(); //turn off satin during sequential
@@ -343,24 +341,6 @@ final class BarnesHut {
 
 		end = System.currentTimeMillis();
 		totalTime = end - start;
-	}
-
-	private BodyCanvas visualize() {
-		JFrame.setDefaultLookAndFeelDecorated(true);
-
-		//Create and set up the window.
-		JFrame frame = new JFrame("Bodies");
-		//frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		BodyCanvas bc = new BodyCanvas(500, 500, bodyArray);
-		frame.getContentPane().add(bc);
-
-		//Display the window.
-		frame.pack();
-		frame.setVisible(true);
-
-		return bc;
 	}
 
 	void processLinkedListResult(LinkedList result, double[] all_x,
