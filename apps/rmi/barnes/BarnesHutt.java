@@ -73,26 +73,26 @@ strictfp public class BarnesHutt {
               foundArg = true;
               bhDistributed = true;
 	    }
-          if (args[i].equals("-serialize")) {
+		if (args[i].equals("-serialize")) {
             foundArg = true;
             bhGd.gdSerialize = true;
-          }
+		}
  
-          if (args[i].equals("-trim-arrays")) {
+		if (args[i].equals("-trim-arrays")) {
             foundArg = true;
             bhGd.gdTrimArrays = true;
-          }
+		}
 
-           if (args[i].equals("-threads")) {
+		if (args[i].equals("-threads")) {
             foundArg = true;
             bhGd.gdThreads = true;
-          }
+		}
 
-          if (args[i].equals("-gc-interval")) {
+		if (args[i].equals("-gc-interval")) {
             foundArg = true;
             bhGd.gdGCInterval = Integer.valueOf( args[i+1] ).intValue();
             i++;
-          }
+		}
  
 	    if (!foundArg)
               System.out.println("Unknown option: '" + args[i] +"'");
@@ -101,33 +101,35 @@ strictfp public class BarnesHutt {
   }
 
   void doProcInfo(int hostno, int nhosts, String hostname0) {
-    if (hostno == 0) try {
-      RMI_init.getRegistry(hostname0);
-      g = new ProcsImpl(nhosts);
-      Naming.bind("ProcsInfo", g);
-    } catch (Exception e) {
-      System.out.println("Caught exception! " + e.getMessage());
-    }
-    else {
-	int i = 0;
-	boolean done = false;
-	while (! done && i < 10) {
-	    i++;
-	    done = true;
-	    try {
-		g = (Procs) Naming.lookup("//" + hostname0 + "/ProcsInfo");
-	    } catch (Exception e) {
-		done = false;
+    if (hostno == 0) {
 		try {
-		    Thread.sleep(2000);
-		} catch (Exception ex) {
+			RMI_init.getRegistry(hostname0);
+			g = new ProcsImpl(nhosts);
+			Naming.bind("ProcsInfo", g);
+		} catch (Exception e) {
+			System.out.println("Caught exception! " + e.getMessage());
 		}
-	    }
-	}
-	if (! done) {
-	    System.out.println(hostno + " could not connect to " + "//" + hostname0 + "/ProcsInfo");
-	    System.exit(1);
-	}
+	} else {
+		int i = 0;
+		boolean done = false;
+		while (! done && i < 10) {
+			i++;
+			done = true;
+			try {
+				g = (Procs) Naming.lookup("//" + hostname0 + "/ProcsInfo");
+			} catch (Exception e) {
+				done = false;
+				try {
+					Thread.sleep(2000);
+				} catch (Exception ex) {
+				}
+			}
+		}
+		if (! done) {
+			System.out.println(hostno + " could not connect to " + "//" +
+							   hostname0 + "/ProcsInfo");
+			System.exit(1);
+		}
     }
   }
 
@@ -139,7 +141,8 @@ strictfp public class BarnesHutt {
     
     doProcInfo(0, 1, "");
 
-    System.out.println("Running multithreaded (" + bhGd.gdNumProcs + " threads)" );
+    System.out.println("Running multithreaded (" + bhGd.gdNumProcs +
+					   " threads)" );
 
     // Start all ProcessorThreads.
 

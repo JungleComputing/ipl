@@ -56,14 +56,15 @@ strictfp public final class vec3 implements Serializable {
   void div( double d ) {
 
     if (d!=0.0) {
-
       double recip = 1.0/d;
 
       x *= recip;
       y *= recip;
       z *= recip;
-    }
-    // TODO: some error handling here
+    } else {
+		System.err.println("Division by zero in vec3.java!");
+		// TODO: some error handling here
+	}
   }
 
   double element( int i ) {

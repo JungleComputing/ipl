@@ -122,154 +122,165 @@ public class ProcessorThread extends Thread {
 
     try {
 
-      for ( g.gdIteration = 0; g.gdIteration < g.gdIterations; g.gdIteration++ ) {
+      for (g.gdIteration = 0; g.gdIteration < g.gdIterations; g.gdIteration++){
 
-	if (g.Proc.myProc == 0) 
-		System.out.println("Computing iteration: " + g.gdIteration );
+		  if (g.Proc.myProc == 0) 
+			  System.out.println("Computing iteration: " + g.gdIteration );
 
-        g.debugStr("Computing iteration: " + g.gdIteration );
+		  g.debugStr("Computing iteration: " + g.gdIteration );
 
-        tStart = System.currentTimeMillis();
+		  tStart = System.currentTimeMillis();
 
-	//	g.debugStr( "iteratie " + g.gdIteration + ", voor update, bodies: " + g.gdNumBodies );
+		  //	g.debugStr( "iteratie " + g.gdIteration + ", voor update, bodies: " + g.gdNumBodies );
 
-	orbTree.Update();
+		  orbTree.Update();
 
-	//	g.debugStr( "iteratie " + g.gdIteration + ", na update, bodies: " + g.gdNumBodies );
+		  //	g.debugStr( "iteratie " + g.gdIteration + ", na update, bodies: " + g.gdNumBodies );
 
-	// Balance the load
+		  // Balance the load
 
-	if (g.gdIteration==0) {
-	  level = g.gdLogProcs;
-	} else {
-	  level = orbTree.determineLoadBalanceLevel();		  
-	}	
+		  if (g.gdIteration==0) {
+			  level = g.gdLogProcs;
+		  } else {
+			  level = orbTree.determineLoadBalanceLevel();		  
+		  }	
 
-	g.debugStr("load balancing, level = " +level);
+		  g.debugStr("load balancing, level = " +level);
+		  
+		  orbTree.LoadBalance( level );
 
-      	orbTree.LoadBalance( level );
+		  //        g.debugStr("finished loadbalance (level: " + level + ")" );
 
-	//        g.debugStr("finished loadbalance (level: " + level + ")" );
+		  tLoadBalance = System.currentTimeMillis();
 
-	tLoadBalance = System.currentTimeMillis();
+		  // Load balancing finished, build the local tree...
 
-	// Load balancing finished, build the local tree...
+		  //        g.debugStr("Building tree");
 
-	//        g.debugStr("Building tree");
+		  tree = new BodyTree( g, orbTree.getGlobalMin(), orbTree.getGlobalMax() );
 
-        tree = new BodyTree( g, orbTree.getGlobalMin(), orbTree.getGlobalMax() );
+		  tTree = System.currentTimeMillis();
+		  
+		  tree.ComputeCenterOfMass();
 
-        tTree = System.currentTimeMillis();
+		  //	g.debugStr("CenterOfMass computed!");
 
-        tree.ComputeCenterOfMass();
+		  tCOFM = System.currentTimeMillis();	
+		  /*
+			g.debugStr( "bodies: " + tree.dumpTree( 0, 10 ));
+			g.debugStr( "\n\n\n\n\n" );
+		  */
+		  orbTree.ExchangeEssentialTree( tree );
 
-	//	g.debugStr("CenterOfMass computed!");
+		  //      	g.debugStr("Essential trees updated");
 
-        tCOFM = System.currentTimeMillis();	
-	/*
-	g.debugStr( "bodies: " + tree.dumpTree( 0, 10 ));
-	g.debugStr( "\n\n\n\n\n" );
-	*/
-      	orbTree.ExchangeEssentialTree( tree );
+		  tEssentialTree = System.currentTimeMillis();
 
-	//      	g.debugStr("Essential trees updated");
+		  tree.ComputeCenterOfMass();
 
-        tEssentialTree = System.currentTimeMillis();
+		  //	g.debugStr("CenterOfMass updated!");
+		  /*
+			g.debugStr( "bodies: " + tree.dumpTree( 0, 10 ));
+			g.debugStr( "\n\n\n\n\n" );
+		  */
+		  tUpdateCOFM = System.currentTimeMillis();
 
-        tree.ComputeCenterOfMass();
+		  if (g.gdComputeAccelerationsDirect)
+			  interactions = tree.ComputeAccelerationsDirect();
+		  else
+			  interactions = tree.ComputeAccelerationsBarnes();
 
-	//	g.debugStr("CenterOfMass updated!");
-	/*
-	g.debugStr( "bodies: " + tree.dumpTree( 0, 10 ));
-	g.debugStr( "\n\n\n\n\n" );
-	*/
-        tUpdateCOFM = System.currentTimeMillis();
+		  tAccels = System.currentTimeMillis();
 
-        if (g.gdComputeAccelerationsDirect)
-          interactions = tree.ComputeAccelerationsDirect();
-        else
-          interactions = tree.ComputeAccelerationsBarnes();
+		  tree.ComputeNewPositions();
 
-        tAccels = System.currentTimeMillis();
+		  tNewPos = System.currentTimeMillis();
 
-        tree.ComputeNewPositions();
+		  if ((g.gdGCInterval>0) && ((g.gdIteration % g.gdGCInterval)==0)) {
+			  //  	  g.Proc.cleanup();
+			  tree = null;
+			  System.gc();
+		  }
+		  
+		  tGC = System.currentTimeMillis();
 
-        tNewPos = System.currentTimeMillis();
-
-        if ((g.gdGCInterval>0) && ((g.gdIteration % g.gdGCInterval)==0)) {
-		//  	  g.Proc.cleanup();
-	  tree = null;
-	  System.gc();
-	}
-
-	tGC = System.currentTimeMillis();
-
-        g.debugStr( "\nIteration " + g.gdIteration + ":" );
-	g.debugStr( "Load balancing: " + (tLoadBalance -tStart) + " ms (level " + level + ")" ); 
-        g.debugStr( "Tree construction: " + (tTree - tLoadBalance) + " ms" );
-        g.debugStr( "Center of mass computation: " + (tCOFM - tTree) + " ms" );
-	g.debugStr( "Essential tree transmission: " + (tEssentialTree - tCOFM ) + " ms " );
-	g.debugStr( "Center of mass update: " + (tUpdateCOFM - tEssentialTree) + " ms" );
-        g.debugStr( "Acceleration computation: " + (tAccels - tUpdateCOFM) + " ms (" +
-		    interactions + " interactions) " );
-        g.debugStr( "New position computation: " + (tNewPos - tAccels) + " ms" );
-        g.debugStr( "Explicit Garbage Collection: " + (tGC - tNewPos) + " ms" );
-
-        g.debugStr( "Total: " + (tGC-tStart) + " ms\n" );
-
-//	if (g.gdIteration == 2) {
-//	    fs_stats_reset();
-//	}
-        if ( g.gdIteration > 2 ) {
-	  totalMillis += (tGC-tStart);
-          totLoadBalance += (tLoadBalance -tStart);
-          totTree +=  (tTree - tLoadBalance);
-	  totCOFM += (tCOFM - tTree);
-	  totEssentialTree += (tEssentialTree - tCOFM );
-	  totUpdateCOFM += (tUpdateCOFM - tEssentialTree);
-	  totAccels += (tAccels - tUpdateCOFM);
-	  totNewPos += (tNewPos - tAccels);
-	  totGC += (tGC - tNewPos);
-	}
-
+		  g.debugStr( "\nIteration " + g.gdIteration + ":" );
+		  g.debugStr( "Load balancing: " + (tLoadBalance -tStart) + " ms (level " + level + ")" ); 
+		  g.debugStr( "Tree construction: " + (tTree - tLoadBalance) + " ms" );
+		  g.debugStr( "Center of mass computation: " + (tCOFM - tTree) + " ms" );
+		  g.debugStr( "Essential tree transmission: " + (tEssentialTree - tCOFM ) + " ms " );
+		  g.debugStr( "Center of mass update: " + (tUpdateCOFM - tEssentialTree) + " ms" );
+		  g.debugStr( "Acceleration computation: " + (tAccels - tUpdateCOFM) + " ms (" +
+					  interactions + " interactions) " );
+		  g.debugStr( "New position computation: " + (tNewPos - tAccels) + " ms" );
+		  g.debugStr( "Explicit Garbage Collection: " + (tGC - tNewPos) + " ms" );
+		  
+		  g.debugStr( "Total: " + (tGC-tStart) + " ms\n" );
+		
+		  //	if (g.gdIteration == 2) {
+		  //	    fs_stats_reset();
+		  //	}
+		  if ( g.gdIteration > 2 ) {
+			  totalMillis += (tGC-tStart);
+			  totLoadBalance += (tLoadBalance -tStart);
+			  totTree +=  (tTree - tLoadBalance);
+			  totCOFM += (tCOFM - tTree);
+			  totEssentialTree += (tEssentialTree - tCOFM );
+			  totUpdateCOFM += (tUpdateCOFM - tEssentialTree);
+			  totAccels += (tAccels - tUpdateCOFM);
+			  totNewPos += (tNewPos - tAccels);
+			  totGC += (tGC - tNewPos);
+		  }
+		  
       }
 
     } catch (NullPointerException n) {
 
-      System.out.println( "Nullpointer exception caught (tree inconsistent), during iteration "
-         + g.gdIteration + ": " + n.getMessage());
+      System.out.println( "Nullpointer exception caught (tree inconsistent)," +
+						  " during iteration "
+						  + g.gdIteration + ": " + n.getMessage());
       n.printStackTrace();
     }
 
-    g.debugStr( "stats; Bodies: " + g.gdTotNumBodies + ", Bodies per Leaf: " + g.gdMaxBodiesPerNode + 
-     ", Processors: " + g.gdNumProcs + "" );
+    g.debugStr( "stats; Bodies: " + g.gdTotNumBodies + ", Bodies per Leaf: " +
+				g.gdMaxBodiesPerNode + ", Processors: " + g.gdNumProcs + "" );
 
     g.debugStr( "stats; Total time: " + totalMillis + " ms, average: " + 
-     (totalMillis/(g.gdIterations-3)) + " ms per iteration" );
+				(totalMillis/(g.gdIterations-3)) + " ms per iteration" );
 
-    g.debugStr( "stats; time spent in load balancing:              " + totLoadBalance +
-     " ms (" + ((totLoadBalance*1.0)/(totalMillis*1.0)*100.0 ) + " percent)" );   
+    g.debugStr( "stats; time spent in load balancing:              " +
+				totLoadBalance + " ms (" +
+				((totLoadBalance*1.0)/(totalMillis*1.0)*100.0 ) +
+				" percent)" );   
 
-    g.debugStr( "stats; time spent in tree construction:           " + totTree +
-     " ms (" + ((totTree*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );
+    g.debugStr( "stats; time spent in tree construction:           " +
+				totTree + " ms (" + ((totTree*1.0)/(totalMillis*1.0)*100.0) +
+				" percent)" );
 
-    g.debugStr( "stats; time spent in center of mass computation:  " + totCOFM +
-     " ms (" + ((totCOFM*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );
+    g.debugStr( "stats; time spent in center of mass computation:  " + 
+				totCOFM + " ms (" + ((totCOFM*1.0)/(totalMillis*1.0)*100.0) +
+				" percent)" );
 
-    g.debugStr( "stats; time spent in essential tree exchange:     " + totEssentialTree +
-     " ms (" + ((totEssentialTree*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );
+    g.debugStr( "stats; time spent in essential tree exchange:     " +
+				totEssentialTree + " ms (" +
+				((totEssentialTree*1.0)/(totalMillis*1.0)*100.0) +
+				" percent)" );
 
-    g.debugStr( "stats; time spent in center of mass update:  " + totUpdateCOFM +
-     " ms (" + ((totUpdateCOFM*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );
+    g.debugStr( "stats; time spent in center of mass update:  " +
+				totUpdateCOFM + " ms (" +
+				((totUpdateCOFM*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );
 
-    g.debugStr( "stats; time spent in force computation:           " + totAccels + 
-     " ms (" + ((totAccels*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );   
+    g.debugStr( "stats; time spent in force computation:           " +
+				totAccels + " ms (" +
+				((totAccels*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );   
 
-    g.debugStr( "stats; time spent in position update:             " + totNewPos + 
-     " ms (" + ((totNewPos*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );   
+    g.debugStr( "stats; time spent in position update:             " +
+				totNewPos + " ms (" +
+				((totNewPos*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );   
 
     g.debugStr( "stats; time spent in explicit garbage collection: " + totGC + 
-     " ms (" + ((totGC*1.0)/(totalMillis*1.0)*100.0)  + " percent)" );   
+				" ms (" + ((totGC*1.0)/(totalMillis*1.0)*100.0)  +
+				" percent)" );   
 
     if (g.gdPrintBodies)
       PrintBodies();

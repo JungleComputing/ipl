@@ -96,13 +96,14 @@ strictfp public class GlobalData implements Cloneable, Serializable {
     gdSoftSQ     = gdSoft * gdSoft;
     gdIterations = (int)(((gdEndTime - gdStartTime)/ gdDt ) + 1.1);
 
-    debugStr( "scale: " + scale + "theta: " + gdTheta + ", theta sq: " + gdThetaSq );
+    debugStr( "scale: " + scale + "theta: " + gdTheta +
+			  ", theta sq: " + gdThetaSq );
 
     debugStr("Parameters: " + gdTotNumBodies + " bodies, " +
-      gdDt + " dt, " + gdSoft + " eps, " + 
-      (2.0/gdTheta) + " tol, " + gdNumProcs + " procs, " + 
-      gdDtHalf + " dthalf, " +
-      gdMaxLocalBodies + " Max LocalBodies ");
+			 gdDt + " dt, " + gdSoft + " eps, " + 
+			 (2.0/gdTheta) + " tol, " + gdNumProcs + " procs, " + 
+			 gdDtHalf + " dthalf, " +
+			 gdMaxLocalBodies + " Max LocalBodies ");
 
   }
 

@@ -39,15 +39,15 @@ public class RMI_init {
 	    reg = LocateRegistry.createRegistry(port);
 	} else {
 	    while (reg == null) {
-		try {
-		    reg = LocateRegistry.getRegistry(registryOwner, port);
-		} catch (RemoteException e) {
-		    try {
-			System.out.println("Look up registry: sleep a while..");
-			Thread.sleep(500);
-		    } catch (InterruptedException eI) {
-		    }
-		}
+			try {
+				reg = LocateRegistry.getRegistry(registryOwner, port);
+			} catch (RemoteException e) {
+				try {
+					System.out.println("Look up registry: sleep a while..");
+					Thread.sleep(500);
+				} catch (InterruptedException eI) {
+				}
+			}
 	    }
 	}
 
