@@ -151,7 +151,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
     private void writeArray(Object ref, int offset, int len, int type)
 	    throws IOException {
 	if (array_index == ARRAY_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing array " + ref + " offset: " 
@@ -350,7 +350,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeBoolean(boolean value) throws IOException {
 	if (byte_index == BYTE_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing boolean " + value);
@@ -366,7 +366,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeByte(byte value) throws IOException {
 	if (byte_index == BYTE_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing byte " + value);
@@ -381,7 +381,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeChar(char value) throws IOException {
 	if (char_index == CHAR_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing char " + value);
@@ -396,7 +396,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeShort(short value) throws IOException {
 	if (short_index == SHORT_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing short " + value);
@@ -411,7 +411,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeInt(int value) throws IOException {
 	if (int_index == INT_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing int[HEX] " + value + "[" +
@@ -427,7 +427,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeLong(long value) throws IOException {
 	if (long_index == LONG_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing long " + value);
@@ -442,7 +442,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeFloat(float value) throws IOException {
 	if (float_index == FLOAT_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing float " + value);
@@ -457,7 +457,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeDouble(double value) throws IOException {
 	if (double_index == DOUBLE_BUFFER_SIZE) {
-	    Flush();
+	    flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing double " + value);
