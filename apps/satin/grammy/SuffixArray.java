@@ -128,6 +128,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	int length = end - start;
         int jump = length;
         boolean done;
+	final int kC = 1;	// known commonality.
 
         while( jump>1 ){
             jump /= 2;
@@ -141,7 +142,8 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 			int ixi = indices[start+i];
 			int ixj = indices[start+j];
 
-			int n = commonLength( ixi, ixj );
+			// We know the first character is equal...
+			int n = kC+commonLength( ixi+kC, ixj+kC );
 			commonality[start+i] = n;
 			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
 			    // Things are in the wrong order, swap them and step back.
@@ -157,7 +159,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 			int ixi = indices[start+i];
 			int ixj = indices[start+j];
 
-			int n = commonLength( ixi, ixj );
+			int n = kC+commonLength( ixi+kC, ixj+kC );
 			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
 			    // Things are in the wrong order, swap them and step back.
 			    indices[start+i] = ixj;
