@@ -253,6 +253,7 @@ def usage():
 def main():
     global ProcNos, nameserverport, maxRunTime, orderedTuples, timingTag, verbose
     try:
+        print "Command line: " + string.join( sys.argv )
         opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "parallel", "logfile=", "logdir=", "verbose", "tag=", "port=", "procs=", "time=","ordered-tuples"])
     except getopt.GetoptError:
         # print help information and exit:

@@ -81,7 +81,7 @@ def build_run_command( pno, command, port ):
     ot = ''
     if orderedTuples:
         ot = '-Dsatin.tuplespace.ordened=true '
-    return "prun -t %s %s -nhosts %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s" % (maxRunTime, run_ibis, pno, port, ot, command)
+    return "prun -t %s %s %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s" % (maxRunTime, run_ibis, pno, port, ot, command)
 
 def runP( P, command, results ):
     cmd = build_run_command( P, command, nameserverport )

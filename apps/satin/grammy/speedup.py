@@ -170,6 +170,7 @@ def run( command, logfile, runParallel ):
     lf = open( logfile, "w" )
     logstreams = [lf]
     allstreams = [lf,sys.stdout]
+    report( "Commandline: " + string.join( sys.argv ), logstreams )
     report( "Command: " + command, allstreams )
     report( "Logfile: " + logfile, allstreams )
     report( "Tag: '" + timingTag + "'", allstreams )
