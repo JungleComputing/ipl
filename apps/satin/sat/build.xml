@@ -1,0 +1,15 @@
+<project
+    name="ibis.apps.satin.fib"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    <property name="satinc-flags" value="-no-aborts"/>
+
+    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+
+</project>
+
+
