@@ -1,9 +1,13 @@
-<!--
-    Target definitions for javah and native compile under the current directory.
--->
+<project
+    name="native"
+    default="native-compile"
+    basedir=".">
+
+    <description>
+	Target definitions for javah and native compile under the current directory.
+    </description>
 
     <!--
-
 	Target definition for javah.
 
 	Requires prior inclusion of ${ibis}/ibis/build-properties.xml
@@ -12,6 +16,8 @@
 	build                  the root of the build tree to be javah'd
 	default.classpath      refid of sensible default classpath
     -->
+
+    <import file="${ibis}/build-properties.xml"/>
 
     <target name="property-javah-build"
 	    depends="property-init"
@@ -135,6 +141,14 @@
 		    <arg line="${classes.all}"/>
 		    <classpath refid="default.classpath"/>
 		</java>
+
+		<!--
+		    Do regexp on ${build}/NativeMethodClasses:
+			%s/.class//
+			%s/\${file.separator}/./g
+			%s/\n/ /g
+			%s/  */ /g
+		-->
 		<replaceregexp
 			byline="true"
 			file="${build}/NativeMethodClasses"
@@ -271,6 +285,11 @@
 
 	<mkdir dir="${build}/ibis/${native-path}"/>
 
+	<!--
+	    Do regexp from ${native-path} -> ${package}
+		%s/\${file.separator}/_/g
+		%s/^/ibis_/
+	-->
 	<echo message="${native-path}" file="${build}/ibis/${native-path}/package"/>
 	<replaceregexp
 		byline="true"
@@ -283,10 +302,10 @@
 		file="${build}/ibis/${native-path}/package"
 		match=""
 		replace="ibis_"/>
-
 	<loadfile
 		property="package"
 		srcFile="${build}/ibis/${native-path}/package"/>
+
 	<property name="local.lib" value="${package}"/>
     </target>
 
@@ -340,7 +359,7 @@
     <target name="native"
 	    depends="native-init">
 	    <!-- ",javah" -->
-	<ant inheritAll="false" dir="." target="native-compile">
+	<ant inheritAll="false" dir="." antfile="build-native.xml" target="native-compile">
 	    <property name="native.dir" value="."/>
 	    <property name="build" value="${build}"/>
 	    <property name="ibis" value="${ibis}"/>
@@ -352,3 +371,4 @@
 	</ant>
     </target>
 
+</project>

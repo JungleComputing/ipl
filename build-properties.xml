@@ -1,4 +1,9 @@
-    <!--
+<project
+    name="properties"
+    default="property-init"
+    basedir=".">
+
+    <description>
 	Properties to be shared by all files, apps in Ibis
 
 	Requires prior definition of the following properties:
@@ -24,11 +29,18 @@
 	    Suggestions:
 		gcc			if unix
 		msvc or bcc		if windows
-    -->
+    </description>
 
 
+    <target name="property-init"
+	    depends="property-init-once"
+	    unless="property.initialized">
+	<property name="property.initialized" value="true"/>
+    </target>
 
-    <target name="property-init" depends="property-config-init,property-compiler-init,contrib-init,proprietary-tasks">
+
+    <target name="property-init-once"
+	    depends="property-config-init,property-compiler-init,contrib-init,proprietary-tasks">
     </target>
 
 
@@ -46,7 +58,8 @@
     </target>
 
 
-    <target name="property-compiler-init" depends="property-config-init,contrib-init">
+    <target name="property-compiler-init"
+	    depends="property-config-init,contrib-init">
 
 	<path id="default.classpath">
 	    <pathelement path="${ibisBuild}"/>
@@ -67,7 +80,10 @@
 	<property name="optimization" value="optimize"/>
 
 	<!--
-	    if you want debug info in java or native, define these properties
+	    If you want debug info in java or native, define these properties.
+	    It is only relevant whether they are defined - - giving them the
+	    value "true" has the same effect as giving them the value "false".
+	    To avoid debug info, just comment out the following two lines.
 	-->
 	<property name="java.debug" value="true"/>
 	<property name="native.debug" value="true"/>
@@ -133,9 +149,7 @@
     </target>
 
 
-    <target
-	    name="contrib-init"
-	    unless="contrib.initialized"
+    <target name="contrib-init"
 	    depends="property-config-init">
 	<echo level="verbose"
 		message="ant-contrib home is ${package.home.ant-contrib}"/>
@@ -144,13 +158,10 @@
 		<pathelement location="${package.home.ant-contrib}/ant-contrib-0.4.jar"/>
 	    </classpath>
 	</taskdef>
-	<property name="contrib.initialized" value="true"/>
     </target>
 
 
-    <target
-	    name="proprietary-tasks"
-	    unless="proprietary-initialized"
+    <target name="proprietary-tasks"
 	    depends="property-config-init">
 	<mkdir dir="${ibis}/ant-tasks/tasks"/>
 	<javac
@@ -163,8 +174,8 @@
 		name="maplibrary"
 		classname="MapLibraryName"
 		classpath="${ibis}/ant-tasks/tasks"/>
-	<property name="proprietary-initialized" value="true"/>
     </target>
+
 
 
     <!--
@@ -205,3 +216,5 @@
 	    <arg line="${ARGS}"/>
 	</java>
     </target>
+
+</project>

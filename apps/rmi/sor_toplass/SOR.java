@@ -357,9 +357,18 @@ System.err.println(rank + ": start my SOR");
 
 	iteration = 0;
 
+	ibis.util.nativeCode.Rdtsc rdtsc = null;
+	if (rank == 0) {
+	    rdtsc = new ibis.util.nativeCode.Rdtsc();
+	}
+
 	do {
 		diff = 0.0;
 		
+		if (rank == 0) {
+		    rdtsc.reset();
+		    rdtsc.start();
+		}
 		for (phase = 0; phase < 2 ; phase++){
 			// send to prev
 			
@@ -422,7 +431,10 @@ System.err.println(rank + ": start my SOR");
 		iteration++;
 	
 		if(rank==0) {
-			System.err.print(".");			
+			// System.err.print(".");			
+			rdtsc.stop();
+			long t = (long)(rdtsc.totalTimeVal() * 10);
+			System.out.println("" + (t / 10000000.0));
 			//			System.out.flush();
 			//System.out.println("" + maxdiff);
 		} 

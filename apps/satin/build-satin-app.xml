@@ -1,9 +1,12 @@
+<project
+    name="satin-app"
+    default="build"
+    basedir=".">
 
-    &sharedProperties;
-
-    &iogenTargets;
-    &nativeTargets;
-    &satinTargets;
+    <import file="${ibis}/build-properties.xml"/>
+    <import file="${ibis}/build-iogen.xml"/>
+    <import file="${ibis}/build-native.xml"/>
+    <import file="${ibis}/build-satin.xml"/>
 
 
     <target name="init">
@@ -32,4 +35,4 @@
 	<delete dir="${build}"/>
     </target>
 
-
+</project>

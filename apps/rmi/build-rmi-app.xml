@@ -1,9 +1,12 @@
+<project
+    name="repmi-app"
+    default="build"
+    basedir=".">
 
-    &sharedProperties;
-
-    &iogenTargets;
-    &rmicTargets;
-    &nativeTargets;
+    <import file="${ibis}/build-properties.xml"/>
+    <import file="${ibis}/build-iogen.xml"/>
+    <import file="${ibis}/build-rmic.xml"/>
+    <import file="${ibis}/build-native.xml"/>
 
     <target name="init" depends="property-init">
 	<tstamp/>
@@ -35,3 +38,5 @@
     <target name="clean">
 	<delete dir="${build}"/>
     </target>
+
+</project>

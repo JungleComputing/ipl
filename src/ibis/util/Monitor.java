@@ -75,6 +75,11 @@ public class Monitor {
     }
 
 
+    public ConditionVariable createCV(boolean interruptible) {
+	return new ConditionVariable(this, interruptible);
+    }
+
+
     final public void checkImOwner() {
 	if (DEBUG) {
 	    synchronized (this) {

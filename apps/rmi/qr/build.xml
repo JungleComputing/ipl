@@ -1,11 +1,3 @@
-<!DOCTYPE project [
-    <!ENTITY rmiAppProperties SYSTEM "../build-rmi-app.xml">
-    <!ENTITY sharedProperties SYSTEM "../../../build-properties.xml">
-    <!ENTITY iogenTargets     SYSTEM "../../../build-iogen.xml">
-    <!ENTITY nativeTargets    SYSTEM "../../../build-native.xml">
-    <!ENTITY rmicTargets      SYSTEM "../../../build-rmic.xml">
-]>
-
 <project
     name="ibis.apps.rmi.qr"
     default="build"
@@ -18,7 +10,7 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    &rmiAppProperties;
+    <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
 
 </project>
 

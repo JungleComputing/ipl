@@ -143,7 +143,11 @@ try {
 
     public void poll_wait(long timeout) {
 // System.err.println("ByteOutputStream poll_wait");
-	sendComplete.cv_wait(timeout);
+	try {
+	    sendComplete.cv_wait(timeout);
+	} catch (InterruptedException e) {
+	    // ignore
+	}
 // System.err.println("ByteOutputStream woke up");
     }
 

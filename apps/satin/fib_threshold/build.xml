@@ -1,11 +1,3 @@
-<!DOCTYPE project [
-    <!ENTITY satinAppTargets  SYSTEM "../build-satin-app.xml">
-    <!ENTITY sharedProperties SYSTEM "../../../build-properties.xml">
-    <!ENTITY iogenTargets     SYSTEM "../../../build-iogen.xml">
-    <!ENTITY nativeTargets    SYSTEM "../../../build-native.xml">
-    <!ENTITY satinTargets     SYSTEM "../../../build-satin.xml">
-]>
-
 <project
     name="ibis.apps.satin.fib_threshold"
     default="build"
@@ -14,7 +6,7 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    &satinAppTargets;
+    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
 </project>
 

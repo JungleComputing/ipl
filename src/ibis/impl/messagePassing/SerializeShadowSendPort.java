@@ -57,7 +57,11 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	     * initial message, and has to unlock for that.
 	     * We must wait until it's finished. */
 	    while (obj_in == null) {
-		objectStreamOpened.cv_wait();
+		try {
+		    objectStreamOpened.cv_wait();
+		} catch (InterruptedException e) {
+		    // ignore
+		}
 	    }
 	    if (((SerializeReadMessage)msg).obj_in != null) {
 		System.err.println("NNNNNNNNNNNNNNNOOOOOOOOOOOOOOOOOO this cannot be");

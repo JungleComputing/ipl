@@ -176,7 +176,11 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	Ibis.myIbis.lock();
 	while (aMessageIsAlive) {
 	    newMessageWaiters++;
-	    portIsFree.cv_wait();
+	    try {
+		portIsFree.cv_wait();
+	    } catch (InterruptedException e) {
+		// ignore
+	    }
 	    newMessageWaiters--;
 	}
 

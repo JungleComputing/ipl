@@ -99,7 +99,11 @@ public class ReadMessage
     public void poll_wait(long timeout) {
 // System.err.println("ReadMessage poll_wait");
 	sleepers++;
-	cv.cv_wait(timeout);
+	try {
+	    cv.cv_wait(timeout);
+	} catch (InterruptedException e) {
+	    // ignore
+	}
 	sleepers--;
 // System.err.println("ReadMessage woke up");
     }

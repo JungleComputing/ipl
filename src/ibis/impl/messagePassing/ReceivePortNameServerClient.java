@@ -45,7 +45,11 @@ final class ReceivePortNameServerClient
 	}
 
 	public void poll_wait(long timeout) {
-	    ns_done.cv_wait(timeout);
+	    try {
+		ns_done.cv_wait(timeout);
+	    } catch (InterruptedException e) {
+		// ignore
+	    }
 	}
 
 	Thread me;
@@ -83,7 +87,11 @@ final class ReceivePortNameServerClient
 	    Ibis.myIbis.lock();
 	    try {
 		while (ns_busy) {
-		    ns_free.cv_wait();
+		    try {
+			ns_free.cv_wait();
+		    } catch (InterruptedException e) {
+			// ignore
+		    }
 		}
 		ns_busy = true;
 
@@ -166,7 +174,11 @@ final class ReceivePortNameServerClient
 	}
 
 	public void poll_wait(long timeout) {
-	    ns_done.cv_wait(timeout);
+	    try {
+		ns_done.cv_wait(timeout);
+	    } catch (InterruptedException e) {
+		// ignore
+	    }
 	}
 
 	Thread me;
@@ -198,7 +210,11 @@ final class ReceivePortNameServerClient
 	    Ibis.myIbis.lock();
 	    while (ns_busy) {
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait until the previous client is finished" + this);
-		ns_free.cv_wait();
+		try {
+		    ns_free.cv_wait();
+		} catch (InterruptedException e) {
+		    // ignore
+		}
 	    }
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: set lookup.ns_busy" + this);
 	    ns_busy = true;

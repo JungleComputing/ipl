@@ -36,7 +36,11 @@ public class Syncer implements PollClient {
     }
 
     public void poll_wait(long timeout) {
-	cv.cv_wait(timeout);
+	try {
+	    cv.cv_wait(timeout);
+	} catch (InterruptedException e) {
+	    // ignore
+	}
     }
 
     Thread me;

@@ -3,6 +3,7 @@ package ibis.ipl.impl.generic;
 public class ConditionVariable {
 
     private Monitor lock;
+    private final boolean interruptible;
 
     static long waits;
     static long timed_waits;
@@ -10,30 +11,43 @@ public class ConditionVariable {
     static long bcasts;
 
 
-    ConditionVariable(Monitor lock) {
+    ConditionVariable(Monitor lock, boolean interruptible) {
 	this.lock = lock;
+	this.interruptible = interruptible;
     }
 
 
-    final public void cv_wait() {
+    ConditionVariable(Monitor lock) {
+	this(lock, false);
+    }
+
+
+    final public void cv_wait() throws InterruptedException {
 	lock.checkImOwner();
 	if (Monitor.DEBUG) {
 	    waits++;
 	}
 
-	synchronized (this) {
-	    lock.unlock();
-	    try {
-		wait();
-	    } catch (InterruptedException e) {
-		// Ignore
+	try {
+	    synchronized (this) {
+		lock.unlock();
+		if (interruptible) {
+		    wait();
+		} else {
+		    try {
+			wait();
+		    } catch (InterruptedException e) {
+			// Ignore
+		    }
+		}
 	    }
+	} finally {
+	    lock.lock();
 	}
-	lock.lock();
     }
 
 
-    final public boolean cv_wait(long timeout) {
+    final public boolean cv_wait(long timeout) throws InterruptedException {
 	lock.checkImOwner();
 	if (Monitor.DEBUG) {
 	    timed_waits++;
@@ -41,17 +55,24 @@ public class ConditionVariable {
 
 	boolean timedOut = false;
 
-	synchronized (this) {
-	    long now = System.currentTimeMillis();
-	    lock.unlock();
-	    try {
-		wait(timeout);
-	    } catch (InterruptedException e) {
-		// Ignore
+	try {
+	    synchronized (this) {
+		long now = System.currentTimeMillis();
+		lock.unlock();
+		if (interruptible) {
+		    wait(timeout);
+		} else {
+		    try {
+			wait(timeout);
+		    } catch (InterruptedException e) {
+			// Ignore
+		    }
+		}
+		timedOut = (System.currentTimeMillis() - now >= timeout);
 	    }
-	    timedOut = (System.currentTimeMillis() - now >= timeout);
+	} finally {
+	    lock.lock();
 	}
-	lock.lock();
 
 	return timedOut;
     }

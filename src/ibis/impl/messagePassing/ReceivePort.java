@@ -364,7 +364,11 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
     public void poll_wait(long timeout) {
 	arrivedWaiters++;
 // System.err.println("ReceivePort poll_wait, arrivedWaiters = " + arrivedWaiters);
-	messageArrived.cv_wait(timeout);
+	try {
+	    messageArrived.cv_wait(timeout);
+	} catch (InterruptedException e) {
+	    // ignore
+	}
 	arrivedWaiters--;
 // System.err.println("ReceivePort woke up, arrivedWaiters = " + arrivedWaiters);
     }
@@ -468,7 +472,11 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + ident + " aMessageIsAlive is true");
 	    }
-	    messageHandled.cv_wait();
+	    try {
+		messageHandled.cv_wait();
+	    } catch (InterruptedException e) {
+		// ignore
+	    }
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + ident + " aMessageIsAlive is true");
 	    }
@@ -606,7 +614,11 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	}
 
 	public void poll_wait(long timeout) {
-	    disconnected.cv_wait(timeout);
+	    try {
+		disconnected.cv_wait(timeout);
+	    } catch (InterruptedException e) {
+		// ignore
+	    }
 	}
 
 	public PollClient next() {
@@ -673,7 +685,11 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	}
 	/*
 	while (connections.size() > 0) {
-	    disconnected.cv_wait();
+	    try {
+		disconnected.cv_wait();
+	    } catch (InterruptedException e) {
+		// ignore
+	    }
 
 	    if (upcall != null) {
 		if (DEBUG) {
@@ -797,7 +813,11 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 		}
 
 		while (! allowUpcalls) {
-		    enable.cv_wait();
+		    try {
+			enable.cv_wait();
+		    } catch (InterruptedException e) {
+			// ignore
+		    }
 		}
 
 		msg = doReceive(true /* block */);	// May throw an IbisIOException

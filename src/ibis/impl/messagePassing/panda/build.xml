@@ -1,8 +1,3 @@
-<!DOCTYPE project [
-    <!ENTITY sharedProperties SYSTEM "../../../../build-properties.xml">
-    <!ENTITY nativeTargets    SYSTEM "../../../../build-native.xml">
-]>
-
 <project
     name="ibis.ipl.impl.messagePassing.panda.native"
     default="build"
@@ -29,8 +24,9 @@
     <property name="local.lib" value="ibis_local_mp_panda"/>
     <property name="closure.lib" value="ibis_mp_panda"/>
 
-    &sharedProperties;
-    &nativeTargets;
+    <property name="ibis" location="../../../.."/>
+
+    <import file="${ibis}/build-native.xml"/>
 
     <target name="arch-init" depends="property-init">
 

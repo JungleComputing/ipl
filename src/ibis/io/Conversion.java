@@ -14,7 +14,7 @@ public final class Conversion {
          *
          */
 
-	static boolean USE_NATIVE_CONVERSION = true;
+	private static boolean USE_NATIVE_CONVERSION = false;
 
 	public static void classInit() {
 //		System.err.println("pre load");

@@ -1,10 +1,17 @@
-    <!--
-    Ibis satin target.
+<project
+    name="satin"
+    default="satin"
+    basedir=".">
 
-    Require prior definition of properties:
-    default.classpath refid of classpath
-    build             the root of the build tree, which contains all class files
-    -->
+    <description>
+	Ibis satin target.
+
+	Require prior definition of properties:
+	default.classpath refid of classpath
+	build             the root of the build tree, which contains all class files
+    </description>
+
+    <import file="${ibis}/build-properties.xml"/>
 
     <target name="property-satin-build" unless="build">
 	<echo message="build is undefined. Set it to the default value"/>
@@ -40,6 +47,12 @@
 	<pathconvert pathsep="," property="classes.all" refid="all-classes">
 	    <map from="${build}${file.separator}" to=""/>
 	</pathconvert>
+
+	<!--
+	    Do regexp on ${classes.all} -> satin-classes
+		%s/.class//g
+		%s/\${file.separator}/./g
+	-->
 	<echo message="${classes.all}" file="${build}/SatinClasses"/>
 	<replaceregexp
 		byline="true"
@@ -57,6 +70,7 @@
 		property="satin-classes"
 		srcFile="${build}/SatinClasses">
 	</loadfile>
+
 	<echo	level="debug"
 		message="Run Satinc over all classes under ${build}${file.separator}"/>
 	<echo	level="debug"
@@ -72,3 +86,5 @@
 		inheritrefs="true"/>
 
     </target>
+
+</project>

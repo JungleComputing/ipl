@@ -1,8 +1,3 @@
-<!DOCTYPE project [
-    <!ENTITY sharedProperties SYSTEM "../../../../build-properties.xml">
-    <!ENTITY nativeTargets    SYSTEM "../../../../build-native.xml">
-]>
-
 <project
     name="ibis.ipl.impl.net.gm.native"
     default="build"
@@ -29,9 +24,9 @@
     <property name="local.lib" value="ibis_local_net_gm"/>
     <property name="closure.lib" value="net_ibis_gm"/>
 
+    <property name="ibis" location="../../../.."/>
 
-    &sharedProperties;
-    &nativeTargets;
+    <import file="${ibis}/build-native.xml"/>
 
 
     <target name="gm-lib">
@@ -75,8 +70,8 @@
 			runtime="dynamic"
 			incremental="true"
 			name="${c.compiler}"
-			debug="${native.debug.value}">
-			<!-- warnings="severe" -->
+			debug="${native.debug.value}"
+			warnings="severe">
 		    <libset dir="${gm.lib.dir}"    libs="gm"/>
 		    <includepath>
 			<pathelement path="${local.includes}"/>

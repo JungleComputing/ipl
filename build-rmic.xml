@@ -1,10 +1,17 @@
-    <!--
-    Ibis rmic target.
+<project
+    name="rmic"
+    default="rmic"
+    basedir=".">
 
-    Require prior definition of properties:
-    default.classpath refid of classpath
-    build             the root of the build tree, which contains all class files
-    -->
+    <description>
+	Ibis rmic target.
+
+	Require prior definition of properties:
+	default.classpath refid of classpath
+	build             the root of the build tree, which contains all class files
+    </description>
+
+    <import file="${ibis}/build-properties.xml"/>
 
     <target name="property-rmic-build" unless="build">
 	<echo message="build is undefined. Set it to the default value"/>
@@ -27,6 +34,12 @@
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
 	    <map from="${build}${file.separator}" to=""/>
 	</pathconvert>
+
+	<!--
+	    Do regexp on ${classes.all} -> rmic-classes
+		%s/.class//g
+		%s/\${file.separator}/./g
+	-->
 	<echo message="${classes.all}" file="${build}/RMIC-Classes"/>
 	<replaceregexp
 		byline="true"
@@ -44,6 +57,7 @@
 		property="rmic-classes"
 		srcFile="${build}/RMIC-Classes">
 	</loadfile>
+
 	<echo	level="debug"
 		message="All classes to be rewritten: ${rmic-classes}"/>
 	<echo	level="debug"
@@ -62,3 +76,5 @@
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
+
+</project>

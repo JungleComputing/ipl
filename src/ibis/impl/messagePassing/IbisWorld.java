@@ -65,7 +65,11 @@ class IbisWorld implements Runnable {
 
 	Ibis.myIbis.lock();
 	while (! isOpen) {
-	    opened.cv_wait();
+	    try {
+		opened.cv_wait();
+	    } catch (InterruptedException e) {
+		// ignore
+	    }
 	}
 	Ibis.myIbis.unlock();
 
@@ -79,7 +83,11 @@ class IbisWorld implements Runnable {
 	for (int i = 0; isOpen && i < Ibis.myIbis.nrCpus; i++) {
 	    Ibis.myIbis.lock();
 	    while (joinId[i] == null) {
-		opened.cv_wait();
+		try {
+		    opened.cv_wait();
+		} catch (InterruptedException e) {
+		    // ignore
+		}
 	    }
 	    Ibis.myIbis.unlock();
 	    Ibis.myIbis.join(joinId[i]);
@@ -88,7 +96,11 @@ class IbisWorld implements Runnable {
 	for (int i = 0; isOpen && i < Ibis.myIbis.nrCpus; i++) {
 	    Ibis.myIbis.lock();
 	    while (leaveId[i] == null) {
-		opened.cv_wait();
+		try {
+		    opened.cv_wait();
+		} catch (InterruptedException e) {
+		    // ignore
+		}
 	    }
 	    Ibis.myIbis.unlock();
 	    Ibis.myIbis.leave(leaveId[i]);

@@ -1,11 +1,3 @@
-<!DOCTYPE project [
-    <!ENTITY gmiAppProperties SYSTEM "../build-gmi-app.xml">
-    <!ENTITY sharedProperties SYSTEM "../../../build-properties.xml">
-    <!ENTITY iogenTargets     SYSTEM "../../../build-iogen.xml">
-    <!ENTITY nativeTargets    SYSTEM "../../../build-native.xml">
-    <!ENTITY gmiTargets       SYSTEM "../../../build-gmi.xml">
-]>
-
 <project
     name="ibis.apps.group.Generic"
     default="build"
@@ -15,11 +7,9 @@
 	Ibis GMI application build.
     </description>
 
-    <property name="ibis"        location="../../.."/>
+    <property name="ibis"        location="../../../.."/>
     <property name="build"       location="build"/>
 
-    &gmiAppProperties;
+    <import file="${ibis}/apps/group/build-gmi-app.xml"/>
 
 </project>
-
-

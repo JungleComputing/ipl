@@ -81,7 +81,11 @@ final class AcceptThread extends Thread {
 	enqueue(q);
 
 	while (! q.finished) {
-	    q.decided.cv_wait();
+	    try {
+		q.decided.cv_wait();
+	    } catch (InterruptedException e) {
+		// ignore
+	    }
 	}
 
 	accept = q.accept;
@@ -102,7 +106,11 @@ final class AcceptThread extends Thread {
 
 	while (true) {
 	    while ((q = dequeue()) == null && ! stopped) {
-		there_is_work.cv_wait();
+		try {
+		    there_is_work.cv_wait();
+		} catch (InterruptedException e) {
+		    // ignore
+		}
 	    }
 
 	    if (q == null) {

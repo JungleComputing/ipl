@@ -1,25 +1,32 @@
-    <!--
-    Ibis iogen target.
+<project
+    name="iogen"
+    default="iogen"
+    basedir=".">
 
-    Require prior definition of properties:
-    default.classpath	refid of classpath
+    <description>
+	Ibis iogen target.
 
-    Targets:
+	Require prior definition of properties:
+	default.classpath	refid of classpath
 
-    iogen	    rewrite files under ${iogen-build}
-	Set parameter:
-	iogen-build	root of tree to be iogen-ed
-			if undefined, value of ${build}
+	Targets:
 
-    iogen-files	    rewrite ${iogen-files}
-	Set parameter:
-	iogen-build	root of tree to be iogen-ed
-			if undefined, value of ${build}
-	iogen-files	list of files (separated by " ") to be
-			iogen-ed
-			if undefined, ${iogen-build}/**/*.class
+	iogen	    rewrite files under ${iogen-build}
+	    Set parameter:
+	    iogen-build	root of tree to be iogen-ed
+			    if undefined, value of ${build}
 
-    -->
+	iogen-files	    rewrite ${iogen-files}
+	    Set parameter:
+	    iogen-build	root of tree to be iogen-ed
+			    if undefined, value of ${build}
+	    iogen-files	list of files (separated by " ") to be
+			    iogen-ed
+			    if undefined, ${iogen-build}/**/*.class
+
+    </description>
+
+    <import file="${ibis}/build-properties.xml"/>
 
     <target name="property-iogen-build"
 	    depends="property-init"
@@ -43,7 +50,10 @@
     </target>
 
     <target name="iogen-init"
-	    depends="property-iogen-build,property-iogen-files"/>
+	    depends="property-iogen-build,property-iogen-files"
+	    unless="iogen.initialized">
+	<property name="iogen.initialized" value="true"/>
+    </target>
 
     <target name="iogen-files" depends="iogen-init">
 	<mkdir dir="${iogen-build}"/>
@@ -58,7 +68,7 @@
     </target>
 
     <target name="iogen"
-	depends="iogen-init">
+	    depends="iogen-init">
 	<echo level="debug" message="IOGen all class files under ${iogen-build}"/>
 	<path id="iogen-all-classes">
 	    <fileset dir="${iogen-build}">
@@ -74,3 +84,5 @@
 	    <param name="iogen-build" value="${build}"/>
 	</antcall>
     </target>
+
+</project>

@@ -1,10 +1,3 @@
-<!DOCTYPE project [
-    <!ENTITY sharedProperties SYSTEM "build-properties.xml">
-    <!ENTITY iogenTargets     SYSTEM "build-iogen.xml">
-    <!ENTITY nativeTargets    SYSTEM "build-native.xml">
-    <!ENTITY configTargets    SYSTEM "build-config.xml">
-]>
-
 <project
     name="ibis"
     default="build"
@@ -17,24 +10,54 @@
     <property name="ibis"        location="."/>
 
     <!--
-    This must come first, i.e. before sharedProperties.
-    We cannot require ant-contrib before we have configured.
+	This must come first.
+	We cannot require ant-contrib before we have configured.
     -->
-    &configTargets;
+    <import file="${ibis}/build-config.xml"/>
 
-    &sharedProperties;
+    <import file="${ibis}/build-properties.xml"/>
 
     <property name="src"         location="${ibis}/.."/>
     <property name="build"       location="${ibis}/build"/>
 
     <target name="init" depends="property-init">
 	<tstamp/>
+
+	<!--
+	<property name="p-in" value="\\abc\\def"/>
+	<echo message="p-in = ${p-in}"/>
+	<propertyregex
+		property="p-out"
+		input="${p-in}"
+		regexp="\\\\"
+		replace="\\\\"
+		global="true"/>
+	<echo message="p-out = ${p-out}"/>
+	-->
+
 	<echo message="packages:"/>
 	<echo message="package.home.bcel      = ${package.home.bcel}"/>
 	<echo message="package.home.bcel-additions = ${package.home.bcel-additions}"/>
 	<echo message="package.home.ant-contrib    = ${package.home.ant-contrib}"/>
 	<echo message="package.home.ant-cpptasks   = ${package.home.ant-cpptasks}"/>
 	<mkdir dir="${build}"/>
+	<!-- On M$ Windows, the path separator is '\'. Now, this happens
+	    to be the escape character within Java strings. To get it
+	    into the string, '\' itself must be escaped.
+	-->
+	<echo level="debug" message="Want to replace '\' with '\\' inside ${ibis}"/>
+	<propertyregex
+		property="ibis.escaped"
+		input="${ibis}"
+		regexp="\\"
+		replace="\\\\\\\\"
+		global="true"/>
+	<!--
+	    If the match failed, we need to copy the original value
+	    by hand into ibis.escaped. :-(
+	-->
+	<property name="ibis.escaped" value="${ibis}"/>
+
 	<copy
 		file="${ibis}/ipl/InstallConfiguration.java.in"
 		tofile="${ibis}/ipl/InstallConfiguration.java">
@@ -43,7 +66,7 @@
 			classname="org.apache.tools.ant.filters.ReplaceTokens">
 		    <param  type="token"
 			    name="IBIS_INSTALL_PATH"
-			    value='"${ibis}"'/>
+			    value='"${ibis.escaped}"'/>
 		</filterreader>
 	    </filterchain>
 	</copy>
@@ -71,6 +94,8 @@
 	<pathelement path="${ibis}/ipl/impl/messagePassing"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/panda"/>
 	<!--
+	-->
+	<!--
 	<pathelement path="${ibis}/ipl/impl/messagePassing/mpi"/>
 	-->
 	<pathelement path="${ibis}/ipl/impl/net/gm"/>
@@ -82,7 +107,7 @@
     <property name="native.src.path" refid="native.src.dirs"/>
 
 
-    &iogenTargets;
+    <import file="${ibis}/build-iogen.xml"/>
 
 
     <target name="depend">
@@ -224,7 +249,7 @@
     </target>
 
 
-    &nativeTargets;
+    <import file="${ibis}/build-native.xml"/>
 
     <!--
 	Compile the native code in the directory indicated by native.dir

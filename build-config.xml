@@ -1,246 +1,290 @@
-<!--
-  Install-time configuration.
-  Figure out where the packages are that we depend on.
--->
+<project
+    name="build-config"
+    default="configure"
+    basedir=".">
+
+    <description>
+      Install-time configuration.
+      Figure out where the packages are that we depend on.
+    </description>
 
 
-<target name="config.unix"     depends="config-set-os" if="config.os-is-unix">
-    <property name="default.home.bcel" location="/home2/ceriel/bcel-5.1"/>
-    <property name="default.home.ant-contrib" location="/usr/local/ant/ant-contrib/lib"/>
-    <property name="default.home.ant-cpptasks" location="/usr/local/ant/ant-cpptasks/cpptasks-1.0b1"/>
+    <target name="config.unix"
+	    depends="config-set-os"
+	    if="config.os-is-unix">
+	<property
+		name="default.home.bcel"
+		location="/home2/ceriel/bcel-5.1"/>
+	<property
+		name="default.home.ant-contrib"
+		location="/usr/local/ant/ant-contrib/lib"/>
+	<property
+		name="default.home.ant-cpptasks"
+		location="/usr/local/ant/ant-cpptasks/cpptasks-1.0b1"/>
 
-    <property name="default.home.panda"  location="/usr/local/VU/panda/panda4.0"/>
-    <property name="default.home.daslib" location="/usr/local/VU/daslib"/>
-    <property name="default.home.lfc"    location="/usr/local/VU/lfc/lfc-gm"/>
-    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
-    <property name="default.home.gm"     location="/usr/local/gm/current"/>
-</target>
+	<property
+		name="default.home.panda"
+		location="/usr/local/VU/panda/panda4.0"/>
+	<property
+		name="default.home.daslib"
+		location="/usr/local/VU/daslib"/>
+	<property
+		name="default.home.lfc"
+		location="/usr/local/VU/lfc/lfc-gm"/>
+	<property
+		name="default.home.mpi"
+		location="/usr/local/mpich/mpich-gm"/>
+	<property
+		name="default.home.gm"
+		location="/usr/local/gm/current"/>
+    </target>
 
-<target name="config.windows" depends="config-set-os" if="config.os-is-windows">
-    <property name="default.home.bcel" location="../bcel/bcel-5.1"/>
-    <property name="default.home.ant-contrib" location="../ant-contrib/lib"/>
-    <property name="default.home.ant-cpptasks" location="../ant-cpptasks/cpptasks-1.0b1"/>
+    <target name="config.windows"
+	    depends="config-set-os"
+	    if="config.os-is-windows">
+	<property
+		name="default.home.bcel"
+		location="../bcel/bcel-5.1"/>
+	<property
+		name="default.home.ant-contrib"
+		location="../ant-contrib/lib"/>
+	<property
+		name="default.home.ant-cpptasks"
+		location="../ant-cpptasks/cpptasks-1.0b1"/>
 
-    <property name="default.home.panda"  location="../panda/panda4.0"/>
-    <property name="default.home.daslib" location="../daslib"/>
-    <property name="default.home.lfc"    location="../lfc-gm"/>
-    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
-    <property name="default.home.gm"     location="../GM"/>
-</target>
+	<property
+		name="default.home.panda"
+		location="../panda/panda4.0"/>
+	<property
+		name="default.home.daslib"
+		location="../daslib"/>
+	<property
+		name="default.home.lfc"
+		location="../lfc-gm"/>
+	<property
+		name="default.home.mpi"
+		location="/usr/local/mpich/mpich-gm"/>
+	<property
+		name="default.home.gm"
+		location="../GM"/>
+    </target>
 
-<target name="config.mac"     depends="config-set-os" if="config.os-is-windows">
-</target>
+    <target name="config.mac"
+	    depends="config-set-os"
+	    if="config.os-is-windows">
+    </target>
 
-<target name="config-set-os">
-    <condition property="config.os-is-unix"    value="true">
-	<os family="unix"/>
-    </condition>
-    <condition property="config.os-is-windows" value="true">
-	<os family="windows"/>
-    </condition>
-    <condition property="config.os-is-mac"     value="true">
-	<os family="mac"/>
-    </condition>
-</target>
+    <target name="config-set-os">
+	<condition property="config.os-is-unix"    value="true">
+	    <os family="unix"/>
+	</condition>
+	<condition property="config.os-is-windows" value="true">
+	    <os family="windows"/>
+	</condition>
+	<condition property="config.os-is-mac"     value="true">
+	    <os family="mac"/>
+	</condition>
+    </target>
 
-<target name="config-init" depends="config.unix,config.windows,config.mac">
-</target>
-
-
-<target name="configure" depends="config-init">
-
-    <input
-	    message="Please enter the install directory of BCEL: [${default.home.bcel}] "
-	    addproperty="install.home.bcel"/>
-    <!--
-    <input
-	    message="Please enter the install directory of BCEL-additions: "
-	    addproperty="install.home.bcel-additions"/>
-    -->
-    <property
-	    name="install.home.bcel-additions"
-	    location="${ibis}/bcel-additions"/>
-
-    <input
-	    message="Please enter the install directory of ant-contrib: [${default.home.ant-contrib}] "
-	    addproperty="install.home.ant-contrib"/>
-    <input
-	    message="Please enter the install directory of ant-cpptasks: [${default.home.ant-cpptasks}] "
-	    addproperty="install.home.ant-cpptasks"/>
-
-    <input
-	    message="Please enter the install directory of gm: [${default.home.gm}] "
-	    addproperty="install.home.gm"/>
-    <input
-	    message="Please enter the install directory of daslib: [${default.home.daslib}] "
-	    addproperty="install.home.daslib"/>
-    <input
-	    message="Please enter the install directory of lfc: [${default.home.lfc}] "
-	    addproperty="install.home.lfc"/>
-    <input
-	    message="Please enter the install directory of panda: [${default.home.panda}] "
-	    addproperty="install.home.panda"/>
-    <input
-	    message="Please enter the install directory of mpi: [${default.home.mpi}] "
-	    addproperty="install.home.mpi"/>
+    <target name="config-init" depends="config.unix,config.windows,config.mac">
+    </target>
 
 
-    <property
-	    name="config.home.ibis"
-	    location="${ibis}"/>
+    <target name="configure" depends="config-init">
 
-    <condition property="config.home.bcel-s" value="${default.home.bcel}">
-	<equals arg1="${install.home.bcel}" arg2=""/>
-    </condition>
-    <condition property="config.home.bcel-s" value="${install.home.bcel}">
-	<not>
+	<input
+		message="Please enter the install directory of BCEL: [${default.home.bcel}] "
+		addproperty="install.home.bcel"/>
+	<!--
+	<input
+		message="Please enter the install directory of BCEL-additions: "
+		addproperty="install.home.bcel-additions"/>
+	-->
+	<property
+		name="install.home.bcel-additions"
+		location="${ibis}/bcel-additions"/>
+
+	<input
+		message="Please enter the install directory of ant-contrib: [${default.home.ant-contrib}] "
+		addproperty="install.home.ant-contrib"/>
+	<input
+		message="Please enter the install directory of ant-cpptasks: [${default.home.ant-cpptasks}] "
+		addproperty="install.home.ant-cpptasks"/>
+
+	<input
+		message="Please enter the install directory of gm: [${default.home.gm}] "
+		addproperty="install.home.gm"/>
+	<input
+		message="Please enter the install directory of daslib: [${default.home.daslib}] "
+		addproperty="install.home.daslib"/>
+	<input
+		message="Please enter the install directory of lfc: [${default.home.lfc}] "
+		addproperty="install.home.lfc"/>
+	<input
+		message="Please enter the install directory of panda: [${default.home.panda}] "
+		addproperty="install.home.panda"/>
+	<input
+		message="Please enter the install directory of mpi: [${default.home.mpi}] "
+		addproperty="install.home.mpi"/>
+
+
+	<property
+		name="config.home.ibis"
+		location="${ibis}"/>
+
+	<condition property="config.home.bcel-s" value="${default.home.bcel}">
 	    <equals arg1="${install.home.bcel}" arg2=""/>
-	</not>
-    </condition>
-    <property name="config.home.bcel"
-	    location="${config.home.bcel-s}"/>
+	</condition>
+	<condition property="config.home.bcel-s" value="${install.home.bcel}">
+	    <not>
+		<equals arg1="${install.home.bcel}" arg2=""/>
+	    </not>
+	</condition>
+	<property name="config.home.bcel"
+		location="${config.home.bcel-s}"/>
 
-    <property name="config.home.bcel-additions"
-	    location="${install.home.bcel-additions}"/>
+	<property name="config.home.bcel-additions"
+		location="${install.home.bcel-additions}"/>
 
-    <condition property="config.home.ant-contrib-s" value="${default.home.ant-contrib}">
-	<equals arg1="${install.home.ant-contrib}" arg2=""/>
-    </condition>
-    <condition property="config.home.ant-contrib-s" value="${install.home.ant-contrib}">
-	<not>
+	<condition property="config.home.ant-contrib-s" value="${default.home.ant-contrib}">
 	    <equals arg1="${install.home.ant-contrib}" arg2=""/>
-	</not>
-    </condition>
-    <property name="config.home.ant-contrib"
-	    location="${config.home.ant-contrib-s}"/>
+	</condition>
+	<condition property="config.home.ant-contrib-s" value="${install.home.ant-contrib}">
+	    <not>
+		<equals arg1="${install.home.ant-contrib}" arg2=""/>
+	    </not>
+	</condition>
+	<property name="config.home.ant-contrib"
+		location="${config.home.ant-contrib-s}"/>
 
-    <condition property="config.home.ant-cpptasks-s" value="${default.home.ant-cpptasks}">
-	<equals arg1="${install.home.ant-cpptasks}" arg2=""/>
-    </condition>
-    <condition property="config.home.ant-cpptasks-s" value="${install.home.ant-cpptasks}">
-	<not>
+	<condition property="config.home.ant-cpptasks-s" value="${default.home.ant-cpptasks}">
 	    <equals arg1="${install.home.ant-cpptasks}" arg2=""/>
-	</not>
-    </condition>
-    <property name="config.home.ant-cpptasks"
-	    location="${config.home.ant-cpptasks-s}"/>
+	</condition>
+	<condition property="config.home.ant-cpptasks-s" value="${install.home.ant-cpptasks}">
+	    <not>
+		<equals arg1="${install.home.ant-cpptasks}" arg2=""/>
+	    </not>
+	</condition>
+	<property name="config.home.ant-cpptasks"
+		location="${config.home.ant-cpptasks-s}"/>
 
-    <condition property="config.home.gm-s" value="${default.home.gm}">
-	<equals arg1="${install.home.gm}" arg2=""/>
-    </condition>
-    <condition property="config.home.gm-s" value="${install.home.gm}">
-	<not>
+	<condition property="config.home.gm-s" value="${default.home.gm}">
 	    <equals arg1="${install.home.gm}" arg2=""/>
-	</not>
-    </condition>
-    <property name="config.home.gm"
-	    location="${config.home.gm-s}"/>
+	</condition>
+	<condition property="config.home.gm-s" value="${install.home.gm}">
+	    <not>
+		<equals arg1="${install.home.gm}" arg2=""/>
+	    </not>
+	</condition>
+	<property name="config.home.gm"
+		location="${config.home.gm-s}"/>
 
-    <condition property="config.home.daslib-s" value="${default.home.daslib}">
-	<equals arg1="${install.home.daslib}" arg2=""/>
-    </condition>
-    <condition property="config.home.daslib-s" value="${install.home.daslib}">
-	<not>
+	<condition property="config.home.daslib-s" value="${default.home.daslib}">
 	    <equals arg1="${install.home.daslib}" arg2=""/>
-	</not>
-    </condition>
-    <property name="config.home.daslib"
-	    location="${config.home.daslib-s}"/>
+	</condition>
+	<condition property="config.home.daslib-s" value="${install.home.daslib}">
+	    <not>
+		<equals arg1="${install.home.daslib}" arg2=""/>
+	    </not>
+	</condition>
+	<property name="config.home.daslib"
+		location="${config.home.daslib-s}"/>
 
-    <condition property="config.home.lfc-s" value="${default.home.lfc}">
-	<equals arg1="${install.home.lfc}" arg2=""/>
-    </condition>
-    <condition property="config.home.lfc-s" value="${install.home.lfc}">
-	<not>
+	<condition property="config.home.lfc-s" value="${default.home.lfc}">
 	    <equals arg1="${install.home.lfc}" arg2=""/>
-	</not>
-    </condition>
-    <property name="config.home.lfc"
-	    location="${config.home.lfc-s}"/>
+	</condition>
+	<condition property="config.home.lfc-s" value="${install.home.lfc}">
+	    <not>
+		<equals arg1="${install.home.lfc}" arg2=""/>
+	    </not>
+	</condition>
+	<property name="config.home.lfc"
+		location="${config.home.lfc-s}"/>
 
-    <condition property="config.home.panda-s" value="${default.home.panda}">
-	<equals arg1="${install.home.panda}" arg2=""/>
-    </condition>
-    <condition property="config.home.panda-s" value="${install.home.panda}">
-	<not>
+	<condition property="config.home.panda-s" value="${default.home.panda}">
 	    <equals arg1="${install.home.panda}" arg2=""/>
-	</not>
-    </condition>
-    <property name="config.home.panda"
-	    location="${config.home.panda-s}"/>
+	</condition>
+	<condition property="config.home.panda-s" value="${install.home.panda}">
+	    <not>
+		<equals arg1="${install.home.panda}" arg2=""/>
+	    </not>
+	</condition>
+	<property name="config.home.panda"
+		location="${config.home.panda-s}"/>
 
-    <condition property="config.home.mpi-s" value="${default.home.mpi}">
-	<equals arg1="${install.home.mpi}" arg2=""/>
-    </condition>
-    <condition property="config.home.mpi-s" value="${install.home.mpi}">
-	<not>
+	<condition property="config.home.mpi-s" value="${default.home.mpi}">
 	    <equals arg1="${install.home.mpi}" arg2=""/>
-	</not>
-    </condition>
-    <property name="config.home.mpi"
-	    location="${config.home.mpi-s}"/>
+	</condition>
+	<condition property="config.home.mpi-s" value="${install.home.mpi}">
+	    <not>
+		<equals arg1="${install.home.mpi}" arg2=""/>
+	    </not>
+	</condition>
+	<property name="config.home.mpi"
+		location="${config.home.mpi-s}"/>
 
 
-    <!--
-    <echo	file="config.status"
-	    append="false">${config.home.bcel}
-    </echo>
-    <echo	file="config.status"
-	    append="true">${config.home.bcel-additions}
-    </echo>
-    <echo	file="config.status"
-	    append="true">${config.home.ant-contrib}
-    </echo>
-    <echo	file="config.status"
-	    append="true">${config.home.ant-cpptasks}
-    </echo>
-    -->
+	<!--
+	<echo	file="config.status"
+		append="false">${config.home.bcel}
+	</echo>
+	<echo	file="config.status"
+		append="true">${config.home.bcel-additions}
+	</echo>
+	<echo	file="config.status"
+		append="true">${config.home.ant-contrib}
+	</echo>
+	<echo	file="config.status"
+		append="true">${config.home.ant-cpptasks}
+	</echo>
+	-->
 
-    <copy
-	    overwrite="true"
-	    file="${ibis}/build-properties.in"
-	    tofile="${ibis}/build-properties">
-	<filterchain>
-	    <filterreader
-		    classname="org.apache.tools.ant.filters.ReplaceTokens">
-		<param  type="token"
-			name="IBIS"
-			value="${config.home.ibis}"/>
-		<param  type="token"
-			name="BCEL_HOME"
-			value="${config.home.bcel}"/>
-		<param  type="token"
-			name="BCEL_ADDITIONS"
-			value="${config.home.bcel-additions}"/>
-		<param  type="token"
-			name="ANT_CONTRIB"
-			value="${config.home.ant-contrib}"/>
-		<param  type="token"
-			name="ANT_CPPTASKS"
-			value="${config.home.ant-cpptasks}"/>
+	<copy
+		overwrite="true"
+		file="${ibis}/build-properties.in"
+		tofile="${ibis}/build-properties">
+	    <filterchain>
+		<filterreader
+			classname="org.apache.tools.ant.filters.ReplaceTokens">
+		    <param  type="token"
+			    name="IBIS"
+			    value="${config.home.ibis}"/>
+		    <param  type="token"
+			    name="BCEL_HOME"
+			    value="${config.home.bcel}"/>
+		    <param  type="token"
+			    name="BCEL_ADDITIONS"
+			    value="${config.home.bcel-additions}"/>
+		    <param  type="token"
+			    name="ANT_CONTRIB"
+			    value="${config.home.ant-contrib}"/>
+		    <param  type="token"
+			    name="ANT_CPPTASKS"
+			    value="${config.home.ant-cpptasks}"/>
 
-		<param  type="token"
-			name="GM_HOME"
-			value="${config.home.gm}"/>
-		<param  type="token"
-			name="DASLIB_HOME"
-			value="${config.home.daslib}"/>
-		<param  type="token"
-			name="LFC_HOME"
-			value="${config.home.lfc}"/>
-		<param  type="token"
-			name="PANDA_HOME"
-			value="${config.home.panda}"/>
-		<param  type="token"
-			name="MPI_HOME"
-			value="${config.home.mpi}"/>
-	    </filterreader>
-	</filterchain>
-    </copy>
-    <replaceregexp
-	    file="${ibis}/build-properties"
-	    flags="g"
-	    match="\${file.separator}"
-	    replace="/"/>
-</target>
+		    <param  type="token"
+			    name="GM_HOME"
+			    value="${config.home.gm}"/>
+		    <param  type="token"
+			    name="DASLIB_HOME"
+			    value="${config.home.daslib}"/>
+		    <param  type="token"
+			    name="LFC_HOME"
+			    value="${config.home.lfc}"/>
+		    <param  type="token"
+			    name="PANDA_HOME"
+			    value="${config.home.panda}"/>
+		    <param  type="token"
+			    name="MPI_HOME"
+			    value="${config.home.mpi}"/>
+		</filterreader>
+	    </filterchain>
+	</copy>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		flags="g"
+		match="\${file.separator}"
+		replace="/"/>
+    </target>
 
+</project>

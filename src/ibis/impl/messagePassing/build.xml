@@ -1,8 +1,3 @@
-<!DOCTYPE project [
-    <!ENTITY sharedProperties SYSTEM "../../../build-properties.xml">
-    <!ENTITY nativeTargets    SYSTEM "../../../build-native.xml">
-]>
-
 <project
     name="ibis.ipl.impl.messagePassing.native"
     default="build"
@@ -26,11 +21,11 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
-    &sharedProperties;
-
     <property name="cc.outtype" value="static"/>
 
-    &nativeTargets;
+    <property name="ibis" location="../../.."/>
+
+    <import file="${ibis}/build-native.xml"/>
 
     <target name="arch-init" depends="property-init">
 
