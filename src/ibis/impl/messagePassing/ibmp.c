@@ -47,7 +47,7 @@ static jmethodID	md_poll;
 jclass		ibmp_cls_Ibis;
 jobject		ibmp_obj_Ibis_ibis;
 
-static jclass		cls_IbisIOException;
+jclass		cls_IbisIOException;
 
 int		ibmp_me;
 int		ibmp_nr;
@@ -97,8 +97,24 @@ ibmp_error_printf(JNIEnv *env, const char *fmt, ...)
 	abort();
     } else {
 	(*env)->ThrowNew(env, cls_IbisIOException, msg);
-	// exit(33);
+#if EXIT_ON_ERROR
+	exit(33);
+#endif
     }
+}
+
+
+int
+ibmp_pid_me(void)
+{
+    return ibmp_me;
+}
+
+
+int
+ibmp_pid_nr(void)
+{
+    return ibmp_nr;
 }
 
 
@@ -131,6 +147,13 @@ ibmp_currentThread(JNIEnv *env)
     (*env)->ReleaseStringUTFChars(env, t, b);
 
     return c;
+}
+
+
+void
+ibmp_dumpStack(JNIEnv *env)
+{
+    (*env)->CallStaticVoidMethod(env, cls_Thread, md_dumpStack);
 }
 
 
@@ -358,7 +381,6 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
     }
 
     md_dumpStack   = (*env)->GetStaticMethodID(env, cls_Thread, "dumpStack", "()V");
-    // md_dumpStack   = (*env)->GetStaticMethodID(env, ibmp_cls_Ibis, "dumpStack", "()V");
     if (md_dumpStack == NULL) {
 	ibmp_error(env, "Cannot find static method dumpStack()V\n");
     }
@@ -409,6 +431,9 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
 	argv[1] = NULL;
 	ibp_init(env, &argc, argv);
     }
+
+    ibmp_me = ibp_pid_me();
+    ibmp_nr = ibp_pid_nr();
 
     md_lock = (*env)->GetMethodID(env, ibmp_cls_Ibis, "lock", "()V");
     if (md_lock == NULL) {
@@ -491,18 +516,17 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1start(JNIEnv *env, jobject this)
 void
 Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
 {
-fprintf(stderr, "%2d: ibmp_1end: hi folks... \n", ibmp_me);
-    ibmp_byte_input_stream_end(env);
-    ibmp_byte_output_stream_end(env);
-    ibmp_send_port_end(env);
-    ibmp_join_end(env);
-    ibmp_disconnect_end(env);
     ibmp_connect_end(env);
+    ibmp_disconnect_end(env);
     ibmp_receive_port_ns_bind_end(env);
     ibmp_receive_port_ns_lookup_end(env);
     ibmp_receive_port_ns_unbind_end(env);
     ibmp_receive_port_ns_end(env);
+    ibmp_join_end(env);
     ibmp_poll_end(env);
+    ibmp_byte_input_stream_end(env);
+    ibmp_byte_output_stream_end(env);
+    ibmp_send_port_end(env);
     IBP_VPRINTF(2000, env, ("here...\n"));
 
     ibp_mp_end(env);

@@ -18,7 +18,7 @@ final class ReceivePortNameServer implements
     /* Called from native */
     private void bind(String name, byte[] serialForm, int tag, int client)
 	    throws IbisIOException {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	ReceivePortIdentifier ri = null;
 	try {
 	    ri = (ReceivePortIdentifier)SerializeBuffer.readObject(serialForm);
@@ -55,7 +55,7 @@ final class ReceivePortNameServer implements
 
     /* Called from native */
     private void lookup(String name, int tag, int client) throws ClassNotFoundException {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 
 	ReceivePortIdentifier storedId;
 
@@ -81,7 +81,7 @@ final class ReceivePortNameServer implements
 
     /* Called from native */
     private void unbind(String name) throws ClassNotFoundException {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 
 	if (ReceivePortNameServerProtocol.DEBUG) {
 	    System.err.println(Thread.currentThread() + "" + this + ": unbind receive port \"" + name + "\"");

@@ -66,6 +66,7 @@ public class CheckNativeMethods {
 
 	String file = null;
 	String[] clazz = null;
+	boolean verbose = false;
 
 	if (false) {
 	    System.err.print("CheckNativeMethods arguments: ");
@@ -77,6 +78,8 @@ public class CheckNativeMethods {
 
 	for (int i = 0; i < args.length; i++) {
 	    if (false) {
+	    } else if (args[i].equals("-v")) {
+		verbose = true;
 	    } else if (args[i].equals("-f")) {
 		try {
 		    checkNativeMethodsFromFile(args[++i]);
@@ -91,6 +94,9 @@ public class CheckNativeMethods {
 
 	for (int i = 0; i < clazz.length; i++) {
 	    try {
+		if (verbose) {
+		    System.err.println("Check class " + clazz[i]);
+		}
 		checkNativeMethods(clazz[i]);
 	    } catch (java.io.IOException e) {
 		System.err.println("Error for class " + clazz[i] + ": " + e);

@@ -111,7 +111,7 @@ final public class Poll implements Runnable {
     final void waitPolling(PollClient client, long timeout, int preempt)
 	    throws IbisIOException {
 
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 
 	long t_start = 0;
 	if (timeout > 0) {
@@ -260,7 +260,8 @@ if (false)
 		Ibis.myIbis.lock();
 // System.err.println(Ibis.myIbis.myCpu + " do a peeker poll...");
 		try {
-		    while (poll());
+		    // while (poll());
+		    poll();
 		    if (STATISTICS) {
 			poll_from_thread++;
 		    }

@@ -29,6 +29,24 @@
 #include "ibmpi_mp.h"
 
 
+int		ibp_me;
+int		ibp_nr;
+
+
+int
+ibp_pid_me(void)
+{
+    return ibp_me;
+}
+
+
+int
+ibp_pid_nr(void)
+{
+    return ibp_nr;
+}
+
+
 jlong
 Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 {
@@ -337,10 +355,10 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
     MPI_Init(&p4_argc, &argv);
     ibmpi_alive = 1;
 
-    if (MPI_Comm_size(MPI_COMM_WORLD, &ibmp_nr) != MPI_SUCCESS) {
+    if (MPI_Comm_size(MPI_COMM_WORLD, &ibp_nr) != MPI_SUCCESS) {
 	ibmp_error(env, "MPI_Comm_size() fails\n");
     }
-    if (MPI_Comm_rank(MPI_COMM_WORLD, &ibmp_me) != MPI_SUCCESS) {
+    if (MPI_Comm_rank(MPI_COMM_WORLD, &ibp_me) != MPI_SUCCESS) {
 	ibmp_error(env, "MPI_Comm_rank() fails\n");
     }
 

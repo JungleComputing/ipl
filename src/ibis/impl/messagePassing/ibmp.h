@@ -11,6 +11,7 @@ void ibmp_thread_yield(JNIEnv *env);
 void ibmp_lock(JNIEnv *env);
 void ibmp_unlock(JNIEnv *env);
 char *ibmp_currentThread(JNIEnv *env);
+void ibmp_dumpStack(JNIEnv *env);
 
 void ibmp_lock_check_owned(JNIEnv *env);
 void ibmp_lock_check_not_owned(JNIEnv *env);
@@ -25,9 +26,8 @@ extern int ibmp_verbose;
 int ibmp_stderr_printf(char *fmt, ...);
 #define IBP_VPRINTF(n, env, s) \
 	    do if ((n) <= ibmp_verbose) { \
-		fprintf(stderr, "%2d: %s.%d ", ibmp_me, __FILE__, __LINE__); \
+		fprintf(stderr, "%2d: %s.%d ", ibmp_pid_me(), __FILE__, __LINE__); \
 		if ((env) != NULL) fprintf(stderr, "%s: ", ibmp_currentThread(env)); \
-		fprintf(stderr, "%s.%d: ", __FILE__, __LINE__); \
 		ibmp_stderr_printf s; \
 		fflush(stderr); \
 	    } while (0)
@@ -40,10 +40,14 @@ int ibmp_stderr_printf(char *fmt, ...);
 
 extern jclass		ibmp_cls_Ibis;
 extern jobject		ibmp_obj_Ibis_ibis;
-extern JavaVM *         vm;
+
+extern jclass		cls_IbisIOException;
 
 extern int		ibmp_me;
 extern int		ibmp_nr;
+
+int ibmp_pid_me(void);
+int ibmp_pid_nr(void);
 
 void ibmp_check_ibis_name(JNIEnv *env, const char *name);
 

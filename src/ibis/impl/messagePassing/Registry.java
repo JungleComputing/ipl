@@ -45,6 +45,9 @@ class Registry implements ibis.ipl.Registry {
 	    if (electionClient != null) {
 		electionClient.end();
 	    }
+	    if (electionServer != null) {
+		electionServer.awaitShutdown();
+	    }
 	}
     }
 

@@ -172,13 +172,17 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
 
     boolean connect(ShadowSendPort sp) {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	ibis.ipl.SendPortIdentifier id = sp.identifier();
 	if (! id.ibis().equals(ident.ibis())) {
 	    homeConnection = false;
-	    if (DEBUG) System.err.println("This is NOT a home-only connection");
+	    if (DEBUG) {
+		System.err.println("This is NOT a home-only connection");
+	    }
 	} else {
-	    if (DEBUG) System.err.println("This IS a home-only connection");
+	    if (DEBUG) {
+		System.err.println("This IS a home-only connection");
+	    }
 	}
 
 	if (connectUpcall == null || acceptThread.checkAccept(id)) {
@@ -191,7 +195,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
 
     void disconnect(ShadowSendPort sp) {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	connections.remove(sp);
 	if (connections.size() == 0) {
 	    disconnected.cv_signal();
@@ -250,7 +254,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 
     void enqueue(ReadMessage msg) {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "Enqueue message " + msg + " in port " + this + " msgHandle " + Integer.toHexString(msg.fragmentFront.msgHandle) + " current queueFront " + queueFront);
 	}
@@ -292,12 +296,12 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 
     private ReadMessage dequeue() {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	ReadMessage msg = queueFront;
 
 	if (msg != null) {
 	    if (DEBUG) {
-		System.err.println(Thread.currentThread() + "Now dequeue msg " + msg);
+		System.err.println(Thread.currentThread() + "Now dequeue msg " + dequeued_msgs + " 0x" + Integer.toHexString(msg.fragmentFront.msgHandle) + " " + msg);
 	    }
 	    queueFront = msg.next;
 	    if (Ibis.STATISTICS) {
@@ -311,7 +315,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
     void finishMessage() {
 
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "******* Now finish this ReceivePort message: " + currentMessage);
@@ -397,7 +401,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 			 int msgSize,
 			 int msgSeqno)
 	    throws IbisIOException {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 
 	/* Let's see whether we already have an envelope for this fragment. */
 	ReadMessage msg = locate(origin, msgSeqno);
@@ -454,7 +458,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 
     private ReadMessage doReceive(boolean block) throws IbisIOException {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "******** enter ReceivePort.receive()" + ident);
@@ -756,8 +760,8 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 		msg = doReceive(true /* block */);	// May throw an IbisIOException
 
-// System.err.println(Thread.currentThread() + ": perform upcall for msg " + msg);
 		if (msg != null) {
+// System.err.println(Thread.currentThread() + ": perform upcall for msg " + msg);
 		    availableUpcallThread--;
 		    msg.creator = me;
 		    msg.finished = false;
@@ -806,7 +810,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	    System.err.println(Thread.currentThread() + "Receive port " + name +
 			       " upcall thread polls " + upcall_poll);
 	}
-System.err.println("ReceivePort " + this + " upcallThread " + Thread.currentThread().getName() + " snuffs it");
+// System.err.println("ReceivePort " + this + " upcallThread " + Thread.currentThread().getName() + " snuffs it");
     }
 
 

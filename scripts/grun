@@ -64,8 +64,8 @@ if [ -n "$(netstat -an | grep $NS_PORT | grep LISTEN)" ]; then
 	echo $0: Port $NS_PORT is already in use!
 	exit 1
 fi
-NS_PARAMS="-Dname_server=fs0.das2.cs.vu.nl -Dname_server_port=$NS_PORT"
-NS_PARAMS="$NS_PARAMS -Dname_server_pool=grun$$"
+NS_PARAMS="-Dibis.name_server.host=fs0.das2.cs.vu.nl -Dibis.name_server.port=$NS_PORT"
+NS_PARAMS="$NS_PARAMS -Dibis.name_server.key=grun$$"
 
 #read settings for the sites until we encounter a '-', and calculate
 #the total count of jobs
@@ -183,7 +183,7 @@ for i in $SITES; do
 	echo '(stdout=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}m.out')' >> grun$$.rsl
 	echo '(stderr=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}m.err')' >> grun$$.rsl
 	echo '(executable=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-master$$')' >> grun$$.rsl
-	echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
+	echo "(arguments=\"-Dibis.pool.total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
 	#(directory) isn't set, grun-master$$ should be run in the (default)
 	#home dir
 	echo ")" >> grun$$.rsl
@@ -201,7 +201,7 @@ for i in $SITES; do
 				echo '(stdout=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}-${j}s.out')' >> grun$$.rsl
 				echo '(stderr=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}-${j}s.err')' >> grun$$.rsl
 				echo '(executable=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-slave$$')' >> grun$$.rsl
-				echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
+				echo "(arguments=\"-Dibis.pool.total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
 				#(directory) isn't set, grun-slave$$ should be run in the
 				#(default) #home dir
 				echo ")" >> grun$$.rsl
@@ -217,7 +217,7 @@ for i in $SITES; do
 			echo '(stdout=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}s.out')' >> grun$$.rsl
 			echo '(stderr=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}s.err')' >> grun$$.rsl
 			echo '(executable=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-slave$$')' >> grun$$.rsl
-			echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
+			echo "(arguments=\"-Dibis.pool.total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
 			#(directory) isn't set, grun-slave$$ should be run in the
 			#(default) #home dir
 			echo ")" >> grun$$.rsl

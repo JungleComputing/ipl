@@ -74,7 +74,6 @@ ibp_ns_unbind_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 void
 ibmp_receive_port_ns_unbind_init(JNIEnv *env)
 {
-    // ibmp_lock_check_owned(env);
     ibp_ns_unbind_port = ibp_mp_port_register(ibp_ns_unbind_handle);
     ibp_ns_unbind_proto_start = align_to(ibp_mp_proto_offset(), ibp_ns_unbind_hdr_t);
     ibp_ns_unbind_proto_size  = ibp_ns_unbind_proto_start + sizeof(ibp_ns_unbind_hdr_t);

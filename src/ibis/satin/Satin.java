@@ -199,9 +199,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		if(closed) {
-			String pool = p.getProperty("pool_total_hosts");
+			String pool = p.getProperty("ibis.pool.total_hosts");
 			if(pool == null) {
-				out.println("property 'pool_total_hosts' not set, and running with closed world.");
+				out.println("property 'ibis.pool.total_hosts' not set, and running with closed world.");
 				System.exit(1);
 			}
 

@@ -6,6 +6,12 @@
 
 typedef struct IBP_MSG	ibp_msg_t, *ibp_msg_p;
 
+extern int	ibp_me;
+extern int	ibp_nr;
+
+int ibp_pid_me(void);
+int ibp_pid_nr(void);
+
 int ibmp_poll(JNIEnv *env);
 
 int ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len);

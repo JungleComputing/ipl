@@ -80,7 +80,6 @@ ibmp_disconnect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 void
 ibmp_disconnect_init(JNIEnv *env)
 {
-    // ibmp_lock_check_owned(env);
     ibmp_disconnect_port = ibp_mp_port_register(ibmp_disconnect_handle);
     ibmp_disconnect_proto_start = align_to(ibp_mp_proto_offset(),
 					   ibmp_disconnect_hdr_t);

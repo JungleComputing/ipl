@@ -1,0 +1,62 @@
+    <!--
+    Ibis rmic target.
+
+    Require prior definition of properties:
+    default.classpath refid of classpath
+    build             the root of the build tree, which contains all class files
+    -->
+
+    <target name="property-rmic-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="rmic-init"
+	    depends="property-rmic-build"/>
+
+    <target name="rmic"
+	depends="rmic-init">
+	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
+	<path id="all-classes">
+	    <fileset dir="${build}">
+		<include name="**/*.class"/>
+		<include name="ibis/ipl/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	    <map from="${build}${file.separator}" to=""/>
+	</pathconvert>
+	<echo message="${classes.all}" file="${build}/RMIC-Classes"/>
+	<replaceregexp
+		byline="true"
+		file="${build}/RMIC-Classes"
+		flags="g"
+		match=".class"
+		replace=""/>
+	<replaceregexp
+		byline="true"
+		file="${build}/RMIC-Classes"
+		flags="g"
+		match="\${file.separator}"
+		replace="."/>
+	<loadfile
+		property="rmic-classes"
+		srcFile="${build}/RMIC-Classes">
+	</loadfile>
+	<echo message="All classes to be rewritten: ${rmic-classes}"/>
+	<echo message="Run ibis rmic over all classes under ${build}${file.separator}"/>
+	<java   classname="ibis.frontend.rmi.Main"
+		taskname="ibis rmic"
+		dir="${build}"
+		fork="true">
+	    <arg line="-dir ${rmic-classes}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+	<javac	destdir="${build}"
+		srcdir="${build}">
+	    <include name="**/rmi_stub_*.java"/>
+	    <include name="**/rmi_skeleton_*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>

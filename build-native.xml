@@ -17,8 +17,19 @@
 
     -->
 
-    <target name="property-native-build" unless="build">
-	<echo message="build is undefined. Set it to the default value"/>
+    <target name="property-native-outtype"
+	    depends="property-init"
+	    unless="cc.outtype">
+	<echo	level="debug"
+		message="cc.outtype is undefined. Set it to the default value"/>
+	<property name="cc.outtype" value="shared"/>
+    </target>
+
+    <target name="property-native-build"
+	    depends="property-init"
+	    unless="build">
+	<echo	level="debug"
+		message="build is undefined. Set it to the default value"/>
 	<property name="build" location="build"/>
 	<mkdir dir="${build}"/>
     </target>
@@ -41,10 +52,6 @@
     </typedef>
 
 
-    <property environment="env"/>
-    <property name="JAVA_HOME"    value="${env.JAVA_HOME}"/>
-
-
     <path id="default.includes-ref">
 	<pathelement path="${JAVA_HOME}/include"/>
 	<pathelement path="${JAVA_HOME}/include/linux"/>
@@ -55,7 +62,7 @@
     <property name="default.includes" refid="default.includes-ref"/>
 
     <target name="native-init"
-	    depends="property-native-build,property-native-local.lib">
+	    depends="property-native-build,property-native-local.lib,property-native-outtype">
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${build}/lib"/>
@@ -86,16 +93,6 @@
 		property="package"
 		srcFile="${build}/ibis/${native-path}/package"/>
 	<property name="local.lib" value="${package}"/>
-
-	<condition property="native.debug">
-	    <equals arg1="${optimization}" arg2="debug"/>
-	</condition>
-	<condition property="native.optimize">
-	    <equals arg1="${optimization}" arg2="optimize"/>
-	</condition>
-	<echo message="optimization = ${optimization}"/>
-	<echo message="native.debug = ${native.debug}"/>
-	<echo message="native.optimize = ${native.optimize}"/>
     </target>
 
 
@@ -103,13 +100,11 @@
 	    depends="native-init">
 
 	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
-	<echo message="Lib is ${build}/lib ${local.lib}"/>
-	<echo message="Include path is ${default.includes}"/>
-	<echo message="ant-cpptaskS home ${package.home.ant-cpptasks}"/>
-	<cc	debug="true"
+
+	<cc	debug="${native.debug.value}"
 		objdir="${build}/ibis/${native-path}"
 		outfile="${build}/lib/${local.lib}"
-		outtype="shared"
+		outtype="${cc.outtype}"
 		name="${c.compiler}"
 		warnings="severe">
 	    <fileset dir="${native.dir}" includes="*.c"/>

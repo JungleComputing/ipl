@@ -34,8 +34,8 @@ final class ByteOutputStream
     }
 
 
-    void send(boolean lastFrag) {
-	// Ibis.myIbis.checkLockOwned();
+    void send(boolean lastFrag) throws IbisIOException {
+	Ibis.myIbis.checkLockOwned();
 // if (lastFrag)
 // System.err.print("L");
 
@@ -51,6 +51,7 @@ final class ByteOutputStream
 
 	outstandingFrags++;
 
+try {
 	for (int i = 0; i < n; i++) {
 	    ReceivePortIdentifier r = sport.splitter[i];
 	    if (msg_send(r.cpu,
@@ -63,6 +64,10 @@ final class ByteOutputStream
 		send_acked = false;
 	    }
 	}
+} catch (IbisIOException e) {
+    System.err.println("msg_send throws exception " + e);
+    Thread.dumpStack();
+}
 
 	if (false && ! lastFrag) {
 	    try {
@@ -90,7 +95,7 @@ final class ByteOutputStream
     }
 
 
-    void send() {
+    void send() throws IbisIOException {
 	Ibis.myIbis.lock();
 	send(true);
 	Ibis.myIbis.unlock();
@@ -99,7 +104,7 @@ final class ByteOutputStream
 
     /* Called from native */
     private void finished_upcall() {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	outstandingFrags--;
 	sendComplete.cv_signal();
 // System.err.println(Thread.currentThread() + "Signal finish msg for stream " + this + "; outstandingFrags " + outstandingFrags);
@@ -153,7 +158,7 @@ final class ByteOutputStream
     }
 
     void reset(boolean finish) throws IbisIOException {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	if (outstandingFrags > 0) {
 	    Ibis.myIbis.pollLocked();
 
@@ -203,12 +208,12 @@ final class ByteOutputStream
     }
 
 
-    public void flush() {
+    public void flush() throws IbisIOException {
 	flush(false);
     }
 
 
-    private void flush(boolean lastFrag) {
+    private void flush(boolean lastFrag) throws IbisIOException {
 	if (Ibis.DEBUG) {
 	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; msgHandle 0x" + Integer.toHexString(msgHandle));
 	}
@@ -232,11 +237,11 @@ final class ByteOutputStream
 			    int msgSeqno,
 			    int msgHandle,
 			    boolean lastSplitter,
-			    boolean lastFrag);
+			    boolean lastFrag) throws IbisIOException;
 
     /* Pass our current msgHandle field: we only want to reset
      * a fragment that has been sent-acked */
-    native void resetMsg();
+    native void resetMsg() throws IbisIOException;
 
     public native void close();
 
@@ -257,14 +262,14 @@ final class ByteOutputStream
 	msgCount = 0;
     }
 
-    native void writeBooleanArray(boolean[] array, int off, int len);
-    native void writeByteArray(byte[] array, int off, int len);
-    native void writeCharArray(char[] array, int off, int len);
-    native void writeShortArray(short[] array, int off, int len);
-    native void writeIntArray(int[] array, int off, int len);
-    native void writeLongArray(long[] array, int off, int len);
-    native void writeFloatArray(float[] array, int off, int len);
-    native void writeDoubleArray(double[] array, int off, int len);
+    native void writeBooleanArray(boolean[] array, int off, int len) throws IbisIOException;
+    native void writeByteArray(byte[] array, int off, int len) throws IbisIOException;
+    native void writeCharArray(char[] array, int off, int len) throws IbisIOException;
+    native void writeShortArray(short[] array, int off, int len) throws IbisIOException;
+    native void writeIntArray(int[] array, int off, int len) throws IbisIOException;
+    native void writeLongArray(long[] array, int off, int len) throws IbisIOException;
+    native void writeFloatArray(float[] array, int off, int len) throws IbisIOException;
+    native void writeDoubleArray(double[] array, int off, int len) throws IbisIOException;
 
     native void report();
 }

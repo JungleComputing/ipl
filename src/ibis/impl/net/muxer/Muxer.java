@@ -56,9 +56,10 @@ public final class Muxer extends NetBufferedOutput {
 
 	synchronized (driver) {
 	    if (subDriver == null) {
-		// String subDriverName = getMandatoryProperty("Driver");
+		String subDriverName = getMandatoryProperty("Driver");
+		System.err.println("subDriverName = " + subDriverName);
 		System.err.println("It should depend on Driver properties which muxer suboutput is created");
-		String subDriverName = "muxer.udp";
+		// String subDriverName = "muxer.udp";
 		subDriver = driver.getIbis().getDriver(subDriverName);
 		System.err.println("The subDriver is " + subDriver);
 		muxer = (MuxerOutput)newSubOutput(subDriver, "muxer");

@@ -25,6 +25,7 @@ public class PandaIbis extends Ibis {
      */
     public static void main(String[] arg) {
 	System.loadLibrary("ibis_mp_panda");
+	// System.loadLibrary("ibis_mp");
 	try {
 	    Ibis i = new PandaIbis();
 

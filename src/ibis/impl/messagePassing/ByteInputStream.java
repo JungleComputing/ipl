@@ -36,10 +36,17 @@ final class ByteInputStream
     private native int lockedRead();
 
     public int read() throws IbisIOException {
-	int x;
+	int x = -1;
 	Ibis.myIbis.lock();
-	x = lockedRead();
-	Ibis.myIbis.unlock();
+	try {
+	    if (msgSize == 0) {
+		msg.nextFragment();
+	    }
+	    x = lockedRead();
+	    msgSize -= SIZEOF_BYTE;
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
 	return x;
     }
 

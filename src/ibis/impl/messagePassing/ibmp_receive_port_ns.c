@@ -82,7 +82,6 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     IBP_VPRINTF(2000, env, ("here..\n"));
 
     obj_ibis = (*env)->GetStaticObjectField(env, ibmp_cls_Ibis, fld_ibis);
-// fprintf(stderr, "%s.%d obj_ibis = %p\n", __FILE__, __LINE__, obj_ibis);
 
     fld_registry = (*env)->GetFieldID(env,
 				ibmp_cls_Ibis,
@@ -95,7 +94,6 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     IBP_VPRINTF(2000, env, ("here..\n"));
 
     obj_registry = (*env)->GetObjectField(env, obj_ibis, fld_registry);
-// fprintf(stderr, "%s.%d obj_registry = %p\n", __FILE__, __LINE__, obj_registry);
 
     cls_Registry = (*env)->FindClass(env, "ibis/ipl/impl/messagePassing/Registry");
     if (cls_Registry == NULL) {

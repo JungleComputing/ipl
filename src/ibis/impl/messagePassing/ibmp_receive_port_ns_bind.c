@@ -159,7 +159,6 @@ ibmp_receive_port_ns_bind_init(JNIEnv *env)
 {
     jclass cls_NameServerClient;
 
-    // ibmp_lock_check_owned(env);
     ibp_ns_bind_port = ibp_mp_port_register(ibp_ns_bind_handle);
     ibp_ns_bind_proto_start = align_to(ibp_mp_proto_offset(),
 				       ibp_ns_bind_hdr_t);

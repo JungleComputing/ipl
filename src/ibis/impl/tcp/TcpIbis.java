@@ -114,17 +114,17 @@ public final class TcpIbis extends Ibis implements Config {
 		poolSize = 1;
 
 		Properties p = System.getProperties();
-		nameServerName = p.getProperty("name_server");
+		nameServerName = p.getProperty("ibis.name_server.host");
 		if (nameServerName == null) {
-			throw new IbisException("property name_server is not specified");
+			throw new IbisException("property ibis.name_server.host is not specified");
 		}
 
-		nameServerPool = p.getProperty("name_server_pool");
+		nameServerPool = p.getProperty("ibis.name_server.key");
 		if (nameServerPool == null) {
-			throw new IbisException("property name_server_pool is not specified");
+			throw new IbisException("property ibis.name_server.key is not specified");
 		}
 
-		String nameServerPortString = p.getProperty("name_server_port");
+		String nameServerPortString = p.getProperty("ibis.name_server.port");
 		if (nameServerPortString == null) {
 			nameServerPort = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
 		} else {

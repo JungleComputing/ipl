@@ -50,7 +50,7 @@ public class Syncer implements PollClient {
     }
 
     boolean s_wait(int timeout) throws ibis.ipl.IbisIOException {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 
 	long	t_start = 0;
 
@@ -72,7 +72,7 @@ public class Syncer implements PollClient {
     }
 
     void s_signal(boolean accepted) {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	this.accepted = accepted;
 	signalled = true;
 	wakeup();

@@ -69,7 +69,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
     public void writeByte(byte value) throws IbisIOException {
-	throw new IbisIOException("Write Byte not supported");
+	out.write(value);
     }
 
     public void writeChar(char value) throws IbisIOException {
@@ -81,7 +81,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
     public void writeInt(int value) throws IbisIOException {
-	out.write(value);
+	throw new IbisIOException("Write Int not supported");
     }
 
     public void writeLong(long value) throws IbisIOException {

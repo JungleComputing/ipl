@@ -29,6 +29,8 @@ static int	ibp_upcall_done;
 static int		ibp_n_upcall = 0;
 static int	     (**ibp_upcall)(JNIEnv *, ibp_msg_p, void *) = NULL;
 
+static int		ibp_mp_alive = 0;
+
 
 #if UNUSED
 static void
@@ -89,11 +91,15 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
 {
     ibp_mp_hdr_p	hdr = ibp_mp_hdr(proto);
 
-    //    if ((*vm)->GetEnv(vm, &env, JNI_VERSION_1_2) == JNI_OK) {
-    //	    printf("Got a *env!\n");
-    //    } else {
-    //	    printf("Failed to get a *env!\n");
-    //    }
+#if JASON
+    JavaVM *vm = current_VM();
+
+    if ((*vm)->GetEnv(vm, &env, JNI_VERSION_1_2) == JNI_OK) {
+        printf("Got a *env!\n");
+    } else {
+        printf("Failed to get a *env!\n");
+    }
+#endif
 
     assert(ibp_JNIEnv != NULL);
     assert(hdr->seqno == ibp_rcve_seqno[pan_msg_sender(msg)]++);
@@ -116,7 +122,6 @@ static int
 ibp_mp_poll(JNIEnv *env)
 {
     int		done_anything = 0;
-// fprintf(stderr, "ibp_mp-poll\n");
 
     ibmp_lock_check_owned(env);
     ibp_set_JNIEnv(env);
@@ -169,6 +174,10 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
 {
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
+    if (! ibp_mp_alive) {
+	(*env)->ThrowNew(env, cls_IbisIOException, "Ibis/Panda MP closed");
+    }
+
 #ifndef NDEBUG
     hdr->seqno = ibp_send_seqno[cpu]++;
 #endif
@@ -190,6 +199,10 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
 {
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
+    if (! ibp_mp_alive) {
+	(*env)->ThrowNew(env, cls_IbisIOException, "Ibis/Panda MP closed");
+    }
+
 #ifndef NDEBUG
     hdr->seqno = ibp_send_seqno[cpu]++;
 #endif
@@ -207,11 +220,27 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
 }
 
 
+#ifndef NDEBUG
+#include <signal.h>
+
+static void
+sigabort(int sig)
+{
+    fprintf(stderr, "SIGBART: Now throw an exception\n");
+    ibmp_dumpStack(ibp_JNIEnv);
+    (*ibp_JNIEnv)->ThrowNew(ibp_JNIEnv,
+			    cls_IbisIOException,
+			    "Receive a SIGABORT in native code");
+}
+
+#endif
+
+
 void
 ibp_mp_init(JNIEnv *env)
 {
     IBP_VPRINTF(2000, env, ("here...\n"));
-    pan_init(NULL, NULL); // No no is reentrant (what do you think RFHH): THIS HAS ALLREADY BEEN DONE ??? JASON
+    pan_init(NULL, NULL); /* No no is reentrant (what do you think RFHH): THIS HAS ALLREADY BEEN DONE ??? JASON */
     IBP_VPRINTF(2000, env, ("here...\n"));
     pan_mp_init(NULL, NULL);
     IBP_VPRINTF(2000, env, ("here...\n"));
@@ -223,11 +252,10 @@ ibp_mp_init(JNIEnv *env)
     ibp_mp_port = pan_mp_register_port(ibp_mp_upcall);
     IBP_VPRINTF(2000, env, ("here...\n"));
 
-    ibmp_poll_register(ibp_mp_poll);	// Finding this had been commented out by Jason took me another day... RFHH
+    ibmp_poll_register(ibp_mp_poll);	/* Finding this had been commented out by Jason took me another day... RFHH */
     IBP_VPRINTF(2000, env, ("here...\n"));
 
 #ifdef IBP_VERBOSE
-    // ibmp_lock_check_owned(env);
     mp_upcalls = calloc(pan_nr_processes(), sizeof(*mp_upcalls));
     mp_sends = calloc(pan_nr_processes(), sizeof(*mp_sends));
 #endif
@@ -235,6 +263,11 @@ ibp_mp_init(JNIEnv *env)
     ibp_send_seqno = calloc(pan_nr_processes(), sizeof(*ibp_send_seqno));
     ibp_rcve_seqno = calloc(pan_nr_processes(), sizeof(*ibp_rcve_seqno));
 #endif
+
+#ifndef NDEBUG
+    signal(SIGABRT, sigabort);
+#endif
+    ibp_mp_alive = 1;
 }
 
 
@@ -242,6 +275,8 @@ void
 ibp_mp_end(JNIEnv *env)
 {
     ibp_mp_poll(env);
+
+    ibp_mp_alive = 0;
 
     pan_comm_intr_disable();
     pan_mp_free_port(ibp_mp_port);

@@ -32,6 +32,24 @@ JNIEnv	       *ibp_JNIEnv = NULL;
 int		ibp_intr_enabled = 1;
 
 
+int		ibp_me;
+int		ibp_nr;
+
+
+int
+ibp_pid_me(void)
+{
+    return ibp_me;
+}
+
+
+int
+ibp_pid_nr(void)
+{
+    ibp_nr = pan_nr_processes();
+}
+
+
 void
 ibp_msg_clear(JNIEnv *env, ibp_msg_p msg)
 {
@@ -139,11 +157,15 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
 	    break;
 	}
 
-	// ibp_unset_JNIEnv();
+#if SET_JNI_ENV_ON_YIELD
+	ibp_unset_JNIEnv();
+#endif
 	ibmp_unlock(env);
 	ibmp_thread_yield(env);
 	ibmp_lock(env);
-	// ibp_set_JNIEnv(env);
+#if SET_JNI_ENV_ON_YIELD
+	ibp_set_JNIEnv(env);
+#endif
     }
 
     ibp_unset_JNIEnv();
@@ -239,9 +261,9 @@ intpt_env_create(void)
 	fprintf(stderr, "AttachCurrentThread fails\n");
 	abort();
     }
-    if (ibmp_me == 0) {
+    if (ibp_me == 0) {
 	fprintf(stderr, "%2d: Hand out intpt thread JNIEnv * %p\n",
-		ibmp_me, env);
+		ibp_me, env);
     }
 
     return env;
@@ -271,8 +293,6 @@ intpt_env_get(void)
 {
     static JNIEnv *intpt_JNIEnv = NULL;
 
-    // fprintf(stderr, "pan_thread_self() = %p intpt_JNIEnv = %p\n", pan_thread_self(), intpt_JNIEnv);
-
     if (intpt_running++ != 0) {
 	fprintf(stderr,
 		"At env_get: some other interrupt handler active -- abort\n");
@@ -298,7 +318,7 @@ intpt_env_release(JNIEnv *env)
     }
 }
 
-#define POLLS_PER_INTERRUPT	1	// 4
+#define POLLS_PER_INTERRUPT	1	/* 4 */
 
 static int	intpts = 0;
 
@@ -312,7 +332,6 @@ ibp_intr_poll(void)
 
     IBP_VPRINTF(2000, env, ("interrupt...\n"));
 
-    // fprintf(stderr, "Do a poll from interrupt handler\n");
     ibmp_lock_check_owned(env);
     for (i = 0; i < POLLS_PER_INTERRUPT; i++) {
 	IBP_VPRINTF(2100, env, ("Do a poll[%d] from interrupt handler\n", i));
@@ -577,8 +596,8 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
 	ibp_intr_enabled = 1;
     }
 
-    ibmp_nr = pan_nr_processes();
-    ibmp_me = pan_my_pid();
+    ibp_nr = pan_nr_processes();
+    ibp_me = pan_my_pid();
 
 #ifndef NDEBUG
     ibp_env_key = pan_key_create();
@@ -599,12 +618,12 @@ ibp_start(JNIEnv *env)
     IBP_VPRINTF(10, env, ("%s.%d: ibp_start\n", __FILE__, __LINE__));
 
     if (ibp_intr_enabled) {
-	if (ibmp_me == 0) {
+	if (ibp_me == 0) {
 	    fprintf(stderr, "Enable Panda interrupts\n");
 	}
 	pan_comm_intr_enable();
     } else {
-	if (ibmp_me == 0) {
+	if (ibp_me == 0) {
 	    fprintf(stderr, "Don't enable Panda interrupts (yet)\n");
 	}
     }

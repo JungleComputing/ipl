@@ -17,6 +17,7 @@ SRC		+= Worker.java
 SRC		+= B.java
 SRC		+= A.java
 SRC		+= WithInner.java
+SRC		+= RMI_init.java
 
 MAIN		= RMI_Bench.java
 

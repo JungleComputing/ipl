@@ -29,7 +29,14 @@ final class SerializeReadMessage extends ReadMessage {
 	try {
 	    return obj_in.readByte();
 	} catch (java.io.IOException e) {
-	    throw new IbisIOException(e);
+	    int available = -1;
+	    try {
+		available = obj_in.available();
+	    } catch (java.io.IOException ee) {
+	    }
+	    System.err.println(Thread.currentThread() + ": Still available " + available + " Exception " + e);
+	    e.printStackTrace(System.err);
+	    throw new IbisIOException(Thread.currentThread() + ": Still available " + available + " Exception " + e);
 	}
     }
 

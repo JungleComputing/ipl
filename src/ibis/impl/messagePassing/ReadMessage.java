@@ -25,7 +25,7 @@ public class ReadMessage
 
     ReadMessage(ibis.ipl.SendPort s,
 		ReceivePort port) {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 
 // System.err.println("**************************************************Creating new ReadMessage");
 
@@ -118,7 +118,7 @@ public class ReadMessage
 
 
     public void nextFragment() throws IbisIOException {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	while (fragmentFront.next == null) {
 	    Ibis.myIbis.waitPolling(this,
 								 0,

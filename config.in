@@ -448,8 +448,8 @@ NHOSTS	= $(words $(HOSTS))
 .PHONY:	prun
 prun:
 ifeq (1, $(BUILD_MANTA))
-	@echo "prun LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) $(OUT) $(NHOSTS) -Dname_server=$(NS_SERVER) -Dname_server_port=$(NS_PORT) -Dname_server_pool=rutger\`$(GETPID)\` -Dibis.name=panda $(JAVACFLAGS) 'args ...'"
+	@echo "prun LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) $(OUT) $(NHOSTS) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.name=panda $(JAVACFLAGS) 'args ...'"
 else
-	@echo "prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) -no-panda $(IBIS_ROOT)/ibis/bin/java_wrapper $(NHOSTS) $(JPATH)/bin/java $(JAVARUNFLAGS) -Dname_server=$(NS_SERVER) -Dname_server_port=$(NS_PORT) -Dname_server_pool=rutger\`$(GETPID)\` -Dpool_host_number=%d -Dpool_total_hosts=%n -Dpool_host_names=\"%h\" -Dhosts=\"%h\" -Dibis.name=panda $(MAIN:%.java=%) args..."
+	@echo "prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) -no-panda $(IBIS_ROOT)/ibis/bin/java_wrapper $(NHOSTS) $(JPATH)/bin/java $(JAVARUNFLAGS) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.pool.host_number=%d -Dibis.pool.total_hosts=%n -Dibis.pool.host_names=\"%h\" -Dibis.name=panda $(MAIN:%.java=%) args..."
 endif
-	@echo $(IBIS_ROOT)/ibis/bin/java_wrapper $(JPATH)/bin/java $(JAVARUNFLAGS) -Dpool_total_hosts=$(NHOSTS) -Dpool_host_number=$$PRUN_CPU_RANK -Dpool_host_names=\"$$HOSTS\" -Dname_server=$(NS_SERVER) -Dname_server_port=$(NS_PORT) -Dhosts=\"$$HOSTS\" -Dname_server_pool=rutger0000 -Dibis.name=panda $(MAIN:%.java=%)
+	@echo $(IBIS_ROOT)/ibis/bin/java_wrapper $(JPATH)/bin/java $(JAVARUNFLAGS) -Dibis.pool.total_hosts=$(NHOSTS) -Dibis.pool.host_number=$$PRUN_CPU_RANK -Dibis.pool.host_names=\"$$HOSTS\" -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger0000 -Dibis.name=panda $(MAIN:%.java=%)

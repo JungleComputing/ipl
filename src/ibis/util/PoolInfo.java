@@ -16,10 +16,10 @@ public class PoolInfo {
 		
 		Properties p = System.getProperties();
 		
-		total_hosts = getIntProperty(p, "pool_total_hosts");
-		host_number = getIntProperty(p, "pool_host_number");
+		total_hosts = getIntProperty(p, "ibis.pool.total_hosts");
+		host_number = getIntProperty(p, "ibis.pool.host_number");
 		
-		temp = p.getProperty("pool_host_names");
+		temp = p.getProperty("ibis.pool.host_names");
 		
 		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
 			throw new RuntimeException("Sanity check on host numbers failed!");

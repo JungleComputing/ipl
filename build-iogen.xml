@@ -2,39 +2,75 @@
     Ibis iogen target.
 
     Require prior definition of properties:
-    default.classpath refid of classpath
-    build             the root of the build tree, which contains all class files
+    default.classpath	refid of classpath
+
+    Targets:
+
+    iogen	    rewrite files under ${iogen-build}
+	Set parameter:
+	iogen-build	root of tree to be iogen-ed
+			if undefined, value of ${build}
+
+    iogen-files	    rewrite ${iogen-files}
+	Set parameter:
+	iogen-build	root of tree to be iogen-ed
+			if undefined, value of ${build}
+	iogen-files	list of files (separated by " ") to be
+			iogen-ed
+			if undefined, ${iogen-build}/**/*.class
+
     -->
 
-    <target name="property-iogen-build" unless="build">
-	<echo message="build is undefined. Set it to the default value"/>
-	<property name="build" location="build"/>
-	<mkdir dir="${build}"/>
+    <target name="property-iogen-build"
+	    depends="property-init"
+	    unless="iogen-build">
+	<echo message="iogen-build is undefined. Set it to the default value ${build}"/>
+	<property name="iogen-build" location="${build}"/>
+	<mkdir dir="${iogen-build}"/>
+    </target>
+
+    <target name="property-iogen-files"
+	    depends="property-init,property-iogen-build"
+	    unless="iogen-files">
+	<path id="all-classes">
+	    <fileset dir="${iogen-build}">
+		<include name="**/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="iogen-files" refid="all-classes">
+	    <map from="${iogen-build}${file.separator}" to=""/>
+	</pathconvert>
     </target>
 
     <target name="iogen-init"
-	    depends="property-iogen-build"/>
+	    depends="property-iogen-build,property-iogen-files"/>
+
+    <target name="iogen-files" depends="iogen-init">
+	<mkdir dir="${iogen-build}"/>
+	<echo message="All files to be rewritten: ${iogen-files}"/>
+	<java   classname="ibis.frontend.io.IOGenerator"
+		taskname="IOGenerator"
+		dir="${iogen-build}"
+		fork="true">
+	    <arg line="-dir ${iogen-files}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+    </target>
 
     <target name="iogen"
 	depends="iogen-init">
-	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
+	<echo level="debug" message="IOGen all class files under ${iogen-build}"/>
 	<path id="all-classes">
-	    <fileset dir="${build}">
+	    <fileset dir="${iogen-build}">
 		<include name="**/*.class"/>
-		<include name="ibis/ipl/*.class"/>
+		<exclude name="classlibs/**/*.class"/>
+		<exclude name="ant-tasks/**/*.class"/>
 	    </fileset>
 	</path>
-	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${build}" to=""/>
-	    <map from="\${file.separator}" to=""/>
+	<pathconvert pathsep=" " property="iogen-files" refid="all-classes">
+	    <map from="${iogen-build}${file.separator}" to=""/>
 	</pathconvert>
-	<echo message="All files to be rewritten: ${classes.all}"/>
-	<echo message="Run IOGenerator over all classes under ${build}${file.separator}"/>
-	<java   classname="ibis.frontend.io.IOGenerator"
-		taskname="IOGenerator"
-		dir="${build}"
-		fork="true">
-	    <arg line="-dir ${classes.all}"/>
-	    <classpath refid="default.classpath"/>
-	</java>
+	<antcall target="iogen-files">
+	    <param name="iogen-build" value="${build}"/>
+	</antcall>
     </target>

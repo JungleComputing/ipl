@@ -7,6 +7,8 @@ import ibis.ipl.IbisIOException;
 
 final class SerializeWriteMessage extends WriteMessage {
 
+    private static final boolean DEBUG = Ibis.DEBUG;
+
     ibis.io.SunSerializationOutputStream obj_out;
 
     SerializeWriteMessage() {
@@ -20,14 +22,17 @@ final class SerializeWriteMessage extends WriteMessage {
 
 
     private void send(boolean doSend, boolean isReset) throws IbisIOException {
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%%% Send an Ibis SerializeWriteMessage");
+// Thread.dumpStack();
 	}
 
-	try {
-	    obj_out.flush();
-	} catch (java.io.IOException e) {
-	    throw new IbisIOException(e);
+	if (doSend) {
+	    try {
+		obj_out.flush();
+	    } catch (java.io.IOException e) {
+		throw new IbisIOException(e);
+	    }
 	}
 
 	Ibis.myIbis.lock();
@@ -60,13 +65,14 @@ final class SerializeWriteMessage extends WriteMessage {
 
 
     public void finish() throws IbisIOException {
-	out.finish();
-
 	try {
 	    obj_out.reset();
 	} catch (java.io.IOException e) {
+System.err.println("SerializeWriteMessage obj_out throws exception " + e);
+e.printStackTrace();
 	    throw new IbisIOException(e);
 	}
+	out.finish(); // : Now
     }
 
 

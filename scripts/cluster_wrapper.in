@@ -84,13 +84,12 @@ then
 		$JAVA/bin/java \
 		-Xmx400M -Xcomp \
 		-Djava.library.path=$IBIS/ibis/lib \
-		-Dpool_host_names="$hosts" \
-		-Dpool_total_hosts="${#host_array[@]}" \
-		-Dhosts="$hosts" \
-		-Dpool_host_number=$PRUN_CPU_RANK \
-		-Dname_server=$NS_HOSTNAME \
-		-Dname_server_pool=rutger$PRUN_ENV \
-		-Dname_server_port=7654 \
+		-Dibis.pool.host_names="$hosts" \
+		-Dibis.pool.total_hosts="${#host_array[@]}" \
+		-Dibis.pool.host_number=$PRUN_CPU_RANK \
+		-Dibis.name_server.host=$NS_HOSTNAME \
+		-Dibis.name_server.key=rutger$PRUN_ENV \
+		-Dibis.name_server.port=7654 \
 		$ARGS
 else
 	# echo "I am cluster coordinator, it seems; PRUN_CPU_RANK $PRUN_CPU_RANK"

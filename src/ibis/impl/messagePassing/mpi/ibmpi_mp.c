@@ -101,13 +101,15 @@ ibmpi_mp_upcall(JNIEnv *env, MPI_Status *status)
     static int	mp_upcalls = 0;
 #endif
 
-    //    JNIEnv *env;
+#if JASON
+    JavaVM *vm = current_VM();
 
-    //    if ((*vm)->GetEnv(vm, &env, JNI_VERSION_1_2) == JNI_OK) {
-    //	    printf("Got a *env!\n");
-    //    } else {
-    //	    printf("Failed to get a *env!\n");
-    //    }
+    if ((*vm)->GetEnv(vm, &env, JNI_VERSION_1_2) == JNI_OK) {
+        printf("Got a *env!\n");
+    } else {
+        printf("Failed to get a *env!\n");
+    }
+#endif
 
     assert(ibmpi_alive);
 
@@ -121,10 +123,12 @@ ibmpi_mp_upcall(JNIEnv *env, MPI_Status *status)
 		 ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
 		   mp_upcalls++, msg, status->MPI_SOURCE, size));
 
-    if (0) IBP_VPRINTF(200, env,
+    if (0) {
+	IBP_VPRINTF(200, env,
 		 ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
 		   mp_upcalls++, msg, ibp_msg_sender(msg),
 		   ibp_msg_consume_left(msg)));
+    }
 
     if (MPI_Recv(proto, size, MPI_PACKED,
 		 status->MPI_SOURCE, status->MPI_TAG,

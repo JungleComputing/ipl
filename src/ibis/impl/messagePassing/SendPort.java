@@ -75,7 +75,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	    throw new IbisIOException("invalid ReceivePortIdentifier");
 	}
 
-	// Ibis.myIbis.checkLockNotOwned();
+	Ibis.myIbis.checkLockNotOwned();
 
 	if (Ibis.DEBUG) {
 	    System.out.println(name + " connecting to " + rid);
@@ -200,7 +200,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 
 
     void reset() {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	aMessageIsAlive = false;
 	if (newMessageWaiters > 0) {
 	    portIsFree.cv_signal();

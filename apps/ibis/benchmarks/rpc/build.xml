@@ -34,7 +34,7 @@
     <target name="compile"
 	    depends="init">
 	<javac  destdir="${build}"
-		debug="true"
+		debug="${java.debug.value}"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
 	    <include name="*.java"/>

@@ -26,10 +26,9 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
-    &sharedProperties;
-    &nativeTargets;
+    <property name="local.lib" value="ibis_local_mp_mpi"/>
+    <property name="closure.lib" value="ibis_mp_mpi"/>
 
-    <property name="gm"           location="/usr/local/gm/current"/>
     <property name="mpi"          location="/usr/local/mpich/mpich-gm"/>
     <property name="daslib"       location="/usr/local/VU/daslib"/>
 
@@ -40,6 +39,12 @@
     </path>
     <property name="local.includes" refid="local.includes-ref"/>
 
+    &sharedProperties;
+    &nativeTargets;
+
+
+    <property name="gm"           location="/usr/local/gm/current"/>
+
     <path id="local.libs-ref">
 	<pathelement path="${daslib}/lib/i386_Linux/libdas.a"/>
 	<pathelement path="${gm}/lib/libgm.a"/>
@@ -47,9 +52,8 @@
     </path>
     <property name="local.libs" refid="local.libs-ref"/>
 
-    <property name="local.lib" value="ibis_mp_mpi"/>
-
     <target name="-lib.current">
+	<echo message="Now empty system library ${lib.current} into my lib.so"/>
 	<exec
 		dir="${build}/lib/so"
 		executable="ar">
@@ -57,29 +61,48 @@
 	</exec>
     </target>
 
-    <target name="mpi-lib">
-	<mkdir dir="${build}/lib/so"/>
-	<foreach
-		delimiter=":"
-		list="${local.libs}"
-		param="lib.current"
-		target="-lib.current"/>
-	<copy
-		todir="${build}/lib/so">
-	    <fileset dir="${build}/ibis/${native-path}/.." includes="*.o"/>
-	</copy>
-	<copy
-		todir="${build}/lib/so">
-	    <fileset dir="${build}/ibis/${native-path}" includes="*.o"/>
-	</copy>
-	<cc
-		outfile="${build}/lib/mpi"
-		outtype="shared"
-		warnings="severe"
-		debug="true">
-	    <fileset dir="${build}/lib/so" includes="*.o"/>
-	</cc>
-	<delete dir="${build}/lib/so"/>
+    <target name="mpi-lib" depends="native-compile">
+	<maplibrary property="library.path" name="${closure.lib}"/>
+	<echo level="debug" message="The library is ${library.path}"/>
+	<outofdate>
+	    <sourcefiles>
+		<pathelement path="${local.libs}"/>
+		<fileset dir="${build}/ibis/${native-path}/..">
+		    <include name="*.o"/>
+		</fileset>
+		<fileset dir="${build}/ibis/${native-path}">
+		    <include name="*.o"/>
+		</fileset>
+	    </sourcefiles>
+	    <targetfiles>
+		<pathelement path="${build}/lib/${library.path}"/>
+	    </targetfiles>
+
+	    <sequential>
+		<mkdir dir="${build}/lib/so"/>
+		<foreach
+			delimiter=":"
+			list="${local.libs}"
+			param="lib.current"
+			target="-lib.current"/>
+		<copy
+			todir="${build}/lib/so">
+		    <fileset dir="${build}/ibis/${native-path}/.." includes="*.o"/>
+		</copy>
+		<copy
+			todir="${build}/lib/so">
+		    <fileset dir="${build}/ibis/${native-path}" includes="*.o"/>
+		</copy>
+		<cc
+			outfile="${build}/lib/ibis_mp_mpi"
+			outtype="shared"
+			warnings="severe"
+			debug="${native.debug.value}">
+		    <fileset dir="${build}/lib/so" includes="*.o"/>
+		</cc>
+		<delete dir="${build}/lib/so"/>
+	    </sequential>
+	</outofdate>
     </target>
 
     <target name="build"

@@ -34,7 +34,9 @@ final public class IbisWriteMessage extends WriteMessage {
 	Ibis.myIbis.unlock();
     }
 
-    private void reset(boolean doSend, boolean finish) throws IbisIOException {
+
+    private void reset(boolean doSend, boolean finish)
+	    throws IbisIOException {
 // System.err.println("Reset Ibis WriteMessage " + this + " and its ByteOutput " + out + (finish ? " and also" : " but not") + " its IbisSerializationOutputStream " + obj_out);
 	// Ibis.myIbis.lock();
 	try {
@@ -52,17 +54,14 @@ final public class IbisWriteMessage extends WriteMessage {
 	    if (doSend) {
 		sPort.registerSend();
 	    }
-	    out.reset(false);	// throws IbisIOException
-
-	    if (finish) {
-		sPort.reset();
-	    }
+	    out.reset(finish);	// throws IbisIOException
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	} finally {
 	    Ibis.myIbis.unlock();
 	}
     }
+
 
     public void finish() throws IbisIOException {
 	reset(false, true);

@@ -26,7 +26,7 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_lockedRead(
 	JNIEnv *env,
 	jobject this)
 {
-    int		r;
+    unsigned char r;
     int		rd;
     ibp_msg_p	msg = (ibp_msg_p)(*env)->GetIntField(env, this, fld_msgHandle);
 
@@ -35,11 +35,11 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_lockedRead(
     IBP_VPRINTF(250, env, ("Consume 1 int from msg %p, currently holds %d\n",
 		msg, ibp_msg_consume_left(msg)));
     rd = 0;
-    while (rd < (int)sizeof(int)) {
-	rd += ibp_consume(env, msg, (char *)&r + rd, sizeof(int) - rd);
+    while (rd < (int)sizeof(jbyte)) {
+	rd += ibp_consume(env, msg, (char *)&r + rd, sizeof(jbyte) - rd);
     }
 
-    IBP_VPRINTF(250, env, ("Consumed 1 int from msg %p, value = %d\n", msg, r));
+    IBP_VPRINTF(250, env, ("ByteIS %p Consumed 1 byte from msg %p, value = %d\n", this, msg, r));
 
     return (jint)r;
 }
@@ -106,8 +106,6 @@ ibmp_msg_q_enq(ibp_msg_p msg, void *proto)
 {
     ibmp_msg_p	m;
 
-// fprintf(stderr, "<");
-
     m = ibmp_msg_freelist;
     if (m == NULL) {
 	m = pan_malloc(sizeof(*m));
@@ -138,8 +136,6 @@ ibmp_msg_q_deq(void **proto)
 	return NULL;
     }
 
-// fprintf(stderr, "-");
-
     msg = m->msg;
     *proto = m->proto;
 
@@ -153,16 +149,27 @@ ibmp_msg_q_deq(void **proto)
 #include <inttypes.h>
 
 #ifdef IBP_VERBOSE
+
+static void
+print_byte(FILE *out, uint8_t x)
+{
+    fprintf(out, "0x%x ", x);
+}
+
 #define DUMP_LIMIT	128
 #define DUMP_DATA(jtype, fmt, cast) \
 static void dump_ ## jtype(jtype *b, int len) \
 { \
     int		i; \
     \
-    if (ibmp_verbose < 750) return; \
+    if (ibmp_verbose < 300) return; \
     \
     for (i = 0; i < len; i++) { \
-	fprintf(stderr, "%" fmt, (cast)b[i]); \
+	if (sizeof(jtype) == sizeof(jbyte)) { \
+	    print_byte(stderr, (uint8_t)b[i]); \
+	} else { \
+	    fprintf(stderr, "%" fmt, (cast)b[i]); \
+	} \
 	if (i * sizeof(jtype) >= DUMP_LIMIT) { \
 	    fprintf(stderr, " ..."); \
 	    break; \
@@ -179,7 +186,7 @@ static void dump_ ## jtype(jtype *b, int len) \
 
 
 DUMP_DATA(jboolean, "d ", int32_t)
-DUMP_DATA(jbyte, "c", int8_t)
+DUMP_DATA(jbyte, "c", uint8_t)
 DUMP_DATA(jchar, "d ", int16_t)
 DUMP_DATA(jshort, "d ", int16_t)
 DUMP_DATA(jint, "d ", int32_t)
@@ -207,8 +214,8 @@ jint Java_ibis_ipl_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
     if (sz <= COPY_THRESHOLD) { \
 	jtype buf[COPY_THRESHOLD/sizeof(jtype)]; \
 	rd = ibp_consume(env, msg, buf, sz); \
-	IBP_VPRINTF(250, env, ("Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
-		    rd / sizeof(jtype), (int)len, #JType, msg, buf, \
+	IBP_VPRINTF(250, env, ("ByteIS %p Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
+		    this, rd / sizeof(jtype), (int)len, #JType, msg, buf, \
 		    ibp_msg_consume_left(msg))); \
 	dump_ ## jtype(buf, rd < len ? rd : len); \
 	(*env)->Set ## JType ## ArrayRegion(env, a, off, len, buf); \
@@ -216,8 +223,8 @@ jint Java_ibis_ipl_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
     else { \
 	jtype      *buf = (*env)->Get ## JType ## ArrayElements(env, a, NULL); \
 	rd = ibp_consume(env, msg, buf + off, sz); \
-	IBP_VPRINTF(250, env, ("Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
-		    rd / sizeof(jtype), (int)len, #JType, msg, buf, \
+	IBP_VPRINTF(250, env, ("ByteIS %p Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
+		    this, rd / sizeof(jtype), (int)len, #JType, msg, buf, \
 		    ibp_msg_consume_left(msg))); \
 	dump_ ## jtype(buf + off, rd < len ? rd : len); \
 	\

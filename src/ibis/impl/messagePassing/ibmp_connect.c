@@ -152,7 +152,6 @@ ibmp_connect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 void
 ibmp_connect_init(JNIEnv *env)
 {
-    // ibmp_lock_check_owned(env);
     ibmp_connect_port = ibp_mp_port_register(ibmp_connect_handle);
     ibmp_connect_proto_start = align_to(ibp_mp_proto_offset(), ibmp_connect_hdr_t);
     ibmp_connect_proto_size  = ibmp_connect_proto_start + sizeof(ibmp_connect_hdr_t);

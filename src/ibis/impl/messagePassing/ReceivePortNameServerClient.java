@@ -78,7 +78,7 @@ final class ReceivePortNameServerClient
 //	    }
 
 	    // request a new Port.
-	    // Ibis.myIbis.checkLockNotOwned();
+	    Ibis.myIbis.checkLockNotOwned();
 
 	    Ibis.myIbis.lock();
 	    try {
@@ -118,7 +118,7 @@ final class ReceivePortNameServerClient
 
     /* Called from native */
     private void bind_reply() {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	if (ReceivePortNameServerProtocol.DEBUG) {
 	    System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
 	}
@@ -259,7 +259,7 @@ final class ReceivePortNameServerClient
 
     /* Called from native */
     private void lookup_reply(byte[] rcvePortId) {
-	// Ibis.myIbis.checkLockOwned();
+	Ibis.myIbis.checkLockOwned();
 	if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: lookup reply " + rcvePortId + " " + lookup.ns_done);
 	lookup.ri = null;
 	if (rcvePortId != null) {

@@ -19,7 +19,8 @@ import ibis.ipl.impl.generic.IbisIdentifierTable;
 public class Ibis extends ibis.ipl.Ibis {
 
     static final boolean DEBUG = false;
-    static final boolean STATISTICS = false;
+    static final boolean CHECK_LOCKS = DEBUG;
+    static final boolean STATISTICS = true;
 
     static Ibis globalIbis;
 
@@ -147,7 +148,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void join_upcall(byte[] serialForm) throws IbisIOException {
-		// checkLockOwned();
+		checkLockOwned();
 		//manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 
 		IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
@@ -160,7 +161,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void leave_upcall(byte[] serialForm) {
-	// checkLockOwned();
+	checkLockOwned();
 	try {
 	    IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
 	    ibisNameService.remove(id);
@@ -332,11 +333,15 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
     final void checkLockOwned() {
-	monitor.checkImOwner();
+	if (CHECK_LOCKS) {
+	    monitor.checkImOwner();
+	}
     }
 
     final void checkLockNotOwned() {
-	monitor.checkImNotOwner();
+	if (CHECK_LOCKS) {
+	    monitor.checkImNotOwner();
+	}
     }
 
 
@@ -389,27 +394,27 @@ public class Ibis extends ibis.ipl.Ibis {
 
 
     void bindSendPort(ShadowSendPort p, int cpu, int port) {
-	// checkLockOwned();
+	checkLockOwned();
 	sendPorts[cpu].bind(port, p);
     }
 
     void bindReceivePort(ReceivePort p, int port) {
-	// checkLockOwned();
+	checkLockOwned();
 	rcvePorts.bind(port, p);
     }
 
     ShadowSendPort lookupSendPort(int cpu, int port) {
-	// checkLockOwned();
+	checkLockOwned();
 	return (ShadowSendPort)sendPorts[cpu].lookup(port);
     }
 
     void unbindSendPort(int cpu, int port) {
-	// checkLockOwned();
+	checkLockOwned();
 	sendPorts[cpu].unbind(port);
     }
 
     ReceivePort lookupReceivePort(int port) {
-	// checkLockOwned();
+	checkLockOwned();
 	return (ReceivePort)rcvePorts.lookup(port);
     }
 
@@ -438,7 +443,7 @@ public class Ibis extends ibis.ipl.Ibis {
 				 int msgSize,
 				 int msgSeqno)
 	    throws IbisIOException {
-	// checkLockOwned();
+	checkLockOwned();
 // System.err.println(Thread.currentThread() + "receiveFragment");
 	ReceivePort port = lookupReceivePort(dest_port);
 // System.err.println(Thread.currentThread() + "receiveFragment port " + port);

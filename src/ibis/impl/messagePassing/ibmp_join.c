@@ -128,7 +128,6 @@ ibmp_join_init(JNIEnv *env)
 	ibmp_error(env, "Cannot find method leave_upcall([B)V\n");
     }
 
-    // ibmp_lock_check_owned(env);
     join_port = ibp_mp_port_register(join_upcall);
     leave_port = ibp_mp_port_register(leave_upcall);
 

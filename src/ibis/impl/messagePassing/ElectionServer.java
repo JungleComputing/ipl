@@ -13,12 +13,13 @@ class ElectionServer
     static private Hashtable elections;
     private boolean started = false;
     private boolean finished = false;
+    private boolean halted = false;
 
     final static boolean DEBUG = false;
 
 
     public void upcall(ibis.ipl.ReadMessage m) {
-	// Ibis.myIbis.checkLockNotOwned();
+	Ibis.myIbis.checkLockNotOwned();
 	try {
 	    int sender = m.readInt();
 	    String name = (String)m.readObject();
@@ -90,6 +91,19 @@ class ElectionServer
     }
 
 
+    void awaitShutdown() {
+	synchronized (this) {
+	    try {
+		while (! halted) {
+		    wait();
+		}
+	    } catch (InterruptedException e) {
+		// OK, bail out
+	    }
+	}
+    }
+
+
     public void run() {
 	int n = Ibis.myIbis.nrCpus;
 
@@ -152,12 +166,17 @@ class ElectionServer
 	}
 	for (int i = 0; i < n; i++) {
 	    if (DEBUG) {
-		System.err.println("ElectionServer frees server port[" + i + "] = " + server_port[i]);
+		System.err.println("ElectionServer frees server port[" + i + "] (of " + n + ") = " + server_port[i]);
 	    }
 	    server_port[i].free();
 	}
 	if (DEBUG) {
 	    System.err.println("ElectionServer has freed all server ports");
+	}
+
+	synchronized (this) {
+	    halted = true;
+	    notifyAll();
 	}
     }
 

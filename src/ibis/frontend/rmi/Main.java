@@ -18,7 +18,8 @@ class Main {
 	
 	public static String getFileName(String pkg, String name, String pre) { 		
 		if (! local && pkg != null && ! pkg.equals("")) {
-		    return pkg.replace('.', '/') + '/' + pre + name + ".java";
+		    return pkg.replace('.', File.separatorChar) +
+			    File.separator + pre + name + ".java";
 		}
 		return pre + name + ".java";
 	} 

@@ -26,9 +26,23 @@
 		msvc			if windows
     -->
 
-    <property name="package.home.ant-cpptasks" location="${ibis}/../ant-cpptasks"/>
-    <property name="package.home.bcel"         location="/home/ceriel/bcel-5.1"/>
-    <property name="package.home.ant-contrib"  location="${ibis}/../ant-contrib"/>
+    <property
+	    name="package.home.ant-cpptasks"
+	    location="${ibis}/../ant-cpptasks"/>
+    <property
+	    name="package.home.bcel-additions"
+	    location="${ibis}/bcel-additions"/>
+    <property
+	    name="package.home.bcel"
+	    location="/home/ceriel/bcel-5.1"/>
+    <property
+	    name="package.home.ant-contrib"
+	    location="${ibis}/../ant-contrib"/>
+
+
+    <property environment="env"/>
+    <property name="JAVA_HOME"    value="${env.JAVA_HOME}"/>
+
 
     <!--
 	Choose a value from
@@ -36,12 +50,6 @@
 	    optimize
     -->
     <property name="optimization" value="optimize"/>
-
-    <!--
-	Choose the C compiler of your liking
-    -->
-    <!-- <property name="c.compiler" name="msvc"/> -->
-    <property name="c.compiler" value="gcc"/>
 
 
 
@@ -55,22 +63,86 @@
 	</classpath>
     </taskdef>
 
+    <target name="proprietry-tasks">
+	<mkdir dir="${ibis}/ant-tasks/tasks"/>
+	<javac
+		srcdir="${ibis}/ant-tasks"
+		destdir="${ibis}/ant-tasks/tasks">
+	    <include name="**/*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+	<taskdef
+		name="maplibrary"
+		classname="MapLibraryName"
+		classpath="${ibis}/ant-tasks/build"/>
+    </target>
+
+    <target name="property-init" depends="proprietry-tasks">
+	<condition property="os-is-mac">
+	    <os family="mac"/>
+	</condition>
+	<condition property="os-is-unix">
+	    <os family="unix"/>
+	</condition>
+	<condition property="os-is-windows">
+	    <os family="windows"/>
+	</condition>
+
+	<!--
+	    Find the switches that indicate debug/optimize
+	-->
+	<condition property="native.debug">
+	    <equals arg1="${optimization}" arg2="debug"/>
+	</condition>
+	<condition property="native.optimize">
+	    <equals arg1="${optimization}" arg2="optimize"/>
+	</condition>
+	<condition property="java.debug">
+	    <equals arg1="${optimization}" arg2="debug"/>
+	</condition>
+	<condition property="java.optimize">
+	    <equals arg1="${optimization}" arg2="optimize"/>
+	</condition>
+
+	<condition property="java.debug.value"   value="true">
+	    <isset property="java.debug"/>
+	</condition>
+	<condition property="java.debug.value"   value="false">
+	    <not>
+		<isset property="java.debug"/>
+	    </not>
+	</condition>
+	<condition property="native.debug.value" value="true">
+	    <isset property="native.debug"/>
+	</condition>
+	<condition property="native.debug.value" value="false">
+	    <not>
+		<isset property="native.debug"/>
+	    </not>
+	</condition>
+
+	<!--
+	    Choose the C compiler of your liking.
+	    Override if you are not content with the default.
+	-->
+	<condition property="c.compiler" value="gcc">
+	    <isset property="os-is-unix"/>
+	</condition>
+	<condition property="c.compiler" value="msvc">
+	    <isset property="os-is-windows"/>
+	</condition>
+	<condition property="c.compiler" value="gcc">
+	    <isset property="os-is-mac"/>
+	</condition>
+    </target>
+
     <property name="ibisBuild"   location="${ibis}/build"/>
 
     <path id="default.classpath">
 	<pathelement path="${ibisBuild}/"/>
 	<pathelement path="${build}/"/>
-	<pathelement path="bcel-additions/"/>
+	<pathelement path="${package.home.bcel-additions}/"/>
 	<pathelement path="${package.home.bcel}/bcel-5.1.jar/"/>
 	<pathelement path="${package.home.bcel}/lib/"/>
     </path>
-
-    <!--
-    <condition property="native.debug">
-	<equals arg1="${optimization}" arg2="debug"/>
-    </condition>
-    <condition property="native.optimize">
-	<equals arg1="${optimization}" arg2="optimize"/>
-    </condition>
-    -->
 

@@ -16,29 +16,29 @@ export PAN_COMM_NO_IDLE_POLL=1
 
 Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/ibis/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
 
-Dpool_host_num="-Dpool_host_number=$1"
+Dpool_host_num="-Dibis.pool.host_number=$1"
 shift
 
 Dprops="-Dibis.property.file=$IBIS_ROOT/ibis/properties"
 
-#Dpool_total="-Dpool_total_hosts=$1"
+#Dpool_total="-Dibis.pool.total_hosts=$1"
 shift
 
 if [ -z "$PRUN_ENV" ]
 then
-    Dns_pool="-Dname_server_pool=$1"
+    Dns_pool="-Dibis.name_server.key=$1"
     shift
 else
-    Dns_pool="-Dname_server_pool=$PRUN_ENV"
+    Dns_pool="-Dibis.name_server.key=$PRUN_ENV"
 fi
 
-Dns_port="-Dname_server_port=$1"
+Dns_port="-Dibis.name_server.port=$1"
 shift
 
-Dns_server="-Dname_server=$1"
+Dns_server="-Dibis.name_server.host=$1"
 shift
 
-Dpool_total="-Dpool_total_hosts=$1"
+Dpool_total="-Dibis.pool.total_hosts=$1"
 shift
 
-$JAVA_ROOT/bin/java $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dhosts="$HOSTS" -Xmx1024M -Xbootclasspath:$JAVACLASSPATH -classpath $JAVACLASSPATH "$@"
+$JAVA_ROOT/bin/java $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Xmx1024M -Xbootclasspath:$JAVACLASSPATH -classpath $JAVACLASSPATH "$@"
