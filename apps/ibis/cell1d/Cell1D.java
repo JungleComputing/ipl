@@ -6,8 +6,9 @@ import java.util.Random;
 import java.io.IOException;
 
 interface Config {
-    static final boolean tracePortCreation = true;
-    static final boolean traceCommunication = true;
+    static final boolean tracePortCreation = false;
+    static final boolean traceCommunication = false;
+    static final boolean showProgress = true;
     static final boolean traceClusterResizing = true;
     static final int BOARDSIZE = 20000;
     static final int GENERATIONS = 10;
@@ -307,8 +308,10 @@ class Cell1D implements Config {
 
             // The cells. There is a border of cells that are always empty,
             // but make the border conditions easy to handle.
-            byte oldboard[][] = new byte[BOARDSIZE+2][BOARDSIZE+2];
-            byte newboard[][] = new byte[BOARDSIZE+2][BOARDSIZE+2];
+            final int myColumns = BOARDSIZE/nProcs;
+
+            byte oldboard[][] = new byte[BOARDSIZE+2][myColumns+2];
+            byte newboard[][] = new byte[BOARDSIZE+2][myColumns+2];
 
             putTwister( oldboard, 100, 3 );
             if( me == 0 ){
@@ -321,7 +324,7 @@ class Cell1D implements Config {
 
             for( int iter=0; iter<GENERATIONS; iter++ ){
                 for( int i=1; i<=BOARDSIZE; i++ ){
-                    for( int j=1; j<=BOARDSIZE; j++ ){
+                    for( int j=1; j<=myColumns; j++ ){
                         int neighbours =
                             oldboard[i-1][j-1] +
                             oldboard[i-1][j] +
@@ -363,6 +366,19 @@ class Cell1D implements Config {
                         send( me, rightSendPort, oldboard[BOARDSIZE] );
                     }
                 }
+                if( showProgress ){
+                    if( me == 0 ){
+                        char c = '.';
+
+                        if( (iter % 5) == 0 ){
+                            c = (char) ((iter % 10) + '0');
+                        }
+                        System.out.print( c );
+                    }
+                }
+            }
+            if( showProgress ){
+                System.out.println();
             }
             if( !hasTwister( oldboard, 100, 3 ) ){
                 System.out.println( "Twister has gone missing" );
