@@ -64,7 +64,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     public void delete( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.out.println( "Delete of " + id );
+            System.out.println( "Machine " + id.name() + " is deleted from the computation" );
         }
         members--;
     }
