@@ -1,5 +1,7 @@
 package ibis.io;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.NotSerializableException;
@@ -21,7 +23,7 @@ public class IbisSerializationOutputStream
     /**
      * Record how many objects of any class are sent.
      */
-    private static final boolean STATS_OBJECTS = ibis.util.TypedProperties.booleanProperty("ibis.stats.io.written");
+    private static final boolean STATS_OBJECTS = TypedProperties.booleanProperty("ibis.stats.io.written");
 
     // if STATS_OBJECTS
     private static java.util.Hashtable statSendObjects;
@@ -29,6 +31,7 @@ public class IbisSerializationOutputStream
     private static int statObjectHandle;
     private static final int[] statArrayHandle;
     private static final long[] statArrayLength;
+
 
     private static String primitiveName(int i) {
 	switch (i) {
@@ -101,14 +104,9 @@ public class IbisSerializationOutputStream
 
 
     static {
-	if (STATS_OBJECTS) {
-	    System.out.println("IbisSerializationOutputStream.STATS_OBJECTS enabled");
-	    statSendObjects = new java.util.Hashtable();
-	    statArrayCount = new int[PRIMITIVE_TYPES];
-	    statArrayHandle = new int[PRIMITIVE_TYPES];
-	    statArrayLength = new long[PRIMITIVE_TYPES];
-	    Runtime.getRuntime().addShutdownHook(new Thread() {
-		public void run() {
+	Runtime.getRuntime().addShutdownHook(new Thread() {
+	    public void run() {
+		if (STATS_OBJECTS) {
 		    System.out.print("Serializable objects sent: ");
 		    System.out.println(statSendObjects);
 		    System.out.println("Non-array handles sent "
@@ -123,7 +121,14 @@ public class IbisSerializationOutputStream
 			}
 		    }
 		}
-	    });
+	    }
+	});
+	if (STATS_OBJECTS) {
+	    System.out.println("IbisSerializationOutputStream.STATS_OBJECTS enabled");
+	    statSendObjects = new java.util.Hashtable();
+	    statArrayCount = new int[PRIMITIVE_TYPES];
+	    statArrayHandle = new int[PRIMITIVE_TYPES];
+	    statArrayLength = new long[PRIMITIVE_TYPES];
 	} else {
 	    statSendObjects = null;
 	    statArrayCount = null;
@@ -406,29 +411,31 @@ public class IbisSerializationOutputStream
      */
     public void writeArrayBoolean(boolean[] ref, int offset, int len)
 	    throws IOException {
+	startTimer();
 	if (len < SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
 // System.err.println("Special boolean array write len " + len);
 	    /* Maybe lift the check from the writeBoolean? */
 	    for (int i = offset; i < offset + len; i++) {
 		writeBoolean(ref[i]);
 	    }
-	    return;
-	}
 
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
-	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + TYPE_BOOLEAN);
-	}
-	array[array_index].type   = TYPE_BOOLEAN;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].booleanArray  = ref;
-	array_index++;
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayBoolean: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_BOOLEAN);
+	    }
+	    array[array_index].type   = TYPE_BOOLEAN;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].booleanArray  = ref;
+	    array_index++;
 
-	addStatSendArray(ref, TYPE_BOOLEAN, len);
+	    addStatSendArray(ref, TYPE_BOOLEAN, len);
+	}
+	stopTimer();
     }
 
     /**
@@ -443,28 +450,30 @@ public class IbisSerializationOutputStream
      */
     public void writeArrayByte(byte[] ref, int offset, int len)
 	    throws IOException {
+	startTimer();
 	if (len < SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
 // System.err.println("Special byte array write len " + len);
 	    for (int i = offset; i < offset + len; i++) {
 		writeByte(ref[i]);
 	    }
-	    return;
-	}
 
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
-	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + TYPE_BYTE);
-	}
-	array[array_index].type   = TYPE_BYTE;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].byteArray  = ref;
-	array_index++;
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayByte: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_BYTE);
+	    }
+	    array[array_index].type   = TYPE_BYTE;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].byteArray  = ref;
+	    array_index++;
 
-	addStatSendArray(ref, TYPE_BYTE, len);
+	    addStatSendArray(ref, TYPE_BYTE, len);
+	}
+	stopTimer();
     }
 
     /**
@@ -479,28 +488,30 @@ public class IbisSerializationOutputStream
      */
     public void writeArrayChar(char[] ref, int offset, int len)
 	    throws IOException {
+	startTimer();
 	if (len < SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
 // System.err.println("Special char array write len " + len);
 	    for (int i = offset; i < offset + len; i++) {
 		writeChar(ref[i]);
 	    }
-	    return;
-	}
 
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
-	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + new String(ref) + " offset: " 
-		    + offset + " len: " + len + " type: " + TYPE_CHAR);
-	}
-	array[array_index].type   = TYPE_CHAR;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].charArray  = ref;
-	array_index++;
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayChar: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_CHAR);
+	    }
+	    array[array_index].type   = TYPE_CHAR;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].charArray  = ref;
+	    array_index++;
 
-	addStatSendArray(ref, TYPE_CHAR, len);
+	    addStatSendArray(ref, TYPE_CHAR, len);
+	}
+	stopTimer();
     }
 
     /**
@@ -515,28 +526,30 @@ public class IbisSerializationOutputStream
      */
     public void writeArrayShort(short[] ref, int offset, int len)
 	    throws IOException {
+	startTimer();
 	if (len < SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
 // System.err.println("Special short array write len " + len);
 	    for (int i = offset; i < offset + len; i++) {
 		writeShort(ref[i]);
 	    }
-	    return;
-	}
 
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
-	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + TYPE_SHORT);
-	}
-	array[array_index].type   = TYPE_SHORT;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].shortArray  = ref;
-	array_index++;
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayShort: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_SHORT);
+	    }
+	    array[array_index].type   = TYPE_SHORT;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].shortArray  = ref;
+	    array_index++;
 
-	addStatSendArray(ref, TYPE_SHORT, len);
+	    addStatSendArray(ref, TYPE_SHORT, len);
+	}
+	stopTimer();
     }
 
     /**
@@ -551,28 +564,30 @@ public class IbisSerializationOutputStream
      */
     public void writeArrayInt(int[] ref, int offset, int len)
 	    throws IOException {
+	startTimer();
 	if (len < SMALL_ARRAY_BOUND / SIZEOF_INT) {
 // System.err.println("Special int array write len " + len);
 	    for (int i = offset; i < offset + len; i++) {
 		writeInt(ref[i]);
 	    }
-	    return;
-	}
 
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
-	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + TYPE_INT);
-	}
-	array[array_index].type   = TYPE_INT;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].intArray  = ref;
-	array_index++;
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayInt: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_INT);
+	    }
+	    array[array_index].type   = TYPE_INT;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].intArray  = ref;
+	    array_index++;
 
-	addStatSendArray(ref, TYPE_INT, len);
+	    addStatSendArray(ref, TYPE_INT, len);
+	}
+	stopTimer();
     }
 
     /**
@@ -587,28 +602,30 @@ public class IbisSerializationOutputStream
      */
     public void writeArrayLong(long[] ref, int offset, int len)
 	    throws IOException {
+	startTimer();
 	if (len < SMALL_ARRAY_BOUND / SIZEOF_LONG) {
 // System.err.println("Special long array write len " + len);
 	    for (int i = offset; i < offset + len; i++) {
 		writeLong(ref[i]);
 	    }
-	    return;
-	}
 
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
-	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + TYPE_LONG);
-	}
-	array[array_index].type   = TYPE_LONG;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].longArray  = ref;
-	array_index++;
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayLong: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_LONG);
+	    }
+	    array[array_index].type   = TYPE_LONG;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].longArray  = ref;
+	    array_index++;
 
-	addStatSendArray(ref, TYPE_LONG, len);
+	    addStatSendArray(ref, TYPE_LONG, len);
+	}
+	stopTimer();
     }
 
     /**
@@ -623,28 +640,30 @@ public class IbisSerializationOutputStream
      */
     public void writeArrayFloat(float[] ref, int offset, int len)
 	    throws IOException {
+	startTimer();
 	if (len < SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
 // System.err.println("Special float array write len " + len);
 	    for (int i = offset; i < offset + len; i++) {
 		writeFloat(ref[i]);
 	    }
-	    return;
-	}
 
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
-	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + TYPE_FLOAT);
-	}
-	array[array_index].type   = TYPE_FLOAT;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].floatArray  = ref;
-	array_index++;
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayFloat: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_FLOAT);
+	    }
+	    array[array_index].type   = TYPE_FLOAT;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].floatArray  = ref;
+	    array_index++;
 
-	addStatSendArray(ref, TYPE_FLOAT, len);
+	    addStatSendArray(ref, TYPE_FLOAT, len);
+	}
+	stopTimer();
     }
 
     /**
@@ -659,28 +678,30 @@ public class IbisSerializationOutputStream
      */
     public void writeArrayDouble(double[] ref, int offset, int len)
 	    throws IOException {
+	startTimer();
 	if (len < SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
 // System.err.println("Special double array write len " + len);
 	    for (int i = offset; i < offset + len; i++) {
 		writeDouble(ref[i]);
 	    }
-	    return;
-	}
 
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
-	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + TYPE_DOUBLE);
-	}
-	array[array_index].type   = TYPE_DOUBLE;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].doubleArray  = ref;
-	array_index++;
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayDouble: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_DOUBLE);
+	    }
+	    array[array_index].type   = TYPE_DOUBLE;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].doubleArray  = ref;
+	    array_index++;
 
-	addStatSendArray(ref, TYPE_DOUBLE, len);
+	    addStatSendArray(ref, TYPE_DOUBLE, len);
+	}
+	stopTimer();
     }
 
     /**
@@ -692,10 +713,13 @@ public class IbisSerializationOutputStream
 	if (DEBUG) {
 	    dbPrint("doing a flush()");
 	}
+
+	suspendTimer();
+
 	flushBuffers();
 
 	/* Retain the order in which the arrays were pushed. This 
-	 * costs a cast at send/receive.
+	 * costs a cast at receive time.
 	 */
 	for (int i = 0; i < array_index; i++) {
 	    ArrayDescriptor a = array[i];
@@ -730,6 +754,8 @@ public class IbisSerializationOutputStream
 	array_index = 0;
 
 	out.flush();
+
+	resumeTimer();
 
 	if (out instanceof ArrayOutputStream) {
 
@@ -773,6 +799,7 @@ public class IbisSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeBoolean(boolean value) throws IOException {
+	startTimer();
 	if (byte_index == BYTE_BUFFER_SIZE) {
 	    flush();
 	}
@@ -780,6 +807,7 @@ public class IbisSerializationOutputStream
 	    dbPrint("wrote boolean " + value);
 	}
 	byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
+	stopTimer();
     }
 
 
@@ -789,6 +817,7 @@ public class IbisSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeByte(int value) throws IOException {
+	startTimer();
 	if (byte_index == BYTE_BUFFER_SIZE) {
 	    flush();
 	}
@@ -796,6 +825,7 @@ public class IbisSerializationOutputStream
 	    dbPrint("wrote byte " + value);
 	}
 	byte_buffer[byte_index++] = (byte) value;
+	stopTimer();
     }
 
     /**
@@ -804,6 +834,7 @@ public class IbisSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeChar(char value) throws IOException {
+	startTimer();
 	if (char_index == CHAR_BUFFER_SIZE) {
 	    flush();
 	}
@@ -811,6 +842,7 @@ public class IbisSerializationOutputStream
 	    dbPrint("wrote char " + value);
 	}
 	char_buffer[char_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -819,6 +851,7 @@ public class IbisSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeShort(int value) throws IOException {
+	startTimer();
 	if (short_index == SHORT_BUFFER_SIZE) {
 	    flush();
 	}
@@ -826,6 +859,7 @@ public class IbisSerializationOutputStream
 	    dbPrint("wrote short " + value);
 	}
 	short_buffer[short_index++] = (short) value;
+	stopTimer();
     }
 
     /**
@@ -834,6 +868,7 @@ public class IbisSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeInt(int value) throws IOException {
+	startTimer();
 	if (int_index == INT_BUFFER_SIZE) {
 	    flush();
 	}
@@ -842,6 +877,7 @@ public class IbisSerializationOutputStream
 		    Integer.toHexString(value) + "]");
 	}
 	int_buffer[int_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -850,6 +886,7 @@ public class IbisSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeLong(long value) throws IOException {
+	startTimer();
 	if (long_index == LONG_BUFFER_SIZE) {
 	    flush();
 	}
@@ -857,6 +894,7 @@ public class IbisSerializationOutputStream
 	    dbPrint("wrote long " + value);
 	}
 	long_buffer[long_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -865,6 +903,7 @@ public class IbisSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeFloat(float value) throws IOException {
+	startTimer();
 	if (float_index == FLOAT_BUFFER_SIZE) {
 	    flush();
 	}
@@ -872,6 +911,7 @@ public class IbisSerializationOutputStream
 	    dbPrint("wrote float " + value);
 	}
 	float_buffer[float_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -880,6 +920,7 @@ public class IbisSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeDouble(double value) throws IOException {
+	startTimer();
 	if (double_index == DOUBLE_BUFFER_SIZE) {
 	    flush();
 	}
@@ -887,6 +928,7 @@ public class IbisSerializationOutputStream
 	    dbPrint("wrote double " + value);
 	}
 	double_buffer[double_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -1004,8 +1046,10 @@ public class IbisSerializationOutputStream
      */
     public void writeUTF(String str) throws IOException {
 	// dbPrint("writeUTF: " + str);
+	startTimer();
 	if(str == null) {
 	    writeInt(-1);
+	    stopTimer();
 	    return;
 	}
 
@@ -1036,6 +1080,7 @@ public class IbisSerializationOutputStream
 
 	writeInt(bn);
 	writeArray(b, 0, bn);
+	stopTimer();
     }
 
     /**
@@ -1045,8 +1090,10 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public void writeClass(Class ref) throws IOException {
+	startTimer();
 	if (ref == null) {
 	    writeHandle(NUL_HANDLE);
+	    stopTimer();
 	    return;
 	}
 	int hashCode = references.getHashCode(ref);
@@ -1059,6 +1106,7 @@ public class IbisSerializationOutputStream
 	} else {
 	    writeHandle(handle);
 	}
+	stopTimer();
     }
 
     /**
@@ -1161,14 +1209,16 @@ public class IbisSerializationOutputStream
      */
     public void writeBytes(String s) throws IOException {
 
-	if (s == null) return;
-
-	byte[] bytes = s.getBytes();
-	int len = bytes.length;
-	writeInt(len);
-	for (int i = 0; i < len; i++) {
-	    writeByte(bytes[i]);
+	startTimer();
+	if (s != null) {
+	    byte[] bytes = s.getBytes();
+	    int len = bytes.length;
+	    writeInt(len);
+	    for (int i = 0; i < len; i++) {
+		writeByte(bytes[i]);
+	    }
 	}
+	stopTimer();
     }
 
     /**
@@ -1176,97 +1226,117 @@ public class IbisSerializationOutputStream
      */
     public void writeChars(String s) throws IOException {
 
-	if (s == null) return;
-
-	int len = s.length();
-	writeInt(len);
-	for (int i = 0; i < len; i++) {
-	    writeChar(s.charAt(i));
+	startTimer();
+	if (s != null) {
+	    int len = s.length();
+	    writeInt(len);
+	    for (int i = 0; i < len; i++) {
+		writeChar(s.charAt(i));
+	    }
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
+	startTimer();
 	if(writeArrayHeader(ref, classBooleanArray, len, false)) {
 	    writeArrayBoolean(ref, off, len);
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
+	startTimer();
 	if(writeArrayHeader(ref, classByteArray, len, false)) {
 	    writeArrayByte(ref, off, len);
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
+	startTimer();
 	if(writeArrayHeader(ref, classShortArray, len, false)) {
 	    writeArrayShort(ref, off, len);
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
+	startTimer();
 	if(writeArrayHeader(ref, classCharArray, len, false)) {
 	    writeArrayChar(ref, off, len);
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
+	startTimer();
 	if(writeArrayHeader(ref, classIntArray, len, false)) {
 	    writeArrayInt(ref, off, len);
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
+	startTimer();
 	if(writeArrayHeader(ref, classLongArray, len, false)) {
 	    writeArrayLong(ref, off, len);
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
+	startTimer();
 	if(writeArrayHeader(ref, classFloatArray, len, false)) {
 	    writeArrayFloat(ref, off, len);
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
+	startTimer();
 	if(writeArrayHeader(ref, classDoubleArray, len, false)) {
 	    writeArrayDouble(ref, off, len);
 	}
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeArray(Object[] ref, int off, int len) throws IOException {
+	startTimer();
 	Class clazz = ref.getClass();
 	if (writeArrayHeader(ref, clazz, len, false)) {
 	    for (int i = off; i < off + len; i++) {
 		writeObjectOverride(ref[i]);
 	    }
 	}
+	stopTimer();
     }
 
     /**
@@ -1354,61 +1424,79 @@ public class IbisSerializationOutputStream
     private void writeArray(Object ref, Class arrayClass, boolean unshared)
 	    throws IOException
     {
-	if (false) {
-	} else if (arrayClass == classByteArray) {
-	    byte[] a = (byte[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArrayByte(a, 0, len);
+	String s = arrayClass.getName();
+	switch (s.charAt(1)) {
+	    case 'B': {
+		byte[] a = (byte[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
+		    writeArrayByte(a, 0, len);
+		}
+		break;
 	    }
-	} else if (arrayClass == classIntArray) {
-	    int[] a = (int[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, !unshared)) {
-		writeArrayInt(a, 0, len);
+	    case 'I': {
+		int[] a = (int[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, !unshared)) {
+		    writeArrayInt(a, 0, len);
+		}
+		break;
 	    }
-	} else if (arrayClass == classBooleanArray) {
-	    boolean[] a = (boolean[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArrayBoolean(a, 0, len);
+	    case 'Z': {
+		boolean[] a = (boolean[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
+		    writeArrayBoolean(a, 0, len);
+		}
+		break;
 	    }
-	} else if (arrayClass == classDoubleArray) {
-	    double[] a = (double[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArrayDouble(a, 0, len);
+	    case 'D': {
+		double[] a = (double[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
+		    writeArrayDouble(a, 0, len);
+		}
+		break;
 	    }
-	} else if (arrayClass == classCharArray) {
-	    char[] a = (char[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArrayChar(a, 0, len);
+	    case 'C': {
+		char[] a = (char[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
+		    writeArrayChar(a, 0, len);
+		}
+		break;
 	    }
-	} else if (arrayClass == classShortArray) {
-	    short[] a = (short[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArrayShort(a, 0, len);
+	    case 'S': {
+		short[] a = (short[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
+		    writeArrayShort(a, 0, len);
+		}
+		break;
 	    }
-	} else if (arrayClass == classLongArray) {
-	    long[] a = (long[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArrayLong(a, 0, len);
+	    case 'J': {
+		long[] a = (long[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
+		    writeArrayLong(a, 0, len);
+		}
+		break;
 	    }
-	} else if (arrayClass == classFloatArray) {
-	    float[] a = (float[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArrayFloat(a, 0, len);
+	    case 'F': {
+		float[] a = (float[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
+		    writeArrayFloat(a, 0, len);
+		}
+		break;
 	    }
-	} else {
-	    Object[] a = (Object[])ref;
-	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		for (int i = 0; i < len; i++) {
-		    writeObjectOverride(a[i]);
+	    default: {
+		Object[] a = (Object[])ref;
+		int len = a.length;
+		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
+		    for (int i = 0; i < len; i++) {
+			writeObjectOverride(a[i]);
+		    }
 		}
 	    }
 	}
@@ -1734,11 +1822,13 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown on IO error
      */
     public void writeString(String ref) throws IOException {
+	startTimer();
 	if (ref == null) {
 	    if (DEBUG) {
 		dbPrint("writeString: --> null");
 	    }
 	    writeHandle(NUL_HANDLE);
+	    stopTimer();
 	    return;
 	}
 
@@ -1757,6 +1847,7 @@ public class IbisSerializationOutputStream
 	    }
 	    writeHandle(handle);
 	}
+	stopTimer();
     }
 
 
@@ -1823,8 +1914,10 @@ public class IbisSerializationOutputStream
 	 * ref > 0:	handle
 	 */
 
+	startTimer();
 	if (ref == null) {
 	    writeHandle(NUL_HANDLE);
+	    stopTimer();
 	    return;
 	}
 	/* TODO: deal with writeReplace! This should be done before
@@ -1889,6 +1982,7 @@ public class IbisSerializationOutputStream
 
 	    addStatSendObjectHandle(ref);
 	}
+	stopTimer();
     }
 
     /**

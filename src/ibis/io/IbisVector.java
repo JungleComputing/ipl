@@ -3,6 +3,7 @@ package ibis.io;
 public final class IbisVector { 
 
     public static final int INIT_SIZE = 64;
+    private static final int INCREMENT_FACTOR = 4;
 
     private Object [] array;
     private int current_size;
@@ -19,11 +20,12 @@ public final class IbisVector {
     } 
 
     private final void double_array() { 
-	Object [] temp = new Object[current_size*4];
+	int new_size = current_size * INCREMENT_FACTOR;
+	Object [] temp = new Object[new_size];
 //	System.arraycopy(array, 0, temp, 0, current_size);
 	System.arraycopy(array, 0, temp, 0, maxfill);
 	array = temp;
-	current_size *= 4;
+	current_size = new_size;
     } 
 
     public final void add(int index, Object data) { 

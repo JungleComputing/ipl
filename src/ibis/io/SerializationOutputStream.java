@@ -1,5 +1,7 @@
 package ibis.io;
 
+import ibis.util.TypedProperties;
+
 import ibis.ipl.Replacer;
 
 import java.io.IOException;
@@ -31,6 +33,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
      */
     protected SerializationOutputStream() throws IOException {
 	super();
+	initTimer();
     }
 
     /**
@@ -41,7 +44,94 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
      */
     protected SerializationOutputStream(OutputStream s) throws IOException {
 	super(s);
+	initTimer();
     }
+
+
+    /** 
+     * Enable this to measure the time spent in serialization.
+     * Each serialization entry/exit point must start/stop the timer.
+     */
+    protected final static boolean TIME_SERIALIZATION =
+	TypedProperties.booleanProperty("ibis.serialization.timer", false) ||
+       	TypedProperties.booleanProperty("ibis.serialization.timer.output", false);
+
+    /**
+     * The serialization timer
+     */
+    protected final SerializationTimer timer =
+	TIME_SERIALIZATION ? new SerializationTimer(toString()) : null;
+
+    private static java.util.Vector timerList = new java.util.Vector();
+
+    static {
+	if (TIME_SERIALIZATION) {
+	    System.out.println("SerializationOutputStream.TIME_SERIALIZATION enabled");
+	    Runtime.getRuntime().addShutdownHook(new Thread() {
+		public void run() {
+		    printAllTimers();
+		}
+	    });
+	}
+    }
+
+    public static void resetAllTimers() {
+	synchronized (SerializationOutputStream.class) {
+	    java.util.Enumeration e = timerList.elements();
+	    while (e.hasMoreElements()) {
+		SerializationTimer t = (SerializationTimer)e.nextElement();
+		t.reset();
+	    }
+	}
+    }
+
+    public static void printAllTimers() {
+	synchronized (SerializationOutputStream.class) {
+	    java.util.Enumeration e = timerList.elements();
+	    while (e.hasMoreElements()) {
+		SerializationTimer t = (SerializationTimer)e.nextElement();
+		t.report();
+	    }
+	}
+    }
+
+
+    private void initTimer() {
+	if (TIME_SERIALIZATION) {
+	    synchronized (SerializationOutputStream.class) {
+		timerList.add(timer);
+	    }
+	}
+    }
+
+
+    protected final void startTimer() {
+	if (TIME_SERIALIZATION) {
+	    timer.start();
+	}
+    }
+
+
+    protected final void stopTimer() {
+	if (TIME_SERIALIZATION) {
+	    timer.stop();
+	}
+    }
+
+
+    protected final void suspendTimer() {
+	if (TIME_SERIALIZATION) {
+	    timer.suspend();
+	}
+    }
+
+
+    protected final void resumeTimer() {
+	if (TIME_SERIALIZATION) {
+	    timer.resume();
+	}
+    }
+
 
     /**
      * Set a replacer. The replacement mechanism can be used to replace
