@@ -1,20 +1,10 @@
-import ibis.io.Conversion;
+import ibis.io.*;
 
 import java.util.Random;
 
 public final class Main {
 
     Random random = new Random();
-
-    boolean arrayEquals(byte[] one, byte[] two) {
-	for(int i = 0; i < one.length; i++) {
-	    System.out.println(i + " " + one[i] + " " + two[i]);
-	    if(one[i] != two[i]) {
-		return false;
-	    }
-	}
-	return true;
-    }
 
     /**
      * Checks to see if conversion from a primitive type[] to bytes
@@ -405,8 +395,7 @@ public final class Main {
 
 
 	    // little endian SimpleConversion
-	    conversion = Conversion.loadConversion("ibis.io.SimpleConversion",
-		    false);
+	    conversion = new SimpleLittleConversion(); 
 
 	    if(!checkConversion(conversion)) {
 		System.err.println("ibis.io.SimpleConversion"
@@ -416,8 +405,7 @@ public final class Main {
 
 
 	    // big endian SimpleConversion
-	    conversion = Conversion.loadConversion("ibis.io.SimpleConversion", 
-		    true);
+	    conversion = new SimpleBigConversion(); 
 
 	    if(!checkConversion(conversion)) {
 		System.err.println("ibis.io.SimpleConversion"
