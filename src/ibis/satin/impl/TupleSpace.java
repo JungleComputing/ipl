@@ -3,6 +3,8 @@ package ibis.satin.impl;
 import ibis.ipl.IbisError;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.satin.ActiveTuple;
 import ibis.util.Sequencer;
 import ibis.util.TypedProperties;
@@ -16,6 +18,7 @@ public abstract class TupleSpace extends Communication {
 	public static boolean use_seq;
 	private static HashMap space;
 	private static boolean initialized = false;
+	private static boolean tuple_connected = false;
 
 	static {
 	    space = new HashMap();
@@ -264,6 +267,12 @@ public abstract class TupleSpace extends Communication {
 		}
 
 		if (SUPPORT_TUPLE_MULTICAST) {
+			synchronized(this) {
+			    if (! tuple_connected) {
+				connectTuplePort();
+				tuple_connected = true;
+			    }
+			}
 		        tuple_message_sent = true;
 
 			try {
@@ -344,6 +353,26 @@ public abstract class TupleSpace extends Communication {
 		}
 	}
 
+	private void connectTuplePort() {
+	    for (int i = 0; i < allIbises.size(); i++) {
+		IbisIdentifier id = (IbisIdentifier) allIbises.get(i);
+		if (! id.equals(ident)) {
+		    ReceivePortIdentifier r;
+		    try {
+			r = lookup("satin tuple port on " + id.name());
+			connect(tuplePort, r);
+		    } catch(IOException e) {
+			if (!FAULT_TOLERANCE) {
+			    System.err.println("SATIN '" + ident.name()
+					    + "': Got Exception while connecting tuple port: "
+					    + e);
+			    System.exit(1);
+			}
+		    }
+		}
+	    }
+	}
+
 	protected void broadcastRemoveTuple(String key) {
 		long count = 0;
 		int size = 0;
@@ -365,6 +394,12 @@ public abstract class TupleSpace extends Communication {
 		}
 
 		if (SUPPORT_TUPLE_MULTICAST) {
+			synchronized(this) {
+			    if (! tuple_connected) {
+				connectTuplePort();
+				tuple_connected = true;
+			    }
+			}
 		        tuple_message_sent = true;
 
 			try {

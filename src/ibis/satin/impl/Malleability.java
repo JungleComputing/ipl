@@ -27,11 +27,6 @@ public abstract class Malleability extends FaultTolerance {
 				connect(s, r);
 			}
 
-			if (SUPPORT_TUPLE_MULTICAST) {
-				r = lookup("satin tuple port on " + joiner.name());
-				connect(tuplePort, r);
-			}
-
 			synchronized (this) {
 				if (FAULT_TOLERANCE && !FT_NAIVE) {
 					globalResultTable.addReplica(joiner);
