@@ -101,7 +101,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 			output.println("\t\t\t\t\tex = e;");
 			output.println("\t\t\t\t}");
 
-			output.println("\t\t\t\tWriteMessage w = ((SendPort) stubs.get(stubID)).newMessage();");		
+			output.println("\t\t\t\tWriteMessage w = stubs[stubID].newMessage();");		
 
 			output.println("\t\t\t\tif (ex != null) {");
 			output.println("\t\t\t\t\tw.writeByte(ibis.rmi.Protocol.EXCEPTION);");
@@ -128,7 +128,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("\t\t\t\tReceivePortIdentifier rpi = (ReceivePortIdentifier) r.readObject();");		       
 		output.println("\t\t\t\tr.finish();");		       
 		output.println("\t\t\t\tint id = addStub(rpi);");
-		output.println("\t\t\t\tWriteMessage w = ((SendPort) stubs.get(id)).newMessage();");
+		output.println("\t\t\t\tWriteMessage w = stubs[id].newMessage();");
 		output.println("\t\t\t\tw.writeInt(id);");
 		output.println("\t\t\t\tw.writeObject(stubType);");
 		output.println("\t\t\t\tw.send();");

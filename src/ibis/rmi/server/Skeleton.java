@@ -8,11 +8,16 @@ public abstract class Skeleton implements ibis.ipl.Upcall {
 
 	private ReceivePort receive;
 	public Object destination;
-	public Vector stubs;
+	public SendPort[] stubs;
 	public String stubType;
+	private int num_ports = 0;
+	private int max_ports = 0;
+
+	private static final int INCR = 16;
 
 	public Skeleton() {
-		stubs = new Vector();
+		stubs = new SendPort[INCR];
+		max_ports = INCR;
 	}
 	
 	public void init(ReceivePort r, Object o) { 
@@ -25,8 +30,14 @@ public abstract class Skeleton implements ibis.ipl.Upcall {
 			SendPort s = RTS.createSendPort();
 			s.connect(rpi);
 			
-			int id = stubs.size();
-			stubs.add(id, s);
+			int id = ++num_ports;
+			if (id >= max_ports) {
+				SendPort[] newports = new SendPort[max_ports+INCR];
+				for (int i = 0; i < max_ports; i++) newports[i] = stubs[i];
+				max_ports += INCR;
+				stubs = newports;
+			}
+			stubs[id] = s;
 			
 			return id;
 		} catch (Exception e) { 
