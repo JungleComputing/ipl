@@ -331,6 +331,14 @@
 
 	<property environment="env"/>
 	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
+	<condition property="JIT_OPTS" value="${env.JIT_OPTS}">
+	    <isset property="env.JIT_OPTS"/>
+	</condition>
+	<condition property="JIT_OPTS" value="">
+	    <not>
+		<isset property="env.JIT_OPTS"/>
+	    </not>
+	</condition>
 
 	<echo
 		file="${ibis}/configuration.sh">#!/bin/bash
@@ -344,6 +352,10 @@
 	<echo
 		append="true"
 		file="${ibis}/configuration.sh">JAVAC=${JAVA_HOME_ENV}/bin/javac
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">JIT_OPTS=${JIT_OPTS}
 </echo>
 	<echo
 		append="true"
