@@ -1026,6 +1026,7 @@ public final class NetServiceLink {
 
                                         if (id == -1) {
                                                 exit = true;
+						portEventQueue.put(new NetPortEvent(NetServiceLink.this, NetPortEvent.CLOSE_EVENT, num));
                                                 continue;
                                         }
 

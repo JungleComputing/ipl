@@ -166,7 +166,7 @@ public final class TcpInput extends NetBufferedInput {
                         do {
                                 int result = tcpIs.read(b, offset, 4);
                                 if (result == -1) {
-                                        if (offset != 0) {
+                                        if (true || offset != 0) {
                                                 throw new Error("broken pipe");
                                         }
 
@@ -189,7 +189,8 @@ public final class TcpInput extends NetBufferedInput {
 			} while (offset < l);
                 } catch (SocketException e) {
                         log.out("SocketException");
-                        return null;
+			throw new NetIbisException(e.getMessage());
+                        // return null;
 		} catch (IOException e) {
 			throw new NetIbisException(e.getMessage());
 		}
