@@ -685,7 +685,6 @@ public final class SATContext implements java.io.Serializable {
             }
         }
 	int arr[] = c.pos;
-	boolean foundIt = false;
 	if( tracePropagation ){
 	    System.err.println( "S" + level + ": propagating unit clause " + c );
 	}
@@ -694,10 +693,6 @@ public final class SATContext implements java.io.Serializable {
 	    int v = arr[j];
 
 	    if( assignment[v] == UNASSIGNED ){
-		if( foundIt ){
-		    System.err.println( "Error: unit clause " + c + " has multiple unassigned variables" );
-		    return SATProblem.UNDETERMINED;
-		}
 		// We have found the unassigned one, propagate it.
 		if( tracePropagation ){
 		    System.err.println( "S" + level + ": propagating positive unit variable " + v + " from clause " + c );
@@ -707,7 +702,6 @@ public final class SATContext implements java.io.Serializable {
 		if( (res != 0) || !doVerification ){
 		    return res;
 		}
-		foundIt = true;
 	    }
 	}
 
@@ -716,10 +710,6 @@ public final class SATContext implements java.io.Serializable {
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
 	    if( assignment[v] == UNASSIGNED ){
-		if( foundIt ){
-		    System.err.println( "Error: unit clause " + c + " has multiple unassigned variables" );
-		    return SATProblem.UNDETERMINED;
-		}
 		// We have found the unassigned one, propagate it.
 		if( tracePropagation ){
 		    System.err.println( "S" + level + ": propagating negative unit variable " + v + " from clause " + c );
@@ -731,7 +721,6 @@ public final class SATContext implements java.io.Serializable {
 		    // done.
 		    return res;
 		}
-		foundIt = true;
 	    }
 	}
 	return SATProblem.UNDETERMINED;
