@@ -634,6 +634,34 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /**
+     * Returns a new array that contains the information of the
+     * positive assignment of each variable.
+     */
+    double [] buildPosInfo()
+    {
+        double res[] = new double[vars];
+
+	for( int ix=0; ix<vars; ix++ ){
+	    res[ix] = variables[ix].getPosInfo( clauses );
+	}
+	return res;
+    }
+
+    /**
+     * Returns a new array that contains the information of the
+     * negative assignment of each variable.
+     */
+    double [] buildNegInfo()
+    {
+        double res[] = new double[vars];
+
+	for( int ix=0; ix<vars; ix++ ){
+	    res[ix] = variables[ix].getNegInfo( clauses );
+	}
+	return res;
+    }
+
+    /**
      * Returns the most frequently used variable of this problem.
      * Assigned variables are not considered.
      * @return the index of the most frequently used variable, or -1 if there are no unassigned variables

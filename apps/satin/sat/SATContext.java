@@ -17,6 +17,12 @@ public class SATContext implements java.io.Serializable {
     /** The number of negative clauses of each variable. */
     private int negclauses[];
 
+    /** The information of a positive assignment of each variable. */
+    private double posinfo[];
+
+    /** The information of a negative assignment of each variable. */
+    private double neginfo[];
+
     /** Satisified flags for all clauses in the problem. */
     private boolean satisfied[];
 
@@ -31,6 +37,8 @@ public class SATContext implements java.io.Serializable {
 	int al[],
 	int poscl[],
 	int negcl[],
+	double posinfo[],
+	double neginfo[],
 	boolean sat[],
 	int us
     ){
@@ -40,20 +48,31 @@ public class SATContext implements java.io.Serializable {
 	unsatisfied = us;
 	posclauses = poscl;
 	negclauses = negcl;
+        this.posinfo = posinfo;
+        this.neginfo = neginfo;
     }
 
     private static final boolean tracePropagation = false;
     private static final boolean doVerification = false;
 
     /**
-     * Constructs an empty Context. 
+     * Constructs a SAT context based on the given SAT problem.
+     * @param p The SAT problem to create the context for.
+     * @return the constructed context
      */
-    public SATContext( int clauseCount, int terms[], int poscl[], int negcl[] ){
-	satisfied = new boolean[clauseCount];
-	unsatisfied = clauseCount;
-	this.terms = terms;
-	posclauses = poscl;
-	negclauses = negcl;
+    public static SATContext buildSATContext( SATProblem p )
+    {
+        int cno = p.getClauseCount();
+        return new SATContext(
+            p.buildTermCounts(),
+            p.buildInitialAssignments(),
+            p.buildPosClauses(),
+            p.buildNegClauses(),
+            p.buildPosInfo(),
+            p.buildNegInfo(),
+            new boolean[cno],
+            cno
+        );
     }
         
     /**
@@ -67,6 +86,8 @@ public class SATContext implements java.io.Serializable {
 	    (int []) assignments.clone(),
 	    (int []) posclauses.clone(),
 	    (int []) negclauses.clone(),
+	    (double []) posinfo.clone(),
+	    (double []) neginfo.clone(),
 	    (boolean []) satisfied.clone(),
 	    unsatisfied
 	);
@@ -375,6 +396,8 @@ public class SATContext implements java.io.Serializable {
 	for( int i=0; i<sz; i++ ){
 	    int cno = neg.get( i );
 
+            // Deduct the old info of this clause.
+            posinfo[var] += Math.log( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
 		// We now have a clause that cannot be satisfied. Conflict.
@@ -384,6 +407,8 @@ public class SATContext implements java.io.Serializable {
 		}
 	        return -1;
 	    }
+            // Add the new information of this clause.
+            posinfo[var] -= Math.log( terms[cno] );
 	    if( terms[cno] == 1 ){
 		// Remember that we saw a unit clause, but don't
 		// propagate it yet, since the administration is inconsistent.
@@ -399,6 +424,7 @@ public class SATContext implements java.io.Serializable {
 	    int cno = pos.get( i );
 
 	    if( !satisfied[cno] ){
+                posinfo[var] -= Math.log( terms[cno] );
 		int res = markClauseSatisfied( p, cno );
 
 		if( res != 0 ){
@@ -450,6 +476,8 @@ public class SATContext implements java.io.Serializable {
 	for( int i=0; i<sz; i++ ){
 	    int cno = pos.get( i );
 
+            // Deduct the old info of this clause.
+            posinfo[var] += Math.log( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
 		// We now have a clause that cannot be satisfied. Conflict.
@@ -459,6 +487,8 @@ public class SATContext implements java.io.Serializable {
 		}
 	        return -1;
 	    }
+            // Add the new information of this clause.
+            posinfo[var] -= Math.log( terms[cno] );
 	    if( terms[cno] == 1 ){
 		// Remember that we saw a unit clause, but don't
 		// propagate it yet, since the administration is inconsistent.
@@ -474,6 +504,7 @@ public class SATContext implements java.io.Serializable {
 	    int cno = neg.get( i );
 
 	    if( !satisfied[cno] ){
+                neginfo[var] -= Math.log( terms[cno] );
 		int res = markClauseSatisfied( p, cno );
 
 		if( res != 0 ){
@@ -539,13 +570,13 @@ public class SATContext implements java.io.Serializable {
     }
 
     /**
-     * Returns true iff the given variable is more frequently used as
+     * Returns true iff the given variable has more information as
      * positive variable than as negative variable.
      * @param var the variable
      */
     public boolean posDominant( int var )
     {
-        return (posclauses[var]>negclauses[var]);
+        return (posinfo[var]>neginfo[var]);
     }
 
     /**

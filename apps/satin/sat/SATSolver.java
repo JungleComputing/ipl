@@ -202,12 +202,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    if( var == -1 ){
 		return null;
 	    }
-	    SATContext ctx = new SATContext(
-		p.getClauseCount(),
-		p.buildTermCounts(),
-		p.buildPosClauses(),
-		p.buildNegClauses()
-	    );
+	    SATContext ctx = SATContext.buildSATContext( p );
 
 	    ctx.assignments = p.buildInitialAssignments();
 

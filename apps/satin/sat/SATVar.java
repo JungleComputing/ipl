@@ -106,6 +106,45 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
      */
     int getNegCount() { return neg.size(); }
 
+    /**
+     * Returns the amount of information in the given uses of a variable.
+     * @param clauses the clauses of the problem
+     * @return the amount of information in bit
+     */
+    static private double getInfo( IntVector v, Clause clauses[] )
+    {
+        int sz = v.size();
+        double info = 0.0;
+
+        for( int i=0; i<sz; i++ ){
+            int cno = v.get( i );
+            Clause c = clauses[cno];
+
+            info -= Math.log( c.pos.length+c.neg.length );
+        }
+        return info;
+    }
+
+    /**
+     * Returns the amount of information in a positive assignment of this
+     * variable.
+     * @param clauses the clauses of the problem
+     * @return the amount of information in bit
+     */
+    double getPosInfo( Clause clauses[] ) {
+       return getInfo( pos, clauses );
+    }
+
+    /**
+     * Returns the amount of information in a negative assignment of this
+     * variable.
+     * @param clauses the clauses of the problem
+     * @return the amount of information in bit
+     */
+    double getNegInfo( Clause clauses[] ) {
+       return getInfo( neg, clauses );
+    }
+
     public String toString()
     {
         return "(" + ix + ")";
