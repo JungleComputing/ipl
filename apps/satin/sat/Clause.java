@@ -52,15 +52,37 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 
     /**
      * Returns true iff 'l' contains 'n'.
+     * We assume the list is sorted.
      * @param l the list to search in
      * @param n the value to search for
      * @return wether the list contains the element
      */
     static private boolean memberIntList( int l[], int n )
     {
-        for( int ix=0; ix<l.length; ix++ ){
-	    if( l[ix] == n ){
-		return true;
+	if( false ){
+	    int from = 0;
+	    int to = l.length;
+
+	    while( from+1<to ){
+		int mid = (from+to)/2;
+		int v = l[mid];
+
+		if( v == n ){
+		    return true;
+		}
+		if( v<n ){
+		    from = mid;
+		}
+		else {
+		    to = mid;
+		}
+	    }
+	}
+	else {
+	    for( int i=0; i<l.length; i++ ){
+		if( l[i] == n ){
+		    return true;
+		}
 	    }
 	}
 	return false;
@@ -75,15 +97,21 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
      */
     static private boolean isSubsetIntList( int la[], int lb[] )
     {
-	if( la.length>lb.length ){
-	    // Since we assume the arrays do not contain duplicates,
-	    // la can never be a subset if it's larger.
+	int ixb = 0;
+
+	if( lb.length<la.length ){
 	    return false;
 	}
-	for( int ix=0; ix<la.length; ix++ ){
-	    if( !memberIntList( lb, la[ix] ) ){
+	for( int ixa=0; ixa<la.length; ixa++ ){
+	    int va = la[ixa];
+
+	    while( ixb<lb.length && lb[ixb]<va ){
+		ixb++;
+	    }
+	    if( ixb>=lb.length || lb[ixb]>va ){
 		return false;
 	    }
+	    ixb++;
 	}
 	return true;
     }
@@ -238,22 +266,6 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     }
 
     /**
-     * Returns true iff variable 'v' occurs as a positive term in this clause.
-     */
-    boolean occursPos( int var )
-    {
-        return memberIntList( pos, var );
-    }
-
-    /**
-     * Return true iff variable 'v' occurs as a negative term in this clause.
-     */
-    boolean occursNeg( int var )
-    {
-        return memberIntList( neg, var );
-    }
-
-    /**
      * Registers that the specified variable is known to be true.
      * Returns true iff the clause is now satisfied.
      * @param var the variable that is known to be true
@@ -269,8 +281,11 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	// it cannot satisfy the clause.
 	for( int ix=0; ix<neg.length; ix++ ){
 	    if( neg[ix] == var ){
-		neg[ix] = neg[neg.length-1];
-		neg = Helpers.cloneIntArray( neg, neg.length-1 );
+		int negn[] = new int[neg.length-1];
+
+		System.arraycopy( neg, 0, negn, 0, ix );
+		System.arraycopy( neg, ix+1, negn, ix, (neg.length-1)-ix );
+		neg = negn;
 	    }
 	}
 	return false;
@@ -292,8 +307,11 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	// it cannot satisfy the clause.
 	for( int ix=0; ix<pos.length; ix++ ){
 	    if( pos[ix] == var ){
-		pos[ix] = pos[pos.length-1];
-		pos = Helpers.cloneIntArray( pos, pos.length-1 );
+		int posn[] = new int[pos.length-1];
+
+		System.arraycopy( pos, 0, posn, 0, ix );
+		System.arraycopy( pos, ix+1, posn, ix, (pos.length-1)-ix );
+		pos = posn;
 	    }
 	}
 	return false;
