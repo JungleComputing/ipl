@@ -921,6 +921,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				while(true) {
 					if(ABORTS && gotAborts) handleAborts();
 					if(ABORTS && gotExceptions) handleExceptions();
+					if(gotActiveTuples) handleActiveTuples();
+
 					synchronized(this) {
 						if(gotStealReply) {
 							/* Immediately reset gotStealReply, we know that
