@@ -2062,9 +2062,8 @@ public final class Satin implements Config, ResizeHandler {
 		while(!exiting) {
 			// steal and run jobs
 
-			if(!upcalls) {
-				satinPoll();
-			}
+		        satinPoll();
+			handleDelayedMessages();
 
 			algorithm.clientIteration();
 		}
