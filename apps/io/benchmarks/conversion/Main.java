@@ -24,9 +24,8 @@ public final class Main {
     private void booleanConversion(Conversion conversion) {
 
 	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
-	int CHUNK = 8 * 1024;
 
-	for(int bufferLength = 512; bufferLength < (2 << 20); bufferLength *= 2) {
+	for(int bufferLength = 64; bufferLength < (2 << 20); bufferLength *= 2) {
 
 	    // *** booleans ***
 
@@ -58,46 +57,6 @@ public final class Main {
 	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
 	    System.out.println("byte2boolean[" + booleans.length + "] (" + ITERS + ") takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
 
-	    // Try to fit the boolean chunks into Conversion's byte buffer.
-	    // NOTE: this ignores all kinds of rounding stuff. Beware
-	    // that the size be sufficiently 2-powered.
-	    int BOOLEAN_CHUNK = CHUNK / Conversion.BOOLEAN_SIZE;
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < booleans.length) {
-			int len = Math.min(booleans.length - off, BOOLEAN_CHUNK);
-			conversion.boolean2byte(booleans, off, len, buf, bytes_off);
-			off += len;
-			bytes_off += len * Conversion.BOOLEAN_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("boolean2byte[" + booleans.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < booleans.length) {
-			int len = Math.min(booleans.length - off, BOOLEAN_CHUNK);
-			conversion.byte2boolean(buf, bytes_off, booleans, off, len);
-			off += len;
-			bytes_off += len * Conversion.BOOLEAN_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("byte2boolean[" + booleans.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
 	}
 
     }
@@ -106,10 +65,8 @@ public final class Main {
     private void shortConversion(Conversion conversion) {
 
 	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
-	int CHUNK = 8 * 1024;
 
-	for(int bufferLength = 512; bufferLength < (2 << 20); bufferLength *= 2) {
-
+	for(int bufferLength = 64; bufferLength < (2 << 20); bufferLength *= 2) {
 	    // *** shorts ***
 
 	    short[] shorts = new short[bufferLength / Conversion.SHORT_SIZE];
@@ -140,57 +97,15 @@ public final class Main {
 	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
 	    System.out.println("byte2short[" + shorts.length + "] (" + ITERS + ") takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
 
-	    // Try to fit the short chunks into Conversion's byte buffer.
-	    // NOTE: this ignores all kinds of rounding stuff. Beware
-	    // that the size be sufficiently 2-powered.
-	    int SHORT_CHUNK = CHUNK / Conversion.SHORT_SIZE;
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < shorts.length) {
-			int len = Math.min(shorts.length - off, SHORT_CHUNK);
-			conversion.short2byte(shorts, off, len, buf, bytes_off);
-			off += len;
-			bytes_off += len * Conversion.SHORT_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("short2byte[" + shorts.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < shorts.length) {
-			int len = Math.min(shorts.length - off, SHORT_CHUNK);
-			conversion.byte2short(buf, bytes_off, shorts, off, len);
-			off += len;
-			bytes_off += len * Conversion.SHORT_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("byte2short[" + shorts.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
 	}
-
     }
 
 
     private void intConversion(Conversion conversion) {
 
 	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
-	int CHUNK = 8 * 1024;
 
-	for(int bufferLength = 512; bufferLength < (2 << 20); bufferLength *= 2) {
+	for(int bufferLength = 64; bufferLength < (2 << 20); bufferLength *= 2) {
 
 	    // *** ints ***
 
@@ -222,46 +137,6 @@ public final class Main {
 	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
 	    System.out.println("byte2int[" + ints.length + "] (" + ITERS + ") takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
 
-	    // Try to fit the int chunks into Conversion's byte buffer.
-	    // NOTE: this ignores all kinds of rounding stuff. Beware
-	    // that the size be sufficiently 2-powered.
-	    int INT_CHUNK = CHUNK / Conversion.INT_SIZE;
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < ints.length) {
-			int len = Math.min(ints.length - off, INT_CHUNK);
-			conversion.int2byte(ints, off, len, buf, bytes_off);
-			off += len;
-			bytes_off += len * Conversion.INT_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("int2byte[" + ints.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < ints.length) {
-			int len = Math.min(ints.length - off, INT_CHUNK);
-			conversion.byte2int(buf, bytes_off, ints, off, len);
-			off += len;
-			bytes_off += len * Conversion.INT_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("byte2int[" + ints.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
 	}
 
     }
@@ -270,9 +145,8 @@ public final class Main {
     private void longConversion(Conversion conversion) {
 
 	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
-	int CHUNK = 8 * 1024;
 
-	for(int bufferLength = 512; bufferLength < (2 << 20); bufferLength *= 2) {
+	for(int bufferLength = 64; bufferLength < (2 << 20); bufferLength *= 2) {
 
 	    // *** longs ***
 
@@ -304,46 +178,6 @@ public final class Main {
 	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
 	    System.out.println("byte2long[" + longs.length + "] (" + ITERS + ") takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
 
-	    // Try to fit the long chunks into Conversion's byte buffer.
-	    // NOTE: this ignores all kinds of rounding stuff. Beware
-	    // that the size be sufficiently 2-powered.
-	    int LONG_CHUNK = CHUNK / Conversion.LONG_SIZE;
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < longs.length) {
-			int len = Math.min(longs.length - off, LONG_CHUNK);
-			conversion.long2byte(longs, off, len, buf, bytes_off);
-			off += len;
-			bytes_off += len * Conversion.LONG_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("long2byte[" + longs.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < longs.length) {
-			int len = Math.min(longs.length - off, LONG_CHUNK);
-			conversion.byte2long(buf, bytes_off, longs, off, len);
-			off += len;
-			bytes_off += len * Conversion.LONG_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("byte2long[" + longs.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
 	}
 
     }
@@ -352,9 +186,8 @@ public final class Main {
     private void floatConversion(Conversion conversion) {
 
 	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
-	int CHUNK = 8 * 1024;
 
-	for(int bufferLength = 512; bufferLength < (2 << 20); bufferLength *= 2) {
+	for(int bufferLength = 64; bufferLength < (2 << 20); bufferLength *= 2) {
 
 	    // *** floats ***
 
@@ -386,46 +219,6 @@ public final class Main {
 	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
 	    System.out.println("byte2float[" + floats.length + "] (" + ITERS + ") takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
 
-	    // Try to fit the float chunks into Conversion's byte buffer.
-	    // NOTE: this ignores all kinds of rounding stuff. Beware
-	    // that the size be sufficiently 2-powered.
-	    int FLOAT_CHUNK = CHUNK / Conversion.FLOAT_SIZE;
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < floats.length) {
-			int len = Math.min(floats.length - off, FLOAT_CHUNK);
-			conversion.float2byte(floats, off, len, buf, bytes_off);
-			off += len;
-			bytes_off += len * Conversion.FLOAT_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("float2byte[" + floats.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < floats.length) {
-			int len = Math.min(floats.length - off, FLOAT_CHUNK);
-			conversion.byte2float(buf, bytes_off, floats, off, len);
-			off += len;
-			bytes_off += len * Conversion.FLOAT_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("byte2float[" + floats.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
 	}
 
     }
@@ -434,9 +227,8 @@ public final class Main {
     private void doubleConversion(Conversion conversion) {
 
 	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
-	int CHUNK = 8 * 1024;
 
-	for(int bufferLength = 512; bufferLength < (2 << 20); bufferLength *= 2) {
+	for(int bufferLength = 64; bufferLength < (2 << 20); bufferLength *= 2) {
 
 	    // *** doubles ***
 
@@ -468,92 +260,27 @@ public final class Main {
 	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
 	    System.out.println("byte2double[" + doubles.length + "] (" + ITERS + ") takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
 
-	    // Try to fit the double chunks into Conversion's byte buffer.
-	    // NOTE: this ignores all kinds of rounding stuff. Beware
-	    // that the size be sufficiently 2-powered.
-	    int DOUBLE_CHUNK = CHUNK / Conversion.DOUBLE_SIZE;
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < doubles.length) {
-			int len = Math.min(doubles.length - off, DOUBLE_CHUNK);
-			conversion.double2byte(doubles, off, len, buf, bytes_off);
-			off += len;
-			bytes_off += len * Conversion.DOUBLE_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("double2byte[" + doubles.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
-	    for (int warmup = 0; warmup < 2; warmup ++) {
-		timer.reset();
-		timer.start();
-		for (int i = 0; i < ITERS; i++) {
-		    int off = 0;
-		    int bytes_off = 0;
-		    while (off < doubles.length) {
-			int len = Math.min(doubles.length - off, DOUBLE_CHUNK);
-			conversion.byte2double(buf, bytes_off, doubles, off, len);
-			off += len;
-			bytes_off += len * Conversion.DOUBLE_SIZE;
-		    }
-		}
-		timer.stop();
-	    }
-	    thrp = MBs / (timer.totalTimeVal() / 1000000.0);
-	    System.out.println("byte2double[" + doubles.length + "] (" + ITERS + ") chunksize " + CHUNK + " takes " + doubleFmt((timer.totalTimeVal() / ITERS), 1) + " us; thrp " + doubleFmt(thrp, 1) + " MB/s");
-
 	}
 
     }
 
 
 
-    Main() {
+    Main(String args[]) {
 	Conversion conversion;
 
+	if(args.length == 0 || args[0] == null) {
+	    System.err.println("Usage: Main CONVERSION_NAME, e.g Main ibis.io.nio.HybridChunkLittleConversion");
+	    System.exit(1);
+	}
+
 	try {
+	    conversion = Conversion.loadConversion(args[0]);
 
-	    if (true) {
-		// little endian NioConversion
-		conversion = Conversion.loadConversion(false, true);
-
-		System.out.println("Now look into " + conversion);
-		longConversion(conversion);
-		doubleConversion(conversion);
-	    }
-
-	    if (false) {
-		// big endian NioConversion
-		conversion = Conversion.loadConversion(true, true);
-
-		System.out.println("Now look into " + conversion);
-		longConversion(conversion);
-		doubleConversion(conversion);
-	    }
-
-	    if (false) {
-		// little endian SimpleConversion
-		conversion = Conversion.loadConversion(false, false);
-
-		System.out.println("Now look into " + conversion);
-		longConversion(conversion);
-		doubleConversion(conversion);
-	    }
-
-	    if (false) {
-		// big endian SimpleConversion
-		conversion = Conversion.loadConversion(true, false);
-
-		System.out.println("Now look into " + conversion);
-		longConversion(conversion);
-		doubleConversion(conversion);
-	    }
+	    System.out.println("Now look into " + conversion);
+	    longConversion(conversion);
+	    floatConversion(conversion);
+	    doubleConversion(conversion);
 
 	} catch (Exception e) {
 	    System.err.println("Conversion test got Exception " + e);
@@ -564,7 +291,7 @@ public final class Main {
 
 
     public static void main(String args[]) {
-	new Main();
+	new Main(args);
     }
 
 }
