@@ -445,8 +445,8 @@
 		    </includepath>
 		    <!--
 		    <fileset refid="extra.libs-ref" if="extra.libs"/>
-		    -->
 		    <libset dir="${ibis}/3rdparty/omni/OmniTimer/build/lib" libs="OTTimer"/>
+		    -->
 		    <!-- <compilerarg location="mid" value="-E"/> -->
 		    <!-- <compilerarg location="mid" value="-v"/> -->
 		</cc>
