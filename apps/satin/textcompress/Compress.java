@@ -56,12 +56,19 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return res;
     }
 
-    public Backref evaluateBackref( final byte text[], final int backrefs[], int backpos, int pos, int depth )
+    public Backref swallowEvaluateBackref( final byte text[], final int backrefs[], int backpos, int pos )
     {
         Backref r = new Backref();
 
         r.backpos = backpos;
         r.len = Helpers.matchSpans( text, backpos, pos );
+
+        return r;
+    }
+
+    public Backref evaluateBackref( final byte text[], final int backrefs[], int backpos, int pos, int depth )
+    {
+        Backref r = swallowEvaluateBackref( text, backrefs, backpos, pos );
 
         if( r.len>=Configuration.MINIMAL_SPAN ){
             r.gain = r.len-Helpers.refEncodingSize( pos-backpos, r.len );
