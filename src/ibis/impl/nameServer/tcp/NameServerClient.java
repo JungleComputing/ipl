@@ -2,6 +2,7 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
@@ -86,8 +87,30 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 		}
 
 		serverSocket = IbisSocketFactory.createServerSocket(0, myAddress, true);
-		Socket s = IbisSocketFactory.createSocket(serverAddress, port, myAddress, 0 /* retry */);
-	
+
+		Socket s = null;
+		boolean failed_once = false;
+		while(s == null) {
+		    try {
+			s = IbisSocketFactory.createSocket(serverAddress, 
+				port, myAddress, -1);
+		    } catch (ConnectionTimedOutException e) {
+			if(!failed_once) {
+			    System.err.println("Nameserver client failed"
+			       + " to connect to nameserver\n at " 
+			       + serverAddress + ":" + port 
+			       + ", will keep trying");
+			    failed_once = true;
+			}
+			try {
+			    Thread.sleep(1000);
+			} catch (InterruptedException e2) { 
+			    // don't care
+			}
+		    }
+		}
+
+
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		ObjectOutputStream out =
 			new ObjectOutputStream(new BufferedOutputStream(dos));
