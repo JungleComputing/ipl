@@ -98,7 +98,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 
 
 	/**
-	 * {@inheritDoc}
+	 * Actually establish a connection with a remote port.
+	 *
+	 * @param cnx the connection attributes.
+	 * @exception IOException if the connection setup fails.
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();

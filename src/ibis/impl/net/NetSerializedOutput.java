@@ -36,7 +36,10 @@ public abstract class NetSerializedOutput extends NetOutput {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Actually establish a connection with a remote port.
+	 *
+	 * @param cnx the connection attributes.
+	 * @exception IOException if the connection setup fails.
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
 		NetOutput subOutput = this.subOutput;
