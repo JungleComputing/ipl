@@ -716,8 +716,6 @@ class OpenCell1D implements OpenConfig {
             ibis = Ibis.createIbis( s, rszHandler );
             myName = ibis.identifier();
 
-            ibis.openWorld();
-
             registry = ibis.registry();
 
             // TODO: be more precise about the properties for the two
@@ -730,13 +728,7 @@ class OpenCell1D implements OpenConfig {
             leftReceivePort = null;
             rightReceivePort = null;
 
-            // Wait until I know my processor number (and also
-            // my left neighbour).
-
-            // TODO: use a more subtle approach than this.
-            while( me<0 ){
-                Thread.sleep( 20 );
-            }
+            ibis.openWorld();
 
             if( me != 0 && leftNeighbour == null ){
                 System.out.println( "P" + me + ": there is no left neighbour???" );
