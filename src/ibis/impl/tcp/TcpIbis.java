@@ -72,6 +72,8 @@ public final class TcpIbis extends Ibis {
 		systemProperties.add("reliability", "true");
 		systemProperties.add("multicast", "false") ;
 		systemProperties.add("totally ordered", "false") ;
+
+		ibis.io.Conversion.classInit();
 	}
      
 	public PortType createPortType(String name, StaticProperties p)

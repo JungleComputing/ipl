@@ -56,7 +56,6 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     long tMsgSend;
 
     public Ibis() throws IbisException {
-
 	// Set my properties.
 	systemProperties.add("reliability", "true");
 	systemProperties.add("multicast", "false");
@@ -65,6 +64,8 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 	if (DEBUG) {
 	    System.err.println("Turn on Ibis.DEBUG");
 	}
+
+	ibis.io.Conversion.classInit();
     }
 
     public ibis.ipl.PortType createPortType(String name,

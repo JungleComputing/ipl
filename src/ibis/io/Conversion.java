@@ -1,6 +1,6 @@
 package ibis.io;
 
-final class Conversion { 
+public final class Conversion { 
 
 	/* NOTE: 
          *  
@@ -14,15 +14,19 @@ final class Conversion {
          *
          */
 
-	static void classInit() {
+	public static void classInit() {
 //		System.err.println("pre load");
-		System.loadLibrary("conversion");
+		try {
+			System.loadLibrary("conversion");
+		} catch (Exception e) {
+			System.err.println("could not laod native library for data conversions: " + e);
+		}
 //		System.err.println("post load");
 	}
 	
-	static {
-		classInit();
-	}
+//	static {
+//		classInit();
+//	}
 
 	static final int BOOLEAN2BYTE_THRESHOLD = 100;
 	static final int CHAR2BYTE_THRESHOLD    = 50;
