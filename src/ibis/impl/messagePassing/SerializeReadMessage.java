@@ -102,7 +102,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArrayBoolean(boolean[] destination) throws IbisIOException {
+    public void readArray(boolean[] destination) throws IbisIOException {
 	try {
 	    boolean[] temp = (boolean[])obj_in.readObject();
 	    if (temp.length != destination.length) {
@@ -119,7 +119,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArrayByte(byte[] destination) throws IbisIOException {
+    public void readArray(byte[] destination) throws IbisIOException {
 	try {
 	    byte[] temp = (byte[])obj_in.readObject();
 	    if (temp.length != destination.length) {
@@ -136,7 +136,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArrayChar(char[] destination) throws IbisIOException {
+    public void readArray(char[] destination) throws IbisIOException {
 	try {
 	    char[] temp = (char[]) obj_in.readObject();
 	    if (temp.length != destination.length) {
@@ -153,7 +153,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArrayShort(short[] destination) throws IbisIOException {
+    public void readArray(short[] destination) throws IbisIOException {
 
 	try {
 	    short[] temp = (short[]) obj_in.readObject();
@@ -171,7 +171,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArrayInt(int[] destination) throws IbisIOException {
+    public void readArray(int[] destination) throws IbisIOException {
 	// manta.runtime.RuntimeSystem.DebugMe(this, destination);
 	try {
 	    int[] temp = (int[]) obj_in.readObject();
@@ -190,7 +190,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArrayLong(long[] destination) throws IbisIOException {
+    public void readArray(long[] destination) throws IbisIOException {
 	try {
 	    long[] temp = (long[]) obj_in.readObject();
 	    if (temp.length != destination.length) {
@@ -207,7 +207,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArrayFloat(float[] destination) throws IbisIOException {
+    public void readArray(float[] destination) throws IbisIOException {
 	try {
 	    float[] temp = (float[]) obj_in.readObject();
 	    if (temp.length != destination.length) {
@@ -224,7 +224,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArrayDouble(double[] destination) throws IbisIOException {
+    public void readArray(double[] destination) throws IbisIOException {
 	try {
 	    double[] temp = (double[]) obj_in.readObject();
 	    if (temp.length != destination.length) {
@@ -241,7 +241,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readSubArrayBoolean(boolean[] destination, int offset,
+    public void readArray(boolean[] destination, int offset,
 				    int size) throws IbisIOException {
 	try {
 	    boolean[] temp = (boolean[])obj_in.readObject();
@@ -259,7 +259,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readSubArrayByte(byte[] destination, int offset,
+    public void readArray(byte[] destination, int offset,
 				 int size) throws IbisIOException {
 	try {
 	    byte[] temp = (byte[])obj_in.readObject();
@@ -277,7 +277,7 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
-    public void readSubArrayChar(char[] destination, int offset,
+    public void readArray(char[] destination, int offset,
 				 int size) throws IbisIOException {
 
 	try {
@@ -297,7 +297,7 @@ final class SerializeReadMessage extends ReadMessage {
 
     }
 
-    public void readSubArrayShort(short[] destination, int offset,
+    public void readArray(short[] destination, int offset,
 				  int size) throws IbisIOException {
 
 	try {
@@ -317,7 +317,7 @@ final class SerializeReadMessage extends ReadMessage {
 
     }
 
-    public void readSubArrayInt(int[] destination, int offset,
+    public void readArray(int[] destination, int offset,
 				int size) throws IbisIOException {
 
 	try {
@@ -337,7 +337,7 @@ final class SerializeReadMessage extends ReadMessage {
 
     }
 
-    public void readSubArrayLong(long[] destination, int offset,
+    public void readArray(long[] destination, int offset,
 				 int size) throws IbisIOException {
 	try {
 	    long[] temp = (long[]) obj_in.readObject();
@@ -356,7 +356,7 @@ final class SerializeReadMessage extends ReadMessage {
 
     }
 
-    public void readSubArrayFloat(float[] destination, int offset,
+    public void readArray(float[] destination, int offset,
 				  int size) throws IbisIOException {
 
 	try {
@@ -376,7 +376,7 @@ final class SerializeReadMessage extends ReadMessage {
 
     }
 
-    public void readSubArrayDouble(double[] destination, int offset,
+    public void readArray(double[] destination, int offset,
 				   int size) throws IbisIOException {
 	try {
 	    double[] temp = (double[]) obj_in.readObject();

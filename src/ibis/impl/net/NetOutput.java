@@ -325,7 +325,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Default implementation of {@link #writeArraySliceBoolean}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -334,7 +334,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(boolean [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -347,7 +347,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Default implementation of {@link #writeArraySliceByte}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -356,7 +356,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(byte [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -369,7 +369,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
         
         /**
-         * Default implementation of {@link #writeArraySliceChar}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -378,7 +378,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(char [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -391,7 +391,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Default implementation of {@link #writeArraySliceShort}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -400,7 +400,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(short [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -413,7 +413,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Default implementation of {@link #writeArraySliceInt}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -422,7 +422,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(int [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -435,7 +435,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Default implementation of {@link #writeArraySliceLong}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -444,7 +444,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(long [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -457,7 +457,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Default implementation of {@link #writeArraySliceFloat}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -466,7 +466,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(float [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -479,7 +479,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Default implementation of {@link #writeArraySliceDouble}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -488,7 +488,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(double [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -501,7 +501,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Default implementation of {@link #writeArraySliceObject}.
+         * Default implementation of {@link #writeArray}.
          *
          * Note: this method must not be changed.
          *
@@ -510,7 +510,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param l the number of elements.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultWriteArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+        private final void defaultWriteArray(Object [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -529,7 +529,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          */
         public void writeByteBuffer(NetSendBuffer b) throws NetIbisException {
                 defaultWriteInt(b.length);
-                defaultWriteArraySliceByte(b.data, 0, b.length);
+                defaultWriteArray(b.data, 0, b.length);
 		if (! b.ownershipClaimed) {
 		    b.free();
 		}
@@ -633,8 +633,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceBoolean(b, o, l);
+        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -646,8 +646,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceByte(b, o, l);
+        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -659,8 +659,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceChar(b, o, l);
+        public void writeArray(char [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -672,8 +672,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceShort(b, o, l);
+        public void writeArray(short [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -685,8 +685,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceInt(b, o, l);
+        public void writeArray(int [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -698,8 +698,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceLong(b, o, l);
+        public void writeArray(long [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -711,8 +711,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceFloat(b, o, l);
+        public void writeArray(float [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -724,8 +724,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceDouble(b, o, l);
+        public void writeArray(double [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -737,8 +737,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
-                defaultWriteArraySliceObject(b, o, l);
+        public void writeArray(Object [] b, int o, int l) throws NetIbisException {
+                defaultWriteArray(b, o, l);
         }
 
         /**
@@ -750,8 +750,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayBoolean(boolean [] b) throws NetIbisException {
-                writeArraySliceBoolean(b, 0, b.length);
+        public final void writeArray(boolean [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**
@@ -763,8 +763,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayByte(byte [] b) throws NetIbisException {
-                writeArraySliceByte(b, 0, b.length);
+        public final void writeArray(byte [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**
@@ -776,8 +776,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayChar(char [] b) throws NetIbisException {
-                writeArraySliceChar(b, 0, b.length);
+        public final void writeArray(char [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**
@@ -789,8 +789,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayShort(short [] b) throws NetIbisException {
-                writeArraySliceShort(b, 0, b.length);
+        public final void writeArray(short [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**
@@ -802,8 +802,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayInt(int [] b) throws NetIbisException {
-                writeArraySliceInt(b, 0, b.length);
+        public final void writeArray(int [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**
@@ -815,8 +815,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayLong(long [] b) throws NetIbisException {
-                writeArraySliceLong(b, 0, b.length);
+        public final void writeArray(long [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**
@@ -828,8 +828,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayFloat(float [] b) throws NetIbisException {
-                writeArraySliceFloat(b, 0, b.length);
+        public final void writeArray(float [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**
@@ -841,8 +841,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayDouble(double [] b) throws NetIbisException {
-                writeArraySliceDouble(b, 0, b.length);
+        public final void writeArray(double [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**
@@ -854,8 +854,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception NetIbisException in case of trouble. 
          */
-        public final void writeArrayObject(Object [] b) throws NetIbisException {
-                writeArraySliceObject(b, 0, b.length);
+        public final void writeArray(Object [] b) throws NetIbisException {
+                writeArray(b, 0, b.length);
         }
 
         /**

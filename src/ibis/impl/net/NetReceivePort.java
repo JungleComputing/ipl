@@ -1033,62 +1033,62 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         }
 
 
-        public void readArrayBoolean(boolean [] b) throws NetIbisException {
+        public void readArray(boolean [] b) throws NetIbisException {
                 log.in();
-                readArraySliceBoolean(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArrayByte(byte [] b) throws NetIbisException {
+        public void readArray(byte [] b) throws NetIbisException {
                 log.in();
-                readArraySliceByte(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArrayChar(char [] b) throws NetIbisException {
+        public void readArray(char [] b) throws NetIbisException {
                 log.in();
-                readArraySliceChar(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArrayShort(short [] b) throws NetIbisException {
+        public void readArray(short [] b) throws NetIbisException {
                 log.in();
-                readArraySliceShort(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArrayInt(int [] b) throws NetIbisException {
+        public void readArray(int [] b) throws NetIbisException {
                 log.in();
-                readArraySliceInt(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArrayLong(long [] b) throws NetIbisException {
+        public void readArray(long [] b) throws NetIbisException {
                 log.in();
-                readArraySliceLong(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArrayFloat(float [] b) throws NetIbisException {
+        public void readArray(float [] b) throws NetIbisException {
                 log.in();
-                readArraySliceFloat(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArrayDouble(double [] b) throws NetIbisException {
+        public void readArray(double [] b) throws NetIbisException {
                 log.in();
-                readArraySliceDouble(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArrayObject(Object [] b) throws NetIbisException {
+        public void readArray(Object [] b) throws NetIbisException {
                 log.in();
-                readArraySliceObject(b, 0, b.length);
+                readArray(b, 0, b.length);
                 log.out();
         }
 
 
-        public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+        public void readArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1096,10 +1096,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceBoolean(b, o, l);
+                input.readArray(b, o, l);
         }
 
-        public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+        public void readArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1107,10 +1107,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceByte(b, o, l);
+                input.readArray(b, o, l);
         }
 
-        public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+        public void readArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1118,10 +1118,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceChar(b, o, l);
+                input.readArray(b, o, l);
         }
 
-        public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+        public void readArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1129,10 +1129,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceShort(b, o, l);
+                input.readArray(b, o, l);
         }
 
-        public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+        public void readArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1140,10 +1140,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceInt(b, o, l);
+                input.readArray(b, o, l);
         }
 
-        public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+        public void readArray(long [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1151,10 +1151,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceLong(b, o, l);
+                input.readArray(b, o, l);
         }
 
-        public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+        public void readArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1162,10 +1162,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceFloat(b, o, l);
+                input.readArray(b, o, l);
         }
 
-        public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+        public void readArray(double [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1173,10 +1173,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceDouble(b, o, l);
+                input.readArray(b, o, l);
         }
 
-        public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+        public void readArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1184,7 +1184,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 emptyMsg = false;
-                input.readArraySliceObject(b, o, l);
+                input.readArray(b, o, l);
                 log.out();
         }
 

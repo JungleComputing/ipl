@@ -275,91 +275,91 @@ public abstract class NetSplitter extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
                 Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceBoolean(b, o, l);
+			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
         }
 
-        public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
                 Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceByte(b, o, l);
+			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
         }
-        public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+        public void writeArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
                 Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceChar(b, o, l);
-		} while (i.hasNext());
-                log.out();
-        }
-
-        public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
-                log.in();
-                Iterator i = outputTable.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceShort(b, o, l);
+			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
         }
 
-        public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+        public void writeArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
                 Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceInt(b, o, l);
+			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
         }
 
-        public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+        public void writeArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
                 Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceLong(b, o, l);
+			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
         }
 
-        public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+        public void writeArray(long [] b, int o, int l) throws NetIbisException {
                 log.in();
                 Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceFloat(b, o, l);
+			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
         }
 
-        public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+        public void writeArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
                 Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceDouble(b, o, l);
+			no.writeArray(b, o, l);
+		} while (i.hasNext());
+                log.out();
+        }
+
+        public void writeArray(double [] b, int o, int l) throws NetIbisException {
+                log.in();
+                Iterator i = outputTable.values().iterator();
+		do {
+			NetOutput no = (NetOutput)i.next();
+			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
         }	
 
-        public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+        public void writeArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
                 Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArraySliceObject(b, o, l);
+			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
         }	

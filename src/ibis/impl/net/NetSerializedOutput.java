@@ -276,82 +276,82 @@ public abstract class NetSerializedOutput extends NetOutput {
 	    }
         }
 
-        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceBoolean(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
         }
 
-        public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceByte(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
         }
 
-        public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+        public void writeArray(char [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceChar(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
         }
 
-        public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+        public void writeArray(short [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceShort(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
         }
 
-        public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+        public void writeArray(int [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceInt(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
         }
 
-        public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+        public void writeArray(long [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceLong(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
         }
 
-        public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+        public void writeArray(float [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceFloat(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
         }
 
-        public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+        public void writeArray(double [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceDouble(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
         }	
 
-        public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+        public void writeArray(Object [] b, int o, int l) throws NetIbisException {
 	    try {
                 needFlush = true;
-                oss.writeArraySliceObject(b, o, l);
+                oss.writeArray(b, o, l);
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }

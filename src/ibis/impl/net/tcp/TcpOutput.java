@@ -322,7 +322,7 @@ public final class TcpOutput extends NetOutput {
         
 
 
-        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeBoolean(b[o+i]);
@@ -330,7 +330,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeByte(b[o+i]);
@@ -338,7 +338,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+        public void writeArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeChar(b[o+i]);
@@ -346,7 +346,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+        public void writeArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeShort(b[o+i]);
@@ -354,7 +354,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+        public void writeArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeInt(b[o+i]);
@@ -362,7 +362,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+        public void writeArray(long [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeLong(b[o+i]);
@@ -370,7 +370,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+        public void writeArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeFloat(b[o+i]);
@@ -378,7 +378,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+        public void writeArray(double [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeDouble(b[o+i]);
@@ -386,7 +386,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+        public void writeArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeObject(b[o+i]);

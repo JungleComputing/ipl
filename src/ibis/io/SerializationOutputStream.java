@@ -61,115 +61,115 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
 
     /** Write a slice of an array of booleans.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceBoolean, with a corresponding
-	readArrayBoolean.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceBoolean(boolean[] ref, int off, int len)
+    abstract public void writeArray(boolean[] ref, int off, int len)
 	throws IOException;
 
     /** Write a slice of an array of bytes.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceByte, with a corresponding
-	readArrayByte.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceByte(byte[] ref, int off, int len)
+    abstract public void writeArray(byte[] ref, int off, int len)
 	throws IOException;
 
     /** Write a slice of an array of shorts.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceShort, with a corresponding
-	readArrayShort.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceShort(short[] ref, int off, int len)
+    abstract public void writeArray(short[] ref, int off, int len)
 	throws IOException;
 
     /** Write a slice of an array of chars.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceChar, with a corresponding
-	readArrayChar.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceChar(char[] ref, int off, int len)
+    abstract public void writeArray(char[] ref, int off, int len)
 	throws IOException;
 
     /** Write a slice of an array of ints.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceInt, with a corresponding
-	readArrayInt.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceInt(int[] ref, int off, int len)
+    abstract public void writeArray(int[] ref, int off, int len)
 	throws IOException;
 
     /** Write a slice of an array of longs.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceLong, with a corresponding
-	readArrayLong.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceLong(long[] ref, int off, int len)
+    abstract public void writeArray(long[] ref, int off, int len)
 	throws IOException;
 
     /** Write a slice of an array of floats.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceFloat, with a corresponding
-	readArrayFloat.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceFloat(float[] ref, int off, int len)
+    abstract public void writeArray(float[] ref, int off, int len)
 	throws IOException;
 
     /** Write a slice of an array of doubles.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceDouble, with a corresponding
-	readArrayDouble.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceDouble(double[] ref, int off, int len)
+    abstract public void writeArray(double[] ref, int off, int len)
 	throws IOException;
 
     /** Write a slice of an array of objects.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceObject, with a corresponding
-	readArrayObject.
+	It is legal to use a writeArray, with a corresponding
+	readArray.
     */
-    abstract public void writeArraySliceObject(Object[] ref, int off, int len)
+    abstract public void writeArray(Object[] ref, int off, int len)
 	throws IOException;
 
     /** These methods can be used to write whole arrays.
 	Duplicates are NOT detected when these calls are used.
 	It is legal to use a writeArrayXXX, with a corresponding
-	readArraySliceXXX.
+	readArray.
     **/
-    public void writeArrayBoolean(boolean[] ref) throws IOException {
-	writeArraySliceBoolean(ref, 0, ref.length);
+    public void writeArray(boolean[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
-    public void writeArrayByte(byte[] ref) throws IOException {
-	writeArraySliceByte(ref, 0, ref.length);
+    public void writeArray(byte[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
-    public void writeArrayShort(short[] ref) throws IOException {
-	writeArraySliceShort(ref, 0, ref.length);
+    public void writeArray(short[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
-    public void writeArrayChar(char[] ref) throws IOException {
-	writeArraySliceChar(ref, 0, ref.length);
+    public void writeArray(char[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
-    public void writeArrayInt(int[] ref) throws IOException {
-	writeArraySliceInt(ref, 0, ref.length);
+    public void writeArray(int[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
-    public void writeArrayLong(long[] ref) throws IOException {
-	writeArraySliceLong(ref, 0, ref.length);
+    public void writeArray(long[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
-    public void writeArrayFloat(float[] ref) throws IOException {
-	writeArraySliceFloat(ref, 0, ref.length);
+    public void writeArray(float[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
-    public void writeArrayDouble(double[] ref) throws IOException {
-	writeArraySliceDouble(ref, 0, ref.length);
+    public void writeArray(double[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
-    public void writeArrayObject(Object[] ref) throws IOException {
-	writeArraySliceObject(ref, 0, ref.length);
+    public void writeArray(Object[] ref) throws IOException {
+	writeArray(ref, 0, ref.length);
     }
 
 

@@ -95,73 +95,73 @@ final public class IbisReadMessage extends ReadMessage {
 	}
     } 
 
-    public void readArrayBoolean(boolean[] destination) throws IbisIOException {
+    public void readArray(boolean[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayBoolean(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArrayByte(byte[] destination) throws IbisIOException {
+    public void readArray(byte[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayByte(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArrayChar(char[] destination) throws IbisIOException {
+    public void readArray(char[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayChar(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArrayShort(short[] destination) throws IbisIOException {
+    public void readArray(short[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayShort(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArrayInt(int[] destination) throws IbisIOException {
+    public void readArray(int[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayInt(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArrayLong(long[] destination) throws IbisIOException {
+    public void readArray(long[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayLong(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArrayFloat(float[] destination) throws IbisIOException {
+    public void readArray(float[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayFloat(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArrayDouble(double[] destination) throws IbisIOException {
+    public void readArray(double[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayDouble(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArrayObject(Object[] destination) throws IbisIOException {
+    public void readArray(Object[] destination) throws IbisIOException {
 	try {
-	    obj_in.readArrayObject(destination);
+	    obj_in.readArray(destination);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	} catch (ClassNotFoundException e2) {
@@ -169,82 +169,82 @@ final public class IbisReadMessage extends ReadMessage {
 	}
     }
 
-    public void readArraySliceBoolean(boolean[] destination, int offset,
+    public void readArray(boolean[] destination, int offset,
 					   int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceBoolean(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArraySliceByte(byte[] destination, int offset,
+    public void readArray(byte[] destination, int offset,
 					int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceByte(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArraySliceChar(char[] destination, int offset,
+    public void readArray(char[] destination, int offset,
 					int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceChar(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArraySliceShort(short[] destination, int offset,
+    public void readArray(short[] destination, int offset,
 					 int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceShort(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArraySliceInt(int[] destination, int offset,
+    public void readArray(int[] destination, int offset,
 				       int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceInt(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArraySliceLong(long[] destination, int offset,
+    public void readArray(long[] destination, int offset,
 					int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceLong(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArraySliceFloat(float[] destination, int offset,
+    public void readArray(float[] destination, int offset,
 					 int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceFloat(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArraySliceDouble(double[] destination, int offset,
+    public void readArray(double[] destination, int offset,
 					  int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceDouble(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void readArraySliceObject(Object[] destination, int offset,
+    public void readArray(Object[] destination, int offset,
 					  int size) throws IbisIOException {
 	try {
-	    obj_in.readArraySliceObject(destination, offset, size);
+	    obj_in.readArray(destination, offset, size);
 	} catch (IOException e) {
 	    throw new IbisIOException("got exception", e);
 	} catch (ClassNotFoundException e2) {

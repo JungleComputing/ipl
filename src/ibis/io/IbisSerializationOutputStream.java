@@ -156,7 +156,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 
 	writeInt(bn);
-	writeArraySliceByte(b, 0, bn);
+	writeArray(b, 0, bn);
     }
 
     public void writeBoolean(boolean v) throws IOException {
@@ -248,39 +248,39 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     /* Often, the type of the array to be written is known (in an Ibis message
        for instance). Therefore, provide these methods for efficiency reasons.
     */
-    public void writeArraySliceBoolean(boolean[] ref, int off, int len) throws IOException {
+    public void writeArray(boolean[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_BOOLEAN], TYPE_BOOLEAN, false);
     }
 
-    public void writeArraySliceByte(byte[] ref, int off, int len) throws IOException {
+    public void writeArray(byte[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_BYTE], TYPE_BYTE, false);
     }
 
-    public void writeArraySliceShort(short[] ref, int off, int len) throws IOException {
+    public void writeArray(short[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_SHORT], TYPE_SHORT, false);
     }
 
-    public void writeArraySliceChar(char[] ref, int off, int len) throws IOException {
+    public void writeArray(char[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_CHAR], TYPE_CHAR, false);
     }
 
-    public void writeArraySliceInt(int[] ref, int off, int len) throws IOException {
+    public void writeArray(int[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_INT], TYPE_INT, false);
     }
 
-    public void writeArraySliceLong(long[] ref, int off, int len) throws IOException {
+    public void writeArray(long[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_LONG], TYPE_LONG, false);
     }
 
-    public void writeArraySliceFloat(float[] ref, int off, int len) throws IOException {
+    public void writeArray(float[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_FLOAT], TYPE_FLOAT, false);
     }
 
-    public void writeArraySliceDouble(double[] ref, int off, int len) throws IOException {
+    public void writeArray(double[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_DOUBLE], TYPE_DOUBLE, false);
     }
 
-    public void writeArraySliceObject(Object[] ref, int off, int len) throws IOException {
+    public void writeArray(Object[] ref, int off, int len) throws IOException {
 	Class clazz = ref.getClass();
 	if (writeArrayHeader(ref, clazz, len, false)) {
 	    for (int i = off; i < off + len; i++) {

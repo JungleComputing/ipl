@@ -56,5 +56,4 @@ class RMI_Bench {
 
 	// System.exit(0);
     }
-
 }

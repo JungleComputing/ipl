@@ -302,7 +302,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         byte [] b = a2.allocate();
                         NetConvert.writeChar(v, b);
-                        subOutput.writeArrayByte(b);
+                        subOutput.writeArray(b);
                         a2.free(b);
                 }
                 log.out();
@@ -339,7 +339,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         byte [] b = a2.allocate();
                         NetConvert.writeShort(v, b);
-                        subOutput.writeArrayByte(b);
+                        subOutput.writeArray(b);
                         a2.free(b);
                 }
                 log.out();
@@ -374,7 +374,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         byte [] b = a4.allocate();
                         NetConvert.writeInt(v, b);
-                        subOutput.writeArrayByte(b);
+                        subOutput.writeArray(b);
                         a4.free(b);
                 }
                 log.out();
@@ -410,7 +410,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         byte [] b = a8.allocate();
                         NetConvert.writeLong(v, b);
-                        subOutput.writeArrayByte(b);
+                        subOutput.writeArray(b);
                         a8.free(b);
                 }
                 log.out();
@@ -445,7 +445,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         byte [] b = a4.allocate();
                         NetConvert.writeFloat(v, b);
-                        subOutput.writeArrayByte(b);
+                        subOutput.writeArray(b);
                         a4.free(b);
                 }
                 log.out();
@@ -480,7 +480,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         byte [] b = a8.allocate();
                         NetConvert.writeDouble(v, b);
-                        subOutput.writeArrayByte(b);
+                        subOutput.writeArray(b);
                         a8.free(b);
                 }
                 log.out();
@@ -498,7 +498,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
                 v.getChars(0, l-1, a, 0);
                 writeInt(l);
-                writeArraySliceChar(a, 0, a.length);
+                writeArray(a, 0, a.length);
                 log.out();
         }
 
@@ -513,11 +513,11 @@ public final class BytesOutput extends NetOutput implements Settings {
         }
 
 
-        public void writeArraySliceBoolean(boolean [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(boolean [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
-                                NetConvert.writeArraySliceBoolean(ub, o, l, buffer.data, buffer.length);
+                                NetConvert.writeArray(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += l;
                                 flushIfNeeded();
                         } else {
@@ -527,7 +527,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                         }
 
                                         int copyLength = Math.min(l, buffer.data.length - buffer.length);
-                                        NetConvert.writeArraySliceBoolean(ub, o, copyLength, buffer.data, buffer.length);
+                                        NetConvert.writeArray(ub, o, copyLength, buffer.data, buffer.length);
                                         o += copyLength;
                                         l -= copyLength;
                                         buffer.length += copyLength;
@@ -537,17 +537,17 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if (l <= anThreshold) {
                                 byte [] b = an.allocate();
-                                NetConvert.writeArraySliceBoolean(ub, o, l, b);
-                                subOutput.writeArraySliceByte(b, 0, l);
+                                NetConvert.writeArray(ub, o, l, b);
+                                subOutput.writeArray(b, 0, l);
                                 an.free(b);
                         } else {
-                                subOutput.writeArrayByte(NetConvert.writeArraySliceBoolean(ub, o, l));
+                                subOutput.writeArray(NetConvert.writeArray(ub, o, l));
                         }
                 }
                 log.out();
         }
 
-        public void writeArraySliceByte(byte [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(byte [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
@@ -569,19 +569,19 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 }
                         }
                 } else {
-                        subOutput.writeArraySliceByte(ub, o, l);
+                        subOutput.writeArray(ub, o, l);
                 }
 
                 log.out();
         }
 
-        public void writeArraySliceChar(char [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(char [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 2;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.writeArraySliceChar(ub, o, l, buffer.data, buffer.length);
+                                NetConvert.writeArray(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -602,7 +602,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.writeArraySliceChar(ub, o, copyLength, buffer.data, buffer.length);
+                                                NetConvert.writeArray(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -613,23 +613,23 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                NetConvert.writeArraySliceChar(ub, o, l, b);
-                                subOutput.writeArraySliceByte(b, 0, l*f);
+                                NetConvert.writeArray(ub, o, l, b);
+                                subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-                                subOutput.writeArrayByte(NetConvert.writeArraySliceChar(ub, o, l));
+                                subOutput.writeArray(NetConvert.writeArray(ub, o, l));
                         }
                 }
                 log.out();
         }
 
-        public void writeArraySliceShort(short [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(short [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 2;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.writeArraySliceShort(ub, o, l, buffer.data, buffer.length);
+                                NetConvert.writeArray(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -650,7 +650,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.writeArraySliceShort(ub, o, copyLength, buffer.data, buffer.length);
+                                                NetConvert.writeArray(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -661,23 +661,23 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                NetConvert.writeArraySliceShort(ub, o, l, b);
-                                subOutput.writeArraySliceByte(b, 0, l*f);
+                                NetConvert.writeArray(ub, o, l, b);
+                                subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-                                subOutput.writeArrayByte(NetConvert.writeArraySliceShort(ub, o, l));
+                                subOutput.writeArray(NetConvert.writeArray(ub, o, l));
                         }
                 }
                 log.out();
         }
 
-        public void writeArraySliceInt(int [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(int [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 4;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.writeArraySliceInt(ub, o, l, buffer.data, buffer.length);
+                                NetConvert.writeArray(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -699,7 +699,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.writeArraySliceInt(ub, o, copyLength, buffer.data, buffer.length);
+                                                NetConvert.writeArray(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -710,23 +710,23 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                NetConvert.writeArraySliceInt(ub, o, l, b);
-                                subOutput.writeArraySliceByte(b, 0, l*f);
+                                NetConvert.writeArray(ub, o, l, b);
+                                subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-                                subOutput.writeArrayByte(NetConvert.writeArraySliceInt(ub, o, l));
+                                subOutput.writeArray(NetConvert.writeArray(ub, o, l));
                         }
                 }
                 log.out();
         }
 
-        public void writeArraySliceLong(long [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(long [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 8;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.writeArraySliceLong(ub, o, l, buffer.data, buffer.length);
+                                NetConvert.writeArray(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -747,7 +747,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.writeArraySliceLong(ub, o, copyLength, buffer.data, buffer.length);
+                                                NetConvert.writeArray(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -758,24 +758,24 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                NetConvert.writeArraySliceLong(ub, o, l, b);
-                                subOutput.writeArraySliceByte(b, 0, l*f);
+                                NetConvert.writeArray(ub, o, l, b);
+                                subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-                                subOutput.writeArrayByte(NetConvert.writeArraySliceLong(ub, o, l));
+                                subOutput.writeArray(NetConvert.writeArray(ub, o, l));
                         }
 
                 }
                 log.out();
         }
 
-        public void writeArraySliceFloat(float [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(float [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 4;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.writeArraySliceFloat(ub, o, l, buffer.data, buffer.length);
+                                NetConvert.writeArray(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -796,7 +796,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.writeArraySliceFloat(ub, o, copyLength, buffer.data, buffer.length);
+                                                NetConvert.writeArray(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -807,23 +807,23 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                NetConvert.writeArraySliceFloat(ub, o, l, b);
-                                subOutput.writeArraySliceByte(b, 0, l*f);
+                                NetConvert.writeArray(ub, o, l, b);
+                                subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-                                subOutput.writeArrayByte(NetConvert.writeArraySliceFloat(ub, o, l));
+                                subOutput.writeArray(NetConvert.writeArray(ub, o, l));
                         }
                 }
                 log.out();
         }
 
-        public void writeArraySliceDouble(double [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(double [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 8;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.writeArraySliceDouble(ub, o, l, buffer.data, buffer.length);
+                                NetConvert.writeArray(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -844,7 +844,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.writeArraySliceDouble(ub, o, copyLength, buffer.data, buffer.length);
+                                                NetConvert.writeArray(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -855,17 +855,17 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                NetConvert.writeArraySliceDouble(ub, o, l, b);
-                                subOutput.writeArraySliceByte(b, 0, l*f);
+                                NetConvert.writeArray(ub, o, l, b);
+                                subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-                                subOutput.writeArrayByte(NetConvert.writeArraySliceDouble(ub, o, l));
+                                subOutput.writeArray(NetConvert.writeArray(ub, o, l));
                         }
                 }
                 log.out();
         }
 
-        public void writeArraySliceObject(Object [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(Object [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeObject(ub[o+i]);

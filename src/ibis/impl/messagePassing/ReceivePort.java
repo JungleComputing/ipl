@@ -696,7 +696,6 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	if (upcall == null) {
 	    System.err.println(Thread.currentThread() + "ReceivePort " + name + ", daemon = " + this + " runs but upcall == null");
 	}
-else System.err.println(Thread.currentThread() + " ReceivePort " + name + ", daemon = " + this + " runs");
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + " ReceivePort " + name + ", daemon = " + this + " runs");
 	}

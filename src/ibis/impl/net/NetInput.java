@@ -760,7 +760,7 @@ System.err.println("Catch exception " + e);
         }
 
         /**
-         * Default implementation of {@link #readArraySliceBoolean}.
+         * Default implementation of {@link #readArray}.
          *
          * Note: this method must not be changed.
          *
@@ -769,7 +769,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(boolean [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -790,7 +790,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(byte [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -811,7 +811,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(char [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -832,7 +832,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(short [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -853,7 +853,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(int [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -874,7 +874,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(long [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -895,7 +895,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(float [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -916,7 +916,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(double [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -937,7 +937,7 @@ System.err.println("Catch exception " + e);
          * @param l the number of elements to read.
          * @exception NetIbisException in case of trouble.
          */
-        private final void defaultReadArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(Object [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
@@ -957,7 +957,7 @@ System.err.println("Catch exception " + e);
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 int len = defaultReadInt();
 		NetReceiveBuffer buffer = createReceiveBuffer(len);
-                defaultReadArraySliceByte(buffer.data, 0, len);
+                defaultReadArray(buffer.data, 0, len);
                 return buffer;
         }
 
@@ -969,7 +969,7 @@ System.err.println("Catch exception " + e);
          */
         public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 int len = defaultReadInt();
-                defaultReadArraySliceByte(buffer.data, 0, len);
+                defaultReadArray(buffer.data, 0, len);
                 buffer.length = len;
         }
 
@@ -1071,8 +1071,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceBoolean(b, o, l);
+	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
         /**
@@ -1084,8 +1084,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceByte(b, o, l);
+	public void readArray(byte [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
         /**
@@ -1097,8 +1097,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceChar(b, o, l);
+	public void readArray(char [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
         /**
@@ -1110,8 +1110,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceShort(b, o, l);
+	public void readArray(short [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
         /**
@@ -1123,8 +1123,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceInt(b, o, l);
+	public void readArray(int [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
         /**
@@ -1136,8 +1136,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceLong(b, o, l);
+	public void readArray(long [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
         /**
@@ -1149,8 +1149,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceFloat(b, o, l);
+	public void readArray(float [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
         /**
@@ -1162,8 +1162,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceDouble(b, o, l);
+	public void readArray(double [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
         /**
@@ -1175,8 +1175,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
-                defaultReadArraySliceObject(b, o, l);
+	public void readArray(Object [] b, int o, int l) throws NetIbisException {
+                defaultReadArray(b, o, l);
         }
 
 
@@ -1187,8 +1187,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayBoolean(boolean [] b) throws NetIbisException {
-                readArraySliceBoolean(b, 0, b.length);
+	public final void readArray(boolean [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
         /**
@@ -1198,8 +1198,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayByte(byte [] b) throws NetIbisException {
-                readArraySliceByte(b, 0, b.length);
+	public final void readArray(byte [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
         /**
@@ -1209,8 +1209,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayChar(char [] b) throws NetIbisException {
-                readArraySliceChar(b, 0, b.length);
+	public final void readArray(char [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
         /**
@@ -1220,8 +1220,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayShort(short [] b) throws NetIbisException {
-                readArraySliceShort(b, 0, b.length);
+	public final void readArray(short [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
         /**
@@ -1231,8 +1231,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayInt(int [] b) throws NetIbisException {
-                readArraySliceInt(b, 0, b.length);
+	public final void readArray(int [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
         /**
@@ -1242,8 +1242,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayLong(long [] b) throws NetIbisException {
-                readArraySliceLong(b, 0, b.length);
+	public final void readArray(long [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
         /**
@@ -1253,8 +1253,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayFloat(float [] b) throws NetIbisException {
-                readArraySliceFloat(b, 0, b.length);
+	public final void readArray(float [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
         /**
@@ -1264,8 +1264,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayDouble(double [] b) throws NetIbisException {
-                readArraySliceDouble(b, 0, b.length);
+	public final void readArray(double [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
         /**
@@ -1275,8 +1275,8 @@ System.err.println("Catch exception " + e);
          *
          * @exception NetIbisException in case of trouble.
          */
-	public final void readArrayObject(Object [] b) throws NetIbisException {
-                readArraySliceObject(b, 0, b.length);
+	public final void readArray(Object [] b) throws NetIbisException {
+                readArray(b, 0, b.length);
         }
 
 

@@ -35,7 +35,7 @@ public class Main {
 			// Warmup
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayBoolean(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -51,7 +51,7 @@ public class Main {
 			
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayBoolean(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -81,7 +81,7 @@ public class Main {
 		} else { 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayBoolean(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -91,7 +91,7 @@ public class Main {
 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayBoolean(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -118,7 +118,7 @@ public class Main {
 			// Warmup
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayByte(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -134,7 +134,7 @@ public class Main {
 			
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayByte(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -164,7 +164,7 @@ public class Main {
 		} else { 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayByte(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -174,7 +174,7 @@ public class Main {
 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayByte(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -201,7 +201,7 @@ public class Main {
 			// Warmup
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayChar(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -217,7 +217,7 @@ public class Main {
 			
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayChar(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -247,7 +247,7 @@ public class Main {
 		} else { 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayChar(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -257,7 +257,7 @@ public class Main {
 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayChar(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -284,7 +284,7 @@ public class Main {
 			// Warmup
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayShort(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -300,7 +300,7 @@ public class Main {
 			
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayShort(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -330,7 +330,7 @@ public class Main {
 		} else { 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayShort(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -340,7 +340,7 @@ public class Main {
 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayShort(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -367,7 +367,7 @@ public class Main {
 			// Warmup
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayInt(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -383,7 +383,7 @@ public class Main {
 			
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayInt(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -413,7 +413,7 @@ public class Main {
 		} else { 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayInt(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -423,7 +423,7 @@ public class Main {
 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayInt(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -450,7 +450,7 @@ public class Main {
 			// Warmup
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayLong(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -466,7 +466,7 @@ public class Main {
 			
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayLong(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -496,7 +496,7 @@ public class Main {
 		} else { 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayLong(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -506,7 +506,7 @@ public class Main {
 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayLong(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -533,7 +533,7 @@ public class Main {
 			// Warmup
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayFloat(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -549,7 +549,7 @@ public class Main {
 			
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayFloat(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -579,7 +579,7 @@ public class Main {
 		} else { 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayFloat(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -589,7 +589,7 @@ public class Main {
 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayFloat(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 			
@@ -616,7 +616,7 @@ public class Main {
 			// Warmup
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayDouble(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -632,7 +632,7 @@ public class Main {
 			
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
-				wm.writeArrayDouble(temp);
+				wm.writeArray(temp);
 				wm.send();
 				wm.finish();
 				if (DEBUG) { 
@@ -662,7 +662,7 @@ public class Main {
 		} else { 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayDouble(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				
@@ -672,7 +672,7 @@ public class Main {
 
 			for (int i=0;i<count;i++) {
 				ReadMessage rm = r.receive();
-				rm.readArrayDouble(temp);
+				rm.readArray(temp);
 				rm.finish();
 			}
 				

@@ -257,7 +257,7 @@ public final class Ping {
                                 }
                                 
 				WriteMessage out = sport.newMessage();
-				out.writeArrayByte(buffer);
+				out.writeArray(buffer);
 				out.send();
 				
                                 out.finish();
@@ -276,7 +276,7 @@ public final class Ping {
                         }
                         
 			ReadMessage in = rport.receive();
-                        in.readArrayByte(buffer);
+                        in.readArray(buffer);
                         in.finish();
 
 			if (param_control_receive) {
@@ -323,7 +323,7 @@ public final class Ping {
                                 }
                                 
 				WriteMessage out = sport.newMessage();
-				out.writeArrayByte(buffer);
+				out.writeArray(buffer);
 				out.send();
 				out.finish();
                                 if (param_log) {
@@ -339,7 +339,7 @@ public final class Ping {
                                 }
                                 
 				ReadMessage in = rport.receive();
-				in.readArrayByte(buffer);
+				in.readArray(buffer);
 				in.finish();
                                 if (param_log) {
                                         System.err.println("Ping: receiving: <-- "+nb_samples);
@@ -376,7 +376,7 @@ public final class Ping {
                                 }
                                 
 				ReadMessage in = rport.receive();
-				in.readArrayByte(buffer);
+				in.readArray(buffer);
 				in.finish();
                                 if (param_log) {
                                         System.err.println("Pong: receiving: <-- "+nb_samples);
@@ -389,7 +389,7 @@ public final class Ping {
                         }
 			WriteMessage out = sport.newMessage();
 
-                        out.writeArrayByte(buffer);
+                        out.writeArray(buffer);
 
 			out.send();
 			out.finish();
@@ -411,7 +411,7 @@ public final class Ping {
                                 }
                                 
 				ReadMessage in = rport.receive();
-				in.readArrayByte(buffer);
+				in.readArray(buffer);
 				in.finish();
                                 if (param_log) {
                                         System.err.println("Pong: receiving: <-- "+nb_samples);
@@ -423,7 +423,7 @@ public final class Ping {
                                 }
                                 
 				WriteMessage out = sport.newMessage();
-				out.writeArrayByte(buffer);
+				out.writeArray(buffer);
 				out.send();
 				out.finish();
                                 if (param_log) {

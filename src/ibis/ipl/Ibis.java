@@ -67,7 +67,7 @@ public abstract class Ibis {
 	    panda	Ibis built on top of Panda.
 	    tcp		Ibis built on top of TCP (the current default).
 	    mpi		Ibis built on top of MPI.
-	    net		The future version, for tcp, udp, GM, ...
+	    net.*	The future version, for tcp, udp, GM, ...
 	*/
 	public static Ibis createIbis(ResizeHandler r)
 	    throws IbisException
@@ -98,7 +98,7 @@ public abstract class Ibis {
 		return createIbis(name, "ibis.ipl.impl.messagePassing.PandaIbis", r);
 	    } else if (ibisname.equals("mpi")) {
 		return createIbis(name, "ibis.ipl.impl.messagePassing.MPIIbis", r);
-	    } else if (ibisname.equals("net")) {
+	    } else if (ibisname.startsWith("net.")) {
 		return createIbis(name, "ibis.ipl.impl.net.NetIbis", r);
 	    } else {
 		// The default: tcp.
@@ -106,7 +106,7 @@ public abstract class Ibis {
 		    System.err.println("Warning: name '" + ibisname +
 				       "' not recognized, using TCP version");
 		}
-		return createIbis(name, "ibis.ipl.impl.tcp.TCPIbis", r);
+		return createIbis(name, "ibis.ipl.impl.tcp.TcpIbis", r);
 	    }
 	}
 

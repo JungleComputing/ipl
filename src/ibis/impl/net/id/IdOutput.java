@@ -181,38 +181,38 @@ public final class IdOutput extends NetOutput {
                 subOutput.writeObject(v);
         }
 
-        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceBoolean(b, o, l);
+        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
         }
 
-        public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceByte(b, o, l);
+        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
         }
-        public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceChar(b, o, l);
-        }
-
-        public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceShort(b, o, l);
+        public void writeArray(char [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
         }
 
-        public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceInt(b, o, l);
+        public void writeArray(short [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
         }
 
-        public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceLong(b, o, l);
+        public void writeArray(int [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
         }
 
-        public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceFloat(b, o, l);
+        public void writeArray(long [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
         }
 
-        public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceDouble(b, o, l);
+        public void writeArray(float [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
+        }
+
+        public void writeArray(double [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
         }	
 
-        public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
-                subOutput.writeArraySliceObject(b, o, l);
+        public void writeArray(Object [] b, int o, int l) throws NetIbisException {
+                subOutput.writeArray(b, o, l);
         }	
 }

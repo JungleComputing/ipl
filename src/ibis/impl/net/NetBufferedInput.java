@@ -217,9 +217,9 @@ public abstract class NetBufferedInput extends NetInput {
 		return value;
 	}
 
-	public void readArraySliceByte(byte [] userBuffer,
-				       int     offset,
-				       int     length)
+	public void readArray(byte [] userBuffer,
+			      int     offset,
+			      int     length)
 		throws NetIbisException {
                 log.in();
 		if (length == 0)

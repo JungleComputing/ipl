@@ -361,10 +361,10 @@ public abstract class NetSerializedInput extends NetInput {
                 return o;
         }
 
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceBoolean(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		}
@@ -372,10 +372,10 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+	public void readArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceByte(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		}
@@ -383,10 +383,10 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+	public void readArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceChar(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		}
@@ -394,10 +394,10 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+	public void readArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceShort(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		}
@@ -405,10 +405,10 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+	public void readArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceInt(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		}
@@ -416,10 +416,10 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+	public void readArray(long [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceLong(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		}
@@ -427,10 +427,10 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+	public void readArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceFloat(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		}
@@ -438,20 +438,20 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+	public void readArray(double [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceDouble(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		}
                 log.out();
         }
 
-	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+	public void readArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
 		try {
-                        iss.readArraySliceObject(b, o, l);
+                        iss.readArray(b, o, l);
 		} catch(java.io.IOException e) {
                         throw new NetIbisException("got exception", e);
 		} catch(ClassNotFoundException e2) {

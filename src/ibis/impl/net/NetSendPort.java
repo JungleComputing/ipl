@@ -813,61 +813,61 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.out();
 	}
 
-	public void writeArrayBoolean(boolean [] b) throws NetIbisException {
+	public void writeArray(boolean [] b) throws NetIbisException {
                 log.in();
-		writeArraySliceBoolean(b, 0, b.length);
+		writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArrayByte(byte [] b) throws NetIbisException {
+	public void writeArray(byte [] b) throws NetIbisException {
                 log.in();
-		writeArraySliceByte(b, 0, b.length);
+		writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArrayChar(char [] b) throws NetIbisException {
+	public void writeArray(char [] b) throws NetIbisException {
                 log.in();
-                writeArraySliceChar(b, 0, b.length);
+                writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArrayShort(short [] b) throws NetIbisException {
+	public void writeArray(short [] b) throws NetIbisException {
                 log.in();
-                writeArraySliceShort(b, 0, b.length);
+                writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArrayInt(int [] b) throws NetIbisException {
+	public void writeArray(int [] b) throws NetIbisException {
                 log.in();
-                writeArraySliceInt(b, 0, b.length);
+                writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArrayLong(long [] b) throws NetIbisException {
+	public void writeArray(long [] b) throws NetIbisException {
                 log.in();
-                writeArraySliceLong(b, 0, b.length);
+                writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArrayFloat(float [] b) throws NetIbisException {
+	public void writeArray(float [] b) throws NetIbisException {
                 log.in();
-                writeArraySliceFloat(b, 0, b.length);
+                writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArrayDouble(double [] b) throws NetIbisException {
+	public void writeArray(double [] b) throws NetIbisException {
                 log.in();
-                writeArraySliceDouble(b, 0, b.length);
+                writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArrayObject(Object [] b) throws NetIbisException {
+	public void writeArray(Object [] b) throws NetIbisException {
                 log.in();
-                writeArraySliceObject(b, 0, b.length);
+                writeArray(b, 0, b.length);
                 log.out();
 	}
 
-	public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+	public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -876,11 +876,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                 stat.addBooleanArray(l);
 		emptyMsg = false;
-                output.writeArraySliceBoolean(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 
-	public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+	public void writeArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -889,11 +889,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		emptyMsg = false;
                 stat.addByteArray(l);
-                output.writeArraySliceByte(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 
-	public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+	public void writeArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -902,11 +902,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		emptyMsg = false;
                 stat.addCharArray(l);
-                output.writeArraySliceChar(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 
-	public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+	public void writeArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -915,11 +915,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		emptyMsg = false;
                 stat.addShortArray(l);
-                output.writeArraySliceShort(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 
-	public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+	public void writeArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -928,11 +928,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		emptyMsg = false;
                 stat.addIntArray(l);
-                output.writeArraySliceInt(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 
-	public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+	public void writeArray(long [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -941,11 +941,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		emptyMsg = false;
                 stat.addLongArray(l);
-                output.writeArraySliceLong(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 
-	public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+	public void writeArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -954,11 +954,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                 emptyMsg = false;
                 stat.addFloatArray(l);
-                output.writeArraySliceFloat(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 
-	public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+	public void writeArray(double [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -967,11 +967,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		emptyMsg = false;
                 stat.addDoubleArray(l);
-                output.writeArraySliceDouble(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 
-	public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+	public void writeArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
@@ -980,7 +980,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		emptyMsg = false;
                 stat.addObjectArray(l);
-                output.writeArraySliceObject(b, o, l);
+                output.writeArray(b, o, l);
                 log.out();
 	}
 }

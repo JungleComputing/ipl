@@ -167,47 +167,47 @@ public final class IdInput extends NetInput {
         }
 
 
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceBoolean(b, o, l);
+	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
 
-	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceByte(b, o, l);
+	public void readArray(byte [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
 
-	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceChar(b, o, l);
+	public void readArray(char [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
 
-	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceShort(b, o, l);
+	public void readArray(short [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
 
-	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceInt(b, o, l);
+	public void readArray(int [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
 
-	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceLong(b, o, l);
+	public void readArray(long [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
 
-	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceFloat(b, o, l);
+	public void readArray(float [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
 
-	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceDouble(b, o, l);
+	public void readArray(double [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
-	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
-                subInput.readArraySliceObject(b, o, l);
+	public void readArray(Object [] b, int o, int l) throws NetIbisException {
+                subInput.readArray(b, o, l);
         }
 
 }

@@ -103,100 +103,100 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	throw new IbisIOException("Write Object not supported");
     }
 
-    public void writeArrayBoolean(boolean[] value) throws IbisIOException {
+    public void writeArray(boolean[] value) throws IbisIOException {
 	writeObject(value);
     }
 
-    public void writeArrayByte(byte[] value) throws IbisIOException {
+    public void writeArray(byte[] value) throws IbisIOException {
 	out.write(value);
     }
 
-    public void writeArrayChar(char[] value) throws IbisIOException {
+    public void writeArray(char[] value) throws IbisIOException {
 	writeObject(value);
     }
 
-    public void writeArrayShort(short[] value) throws IbisIOException {
+    public void writeArray(short[] value) throws IbisIOException {
 	writeObject(value);
     }
 
-    public void writeArrayInt(int[] value) throws IbisIOException {
+    public void writeArray(int[] value) throws IbisIOException {
 	writeObject(value);
     }
 
-    public void writeArrayLong(long[] value) throws IbisIOException {
+    public void writeArray(long[] value) throws IbisIOException {
 	writeObject(value);
     }
 
-    public void writeArrayFloat(float[] value) throws IbisIOException {
+    public void writeArray(float[] value) throws IbisIOException {
 	writeObject(value);
     }
 
-    public void writeArrayDouble(double[] value) throws IbisIOException {
+    public void writeArray(double[] value) throws IbisIOException {
 	writeObject(value);
     }
 
-    public void writeArrayObject(Object[] value) throws IbisIOException {
+    public void writeArray(Object[] value) throws IbisIOException {
 	writeObject(value);
     }
 
 
-    public void writeArraySliceBoolean(boolean[] value, int offset,
+    public void writeArray(boolean[] value, int offset,
 					    int size) throws IbisIOException {
 	boolean[] temp = new boolean[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArraySliceByte(byte[] value, int offset,
+    public void writeArray(byte[] value, int offset,
 				  int size) throws IbisIOException {
 	byte[] temp = new byte[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArraySliceChar(char[] value, int offset,
+    public void writeArray(char[] value, int offset,
 					 int size) throws IbisIOException {
 	char[] temp = new char[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArraySliceShort(short[] value, int offset,
+    public void writeArray(short[] value, int offset,
 					  int size) throws IbisIOException {
 	short[] temp = new short[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArraySliceInt(int[] value, int offset,
+    public void writeArray(int[] value, int offset,
 					int size) throws IbisIOException {
 	int[] temp = new int[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArraySliceLong(long[] value, int offset,
+    public void writeArray(long[] value, int offset,
 					 int size) throws IbisIOException {
 	long[] temp = new long[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArraySliceFloat(float[] value, int offset,
+    public void writeArray(float[] value, int offset,
 					  int size) throws IbisIOException {
 	float[] temp = new float[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArraySliceDouble(double[] value, int offset,
+    public void writeArray(double[] value, int offset,
 					   int size) throws IbisIOException {
 	double[] temp = new double[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArraySliceObject(Object[] value, int offset,
+    public void writeArray(Object[] value, int offset,
 					   int size) throws IbisIOException {
 	Object[] temp = new Object[size];
 	System.arraycopy(value, offset, temp, 0, size);

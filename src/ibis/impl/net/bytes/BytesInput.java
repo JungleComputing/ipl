@@ -355,7 +355,7 @@ public final class BytesInput extends NetInput implements Settings {
 
                 } else {
                         byte [] b = a2.allocate();
-                        subInput.readArrayByte(b);
+                        subInput.readArray(b);
                         v = NetConvert.readChar(b);
                         a2.free(b);
                 }
@@ -394,7 +394,7 @@ public final class BytesInput extends NetInput implements Settings {
 
                 } else {
                         byte [] b = a2.allocate();
-                        subInput.readArrayByte(b);
+                        subInput.readArray(b);
                         v = NetConvert.readShort(b);
                         a2.free(b);
                 }
@@ -431,7 +431,7 @@ public final class BytesInput extends NetInput implements Settings {
 
                 } else {
                         byte [] b = a4.allocate();
-                        subInput.readArrayByte(b);
+                        subInput.readArray(b);
                         v = NetConvert.readInt(b);
                         a4.free(b);
                 }
@@ -468,7 +468,7 @@ public final class BytesInput extends NetInput implements Settings {
 
                 } else {
                         byte [] b = a8.allocate();
-                        subInput.readArrayByte(b);
+                        subInput.readArray(b);
                         v = NetConvert.readLong(b);
                         a8.free(b);
                 }
@@ -505,7 +505,7 @@ public final class BytesInput extends NetInput implements Settings {
 
                 } else {
                         byte [] b = a4.allocate();
-                        subInput.readArrayByte(b);
+                        subInput.readArray(b);
                         v = NetConvert.readFloat(b);
                         a4.free(b);
                 }
@@ -542,7 +542,7 @@ public final class BytesInput extends NetInput implements Settings {
 
                 } else {
                         byte [] b = a8.allocate();
-                        subInput.readArrayByte(b);
+                        subInput.readArray(b);
                         v = NetConvert.readDouble(b);
                         a8.free(b);
                 }
@@ -556,7 +556,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.in();
                 final int l = readInt();
                 char [] a = new char[l];
-                readArraySliceChar(a, 0, l);
+                readArray(a, 0, l);
 
                 String s = new String(a);
                 log.out();
@@ -572,11 +572,11 @@ public final class BytesInput extends NetInput implements Settings {
                 return o;
         }
 
-	public void readArraySliceBoolean(boolean [] ub, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
-                                NetConvert.readArraySliceBoolean(buffer.data, bufferOffset, ub, o, l);
+                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, l);
                                 bufferOffset += l;
                                 freeBufferIfNeeded();
                         } else {
@@ -586,7 +586,7 @@ public final class BytesInput extends NetInput implements Settings {
                                         }
 
                                         int copyLength = Math.min(l, buffer.length - bufferOffset);
-                                        NetConvert.readArraySliceBoolean(buffer.data, bufferOffset, ub, o, copyLength);
+                                        NetConvert.readArray(buffer.data, bufferOffset, ub, o, copyLength);
                                         o += copyLength;
                                         l -= copyLength;
                                         bufferOffset += copyLength;
@@ -596,20 +596,20 @@ public final class BytesInput extends NetInput implements Settings {
                 } else {
                         if (l <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArraySliceByte(b, 0, l);
-                                NetConvert.readArraySliceBoolean(b, ub, o, l);
+                                subInput.readArray(b, 0, l);
+                                NetConvert.readArray(b, ub, o, l);
                                 an.free(b);
                         } else {
                                 byte [] b = new byte[l];
-                                subInput.readArrayByte(b);
-                                NetConvert.readArraySliceBoolean(b, ub, o, l);
+                                subInput.readArray(b);
+                                NetConvert.readArray(b, ub, o, l);
                         }
                 }
                 log.out();
         }
 
 
-	public void readArraySliceByte(byte [] ub, int o, int l) throws NetIbisException {
+	public void readArray(byte [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
@@ -632,19 +632,19 @@ public final class BytesInput extends NetInput implements Settings {
                         }
 
                 } else {
-                        subInput.readArraySliceByte(ub, o, l);
+                        subInput.readArray(ub, o, l);
                 }
                 log.out();
         }
 
 
-	public void readArraySliceChar(char [] ub, int o, int l) throws NetIbisException {
+	public void readArray(char [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 2;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.readArraySliceChar(buffer.data, bufferOffset, ub, o, l);
+                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, l);
                                 bufferOffset += f*l;
                                 freeBufferIfNeeded();
                         } else {
@@ -665,7 +665,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.readArraySliceChar(buffer.data, bufferOffset, ub, o, copyLength);
+                                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 bufferOffset += f*copyLength;
@@ -677,26 +677,26 @@ public final class BytesInput extends NetInput implements Settings {
                 } else {
                         if (l*f <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArraySliceByte(b, 0, l*f);
-                                NetConvert.readArraySliceChar(b, ub, o, l);
+                                subInput.readArray(b, 0, l*f);
+                                NetConvert.readArray(b, ub, o, l);
                                 an.free(b);
                         } else {
                                 byte [] b = new byte[f*l];
-                                subInput.readArrayByte(b);
-                                NetConvert.readArraySliceChar(b, ub, o, l);
+                                subInput.readArray(b);
+                                NetConvert.readArray(b, ub, o, l);
                         }
                 }
                 log.out();
         }
 
 
-	public void readArraySliceShort(short [] ub, int o, int l) throws NetIbisException {
+	public void readArray(short [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 2;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.readArraySliceShort(buffer.data, bufferOffset, ub, o, l);
+                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, l);
                                 bufferOffset += f*l;
                                 freeBufferIfNeeded();
                         } else {
@@ -718,7 +718,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.readArraySliceShort(buffer.data, bufferOffset, ub, o, copyLength);
+                                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 bufferOffset += f*copyLength;
@@ -730,26 +730,26 @@ public final class BytesInput extends NetInput implements Settings {
                 } else {
                         if (l*f <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArraySliceByte(b, 0, l*f);
-                                NetConvert.readArraySliceShort(b, ub, o, l);
+                                subInput.readArray(b, 0, l*f);
+                                NetConvert.readArray(b, ub, o, l);
                                 an.free(b);
                         } else {
                                 byte [] b = new byte[f*l];
-                                subInput.readArrayByte(b);
-                                NetConvert.readArraySliceShort(b, ub, o, l);
+                                subInput.readArray(b);
+                                NetConvert.readArray(b, ub, o, l);
                         }
                 }
                 log.out();
         }
 
 
-	public void readArraySliceInt(int [] ub, int o, int l) throws NetIbisException {
+	public void readArray(int [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 4;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.readArraySliceInt(buffer.data, bufferOffset, ub, o, l);
+                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, l);
                                 bufferOffset += f*l;
                                 freeBufferIfNeeded();
                         } else {
@@ -770,8 +770,8 @@ public final class BytesInput extends NetInput implements Settings {
                                                         freeBuffer();
                                                         continue;
                                                 }
-
-                                                NetConvert.readArraySliceInt(buffer.data, bufferOffset, ub, o, copyLength);
+ 
+                                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 bufferOffset += f*copyLength;
@@ -783,13 +783,13 @@ public final class BytesInput extends NetInput implements Settings {
                 } else {
                         if (l*f <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArraySliceByte(b, 0, l*f);
-                                NetConvert.readArraySliceInt(b, ub, o, l);
+                                subInput.readArray(b, 0, l*f);
+                                NetConvert.readArray(b, ub, o, l);
                                 an.free(b);
                         } else {
                                 byte [] b = new byte[f*l];
-                                subInput.readArrayByte(b);
-                                NetConvert.readArraySliceInt(b, ub, o, l);
+                                subInput.readArray(b);
+                                NetConvert.readArray(b, ub, o, l);
                         }
                 }
 
@@ -797,13 +797,13 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public void readArraySliceLong(long [] ub, int o, int l) throws NetIbisException {
+	public void readArray(long [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 8;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.readArraySliceLong(buffer.data, bufferOffset, ub, o, l);
+                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, l);
                                 bufferOffset += f*l;
                                 freeBufferIfNeeded();
                         } else {
@@ -824,7 +824,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.readArraySliceLong(buffer.data, bufferOffset, ub, o, copyLength);
+                                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 bufferOffset += f*copyLength;
@@ -836,26 +836,26 @@ public final class BytesInput extends NetInput implements Settings {
                 } else {
                         if (l*f <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArraySliceByte(b, 0, l*f);
-                                NetConvert.readArraySliceLong(b, ub, o, l);
+                                subInput.readArray(b, 0, l*f);
+                                NetConvert.readArray(b, ub, o, l);
                                 an.free(b);
                         } else {
                                 byte [] b = new byte[f*l];
-                                subInput.readArrayByte(b);
-                                NetConvert.readArraySliceLong(b, ub, o, l);
+                                subInput.readArray(b);
+                                NetConvert.readArray(b, ub, o, l);
                         }
                 }
                 log.out();
         }
 
 
-	public void readArraySliceFloat(float [] ub, int o, int l) throws NetIbisException {
+	public void readArray(float [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 4;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.readArraySliceFloat(buffer.data, bufferOffset, ub, o, l);
+                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, l);
                                 bufferOffset += f*l;
                                 freeBufferIfNeeded();
                         } else {
@@ -876,7 +876,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.readArraySliceFloat(buffer.data, bufferOffset, ub, o, copyLength);
+                                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 bufferOffset += f*copyLength;
@@ -888,25 +888,25 @@ public final class BytesInput extends NetInput implements Settings {
                 } else {
                         if (l*f <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArraySliceByte(b, 0, l*f);
-                                NetConvert.readArraySliceFloat(b, ub, o, l);
+                                subInput.readArray(b, 0, l*f);
+                                NetConvert.readArray(b, ub, o, l);
                                 an.free(b);
                         } else {
                                 byte [] b = new byte[f*l];
-                                subInput.readArrayByte(b);
-                                NetConvert.readArraySliceFloat(b, ub, o, l);
+                                subInput.readArray(b);
+                                NetConvert.readArray(b, ub, o, l);
                         }
                 }
                 log.out();
         }
 
-	public void readArraySliceDouble(double [] ub, int o, int l) throws NetIbisException {
+	public void readArray(double [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 final int f = 8;
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                NetConvert.readArraySliceDouble(buffer.data, bufferOffset, ub, o, l);
+                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, l);
                                 bufferOffset += f*l;
                                 freeBufferIfNeeded();
                         } else {
@@ -927,7 +927,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         continue;
                                                 }
 
-                                                NetConvert.readArraySliceDouble(buffer.data, bufferOffset, ub, o, copyLength);
+                                                NetConvert.readArray(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 bufferOffset += f*copyLength;
@@ -939,19 +939,19 @@ public final class BytesInput extends NetInput implements Settings {
                 } else {
                         if (l*f <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArraySliceByte(b, 0, l*f);
-                                NetConvert.readArraySliceDouble(b, ub, o, l);
+                                subInput.readArray(b, 0, l*f);
+                                NetConvert.readArray(b, ub, o, l);
                                 an.free(b);
                         } else {
                                 byte [] b = new byte[f*l];
-                                subInput.readArrayByte(b);
-                                NetConvert.readArraySliceDouble(b, ub, o, l);
+                                subInput.readArray(b);
+                                NetConvert.readArray(b, ub, o, l);
                         }
                 }
                 log.out();
         }
 
-	public void readArraySliceObject(Object [] ub, int o, int l) throws NetIbisException {
+	public void readArray(Object [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         ub[o+i] = readObject();

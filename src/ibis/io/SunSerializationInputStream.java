@@ -17,7 +17,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
     public void statistics() {
     }
 
-    public void readArraySliceBoolean(boolean[] ref, int off, int len) throws IOException {
+    public void readArray(boolean[] ref, int off, int len) throws IOException {
 	boolean[] temp;
 	try {
 	    temp = (boolean[]) readObject();
@@ -34,7 +34,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
     }
 
-    public void readArraySliceByte(byte[] ref, int off, int len) throws IOException {
+    public void readArray(byte[] ref, int off, int len) throws IOException {
 	byte[] temp;
 	try {
 	    temp = (byte[]) readObject();
@@ -51,7 +51,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
     }
 
-    public void readArraySliceChar(char[] ref, int off, int len) throws IOException {
+    public void readArray(char[] ref, int off, int len) throws IOException {
 	char[] temp;
 	try {
 	    temp = (char[]) readObject();
@@ -68,7 +68,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
     }
 
-    public void readArraySliceShort(short[] ref, int off, int len) throws IOException {
+    public void readArray(short[] ref, int off, int len) throws IOException {
 	short[] temp;
 	try {
 	    temp = (short[]) readObject();
@@ -85,7 +85,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
     }
 
-    public void readArraySliceInt(int[] ref, int off, int len) throws IOException {
+    public void readArray(int[] ref, int off, int len) throws IOException {
 	int[] temp;
 	try {
 	    temp = (int[]) readObject();
@@ -102,7 +102,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
     }
 
-    public void readArraySliceLong(long[] ref, int off, int len) throws IOException {
+    public void readArray(long[] ref, int off, int len) throws IOException {
 	long[] temp;
 	try {
 	    temp = (long[]) readObject();
@@ -119,7 +119,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
     }
 
-    public void readArraySliceFloat(float[] ref, int off, int len) throws IOException {
+    public void readArray(float[] ref, int off, int len) throws IOException {
 	float[] temp;
 	try {
 	    temp = (float[]) readObject();
@@ -136,7 +136,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
     }
 
-    public void readArraySliceDouble(double[] ref, int off, int len) throws IOException {
+    public void readArray(double[] ref, int off, int len) throws IOException {
 	double[] temp;
 	try {
 	    temp = (double[]) readObject();
@@ -153,7 +153,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
     }
 
-    public void readArraySliceObject(Object[] ref, int off, int len) throws IOException {
+    public void readArray(Object[] ref, int off, int len) throws IOException {
 	Object[] temp;
 	try {
 	    temp = (Object[]) readObject();

@@ -27,35 +27,35 @@ public final class SIbisInput extends NetSerializedInput {
         }
                 private final class DummyInputStream extends ArrayInputStream {
                 public void readArray(boolean[] a, int off, int len) throws NetIbisException {
-                        subInput.readArraySliceBoolean(a, off, len);
+                        subInput.readArray(a, off, len);
                 }
 
                 public void readArray(byte[] a, int off, int len) throws NetIbisException {
-                        subInput.readArraySliceByte(a, off, len);
+                        subInput.readArray(a, off, len);
                 }
 
                 public void readArray(short[] a, int off, int len) throws NetIbisException {
-                        subInput.readArraySliceShort(a, off, len);
+                        subInput.readArray(a, off, len);
                 }
 
                 public void readArray(char[] a, int off, int len) throws NetIbisException {
-                        subInput.readArraySliceChar(a, off, len);
+                        subInput.readArray(a, off, len);
                 }
 
                 public void readArray(int[] a, int off, int len) throws NetIbisException {
-                        subInput.readArraySliceInt(a, off, len);
+                        subInput.readArray(a, off, len);
                 }
 
                 public void readArray(long[] a, int off, int len) throws NetIbisException {
-                        subInput.readArraySliceLong(a, off, len);
+                        subInput.readArray(a, off, len);
                 }
 
                 public void readArray(float[] a, int off, int len) throws NetIbisException {
-                        subInput.readArraySliceFloat(a, off, len);
+                        subInput.readArray(a, off, len);
                 }
 
                 public void readArray(double[] a, int off, int len) throws NetIbisException {
-                        subInput.readArraySliceDouble(a, off, len);
+                        subInput.readArray(a, off, len);
                 }
 
                 public int available() throws NetIbisException {

@@ -311,7 +311,7 @@ public final class RelOutput
 			    int offset,
 			    int showLength) {
 	int[] i_packet = new int[showLength];
-	NetConvert.readArraySliceInt(data, offset,
+	NetConvert.readArray(data, offset,
 				     i_packet, 0, i_packet.length);
 	out.print(pre + "contains ");
 	for (int i = 0; i < i_packet.length; i++) {
@@ -625,7 +625,7 @@ public final class RelOutput
 
 	int	ackOffset = NetConvert.readInt(data, offset);
 	offset += NetConvert.INT_SIZE;
-	NetConvert.readArraySliceInt(data, offset,
+	NetConvert.readArray(data, offset,
 				     ackReceiveSet, 0, ACK_SET_IN_INTS);
 	offset += NetConvert.INT_SIZE * ACK_SET_IN_INTS;
 	if (DEBUG_ACK) {

@@ -28,43 +28,43 @@ public final class SIbisOutput extends NetSerializedOutput {
 
                 public void writeArray(boolean[] a, int off, int len) throws NetIbisException {
                         byteCounter += len;
-                        subOutput.writeArraySliceBoolean(a, off, len);
+                        subOutput.writeArray(a, off, len);
                 }
 
                 public void writeArray(byte[] a, int off, int len) throws NetIbisException {
                         byteCounter += len;
-                        subOutput.writeArraySliceByte(a, off, len);
+                        subOutput.writeArray(a, off, len);
                 }
                        
                 public void writeArray(short[] a, int off, int len) throws NetIbisException {
                         byteCounter += len * 2;
-                        subOutput.writeArraySliceShort(a, off, len);
+                        subOutput.writeArray(a, off, len);
                 }
                        
                 public void writeArray(char[] a, int off, int len) throws NetIbisException {
                         byteCounter += len * 2;
-                        subOutput.writeArraySliceChar(a, off, len);
+                        subOutput.writeArray(a, off, len);
                 }
                        
                 public void writeArray(int[] a, int off, int len) throws NetIbisException {
                         byteCounter += len * 4;
 
-                        subOutput.writeArraySliceInt(a, off, len);
+                        subOutput.writeArray(a, off, len);
                 }
                        
                 public void writeArray(long[] a, int off, int len) throws NetIbisException {
                         byteCounter += len * 8;
-                        subOutput.writeArraySliceLong(a, off, len);
+                        subOutput.writeArray(a, off, len);
                 }
                        
                 public void writeArray(float[] a, int off, int len) throws NetIbisException {
                         byteCounter += len * 4;
-                        subOutput.writeArraySliceFloat(a, off, len);
+                        subOutput.writeArray(a, off, len);
                 }
                        
                 public void writeArray(double[] a, int off, int len) throws NetIbisException {
                         byteCounter += len * 8;
-                        subOutput.writeArraySliceDouble(a, off, len);
+                        subOutput.writeArray(a, off, len);
                 }
 
                 public int bytesWritten() {

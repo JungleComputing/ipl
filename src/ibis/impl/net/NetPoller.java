@@ -554,57 +554,57 @@ public abstract class NetPoller extends NetInput {
                 return v;
         }
 
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceBoolean(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+	public void readArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceByte(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+	public void readArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceChar(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+	public void readArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceShort(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+	public void readArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceInt(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+	public void readArray(long [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceLong(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+	public void readArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceFloat(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+	public void readArray(double [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceDouble(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+	public void readArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeInput().readArraySliceObject(b, o, l);
+                activeInput().readArray(b, o, l);
                 log.out();
         }
 

@@ -162,7 +162,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 		log.out();
 	}
 
-	public void writeArraySliceByte(byte [] userBuffer, int offset, int length) throws NetIbisException {
+	public void writeArray(byte [] userBuffer, int offset, int length) throws NetIbisException {
                 log.in();
 		if (length == 0)
 			return;

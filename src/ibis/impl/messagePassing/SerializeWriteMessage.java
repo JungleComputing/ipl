@@ -159,7 +159,7 @@ final class SerializeWriteMessage extends WriteMessage {
 // out.report();
     }
 
-    public void writeArrayBoolean(boolean[] value) throws IbisIOException {
+    public void writeArray(boolean[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 	} catch (java.io.IOException e) {
@@ -167,7 +167,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeArrayByte(byte[] value) throws IbisIOException {
+    public void writeArray(byte[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 	} catch (java.io.IOException e) {
@@ -175,7 +175,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeArrayChar(char[] value) throws IbisIOException {
+    public void writeArray(char[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 	} catch (java.io.IOException e) {
@@ -183,7 +183,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeArrayShort(short[] value) throws IbisIOException {
+    public void writeArray(short[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 	} catch (java.io.IOException e) {
@@ -191,7 +191,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeArrayInt(int[] value) throws IbisIOException {
+    public void writeArray(int[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 	} catch (java.io.IOException e) {
@@ -199,7 +199,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeArrayLong(long[] value) throws IbisIOException {
+    public void writeArray(long[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 	} catch (java.io.IOException e) {
@@ -207,7 +207,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeArrayFloat(float[] value) throws IbisIOException {
+    public void writeArray(float[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 	} catch (java.io.IOException e) {
@@ -215,7 +215,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeArrayDouble(double[] value) throws IbisIOException {
+    public void writeArray(double[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 	} catch (java.io.IOException e) {
@@ -224,7 +224,7 @@ final class SerializeWriteMessage extends WriteMessage {
     }
 
 
-    public void writeSubArrayBoolean(boolean[] value, int offset,
+    public void writeArray(boolean[] value, int offset,
 					    int size) throws IbisIOException {
 	boolean[] temp = new boolean[size];
 	System.arraycopy(value, offset, temp, 0, size);
@@ -235,7 +235,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeSubArrayByte(byte[] value, int offset,
+    public void writeArray(byte[] value, int offset,
 				  int size) throws IbisIOException {
 	byte[] temp = new byte[size];
 	System.arraycopy(value, offset, temp, 0, size);
@@ -246,7 +246,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeSubArrayChar(char[] value, int offset,
+    public void writeArray(char[] value, int offset,
 					 int size) throws IbisIOException {
 	char[] temp = new char[size];
 	System.arraycopy(value, offset, temp, 0, size);
@@ -257,7 +257,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeSubArrayShort(short[] value, int offset,
+    public void writeArray(short[] value, int offset,
 					  int size) throws IbisIOException {
 	short[] temp = new short[size];
 	System.arraycopy(value, offset, temp, 0, size);
@@ -268,7 +268,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeSubArrayInt(int[] value, int offset,
+    public void writeArray(int[] value, int offset,
 					int size) throws IbisIOException {
 	int[] temp = new int[size];
 	System.arraycopy(value, offset, temp, 0, size);
@@ -279,7 +279,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeSubArrayLong(long[] value, int offset,
+    public void writeArray(long[] value, int offset,
 					 int size) throws IbisIOException {
 	long[] temp = new long[size];
 	System.arraycopy(value, offset, temp, 0, size);
@@ -290,7 +290,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeSubArrayFloat(float[] value, int offset,
+    public void writeArray(float[] value, int offset,
 					  int size) throws IbisIOException {
 	float[] temp = new float[size];
 	System.arraycopy(value, offset, temp, 0, size);
@@ -301,7 +301,7 @@ final class SerializeWriteMessage extends WriteMessage {
 	}
     }
 
-    public void writeSubArrayDouble(double[] value, int offset,
+    public void writeArray(double[] value, int offset,
 					   int size) throws IbisIOException {
 	double[] temp = new double[size];
 	System.arraycopy(value, offset, temp, 0, size);

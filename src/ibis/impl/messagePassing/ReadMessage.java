@@ -208,85 +208,85 @@ public class ReadMessage
 	throw new IbisIOException("Read Object not supported");
     }
 
-    public void readArrayBoolean(boolean[] destination) throws IbisIOException {
-	throw new IbisIOException("Read ArrayBoolean not supported");
+    public void readArray(boolean[] destination) throws IbisIOException {
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArrayByte(byte[] destination) throws IbisIOException {
+    public void readArray(byte[] destination) throws IbisIOException {
 	in.read(destination);
     }
 
-    public void readArrayChar(char[] destination) throws IbisIOException {
-	throw new IbisIOException("Read ArrayChar not supported");
+    public void readArray(char[] destination) throws IbisIOException {
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArrayShort(short[] destination) throws IbisIOException {
-	throw new IbisIOException("Read ArrayShort not supported");
+    public void readArray(short[] destination) throws IbisIOException {
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArrayInt(int[] destination) throws IbisIOException {
-	throw new IbisIOException("Read ArrayInt not supported");
+    public void readArray(int[] destination) throws IbisIOException {
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArrayLong(long[] destination) throws IbisIOException {
-	throw new IbisIOException("Read ArrayLong not supported");
+    public void readArray(long[] destination) throws IbisIOException {
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArrayFloat(float[] destination) throws IbisIOException {
-	throw new IbisIOException("Read ArrayFloat not supported");
+    public void readArray(float[] destination) throws IbisIOException {
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArrayDouble(double[] destination) throws IbisIOException {
-	throw new IbisIOException("Read ArrayDouble not supported");
+    public void readArray(double[] destination) throws IbisIOException {
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArrayObject(Object[] destination) throws IbisIOException {
-	throw new IbisIOException("Read ArrayObject not supported");
+    public void readArray(Object[] destination) throws IbisIOException {
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArraySliceBoolean(boolean[] destination, int offset,
+    public void readArray(boolean[] destination, int offset,
 				    int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceBoolean not supported");
+	throw new IbisIOException("Read Array  not supported");
     }
 
-    public void readArraySliceByte(byte[] destination, int offset,
+    public void readArray(byte[] destination, int offset,
 				 int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceByte not supported");
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArraySliceChar(char[] destination, int offset,
+    public void readArray(char[] destination, int offset,
 				 int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceChar not supported");
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArraySliceShort(short[] destination, int offset,
+    public void readArray(short[] destination, int offset,
 				  int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceShort not supported");
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArraySliceInt(int[] destination, int offset,
+    public void readArray(int[] destination, int offset,
 				int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceInt not supported");
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArraySliceLong(long[] destination, int offset,
+    public void readArray(long[] destination, int offset,
 				 int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceLong not supported");
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArraySliceFloat(float[] destination, int offset,
+    public void readArray(float[] destination, int offset,
 				  int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceFloat not supported");
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArraySliceDouble(double[] destination, int offset,
+    public void readArray(double[] destination, int offset,
 				   int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceDouble not supported");
+	throw new IbisIOException("Read Array not supported");
     }
 
-    public void readArraySliceObject(Object[] destination, int offset,
+    public void readArray(Object[] destination, int offset,
 				   int size) throws IbisIOException {
-	throw new IbisIOException("Read ArraySliceObject not supported");
+	throw new IbisIOException("Read Array not supported");
     }
 
 }

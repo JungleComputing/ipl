@@ -37,30 +37,30 @@ public interface ReadMessage {
 
 	/** Methods to receive arrays in place. No duplicate checks are done.
 	    These methods are a shortcut for:
-	    readArraySliceXXX(destination, 0, destination.length);
+	    readArray(destination, 0, destination.length);
 
-	    It is therefore legal to use a readArrayXXX, with a corresponding writeArraySliceXXX.
+	    It is therefore legal to use a readArrayXXX, with a corresponding writeArray.
 	**/
-	public void readArrayBoolean(boolean [] destination) throws IbisIOException;
-	public void readArrayByte(byte [] destination) throws IbisIOException;
-	public void readArrayChar(char [] destination) throws IbisIOException;
-	public void readArrayShort(short [] destination) throws IbisIOException;
-	public void readArrayInt(int [] destination) throws IbisIOException;
-	public void readArrayLong(long [] destination) throws IbisIOException;
-	public void readArrayFloat(float [] destination) throws IbisIOException;
-	public void readArrayDouble(double [] destination) throws IbisIOException;
-	public void readArrayObject(Object [] destination) throws IbisIOException;
+	public void readArray(boolean [] destination) throws IbisIOException;
+	public void readArray(byte [] destination) throws IbisIOException;
+	public void readArray(char [] destination) throws IbisIOException;
+	public void readArray(short [] destination) throws IbisIOException;
+	public void readArray(int [] destination) throws IbisIOException;
+	public void readArray(long [] destination) throws IbisIOException;
+	public void readArray(float [] destination) throws IbisIOException;
+	public void readArray(double [] destination) throws IbisIOException;
+	public void readArray(Object [] destination) throws IbisIOException;
 
 	/** Read a slice of an array in place. No cycle checks are done. 
-	    It is legal to use a readArraySliceXXX, with a corresponding writeArrayXXX.
+	    It is legal to use a readArray, with a corresponding writeArrayXXX.
 	**/
-	public void readArraySliceBoolean(boolean [] destination, int offset, int size) throws IbisIOException;
-	public void readArraySliceByte(byte [] destination, int offset, int size) throws IbisIOException;
-	public void readArraySliceChar(char [] destination, int offset, int size) throws IbisIOException;
-	public void readArraySliceShort(short [] destination, int offset, int size) throws IbisIOException;
-	public void readArraySliceInt(int [] destination, int offset, int size) throws IbisIOException;
-	public void readArraySliceLong(long [] destination, int offset, int size) throws IbisIOException;
-	public void readArraySliceFloat(float [] destination, int offset, int size) throws IbisIOException;
-	public void readArraySliceDouble(double [] destination, int offset, int size) throws IbisIOException;
-	public void readArraySliceObject(Object [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(boolean [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(byte [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(char [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(short [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(int [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(long [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(float [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(double [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(Object [] destination, int offset, int size) throws IbisIOException;
 } 

@@ -82,6 +82,17 @@ public abstract class ArrayOutputStream
 
 //    indices_short[PRIMITIVE_TYPES] = (short)  (eof ? 1 : 0);
 
+	if (DEBUG) {
+	    System.out.println("writing bytes " + byte_index);
+	    System.out.println("writing chars " + char_index);
+	    System.out.println("writing shorts " + short_index);
+	    System.out.println("writing ints " + int_index);
+	    System.out.println("writing longs " + long_index);
+	    System.out.println("writing floats " + float_index);
+	    System.out.println("writing doubles " + double_index);
+	    System.out.println("writing handles " + handle_index);
+	}
+
 	writeArray(indices_short, 0, PRIMITIVE_TYPES);
 
 	if (byte_index > 0)    writeArray(byte_buffer, 0, byte_index);

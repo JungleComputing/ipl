@@ -38,69 +38,69 @@ public abstract class SerializationInputStream extends ObjectInputStream {
 
     /** Methods to receive arrays in place. No duplicate checks are done.
 	These methods are a shortcut for:
-	readArraySliceXXX(dest, 0, dest.length);
+	readArray(dest, 0, dest.length);
 	It is therefore legal to use a readArrayXXX, with a corresponding
-	writeArraySliceXXX. The destination array should be of the correct
+	writeArray. The destination array should be of the correct
 	length!
     **/
-    public void readArrayBoolean(boolean[] dest) throws IOException {
-	readArraySliceBoolean(dest, 0, dest.length);
+    public void readArray(boolean[] dest) throws IOException {
+	readArray(dest, 0, dest.length);
     }
 
-    public void readArrayByte(byte[] dest) throws IOException {
-	readArraySliceByte(dest, 0, dest.length);
+    public void readArray(byte[] dest) throws IOException {
+	readArray(dest, 0, dest.length);
     }
 
-    public void readArrayShort(short[] dest) throws IOException {
-	readArraySliceShort(dest, 0, dest.length);
+    public void readArray(short[] dest) throws IOException {
+	readArray(dest, 0, dest.length);
     }
 
-    public void readArrayChar(char[] dest) throws IOException {
-	readArraySliceChar(dest, 0, dest.length);
+    public void readArray(char[] dest) throws IOException {
+	readArray(dest, 0, dest.length);
     }
 
-    public void readArrayInt(int[] dest) throws IOException {
-	readArraySliceInt(dest, 0, dest.length);
+    public void readArray(int[] dest) throws IOException {
+	readArray(dest, 0, dest.length);
     }
 
-    public void readArrayLong(long[] dest) throws IOException {
-	readArraySliceLong(dest, 0, dest.length);
+    public void readArray(long[] dest) throws IOException {
+	readArray(dest, 0, dest.length);
     }
 
-    public void readArrayFloat(float[] dest) throws IOException {
-	readArraySliceFloat(dest, 0, dest.length);
+    public void readArray(float[] dest) throws IOException {
+	readArray(dest, 0, dest.length);
     }
 
-    public void readArrayDouble(double[] dest) throws IOException {
-	readArraySliceDouble(dest, 0, dest.length);
+    public void readArray(double[] dest) throws IOException {
+	readArray(dest, 0, dest.length);
     }
 
-    public void readArrayObject(Object[] dest) throws IOException, ClassNotFoundException {
-	readArraySliceObject(dest, 0, dest.length);
+    public void readArray(Object[] dest) throws IOException, ClassNotFoundException {
+	readArray(dest, 0, dest.length);
     }
 
 
     /** Read a slice of an array in place. No cycle checks are done. 
-	It is legal to use a readArraySliceXXX, with a corresponding
+	It is legal to use a readArray, with a corresponding
 	writeArrayXXX.
     **/
-    public abstract void readArraySliceBoolean(boolean[] ref, int off, int len)
+    public abstract void readArray(boolean[] ref, int off, int len)
 	throws IOException;
-    public abstract void readArraySliceByte(byte[] ref, int off, int len)
+    public abstract void readArray(byte[] ref, int off, int len)
 	throws IOException;
-    public abstract void readArraySliceChar(char[] ref, int off, int len)
+    public abstract void readArray(char[] ref, int off, int len)
 	throws IOException;
-    public abstract void readArraySliceShort(short[] ref, int off, int len)
+    public abstract void readArray(short[] ref, int off, int len)
 	throws IOException;
-    public abstract void readArraySliceInt(int[] ref, int off, int len)
+    public abstract void readArray(int[] ref, int off, int len)
 	throws IOException;
-    public abstract void readArraySliceLong(long[] ref, int off, int len)
+    public abstract void readArray(long[] ref, int off, int len)
 	throws IOException;
-    public abstract void readArraySliceFloat(float[] ref, int off, int len)
+    public abstract void readArray(float[] ref, int off, int len)
 	throws IOException;
-    public abstract void readArraySliceDouble(double[] ref, int off, int len)
+    public abstract void readArray(double[] ref, int off, int len)
 	throws IOException;
-    public abstract void readArraySliceObject(Object[] ref, int off, int len)
+    public abstract void readArray(Object[] ref, int off, int len)
 	throws IOException, ClassNotFoundException;
 
     /** We cannot redefine readOBject, because it is final in ObjectInputStream.

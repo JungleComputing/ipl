@@ -148,155 +148,155 @@ final public class IbisWriteMessage extends WriteMessage {
 	writeObject(value);
     }
 
-    public void writeArraySliceBoolean(boolean[] value, int offset,
+    public void writeArray(boolean[] value, int offset,
 					    int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceBoolean(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArraySliceByte(byte[] value, int offset,
+    public void writeArray(byte[] value, int offset,
 				         int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceByte(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArraySliceChar(char[] value, int offset,
+    public void writeArray(char[] value, int offset,
 					 int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceChar(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArraySliceShort(short[] value, int offset,
+    public void writeArray(short[] value, int offset,
 					  int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceShort(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArraySliceInt(int[] value, int offset,
+    public void writeArray(int[] value, int offset,
 					int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceInt(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArraySliceLong(long[] value, int offset,
+    public void writeArray(long[] value, int offset,
 					 int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceLong(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArraySliceFloat(float[] value, int offset,
+    public void writeArray(float[] value, int offset,
 					  int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceFloat(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArraySliceDouble(double[] value, int offset,
+    public void writeArray(double[] value, int offset,
 					   int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceDouble(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArraySliceObject(Object[] value, int offset,
+    public void writeArray(Object[] value, int offset,
 					   int size) throws IbisIOException {
 	try {
-	    obj_out.writeArraySliceObject(value, offset, size);
+	    obj_out.writeArray(value, offset, size);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
 
-    public void writeArrayBoolean(boolean[] value) throws IbisIOException {
+    public void writeArray(boolean[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayBoolean(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArrayByte(byte[] value) throws IbisIOException {
+    public void writeArray(byte[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayByte(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArrayChar(char[] value) throws IbisIOException {
+    public void writeArray(char[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayChar(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArrayShort(short[] value) throws IbisIOException {
+    public void writeArray(short[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayShort(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArrayInt(int[] value) throws IbisIOException {
+    public void writeArray(int[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayInt(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArrayLong(long[] value) throws IbisIOException {
+    public void writeArray(long[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayLong(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArrayFloat(float[] value) throws IbisIOException {
+    public void writeArray(float[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayFloat(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArrayDouble(double[] value) throws IbisIOException {
+    public void writeArray(double[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayDouble(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}
     }
 
-    public void writeArrayObject(Object[] value) throws IbisIOException {
+    public void writeArray(Object[] value) throws IbisIOException {
 	try {
-	    obj_out.writeArrayObject(value);
+	    obj_out.writeArray(value);
 	} catch(IOException e) {
 	    throw new IbisIOException("got exception", e);
 	}

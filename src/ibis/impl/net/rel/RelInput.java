@@ -399,7 +399,7 @@ public final class RelInput
 	}
 	NetConvert.writeInt(nextContiguous, data, offset);
 	offset += NetConvert.INT_SIZE;
-	NetConvert.writeArraySliceInt(ackSendSet, 0, ACK_SET_IN_INTS,
+	NetConvert.writeArray(ackSendSet, 0, ACK_SET_IN_INTS,
 				      data, offset);
 	offset += NetConvert.INT_SIZE * ACK_SET_IN_INTS;
 

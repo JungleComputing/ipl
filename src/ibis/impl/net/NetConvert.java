@@ -155,7 +155,7 @@ public final class NetConvert {
 
 
         /* Primitive sub-array to byte sub-array. */
-        public static void writeArraySliceBoolean(boolean []a, int oa, int l, byte[] b, int ob) {
+        public static void writeArray(boolean []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
                         writeBoolean(a[oa+i], b, ob+i);
@@ -163,7 +163,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceChar(char []a, int oa, int l, byte[] b, int ob) {
+        public static void writeArray(char []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
                         writeChar(a[oa+i], b, ob+CHAR_SIZE*i);
@@ -171,7 +171,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceShort(short []a, int oa, int l, byte[] b, int ob) {
+        public static void writeArray(short []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
                         writeShort(a[oa+i], b, ob+SHORT_SIZE*i);
@@ -179,7 +179,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceInt(int []a, int oa, int l, byte[] b, int ob) {
+        public static void writeArray(int []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
                         writeInt(a[oa+i], b, ob+INT_SIZE*i);
@@ -187,7 +187,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceLong(long []a, int oa, int l, byte[] b, int ob) {
+        public static void writeArray(long []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
                         writeLong(a[oa+i], b, ob+LONG_SIZE*i);
@@ -195,7 +195,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceFloat(float []a, int oa, int l, byte[] b, int ob) {
+        public static void writeArray(float []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
                         writeFloat(a[oa+i], b, ob+FLOAT_SIZE*i);
@@ -203,7 +203,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceDouble(double []a, int oa, int l, byte[] b, int ob) {
+        public static void writeArray(double []a, int oa, int l, byte[] b, int ob) {
                 int i = 0;
                 while (i < l) {
                         writeDouble(a[oa+i], b, ob+DOUBLE_SIZE*i);
@@ -213,7 +213,7 @@ public final class NetConvert {
         
 
         /* Primitive sub-array to byte array. */
-        public static void writeArraySliceBoolean(boolean []a, int oa, int l, byte[] b) {
+        public static void writeArray(boolean []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
                         writeBoolean(a[oa+i], b, i);
@@ -221,7 +221,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceChar(char []a, int oa, int l, byte[] b) {
+        public static void writeArray(char []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
                         writeChar(a[oa+i], b, CHAR_SIZE*i);
@@ -229,7 +229,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceShort(short []a, int oa, int l, byte[] b) {
+        public static void writeArray(short []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
                         writeShort(a[oa+i], b, SHORT_SIZE*i);
@@ -237,7 +237,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceInt(int []a, int oa, int l, byte[] b) {
+        public static void writeArray(int []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
                         writeInt(a[oa+i], b, INT_SIZE*i);
@@ -245,7 +245,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceLong(long []a, int oa, int l, byte[] b) {
+        public static void writeArray(long []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
                         writeLong(a[oa+i], b, LONG_SIZE*i);
@@ -253,7 +253,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceFloat(float []a, int oa, int l, byte[] b) {
+        public static void writeArray(float []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
                         writeFloat(a[oa+i], b, FLOAT_SIZE*i);
@@ -261,7 +261,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void writeArraySliceDouble(double []a, int oa, int l, byte[] b) {
+        public static void writeArray(double []a, int oa, int l, byte[] b) {
                 int i = 0;
                 while (i < l) {
                         writeDouble(a[oa+i], b, DOUBLE_SIZE*i);
@@ -271,434 +271,434 @@ public final class NetConvert {
         
 
         /* Primitive array prefix to byte sub-array. */
-        public static void writeArrayBoolean(boolean []a, int l, byte[] b, int ob) {
-                writeArraySliceBoolean(a, 0, l, b, ob);
+        public static void writeArray(boolean []a, int l, byte[] b, int ob) {
+                writeArray(a, 0, l, b, ob);
         }
         
-        public static void writeArrayChar(char []a, int l, byte[] b, int ob) {
-                writeArraySliceChar(a, 0, l, b, ob);
+        public static void writeArray(char []a, int l, byte[] b, int ob) {
+                writeArray(a, 0, l, b, ob);
         }
         
-        public static void writeArrayShort(short []a, int l, byte[] b, int ob) {
-                writeArraySliceShort(a, 0, l, b, ob);
+        public static void writeArray(short []a, int l, byte[] b, int ob) {
+                writeArray(a, 0, l, b, ob);
         }
         
-        public static void writeArrayInt(int []a, int l, byte[] b, int ob) {
-                writeArraySliceInt(a, 0, l, b, ob);
+        public static void writeArray(int []a, int l, byte[] b, int ob) {
+                writeArray(a, 0, l, b, ob);
         }
         
-        public static void writeArrayLong(long []a, int l, byte[] b, int ob) {
-                writeArraySliceLong(a, 0, l, b, ob);
+        public static void writeArray(long []a, int l, byte[] b, int ob) {
+                writeArray(a, 0, l, b, ob);
         }
         
-        public static void writeArrayFloat(float []a, int l, byte[] b, int ob) {
-                writeArraySliceFloat(a, 0, l, b, ob);
+        public static void writeArray(float []a, int l, byte[] b, int ob) {
+                writeArray(a, 0, l, b, ob);
         }
         
-        public static void writeArrayDouble(double []a, int l, byte[] b, int ob) {
-                writeArraySliceDouble(a, 0, l, b, ob);
+        public static void writeArray(double []a, int l, byte[] b, int ob) {
+                writeArray(a, 0, l, b, ob);
         }
         
 
         /* Primitive array prefix to byte array. */
-        public static void writeArrayBoolean(boolean []a, int l, byte[] b) {
-                writeArrayBoolean(a, l, b, 0);
+        public static void writeArray(boolean []a, int l, byte[] b) {
+                writeArray(a, l, b, 0);
         }
         
-        public static void writeArrayChar(char []a, int l, byte[] b) {
-                writeArrayChar(a, l, b, 0);
+        public static void writeArray(char []a, int l, byte[] b) {
+                writeArray(a, l, b, 0);
         }
         
-        public static void writeArrayShort(short []a, int l, byte[] b) {
-                writeArrayShort(a, l, b, 0);
+        public static void writeArray(short []a, int l, byte[] b) {
+                writeArray(a, l, b, 0);
         }
         
-        public static void writeArrayInt(int []a, int l, byte[] b) {
-                writeArrayInt(a, l, b, 0);
+        public static void writeArray(int []a, int l, byte[] b) {
+                writeArray(a, l, b, 0);
         }
         
-        public static void writeArrayLong(long []a, int l, byte[] b) {
-                writeArrayLong(a, l, b, 0);
+        public static void writeArray(long []a, int l, byte[] b) {
+                writeArray(a, l, b, 0);
         }
         
-        public static void writeArrayFloat(float []a, int l, byte[] b) {
-                writeArrayFloat(a, l, b, 0);
+        public static void writeArray(float []a, int l, byte[] b) {
+                writeArray(a, l, b, 0);
         }
         
-        public static void writeArrayDouble(double []a, int l, byte[] b) {
-                writeArrayDouble(a, l, b, 0);
+        public static void writeArray(double []a, int l, byte[] b) {
+                writeArray(a, l, b, 0);
         }
         
 
         /* Primitive array to byte sub-array. */
-        public static void writeArrayBoolean(boolean []a, byte[] b, int ob) {
-                writeArrayBoolean(a, a.length, b, ob);
+        public static void writeArray(boolean []a, byte[] b, int ob) {
+                writeArray(a, a.length, b, ob);
         }
         
-        public static void writeArrayChar(char []a, byte[] b, int ob) {
-                writeArrayChar(a, a.length, b, ob);
+        public static void writeArray(char []a, byte[] b, int ob) {
+                writeArray(a, a.length, b, ob);
         }
         
-        public static void writeArrayShort(short []a, byte[] b, int ob) {
-                writeArrayShort(a, a.length, b, ob);
+        public static void writeArray(short []a, byte[] b, int ob) {
+                writeArray(a, a.length, b, ob);
         }
         
-        public static void writeArrayInt(int []a, byte[] b, int ob) {
-                writeArrayInt(a, a.length, b, ob);
+        public static void writeArray(int []a, byte[] b, int ob) {
+                writeArray(a, a.length, b, ob);
         }
         
-        public static void writeArrayLong(long []a, byte[] b, int ob) {
-                writeArrayLong(a, a.length, b, ob);
+        public static void writeArray(long []a, byte[] b, int ob) {
+                writeArray(a, a.length, b, ob);
         }
         
-        public static void writeArrayFloat(float []a, byte[] b, int ob) {
-                writeArrayFloat(a, a.length, b, ob);
+        public static void writeArray(float []a, byte[] b, int ob) {
+                writeArray(a, a.length, b, ob);
         }
         
-        public static void writeArrayDouble(double []a, byte[] b, int ob) {
-                writeArrayDouble(a, a.length, b, ob);
+        public static void writeArray(double []a, byte[] b, int ob) {
+                writeArray(a, a.length, b, ob);
         }
         
 
         /* Primitive array to byte array. */
-        public static void writeArrayBoolean(boolean []a, byte[] b) {
-                writeArrayBoolean(a, a.length, b, 0);
+        public static void writeArray(boolean []a, byte[] b) {
+                writeArray(a, a.length, b, 0);
         }
         
-        public static void writeArrayChar(char []a, byte[] b) {
-                writeArrayChar(a, a.length, b, 0);
+        public static void writeArray(char []a, byte[] b) {
+                writeArray(a, a.length, b, 0);
         }
         
-        public static void writeArrayShort(short []a, byte[] b) {
-                writeArrayShort(a, a.length, b, 0);
+        public static void writeArray(short []a, byte[] b) {
+                writeArray(a, a.length, b, 0);
         }
         
-        public static void writeArrayInt(int []a, byte[] b) {
-                writeArrayInt(a, a.length, b, 0);
+        public static void writeArray(int []a, byte[] b) {
+                writeArray(a, a.length, b, 0);
         }
         
-        public static void writeArrayLong(long []a, byte[] b) {
-                writeArrayLong(a, a.length, b, 0);
+        public static void writeArray(long []a, byte[] b) {
+                writeArray(a, a.length, b, 0);
         }
         
-        public static void writeArrayFloat(float []a, byte[] b) {
-                writeArrayFloat(a, a.length, b, 0);
+        public static void writeArray(float []a, byte[] b) {
+                writeArray(a, a.length, b, 0);
         }
         
-        public static void writeArrayDouble(double []a, byte[] b) {
-                writeArrayDouble(a, a.length, b, 0);
+        public static void writeArray(double []a, byte[] b) {
+                writeArray(a, a.length, b, 0);
         }
 
 
         /* Primitive sub-array to new byte array. */
-        public static byte [] writeArraySliceBoolean(boolean []a, int oa, int l) {
+        public static byte [] writeArray(boolean []a, int oa, int l) {
                 byte [] b = new byte[l];
-                writeArraySliceBoolean(a, oa, l, b, 0);
+                writeArray(a, oa, l, b, 0);
                 return b;
 	}
         
-        public static byte [] writeArraySliceChar(char []a, int oa, int l) {
+        public static byte [] writeArray(char []a, int oa, int l) {
                 byte [] b = new byte[l*CHAR_SIZE];
-                writeArraySliceChar(a, oa, l, b, 0);
+                writeArray(a, oa, l, b, 0);
                 return b;
 	}
         
-        public static byte [] writeArraySliceShort(short []a, int oa, int l) {
+        public static byte [] writeArray(short []a, int oa, int l) {
                 byte [] b = new byte[l*SHORT_SIZE];
-                writeArraySliceShort(a, oa, l, b, 0);
+                writeArray(a, oa, l, b, 0);
                 return b;
 	}
         
-        public static byte [] writeArraySliceInt(int []a, int oa, int l) {
+        public static byte [] writeArray(int []a, int oa, int l) {
                 byte [] b = new byte[l*INT_SIZE];
-                writeArraySliceInt(a, oa, l, b, 0);
+                writeArray(a, oa, l, b, 0);
                 return b;
 	}
         
-        public static byte [] writeArraySliceLong(long []a, int oa, int l) {
+        public static byte [] writeArray(long []a, int oa, int l) {
                 byte [] b = new byte[l*LONG_SIZE];
-                writeArraySliceLong(a, oa, l, b, 0);
+                writeArray(a, oa, l, b, 0);
                 return b;
 	}
         
-        public static byte [] writeArraySliceFloat(float []a, int oa, int l) {
+        public static byte [] writeArray(float []a, int oa, int l) {
                 byte [] b = new byte[l*FLOAT_SIZE];
-                writeArraySliceFloat(a, oa, l, b, 0);
+                writeArray(a, oa, l, b, 0);
                 return b;
 	}
         
-        public static byte [] writeArraySliceDouble(double []a, int oa, int l) {
+        public static byte [] writeArray(double []a, int oa, int l) {
                 byte [] b = new byte[l*DOUBLE_SIZE];
-                writeArraySliceDouble(a, oa, l, b, 0);
+                writeArray(a, oa, l, b, 0);
                 return b;
 	}        
 
 
         /* Primitive array prefix to new byte array. */
-        public static byte [] writeArrayBoolean(boolean []a, int l) {
-                return writeArraySliceBoolean(a, 0, l);
+        public static byte [] writeArray(boolean []a, int l) {
+                return writeArray(a, 0, l);
 	}
         
-        public static byte [] writeArrayChar(char []a, int l) {
-                return writeArraySliceChar(a, 0, l);
+        public static byte [] writeArray(char []a, int l) {
+                return writeArray(a, 0, l);
 	}
         
-        public static byte [] writeArrayShort(short []a, int l) {
-                return writeArraySliceShort(a, 0, l);
+        public static byte [] writeArray(short []a, int l) {
+                return writeArray(a, 0, l);
 	}
         
-        public static byte [] writeArrayInt(int []a, int l) {
-                return writeArraySliceInt(a, 0, l);
+        public static byte [] writeArray(int []a, int l) {
+                return writeArray(a, 0, l);
 	}
         
-        public static byte [] writeArrayLong(long []a, int l) {
-                return writeArraySliceLong(a, 0, l);
+        public static byte [] writeArray(long []a, int l) {
+                return writeArray(a, 0, l);
 	}
         
-        public static byte [] writeArrayFloat(float []a, int l) {
-                return writeArraySliceFloat(a, 0, l);
+        public static byte [] writeArray(float []a, int l) {
+                return writeArray(a, 0, l);
 	}
         
-        public static byte [] writeArrayDouble(double []a, int l) {
-                return writeArraySliceDouble(a, 0, l);
+        public static byte [] writeArray(double []a, int l) {
+                return writeArray(a, 0, l);
 	}
 
 
         /* Primitive array to new byte array. */
-        public static byte [] writeArrayBoolean(boolean []a) {
-                return writeArraySliceBoolean(a, 0, a.length);
+        public static byte [] writeArray(boolean []a) {
+                return writeArray(a, 0, a.length);
 	}
         
-        public static byte [] writeArrayChar(char []a) {
-                return writeArraySliceChar(a, 0, a.length);
+        public static byte [] writeArray(char []a) {
+                return writeArray(a, 0, a.length);
 	}
         
-        public static byte [] writeArrayShort(short []a) {
-                return writeArraySliceShort(a, 0, a.length);
+        public static byte [] writeArray(short []a) {
+                return writeArray(a, 0, a.length);
 	}
         
-        public static byte [] writeArrayInt(int []a) {
-                return writeArraySliceInt(a, 0, a.length);
+        public static byte [] writeArray(int []a) {
+                return writeArray(a, 0, a.length);
 	}
         
-        public static byte [] writeArrayLong(long []a) {
-                return writeArraySliceLong(a, 0, a.length);
+        public static byte [] writeArray(long []a) {
+                return writeArray(a, 0, a.length);
 	}
         
-        public static byte [] writeArrayFloat(float []a) {
-                return writeArraySliceFloat(a, 0, a.length);
+        public static byte [] writeArray(float []a) {
+                return writeArray(a, 0, a.length);
 	}
         
-        public static byte [] writeArrayDouble(double []a) {
-                return writeArraySliceDouble(a, 0, a.length);
+        public static byte [] writeArray(double []a) {
+                return writeArray(a, 0, a.length);
 	}
         
 
         /* Primitive sub-array to new byte array with offset. */
-        public static byte [] writeArraySliceBoolean(int ob, boolean []a, int oa, int l) {
+        public static byte [] writeArray(int ob, boolean []a, int oa, int l) {
                 byte [] b = new byte[l+ob];
-                writeArraySliceBoolean(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceChar(int ob, char []a, int oa, int l) {
+        public static byte [] writeArray(int ob, char []a, int oa, int l) {
                 byte [] b = new byte[CHAR_SIZE*l+ob];
-                writeArraySliceChar(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceShort(int ob, short []a, int oa, int l) {
+        public static byte [] writeArray(int ob, short []a, int oa, int l) {
                 byte [] b = new byte[SHORT_SIZE*l+ob];
-                writeArraySliceShort(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceInt(int ob, int []a, int oa, int l) {
+        public static byte [] writeArray(int ob, int []a, int oa, int l) {
                 byte [] b = new byte[INT_SIZE*l+ob];
-                writeArraySliceInt(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceLong(int ob, long []a, int oa, int l) {
+        public static byte [] writeArray(int ob, long []a, int oa, int l) {
                 byte [] b = new byte[LONG_SIZE*l+ob];
-                writeArraySliceLong(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceFloat(int ob, float []a, int oa, int l) {
+        public static byte [] writeArray(int ob, float []a, int oa, int l) {
                 byte [] b = new byte[FLOAT_SIZE*l+ob];
-                writeArraySliceFloat(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceDouble(int ob, double []a, int oa, int l) {
+        public static byte [] writeArray(int ob, double []a, int oa, int l) {
                 byte [] b = new byte[DOUBLE_SIZE*l+ob];
-                writeArraySliceDouble(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}        
 
 
         /* Primitive array prefix to new byte array with offset. */
-        public static byte [] writeArrayBoolean(int ob, boolean []a, int l) {
-                return writeArraySliceBoolean(ob, a, 0, l);
+        public static byte [] writeArray(int ob, boolean []a, int l) {
+                return writeArray(ob, a, 0, l);
 	}
         
-        public static byte [] writeArrayChar(int ob, char []a, int l) {
-                return writeArraySliceChar(ob, a, 0, l);
+        public static byte [] writeArray(int ob, char []a, int l) {
+                return writeArray(ob, a, 0, l);
 	}
         
-        public static byte [] writeArrayShort(int ob, short []a, int l) {
-                return writeArraySliceShort(ob, a, 0, l);
+        public static byte [] writeArray(int ob, short []a, int l) {
+                return writeArray(ob, a, 0, l);
 	}
         
-        public static byte [] writeArrayInt(int ob, int []a, int l) {
-                return writeArraySliceInt(ob, a, 0, l);
+        public static byte [] writeArray(int ob, int []a, int l) {
+                return writeArray(ob, a, 0, l);
 	}
         
-        public static byte [] writeArrayLong(int ob, long []a, int l) {
-                return writeArraySliceLong(ob, a, 0, l);
+        public static byte [] writeArray(int ob, long []a, int l) {
+                return writeArray(ob, a, 0, l);
 	}
         
-        public static byte [] writeArrayFloat(int ob, float []a, int l) {
-                return writeArraySliceFloat(ob, a, 0, l);
+        public static byte [] writeArray(int ob, float []a, int l) {
+                return writeArray(ob, a, 0, l);
 	}
         
-        public static byte [] writeArrayDouble(int ob, double []a, int l) {
-                return writeArraySliceDouble(ob, a, 0, l);
+        public static byte [] writeArray(int ob, double []a, int l) {
+                return writeArray(ob, a, 0, l);
 	}
 
 
         /* Primitive array to new byte array with offset. */
-        public static byte [] writeArrayBoolean(int ob, boolean []a) {
-                return writeArraySliceBoolean(ob, a, 0, a.length);
+        public static byte [] writeArray(int ob, boolean []a) {
+                return writeArray(ob, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayChar(int ob, char []a) {
-                return writeArraySliceChar(ob, a, 0, a.length);
+        public static byte [] writeArray(int ob, char []a) {
+                return writeArray(ob, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayShort(int ob, short []a) {
-                return writeArraySliceShort(ob, a, 0, a.length);
+        public static byte [] writeArray(int ob, short []a) {
+                return writeArray(ob, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayInt(int ob, int []a) {
-                return writeArraySliceInt(ob, a, 0, a.length);
+        public static byte [] writeArray(int ob, int []a) {
+                return writeArray(ob, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayLong(int ob, long []a) {
-                return writeArraySliceLong(ob, a, 0, a.length);
+        public static byte [] writeArray(int ob, long []a) {
+                return writeArray(ob, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayFloat(int ob, float []a) {
-                return writeArraySliceFloat(ob, a, 0, a.length);
+        public static byte [] writeArray(int ob, float []a) {
+                return writeArray(ob, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayDouble(int ob, double []a) {
-                return writeArraySliceDouble(ob, a, 0, a.length);
+        public static byte [] writeArray(int ob, double []a) {
+                return writeArray(ob, a, 0, a.length);
 	}
 
 
         /* Primitive sub-array to new byte array with offset and custom length. */
-        public static byte [] writeArraySliceBoolean(int ob, int lb, boolean []a, int oa, int l) {
+        public static byte [] writeArray(int ob, int lb, boolean []a, int oa, int l) {
                 byte [] b = new byte[lb];
-                writeArraySliceBoolean(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceChar(int ob, int lb, char []a, int oa, int l) {
+        public static byte [] writeArray(int ob, int lb, char []a, int oa, int l) {
                 byte [] b = new byte[lb];
-                writeArraySliceChar(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceShort(int ob, int lb, short []a, int oa, int l) {
+        public static byte [] writeArray(int ob, int lb, short []a, int oa, int l) {
                 byte [] b = new byte[lb];
-                writeArraySliceShort(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceInt(int ob, int lb, int []a, int oa, int l) {
+        public static byte [] writeArray(int ob, int lb, int []a, int oa, int l) {
                 byte [] b = new byte[lb];
-                writeArraySliceInt(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceLong(int ob, int lb, long []a, int oa, int l) {
+        public static byte [] writeArray(int ob, int lb, long []a, int oa, int l) {
                 byte [] b = new byte[lb];
-                writeArraySliceLong(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceFloat(int ob, int lb, float []a, int oa, int l) {
+        public static byte [] writeArray(int ob, int lb, float []a, int oa, int l) {
                 byte [] b = new byte[lb];
-                writeArraySliceFloat(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}
         
-        public static byte [] writeArraySliceDouble(int ob, int lb, double []a, int oa, int l) {
+        public static byte [] writeArray(int ob, int lb, double []a, int oa, int l) {
                 byte [] b = new byte[lb];
-                writeArraySliceDouble(a, oa, l, b, ob);
+                writeArray(a, oa, l, b, ob);
                 return b;
 	}        
 
 
         /* Primitive array prefix to new byte array with offset and custom length. */
-        public static byte [] writeArrayBoolean(int ob, int lb, boolean []a, int l) {
-                return writeArraySliceBoolean(ob, lb, a, 0, l);
+        public static byte [] writeArray(int ob, int lb, boolean []a, int l) {
+                return writeArray(ob, lb, a, 0, l);
 	}
         
-        public static byte [] writeArrayChar(int ob, int lb, char []a, int l) {
-                return writeArraySliceChar(ob, lb, a, 0, l);
+        public static byte [] writeArray(int ob, int lb, char []a, int l) {
+                return writeArray(ob, lb, a, 0, l);
 	}
         
-        public static byte [] writeArrayShort(int ob, int lb, short []a, int l) {
-                return writeArraySliceShort(ob, lb, a, 0, l);
+        public static byte [] writeArray(int ob, int lb, short []a, int l) {
+                return writeArray(ob, lb, a, 0, l);
 	}
         
-        public static byte [] writeArrayInt(int ob, int lb, int []a, int l) {
-                return writeArraySliceInt(ob, lb, a, 0, l);
+        public static byte [] writeArray(int ob, int lb, int []a, int l) {
+                return writeArray(ob, lb, a, 0, l);
 	}
         
-        public static byte [] writeArrayLong(int ob, int lb, long []a, int l) {
-                return writeArraySliceLong(ob, lb, a, 0, l);
+        public static byte [] writeArray(int ob, int lb, long []a, int l) {
+                return writeArray(ob, lb, a, 0, l);
 	}
         
-        public static byte [] writeArrayFloat(int ob, int lb, float []a, int l) {
-                return writeArraySliceFloat(ob, lb, a, 0, l);
+        public static byte [] writeArray(int ob, int lb, float []a, int l) {
+                return writeArray(ob, lb, a, 0, l);
 	}
         
-        public static byte [] writeArrayDouble(int ob, int lb, double []a, int l) {
-                return writeArraySliceDouble(ob, lb, a, 0, l);
+        public static byte [] writeArray(int ob, int lb, double []a, int l) {
+                return writeArray(ob, lb, a, 0, l);
 	}
 
 
         /* Primitive array to new byte array with offset and custom length. */
-        public static byte [] writeArrayBoolean(int ob, int lb, boolean []a) {
-                return writeArraySliceBoolean(ob, lb, a, 0, a.length);
+        public static byte [] writeArray(int ob, int lb, boolean []a) {
+                return writeArray(ob, lb, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayChar(int ob, int lb, char []a) {
-                return writeArraySliceChar(ob, lb, a, 0, a.length);
+        public static byte [] writeArray(int ob, int lb, char []a) {
+                return writeArray(ob, lb, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayShort(int ob, int lb, short []a) {
-                return writeArraySliceShort(ob, lb, a, 0, a.length);
+        public static byte [] writeArray(int ob, int lb, short []a) {
+                return writeArray(ob, lb, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayInt(int ob, int lb, int []a) {
-                return writeArraySliceInt(ob, lb, a, 0, a.length);
+        public static byte [] writeArray(int ob, int lb, int []a) {
+                return writeArray(ob, lb, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayLong(int ob, int lb, long []a) {
-                return writeArraySliceLong(ob, lb, a, 0, a.length);
+        public static byte [] writeArray(int ob, int lb, long []a) {
+                return writeArray(ob, lb, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayFloat(int ob, int lb, float []a) {
-                return writeArraySliceFloat(ob, lb, a, 0, a.length);
+        public static byte [] writeArray(int ob, int lb, float []a) {
+                return writeArray(ob, lb, a, 0, a.length);
 	}
         
-        public static byte [] writeArrayDouble(int ob, int lb, double []a) {
-                return writeArraySliceDouble(ob, lb, a, 0, a.length);
+        public static byte [] writeArray(int ob, int lb, double []a) {
+                return writeArray(ob, lb, a, 0, a.length);
 	}
 
 
@@ -795,7 +795,7 @@ public final class NetConvert {
 
 
         /* Byte sub-array to primitive sub-array */
-        public static void readArraySliceBoolean(byte[] b, int ob, boolean []a, int oa, int l) {
+        public static void readArray(byte[] b, int ob, boolean []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
                         a[oa+i] = readBoolean(b, ob+i);
@@ -803,7 +803,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void readArraySliceChar(byte[] b, int ob, char []a, int oa, int l) {
+        public static void readArray(byte[] b, int ob, char []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
                         a[oa+i] = readChar(b, ob+CHAR_SIZE*i);
@@ -811,7 +811,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void readArraySliceShort(byte[] b, int ob, short []a, int oa, int l) {
+        public static void readArray(byte[] b, int ob, short []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
                         a[oa+i] = readShort(b, ob+SHORT_SIZE*i);
@@ -819,7 +819,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void readArraySliceInt(byte[] b, int ob, int []a, int oa, int l) {
+        public static void readArray(byte[] b, int ob, int []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
                         a[oa+i] = readInt(b, ob+INT_SIZE*i);
@@ -827,7 +827,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void readArraySliceLong(byte[] b, int ob, long []a, int oa, int l) {
+        public static void readArray(byte[] b, int ob, long []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
                         a[oa+i] = readLong(b, ob+LONG_SIZE*i);
@@ -835,7 +835,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void readArraySliceFloat(byte[] b, int ob, float []a, int oa, int l) {
+        public static void readArray(byte[] b, int ob, float []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
                         a[oa+i] = readFloat(b, ob+FLOAT_SIZE*i);
@@ -843,7 +843,7 @@ public final class NetConvert {
                 }
         }
         
-        public static void readArraySliceDouble(byte[] b, int ob, double []a, int oa, int l) {
+        public static void readArray(byte[] b, int ob, double []a, int oa, int l) {
                 int i = 0;
                 while (i < l) {
                         a[oa+i] = readDouble(b, ob+DOUBLE_SIZE*i);
@@ -853,195 +853,195 @@ public final class NetConvert {
         
 
         /* Byte array to primitive sub-array */
-        public static void readArraySliceBoolean(byte[] b, boolean []a, int oa, int l) {
-                readArraySliceBoolean(b, 0, a, oa, l);
+        public static void readArray(byte[] b, boolean []a, int oa, int l) {
+                readArray(b, 0, a, oa, l);
         }
 
-        public static void readArraySliceChar(byte[] b, char []a, int oa, int l) {
-                readArraySliceChar(b, 0, a, oa, l);
+        public static void readArray(byte[] b, char []a, int oa, int l) {
+                readArray(b, 0, a, oa, l);
         }
 
-        public static void readArraySliceShort(byte[] b, short []a, int oa, int l) {
-                readArraySliceShort(b, 0, a, oa, l);
+        public static void readArray(byte[] b, short []a, int oa, int l) {
+                readArray(b, 0, a, oa, l);
         }
 
-        public static void readArraySliceInt(byte[] b, int []a, int oa, int l) {
-                readArraySliceInt(b, 0, a, oa, l);
+        public static void readArray(byte[] b, int []a, int oa, int l) {
+                readArray(b, 0, a, oa, l);
         }
 
-        public static void readArraySliceLong(byte[] b, long []a, int oa, int l) {
-                readArraySliceLong(b, 0, a, oa, l);
+        public static void readArray(byte[] b, long []a, int oa, int l) {
+                readArray(b, 0, a, oa, l);
         }
 
-        public static void readArraySliceFloat(byte[] b, float []a, int oa, int l) {
-                readArraySliceFloat(b, 0, a, oa, l);
+        public static void readArray(byte[] b, float []a, int oa, int l) {
+                readArray(b, 0, a, oa, l);
         }
 
-        public static void readArraySliceDouble(byte[] b, double []a, int oa, int l) {
-                readArraySliceDouble(b, 0, a, oa, l);
+        public static void readArray(byte[] b, double []a, int oa, int l) {
+                readArray(b, 0, a, oa, l);
         }
 
 
         /* Byte sub-array to primitive array prefix */
-        public static void readArrayBoolean(byte[] b, int ob, boolean []a, int l) {
-                readArraySliceBoolean(b, ob, a, 0, l);
+        public static void readArray(byte[] b, int ob, boolean []a, int l) {
+                readArray(b, ob, a, 0, l);
         }
         
-        public static void readArrayChar(byte[] b, int ob, char []a, int l) {
-                readArraySliceChar(b, ob, a, 0, l);
+        public static void readArray(byte[] b, int ob, char []a, int l) {
+                readArray(b, ob, a, 0, l);
         }
         
-        public static void readArrayShort(byte[] b, int ob, short []a, int l) {
-                readArraySliceShort(b, ob, a, 0, l);
+        public static void readArray(byte[] b, int ob, short []a, int l) {
+                readArray(b, ob, a, 0, l);
         }
         
-        public static void readArrayInt(byte[] b, int ob, int []a, int l) {
-                readArraySliceInt(b, ob, a, 0, l);
+        public static void readArray(byte[] b, int ob, int []a, int l) {
+                readArray(b, ob, a, 0, l);
         }
         
-        public static void readArrayLong(byte[] b, int ob, long []a, int l) {
-                readArraySliceLong(b, ob, a, 0, l);
+        public static void readArray(byte[] b, int ob, long []a, int l) {
+                readArray(b, ob, a, 0, l);
         }
         
-        public static void readArrayFloat(byte[] b, int ob, float []a, int l) {
-                readArraySliceFloat(b, ob, a, 0, l);
+        public static void readArray(byte[] b, int ob, float []a, int l) {
+                readArray(b, ob, a, 0, l);
         }
         
-        public static void readArrayDouble(byte[] b, int ob, double []a, int l) {
-                readArraySliceDouble(b, ob, a, 0, l);
+        public static void readArray(byte[] b, int ob, double []a, int l) {
+                readArray(b, ob, a, 0, l);
         }
         
 
         /* Byte array to primitive array prefix */
-        public static void readArrayBoolean(byte[] b, boolean []a, int l) {
-                readArrayBoolean(b, 0, a, l);
+        public static void readArray(byte[] b, boolean []a, int l) {
+                readArray(b, 0, a, l);
         }
 
-        public static void readArrayChar(byte[] b, char []a, int l) {
-                readArrayChar(b, 0, a, l);
+        public static void readArray(byte[] b, char []a, int l) {
+                readArray(b, 0, a, l);
         }
 
-        public static void readArrayShort(byte[] b, short []a, int l) {
-                readArrayShort(b, 0, a, l);
+        public static void readArray(byte[] b, short []a, int l) {
+                readArray(b, 0, a, l);
         }
 
-        public static void readArrayInt(byte[] b, int []a, int l) {
-                readArrayInt(b, 0, a, l);
+        public static void readArray(byte[] b, int []a, int l) {
+                readArray(b, 0, a, l);
         }
 
-        public static void readArrayLong(byte[] b, long []a, int l) {
-                readArrayLong(b, 0, a, l);
+        public static void readArray(byte[] b, long []a, int l) {
+                readArray(b, 0, a, l);
         }
 
-        public static void readArrayFloat(byte[] b, float []a, int l) {
-                readArrayFloat(b, 0, a, l);
+        public static void readArray(byte[] b, float []a, int l) {
+                readArray(b, 0, a, l);
         }
 
-        public static void readArrayDouble(byte[] b, double []a, int l) {
-                readArrayDouble(b, 0, a, l);
+        public static void readArray(byte[] b, double []a, int l) {
+                readArray(b, 0, a, l);
         }
 
 
         /* Byte sub-array to primitive array. */
-        public static void readArrayBoolean(byte[] b, int ob, boolean []a) {
-                readArrayBoolean(b, ob, a, a.length);
+        public static void readArray(byte[] b, int ob, boolean []a) {
+                readArray(b, ob, a, a.length);
         }
         
-        public static void readArrayChar(byte[] b, int ob, char []a) {
-                readArrayChar(b, ob, a, a.length);
+        public static void readArray(byte[] b, int ob, char []a) {
+                readArray(b, ob, a, a.length);
         }
         
-        public static void readArrayShort(byte[] b, int ob, short []a) {
-                readArrayShort(b, ob, a, a.length);
+        public static void readArray(byte[] b, int ob, short []a) {
+                readArray(b, ob, a, a.length);
         }
         
-        public static void readArrayInt(byte[] b, int ob, int []a) {
-                readArrayInt(b, ob, a, a.length);
+        public static void readArray(byte[] b, int ob, int []a) {
+                readArray(b, ob, a, a.length);
         }
         
-        public static void readArrayLong(byte[] b, int ob, long []a) {
-                readArrayLong(b, ob, a, a.length);
+        public static void readArray(byte[] b, int ob, long []a) {
+                readArray(b, ob, a, a.length);
         }
         
-        public static void readArrayFloat(byte[] b, int ob, float []a) {
-                readArrayFloat(b, ob, a, a.length);
+        public static void readArray(byte[] b, int ob, float []a) {
+                readArray(b, ob, a, a.length);
         }
         
-        public static void readArrayDouble(byte[] b, int ob, double []a) {
-                readArrayDouble(b, ob, a, a.length);
+        public static void readArray(byte[] b, int ob, double []a) {
+                readArray(b, ob, a, a.length);
         }
         
 
         /* Byte array to primitive array. */
-        public static void readArrayBoolean(byte[] b, boolean []a) {
-                readArrayBoolean(b, 0, a);
+        public static void readArray(byte[] b, boolean []a) {
+                readArray(b, 0, a);
         }
 
-        public static void readArrayChar(byte[] b, char []a) {
-                readArrayChar(b, 0, a);
+        public static void readArray(byte[] b, char []a) {
+                readArray(b, 0, a);
         }
 
-        public static void readArrayShort(byte[] b, short []a) {
-                readArrayShort(b, 0, a);
+        public static void readArray(byte[] b, short []a) {
+                readArray(b, 0, a);
         }
 
-        public static void readArrayInt(byte[] b, int []a) {
-                readArrayInt(b, 0, a);
+        public static void readArray(byte[] b, int []a) {
+                readArray(b, 0, a);
         }
 
-        public static void readArrayLong(byte[] b, long []a) {
-                readArrayLong(b, 0, a);
+        public static void readArray(byte[] b, long []a) {
+                readArray(b, 0, a);
         }
 
-        public static void readArrayFloat(byte[] b, float []a) {
-                readArrayFloat(b, 0, a);
+        public static void readArray(byte[] b, float []a) {
+                readArray(b, 0, a);
         }
 
-        public static void readArrayDouble(byte[] b, double []a) {
-                readArrayDouble(b, 0, a);
+        public static void readArray(byte[] b, double []a) {
+                readArray(b, 0, a);
         }
 
 
         /* Byte sub-array to new primitive array with custom offset, length and copylength. */
         public static boolean[] readArrayBoolean(int oa, int la, byte[] b, int ob, int l) {
                 boolean [] a = new boolean[la];
-                readArraySliceBoolean(b, ob, a, oa, l);
+                readArray(b, ob, a, oa, l);
                 return a;
         }
         
         public static char[] readArrayChar(int oa, int la, byte[] b, int ob, int l) {
                 char [] a = new char[la];
-                readArraySliceChar(b, ob, a, oa, l);
+                readArray(b, ob, a, oa, l);
                 return a;
         }
         
         public static short[] readArrayShort(int oa, int la, byte[] b, int ob, int l) {
                 short [] a = new short[la];
-                readArraySliceShort(b, ob, a, oa, l);
+                readArray(b, ob, a, oa, l);
                 return a;
         }
         
         public static int[] readArrayInt(int oa, int la, byte[] b, int ob, int l) {
                 int [] a = new int[la];
-                readArraySliceInt(b, ob, a, oa, l);
+                readArray(b, ob, a, oa, l);
                 return a;
         }
         
         public static long[] readArrayLong(int oa, int la, byte[] b, int ob, int l) {
                 long [] a = new long[la];
-                readArraySliceLong(b, ob, a, oa, l);
+                readArray(b, ob, a, oa, l);
                 return a;
         }
         
         public static float[] readArrayFloat(int oa, int la, byte[] b, int ob, int l) {
                 float [] a = new float[la];
-                readArraySliceFloat(b, ob, a, oa, l);
+                readArray(b, ob, a, oa, l);
                 return a;
         }
         
         public static double[] readArrayDouble(int oa, int la, byte[] b, int ob, int l) {
                 double [] a = new double[la];
-                readArraySliceDouble(b, ob, a, oa, l);
+                readArray(b, ob, a, oa, l);
                 return a;
         }
         
@@ -1183,43 +1183,43 @@ public final class NetConvert {
         /* Byte array to new primitive array with custom offset, length and copylength. */
         public static boolean[] readArrayBoolean(int oa, int la, byte[] b, int l) {
                 boolean [] a = new boolean[la];
-                readArraySliceBoolean(b, 0, a, oa, l);
+                readArray(b, 0, a, oa, l);
                 return a;
         }
         
         public static char[] readArrayChar(int oa, int la, byte[] b, int l) {
                 char [] a = new char[la];
-                readArraySliceChar(b, 0, a, oa, l);
+                readArray(b, 0, a, oa, l);
                 return a;
         }
         
         public static short[] readArrayShort(int oa, int la, byte[] b, int l) {
                 short [] a = new short[la];
-                readArraySliceShort(b, 0, a, oa, l);
+                readArray(b, 0, a, oa, l);
                 return a;
         }
         
         public static int[] readArrayInt(int oa, int la, byte[] b, int l) {
                 int [] a = new int[la];
-                readArraySliceInt(b, 0, a, oa, l);
+                readArray(b, 0, a, oa, l);
                 return a;
         }
         
         public static long[] readArrayLong(int oa, int la, byte[] b, int l) {
                 long [] a = new long[la];
-                readArraySliceLong(b, 0, a, oa, l);
+                readArray(b, 0, a, oa, l);
                 return a;
         }
         
         public static float[] readArrayFloat(int oa, int la, byte[] b, int l) {
                 float [] a = new float[la];
-                readArraySliceFloat(b, 0, a, oa, l);
+                readArray(b, 0, a, oa, l);
                 return a;
         }
         
         public static double[] readArrayDouble(int oa, int la, byte[] b, int l) {
                 double [] a = new double[la];
-                readArraySliceDouble(b, 0, a, oa, l);
+                readArray(b, 0, a, oa, l);
                 return a;
         }
         

@@ -298,7 +298,7 @@ public final class TcpInput extends NetInput {
         }
 
 
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readBoolean();
@@ -307,7 +307,7 @@ public final class TcpInput extends NetInput {
         }
 
 
-	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+	public void readArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readByte();
@@ -316,7 +316,7 @@ public final class TcpInput extends NetInput {
         }
 
 
-	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+	public void readArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readChar();
@@ -325,7 +325,7 @@ public final class TcpInput extends NetInput {
         }
 
 
-	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+	public void readArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readShort();
@@ -334,7 +334,7 @@ public final class TcpInput extends NetInput {
         }
 
 
-	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+	public void readArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readInt();
@@ -343,7 +343,7 @@ public final class TcpInput extends NetInput {
         }
 
 
-	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+	public void readArray(long [] b, int o, int l) throws NetIbisException {
                  log.in();
                for (int i = 0; i < l; i++) {
                         b[o+i] = readLong();
@@ -352,7 +352,7 @@ public final class TcpInput extends NetInput {
         }
 
 
-	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+	public void readArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readFloat();
@@ -361,7 +361,7 @@ public final class TcpInput extends NetInput {
         }
 
 
-	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+	public void readArray(double [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readDouble();
@@ -369,7 +369,7 @@ public final class TcpInput extends NetInput {
                 log.out();
         }
 
-	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+	public void readArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readObject();

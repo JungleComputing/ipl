@@ -26,13 +26,13 @@ class Throughput extends Thread {
 		int w = windowSize;
 		for(int i = 0; i< count; i++) {
 			WriteMessage writeMessage = sport.newMessage();
-			writeMessage.writeArrayByte(data);
+			writeMessage.writeArray(data);
 			writeMessage.send();
 			writeMessage.finish();
 
 			if (--w == 0) {
 				ReadMessage readMessage = rport.receive();
-				readMessage.readArrayByte(data);
+				readMessage.readArray(data);
 				readMessage.finish();
 				w = windowSize;
 			}
@@ -44,13 +44,13 @@ class Throughput extends Thread {
 		int w = windowSize;
 		for(int i = 0; i< count; i++) {
 			ReadMessage readMessage = rport.receive();
-			readMessage.readArrayByte(data);
+			readMessage.readArray(data);
 			readMessage.finish();
 
 			if (--w == 0) {
 				WriteMessage writeMessage = sport.newMessage();
 				writeMessage.send();
-				writeMessage.writeArrayByte(data);
+				writeMessage.writeArray(data);
 				writeMessage.finish();
 				w = windowSize;
 			}
