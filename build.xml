@@ -72,8 +72,13 @@
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
-	<antcall inheritAll="true" inheritRefs="true" target="natives"/>
+	<if>
+	    <istrue value="${config.is-das}"/>
+	    <then>
+		<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+		<antcall inheritAll="true" inheritRefs="true" target="natives"/>
+	    </then>
+	</if>
 	<antcall inheritAll="true" inheritRefs="true" target="jars"/>
     </target>
 
@@ -418,7 +423,7 @@
     </target>
 
     <target name="jars"
-	    depends="ibis.jar,ibis-package-jars"
+	    depends="ibis.jar"
 	    description="Generate jar files for ibis"/>
 
     <target name="ibis.jar">
