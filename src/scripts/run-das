@@ -57,6 +57,8 @@ action=eval
 Dns_port="-Dibis.name_server.port=@IBIS_NS_PORT@"
 Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
 
+dir=$PWD
+
 while [ $# -gt 0 ]
 do
         qarg="'"$1"'"
@@ -66,6 +68,10 @@ do
 	-attach)
 		attach=1
 		;;
+        -cd)
+		shift
+		dir="$1"
+                ;;
         -cpu)
 		shift
 		cpumask="$1"
@@ -109,6 +115,12 @@ do
 		Xbootclasspath=""
 		Dlibpath="$Dlibpath$KARMI/lib:"
 		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
+		;;
+	-ip-map)
+		shift
+		ip_map="$1"
+		ip_addr=$IBIS/bin/ip_map.perl $ip_map `hostname`
+		JIT_OPTS="$JIT_OPTS -Dibis.util.ip.addr=$ip_addr"
 		;;
         *)      java_args="$java_args $qarg"
                 ;;
@@ -203,7 +215,7 @@ fi
 if [ $PRUN_CPU_RANK -eq $NHOSTS ]
 then
 	$action $wrapper_name \
-		-cpu $cpumask \
+		-cpu $cpumask -cd $dir \
 		$JAVA_ROOT/bin/$JAVA_EXEC \
 		-classpath $JAVACLASSPATH \
 		ibis.impl.nameServer.tcp.NameServer -single
@@ -211,7 +223,7 @@ else
 	# echo HOSTS '"'$HOSTS'"'
 	# echo PRUN_HOSTNAMES '"'$PRUN_HOSTNAMES'"'
 	$action $wrapper_name \
-		-cpu $cpumask \
+		-cpu $cpumask -cd $dir \
 		$JAVA_ROOT/bin/$JAVA_EXEC \
 		$JIT_OPTS -Xmx1024M \
 		$Dlibpath $Dibislibs \
