@@ -76,14 +76,14 @@
     </target>
 
 
-    <target name="prun2"
+    <target name="do-prun"
 	depends="set-ibis-name">
 	<condition property="prun-nprocs" value="2">
 	    <not>
 		<isset property="prun-nprocs"/>
 	    </not>
 	</condition>
-	<echo message="Running parallel test on ${prun-nprocs} nodes, ${ibis-nickname} Ibis"/>
+	<echo message="Running parallel test on $uprun-nprocs} nodes, ${ibis-nickname} Ibis"/>
 	<exec dir="${basedir}"
 	      executable="/usr/local/bin/prun"
 	      vmlauncher="false">
@@ -140,7 +140,7 @@
 	</if>
     </target>
 
-    <target name="test-prun-par"
+    <target name="test-prun"
 	    depends="build"
 	    description="Run a parallel test with prun if the property 'test-par-run' is set">
 	<if>
@@ -155,7 +155,7 @@
 			<property name="jargs" value=""/>
 		    </else>
 		</if>
-		<antcall target="prun2">
+		<antcall target="do-prun">
 		    <param name="runjob" value="${test-par-run}"/>
 		    <param name="java-args" value="${jargs}"/>
 		</antcall>
