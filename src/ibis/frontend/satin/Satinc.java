@@ -30,6 +30,8 @@ public final class Satinc {
     ObjectType irType;
     ObjectType satinType;
 
+    private final static String satinFieldName = "$satinClass$";
+
     JavaClass		c; // the class we are rewriting 
     ClassGen		gen_c;
     ConstantPoolGen	cpg;
@@ -199,7 +201,7 @@ public final class Satinc {
 				     Constants.INVOKESPECIAL));
 	il.append(new DUP());
 	il.append(ins_f.createFieldAccess(mainClassname,
-					  "satinClass",
+					  satinFieldName,
 					  satinType,
 					  Constants.PUTSTATIC));
 	il.append(ins_f.createFieldAccess("ibis.satin.Satin",
@@ -208,7 +210,7 @@ public final class Satinc {
 					  Constants.GETFIELD));
 	BranchHandle ifcmp = il.append(new IFEQ(null));
 	il.append(ins_f.createFieldAccess(mainClassname,
-					  "satinClass",
+					  satinFieldName,
 					  satinType,
 					  Constants.GETSTATIC));
 	il.append(ins_f.createFieldAccess("ibis.satin.Satin",
@@ -264,7 +266,7 @@ public final class Satinc {
 
 	InstructionHandle ifeq_target = 
 	     il.append(ins_f.createFieldAccess(mainClassname,
-					       "satinClass",
+					       satinFieldName,
 					       satinType,
 					       Constants.GETSTATIC));
 	ifcmp.setTarget(ifeq_target);
@@ -276,7 +278,7 @@ public final class Satinc {
 
 	InstructionHandle gto_target = 
 	     il.append(ins_f.createFieldAccess(mainClassname,
-					       "satinClass",
+					       satinFieldName,
 					       satinType,
 					       Constants.GETSTATIC));
 	try_end.setTarget(gto_target);
@@ -388,7 +390,7 @@ public final class Satinc {
 	// in a clone, we have to abort two lists: the outstanding spawns of the parent, and the outstanding
 	// spawns of the clone.
 	Instruction fa = ins_f.createFieldAccess(mainClassname,
-						 "satinClass",
+						 satinFieldName,
 						 satinType,
 						 Constants.GETSTATIC);
 	Instruction ab = ins_f.createInvoke("ibis.satin.Satin",
@@ -449,7 +451,7 @@ public final class Satinc {
 							 new Type[] { spawnCounterType },
 							 Constants.INVOKEVIRTUAL);
 	Instruction satin_field_access = ins_f.createFieldAccess(mainClassname,
-								 "satinClass",
+								 satinFieldName,
 								 satinType,
 								 Constants.GETSTATIC);
 
@@ -599,7 +601,7 @@ public final class Satinc {
 	    InstructionHandle abo = insertNullReturn(m, il, pos);
 
 	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
-						   "satinClass",
+						   satinFieldName,
 						   satinType,
 						   Constants.GETSTATIC));
 	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
@@ -611,7 +613,7 @@ public final class Satinc {
 	    il.insert(abo, new IFNULL(pos));
 
 	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
-						   "satinClass",
+						   satinFieldName,
 						   satinType,
 						   Constants.GETSTATIC));
 	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
@@ -629,7 +631,7 @@ public final class Satinc {
 ////@@@@@@@@@@2 this needs fixing :-(
 	    // Test for parent.eek, if non-null, throw it (exception in inlet).
 	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
-						   "satinClass",
+						   satinFieldName,
 						   satinType,
 						   Constants.GETSTATIC));
 	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
@@ -642,7 +644,7 @@ public final class Satinc {
 						   Constants.GETFIELD));
 	    il.insert(abo, new IFNULL(abo));
 	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
-						   "satinClass",
+						   satinFieldName,
 						   satinType,
 						   Constants.GETSTATIC));
 	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
@@ -848,7 +850,7 @@ public final class Satinc {
 	
 	// push s 
 	i = il.append(i, ins_f.createFieldAccess(mainClassname,
-					  "satinClass",
+					  satinFieldName,
 					  satinType,
 					  Constants.GETSTATIC));
 	
@@ -2098,12 +2100,13 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    MethodGen m = new MethodGen(main, c.getClassName(), gen_c.getConstantPool());
 
 	    if (verbose) {
-		System.out.println("the class has main, renaming to origMain");
+		System.out.println("the class has main, renaming to $origMain$");
 	    }
 
-	    m.setName("origMain");
+	    m.setName("$origMain$");
 	    m.setMaxStack();
 	    m.setMaxLocals();
+	    m.setAccessFlags((m.getAccessFlags() & ~ Constants.ACC_PUBLIC) | Constants.ACC_PRIVATE);
 
 	    gen_c.removeMethod(main);
 
@@ -2111,7 +2114,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    gen_c.addMethod(main);
 
-	    FieldGen f = new FieldGen(Constants.ACC_STATIC, satinType, "satinClass", gen_c.getConstantPool());
+	    FieldGen f = new FieldGen(Constants.ACC_STATIC, satinType, satinFieldName, gen_c.getConstantPool());
 
 	    satinField = f.getField();
 	    gen_c.addField(satinField);
@@ -2121,7 +2124,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    satinField = null;
 	    Field f[] = mainClass.getFields();
 	    for (int i = 0; i < f.length; i++) {
-		if (f[i].getName().equals("satinClass")) {
+		if (f[i].getName().equals(satinFieldName)) {
 		    satinField = f[i];
 		    break;
 		}
