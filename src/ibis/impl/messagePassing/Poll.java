@@ -10,7 +10,7 @@ public class Poll implements Runnable {
 
     private static final boolean DEBUG = false;
     private static final boolean STATISTICS = true;
-    private static final boolean NEED_POLLER_THREAD = false;
+    private static final boolean NEED_POLLER_THREAD = true;
     private static final boolean NONPREEMPTIVE_MAY_POLL = false;
 
     boolean MANTA_COMPILE;
