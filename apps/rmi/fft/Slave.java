@@ -59,8 +59,6 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
 	for (int warmup = 0; warmup < rounds; warmup++) {
 
-	    long start = System.currentTimeMillis();
-
 	    if (cpus > 1) master.sync();
 
 	    // System.err.println(myCpu + ": past barrier I");
@@ -79,9 +77,11 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
 	    // System.err.println(myCpu + ": past barrier II, start clock");
 
-	    System.gc();
-
 	    double checksum1 = checksum();
+
+	    long start = System.currentTimeMillis();
+
+	    // System.gc();
 
 	    doFFT(FORWARD,  u, u2, myFirst, myLast);
 	    double checksum3 = checksum();
