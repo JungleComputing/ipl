@@ -12,7 +12,7 @@ public class Poll implements Runnable {
     Thread	peeker;
     boolean	last_is_preemptive;
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     protected Poll() {
 	// Sun doesn't set java.compiler, so getProperty returns null --Rob
