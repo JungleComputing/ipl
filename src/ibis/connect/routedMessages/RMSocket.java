@@ -121,11 +121,22 @@ public class RMSocket extends Socket
     {
 	return out;
     }
+
+    public void setTcpNoDelay(boolean on) {
+    }
+
+    public void setSendBufferSize(int sz) {
+    }
+
+    public void setReceiveBufferSize(int sz) {
+    }
+
     public InputStream getInputStream()
 	throws IOException
     {
 	return in;
     }
+
     public synchronized void close()
 	throws IOException
     {
