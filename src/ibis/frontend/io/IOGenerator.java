@@ -1984,16 +1984,20 @@ public class IOGenerator {
 
     private static void processDirectory(File f, Vector args, String name) {
 	File[] list = f.listFiles();
+	String prefix = "";
 
+	if (! name.equals(".")) {
+	    prefix = name + ".";
+	}
 	for (int i = 0; i < list.length; i++) {
 	    String fname = list[i].getName();
 	    if (list[i].isDirectory()) {
-		processDirectory(list[i], args, name + "." + fname);
+		processDirectory(list[i], args, prefix + fname);
 	    }
 	    else {
 		int index = fname.lastIndexOf(".class");
 		if (index != -1) {
-		    args.add(name + "." + fname.substring(0, index));
+		    args.add(prefix + fname.substring(0, index));
 		}
 	    }
 	}
