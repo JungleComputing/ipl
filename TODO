@@ -4,6 +4,8 @@ IBIS:
   Ceriel: not so easy. Once you are trying to set up a brokered socket,
   both sides have to agree on what types to try, use timeouts to detect
   if a connection setup fails, ...
+- code formatting of entire tree
+- IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 
 satin:
 - add semantic analysis to the compiler
@@ -15,3 +17,8 @@ satin:
 
 general:
 - IBISC maken / fixen
+- include grun in distro
+- run central nameserver on fs0
+
+
+

@@ -6,25 +6,8 @@ Feel free to add.
 Topic		Short explanation
 ----------------------------------------------------------------------------
 Distribution	Bug reports and comments on the upcoming monolithic distibution.
-                Dir structure: move build-*, ant-tasks, bcel-additions to subdir?
-                Code formatting (distro / cvs / both) ?
 
-Grun		Do we include grun in the distribution or make a 
-		seperate release of grun?
-
-run_ibis	run_ibis 0 2 pool 4566 fs0 Main (current)
-		OR
-		run_ibis 0 2 pool fs0:4566 Main
-		OR
-		run_ibis 0 2 -Dibis.pool=pool -Dibis.nameserver=fs0:4566 Main
-		OR
-		...
-
-Binary distro	Do we want it? In what form? Timeframe?
-
-Central nameserver
-		Is it useful to have a single, central nameserver running
-		on at least the fs0?
+Binary distro	In what form? Timeframe?
 
 IbisC		The Ibis Compiler. Alternative for building apps to ANT?
 		Default build system for binary distro?
@@ -39,7 +22,6 @@ build.xml	The build system has a few problems:
 		- no support for automatic testing/benchmarking
 
 Multicast	Mathijs's multicast work should be integrated in the Ibis IPL.
-		IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 
 Abstract IPL	Most classes in the IPL should be abstract and include
 		generic implementations whenever possible.
@@ -76,4 +58,8 @@ p2p coordinator
 		using Ibis in an p2p envoronment. Has some sort of scheduler,
 		file transfer support, and such. Forks new virtual machines
 		to run an app in.
-		
+
+Ibis group membership management
+		join/leave/delete/reconfigure structure needs some attention.
+		- delete makes leave a bit obsolete.
+		- unreliable (exceptions cause undefined behaviour)
