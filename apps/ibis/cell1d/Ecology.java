@@ -41,5 +41,18 @@ class Ecology {
         // Forest ages.
         return (byte) (c+1);
     }
+
+    static void putForest( byte board[][], int dx, int dy )
+    {
+        for( int x=1; x<board.length; x += dx ){
+            byte col[] = board[x];
+
+            if( col != null ){
+                for( int y=1; y<col.length; y += dy ){
+                    col[y] = 3;
+                }
+            }
+        }
+    }
 }
 

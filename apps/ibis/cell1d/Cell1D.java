@@ -169,7 +169,7 @@ class Cell1D implements Config {
             // but make the border conditions easy to handle.
             final int myColumns = boardsize/nProcs;
 
-            // The Life board.
+            // The board.
             byte board[][] = new byte[myColumns+2][boardsize+2];
 
             // We need two extra column arrays to temporarily store the update
@@ -183,8 +183,13 @@ class Cell1D implements Config {
                 System.out.println( "Started" );
             }
 
-            Life.putTwister( board, 3, 100 );
-            Life.putGlider( board, 4, 4 );
+            if( false ){
+                Life.putTwister( board, 3, 100 );
+                Life.putGlider( board, 4, 4 );
+            }
+            else {
+                Ecology.putForest( board, 100, 100 );
+            }
 
             long startTime = System.currentTimeMillis();
 
@@ -207,7 +212,7 @@ class Cell1D implements Config {
                     curr = next;
                     next = board[i+1];
                     for( int j=1; j<=boardsize; j++ ){
-                        updatecol[j] = Life.computeNextState(
+                        updatecol[j] = Ecology.computeNextState(
                             iter,
                             i, j,
                             prev[j-1],
@@ -288,7 +293,7 @@ class Cell1D implements Config {
             if( rightReceivePort != null ){
                 rightReceivePort.close();
             }
-            if( !Life.hasTwister( board, 3, 100 ) ){
+            if( false && !Life.hasTwister( board, 3, 100 ) ){
                 System.out.println( "Twister has gone missing" );
             }
 

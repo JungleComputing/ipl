@@ -651,7 +651,7 @@ class OpenCell1D implements OpenConfig {
                     next = p.rightBorder;
                 }
                 for( int j=1; j<=boardsize; j++ ){
-                    p.updatecol[j] = Life.computeNextState(
+                    p.updatecol[j] = Ecology.computeNextState(
                         generation,
                         computeColumn, j,
                         prev[j-1],
@@ -668,7 +668,7 @@ class OpenCell1D implements OpenConfig {
                 if( DISTURBANCE>0 && (me == 1) && generation>=DISTURBANCE_START ){
                     for( int iters=0; iters<DISTURBANCE; iters++ ){
                         for( int j=1; j<=boardsize; j++ ){
-                            p.updatecol[j] = Life.computeNextState(
+                            p.updatecol[j] = Ecology.computeNextState(
                                 generation,
                                 computeColumn, j,
                                 prev[j-1],
@@ -905,9 +905,14 @@ class OpenCell1D implements OpenConfig {
             // bottom *rows* are also empty dummies that are never updated).
             Problem p = new Problem( boardsize, firstColumn, firstNoColumn );
 
-            // Put a few fixed objects on the board to do a sanity check.
-            Life.putTwister( p.board, 3, 100 );
-            Life.putGlider( p.board, 4, 4 );
+            if( false ){
+                // Put a few fixed objects on the board to do a sanity check.
+                Life.putTwister( p.board, 3, 100 );
+                Life.putGlider( p.board, 4, 4 );
+            }
+            else {
+                Ecology.putForest( p.board, 100, 100 );
+            }
 
             if( idle ){
                 // Waiting for work.
@@ -1022,7 +1027,7 @@ class OpenCell1D implements OpenConfig {
             }
 
             // Do a sanity check.
-            if( !Life.hasTwister( p.board, 3, 100 ) ){
+            if( false && !Life.hasTwister( p.board, 3, 100 ) ){
                 System.out.println( "Twister has gone missing" );
             }
 
