@@ -16,26 +16,28 @@ package ibis.ipl;
  * - For any given Ibis identifier, at most one
  * {@link #left(IbisIdentifier) left()} call will be generated.
  * <BR>
- * - An Ibis will also receive a {@link #joined(IbisIdentifier) joined()}
- * upcall for itself.
+ * - An Ibis instance will also receive a
+ *   {@link #joined(IbisIdentifier) joined()} upcall for itself.
  */
 public interface ResizeHandler {
     /**
-     * Upcall generated when an Ibis joined the current run.
-     * @param ident the ibis identifier of the Ibis that joined the current run.
+     * Upcall generated when an Ibis instance joined the current run.
+     * @param ident the ibis identifier of the Ibis instance that joined the
+     * current run.
      */
     public void joined(IbisIdentifier ident);
 
     /**
-     * Upcall generated when an Ibis voluntarily left the current run.
-     * @param ident the ibis identifier of the Ibis that left the current run.
+     * Upcall generated when an Ibis instance voluntarily left the current run.
+     * @param ident the ibis identifier of the Ibis instance that left the
+     * current run.
      */
     public void left(IbisIdentifier ident);
 
     /**
-     * Upcall generated when an Ibis crashed or was killed, implicitly
+     * Upcall generated when an Ibis instance crashed or was killed, implicitly
      * removing it from the current run.
-     * @param corpse the ibis identifier of the Ibis leaving the current run.
+     * @param corpse the ibis identifier of the dead Ibis instance.
      */
     public void died(IbisIdentifier corpse);
 
