@@ -8,14 +8,13 @@ import java.util.Random;
 import java.io.IOException;
 
 interface OpenConfig {
-    static final boolean slowStart = true;
-    static final boolean tracePortCreation = false;
+    static final boolean tracePortCreation = true;
     static final boolean traceCommunication = false;
     static final boolean showProgress = true;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = true;
     static final int DEFAULTBOARDSIZE = 3000;
-    static final int GENERATIONS = 1000;
+    static final int GENERATIONS = 100;
     static final int SHOWNBOARDWIDTH = 60;
     static final int SHOWNBOARDHEIGHT = 30;
 }
@@ -57,7 +56,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     public void leave( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.out.println( "Leave of " + id.name() );
+            System.out.println( "Machine " + id.name() + " leaves the computation" );
         }
         members--;
     }
@@ -94,7 +93,7 @@ class OpenCell1D implements OpenConfig {
     static SendPort rightSendPort;
     static ReceivePort leftReceivePort;
     static ReceivePort rightReceivePort;
-    static int generation;
+    static int generation = 0;
 
     /** The first column that is my responsibility. */
     static int firstColumn = -1;
@@ -122,12 +121,12 @@ class OpenCell1D implements OpenConfig {
 
         SendPort res = updatePort.createSendPort( sendportname );
         if( tracePortCreation ){
-            System.out.println( myName.name() + ": created send port " + sendportname  );
+            System.out.println( "P" + OpenCell1D.me + ": created send port " + sendportname  );
         }
         ReceivePortIdentifier id = registry.lookup( receiveportname );
         res.connect( id );
         if( tracePortCreation ){
-            System.out.println( myName.name() + ": connected " + sendportname + " to " + receiveportname );
+            System.out.println( "P" + OpenCell1D.me + ": connected " + sendportname + " to " + receiveportname );
         }
         return res;
     }
@@ -144,7 +143,7 @@ class OpenCell1D implements OpenConfig {
 
         ReceivePort res = updatePort.createReceivePort( receiveportname );
         if( tracePortCreation ){
-            System.out.println( myName.name() + ": created receive port " + receiveportname  );
+            System.out.println( "P" + OpenCell1D.me + ": created receive port " + receiveportname  );
         }
         res.enableConnections();
         return res;
@@ -200,7 +199,9 @@ class OpenCell1D implements OpenConfig {
             byte paty[] = pat[y];
 
             for( int x=0; x<paty.length; x++ ){
-                board[px+x][py+y] = paty[x];
+                if( board[px+x] != null ){
+                    board[px+x][py+y] = paty[x];
+                }
             }
         }
     }
@@ -215,7 +216,7 @@ class OpenCell1D implements OpenConfig {
             byte paty[] = pat[y];
 
             for( int x=0; x<paty.length; x++ ){
-                if( board[px+x][py+y] != paty[x] ){
+                if( board[px+x] != null && board[px+x][py+y] != paty[x] ){
                     return false;
                 }
             }
@@ -240,6 +241,10 @@ class OpenCell1D implements OpenConfig {
     private static void send( SendPort p, byte data[] )
         throws java.io.IOException
     {
+        if( data == null ){
+            System.err.println( "P" + me + ": cannot send a null array to " + p );
+            return;
+        }
         if( traceCommunication ){
             System.out.println( myName.name() + ": sending from port " + p );
         }
@@ -256,6 +261,10 @@ class OpenCell1D implements OpenConfig {
     private static void receive( ReceivePort p, byte data[] )
         throws java.io.IOException
     {
+        if( data == null ){
+            System.err.println( "P" + me + ": cannot receive from " + p + " into a null array" );
+            return;
+        }
         if( traceCommunication ){
             System.out.println( myName.name() + ": receiving on port " + p );
         }
@@ -295,12 +304,14 @@ class OpenCell1D implements OpenConfig {
         }
 
         try {
-            myName = ibis.identifier();
+            long startTime = System.currentTimeMillis();
+
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
             s.add( "communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt" );
             s.add( "worldmodel", "open" );
             ibis = Ibis.createIbis( s, rszHandler );
+            myName = ibis.identifier();
 
             ibis.openWorld();
 
@@ -327,108 +338,123 @@ class OpenCell1D implements OpenConfig {
             if( leftNeighbour != null ){
                 leftReceivePort = createNeighbourReceivePort( updatePort, "upstream" );
             }
-            if( rightNeighbour != null ){
-                rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
-            }
             if( leftNeighbour != null ){
                 leftSendPort = createNeighbourSendPort( updatePort, leftNeighbour, "downstream" );
             }
-            if( rightNeighbour != null ){
-                rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
-            }
 
-            int myColumns = 0;
             if( leftNeighbour == null ){
                 // I'm the leftmost node, I start with the entire board.
                 // Workstealing will spread the load to other processors later
                 // on.
-                // TODO: do something smarter at startup.
-                myColumns = boardsize;
-                firstColumn = 0;
-                firstNoColumn = boardsize;
+                firstColumn = 1;
+                firstNoColumn = boardsize+1;
+                generation = 0; // I decide the generation count.
+            }
+            else {
+                firstColumn = boardsize+1;
+                firstNoColumn = boardsize+1;
             }
 
+            // First, create an array to hold all columns of the total
+            // array size, plus two empty dummy border columns. (The top and
+            // bottom *rows* are also empty dummies that are never updated).
             // The Life board.
-            byte board[][] = new byte[myColumns+2][boardsize+2];
+            byte board[][] = new byte[boardsize+4][];
 
             // We need two extra column arrays to temporarily store the update
-            // of a column. These arrays will be circulated with the columns of
+            // of a column. These arrays will be circulated with our columns of
             // the board.
             byte updatecol[] = new byte[boardsize+2];
             byte nextupdatecol[] = new byte[boardsize+2];
 
-            putTwister( board, 100, 3 );
-            putPattern( board, 4, 4, glider );
-
             if( me == 0 ){
                 System.out.println( "Started" );
             }
-            long startTime = System.currentTimeMillis();
 
-            for( generation=0; generation<count; generation++ ){
-                byte prev[];
-                byte curr[] = board[0];
-                byte next[] = board[1];
+            // Now populate the columns that are our responsibility,
+            // plus two border columns.
+            for( int col=firstColumn-1; col<=firstNoColumn; col++ ){
+                board[col] = new byte[boardsize+2];
+            }
 
-                if( showBoard && leftNeighbour == null ){
-                    System.out.println( "Generation " + generation );
-                    for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
-                        for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
-                            System.out.print( board[x][y] );
+            putTwister( board, 100, 3 );
+            putPattern( board, 4, 4, glider );
+
+            while( generation<count ){
+                if( firstColumn<firstNoColumn ){
+                    byte prev[];
+                    byte curr[] = board[firstColumn];
+                    byte next[] = board[firstColumn+1];
+
+                    if( showBoard && leftNeighbour == null ){
+                        System.out.println( "Generation " + generation );
+                        for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
+                            for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
+                                System.out.print( board[x][y] );
+                            }
+                            System.out.println();
                         }
-                        System.out.println();
+                    }
+                    for( int i=firstColumn; i<firstNoColumn; i++ ){
+                        prev = curr;
+                        curr = next;
+                        next = board[i+1];
+                        for( int j=1; j<=boardsize; j++ ){
+                            int neighbours =
+                                prev[j-1] +
+                                prev[j] +
+                                prev[j+1] +
+                                curr[j-1] +
+                                curr[j+1] +
+                                next[j-1] +
+                                next[j] +
+                                next[j+1];
+                            boolean alive = (neighbours == 3) || ((neighbours == 2) && (board[i][j]==1));
+                            updatecol[j] = alive?(byte) 1:(byte) 0;
+                        }
+                        
+                        //
+                        byte tmp[] = board[i];
+                        board[i] = updatecol;
+                        updatecol = nextupdatecol;
+                        nextupdatecol = tmp;
                     }
                 }
-                for( int i=1; i<=myColumns; i++ ){
-                    prev = curr;
-                    curr = next;
-                    next = board[i+1];
-                    for( int j=1; j<=boardsize; j++ ){
-                        int neighbours =
-                            prev[j-1] +
-                            prev[j] +
-                            prev[j+1] +
-                            curr[j-1] +
-                            curr[j+1] +
-                            next[j-1] +
-                            next[j] +
-                            next[j+1];
-                        boolean alive = (neighbours == 3) || ((neighbours == 2) && (board[i][j]==1));
-                        updatecol[j] = alive?(byte) 1:(byte) 0;
+                    if( rightNeighbour != null ){
+                        if( rightReceivePort == null ){
+                            if( tracePortCreation ){
+                                System.out.println( "P" + me + ": a right neighbour has appeared; creating ports" );
+                            }
+                            rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
+                            rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
+                        }
                     }
-                    
-                    //
-                    byte tmp[] = board[i];
-                    board[i] = updatecol;
-                    updatecol = nextupdatecol;
-                    nextupdatecol = tmp;
-                }
                 if( (me % 2) == 0 ){
                     if( leftSendPort != null ){
-                        send( leftSendPort, board[1] );
+                        send( leftSendPort, board[firstColumn] );
                     }
                     if( rightSendPort != null ){
-                        send( rightSendPort, board[myColumns] );
+                        send( rightSendPort, board[firstNoColumn-1] );
                     }
                     if( leftReceivePort != null ){
-                        receive( leftReceivePort, board[0] );
+                        receive( leftReceivePort, board[firstColumn-1] );
                     }
                     if( rightReceivePort != null ){
-                        receive( rightReceivePort, board[myColumns+1] );
+                        receive( rightReceivePort, board[firstNoColumn] );
                     }
                 }
                 else {
                     if( rightReceivePort != null ){
-                        receive( rightReceivePort, board[myColumns+1] );
+                        receive( rightReceivePort, board[firstNoColumn] );
                     }
                     if( leftReceivePort != null ){
-                        receive( leftReceivePort, board[0] );
+                        receive( leftReceivePort, board[firstColumn-1] );
                     }
                     if( rightSendPort != null ){
-                        send( rightSendPort, board[myColumns] );
+                        send( rightSendPort, board[firstNoColumn-1] );
                     }
                     if( leftSendPort != null ){
-                        send( leftSendPort, board[1] );
+                        send( leftSendPort, board[firstColumn] );
                     }
                 }
                 if( showProgress ){
@@ -436,6 +462,7 @@ class OpenCell1D implements OpenConfig {
                         System.out.print( '.' );
                     }
                 }
+                generation++;
             }
             if( showProgress ){
                 if( leftNeighbour == null ){
@@ -445,7 +472,7 @@ class OpenCell1D implements OpenConfig {
             if( !hasTwister( board, 100, 3 ) ){
                 System.out.println( "Twister has gone missing" );
             }
-            if( leftNeighbour == null ){
+            if( me == 0 ){
                 long endTime = System.currentTimeMillis();
                 double time = ((double) (endTime - startTime))/1000.0;
                 long updates = boardsize*boardsize*(long) count;
