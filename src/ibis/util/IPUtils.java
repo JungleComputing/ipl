@@ -150,6 +150,15 @@ System.err.println("Specified alt ip addr " + external);
 	    System.err.println("Could not get network interfaces. Trying local.");
 	}
 	boolean first = true;
+	/*
+	 * Preference order:
+	 * 1. external and IPv4.
+	 * 2. external
+	 * 3. sitelocal and IPv4
+	 * 4. sitelocal
+	 * 5. Ipv4
+	 * 6. other
+	 */
 	if (e != null) {
 	    for (; e.hasMoreElements();) {
 		NetworkInterface nw = (NetworkInterface) e.nextElement();
@@ -178,16 +187,14 @@ System.err.println("Specified alt ip addr " + external);
 				System.err.println("  ... and found " + addr + " as well");
 			    }
 			}
-		    }
-		    else if (! addr.isLoopbackAddress()) {
-			if (internal == null) {
+		    } else if (internal == null) {
+			internal = addr;
+		    } else if (addr.isSiteLocalAddress()) {
+			if (! internal.isSiteLocalAddress() || ! (internal instanceof Inet4Address)) {
 			    internal = addr;
-			} else if (! (internal instanceof Inet4Address) &&
-				   addr instanceof Inet4Address) {
-			    // Preference for IPv4
-			    internal = addr;
-			} else if (internal.isLinkLocalAddress() &&
-			    addr.isSiteLocalAddress()) {
+			}
+		    } else {
+			if (! internal.isSiteLocalAddress() && ! (internal instanceof Inet4Address)) {
 			    internal = addr;
 			}
 		    }
