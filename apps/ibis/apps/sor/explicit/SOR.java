@@ -4,9 +4,15 @@
  * Ibis version implementing a red-black SOR, based on earlier Orca source.
  *
  * @author Rob van Nieuwpoort & Jason Maassen
- * @author Rutger Hofman add a O(log n) reduce; move Main into this SOR;
+ * @author Rutger Hofman
+ * 	   Oct 20 2004
+ * 	   	add a O(log n) reduce; move Main into this SOR;
  * 	   "improve" layout
- *
+ * 	   Oct 29 2004
+ * 	   	Repair crucial bug in algorithm. It is necessary to exchange
+ * 	   	border rows between each red and each black. It used to
+ * 	   	exchange only between each pair of (red,black). Neighbour
+ * 	   	exchange has become twice as expensive.
  */
 
 import java.io.IOException;
@@ -31,7 +37,6 @@ import ibis.util.TypedProperties;
 public class SOR {
 
     private static final boolean USE_O_N_BROADCAST = TypedProperties.booleanProperty("bcast.O_n", false);
-    private static final boolean REDUCE_ON_FIXED = TypedProperties.booleanProperty("reduce", true);
 
     private static final double TOLERANCE = 0.00001;         /* termination criterion */
     private static final double LOCAL_STEPS = 0;
@@ -47,6 +52,9 @@ public class SOR {
     private int lb;
     private int ub;          /* lower and upper bound of grid stripe [lb ... ub] -> NOTE: ub is inclusive*/
     private int maxIters;
+
+    private boolean	reduceAlways;
+    private boolean	async;
 
     private int size;
     private int rank;        /* process ranks */
@@ -85,7 +93,8 @@ public class SOR {
     private boolean finished = false;
 
 
-    SOR(int N, int maxIters) throws IOException, IbisException {
+    SOR(int N, int maxIters, boolean reduceAlways, boolean async)
+	    throws IOException, IbisException {
 
 	info = PoolInfo.createPoolInfo();
 
@@ -96,7 +105,7 @@ public class SOR {
 	    }
 	    System.exit(1);
 	}
-	if (maxIters < 0 && REDUCE_ON_FIXED) {
+	if (maxIters < 0 && ! reduceAlways) {
 	    if (info.rank() == 0) {
 		System.out.println("Need to specify maxIters if -Dreduce=off");
 	    }
@@ -107,6 +116,8 @@ public class SOR {
 	nrow = N;
 	ncol = N;
 	this.maxIters = maxIters;
+	this.reduceAlways = reduceAlways;
+	this.async = async;
 
 	rank = info.rank();
 	size = info.size();
@@ -127,6 +138,7 @@ public class SOR {
 	    System.out.println("CPUs          : " + size);
 	    System.out.println("Matrix size   : " + nrow + "x" + ncol);
 	    System.out.println("Iterations    : " + (maxIters >= 0 ? ("" + maxIters) : "dynamic"));
+	    System.out.println("Reduce        : " + (reduceAlways ? "on" : "off"));
 	    System.out.println("");
 	}
     }
@@ -328,7 +340,6 @@ public class SOR {
 	    for (int c = 0; c < 2; c++) {
 		if (child[c] != LEAF_NODE) {
 		    reduceRreduce[c] = portTypeReduce.createReceivePort(name + "_" + c + "_reduceR");
-// System.err.println(rank + ": create RPort " + name + "_" + c + "_reduceR / type " + portTypeReduce);
 		    reduceRreduce[c].enableConnections();
 		}
 	    }
@@ -338,16 +349,13 @@ public class SOR {
 	    int childrank = rank - 2 * parent - 1;
 	    reduceSreduce = portTypeReduce.createSendPort(name + "reduceS");
 	    ReceivePortIdentifier id;
-// System.err.println(rank + ": connect to SPort " + "SOR" + parent + "_" + childrank + "_reduceR / type " + portTypeReduce);
 	    id = registry.lookup("SOR" + parent + "_" + childrank + "_reduceR");
 	    reduceSreduce.connect(id);
-// System.err.println(rank + ": connected to SPort " + "SOR" + parent + "_" + childrank + "_reduceR / type " + portTypeReduce);
 	}
 
 	/* Create and connect ports for the bcast phase */
 	if (parent != LEAF_NODE) {
 	    reduceRbcast = portTypeBroadcast.createReceivePort(name + "reduceR");
-// System.err.println(rank + ": create RPort " + name + "reduceR");
 	    reduceRbcast.enableConnections();
 	}
 
@@ -356,10 +364,8 @@ public class SOR {
 	    for (int c = 0; c < 2; c++) {
 		if (child[c] != LEAF_NODE) {
 		    ReceivePortIdentifier id;
-// System.err.println(rank + ": connect to SPort " + "SOR" + child[c] + "reduceR / type " + portTypeBroadcast);
 		    id = registry.lookup("SOR" + child[c] + "reduceR");
 		    reduceSbcast.connect(id);
-// System.err.println(rank + ": connected to SPort " + "SOR" + child[c] + "reduceR / type " + portTypeBroadcast);
 		}
 	    }
 	}
@@ -445,8 +451,9 @@ public class SOR {
 	} else {
 	    lb = temp_lb;
 	}
+	// System.err.println(rank + ": my slice [" + lb + "," + ub + ">");
 
-	r        = 0.5 * ( Math.cos( Math.PI / (ncol) ) + Math.cos( Math.PI / (nrow) ) );
+	r = 0.5 * ( Math.cos( Math.PI / (ncol) ) + Math.cos( Math.PI / (nrow) ) );
 	double temp_omega = 2.0 / ( 1.0 + Math.sqrt( 1.0 - r * r ) );
 	stopdiff = TOLERANCE / ( 2.0 - temp_omega );
 	omega    = temp_omega*0.8;                   /* magic factor */
@@ -499,37 +506,6 @@ public class SOR {
 
     private boolean even(int i) {
 	return i % 2 == 0;
-    }
-
-    private void send(boolean dest, double[] col) throws IOException {
-
-	/* Two cases here: sync and async */
-	WriteMessage m;
-
-	if (dest == PREV) {
-	    m = leftS.newMessage();
-	} else {
-	    m = rightS.newMessage();
-	}
-
-	// System.err.print("Write col " + col); for (int i = 0; i < col.length; i++) { System.err.print(col[i] + " "); } System.err.println();
-	m.writeArray(col);
-	m.finish();
-    }
-
-    private void receive(boolean source, double [] col) throws IOException {
-
-	ReadMessage m;
-
-	if (source == PREV) {
-	    m = leftR.receive();
-	} else {
-	    m = rightR.receive();
-	}
-
-	m.readArray(col);
-	// System.err.print("Read col " + col); for (int i = 0; i < col.length; i++) { System.err.print(col[i] + " "); } System.err.println();
-	m.finish();
     }
 
     private double reduce(double value) throws IOException {
@@ -640,6 +616,91 @@ public class SOR {
     }
 
 
+    private void send(boolean dest, double[] col) throws IOException {
+
+	/* Two cases here: sync and async */
+	WriteMessage m;
+
+	if (dest == PREV) {
+	    m = leftS.newMessage();
+	} else {
+	    m = rightS.newMessage();
+	}
+
+	// System.err.print("Write col " + col); for (int i = 0; i < col.length; i++) { System.err.print(col[i] + " "); } System.err.println();
+	m.writeArray(col);
+	m.finish();
+    }
+
+    private void receive(boolean source, double [] col) throws IOException {
+
+	ReadMessage m;
+
+	if (source == PREV) {
+	    m = leftR.receive();
+	} else {
+	    m = rightR.receive();
+	}
+
+	m.readArray(col);
+	// System.err.print("Read col " + col); for (int i = 0; i < col.length; i++) { System.err.print(col[i] + " "); } System.err.println();
+	m.finish();
+    }
+
+    private void send() throws IOException {
+	if (TIMINGS) t_communicate.start();
+
+	if (even(rank)) {
+	    if (rank != 0) send(PREV, g[lb]);
+	    if (rank != size-1) send(NEXT, g[ub-1]);
+	} else {
+	    if (rank != size-1) send(NEXT, g[ub-1]);
+	    if (rank != 0) send(PREV, g[lb]);
+	}
+
+	if (TIMINGS) t_communicate.stop();
+    }
+
+    private void receive() throws IOException {
+	if (TIMINGS) t_communicate.start();
+
+	if (even(rank)) {
+	    if (rank != 0) receive(PREV, g[lb-1]);
+	    if (rank != size-1) receive(NEXT, g[ub]);
+	} else {
+	    if (rank != size-1) receive(NEXT, g[ub]);
+	    if (rank != 0) receive(PREV, g[lb-1]);
+	}
+
+	if (TIMINGS) t_communicate.stop();
+    }
+
+    private double compute(int color, int lb, int ub) {
+	if (TIMINGS) t_compute.start();
+
+	double maxdiff = 0.0;
+
+	for (int i = lb; i < ub ; i++) {
+	    // int d = (even(i) ^ phase) ? 1 : 0;
+	    int d = (i + color) & 1;
+	    for (int j = 1 + d; j < ncol - 1; j += 2) {
+		double gNew = stencil(i,j);
+		double diff = Math.abs(gNew - g[i][j]);
+
+		if ( diff > maxdiff ) {
+		    maxdiff = diff;
+		}
+
+		g[i][j] += omega * (gNew - g[i][j]);
+	    }
+	}
+
+	if (TIMINGS) t_compute.stop();
+
+	return maxdiff;
+    }
+
+
     public void start(String runName) throws IOException {
 
 	long t_start,t_end;             /* time values */
@@ -671,43 +732,27 @@ public class SOR {
 	int iteration = 0;
 
 	do {
-	    if (TIMINGS) t_communicate.start();
-	    if (even(rank)) {
-		if (rank != 0) send(PREV, g[lb]);
-		if (rank != size-1) send(NEXT, g[ub-1]);
-		if (rank != 0) receive(PREV, g[lb-1]);
-		if (rank != size-1) receive(NEXT, g[ub]);
-	    } else {
-		if (rank != size-1) receive(NEXT, g[ub]);
-		if (rank != 0) receive(PREV, g[lb-1]);
-		if (rank != size-1) send(NEXT, g[ub-1]);
-		if (rank != 0) send(PREV, g[lb]);
-	    }
-	    if (TIMINGS) t_communicate.stop();
-
-	    if (TIMINGS) t_compute.start();
 	    maxdiff = 0.0;
-
-	    boolean phase = false;
-	    for (int iphase = 0; iphase < 2 ; iphase++){
-		for (int i = lb ; i < ub ; i++) {
-		    int d = (even(i) ^ phase) ? 1 : 0;
-		    for (int j = 1 + d; j < ncol-1 ; j += 2) {
-			double gNew = stencil(i,j);
-			double diff = Math.abs(gNew - g[i][j]);
-
-			if ( diff > maxdiff ) {
-			    maxdiff = diff;
-			}
-
-			g[i][j] += omega * (gNew - g[i][j]);
-		    }
+	    for (int color = 0; color < 2 ; color++){
+		send();
+		if (! async) {
+		    receive();
 		}
-		phase = ! phase;
-	    }
-	    if (TIMINGS) t_compute.stop();
 
-	    if (size > 1 && (maxIters < 0 || REDUCE_ON_FIXED)) {
+		if (async) {
+		    maxdiff = Math.max(maxdiff, compute(color, lb + 1, ub - 1));
+
+		    receive();
+
+		    maxdiff = Math.max(maxdiff, compute(color, lb, lb + 1));
+		    maxdiff = Math.max(maxdiff, compute(color, ub - 1, ub));
+
+		} else {
+		    maxdiff = Math.max(maxdiff, compute(color, lb, ub));
+		}
+	    }
+
+	    if (size > 1 && (maxIters < 0 || reduceAlways)) {
 		maxdiff = reduce(maxdiff);
 	    }
 
@@ -752,6 +797,8 @@ public class SOR {
 	    // int N = 200;
 	    int maxIters = -1;
 	    boolean warmup = false;
+	    boolean reduce = true;
+	    boolean async = false;
 
 	    int options = 0;
 	    for (int i = 0; i < args.length; i++) {
@@ -760,6 +807,16 @@ public class SOR {
 		    warmup = true;
 		} else if (args[i].equals("-no-warmup")) {
 		    warmup = false;
+		} else if (args[i].equals("-reduce")) {
+		    reduce = true;
+		} else if (args[i].equals("-no-reduce")) {
+		    reduce = false;
+		} else if (args[i].equals("-async")) {
+		    async = true;
+		} else if (args[i].equals("-no-sync")) {
+		    async = false;
+		} else if (args[i].equals("-sync")) {
+		    async = false;
 		} else if (options == 0) {
 		    N = Integer.parseInt(args[i]);
 		    N += 2;
@@ -773,7 +830,7 @@ public class SOR {
 		}
 	    }
 
-	    SOR sor = new SOR(N, maxIters);
+	    SOR sor = new SOR(N, maxIters, reduce, async);
 	    if (warmup) {
 		sor.start("warmup");
 	    }
