@@ -46,7 +46,6 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     private static final boolean traceSimplification = false;
     private static final boolean tracePropagation = false;
     private static final boolean traceNewCode = true;
-    private static final boolean traceStats = true;
     private static final boolean traceClauses = false;
 
     private int label = 0;
@@ -355,7 +354,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     /**
      * Given a list of assignments, returns true iff the assignments
      * satisfy this problem.
-     * @param assignments the variable assignments
+     * @param assignments The variable assignments.
      * @return <code>true</code> iff the assignments satisfy the problem
      */
     public boolean isSatisfied( byte assignments[] )
@@ -365,6 +364,17 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 		return false;
 	    }
 	}
+	return true;
+    }
+
+    /**
+     * Given a SATSolution, returns true iff the solution
+     * satisfies this problem.
+     * @param sol The solution.
+     * @return <code>true</code> iff the assignments satisfy the problem.
+     */
+    public boolean isSatisfied( SATSolution sol )
+    {
 	return true;
     }
 
@@ -497,7 +507,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /** Optimizes the problem for solving. */
-    public void optimize()
+    public void optimize( boolean traceStats )
     {
 	boolean changed;
 	int unitClauses = 0;
@@ -724,8 +734,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * See
      * {@link <a href="http://www.intellektik.informatik.tu-darmstadt.de/SATLIB/Benchmarks/SAT/satformat.ps">satformat.ps</a>}
      * for a description of the format.
-     * @param in the reader that provides the stream to parse
-     * @return the parsed problem
+     * @param in The reader that provides the stream to parse.
+     * @return The parsed problem.
      */
     public static SATProblem parseDIMACSStream( Reader in ) throws java.io.IOException
     {
@@ -891,6 +901,23 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	    s = new java.util.zip.GZIPInputStream( s );
 	}
 	return parseDIMACSStream( new InputStreamReader( s ) );
+    }
+
+    /**
+     * A CNF problem parser. Given a problem in DIMACS format, returns
+     * a SATProblem instance for it.
+     * @param str The string to parse.
+     * @return The parsed problem.
+     */
+    public static SATProblem parseDIMACSString( String str )
+    {
+	try {
+	    return parseDIMACSStream( new StringReader( str ) );
+	}
+	catch( java.io.IOException x )
+	{
+	}
+	return null;
     }
 
     /**

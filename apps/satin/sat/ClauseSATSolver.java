@@ -25,6 +25,7 @@ public class ClauseSATSolver {
 
     static final boolean traceSolver = false;
     static final boolean printSatSolutions = true;
+    static final boolean printOptimizerStats = true;
     static int label = 0;
 
     /** Given a set of clauses and a variable `var' that we know is true,
@@ -414,7 +415,7 @@ public class ClauseSATSolver {
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	p.optimize();
+	p.optimize( printOptimizerStats );
 	p.report( System.out );
 
 	long startTime = System.currentTimeMillis();

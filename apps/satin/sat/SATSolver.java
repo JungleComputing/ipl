@@ -18,6 +18,7 @@ import ibis.satin.SatinTupleSpace;
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
+    private static final boolean printOptimizerStats = true;
     private static final boolean traceNewCode = true;
     private static final boolean traceLearning = false;
     private static final boolean traceJumps = false;
@@ -397,7 +398,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );
-	p.optimize();
+	p.optimize( printOptimizerStats );
 	p.report( System.out );
 
         // Turn Satin on again

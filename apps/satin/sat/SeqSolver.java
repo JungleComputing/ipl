@@ -15,8 +15,9 @@
 import java.io.File;
 
 public final class SeqSolver {
-    private static final boolean traceSolver = false;
+    private static final boolean traceSolver = true;
     private static final boolean printSatSolutions = true;
+    private static final boolean printOptimizerStats = true;
     private static final boolean traceNewCode = true;
     private static final boolean traceLearning = false;
     private static final boolean traceJumps = false;
@@ -240,7 +241,7 @@ public final class SeqSolver {
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );
-	p.optimize();
+	p.optimize( printOptimizerStats );
 	p.report( System.out );
         SeqSolver s = new SeqSolver();
 	long startTime = System.currentTimeMillis();

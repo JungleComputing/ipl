@@ -13,8 +13,9 @@
 import java.io.File;
 
 public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSATInterface, java.io.Serializable {
-    static final boolean traceSolver = false;
-    static final boolean printSatSolutions = true;
+    private static final boolean traceSolver = false;
+    private static final boolean printSatSolutions = true;
+    private static final boolean printOptimizerStats = true;
     static int label = 0;
 
     /** If there are less than this number of variables left, we consider
@@ -223,7 +224,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	p.optimize();
+	p.optimize( printOptimizerStats );
 	p.report( System.out );
 	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );

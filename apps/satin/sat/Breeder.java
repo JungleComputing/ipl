@@ -14,6 +14,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
     static final int GENERATIONS = 20;
     static final int GENERATION_SIZE = 20;
     static final boolean globalsInTuple = true;
+    static final boolean printOptimizerStats = true;
     static final float mutationStep = 0.15f;
 
     private final Random rng = new Random( 2 );
@@ -232,7 +233,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
 	    SATProblem p = SATProblem.parseDIMACSStream( f );
 	    System.err.println( "Problem file: " + args[i] );
 	    p.report( System.out );
-	    p.optimize();
+	    p.optimize( printOptimizerStats );
 	    p.report( System.out );
 	    pl[i] = p;
 	}

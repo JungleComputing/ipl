@@ -73,4 +73,16 @@ public class Tests extends TestCase {
         assertEquals( v, v1 );
     }
 
+    public void testSeqSolver()
+    {
+	String problem = "p cnf 5 3\n1 -2 4 0\n-1 -2 3 5 0\n3 4 0\n";
+
+	SATProblem p = SATProblem.parseDIMACSString( problem );
+	assertNotNull( p );
+	p.optimize( false );
+	SeqSolver s = new SeqSolver();
+	SATSolution res = s.solveSystem( p, false );
+	assertNotNull( res );
+	assertTrue( p.isSatisfied( res ) );
+    }
 }

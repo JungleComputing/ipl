@@ -1,7 +1,8 @@
 // File: $Id$
 
 /**
- * A parallel SAT solver. Given a symbolic boolean equation in CNF, find a set
+ * A parallel SAT solver using only unit and pure variable propagation.
+ * Given a symbolic boolean equation in CNF, find a set
  * of assignments that make this equation true.
  * 
  * This implementation tries to do all the things a professional SAT
@@ -19,6 +20,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static final boolean problemInTuple = true;
+    private static final boolean printOptimizerStats = true;
     private static int label = 0;
 
     /**
@@ -267,7 +269,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );
-	p.optimize();
+	p.optimize( printOptimizerStats );
 	p.report( System.out );
 
         // Turn Satin on again
