@@ -2138,7 +2138,16 @@ public final class Satinc implements BT_Opcodes {
 
 			generateMain(c, main);
 		} else {
-			satinField = mainClass.findField("satinClass");
+			try {
+				satinField = mainClass.findField("satinClass");
+			} catch (java.lang.NoSuchFieldError e) {
+				// no main field!
+				// we are probably compiling a non-satin application/library then
+				if(verbose) {
+					System.err.println("no mainclass, returning");
+				}
+				return;
+			}
 		}
 
 		String src = c.getSourceFile();

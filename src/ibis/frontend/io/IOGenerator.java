@@ -343,7 +343,7 @@ public class IOGenerator {
 
 		boolean super_is_serializable = recursiveIsSerializable(super_clazz);		
 
-		/* Generate code inside te methods */ 
+		/* Generate code inside the methods */ 
 
 		BT_FieldVector fields = clazz.getFields();
 		
@@ -484,7 +484,7 @@ public class IOGenerator {
 		/* finally write/read the superclass if neccecary */
 		
 		if (super_is_serializable) { 
-
+// @@@ Hier een geval vergeten: super is wel serializable, maar niet herschreven, plese fix :-)  --Rob
 			BT_Method super_write = super_clazz.findMethod("void", "generated_WriteObject", "(ibis.io.MantaOutputStream)");
 			
 			BT_Ins temp_write[] = { 

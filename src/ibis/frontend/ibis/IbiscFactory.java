@@ -5,11 +5,9 @@ import java.util.*;
 
 class IbiscFactory extends BT_Factory {
 
-	String target;
 	Vector loadList = new Vector();
 
-	IbiscFactory(String target) {
-		this.target = target;
+	IbiscFactory() {
 	}
 
 	// override method in BT_Factory to avoid debug prints...

@@ -17,34 +17,75 @@ class Ibisc {
 	boolean keep;
 	boolean print;
 	boolean invocationRecordCache;
-	String javaFile;
 	String className;
-	String compiler = "javac";
+	String compiler;
+	String mantac;
+	boolean link;
+	boolean doManta;
 	boolean supportAborts;
 	boolean inletOpt;
 	IbiscFactory factory;
+	Vector targets;
+	Vector satinized = new Vector();
+	String packageName;
+	String exeName;
 
 	Ibisc(boolean verbose, boolean satinVerbose, boolean iogenVerbose, boolean keep, 
-	      boolean print, boolean invocationRecordCache,
-	       String javaFile, String compiler, boolean supportAborts, boolean inletOpt) {
+	      boolean print, boolean invocationRecordCache, Vector targets, 
+	      String packageName, String exeName, String compiler, String mantac, 
+	      boolean link, boolean doManta, boolean supportAborts, boolean inletOpt) {
 		this.verbose = verbose;
 		this.satinVerbose = satinVerbose;
 		this.iogenVerbose = iogenVerbose;
 		this.keep = keep;
 		this.print = print;
 		this.invocationRecordCache = invocationRecordCache;
-		this.javaFile = javaFile;
+		this.targets = targets;
 		this.compiler = compiler;
+		this.mantac = mantac;
+		this.link = link;
+		this.doManta = doManta;
 		this.supportAborts = supportAborts;
 		this.inletOpt = inletOpt;
+		this.packageName = packageName;
+		this.exeName = exeName;
+
+		factory = new IbiscFactory();
+		BT_Factory.factory = factory;
 	}
 
 	void compile(String target) {
 		try {
 			String command = compiler + " " + target;
 			if(verbose) {
-				System.out.print("Running: " + command);
-				System.out.flush();
+				System.out.println("Running: " + command);
+			}
+		
+			Runtime r = Runtime.getRuntime();
+			Process p = r.exec(command);
+			int res = p.waitFor();
+			if(res != 0) {
+				System.err.println("Error compiling code (" + target + ").");
+				System.exit(1);
+			}
+			if(verbose) {
+				System.out.println(" Done");
+			}
+		} catch (Exception e) {
+			System.err.println("IO error: " + e);
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+
+	void mantaCompile(String target, boolean link) {
+		try {
+			String command = mantac + (link ? " " : " -c ") + 
+				(exeName == null ? " " : "-o " + exeName + " ") +
+				target + ".class";
+
+			if(verbose) {
+				System.out.println("Running: " + command);
 			}
 		
 			Runtime r = Runtime.getRuntime();
@@ -69,7 +110,25 @@ class Ibisc {
 		return f.exists();
 	}
 
+	boolean fileNewer(String file1, String file2) {
+		File f1 = new File(file1);
+		File f2 = new File(file2);
+		return f1.lastModified() > f2.lastModified();
+	}
+	
 	public void start() {
+		if(verbose) {
+			System.err.println("target: ");
+		}
+		for(int i=0; i<targets.size(); i++) {
+			if(verbose) {
+				System.err.println(" " + targets.get(i));
+			}
+			doWorkForFile((String)targets.get(i));
+		}
+	}
+
+	public void doWorkForFile(String javaFile) {
 		if(!javaFile.endsWith(".java")) {
 			javaFile = javaFile + ".java";
 		}
@@ -79,7 +138,15 @@ class Ibisc {
 			System.exit(1);
 		}
 
-		compile(javaFile);
+		String classFile = javaFile.substring(0, javaFile.length() - 5) + ".class";
+
+		if(!fileExists(classFile) || fileNewer(javaFile, classFile)) {
+			compile(javaFile);
+		} else {
+			if(verbose) {
+				System.err.println("no need to compile " + javaFile);
+			}
+		}
 
 		// We should have bytecode now.
 		className = javaFile.substring(0, javaFile.length() - 5);
@@ -87,22 +154,31 @@ class Ibisc {
 			System.out.println("className = " + className);
 		}
 
-		factory = new IbiscFactory(className);
-		BT_Factory.factory = factory;
-
-		c = BT_Class.forName(className);
+		if(packageName.equals("")) {
+			c = BT_Class.forName(className);
+		} else {
+			c = BT_Class.forName(packageName + "." + className);
+		}
 
 		// Run satinc over all loaded classes
 		for (int i=0; i<factory.loadList.size(); i++) {
-			if(verbose) {
-				System.out.print("running satinc on " + factory.loadList.get(i));
-				System.out.flush();
-			}
-			new ibis.frontend.satin.Satinc(satinVerbose, keep, print, invocationRecordCache, 
-						       (String)factory.loadList.get(i), className, compiler, 
-						       supportAborts, inletOpt, false).start();
-			if(verbose) {
-				System.out.println(" Done");
+			if(satinized.contains(factory.loadList.get(i)) || 
+			   ((String)factory.loadList.get(i)).startsWith("Satin_")) {
+				if(verbose) {
+					System.out.println("no need to run satinc on " + factory.loadList.get(i));
+				}
+			} else {
+				if(verbose) {
+					System.out.println("running satinc on " + factory.loadList.get(i));
+				}
+				new ibis.frontend.satin.Satinc(satinVerbose, keep, print, invocationRecordCache, 
+							       (String)factory.loadList.get(i), className, compiler, 
+							       supportAborts, inletOpt, false).start();
+				if(verbose) {
+					System.out.println(" Done");
+				}
+				
+				satinized.add(factory.loadList.get(i));
 			}
 		}
 
@@ -113,8 +189,7 @@ class Ibisc {
 
 		// Now generate serialization code for all classes, including the classes generated by satinc.
 		if(verbose) {
-			System.out.print("running io generator on all files");
-			System.out.flush();
+			System.out.println("running io generator on all files");
 		}
 
 		new ibis.frontend.io.IOGenerator(iogenVerbose, null, 0).scanClass(files, files.length);
@@ -122,25 +197,49 @@ class Ibisc {
 		if(verbose) {
 			System.out.println(" Done");
 		}
+
+		// run manta's bytecode compiler on all generated code.
+		// compile main class last.
+		if(doManta) {
+			for (int i=0; i<factory.loadList.size(); i++) {
+				if(!((String)factory.loadList.get(i)).equals(className)) {
+					mantaCompile((String)factory.loadList.get(i), false);
+				}
+				
+			}
+
+			// and now main...
+			mantaCompile(className, link);
+		}
+
+//		for (int i=0; i<factory.loadList.size(); i++) {
+//			System.out.println("loadlist: " + factory.loadList.get(i));
+//		}
 	}
 
 	public static void usage() {
 		System.err.println("Usage : ibisc [-v] [-sv] [-iv] [-keep] [-print] [-irc-off] " +
-				   "[-compiler \"your compile command\" ] [-no-aborts] [-no-inlet-opt] <Main.java>");
+				   "[-compiler \"your compile command\" ] [-mantac \"your compile command\" ] " +
+				   "[-c] [-o outfile] [-manta] [-no-aborts] [-no-inlet-opt] [-package] <java file(s)>");
 		System.exit(1);
 	}
 
 	public static void main(String[] args) {
-		String target = null;
 		boolean verbose = false;
 		boolean keep = false;
 		boolean print = false;
 		boolean invocationRecordCache = true;
 		boolean supportAborts = true;
-		String compiler = "jikes";
+		String compiler = "javac";
+		String mantac = "mantac";
+		boolean doManta = false;
 		boolean inletOpt = true;
 		boolean satinVerbose = false;
 		boolean iogenVerbose = false;
+		boolean link = true;
+		Vector targets = new Vector();
+		String packageName = "";
+		String exeName = null;
 
 		for(int i=0; i<args.length; i++) {
 			if(args[i].equals("-v")) {
@@ -150,16 +249,25 @@ class Ibisc {
 			} else if(args[i].equals("-iv")) {
 				iogenVerbose = true;
 			} else if(!args[i].startsWith("-")) {
-				if(target == null) {
-					target = args[i];
-				} else {
-					usage();
-				}
+				targets.add(args[i]);
+			} else if(args[i].equals("-package")) {
+				packageName = args[i+1];
+				i++;
 			} else if(args[i].equals("-compiler")) {
 				compiler = args[i+1];
 				i++;
+			} else if(args[i].equals("-mantac")) {
+				mantac = args[i+1];
+				i++;
 			} else if(args[i].equals("-keep")) {
 				keep = true;
+			} else if(args[i].equals("-o")) {
+				exeName = args[i+1];
+				i++;
+			} else if(args[i].equals("-manta")) {
+				doManta = true;
+			} else if(args[i].equals("-c")) {
+				link = false;
 			} else if(args[i].equals("-print")) {
 				print = true;
 			} else if(args[i].equals("-irc-off")) {
@@ -173,11 +281,11 @@ class Ibisc {
 			}
 		}
 
-		if(target == null) {
+		if(targets.size() == 0) {
 			usage();
 		}
 
 		new Ibisc(verbose, satinVerbose, iogenVerbose, keep, print, invocationRecordCache, 
-			  target, compiler, supportAborts, inletOpt).start();
+			  targets, packageName, exeName, compiler, mantac, link, doManta, supportAborts, inletOpt).start();
 	}
 }
