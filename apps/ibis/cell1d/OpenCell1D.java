@@ -139,9 +139,13 @@ class OpenCell1D implements OpenConfig {
     static int aimFirstNoColumn;
     static int knownMembers = 0;
     static RszHandler rszHandler = new RszHandler();
-    static long computeTime = 0;
-    static long adminTime = 0;
-    static long communicationTime = 0;
+
+    // Arrays to record statistical information for each generation. Can be
+    // null if we're not interested.
+    static int population[] = null;
+    static long computationTime[] = null;
+    static long communicationTime[] = null;
+    static long administrationTime[] = null;
 
     private static void usage()
     {
@@ -699,6 +703,7 @@ class OpenCell1D implements OpenConfig {
     public static void main( String [] args )
     {
         int count = GENERATIONS;
+        boolean collectStatistics = false;
 
         /** The first column that is my responsibility. */
         int firstColumn = -1;
@@ -712,9 +717,18 @@ class OpenCell1D implements OpenConfig {
                 i++;
                 boardsize = Integer.parseInt( args[i] );
             }
+            else if( args[i].equals( "-stat" ) ){
+                collectStatistics = true;
+            }
             else {
                 count = Integer.parseInt( args[i] );
             }
+        }
+        if( collectStatistics ){
+            population = new int[count];
+            computationTime = new long[count];
+            communicationTime = new long[count];
+            administrationTime = new long[count];
         }
 
         try {
@@ -833,9 +847,9 @@ class OpenCell1D implements OpenConfig {
                     }
                 }
                 long endTime = System.currentTimeMillis();
-                computeTime += (endComputeTime-startComputeTime);
-                communicationTime += (endTime-endComputeTime);
-                adminTime += (startComputeTime-startLoopTime);
+                computationTime[generation-1] = (endComputeTime-startComputeTime);
+                communicationTime[generation-1] = (endTime-endComputeTime);
+                administrationTime[generation-1] = (startComputeTime-startLoopTime);
                 if( showProgress && me == 0 ){
                     System.out.print( '.' );
                 }
@@ -859,7 +873,12 @@ class OpenCell1D implements OpenConfig {
 
                 System.out.println( "ExecutionTime: " + time );
                 System.out.println( "Did " + updates + " updates" );
-                System.out.println( "Spent " + (computeTime/1000.0) + "s computing, " + (communicationTime/1000.0) + "s communicating, and " + (adminTime/1000.0) + "s administrating." );
+            }
+            if( population != null ){
+                // We blindly assume all statistics arrays exist.
+                for( int gen=0; gen<count; gen++ ){
+                    System.out.println( "STATS " + me + " " + gen + " " + population[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] );
+                }
             }
 
             ibis.end();
