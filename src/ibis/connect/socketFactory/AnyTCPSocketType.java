@@ -19,9 +19,11 @@ import java.net.InetSocketAddress;
 
 
 /**
- * Socket type that attempts to set up connections in several ways.
+ * Socket type that attempts to set up a brokered connection in several ways.
  * First, an ordinary client/server connection is tried. If that fails,
- * a reversed connection is tried. If that fails as well, a TCPSplice
+ * a reversed connection is tried. The idea is that one end may be behind
+ * a firewall and the other not. Firewalls often allow for outgoing connections,
+ * so acting as a client may succeed. If that fails as well, a TCPSplice
  * connection is tried.
  */
 public class AnyTCPSocketType extends SocketType 
@@ -113,6 +115,7 @@ public class AnyTCPSocketType extends SocketType
 		try {
 		    s.connect(target, 2000);
 		    // s.connect(target);
+		    // No, a connect without timeout sometimes just hangs.
 		} catch(Exception e) {
 		    MyDebug.trace("AnyTCPSocketType client got exception " + e);
 		    e.printStackTrace();
