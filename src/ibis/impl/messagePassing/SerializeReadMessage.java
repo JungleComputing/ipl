@@ -3,7 +3,6 @@ package ibis.ipl.impl.messagePassing;
 import java.io.IOException;
 
 import ibis.ipl.IbisException;
-import manta.runtime.RuntimeSystem;
 
 class SerializeReadMessage extends ibis.ipl.impl.messagePassing.ReadMessage {
 
