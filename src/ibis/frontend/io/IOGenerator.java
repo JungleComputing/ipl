@@ -290,7 +290,7 @@ public class IOGenerator {
 			   
 		if (verbose) System.out.println("  Generating InstanceGenerator class for " + clazz.className());
 
-		String name = clazz.useName() + "_ibis.io_Generator";
+		String name = clazz.useName() + "_ibis_io_Generator";
 
 		BT_Class gen = new BT_Class(name, (short) (BT_Class.PUBLIC + BT_Class.FINAL));
 		
