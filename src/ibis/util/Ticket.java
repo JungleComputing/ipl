@@ -65,7 +65,7 @@ public class Ticket {
 			int new_size = size*2;
 			
 			// "tickets" is empty, so we can realloc it directly			
-			int [] tickets = new int[new_size];
+			tickets = new int[new_size];
 			
 			// the others (may) contain data, so copy it.
 			Object [] new_data = new Object[new_size];
