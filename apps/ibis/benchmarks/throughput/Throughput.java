@@ -67,6 +67,9 @@ class Throughput extends Thread {
 			ibis_impl = "ibis.ipl.impl.panda.PandaIbis";
 		    } else if (args[i].equals("-window")) {
 			windowSize = Integer.parseInt(args[++i]);
+			if (windowSize <= 0) {
+			    windowSize = Integer.MAX_VALUE;
+			}
 		    } else if (options == 0) {
 			count = Integer.parseInt(args[i]);
 			options++;
@@ -127,7 +130,7 @@ System.err.println(">>>>>>>> Righto, I'm the slave");
 				send();
 				time = System.currentTimeMillis() - time;
 				double speed = (time * 1000.0) / (double)count;
-				double dataSent = ((double) transferSize * count) / (1024.0 * 1024.0);
+				double dataSent = ((double) transferSize * ( count + count / windowSize )) / (1024.0 * 1024.0);
 				System.out.print("Latency: " + count + " calls took " + (time/1000.0) + " seconds, time/call = " + speed + " micros, ");
 				System.out.println("Throughput: " + (dataSent / (time / 1000.0)) + " MByte/s");
 			} else {			
