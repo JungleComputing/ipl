@@ -124,7 +124,7 @@ done
 shift 1 #skip the '-'
 APP_CLASS_PARAMS=$*
 
-if [ -z $(pwd | egrep "^$IBIS_ROOT/ibis") ]; then
+if [ -z $(pwd | egrep "^$IBIS_ROOT") ]; then
 	echo $0: You are not running an application in the ibis tree!
 	exit 1
 fi
@@ -138,29 +138,20 @@ echo - SessionID: $$
 #create $IBIS_ROOT/ibis.tgz
 (
 	cd $IBIS_ROOT
+	FILES="$FILES $(find . -name *.class -or -name *properties -or -name *.jar)"
 
-	FILES="$FILES $(find ibis -name *properties -maxdepth 1)"
-	FILES="$FILES $(find ibis/bcel-additions -name *.class -or -name *properties -or -name *.jar)"
-	FILES="$FILES $(find ibis/classfile -name *.class -or -name *properties -or -name *.jar)"
-	FILES="$FILES $(find ibis/frontend -name *.class -or -name *properties -or -name *.jar)"
-	FILES="$FILES $(find ibis/gmi -name *.class -or -name *properties -or -name *.jar)"
-	FILES="$FILES $(find ibis/io -name *.class -or -name *properties -or -name *.jar)"
-	FILES="$FILES $(find ibis/ipl -name *.class -or -name *properties -or -name *.jar)"
-	FILES="$FILES $(find ibis/rmi -name *.class -or -name *properties -or -name *.jar)"
-	FILES="$FILES $(find ibis/satin -name *.class -or -name *properties -or -name *.jar)"
-	FILES="$FILES $(find ibis/util -name *.class -or -name *properties -or -name *.jar)"
 	#also include $APP_DIR and its subdirs
 	FILES="$FILES $(find $APP_DIR -name *.class -or -name *.jar -or -name *.txt -or -name *.chain -or -name *.tree)"
 	#FILES="$FILES $(find $APP_DIR -path "$APP_DIR/*/*")"
 	#and the libraries
-	FILES="$FILES $(find ibis/lib -path "ibis/lib/*" -and -name *.so)"
+	FILES="$FILES $(find build/lib -name *.so)"
 
 	rm -f ibis$$.tgz
 	tar cfz ibis$$.tgz $FILES
 )
 
 echo -n "- Starting Ibis name server..."
-$IBIS_ROOT/ibis/bin/ibis_nameserver -port $NS_PORT &
+$IBIS_ROOT/bin/ibis_nameserver -port $NS_PORT &
 NS_PID=$!
 echo "done."
 

@@ -36,11 +36,6 @@
 	<echo message="p-out = ${p-out}"/>
 	-->
 
-	<echo message="packages:"/>
-	<echo message="package.home.bcel      = ${package.home.bcel}"/>
-	<echo message="package.home.bcel-additions = ${package.home.bcel-additions}"/>
-	<echo message="package.home.ant-contrib    = ${package.home.ant-contrib}"/>
-	<echo message="package.home.ant-cpptasks   = ${package.home.ant-cpptasks}"/>
 	<mkdir dir="${build}"/>
     </target>
 
@@ -51,36 +46,49 @@
     -->
     <target name="bcel" depends="init">
 	<javac  destdir="${build}"
-		srcdir="${package.home.bcel-additions}">
+		srcdir="${ibis}/bcel-additions">
 	    <include name="**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
 
-
     <!--
 	The list of directories that contain native sources.
     -->
-    <path id="native.src.dirs">
+    <path id="native.src.misc">
 	<!--
 	-->
 	<pathelement path="${ibis}/src/ibis/io"/>
-	<pathelement path="${ibis}/src/ibis/impl/messagePassing"/>
-	<pathelement path="${ibis}/src/ibis/impl/messagePassing/panda"/>
-	<!--
-	<pathelement path="${ibis}/src/ibis/impl/messagePassing/mpi"/>
-	-->
-	<pathelement path="${ibis}/src/ibis/impl/net/gm"/>
 	<pathelement path="${ibis}/src/ibis/util/nativeCode"/>
 	<!--
 	-->
     </path>
 
-    <property name="native.src.path" refid="native.src.dirs"/>
+    <path id="native.src.mp">
+	<!--
+	-->
+	<pathelement path="${ibis}/src/ibis/impl/messagePassing"/>
+	<pathelement path="${ibis}/src/ibis/impl/messagePassing/panda"/>
+	<!--
+	<pathelement path="${ibis}/src/ibis/impl/messagePassing/mpi"/>
+	-->
+	<!--
+	-->
+    </path>
 
+    <path id="native.src.net">
+	<!--
+	-->
+	<pathelement path="${ibis}/src/ibis/impl/net/gm"/>
+	<!--
+	-->
+    </path>
+
+    <property name="native.src.mp" refid="native.src.mp"/>
+    <property name="native.src.misc" refid="native.src.misc"/>
+    <property name="native.src.net" refid="native.src.net"/>
 
     <import file="${ibis}/build-iogen.xml"/>
-
 
     <target name="depend">
 	<depend
@@ -92,109 +100,89 @@
 		/>
     </target>
 
-
-    <!--
-	Contains the list of directories where we want to compile sources
-    -->
-    <target name="compile"
-	    depends="init,bcel"
-	    description="Compile Ibis to .class">
-	    <!-- depend" -->
-	<echo message="java.debug.value = ${java.debug.value}"/>
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		listfiles="true"
-		srcdir="${src}">
-
-	    <include name="java/**/*.java"/>
-
-	    <include name="ibis/frontend/**/*.java"/>
-	    <include name="ibis/gmi/**/*.java"/>
-	    <include name="ibis/io/**/*.java"/>
-
-	    <include name="ibis/ipl/**/*.java"/>
-	    <include name="ibis/impl/**/*.java"/>
-	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/impl/net/muxer/tcp_blk/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
-
-	    <include name="ibis/satin/**/*.java"/>
-	    <include name="ibis/classfile/**/*.java"/>
-	    <include name="ibis/rmi/**/*.java"/>
-	    <include name="ibis/repmi/**/*.java"/>
-	    <exclude name="ibis/repmi/Stub_manta_io_Generator.java"/>
-	    <exclude name="ibis/repmi/Registry.java"/>
-	    <exclude name="ibis/repmi/ReplicatedObject.java"/>
-	    <include name="ibis/util/**/*.java"/>
-
-	    <classpath refid="default.classpath"/>
-	</javac>
-    </target>
-
-
     <!--
 	For a number of source modules, provide a separate target
 	so we may compile only this source module, which is quicker.
     -->
 
-    <target name="ipl" depends="init">
-        <javac  destdir="${build}"
-                debug="${java.debug.value}"
-                srcdir="${src}">
-            <include name="ibis/ipl/**/*.java"/>
-            <classpath refid="default.classpath"/>
-        </javac>
-    </target>
-
-
     <target name="util" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
+	<patternset id="build.sources.util">
 	    <include name="ibis/util/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.util" torefid="build.sources"/>
+	</antcall>
     </target>
 
 
     <target name="io" depends="init">
-	<javac  destdir="${build}"
-		debug="true">
-	    <src path="io"/>
-	    <classpath refid="default.classpath"/>
-	    <include name="**/*.java"/>
-	</javac>
+	<patternset id="build.sources.io">
+	    <include name="ibis/io/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.io" torefid="build.sources"/>
+	</antcall>
     </target>
 
 
-    <target name="frontend" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
+    <target name="frontend" depends="init,bcel">
+	<patternset id="build.sources.frontend">
 	    <include name="ibis/frontend/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.frontend" torefid="build.sources"/>
+	</antcall>
     </target>
 
 
     <target name="satin" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
+	<patternset id="build.sources.satin">
 	    <include name="ibis/satin/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.satin" torefid="build.sources"/>
+	</antcall>
+    </target>
+
+
+    <target name="gmi" depends="init">
+	<patternset id="build.sources.gmi">
+	    <include name="ibis/gmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.gmi" torefid="build.sources"/>
+	</antcall>
+    </target>
+
+
+    <target name="rmi" depends="init">
+	<patternset id="build.sources.rmi">
+	    <include name="ibis/rmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.rmi" torefid="build.sources"/>
+	</antcall>
+    </target>
+
+    <target name="ipl" depends="init">
+	<patternset id="build.sources.ipl">
+	    <include name="ibis/ipl/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.ipl" torefid="build.sources"/>
+	</antcall>
     </target>
 
 
     <target name="ns" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
+	<patternset id="build.sources.ns">
 	    <include name="ibis/impl/nameServer/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-	<java	classname="ibis.impl.nameServer.NameServer"
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.ns" torefid="build.sources"/>
+	</antcall>
+
+	<java   classname="ibis.impl.nameServer.tcp.NameServer"
 		fork="true">
 	    <classpath refid="default.classpath"/>
 	    <arg line="-port 7654"/>
@@ -203,47 +191,35 @@
 
 
     <target name="mp" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
+	<patternset id="build.sources.mp">
 	    <include name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.mp" torefid="build.sources"/>
+	</antcall>
     </target>
 
 
     <target name="tcp" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
+	<patternset id="build.sources.tcp">
 	    <include name="ibis/impl/tcp/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.tcp" torefid="build.sources"/>
+	</antcall>
     </target>
 
 
     <target name="net" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
+	<patternset id="build.sources.net">
 	    <include name="ibis/impl/net/**/*.java"/>
 	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/impl/net/muxer/tcp_blk/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.net" torefid="build.sources"/>
+	</antcall>
     </target>
-
-
-    <target name="rmi" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
-	    <include name="ibis/rmi/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-    </target>
-
 
     <import file="${ibis}/build-native.xml"/>
 
@@ -268,34 +244,137 @@
 
 
     <!--
-	Compile the native code in all directories indicated by native.src.path
+	Compile the native code in all directories indicated by native,src.*
     -->
-    <target name="natives" depends="property-init">
-	    <!-- depends="compile,javah"-->
+
+    <target name="natives.misc" depends="property-init">
 	<echo	level="debug"
-		message="Native directories = ${native.src.path}"/>
-	<echo	level="debug"
-		message="package.home.ant-cpptasks = ${package.home.ant-cpptasks}"/>
+		message="Native directories = ${native.src.misc}"/>
 	<foreach
-		list="${native.src.path}"
+		list="${native.src.misc}"
 		delimiter="${path.separator}"
 		param="native.dir"
 		target="-build-native"/>
     </target>
 
+    <target name="natives.net" depends="property-init">
+	    <!-- depends="compile,javah"-->
+	<echo	level="debug"
+		message="Native directories = ${native.src.net}"/>
+	<foreach
+		list="${native.src.net}"
+		delimiter="${path.separator}"
+		param="native.dir"
+		target="-build-native"/>
+    </target>
+
+    <target name="natives.mp" depends="property-init">
+	    <!-- depends="compile,javah"-->
+	<echo	level="debug"
+		message="Native directories = ${native.src.mp}"/>
+	<foreach
+		list= "${native.src.mp}"
+		delimiter="${path.separator}"
+		param="native.dir"
+		target="-build-native"/>
+    </target>
+
+    <target name="natives" depends="natives.misc,natives.mp,natives.net">
+    </target>
+
+    <target name="compile"
+	    depends="init,bcel"
+	    description="Compile Ibis to .class">
+	    <!-- depend" -->
+	<echo message="java.debug.value = ${java.debug.value}"/>
+	<javac  destdir="${build}"
+		debug="${java.debug.value}"
+		listfiles="true"
+		srcdir="${src}">
+	    <patternset refid="build.sources"/>
+
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
 
     <!--
 	Compile, run IOGenerator, compile native code for the whole of Ibis
     -->
     <target name="build"
 	    description="Build Ibis">
-	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<patternset id="build.sources.all">
+	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/net/nio/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
+	    <exclude name="ibis/repmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.all" torefid="build.sources"/>
+	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
 	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
 	<antcall inheritAll="true" inheritRefs="true" target="natives"/>
     </target>
 
+    <!--
+	Compile, run IOGenerator, compile native code for TCP Ibis
+    -->
+    <target name="build-tcp"
+	    description="Build TCP Ibis">
+	<patternset id="build.sources.tcp">
+	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/net/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
+	    <exclude name="ibis/repmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.tcp" torefid="build.sources"/>
+	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
+	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
+    </target>
 
+    <!--
+	Compile, run IOGenerator, compile native code for Net Ibis
+    -->
+    <target name="build-net"
+	    description="Build NetIbis">
+	<patternset id="build.sources.net">
+	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/tcp/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
+	    <exclude name="ibis/repmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.net" torefid="build.sources"/>
+	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
+	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
+	<antcall inheritAll="true" inheritRefs="true" target="natives.net"/>
+    </target>
+
+    <!--
+	Compile, run IOGenerator, compile native code for Net Ibis
+    -->
+    <target name="build-mp"
+	    description="Build messagePassing Ibis">
+	<patternset id="build.sources.mp">
+	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/tcp/**/*.java"/>
+	    <exclude name="ibis/impl/net/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
+	    <exclude name="ibis/repmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.mp" torefid="build.sources"/>
+	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
+	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
+	<antcall inheritAll="true" inheritRefs="true" target="natives.mp"/>
+    </target>
 
     <!--
 	Run IOGenerator over the classlibs in $JAVA_HOME and
@@ -306,29 +385,21 @@
 
     <target name="-rewrite-unjar-one">
 	<echo level="warning" message="Now unjar ${jar.file}"/>
-	<mkdir dir="${rewritten-classlibs}"/>
 	<unjar src="${jar.file}" dest="${rewritten-classlibs}"/>
     </target>
 
     <target name="-rewrite-iogen-one">
-	<path id="iogen-files-ref">
-	    <fileset dir="${iogen.dir}">
-		<include name="**/*.class"/>
-	    </fileset>
-	</path>
-	<pathconvert pathsep=" " property="iogen-one-files" refid="iogen-files-ref">
-	    <map from="${rewritten-classlibs}${file.separator}" to=""/>
-	</pathconvert>
-	<echo	level="debug"
-		message="Now try iogen over files ${iogen-one-files}"/>
+	<echo level="debug"
+		message="Now try iogen over files in ${iogen.dir}"/>
 	<antcall inheritRefs="true" target="iogen-files">
-	    <param name="iogen-files" value="${iogen-one-files}"/>
+	    <param name="iogen-files" value="${iogen.dir}"/>
 	    <param name="iogen-build" value="${rewritten-classlibs}"/>
 	</antcall>
     </target>
 
     <target name="rewrite" depends="init">
 	<!--
+	    First, find and extract jars.
 	-->
 	<path id="java.jar.ref">
 	    <fileset dir="${JAVA_HOME}/jre/lib">
@@ -336,24 +407,37 @@
 	    </fileset>
 	</path>
 	<property name="java.jar.files" refid="java.jar.ref"/>
+	<mkdir dir="${rewritten-classlibs}"/>
 	<foreach
 		list="${java.jar.files}"
 		delimiter="${path.separator}"
 		target="-rewrite-unjar-one"
 		param="jar.file"/>
 
+	<!--
+	    Then, run IOGenerator on each subdirectory of classlibs.
+	    Note: we could run IOGenerator on "." in classlibs,
+	    rewriting everything in one go, but IOGenerator uses too
+	    much memory.
+	-->
 	<path id="java.classlibs.ref">
 	    <dirset dir="${rewritten-classlibs}">
 		<include name="*"/>
-		<exclude name="META-INF"/>
-		<exclude name="com"/>
-	    </dirset>
-	    <dirset dir="${rewritten-classlibs}">
-		<include name="com/*"/>
 	    </dirset>
 	</path>
-	<property name="java.classlibs.files" refid="java.classlibs.ref"/>
-	<echo	level="debug"
+
+	<!--
+	    We now have a list of absolute pathnames. Convert them to
+	    relative.
+	-->
+	<pathconvert pathsep="${path.separator}" property="java.classlibs.files" refid="java.classlibs.ref">
+	    <map from="${rewritten-classlibs}${file.separator}" to=""/>
+	</pathconvert>
+
+	<!--
+	    And rewrite ...
+	-->
+	<echo level="debug"
 		message="Rewrite each of ${java.classlibs.files}"/>
 	<foreach
 		list="${java.classlibs.files}"
@@ -362,18 +446,15 @@
 		param="iogen.dir"/>
     </target>
 
-
-
     <target name="apps"
 	    depends="build,bcel"
 	    description="Build Ibis apps">
 	<ant dir="apps"/>
     </target>
 
-
     <target name="clean">
 	<delete dir="${rewritten-classlibs}"/>
-	<delete dir="build"/>
+	<delete dir="${build}"/>
 	<delete dir="${docs}"/>
     </target>
 
@@ -404,6 +485,4 @@
 	    <group title="Ibis Satin" packages="ibis.satin"/>
 	</javadoc>
     </target>
-
-
 </project>

@@ -64,7 +64,6 @@
 	<path id="default.classpath">
 	    <pathelement path="${ibisBuild}"/>
 	    <pathelement path="${build}"/>
-	    <pathelement path="${package.home.bcel-additions}"/>
 	    <pathelement path="${package.home.bcel}"/>
 	</path>
 

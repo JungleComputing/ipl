@@ -9,19 +9,14 @@
     </description>
 
 
+    <property name="config.home.bcel" location="3rdparty/bcel-5.1.jar"/>
+    <property name="config.home.ant-contrib" location="3rdparty/ant-contrib-0.4.jar"/>
+    <property name="config.home.ant-cpptasks" location="3rdparty/cpptasks-1.0b1.jar"/>
+
+
     <target name="config.das"
 	    depends="config-set-os"
 	    if="config.is-das">
-	<property
-		name="default.home.bcel"
-		location="3rdparty/bcel-5.1.jar"/>
-	<property
-		name="default.home.ant-contrib"
-		location="3rdparty/ant-contrib-0.4.jar"/>
-	<property
-		name="default.home.ant-cpptasks"
-		location="3rdparty/cpptasks-1.0b1.jar"/>
-
 	<property
 		name="default.home.panda"
 		location="/usr/local/VU/panda/panda4.0"/>
@@ -42,15 +37,6 @@
     <target name="config.workstation"
 	    depends="config-set-os"
 	    unless="config.is-das">
-	<property
-		name="default.home.bcel"
-		location="3rdparty/bcel-5.1.jar"/>
-	<property
-		name="default.home.ant-contrib"
-		location="3rdparty/ant-contrib-0.4.jar"/>
-	<property
-		name="default.home.ant-cpptasks"
-		location="3rdparty/cpptasks-1.0b1.jar"/>
 	<property
 		name="default.home.panda"
 		location="../panda/panda4.0"/>
@@ -127,25 +113,6 @@
     <target name="configure" depends="config-init">
 
 	<input
-		message="Please enter the jar of BCEL: [${default.home.bcel}] "
-		addproperty="install.home.bcel"/>
-	<!--
-	<input
-		message="Please enter the install directory of BCEL-additions: "
-		addproperty="install.home.bcel-additions"/>
-	-->
-	<property
-		name="install.home.bcel-additions"
-		location="${ibis}/bcel-additions"/>
-
-	<input
-		message="Please enter the jar of ant-contrib: [${default.home.ant-contrib}] "
-		addproperty="install.home.ant-contrib"/>
-	<input
-		message="Please enter the jar of ant-cpptasks: [${default.home.ant-cpptasks}] "
-		addproperty="install.home.ant-cpptasks"/>
-
-	<input
 		message="Please enter the install directory of gm: [${default.home.gm}] "
 		addproperty="install.home.gm"/>
 	<input
@@ -162,45 +129,7 @@
 		addproperty="install.home.mpi"/>
 
 
-	<property
-		name="config.home.ibis"
-		location="${ibis}"/>
-
-	<condition property="config.home.bcel-s" value="${default.home.bcel}">
-	    <equals arg1="${install.home.bcel}" arg2=""/>
-	</condition>
-	<condition property="config.home.bcel-s" value="${install.home.bcel}">
-	    <not>
-		<equals arg1="${install.home.bcel}" arg2=""/>
-	    </not>
-	</condition>
-	<property name="config.home.bcel"
-		location="${config.home.bcel-s}"/>
-
-	<property name="config.home.bcel-additions"
-		location="${install.home.bcel-additions}"/>
-
-	<condition property="config.home.ant-contrib-s" value="${default.home.ant-contrib}">
-	    <equals arg1="${install.home.ant-contrib}" arg2=""/>
-	</condition>
-	<condition property="config.home.ant-contrib-s" value="${install.home.ant-contrib}">
-	    <not>
-		<equals arg1="${install.home.ant-contrib}" arg2=""/>
-	    </not>
-	</condition>
-	<property name="config.home.ant-contrib"
-		location="${config.home.ant-contrib-s}"/>
-
-	<condition property="config.home.ant-cpptasks-s" value="${default.home.ant-cpptasks}">
-	    <equals arg1="${install.home.ant-cpptasks}" arg2=""/>
-	</condition>
-	<condition property="config.home.ant-cpptasks-s" value="${install.home.ant-cpptasks}">
-	    <not>
-		<equals arg1="${install.home.ant-cpptasks}" arg2=""/>
-	    </not>
-	</condition>
-	<property name="config.home.ant-cpptasks"
-		location="${config.home.ant-cpptasks-s}"/>
+	<property name="config.home.ibis" location="${ibis}"/>
 
 	<condition property="config.home.gm-s" value="${default.home.gm}">
 	    <equals arg1="${install.home.gm}" arg2=""/>
@@ -260,12 +189,6 @@
 
 	<!--
 	<echo	file="config.status"
-		append="false">${config.home.bcel}
-	</echo>
-	<echo	file="config.status"
-		append="true">${config.home.bcel-additions}
-	</echo>
-	<echo	file="config.status"
 		append="true">${config.home.ant-contrib}
 	</echo>
 	<echo	file="config.status"
@@ -288,15 +211,11 @@
 			    name="BCEL_HOME"
 			    value="${config.home.bcel}"/>
 		    <param  type="token"
-			    name="BCEL_ADDITIONS"
-			    value="${config.home.bcel-additions}"/>
+			    name="ANT_CPPTASKS"
+			    value="${config.home.ant-cpptasks}"/>
 		    <param  type="token"
 			    name="ANT_CONTRIB"
 			    value="${config.home.ant-contrib}"/>
-		    <param  type="token"
-			    name="ANT_CPPTASKS"
-			    value="${config.home.ant-cpptasks}"/>
-
 		    <param  type="token"
 			    name="GM_HOME"
 			    value="${config.home.gm}"/>
