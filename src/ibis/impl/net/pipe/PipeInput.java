@@ -29,6 +29,10 @@ public final class PipeInput extends NetBufferedInput {
 
         private final class UpcallThread extends Thread {
                 
+                public UpcallThread(String name) {
+                        super("PipeInput.UpcallThread: "+name);
+                }
+                
                 public void run() {
                         while (true) {
                                 try {
@@ -79,7 +83,7 @@ public final class PipeInput extends NetBufferedInput {
 
 		allocator = new NetAllocator(mtu);
                 if (upcallFunc != null) {
-                        (upcallThread = new UpcallThread()).start();
+                        (upcallThread = new UpcallThread("this = "+this)).start();
                 }
 	}
 

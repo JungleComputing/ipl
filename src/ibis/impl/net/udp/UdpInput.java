@@ -72,6 +72,10 @@ public final class UdpInput extends NetBufferedInput {
 	}
 
         private final class UpcallThread extends Thread {
+
+                public UpcallThread(String name) {
+                        super("UdpInput.UpcallThread: "+name);
+                }
                 
                 public void run() {
                         while (true) {
@@ -147,7 +151,7 @@ public final class UdpInput extends NetBufferedInput {
 
 		setReceiveTimeout(receiveTimeout);
                 if (upcallFunc != null) {
-                        (new UpcallThread()).start();
+                        (new UpcallThread(raddr+"["+rport+"]")).start();
                 }
 	}
 

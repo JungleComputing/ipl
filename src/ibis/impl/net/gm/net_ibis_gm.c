@@ -1,4 +1,4 @@
-// #define NDEBUG
+#define NDEBUG
 
 #include <jni.h>
 #include <stdlib.h>
@@ -67,7 +67,7 @@
 
 #define NI_GM_PACKET_HDR_LEN   8
 //#define NI_GM_PACKET_BODY_LEN  64
-#define NI_GM_PACKET_BODY_LEN  2048
+#define NI_GM_PACKET_BODY_LEN  8192
 #define NI_GM_PACKET_LEN       ((NI_GM_PACKET_HDR_LEN)+(NI_GM_PACKET_BODY_LEN))
 #define NI_GM_MIN_PACKETS       12
 #define NI_GM_MAX_PACKETS       18
@@ -1458,7 +1458,6 @@ ni_gm_output_flow_control(struct s_port   *p_port,
         struct s_output *p_out          = NULL;
         int              len            =    0;
         int              mux_id         =    0;
-        int              remote_node_id =    0;
         
         __in__();
         if (msg) {
@@ -1471,7 +1470,6 @@ ni_gm_output_flow_control(struct s_port   *p_port,
         }
 
         p_out = p_port->local_output_array[mux_id];
-        assert(remote_node_id == p_out->dst_node_id);
 
         if (ni_gm_check_receive_tokens(p_port)) {
                 goto error;
@@ -1503,6 +1501,7 @@ ni_gm_input_flow_control(struct s_port  *p_port,
         int              mux_id         =    0;
 
         __in__();
+        __disp__("0");
         if (msg) {
                 len = ni_gm_extract_length(msg);
                 mux_id = ni_gm_extract_mux_id(msg);
@@ -1513,8 +1512,7 @@ ni_gm_input_flow_control(struct s_port  *p_port,
                 mux_id = ni_gm_extract_mux_id(packet);
         }
         
-        __disp__("code = 0");
-
+        __disp__("1");
         p_in = p_port->local_input_array[mux_id];
 
         do {
@@ -1528,10 +1526,12 @@ ni_gm_input_flow_control(struct s_port  *p_port,
         goto error;
                                         
  found:
+        __disp__("2");
         p_packet = ni_gm_remove_packet_from_list(&p_port->packet_head);
         p_port->nb_packets--;
         ni_gm_add_packet_to_list_tail(&p_in->packet_head, p_packet);
-                                        
+                                    
+        __disp__("3");
         if (p_port->nb_packets < NI_GM_MIN_PACKETS) {
                 p_packet = malloc(sizeof(struct s_request));
                 assert(p_packet);
@@ -1549,8 +1549,8 @@ ni_gm_input_flow_control(struct s_port  *p_port,
                                                    p_port->packet_size,
                                                    GM_HIGH_PRIORITY, 1);
                 p_port->nb_packets++;
-        }
-                                        
+        }                                        
+        __disp__("4");
         __disp__("gm_high_receive_event: unlock(%d)\n", p_in->p_lock->id);
         ni_gm_lock_unlock(p_in->p_lock);
 
@@ -1572,7 +1572,6 @@ ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
         unsigned char *packet         = NULL;
         
         __in__();
-        __disp__("gm_high_receive_event:-->");
         packet = gm_ntohp(p_event->recv.buffer);
         msg    = gm_ntohp(p_event->recv.message);
         code   = ni_gm_extract_code(msg);
@@ -1586,7 +1585,6 @@ ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
         } else {
                 abort();
         }
-        __disp__("gm_high_receive_event:<--");
 
         __out__();
         return 0;
@@ -1604,7 +1602,6 @@ ni_gm_process_high_recv_event(struct s_port   *p_port,
         unsigned char *packet         = NULL;
         
         __in__();
-        __disp__("gm_high_receive_event:-->");
         packet = gm_ntohp(p_event->recv.buffer);
         code   = ni_gm_extract_code(packet);
                                 
@@ -1617,7 +1614,6 @@ ni_gm_process_high_recv_event(struct s_port   *p_port,
         } else {
                 abort();
         }
-        __disp__("gm_high_receive_event:<--");
 
         __out__();
         return 0;
@@ -1634,7 +1630,6 @@ ni_gm_process_recv_event(struct s_port   *p_port,
         int            remote_node_id =    0;
 
         __in__();
-        __disp__("gm_receive_event:-->");
         p_in = p_port->active_input;
 
         remote_node_id = gm_ntohs(p_event->recv.sender_node_id);
@@ -1643,7 +1638,6 @@ ni_gm_process_recv_event(struct s_port   *p_port,
         ni_gm_deregister_block(p_port, p_in->p_cache);
         ni_gm_release_byte_array(p_in->j_byte_array, p_in->byte_array);
         ni_gm_input_unlock(p_in, (int)gm_ntohl(p_event->recv.length));
-        __disp__("gm_receive_event:<--");
         __out__();
 
         return 0;

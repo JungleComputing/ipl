@@ -71,6 +71,8 @@ public final class TcpInput extends NetBufferedInput {
 	 */
 	private int                   rmtu            =   0;
 
+        private InetAddress           addr            = null;
+        private int                   port            =    0;
         private byte []               hdr             = new byte[4];
         private NetReceiveBuffer      buf             = null;
         private UpcallThread          upcallThread    = null;
@@ -92,6 +94,10 @@ public final class TcpInput extends NetBufferedInput {
 
         private final class UpcallThread extends Thread {
                 
+                public UpcallThread(String name) {
+                        super("Tcp(blk)Input.UpcallThread: "+name);
+                }
+
                 public void run() {
                         while (true) {
                                 try {
@@ -146,6 +152,8 @@ public final class TcpInput extends NetBufferedInput {
 			tcpSocket.setSendBufferSize(0x8000);
 			tcpSocket.setReceiveBufferSize(0x8000);
 			tcpSocket.setTcpNoDelay(true);
+                        addr = tcpSocket.getInetAddress();
+                        port = tcpSocket.getPort();
 
 			tcpIs 	   = tcpSocket.getInputStream();
 			tcpOs 	   = tcpSocket.getOutputStream();
@@ -156,7 +164,7 @@ public final class TcpInput extends NetBufferedInput {
 		mtu       = Math.min(lmtu, rmtu);
 		allocator = new NetAllocator(mtu);
                 if (upcallFunc != null) {
-                        (upcallThread = new UpcallThread()).start();
+                        (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                 }
 	}
 

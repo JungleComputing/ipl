@@ -26,6 +26,10 @@ public final class DefInput extends NetInput {
 	}
 
         private final class UpcallThread extends Thread {
+                public UpcallThread(String name) {
+                        super("DefInput.UpcallThread: "+name);
+                }
+                
                 public void run() {
                         while (true) {
                                 lock();
@@ -70,7 +74,7 @@ public final class DefInput extends NetInput {
                 info.put("def_nls_id", new Integer(nlsId));
                 sendInfoTable(os, info);
                 if (upcallFunc != null) {
-                        (new UpcallThread()).start();
+                        (new UpcallThread("id = " + nlsId)).start();
                 }
 	}
 

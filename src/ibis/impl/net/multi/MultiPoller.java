@@ -72,7 +72,8 @@ public final class MultiPoller extends NetInput {
                 private ObjectInputStream  is          =  null;
                 private ObjectOutputStream os          =  null;
 
-                public ServiceThread(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+                public ServiceThread(String name, Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+                        super("ServiceThread: "+name);
                         this.spn = spn;
                         this.os  = os;
                         this.is  = is;
@@ -212,7 +213,7 @@ public final class MultiPoller extends NetInput {
                         }
 
                         {
-                                ServiceThread st = new ServiceThread(spn, is, os, nls);
+                                ServiceThread st = new ServiceThread("subcontext = "+subContext+", spn = "+spn, spn, is, os, nls);
                                 serviceTable.put(spn, st);
                                 st.start();
                         }                        

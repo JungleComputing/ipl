@@ -116,13 +116,15 @@ public final class GmOutput extends NetBufferedOutput {
         private void pump() {
                 int result = Driver.gmLockArray.lockFirst(lockIds);
                 if (result == 1) {
-                                /* got GM main lock, let's pump */
+                        /* got GM main lock, let's pump */
                         Driver.gmAccessLock.lock(false);
                         Driver.nGmThread();
                         Driver.gmAccessLock.unlock(false);
                         if (!Driver.gmLockArray.trylock(lockId)) {        
                                 do {
-                                (Thread.currentThread()).yield();
+
+                                        // WARNING: yield
+                                        //(Thread.currentThread()).yield();
 
                                         Driver.gmAccessLock.lock(false);
                                         Driver.nGmThread();
@@ -145,7 +147,7 @@ public final class GmOutput extends NetBufferedOutput {
          */
         public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
 
-                if (b.length-b.base > 2048) {
+                if (b.length-b.base > 4096) {
                         /* Post the 'request' */
                         Driver.gmAccessLock.lock(true);
                         nSendRequest(outputHandle);

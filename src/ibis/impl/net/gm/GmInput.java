@@ -40,6 +40,7 @@ public final class GmInput extends NetBufferedInput {
         private int                   rmuxId         =   -1;
         private int                   blockLen       =    0;
         private boolean               firstBlock     = true;
+        private UpcallThread          upcallThread   = null;
         
         static private byte [] dummyBuffer = new byte[4];
 	native long nInitInput(long deviceHandle) throws IbisIOException;
@@ -49,7 +50,6 @@ public final class GmInput extends NetBufferedInput {
         native void nConnectInput(long inputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IbisIOException;
         native int nPostBuffer(long inputHandle, byte []b, int base, int length) throws IbisIOException;
 	native void nCloseInput(long inputHandle) throws IbisIOException;
-
 
 	/**
 	 * Constructor.
@@ -70,9 +70,14 @@ public final class GmInput extends NetBufferedInput {
 	}
 
         private final class UpcallThread extends Thread {
-                
+                private boolean end = false;
+
+                public UpcallThread(String name) {
+                        super("GmInput.UpcallThread: "+name);
+                }                
+
                 public void run() {
-                        while (true) {
+                        while (!end) {
                                 pump();
                                 activeNum = spn;
                                 firstBlock = true;
@@ -80,6 +85,12 @@ public final class GmInput extends NetBufferedInput {
                                 upcallFunc.inputUpcall(GmInput.this, activeNum);
                                 activeNum = null;
                         }
+                }
+
+                public void finish() {
+                        end = true;
+                        this.interrupt();
+                        this.setDaemon(true);
                 }
         }
 
@@ -135,20 +146,21 @@ public final class GmInput extends NetBufferedInput {
                 mtu       = 2*1024*1024;
 		allocator = new NetAllocator(mtu);
                 if (upcallFunc != null) {
-                        (new UpcallThread()).start();
+                        (upcallThread = new UpcallThread(lnodeId+":"+lportId+"("+lmuxId+") --> "+rnodeId+":"+rportId+"("+rmuxId+")")).start();
                 }
 	}
 
         private void pump() {
                 int result = Driver.gmLockArray.lockFirst(lockIds);
                 if (result == 1) {
-                                /* got GM main lock, let's pump */
+                        /* got GM main lock, let's pump */
                         Driver.gmAccessLock.lock(false);
                         Driver.nGmThread();
                         Driver.gmAccessLock.unlock(false);
                         if (!Driver.gmLockArray.trylock(lockId)) {
-                                do {                       
-                                        (Thread.currentThread()).yield();
+                                do { 
+                                        // WARNING: yield 
+                                        //(Thread.currentThread()).yield();
                                 
                                         Driver.gmAccessLock.lock(false);
                                         Driver.nGmThread();
@@ -274,6 +286,11 @@ public final class GmInput extends NetBufferedInput {
                         Driver.nCloseDevice(deviceHandle);
                         deviceHandle = 0;
                 }
+
+                if (upcallThread != null) {
+                        upcallThread.finish();
+                }
+                
                 Driver.gmAccessLock.unlock(false);
 
 		super.free();

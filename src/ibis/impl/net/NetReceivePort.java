@@ -38,10 +38,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 	private boolean                  usePollingThread    = true;
 
-
 	private boolean                  useUpcallThread     = true;
 
-	private boolean                  useUpcall           = true;
+	private boolean                  useUpcall           = false;
 
 	/**
 	 * Flag indicating whether unsuccessful active polling should be followed by
@@ -179,6 +178,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         private final int                threadStackSize     = 256;
         private int                      threadStackPtr      = 0;
         private UpcallThread[]           threadStack         = new UpcallThread[threadStackSize];
+        private int                      upcallThreadNum     = 0;
 
         private final class UpcallThread extends Thread {
                 private NetMutex         sleep = new NetMutex(true);
@@ -186,8 +186,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 private volatile boolean end   = false;
 
                 
-                public UpcallThread() {
-                        super();
+                public UpcallThread(String name) {
+                        super("NetReceivePort.UpcallThread: ");
                         start();
                 }
                 
@@ -271,7 +271,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                 if (threadStackPtr > 0) {
                                                         ut = threadStack[--threadStackPtr];
                                                 } else {
-                                                        ut = new UpcallThread();
+                                                        ut = new UpcallThread("no "+upcallThreadNum++);
                                                 }        
                                         }
 
@@ -301,6 +301,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 		 * Flag indicating whether thread termination was requested.
 		 */
 		private volatile boolean stop = false;
+
+                public AcceptThread(String name) {
+                        super("NetReceivePort.AcceptThread: "+name);
+                }
 
 		/**
 		 * The incoming connection management function.
@@ -412,6 +416,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	private final class PollingThread extends Thread {
 		private volatile boolean stop = false;
 
+                public PollingThread(String name) {
+                        super("NetReceivePort.PollingThread: "+name);
+                }
+
 		/**
 		 * The asynchronous polling function.
 		 * Note: the thread is <strong>uninterruptible</strong>
@@ -463,7 +471,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                                         if (threadStackPtr > 0) {
                                                                                 ut = threadStack[--threadStackPtr];
                                                                         } else {
-                                                                                ut = new UpcallThread();
+                                                                                ut = new UpcallThread("no "+upcallThreadNum++);
                                                                         }        
                                                                 }
 
@@ -577,16 +585,19 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 		}
 			
 		Hashtable info = new Hashtable();
+
+                InetAddress addr = serverSocket.getInetAddress();
+                int         port = serverSocket.getLocalPort();
 		
-		info.put("accept_address", serverSocket.getInetAddress());
-		info.put("accept_port",    new Integer(serverSocket.getLocalPort()));
+		info.put("accept_address", addr);
+		info.put("accept_port",    new Integer(port));
 
 		NetIbisIdentifier ibisId = (NetIbisIdentifier)ibis.identifier();
 		identifier    = new NetReceivePortIdentifier(name, type.name(), ibisId, info);
 		
-		acceptThread  = new AcceptThread();
+		acceptThread  = new AcceptThread(addr+"["+port+"]");
 		if (usePollingThread) {
-			pollingThread = new PollingThread();
+			pollingThread = new PollingThread(addr+"["+port+"]");
 		}
 		
 		acceptThread.start();

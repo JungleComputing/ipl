@@ -61,10 +61,12 @@ public final class TcpInput extends NetInput {
 	 */
 	private NetAllocator          allocator      = null;
 
-        private boolean               first           = false;
-        private byte                  firstbyte       = 0;
-        private UpcallThread          upcallThread    = null;
-        private NetMutex              upcallEnd       = new NetMutex(true);
+        private boolean               first          = false;
+        private byte                  firstbyte      = 0;
+        private UpcallThread          upcallThread   = null;
+        private NetMutex              upcallEnd      = new NetMutex(true);
+        private InetAddress           addr           = null;
+        private int                   port           =    0;
 
 	/**
 	 * Constructor.
@@ -81,6 +83,10 @@ public final class TcpInput extends NetInput {
 	}
 
         private final class UpcallThread extends Thread {
+                
+                public UpcallThread(String name) {
+                        super("Tcp(plain)Input.UpcallThread: "+name);
+                }                
                 
                 public void run() {
                         while (true) {
@@ -139,6 +145,8 @@ public final class TcpInput extends NetInput {
 			tcpSocket.setSendBufferSize(0x8000);
 			tcpSocket.setReceiveBufferSize(0x8000);
 			tcpSocket.setTcpNoDelay(true);
+                        addr = tcpSocket.getInetAddress();
+                        port = tcpSocket.getPort();
 
 			tcpIs 	   = tcpSocket.getInputStream();
 			tcpOs 	   = tcpSocket.getOutputStream();
@@ -149,7 +157,7 @@ public final class TcpInput extends NetInput {
 		mtu = 0;
 
                 if (upcallFunc != null) {
-                        (upcallThread = new UpcallThread()).start();
+                        (upcallThread = new UpcallThread(addr+"["+port+"]"))).start();
                 }
 	}
 

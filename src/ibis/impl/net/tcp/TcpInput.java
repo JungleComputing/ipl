@@ -31,8 +31,8 @@ public final class TcpInput extends NetInput {
 	private Integer            spn  	      = null;
 	private DataInputStream    tcpIs	      = null;
 	private DataOutputStream   tcpOs	      = null;
-        private InetAddress        raddr              = null;
-        private int                rport              =    0;
+        private InetAddress        addr               = null;
+        private int                port               =    0;
         private ObjectInputStream _inputConvertStream = null;        
         private long               seq                =    0;
         private UpcallThread       upcallThread       = null;
@@ -43,6 +43,10 @@ public final class TcpInput extends NetInput {
 	}
 
         private final class UpcallThread extends Thread {
+
+                public UpcallThread(String name) {
+                        super("TcpInput.UpcallThread: "+name);
+                }                
                 
                 public void run() {
                         while (true) {
@@ -91,13 +95,13 @@ public final class TcpInput extends NetInput {
 			sendInfoTable(os, info);
 
 			tcpSocket  = tcpServerSocket.accept();
-                        raddr = tcpSocket.getInetAddress();
-                        rport = tcpSocket.getPort();
+                        addr = tcpSocket.getInetAddress();
+                        port = tcpSocket.getPort();
                         
 			tcpIs 	   = new DataInputStream(tcpSocket.getInputStream());
 			tcpOs 	   = new DataOutputStream(tcpSocket.getOutputStream());
                         if (upcallFunc != null) {
-                                (upcallThread = new UpcallThread()).start();
+                                (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
