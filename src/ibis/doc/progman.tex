@@ -1431,9 +1431,74 @@ See Section \ref{Compiling and Running an Ibis Application} for details.
 
 \remark{TODO.}
 
+\mysubsection{Compiling and running a GMI program}
+
+Before running a GMI application it must be compiled.
+Using \emph{ant}, this is quite easy. Here is an example build.xml file:
+
+\begin{quote}
+\begin{verbatim}
+<project
+    name="Project name"
+    default="build"
+    basedir=".">
+
+    <description>
+    GMI application build.
+    </description>
+
+    <property name="ibis"   location="/usr/local/ibis"/>
+    <property name="build"  location="build"/>
+
+    <import file="${ibis}/apps/gmi/build-gmi-app.xml"/>
+</project>
+\end{verbatim}
+\end{quote}
+Note that the assumption here is that Ibis is installed in
+\texttt{/usr/local/ibis}.
+
+Invoking \emph{ant build} compiles the application for GMI.
+
+Running a GMI program is very much like running an Ibis application.
+See Section \ref{Compiling and Running an Ibis Application} for details.
+
 \mysection{Ibis RMI}
 
 \remark{TODO: limitations/restrictions.}
+
+\mysubsection{Compiling and running an Ibis RMI program}
+
+Before running an Ibis RMI application it must be compiled.
+Using \emph{ant}, this is quite easy. Here is an example build.xml file:
+
+\begin{quote}
+\begin{verbatim}
+<project
+    name="Project name"
+    default="build"
+    basedir=".">
+
+    <description>
+    Ibis RMI application build.
+    </description>
+
+    <property name="ibis"   location="/usr/local/ibis"/>
+    <property name="build"  location="build"/>
+
+    <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
+</project>
+\end{verbatim}
+\end{quote}
+Note that the assumption here is that Ibis is installed in
+\texttt{/usr/local/ibis}.
+
+Invoking \emph{ant build-sun} compiles a standard Java RMI version of
+the application, leaving the class files in a directory called \texttt{build}.
+
+Invoking \emph{ant build} compiles the application for Ibis RMI.
+
+Running an Ibis RMI program is very much like running an Ibis application.
+See Section \ref{Compiling and Running an Ibis Application} for details.
 
 \mysection{Further Reading}
 
