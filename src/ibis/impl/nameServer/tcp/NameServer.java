@@ -28,674 +28,674 @@ import java.util.Vector;
 
 public class NameServer extends Thread implements Protocol {
 
-	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 
-		    TypedProperties.intProperty(NSProps.s_port, 9826);
-        private static final int BUF_SIZE = 1024;
-	
-	static final boolean DEBUG =
-		    TypedProperties.booleanProperty(NSProps.s_debug);
-	static final boolean VERBOSE =
-		    TypedProperties.booleanProperty(NSProps.s_verbose);
+    public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 
+	TypedProperties.intProperty(NSProps.s_port, 9826);
+    private static final int BUF_SIZE = 1024;
 
-	static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout, 300) * 1000;	// Property is in seconds, convert to milliseconds.
+    static final boolean DEBUG =
+	TypedProperties.booleanProperty(NSProps.s_debug);
+    static final boolean VERBOSE =
+	TypedProperties.booleanProperty(NSProps.s_verbose);
 
-	InetAddress myAddress;
+    static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout, 300) * 1000;	// Property is in seconds, convert to milliseconds.
 
-	static class IbisInfo { 		
-		IbisIdentifier identifier;
-		int ibisNameServerport;
-		InetAddress ibisNameServerAddress;
+    InetAddress myAddress;
 
-		IbisInfo(IbisIdentifier identifier, InetAddress ibisNameServerAddress, int ibisNameServerport) {
-			this.identifier = identifier;
-			this.ibisNameServerAddress = ibisNameServerAddress;
-			this.ibisNameServerport = ibisNameServerport; 
-		} 
+    static class IbisInfo { 		
+	IbisIdentifier identifier;
+	int ibisNameServerport;
+	InetAddress ibisNameServerAddress;
 
-		public boolean equals(Object other) { 
-			if (other instanceof IbisInfo) { 
-				return identifier.equals(((IbisInfo) other).identifier);
-			}
-		    return false;
-		}
-		
-		public int hashCode() {
-		    return identifier.hashCode();
-		}
-
-	    public String toString() {
-		return "ibisInfo(" + identifier + "at " + ibisNameServerAddress + ":" + ibisNameServerport + ")";
-	    }
+	IbisInfo(IbisIdentifier identifier, InetAddress ibisNameServerAddress, int ibisNameServerport) {
+	    this.identifier = identifier;
+	    this.ibisNameServerAddress = ibisNameServerAddress;
+	    this.ibisNameServerport = ibisNameServerport; 
 	} 
 
-	static class RunInfo { 
-		Vector pool; // a list of IbisInfos
-		Vector toBeDeleted; // a list of ibis identifiers
-
-		PortTypeNameServer    portTypeNameServer;
-		ReceivePortNameServer receivePortNameServer;
-		ElectionServer electionServer;
-
-		long pingLimit;
-
-		RunInfo() throws IOException { 
-			pool = new Vector();
-			toBeDeleted = new Vector();
-			portTypeNameServer    = new PortTypeNameServer();
-			receivePortNameServer = new ReceivePortNameServer();
-			electionServer = new ElectionServer();
-			pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
-		}
-
-	    public String toString() {
-		String res = "runinfo:\n" +
-		    "  pool = \n";
-
-		for(int i=0; i<pool.size(); i++) {
-		    res += "    " + pool.get(i) + "\n";
-		}
-
-		res +=    "  toBeDeleted = \n";
-
-		for(int i=0; i<toBeDeleted.size(); i++) {
-		    res += "    " + toBeDeleted.get(i) + "\n";
-		}
-
-		return res;
+	public boolean equals(Object other) { 
+	    if (other instanceof IbisInfo) { 
+		return identifier.equals(((IbisInfo) other).identifier);
 	    }
+	    return false;
 	}
 
-	private static boolean nameServerCreated = false;
-
-	private Hashtable pools;
-	private ServerSocket serverSocket;
-
-	private	ObjectInputStream in;
-	private	ObjectOutputStream out;
-
-	private boolean singleRun;
-	private boolean joined;
-
-	private static boolean controlHubStarted = false;
-	private static boolean poolServerStarted = false;
-	private static ControlHub h = null;
-
-	private NameServer(boolean singleRun,
-			   boolean poolserver,
-			   boolean controlhub) throws IOException {
-
-		this.singleRun = singleRun;
-		this.joined = false;
-
-		myAddress = IPUtils.getAlternateLocalHostAddress();
-		myAddress = InetAddress.getByName(myAddress.getHostName());
-
-		String hubPort = System.getProperty("ibis.connect.hub_port");
-		String poolPort = System.getProperty("ibis.pool.server.port");
-		int port = TCP_IBIS_NAME_SERVER_PORT_NR;
-
-		if (controlhub && ! controlHubStarted) {
-		    if (hubPort == null) {
-			hubPort = Integer.toString(port+2);
-			System.setProperty("ibis.connect.hub_port", hubPort);
-		    }
-		    try {
-			h = new ControlHub();
-			h.setDaemon(true);
-			h.start();
-			Thread.sleep(2000);	// Give it some time to start up
-		    } catch(Throwable e) {
-			throw new IOException("Could not start control hub" + e);
-		    }
-		    controlHubStarted = true;
-		}
-
-		if (poolserver && ! poolServerStarted) {
-		    if (poolPort == null) {
-			poolPort = Integer.toString(port+1);
-			System.setProperty("ibis.pool.server.port", poolPort);
-		    }
-		    try {
-			PoolInfoServer p = new PoolInfoServer(singleRun);
-			p.setDaemon(true);
-			p.start();
-		    } catch(Throwable e) {
-			throw new IOException("Could not start poolInfoServer" + e);
-		    }
-		    poolServerStarted = true;
-		}
-
-		if (DEBUG) { 
-			System.err.println("NameServer: singleRun = " + singleRun);
-		}
-
-		// Create a server socket.
-		serverSocket = NameServerClient.socketFactory.createServerSocket(port, null, false);
-       		       
-		pools = new Hashtable();
-
-		if (VERBOSE) { 
-			System.err.println("NameServer: created server on " + serverSocket);
-		}
-
+	public int hashCode() {
+	    return identifier.hashCode();
 	}
 
-	private void forwardJoin(IbisInfo dest, IbisIdentifier id) {
+	public String toString() {
+	    return "ibisInfo(" + identifier + "at " + ibisNameServerAddress + ":" + ibisNameServerport + ")";
+	}
+    } 
 
-		if (DEBUG) { 
-			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.ibisNameServerAddress + ", dest port: " + dest.ibisNameServerport);
-		}
-		try {
+    static class RunInfo { 
+	Vector pool; // a list of IbisInfos
+	Vector toBeDeleted; // a list of ibis identifiers
 
-		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /* do not retry */);
-		    
-		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-		    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
-		    out2.writeByte(IBIS_JOIN);
-		    out2.writeObject(id);
-		    NameServerClient.socketFactory.close(null, out2, s);
-		    
-		    if (DEBUG) { 
-			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + " DONE");
-		    }
-		} catch (Exception e) {
-			System.err.println("Could not forward join of "  + 
-					   id.toString() + " to " + dest.identifier.toString() + 
-					   "error = " + e);					   
-		}
+	PortTypeNameServer    portTypeNameServer;
+	ReceivePortNameServer receivePortNameServer;
+	ElectionServer electionServer;
 
+	long pingLimit;
+
+	RunInfo() throws IOException { 
+	    pool = new Vector();
+	    toBeDeleted = new Vector();
+	    portTypeNameServer    = new PortTypeNameServer();
+	    receivePortNameServer = new ReceivePortNameServer();
+	    electionServer = new ElectionServer();
+	    pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
 	}
 
-	private void handleIbisIsalive(boolean kill) throws IOException, ClassNotFoundException {
-		String key = in.readUTF();
-		IbisIdentifier id = (IbisIdentifier) in.readObject();
+	public String toString() {
+	    String res = "runinfo:\n" +
+		"  pool = \n";
 
-		RunInfo p = (RunInfo) pools.get(key);
-		if (p != null) {
-		    for (int i=0;i<p.pool.size();i++) { 
-			IbisInfo temp = (IbisInfo) p.pool.get(i);
-			if (temp.identifier.equals(id)) {
-			    if (! kill && doPing(temp, key)) {
-				// Its alive ...
-				return;
-			    }
-			}
-			// We found it, but it appears to be dead.
-			// Make a list of Ibis instances in this pool that seem to be dead.
-			Vector deadIbises = new Vector();
-			deadIbises.add(temp);
-			for (int j=0; j < p.pool.size(); j++) {
-			    IbisInfo temp2 = (IbisInfo) p.pool.get(j);
-			    if (! temp2.identifier.equals(id) &&
-				! doPing(temp2, key)) {
-				deadIbises.add(temp2);
-			    }
-			}
+	    for(int i=0; i<pool.size(); i++) {
+		res += "    " + pool.get(i) + "\n";
+	    }
 
-			// Remove the dead ones from the pool.
-			p.pool.removeAll(deadIbises);
+	    res +=    "  toBeDeleted = \n";
 
-			// Put the dead ones in an array.
-			IbisIdentifier[] ids = new IbisIdentifier[deadIbises.size()];
-			for (int j = 0; j < ids.length; j++) {
-			    IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
-			    ids[j] = temp2.identifier;
-			}
+	    for(int i=0; i<toBeDeleted.size(); i++) {
+		res += "    " + toBeDeleted.get(i) + "\n";
+	    }
 
-			// Pass the dead ones on to the election server ...
-			electionKill(p, ids);
+	    return res;
+	}
+    }
 
-			// ... and to all other ibis instances in this pool.
-			for (int j=0; j<p.pool.size(); j++) { 
-			    forwardDead((IbisInfo) p.pool.get(i), ids);
-			}
+    private static boolean nameServerCreated = false;
 
-			break;
-		    }
-		}
+    private Hashtable pools;
+    private ServerSocket serverSocket;
+
+    private	ObjectInputStream in;
+    private	ObjectOutputStream out;
+
+    private boolean singleRun;
+    private boolean joined;
+
+    private static boolean controlHubStarted = false;
+    private static boolean poolServerStarted = false;
+    private static ControlHub h = null;
+
+    private NameServer(boolean singleRun,
+	    boolean poolserver,
+	    boolean controlhub) throws IOException {
+
+	this.singleRun = singleRun;
+	this.joined = false;
+
+	myAddress = IPUtils.getAlternateLocalHostAddress();
+	myAddress = InetAddress.getByName(myAddress.getHostName());
+
+	String hubPort = System.getProperty("ibis.connect.hub_port");
+	String poolPort = System.getProperty("ibis.pool.server.port");
+	int port = TCP_IBIS_NAME_SERVER_PORT_NR;
+
+	if (controlhub && ! controlHubStarted) {
+	    if (hubPort == null) {
+		hubPort = Integer.toString(port+2);
+		System.setProperty("ibis.connect.hub_port", hubPort);
+	    }
+	    try {
+		h = new ControlHub();
+		h.setDaemon(true);
+		h.start();
+		Thread.sleep(2000);	// Give it some time to start up
+	    } catch(Throwable e) {
+		throw new IOException("Could not start control hub" + e);
+	    }
+	    controlHubStarted = true;
 	}
 
-	private void forwardDead(IbisInfo dest, IbisIdentifier[] ids) {
-		try {
-		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
-							      dest.ibisNameServerport, null, -1 /* do not retry */);
-
-		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-		    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
-		    out2.writeByte(IBIS_DEAD);
-		    out2.writeObject(ids);
-		    NameServerClient.socketFactory.close(null, out2, s);
-		} catch (Exception e) {
-			System.err.println("Could not forward dead ibises to " +  dest.identifier.toString() + 
-					   "error = " + e);					   
-//			e.printStackTrace();
-		}
+	if (poolserver && ! poolServerStarted) {
+	    if (poolPort == null) {
+		poolPort = Integer.toString(port+1);
+		System.setProperty("ibis.pool.server.port", poolPort);
+	    }
+	    try {
+		PoolInfoServer p = new PoolInfoServer(singleRun);
+		p.setDaemon(true);
+		p.start();
+	    } catch(Throwable e) {
+		throw new IOException("Could not start poolInfoServer" + e);
+	    }
+	    poolServerStarted = true;
 	}
-    
-	private void handleIbisJoin() throws IOException, ClassNotFoundException { 
-		String key = in.readUTF();
-		IbisIdentifier id = (IbisIdentifier) in.readObject();
-		InetAddress address = (InetAddress) in.readObject();
-		int port = in.readInt();
 
-		if (DEBUG) {
-			System.err.print("NameServer: join to pool " + key);
-			System.err.print(" requested by " + id.toString());
-			System.err.println(", port " + port);
-		}
+	if (DEBUG) { 
+	    System.err.println("NameServer: singleRun = " + singleRun);
+	}
 
-		IbisInfo info = new IbisInfo(id, address, port);
-		RunInfo p = (RunInfo) pools.get(key);
+	// Create a server socket.
+	serverSocket = NameServerClient.socketFactory.createServerSocket(port, null, false);
 
-		if (p == null) { 
-			// new run
-			poolPinger();
-			p = new RunInfo();
-			
-			pools.put(key, p);
-			joined = true;
-			
-			if (VERBOSE) { 
-				System.err.println("NameServer: new pool " + key + " created");
-			}
-		}
-		
-		if (p.pool.contains(info)) { 
-			out.writeByte(IBIS_REFUSED);
+	pools = new Hashtable();
 
-			if (DEBUG) { 
-				System.err.println("NameServer: join to pool " + key + " of ibis " + id.toString() + " refused");
-			}
-			out.flush();
-		} else { 
-			out.writeByte(IBIS_ACCEPTED);
-			out.writeInt(p.portTypeNameServer.getPort());
-			out.writeInt(p.receivePortNameServer.getPort());
-			out.writeInt(p.electionServer.getPort());
+	if (VERBOSE) { 
+	    System.err.println("NameServer: created server on " + serverSocket);
+	}
 
-			if (DEBUG) { 
-				System.err.println("NameServer: join to pool " + key + " of ibis " + id.toString() + " accepted");
-			}
+    }
 
-			// first send all existing nodes to the new one.
-			out.writeInt(p.pool.size());
+    private void forwardJoin(IbisInfo dest, IbisIdentifier id) {
 
-			for (int i=0;i<p.pool.size();i++) {
-				IbisInfo temp = (IbisInfo) p.pool.get(i);
-				out.writeObject(temp.identifier);
-			}
-			
-			//send all nodes about to leave to the new one
-			out.writeInt(p.toBeDeleted.size());
-			
-			for (int i=0;i<p.toBeDeleted.size();i++) {
-			    out.writeObject(p.toBeDeleted.get(i));
-			}
-			out.flush();
+	if (DEBUG) { 
+	    System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.ibisNameServerAddress + ", dest port: " + dest.ibisNameServerport);
+	}
+	try {
 
-			for (int i=0;i<p.pool.size();i++) { 
-				IbisInfo temp = (IbisInfo) p.pool.get(i);
-				forwardJoin(temp, id);
-			}
+	    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /* do not retry */);
 
-			p.pool.add(info);
+	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	    out2.writeByte(IBIS_JOIN);
+	    out2.writeObject(id);
+	    NameServerClient.socketFactory.close(null, out2, s);
 
-			String date = Calendar.getInstance().getTime().toString();
- 
-			System.out.println(date + " " + id.name() + " JOINS  pool " + key + " (" + p.pool.size() + " nodes)");
-		}
-	}	
+	    if (DEBUG) { 
+		System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + " DONE");
+	    }
+	} catch (Exception e) {
+	    System.err.println("Could not forward join of "  + 
+		    id.toString() + " to " + dest.identifier.toString() + 
+		    "error = " + e);					   
+	}
 
-	private void poolPinger(String key) {
-		if (DEBUG) {
-			System.err.print("NameServer: ping pool " + key);
-		}
+    }
 
-		RunInfo p = (RunInfo) pools.get(key);
+    private void handleIbisIsalive(boolean kill) throws IOException, ClassNotFoundException {
+	String key = in.readUTF();
+	IbisIdentifier id = (IbisIdentifier) in.readObject();
 
-		if (p == null) { 
+	RunInfo p = (RunInfo) pools.get(key);
+	if (p != null) {
+	    for (int i=0;i<p.pool.size();i++) { 
+		IbisInfo temp = (IbisInfo) p.pool.get(i);
+		if (temp.identifier.equals(id)) {
+		    if (! kill && doPing(temp, key)) {
+			// Its alive ...
 			return;
-		}
-
-		long t = System.currentTimeMillis();
-
-		// If the pool has not reached its ping-limit yet, return.
-		if (t < p.pingLimit) {
-		    return;
-		}
-
-		for (int i=0;i<p.pool.size();i++) { 
-			IbisInfo temp = (IbisInfo) p.pool.get(i);
-			if (doPing(temp, key)) {
-			    // Pool is still alive. Reset its ping-limit.
-			    p.pingLimit = t + PINGER_TIMEOUT;
-			    return;
-			}
-		}
-
-		// Pool is dead.
-		pools.remove(key);
-		try {
-		    String date = Calendar.getInstance().getTime().toString();
-		    System.out.println(date + " pool " + key + " seems to be dead.");
-		    killThreads(p);
-		} catch(IOException e) {
-			// do nothing, killThreads failed.
-		}
-	}	
-
-	/**
-	 * Checks all pools to see if they still are alive. If a pool is dead
-	 * (connect to all members fails), the pool is killed.
-	 */
-	private void poolPinger() {
-		for (Enumeration e = pools.keys(); e.hasMoreElements() ;) {
-		    String key = (String) e.nextElement();
-		    poolPinger(key);
-		}
-	}
-
-	private boolean doPing(IbisInfo dest, String key) {
-		try {
-		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
-							      dest.ibisNameServerport, null, -1 /* do not retry */);
-
-		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-		    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d));
-		    out2.writeByte(IBIS_PING);
-		    out2.flush();
-		    DummyInputStream i = new DummyInputStream(s.getInputStream());
-		    DataInputStream in2 = new DataInputStream(new BufferedInputStream(i));
-		    String k = in2.readUTF();
-		    NameServerClient.socketFactory.close(in2, out2, s);
-		    if (! k.equals(key)) {
-			return false;
 		    }
-		} catch (Exception e) {
-		    return false;
 		}
-		return true;
-	}
-
-	private void forwardLeave(IbisInfo dest, IbisIdentifier id) {
-		if (DEBUG) { 
-			System.err.println("NameServer: forwarding leave of " + 
-					   id.toString() + " to " + dest.identifier.toString());
-		}
-		
-		try {
-		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
-							      dest.ibisNameServerport, null, -1 /* do not retry */);
-
-		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-		    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
-		    out2.writeByte(IBIS_LEAVE);
-		    out2.writeObject(id);
-		    NameServerClient.socketFactory.close(null, out2, s);
-		} catch (Exception e) {
-			System.err.println("Could not forward leave of "  + 
-					   id.toString() + " to " + dest.identifier.toString() + 
-					   "error = " + e);					   
-//			e.printStackTrace();
-		}
-	}
-    
-	private void killThreads(RunInfo p) throws IOException {
-		Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
-							  p.portTypeNameServer.getPort(), null, 0 /* retry */);
-		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-
-		DataOutputStream out1 = new DataOutputStream(new BufferedOutputStream(d, BUF_SIZE));
-		out1.writeByte(PORTTYPE_EXIT);
-		NameServerClient.socketFactory.close(null, out1, s);
-
-		Socket s2 = NameServerClient.socketFactory.createSocket(myAddress, 
-							  p.receivePortNameServer.getPort(), null, 0 /* retry */);
-		DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
-
-		ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2, BUF_SIZE));
-		out2.writeByte(PORT_EXIT);
-		NameServerClient.socketFactory.close(null, out2, s2);
-
-		Socket s3 = NameServerClient.socketFactory.createSocket(myAddress, 
-							  p.electionServer.getPort(), null, 0 /* retry */);
-		DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
-		ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3, BUF_SIZE));
-		out3.writeByte(ELECTION_EXIT);
-		NameServerClient.socketFactory.close(null, out3, s3);
-	}
-
-	/**
-	 * Notifies the election server of the specified pool that the
-	 * specified ibis instances are dead.
-	 * @param p   the specified pool
-	 * @param ids the dead ibis instances
-	 * @exception IOException is thrown in case of trouble.
-	 */
-	private void electionKill(RunInfo p, IbisIdentifier[] ids) throws IOException {
-		Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
-						  p.electionServer.getPort(), null, -1 /* do not retry */);
-		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-		ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
-		out2.writeByte(ELECTION_KILL);
-		out2.writeObject(ids);
-		NameServerClient.socketFactory.close(null, out2, s);
-	}
-
-	private void handleIbisLeave() throws IOException, ClassNotFoundException {
-		String key = in.readUTF();
-		IbisIdentifier id = (IbisIdentifier) in.readObject();
-
-		RunInfo p = (RunInfo) pools.get(key);
-
-		if (DEBUG) { 
-			System.err.println("NameServer: leave from pool " + key + " requested by " + id.toString());
-		}
-
-		if (p == null) { 
-			// new run
-			System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
-			return;				
-		}
-			int index = -1;
-
-			for (int i=0;i<p.pool.size();i++) { 				
-				IbisInfo info = (IbisInfo) p.pool.get(i);
-				if (info.identifier.equals(id)) { 
-					index = i;
-					break;
-				}
-			}
-
-			if (index != -1) { 
-				// found it.
-				if (DEBUG) { 
-					System.err.println("NameServer: leave from pool " + key + " of ibis " + id.toString() + " accepted");
-				}
-
-				// Let the election server know about it.
-				electionKill(p, new IbisIdentifier[] { id });
-
-				// Also forward the leave to the requester.
-				// It is used as an acknowledgement, and
-				// the leaver is only allowed to exit when it
-				// has received its own leave message.
-				for (int i=0; i<p.pool.size(); i++) { 
-					forwardLeave((IbisInfo) p.pool.get(i), id);
-				} 
-				p.pool.remove(index);
-				p.toBeDeleted.remove(id);
-
-				String date = Calendar.getInstance().getTime().toString();
-
-				System.out.println(date + " " + id.name() + " LEAVES pool " + key + " (" + p.pool.size() + " nodes)");
-				id.free();
-
-
-				if (p.pool.size() == 0) { 
-					if (VERBOSE) { 
-						System.err.println("NameServer: removing pool " + key);
-					}
-
-					pools.remove(key);
-					killThreads(p);
-				} 				
-			} else { 
-				System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
-			}
-
-			out.writeByte(0);
-			out.flush();
-	} 
-
-	public void run() {
-		int opcode;
-		Socket s;
-		boolean stop = false;
-
-		while (!stop) {
-			
-			try {
-			    if (DEBUG) { 
-				System.err.println("NameServer: accepting incoming connections... ");
-			    }	
-			    s = NameServerClient.socketFactory.accept(serverSocket);
-
-			    if (DEBUG) { 
-				System.err.println("NameServer: incoming connection from " + s.toString());
+		// We found it, but it appears to be dead.
+		// Make a list of Ibis instances in this pool that seem to be dead.
+		Vector deadIbises = new Vector();
+		deadIbises.add(temp);
+		for (int j=0; j < p.pool.size(); j++) {
+		    IbisInfo temp2 = (IbisInfo) p.pool.get(j);
+		    if (! temp2.identifier.equals(id) &&
+			    ! doPing(temp2, key)) {
+			deadIbises.add(temp2);
 			    }
-
-			} catch (Exception e) {
-				System.err.println("NameServer got an error " + e.getMessage());
-				continue;
-			}
-
-			try {
-				DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-				out = new ObjectOutputStream(new BufferedOutputStream(dos, BUF_SIZE));
-
-				DummyInputStream di = new DummyInputStream(s.getInputStream());
-				in  = new ObjectInputStream(new BufferedInputStream(di, BUF_SIZE));
-
-				opcode = in.readByte();
-
-				switch (opcode) { 
-				case (IBIS_ISALIVE):
-				case (IBIS_DEAD):
-					handleIbisIsalive(opcode == IBIS_DEAD);
-					break;
-				case (IBIS_JOIN): 
-					handleIbisJoin();
-					break;
-				case (IBIS_LEAVE):
-					handleIbisLeave();
-					if (singleRun && pools.size() == 0) { 
-					    if (joined) {
-						stop = true;
-					    }
-					    // ignore invalid leave req.
-					}
-					break;
-				default: 
-					System.err.println("NameServer got an illegal opcode: " + opcode);
-				}
-
-				NameServerClient.socketFactory.close(in, out, s);
-			} catch (Exception e1) {
-				System.err.println("Got an exception in NameServer.run " + e1.toString());
-				e1.printStackTrace();
-				if (s != null) { 
-					NameServerClient.socketFactory.close(null, null, s);
-				}
-			}
-
-//			System.err.println("Pools are now: " + pools);
 		}
 
-		try { 
-			serverSocket.close();
-		} catch (Exception e) {
-			throw new IbisRuntimeException("NameServer got an error" , e);
+		// Remove the dead ones from the pool.
+		p.pool.removeAll(deadIbises);
+
+		// Put the dead ones in an array.
+		IbisIdentifier[] ids = new IbisIdentifier[deadIbises.size()];
+		for (int j = 0; j < ids.length; j++) {
+		    IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
+		    ids[j] = temp2.identifier;
 		}
 
-		if (h != null) {
-		    h.waitForCount(1);
+		// Pass the dead ones on to the election server ...
+		electionKill(p, ids);
+
+		// ... and to all other ibis instances in this pool.
+		for (int j=0; j<p.pool.size(); j++) { 
+		    forwardDead((IbisInfo) p.pool.get(i), ids);
 		}
 
-		if (VERBOSE) {
-			System.err.println("NameServer: exit");			
-		}
+		break;
+	    }
+	}
+    }
+
+    private void forwardDead(IbisInfo dest, IbisIdentifier[] ids) {
+	try {
+	    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
+		    dest.ibisNameServerport, null, -1 /* do not retry */);
+
+	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	    out2.writeByte(IBIS_DEAD);
+	    out2.writeObject(ids);
+	    NameServerClient.socketFactory.close(null, out2, s);
+	} catch (Exception e) {
+	    System.err.println("Could not forward dead ibises to " +  dest.identifier.toString() + 
+		    "error = " + e);					   
+	    //			e.printStackTrace();
+	}
+    }
+
+    private void handleIbisJoin() throws IOException, ClassNotFoundException { 
+	String key = in.readUTF();
+	IbisIdentifier id = (IbisIdentifier) in.readObject();
+	InetAddress address = (InetAddress) in.readObject();
+	int port = in.readInt();
+
+	if (DEBUG) {
+	    System.err.print("NameServer: join to pool " + key);
+	    System.err.print(" requested by " + id.toString());
+	    System.err.println(", port " + port);
 	}
 
+	IbisInfo info = new IbisInfo(id, address, port);
+	RunInfo p = (RunInfo) pools.get(key);
 
-	static synchronized NameServer createNameServer(
-					boolean singleRun,
-					boolean retry,
-					boolean poolserver,
-					boolean controlhub)
-	{
-		if (nameServerCreated) {
-			return null;
-		}
-		NameServer ns = null;
-		while (true) {
-			try { 
-				ns = new NameServer(singleRun, poolserver, controlhub);
-				break;
-			} catch (Throwable e) { 
-				if (retry) {
-				    System.err.println("Nameserver: could not create server socket, retry in 1 second");
-				    try {Thread.sleep(1000);} catch (Exception ee) { /* do nothing */ }
-				}
-				else {
-				    // System.err.println("Nameserver: could not create server socket");
-				    return null;
-				}
-			}
-		}
-		nameServerCreated = true;
-		return ns;
+	if (p == null) { 
+	    // new run
+	    poolPinger();
+	    p = new RunInfo();
+
+	    pools.put(key, p);
+	    joined = true;
+
+	    if (VERBOSE) { 
+		System.err.println("NameServer: new pool " + key + " created");
+	    }
 	}
 
-	public static void main(String [] args) { 
-		boolean single = false;
-		boolean control_hub = false;
-		boolean pool_server = true;
-		NameServer ns = null;
+	if (p.pool.contains(info)) { 
+	    out.writeByte(IBIS_REFUSED);
 
-		for (int i = 0; i < args.length; i++) {
-			if (false) { /* do nothing */
-			} else if (args[i].equals("-single")) {
-				single=true;
-			} else if (args[i].equals("-controlhub")) {
-				control_hub = true;
-			} else if (args[i].equals("-no-controlhub")) {
-				control_hub = false;
-			} else if (args[i].equals("-poolserver")) {
-				pool_server = true;
-			} else if (args[i].equals("-no-poolserver")) {
-				pool_server = false;
-			} else {
-				System.err.println("No such option: " + args[i]);
-				System.exit(1);
+	    if (DEBUG) { 
+		System.err.println("NameServer: join to pool " + key + " of ibis " + id.toString() + " refused");
+	    }
+	    out.flush();
+	} else { 
+	    out.writeByte(IBIS_ACCEPTED);
+	    out.writeInt(p.portTypeNameServer.getPort());
+	    out.writeInt(p.receivePortNameServer.getPort());
+	    out.writeInt(p.electionServer.getPort());
+
+	    if (DEBUG) { 
+		System.err.println("NameServer: join to pool " + key + " of ibis " + id.toString() + " accepted");
+	    }
+
+	    // first send all existing nodes to the new one.
+	    out.writeInt(p.pool.size());
+
+	    for (int i=0;i<p.pool.size();i++) {
+		IbisInfo temp = (IbisInfo) p.pool.get(i);
+		out.writeObject(temp.identifier);
+	    }
+
+	    //send all nodes about to leave to the new one
+	    out.writeInt(p.toBeDeleted.size());
+
+	    for (int i=0;i<p.toBeDeleted.size();i++) {
+		out.writeObject(p.toBeDeleted.get(i));
+	    }
+	    out.flush();
+
+	    for (int i=0;i<p.pool.size();i++) { 
+		IbisInfo temp = (IbisInfo) p.pool.get(i);
+		forwardJoin(temp, id);
+	    }
+
+	    p.pool.add(info);
+
+	    String date = Calendar.getInstance().getTime().toString();
+
+	    System.out.println(date + " " + id.name() + " JOINS  pool " + key + " (" + p.pool.size() + " nodes)");
+	}
+    }	
+
+    private void poolPinger(String key) {
+	if (DEBUG) {
+	    System.err.print("NameServer: ping pool " + key);
+	}
+
+	RunInfo p = (RunInfo) pools.get(key);
+
+	if (p == null) { 
+	    return;
+	}
+
+	long t = System.currentTimeMillis();
+
+	// If the pool has not reached its ping-limit yet, return.
+	if (t < p.pingLimit) {
+	    return;
+	}
+
+	for (int i=0;i<p.pool.size();i++) { 
+	    IbisInfo temp = (IbisInfo) p.pool.get(i);
+	    if (doPing(temp, key)) {
+		// Pool is still alive. Reset its ping-limit.
+		p.pingLimit = t + PINGER_TIMEOUT;
+		return;
+	    }
+	}
+
+	// Pool is dead.
+	pools.remove(key);
+	try {
+	    String date = Calendar.getInstance().getTime().toString();
+	    System.out.println(date + " pool " + key + " seems to be dead.");
+	    killThreads(p);
+	} catch(IOException e) {
+	    // do nothing, killThreads failed.
+	}
+    }	
+
+    /**
+     * Checks all pools to see if they still are alive. If a pool is dead
+     * (connect to all members fails), the pool is killed.
+     */
+    private void poolPinger() {
+	for (Enumeration e = pools.keys(); e.hasMoreElements() ;) {
+	    String key = (String) e.nextElement();
+	    poolPinger(key);
+	}
+    }
+
+    private boolean doPing(IbisInfo dest, String key) {
+	try {
+	    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
+		    dest.ibisNameServerport, null, -1 /* do not retry */);
+
+	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d));
+	    out2.writeByte(IBIS_PING);
+	    out2.flush();
+	    DummyInputStream i = new DummyInputStream(s.getInputStream());
+	    DataInputStream in2 = new DataInputStream(new BufferedInputStream(i));
+	    String k = in2.readUTF();
+	    NameServerClient.socketFactory.close(in2, out2, s);
+	    if (! k.equals(key)) {
+		return false;
+	    }
+	} catch (Exception e) {
+	    return false;
+	}
+	return true;
+    }
+
+    private void forwardLeave(IbisInfo dest, IbisIdentifier id) {
+	if (DEBUG) { 
+	    System.err.println("NameServer: forwarding leave of " + 
+		    id.toString() + " to " + dest.identifier.toString());
+	}
+
+	try {
+	    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
+		    dest.ibisNameServerport, null, -1 /* do not retry */);
+
+	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	    out2.writeByte(IBIS_LEAVE);
+	    out2.writeObject(id);
+	    NameServerClient.socketFactory.close(null, out2, s);
+	} catch (Exception e) {
+	    System.err.println("Could not forward leave of "  + 
+		    id.toString() + " to " + dest.identifier.toString() + 
+		    "error = " + e);					   
+	    //			e.printStackTrace();
+	}
+    }
+
+    private void killThreads(RunInfo p) throws IOException {
+	Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
+		p.portTypeNameServer.getPort(), null, 0 /* retry */);
+	DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+
+	DataOutputStream out1 = new DataOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	out1.writeByte(PORTTYPE_EXIT);
+	NameServerClient.socketFactory.close(null, out1, s);
+
+	Socket s2 = NameServerClient.socketFactory.createSocket(myAddress, 
+		p.receivePortNameServer.getPort(), null, 0 /* retry */);
+	DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
+
+	ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2, BUF_SIZE));
+	out2.writeByte(PORT_EXIT);
+	NameServerClient.socketFactory.close(null, out2, s2);
+
+	Socket s3 = NameServerClient.socketFactory.createSocket(myAddress, 
+		p.electionServer.getPort(), null, 0 /* retry */);
+	DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
+	ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3, BUF_SIZE));
+	out3.writeByte(ELECTION_EXIT);
+	NameServerClient.socketFactory.close(null, out3, s3);
+    }
+
+    /**
+     * Notifies the election server of the specified pool that the
+     * specified ibis instances are dead.
+     * @param p   the specified pool
+     * @param ids the dead ibis instances
+     * @exception IOException is thrown in case of trouble.
+     */
+    private void electionKill(RunInfo p, IbisIdentifier[] ids) throws IOException {
+	Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
+		p.electionServer.getPort(), null, -1 /* do not retry */);
+	DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+	ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	out2.writeByte(ELECTION_KILL);
+	out2.writeObject(ids);
+	NameServerClient.socketFactory.close(null, out2, s);
+    }
+
+    private void handleIbisLeave() throws IOException, ClassNotFoundException {
+	String key = in.readUTF();
+	IbisIdentifier id = (IbisIdentifier) in.readObject();
+
+	RunInfo p = (RunInfo) pools.get(key);
+
+	if (DEBUG) { 
+	    System.err.println("NameServer: leave from pool " + key + " requested by " + id.toString());
+	}
+
+	if (p == null) { 
+	    // new run
+	    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
+	    return;				
+	}
+	int index = -1;
+
+	for (int i=0;i<p.pool.size();i++) { 				
+	    IbisInfo info = (IbisInfo) p.pool.get(i);
+	    if (info.identifier.equals(id)) { 
+		index = i;
+		break;
+	    }
+	}
+
+	if (index != -1) { 
+	    // found it.
+	    if (DEBUG) { 
+		System.err.println("NameServer: leave from pool " + key + " of ibis " + id.toString() + " accepted");
+	    }
+
+	    // Let the election server know about it.
+	    electionKill(p, new IbisIdentifier[] { id });
+
+	    // Also forward the leave to the requester.
+	    // It is used as an acknowledgement, and
+	    // the leaver is only allowed to exit when it
+	    // has received its own leave message.
+	    for (int i=0; i<p.pool.size(); i++) { 
+		forwardLeave((IbisInfo) p.pool.get(i), id);
+	    } 
+	    p.pool.remove(index);
+	    p.toBeDeleted.remove(id);
+
+	    String date = Calendar.getInstance().getTime().toString();
+
+	    System.out.println(date + " " + id.name() + " LEAVES pool " + key + " (" + p.pool.size() + " nodes)");
+	    id.free();
+
+
+	    if (p.pool.size() == 0) { 
+		if (VERBOSE) { 
+		    System.err.println("NameServer: removing pool " + key);
+		}
+
+		pools.remove(key);
+		killThreads(p);
+	    } 				
+	} else { 
+	    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
+	}
+
+	out.writeByte(0);
+	out.flush();
+    } 
+
+    public void run() {
+	int opcode;
+	Socket s;
+	boolean stop = false;
+
+	while (!stop) {
+
+	    try {
+		if (DEBUG) { 
+		    System.err.println("NameServer: accepting incoming connections... ");
+		}	
+		s = NameServerClient.socketFactory.accept(serverSocket);
+
+		if (DEBUG) { 
+		    System.err.println("NameServer: incoming connection from " + s.toString());
+		}
+
+	    } catch (Exception e) {
+		System.err.println("NameServer got an error " + e.getMessage());
+		continue;
+	    }
+
+	    try {
+		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+		out = new ObjectOutputStream(new BufferedOutputStream(dos, BUF_SIZE));
+
+		DummyInputStream di = new DummyInputStream(s.getInputStream());
+		in  = new ObjectInputStream(new BufferedInputStream(di, BUF_SIZE));
+
+		opcode = in.readByte();
+
+		switch (opcode) { 
+		case (IBIS_ISALIVE):
+		case (IBIS_DEAD):
+		    handleIbisIsalive(opcode == IBIS_DEAD);
+		    break;
+		case (IBIS_JOIN): 
+		    handleIbisJoin();
+		    break;
+		case (IBIS_LEAVE):
+		    handleIbisLeave();
+		    if (singleRun && pools.size() == 0) { 
+			if (joined) {
+			    stop = true;
 			}
+			// ignore invalid leave req.
+		    }
+		    break;
+		default: 
+		    System.err.println("NameServer got an illegal opcode: " + opcode);
 		}
 
-		if(!single) {
-			Properties p = System.getProperties();
-			String singleS = p.getProperty(NSProps.s_single);
-			
-			single = (singleS != null && singleS.equals("true")); 
+		NameServerClient.socketFactory.close(in, out, s);
+	    } catch (Exception e1) {
+		System.err.println("Got an exception in NameServer.run " + e1.toString());
+		e1.printStackTrace();
+		if (s != null) { 
+		    NameServerClient.socketFactory.close(null, null, s);
 		}
+	    }
 
-		ns = createNameServer(single, true, pool_server, control_hub);
+	    //			System.err.println("Pools are now: " + pools);
+	}
 
-		try {
-		    ns.run();
-		    System.exit(0);
-		} catch (Throwable t) {
-		    System.err.println("Nameserver got an exception: " + t);
-		    t.printStackTrace();
+	try { 
+	    serverSocket.close();
+	} catch (Exception e) {
+	    throw new IbisRuntimeException("NameServer got an error" , e);
+	}
+
+	if (h != null) {
+	    h.waitForCount(1);
+	}
+
+	if (VERBOSE) {
+	    System.err.println("NameServer: exit");			
+	}
+    }
+
+
+    static synchronized NameServer createNameServer(
+	    boolean singleRun,
+	    boolean retry,
+	    boolean poolserver,
+	    boolean controlhub)
+    {
+	if (nameServerCreated) {
+	    return null;
+	}
+	NameServer ns = null;
+	while (true) {
+	    try { 
+		ns = new NameServer(singleRun, poolserver, controlhub);
+		break;
+	    } catch (Throwable e) { 
+		if (retry) {
+		    System.err.println("Nameserver: could not create server socket, retry in 1 second");
+		    try {Thread.sleep(1000);} catch (Exception ee) { /* do nothing */ }
 		}
-	} 
+		else {
+		    // System.err.println("Nameserver: could not create server socket");
+		    return null;
+		}
+	    }
+	}
+	nameServerCreated = true;
+	return ns;
+    }
+
+    public static void main(String [] args) { 
+	boolean single = false;
+	boolean control_hub = false;
+	boolean pool_server = true;
+	NameServer ns = null;
+
+	for (int i = 0; i < args.length; i++) {
+	    if (false) { /* do nothing */
+	    } else if (args[i].equals("-single")) {
+		single=true;
+	    } else if (args[i].equals("-controlhub")) {
+		control_hub = true;
+	    } else if (args[i].equals("-no-controlhub")) {
+		control_hub = false;
+	    } else if (args[i].equals("-poolserver")) {
+		pool_server = true;
+	    } else if (args[i].equals("-no-poolserver")) {
+		pool_server = false;
+	    } else {
+		System.err.println("No such option: " + args[i]);
+		System.exit(1);
+	    }
+	}
+
+	if(!single) {
+	    Properties p = System.getProperties();
+	    String singleS = p.getProperty(NSProps.s_single);
+
+	    single = (singleS != null && singleS.equals("true")); 
+	}
+
+	ns = createNameServer(single, true, pool_server, control_hub);
+
+	try {
+	    ns.run();
+	    System.exit(0);
+	} catch (Throwable t) {
+	    System.err.println("Nameserver got an exception: " + t);
+	    t.printStackTrace();
+	}
+    } 
 }

@@ -13,16 +13,18 @@ import java.net.Socket;
 
 public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
 
-    /** Simple ServerSocket factory
-    */
+    /**
+     * Simple ServerSocket factory.
+     */
     public ServerSocket createServerSocket(int port, int backlog, InetAddress addr) 
 	throws IOException {
 	ServerSocket s = ExtSocketFactory.createServerSocket(port, backlog, addr);
 	return s;
     }
 
-    /** Simple client Socket factory
-    */
+    /**
+     * Simple client Socket factory.
+     */
     public Socket createSocket(InetAddress rAddr, int rPort) 
 	throws IOException {
 	Socket s = ExtSocketFactory.createClientSocket(rAddr, rPort);
@@ -42,16 +44,14 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
     }
 
     /** 
-      A host can have multiple local IPs (sierra)
-      if localIP is null, try to bind to the first of this machine's IP addresses.
-
-      timeoutMillis < 0  means do not retry, throw exception on failure.
-      timeoutMillis == 0 means retry until success.
-      timeoutMillis > 0  means block at most for timeoutMillis milliseconds, then return. 
-      An IOException is thrown when the socket was not properly created within this time.
-     **/
-    // timneout is not implemented correctly @@@@
-    // this can only be done with 1.4 functions... --Rob
+     * A host can have multiple local IPs (sierra)
+     * if localIP is null, try to bind to the first of this machine's IP addresses.
+     *
+     * timeoutMillis < 0  means do not retry, throw exception on failure.
+     * timeoutMillis == 0 means retry until success.
+     * timeoutMillis > 0  means block at most for timeoutMillis milliseconds, then return. 
+     * An IOException is thrown when the socket was not properly created within this time.
+     */
     public Socket createSocket(InetAddress dest, int port, InetAddress localIP, long timeoutMillis) throws IOException { 
 	boolean connected = false;
 	Socket s = null;
