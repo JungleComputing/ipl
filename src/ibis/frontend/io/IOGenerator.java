@@ -1347,7 +1347,6 @@ public class IOGenerator {
 	    } else {
 		String className = new String(classnames[i]);
 
-		// className = className.replace(java.io.File.separatorChar, '.');
 		System.err.println("class name = " + className);
 		try {
 		    ClassParser p = new ClassParser(classnames[i] + ".class");
