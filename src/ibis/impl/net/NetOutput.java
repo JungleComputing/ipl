@@ -41,6 +41,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
 	if (this instanceof NetBufferedOutputSupport) {
+// System.err.println("YEP!!! " + this);
 	    buffered = (NetBufferedOutputSupport)this;
 	}
     }

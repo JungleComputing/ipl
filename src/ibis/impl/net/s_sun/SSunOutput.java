@@ -31,18 +31,6 @@ public final class SSunOutput extends NetSerializedOutput {
         return new SunSerializationOutputStream(os);
     }
 
-    public void setupConnection(NetConnection cnx) throws IOException {
-        super.setupConnection(cnx);
-        if (subOutput instanceof NetBufferedOutputSupport) {
-            bufferOutput = (NetBufferedOutputSupport) subOutput;
-            if (!bufferOutput.writeBufferedSupported()) {
-                bufferOutput = null;
-            }
-        } else {
-            bufferOutput = null;
-        }
-    }
-
     private final class DummyOutputStream extends OutputStream {
 
         public void write(int b) throws IOException {
@@ -62,8 +50,8 @@ public final class SSunOutput extends NetSerializedOutput {
 
         public void write(byte[] data) throws IOException {
 
-            if (bufferOutput != null) {
-                bufferOutput.writeBuffered(data, 0, data.length);
+            if (subBuffered != null) {
+                subBuffered.writeBuffered(data, 0, data.length);
                 return;
             }
 

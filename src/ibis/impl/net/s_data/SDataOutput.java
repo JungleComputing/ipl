@@ -45,6 +45,9 @@ public final class SDataOutput extends NetSerializedOutput {
     private final class DummyAccumulator extends Accumulator {
 
         public void flush() throws IOException {
+	    if (subBuffered != null) {
+		subBuffered.flushBuffer();
+	    }
             /* nothing to flush here, no way to flush a
              netoutput */
         }

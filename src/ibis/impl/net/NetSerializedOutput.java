@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * The ID output implementation.
  */
-public abstract class NetSerializedOutput extends NetOutput {
+public abstract class NetSerializedOutput extends NetOutput implements NetBufferedOutputSupport {
 
     /**
      * The driver used for the 'real' output.
@@ -27,6 +27,8 @@ public abstract class NetSerializedOutput extends NetOutput {
     private Replacer replacer = null;
 
     private boolean needFlush = false;
+
+    protected NetBufferedOutputSupport subBuffered = null;
 
     /**
      * Some serialization protocols (like Sun ObjectStreams) require a full
@@ -65,6 +67,15 @@ public abstract class NetSerializedOutput extends NetOutput {
 
             subOutput = newSubOutput(subDriver);
             this.subOutput = subOutput;
+
+	    if (subOutput instanceof NetBufferedOutputSupport) {
+		subBuffered = (NetBufferedOutputSupport)subOutput;
+		if (!subBuffered.writeBufferedSupported()) {
+		    subBuffered = null;
+		}
+// else
+// System.err.println("YEP YEP YEP .... sub can be buffered");
+	    }
         }
 
         replacer = cnx.getReplacer();
@@ -113,7 +124,7 @@ public abstract class NetSerializedOutput extends NetOutput {
         needFlush = true;
     }
 
-    private void flushStream() throws IOException {
+    public void flushBuffer() throws IOException {
         if (needFlush) {
             oss.flush();
             needFlush = false;
@@ -122,7 +133,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 
     public long finish() throws IOException {
         super.finish();
-        flushStream();
+        flushBuffer();
         subOutput.finish();
         // TODO: return byte count of message
         return 0;
@@ -147,7 +158,7 @@ public abstract class NetSerializedOutput extends NetOutput {
     }
 
     public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
-        flushStream();
+        flushBuffer();
         subOutput.writeByteBuffer(buffer);
     }
 
