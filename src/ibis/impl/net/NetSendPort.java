@@ -6,6 +6,7 @@ import ibis.ipl.IbisIOException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.Replacer;
 import ibis.ipl.WriteMessage;
 
 import java.io.ObjectInputStream;
@@ -53,7 +54,12 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * The network output synchronization lock.
 	 */
 	private NetMutex              outputLock   	     = null;
-	
+
+        /**
+         * Replacer ???.
+         */
+        private Replacer              replacer               = null;
+        
 	/**
 	 * The next integer remote port number.
 	 *
@@ -104,7 +110,16 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param type the {@linkplain NetPortType port type}.
 	 */
 	public NetSendPort(NetPortType type) throws IbisIOException {
-		this(type, null);
+		this(type, null, null);
+	}
+
+	/**
+	 * Constructor for a anonymous send port.
+	 *
+	 * @param type the {@linkplain NetPortType port type}.
+	 */
+	public NetSendPort(NetPortType type, Replacer replacer) throws IbisIOException {
+		this(type, replacer, null);
 	}
 
 	/**
@@ -113,7 +128,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param type the {@linkplain NetPortType port type}.
 	 * @param name the name of the port.
 	 */
-	public NetSendPort(NetPortType type, String name)
+	public NetSendPort(NetPortType type, Replacer replacer, String name)
 		throws IbisIOException {
 		this.name	  	 = name;
 		this.type	  	 = type;
@@ -127,6 +142,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		receivePortSockets     	 = new Hashtable();
 		receivePortIs          	 = new Hashtable();
 		receivePortOs          	 = new Hashtable();
+                this.replacer = replacer;
 	}
 
 	/**

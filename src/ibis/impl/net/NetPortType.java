@@ -7,6 +7,7 @@ import ibis.ipl.PortType;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.Replacer;
 import ibis.ipl.Upcall;
 
 class NetPortType implements PortType {
@@ -65,7 +66,14 @@ class NetPortType implements PortType {
 	 * {@inheritDoc}
 	 */
 	public SendPort createSendPort(String name) throws IbisIOException {
-		return new NetSendPort(this, name);
+		return new NetSendPort(this, null, name);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public SendPort createSendPort(Replacer r) throws IbisIOException {
+		return new NetSendPort(this, r);
 	}
 
 	/**
