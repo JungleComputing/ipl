@@ -99,13 +99,15 @@ class Main {
 				BT_Analyzer a = new BT_Analyzer(subject, repmiInterface, verbose);
 				a.start();
 
-				output = createFile(getFileName(a.packagename, a.classname, "repmi_stub_"));			
-				new RepMIStubGenerator(a, output, verbose).generate();
-				output.flush();
+				if (a.subjectSpecialMethods != null) {
+				    output = createFile(getFileName(a.packagename, a.classname, "repmi_stub_"));			
+				    new RepMIStubGenerator(a, output, verbose).generate();
+				    output.flush();
 
-				output = createFile(getFileName(a.packagename, a.classname, "repmi_skeleton_"));			
-				new RepMISkeletonGenerator(a, output, verbose).generate();
-				output.flush();
+				    output = createFile(getFileName(a.packagename, a.classname, "repmi_skeleton_"));			
+				    new RepMISkeletonGenerator(a, output, verbose).generate();
+				    output.flush();
+				}
 
 			} catch (Exception e) { 
 				System.err.println("Main got exception " + e);
