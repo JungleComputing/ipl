@@ -41,7 +41,7 @@ set portno_specified=0
 set JIT_OPTS=
 
 set JAVA_EXEC=java
-set Xbootclasspath="-Xbootclasspath/p;%JAVACLASSPATH%"
+set Xbootclasspath="-Xbootclasspath/p:%JAVACLASSPATH%"
 
 set action=
 
@@ -49,7 +49,7 @@ rem
 rem nameserver defaults
 rem
 
-call %IBIS_ROOT%\bin\ns-env
+call "%IBIS_ROOT%\bin\ns-env"
 
 set Dns_server="-Dibis.name_server.host=%IBIS_NAMESERVER_HOST%"
 set Dns_port="-Dibis.name_server.port=%IBIS_NAMESERVER_PORT%"
