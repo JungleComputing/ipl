@@ -19,7 +19,6 @@
     <property file="${ibis}/build-properties"/>
     <property name="ibisBuild"   location="${ibis}/build"/>
 
-    <property name="package.home.ant-contrib" location="${ibis}/3rdparty/ant-contrib-0.4.jar"/>
     <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
 
     <property

@@ -8,7 +8,6 @@
       Figure out where the packages are that we depend on.
     </description>
 
-
     <target name="config.previous"
 	    depends="config-set-os"
 	    if="config.has-previous">
@@ -330,18 +329,6 @@ to the command line.
 	</if>
 
 	<!--
-	    It seems that putting 3rdparty Ant plugins in another
-	    directory than our ant base triggers classloader
-	    problems, e.g. for defining/using top-level libsets
-	-->
-	<copy todir="${ant.home}">
-	    <fileset dir="${ibis}/3rdparty">
-		<include name="ant-contrib-0.4.jar"/>
-		<include name="cpptasks-1.0-cvs.jar"/>
-	    </fileset>
-	</copy>
-
-	<!--
 	==============================================================
 	    Generate configuration.sh
 	-->
@@ -381,6 +368,9 @@ to the command line.
 		append="true"
 		file="${ibis}/configuration.sh">MANTA_ROOT=/usr/local/VU/manta
 </echo>
+	<!--
+	    Methinks there is no need at all for the run scripts
+	    to know the location of the native libraries
 	<echo
 		append="true"
 		file="${ibis}/configuration.sh">PANDA_ROOT=${config.home.panda}
@@ -401,6 +391,7 @@ to the command line.
 		append="true"
 		file="${ibis}/configuration.sh">PANDA_NETWORK=lfc
 </echo>
+	-->
 
 	<!-- Concat the stuff in scripts to the bin directory -->
 	<mkdir dir="${ibis}/bin"/>
