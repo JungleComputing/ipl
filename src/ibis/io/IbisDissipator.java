@@ -165,4 +165,3 @@ public interface IbisDissipator {
 			      int size) throws IOException;
  
 }
-	

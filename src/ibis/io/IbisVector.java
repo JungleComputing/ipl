@@ -2,10 +2,11 @@ package ibis.io;
 
 public final class IbisVector { 
 
-	public static final int INIT_SIZE = 1024;
+	public static final int INIT_SIZE = 16;
 
 	private Object [] array;
 	private int current_size;
+	private int maxfill;
 	
 	public IbisVector() { 
 		this(INIT_SIZE);
@@ -14,6 +15,7 @@ public final class IbisVector {
 	public IbisVector(int size) { 
 		array = new Object[size];
 		current_size = size;
+		maxfill = 0;
 	} 
 
 	private void double_array() { 
@@ -30,6 +32,7 @@ public final class IbisVector {
 			double_array();
 		} 
 		array[index] = data;
+		if (index >= maxfill) maxfill = index+1;
 	} 
 
 	public Object get(int index) { 
@@ -37,8 +40,9 @@ public final class IbisVector {
 	} 
 
 	public void clear() { 
-		for (int i=0;i<current_size;i++) { 
+		for (int i=0;i<maxfill;i++) { 
 			array[i] = null;
 		}
+		maxfill = 0;
 	} 
 } 

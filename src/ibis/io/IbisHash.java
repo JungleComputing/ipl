@@ -12,7 +12,7 @@ final class IbisHash {
 
     static final boolean STATS = false;
 
-    static final int MIN_BUCKETS = 32;
+    static final int MIN_BUCKETS = 16;
     // static final int SHIFT1  = 5;
     // static final int SHIFT2  = 16;
     static final int SHIFT1  = 4;

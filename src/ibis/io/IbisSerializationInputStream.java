@@ -110,24 +110,13 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     private static IbisTypeInfo doubleArrayInfo = IbisTypeInfo.getIbisTypeInfo(classDoubleArray);
 
     /**
-     * Deprecated constructor only included for backwards compatibility.
-     * @param in		the underlying <code> ArrayInputStream</code>
-     * @exception IOException	gets thrown when an IO error occurs.
-     */
-    public IbisSerializationInputStream(ArrayInputStream in)
-							 throws IOException {
-	super();
-	init();
-	this.in = new IbisArrayInputStreamDissipator(in);
-    }
-
-    /**
      * Constructor with an <code>IbisDissipator</code>.
      * @param in		the underlying <code>IbisDissipator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public IbisSerializationInputStream(IbisDissipator in) throws IOException {
 	super();
+	init();
 	this.in = in;
     }
 

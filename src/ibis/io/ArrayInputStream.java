@@ -6,7 +6,7 @@ import java.io.IOException;
  * An inputstream for reading arrays of primitive types.
  */
 
-public abstract class ArrayInputStream implements IbisStreamFlags {
+public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipator {
 
     /**
      * Each "bunch" of data is preceded by a header array, telling for
@@ -301,10 +301,157 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
     public abstract int available() throws IOException;
 
     /**
+     * The number of bytes read from the network 
+     * since the last reset of this counter
+     * @return The number of bytes read.
+     */
+    public int bytesRead() {
+	System.err.println("IbisArrayInputStreamDissipator: bytesRead() not implemented (yet)");
+	return 0;
+    }
+
+    /**
+     * Resets the bytes read counter
+     */
+    public void resetBytesRead() {
+	System.err.println("IbisArrayInputStreamDissipator: resetBytesRead() not implemented (yet)");
+    }
+
+    /**
      * Tells the underlying implementation that this input stream is
      * closing down.
      *
      * @exception IOException on IO error.
      */
     public abstract void close() throws IOException;
+
+    /**
+     * Reads a Boolean.
+     * @return	The Boolean read from the Buffer.
+     * @exception IOException when an IO error occurs.
+     */
+    public boolean readBoolean() throws IOException {
+	while(byte_index == max_byte_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read boolean: " + 
+	      ((byte_buffer[byte_index]) == (byte)1));
+	}
+	return (byte_buffer[byte_index++] == (byte) 1);
+    }
+
+    /**
+     * Reads a Byte from the dissipator
+     * @return	The Byte read from the Buffer
+     * @exception IOException when an IO error occurs.
+     */
+    public byte readByte() throws IOException {
+	while (byte_index == max_byte_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read byte: " + 
+	      byte_buffer[byte_index]);
+	}
+	return byte_buffer[byte_index++];
+    }
+
+    /**
+     * Reads a Character from the dissipator
+     * @return	The Character read from the Buffer
+     * @exception IOException when an IO error occurs.
+     */
+    public char readChar() throws IOException {
+	while (char_index == max_char_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read char: " + 
+	      char_buffer[char_index]);
+	}
+	return char_buffer[char_index++];
+    }
+
+    /**
+     * Reads a Short from the dissipator
+     * @return	The Short read from the Buffer
+     * @exception IOException when an IO error occurs.
+     */
+    public short readShort() throws IOException {
+	while (short_index == max_short_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read short: " + 
+	      short_buffer[short_index]);
+	}
+	return short_buffer[short_index++];
+    }
+
+    /**
+     * Reads a Integer from the dissipator
+     * @return	The Integer read from the Buffer
+     * @exception IOException when an IO error occurs.
+     */
+    public int readInt() throws IOException {
+	while (int_index == max_int_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read int[HEX]: " + 
+	      int_buffer[int_index] + "[" +
+	      Integer.toHexString(int_buffer[int_index]) + "]");
+	}
+	return int_buffer[int_index++];
+    }
+
+    /**
+     * Reads a Long from the dissipator
+     * @return	The Long read from the Buffer
+     * @exception IOException when an IO error occurs.
+     */
+    public long readLong() throws IOException {
+	while (long_index == max_long_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read long: " + 
+	      long_buffer[long_index]);
+	}
+	return long_buffer[long_index++];
+    }
+
+    /**
+     * Reads a Float from the dissipator
+     * @return	The Float read from the Buffer
+     * @exception IOException when an IO error occurs.
+     */
+    public float readFloat() throws IOException {
+	while (float_index == max_float_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read float: " + 
+	      float_buffer[float_index]);
+	}
+	return float_buffer[float_index++];
+    }
+
+    /**
+     * Reads a Double from the dissipator
+     * @return	The Double read from the Buffer
+     * @exception IOException when an IO error occurs.
+     */
+    public double readDouble() throws IOException {
+	while (double_index == max_double_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read double: " + 
+	      double_buffer[double_index]);
+	}
+	return double_buffer[double_index++];
+    }
+
 }
