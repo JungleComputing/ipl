@@ -139,6 +139,7 @@ if "%1"=="--" (
 goto cont
 
 :nextarg
+
     shift
     goto arguments
 
