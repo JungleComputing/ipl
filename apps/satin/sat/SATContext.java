@@ -293,7 +293,7 @@ public final class SATContext implements java.io.Serializable {
     /**
      * Given a clause, returns the implication of this clause.
      * @param c The clause to examine.
-     * @return The variable that is implied by this clause, or -1 if there is none (i.e. the clause is in conflict), or -2 if there is morethan one.
+     * @return The variable that is implied by this clause, or -1 if there is none (i.e. the clause is in conflict), or -2 if there is more than one.
      */
     private int getImplication( Clause c, int cno )
     {
@@ -392,7 +392,7 @@ public final class SATContext implements java.io.Serializable {
                 // interesting.
 
                 if( a<0 ){
-                    // The decision variable at our level, not interesting.
+                    // A decision variable, not interesting.
                 }
                 else {
                     // The variable is not a decision variable.
@@ -465,7 +465,7 @@ public final class SATContext implements java.io.Serializable {
         return bestDom;
     }
 
-    int calculateNearestDominator( SATProblem p, int cno, int level )
+    private int calculateNearestDominator( SATProblem p, int cno, int level )
     {
         // The distance of each clause to the conflicting clause. The 
         // conflicting clause itself gets distance 1, so that we can use
@@ -623,6 +623,9 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 	    else {
+                if( !cc.isConflicting( assignment ) ){
+                    System.err.println( "Error: learned clause " + cc + " is not in conflict" );
+                }
                 if( learnTuple ){
                     ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
                 }
@@ -730,15 +733,14 @@ public final class SATContext implements java.io.Serializable {
      * Update the adminstration for any new clauses in the specified
      * SAT problem.
      * @param p The SAT problem.
-     * @param level The decision level.
      */
-    public void update( SATProblem p, int level )
+    public void update( SATProblem p )
     {
         int newCount = p.getClauseCount();
 
         if( newCount>satisfied.length ){
             if( traceUpdates ){
-                System.err.println( "S" + level + ": updating context with " + (newCount-satisfied.length) + " new clauses" );
+                System.err.println( "Updating context with " + (newCount-satisfied.length) + " new clauses" );
             }
             int oldCount = satisfied.length;
             // New clauses have been added. Enlarge the arrays related

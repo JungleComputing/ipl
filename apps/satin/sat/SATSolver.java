@@ -73,7 +73,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         boolean learnTuple
     ) throws SATResultException, SATRestartException
     {
-        ctx.update( p, level );
+        ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
@@ -149,7 +149,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         boolean learnTuple
     ) throws SATException
     {
-        ctx.update( p, level );
+        ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
