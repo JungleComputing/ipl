@@ -62,8 +62,11 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	    }
 	}
 
+	InvocationRecord rval = l[head];
+	l[head] = null;
+
 	// success
-	return l[head];
+	return rval;
     }
 
     synchronized InvocationRecord getFromTail() {
@@ -73,7 +76,9 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	    return null;
 	}
 
-	return l[tail - 1];
+	InvocationRecord rval = l[tail - 1];
+	l[tail - 1] = null;
+	return rval;
     }
 
     boolean contains(InvocationRecord r) {
@@ -94,6 +99,8 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	for (int i = index + 1; i < head; i++) {
 	    l[i - 1] = l[i];
 	}
+
+	l[head] = null;
 
 	head--;
     }
