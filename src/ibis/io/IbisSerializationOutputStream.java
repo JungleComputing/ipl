@@ -166,6 +166,10 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	writeArray(b, 0, bn);
     }
 
+    public void writeClass(Class ref) throws IOException {
+	writeUTF(ref.getName());
+    }
+
     public void writeBoolean(boolean v) throws IOException {
 	if (out.byte_index + 1 == BYTE_BUFFER_SIZE) {
 	    partial_flush();

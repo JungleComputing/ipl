@@ -309,6 +309,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	return s;
     }
 
+    public Class readClass() throws IOException, ClassNotFoundException {
+	String name = readUTF();
+	return Class.forName(name);
+    }
+
     private void readArrayHeader(Class clazz, int len)
 	throws IOException {
 
@@ -631,6 +636,10 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	setFieldObject(ref, fieldname, "Ljava/lang/String;", readUTF());
     }
 
+    public void readFieldClass(Object ref, String fieldname) throws IOException, ClassNotFoundException {
+	setFieldObject(ref, fieldname, "Ljava/lang/Class;", readClass());
+    }
+
     public void readFieldObject(Object ref, String fieldname, String fieldsig) throws IOException, ClassNotFoundException {
 	setFieldObject(ref, fieldname, fieldsig, readObject());
     }
@@ -680,15 +689,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		}
 		else {
 		    t.serializable_fields[temp].setShort(ref, readShort());
-		}
-		temp++;
-	    }
-	    for (int i=0;i<t.char_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldChar(ref, t.serializable_fields[temp].getName(), readChar());
-		}
-		else {
-		    t.serializable_fields[temp].setChar(ref, readChar());
 		}
 		temp++;
 	    }
@@ -903,6 +903,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    } catch(Exception e) {
 		throw new RuntimeException("Could not instantiate" + e);
 	    }
+	    addObjectToCycleCheck(obj);
 	    push_current_object(obj, 0);
 	    ((java.io.Externalizable) obj).readExternal(this);
 	    pop_current_object();
