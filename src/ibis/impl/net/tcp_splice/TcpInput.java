@@ -1,5 +1,6 @@
 package ibis.impl.net.tcp_splice;
 
+import ibis.impl.net.NetIO;
 import ibis.impl.net.NetBuffer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
@@ -17,6 +18,7 @@ import ibis.ipl.ConnectionClosedException;
 import ibis.io.Conversion;
 
 import ibis.connect.socketFactory.ExtSocketFactory;
+import ibis.connect.socketFactory.SocketType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -140,9 +142,16 @@ public final class TcpInput extends NetBufferedInput
 
 		{
 		    // Socket creation
+		    final NetIO nn = this;
+		    SocketType.ConnectProperties props = 
+			new SocketType.ConnectProperties() {
+				public String getProperty(String name) {
+				    return nn.getProperty(name);
+				}
+			    };
 		    OutputStream os = cnx.getServiceLink().getOutputSubStream(this, "tcp_splice");
 		    InputStream  is = cnx.getServiceLink().getInputSubStream(this, "tcp_splice");
-		    tcpSocket = ExtSocketFactory.createBrokeredSocket(is, os, true);
+		    tcpSocket = ExtSocketFactory.createBrokeredSocket(is, os, true, props);
 		    is.close();
 		    os.close();
 		}
