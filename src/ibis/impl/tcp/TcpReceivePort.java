@@ -42,6 +42,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private ArrayList newConnections = new ArrayList();
 	private boolean connectionAdministration = false;
 	private boolean no_connectionhandler_thread = false;
+	private DynamicProperties props = new TcpDynamicProperties();
 
 	long count = 0;
 
@@ -334,7 +335,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	public DynamicProperties properties() {
-		return DynamicProperties.NoDynamicProperties;
+		return props;
 	}
 
 	public String name() {

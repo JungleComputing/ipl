@@ -57,6 +57,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	private SendPortConnectUpcall connectUpcall = null;
 	private ArrayList lostConnections = new ArrayList();
 	private Replacer replacer;
+	private DynamicProperties props = new TcpDynamicProperties();
 	long count;
 
 	TcpSendPort(TcpIbis ibis, TcpPortType type, String name,
@@ -284,7 +285,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	}
 
 	public DynamicProperties properties() {
-		return DynamicProperties.NoDynamicProperties;
+		return props;
 	}
 
 	public String name() {
