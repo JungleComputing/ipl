@@ -5,11 +5,11 @@
 // It contains two parts: a list of filenames, and a HashMap on words,
 // with for each word a list of indices in the list of filenames.
 
-import java.util.HashMap;
+import java.util.TreeMap;
 
 public class Index implements java.io.Serializable {
     protected String files[];
-    protected final HashMap wordOccurences = new HashMap();
+    protected final TreeMap wordOccurences = new TreeMap();
     private static final boolean compactSpans = true;
     private static final boolean showSpanCompaction = false;
 
@@ -111,7 +111,9 @@ public class Index implements java.io.Serializable {
     }
 
     /**
-     * Merges the given Index with our own.
+     * Adds the index entries in the given Index to our own.
+     * This is done by concatenating the lists of files, and 
+     * merging the occurence lists of the two entries.
      * @param ix The index to merge with.
      */
     public void add( Index ix )

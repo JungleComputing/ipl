@@ -1,21 +1,23 @@
 // File: $Id$
 
 /**
- * A parallel text indexer. Given two directories, traverse the first
- * directory, and construct files in the second directory with just the
- * words that occur in the files of the first directory.
+ * A parallel text indexer. Given a file and a list of directories, traverse
+ * directories, and construct an index of words that occur in the files
+ * in the traversed directories.
  * 
  * @author Kees van Reeuwijk
  * @version $Revision$
  */
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.regex.Pattern;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 public final class TextIndex extends ibis.satin.SatinObject implements IndexerInterface, java.io.Serializable {
     private static final boolean traceTreeWalk = true;
@@ -28,7 +30,20 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
      */
     public Index indexFile( String f ) throws IOException
     {
-        BufferedReader r = new BufferedReader( new FileReader( f ) );
+        BufferedReader r;
+
+        if( f.endsWith( ".gz" ) ){
+            r = new BufferedReader(
+                new InputStreamReader(
+                    new java.util.zip.GZIPInputStream(
+                        new FileInputStream( f )
+                    )
+                )
+            );
+        }
+        else {
+            r = new BufferedReader( new FileReader( f ) );
+        }
         TreeSet set = new TreeSet();
 
         while( true ){
