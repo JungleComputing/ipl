@@ -515,10 +515,26 @@ public class SATContext implements java.io.Serializable {
     /**
      * Returns true iff the given variable is more frequently used as
      * positive variable than as negative variable.
+     * @param var the variable
      */
     public boolean posDominant( int var )
     {
         return (posclauses[var]>negclauses[var]);
+    }
+
+    /**
+     * Given a variable, returns the maximum number of clauses it will satisfy.
+     * @param var the variable
+     * @return the solve count
+     */
+    public int getSolveCount( int var )
+    {
+	if( posclauses[var]>negclauses[var] ){
+	    return posclauses[var];
+	}
+	else {
+	    return negclauses[var];
+	}
     }
 
     /**

@@ -118,7 +118,6 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 	ctx.assignments[var] = val?1:0;
-	int oldUnsatisfied = ctx.unsatisfied;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var );
@@ -155,28 +154,15 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    return;
 	}
 
-	// We now estimate the number of recursions that is still 
-	// needed by looking at the remaining clauses and the number
-	// of clauses this decision variable will satisfy.
-	// This estimate is both optimistic and pessimistic.
-	// Optimistic, because the remaining variables may not
-	// satisfy as many as the current one. Pessimistic because
-	// we don't account for 
-	// chances are we will find a conflict or a solution
-	// before reaching
-	int dsat = oldUnsatisfied-ctx.unsatisfied;
-	if( dsat == 0 ){
-	    dsat = 1;
-	}
-	int depth = ctx.unsatisfied/dsat;
-        if( depth<leafSolverDepth ){
+        if( level>10 ){
+	    //System.err.println( "s" + level + " depth: " + depth + " unsat: " + ctx.unsatisfied + " dsat: " + dsat );
 	    // We're nearly there, use the leaf solver.
 	    // We have variable 'nextvar' to branch on.
-	    SATContext negctx = (SATContext) ctx.clone();
-	    SATContext posctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
-	    leafSolve( level+1, p, posctx, nextvar, firstvar );
-	    leafSolve( level+1, p, negctx, nextvar, !firstvar );
+	    SATContext subctx = (SATContext) ctx.clone();
+	    leafSolve( level+1, p, subctx, nextvar, firstvar );
+	    subctx = (SATContext) ctx.clone();
+	    leafSolve( level+1, p, subctx, nextvar, !firstvar );
 	}
 	else {
 	    // We have variable 'nextvar' to branch on.
