@@ -16,7 +16,10 @@ public class Poll implements Runnable {
 
     final static int polls_before_yield = 500;	// 1; // 2000;
 
-    boolean MANTA_COMPILE;
+    // Sun doesn't set java.compiler, so getProperty returns null --Rob
+    static final boolean MANTA_COMPILE = ( 
+	java.lang.System.getProperty("java.compiler") != null &&
+	java.lang.System.getProperty("java.compiler").equals("manta"));
 
     Thread	poller;
     PollClient	waiting_threads;
@@ -26,31 +29,33 @@ public class Poll implements Runnable {
     boolean	last_is_preemptive;
     boolean	comm_lives = true;
 
-    protected Poll() {
-	// Sun doesn't set java.compiler, so getProperty returns null --Rob
-	String compiler = java.lang.System.getProperty("java.compiler");
-	MANTA_COMPILE = compiler != null && compiler.equals("manta");
-
-	peeker = new Thread(this, "Poll peeker");
-	peeker.setDaemon(true);
-
-	if (DEBUG) {
-	    System.err.println("Turn on Poll.DEBUG");
-	}
-	if (STATISTICS) {
-	    System.err.println("Turn on Poll.STATISTICS");
-	}
-	if (MANTA_COMPILE) {
-	    System.err.println("Ibis/Panda knows this is Manta");
+    static {
+	if (Ibis.myIbis.myCpu == 0) {
+	    if (DEBUG) {
+		System.err.println("Turn on Poll.DEBUG");
+	    }
+	    if (true || DEBUG) {
+		if (NEED_POLLER_THREAD) {
+		    System.err.println("Poll: use a poll peeker thread. Sure we need it (?)");
+		} else {
+		    System.err.println("Poll: don't start the poll peeker thread. Sure we don't need it?");
+		}
+	    }
+	    if (STATISTICS) {
+		System.err.println("Turn on Poll.STATISTICS");
+	    }
+	    if (MANTA_COMPILE) {
+		System.err.println("Ibis/Panda knows this is Manta");
+	    }
 	}
     }
 
 
     void wakeup() {
 	if (NEED_POLLER_THREAD) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.err.println("Now start the poll peeker thread. Sure we need it (?)");
-	    }
+	    peeker = new Thread(this, "Poll peeker");
+	    peeker.setDaemon(true);
+
 	    peeker.start();
 	}
     }
@@ -245,7 +250,7 @@ if (false)
 
 
     public void run() {
-	System.err.println("Poll peeker lives");
+	// System.err.println("Poll peeker lives");
 	while (comm_lives) {
 	    if (ibis.ipl.impl.messagePassing.Ibis.myIbis != null) {
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();

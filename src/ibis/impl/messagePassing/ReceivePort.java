@@ -15,13 +15,26 @@ class ReceivePort
 
     /** After serving a message, the receive thread may optimistically
      * poll for a while. A new request might arrive in a short while,
-     * and that saves an interrupt. */
-    private static final boolean RECEIVE_THREAD_POLLS = true;
-    private static final int polls_before_yield = Poll.polls_before_yield;
-    // private static final int polls_before_yield = 10;
+     * and that saves an interrupt. Set this to 0 if you don't want
+     * optimistic polling. */
+    private static final int polls_before_yield = Poll.polls_before_yield / 2;
+    // private static final int polls_before_yield = 200;
+
+    // private static final int max_sleepers = 128; // 0; // 8;
+    private static final int max_sleepers = 2 * Ibis.myIbis.nrCpus + 4; // 0; // 8;
+
+    static {
+	if (Ibis.myIbis.myCpu == 0) {
+	    System.err.println("ReceivePort: Cache at most " + max_sleepers + " receiver threads per ReceivePort");
+	    System.err.println("ReceivePort: Do " + polls_before_yield + " optimistic polls after serving an asynchronous upcall");
+	}
+    }
 
     private static final boolean DEBUG = false;
-    private static final int max_sleepers = 128; // 0; // 8;
+
+    private static final boolean STATISTICS = true;
+    private static int threadsCreated;
+    private static int threadsCached;
 
     private static int livingPorts = 0;
     private static Syncer portCounter = new Syncer();
@@ -76,7 +89,9 @@ class ReceivePort
 
     static {
 	if (DEBUG) {
-	    System.err.println(Thread.currentThread() + "Turn on ReceivePort.DEBUG");
+	    if (Ibis.myIbis.myCpu == 0) {
+		System.err.println(Thread.currentThread() + "Turn on ReceivePort.DEBUG");
+	    }
 	}
     }
 
@@ -191,14 +206,21 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	if (sleeping_receivers > 0) {
 // System.err.println(Thread.currentThread() + "(actually woke up a sleeping one)");
 	    sleepers.cv_signal();
+	    if (STATISTICS) {
+		threadsCreated++;
+		threadsCached++;
+	    }
 	}
 	else {
-System.err.println("Create another UpcallThread because the previous one didn't terminate");
+System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because the previous one didn't terminate");
 // Thread.dumpStack();
 	    Thread thread = new Thread(this);
 	    thread.setName("ReceivePort upcall thread " + upcallThreads);
 	    upcallThreads++;
 	    thread.start();
+	    if (STATISTICS) {
+		threadsCreated++;
+	    }
 	}
     }
 
@@ -700,13 +722,11 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		    }
 
-		    if (RECEIVE_THREAD_POLLS) {
-			for (int i = 0;
-			     queueFront == null && i < polls_before_yield;
-			     i++) {
-			    if (Ibis.myIbis.pollLocked()) {
-				// break;
-			    }
+		    for (int i = 0;
+			 queueFront == null && i < polls_before_yield;
+			 i++) {
+			if (Ibis.myIbis.pollLocked()) {
+			    // break;
 			}
 		    }
 
@@ -772,6 +792,15 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 	}
 System.err.println("ReceivePort " + this + " upcallThread " + Thread.currentThread().getName() + " snuffs it");
     }
+
+
+    static void report(java.io.PrintStream out) {
+	if (STATISTICS) {
+	    out.println(Ibis.myIbis.myCpu + ": ReceivePort threads created " + threadsCreated +
+			" (cached " + threadsCached + ")");
+	}
+    }
+
 
     static void end() {
 	// assert(ibis.ipl.impl.messagePassing.Ibis.myIbis.locked();

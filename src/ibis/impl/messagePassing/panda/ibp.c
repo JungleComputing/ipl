@@ -176,6 +176,209 @@ ibp_string_push(JNIEnv *env, jstring s, pan_iovec_p iov)
 }
 
 
+#define INTERRUPTS_AS_UPCALLS	1
+
+#if INTERRUPTS_AS_UPCALLS
+
+static int	intpt_running = 0;
+
+
+static JavaVM *
+current_VM(void)
+{
+#define MAX_VM_NUM	16
+    JavaVM *VM[MAX_VM_NUM];
+    int	nVMs;
+
+    if (JNI_GetCreatedJavaVMs(VM, MAX_VM_NUM, &nVMs) != 0) {
+	fprintf(stderr, "JNI_GetCreatedJavaVMs fails\n");
+	abort();
+    }
+    if (nVMs == 0) {
+	fprintf(stderr, "No VM!\n");
+	abort();
+    }
+    if (nVMs > 1) {
+	fprintf(stderr, "%d VMs alive, choose only the first\n", nVMs);
+    }
+
+    return VM[0];
+}
+
+
+static JNIEnv *
+intpt_env_create(void)
+{
+    JNIEnv *env;
+    JavaVM     *vm = current_VM();
+
+    if ((*vm)->AttachCurrentThread(vm, (void *)&env, NULL) != 0) {
+	fprintf(stderr, "AttachCurrentThread fails\n");
+	abort();
+    }
+    if (ibmp_me == 0) {
+	fprintf(stderr, "%2d: Hand out intpt thread JNIEnv * %p\n",
+		ibmp_me, env);
+    }
+
+    return env;
+}
+
+
+static int
+intpt_env_check(JNIEnv *env)
+{
+    JNIEnv     *intpt_env;
+    jint	r;
+    JavaVM     *vm = current_VM();
+
+    r = (*vm)->GetEnv(vm, (void *)&intpt_env, JNI_VERSION_1_2);
+    if (r != JNI_OK) {
+	fprintf(stderr, "GetEnv returns %d\n", r);
+	abort();
+    }
+
+    return (intpt_env == env);
+}
+
+
+
+static JNIEnv *
+intpt_env_get(void)
+{
+    static JNIEnv *intpt_JNIEnv = NULL;
+
+    if (intpt_running++ != 0) {
+	fprintf(stderr,
+		"At env_get: some other interrupt handler active -- abort\n");
+	abort();
+    }
+
+    if (intpt_JNIEnv == NULL) {
+	intpt_JNIEnv = intpt_env_create();
+    }
+    assert(intpt_env_check(intpt_JNIEnv));
+
+    return intpt_JNIEnv;
+}
+
+
+static void
+intpt_env_release(JNIEnv *env)
+{
+    if (--intpt_running != 0) {
+	fprintf(stderr,
+		"At env_release: some other interrupt handler active -- abort\n");
+	abort();
+    }
+}
+
+#define POLLS_PER_INTERRUPT	1	// 4
+
+static int	intpts = 0;
+
+static void
+ibp_intr_poll(void)
+{
+    JNIEnv *env = intpt_env_get();
+    int		i;
+
+    intpts++;
+
+    // fprintf(stderr, "Do a poll from interrupt handler\n");
+    ibmp_lock_check_owned(env);
+    for (i = 0; i < POLLS_PER_INTERRUPT; i++) {
+	// fprintf(stderr, "Do a poll[%d] from interrupt handler\n", i);
+	while (ibmp_poll(env));
+    }
+
+    intpt_env_release(env);
+}
+
+
+static void
+ibp_intr_lock(void)
+{
+    JNIEnv *env = intpt_env_get();
+
+    ibmp_lock(env);
+
+    intpt_env_release(env);
+}
+
+
+static void
+ibp_intr_unlock(void)
+{
+    JNIEnv *env = intpt_env_get();
+
+    ibmp_unlock(env);
+
+    intpt_env_release(env);
+}
+
+#else		/* INTERRUPTS_AS_UPCALLS */
+
+#include <sys/types.h>
+#include <signal.h>
+#include <errno.h>
+#include <unistd.h>
+
+#include <pthread.h>
+
+/*
+ * This should be handled inside LFC: the first thread that switches on
+ * interrupts should be the thread that requests the SIGIOs.
+ * There, we are also aware of using pthreads (which we are not, here,
+ * really).
+ */
+static void
+ibp_intr_poll(void)
+{
+    int		r;
+    extern pthread_t ibmp_sigcatcher_pthread;
+
+    fprintf(stderr, "Interrupt thread: gonna throw a SIGIO to myself\n");
+    fflush(stderr);
+
+    if ((r = pthread_kill(ibmp_sigcatcher_pthread, SIGIO)) != 0) {
+	fprintf(stderr, "ibp_intr_poll->kill(SIGIO) fails, status %d errno %d\n", r, errno);
+	perror("kill(SIGIO) fails");
+    }
+}
+
+
+static void
+ibp_intr_lock(void)
+{
+}
+
+
+static void
+ibp_intr_unlock(void)
+{
+}
+
+#endif
+
+
+void
+ibp_report(JNIEnv *env, jint out)
+{
+    FILE *f;
+
+    if (out == 1) {
+	f = stdout;
+    } else {
+	f = stderr;
+    }
+#if INTERRUPTS_AS_UPCALLS
+    fprintf(f, "%2d: intpts %d\n", pan_my_pid(), intpts);
+#endif
+}
+
+
+
 static int
 hostname_equal(char *h0, char *h1)
 {
@@ -317,6 +520,12 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
 #ifndef NDEBUG
     ibp_env_key = pan_key_create();
 #endif
+
+    {
+    void pan_comm_intr_register(void (*)(void), void (*)(void), void (*)(void));
+    
+    pan_comm_intr_register(ibp_intr_poll, ibp_intr_lock, ibp_intr_unlock);
+    }
 }
 
 
@@ -328,7 +537,9 @@ ibp_start(JNIEnv *env)
 
     if (ibp_intr_enabled) {
 	// fprintf(stderr, "Don't enable Panda interrupts (yet)\n");
-	fprintf(stderr, "Enable Panda interrupts\n");
+	if (0 && ibmp_me == 0) {
+	    fprintf(stderr, "Enable Panda interrupts\n");
+	}
 	pan_comm_intr_enable();
     }
 }
@@ -337,6 +548,7 @@ ibp_start(JNIEnv *env)
 void
 ibp_end(JNIEnv *env)
 {
+    ibp_report(env, 1);
     IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
     pan_end();
 }

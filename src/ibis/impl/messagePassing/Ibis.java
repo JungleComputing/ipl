@@ -432,6 +432,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private void report() {
 	ConditionVariable.report(System.out);
+	ReceivePort.report(System.out);
 	rcve_poll.report(System.out);
 	ibmp_report(1);
     }

@@ -483,11 +483,6 @@ int ibp_mp_proto_offset(void)
     return sizeof(ibmpi_proto_t);
 }
 
-void
-ibp_mp_report(JNIEnv *env, jint out)
-{
-}
-
 
 void
 ibp_mp_init(JNIEnv *env)

@@ -6,6 +6,15 @@ import ibis.ipl.impl.generic.ConditionVariable;
 class ReceivePortNameServerClient
     implements ReceivePortNameServerProtocol {
 
+    static {
+	if (ReceivePortNameServerProtocol.DEBUG) {
+	    if (Ibis.myIbis.myCpu == 0) {
+		System.err.println("Turn on ReceivePortNS.DEBUG");
+	    }
+	}
+    }
+
+
     class Bind implements PollClient {
 
 	PollClient next;

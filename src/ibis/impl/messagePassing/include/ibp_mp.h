@@ -28,8 +28,6 @@ void ibp_mp_send_async(JNIEnv *env, int cpu, int port,
 		       void *proto, int proto_size,
 		       pan_clear_p sent_upcall, void *arg);
 
-void ibp_mp_report(JNIEnv *env, jint out);
-
 void ibp_mp_init(JNIEnv *env);
 void ibp_mp_end(JNIEnv *env);
 

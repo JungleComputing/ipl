@@ -162,6 +162,12 @@ ibp_string_push(JNIEnv *env, jstring s, pan_iovec_p iov)
 }
 
 
+void
+ibp_report(JNIEnv *env, jint out)
+{
+}
+
+
 /* Howlllll.... Compatibility for MPICH fortran */
 
 int f__xargc(void);

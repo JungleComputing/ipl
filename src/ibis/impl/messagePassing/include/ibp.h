@@ -18,6 +18,8 @@ int ibp_msg_sender(ibp_msg_p msg);
 void *ibp_proto_create(unsigned int size);
 void ibp_proto_clear(void *proto);
 
+void ibp_report(JNIEnv *env, jint out);
+
 void ibp_init(JNIEnv *env, int *argc, char *argv[]);
 void ibp_start(JNIEnv *env);
 void ibp_end(JNIEnv *env);
