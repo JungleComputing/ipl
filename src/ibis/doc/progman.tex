@@ -31,6 +31,10 @@ the aim of this document is to describe how to actually use these classes
 and methods.
 The \emph{docs/api} subdirectory of the Ibis installation provides
 documentation for each class and method.
+\begin{htmlonly}
+The Ibis API is also available
+\htmladdnormallink{here}{http://www.cs.vu.nl/ibis/api/index.html}.
+\end{htmlonly}
 Fragments of an actual Ibis application will be used for illustration purposes.
 Section \ref{An Ibis Application} will discuss a typical Ibis application,
 with subsections on each phase of the program.
@@ -106,8 +110,8 @@ Send and receive ports are \emph{typed} by means of a \emph{port type}.
 A port type is defined and configured with properties.
 Only ports of the same type can be connected.
 Port type properties that can be configured are, for instance, the
-serialization method used, reliability, wether a send port can connect
-to more than one receive port, wether more than one send port can connect
+serialization method used, reliability, whether a send port can connect
+to more than one receive port, whether more than one send port can connect
 to a single receive port, et cetera.
 
 \mysubsection{Serialization}
@@ -295,7 +299,7 @@ this means that the Ibises that can join the run are determined
 at the start of the run.
 \end{description}
 
-If a specific implementation of Ibis is required, that can be delt with too.
+If a specific implementation of Ibis is required, that can be dealt with too.
 There is a property called ``name'', which can be used to supply a nickname
 for the Ibis implementation that is required.
 The currently known nicknames are:
@@ -308,7 +312,7 @@ This is a messagePassing Ibis implementation on top of the Panda
 communication layer. It only supports the ``closed'' worldmodel,
 but on our system it gives much higher throughput and lower latencies
 because it runs on Myrinet instead of our (100Mbitps) Ethernet on which
-the tcp version runs.
+the TCP version runs.
 \item[net]
 This is the most flexible Ibis implementation, but still in an experimental
 stage.
@@ -338,7 +342,7 @@ instead.
 However, when such a \verb+ResizeHandler+ is used, its \verb+join+
 upcall is called for every Ibis that joins the run, including the
 Ibis being created.
-To prevent upcalls from occuring before the
+To prevent upcalls from occurring before the
 creation of this Ibis is completed, these upcalls must be explicitly
 enabled by invoking the \verb+openWorld+ method of the Ibis just
 created. In addition, the \verb+openWorld+ method blocks until the
@@ -436,7 +440,7 @@ It may not even be clear which instance is going to do what.
 This can of course be solved with program parameters, but Ibis
 also provides a so-called registry (of type
 \verb+ibis.ipl.Registry+), which is obtained through the
-\verb+ibis.regstry+ method.
+\verb+ibis.registry+ method.
 Ibis also provides the \verb+ibis.ipl.IbisIdentifier+ class.
 the \verb+ibis.ipl.Ibis.identifier+ method returns such an
 Ibis identifier, which identifies this specific Ibis instance.
@@ -569,8 +573,8 @@ Our RPC server would set up the following connection:
 \begin{quote}
 \begin{verbatim}
 try {
-    ReceivePortIdentifier clnt = registry.lookup("client");
-    server_sender.connect(clnt);
+    ReceivePortIdentifier client = registry.lookup("client");
+    server_sender.connect(client);
 } catch(IOException e) {
     ...
 }
@@ -649,7 +653,7 @@ A receive port has the following methods:
 \begin{quote}
 \begin{verbatim}
 SendPortIdentifier[] newConnections();
-SendPortIdenfifier[] lostConnections();
+SendPortIdentifier[] lostConnections();
 SendPortIdentifier[] connectedTo();
 \end{verbatim}
 \end{quote}
@@ -666,7 +670,7 @@ A send port has the following methods:
 \begin{quote}
 \begin{verbatim}
 ReceivePortIdentifier[] newConnections();
-ReceivePortIdenfifier[] lostConnections();
+ReceivePortIdentifier[] lostConnections();
 ReceivePortIdentifier[] connectedTo();
 \end{verbatim}
 \end{quote}
@@ -756,7 +760,7 @@ void upcall(ReadMessage m) throws IOException {
 
 Note that the read message is finished before replying to the
 request. To prevent deadlocks, upcalls are not allowed to block in
-condition sychronization or network access as long as the message
+condition synchronization or network access as long as the message
 is active. This means that a thread is not allowed to write as long
 as a read message is active, and a thread is not allowed to wait for
 some condition (call \verb+Thread.wait()+).
@@ -1199,7 +1203,7 @@ The \verb+remove+ method removes the tuple that has the specified key.
 
 All members can add tuples, and no global ordering is imposed on the
 additions, unless the system property
-\verb+satin.tuplespace.ordened+ is defined and represents the
+\verb+satin.tuplespace.ordered+ is defined and represents the
 boolean value \verb+true+. In this case, a global ordering is imposed.
 
 The Satin tuple space supports \emph{active tuples}.
