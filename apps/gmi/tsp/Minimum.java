@@ -7,9 +7,9 @@ public class Minimum extends GroupMember implements i_Minimum {
 //	int sets = 0;
 //	int gets = 0;
 	
-	public Minimum() {
+	public Minimum(int min) {
 		super();
-		minimum = Integer.MAX_VALUE;	
+		minimum = min;
 	}
 
 	public void set(int min) {

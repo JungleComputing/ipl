@@ -59,7 +59,10 @@ public class Client {
 
 		if(length >= minimum.get()) return;
 
+		me = path[hops];
+
 		if(hops + 1 == nrCities) {
+			length += distanceTable.distance(me, path[0]);
 			if(length < minimum.get()) {
 				group.set(length);
 			}
@@ -68,8 +71,6 @@ public class Client {
 
 		// Path really is a partial route.
 		// Call calculateSubPath recursively for each subtree.
-
-		me = path[hops];
 
 		for(int i=0; i<nrCities; i++) {
 			if(!present(i, hops, path)) {

@@ -46,19 +46,46 @@ class Main {
 		return false;
 	}
 
+	private static void usage() {
+	    System.err.println("Illegal parameter(s).");
+	    System.err.println("Allowed parameters are:");
+	    System.err.println("   -bound <num>       : to set the upper bound;");
+	    System.err.println("   <filename>         : the distance table.");
+	}
+
 	public static void main(String[] argv) {
 
 		int nodes      = Group.size();
 		int rank       = Group.rank();
+		int bound      = 0;
+		String filename = null;
 
 		try {
+			for (int i = 0; i < argv.length; i++) {
+			    if (argv[i].equals("-bound")) {
+				bound = Integer.parseInt(argv[++i]);
+			    } else if (filename == null) {
+				filename = argv[i];
+			    } else {
+				if (rank == 0) {
+				    usage();
+				}
+				System.exit(1);
+			    }
+			}
+			if (filename == null) {
+			    if (rank == 0) {
+				usage();
+			    }
+			    System.exit(1);
+			}
 			if (rank == 0) {
-				
+
 				System.out.println("Starting TSP");
 
 				Group.create("Minimum", i_Minimum.class, nodes);
 				Group.create("Queue", i_JobQueue.class, 1);
-				distanceTable = DistanceTable.readTable(argv[0]);
+				distanceTable = DistanceTable.readTable(filename);
 				nrCities = distanceTable.getSize();	
 				jobQueue = new JobQueue(distanceTable);
 				generateJobs();
@@ -66,7 +93,8 @@ class Main {
 				Group.join("Queue", jobQueue);
 			} 
 
-			minimum = new Minimum();
+			if (bound == 0) bound = Integer.MAX_VALUE;	
+			minimum = new Minimum(bound);
 			Group.join("Minimum", minimum);
 
 			i_Minimum min = (i_Minimum) Group.lookup("Minimum");

@@ -1,4 +1,4 @@
-/* Sun RMI One Dimensional Fast Fourier Transformation (FFT)
+/* Ibis GMI One Dimensional Fast Fourier Transformation (FFT)
 
    port of the RMI version of Ronald Blankedaal
 */
@@ -42,7 +42,7 @@ class Main {
 		initdis();
 
 		if (host == 0) {
-			System.out.println("Sun RMI One Dimensional Fast Fourier Transformation");
+			System.out.println("Ibis GMI One Dimensional Fast Fourier Transformation");
 			System.out.println("M:" + M + " N:" + N + " rootN:" + rootN + "  Running on " + cpus + " cpu(s), each having " + rowsperproc + " rows to process");			
 			Group.create("FFT-Slaves", i_Slave.class, cpus);                              
 		}

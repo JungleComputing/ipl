@@ -277,8 +277,6 @@ class ACP {
 			
 			in = new Input(args[0]);
 			
-			in.readln();
-			
 			numVariables     = in.readInt();
 			in.readln();
 			
@@ -293,7 +291,6 @@ class ACP {
 			
 			numRelationPairs = in.readInt();
 			in.readln();			
-			in.readln();		
 			
 			seed             = in.readInt();
 			
