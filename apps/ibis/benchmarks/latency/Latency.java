@@ -4,8 +4,13 @@ import java.util.Properties;
 
 import java.util.Random;
 
-class Sender { 
+class Computer extends Thread {
+	public void run() {
+		while(true);
+	}
+}
 
+class Sender { 
 	SendPort sport;
 	ReceivePort rport;
 
@@ -244,6 +249,8 @@ class Latency {
 		int count = -1;
 		int rank = 0, remoteRank = 1;
 		Random r = new Random();
+		boolean compRec = false;
+		boolean compSnd = false;
 
 		/* Parse commandline parameters. */
 		for(int i=0; i<args.length; i++) {
@@ -256,6 +263,10 @@ class Latency {
 				panda = true;
 			} else if(args[i].equals("-manta")) {
 				manta = true;
+			} else if(args[i].equals("-comp-rec")) {
+				compRec = true;
+			} else if(args[i].equals("-comp-snd")) {
+				compSnd = true;
 			} else {
 				if(count == -1) {
 					count = Integer.parseInt(args[i]);
@@ -299,6 +310,10 @@ class Latency {
 			}
 
 			if (rank == 0) { 
+				if(compSnd) {
+					new Computer().start();
+				}
+
 				if (!upcallsend) { 
 					rport = t.createReceivePort("test port 0");
 					rport.enableConnections();
@@ -322,6 +337,10 @@ class Latency {
 			} else { 
 				ReceivePortIdentifier ident = lookup("test port 0");
 				connect(sport, ident);
+
+				if(compRec) {
+					new Computer().start();
+				}
 
 				if (upcalls) {
 					UpcallReceiver receiver = new UpcallReceiver(sport, 2*count);
@@ -349,4 +368,3 @@ class Latency {
 		}
 	}
 } 
-

@@ -36,13 +36,35 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 
 		/* recursive call without the current element */
 		Return ret2;
-		if (i < THRESHOLD) {
-			ret2 = spawn_try_it(i+1, N, no_skills, skills, cover, covered, act, opt2, opt_elems2);
-		} else {
-			// do not spawn this one...
+
+		if(i >= THRESHOLD) {
 			ret2 = try_it(i+1, N, no_skills, skills, cover, covered, act, opt2, opt_elems2);
+
+			/* recursive call with the current element */
+			/* must copy all OBJECTS we modify! */
+			byte[] act_copy = (byte[]) act.clone();
+			byte[] covered_copy = (byte[]) covered.clone();
+			
+			act_copy[i] = 1;
+			for (k=0; k<no_skills; k++) {
+				if (skills[i][k] == 1) {
+					if (covered_copy[k]++ == 0) {
+						cover++;
+					}
+				}
+			}
+			
+			ret = try_it(i+1, N, no_skills, skills, cover, covered_copy, act_copy, ret.opt, ret.opt_elems);
+
+			if (ret2.opt_elems < ret.opt_elems) {
+				return ret2;
+			}
+			
+			return ret;
 		}
-	
+
+		ret2 = spawn_try_it(i+1, N, no_skills, skills, cover, covered, act, opt2, opt_elems2);
+
 		/* recursive call with the current element */
 		/* must copy all OBJECTS we modify! */
 		byte[] act_copy = (byte[]) act.clone();
@@ -57,13 +79,8 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 			}
 		}
 
-		if (i < THRESHOLD) {
-			ret = spawn_try_it(i+1, N, no_skills, skills, cover, covered_copy, act_copy, ret.opt, ret.opt_elems);
-			sync();
-		} else {
-			// do not spawn this one...
-			ret = try_it(i+1, N, no_skills, skills, cover, covered_copy, act_copy, ret.opt, ret.opt_elems);
-		}
+		ret = spawn_try_it(i+1, N, no_skills, skills, cover, covered_copy, act_copy, ret.opt, ret.opt_elems);
+		sync();
 
 		if (ret2.opt_elems < ret.opt_elems) {
 			return ret2;
@@ -71,7 +88,6 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 
 		return ret;
 	}
-
 
 	public static void main(String[] args) {
 		int no_skills, no_elems;

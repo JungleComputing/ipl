@@ -1,26 +1,26 @@
+
 APPS =
 #APPS += hello
 #APPS += abort_test
 #APPS += lowlevel
-#APPS += fib
-#APPS += tsp 
+APPS += fib
+APPS += tsp 
 APPS += ida
 APPS += fib_threshold
-#APPS += knapsack
-#APPS += nqueens
+APPS += knapsack
+APPS += nqueens
 APPS += cover
-#APPS += noverk
-#APPS += primfac
-#APPS += adapint
-#APPS += raytracer
-#APPS += mmult
+APPS += noverk
+APPS += primfac
+APPS += adapint
+APPS += raytracer
+APPS += mmult
 #APPS += two_out_three
 #APPS += two_out_three_non_static
 #APPS += checkers
 
-RUNJAVA = /home3/rob/bin/runjava_ibis_ibm
 #SIZES = 1 2 4 8 16 24 32 48 64
-SIZES = 64 48 32 24 16 8 4 2 1
+#SIZES = 1 2 4 16 24 32 48 64
 
 PAR_SCHEDULING  =
 PAR_SCHEDULING += RS
@@ -29,16 +29,26 @@ SEQ_OUT_FILE = output-$(OUT)-seq
 PAR_OUT_FILE = output-$(OUT)-par-$$q-$$s
 
 SEQ_RUN_OPTIONS =
-PAR_RUN_OPTIONS = -satin-stats -satin-closed
+PAR_RUN_OPTIONS  = -satin-stats 
+PAR_RUN_OPTIONS += -satin-closed
+PAR_RUN_OPTIONS += -satin-manta
 
-SEQ_TIME = -asocial -t 3:0:0
-PAR_TIME = -asocial -t 3:0:0
+SEQ_TIME = -asocial -t 5:0:0
+PAR_TIME = -asocial -t 2:0:0
 
 EXCLUDES =
 
+NAME_SERVER = fs0.das2.cs.vu.nl
+
+PAR_POOL_NAME = $(OUT)-par-$$q-$$s
+SEQ_POOL_NAME = dummy
+
 DATE = `date '+%Y-%m-%d'`
 
-# becasue of the temp file, do not run make parrun in the background!
-SEQ_RUN_COMMAND = (/home/rob/bin/check_rsh_ports; rm -rf .ibis_pool_name $(SEQ_OUT_FILE); prun $(EXCLUDES) -1 -o $(SEQ_OUT_FILE) $(SEQ_TIME) -v $(RUNJAVA) 1 $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(SEQ_RUN_OPTIONS) < /dev/null; mv $(SEQ_OUT_FILE).0 $(SEQ_OUT_FILE)) &
+# don't forget -server flag for the SUN JIT
+#JVM_FLAGS = -server
 
-PAR_RUN_COMMAND = (/home/rob/bin/check_rsh_ports; rm -f .ibis_pool_name $(PAR_OUT_FILE).*; prun $(EXCLUDES) -1 -o $(PAR_OUT_FILE) $(PAR_TIME) -v $(RUNJAVA) $$s $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(PAR_RUN_OPTIONS) < /dev/null; cat $(PAR_OUT_FILE).* > $(PAR_OUT_FILE); rm -f $(PAR_OUT_FILE).*)
+
+SEQ_RUN_COMMAND = (/home/rob/bin/check_rsh_ports; rm -f $(SEQ_OUT_FILE) $(SEQ_OUT_FILE).0; prun $(EXCLUDES) -1 -o $(SEQ_OUT_FILE) $(SEQ_TIME) -v ~/projects/ibis/bin/run_ibis 1 $(SEQ_POOL_NAME) $(NAME_SERVER) $(JVM_FLAGS) $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(SEQ_RUN_OPTIONS) < /dev/null; mv $(SEQ_OUT_FILE).0 $(SEQ_OUT_FILE)) &
+
+PAR_RUN_COMMAND = (/home/rob/bin/check_rsh_ports; rm -f $(PAR_OUT_FILE) $(PAR_OUT_FILE).*; prun $(EXCLUDES) -1 -o $(PAR_OUT_FILE) $(PAR_TIME) -v ~/projects/ibis/bin/run_ibis $$s $(PAR_POOL_NAME) $(NAME_SERVER) $(JVM_FLAGS) $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(PAR_RUN_OPTIONS) < /dev/null; cat $(PAR_OUT_FILE).* > $(PAR_OUT_FILE); rm -f $(PAR_OUT_FILE).*)

@@ -1,6 +1,6 @@
 final class FibThreshold extends ibis.satin.SatinObject implements FibThresholdInterface, java.io.Serializable  {
 
-	static final long THRESHOLD = 32;
+	static final long THRESHOLD = 30;
 
 	public long spawn_fib(long n) {
 		return fib(n);
