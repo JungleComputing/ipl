@@ -5,7 +5,7 @@
     &rmicTargets;
     &nativeTargets;
 
-    <target name="init">
+    <target name="init" depends="property-init">
 	<tstamp/>
 	<mkdir dir="${build}"/>
 	<!--
