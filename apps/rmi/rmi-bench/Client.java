@@ -11,7 +11,7 @@ public class Client {
     private String server_name;
     private boolean one_way = false;
     private int send_type = Datatype.BYTE;
-    private int warm_up = 1000;
+    private int warm_up = -1;
     private boolean client_worker = false;
 
     // native void fs_stats_reset();
@@ -67,6 +67,10 @@ public class Client {
 	    }
 	}
 
+	if (warm_up == -1) {
+	    warm_up = N;
+	}
+
 	start(local);
     }
 
@@ -114,7 +118,7 @@ public class Client {
 		break;
 	    } catch (ibis.rmi.NotBoundException eR) {
 		try {
-		    System.out.println("Look up server object: sleep a while...");
+		    System.out.println("Look up server object: sleep a while... " + eR);
 		    Thread.sleep(1000);
 		} catch (InterruptedException eI) {
 		}
