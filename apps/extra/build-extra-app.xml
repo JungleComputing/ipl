@@ -30,6 +30,14 @@
 	</javac>
     </target>
 
+    <target name="jar"
+	    depends="build"
+	    description="Build a Jar file for an application">
+	    <jar destfile="${builddir}/appl.jar"
+		 basedir="${builddir}"
+		 includes="**/*.class"/>
+    </target>
+
     <target name="clean"
 	    description="Clean up the build">
 	<delete dir="${builddir}"/>

@@ -87,6 +87,14 @@
 	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
+    <target name="jar"
+	    depends="build"
+	    description="Build a Jar file for an application">
+	    <jar destfile="${build}/appl.jar"
+		 basedir="${build}"
+		 includes="**/*.class"/>
+    </target>
+
     <target name="clean">
 	<delete dir="${build}"/>
     </target>

@@ -194,4 +194,12 @@
 	    depends="test-seq,test-par">
     </target>
 
+    <target name="jar"
+	    depends="build"
+	    description="Build a Jar file for an application">
+	    <jar destfile="${builddir}/appl.jar"
+		 basedir="${builddir}"
+		 includes="**/*.class"/>
+    </target>
+
 </project>
