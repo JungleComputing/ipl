@@ -3,7 +3,7 @@ rem  start of script template
 
 @echo off
 
-if "%OS%=="Windows_NT" @beginlocal
+if "%OS%"=="Windows_NT" @beginlocal
 
 set JAVACLASSPATH=%CLASSPATH%;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\build;build;.;
 
@@ -81,4 +81,4 @@ rem  choose 800, so jobs don't start paging.
 
 %JAVA_ROOT%\bin\java -Xmx400M %Dlibpath% %Dibislibs% %Dpool_host_num% %Dprops%  %Dpool_total% %Dns_pool% %Dns_port% %Dns_server% -Dibis.pool.host_names="%HOSTS%" -Xbootclasspath/p:%JAVACLASSPATH% %PROFILING% -classpath %JAVACLASSPATH% %IBIS_APP_ARGS%
 
-if "%OS%=="Windows_NT" @endlocal
+if "%OS%"=="Windows_NT" @endlocal
