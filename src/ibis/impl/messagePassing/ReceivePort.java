@@ -17,8 +17,8 @@ class ReceivePort
      * poll for a while. A new request might arrive in a short while,
      * and that saves an interrupt. */
     private static final boolean RECEIVE_THREAD_POLLS = true;
-    // private static final int polls_before_yield = Poll.polls_before_yield;
-    private static final int polls_before_yield = 10;
+    private static final int polls_before_yield = Poll.polls_before_yield;
+    // private static final int polls_before_yield = 10;
 
     private static final boolean DEBUG = false;
     private static final int max_sleepers = 8; // 0; // 8;
