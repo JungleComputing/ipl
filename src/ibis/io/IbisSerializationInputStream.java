@@ -40,8 +40,15 @@ public class IbisSerializationInputStream
 
     static {
 	try {
-	    unsafe = Unsafe.getUnsafe();
+	    // unsafe = (Unsafe.getUnsafe();
+	    // does not work when a classloader is present, so we get it
+	    // from ObjectStreamClass.
+	    Class cl = Class.forName("java.io.ObjectStreamClass$FieldReflector");
+	    Field uf = cl.getDeclaredField("unsafe");
+	    uf.setAccessible(true);
+	    unsafe = (Unsafe) uf.get(null);
 	} catch(Exception e) {
+	    System.out.println("Got exception while getting unsafe: " + e);
 	    unsafe = null;
 	}
 	if (STATS_NONREWRITTEN) {
