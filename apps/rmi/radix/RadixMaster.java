@@ -1,4 +1,3 @@
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import ibis.util.PoolInfo;
@@ -44,7 +43,7 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
 	partition();
 	//try to bind with registry
 	System.out.println("Binding RadixMaster in registry");
-	Naming.bind("RadixMaster", this);
+	RMI_init.bind("RadixMaster", this);
 	System.out.println("Bound RadixMaster in registry");
 	create();
     }
@@ -148,7 +147,7 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
 	
     public void reset(){
         try{
-            Naming.unbind("RadixMaster");
+            RMI_init.unbind("RadixMaster");
         }catch(Exception e){
             System.out.println("failed to unbind master" + e.getMessage());
         }

@@ -1,4 +1,3 @@
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import ibis.util.PoolInfo;
 
@@ -51,30 +50,15 @@ class Client extends Thread {
 		System.out.println("Distance table read");
 	}
 
-	public void run()
-	{
-		boolean cont = true;
-
-		System.out.print("Waiting for server");
-		do {
-			try {
-				Thread.sleep(100);
-
-				this.jobQueue = (JobQueue)Naming.lookup("//" +
-					info.hostName(0) + "/JobQueue");
-
-				this.minimum = (Minimum)Naming.lookup("//" +
-					info.hostName(0) + "/Minimum");
-
-				cont = false;
-			} catch (java.rmi.NotBoundException e) {
-				System.out.print(".");
-				System.out.flush();
-			} catch (Exception e) {
-				System.err.println("Exception " + e);
-				e.printStackTrace(System.err);
-			}
-		} while (cont);
+	public void run() {
+		try {
+			this.jobQueue = (JobQueue)RMI_init.lookup("//"
+				+ info.hostName(0) + "/JobQueue");
+			this.minimum = (Minimum)RMI_init.lookup("//"
+				+ info.hostName(0) + "/Minimum");
+		} catch (java.io.IOException e) {
+			System.err.println("Lookup fails " + e);
+		}
 
 		System.out.println(" found");
 

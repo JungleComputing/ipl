@@ -1,4 +1,3 @@
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import ibis.util.PoolInfo;
@@ -23,16 +22,9 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 	  int rootN, int rowsperproc, double[] u, double[] u2,
 	  int[][] dis, PoolInfo d, int rounds) throws Exception {
 
-	while (true) {
-	    Thread.sleep(500);
-	    try {
-		master = (MasterInterface)Naming.lookup("//" + masterName + "/FFT_Master");
-		System.out.println(cpu + ": Slave has found Master " + master);
-		break;
-	    } catch (Exception e) {
-		System.out.println(cpu + ": lookup master -- sleep a while...");
-	    }
-	}
+	master = (MasterInterface)RMI_init.lookup("//" + masterName + "/FFT_Master");
+	System.out.println(cpu + ": Slave has found Master " + master);
+
 	myCpu = cpu;
 	this.cpus = cpus;
 	this.N = N;

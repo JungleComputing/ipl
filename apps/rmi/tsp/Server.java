@@ -1,4 +1,3 @@
-import java.rmi.Naming;
 import java.rmi.registry.Registry;
 import java.util.Date;
 import ibis.util.PoolInfo;
@@ -45,10 +44,10 @@ class Server {
 
 		try {
 			jobQueue = new JobQueueImpl(Misc.MAX_JOBS);
-			Naming.rebind("JobQueue", jobQueue);
+			RMI_init.rebind("JobQueue", jobQueue);
 
 			minimum = new MinimumImpl(bound);
-			Naming.rebind("Minimum", minimum);
+			RMI_init.rebind("Minimum", minimum);
 		} catch (Exception e) {
 			System.out.println("ERROR: " + e.getMessage());
 			e.printStackTrace();
@@ -113,8 +112,8 @@ class Server {
 		}
 
 		try {
-			Naming.unbind("JobQueue");
-			Naming.unbind("Minimum");
+			RMI_init.unbind("JobQueue");
+			RMI_init.unbind("Minimum");
 			System.exit(0);
 		} catch (Exception e) {
 			System.out.println("ERROR: " + e.getMessage());

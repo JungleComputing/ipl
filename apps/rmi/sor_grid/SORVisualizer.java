@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 
 class SORVisualizer {
@@ -17,24 +16,11 @@ class SORVisualizer {
 	public void start() {
 		SORCanvas c = createCanvas(width, height);
 		float[][] data = null;
-
 		try {
-			// lookup remote sor object
-			while (true) {
-				try { 
-					global = (i_GlobalData) Naming.lookup("//" + masterName + "/GlobalData");
-					break;
-				} catch (Exception e) {
-					try {
-						Thread.sleep(500);
-					} catch (Exception foo) {}
-				}
-			}
-
-			global.setRawDataSize(width, height);
-		} catch (RemoteException e) {
-			System.err.println("SORVisualizer.run: got exception: " + e);
-			System.exit(1);
+			global = (i_GlobalData) RMI_init.lookup("//" + masterName + "/GlobalData");
+		} catch (java.io.IOException e) {
+			System.err.println("lookup fails " + e);
+			System.exit(33);
 		}
 
 		// do work

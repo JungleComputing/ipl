@@ -1,5 +1,3 @@
-import java.rmi.Naming;
-
 class Client { 
 
 	public static final int COUNT = 10000;
@@ -24,7 +22,6 @@ class Client {
 
 	public static void doClient(String server, int port, String name) {
 		try {
-			MyServer s = null;
 				
 			String objname = "//" + server;
 			if (port != 0) {
@@ -32,17 +29,8 @@ class Client {
 			}
 			objname = objname + "/" + name;
 
-			do {
-				try { 
-					System.err.print(".");
-					Thread.sleep(1000);
-					s = (MyServer) Naming.lookup(objname);
-				} catch (Exception e) { 
-					System.err.println("exception: " + e);
-					// ignore.
-				} 
-			} while (s == null);
-				
+			MyServer s = (MyServer) RMI_init.lookup(objname);
+
 			for (int j=0;j<10;j++) { 
 
 				long start = System.currentTimeMillis();

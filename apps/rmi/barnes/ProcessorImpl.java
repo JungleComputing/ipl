@@ -355,9 +355,9 @@ public /*synchronized*/ void register() throws RemoteException {
 
   public void setExchangeBodies( int source, Body Bodies[] ) throws RemoteException {
 
-    // System.err.println(myProc + ": start  receive[" + (Bodies == null ? -1 : Bodies.length) + "] of exchange from " + source);
+// System.out.println(myProc + ": { start  receive[" + (Bodies == null ? -1 : Bodies.length) + "] of exchange from " + source);
     ReceivedBodies[ source ] = Bodies;
-    // System.err.println(myProc + ": finish receive[" + (Bodies == null ? -1 : Bodies.length) + "] of exchange from " + source);
+// System.out.println(myProc + ": } finish receive[" + (Bodies == null ? -1 : Bodies.length) + "] of exchange from " + source);
   }
 
   public void setExchangeDestination( int index, int dest ) {
@@ -428,9 +428,9 @@ public /*synchronized*/ void register() throws RemoteException {
       if (target==myProc) {     
         setExchangeBodies( myProc, MovingBodies );
       } else {
-    // System.err.println(myProc + ": start  exchange[" + (MovingBodies == null ? -1 : MovingBodies.length) + "] with " + target);
+// System.out.println(myProc + ": { start  exchange[" + (MovingBodies == null ? -1 : MovingBodies.length) + "] with " + target);
         Processors[target].setExchangeBodies( myProc, MovingBodies );
-    // System.err.println(myProc + ": finish exchange[" + (MovingBodies == null ? -1 : MovingBodies.length) + "] with " + target);
+// System.out.println(myProc + ": } finish exchange[" + (MovingBodies == null ? -1 : MovingBodies.length) + "] with " + target);
       }
     }
 
@@ -566,6 +566,7 @@ public /*synchronized*/ void register() throws RemoteException {
 public synchronized void setEssential( int Source, int bCount, SendBody [] b, int cCount, CenterOfMass [] c ) throws RemoteException  {
 
 // System.err.println(myProc + "Machine " + Source + " enters setEssential");
+// System.out.println(myProc + " ( enter setEssential[" + bCount + "] from " + Source);
     for (int i=0;i<bCount;i++) {
       essBodyRecv[ Source ][i].bPos = b[i].bPos; 
       essBodyRecv[ Source ][i].bMass = b[i].bMass;
@@ -575,6 +576,7 @@ public synchronized void setEssential( int Source, int bCount, SendBody [] b, in
      essCenterOfMassCountRecv[ Source ] = cCount;
 
 // System.err.println(myProc + "Machine " + Source + " leaves setEssential");
+// System.out.println(myProc + " ) exit  setEssential[" + bCount + "] from " + Source);
       if (g.gdThreads) {
 	      threadSyncer.wakeup();
       }
@@ -673,6 +675,7 @@ public synchronized void setEssential( int Source, int bCount, SendBody [] b, in
 		myCOFM[j] = essCenterOfMass[i][j];
 
 	      if(g.gdThreads) {
+// System.out.println(myProc + " doing setEssential[" + essBodyCount[i] + "] on " + i + " " + Processors[i]);
 		      setEssentialThreads[i].put(myProc, essBodyCount[i], myBods, essCenterOfMassCount[i], myCOFM );
 	      } else {
 // System.err.println(myProc + " doing setEssential on " + i + " " + Processors[i]);

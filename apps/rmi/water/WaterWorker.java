@@ -1,4 +1,3 @@
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import ibis.util.PoolInfo;
@@ -28,26 +27,7 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	this.myName = myName;
 	this.masterName = masterName;
 	this.ncpus = ncpus;
-
-	while (! done && i < 10) {
-	    i++;
-	    done = true;
-	    try {
-	        master  = (WaterMasterInterface) Naming.lookup("//" + masterName + "/WaterMaster");
-		System.out.println("Got master");
-	    } catch(Exception e) {
-		System.out.println("Got exception");
-		done = false;
-		try {
-		    Thread.sleep(2000);
-		} catch (Exception ex) {
-		}
-	    }
-	}
-	if (! done) {
-	    System.out.println("Host " + myName + " could not connect to //" + masterName + "/WaterMaster");
-	    System.exit(1);
-	}
+	master = (WaterMasterInterface) RMI_init.lookup("//" + masterName + "/WaterMaster");
 	
 	id = master.logon(myName, this);
 

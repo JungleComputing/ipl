@@ -1,5 +1,4 @@
 import ibis.util.PoolInfo;
-import java.rmi.Naming;
 import java.rmi.registry.Registry;
 
 class ACP {
@@ -294,84 +293,19 @@ class ACP {
 			if (cpu == 0) { 
 
 				Matrix m = new Matrix(numVariables, numValues, true);	       
-				Naming.bind("Matrix", m);
+				RMI_init.bind("Matrix", m);
 			
 				Data d = new Data(info.size());			
-				Naming.bind("Data", d);
+				RMI_init.bind("Data", d);
 
 				Work  w = new Work(numVariables, info.size(), numVariables, numValues, numConnections, numRelations, numRelationPairs, seed);
-				Naming.bind("Work", w);
+				RMI_init.bind("Work", w);
 			} 
 			
-			int sleep = 0;
-			boolean done = false;
-			
-			while (!done) {
-				
-				sleep += 100;
-				done = true;
-				
-				try {                           
-					matrix = (i_Matrix) Naming.lookup("//" + info.hostName(0) + "/Matrix");
-				} catch (Exception e) {
-					if (sleep > 2000) {
-						sleep = 2000;
-					}
-					
-					done = false;   
-					try { 
-						Thread.sleep(sleep);
-					} catch (Exception e2) { 
-					} 
-				} 
-			}
-                
-			sleep = 0;
-			done = false;
-			
-			while (!done) {
-				
-				sleep += 100;
-				done = true;
-				
-				try {                           
-					data = (i_Data) Naming.lookup("//" + info.hostName(0) + "/Data");
-				} catch (Exception e) {
-					if (sleep > 2000) {
-						sleep = 2000;
-					}
-					
-					done = false;   
-					try { 
-						Thread.sleep(sleep);
-					} catch (Exception e2) { 
-					} 
-				} 
-			}
+			matrix = (i_Matrix) RMI_init.lookup("//" + info.hostName(0) + "/Matrix");
+			data   = (i_Data) RMI_init.lookup("//" + info.hostName(0) + "/Data");
+			work   = (i_Work) RMI_init.lookup("//" + info.hostName(0) + "/Work");
 
-			sleep = 0;
-			done = false;
-			
-			while (!done) {
-				
-				sleep += 100;
-				done = true;
-				
-				try {                           
-					work = (i_Work) Naming.lookup("//" + info.hostName(0) + "/Work");
-				} catch (Exception e) {
-					if (sleep > 2000) {
-						sleep = 2000;
-					}
-					
-					done = false;   
-					try { 
-						Thread.sleep(sleep);
-					} catch (Exception e2) { 
-					} 
-				} 
-			}
-			
 			new ACP(info.rank(), numVariables, numValues, numConnections, numRelations, numRelationPairs, seed, data, work, matrix).start();
 		
 		} catch (Exception e) {

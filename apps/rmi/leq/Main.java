@@ -1,5 +1,7 @@
-import java.rmi.Naming;
+import java.io.IOException;
+
 import java.rmi.registry.Registry;
+
 import ibis.util.PoolInfo;
 
 class Main {
@@ -7,33 +9,10 @@ class Main {
 	public static final int DEFAULT_N = 180;
 	public static final double BOUND = 0.001;
 
-	static i_BroadcastObject connect(PoolInfo info, int cpu, int num) { 		
+	static i_BroadcastObject connect(PoolInfo info, int cpu, int num) throws IOException { 		
 		int i = 0;
 		boolean done = false;
-		i_BroadcastObject temp = null;
-
-		while (!done && i < 10) {
-			
-			i++;
-			done = true;
-			
-			try { 				
-				Thread.sleep(cpu*500);	
-				System.out.println(cpu + " connect to //" + info.hostName(num) + "/BCAST" + num);
-				temp = (i_BroadcastObject) Naming.lookup("//" + info.hostName(num) + "/BCAST" + num);
-			} catch (Exception e) {
-				done = false;	
-				try { 
-					Thread.sleep(i*500);
-				} catch (Exception e2) { 
-				} 
-			} 
-		}
-		
-		if (!done) {
-			System.out.println(cpu + " could not connect to //" + info.hostName(num) + "/BCAST" + num);
-			System.exit(1);
-		}				
+		i_BroadcastObject temp = (i_BroadcastObject) RMI_init.lookup("//" + info.hostName(num) + "/BCAST" + num);
 
 		return temp;
 	}		
@@ -84,37 +63,14 @@ class Main {
 
 			if (cpu == 0) { 
 				Central c = new Central(b, n, cpus);
-				Naming.bind("CENTRAL", c);
+				RMI_init.bind("CENTRAL", c);
 				System.out.println(cpu + " bound " + "CENTRAL");
 				//central = c;
 			} //else { 
-				int i = 0;
-				boolean done = false;
-				while (!done && i < 10) {
-					
-					i++;
-					done = true;
-					
-					try { 				
-						Thread.sleep(cpu*1000);	
-						System.out.println(cpu + " connect to //" + info.hostName(0) + "/CENTRAL");
-						central = (i_Central) Naming.lookup("//" + info.hostName(0) + "/CENTRAL");
-					} catch (Exception e) {
-						done = false;	
-						try { 
-							Thread.sleep((cpu+1)*1500);
-						} catch (Exception e2) { 
-						} 
-					} 
-				}
-		
-				if (!done) {
-					System.out.println(cpu + " could not connect to //" + info.hostName(0) + "/CENTRAL");
-					System.exit(1);
-				}				
+				central = (i_Central) RMI_init.lookup("//" + info.hostName(0) + "/CENTRAL");
 //			}
 
-			Naming.bind("BCAST" + cpu, b);
+			RMI_init.bind("BCAST" + cpu, b);
 			System.out.println(cpu + " bound " + "BCAST" + cpu);
 
 			int left = cpu*2+1;

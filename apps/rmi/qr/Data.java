@@ -2,6 +2,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
+import java.io.IOException;
+
 import ibis.util.PoolInfo;
 
 class Data extends UnicastRemoteObject implements i_Data {
@@ -36,7 +38,12 @@ class Data extends UnicastRemoteObject implements i_Data {
 
 	public synchronized Remote [] signup(int cpu, String name) throws RemoteException {
 		
-		bco[cpu] = RMI_init.lookup("//" + info.hostName(cpu) + "/" + name);
+		try {
+			bco[cpu] = RMI_init.lookup("//" + info.hostName(cpu) + "/" + name);
+
+		} catch (java.io.IOException eM) { 
+			throw new RemoteException("Naming.lookup fails", eM);
+		}
 		num++;
 		
 		while (num < ncpus) { 

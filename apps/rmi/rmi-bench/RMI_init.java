@@ -66,6 +66,9 @@ public class RMI_init {
     }
 
 
+    /**
+     * A wrapper for the RMI nameserver lookup
+     */
     public static Remote lookup(String id) throws IOException { 
 	boolean connected = false;
 	Remote temp = null;
@@ -95,7 +98,33 @@ public class RMI_init {
 	    } 
 	}
 	return temp;
-    }  
+    }
+
+
+    /**
+     * A wrapper for the RMI nameserver bind
+     */
+    public static void bind(String name, Remote obj)
+	    throws IOException, java.rmi.AlreadyBoundException {
+	Naming.bind(name, obj);
+    }
+
+
+    /**
+     * A wrapper for the RMI nameserver unbind
+     */
+    public static void unbind(String name)
+	    throws IOException, java.rmi.NotBoundException {
+	Naming.unbind(name);
+    }
+
+
+    /**
+     * A wrapper for the RMI nameserver rebind
+     */
+    public static void rebind(String name, Remote obj) throws IOException {
+	Naming.rebind(name, obj);
+    }
 
 
     public static void main(String[] args) {

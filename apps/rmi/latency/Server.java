@@ -1,4 +1,3 @@
-import java.rmi.Naming;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 
@@ -32,11 +31,13 @@ class Server {
 			objname = objname + "/" + name;
 
 			System.out.println("creating new test");
-				Test t = new Test();
-				System.out.println("creating new test done");
-				Naming.bind(objname, t);
-				System.out.println("bind done");
-				new Thread(t).start();
+
+			Test t = new Test();
+			System.out.println("creating new test done");
+			RMI_init.bind(objname, t);
+			System.out.println("bind done");
+			new Thread(t).start();
+
 		} catch (Exception e) { 
 			System.out.println("OOPS");
 			System.out.println(e.getMessage());

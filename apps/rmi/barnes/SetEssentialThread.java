@@ -6,6 +6,7 @@ static final int METHOD_NORMAL = 1;
 
 
 boolean filled = false;
+private int waiters = 0;
 Processor dest;
 int src;
 int bCount;
@@ -51,11 +52,13 @@ public synchronized void put(int Source, int bCount, double [] bp, int cCount, d
 
 public synchronized void put(int Source, int bCount, SendBody [] b, int cCount, CenterOfMass [] c) {
 	while(filled) {
+		waiters++;
 		try {
 			wait();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		waiters--;
 	}
 	filled = true;
 
@@ -89,7 +92,9 @@ public synchronized void send() {
 				dest.setEssential(src, bCount, bp, cCount, cp);
 				break;
 			case METHOD_NORMAL:
+// System.out.println(src + ": [ start  setEssential[" + bCount + "] to " + dest);
 				dest.setEssential(src, bCount, b, cCount, c);
+// System.out.println(src + ": ] finish setEssential[" + bCount + "] to " + dest);
 				break;
 			default:
 				System.out.println("Illegal method in send\n");
@@ -103,7 +108,9 @@ public synchronized void send() {
 
 	filled = false;
 
-	notifyAll();
+	if (waiters > 0) {
+	    notifyAll();
+	}
 }
 
 

@@ -1,7 +1,5 @@
 import ibis.util.PoolInfo;
 
-import java.rmi.Naming;
-
 final class Main { 
 
     public static boolean verbose = false;
@@ -122,18 +120,9 @@ final class Main {
 	    } 
 
 	    if (info.rank() == 0) {
-		myServer s = null;
 		Object data;
 		long time;
-
-		do {
-		    try { 
-			Thread.sleep(1000);
-			s = (myServer) Naming.lookup("//" + server + "/bla");
-		    } catch (Exception e) { 
-			// ignore.
-		    } 
-		} while (s == null);		    
+		myServer s = (myServer) RMI_init.lookup("//" + server + "/bla");
 
 		if (verbose) { 
 		    System.out.println("client ok");
@@ -234,7 +223,7 @@ final class Main {
 		System.exit(0);
 	    } else {
 		Test t = new Test();
-		Naming.bind("bla", t);		    
+		RMI_init.bind("bla", t);		    
 
 		if (verbose) { 
 		    System.out.println("server ok");

@@ -1,5 +1,3 @@
-import java.rmi.Naming;
-
 public class SlaveSort {
     
     static final int INT_START = 0;
@@ -23,21 +21,9 @@ public class SlaveSort {
 	    int sleep = 100;
 
 	myCpu = cpu;
-	while (true) {
-	    Thread.sleep(500);
-	    try {
-    		master  = (RadixMasterInterface) Naming.lookup("//" + masterName + "/RadixMaster");
-		myNum = master.logon(myName);	
-		break;
-	    } catch (Exception e) {
-		System.out.println("lookup master -- sleep a while ... ");
-		Thread.sleep(sleep);
-		sleep = sleep*2;
-		if (sleep > 2000) { 
-			sleep = 2000;
-		}
-	    }
-	}
+	master  = (RadixMasterInterface) RMI_init.lookup("//" + masterName + "/RadixMaster");
+	myNum = master.logon(myName);	
+
 	System.out.println("Got master, myNum = " + myNum);
 	
 

@@ -9,7 +9,6 @@
  *
  */
 
-import java.rmi.Naming;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.Registry;
 
@@ -133,30 +132,10 @@ class Main {
 		System.out.println();
 
 		global = new GlobalData(info, true);
-		Naming.bind("GlobalData", global);
+		RMI_init.bind("GlobalData", global);
 		System.err.println("I am the master: " + info.hostName(0));
 	    } else {
-
-		int i = 0;
-		boolean done = false;
-
-		while (!done && i < 10) {
-
-		    i++;
-		    done = true;
-
-		    try { 
-			global = (i_GlobalData) Naming.lookup("//" + info.hostName(0) + "/GlobalData");
-		    } catch (Exception e) {
-			done = false;
-			Thread.sleep(2000);					 				    
-		    } 
-		}
-
-		if (!done) {
-		    System.out.println(info.rank() + " could not connect to " + "//" + info.hostName(0) + "/GlobalData");
-		    System.exit(1);
-		}
+		global = (i_GlobalData) RMI_init.lookup("//" + info.hostName(0) + "/GlobalData");
 
 	    }
 
@@ -192,6 +171,7 @@ class Main {
 
 	    local.start(true, "SOR");
 
+System.err.println(info.rank() + ": quits...");
 	    if (info.rank() == 0) {
 		Thread.sleep(2000); 
 		// Give the other nodes a chance to exit.

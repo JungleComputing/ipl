@@ -1,4 +1,3 @@
-import java.rmi.Naming;
 import java.rmi.registry.Registry;
 import java.rmi.Remote;
 
@@ -31,14 +30,14 @@ class Main {
 				System.out.println("Starting QR of A[" + n + "][" + n + "] on " + ncpus + " cpus.");
 
 				real_data = new Data(info, ncpus);
-				Naming.bind("Data", real_data);
+				RMI_init.bind("Data", real_data);
 				
 				Reduce reduce = new Reduce(ncpus);		
-				Naming.bind("Reduce", reduce);
+				RMI_init.bind("Reduce", reduce);
 			} 
 
 			BroadcastObject bcast = new BroadcastObject(cpu, ncpus, n);
-			Naming.bind("BCAST" + cpu, bcast);
+			RMI_init.bind("BCAST" + cpu, bcast);
 			
 			i_Data data = (i_Data) RMI_init.lookup("//" + info.hostName(0) + "/Data");
 			i_Reduce reduce = (i_Reduce) RMI_init.lookup("//" + info.hostName(0) + "/Reduce");

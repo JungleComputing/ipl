@@ -1,6 +1,5 @@
 import ibis.util.PoolInfo;
 
-import java.rmi.Naming;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.Registry;
 
@@ -59,29 +58,9 @@ public static void main(String[] argv) {
 
 		if (info.rank() == 0) {
 			global = new GlobalData(info);
-			Naming.bind("GlobalData", global);	
+			RMI_init.bind("GlobalData", global);	
 		} else {	    
-			
-			int i = 0;
-			boolean done = false;
-			
-			while (!done && i < 10) {
-				
-				i++;
-				done = true;
-				
-				try { 
-					global = (i_GlobalData) Naming.lookup("//" + info.hostName(0) + "/GlobalData");
-				} catch (Exception e) {
-					done = false;
-					Thread.sleep(2000);					 				    
-				} 
-			}
-			
-			if (!done) {
-				System.out.println(info.rank() + " could not connect to " + "//" + info.hostName(0) + "/GlobalData");
-				System.exit(1);
-			}		
+			global = (i_GlobalData) RMI_init.lookup("//" + info.hostName(0) + "/GlobalData");
 		}
 		
 

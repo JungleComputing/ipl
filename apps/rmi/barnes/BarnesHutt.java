@@ -1,6 +1,4 @@
 
-import java.rmi.Naming;
-
 import ibis.util.PoolInfo;
 
 strictfp
@@ -100,35 +98,16 @@ public class BarnesHutt {
   }
 
   void doProcInfo(int hostno, int nhosts, String hostname0) {
-    if (hostno == 0) {
-		try {
-			RMI_init.getRegistry(hostname0);
-			g = new ProcsImpl(nhosts);
-			Naming.bind("ProcsInfo", g);
-		} catch (Exception e) {
-			System.err.println("Caught exception! " + e.getMessage());
-		}
+    try {
+	if (hostno == 0) {
+	    RMI_init.getRegistry(hostname0);
+	    g = new ProcsImpl(nhosts);
+	    RMI_init.bind("ProcsInfo", g);
 	} else {
-		int i = 0;
-		boolean done = false;
-		while (! done && i < 10) {
-			i++;
-			done = true;
-			try {
-				g = (Procs) Naming.lookup("//" + hostname0 + "/ProcsInfo");
-			} catch (Exception e) {
-				done = false;
-				try {
-					Thread.sleep(2000);
-				} catch (Exception ex) {
-				}
-			}
-		}
-		if (! done) {
-			System.out.println(hostno + " could not connect to " + "//" +
-							   hostname0 + "/ProcsInfo");
-			System.exit(1);
-		}
+	    g = (Procs) RMI_init.lookup("//" + hostname0 + "/ProcsInfo");
+	}
+    } catch (Exception e) {
+	    System.err.println("Caught exception! " + e.getMessage());
     }
   }
 
@@ -209,7 +188,7 @@ public class BarnesHutt {
 
     if (d.rank()==0 ) {
 	try {
-	    Naming.unbind("ProcsInfo");
+	    RMI_init.unbind("ProcsInfo");
 	} catch(Exception e) {
 	}
         System.out.println("Finished!");

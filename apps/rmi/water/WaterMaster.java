@@ -1,5 +1,4 @@
 import java.lang.Math;
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -34,7 +33,7 @@ public class WaterMaster extends UnicastRemoteObject
 
 	//bind master to registry
 	//Must be after creating workers_i.
-	Naming.bind("WaterMaster", this);
+	RMI_init.bind("WaterMaster", this);
 
 	readVariables();
 	
@@ -399,7 +398,7 @@ public class WaterMaster extends UnicastRemoteObject
 	System.out.println("Unbinding WaterMaster ...");
 	workers_i = null;
 	try {
-	    Naming.unbind("WaterMaster");
+	    RMI_init.unbind("WaterMaster");
 	} catch (Exception e)
 	{
 	    System.out.println("Got exception");
