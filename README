@@ -1,0 +1,13 @@
+This directory contains Ibis, a programming environment for wide-area
+distributed computing in standard Java.
+
+Ibis is free software.  See the file COPYING for copying permission.
+The manuals, and some of the runtime libraries, are under different terms;
+see the individual source files for details.
+
+The file INSTALL contains installation information, including prequisite
+software.
+
+The file BUGS contains information for filing bug reports.
+
+The home page of Ibis is at: <http://www.cs.vu.nl/ibis/>.

@@ -1,0 +1,20 @@
+The Ibis software requires `ant', a software building tool similar to
+`make', but written in Java, and well-suited for building Java software.
+Many OS distributions contain `ant' as a standard or optional package,
+otherwise, the latest version can be obtained from the ant website at
+<http://ant.apache.org>.
+
+Ibis requires at least version 1.6.0 of ant.
+
+To configure Ibis, type
+
+ant configure
+
+You will be asked for the path to a number of support libraries. If you
+don't have these libraries, just type <ENTER>.
+
+After Ibis has been configured, you can build it with
+
+ant
+
+
