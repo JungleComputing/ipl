@@ -2,11 +2,17 @@ Before you try to configure Ibis, you must set the environment
 variable JAVA_HOME; see also the system-specific notes at the end
 of this text.
 
+The Ibis software requires at least a 1.4 version of Java. With a
+1.3 or older version of Java, some parts of Ibis will not compile.
+
 The Ibis software requires `ant', a software building tool similar to
 `make', but written in Java, and well-suited for building Java software.
 The Ibis distribution requires you to use the `ant' that is supplied with
 Ibis. This version of ant lives in 3rdparty/apache-ant-1.6.1/bin.
 Below, when `ant' is mentioned, this version is intended.
+
+A `compile' script is supplied which invokes this `ant' with the
+arguments supplied.
 
 -------------------------------------------------------------------------
 
