@@ -117,7 +117,7 @@ public final class NioOutputStream extends SerializationOutputStream
     }
 
     /**
-     * REALLY closes the channel. be carefull with this one, as someone else
+     * REALLY closes the channel. Be carefull with this one, as someone else
      * may also be using the channel!
      */
     void reallyClose() throws IOException {

@@ -16,7 +16,7 @@ public interface NioChannelFactory extends Runnable, Config {
     /**
      * Tries to connect to sendport to the given receiveport 
      * for tileoutMillis milliseconds and returns the writechannel
-     * if it succeeded. a timeout of 0 means try forever.
+     * if it succeeded. A timeout of 0 means try forever.
      *
      * @return a new WritableChannel connected to "rpi". May also be a
      * GatheringByteChannel

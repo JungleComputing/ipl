@@ -171,7 +171,7 @@ class TcpNioChannelFactory implements NioChannelFactory, NioProtocol {
 
     /**
      * Tries to connect the sendport to the receiveport for the given
-     * time. returns the resulting channel.
+     * time. Returns the resulting channel.
      */
     public Channel connect(NioSendPortIdentifier spi, 
 	    NioReceivePortIdentifier rpi, 

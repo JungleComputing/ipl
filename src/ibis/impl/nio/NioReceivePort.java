@@ -469,7 +469,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
     }
 
     /**
-     * called by the readMessage. finishes message. Also wakes up everyone who 
+     * called by the readMessage. Finishes message. Also wakes up everyone who 
      * was waiting for it
      */
     synchronized long finish(NioReadMessage m) throws IOException {

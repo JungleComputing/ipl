@@ -64,7 +64,7 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
     private long count = 0;
 
     /**
-     * The channel we use for output. not private because NioReceivePort
+     * The channel we use for output. Not private because NioReceivePort
      * uses it.
      */
     ScatteringByteChannel channel;

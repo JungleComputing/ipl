@@ -85,9 +85,9 @@ public final class NioInputStream extends SerializationInputStream
     }
 
     /**
-     * Returns the number of bytes read since the last reset
+     * Returns the number of bytes read since the last reset.
      *
-     * @returns the number of bytes read since the last reset
+     * @return the number of bytes read since the last reset
      */
     long getCount() {
 	return count;
