@@ -89,6 +89,9 @@ public class ClusterReducer extends TreeReducer {
 	    System.err.println("Oh ho oh no cluster root != cluster first");
 	    System.exit(33);
 	}
+	if (localRank[rank] == 0) {
+	    System.err.println(rank + ": I am root for cluster " + myCluster);
+	}
 
 	StaticProperties reqprops = new StaticProperties();
 	reqprops.add("serialization", "data");
