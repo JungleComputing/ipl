@@ -358,15 +358,14 @@ public class SuffixArray implements Configuration, Magic {
         int maxlen = 0;
         int ix0 = 0;
         int ix1 = 0;
+        int mincom = MINCOMMONALITY;
 
         for( int i=1; i<length; i++ ){
-            // TODO: once we have a serious maxlen, it is probably
-            // possible to use that instead fo MINCOMMONALITY.
-            if( commonality[i]>=MINCOMMONALITY ){
+            if( commonality[i]>=mincom ){
                 int pos0 = indices[i-1];
                 
                 for( int j=i; j<length; j++ ){
-                    if( commonality[j]<MINCOMMONALITY ){
+                    if( commonality[j]<mincom ){
                         break;
                     }
                     int pos1 = indices[j];
@@ -376,6 +375,7 @@ public class SuffixArray implements Configuration, Magic {
                         maxlen = len;
                         ix0 = pos0;
                         ix1 = pos1;
+                        mincom = len;
                     }
                 }
             }
