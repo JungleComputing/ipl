@@ -138,12 +138,13 @@ public class MultiPoller extends NetPoller {
 		return ni;
 	    }
 
-	    String    subContext    = (String)key;
+	    Lane      lane          = (Lane)key;
+	    String    subContext    = lane.subContext;
 	    String    subDriverName = getProperty(subContext, "Driver");
 	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
 
 	    if (upcallFunc == null) {
-		System.err.println("Create a MultiPoller downcall with ReceiveQueue poller thread " + q + " subDriver " + subDriver + " subContext " + subContext);
+		System.err.println(ibis.impl.net.NetIbis.hostName() + "-" + this + ": Create a MultiPoller downcall with ReceiveQueue " + q + " upcallFunc " + upcallFunc + " subDriver " + subDriver + " subContext " + subContext);
 	    }
 	    return newSubInput(subDriver, subContext, q);
 	}
@@ -175,11 +176,12 @@ public class MultiPoller extends NetPoller {
 
 		String          subContext      = (plugin!=null)?plugin.getSubContext(false, localId, remoteId, os, is):null;
 
-		super.setupConnection(cnx, subContext);
-
-		ReceiveQueue q = (ReceiveQueue)inputMap.get(subContext);
-
 		Lane    lane = new Lane();
+		lane.subContext   = subContext;
+
+		setupConnection(cnx, lane);
+
+		ReceiveQueue q = (ReceiveQueue)inputMap.get(lane);
 
 		lane.is           = is;
 		lane.os           = os;
@@ -187,7 +189,6 @@ public class MultiPoller extends NetPoller {
 		lane.mtu          = is.readInt();
 		lane.headerLength = is.readInt();
 		lane.thread       = new ServiceThread("subcontext = "+subContext+", spn = "+num, lane);
-		lane.subContext   = subContext;
 
 		laneTable.put(num, lane);
 

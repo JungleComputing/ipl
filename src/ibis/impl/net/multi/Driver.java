@@ -49,10 +49,8 @@ public final class Driver extends NetDriver {
 	 */
 	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
 	    if (inputUpcall == null && pt.inputSingletonOnly()) {
-System.err.println("multi poller singleton");
 		return new SingletonPoller(pt, this, context, inputUpcall);
 	    } else {
-System.err.println("multi poller NONsingleton");
 		return new MultiPoller(pt, this, context, inputUpcall);
 	    }
 	}

@@ -473,7 +473,7 @@ public final class NetPortType extends PortType {
 	public boolean inputSingletonOnly() {
 	    StaticProperties prop = properties();
 	    boolean singletonOnly =
-		TypedProperties.booleanProperty("ibis.porttype.singleton", true)
+		TypedProperties.booleanProperty("ibis.net.porttype.singleton", true)
 		&& ! prop.isProp("communication", "ManyToOne")
 		&& ! prop.isProp("communication", "Poll")
 		&& ! prop.isProp("communication", "ReceiveTimeout");
@@ -491,7 +491,7 @@ public final class NetPortType extends PortType {
 	public boolean outputSingletonOnly() {
 	    StaticProperties prop = properties();
 	    boolean singletonOnly =
-		TypedProperties.booleanProperty("ibis.poller.singleton", true)
+		TypedProperties.booleanProperty("ibis.net.porttype.singleton", true)
 		&& ! prop.isProp("communication", "OneToMany");
 	    if (false && singletonOnly) {
 		System.err.println(this + ": property OneToMany " + prop.isProp("communication", "OneToMany"));

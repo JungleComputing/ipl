@@ -848,7 +848,7 @@ nCurrent++;
 // System.err.println(this + ": doClose(" + num + ") inputMap " + inputMap);
 	if (inputMap != null) {
 	    Object       key = getKey(num);
-	    ReceiveQueue rq  = (ReceiveQueue)inputMap.get(num);
+	    ReceiveQueue rq  = (ReceiveQueue)inputMap.get(key);
 
 	    if (rq != null) {
 		closeConnection(rq, num);

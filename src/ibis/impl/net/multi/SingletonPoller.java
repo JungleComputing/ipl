@@ -82,7 +82,8 @@ public class SingletonPoller extends MultiPoller {
 		return ni;
 	    }
 
-	    String    subContext    = (String)key;
+	    Lane      lane          = (Lane)key;
+	    String    subContext    = lane.subContext;
 	    String    subDriverName = getProperty(subContext, "Driver");
 	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
 
