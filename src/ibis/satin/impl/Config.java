@@ -65,7 +65,7 @@ public interface Config {
 	static final boolean ABORTS = true;
 	
 	/** Enable fault tolerance. */
-	static final boolean FAULT_TOLERANCE = true;
+	static final boolean FAULT_TOLERANCE = false;
 	/**
 	 * If true, the global result table is replicated if false, the table is
 	 * distributed
