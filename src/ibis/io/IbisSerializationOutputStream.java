@@ -909,6 +909,15 @@ public class IbisSerializationOutputStream
 		if (DEBUG) {
 		    dbPrint("Caught exception: " + e);
 		    e.printStackTrace();
+		}
+		Throwable cause = e.getTargetException();
+		if (cause instanceof Error) {
+		    throw (Error) cause;
+		}
+		if (cause instanceof RuntimeException) {
+		    throw (RuntimeException) cause;
+		}
+		if (DEBUG) {
 		    dbPrint("now rethrow as IllegalAccessException ...");
 		}
 		throw new IllegalAccessException("writeObject method: " + e);
