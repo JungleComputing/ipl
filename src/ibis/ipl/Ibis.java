@@ -189,6 +189,9 @@ public abstract class Ibis {
 	    impl.requiredprops.add("serialization",
 				   impl.properties().find("serialization"));
 	}
+	if (impl.combinedprops == null) {
+	    impl.combinedprops = impl.requiredprops.combineWithUserProps();
+	}
 
 	try {
 	    impl.init();
