@@ -5,8 +5,9 @@ class PoolThread extends Thread {
 
 	static int id = 0;
 
+	int myId;
+
 	PoolThread(Queue q) {
-		int myId;
 		this.q = q;
 		synchronized(q) {
 			if (ThreadPool.DEBUG) {
@@ -16,11 +17,13 @@ class PoolThread extends Thread {
 			ThreadPool.numthreads++;
 			myId = id++;
 		}
-		setName("Pool thread " + myId);
 	}
 
 	public void run() {
 		while(true) {
+			//set name here in case a target changes it
+			setName("Pool thread " + myId);
+
 			Runnable target = null;
 			synchronized(q) {
 				ThreadPool.ready++;
@@ -47,6 +50,7 @@ class PoolThread extends Thread {
 				System.err.println("got exception in pool thread (continuing): " + t);
 				t.printStackTrace();
 			}
+
 		}
 	}
 }
