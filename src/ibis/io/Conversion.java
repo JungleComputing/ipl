@@ -123,7 +123,8 @@ public abstract class Conversion {
 
 	String conversion = systemProperties.getProperty(IOProps.s_conversion);
 
-	if(conversion != null && conversion.equalsIgnoreCase("nio/wrap")) {
+	if(conversion != null && conversion.equalsIgnoreCase("wrap")) {
+	    System.err.println("nio/wrap conversion selected");
 	    try {
 		if(bigEndian) {
 		    return new ibis.io.nio.NioWrapBigConversion();
@@ -132,7 +133,8 @@ public abstract class Conversion {
 	    } catch (Exception e) {
 		//nio conversion loading failed
 	    }
-	} else if(conversion != null && conversion.equalsIgnoreCase("nio")) {
+	} else if(conversion != null && conversion.equalsIgnoreCase("chunk")) {
+	    System.err.println("nio/chunk conversion selected");
 	    try {
 		if(bigEndian) {
 		    return new ibis.io.nio.NioChunkBigConversion();
@@ -144,6 +146,9 @@ public abstract class Conversion {
 	} else if (conversion == null 
 				|| conversion.equalsIgnoreCase("hybrid")) {
 	    //default conversion
+	    if(conversion != null) {
+		System.err.println("hybrid conversion selected");
+	    }
 
 	    try {
 		if(bigEndian) {
@@ -156,6 +161,8 @@ public abstract class Conversion {
 	}
 
 	//loading of nio type conversions failed, return simple conversion
+	
+	System.err.println("falling back to simple conversion");
 
 	if(bigEndian) {
 	    return simpleBig;
