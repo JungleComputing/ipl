@@ -650,6 +650,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.out();
 	}
 
+	public void disconnect(ReceivePortIdentifier rpi) throws IOException {
+		/* Rutger: TODO */
+	}
+
 	/**
 	 * Interruptible connect.
 	 *

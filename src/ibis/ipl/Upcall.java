@@ -18,6 +18,12 @@ import java.io.IOException;
  * However, the message can be de-activated using the
  * {@link ReadMessage#finish()} call. This is the only way in which
  * a receive port can have more than one active upcall.
+ * <p>
+ * <strong>Note: to prevent deadlocks, upcalls are not allowed to block
+ * in condition synchronization or network access as long as the message is
+ * active.</strong>
+ * However, upcalls <strong>are</strong> allowed to enter/exit
+ * synchronized methods for critical section operation.
  */
 public interface Upcall { 
     /**

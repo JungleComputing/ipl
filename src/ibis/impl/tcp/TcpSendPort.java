@@ -180,6 +180,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		connect(receiver, 0);
 	}
 
+	public void disconnect(ReceivePortIdentifier receiver) throws IOException {
+		/* Niels: TODO! */
+	}
+
 	public ibis.ipl.WriteMessage newMessage() throws IOException { 
 		TcpWriteMessage res = null;
 

@@ -138,6 +138,10 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	connect(receiver, 0);
     }
 
+    public void disconnect(ReceivePortIdentifier receiver) throws IOException {
+	/* Niels: TODO! */
+    }
+
     /**
      * Create a new nos/out pair.
      */

@@ -93,6 +93,15 @@ public interface SendPort
     public void connect (ReceivePortIdentifier receiver) throws IOException;
 
     /**
+     * Attempts to disconnect a connection with a receiver.
+     *
+     * @param receiver identifies the {@link ReceivePort} to disconnect
+     * @exception IOException is thrown if there was no connection to
+     * the receiveport specified or in case of other trouble.
+     */
+    public void disconnect (ReceivePortIdentifier receiver) throws IOException;
+
+    /**
      * Attempts to set up a connection with receiver.
      *
      * @param receiver identifies the {@link ReceivePort} to connect to

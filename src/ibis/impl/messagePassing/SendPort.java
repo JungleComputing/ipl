@@ -393,6 +393,42 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
 
+    public void disconnect(ibis.ipl.ReceivePortIdentifier r)
+	    throws IOException
+    {
+	if (splitter == null) {
+	    throw new IOException("disconnect: no connections");
+	}
+	Ibis.myIbis.lock();
+	try {
+	    int n = splitter.length;
+	    boolean found = false;
+	    for (int i = 0; i < n; i++) {
+		ReceivePortIdentifier rid = splitter[i];
+		if (rid.equals(r)) {
+		    byte[] sf = ident.getSerialForm();
+		    outConn.ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, messageCount);
+		    ReceivePortIdentifier[] v = new ReceivePortIdentifier[n - 1];
+		    for (int j = 0; j < n - 1; j++) {
+			v[j] = splitter[j];
+		    }
+		    if (i < n-1) {
+			v[i] = splitter[n-1];
+		    }
+		    splitter = v;
+		    found = true;
+		    break;
+		}
+	    }
+	    if (! found) {
+		throw new IOException("disconnect: no connection to " + r);
+	    }
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
+    }
+
+
     public void close() throws IOException {
 	if (DEBUG) {
 	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " start");

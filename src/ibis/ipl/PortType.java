@@ -371,9 +371,10 @@ public abstract class PortType {
      * implementation must probably redefine it, because two objects
      * representing the same porttype must result in the same hashcode
      * (and compare equal).
-     * To explicitly specify it in the interface does not help,
+     * To explicitly specify it here does not help,
      * because java.lang.Object already implements it,
-     * but, anyway, here it is:
+     * but, anyway, here it is.
+     * @return the hashcode.
      */
     public abstract int hashCode();
 
@@ -382,10 +383,10 @@ public abstract class PortType {
      * implementation must probably redefine it, because two objects
      * representing the same porttype must compare equal (and result
      * in the same hashcode).
-     * To explicitly specify it in the interface does not help,
+     * To explicitly specify it here does not help,
      * because java.lang.Object already implements it,
-     * but, anyway, here it is:
-     *
+     * but, anyway, here it is.
+     * @return the result of the comparison.
      * @param other the object to compare with.
      */
     public abstract boolean equals(Object other);
