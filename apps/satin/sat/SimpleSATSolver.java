@@ -65,14 +65,21 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	posassignments[var] = 1;
 	negassignments[var] = 0;
 
+//	SATResultException t = null;
+
 //	try {
 		solve( p, posassignments, varlist, varix+1 );
 		solve( p, negassignments, varlist, varix+1 );
 //	} catch (SATResultException e) {
 //		throw e;
+//		t = e;
+//		abort();
+//		return;
 //	}
 
 	sync();
+
+//	if(t != null) throw t;
     }
 
     /** Given a list of symbolic clauses, produce a list of solutions. */

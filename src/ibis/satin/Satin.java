@@ -1241,7 +1241,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				// the parent did not catch it, and must therefore die.
 				r.parent.aborted = true;
 				r.parent.eek = r.eek; // rethrow exception
-
 				killChildrenOf(r.parent.stamp, r.parent.owner);
 			}
 		}
@@ -1329,7 +1328,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			parentStamp = r.stamp;
 			parentOwner = r.owner;
 		}
-	
+
 		if(SPAWN_DEBUG) {
 			out.println("SATIN '" + ident.name() +
 				    "': callSatinFunc: stamp = " + r.stamp +
@@ -1351,7 +1350,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 				try {
 					r.runLocal();
-				} catch (Throwable t) { // this can only happen if an inlet has thrown an exception.
+				} catch (Throwable t) { 
+                                        // This can only happen if an inlet has thrown an exception.
+					// The semantics of this: all work is aborted,
+					// and the exception is passed on to the spawner.
+					// The parent is aborted, it must handle the exception.
 					if(r.parentStamp == -1) { // root job
 						System.err.println("SATIN '" + ident.name() + ": callSatinFunction: Unexpected exception: " + t);
 						t.printStackTrace();
@@ -1366,14 +1369,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					if(SPAWN_STATS) {
 						aborts++;
 					}
-					synchronized(this) {
-						r.parent.eek = t;
-						killChildrenOf(r.parent.stamp, r.parent.owner);
 
-						// @@@ Why was this here???? --Rob
+					synchronized(this) {
 						// also kill the parent itself. 
 						// It is either on the stack or on a remote machine.
-//						r.parent.aborted = true;
+				                // Here, this is OK, the inlet threw an exception, 
+				                // the parent did not catch it, and must therefore die.
+						r.parent.aborted = true; 
+						r.parent.eek = t; // rethrow exception
+						killChildrenOf(r.parent.stamp, r.parent.owner);
 					}
 				}
 
@@ -1604,7 +1608,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			                        // Here, this is OK, the child threw an exception, 
 				                // the parent did not catch it, and must therefore die.
 						r.parent.aborted = true;
-						r.parent.eek = t;
+						r.parent.eek = t; // rethrow exception
 						killChildrenOf(r.parent.stamp, r.parent.owner);
 					}
 				}
