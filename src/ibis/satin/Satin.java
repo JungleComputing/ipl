@@ -2177,8 +2177,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	    method returns false.
 	**/
 	public static boolean needMoreJobs() {
+		// This can happen in sequential programs.
 		if(this_satin == null) {
-			throw new IbisError("needMoreJobs called outside of satin");
+			return false;
 		}
 		int size = 0;
 
