@@ -9,10 +9,11 @@ public interface Config {
 	static final boolean TUPLE_STATS = true;
 
 	/* Enable or disable timings */
-	static final boolean STEAL_TIMING = false;
+	static final boolean STEAL_TIMING = true;
 	static final boolean ABORT_TIMING = false;
 	static final boolean IDLE_TIMING = false;
 	static final boolean POLL_TIMING = false;
+	static final boolean TUPLE_TIMING = true;
 
 	/* The poll frequency in nanoseconds. A frequency of 0 means do not poll. */
 //	static final long POLL_FREQ = 100*1000000L;

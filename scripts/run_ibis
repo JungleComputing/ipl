@@ -10,7 +10,7 @@ export LD_ASSUME_KERNEL=2.2.5
 #export PAN_SYS_CREDITS=65535
 
 export LFC_INTR_FIRST=100
-export IBP_SEND_SYNC=100 
+export IBP_SEND_SYNC=10000 
 export MANTA_NO_PANDA=1
 export PAN_COMM_NO_IDLE_POLL=1
 
@@ -40,4 +40,7 @@ shift
 Dns_server="-Dibis.name_server.host=$1"
 shift
 
-$JAVA_ROOT/bin/java $JIT_OPTS $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xmx1024M -Xbootclasspath:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
+# the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
+
+$JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
+

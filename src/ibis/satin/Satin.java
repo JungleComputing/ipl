@@ -151,6 +151,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	Timer abortTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer idleTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer pollTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer tupleTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
 	private long prevPoll = 0;
 	//	float MHz = Timer.getMHz();
 
@@ -459,7 +460,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 		if(TUPLE_STATS && stats) {
 			out.println("SATIN '" + ident.name() + 
-				    "': TUPLE_STATS: tuple bcast msgs: " + tupleMsgs +
+				    "': TUPLE_STATS 1: tuple bcast msgs: " + tupleMsgs +
 				    ", bytes = " + nf.format(tupleBytes));
 		}
 		if(STEAL_STATS && stats) {
@@ -517,6 +518,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    Timer.format(stealTimer.totalTimeVal() +
 							 handleStealTimer.totalTimeVal() -
 							 idleTimer.totalTimeVal()));
+			}
+
+			if(TUPLE_TIMING) {
+				out.println("SATIN '" + ident.name() + 
+					    "': TUPLE_STATS 2: bcasts = " +
+					    tupleTimer.nrTimes() + " total time = " +
+					    tupleTimer.totalTime() + " avg time = " +
+					    tupleTimer.averageTime());
 			}
 			algorithm.printStats(out);
 		}
@@ -1728,6 +1737,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					   "': bcasting tuple" + key);
 		}
 
+		if(victims.size() == 0) return; // don't multicast when there is no-one.
+
+		if(TUPLE_TIMING) {
+			tupleTimer.start();
+		}
+
 		if(SUPPORT_TUPLE_MULTICAST) {
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();
@@ -1769,6 +1784,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					System.exit(1);
 				}
 			}
+		}
+
+		if(TUPLE_TIMING) {
+			tupleTimer.stop();
 		}
 	}
 }

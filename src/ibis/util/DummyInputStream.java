@@ -12,15 +12,20 @@ public class DummyInputStream extends InputStream {
 	}
 
 	public int read() throws IOException {
+//		System.err.println("dummy.read");
 		return in.read();
 	}
 
 	public int read(byte[] b) throws IOException {
-		return in.read(b);
+		int res = in.read(b);
+//		System.err.println("dummy.read array of len " + b.length + " result was " + res + " bytes");
+		return res;
 	}
 
 	public int read(byte[] b, int off, int len) throws IOException {
-		return in.read(b, off, len);
+		int res = in.read(b, off, len);
+//		System.err.println("dummy.read array of len " + len + " result was " + res + " bytes");
+		return res;
 	}
 
 	public long skip(long n) throws IOException {

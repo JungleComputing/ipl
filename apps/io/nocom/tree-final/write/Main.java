@@ -12,9 +12,9 @@ import ibis.io.IbisSerializationOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 1023;
-	public static final int COUNT = 10000;
-	public static final int TESTS = 10;
+	public static final int LEN   = 1024*128-1;
+	public static final int COUNT = 100;
+	public static final int TESTS = 3;
 
 	public static double round(double val) { 		
 		return (Math.ceil(val*100.0)/100.0);
@@ -49,8 +49,8 @@ public class Main {
 					mout.writeObject(temp);
 					mout.flush();
 					mout.reset();
+//					System.gc();
 				}
-				
 				end = System.currentTimeMillis();
 
 				bytes = naos.getAndReset();
