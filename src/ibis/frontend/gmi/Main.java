@@ -85,6 +85,10 @@ class Main {
 		Analyzer a = new Analyzer(subject, groupInterface, verbose);
 		a.start();
 
+		if (a.specialInterfaces.size() == 0) {
+		    continue;
+		}
+
 		if (subject.isInterface()) { 
 		    output = createFile(getFileName(a.packagename, a.classname, "group_stub_"));			
 		    new GMIStubGenerator(a, output, verbose).generate();
