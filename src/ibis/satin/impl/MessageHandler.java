@@ -74,6 +74,16 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		IbisIdentifier i = null;
 		int stamp = -666;
 		Throwable eek = null;
+		Timer returnRecordReadTimer = null;
+		
+		// This upcall may run in parallel with other upcalls.
+		// Therefore, we cannot directly use the timer in Satin.
+		// Use our own local timer, and add the result to the global timer later.
+
+		if (STEAL_TIMING) {
+			returnRecordReadTimer = satin.createTimer();
+		        returnRecordReadTimer.start();
+		}
 		try {
 			i = (IbisIdentifier) m.readObject();
 			if (opcode == JOB_RESULT_NORMAL) {
@@ -95,6 +105,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					+ "': got exception while reading job result: " + e1 + opcode);
 			e1.printStackTrace();
 			System.exit(1);
+		}
+		if (STEAL_TIMING) {
+		        returnRecordReadTimer.stop();
+			synchronized (satin) {
+			    satin.returnRecordReadTimer.add(returnRecordReadTimer);
+			}
 		}
 
 		if (STEAL_DEBUG) {

@@ -69,12 +69,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
 		onStack = new IRStack(this);
 		exceptionList = new IRVector(this);
 
-		if (stealTimer == null) {
-			System.err
-					.println("Native timers not found, using (less accurate) java timers.");
-		}
-
-		initTimers();
 		String hostName = null;
 
 		InetAddress address = IPUtils.getLocalHostAddress();

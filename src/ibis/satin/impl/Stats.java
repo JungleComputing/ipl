@@ -4,47 +4,6 @@ import ibis.util.Timer;
 
 public abstract class Stats extends TupleSpace {
 
-	void initTimers() {
-		if (totalTimer == null)
-			totalTimer = Timer.createTimer();
-		if (stealTimer == null)
-			stealTimer = Timer.createTimer();
-		if (handleStealTimer == null)
-			handleStealTimer = Timer.createTimer();
-		if (abortTimer == null)
-			abortTimer = Timer.createTimer();
-		if (idleTimer == null)
-			idleTimer = Timer.createTimer();
-		if (pollTimer == null)
-			pollTimer = Timer.createTimer();
-		if (tupleTimer == null)
-			tupleTimer = Timer.createTimer();
-		if (invocationRecordWriteTimer == null)
-			invocationRecordWriteTimer = Timer.createTimer();
-		if (invocationRecordReadTimer == null)
-			invocationRecordReadTimer = Timer.createTimer();
-		if (tupleOrderingWaitTimer == null)
-			tupleOrderingWaitTimer = Timer.createTimer();
-		if (lookupTimer == null)
-			lookupTimer = Timer.createTimer();
-		if (updateTimer == null)
-			updateTimer = Timer.createTimer();
-		if (handleUpdateTimer == null)
-			handleUpdateTimer = Timer.createTimer();
-		if (handleLookupTimer == null)
-			handleLookupTimer = Timer.createTimer();
-		if (tableSerializationTimer == null)
-			tableSerializationTimer = Timer.createTimer();
-		if (tableDeserializationTimer == null) 
-			tableDeserializationTimer = Timer.createTimer();
-		if (crashTimer == null)
-			crashTimer = Timer.createTimer();
-		if (redoTimer == null)
-			redoTimer = Timer.createTimer();
-		if (addReplicaTimer == null)
-			addReplicaTimer = Timer.createTimer();
-	}
-
 	protected StatsMessage createStats() {
 		StatsMessage s = new StatsMessage();
 
@@ -81,6 +40,11 @@ public abstract class Stats extends TupleSpace {
 		s.invocationRecordWriteCount = invocationRecordWriteTimer.nrTimes();
 		s.invocationRecordReadTime = invocationRecordReadTimer.totalTimeVal();
 		s.invocationRecordReadCount = invocationRecordReadTimer.nrTimes();
+
+		s.returnRecordWriteTime = returnRecordWriteTimer.totalTimeVal();
+		s.returnRecordWriteCount = returnRecordWriteTimer.nrTimes();
+		s.returnRecordReadTime = returnRecordReadTimer.totalTimeVal();
+		s.returnRecordReadCount = returnRecordReadTimer.nrTimes();
 
 		//fault tolerance
 		if (FAULT_TOLERANCE) {
@@ -210,16 +174,26 @@ public abstract class Stats extends TupleSpace {
 					+ Timer.format((totalStats.handleStealTime)
 							/ totalStats.stealAttempts));
 
-			out.println("SATIN: SERIALIZATION_TIME:       total "
+			out.println("SATIN: INV SERIALIZATION_TIME:   total "
 					+ Timer.format(totalStats.invocationRecordWriteTime)
 					+ " time/write  "
 					+ Timer.format(totalStats.invocationRecordWriteTime
 							/ totalStats.stealSuccess));
-			out.println("SATIN: DESERIALIZATION_TIME:     total "
+			out.println("SATIN: INV DESERIALIZATION_TIME: total "
 					+ Timer.format(totalStats.invocationRecordReadTime)
 					+ " time/read   "
 					+ Timer.format(totalStats.invocationRecordReadTime
 							/ totalStats.stealSuccess));
+			out.println("SATIN: RET SERIALIZATION_TIME:   total "
+					+ Timer.format(totalStats.returnRecordWriteTime)
+					+ " time/write  "
+					+ Timer.format(totalStats.returnRecordWriteTime
+							/ totalStats.returnRecordWriteCount));
+			out.println("SATIN: RET DESERIALIZATION_TIME: total "
+					+ Timer.format(totalStats.returnRecordReadTime)
+					+ " time/read   "
+					+ Timer.format(totalStats.returnRecordReadTime
+							/ totalStats.returnRecordReadCount));
 		}
 
 		if (ABORT_TIMING) {
@@ -346,7 +320,7 @@ public abstract class Stats extends TupleSpace {
 		double addReplicaPerc = addReplicaTime / totalTimer.totalTimeVal()
 				* 100.0;
 
-		double totalOverhead = (totalStats.stealTime + totalStats.handleStealTime) / size + abortTime + tupleTime
+		double totalOverhead = (totalStats.stealTime + totalStats.handleStealTime + totalStats.returnRecordReadTime + totalStats.returnRecordWriteTime) / size + abortTime + tupleTime
 				+ tupleWaitTime + pollTime + tableUpdateTime + tableLookupTime
 				+ tableHandleUpdateTime + tableHandleLookupTime;
 		double totalPerc = totalOverhead / totalTimer.totalTimeVal() * 100.0;
@@ -508,6 +482,20 @@ public abstract class Stats extends TupleSpace {
 						+ invocationRecordReadTimer.totalTime()
 						+ " avg time = "
 						+ invocationRecordReadTimer.averageTime());
+				out.println("SATIN '" + ident.name()
+						+ "': STEAL_STATS 7: returnRecordWrites = "
+						+ returnRecordWriteTimer.nrTimes()
+						+ " total time = "
+						+ returnRecordWriteTimer.totalTime()
+						+ " avg time = "
+						+ returnRecordWriteTimer.averageTime());
+				out.println("SATIN '" + ident.name()
+						+ "': STEAL_STATS 8: returnRecordReads = "
+						+ returnRecordReadTimer.nrTimes()
+						+ " total time = "
+						+ returnRecordReadTimer.totalTime()
+						+ " avg time = "
+						+ returnRecordReadTimer.averageTime());
 			}
 
 			if (ABORTS && ABORT_TIMING) {

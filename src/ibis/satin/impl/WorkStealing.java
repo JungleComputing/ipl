@@ -60,6 +60,9 @@ public abstract class WorkStealing extends Stats {
 		}
 
 		try {
+			if (STEAL_TIMING) {
+				returnRecordWriteTimer.start();
+			}
 			WriteMessage writeMessage = s.newMessage();
 			if (r.eek == null) {
 				writeMessage.writeByte(Protocol.JOB_RESULT_NORMAL);
@@ -74,6 +77,9 @@ public abstract class WorkStealing extends Stats {
 				writeMessage.writeInt(r.stamp);
 			}
 			long cnt = writeMessage.finish();
+			if (STEAL_TIMING) {
+				returnRecordWriteTimer.stop();
+			}
 
 			if (STEAL_STATS) {
 				if (inDifferentCluster(r.owner)) {

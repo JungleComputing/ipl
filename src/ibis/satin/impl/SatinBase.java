@@ -268,7 +268,11 @@ public abstract class SatinBase implements Config {
 
 	Timer invocationRecordWriteTimer = Timer.createTimer();
 
+	Timer returnRecordWriteTimer = Timer.createTimer();
+
 	Timer invocationRecordReadTimer = Timer.createTimer();
+
+	Timer returnRecordReadTimer = Timer.createTimer();
 
 	Timer tupleOrderingWaitTimer = Timer.createTimer();
 

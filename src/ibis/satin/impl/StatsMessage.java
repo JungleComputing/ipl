@@ -53,9 +53,17 @@ class StatsMessage implements java.io.Serializable {
 
 	long invocationRecordWriteCount;
 
+	double returnRecordWriteTime;
+
+	long returnRecordWriteCount;
+
 	double invocationRecordReadTime;
 
 	long invocationRecordReadCount;
+
+	double returnRecordReadTime;
+
+	long returnRecordReadCount;
 
 	double tupleWaitTime;
 
@@ -131,6 +139,10 @@ class StatsMessage implements java.io.Serializable {
 		invocationRecordWriteCount += s.invocationRecordWriteCount;
 		invocationRecordReadTime += s.invocationRecordReadTime;
 		invocationRecordReadCount += s.invocationRecordReadCount;
+		returnRecordWriteTime += s.returnRecordWriteTime;
+		returnRecordWriteCount += s.returnRecordWriteCount;
+		returnRecordReadTime += s.returnRecordReadTime;
+		returnRecordReadCount += s.returnRecordReadCount;
 		tupleWaitTime += s.tupleWaitTime;
 		tupleWaitCount += s.tupleWaitCount;
 		tupleSeqTime += s.tupleSeqTime;
