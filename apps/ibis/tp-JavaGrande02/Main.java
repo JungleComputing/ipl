@@ -10,12 +10,14 @@ final class Receiver implements Upcall {
 	int count = 0;
 	int max;
 	boolean one;
-	
-	Receiver(ReceivePort rport, SendPort sport, int max, boolean one) {
+	boolean stream;
+
+	Receiver(ReceivePort rport, SendPort sport, int max, boolean one, boolean stream) {
 		this.rport = rport;
 		this.sport = sport;
 		this.max = max;
 		this.one = one;
+		this.stream = stream;
 	} 
 	
 	public void upcall(ReadMessage readMessage) { 
@@ -49,18 +51,29 @@ final class Receiver implements Upcall {
 		}		
 	} 
 
-	public void receive() throws Exception { 
+	public void receive(int count) throws Exception { 
 		if (one) {
-			for(int i = 0; i< max; i++) {
+//				System.out.println("expl. receive " + count);
+
+			for(int i = 0; i< count; i++) {
 				ReadMessage readMessage = rport.receive();
 				readMessage.readObject();
 				readMessage.finish();
 				
+				if (!stream) { 
+					WriteMessage writeMessage = sport.newMessage();
+					writeMessage.send();
+					writeMessage.finish();
+				} 
+			}	
+
+			if (stream) { 
+//				System.out.println("LAST SNED");
 				WriteMessage writeMessage = sport.newMessage();
 				writeMessage.finish();
-			}	
+			} 
 		} else {
-			for(int i = 0; i< max; i++) {
+			for(int i = 0; i< count; i++) {
 				ReadMessage readMessage = rport.receive();
 				Object temp = readMessage.readObject();
 				readMessage.finish();
@@ -117,7 +130,9 @@ final class Main {
 		return temp;
 	} 
 
-	private static long one_way(ReceivePort rport, SendPort sport, int count, Object data) throws Exception { 
+	private static long one_way(ReceivePort rport, SendPort sport, int count, Object data, boolean stream) throws Exception { 
+
+//		System.out.println("one way " + count);
 
 		long start = System.currentTimeMillis();
 		
@@ -126,10 +141,17 @@ final class Main {
 			writeMessage.writeObject(data);
 			writeMessage.finish();
 			
+			if (!stream) { 
+				ReadMessage readMessage = rport.receive();
+				readMessage.finish();
+			}
+		} 
+
+		if (stream) { 
 			ReadMessage readMessage = rport.receive();
 			readMessage.finish();
 		} 
-		
+
 		long end = System.currentTimeMillis();			
 
 		if (verbose) System.out.println("One way test took " + (end-start) + " milliseconds");
@@ -158,14 +180,14 @@ final class Main {
 	} 
 
 	private static long runTest(ReceivePort rport, SendPort sport, 
-				    int count, int retries, Object data, boolean one_way) throws Exception { 
+				    int count, int retries, Object data, boolean one_way, boolean stream) throws Exception { 
 
 		long best = 1000000;
 		long temp;
 
 		for (int i=0;i<retries;i++) { 
 			if (one_way) { 
-				temp = one_way(rport, sport, count, data);
+				temp = one_way(rport, sport, count, data, stream);
 			} else { 
 				temp = two_way(rport, sport, count, data);
 			} 
@@ -199,11 +221,19 @@ final class Main {
 			int count       = 10000;
 			int retries     = 10;
 			boolean upcalls = false;
+			boolean stream  = false;
+			boolean ibisSer = false;
+
 			int rank = info.rank(); 
 			int tests = 0;
 
+			String ibisName = "ibis.impl.tcp.TcpIbis";
+			
 			while (i < args.length) { 
 				if (false) {
+				} else if (args[i].equals("-ibis")) { 
+					ibisSer = true;
+					i++; 
 				} else if (args[i].equals("-upcalls")) { 
 					upcalls = true;
 					i++; 
@@ -245,6 +275,9 @@ final class Main {
 				} else if (args[i].equals("-retries")) { 
 					retries = Integer.parseInt(args[i+1]);
 					i += 2;
+				} else if (args[i].equals("-stream")) { 
+					stream = true;
+					i++;
 				} else {
 					System.err.println("unknown option: " + args[i]);
 					System.exit(1);
@@ -252,14 +285,23 @@ final class Main {
 			} 
 
 			if (verbose) { 
-				System.out.println("Creating ibis ...");
+				System.out.println("Creating ibis \"" + ibisName + "\"");
 			}
 
+<<<<<<< Main.java
+			if (stream && (upcalls || !one_way)) { 
+				System.out.println("Streaming with upcalls or two way communication not supported yet!");
+				System.exit(1);
+			} 
+
+			ibis = Ibis.createIbis(null, null);
+=======
 			StaticProperties s = new StaticProperties();
 			s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
 			s.add("serialization", "object");
 			s.add("worldmodel", "closed");
 			ibis = Ibis.createIbis(s, null);
+>>>>>>> 1.10
 
 			if (verbose) { 
 				System.out.println("Ibis created; getting registry ...");
@@ -271,7 +313,17 @@ final class Main {
 				System.out.println("Got registry");
 			}
 
+<<<<<<< Main.java
+			StaticProperties s = new StaticProperties();
+
+			if (ibisSer) { 
+				s.add("Serialization", "ibis");
+			}
+
+			PortType t = ibis.createPortType("test type", s);			
+=======
 			PortType t = ibis.createPortType("test type", null);			
+>>>>>>> 1.10
 			SendPort sport = t.createSendPort();					      
 			ReceivePort rport;
 
@@ -298,7 +350,7 @@ final class Main {
 						System.out.println("starting byte[" + arraysize + "] test");
 					} 
 
-					time = runTest(rport, sport, count, retries, data, one_way);
+					time = runTest(rport, sport, count, retries, data, one_way, stream);
 					System.out.println("byte[" + arraysize + "] = " + tp((one_way ? arraysize*count : 2*arraysize*count), time) + " MBytes/sec.");
 
 			
@@ -308,7 +360,7 @@ final class Main {
 						System.out.println("starting int[" + alen + "] test");
 					} 
 
-					time = runTest(rport, sport, count, retries, data, one_way);
+					time = runTest(rport, sport, count, retries, data, one_way, stream);
 					System.out.println("int[" + alen + "] = " + tp((one_way ? arraysize*count : 2*arraysize*count), time) + " MBytes/sec.");
 
 					alen = arraysize/8;
@@ -318,7 +370,7 @@ final class Main {
 						System.out.println("starting double[" + alen + "] test");
 					} 
 				
-					time = runTest(rport, sport, count, retries, data, one_way);
+					time = runTest(rport, sport, count, retries, data, one_way, stream);
 					System.out.println("double[" + alen + "] = " + tp((one_way ? arraysize*count : 2*arraysize*count), time) + " MBytes/sec.");
 				} 
 
@@ -329,7 +381,7 @@ final class Main {
 						System.out.println("starting list(" + len + ") test");
 					} 
 
-					time = runTest(rport, sport, count, retries, data, one_way);
+					time = runTest(rport, sport, count, retries, data, one_way, stream);
 					System.out.println("list(" + len + ") = " + tp((one_way ? len*count : 2*len*count)*List.PAYLOAD, time) + " MBytes/sec.");
 				} 
 
@@ -340,7 +392,7 @@ final class Main {
 						System.out.println("starting dlist(" + len + ") test");
 					} 
 
-					time = runTest(rport, sport, count, retries, data, one_way);
+					time = runTest(rport, sport, count, retries, data, one_way, stream);
 					System.out.println("dlist(" + len + ") = " + tp((one_way ? len*count : 2*len*count)*DList.PAYLOAD, time) + " MBytes/sec.");
 				} 
 
@@ -351,7 +403,7 @@ final class Main {
 						System.out.println("starting tree(" + len + ") test");
 					} 
 
-					time = runTest(rport, sport, count, retries, data, one_way);
+					time = runTest(rport, sport, count, retries, data, one_way, stream);
 					System.out.println("tree(" + len + ") = " + tp((one_way ? len*count : 2*len*count)*Tree.PAYLOAD, time) + " MBytes/sec.");
 				} 
 
@@ -366,7 +418,7 @@ final class Main {
 						System.out.println("starting object array[" + len + "] test");
 					}
 					
-					time = runTest(rport, sport, count, retries, temp, one_way);
+					time = runTest(rport, sport, count, retries, temp, one_way, stream);
 					System.out.println("object[" + len + "] = " + tp((one_way ? len*count : 2*len*count)*Data.PAYLOAD, time) + " MBytes/sec.");
 				} 
 
@@ -378,7 +430,7 @@ final class Main {
 				connect(sport, ident);
 
 				if (upcalls) {
-					Receiver receiver = new Receiver(null, sport, tests*retries*count, one_way);
+					Receiver receiver = new Receiver(null, sport, tests*retries*count, one_way, false);
 					rport = t.createReceivePort("test port 1", receiver);
 					rport.enableConnections();
 					rport.enableUpcalls();
@@ -386,8 +438,11 @@ final class Main {
 				} else { 
 					rport = t.createReceivePort("test port 1");
 					rport.enableConnections();
-					Receiver receiver = new Receiver(rport, sport, tests*retries*count, one_way);
-					receiver.receive();
+					Receiver receiver = new Receiver(rport, sport, count, one_way, stream);
+
+					for (int r=0;r<tests*retries;r++) { 
+						receiver.receive(count);
+					}
 				}
 			}
 

@@ -692,20 +692,20 @@ public class Main {
 	public static void main(String args[]) {
 		
 		try {			
-			boolean manta = false;
+			boolean ibisSer = false;
 			int rank = 0, remoteRank = 1;
 
 			for(int i=0; i<args.length; i++) {
-				if(args[i].equals("-manta")) {
-					manta = true;
+				if(args[i].equals("-ibis")) {
+					ibisSer = true;
 				} 
 			}
 					
-			ibis = Ibis.createIbis("ibis", "ibis.impl.tcp.TcpIbis", null);
+			ibis = Ibis.createIbis("ibis" + Math.random(), "ibis.impl.tcp.TcpIbis", null);
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();
-			if (manta) { 
+			if (ibisSer) { 
 			    s.add("Serialization", "ibis");
 			}
 		
@@ -713,7 +713,7 @@ public class Main {
 			SendPort sport = t.createSendPort();		      
 			ReceivePort rport;
 
-			IbisIdentifier master = (IbisIdentifier) registry.elect("latency", ibis.identifier());
+			IbisIdentifier master = (IbisIdentifier) registry.elect("throughput", ibis.identifier());
 
 			if(master.equals(ibis.identifier())) {
 				rank = 0;
