@@ -36,7 +36,12 @@ class PoolThread extends Thread {
 		}
 	    }
 
-	    target.run();
+	    try {
+		target.run();
+	    } catch(Throwable e) {
+		System.out.println("EEK: daemon thread caught throwable: " + e);
+		e.printStackTrace();
+	    }
 	}
     }
 }
