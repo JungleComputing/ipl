@@ -1,6 +1,12 @@
 APP_OPTIONS = 44
 
 SRC  = LowlevelInterface.java
+SRC += DoneVoid.java
+SRC += DoneInt.java
+SRC += DoneObject.java
+SRC += DoneVoidOverridden.java
+SRC += DoneIntOverridden.java
+SRC += DoneObjectOverridden.java
 
 MAIN = Lowlevel.java
 OUT= lowlevel
@@ -15,15 +21,10 @@ export CLASSPATH
 java: $(CLASS_FILES) $(MAIN_CLASS)
 
 satin: java
-	$(SATINC_COMMAND) -no-aborts -keep $(MAIN_CLASS_NAME)
+	$(SATINC_COMMAND) -keep $(MAIN_CLASS_NAME)
 
 manta: $(MAIN) $(O_FILES)
 	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) $(MANTA_LIB)
-
-#mantapar: $(O_FILES) satin
-#	$(MANTAC_COMMAND) -c Satin_Fib_fib_InvocationRecord.java
-#	$(MANTAC_COMMAND) -c Satin_Fib_fib_ReturnRecord.java
-#	$(MANTAC_COMMAND) -o $(OUT) $(MAIN_CLASS) $(O_FILES) $(MANTA_LIB)
 
 clean:
 	rm -f $(TRASH_FILES)
