@@ -34,7 +34,7 @@ public class ParallelStreams
     public ParallelStreams(int n, int b)
     {
 	if(MyDebug.VERBOSE()) {
-	    System.out.println("# ParallelStreams: building link- numWays = "+n+"; blockSize = "+b);
+	    System.err.println("# ParallelStreams: building link- numWays = "+n+"; blockSize = "+b);
 	}
 	numWays = n;
 	blockSize = b;
@@ -61,22 +61,21 @@ public class ParallelStreams
 	} catch (ClassNotFoundException e) {
 	    throw new Error(e);
 	}
-	MyDebug.out.println("PS: received.");
+	MyDebug.out.println("PS: received properties from peer.");
 	int rNumWays = ((Integer) rInfo.get("num_ways")).intValue();
 	if(rNumWays != numWays) {
 	    throw new Error("ParallelStreams: cannot connect- localNumWays = "+numWays+"; remoteNumWays = "+rNumWays);
 	}
 
 	for(i=0; i<numWays; i++) {
+	    out.flush();
+	    MyDebug.trace("PS: creating link #"+i+" (hint="+hint+")");
 	    Socket s = ExtSocketFactory.createBrokeredSocket(in, out, hint);;
-	    MyDebug.out.println("PS: done "+i);
+	    MyDebug.trace("PS: link #"+i+" done ");
 	    sockets[i] = s;
 	    ins[i] = s.getInputStream();
 	    outs[i] = s.getOutputStream();
 	}
-	//	os.close();
-	//	is.close();
-
     }
 
     public synchronized int poll()
