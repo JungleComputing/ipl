@@ -5,15 +5,21 @@ class Main {
 
 	public static void main(String [] args) { 	
 
-		PoolInfo info = new PoolInfo();		
+		try {
+			PoolInfo info = new PoolInfo();		
 
-		if (info.rank() == 0) { 	
-			myRep r = (myRep) RTS.createReplica("Test");
-			r.foo();
-			r.bar();		
-		} else {
-			RTS.init();
-			// do nothing !
-		} 
+			if (info.rank() == 0) { 	
+				myRep r = (myRep) RTS.createReplica("Test");
+				r.foo();
+				r.bar();		
+			} else {
+				RTS.init();
+				// do nothing !
+			} 
+		} catch(Exception e) {
+			System.err.println("oops: " + e);
+			e.printStackTrace();
+			System.exit(1);
+		}
 	} 
 } 
