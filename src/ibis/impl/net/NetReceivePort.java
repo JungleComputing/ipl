@@ -850,12 +850,16 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
                                 freeBuffer();
                         }
 
-                        do {
-                                int copyLength = Math.min(mtu, length);
-                                receiveBuffer(new NetReceiveBuffer(userBuffer, offset, copyLength));
-                                offset += copyLength;
-                                length -= copyLength;
-                        } while (length != 0);
+                        if (mtu != 0) {
+                                do {
+                                        int copyLength = Math.min(mtu, length);
+                                        receiveBuffer(new NetReceiveBuffer(userBuffer, offset, copyLength));
+                                        offset += copyLength;
+                                        length -= copyLength;
+                                } while (length != 0);
+                        } else {
+                                receiveBuffer(new NetReceiveBuffer(userBuffer, offset, length));
+                        }
                         
                 } else {
                         if (buffer != null) {

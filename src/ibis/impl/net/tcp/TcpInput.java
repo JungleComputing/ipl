@@ -147,8 +147,7 @@ public class TcpInput extends NetInput {
 
 		try {
 			do {
-				offset += tcpIs.read(b, offset,
-						     expectedLength - offset);
+				offset += tcpIs.read(b, offset, expectedLength - offset);
 			} while (offset < expectedLength);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
