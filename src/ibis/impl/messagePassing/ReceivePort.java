@@ -515,7 +515,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 // Ibis.myIbis.pollLocked();
 // }
 
-	if (queueFront == null) {
+	while (queueFront == null) {
 	    if (! block) {
 		return null;
 	    }

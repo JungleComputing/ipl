@@ -23,6 +23,11 @@ final class ReceivePortNameServerClient
 	    return bound;
 	}
 
+	public void signal() {
+	    bound = true;
+	    wakeup();
+	}
+
 	private boolean	ns_busy = false;
 	private ConditionVariable	ns_free = Ibis.myIbis.createCV();
 
@@ -90,7 +95,6 @@ final class ReceivePortNameServerClient
 	if (ReceivePortNameServerProtocol.DEBUG) {
 	    System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
 	}
-	bind.bound = true;
 	bind.signal();
     }
 
