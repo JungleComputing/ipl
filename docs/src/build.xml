@@ -63,7 +63,7 @@
 	    <exec   dir="${build}"
 		    executable="latex2html"
 		    vmlauncher="false">
-		    <arg line="-info '' -split 4 -show_section_numbers progman.tex"/>
+		    <arg line="-info '' -local_icons -split 4 -show_section_numbers progman.tex"/>
 	    </exec>
     </target>
 
