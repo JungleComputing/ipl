@@ -143,6 +143,7 @@ class OpenCell1D implements OpenConfig {
     // Arrays to record statistical information for each generation. Can be
     // null if we're not interested.
     static int population[] = null;
+    static int members[] = null;
     static long computationTime[] = null;
     static long communicationTime[] = null;
     static long administrationTime[] = null;
@@ -726,6 +727,7 @@ class OpenCell1D implements OpenConfig {
         }
         if( collectStatistics ){
             population = new int[count];
+            members = new int[count];
             computationTime = new long[count];
             communicationTime = new long[count];
             administrationTime = new long[count];
@@ -815,6 +817,9 @@ class OpenCell1D implements OpenConfig {
                     rightReceivePort = createNeighbourReceivePort( updatePort, "downstream", null );
                     rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
                 }
+                if( members != null ){
+                    members[generation] = rszHandler.getMemberCount();
+                }
                 updateAims( p );
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
                     // We have some work for our lazy right neighbour.
@@ -825,7 +830,9 @@ class OpenCell1D implements OpenConfig {
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     rightNeighbourIdle = false;
                 }
-                population[generation] = p.firstNoColumn-p.firstColumn;
+                if( population != null ){
+                    population[generation] = p.firstNoColumn-p.firstColumn;
+                }
                 long startComputeTime = System.currentTimeMillis();
                 computeNextGeneration( p );
                 long endComputeTime = System.currentTimeMillis();
@@ -848,9 +855,11 @@ class OpenCell1D implements OpenConfig {
                     }
                 }
                 long endTime = System.currentTimeMillis();
-                computationTime[generation-1] = (endComputeTime-startComputeTime);
-                communicationTime[generation-1] = (endTime-endComputeTime);
-                administrationTime[generation-1] = (startComputeTime-startLoopTime);
+                if( computationTime != null ){
+                    computationTime[generation-1] = (endComputeTime-startComputeTime);
+                    communicationTime[generation-1] = (endTime-endComputeTime);
+                    administrationTime[generation-1] = (startComputeTime-startLoopTime);
+                }
                 if( showProgress && me == 0 ){
                     System.out.print( '.' );
                 }
@@ -878,7 +887,7 @@ class OpenCell1D implements OpenConfig {
             if( population != null ){
                 // We blindly assume all statistics arrays exist.
                 for( int gen=0; gen<count; gen++ ){
-                    System.out.println( "STATS " + me + " " + gen + " " + population[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] );
+                    System.out.println( "STATS " + me + " " + gen + " " + members[gen] + " " + population[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] );
                 }
             }
 
