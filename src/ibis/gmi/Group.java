@@ -303,7 +303,7 @@ public final class Group {
 					for (int i=0;i<hosts.length;i++) { 
 						temp.connect(pool[hosts[i]]);
 					}
-				} catch (IbisException e) { 
+				} catch (IbisIOException e) { 
 					 System.err.println(name + ": Could not create multicast group " + ID + " " + e);
 					 e.printStackTrace();
 					 System.exit(1);
@@ -386,7 +386,7 @@ public final class Group {
 
 			if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") done");
 
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : communication error !" + e.getMessage());  
 		}
 
@@ -481,7 +481,7 @@ public final class Group {
 			
 			if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") done");
 
-		} catch (IbisException e) { 
+		} catch (Exception e) { 
 			throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : communication error !" + e.getMessage());  
 		}
 	} 
@@ -558,7 +558,7 @@ public final class Group {
 					} 
 				} 
 
-			} catch (IbisException e) { 
+			} catch (Exception e) { 
 				throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : " + e); 
 			} 
 

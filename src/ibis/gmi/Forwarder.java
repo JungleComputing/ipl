@@ -87,7 +87,7 @@ public class Forwarder {
 //		thread.startReceiving(this, stub, replyStack, ticket, numResults);	
 	} 
 
-	void receive(ReadMessage r) throws IbisException { 
+	void receive(ReadMessage r) throws IbisException, IbisIOException { 
 
 		// stub is synchronized when this is called
 

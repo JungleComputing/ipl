@@ -3,6 +3,7 @@ package ibis.group;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.SendPort;
 
 // This is a base class for generated group stubs
@@ -41,7 +42,7 @@ public abstract class GroupSkeleton {
 		size = dest.size;
 	}
 
-	public synchronized final void handleCombineMessage(ReadMessage m) throws IbisException { 
+	public synchronized final void handleCombineMessage(ReadMessage m) throws IbisException, IbisIOException, java.lang.ClassNotFoundException { 
 		int rank = m.readInt();
 		byte result_type = m.readByte();
 		

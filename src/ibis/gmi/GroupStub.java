@@ -96,7 +96,7 @@ public class GroupStub implements GroupInterface {
 		resultMessageCache = m;
 	} 
 	
-	protected void handleResultMessage(ReadMessage r, int ticket, byte resultMode) throws IbisException { 
+	protected void handleResultMessage(ReadMessage r, int ticket, byte resultMode) throws IbisException, IbisIOException { 
 
 		if (resultMode == Group.FORWARD) { 
 			Forwarder f = (Forwarder) replyStack.peekData(ticket);
