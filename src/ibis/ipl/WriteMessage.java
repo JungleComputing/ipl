@@ -30,7 +30,7 @@ public interface WriteMessage {
      * Data may be streamed, so the user is not allowed to change the data
      * pushed into this message, as the send is NON-blocking.
      * It is only safe to touch the data after it has actually been
-     * sent, which can be ensured by either calling {@link #finish} or
+     * sent, which can be ensured by either calling {@link #finish()} or
      * {@link #reset}, or a {@link #sync} corresponding to this send.
      * The <code>send</code> method returns a ticket, which can be used
      * as a parameter to the {@link #sync} method, which will block until
@@ -73,7 +73,7 @@ public interface WriteMessage {
     /**
      * This method can be used to inform Ibis that one of the
      * <code>WriteMessage</code> methods has thrown an IOException.
-     * It implies a {@link #finish}.
+     * It implies a {@link #finish()}.
      * @param e the exception that was thrown.
      */
     public void finish(IOException e);

@@ -54,7 +54,7 @@ public interface ReadMessage {
     /**
      * This method can be used to inform Ibis that one of the
      * <code>ReadMessage</code> methods has thrown an IOException.
-     * It implies a {@link #finish}.
+     * It implies a {@link #finish()}.
      * In a message upcall, the alternative way to do this is to have
      * the upcall throw the exception.
      * @param e the exception that was thrown. 
