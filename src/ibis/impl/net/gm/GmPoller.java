@@ -21,7 +21,7 @@ import java.io.IOException;
  *    thread perform a non-blocking poll of all subinputs
  *    (i.s.o. one thread per subinput)
  *
- * Locking: there is an object lock on this and the gm/Driver gmAccessLock
+ * Locking: there is an object lock on this and the gm/Driver.gmAccessLock
  * lock. If both are required, synchronized (this) must be done first.
  */
 public final class GmPoller extends NetPoller {
@@ -111,7 +111,7 @@ public final class GmPoller extends NetPoller {
 
 	    Driver.gmAccessLock.lock();
 	    try {
-		gmDriver.interruptPump(oldLockIds);
+		Driver.interruptPump(oldLockIds);
 	    } finally {
 		Driver.gmAccessLock.unlock();
 		log.out();
@@ -145,6 +145,9 @@ public final class GmPoller extends NetPoller {
 	    boolean interrupted;
 	    do {
 
+		if (ended) {
+		    throw new InterruptedIOException("Poller channel closed");
+		}
 		interrupted = false;
 		if (block) {
 // System.err.print("[B");
@@ -155,7 +158,7 @@ public final class GmPoller extends NetPoller {
 // System.err.println("Somebody polling concurrently with me!!!");
 // }
 		    try {
-			result = gmDriver.blockingPump(lockIds);
+			result = Driver.blockingPump(lockIds);
 // System.err.print("B");
 // for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
 // System.err.print("]=" + result);
@@ -186,7 +189,7 @@ public final class GmPoller extends NetPoller {
 // }
 		} else {
 // System.err.print("[?");
-		    result = gmDriver.tryPump(lockIds);
+		    result = Driver.tryPump(lockIds);
 // System.err.print("?]");
 		} 
 
@@ -225,7 +228,7 @@ public final class GmPoller extends NetPoller {
 
 	Driver.gmAccessLock.lock();
 	try {
-	    gmDriver.interruptPump(lockIds);
+	    Driver.interruptPump(lockIds);
 	} finally {
 	    Driver.gmAccessLock.unlock();
 	}

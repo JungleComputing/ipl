@@ -6,6 +6,14 @@
 #include <string.h>
 #include <stddef.h>
 #include <assert.h>
+
+#include "java_properties.h"
+
+#define DEPRECATED		0
+
+/* How do we easily configure this in a portable way? */
+#define GM_ENABLE_HERALDS	0	/* 1 */
+
 #include <gm.h>
 
 #define HOSTNAMELEN	1024
@@ -312,7 +320,6 @@ struct s_access_lock {
 
 struct s_drv {
 	int                    ref_count;
-        struct s_access_lock  *p_alock;
         int                    nb_dev;
         struct s_dev         **pp_dev;
 };
@@ -488,7 +495,8 @@ static int		successfully_initialized =    0;
 static volatile int	success_flag             =    0;
 
 /* Driver's own data structure.  */
-static struct s_drv    *volatile _p_drv = NULL;
+static struct s_drv    *volatile ni_gm_p_drv = NULL;
+static struct s_access_lock *ni_gm_access_lock;
 
 static JavaVM	       *_p_vm = NULL;
 static JNIEnv	       *_current_env = NULL;
@@ -872,17 +880,8 @@ ni_gm_lock_init(JNIEnv          *env,
     p_lock = malloc(sizeof(*p_lock));
     assert(p_lock);
 
-    driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
-    if (driver_class == NULL) {
-	fprintf(stderr, "Cannot find class %s\n",
-		"ibis/impl/net/gm/Driver\n");
-    }
-
-    fid               = (*env)->GetStaticFieldID(env, driver_class, "gmLockArray", "Libis/impl/net/NetLockArray;");
-    if (fid == NULL) {
-	fprintf(stderr, "Cannot find field \"%s\" of %s\n",
-		"gmLockArray", "ibis/impl/net/gm/Driver\n");
-    }
+    driver_class      = ni_findClass(env, "ibis/impl/net/gm/Driver");
+    fid               = ni_getStaticField(env, driver_class, "gmLockArray", "Libis/impl/net/NetLockArray;");
 
     lock_array        = (*env)->GetStaticObjectField(env, driver_class, fid);
     if (lock_array == NULL) {
@@ -896,46 +895,19 @@ ni_gm_lock_init(JNIEnv          *env,
 		"lock_array\n");
     }
 
-    lock_class        = (*env)->FindClass(env, "ibis/impl/net/NetLockArray");
-    if (lock_class == NULL) {
-	fprintf(stderr, "Cannot find class %s\n",
-		"ibis/impl/net/NetLockArray\n");
-    }
-
-    p_lock->lock_id = (*env)->GetMethodID(env, lock_class, "lock", "(I)V");
-    if (p_lock->lock_id == NULL) {
-	fprintf(stderr, "Cannot find method \"%s\" of class %s\n",
-		"lock", "ibis/impl/net/NetLockArray\n");
-    }
-    p_lock->unlock_id = (*env)->GetMethodID(env, lock_class, "unlock", "(I)V");
-    if (p_lock->unlock_id == NULL) {
-	fprintf(stderr, "Cannot find method \"%s\" of class %s\n",
-		"unlock", "ibis/impl/net/NetLockArray\n");
-    }
-
-    p_lock->lock_array = (*env)->GetFieldID(env, lock_class, "lock", "[Libis/impl/net/NetLockArray$Lock;");
-    if (p_lock->lock_array == NULL) {
-	fprintf(stderr, "Cannot find field \"%s\" of class %s\n",
-		"lock", "ibis/impl/net/NetLockArray\n");
-    }
-
-    lock_lock_class    = (*env)->FindClass(env, "ibis/impl/net/NetLockArray$Lock");
-    if (lock_lock_class == NULL) {
-	fprintf(stderr, "Cannot find class %s\n",
-		"ibis/impl/net/NetLockArray$Lock\n");
-    }
-
-    p_lock->lock_array_value = (*env)->GetFieldID(env, lock_lock_class, "v", "I");
-    if (p_lock->lock_array_value == NULL) {
-	fprintf(stderr, "Cannot find field \"%s\" of class %s\n",
-		"v", "ibis/impl/net/NetLockArray$Lock\n");
-    }
-
-    p_lock->lock_array_front = (*env)->GetFieldID(env, lock_lock_class, "front", "Libis/impl/net/NetLockArray$WaitingOn;");
-    if (p_lock->lock_array_value == NULL) {
-	fprintf(stderr, "Cannot find field \"%s\" of class %s\n",
-		"front", "ibis/impl/net/NetLockArray$Lock\n");
-    }
+    lock_class        = ni_findClass(env, "ibis/impl/net/NetLockArray");
+    p_lock->lock_id   = ni_getMethod(env, lock_class,
+				 "lock", "(I)V");
+    p_lock->unlock_id = ni_getMethod(env, lock_class,
+				 "unlock", "(I)V");
+    p_lock->lock_array = ni_getField(env, lock_class,
+				 "lock", "[Libis/impl/net/NetLockArray$Lock;");
+    lock_lock_class    = ni_findClass(env, "ibis/impl/net/NetLockArray$Lock");
+    p_lock->lock_array_value = ni_getField(env, lock_lock_class,
+	    			 "v", "I");
+    p_lock->lock_array_front = ni_getField(env, lock_lock_class,
+	    			 "front",
+				 "Libis/impl/net/NetLockArray$WaitingOn;");
 
     p_lock->id = (jint)id;
     assert(!*pp_lock);
@@ -984,45 +956,47 @@ ni_gm_lock_unlock(struct s_lock *p_lock)
 
 static
 int
-ni_gm_access_lock_init(JNIEnv                *env,
-                       struct s_access_lock **pp_alock) {
-        struct s_access_lock *p_alock = NULL;
+ni_gm_access_lock_init(JNIEnv *env)
+{
+    jclass	driver_class;
+    jfieldID	fld_lock;
+    jobject	alock_obj;
+    jclass	cls_Monitor;
 
+    __in__();
+    ni_gm_access_lock = malloc(sizeof(*ni_gm_access_lock));
+    assert(ni_gm_access_lock);
+
+    driver_class = ni_findClass(env, "ibis/impl/net/gm/Driver");
+    fld_lock = ni_getStaticField(env, driver_class, "gmAccessLock", "Libis/util/Monitor;");
+    alock_obj = (*env)->GetStaticObjectField(env, driver_class, fld_lock);
+    if (alock_obj == NULL) {
+	fprintf(stderr, "cannot get field \"%s\" class %s\n",
+		"gmAccessLock", "Libis/util/Monitor;");
+    }
+
+    ni_gm_access_lock->ref = (*env)->NewGlobalRef(env, alock_obj);
+    if (ni_gm_access_lock->ref == NULL) {
+	fprintf(stderr, "cannot create global ref \"%s\" class %s\n",
+		"gmAccessLock", "Libis/util/Monitor;");
+    }
+
+    cls_Monitor = ni_findClass(env, "ibis/util/Monitor");
+    ni_gm_access_lock->lock_id = ni_getMethod(env, cls_Monitor, "lock", "(Z)V");
+    ni_gm_access_lock->unlock_id = ni_getMethod(env, cls_Monitor, "unlock", "()V");
+
+    ni_gm_access_lock->priority = JNI_FALSE;
+    __out__();
+
+    return 0;
+}
+
+static
+int
+ni_gm_access_lock_lock(JNIEnv *env)
+{
         __in__();
-        p_alock = malloc(sizeof(struct s_access_lock));
-        assert(p_alock);
-
-        {
-                jclass   driver_class = 0;
-                jclass   alock_class  = 0;
-                jfieldID fid          = 0;
-                jobject  alock_obj    = 0;
-
-                driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
-                assert(driver_class);
-
-                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmAccessLock", "Libis/util/Monitor;");
-                assert(fid);
-
-                alock_obj          = (*env)->GetStaticObjectField(env, driver_class, fid);
-                assert(alock_obj);
-
-                p_alock->ref       = (*env)->NewGlobalRef(env, alock_obj);
-                assert(p_alock->ref);
-
-                alock_class        = (*env)->FindClass(env, "ibis/impl/net/NetPriorityMutex");
-                assert(alock_class);
-
-                p_alock->lock_id = (*env)->GetMethodID(env, alock_class, "lock", "(Z)V");
-                assert(p_alock->lock_id);
-
-                p_alock->unlock_id = (*env)->GetMethodID(env, alock_class, "unlock", "()V");
-                assert(p_alock->unlock_id);
-        }
-
-        p_alock->priority = (jboolean)0;
-        assert(!*pp_alock);
-        *pp_alock = p_alock;
+        (*env)->CallVoidMethod(env, ni_gm_access_lock->ref, ni_gm_access_lock->lock_id, ni_gm_access_lock->priority);
         __out__();
 
         return 0;
@@ -1030,31 +1004,10 @@ ni_gm_access_lock_init(JNIEnv                *env,
 
 static
 int
-ni_gm_access_lock_lock(struct s_access_lock *p_alock) {
-        JNIEnv *env = _current_env;
-
+ni_gm_access_lock_unlock(JNIEnv *env)
+{
         __in__();
-        if (!env) {
-                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
-        }
-
-        (*env)->CallVoidMethod(env, p_alock->ref, p_alock->lock_id, p_alock->priority);
-        __out__();
-
-        return 0;
-}
-
-static
-int
-ni_gm_access_lock_unlock(struct s_access_lock *p_alock) {
-        JNIEnv *env = _current_env;
-
-        __in__();
-        if (!env) {
-                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
-        }
-
-        (*env)->CallVoidMethod(env, p_alock->ref, p_alock->unlock_id);
+        (*env)->CallVoidMethod(env, ni_gm_access_lock->ref, ni_gm_access_lock->unlock_id);
         __out__();
 
         return 0;
@@ -3011,7 +2964,6 @@ ni_gm_init(struct s_drv **pp_drv) {
 	p_drv->ref_count = 1;
         p_drv->nb_dev    = 0;
         p_drv->pp_dev    = NULL;
-        p_drv->p_alock   = NULL;
 
 	*pp_drv = p_drv;
 
@@ -3082,10 +3034,8 @@ fprintf(stderr, "NI GM: throw an exception \"%s\"\n", msg);
         __trace__("ni_gm_throw_exception-->");
         assert(env);
         __trace__("ni_gm_throw_exception - 1");
-        cls = (*env)->FindClass(env, NI_IBIS_EXCEPTION);
+        cls = ni_findClass(env, NI_IBIS_EXCEPTION);
         __trace__("ni_gm_throw_exception - 2");
-        assert(cls);
-        __trace__("ni_gm_throw_exception - 3");
         (*env)->ThrowNew(env, cls, msg);
         __trace__("ni_gm_throw_exception<--");
         __out__();
@@ -3130,31 +3080,27 @@ Java_ibis_impl_net_gm_GmInput_nInitInput(JNIEnv  *env,
         struct s_dev   *p_dev  = NULL;
         struct s_input *p_in   = NULL;
         jlong           result =    0;
+	jclass in_cls = 0;
+	jfieldID fld_RVR;
 
         __in__();
         p_dev = ni_gm_handle2ptr(device_handle);
         ni_gm_init_input(p_dev, &p_in);
         ni_gm_lock_init(env, p_in->local_mux_id*2 + 2, &p_in->p_lock);
 
-        {
-                jclass in_cls = 0;
-		jfieldID fld_RVR;
+	p_in->ref = (*env)->NewGlobalRef(env, input);
+	assert(p_in->ref);
 
-                p_in->ref = (*env)->NewGlobalRef(env, input);
-                assert(p_in->ref);
+	in_cls    = (*env)->GetObjectClass(env, p_in->ref);
+	assert(in_cls);
 
-                in_cls    = (*env)->GetObjectClass(env, p_in->ref);
-                assert(in_cls);
+	p_in->len_id = ni_getField(env, in_cls, "blockLen", "I");
+	assert(p_in->len_id);
 
-                p_in->len_id = (*env)->GetFieldID(env, in_cls, "blockLen", "I");
-                assert(p_in->len_id);
-
-		fld_RVR = (*env)->GetStaticFieldID(env, in_cls, "RENDEZ_VOUS_REQUEST", "I");
-		assert(fld_RVR);
-		JNI_RENDEZ_VOUS_REQUEST = (int)(*env)->GetStaticIntField(env, in_cls, fld_RVR);
-		assert(JNI_RENDEZ_VOUS_REQUEST < 0);
-
-        }
+	fld_RVR = ni_getStaticField(env, in_cls, "RENDEZ_VOUS_REQUEST", "I");
+	assert(fld_RVR);
+	JNI_RENDEZ_VOUS_REQUEST = (int)(*env)->GetStaticIntField(env, in_cls, fld_RVR);
+	assert(JNI_RENDEZ_VOUS_REQUEST < 0);
 
         result = ni_gm_ptr2handle(p_in);
         __out__();
@@ -3402,6 +3348,11 @@ Java_ibis_impl_net_gm_GmOutput_nTryFlush(JNIEnv *env,
 					 jint length)
 {
     struct s_output *p_out = ni_gm_handle2ptr(output_handle);
+
+    if (p_out == NULL) {
+	fprintf(stderr, "I get a NULL handle. Havoc!\n");
+	return JNI_FALSE;
+    }
 
     if (p_out->offset > NI_GM_PACKET_HDR_LEN &&
 	    p_out->offset + length + sizeof(int) > NI_GM_PACKET_LEN) {
@@ -3743,27 +3694,27 @@ Java_ibis_impl_net_gm_GmInput_nPostBuffer(JNIEnv    *env,
     struct s_input *p_in = NULL;
     jbyte          *buffer;
     int             result = 0;
-   
+
     __in__();
-   
+
     pstart(POST_BUFFER);
     p_in = ni_gm_handle2ptr(input_handle);
     if (!p_in) {
 	ni_gm_throw_exception(env, "could not get s_input from handle");
 	goto error;
     }
-   
+
     p_in->type = E_BYTE;
     if (ni_gm_input_post_byte_buffer(env, p_in, b, len, offset, &result)) {
 	ni_gm_throw_exception(env, "could not post a buffer");
 	goto error;
     }
     pend(POST_BUFFER);
-   
+
     __out__();
     __disp__("Java_ibis_impl_net_gm_GmInput_nPost%s: returning %d", "Buffer", (int)result);
     return result;
-   
+
 error:
     __err__();
     return 0;
@@ -3823,12 +3774,8 @@ mtu_init(JNIEnv *env)
 
         __in__();
 
-	driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
-	assert(driver_class);
-
-	fid               = (*env)->GetStaticFieldID(env, driver_class, "mtu", "I");
-	assert(fid);
-
+	driver_class      = ni_findClass(env, "ibis/impl/net/gm/Driver");
+	fid               = ni_getStaticField(env, driver_class, "mtu", "I");
 	mtu               = (*env)->GetStaticIntField(env, driver_class, fid);
 
 	/* Find out whether GetByteArrayElements makes a copy of the
@@ -3849,6 +3796,242 @@ mtu_init(JNIEnv *env)
 }
 
 
+static int		ni_gm_stat_intr = 0;
+
+#if GM_ENABLE_HERALDS
+
+#include <pthread.h>
+
+static int		NI_GM_INTR_FIRST = 100;	/* us */
+
+static pthread_t	ni_gm_sigthread;
+static int		ni_gm_sigthread_running = 0;
+static pthread_mutex_t	ni_gm_sigthread_lock = PTHREAD_MUTEX_INITIALIZER;
+static int		ni_gm_sigthread_runs = 0;
+static pthread_cond_t	ni_gm_sigthread_awake = PTHREAD_COND_INITIALIZER;
+static int		ni_gm_intr_disabled = 0;
+
+static JNIEnv *
+attach_sigthread(void)
+{
+#define MAX_VM_NUM	16
+    JavaVM     *VM[MAX_VM_NUM];
+    int		nVMs;
+    JavaVM     *vm;
+    JNIEnv     *env;
+
+    if (JNI_GetCreatedJavaVMs(VM, MAX_VM_NUM, &nVMs) != 0) {
+	__error__("JNI_GetCreatedJavaVMs fails");
+    }
+    if (nVMs == 0) {
+	__error__("No VM!");
+    }
+    if (nVMs > 1) {
+	fprintf(stderr, "%d VMs alive, choose only the first\n", nVMs);
+    }
+
+    vm = VM[0];
+
+    if ((*vm)->AttachCurrentThread(vm, (void *)&env, NULL) != 0) {
+	__error__("AttachCurrentThread fails");
+    }
+
+    return env;
+}
+
+
+static void
+ni_gm_intr_handle(JNIEnv *env)
+{
+    while (! Java_ibis_impl_net_gm_Driver_nGmThread(env, NULL)) {
+	// poll the thing
+    }
+    // fprintf(stderr, "Would like to generate an interrupt NOW\n");
+}
+
+
+static void *
+sigthread(void *arg)
+{
+    int		next_dev = 0;
+    struct s_drv *p_drv;
+    JNIEnv     *env;
+
+    pthread_mutex_lock(&ni_gm_sigthread_lock);
+    ni_gm_sigthread_runs = 1;
+    pthread_cond_signal(&ni_gm_sigthread_awake);
+    pthread_mutex_unlock(&ni_gm_sigthread_lock);
+
+    env = attach_sigthread();
+
+    ni_gm_access_lock_lock(env);
+    ni_gm_sigthread_running++;
+
+    for (;;) {
+	gm_recv_event_t *evt;
+	int		evt_type;
+	struct s_port   *p_port;
+	struct s_dev    *p_dev;
+	int              dev;
+
+	p_drv = ni_gm_p_drv;
+
+	if (next_dev >= p_drv->nb_dev) {
+	    VPRINTF(1700, ("%s.%d: here... next_dev %d p_drv->nb_dev %d\n", __FILE__, __LINE__, next_dev, p_drv->nb_dev));
+	    VPRINTSTR(1200, ("p"));
+	    next_dev = 0;
+	}
+
+	dev     = next_dev++;
+	p_dev   = p_drv->pp_dev[dev];
+	p_port  = p_dev->p_port;
+
+       /* Block in kernel for something new to arrive.
+	* We get back an internal _SLEEP event, which we pass to
+	* gm_unknown() to actually block this thread in the kernel.
+	*/
+	evt = gm_wake_when_no_herald(p_port->p_gm_port, NI_GM_INTR_FIRST);
+	evt_type = (gm_ntohc(evt->recv.type) & 0xFF);
+
+	if (evt_type == _GM_SLEEP_EVENT) {
+	    ni_gm_sigthread_running--;
+	    ni_gm_access_lock_unlock(env);
+		// fprintf(stderr, "NetGM: intr thread sleeps\n");
+	    gm_unknown(p_port->p_gm_port, evt);
+		// fprintf(stderr, "NetGM: intr thread wakes up, evt %d intr_disabled %d\n", evt_type, ni_gm_intr_disabled);
+	    ni_gm_access_lock_lock(env);
+	    ni_gm_sigthread_running++;
+	    ni_gm_stat_intr++;
+		// fprintf(stderr, "NetGM: have the intr lock again\n");
+
+	    if (ni_gm_intr_disabled) {
+	        /* got interrupt just when it was being disabled;
+		 * go back to sleep.
+		 */
+		// fprintf(stderr, "NetGM: intr thread sees a disable, continue\n");
+	        continue;
+	    }
+	} else {
+	    /* can this actually happen? */
+	    gm_unknown(p_port->p_gm_port, evt);
+#if 0
+#else
+	    __error__("net-gm: bad evt_type for intr");
+	    continue;
+#endif
+	}
+
+	/* A message has arrived. Hand it to one of the receiver threads. */
+	ni_gm_intr_handle(env);
+    }
+
+    ni_gm_sigthread_running--;
+    ni_gm_access_lock_unlock(env);
+}
+
+
+void
+ni_gm_intr_enable(JNIEnv *env)
+{
+    int		i;
+
+    for (i = 0; i < ni_gm_p_drv->nb_dev; i++) {
+	struct s_dev  *p_dev  = ni_gm_p_drv->pp_dev[i];
+	struct s_port *p_port = p_dev->p_port;
+
+	if (ni_gm_intr_disabled > 0) {
+	    __asm__ __volatile__ ("lock decl %0" : "=m" (ni_gm_intr_disabled));
+	    gm_enable_wakeup(p_port->p_gm_port);
+	} else {
+	    /* indicates bug */
+	    __error__("ni_gm_intr_enable(): already enabled!");
+	}
+    }
+}
+
+
+void
+ni_gm_intr_disable(JNIEnv *env)
+{
+    int		i;
+
+    for (i = 0; i < ni_gm_p_drv->nb_dev; i++) {
+	struct s_dev  *p_dev  = ni_gm_p_drv->pp_dev[i];
+	struct s_port *p_port = p_dev->p_port;
+
+	__asm__ __volatile__ ("lock incl %0" : "=m" (ni_gm_intr_disabled));
+	gm_disable_wakeup(p_port->p_gm_port);
+
+	/* TEMP HACK: if a signal is already being processed,
+	 * block in the disable itself (only needed for CRL?).
+	 */
+	if (ni_gm_sigthread_running &&
+		! pthread_equal(ni_gm_sigthread, pthread_self())) {
+	    while (ni_gm_sigthread_running) {
+		ni_gm_access_lock_unlock(env);
+		ni_gm_access_lock_lock(env);
+	    }
+	}
+    }
+}
+
+
+static int
+ni_gm_intr_init(JNIEnv *env)
+{
+    pthread_attr_t thread_attr;
+    char *cenv;
+
+    cenv = getenv("NI_GM_INTR_FIRST");
+    if (cenv != NULL) {
+	if (sscanf(cenv, "%d", &NI_GM_INTR_FIRST) != 1) {
+	    __error__("NI_GM_INTR_FIRST should have an int value");
+	}
+	fprintf(stderr, "NI_GM_INTR_FIRST %d\n", NI_GM_INTR_FIRST);
+    }
+
+    cenv = ni_getProperty(env, "ibis.net.gm.intr.first");
+    if (cenv != NULL) {
+	if (sscanf(cenv, "%d", &NI_GM_INTR_FIRST) != 1) {
+	    __error__("-Dibis.net.gm.intr.first should have an int value");
+	}
+	fprintf(stderr, "NI_GM_INTR_FIRST %d\n", NI_GM_INTR_FIRST);
+    }
+
+    cenv = getenv("NI_GM_NO_INTR");
+    if (cenv != NULL ||
+	    ! ni_getBooleanPropertyDflt(env, "ibis.net.gm.intr", 1)) {
+	fprintf(stderr, "NetIbis GM: interrupts disabled\n");
+	return 0;
+    }
+
+    if (pthread_attr_init(&thread_attr) != 0) {
+	__error__("pthread_attr_init failed");
+    }
+    if (pthread_attr_setdetachstate(&thread_attr,
+				    PTHREAD_CREATE_DETACHED) != 0) {
+	__error__("pthread_attr_setdetachstate failed");
+    }
+    if (pthread_create(&ni_gm_sigthread, &thread_attr, sigthread, NULL) != 0) {
+	__error__("pthread_create failed");
+    }
+
+    /* Nicely stop the current thread until the signal thread
+     * may have finished its malloc'ing etc. */
+    pthread_mutex_lock(&ni_gm_sigthread_lock);
+    while (! ni_gm_sigthread_runs) {
+	pthread_cond_wait(&ni_gm_sigthread_awake, &ni_gm_sigthread_lock);
+    }
+    pthread_mutex_unlock(&ni_gm_sigthread_lock);
+
+fprintf(stderr, "Intpt thread dispatched\n");
+
+    return 0;
+}
+
+#endif
+
+
 JNIEXPORT
 jlong
 JNICALL
@@ -3857,7 +4040,7 @@ Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint devic
         jlong         result =    0;
 
         __in__();
-        if (!_p_drv) {
+        if (!ni_gm_p_drv) {
                 struct s_drv *p_drv = NULL;
 
 		gethostname(hostname, sizeof(hostname) / sizeof(hostname[0]));
@@ -3865,19 +4048,26 @@ Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint devic
                 if (ni_gm_init(&p_drv))
                         goto error;
 
-                if (ni_gm_access_lock_init(env, &p_drv->p_alock))
+                if (ni_gm_access_lock_init(env))
                         goto error;
 
 		if (mtu_init(env)) {
 			goto error;
 		}
 
+                ni_gm_p_drv = p_drv;
+
+#if GM_ENABLE_HERALDS
+		if (ni_gm_intr_init(env)) {
+		    goto error;
+		}
+#endif
+
                 successfully_initialized = 1;
-                _p_drv = p_drv;
         }
 
 
-        if (ni_gm_dev_init(_p_drv, (int)device_num, &p_dev)) {
+        if (ni_gm_dev_init(ni_gm_p_drv, (int)device_num, &p_dev)) {
                 ni_gm_throw_exception(env, "GM device initialization failed");
                 goto error;
         }
@@ -3902,14 +4092,14 @@ Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong dev
         if (ni_gm_dev_exit(p_dev)) {
                 ni_gm_throw_exception(env, "GM device closing failed");
         }
-        if (!_p_drv->ref_count) {
-                if (_p_drv->p_alock) {
-                        free(_p_drv->p_alock);
-                        _p_drv->p_alock = NULL;
+        if (!ni_gm_p_drv->ref_count) {
+                if (ni_gm_access_lock) {
+                        free(ni_gm_access_lock);
+                        ni_gm_access_lock = NULL;
                 }
 
-                ni_gm_exit(_p_drv);
-                _p_drv = NULL;
+                ni_gm_exit(ni_gm_p_drv);
+                ni_gm_p_drv = NULL;
                 initialized = 0;
         }
         __out__();
@@ -3927,8 +4117,8 @@ currentThread(JNIEnv *env)
     static jmethodID	md_currentThread;
 
     if (cls_Thread == NULL) {
-	cls_Thread = (jclass)(*env)->FindClass(env, "java/lang/Thread");
-	md_currentThread = (*env)->GetStaticMethodID(env, cls_Thread, "currentThread", "()Ljava/lang/Thread;");
+	cls_Thread = ni_findClass(env, "java/lang/Thread");
+	md_currentThread = ni_getStaticMethod(env, cls_Thread, "currentThread", "()Ljava/lang/Thread;");
     }
 
     return (jthread)(*env)->CallStaticObjectMethod(env, cls_Thread, md_currentThread);
@@ -3991,86 +4181,85 @@ Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
 dump_monitors(env);
         __in__();
 	pstart(GM_THREAD);
-        for (;;) {
-                struct s_port   *p_port  = NULL;
-                gm_recv_event_t *p_event = NULL;
-                struct s_drv    *p_drv   = NULL;
-                struct s_dev    *p_dev   = NULL;
-                int              dev     = 0;
 
-                if (!_p_drv->nb_dev) {
-                        break;
-                }
+	for (;;) {
+	    struct s_port   *p_port;
+	    gm_recv_event_t *p_event;
+	    struct s_drv    *p_drv;
+	    struct s_dev    *p_dev;
+	    int              dev;
 
-                /*__disp__("__poll__");*/
+	    if (!ni_gm_p_drv->nb_dev) {
+		break;
+	    }
 
-                p_drv = _p_drv;
+	    /*__disp__("__poll__");*/
 
-                if (next_dev >= p_drv->nb_dev) {
-			VPRINTF(1700, ("%s.%d: here... next_dev %d p_drv->nv_dev %d\n", __FILE__, __LINE__, next_dev, p_drv->nb_dev));
-			VPRINTSTR(1200, ("p"));
-                        next_dev = 0;
-                        break;
-                }
+	    p_drv = ni_gm_p_drv;
 
-                dev     = next_dev++;
-                p_dev   = p_drv->pp_dev[dev];
-                p_port  = p_dev->p_port;
-                p_event = gm_receive(p_port->p_gm_port);
-                //p_event = gm_blocking_receive(p_port->p_gm_port);
+	    if (next_dev >= p_drv->nb_dev) {
+		VPRINTF(1700, ("%s.%d: here... next_dev %d p_drv->nv_dev %d\n", __FILE__, __LINE__, next_dev, p_drv->nb_dev));
+		VPRINTSTR(1200, ("p"));
+		next_dev = 0;
+		if (result) {
+		    break;
+		}
+	    }
 
-                switch (gm_ntohc(p_event->recv.type)) {
+	    dev     = next_dev++;
+	    p_dev   = p_drv->pp_dev[dev];
+	    p_port  = p_dev->p_port;
+	    p_event = gm_receive(p_port->p_gm_port);
+	    //p_event = gm_blocking_receive(p_port->p_gm_port);
+
+	    switch (gm_ntohc(p_event->recv.type)) {
 
 #if HANDLE_FAST_SPECIALLY
-                case GM_FAST_HIGH_PEER_RECV_EVENT:
-                case GM_FAST_HIGH_RECV_EVENT:
-                        {
-				VPRINTF(150, ("Receive FAST/HIGH packet size %d\n", gm_ntohl(p_event->recv.length)));
-                                if (ni_gm_process_fast_high_recv_event(p_port, p_event))
-                                        goto error;
-                        }
-                        result = JNI_TRUE;
-			break;
+	    case GM_FAST_HIGH_PEER_RECV_EVENT:
+	    case GM_FAST_HIGH_RECV_EVENT:
+		VPRINTF(150, ("Receive FAST/HIGH packet size %d\n", gm_ntohl(p_event->recv.length)));
+		if (ni_gm_process_fast_high_recv_event(p_port, p_event))
+			goto error;
+		result = JNI_TRUE;
+		break;
 #endif
 
-                case GM_HIGH_PEER_RECV_EVENT:
-                case GM_HIGH_RECV_EVENT:
-                        {
-				VPRINTF(150, ("Receive from %d HIGH packet size %d\n", gm_ntohs(p_event->recv.sender_node_id), gm_ntohl(p_event->recv.length)));
-                                if (ni_gm_process_high_recv_event(p_port, p_event))
-                                        goto error;
-                        }
-                        result = JNI_TRUE;
-			break;
+	    case GM_HIGH_PEER_RECV_EVENT:
+	    case GM_HIGH_RECV_EVENT:
+		VPRINTF(150, ("Receive from %d HIGH packet size %d\n", gm_ntohs(p_event->recv.sender_node_id), gm_ntohl(p_event->recv.length)));
+		if (ni_gm_process_high_recv_event(p_port, p_event))
+			goto error;
+		result = JNI_TRUE;
+		break;
 
-                case GM_PEER_RECV_EVENT:
-                case GM_RECV_EVENT:
-                        {
-				VPRINTF(150, ("Receive data packet size %d\n", gm_ntohl(p_event->recv.length)));
-                                if (ni_gm_process_recv_event(p_port, p_event))
-                                        goto error;
-                        }
-                        result = JNI_TRUE;
-			break;
+	    case GM_PEER_RECV_EVENT:
+	    case GM_RECV_EVENT:
+		VPRINTF(150, ("Receive data packet size %d\n", gm_ntohl(p_event->recv.length)));
+		if (ni_gm_process_recv_event(p_port, p_event))
+			goto error;
+		result = JNI_TRUE;
+		break;
 
-                case GM_NO_RECV_EVENT:
-			VPRINTSTR(1700, ("_"));
-                        break;
+	    case GM_NO_RECV_EVENT:
+		VPRINTSTR(1700, ("_"));
+		result = JNI_TRUE;
+		break;
 
-                default:
-                        gm_unknown(p_port->p_gm_port, p_event);
-                        break;
-                }
-        }
+	    default:
+		gm_unknown(p_port->p_gm_port, p_event);
+		break;
+	    }
+	}
 
 	pend(GM_THREAD);
         __out__();
         _current_env = NULL;
-        return;
+        return result;
 
  error:
         __err__();
         _current_env = NULL;
+fprintf(stderr, "Oho -- error in nGmThread\n");
 }
 
 
@@ -4094,13 +4283,13 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
                 struct s_dev    *p_dev   = NULL;
                 int              dev     = 0;
 
-                if (!_p_drv->nb_dev) {
+                if (!ni_gm_p_drv->nb_dev) {
                         break;
                 }
 
                 /*__disp__("__poll__");*/
 
-                p_drv = _p_drv;
+                p_drv = ni_gm_p_drv;
 
                 if (next_dev >= p_drv->nb_dev) {
                         next_dev = 0;
@@ -4122,40 +4311,37 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
 #if HANDLE_FAST_SPECIALLY
                 case GM_FAST_HIGH_PEER_RECV_EVENT:
                 case GM_FAST_HIGH_RECV_EVENT:
-                        {
-                                success_flag = 1;
-                                if (ni_gm_process_fast_high_recv_event(p_port, p_event))
-                                        goto error;
-                        }
+			success_flag = 1;
+			if (ni_gm_process_fast_high_recv_event(p_port, p_event))
+				goto error;
                         break;
 #endif
 
                 case GM_HIGH_PEER_RECV_EVENT:
                 case GM_HIGH_RECV_EVENT:
-                        {
-                                success_flag = 1;
-                                if (ni_gm_process_high_recv_event(p_port, p_event))
-                                        goto error;
-                        }
+			success_flag = 1;
+			if (ni_gm_process_high_recv_event(p_port, p_event))
+				goto error;
                         break;
 
                 case GM_PEER_RECV_EVENT:
                 case GM_RECV_EVENT:
-                        {
-                                success_flag = 1;
-                                if (ni_gm_process_recv_event(p_port, p_event))
-                                        goto error;
-                        }
+			success_flag = 1;
+			if (ni_gm_process_recv_event(p_port, p_event))
+				goto error;
                         break;
 
                 case GM_NO_RECV_EVENT:
+			success_flag = 1;
                         break;
 
+#if 0
                 case _GM_SLEEP_EVENT:
-                        ni_gm_access_lock_unlock(_p_drv->p_alock);
+                        ni_gm_access_lock_unlock(env);
                         gm_unknown (p_port->p_gm_port, p_event);
-                        ni_gm_access_lock_lock(_p_drv->p_alock);
+                        ni_gm_access_lock_lock(env);
                         break;
+#endif
 
                 default:
                         gm_unknown(p_port->p_gm_port, p_event);
@@ -4182,7 +4368,7 @@ JNICALL
 Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
 					 jclass  clazz)
 {
-    fprintf(stderr, "%s: Net GM: sent: eager %d; rndvz req %d data %d\n", hostname, sent_eager, sent_rndvz_req, sent_rndvz_data);
+    fprintf(stderr, "%s: Net GM: sent: eager %d; rndvz req %d data %d intpt %d\n", hostname, sent_eager, sent_rndvz_req, sent_rndvz_data, ni_gm_stat_intr);
 }
 
 

@@ -33,7 +33,7 @@ public final class Driver extends NetDriver {
 	static final boolean	VERBOSE_INTPT = DEBUG; // true; // false;
 
         static Monitor		gmAccessLock  = null;
-        static NetLockArray     gmLockArray   = null;
+        static NetLockArray	gmLockArray   = null;
 
 	static final boolean	PRIORITY = TypedProperties.booleanProperty("ibis.net.gm.prioritymutex", true);
 
@@ -76,38 +76,38 @@ public final class Driver extends NetDriver {
 	static ibis.util.nativeCode.Rdtsc t_lock = new ibis.util.nativeCode.Rdtsc();
 
 	static {
-                if (System.getProperty("ibis.net.gm.dynamic") != null) {
-                        Ibis.loadLibrary("gm");
-                }
+	    if (System.getProperty("ibis.net.gm.dynamic") != null) {
+		Ibis.loadLibrary("gm");
+	    }
 
-		Ibis.loadLibrary("net_ibis_gm");
+	    Ibis.loadLibrary("net_ibis_gm");
 
-                gmAccessLock = new Monitor(PRIORITY);
+	    gmAccessLock = new Monitor(PRIORITY);
 
-                gmLockArray = new NetLockArray(gmAccessLock);
-		gmAccessLock.lock();
-                gmLockArray.initLock(0, false);
-		gmAccessLock.unlock();
+	    gmLockArray = new NetLockArray(gmAccessLock);
+	    gmAccessLock.lock();
+	    gmLockArray.initLock(0, false);
+	    gmAccessLock.unlock();
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-		    public void run() {
-			if (TIMINGS) {
-			    System.err.println("t_wait_reply   "
-				+ t_wait_reply.nrTimes() + " "
-				+ t_wait_reply.averageTime());
-			    System.err.println("t_wait_service "
-				+ t_wait_service.nrTimes() + " "
-				+ t_wait_service.averageTime());
-			    System.err.println("t_poll         "
-				+ t_lock.nrTimes() + " "
-				+ t_poll.averageTime());
-			    System.err.println("t_lock         "
-				+ t_lock.nrTimes() + " "
-				+ t_lock.averageTime());
-			}
-			nStatistics();
+	    Runtime.getRuntime().addShutdownHook(new Thread() {
+		public void run() {
+		    if (TIMINGS) {
+			System.err.println("t_wait_reply   "
+			    + t_wait_reply.nrTimes() + " "
+			    + t_wait_reply.averageTime());
+			System.err.println("t_wait_service "
+			    + t_wait_service.nrTimes() + " "
+			    + t_wait_service.averageTime());
+			System.err.println("t_poll         "
+			    + t_lock.nrTimes() + " "
+			    + t_poll.averageTime());
+			System.err.println("t_lock         "
+			    + t_lock.nrTimes() + " "
+			    + t_lock.averageTime());
 		    }
-		});
+		    nStatistics();
+		}
+	    });
 	}
 
 
@@ -132,11 +132,11 @@ public final class Driver extends NetDriver {
 	 * @param ibis the {@link NetIbis} instance.
 	 */
 	public Driver(NetIbis ibis) {
-		super(ibis);
+	    super(ibis);
 
-		if (! PRIORITY && ibis.closedPoolRank() == 0) {
-		    System.err.println("No priority mutex in NetGM");
-		}
+	    if (! PRIORITY && ibis.closedPoolRank() == 0) {
+		System.err.println("No priority mutex in NetGM");
+	    }
 	}
 
 	/**
@@ -175,12 +175,12 @@ public final class Driver extends NetDriver {
 	}
 
 
-	protected void interruptPump(int[] lockIds) throws IOException {
+	protected static void interruptPump(int[] lockIds) throws IOException {
 	    if (VERBOSE_INTPT) {
 		System.err.println(NetIbis.hostName()
-			// + " "
-			// + Thread.currentThread()
-			+ ":********** perform interrupt, Driver.interrupts " + (interrupts + 1));
+			+ " "
+			+ Thread.currentThread()
+			+ ":********** perform interrupts[" + lockIds[0] + "] , Driver.interrupts " + (interrupts + 1));
 		// Thread.dumpStack();
 	    }
 	    gmLockArray.interrupt(lockIds);
@@ -188,11 +188,24 @@ public final class Driver extends NetDriver {
 	}
 
 
+	protected static void interruptPump(int lockId) throws IOException {
+	    if (VERBOSE_INTPT) {
+		System.err.println(NetIbis.hostName()
+			+ " "
+			+ Thread.currentThread()
+			+ ":********** perform interrupt[" + lockId + "] , Driver.interrupts " + (interrupts + 1));
+		// Thread.dumpStack();
+	    }
+	    gmLockArray.interrupt(lockId);
+	    interrupts++;
+	}
+
+
 	/* Must hold gmAccessLock on entry/exit */
-        private int pump(int lockId, int[] lockIds)
+        private static int pump(int lockId, int[] lockIds)
 		throws IOException {
 	    int result;
-	    int interrupts = this.interrupts;
+	    int interrupts = Driver.interrupts;
 
 	    if (DEBUG) {
 		System.err.print(NetIbis.hostName() + " "
@@ -206,7 +219,12 @@ public final class Driver extends NetDriver {
 		t_lock.start();
 	    }
 
-	    result = gmLockArray.ilockFirst(lockIds);
+	    try {
+		result = gmLockArray.ilockFirst(lockIds);
+	    } catch (ibis.util.IllegalLockStateException e) {
+		System.err.println("On ilockFirst[" + lockIds[0] + "]: catch IllegalLockStateException; Driver.interrupts " + interrupts + " was " + interrupts);
+		throw e;
+	    }
 
 	    if (TIMINGS) {
 		t_lock.stop();
@@ -225,8 +243,8 @@ public final class Driver extends NetDriver {
 			nGmThread();
 // System.err.print("<");
 
-			if (interrupts != this.interrupts) {
-			    throw new InterruptedIOException("got interrupted, Driver.interrupts " + this.interrupts + " was " + interrupts);
+			if (interrupts != Driver.interrupts) {
+			    throw new InterruptedIOException("got interrupted, Driver.interrupts " + Driver.interrupts + " was " + interrupts);
 			}
 
 			if (lockId == -1) {
@@ -244,6 +262,15 @@ public final class Driver extends NetDriver {
 			    pollsBeforeYield = POLLS_BEFORE_YIELD;	    
 			}
 		    } while (true);
+		} catch (ibis.util.IllegalLockStateException e) {
+		    System.err.println(NetIbis.hostName()
+			    + " "
+			    + Thread.currentThread()
+			    + ": catch IllegalLockStateException, first lock["
+			    + lockIds[0]
+			    + "], Driver.interrupts " + Driver.interrupts
+			    + " my interrupts " + interrupts);
+		    throw e;
 		} finally {
 			/* request completed, release GM main lock */
 		    gmLockArray.unlock(0);
@@ -269,21 +296,21 @@ public final class Driver extends NetDriver {
 
 
 	/* Must hold gmAccessLock on entry/exit */
-        protected int blockingPump(int[] lockIds)
+        protected static int blockingPump(int[] lockIds)
 	    	throws IOException {
 	    return pump(-1, lockIds);
 	}
 
 
 	/* Must hold gmAccessLock on entry/exit */
-        protected void blockingPump(int lockId, int[] lockIds)
+        protected static void blockingPump(int lockId, int[] lockIds)
 	    	throws IOException {
 	    pump(lockId, lockIds);
 	}
 
 
 	/* Must hold gmAccessLock on entry/exit */
-        protected int tryPump(int []lockIds) throws IOException {
+        protected static int tryPump(int []lockIds) throws IOException {
                 int result = gmLockArray.trylockFirst(lockIds);
 
                 if (result == lockIds.length - 1) {
@@ -308,7 +335,7 @@ public final class Driver extends NetDriver {
 
 
 	/* Must hold gmAccessLock on entry/exit */
-        protected boolean tryPump(int lockId, int []lockIds) throws IOException {
+        protected static boolean tryPump(int lockId, int []lockIds) throws IOException {
                 int result = gmLockArray.trylockFirst(lockIds);
 
                 if (result == -1) {

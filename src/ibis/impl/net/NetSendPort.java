@@ -156,6 +156,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
         private Vector                disconnectedPeers      = null;
 
+	private boolean			closed			= false;
+
 
 
 
@@ -588,6 +590,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	public WriteMessage newMessage() throws IOException {
                 log.in();
 		outputLock.lock();
+		if (closed) {
+		    throw new IOException("SendPort already closed");
+		}
                 stat.begin();
 		emptyMsg = true;
                 output.initSend();
@@ -730,8 +735,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 synchronized(this) {
                         try {
                                 if (outputLock != null) {
+					// Wait until any pending messages have been sent out
                                         outputLock.lock();
                                 }
+
+				closed = true;
 
                                 trace.disp(sendPortTracePrefix, "send port shutdown: output locked");
 

@@ -107,9 +107,9 @@ public final class GmInput extends NetBufferedInput {
 		throws IOException {
                 super(pt, driver, context);
 
-                Driver.gmAccessLock.lock();
-
                 gmDriver = (Driver)driver;
+
+                Driver.gmAccessLock.lock();
 
                 deviceHandle = Driver.nInitDevice(0);
                 inputHandle = nInitInput(deviceHandle);
@@ -209,7 +209,7 @@ public final class GmInput extends NetBufferedInput {
 	    boolean interrupted;
 	    do {
 		try {
-		    gmDriver.blockingPump(lockIds);
+		    Driver.blockingPump(lockIds);
 		    interrupted = false;
 		} catch (InterruptedIOException e) {
 		    // try once more
@@ -232,7 +232,7 @@ public final class GmInput extends NetBufferedInput {
 	    do {
 		try {
 		    int[] lockIds = this.lockIds;
-		    gmDriver.blockingPump(lockId, lockIds);
+		    Driver.blockingPump(lockId, lockIds);
 		    interrupted = false;
 		} catch (InterruptedIOException e) {
 		    // try once more
@@ -265,7 +265,7 @@ int plld;
 		if (block) {
 		    pump();
 		} else {
-		    if (!gmDriver.tryPump(lockId, lockIds)) {
+		    if (!Driver.tryPump(lockId, lockIds)) {
 			System.err.println("poll failed");
 			return null;
 		    }
@@ -358,23 +358,7 @@ rcvd++;
         public synchronized void doClose(Integer num) throws IOException {
                 log.in();
                 if (spn == num) {
-                        Driver.gmAccessLock.lock();
-                        Driver.gmLockArray.deleteLock(lockId);
-
-                        if (inputHandle != 0) {
-// System.err.println(this + ".doClose(): call nCloseInput");
-// Thread.dumpStack();
-                                nCloseInput(inputHandle);
-                                inputHandle = 0;
-                        }
-
-                        if (deviceHandle != 0) {
-                                Driver.nCloseDevice(deviceHandle);
-                                deviceHandle = 0;
-                        }
-
-                        Driver.gmAccessLock.unlock();
-                        spn = null;
+		    doFree();
                 }
                 log.out();
         }
@@ -389,11 +373,12 @@ rcvd++;
 
                 Driver.gmAccessLock.lock();
                 Driver.gmLockArray.deleteLock(lockId);
+		Driver.interruptPump(lockId);
 
                 if (inputHandle != 0) {
-                        nCloseInput(inputHandle);
-// System.err.println(this + ".doFree(): called nCloseInput");
+// System.err.println(this + ".doFree(): delete lock[ " + lockId + "]; call nCloseInput");
 // Thread.dumpStack();
+                        nCloseInput(inputHandle);
                         inputHandle = 0;
                 }
 

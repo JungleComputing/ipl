@@ -189,7 +189,7 @@ public final class GmOutput extends NetBufferedOutput {
 	    boolean interrupted;
 	    do {
 		try {
-		    gmDriver.blockingPump(lockIds);
+		    Driver.blockingPump(lockIds);
 		    interrupted = false;
 		} catch (InterruptedIOException e) {
 		    // try once more
@@ -210,7 +210,7 @@ public final class GmOutput extends NetBufferedOutput {
 	    boolean interrupted;
 	    do {
 		try {
-		    gmDriver.blockingPump(lockId, lockIds);
+		    Driver.blockingPump(lockId, lockIds);
 		    interrupted = false;
 		} catch (InterruptedIOException e) {
 		    // try once more
@@ -269,6 +269,9 @@ public final class GmOutput extends NetBufferedOutput {
 
 	/* Must hold gmAccessLock on entry/exit */
 	private boolean tryFlush(int length) throws IOException {
+	    if (outputHandle == 0) {
+		throw new Error("Output handle cleared while a send is going on");
+	    }
 	    boolean mustFlush = nTryFlush(outputHandle,
 					  length + available());
 	    if (mustFlush) {
@@ -327,7 +330,7 @@ public final class GmOutput extends NetBufferedOutput {
                         nSendBuffer(outputHandle, b.data, b.base, b.length);
 
                         /* Wait for 'buffer' send completion */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        Driver.blockingPump(lockId, lockIds);
 // System.err.print("]");
 
                 } else {
@@ -360,8 +363,6 @@ public final class GmOutput extends NetBufferedOutput {
          */
         public synchronized void close(Integer num) throws IOException {
                 log.in();
-// System.err.println(this + ": close");
-// Thread.dumpStack();
                 if (rpn == num) {
                         Driver.gmAccessLock.lock();
                         Driver.gmLockArray.deleteLock(lockId);
