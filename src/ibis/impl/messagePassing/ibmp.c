@@ -623,7 +623,6 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1start(JNIEnv *env, jobject this)
 JNIEXPORT void JNICALL
 Java_ibis_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
 {
-    fprintf(stderr, "%2d: IBP ", ibmp_me);
     ibmp_connect_end(env);
     ibmp_disconnect_end(env);
     ibmp_receive_port_ns_bind_end(env);
@@ -641,5 +640,4 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
     IBP_VPRINTF(2000, env, ("here...\n"));
     ibp_end(env);
     IBP_VPRINTF(2000, env, ("here...\n"));
-    fprintf(stderr, "\n");
 }

@@ -1398,7 +1398,7 @@ ibmp_byte_output_stream_report(JNIEnv *env, FILE *f)
 #ifdef IBP_VERBOSE
     fprintf(stderr, "%2d: ByteOutputStream.sent data %d\n", ibmp_me, sent_data);
 #endif
-    fprintf(f, "%2d: send msg %d frag %d (skip %d sync %d) bcast %d frag %d sync %d intpts %d",
+    fprintf(f, "%2d: send msg %d frag %d (skip %d sync %d) bcast %d frag %d sync %d intpts %d\n",
 	    ibmp_me, send_last_frag, send_frag, send_frag_skip, send_sync,
 	    bcast_last_frag, bcast_frag, bcast_sync, ibp_intpts);
 }
@@ -1539,5 +1539,5 @@ ibmp_byte_output_stream_end(JNIEnv *env)
 {
     ibmp_byte_output_stream_alive = 0;
 
-    ibmp_byte_output_stream_report(env, stderr);
+    ibmp_byte_output_stream_report(env, stdout);
 }

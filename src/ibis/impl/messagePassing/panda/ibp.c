@@ -540,7 +540,10 @@ void
 ibp_report(JNIEnv *env, FILE *f)
 {
 #if INTERRUPTS_AS_UPCALLS
-    fprintf(f, "intpts %d ", ibp_intpts);
+    /* Interrupt prints are handled one level up */
+    if (0) {
+	fprintf(f, "intpts %d ", ibp_intpts);
+    }
 #endif
 }
 
@@ -735,7 +738,7 @@ ibp_start(JNIEnv *env)
 void
 ibp_end(JNIEnv *env)
 {
-    ibp_report(env, stderr);
+    ibp_report(env, stdout);
     IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
     pan_comm_intr_disable();
     IBP_VPRINTF(2000, env, ("here...\n"));
