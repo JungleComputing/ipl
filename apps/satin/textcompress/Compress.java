@@ -295,17 +295,20 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         else {
             // We're at the end of recursion. Simply pick the match
             // with the best gain.
-            int bestGain = 0;
 
-            for( int i=0; i<results.length; i++ ){
-                Backref r = results[i];
+            if( results != null ){
+                int bestGain = 0;
 
-                if( r != null ){
-                    int g = r.getGain();
+                for( int i=0; i<results.length; i++ ){
+                    Backref r = results[i];
 
-                    if( g>bestGain ){
-                        mv = r;
-                        bestGain = g;
+                    if( r != null ){
+                        int g = r.getGain();
+
+                        if( g>bestGain ){
+                            mv = r;
+                            bestGain = g;
+                        }
                     }
                 }
             }
