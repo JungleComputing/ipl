@@ -7,7 +7,6 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.muxer.MuxerKey;
 import ibis.impl.net.muxer.MuxerOutput;
-
 import ibis.util.IPUtils;
 
 import java.io.IOException;

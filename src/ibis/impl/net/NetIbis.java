@@ -9,15 +9,14 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
-import ibis.util.IbisSocketFactory;
-import ibis.util.TypedProperties;
-import ibis.util.Timer;
 import ibis.util.IPUtils;
+import ibis.util.IbisSocketFactory;
+import ibis.util.Timer;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Hashtable;
 import java.util.Vector;
 

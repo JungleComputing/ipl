@@ -10,7 +10,6 @@ import ibis.impl.net.NetMessageStat;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-
 import ibis.io.Conversion;
 import ibis.util.IPUtils;
 

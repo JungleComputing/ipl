@@ -13,7 +13,6 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.IbisSocketFactory;
-import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

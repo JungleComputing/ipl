@@ -8,8 +8,8 @@ import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetPortType;
-import ibis.impl.net.NetServiceLink;
 import ibis.impl.net.NetServiceInputStream;
+import ibis.impl.net.NetServiceLink;
 import ibis.impl.net.NetServicePopupThread;
 import ibis.ipl.ConnectionClosedException;
 

@@ -1,12 +1,12 @@
 package ibis.satin.impl;
 
-import java.util.Map;
-import java.util.Hashtable;
-import java.io.IOException;
-
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.Map;
 
 /** A stack of invocation records. */
 

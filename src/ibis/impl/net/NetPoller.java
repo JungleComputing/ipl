@@ -4,7 +4,6 @@ import ibis.ipl.ConnectionClosedException;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;

@@ -6,7 +6,6 @@ import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
 import ibis.rmi.impl.RTS;
 import ibis.rmi.registry.Registry;
-
 import ibis.util.IPUtils;
 
 import java.net.InetAddress;

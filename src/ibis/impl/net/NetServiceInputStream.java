@@ -1,6 +1,5 @@
 package ibis.impl.net;
 
-import ibis.util.TypedProperties;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;

@@ -8,12 +8,10 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-
-import ibis.util.PoolInfo;
 import ibis.util.IPUtils;
+import ibis.util.PoolInfo;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.Vector;
 
 public final class RTS { 

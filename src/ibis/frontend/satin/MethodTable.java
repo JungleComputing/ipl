@@ -23,7 +23,6 @@ import org.apache.bcel.generic.LocalVariableInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReturnInstruction;
-import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 final class MethodTable {

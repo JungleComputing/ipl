@@ -21,13 +21,11 @@ import ibis.rmi.server.ExportException;
 import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
-
+import ibis.util.IPUtils;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
-import ibis.util.IPUtils;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;

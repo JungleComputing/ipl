@@ -2,7 +2,6 @@ package ibis.impl.net.multi.plugins;
 
 import ibis.impl.net.NetIbisIdentifier;
 import ibis.impl.net.multi.MultiPlugin;
-
 import ibis.util.IPUtils;
 
 import java.io.IOException;

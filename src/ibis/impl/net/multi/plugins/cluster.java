@@ -3,7 +3,6 @@ package ibis.impl.net.multi.plugins;
 import ibis.impl.net.NetFile;
 import ibis.impl.net.NetIbisIdentifier;
 import ibis.impl.net.multi.MultiPlugin;
-
 import ibis.util.IPUtils;
 
 import java.io.FileNotFoundException;
@@ -11,7 +10,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;

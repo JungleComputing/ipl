@@ -1,8 +1,8 @@
 package ibis.impl.net;
 
 import ibis.io.Conversion;
-import ibis.util.ThreadPool;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.util.ThreadPool;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

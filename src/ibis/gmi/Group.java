@@ -12,13 +12,12 @@ import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
+import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
 import ibis.util.Ticket;
 import ibis.util.TypedProperties;
-import ibis.util.IPUtils;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;

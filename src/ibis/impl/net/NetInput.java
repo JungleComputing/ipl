@@ -5,7 +5,6 @@ import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
-
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

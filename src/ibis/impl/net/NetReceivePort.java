@@ -10,8 +10,8 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
-import ibis.util.TypedProperties;
 import ibis.util.IPUtils;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

@@ -10,6 +10,7 @@ import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.muxer.MuxerInput;
 import ibis.impl.net.muxer.MuxerQueue;
 import ibis.ipl.ReceiveTimedOutException;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,8 +18,6 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-
-import ibis.util.IPUtils;
 
 public final class UdpMuxInput extends MuxerInput {
 

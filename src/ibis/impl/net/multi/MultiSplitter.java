@@ -1,14 +1,13 @@
 package ibis.impl.net.multi;
 
-import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetIbisIdentifier;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetServiceLink;
 import ibis.impl.net.NetSplitter;
-
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

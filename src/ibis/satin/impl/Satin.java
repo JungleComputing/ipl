@@ -10,13 +10,10 @@ import ibis.ipl.Registry;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
-
 import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Properties;
 
 /*
  * One important invariant: there is only one thread per machine that spawns

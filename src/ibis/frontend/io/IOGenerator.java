@@ -1,7 +1,5 @@
 package ibis.frontend.io;
 
-import ibis.util.RunProcess;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -11,7 +9,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Vector;
-import java.util.HashMap;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;

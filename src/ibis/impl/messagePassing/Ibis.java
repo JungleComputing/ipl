@@ -1,6 +1,5 @@
 package ibis.impl.messagePassing;
 
-import ibis.impl.util.IbisIdentifierTable;
 import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 import ibis.util.ConditionVariable;
