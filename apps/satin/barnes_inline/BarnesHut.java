@@ -131,22 +131,19 @@ final class BarnesHut {
 
 	ibis.satin.SatinObject.pause(); //turn off satin during sequential parts
 
-	for (iteration = 0; iteration < ITERATIONS; iteration++) {
+	start = System.currentTimeMillis();
 
-	    //don't measure the first iteration (number 0)
-	    if (iteration == 1) {
-		start = System.currentTimeMillis();
-	    }
+	for (iteration = 0; iteration < ITERATIONS; iteration++) {
 
 	    System.out.println("Starting iteration " + iteration);
 
-	    if (phase_timing && iteration > 0) {
+	    if (phase_timing) {
 		phaseStart = System.currentTimeMillis();
 	    }
 
 	    buildTreeAndDoCoM();
 
-	    if (phase_timing && iteration > 0) {
+	    if (phase_timing) {
 		phaseEnd = System.currentTimeMillis();
 		btcomTime += phaseEnd - phaseStart;
 	    }
@@ -189,14 +186,12 @@ final class BarnesHut {
 	    if (phase_timing) {
 		phaseEnd = System.currentTimeMillis();
 		forceCalcTimes[iteration] = phaseEnd - phaseStart;
-		if (iteration > 0) {
-		    phaseStart = System.currentTimeMillis();
-		}
+		phaseStart = System.currentTimeMillis();
 	    }
 
 	    updateBodies(accs_x, accs_y, accs_z, iteration);
 
-	    if (phase_timing && iteration > 0) {
+	    if (phase_timing) {
 		phaseEnd = System.currentTimeMillis();
 		updateTime += phaseEnd - phaseStart;
 	    }
@@ -225,14 +220,15 @@ final class BarnesHut {
 	TreeUpdater u;
 	String key;
 
+	start = System.currentTimeMillis();
+
 	for (iteration = 0; iteration < ITERATIONS; iteration++) {
 	    System.out.println("Starting iteration " + iteration);
 
 	    //don't measure the first iteration
 	    //the body update phase of the first iteration *is* measured ???
-	    if (iteration == 1) {
-		start = System.currentTimeMillis();
-	    }
+	    //if (iteration == 1) {
+	    //}
 
 	    /* tree construction and CoM computation are done using an
 	       active tuple */
@@ -281,8 +277,15 @@ final class BarnesHut {
 
 	//do the final body update phase (this phase is otherwise done at
 	//the start of the next iteration)
+	if (phase_timing) {
+	    phaseStart = System.currentTimeMillis();
+	}
 	//iteration must be decremented because of the for loop above
 	updateBodies(accs_x, accs_y, accs_z, iteration - 1);
+	if (phase_timing) {
+	    phaseEnd = System.currentTimeMillis();
+	    btcomTime += phaseEnd - phaseStart;
+	}
 
 	end = System.currentTimeMillis();
 	totalTime = end - start;
@@ -367,7 +370,7 @@ final class BarnesHut {
     void run() {
 	int i;
 
-	System.out.println("Iterations: " + ITERATIONS + " (timings DON'T " +
+	System.out.println("Iterations: " + ITERATIONS + " (timings DO " +
 			   "include the first iteration!)");
 
 	switch(impl) {
