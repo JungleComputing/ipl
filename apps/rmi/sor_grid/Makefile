@@ -11,13 +11,20 @@ SRC		+= RMI_init.java
 SRC		+= WaitingSendThread.java
 SRC		+= i_GlobalData.java
 SRC		+= i_SOR.java
-SRC     += PoolInfoClient.java 
-SRC     += PoolInfoServer.java
+SRC     	+= PoolInfoClient.java 
+SRC     	+= PoolInfoServer.java
+SRC		+= GlobalData.java
+SRC		+= Main.java
+SRC		+= RemoteSORVisualizerInterface.java
+SRC		+= SOR.java
+SRC		+= SORCanvas.java
+SRC		+= SORVisualizer.java
+
 
 MAIN		= Main.java 
 
-REMOTE		+= SOR.java
-REMOTE		+= GlobalData.java
+#REMOTE		+= SOR.java
+#REMOTE		+= GlobalData .java
 
 out		= sor
 
@@ -25,6 +32,9 @@ out		= sor
 # Rules are shared by all Makefiles
 
 include ../../../config.mk
+
+rmic:
+	rmic SOR GlobalData
 
 doprint:
 	@echo SRC = $(SRC)

@@ -1,4 +1,4 @@
-import ibis.rmi.*;
+import java.rmi.*;
 
 interface i_SOR extends Remote {
 
