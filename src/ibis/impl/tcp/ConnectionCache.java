@@ -43,13 +43,13 @@ class ConnectionCache {
 		} // end of inner class connection
 
 		static final boolean DEBUG = false;
-		private TcpIbisIdentifier peer;
+//		private TcpIbisIdentifier peer;
 		private ArrayList connections = new ArrayList();
 
-		private int nextID = 0;	
+//		private int nextID = 0;	
 
 		Peer(TcpIbisIdentifier peer) {
-			this.peer = peer;
+//			this.peer = peer;
 
 			if (DEBUG) { 
 				System.err.println("ADDED PEER: " + peer);

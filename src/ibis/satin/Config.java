@@ -35,9 +35,6 @@ public interface Config {
 	/* Enable or disable an optimization for handling delayed messages. */
 	static final boolean HANDLE_MESSAGES_IN_LATENCY = false;
 
-	/* Support the combination of upcalls and polling */
-	static final boolean SUPPORT_UPCALL_POLLING = false;
-
 	/* Use multicast to update the tuple space */
 	static final boolean SUPPORT_TUPLE_MULTICAST = true;
 

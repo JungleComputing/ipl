@@ -176,6 +176,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	}
 
 	public ibis.ipl.WriteMessage newMessage() throws IOException { 
+		TcpWriteMessage res = null;
+
 		synchronized(this) {
 			if(receivers.size() == 0) {
 				throw new IbisIOException("port is not connected");
@@ -190,10 +192,12 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			}
 			
 			aMessageIsAlive = true;
+
+			res = message;
 		}
 
 		out.writeByte(NEW_MESSAGE);
-		return message;
+		return res;
 	}
 
 	synchronized void finishMessage() {

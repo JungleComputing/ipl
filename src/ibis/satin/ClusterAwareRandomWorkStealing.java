@@ -124,7 +124,7 @@ class ClusterAwareRandomWorkStealing implements Algorithm, Protocol, Config {
 	    synchronized(this) {
 		gotAsyncStealReply = true;
 		asyncStolenJob = ir;
-		notify();
+		notifyAll();
 	    }
 	    break;
 	}

@@ -27,7 +27,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private TcpReceivePortIdentifier ident;
 	private ConnectionHandler [] connections;
 	private int connectionsIndex;
-	private volatile boolean stop = false;
+//	private volatile boolean stop = false;
 	private boolean allowUpcalls = false;
 	private Upcall upcall;
 	private ReceivePortConnectUpcall connUpcall;
@@ -329,6 +329,20 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	// called from the connectionHander.
 	void leave(ConnectionHandler leaving, Exception e) {
+
+		// Don't hold the lock when calling user upcall functions. --Rob
+		if(connectionAdministration) {
+			if (connUpcall != null) {
+				Exception x = e;
+				if(x == null) {
+					x = new Exception("sender closed connection");
+				}
+				connUpcall.lostConnection(this, leaving.origin, x);
+			} else {
+				lostConnections.add(leaving.origin);
+			}
+		}
+
 		synchronized(this) {
 			boolean found = false;
 			if (DEBUG) {
@@ -345,24 +359,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			}
 
 			if(!found) {
-				throw new IbisError("Connection handler not found in leave");
+				throw new IbisError("TcpReceivePort: Connection handler not found in leave");
 			}
-		}
 
-		// Don't hold the lock when calling user upcall functions. --Rob
-		if(connectionAdministration) {
-			if (connUpcall != null) {
-				Exception x = e;
-				if(x == null) {
-					x = new Exception("sender closed connection");
-				}
-				connUpcall.lostConnection(this, leaving.origin, x);
-			} else {
-				lostConnections.add(leaving.origin);
-			}
-		}
-
-		synchronized(this) {
+			// Notify threads that might be blocked in a free
 			notifyAll();
 		}
 	}
@@ -478,6 +478,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	public synchronized void forcedClose(long timeoutMillis) {
+		// @@@ this is of course "sub optimal" --Rob
 		try {
 			wait(timeoutMillis);
 		} catch (Exception e) {
