@@ -47,10 +47,10 @@ def sort( text ):
     indices = sz*[0]
     comm = sz*[0]
     offset = 0
+    indices1 = sz*[0]
+    comm1 = sz*[0]
     l = sort1( text, next, indices, comm, 0, range( len( text ) ), offset )
     while 1:
-        indices1 = sz*[0]
-        comm1 = sz*[0]
         ix = 0
         offset += 1
         acceptable = 0
@@ -67,8 +67,9 @@ def sort( text ):
                 comm1[oldp] = 0
         if acceptable == 0:
             break
-        indices = indices1
-        comm = comm1
+        # Swap the scratch version and the accepted version.
+        (indices,indices1) = (indices1,indices)
+        (comm,comm1) = (comm1,comm)
         l = p
     return( offset-1, l, indices, comm )
 
@@ -83,4 +84,4 @@ text = [0, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2, 2, 3,3,3]
 
 print "offset:", offset, "commonality:", comm[0:l]
 for i in range( l ):
-    print "[%2d] %2d: %s" % (comm[i], ix[i], text[ix[i]:])
+    print "[%2d] %2d: %s %s" % (comm[i], ix[i], text[ix[i]:ix[i]+offset], text[ix[i]+offset:])
