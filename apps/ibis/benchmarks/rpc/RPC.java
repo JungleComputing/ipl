@@ -1,4 +1,5 @@
 import      java.util.Properties;
+import      java.util.Hashtable;
 import java.io.IOException;
 
 import      ibis.ipl.*;
@@ -102,7 +103,8 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private final int DATA_OBJ_1   = DATA_DOUBLES + 1;
     private final int DATA_OBJ_2   = DATA_OBJ_1   + 1;
     private final int DATA_INNER   = DATA_OBJ_2   + 1;
-    private final int DATATYPES    = DATA_INNER   + 1;
+    private final int DATA_HASH    = DATA_INNER   + 1;
+    private final int DATATYPES    = DATA_HASH    + 1;
 
     private final long	data_size[] =
 			    { 1, 2, 4, 8, 4, 8, 4 * 4, 4 * 4, 3 * 4, 0 };
@@ -149,6 +151,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		    break;
 		case DATA_OBJ_1:
 		case DATA_OBJ_2:
+		case DATA_HASH:
 		case DATA_INNER:
 		    writeMessage.writeObject(object_buffer);
 		    break;
@@ -207,6 +210,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		    break;
 		case DATA_OBJ_1:
 		case DATA_OBJ_2:
+		case DATA_HASH:
 		case DATA_INNER:
 		    object_buffer = (Object[])m.readObject();
 		    break;
@@ -685,6 +689,8 @@ System.err.println("Poor-man's barrier send finished");
 		data_type = DATA_INNER;
 	    } else if (args[i].equals("-tree")) {
 		data_type = DATA_OBJ_2;
+	    } else if (args[i].equals("-hash")) {
+		data_type = DATA_HASH;
 
 	    } else if (options == 0) {
 		count = Integer.parseInt(args[i]);
@@ -756,6 +762,13 @@ System.err.println("Poor-man's barrier send finished");
 		break;
 	    case DATA_OBJ_2:
 		single_object = new Data2(size);
+		break;
+	    case DATA_HASH:
+		Hashtable h = new Hashtable();
+		for (int i = 0; i < size; i++) {
+		    h.put(new Integer(i), new Object());
+		}
+		single_object = h;
 		break;
 	    case DATA_INNER:
 		object_buffer = new WithInner[size];
