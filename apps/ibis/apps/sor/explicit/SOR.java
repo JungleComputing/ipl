@@ -198,7 +198,7 @@ class SOR {
 		}		
 		
 		if (rank == 0) { 
-			System.out.println("... and there off !");
+			System.out.println("... and they're off !");
 			System.out.flush();
 		}
 		
