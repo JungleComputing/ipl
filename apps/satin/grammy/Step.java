@@ -5,9 +5,11 @@ class Step {
     int occurences[];
     int len;
 
-    public Step( int occ[], int l )
+    public Step( int occ[], int n, int l )
     {
-        occurences = occ;
+        occurences = new int[n];
+
+        System.arraycopy( occ, 0, occurences, 0, n );
         len = l;
     }
 

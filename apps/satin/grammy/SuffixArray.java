@@ -356,25 +356,26 @@ public class SuffixArray implements Configuration, Magic {
     private Step selectBestStep()
     {
         int maxlen = 0;
-        int ix0 = 0;
-        int ix1 = 0;
         int mincom = MINCOMMONALITY;
+        int candidates[] = new int[length];
+        int p = 0;
 
         for( int i=1; i<length; i++ ){
             if( commonality[i]>=mincom ){
                 int pos0 = indices[i-1];
-                
+
                 for( int j=i; j<length; j++ ){
                     if( commonality[j]<mincom ){
                         break;
                     }
                     int pos1 = indices[j];
-                    
+
                     int len = disjunctMatch( pos0, pos1 );
                     if( len>maxlen ){
                         maxlen = len;
-                        ix0 = pos0;
-                        ix1 = pos1;
+                        candidates[0] = pos0;
+                        candidates[1] = pos1;
+                        p = 2;
                         mincom = len;
                     }
                 }
@@ -383,7 +384,7 @@ public class SuffixArray implements Configuration, Magic {
         if( maxlen == 0 ){
             return null;
         }
-        return new Step( new int[] { ix0, ix1 }, maxlen );
+        return new Step( candidates, p, maxlen );
     }
 
     /**
