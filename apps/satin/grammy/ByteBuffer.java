@@ -30,6 +30,7 @@ public final class ByteBuffer implements java.io.Serializable, Magic {
     {
         this( txt.length );
         System.arraycopy( txt, 0, buf, 0, buf.length );
+        sz = buf.length;
     }
 
     /** Encode the given array of shorts as a byte array. For compactness

@@ -31,7 +31,9 @@ class ShortBuffer implements java.io.Serializable, Magic {
     {
         byte res[] = new byte[sz];
 
-        System.arraycopy( buf, 0, res, 0, sz );
+        for( int i=0; i<sz; i++ ){
+            res[i] = (byte) buf[i];
+        }
         return res;
     }
 
@@ -96,4 +98,76 @@ class ShortBuffer implements java.io.Serializable, Magic {
         return true;
     }
 
+    /** Expands the rule with the given code. */
+    private void expandRule( short code, short rhs[] )
+    {
+        int occ = 0;
+        final int rhslen = rhs.length;
+
+        // First, count the number of occurences of this non-terminal.
+        for( int i=0; i<sz; i++ ){
+            if( buf[i] == code ){
+                occ++;
+            }
+        }
+        if( occ == 0 ){
+            // This rule doesn't occur, don't bother.
+            // TODO: we should complain, since in a well-constructed 
+            // compression this shouldn't happen.
+            return;
+        }
+        int newsz = sz+(rhslen-1)*occ;   // The expanded size.
+        short newbuf[] = new short[newsz];
+
+        int j = 0;
+        for( int i=0; i<sz; i++ ){
+            if( buf[i] == code ){
+                System.arraycopy( rhs, 0, newbuf, j, rhslen );
+                j += rhslen;
+            }
+            else {
+                newbuf[j++] = buf[i];
+            }
+        }
+        buf = newbuf;
+        sz = newsz;
+    }
+
+    /** Expands all grammar rules in the text. */
+    public void decompress()
+    {
+        int nonterminals = 0;
+
+        // First, count the number of non-terminals.
+        // (We need that later to deduce the numbers of the grammar rules.)
+        for( int i=0; i<sz; i++ ){
+            if( buf[i] == STOP ){
+                nonterminals++;
+            }
+        }
+
+        while( nonterminals>0 ){
+            // Now keep decoding grammar rules from back to front until
+            // there are none left.
+            short code = (short) (FIRSTCODE + --nonterminals);
+
+            int i = sz;
+
+            // Now search the string from back to front for a rule.
+            while( i>0 ){
+                i--;
+                if( buf[i] == STOP ){
+                    // We have found a grammar rule.
+                    int len = sz-(i+1);
+                    short ruleRhs[] = new short[len];
+
+                    System.arraycopy( buf, i+1, ruleRhs, 0, len );
+
+                    // Remove the grammar rule from the buffer.
+                    sz = i;
+                    expandRule( code, ruleRhs );
+                }
+            }
+        }
+    }
 }

@@ -10,7 +10,8 @@ class Decompress {
     public static ByteBuffer decompress( ByteBuffer buf )
     {
         ShortBuffer s = buf.decodeByteStream();
-	return buf;	// For now, do nothing.
+        s.decompress();
+	return new ByteBuffer( s.getText() );
     }
 
     public static ByteBuffer decompress( byte buf[] )
