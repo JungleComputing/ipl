@@ -750,8 +750,8 @@ class OpenCell1D implements OpenConfig {
                     receiveRight( rightReceivePort, p );
                 }
                 else {
-                    receiveLeft( leftReceivePort, p );
                     receiveRight( rightReceivePort, p );
+                    receiveLeft( leftReceivePort, p );
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
                 }
