@@ -646,15 +646,15 @@ System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
 			System.err.println("Now process this msg " + msg + " msg.fragmentFront.msgHandle " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)msg).fragmentFront.msgHandle));
 		    }
 		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-for (int x = 0; x < handlingReceive + 1; x++) {
-    System.err.print(">");
-}
-System.err.println();
+// for (int x = 0; x < handlingReceive + 1; x++) {
+    // System.err.print(">");
+// }
+// System.err.println();
 		    upcall.upcall(msg);
-for (int x = 0; x < handlingReceive + 1; x++) {
-    System.err.print("<");
-}
-System.err.println();
+// for (int x = 0; x < handlingReceive + 1; x++) {
+    // System.err.print("<");
+// }
+// System.err.println();
 		}
 	    }
 

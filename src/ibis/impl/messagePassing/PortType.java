@@ -106,7 +106,7 @@ public class PortType implements ibis.ipl.PortType {
 
 	ReceivePort p = new ReceivePort(this, name, u, cU);
 
-	if (true || ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.out.println(myIbis.name() + ": Receiveport created of type '" +
 			       this.name + "', name = '" + name + "'" +
 			       " cpu " + p.ident.cpu + " port " + p.ident.port);
