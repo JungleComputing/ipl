@@ -3852,9 +3852,10 @@ jboolean
 JNICALL
 Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
         static int next_dev = 0;
-        _current_env = env;
 
 	jboolean result = JNI_FALSE;
+
+        _current_env = env;
 
         __in__();
 	pstart(GM_THREAD);
