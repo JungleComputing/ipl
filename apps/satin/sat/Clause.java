@@ -381,6 +381,65 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     }
 
     /**
+     * Given two clauses and a variable, returns a new clause that 
+     * is resolved on this variable.
+     * @param c1 A clause.
+     * @param c2 A clause.
+     * @param v The variable to resolve on.
+     * @return The new, resolved clause.
+     */
+    public static Clause resolve( Clause c1, Clause c2, int var )
+    {
+        // First, do a sanity check.
+        if( 
+            (memberIntList( c1.pos, var ) && memberIntList( c2.neg, var )) ||
+            (memberIntList( c1.neg, var ) && memberIntList( c2.pos, var ))
+        ){
+        }
+        else {
+            System.err.println( "Cannot resolve " + c1 + " and " + c2 + " + on v" + var );
+        }
+        int pos[] = new int[c1.pos.length+c2.pos.length];
+        int neg[] = new int[c1.neg.length+c2.neg.length];
+        int posno = 0;
+        int negno = 0;
+
+        int arr[] = c1.pos;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            if( !memberIntList( c2.neg, i ) ){
+                pos[posno++] = v;
+            }
+        }
+        arr = c2.pos;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            if( !memberIntList( c1.neg, v ) && !memberIntList( c1.pos, v ) ){
+                pos[posno++] = v;
+            }
+        }
+        arr = c1.neg;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            if( !memberIntList( c2.pos, v ) ){
+                neg[negno++] = v;
+            }
+        }
+        arr = c2.neg;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            if( !memberIntList( c1.pos, v ) && !memberIntList( c1.neg, v ) ){
+                neg[negno++] = v;
+            }
+        }
+        int newpos[] = Helpers.cloneIntArray( pos, posno );
+        int newneg[] = Helpers.cloneIntArray( neg, negno );
+        Helpers.sortIntArray( newpos );
+        Helpers.sortIntArray( newneg );
+        return new Clause( newpos, newneg, -1 );
+    }
+
+    /**
      * Given an array of assignments, return true iff this clause conflicts
      * with these assignments.
      * @param assignments the assignments

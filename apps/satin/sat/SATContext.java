@@ -276,18 +276,66 @@ public class SATContext implements java.io.Serializable {
     }
 
     /**
+     * Given the index of a conflicting clause, builds a conflict clause.
+     * Returns null if no helpful clause can be constructed.
+     * @param p The SAT problem.
+     * @param cno The clause that is in conflict.
+     * @return A new clause that should improve the efficiency of the search process, or null if no helpful clause can be constructed.
+     */
+    private Clause buildConflictClause( SATProblem p, int cno, int level )
+    {
+        Clause c = p.clauses[cno];
+        Clause res = (Clause) c.clone();
+
+	int arr[] = c.pos;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+
+            if( dl[v] == level ){
+                int a = antecedent[v];
+
+                if( a>=0 ){
+                    res = Clause.resolve( res, p.clauses[a], v );
+                }
+            }
+        }
+        arr = c.neg;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+
+            if( dl[v] == level ){
+                int a = antecedent[v];
+
+                if( a>=0 ){
+                    res = Clause.resolve( res, p.clauses[a], v );
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
      * Registers the fact that the specified clause is in conflict with
      * the current assignments. If useful, this method may throw a
      * restart exception.
      * @param p The SAT problem.
      * @param cno The clause that is in conflict.
      */
-    private void analyzeConflict( SATProblem p, int cno, int var )
+    private void analyzeConflict( SATProblem p, int cno, int var, int level )
     {
         if( tracePropagation | traceLearning ){
             System.err.println( "Clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
             dumpAssignments();
             dumpAntecedents( "", p, cno );
+        }
+        Clause cc = buildConflictClause( p, cno, level );
+        if( traceLearning ){
+            if( cc == null ){
+                System.err.println( "No interesting conflict clause could be constructed" );
+            }
+            else {
+                System.err.println( "Added conflict clause " + cc );
+            }
         }
     }
 
@@ -486,7 +534,7 @@ public class SATContext implements java.io.Serializable {
             posinfo[var] -= Helpers.information( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-                analyzeConflict( p, cno, var );
+                analyzeConflict( p, cno, var, level );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
@@ -565,7 +613,7 @@ public class SATContext implements java.io.Serializable {
             posinfo[var] -= Helpers.information( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-                analyzeConflict( p, cno, var );
+                analyzeConflict( p, cno, var, level );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
