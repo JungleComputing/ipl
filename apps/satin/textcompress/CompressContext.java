@@ -6,39 +6,34 @@
 
 class CompressContext implements java.io.Serializable {
     /**
-     * For each hash code of the current position, a list of backreferences
-     * to previous occurences of that string.
+     * For each hash code, the foremost position that matches this
+     * hash code.
      */
-    int backref[][];
+    int heads[];
+    int backrefs[];
 
-    public CompressContext( int alsz, int backrefs )
+    public CompressContext( int alsz, int textsize )
     {
-        backref = new int[alsz][backrefs];
-        for( int i=0; i<alsz; i++ ){
-            int refs[] = backref[i];
+        heads = new int[alsz];
+        backrefs = new int[textsize];
 
-            for( int j=0; j<backrefs; j++ ){
-                refs[j] = -1;
-            }
+        for( int i=0; i<alsz; i++ ){
+            heads[i] = -1;
         }
     }
 
-    public CompressContext( int arr[][] )
+    private CompressContext( int heads[], int backrefs[] )
     {
-        backref = arr;
+        this.heads = heads;
+        this.backrefs = backrefs;
     }
 
     public Object clone()
     {
-        int arr[][] = new int[backref.length][];
-
-        for( int i=0; i<backref.length; i++ ){
-            arr[i] = (int []) backref[i].clone();
-        }
-        return new CompressContext( arr );
+        return new CompressContext( (int []) heads, (int []) backrefs );
     }
 
-    public void outputRef( byte text[], int pos, Backref ref, ByteBuffer out )
+    public static void outputRef( byte text[], int pos, Backref ref, ByteBuffer out )
     {
         int backpos = ref.backpos;
         int len = ref.len-Configuration.MINIMAL_SPAN;
@@ -84,13 +79,7 @@ class CompressContext implements java.io.Serializable {
      */
     public void registerRef( int c, int pos )
     {
-        int refs[] = backref[c];
-
-        int i = refs.length;
-        while( i>1 ){
-            i--;
-            refs[i] = refs[i-1];
-        }
-        refs[0] = pos;
+        backrefs[pos] = heads[c];
+        heads[c] = pos;
     }
 }

@@ -2,84 +2,15 @@
 
 import java.io.File;
 
-class Compress extends ibis.satin.SatinObject implements CompressorInterface
+class Compress extends ibis.satin.SatinObject
 {
     static final boolean traceMatches = false;
-
-    // Given a compression move to make, predict the gain of this move.
-    public int evaluateMove( byte text[], int pos, CompressContext ctx, int move, int depth )
-    {
-        int scores[] = new int[Configuration.BACKREFERENCES];
-        int forwardGain = 0;
-        int localGain = 0;
-        int fwdPos = pos;
-
-        int backpos = ctx.backref[(int) text[pos]][move];
-        if( backpos>=0 ){
-            int matchSize = Helpers.matchSpans( text, backpos, pos );
-
-            if( matchSize>=Configuration.MINIMAL_SPAN ){
-                localGain = matchSize-Helpers.refEncodingSize( pos-backpos, matchSize );
-            }
-        }
-        ctx.registerRef( text[pos], pos );
-        if( depth<Configuration.LOOKAHEAD_DEPTH && pos+Configuration.MINIMAL_SPAN<text.length ){
-            for( int mv = 0; move<Configuration.BACKREFERENCES; move++ ){
-                CompressContext c1 = (CompressContext) ctx.clone();
-                scores[move] = evaluateMove( text, pos, c1, mv, depth+1 );
-            }
-            sync();
-            int bestMove = -1;
-            int bestGain = 0;
-            for( int mv = 0; move<Configuration.BACKREFERENCES; move++ ){
-                if( scores[move] > bestGain ){
-                    bestGain = scores[move];
-                    bestMove = mv;
-                }
-            }
-            forwardGain = bestGain;
-        }
-        return localGain + forwardGain;
-    }
-
-    public void selectBestMove( Backref mv, byte text[], int pos, CompressContext ctx )
-    {
-        int scores[] = new int[Configuration.BACKREFERENCES];
-        int bestGain = 0;
-        int bestMove = 0;
-        CompressContext cs = (CompressContext) ctx.clone();
-        Backref plainMove = new Backref();
-        selectBestMove( plainMove, text, pos+1, cs );
-        int hashcode = (int) text[pos];
-
-        for( int m = 0; m<Configuration.BACKREFERENCES; m++ ){
-            CompressContext c1 = (CompressContext) ctx.clone();
-            scores[m] = evaluateMove( text, pos, c1, m, 0 );
-        }
-        sync();
-        for( int m = 0; m<Configuration.BACKREFERENCES; m++ ){
-            if( scores[m] > bestGain ){
-                bestGain = scores[m];
-                bestMove = m;
-            }
-        }
-        if( bestGain>0 ){
-            mv.backpos = ctx.backref[hashcode][bestMove];
-            // TODO: fill in length.
-            mv.gain = bestGain;
-        }
-        else {
-            mv.backpos = -1;
-            mv.len = -1;
-            mv.gain = plainMove.gain;
-        }
-    }
 
     public ByteBuffer compress( byte text[] )
     {
         CompressContext ctx = new CompressContext( 
             Configuration.ALPHABET_SIZE,
-            Configuration.BACKREFERENCES
+            text.length
         );
         int pos = 0;
         ByteBuffer out = new ByteBuffer();
@@ -89,22 +20,25 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             final int hashcode = (int) text[pos];
 
             mv.backpos = -1;
-            final int backpos = ctx.backref[hashcode][m];
-            if( backpos>=0 && backpos<pos-Configuration.MINIMAL_SPAN ){
-                int matchSize = Helpers.matchSpans( text, backpos, pos );
+            int backpos = ctx.heads[hashcode];
 
-                if( matchSize>=Configuration.MINIMAL_SPAN ){
-                    if( traceMatches ){
-                        System.out.println( "A match of " + matchSize + " bytes at positions " + backpos + " and " + pos );
-                    }
-                    int gain = matchSize-Helpers.refEncodingSize( pos-backpos, matchSize );
-                    if( gain>0 ){
-                        mv.backpos = backpos;
-                        mv.len = matchSize;
-                        mv.gain = gain;
+            while( backpos>=0 ){
+                if( backpos<pos-Configuration.MINIMAL_SPAN ){
+                    int matchSize = Helpers.matchSpans( text, backpos, pos );
+
+                    if( matchSize>=Configuration.MINIMAL_SPAN ){
+                        if( traceMatches ){
+                            System.out.println( "A match of " + matchSize + " bytes at positions " + backpos + " and " + pos );
+                        }
+                        int gain = matchSize-Helpers.refEncodingSize( pos-backpos, matchSize );
+                        if( gain>0 ){
+                            mv.backpos = backpos;
+                            mv.len = matchSize;
+                            mv.gain = gain;
+                        }
                     }
                 }
-
+                backpos = ctx.backrefs[backpos];
             }
             // TODO: calculate the gain of just copying the character.
             if( mv.backpos<0 ){
