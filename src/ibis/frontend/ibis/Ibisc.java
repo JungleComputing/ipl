@@ -26,16 +26,18 @@ class Ibisc {
     boolean supportAborts;
     boolean inletOpt;
     boolean spawnCounterOpt;
+    boolean local;
     IbiscFactory factory;
     Vector targets;
     Vector satinized = new Vector();
     String packageName;
     String exeName;
 
-    Ibisc(boolean verbose, boolean satinVerbose, boolean iogenVerbose, boolean keep, 
+    Ibisc(boolean local, boolean verbose, boolean satinVerbose, boolean iogenVerbose, boolean keep, 
           boolean print, boolean invocationRecordCache, Vector targets, 
           String packageName, String exeName, String compiler, String mantac, 
           boolean link, boolean doManta, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt) {
+	this.local = local;
 	this.verbose = verbose;
 	this.satinVerbose = satinVerbose;
 	this.iogenVerbose = iogenVerbose;
@@ -179,7 +181,7 @@ class Ibisc {
 		if (verbose) {
 		    System.out.println("running satinc on " + factory.getList().get(i));
 		}
-		new ibis.frontend.satin.Satinc(satinVerbose, keep, print, invocationRecordCache, 
+		new ibis.frontend.satin.Satinc(satinVerbose, local, keep, print, invocationRecordCache, 
 					       (String)factory.getList().get(i), className, compiler, 
 					       supportAborts, inletOpt, spawnCounterOpt).start();
 		if (verbose) {
@@ -200,7 +202,7 @@ class Ibisc {
 	    System.out.println("running io generator on all files");
 	}
 
-	new ibis.frontend.io.IOGenerator(iogenVerbose, true, false, false, null, 0, null).scanClass(files, files.length);
+	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, null, 0, null).scanClass(files, files.length);
 	
 	if (verbose) {
 	    System.out.println(" Done");
@@ -248,6 +250,7 @@ class Ibisc {
 	Vector targets = new Vector();
 	String packageName = "";
 	String exeName = null;
+	boolean local = true;
 
 	for(int i=0; i<args.length; i++) {
 	    if (args[i].equals("-v")) {
@@ -269,6 +272,10 @@ class Ibisc {
 		i++;
 	    } else if (args[i].equals("-keep")) {
 		keep = true;
+	    } else if (args[i].equals("-dir")) {
+		local = false;
+	    } else if (args[i].equals("-local")) {
+		local = true;
 	    } else if (args[i].equals("-o")) {
 		exeName = args[i+1];
 		i++;
@@ -295,7 +302,7 @@ class Ibisc {
 	    usage();
 	}
 	
-	new Ibisc(verbose, satinVerbose, iogenVerbose, keep, print, invocationRecordCache, 
+	new Ibisc(local, verbose, satinVerbose, iogenVerbose, keep, print, invocationRecordCache, 
 	          targets, packageName, exeName, compiler, mantac, link, doManta, supportAborts, inletOpt, spawnCounterOpt).start();
     }
 }

@@ -14,8 +14,13 @@ import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
 
 class Main { 
+
+	static boolean local = true;
 	
-	public static String getFileName(String name, String pre) { 		
+	public static String getFileName(String pkg, String name, String pre) { 		
+		if (! local && pkg != null && ! pkg.equals("")) {
+		    return pkg.replace('.', '/') + '/' + pre + name + ".java";
+		}
 		return (pre + name + ".java");
 	} 
 
@@ -40,7 +45,7 @@ class Main {
 		JavaClass repmiInterface = null;
 	
 		if (args.length == 0) { 
-			System.err.println("Usage : java Main [-v] classname");
+			System.err.println("Usage : java Main [-v] [-dir | -local] classname");
 			System.exit(1);
 		}
 
@@ -50,6 +55,14 @@ class Main {
 		while (i<num) { 
 			if (args[i].equals("-v")) { 
 				verbose = true;
+				args[i] = args[num-1];
+				num--;
+			} else if (args[i].equals("-dir")) { 
+				local = false;
+				args[i] = args[num-1];
+				num--;
+			} else if (args[i].equals("-local")) { 
+				local = true;
 				args[i] = args[num-1];
 				num--;
 			} else { 
@@ -86,11 +99,11 @@ class Main {
 				BT_Analyzer a = new BT_Analyzer(subject, repmiInterface, verbose);
 				a.start();
 
-				output = createFile(getFileName(a.classname, "repmi_stub_"));			
+				output = createFile(getFileName(a.packagename, a.classname, "repmi_stub_"));			
 				new RepMIStubGenerator(a, output, verbose).generate();
 				output.flush();
 
-				output = createFile(getFileName(a.classname, "repmi_skeleton_"));			
+				output = createFile(getFileName(a.packagename, a.classname, "repmi_skeleton_"));			
 				new RepMISkeletonGenerator(a, output, verbose).generate();
 				output.flush();
 

@@ -12,8 +12,13 @@ import java.io.FileOutputStream;
 import ibis.group.GroupInterface;
 
 class Main { 
+
+    static boolean local = true;
     
-    public static String getFileName(String name, String pre) { 		
+    public static String getFileName(String pkg, String name, String pre) { 		
+	if (! local && pkg != null && ! pkg.equals("")) {
+	    return pkg.replace('.', '/') + '/' + pre + name + ".java";
+	}
 	return (pre + name + ".java");
     } 
 
@@ -38,7 +43,7 @@ class Main {
 	Class groupInterface = null;
 
 	if (args.length == 0) { 
-	    System.err.println("Usage : java Main [-v] classname");
+	    System.err.println("Usage : java Main [-v] [-dir | -local] classname");
 	    System.exit(1);
 	}
 
@@ -52,6 +57,10 @@ class Main {
 	for (int i=0;i<args.length;i++) { 
 	    if (args[i].equals("-v")) { 
 		verbose = true;
+	    } else if (args[i].equals("-dir")) { 
+		local = false;
+	    } else if (args[i].equals("-local")) { 
+		local = true;
 	    } else { 
 		try { 
 		    Class c = Class.forName(args[i]);
@@ -77,15 +86,15 @@ class Main {
 		a.start();
 
 		if (subject.isInterface()) { 
-		    output = createFile(getFileName(a.classname, "group_stub_"));			
+		    output = createFile(getFileName(a.packagename, a.classname, "group_stub_"));			
 		    new GMIStubGenerator(a, output, verbose).generate();
 		    output.flush();
 
-		    output = createFile(getFileName(a.classname, "group_parametervector_"));
+		    output = createFile(getFileName(a.packagename, a.classname, "group_parametervector_"));
 		    new GMIParameterVectorGenerator(a, output, verbose).generate();
 		    output.flush();
 		} else {
-		    output = createFile(getFileName(a.classname, "group_skeleton_"));			
+		    output = createFile(getFileName(a.packagename, a.classname, "group_skeleton_"));			
 		    new GMISkeletonGenerator(a, output, verbose).generate();
 		    output.flush();
 		}

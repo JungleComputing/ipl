@@ -172,30 +172,17 @@ public class IOGenerator {
 
 	boolean serializable = false;
 
-        Field[] fields = clazz.getFields();
-
-	for (int i = 0; i < fields.length; i++) {
-	    Field f = fields[i];
-	    if (f.getName().equals("serialPersistentFields") &&
-		f.isFinal() &&
-		f.isStatic() &&
-		f.isPrivate() &&
-		f.getSignature().equals("[Ljava/io/ObjectStreamField;")) {
-		/*  Don't touch these. alternativeWriteObject and friends should deal with this.
-		    In general, it is probably not possible to handle this in the IOGenerator.
-		*/
-		System.err.println("class " + clazz.getClassName() + " has serialPersistentFields, so is not rewritten");
-		return;
-	    }
-	}
-
 	JavaClass super_classes[] = Repository.getSuperClasses(clazz);
 
 	if (super_classes != null) {
 	    for (int i = 0; i < super_classes.length; i++) {
 		if (isSerializable(super_classes[i])) {
 		    serializable = true;
-		    addRewriteClass(super_classes[i]);
+		    if (! directImplementationOf(super_classes[i], "ibis.io.Serializable")) {
+			addRewriteClass(super_classes[i]);
+		    } else { 
+			    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
+		    }
 		}
 	    }
 	}
@@ -203,6 +190,23 @@ public class IOGenerator {
 	serializable |= isSerializable(clazz);
 
 	if (serializable) {
+	    Field[] fields = clazz.getFields();
+
+	    for (int i = 0; i < fields.length; i++) {
+		Field f = fields[i];
+		if (f.getName().equals("serialPersistentFields") &&
+		    f.isFinal() &&
+		    f.isStatic() &&
+		    f.isPrivate() &&
+		    f.getSignature().equals("[Ljava/io/ObjectStreamField;")) {
+		    /*  Don't touch these. alternativeWriteObject and friends should deal with this.
+			In general, it is probably not possible to handle this in the IOGenerator.
+		    */
+		    System.err.println("class " + clazz.getClassName() + " has serialPersistentFields, so is not rewritten");
+		    return;
+		}
+	    }
+
 	    addRewriteClass(clazz);
 	    addTargetClass(clazz);
 	} 
@@ -1172,7 +1176,7 @@ public class IOGenerator {
     }
 
     private static void usage() {
-	System.out.println("Usage : java IOGenerator [-dir] [-package <package>] [-v] " +
+	System.out.println("Usage : java IOGenerator [-dir|-local] [-package <package>] [-v] " +
 		   "<fully qualified classname list | classfiles>");
 	System.exit(1);
     }
@@ -1239,6 +1243,8 @@ System.out.println("verifying method " + methods[i].getName());
 		files.add(args[i]);
 	    } else if (args[i].equals("-dir")) {
 		local = false;
+	    } else if (args[i].equals("-local")) {
+		local = true;
 	    } else if (args[i].equals("-file")) {
 		file = true;
 	    } else if (args[i].equals("-force")) {

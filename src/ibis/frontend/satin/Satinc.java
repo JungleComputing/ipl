@@ -38,6 +38,7 @@ public final class Satinc {
     Vector idTable = new Vector();
     boolean verbose;
     boolean keep;
+    boolean local;
     boolean print;
     boolean invocationRecordCache;
     Field satinField;
@@ -97,11 +98,12 @@ public final class Satinc {
 	}
     }
 
-    public Satinc(boolean verbose, boolean keep, boolean print, boolean invocationRecordCache,
+    public Satinc(boolean verbose, boolean local, boolean keep, boolean print, boolean invocationRecordCache,
            String classname, String mainClassname, String compiler, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt) {
 	this.verbose = verbose;
 	this.keep = keep;
 	this.print = print;
+	this.local = local;
 	this.invocationRecordCache = invocationRecordCache;
 	this.classname = classname;
 	this.mainClassname = mainClassname;
@@ -1660,10 +1662,16 @@ System.out.println("findMethod: could not find method " + name + sig);
 		Repository.removeClass(localRec);
 		Repository.addClass(newclass);
 		
-		String src = newclass.getSourceFileName();
-		String dst = src.substring(0, src.indexOf(".")) + ".class";
+		String dst = "";
 
 		try {
+		    if (local) {
+			String src = newclass.getSourceFileName();
+			dst = src.substring(0, src.indexOf(".")) + ".class";
+		    } else {
+			String classname = newclass.getClassName();
+			dst = classname.replace('.', '/') + ".class";
+		    }
 		    newclass.dump(dst);
 		} catch (IOException e) {
 		    System.out.println("error writing " + dst);
@@ -2147,6 +2155,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	// now overwrite the classfile 
 	try {
+	    if (! local) {
+		dst = c.getPackageName().replace('.', '/') + "/" + dst;
+	    }
 	    c.dump(dst);
 	} catch (IOException e) {
 	    System.out.println("Error writing " + dst);
@@ -2177,7 +2188,7 @@ System.out.println("findMethod: could not find method " + name + sig);
     }
 
     public static void usage() {
-	System.err.println("Usage : java Satinc [-v] [-keep] [-print] [-irc-off] [-no-sc-opt]" +
+	System.err.println("Usage : java Satinc [-v] [-keep] [-dir|-local] [-print] [-irc-off] [-no-sc-opt]" +
 		   "[-compiler \"your compile command\" ] [-no-aborts] [-no-inlet-opt] <classname> [mainClass]");
 	System.exit(1);
     }
@@ -2229,6 +2240,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	String mainClass = null;
 	boolean verbose = false;
 	boolean keep = false;
+	boolean local = true;
 	boolean print = false;
 	boolean invocationRecordCache = true;
 	boolean supportAborts = true;
@@ -2252,6 +2264,12 @@ System.out.println("findMethod: could not find method " + name + sig);
 		i++;
 	    } else if (args[i].equals("-keep")) {
 		keep = true;
+	    } else if (args[i].equals("-local")) {
+		local = false;
+	    } else if (args[i].equals("-dir")) {
+		local = false;
+	    } else if (args[i].equals("-local")) {
+		local = true;
 	    } else if (args[i].equals("-print")) {
 		print = true;
 	    } else if (args[i].equals("-irc-off")) {
@@ -2275,6 +2293,6 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    mainClass = target;
 	}
 
-	new Satinc(verbose, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
+	new Satinc(verbose, local, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
     }
 }

@@ -22,7 +22,7 @@ class GMISkeletonGenerator extends GMIGenerator {
     void header() {
 	Class [] interfaces = data.subject.getInterfaces();
 
-	if (data.packagename != null) {
+	if (data.packagename != null && ! data.packagename.equals("")) {
 	    output.println("package " + data.packagename + ";");
 	    output.println();
 	}

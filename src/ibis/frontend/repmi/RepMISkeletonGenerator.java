@@ -24,7 +24,7 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 	} 
      
 	void header() { 
-		if (data.packagename != null) {
+		if (data.packagename != null && ! data.packagename.equals("")) {
 			output.println("package " + data.packagename + ";");		
 			output.println();
 		}
