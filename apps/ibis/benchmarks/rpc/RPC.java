@@ -3,8 +3,8 @@ import java.util.Hashtable;
 import java.io.IOException;
 
 import ibis.ipl.*;
-import ibis.util.nativeCode.Rdtsc;
 import ibis.util.TypedProperties;
+import ibis.util.Timer;
 
 
 class RszHandler implements ResizeHandler {
@@ -130,13 +130,13 @@ class RPC
 
     private int		data_type = DATA_BYTES;
 
-    // private Rdtsc t_send = new Rdtsc();
-    // private Rdtsc t_s_finish = new Rdtsc();
-    // private Rdtsc t_get_msg = new Rdtsc();
-    // private Rdtsc t_rcve = new Rdtsc();
-    // private Rdtsc t_r_finish = new Rdtsc();
-    // private Rdtsc t_upcall = new Rdtsc();
-    // private Rdtsc t_client = new Rdtsc();
+    // private Timer t_send = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+    // private Timer t_s_finish = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+    // private Timer t_get_msg = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+    // private Timer t_rcve = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+    // private Timer t_r_finish = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+    // private Timer t_upcall = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+    // private Timer t_client = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 
     private void send_one(boolean is_server, int size)
@@ -1087,7 +1087,7 @@ System.err.println(rank + ": call it quits...; I am " + (i_am_client ? "" : "not
 
 	    if (client == null) {
 		createIbis();
-		// ibis.util.Timer timer = ibis.util.Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		// Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 		// timer.start();
 		registerIbis();
 		if (servers == ncpus && rank < clients) {

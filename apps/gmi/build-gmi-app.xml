@@ -19,7 +19,7 @@
     </target>
 
     <target name="compile"
-	    depends="init,property-init">
+	    depends="clean,init,property-init">
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".">

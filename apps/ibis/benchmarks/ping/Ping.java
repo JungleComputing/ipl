@@ -109,7 +109,7 @@ public final class Ping {
          * Internal variables
          *
          */
-	final static Timer	    timer                   = (param_rdtsc_timer)?(Timer)new Rdtsc():(Timer)new ibis.util.Timer();
+	final static Timer	    timer                   = (param_rdtsc_timer)?(Timer)Timer.newTimer("ibis.util.nativeCode.Rdtsc") :(Timer)new ibis.util.Timer();
 	static       byte[]  	    buffer	   	    =          null;
 	static 	     int     	    rank      		    =		  0;
 	static 	     int     	    remoteRank		    =		  1;

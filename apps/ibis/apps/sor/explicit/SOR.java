@@ -8,6 +8,7 @@
  */
 
 import ibis.ipl.*;
+import ibis.util.Timer;
 import ibis.util.nativeCode.Rdtsc;
 
 class SOR {
@@ -38,10 +39,10 @@ class SOR {
 	private final ReceivePort reduceR;
 
 	private final boolean TIMINGS = false;
-	private Rdtsc t_compute        = new Rdtsc();
-	private Rdtsc t_communicate    = new Rdtsc();
-	private Rdtsc t_reduce_send    = new Rdtsc();
-	private Rdtsc t_reduce_receive = new Rdtsc();
+	private Timer t_compute        = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	private Timer t_communicate    = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	private Timer t_reduce_send    = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	private Timer t_reduce_receive = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	
 	SOR(int nrow, int ncol, int N, int rank, int size, int maxIters,
 	    SendPort leftS, SendPort rightS, 

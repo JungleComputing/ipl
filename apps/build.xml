@@ -22,6 +22,7 @@
     <path id="buildfiles">
 	<fileset dir=".">
 	    <include name="*/build.xml"/>
+	    <exclude name="repmi/build.xml"/>
 	</fileset>
     </path>
     <property name="build.files" refid="buildfiles"/>

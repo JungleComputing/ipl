@@ -1,5 +1,3 @@
-import ibis.util.nativeCode.Rdtsc;
-
 public class Timer {
 
     public static void main(String[] args) {
@@ -9,7 +7,7 @@ public class Timer {
 	    n = Integer.parseInt(args[0]);
 	}
 
-	Rdtsc t = new Rdtsc();
+	ibis.util.Timer t = ibis.util.Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	for (int i = 0; i < n; i++) {
 	    t.start();
 	    t.stop();
@@ -17,5 +15,4 @@ public class Timer {
 
 	System.err.println("Timer(" + n + ") per call " + t.averageTime());
     }
-
 }

@@ -1,9 +1,9 @@
 import java.util.Random;
-import ibis.util.nativeCode.Rdtsc;
 import java.io.*;
 import java.net.*;
 
 import ibis.util.PoolInfo;
+import ibis.util.Timer;
 
 final class TranspositionTable {
 	static final boolean SUPPORT_TT = true;
@@ -37,8 +37,8 @@ final class TranspositionTable {
 
 	DataOutputStream bcastStream;
 
-	Rdtsc bcastTimer = new Rdtsc();
-	Rdtsc bcastHandlerTimer = new Rdtsc();
+	Timer bcastTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer bcastHandlerTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	PoolInfo info;
 	int rank;

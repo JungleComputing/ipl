@@ -1,4 +1,5 @@
 import ibis.io.*;
+import ibis.util.Timer;
 
 import java.util.Random;
 
@@ -28,7 +29,7 @@ public final class Main {
 
     private void booleanConversion(Conversion conversion) {
 
-	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
+	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 
@@ -69,7 +70,7 @@ public final class Main {
 
     private void shortConversion(Conversion conversion) {
 
-	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
+	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 	    // *** shorts ***
@@ -108,7 +109,7 @@ public final class Main {
 
     private void intConversion(Conversion conversion) {
 
-	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
+	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 
@@ -147,7 +148,7 @@ public final class Main {
 
     private void longConversion(Conversion conversion) {
 
-	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
+	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 
@@ -188,7 +189,7 @@ public final class Main {
 
     private void floatConversion(Conversion conversion) {
 
-	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
+	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 
@@ -229,7 +230,7 @@ public final class Main {
 
     private void doubleConversion(Conversion conversion) {
 
-	ibis.util.nativeCode.Rdtsc timer = new ibis.util.nativeCode.Rdtsc();
+	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 

@@ -347,9 +347,9 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 
 		iteration = 0;
 
-		// ibis.util.nativeCode.Rdtsc rdtsc = null;
+		// ibis.util.Timer rdtsc = null;
 		// if (rank == 0) {
-		//     rdtsc = new ibis.util.nativeCode.Rdtsc();
+		//     rdtsc = newTimer("ibis.util.nativeCode.Rdtsc");
 		// }
 
 		do {
