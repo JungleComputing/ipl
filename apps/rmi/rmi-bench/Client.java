@@ -2,8 +2,6 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 
-import java.rmi.registry.Registry;
-
 import java.io.IOException;
 
 import ibis.util.TypedProperties;
@@ -26,7 +24,7 @@ public class Client {
     // native void javaSocketResetStats();
 
 
-    Client(String[] args, String server_name, Registry local) {
+    Client(String[] args, String server_name) {
 
 	this.server_name = server_name;
 

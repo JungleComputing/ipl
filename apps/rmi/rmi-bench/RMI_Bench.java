@@ -62,7 +62,7 @@ class RMI_Bench {
 	}
 
 	if (ncpus == 1 || my_cpu != SERVER_HOST) {
-	    new Client(argv, masterName, local);
+	    new Client(argv, masterName);
 	}
 
 	// System.exit(0);
