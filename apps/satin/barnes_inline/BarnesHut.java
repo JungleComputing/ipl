@@ -5,12 +5,12 @@ final class BarnesHut {
 
     static boolean debug = false;   //use -(no)debug to modify
     static boolean verbose = false; //use -v to turn on
-    static final boolean ASSERTS = false;  //also used in other barnes classes
+    static final boolean ASSERTS = true;  //also used in other barnes classes
 
-    private static final int IMPL_ITER = 0;  // -iter option
     private static final int IMPL_NTC = 1;   // -ntc option
     private static final int IMPL_TUPLE = 2; // -tuple option
-    private static final int IMPL_SEQ = 3;   // -seq option
+    private static final int IMPL_TUPLE2 = 3; // -tuple2 option
+    private static final int IMPL_SEQ = 4;   // -seq option
     private static int impl = IMPL_NTC;
 
     //recursion depth at which the ntc/tuple impl work sequentially
@@ -19,44 +19,42 @@ final class BarnesHut {
     //true: Collect statistics about the various phases in each iteration
     public static boolean phase_timing = true; //use -(no)timing to modify
 
-    private long treeBuildTime = 0, CoMTime = 0, updateTime = 0;
+    private long totalTime = 0;
+    private long btcomTime = 0, updateTime = 0;
     private long[] forceCalcTimes;
 
+
+    //Parameters for the BarnesHut algorithm / simulation
+    private static final double THETA = 2.0; //cell subdivision tolerance
+    private static final double DT = 0.025; //integration time-step
+
+    //we do 7 iterations (first one (two with tuple2) isn't measured)
     static final double START_TIME = 0.0;
+    static final double END_TIME = 0.175;
 
-    //These values are from the barnes version in the splash2 suite:
-    static final double DEFAULT_THETA = 1.0; //cell subdivision tolerance
-    //static final double DEFAULT_END_TIME = 0.075; //time to stop integration
-    static final double DEFAULT_DT = 0.025; //integration time-step
-
-    //we do 7 iterations, instead of 3 (first one isn't measured)
-    static final double DEFAULT_END_TIME = 0.175;
-
-    Body[] bodyArray;
-    //int[] bodyIndices; //used to translate body nrs to indices in bodyArray
-    final int maxLeafBodies;
-
-    final double DT;
-    final double END_TIME;
-    final double THETA;
     final int ITERATIONS;
 
-    BarnesHut(int nBodies, int mlb) {
-	bodyArray = new Plummer().generate(nBodies);
-	//bodyIndices = new int[nBodies];
+    private static Body[] bodyArray;
+    private static int maxLeafBodies;
+    static BodyTreeNode root; //is accessed by BodyTreeNode
 
-	//Plummer makes sure that a body with number x also has index x
-	for (int i = 0; i < nBodies; i++) {
-	    if (ASSERTS && bodyArray[i].number != i) {
-		System.err.println("EEK! Plummer generated an inconsistent " +
-				   "body number");
-		System.exit(1);
-	    }
-	    //bodyIndices[i] = i;
+    //Indicates if we are the root divide-and-conquer node
+    static boolean I_AM_ROOT = false;
+
+    //final int nBodies;
+
+    BarnesHut(int n, int m) {
+	I_AM_ROOT = true; //constructor is only called at the root node
+
+	if (impl != IMPL_TUPLE2) {
+	    initialize(n, m);
+	} else {
+	    /* the tuple2 impl does the initialization at every node when
+	       the first tuple is broadcast */
+	    Initializer init = new Initializer(n, m);
+	    ibis.satin.SatinTupleSpace.add("init", init);
 	}
 	
-	maxLeafBodies = mlb;
-
 	/* The RMI version contained magic code equivalent to this:
 	   (the DEFAULT_* variables were different)
 
@@ -68,111 +66,71 @@ final class BarnesHut {
 	   Since Rutger didn't know where it came from, and barnes from
 	   splash2 also doesn't include this code, I will omit it. - Maik. */
 
-	DT = DEFAULT_DT;
-	END_TIME = DEFAULT_END_TIME;
-	THETA = DEFAULT_THETA;
-
-	ITERATIONS = (int)( (END_TIME + 0.1*DT - START_TIME) / DT);
-	//ITERATIONS = 2; //debug mode
+	//ITERATIONS = (int)( (END_TIME + 0.1*DT - START_TIME) / DT);
+	ITERATIONS = 2; //debug mode
 
 	forceCalcTimes = new long[ITERATIONS];
     }
 
-    void printBodies() {
-	Body b;
-	int i;
+    static void initialize(int nBodies, int mlb) {
+	bodyArray = new Plummer().generate(nBodies);
+	maxLeafBodies = mlb;
 
-	Body[] sorted = new Body[bodyArray.length]; //copy bodyArray
-	for (i = 0; i < bodyArray.length; i++) sorted[i] = bodyArray[i];
-
-	Arrays.sort(sorted); //sort the copied bodyArray (by bodyNumber)
-
-	for (i = 0; i < bodyArray.length; i++) {
-	    b = sorted[i];
-	    System.out.println("0: Body " + i + ": [ " + b.pos_x + ", " +
-			       b.pos_y + ", " + b.pos_z + " ]" );
-	    System.out.println("0:      " + i + ": [ " + b.vel_x + ", " +
-			       b.vel_y + ", " + b.vel_z + " ]" );
-	    System.out.println("0:      " + i + ": [ " + b.acc_x + ", " +
-			       b.acc_y + ", " + b.acc_z + " ]" );
-	    System.out.println("0:      " + i + ": " + b.number );
- 	}
+	//Plummer should make sure that a body with number x also has index x
+	for (int i = 0; i < nBodies; i++) {
+	    if (ASSERTS && bodyArray[i].number != i) {
+		System.err.println("EEK! Plummer generated an " +
+				   "inconsistent body number");
+		System.exit(1);
+	    }
+	}
     }
 
+    /* Builds the tree with bodies using bodyArray, maxLeafBodies and THETA,
+       and does the center-of-mass computation for this new tree */
+    static void buildTreeAndDoCoM() {
+	root = null;  //prevent Out-Of-Memory because 2 trees are in mem
+	root = new BodyTreeNode(bodyArray, maxLeafBodies, THETA);
+	root.computeCentersOfMass();
+    }
 
-    void run() {
-	Body b;
+    static void updateBodies(double[] accs_x, double[] accs_y, double[] accs_z,
+			     int iteration) {
 	int i;
 
-	long time = runSim();
-
-	System.out.println("application barnes took " +
-			   (double)(time/1000.0) + " s");
-
-	if (phase_timing) {
-	    long total = 0;
-	    System.out.println("  tree building took: " +
-			       treeBuildTime/1000.0 + " s");
-	    System.out.println("CoM computation took: " +
-			       CoMTime/1000.0 + " s");
-	    System.out.println("Updating bodies took: " +
-			       updateTime/1000.0 + " s");
-	    System.out.println("Force calculation took: ");
-	    for (i = 1; i < ITERATIONS; i++) {
-		System.out.println("  iteration " + i + ": " +
-				   forceCalcTimes[i]/1000.0 + " s");
-		total += forceCalcTimes[i];
+	for (i = 0; i < bodyArray.length; i++) {
+	    //the updated-bit only gets set at the root node
+	    //with tuple2, this assertion failed at a non-root-node...
+	    if (ASSERTS && !bodyArray[i].updated && I_AM_ROOT) {
+		    System.err.println("EEK! Body " + i + " wasn't updated!");
+		    System.exit(1);
 	    }
-	    System.out.println("               total: " +
-			       total/1000.0 + " s");
-	}
-	
-	if (verbose) {
-	    System.out.println();
-	    printBodies();
-	}
-    }	
+	    if (ASSERTS && accs_x[i] > 1.0E4) { //This shouldn't happen
+		System.err.println("EEK! Acc_x too large for body #" +
+				   i + " in iteration: " + iteration);
+		System.err.println("acc = " + accs_x[i]);
+		System.exit(1);
+	    }
 
-    long runSim() {
+	    bodyArray[i].computeNewPosition(iteration != 0, DT, accs_x[i],
+					    accs_y[i], accs_z[i]);
+
+	    if (ASSERTS) bodyArray[i].updated = false;
+	}
+    }
+
+    void runSim() {
 	int i, iteration;
-	BodyTreeNode btRoot;
+	long start = 0, end, phaseStart = 0, phaseEnd;
+
 	String rootId = null; //tupleSpace key
-
 	BodyTreeNode dummyNode = new BodyTreeNode(); //used to spawn jobs
-
-	long start = 0, end;
-	long phaseStart = 0, phaseEnd;
-
 	LinkedList result = null;
-
-	Body b;
+	double[] accs_x = new double[bodyArray.length];
+	double[] accs_y = new double[bodyArray.length];
+	double[] accs_z = new double[bodyArray.length];
 
 	//BodyCanvas bc = visualize();
-
-	System.out.println("BarnesHut: doing " + ITERATIONS +
-			   " iterations with " + bodyArray.length +
-			   " bodies, " + maxLeafBodies + " bodies/leaf node");
-	System.out.println("           (measurements DON'T include the " +
-			   "first iteration!)");
-
-	switch(impl) {
-	case IMPL_ITER:
-	    if (debug) {
-		System.out.println("Using iterative debug impl");
-	    } else {
-		System.out.println("Using iterative spawn-for-each-body impl");
-	    }
-	    break;
-	case IMPL_NTC:
-	    System.out.println("Using necessary tree impl");
-	    break;
-	case IMPL_TUPLE:
-	    System.out.println("Using satin tuple impl");
-	    break;
-	case IMPL_SEQ:
-	    System.out.println("Using hierarchical sequential impl");
-	    break;
-	}
 
 	ibis.satin.Satin.pause(); //turn off satin during sequential parts
 
@@ -185,109 +143,60 @@ final class BarnesHut {
 
 	    System.out.println("Starting iteration " + iteration);
 
-	    if (phase_timing && iteration > 0)
-		phaseStart = System.currentTimeMillis();
-
-	    //build tree
-	    btRoot = null; //prevent Out-Of-Memory because 2 trees are in mem
-	    btRoot = new BodyTreeNode(bodyArray, maxLeafBodies, THETA);
-
 	    if (phase_timing && iteration > 0) {
-		phaseEnd = System.currentTimeMillis();
-		treeBuildTime += phaseEnd - phaseStart;
 		phaseStart = System.currentTimeMillis();
 	    }
 
-	    //compute centers of mass
-	    btRoot.computeCentersOfMass();
+	    buildTreeAndDoCoM();
 
-	    if (phase_timing && iteration > 0) {
-		phaseEnd = System.currentTimeMillis();
-		CoMTime += phaseEnd - phaseStart;
+	    if (phase_timing) {
+		if (iteration > 0) {
+		    phaseEnd = System.currentTimeMillis();
+		    btcomTime += phaseEnd - phaseStart;
+		}
 		phaseStart = System.currentTimeMillis();
 	    }
 
 	    //force calculation
 
-	    if (impl == IMPL_ITER || impl == IMPL_TUPLE) {
+	    if (impl == IMPL_TUPLE) {
 		rootId = "root" + iteration;
-		ibis.satin.SatinTupleSpace.add(rootId, btRoot);
+		ibis.satin.SatinTupleSpace.add(rootId, root);
 	    }		
 
 	    ibis.satin.Satin.resume(); //turn ON divide-and-conquer stuff
 
 	    switch(impl) {
-	    case IMPL_ITER:
-		double[][] accs = new double[bodyArray.length][];
-
-		if (debug) { //sequential debug version
-		    double[] acc;
-		    for (i = 0; i < bodyArray.length; i++) {
-			acc = btRoot.barnesBodyDbg(bodyArray[i].pos_x,
-						   bodyArray[i].pos_y,
-						   bodyArray[i].pos_z, i == 0);
-			//acc = barnesBodyDbg(bodyArray[i].pos, false);
-			bodyArray[i].acc_x = acc[0];
-			bodyArray[i].acc_y = acc[1];
-			bodyArray[i].acc_z = acc[2];
-			if (BarnesHut.ASSERTS) bodyArray[i].updated = true;
-		    }
-		} else { //normal parallel iterative version
-		    for (i = 0; i < bodyArray.length; i++) {
-			accs[i] = dummyNode.barnesBodyTuple
-			    (bodyArray[i].pos_x, bodyArray[i].pos_y,
-			     bodyArray[i].pos_z, rootId);
-		    }
-		    dummyNode.sync();
-
-		    for (i = 0; i < bodyArray.length; i++) {
-			bodyArray[i].acc_x = accs[i][0];
-			bodyArray[i].acc_y = accs[i][1];
-			bodyArray[i].acc_z = accs[i][2];
-			if (ASSERTS) bodyArray[i].updated = true;
-		    }
-		}
-		break;
 	    case IMPL_NTC:
-		result = btRoot.barnes(btRoot, spawn_threshold);
-		btRoot.sync();
+		result = root.barnesNTC(root, spawn_threshold);
+		root.sync();
 		break;
 	    case IMPL_TUPLE:
 		result = dummyNode.barnesTuple(null, rootId, spawn_threshold);
 		dummyNode.sync();
 		break;
 	    case IMPL_SEQ:
-		result = btRoot.barnesSequential(btRoot);
+		result = root.barnesSequential(root);
 		break;
 	    }
 
 	    ibis.satin.Satin.pause(); //killall divide-and-conquer stuff
 
-	    if (impl == IMPL_ITER || impl == IMPL_TUPLE) {
-		try {
-		    ibis.satin.SatinTupleSpace.remove(rootId);
-		} catch (java.io.IOException e) {
-		    System.err.println("EEK! " +e);
-		    System.exit(1);
+	    if (impl == IMPL_TUPLE) {
+		ibis.satin.SatinTupleSpace.remove(rootId);
+	    }
+
+	    processLinkedListResult(result, accs_x, accs_y, accs_z);
+
+	    if (phase_timing) {
+		phaseEnd = System.currentTimeMillis();
+		forceCalcTimes[iteration] = phaseEnd - phaseStart;
+		if (iteration > 0) {
+		    phaseStart = System.currentTimeMillis();
 		}
 	    }
 
-	    if (impl == IMPL_NTC || impl == IMPL_TUPLE || impl == IMPL_SEQ) {
-		/* these implementations return a list with bodyNumbers
-		   and corresponding accs, which has to be processed */
-		processLinkedListResult(result);
-	    }
-
-	    if (phase_timing && iteration > 0) {
-		phaseEnd = System.currentTimeMillis();
-		forceCalcTimes[iteration] = phaseEnd - phaseStart;
-		phaseStart = System.currentTimeMillis();
-	    }
-
-	    //update bodies
-	    for (i = 0; i < bodyArray.length; i++) {
-		updateBody(bodyArray[i], iteration);
-	    }
+	    updateBodies(accs_x, accs_y, accs_z, iteration);
 
 	    if (phase_timing && iteration > 0) {
 		phaseEnd = System.currentTimeMillis();
@@ -298,16 +207,98 @@ final class BarnesHut {
 	}
 
 	end = System.currentTimeMillis();
-
-	ibis.satin.Satin.resume();
-
-	return end - start;
+	totalTime = end - start;
     }
 
-    void processLinkedListResult(LinkedList result) {
+    void tuple2RunSim() {
+	/* all sequential parts are now replicated to increase the
+	   efficiency of the broadcast. Now, only the new accs have to
+	   be broadcast each iteration. */
+
+	int iteration, i;
+	LinkedList result;
+	BodyTreeNode dummyNode = new BodyTreeNode(); //used to spawn jobs
+	double[] accs_x = new double[bodyArray.length];
+	double[] accs_y = new double[bodyArray.length];
+	double[] accs_z = new double[bodyArray.length];
+
+	long start = 0, end;
+	long phaseStart = 0, phaseEnd;
+
+	TreeUpdater u;
+	String key;
+
+	for (iteration = 0; iteration < ITERATIONS; iteration++) {
+	    System.out.println("Starting iteration " + iteration);
+
+	    //don't measure the first two iterations (numbers 0 and 1)
+	    //the body update phase of the second iteration *is* measured ???
+	    if (iteration == 2) {
+		start = System.currentTimeMillis();
+	    }
+
+	    /* tree construction and CoM computation are done using an
+	       active tuple */
+
+	    if (phase_timing) {
+		phaseStart = System.currentTimeMillis();
+	    }
+
+	    if (iteration == 0) {
+		/* broadcast an 'empty' tuple, since there is no previous
+		   iteration whose updates have to be applied */
+		u = new TreeUpdater(null, null, null);
+	    } else {
+		//put the result from the previous iteration in tuple space
+		u = new TreeUpdater(accs_x, accs_y, accs_z);
+	    }
+	    key = Integer.toString(iteration);
+	    ibis.satin.SatinTupleSpace.add(key, u);
+
+	    if (phase_timing) {
+		phaseEnd = System.currentTimeMillis();
+		btcomTime += phaseEnd - phaseStart;
+	    }
+
+	    //force calculation
+	    if (phase_timing) {
+		phaseStart = System.currentTimeMillis();
+	    }
+	    ibis.satin.Satin.resume();
+
+	    result = dummyNode.barnesTuple2(null, spawn_threshold);
+	    dummyNode.sync();
+
+	    ibis.satin.Satin.pause();
+
+	    processLinkedListResult(result, accs_x, accs_y, accs_z);
+
+	    if (phase_timing) {
+		phaseEnd = System.currentTimeMillis();
+		forceCalcTimes[iteration] = phaseEnd - phaseStart;
+	    }
+
+	    //removing the tuple isn't necessary since it's an active tuple
+
+	    //body updates will be done in the next iteration, or below
+	}
+
+	//ibis.satin.Satin.pause(); //will be resumed in main()
+
+	//do the final body update phase (this phase is otherwise done at
+	//the start of the next iteration)
+	//iteration must be decremented because of the for loop above
+	updateBodies(accs_x, accs_y, accs_z, iteration - 1);
+
+	end = System.currentTimeMillis();
+	totalTime = end - start;
+    }
+
+    void processLinkedListResult(LinkedList result, double[] all_x,
+				 double[] all_y, double[] all_z) {
 	Iterator it = result.iterator();
 	int[] bodyNumbers;
-	double[] accs_x, accs_y, accs_z;
+	double[] tmp_x, tmp_y, tmp_z;
 	int i;
 
 	/* I tried putting bodies computed by the same leaf job
@@ -325,52 +316,42 @@ final class BarnesHut {
 	   but the force calc phase was longer, in the end the
 	   total run time was longer ( 18.24 s vs 17.66 s ) */
 
-	//Body[] newArray = new Body[bodyArray.length];
-	//int newIndex = 0, oldIndex;
-
 	while(it.hasNext()) {
 	    bodyNumbers = (int []) it.next();
-	    accs_x = (double []) it.next();
-	    accs_y = (double []) it.next();
-	    accs_z = (double []) it.next();
+	    tmp_x = (double []) it.next();
+	    tmp_y = (double []) it.next();
+	    tmp_z = (double []) it.next();
 
 	    for (i = 0; i < bodyNumbers.length; i++) {
-		//oldIndex = bodyIndices[bodyNumbers[i]];
-		//bodyIndices[bodyNumbers[i]] = newIndex;
-
-		//newArray[newIndex] = bodyArray[oldIndex];
-		//newArray[newIndex].acc = accs[i];
-		//if (ASSERTS) newArray[newIndex].updated = true;
-
-		//newIndex++;
-
-		bodyArray[bodyNumbers[i]].acc_x = accs_x[i];
-		bodyArray[bodyNumbers[i]].acc_y = accs_y[i];
-		bodyArray[bodyNumbers[i]].acc_z = accs_z[i];
+		all_x[bodyNumbers[i]] = tmp_x[i];
+		all_y[bodyNumbers[i]] = tmp_y[i];
+		all_z[bodyNumbers[i]] = tmp_z[i];
 		if (ASSERTS) bodyArray[bodyNumbers[i]].updated = true;
 	    }
 	}
-	//bodyArray = newArray;
     }
 	    
-    void updateBody(Body b, int iteration) {
-	if (ASSERTS && !b.updated) {
-	    System.err.println("EEK! Body " + b.number + " wasn't updated!");
-	    System.exit(1);
-	}
-	if (ASSERTS && b.acc_x > 1.0E4) { //This shouldn't happen
-	    System.err.println("EEK! Acc_x too large for body #" +
-			       b.number + " in iteration: " +
-			       iteration);
-	    System.err.println("acc = " + b.acc_x);
-	    System.exit(1);
-	}
+    void printBodies() {
+	Body b;
+	int i;
 
-	b.computeNewPosition(iteration != 0, DT, b.acc_x,
-			     b.acc_y, b.acc_z);
-	if (ASSERTS) b.updated = false;
-	//??? max + min posities hier berekenen ipv bij boom bouwen
-    }	
+	Body[] sorted = new Body[bodyArray.length];
+	System.arraycopy(bodyArray, 0, sorted, 0, bodyArray.length);
+
+	Arrays.sort(sorted); //sort the copied bodyArray (by bodyNumber)
+
+	for (i = 0; i < bodyArray.length; i++) {
+	    b = sorted[i];
+	    System.out.println("0: Body " + i + ": [ " + b.pos_x + ", " +
+			       b.pos_y + ", " + b.pos_z + " ]" );
+	    System.out.println("0:      " + i + ": [ " + b.vel_x + ", " +
+			       b.vel_y + ", " + b.vel_z + " ]" );
+	    System.out.println("0:      " + i + ": [ " + b.acc_x + ", " +
+			       b.acc_y + ", " + b.acc_z + " ]" );
+	    System.out.println("0:      " + i + ": " + b.number );
+ 	}
+    }
+
 
 
     /*private BodyCanvas visualize() {
@@ -391,18 +372,73 @@ final class BarnesHut {
       return bc;
       }*/
 
-    void wait4key() {
-	System.out.print("Press enter..");
-	try {
-	    System.in.read();
-	} catch (Exception e) {
-	    System.out.println("EEK: " + e);
+    void run() {
+	Body b;
+	int i;
+
+	System.out.println("Iterations: " + ITERATIONS + " (timings DON'T " +
+			   "include the first iteration (two with tuple2!)!)");
+
+	switch(impl) {
+	case IMPL_NTC:
+	    System.out.println("Using necessary tree impl");
+	    runSim();
+	    break;
+	case IMPL_TUPLE:
+	    System.out.println("Using old satin tuple impl");
+	    runSim();
+	    break;
+	case IMPL_TUPLE2:
+	    System.out.println("Using new satin tuple impl");
+	    tuple2RunSim();
+	    break;
+	case IMPL_SEQ:
+	    System.out.println("Using hierarchical sequential impl");
+	    runSim();
+	    break;
+	default:
+	    System.out.println("EEK! Using unknown implementation #" + impl);
+	    System.exit(1);
+	    break; //blah
 	}
-    }
+
+	System.out.println("application barnes took " +
+			   (double)(totalTime/1000.0) + " s");
+
+	if (phase_timing) {
+	    long total = 0;
+	    if (impl != IMPL_TUPLE2) {
+		System.out.println("  tree building and");
+		System.out.println("CoM computation took: " +
+				   btcomTime/1000.0 + " s");
+		System.out.println("Updating bodies took: " +
+				   updateTime/1000.0 + " s");
+	    }
+	    System.out.println("Force calculation took: ");
+	    for (i = 0; i < ITERATIONS; i++) {
+		System.out.println("  iteration " + i + ": " +
+				   forceCalcTimes[i]/1000.0 + " s");
+		if (i >= 2 || (i > 1 && impl != IMPL_TUPLE2)) {
+		    total += forceCalcTimes[i];
+		}
+	    }
+	    System.out.println("               total: " +
+			       total/1000.0 + " s");
+	}
+	
+	if (verbose) {
+	    System.out.println();
+	    printBodies();
+	}
+    }	
 
     public static void main(String argv[]) {
 	int nBodies = 0, mlb = 0;
 	int i;
+
+	long realStart, realEnd;
+
+	realStart = System.currentTimeMillis();
 
 	//parse arguments
 	for (i = 0; i < argv.length; i++) {
@@ -414,12 +450,12 @@ final class BarnesHut {
 	    } else if (argv[i].equals("-v")) {
 		verbose = true;
 
-	    } else if (argv[i].equals("-iter")) {
-		impl = IMPL_ITER;
 	    } else if (argv[i].equals("-ntc")) {
 		impl = IMPL_NTC;
 	    } else if (argv[i].equals("-tuple")) {
 		impl = IMPL_TUPLE;
+	    } else if (argv[i].equals("-tuple2")) {
+		impl = IMPL_TUPLE2;
 	    } else if (argv[i].equals("-seq")) {
 		impl = IMPL_SEQ;
 
@@ -434,7 +470,7 @@ final class BarnesHut {
 
 	    } else { //final arguments
 		nBodies = Integer.parseInt(argv[i]); //nr of bodies to simulate
-		mlb = Integer.parseInt(argv[i+1]);   //max bodies per leaf node
+		mlb = Integer.parseInt(argv[i+1]); //max bodies per leaf node
 		break;
 	    }
 	}
@@ -444,10 +480,19 @@ final class BarnesHut {
 	}
 
 	try {  
+	    System.out.println("BarnesHut: simulating " + nBodies +
+			       " bodies, " + mlb + " bodies/leaf node, " +
+			       "theta = " + THETA);
 	    new BarnesHut(nBodies, mlb).run();
 	} catch (StackOverflowError e) {
 	    System.err.println("EEK!" + e + ":");
 	    e.printStackTrace();
 	}
+
+	realEnd = System.currentTimeMillis();
+	ibis.satin.Satin.resume(); //allow satin to exit cleanly
+
+	System.out.println("Real run time = " +
+			   (realEnd - realStart) / 1000.0 + " s");
     }
 }
