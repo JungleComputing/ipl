@@ -10,7 +10,7 @@ interface Config {
     static final String s_cache = PROPERTY_PREFIX + "cache";
 
     static final boolean DEBUG = TypedProperties.booleanProperty(s_debug);
-    static final boolean STATS = TypedProperties.booleanProperty(s_stats);
+    static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
     static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts);
     static final boolean CONNECTION_CACHE = TypedProperties.booleanProperty(s_cache, true);
 
