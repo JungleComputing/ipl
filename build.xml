@@ -17,7 +17,7 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="ibis-version" value="0.4"/>
+    <property name="ibis-version" value="1.0"/>
 
     <!--
 	This must come first.
