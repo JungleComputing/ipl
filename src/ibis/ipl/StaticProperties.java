@@ -166,7 +166,9 @@ public class StaticProperties {
 	    if (name.substring(0,5).equals("ibis.")) {
 		String n = name.substring(5);
 
-		if (category_names.contains(n) || n.equals("name")) {
+		if (category_names.contains(n) ||
+			n.equals("name") ||
+			n.equals("verbose")) {
 		    user_properties.add(n, prop);
 		}
 	    }

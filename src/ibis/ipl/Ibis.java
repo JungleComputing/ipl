@@ -280,6 +280,11 @@ public abstract class Ibis {
 	    combinedprops = reqprop.combineWithUserProps();
 	}
 
+	if (combinedprops.find("verbose") != null) {
+	    System.out.println("Looking for an Ibis with properties: ");
+	    System.out.println("" + combinedprops);
+	}
+
 	String ibisname = combinedprops.find("name");
 
 	if (ibisname == null && reqprop == null) {
@@ -333,7 +338,20 @@ public abstract class Ibis {
 
 	int n = implementation_names.size();
 
+	if (combinedprops.find("verbose") != null) {
+	    System.out.println("Matching Ibis implementations:");
+	    for (int i = 0; i < n; i++) {
+		System.out.println((String) implementation_names.get(i));
+	    }
+	    System.out.println();
+	}
+
+
 	for (int i = 0; i < n; i++) {
+	    if (combinedprops.find("verbose") != null) {
+		System.out.println("trying " + 
+			    (String) implementation_names.get(i));
+	    }
 	    while(true) {
 		try {
 		    String name = "ibis@" + hostname + "_" +
@@ -657,6 +675,10 @@ public abstract class Ibis {
 	}
 	if (name == null) {
 	    throw new IbisException("anonymous name for port type not allowed");
+	}
+	if (combinedprops.find("verbose") != null) {
+	    System.out.println("Creating port type " + name +
+				" with properties " + p);
 	}
 	return newPortType(name, p);
     }
