@@ -27,6 +27,17 @@ public class IOGenerator {
 
     private static final Type	java_lang_class_type = Type.getType("Ljava/lang/Class;");
 
+    private static class FieldComparator implements Comparator {
+	public int compare(Object o1, Object o2) {
+	    Field f1 = (Field) o1;
+	    Field f2 = (Field) o2;
+
+	    return f1.getName().compareTo(f2.getName());
+	}
+    }
+
+    private static FieldComparator fieldComparator = new FieldComparator();
+
     private class SerializationInfo {
 
 	String	write_name;
@@ -78,6 +89,8 @@ public class IOGenerator {
 
 	    versionUID();
 
+	    java.util.Arrays.sort(fields, fieldComparator);
+
 	    super_is_serializable = isSerializable(super_class);
 	    super_is_externalizable = isExternalizable(super_class);
 	    super_is_ibis_serializable = isIbisSerializable(super_class);
@@ -116,6 +129,7 @@ public class IOGenerator {
 		f.setInitValue(uid);
 		gen.addField(f.getField());
 		fields = gen.getFields();
+		java.util.Arrays.sort(fields, fieldComparator);
 	    } catch(ClassNotFoundException e) {
 	    }
 	}

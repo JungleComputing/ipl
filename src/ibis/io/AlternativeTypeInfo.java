@@ -36,6 +36,17 @@ final class AlternativeTypeInfo {
     boolean hasWriteObject;
     boolean hasReplace;
 
+    private static class FieldComparator implements Comparator {
+	public int compare(Object o1, Object o2) {
+	    Field f1 = (Field) o1;
+	    Field f2 = (Field) o2;
+
+	    return f1.getName().compareTo(f2.getName());
+	}
+    }
+
+    private static FieldComparator fieldComparator = new FieldComparator();
+
     private Method writeObjectMethod;
     private Method readObjectMethod;
     private Method writeReplaceMethod;
@@ -260,6 +271,12 @@ final class AlternativeTypeInfo {
 	    hasReplace = writeReplaceMethod != null;
 
 	    Field [] fields = clazz.getDeclaredFields(); 
+
+	    /* getDeclaredFields does not specify or guarantee a specific order.
+	     * Therefore, we sort the fields alphabetically, as does the IOGenerator.
+	     */
+	    java.util.Arrays.sort(fields, fieldComparator);
+
 	    int len = fields.length;
 
 	    /*	Create the datastructures to cache the fields we need. Since
