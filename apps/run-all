@@ -20,7 +20,7 @@ sers="ibis sun"
 
 ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
 
-sequential=1
+sequential=0
 parallel=1
 
 while [ $# -gt 0 ] ; do
@@ -41,7 +41,8 @@ while [ $# -gt 0 ] ; do
 	;;
     -reserve)
 	shift
-	reservation="-reserve $1"
+	reservation="$1"
+	reserve="-reserve $reservation"
 	;;
     -x)
 	shift
@@ -51,11 +52,20 @@ while [ $# -gt 0 ] ; do
 	shift
 	sers="$1"
 	;;
+    -seq)
+	sequential=1
+	;;
     -no-seq)
 	sequential=0
 	;;
+    -par)
+	parallel=1
+	;;
     -no-par)
 	parallel=0
+	;;
+    -no-std)
+	main=
 	;;
     *)
 	options="$options $1"

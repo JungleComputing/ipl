@@ -54,9 +54,11 @@ while ( <> ) {
 	if (/application .* took ([0-9.]+) s/) {
 	    # This is a satin app
 	    $lat = $1;
+	    # printf "Satin: $_";
 	} elsif (/Application: .* time: ([0-9.]+) s/) {
 	    # This is an RMI app
 	    $lat = $1;
+	    # printf "RMI: $_";
 	}
 	# printf "ibis $ibis; ser $ser; lat $lat\n";
 
@@ -79,6 +81,7 @@ if ($print_sequential) {
 	    "N", "Ibis", "Ser", "min(s)", "av.(s)");
 }
 $sequential = 0;
+$min_sequential = 0;
 $n = 0;
 foreach ( @ibises ) {
     $ibis = $_;
@@ -89,6 +92,9 @@ foreach ( @ibises ) {
 	if ( $n { $ix } > 0) {
 	    $sequential += $min_lat { $ix };
 	    $n++;
+	    if ($min_sequential == 0 || $min_lat { $ix } < $min_sequential ) {
+		$min_sequential = $min_lat { $ix };
+	    }
 	    if ($print_sequential) {
 		printf("%-4d %-24s %-8s %8.1f %8.1f\n",
 			$n { $ix },
@@ -99,7 +105,8 @@ foreach ( @ibises ) {
 	}
     }
 }
-$sequential /= $n;
+# $sequential /= $n;
+$sequential = $min_sequential;
 
 printf("*** PARALLEL ***\n");
 printf("%-4s %-24s %-8s %-4s %8s %8s %8s %8s\n",
