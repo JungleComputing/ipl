@@ -27,7 +27,8 @@ public final class Driver extends NetDriver {
 
 	static final boolean	DEBUG = false; // true; // false;
 
-	static final boolean	VERBOSE_INTPT = DEBUG; // true; // false;
+	static final boolean	VERBOSE_INTPT = DEBUG
+	    || TypedProperties.booleanProperty("ibis.net.gm.intr.verbose", false); // true; // false;
 
 	static final boolean	TIMINGS = false; // true;
 
@@ -307,7 +308,7 @@ pollers++;
 			    yields++;
 yielders++;
 			    gmAccessLock.unlock();
-			    Thread.yield();
+			    NetIbis.yield();
 			    gmAccessLock.lock(false);
 			    pollsBeforeYield = POLLS_BEFORE_YIELD;
 yielders--;

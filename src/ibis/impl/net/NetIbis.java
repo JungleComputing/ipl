@@ -9,7 +9,9 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
+
 import ibis.util.IbisSocketFactory;
+import ibis.util.nativeCode.Rdtsc;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -142,6 +144,34 @@ public final class NetIbis extends Ibis {
 	public static String hostName() {
 	    return hostName;
 	}
+
+	private static final Rdtsc nowTimer = new Rdtsc();
+	private static final long t_start = nowTimer.currentTimeNanos();
+
+	public static float now() {
+	    return (nowTimer.currentTimeNanos() - t_start) / 1.0E09F;
+	}
+
+
+	/**
+	 * Thread.yield() may be broken. In that case use sleep(0, 1);
+	 */
+	private final static boolean USE_SLEEP_FOR_YIELD = false;
+
+	/**
+	 * Thread.yield() may be broken. In that case use sleep(0, 1);
+	 */
+	public static void yield() {
+	    if (USE_SLEEP_FOR_YIELD) {
+		try {
+		    Thread.sleep(0, 1);
+		} catch (InterruptedException e) {
+		}
+	    } else {
+		Thread.yield();
+	    }
+	}
+
 
 	/**
 	 * Default constructor.

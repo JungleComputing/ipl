@@ -11,6 +11,7 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+import ibis.impl.net.NetIbis;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -159,12 +160,13 @@ public final class GmInput extends NetBufferedInput {
                 lInfo.put("gm_mux_id", new Integer(lmuxId));
                 Hashtable rInfo = null;
 
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": start input connection " + cnx.getServiceLink().partner());
 		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
+
+		os.writeObject(lInfo);
 		os.flush();
 
 		ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
-		os.writeObject(lInfo);
-		os.flush();
 
 		try {
                         rInfo = (Hashtable)is.readObject();
@@ -176,10 +178,9 @@ public final class GmInput extends NetBufferedInput {
 		rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
 		rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
 
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": start native input connection " + cnx.getServiceLink().partner());
                 Driver.gmAccessLock.lock();
-
 		nConnectInput(inputHandle, rnodeId, rportId, rmuxId);
-
                 Driver.gmAccessLock.unlock();
 
 		os.write(1);
@@ -194,6 +195,7 @@ public final class GmInput extends NetBufferedInput {
 		allocator = new NetAllocator(mtu);
 		this.spn = cnx.getNum();
                 startUpcallThread();
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": established input connection " + cnx.getServiceLink().partner());
                 log.out();
 	}
 

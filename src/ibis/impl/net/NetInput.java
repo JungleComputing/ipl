@@ -181,7 +181,7 @@ if (finishedUpcallThreads > 1) {
 	for (int i = 0; i < finishedUpcallThreads; i++) {
 	    // threadStackLock.lock();
 	    // threadStackLock.unlock();
-	    Thread.yield();
+	    NetIbis.yield();
 	}
     // } catch (InterruptedIOException e) {
     // }

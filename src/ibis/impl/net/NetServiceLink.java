@@ -6,6 +6,8 @@ import ibis.ipl.ConnectionTimedOutException;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -188,9 +190,12 @@ public final class NetServiceLink {
                 incoming = true;
 
                 try {
+			if (true || DEBUG) {
+			    System.err.println("t = " + NetIbis.now() + ": " + this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + ss + " " + ss.getLocalSocketAddress() + " start accept");
+			}
                         socket = ss.accept();
-			if (DEBUG) {
-			    System.err.println(this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
+			if (true || DEBUG) {
+			    System.err.println("t = " + NetIbis.now() + ": " + this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
 			}
                 } catch (SocketException e) {
                         throw new InterruptedIOException(e);
@@ -216,11 +221,14 @@ public final class NetServiceLink {
                 InetAddress raddr =  (InetAddress)nfo.get("accept_address");
 		int         rport = ((Integer)    nfo.get("accept_port"   )).intValue();
 
+		if (true || DEBUG) {
+		    System.err.println("t = " + NetIbis.now() + " " + this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + " NetServiceLink outgoing socket - try to connect to " + raddr + "/" + rport);
+		}
 		socket = NetIbis.socketFactory.createSocket(raddr, rport);
 		// Else, I fear the read() would appear high up in the profile:
 		socket.setSoTimeout(0);
-		if (DEBUG) {
-		    System.err.println(this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " Socket - connect to " + raddr + "/" + rport);
+		if (true || DEBUG) {
+		    System.err.println("t = " + NetIbis.now() + " " + this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " NetServiceLink outgoing socket - connected to " + raddr + "/" + rport);
 		}
         }
 
@@ -242,8 +250,8 @@ public final class NetServiceLink {
                 }
                 this.num = num;
 
-		os = socket.getOutputStream();
-		is = socket.getInputStream();
+		os = new BufferedOutputStream(socket.getOutputStream());
+		is = new BufferedInputStream(socket.getInputStream());
 
                 inputMap  = new HashMap();
                 outputMap = new HashMap();
@@ -510,6 +518,14 @@ public final class NetServiceLink {
 	}
 
 
+	public String partner() {
+	    if (socket == null) {
+		return null;
+	    }
+	    return socket.getInetAddress() + ":" + socket.getPort();
+	}
+
+
 
         /* ___ INTERNAL CLASSES ____________________________________________ */
 
@@ -642,6 +658,7 @@ public final class NetServiceLink {
                 private void doFlush() throws IOException {
                         if (offset > 0) {
                                 writeBlock(buffer, 0, offset);
+				os.flush();
                                 offset = 0;
                         }
                 }

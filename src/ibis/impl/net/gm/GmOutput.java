@@ -9,6 +9,8 @@ import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
+import ibis.impl.net.NetIbis;
+
 import ibis.util.ConditionVariable;
 
 import java.io.IOException;
@@ -150,9 +152,8 @@ public final class GmOutput extends NetBufferedOutput {
 	lInfo.put("gm_mux_id", new Integer(lmuxId));
 	Hashtable rInfo = null;
 
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": start output connection " + cnx.getServiceLink().partner());
 	ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
-	ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
-	os.flush();
 
 	try {
 	    rInfo = (Hashtable)is.readObject();
@@ -163,9 +164,12 @@ public final class GmOutput extends NetBufferedOutput {
 	rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
 	rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
 	rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
+
+	ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
 	os.writeObject(lInfo);
 	os.flush();
 
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": start native output connection " + cnx.getServiceLink().partner());
 	Driver.gmAccessLock.lock();
 	nConnectOutput(outputHandle, rnodeId, rportId, rmuxId);
 	Driver.gmAccessLock.unlock();
@@ -180,6 +184,7 @@ public final class GmOutput extends NetBufferedOutput {
 	this.rpn = cnx.getNum();
 
 	mtu = Driver.mtu;
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": established output connection " + cnx.getServiceLink().partner());
 
 	log.out();
     }

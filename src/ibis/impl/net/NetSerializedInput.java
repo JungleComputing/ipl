@@ -73,6 +73,7 @@ public abstract class NetSerializedInput extends NetInput {
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		NetInput subInput = this.subInput;
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": in setupConnection");
 
 		if (subInput == null) {
 			if (subDriver == null) {
@@ -84,6 +85,7 @@ public abstract class NetSerializedInput extends NetInput {
 			this.subInput = subInput;
 		}
 
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": invoke subInput " + subInput + ". setupConnection");
 		subInput.setupConnection(cnx);
                 log.out();
 	}

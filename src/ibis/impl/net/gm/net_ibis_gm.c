@@ -1247,7 +1247,13 @@ ni_gm_release_input_array(JNIEnv *env, struct s_input *p_in, int length) {
 	void            *ptr  = p_in->array;
 
         __in__();
-#define RELEASE_ARRAY(E_TYPE, jarray, Jtype) \
+	if ((*env)->ExceptionOccurred(env)) { \
+	    fprintf(stderr, "%s.%d: exception!!!\n", __FILE__, __LINE__); \
+	    (*env)->ExceptionDescribe(env); \
+	    exit(33); \
+	} \
+
+#define RELEASE_ARRAY(E_TYPE, jarray, Jtype, jtype) \
 		case E_TYPE: \
 		    if (p_in->is_copy) { \
 			    if (cache_msg_len(ptr) < length) { \
@@ -1255,7 +1261,8 @@ ni_gm_release_input_array(JNIEnv *env, struct s_input *p_in, int length) {
 					cache_msg_len(ptr), length); \
 				exit(33); \
 			    } \
-			    (*env)->Set ## Jtype ## ArrayRegion(env, pb->jarray, cache_msg_start(ptr), length, ptr); \
+			    VPRINTF(800, ("Copy %s array offset %d len %d into %p JavaArray.length %d\n", #Jtype, cache_msg_start(ptr), length, pb->jarray, (*env)->GetArrayLength(env, pb->jarray))); \
+			    (*env)->Set ## Jtype ## ArrayRegion(env, pb->jarray, cache_msg_start(ptr), length / sizeof(jtype), ptr); \
 			    cache_msg_put(ptr); \
 		    } else { \
 			    (*env)->Release ## Jtype ## ArrayElements(env, pb->jarray, ptr, 0); \
@@ -1264,15 +1271,15 @@ ni_gm_release_input_array(JNIEnv *env, struct s_input *p_in, int length) {
 		    break;
 
         switch (type) {
-	RELEASE_ARRAY(E_BUFFER,  j_buffer,  Byte)
-	RELEASE_ARRAY(E_BOOLEAN, j_boolean, Boolean)
-	RELEASE_ARRAY(E_BYTE,    j_byte,    Byte)
-	RELEASE_ARRAY(E_SHORT,   j_short,   Short)
-	RELEASE_ARRAY(E_CHAR,    j_char,    Char)
-	RELEASE_ARRAY(E_INT,     j_int,     Int)
-	RELEASE_ARRAY(E_LONG,    j_long,    Long)
-	RELEASE_ARRAY(E_FLOAT,   j_float,   Float)
-	RELEASE_ARRAY(E_DOUBLE,  j_double,  Double)
+	RELEASE_ARRAY(E_BUFFER,  j_buffer,  Byte,    jbyte)
+	RELEASE_ARRAY(E_BOOLEAN, j_boolean, Boolean, jboolean)
+	RELEASE_ARRAY(E_BYTE,    j_byte,    Byte,    jbyte)
+	RELEASE_ARRAY(E_SHORT,   j_short,   Short,   jshort)
+	RELEASE_ARRAY(E_CHAR,    j_char,    Char,    jchar)
+	RELEASE_ARRAY(E_INT,     j_int,     Int,     jint)
+	RELEASE_ARRAY(E_LONG,    j_long,    Long,    jlong)
+	RELEASE_ARRAY(E_FLOAT,   j_float,   Float,   jfloat)
+	RELEASE_ARRAY(E_DOUBLE,  j_double,  Double,  jdouble)
 
         default:
                 goto error;
@@ -3835,7 +3842,7 @@ mtu_init(JNIEnv *env)
 	b = (*env)->NewByteArray(env, mtu);
 	buffer  = (*env)->GetByteArrayElements(env, b, &ni_gm_copy_get_elts);
 
-#if VERBOSE
+#if 1 || VERBOSE
 	fprintf(stderr, "%s: NetGM native array: makes %s copy\n",
 		hostname, ni_gm_copy_get_elts ? "a" : "no");
 #endif

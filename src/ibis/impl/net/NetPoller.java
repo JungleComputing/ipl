@@ -149,6 +149,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 	} else if (singleton != null) {
 // System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton " + singleton.input + " fastpath.");
 	    while (handlingSingleton) {
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + " " + this + ": singleton " + singleton + ".interruptPoll");
 		singleton.interruptPoll();
 		waitingConnections++;
 		try {
@@ -245,6 +246,7 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
     protected synchronized void setupConnection(NetConnection cnx,
 						Object key)
 	    throws IOException {
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + " " + this + ": in setupConnection(cnx, key)");
 
 	if (false && singleton != null) {
 	    System.err.println("Race between NetPoller.connect and poll(block = true). Repair by having one lock :-(");
@@ -268,13 +270,16 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 
 	NetInput ni = newPollerSubInput(key, q);
 	q.setInput(ni);
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + " " + this + ": created new PollerSubInput " + ni);
 
 	boolean only = inputMap.values().size() == 1;
 	setSingleton(only);
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + " " + this + ": set singleton(" + only + ")");
 
 	if (singleton == q) {
 // System.err.println("Set the thing to interruptible");
 	    singleton.setInterruptible();
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + " " + this + ": set singleton to Interruptible");
 	}
 
 	ni.setupConnection(cnx);
@@ -750,7 +755,7 @@ nCurrent++;
 	if (false) {
 		/* It is better to yield at a higher level.
 		 * Here it is uncontrollable, anyway. */
-		Thread.yield();
+		NetIbis.yield();
 	}
 	log.out();
 // if (spn == null)

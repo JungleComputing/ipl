@@ -5,6 +5,7 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPollInterruptible;
 import ibis.impl.net.NetPortType;
@@ -333,7 +334,9 @@ public final class TcpInput extends NetBufferedInput
 			    int readLength = READ_AHEAD ?
 						b.length - offset :
 						Conversion.INT_SIZE;
+if (false) System.err.println("t = " + NetIbis.now() + ": Enter blocking read in TcpInput, socket " + tcpSocket);
 			    result = tcpIs.read(b, offset, b.length - offset);
+if (false) System.err.println("t = " + NetIbis.now() + ": Exit blocking read in TcpInput, socket " + tcpSocket);
 			} catch (SocketTimeoutException e) {
 			    if (interrupted) {
 				interrupted = false;
@@ -387,7 +390,9 @@ public final class TcpInput extends NetBufferedInput
 		while (offset < l) {
 		    int result = 0;
 		    try {
+if (false) System.err.println("t = " + NetIbis.now() + ": Enter blocking read in TcpInput, socket " + tcpSocket);
 			result = tcpIs.read(b, offset, l - offset);
+if (false) System.err.println("t = " + NetIbis.now() + ": Exit blocking read in TcpInput, socket " + tcpSocket);
 		    } catch (SocketTimeoutException e) {
 			if (interrupted) {
 			    interrupted = false;

@@ -516,6 +516,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.in();
                 Hashtable      info = nrpi.connectionInfo();
                 NetServiceLink link = new NetServiceLink(eventQueue, info);
+if (false) System.err.println("t = " + NetIbis.now() + ": created NetServiceLink");
 
                 Integer num = null;
 
@@ -524,6 +525,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 }
 
                 link.init(num);
+if (false) System.err.println("t = " + NetIbis.now() + ": inited NetServiceLink");
 
                 String peerPrefix = null;
 		ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("__port__"));
@@ -533,6 +535,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		os.writeLong(msgSeqno);
 		os.flush();
 		os.close();
+if (false) System.err.println("t = " + NetIbis.now() + ": closed handshake OS");
 		ObjectInputStream is = new ObjectInputStream(link.getInputSubStream("__port__"));
 		int rank  = is.readInt();
 		int rpmid = is.readInt();
@@ -547,8 +550,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		}
 
 		is.close();
+if (false) System.err.println("t = " + NetIbis.now() + ": closed handshake IS");
 
                 NetConnection cnx = new NetConnection(this, num, identifier, nrpi, link, 0, replacer);
+if (false) System.err.println("t = " + NetIbis.now() + ": created NetConnection");
                 log.out();
 
                 return cnx;
@@ -675,13 +680,16 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		outputLock.lock();
 		try {
 		    NetReceivePortIdentifier nrpi = (NetReceivePortIdentifier)rpi;
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": start to create ServiceConnection to " + nrpi);
 		    NetConnection cnx = establishServiceConnection(nrpi);
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": created ServiceConnection " + cnx.getServiceLink().partner());
 
 		    synchronized(connectionTable) {
 			    connectionTable.put(cnx.getNum(), cnx);
 		    }
 
 		    establishApplicationConnection(cnx);
+if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": created ApplicationConnection " + cnx.getServiceLink().partner());
 		} finally {
 		    outputLock.unlock();
 		}

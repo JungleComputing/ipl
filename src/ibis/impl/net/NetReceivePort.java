@@ -66,15 +66,19 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 accept_loop:
                         while (!end) {
                                 NetServiceLink link = null;
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": will perform accept in NetServiceLink.<ctor>, serverSocket " + serverSocket);
                                 try {
                                         link = new NetServiceLink(eventQueue, serverSocket);
                                 } catch (ConnectionTimedOutException e) {
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": hit " + e);
                                         continue accept_loop;
                                 } catch (InterruptedIOException e) {
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": hit " + e);
                                         continue accept_loop;
                                 } catch (IOException e) {
                                         __.fwdAbort__(e);
                                 }
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": created new NetServiceLink " + link + ", serverSocket " + serverSocket);
 
                                 Integer               num = null;
                                 NetSendPortIdentifier spi = null;
@@ -102,11 +106,13 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         peerPrefix = "_s"+rank+"-"+spmid+"_";
 
                                         is.close();
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": closed handshake IS");
                                         ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("__port__"));
                                         os.writeInt(receivePortMessageRank);
                                         os.writeInt(receivePortMessageId);
                                         os.flush();
                                         os.close();
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": closed handshake OS");
                                 } catch (IOException e) {
                                         __.fwdAbort__(e);
                                 } catch (ClassNotFoundException e) {
@@ -120,7 +126,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 					    try {
                                                 //inputLock.lock();
 
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": locked connectionLock");
                                                 NetConnection cnx  = new NetConnection(NetReceivePort.this, num, spi, identifier, link, startSeqno);
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": created new NetConnection " + cnx.getServiceLink().partner());
 
                                                 synchronized(connectionTable) {
                                                         connectionTable.put(num, cnx);
@@ -131,6 +139,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                         }
                                                 }
 
+if (false) System.err.println("t = " + NetIbis.now() + " " + this + ": invoke input " + input + ".setupConnection for " + cnx.getServiceLink().partner());
 						input.setupConnection(cnx);
 
                                                 //inputLock.unlock();
@@ -804,7 +813,7 @@ pollerThread = null;
                 } else {
                         if (useYield) {
                                 while (!_doPoll(useBlockingPoll)) {
-                                        Thread.yield();
+                                        try { Thread.sleep(0, 1); } catch (InterruptedException e) { } // Thread.yield();
                                         // n_yield++;
                                 }
                         } else {
