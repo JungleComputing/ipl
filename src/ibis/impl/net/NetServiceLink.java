@@ -63,34 +63,35 @@ public final class NetServiceLink {
         private boolean closed = false;
 
         /**
-         * Set to true for an 'accept' side {@link ibis.impl.net.NetServiceLink} object, to false for a 'connect' side {@link ibis.impl.net.NetServiceLink} object.
+         * True for an 'accept' side {@link ibis.impl.net.NetServiceLink} object,
+	 * false for a 'connect' side {@link ibis.impl.net.NetServiceLink} object.
          */
         private boolean      incoming = false;
 
         /**
-         * Reference the TCP socket supporting the service link.
+         * The TCP socket supporting the service link.
          */
         private Socket       socket   = null;
 
         /**
-         * Reference the outgoing TCP {@link #socket} stream.
+         * The outgoing TCP {@link #socket} stream.
          */
         private OutputStream os       = null;
 
         /**
-         * Reference the incoming TCP {@link #socket} stream.
+         * The incoming TCP {@link #socket} stream.
          */
         private InputStream  is       = null;
 
         /**
-         * Reference the main outgoing sub-stream.
+         * The main outgoing sub-stream.
          *
          * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink} object to send commands to its peer object.
          */
         private ObjectOutputStream main_oos = null;
 
         /**
-         * Reference the main incoming sub-stream.
+         * The main incoming sub-stream.
          *
          * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink} object to receive commands from its peer object.
          */
@@ -123,9 +124,9 @@ public final class NetServiceLink {
         private int                nextId       =    1;
 
         /**
-         * Store the reference to the thread responsible of listening
-         * to the {@link #is incoming socket stream} and to dispatch
-         * the packets over the various active input sub-streams.
+         * The thread responsible for listening to the {@link #is incoming
+	 * socket stream} and dispatching the packets over the various
+	 * active input sub-streams.
          */
         private ListenerThread     listenThread = null;
 
@@ -153,7 +154,7 @@ public final class NetServiceLink {
         private Object             requestResult     = null;
 
         /**
-         * Reference to the port's event queue used.
+         * The port's event queue.
          *
          * Used to send events to the port. Currently, the only known
          * event is the 'close' event which indicates that the link
@@ -162,7 +163,7 @@ public final class NetServiceLink {
         private NetEventQueue      portEventQueue    = null;
 
         /**
-         * Store the network connection id.
+         * The network connection id.
          *
          * <BR><B>Note:</B>&nbsp;This attribute is set by the {@link
          * #init} method, not by the constructor.
@@ -612,9 +613,9 @@ public final class NetServiceLink {
                 private int       offset    = 0;
 
                 /**
-                 * Permanent 4-byte buffer for 'buffer-length to bytes' conversion.
+                 * Permanent Conversion.INT_LENGTH-byte buffer for 'buffer-length to bytes' conversion.
                  */
-                private byte []   intBuffer = new byte[4];
+                private byte []   intBuffer = new byte[Conversion.INT_LENGTH];
 
 
                 /**
@@ -947,7 +948,7 @@ public final class NetServiceLink {
                 /**
                  * Provide a buffer dedicated to integer reception.
                  */
-                private byte[]  intBuffer = new byte[4];
+                private byte[]  intBuffer = new byte[Conversion.INT_LENGTH];
 
                 /**
                  * Constructor.

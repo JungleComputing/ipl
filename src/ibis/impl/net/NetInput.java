@@ -546,7 +546,7 @@ pollFail++;
 	 * First, all data structures are initialized and all properties
 	 * between inputs (like upcall/downcall mode for {@link NetPoller
 	 * Pollers} and their subInputs) are negotiated from {@link
-	 * setupConnection}. After that, the receiver threads are started.
+	 * #setupConnection}. After that, the receiver threads are started.
 	 */
 	public void startReceive() throws IOException {
 	    startUpcallThread();
@@ -554,7 +554,7 @@ pollFail++;
 
 	/**
 	 * Lazy start of a receiver thread for this NetInput if {@link
-	 * upcallFunc} is non<code>null</code>.
+	 * #upcallFunc} is non<code>null</code>.
 	 */
         protected final void startUpcallThread() throws IOException {
                 log.in();
@@ -614,7 +614,7 @@ up.setDaemon(true);
 	/**
 	 * {@linkplain NetInput}s may be capable of switching between upcall
 	 * mode and downcall mode on-the-fly by invoking {@link
-	 * switchToUpcallMode} or {@link switchToDowncallMode}.
+	 * #switchToUpcallMode} or {@link #switchToDowncallMode}.
 	 *
 	 * <BR>
 	 * The capacity to switch on-the-fly between upcall and downcall mode
@@ -623,13 +623,13 @@ up.setDaemon(true);
 	 *
 	 * <BR>
 	 * This value <strong>cannot</strong> be cached between calls to
-	 * {@link switchToDowncallMode} and {@link switchToUpcallMode}. E.g.,
+	 * {@link #switchToDowncallMode} and {@link #switchToUpcallMode}. E.g.,
 	 * NetInputs may support only one of the two transitions.
 	 *
-	 * @see	{@link pollIsInterruptible}
-	 * @see	{@link interruptPoll}
-	 * @see	{@link switchToDowncallMode}
-	 * @see	{@link switchToUpcallMode}
+	 * @see	#pollIsInterruptible
+	 * @see	#interruptPoll
+	 * @see	#switchToDowncallMode
+	 * @see	#switchToUpcallMode
 	 *
 	 * @return whether blocking poll is interruptible, which is equivalent
 	 * 		to whether this {@linkplain NetInput} supports
@@ -646,10 +646,10 @@ up.setDaemon(true);
 	 * {@linkplain NetInput}s can provide interruptibility but only at
 	 * an extra cost: <code>tcp_blk</code> is a case in point.
 	 *
-	 * @see	{@link pollIsInterruptible}
-	 * @see	{@link interruptPoll}
-	 * @see	{@link switchToDowncallMode}
-	 * @see	{@link switchToUpcallMode}
+	 * @see	#pollIsInterruptible
+	 * @see	#interruptPoll
+	 * @see	#switchToDowncallMode
+	 * @see	#switchToUpcallMode
 	 *
 	 * @param  interruptible switch interruptibility on/off
 	 * @throws {@link IllegalArgumentException} if this {@linkplain
@@ -667,20 +667,21 @@ up.setDaemon(true);
 	 * Upon an interruptPoll(), a thread that is blocked in a (blocking)
 	 * poll returns abnormally by throwing an {@link
 	 * InterruptedIOException}. A thread that is blocked in a receive
-	 * generates an {@link NetInputUpcall#interruptedUpcall}.
+	 * should generate an <code>interruptedUpcall</code> -- to be
+	 * implemented.
 	 *
 	 * <BR>
-	 * Method {@link pollIsInterruptible} informs whether this
+	 * Method {@link #pollIsInterruptible} informs whether this
 	 * {@linkplain NetInput} supports poll interrupts and switching between
 	 * upcall mode and downcall mode.
 	 *
 	 * <BR>
 	 * The implementation of this method may be costly.
 	 *
-	 * @see	{@link pollIsInterruptible}
-	 * @see	{@link interruptPoll}
-	 * @see	{@link switchToDowncallMode}
-	 * @see	{@link switchToUpcallMode}
+	 * @see	#pollIsInterruptible
+	 * @see	#interruptPoll
+	 * @see	#switchToDowncallMode
+	 * @see	#switchToUpcallMode
 	 *
 	 * @throws {@link IllegalArgumentException} if this {@linkplain
 	 * 		NetInput} does not actually support poll interrupts.
@@ -690,67 +691,66 @@ up.setDaemon(true);
 	}
 
 
-	/*
-	**
+	/**
 	 * Switch this {@linkplain NetInput} to downcall mode.
 	 *
 	 * Threads that are blocked in a receive must be interrupted before this
-	 * switch by calling {@link interruptPoll}. These threads will return
+	 * switch by calling {@link #interruptPoll}. These threads will return
 	 * abnormally by throwing an {@link InterruptedIOException}.
 	 *
 	 * <BR>
-	 * Any previously registered {@link InputUpcall} is cleared and
+	 * Any previously registered {@link NetInputUpcall} is cleared and
 	 * forgotten. The {@linkplain NetInput} of which this is a subInput is
 	 * responsible for doing downcall receives from now on.
 	 *
 	 * <BR>
-	 * Method {@link pollIsInterruptible} informs whether this
+	 * Method {@link #pollIsInterruptible} informs whether this
 	 * {@linkplain NetInput} supports poll interrupts and switching between
 	 * upcall mode and downcall mode.
 	 *
 	 * <BR>
 	 * The implementation of this method may be costly.
 	 *
-	 * @see	{@link pollIsInterruptible}
-	 * @see	{@link interruptPoll}
-	 * @see	{@link switchToDowncallMode}
-	 * @see	{@link switchToUpcallMode}
+	 * @see	#pollIsInterruptible
+	 * @see	#interruptPoll
+	 * @see	#switchToDowncallMode
+	 * @see	#switchToUpcallMode
 	 *
 	 * @throws {@link IllegalArgumentException} if this {@linkplain
 	 * 		NetInput} does not actually support poll interrupts.
+	 */
 	public void switchToDowncallMode() throws IOException {
 	    throw new IllegalArgumentException("Upcall/downcall mode switch not supported");
 	}
-	 */
 
 
 	/**
 	 * Switch this {@linkplain NetInput} to upcall mode.
 	 *
 	 * Threads that are blocked in a receive must be interrupted before this
-	 * switch by calling {@link interruptPoll}. These threads will return
+	 * switch by calling {@link #interruptPoll}. These threads will return
 	 * abnormally by throwing an {@link InterruptedIOException}.
 	 *
 	 * <BR>
 	 * If the caller is certain that no downcall receive may have been
 	 * posted yet, this method may be called without first interrupting
 	 * the poll. In that case this {@linkplain NetInput} need not be
-	 * {@linkplain pollIsInterruptible}. This occurs for instance when
+	 * {@linkplain #pollIsInterruptible}. This occurs for instance when
 	 * the poll and the connect are protected by one lock, that is still
 	 * taken indivisibly with the connect when this method is invoked.
 	 *
 	 * <BR>
-	 * Method {@link pollIsInterruptible} informs whether this
+	 * Method {@link #pollIsInterruptible} informs whether this
 	 * {@linkplain NetInput} supports poll interrupts and switching between
 	 * upcall mode and downcall mode.
 	 *
 	 * <BR>
 	 * The implementation of this method may be costly.
 	 *
-	 * @see	{@link pollIsInterruptible}
-	 * @see	{@link interruptPoll}
-	 * @see	{@link switchToDowncallMode}
-	 * @see	{@link switchToUpcallMode}
+	 * @see	#pollIsInterruptible
+	 * @see	#interruptPoll
+	 * @see	#switchToDowncallMode
+	 * @see	#switchToUpcallMode
 	 *
 	 * @param inputUpcall if this parameter is nonnull, message receipt will
 	 * 		be done using this upcall after switching off the
