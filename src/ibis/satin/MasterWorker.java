@@ -1,5 +1,7 @@
 package ibis.satin;
 
+/** The master-worker distribution algorithm. */
+
 final class MasterWorker implements Algorithm {
 	Satin satin;
 

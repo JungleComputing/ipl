@@ -2,6 +2,8 @@ package ibis.satin;
 
 import ibis.ipl.IbisIdentifier;
 
+/** A vector of invocation records. */
+
 final class IRVector implements Config {
 	InvocationRecord[] l = new InvocationRecord[500];
 	int count=0;

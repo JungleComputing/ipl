@@ -1,5 +1,7 @@
 package ibis.satin;
 
+/** The base class of all double-ended queue implementations. */
+
 // No need to delete aborted invocation records, the spawner keeps an
 // outstandingJobs list.
 

@@ -1,5 +1,7 @@
 package ibis.satin;
 
+/** The random work-stealing distributed computing algorithm. */
+
 final class RandomWorkStealing implements Algorithm {
     Satin satin;
 

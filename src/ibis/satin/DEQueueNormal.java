@@ -1,5 +1,7 @@
 package ibis.satin;
 
+/** The `normal' implementation of a double-ended queue. */
+
 // No need to delete aborted invocation records, the spawner keeps an
 // outstandingJobs list.
 

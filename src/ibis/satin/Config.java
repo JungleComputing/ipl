@@ -1,5 +1,7 @@
 package ibis.satin;
 
+/** Constants for the configuration of Satin. */
+
 public interface Config {
 	
 	/* Enable or disable statistics. */

@@ -1,5 +1,7 @@
 package ibis.satin;
 
+/** The Dijkstra implementation of a double-ended queue. */
+
 // warning! this does not work correctly in combination with aborts!
 // This is because we have to remove elements from random places in the queue
 // is this true???
