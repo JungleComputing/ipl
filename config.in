@@ -94,7 +94,6 @@ DASLIB		= /usr/local/VU/daslib
 GROUPC_COMMAND	= $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.group.Main
 
 GROUP_FILES	= $(SRC:%.java=%.gjava)
-CLASS_FILES	= $(SRC:%.java=%.class) $(INNER_CLASS)
 MAIN_CLASS	= $(MAIN:%.java=%.class)
 MAIN_CLASS_NAME	= $(MAIN:%.java=%)
 
@@ -166,9 +165,14 @@ MANTACFLAGS	+= -myrinet
 endif
 MANTAC_COMMAND = $(MANTA)/mantac $(MANTACFLAGS)
 
+REMOTE_STUBS		:= $(REMOTE:%.java=rmi_stub_%.java)
+REMOTE_SKELETONS	:= $(REMOTE:%.java=rmi_skeleton_%.java)
+
 SRC		+= $(REMOTE)
 SRC		+= $(REMOTE_STUBS)
 SRC		+= $(REMOTE_SKELETONS)
+
+CLASS_FILES	= $(SRC:%.java=%.class) $(INNER_CLASS)
 
 ifneq (, $(strip $(SERIALIZABLE)))
 SERIALIZABLE_O	:= $(SERIALIZABLE:%.java=%.o)
@@ -293,8 +297,6 @@ rmi_skeleton_%.java:	%.class
 
 ifneq (, $(strip $(SERIALIZABLE)))
 .PHONY: serializers
-REMOTE_STUBS		= $(REMOTE:%.java=rmi_stub_%.java)
-REMOTE_SKELETONS	= $(REMOTE:%.java=rmi_skeleton_%.java)
 .PRECIOUS:	$(REMOTE_STUBS) $(REMOTE_SKELETONS)
 serializers:	$(SERIALIZABLE_GENERATED)
 serializers:	$(REMOTE_STUBS)
