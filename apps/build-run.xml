@@ -117,7 +117,6 @@
     </target>
 
     <target name="test-par"
-	    depends="build"
 	    description="Run a parallel test if the property 'test-par-run' is set">
 	<if>
 	    <isset property="test-par-run"/>
@@ -141,7 +140,6 @@
     </target>
 
     <target name="test-prun"
-	    depends="build"
 	    description="Run a parallel test with prun if the property 'test-par-run' is set">
 	<if>
 	    <isset property="test-par-run"/>
@@ -164,7 +162,6 @@
     </target>
 
     <target name="test-seq"
-	    depends="build"
 	    description="Run a sequential test if the property 'test-seq-run' is set">
 	<if>
 	    <isset property="test-seq-run"/>
@@ -191,7 +188,8 @@
 	 Does test-par as well as test-seq.
     -->
     <target name="test"
-	    depends="test-seq,test-par">
+	    description="Build, run sequential test, run parallel test"
+	    depends="build,test-seq,test-par">
     </target>
 
     <target name="jar"

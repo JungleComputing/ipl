@@ -44,14 +44,10 @@
 	<foreach
 		list="${build.files}"
 		delimiter="${path.separator}"
-		target="-compile-one"
-		param="build.file"/>
-    </target>
-
-    <target name="-compile-one">
-	<dirname file="${build.file}" property="build.dir"/>
-	<echo message="Running 'ant compile' in ${build.dir}"/>
-	<ant dir="${build.dir}" target="compile" inheritAll="false"/>
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="compile"/>
+	</foreach>
     </target>
 
     <!--
@@ -63,14 +59,10 @@
 	<foreach
 		list="${build.files}"
 		delimiter="${path.separator}"
-		target="-build-one"
-		param="build.file"/>
-    </target>
-
-    <target name="-build-one">
-	<dirname file="${build.file}" property="build.dir"/>
-	<echo message="Running 'ant build' in ${build.dir}"/>
-	<ant dir="${build.dir}" target="build" inheritAll="false"/>
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="build"/>
+	</foreach>
     </target>
 
     <!--
@@ -82,14 +74,10 @@
 	<foreach
 		list="${build.files}"
 		delimiter="${path.separator}"
-		target="-clean-one"
-		param="build.file"/>
-    </target>
-
-    <target name="-clean-one">
-	<dirname file="${build.file}" property="build.dir"/>
-	<echo message="Running 'ant clean' in ${build.dir}"/>
-	<ant dir="${build.dir}" target="clean" inheritAll="false"/>
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="clean"/>
+	</foreach>
     </target>
 
     <!--
@@ -101,30 +89,52 @@
 	<foreach
 		list="${build.files}"
 		delimiter="${path.separator}"
-		target="-test-one"
-		param="build.file"/>
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="test"/>
+	</foreach>
     </target>
 
-    <target name="-test-one">
-	<dirname file="${build.file}" property="build.dir"/>
-	<echo message="Running 'ant test' in ${build.dir}"/>
-	<ant dir="${build.dir}" target="test" inheritAll="false"/>
+    <target name="test-seq"
+	    depends="-list-build-files"
+	    description="Run sequential tests in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="test-seq"/>
+	</foreach>
     </target>
 
-    <target name="test-prun"
+    <target name="test-par"
 	    depends="-list-build-files"
 	    description="Run parallel tests in Ibis applications">
 	<foreach
 		list="${build.files}"
 		delimiter="${path.separator}"
-		target="-prun-test-one"
-		param="build.file"/>
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="test-par"/>
+	</foreach>
     </target>
 
-    <target name="-prun-test-one">
+    <target name="test-prun"
+	    depends="-list-build-files"
+	    description="Run parallel tests with prun in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="test-prun"/>
+	</foreach>
+    </target>
+
+    <target name="-do-one">
 	<dirname file="${build.file}" property="build.dir"/>
-	<echo message="Running 'ant test-prun' in ${build.dir}"/>
-	<ant dir="${build.dir}" target="test-prun" inheritAll="false"/>
+	<echo message="Running 'ant ${do-one-target}' in ${build.dir}"/>
+	<ant dir="${build.dir}" target="${do-one-target}" inheritAll="false"/>
     </target>
 
 </project>
