@@ -67,6 +67,7 @@
 			outtype="shared"
 			runtime="dynamic"
 			warnings="severe"
+			name="${c.compiler}"
 			debug="${native.debug.value}">
 		    <libset dir="${mpi.lib.dir}"   libs="mpich"/>
 		    <libset dir="${gm.lib.dir}"    libs="gm"/>

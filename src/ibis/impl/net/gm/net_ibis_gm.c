@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#ifndef _M_IX86
 #include <sched.h>
+#endif
 #include <gm.h>
 
 #include "ibis_ipl_impl_net_gm_Driver.h"
@@ -24,18 +26,40 @@
 
 /* Debugging macros */
 #if 0
+#ifdef __GNUC__
 #define __trace__(s, p...) fprintf(stderr, "[%Ld]:%s:%d: "s"\n", __RDTSC__, __FUNCTION__, __LINE__ , ## p)
 #else
+#define __trace(s) fprintf(stderr, "[%Ld]:%s:%d: "s"\n", __RDTSC__, __FUNCTION__, __LINE__)
+#endif
+#else
+#ifdef __GNUC__
 #define __trace__(s, p...)
+#else
+#define __trace(s)
+#endif
 #endif
 
 #if 0
+#ifdef __GNUC__
 #define __disp__(s, p...) fprintf(stderr, "[%Ld]:%s:%d: "s"\n", __RDTSC__, __FUNCTION__, __LINE__ , ## p)
+#else
+static void
+__disp__(const char *s, ...)
+{
+}
+#endif
 #define __in__()          fprintf(stderr, "[%Ld]:%s:%d: -->\n", __RDTSC__, __FUNCTION__, __LINE__)
 #define __out__()         fprintf(stderr, "[%Ld]:%s:%d: <--\n", __RDTSC__, __FUNCTION__, __LINE__)
 #define __err__()         fprintf(stderr, "[%Ld]:%s:%d: <!!\n", __RDTSC__, __FUNCTION__, __LINE__)
 #else
+#ifdef __GNUC__
 #define __disp__(s, p...)
+#else
+static void
+__disp__(const char *s, ...)
+{
+}
+#endif
 #define __in__()
 #define __out__()
 #define __err__()
@@ -43,9 +67,23 @@
 
 /* Error message macros */
 #if 1
+#ifdef __GNUC__
 #define __error__(s, p...) fprintf(stderr, "[%Ld]:%s:%d: *error* "s"\n", __RDTSC__, __FUNCTION__, __LINE__ , ## p)
 #else
+static void
+__error__(const char *s, ...)
+{
+}
+#endif
+#else
+#ifdef __GNUC__
 #define __error__(s, p...)
+#else
+static void
+__error__(const char *s, ...)
+{
+}
+#endif
 #endif
 
 /*
@@ -2003,9 +2041,10 @@ static
 void
 ni_gm_throw_exception(JNIEnv *env,
                       char   *msg) {
+        jclass cls = 0;
+
         __in__();
         __trace__("ni_gm_throw_exception-->");
-        jclass cls = 0;
         assert(env);
         __trace__("ni_gm_throw_exception - 1");
         cls = (*env)->FindClass(env, NI_IBIS_EXCEPTION);
@@ -2689,7 +2728,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_cl
 }
 
 
-jint
+JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *reserved) {
         __in__();
         _p_vm = vm;
@@ -2699,7 +2738,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
 	return JNI_VERSION_1_2;
 }
 
-void
+JNIEXPORT void JNICALL
 JNI_OnUnload(JavaVM *vm, void *reserved) {
         __in__();
         _p_vm = NULL;

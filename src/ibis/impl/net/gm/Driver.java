@@ -28,6 +28,7 @@ public final class Driver extends NetDriver {
         static native void nGmBlockingThread();
 
 	static {
+		System.loadLibrary("gm");
 		System.loadLibrary("net_ibis_gm");
                 gmReceiveLock = new NetMutex(false);
                 gmAccessLock = new NetPriorityMutex(false);

@@ -1,6 +1,8 @@
 #include <sys/types.h>
 #include <signal.h>
+#ifndef _M_IX86
 #include <unistd.h>
+#endif
 #include <stdlib.h>
 
 #include <jni.h>
@@ -51,7 +53,11 @@ Java_ibis_ipl_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
 JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_Poll_abort(JNIEnv *env, jobject this)
 {
+#ifdef _M_IX86
+    fprintf(stderr, "Poll.abort not implemented for win32\n");
+#else
     kill(getpid(), SIGQUIT);
+#endif
 }
 
 

@@ -3,11 +3,13 @@
  */
 
 #include <string.h>
+#ifndef _M_IX86
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#endif
 
 #include <jni.h>
 
@@ -177,12 +179,28 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
 jstring
 ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len)
 {
-    char	buf[len + 1];
+#define STACK_STRING	    1024
+    char	stack_buf[STACK_STRING + 1];
+    char       *buf;
+    jstring	str;
+
+    if (len > STACK_STRING) {
+	buf = malloc(len + 1);
+    } else {
+	buf = stack_buf;
+    }
 
     ibp_consume(env, msg, buf, len);
     buf[len] = '\0';
     IBP_VPRINTF(400, env, ("Msg %p consume string[%d] = \"%s\"\n", msg, len, (char *)buf));
-    return (*env)->NewStringUTF(env, buf);
+    str = (*env)->NewStringUTF(env, buf);
+
+    if (len > STACK_STRING) {
+	free(buf);
+    }
+#undef STACK_STRING
+
+    return str;
 }
 
 
@@ -202,10 +220,23 @@ jbyteArray
 ibp_byte_array_consume(JNIEnv *env, ibp_msg_p msg, int len)
 {
     jbyteArray	a = (*env)->NewByteArray(env, len);
-    jbyte	buf[len];
+#define STACK_STRING	    1024
+    jbyte	stack_buf[STACK_STRING];
+    jbyte      *buf;
+
+    if (len > STACK_STRING) {
+	buf = malloc(len);
+    } else {
+	buf = stack_buf;
+    }
 
     ibp_consume(env, msg, buf, len);
     (*env)->SetByteArrayRegion(env, a, 0, len, buf);
+
+    if (len > STACK_STRING) {
+	free(buf);
+    }
+#undef STACK_STRING
 
     return a;
 }
@@ -487,7 +518,7 @@ static void
 ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 {
     int         argc;
-    char       *argv[*java_argc + 4];
+    char      **argv = malloc((*java_argc + 4) * sizeof(*argv));
     char        hostname[256];
     char        myproc[32];
     char        nprocs[32];
@@ -575,6 +606,8 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 	java_argv[i - 3] = argv[i];
     }
     *java_argc = argc - 3;
+
+    free(argv);
 }
 
 

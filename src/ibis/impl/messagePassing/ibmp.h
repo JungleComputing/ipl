@@ -21,6 +21,14 @@ void ibmp_lock_check_not_owned(JNIEnv *env);
 #define IBP_STATISTICS
 #endif
 
+#ifdef __GNUC__
+#define INLINE	    inline
+#elif defined _M_IX86
+#define INLINE	    __inline
+#else
+#define INLINE
+#endif
+
 #ifdef IBP_VERBOSE
 extern int ibmp_verbose;
 int ibmp_stderr_printf(char *fmt, ...);
@@ -53,7 +61,7 @@ void ibmp_check_ibis_name(JNIEnv *env, const char *name);
 
 
 /* Replicate pan_msg_iovec_len here to allow inlining :-( */
-static inline int
+static INLINE int
 ibmp_iovec_len(pan_iovec_p iov, int n)
 {
     int		i;

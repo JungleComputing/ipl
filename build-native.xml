@@ -35,37 +35,42 @@
 		message="Invoke javah for ${native.class} if it is out of date"/>
 
 	<echo message="${native.class}" file="${build}/include/name-tmp"/>
-	<replaceregexp
+	<replace
 		file="${build}/include/name-tmp"
-		flags="g"
-		match="\."
-		replace="_"/>
-	<replaceregexp
+		token="."
+		value="_"/>
+	<property name="include.path" location="${build}/include/"/>
+	<loadfile
+		property="include-class-name"
+		srcFile="${build}/include/name-tmp"/>
+	<replace
 		file="${build}/include/name-tmp"
-		match="(.*)"
-		replace="${build}\${file.separator}include\${file.separator}\1.h"/>
+		token="${include-class-name}"
+		value="${include.path}${file.separator}${include-class-name}.h"/>
 	<loadfile
 		property="include-file-name"
 		srcFile="${build}/include/name-tmp"/>
 
 	<echo message="${native.class}" file="${build}/include/name-tmp"/>
-	<replaceregexp
+	<replace
 		file="${build}/include/name-tmp"
-		flags="g"
-		match="\."
-		replace="\${file.separator}"/>
-	<replaceregexp
+		token="."
+		value="${file.separator}"/>
+	<loadfile
+		property="class-name"
+		srcFile="${build}/include/name-tmp"/>
+	<replace
 		file="${build}/include/name-tmp"
-		match="(.*)"
-		replace="${build}\${file.separator}\1.class"/>
+		token="${class-name}"
+		value="${build}${file.separator}${class-name}.class"/>
 	<loadfile
 		property="class-file-name"
 		srcFile="${build}/include/name-tmp"/>
 
 	<!-- <delete file="${build}/include/name-tmp"/> -->
-	<echo	level="debug"
+	<echo	level="verbose"
 		message="I think class file name for ${native.class} is ${class-file-name}"/>
-	<echo	level="debug"
+	<echo	level="verbose"
 		message="I think include file name for ${native.class} is ${include-file-name}"/>
 
 	<outofdate>
@@ -140,6 +145,16 @@
 			flags="g"
 			match="\${file.separator}"
 			replace="."/>
+		<replaceregexp
+			file="${build}/NativeMethodClasses"
+			flags="g"
+			match="\n"
+			replace=" "/>
+		<replaceregexp
+			file="${build}/NativeMethodClasses"
+			flags="g"
+			match="  *"
+			replace=" "/>
 	    </sequential>
 	</outofdate>
     </target>
@@ -156,6 +171,7 @@
 		<striplinebreaks/>
 	    </filterchain>
 	</loadfile>
+	<echo message="classes.native = ${classes.native}"/>
 	<if>
 	    <isset property="classes.native"/>
 	<then>

@@ -2,8 +2,6 @@
  * Native code for the interrupt catch thread
  */
 
-#include <signal.h>
-
 #include <jni.h>
 
 #include "ibmp.h"
@@ -41,6 +39,14 @@ Java_ibis_ipl_impl_messagePassing_InterruptCatcher_supported(JNIEnv *env, jobjec
     return JNI_TRUE;
 }
 
+#ifdef _M_IX86
+#define IBP_NO_INTPT
+#endif
+
+#ifndef IBP_NO_INTPT
+
+#include <signal.h>
+
 #include <pthread.h>
 
 /*
@@ -50,20 +56,24 @@ Java_ibis_ipl_impl_messagePassing_InterruptCatcher_supported(JNIEnv *env, jobjec
  * really).
  */
 pthread_t ibmp_sigcatcher_pthread;
+#endif
 
 JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_InterruptCatcher_registerHandler(JNIEnv *env, jobject this)
 {
+#ifndef IBP_NO_INTPT
     extern void pan_comm_intr_enable(void);
 
     ibmp_sigcatcher_pthread = pthread_self();
     pan_comm_intr_enable();
+#endif
 }
 
 
 JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_InterruptCatcher_waitForSignal(JNIEnv *env, jobject this)
 {
+#ifndef IBP_NO_INTPT
     sigset_t	mask;
     int		signo;
 
@@ -82,4 +92,5 @@ Java_ibis_ipl_impl_messagePassing_InterruptCatcher_waitForSignal(JNIEnv *env, jo
 	ibmp_error(env, "sigwait fails\n");
     }
     fprintf(stderr, "Woken up from sigwait\n");
+#endif
 }

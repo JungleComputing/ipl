@@ -13,7 +13,7 @@ extern pan_key_p	ibp_env_key;
 #define ibp_set_JNIEnv(env) \
 	{ \
 	    JNIEnv *old_env = ibp_JNIEnv; \
-	    pan_key_setspecific(ibp_env_key, env); \
+	    pan_key_setspecific(ibp_env_key, (void *)env); \
 	    ibp_JNIEnv = (env);
 #define ibp_unset_JNIEnv() \
 	    ibp_JNIEnv = old_env; \

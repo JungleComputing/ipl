@@ -2,7 +2,6 @@
  */
 
 #include <string.h>
-#include <inttypes.h>
 #include <jni.h>
 
 #include <pan_sys.h>
@@ -12,6 +11,7 @@
 
 #include "ibmp.h"
 #include "ibmp_poll.h"
+#include "ibmp_inttypes.h"
 
 #include "ibis_ipl_impl_messagePassing_ByteOutputStream.h"
 

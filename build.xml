@@ -60,14 +60,14 @@
 	The list of directories that contain native sources.
     -->
     <path id="native.src.dirs">
+	<!--
 	<pathelement path="${ibis}/io"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/panda"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/mpi"/>
+	-->
 	<pathelement path="${ibis}/ipl/impl/net/gm"/>
 	<pathelement path="${ibis}/util/nativeCode"/>
-	<!--
-	-->
     </path>
 
     <property name="native.src.path" refid="native.src.dirs"/>
@@ -79,15 +79,13 @@
     <target name="src-file-init" depends="init">
 	<path id="src.files.id">
 	    <fileset dir="${ibis}/..">
+		<include name="ibis/ipl/impl/net/**/*.java"/>
 		<include name="ibis/frontend/**/*.java"/>
 		<include name="ibis/group/**/*.java"/>
 		<include name="ibis/io/**/*.java"/>
 
 		<include name="ibis/ipl/**/*.java"/>
 		<exclude name="ibis/ipl/impl/net/nio/**/*.java"/>
-		<!--
-		<exclude name="ibis/ipl/impl/net/gm/**/*.java"/>
-		-->
 		<exclude name="ibis/ipl/impl/net/muxer/tcp_blk/**/*.java"/>
 		<exclude name="ibis/ipl/impl/messagePassing/panda/**/*.java"/>
 
@@ -247,7 +245,6 @@
 		srcdir="${src}">
 	    <include name="ibis/ipl/impl/net/**/*.java"/>
 	    <exclude name="ibis/ipl/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/net/gm/**/*.java"/>
 	    <exclude name="ibis/ipl/impl/net/muxer/tcp_blk/**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>

@@ -146,7 +146,7 @@ ibmp_msg_q_deq(void **proto)
     return msg;
 }
 
-#include <inttypes.h>
+#include "ibmp_inttypes.h"
 
 #ifdef IBP_VERBOSE
 

@@ -37,7 +37,7 @@
 	    debug
 	    optimize
     -->
-    <property name="optimization" value="optimize"/>
+    <property name="optimization" value="debug"/>
 
 
 
