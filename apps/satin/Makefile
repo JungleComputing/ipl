@@ -29,9 +29,9 @@ all_tests:
 	@echo ---------------------- RUNNING SEQUENTIAL SATIN TESTS ----------------------
 	make test
 	@echo ---------------------- RUNNING PARALLEL SATIN TESTS TCP SUN ----------------
-	$(MAKE) PAR_TEST_OPTIONS=-satin-tcp test_par
+	$(MAKE) test_par
 	@echo ---------------------- RUNNING PARALLEL SATIN TESTS TCP Ibis ---------------
-	$(MAKE) PAR_TEST_OPTIONS="-satin-tcp -satin-ibis" test_par
+	$(MAKE) PAR_TEST_OPTIONS="-satin-ibis" test_par
 #	@echo ---------------------- RUNNING PARALLEL SATIN TESTS PANDA ----------------------
 #       ...
 
