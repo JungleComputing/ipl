@@ -28,7 +28,7 @@ public class DataAllocator implements IbisStreamFlags {
     private float[][]	float_cache = new float[CACHE_MAX][];
     private double[][]	double_cache = new double[CACHE_MAX][];
 
-    private final static boolean STATISTICS = true;
+    private final static boolean STATISTICS = false;
 
     private int alloc_index;
     private int alloc_byte;
