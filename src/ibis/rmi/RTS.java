@@ -77,7 +77,6 @@ public final class RTS {
 				}
 				driver = driver.substring(dot + 1);
 			    }
-
 			}
 
 			if (DEBUG) {

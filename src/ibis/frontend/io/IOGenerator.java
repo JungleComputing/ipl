@@ -104,6 +104,9 @@ public class IOGenerator {
 	    try {
 		Class	cl = Class.forName(classname);
 		java.io.ObjectStreamClass ocl = java.io.ObjectStreamClass.lookup(cl);
+		//@@@ added by rob: it seems that the lookup returns null when not found.
+		// The ClassNotFoundException is not thrown.
+		if(ocl == null) return;
 		long	uid = ocl.getSerialVersionUID();
 		FieldGen f = new FieldGen(Constants.ACC_PRIVATE|Constants.ACC_FINAL|Constants.ACC_STATIC, 
 					  Type.LONG,

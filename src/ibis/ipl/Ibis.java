@@ -72,7 +72,7 @@ public abstract class Ibis {
 	    tcp		Ibis built on top of TCP (the current default).
 	    mpi		Ibis built on top of MPI.
 	    net.*	The future version, for tcp, udp, GM, ...
-	*/
+	**/
 	public static Ibis createIbis(ResizeHandler r)
 	    throws IbisException
 	{
