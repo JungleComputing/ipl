@@ -161,7 +161,7 @@ public class NameServer implements Protocol {
 			}
 
 			p.pool.add(info);
-			System.out.println("JOIN  of node " + id.name() + " to pool " + key + " (" + p.pool.size() + " nodes)");
+			System.out.println(id.name() + " JOINS  pool " + key + " (" + p.pool.size() + " nodes)");
 		}
 			
 		out.flush();
@@ -247,7 +247,7 @@ public class NameServer implements Protocol {
 				} 
 				p.pool.remove(index);
 
-				System.out.println("LEAVE of node " + id.name() + " to pool " + key + " (" + p.pool.size() + " nodes)");
+				System.out.println(id.name() + " LEAVES pool " + key + " (" + p.pool.size() + " nodes)");
 				id.free();
 
 
