@@ -74,7 +74,7 @@ JNIEXPORT jfloat JNICALL Java_ibis_util_naticeCode_Rdtsc_getMHz(JNIEnv *env, jcl
         time_host_mhz = HOST_MHZ_DEFAULT;
         fprintf(stderr,
                 "Cannot find /proc/cpuinfo, assume clock speed = %.1f MHz\n",
-                das_time_host_mhz);
+                time_host_mhz);
     }
 
     return (jfloat)time_host_mhz;
