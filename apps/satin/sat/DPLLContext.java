@@ -80,7 +80,7 @@ public final class DPLLContext implements java.io.Serializable {
             cno
         );
     }
-        
+
     /**
      * Returns a clone of this Context.
      * @return The clone.
@@ -206,8 +206,8 @@ public final class DPLLContext implements java.io.Serializable {
 
     /**
      * Registers the fact that the specified clause is in conflict with
-     * the current assignments. If useful, this method may throw a
-     * restart exception.
+     * the current assignments. This method throws a
+     * restart exception if that is useful.
      * @param p The SAT problem.
      * @param cno The clause that is in conflict.
      */
@@ -296,6 +296,8 @@ public final class DPLLContext implements java.io.Serializable {
 
     /**
      * Registers the fact that the specified clause is satisfied.
+     * @param p The SAT problem.
+     * @param cno The index of the clause that is now satisifed.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int markClauseSatisfied( SATProblem p, int cno )
@@ -304,6 +306,9 @@ public final class DPLLContext implements java.io.Serializable {
 
 	satisfied[cno] = true;
 	unsatisfied--;
+	if( unsatisfied == 0 ){
+	    return SATProblem.SATISFIED;
+	}
 	Clause c = p.clauses[cno];
 	if( tracePropagation ){
 	    System.err.println( "Clause " + c + " is now satisfied, " + unsatisfied + " to go" );
@@ -437,10 +442,6 @@ public final class DPLLContext implements java.io.Serializable {
 		}
 	    }
 	}
-	if( unsatisfied == 0 ){
-	    // All clauses are now satisfied, we have a winner!
-	    return SATProblem.SATISFIED;
-	}
 
 	// Now propagate unit clauses if there are any.
 	if( hasUnitClauses ){
@@ -515,10 +516,6 @@ public final class DPLLContext implements java.io.Serializable {
 		}
 	    }
 	}
-	if( unsatisfied == 0 ){
-	    // All clauses are now satisfied, we have a winner!
-	    return SATProblem.SATISFIED;
-	}
 
 	// Now propagate unit clauses if there are any.
 	if( hasUnitClauses ){
@@ -555,7 +552,7 @@ public final class DPLLContext implements java.io.Serializable {
                 continue;
             }
             if( doVerification ){
-                if( posinfo[i]<0.01 || neginfo[i]<0.01 ){
+                if( posinfo[i]<-0.01 || neginfo[i]<-0.01 ){
                     System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
                 }
             }

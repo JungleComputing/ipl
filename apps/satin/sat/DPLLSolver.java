@@ -49,13 +49,13 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	else {
 	    res = ctx.propagateNegAssignment( p, var );
 	}
-	if( res == -1 ){
+	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){
 		System.err.println( "ls" + level + ": propagation found a conflict" );
 	    }
 	    return;
 	}
-	if( res == 1 ){
+	if( res == SATProblem.SATISFIED ){
 	    // Propagation reveals problem is satisfied.
 	    SATSolution s = new SATSolution( ctx.assignment );
 
@@ -119,14 +119,14 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	else {
 	    res = ctx.propagateNegAssignment( p, var );
 	}
-	if( res == -1 ){
+	if( res == SATProblem.CONFLICTING ){
 	    // Propagation reveals a conflict.
 	    if( traceSolver ){
 		System.err.println( "s" + level + ": propagation found a conflict" );
 	    }
 	    return;
 	}
-	if( res == 1 ){
+	if( res == SATProblem.SATISFIED ){
 	    // Propagation reveals problem is satisfied.
 	    SATSolution s = new SATSolution( ctx.assignment );
 
@@ -149,8 +149,8 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	}
 
         boolean firstvar = ctx.posDominant( nextvar );
-        if( level>30 || ctx.unsatisfied<100 ){
-	    //System.err.println( "s" + level + " depth: " + depth + " unsat: " + ctx.unsatisfied + " dsat: " + dsat );
+
+        if( level>30 || ctx.unsatisfied<100 || !needMoreJobs() ){
 	    // We're nearly there, use the leaf solver.
 	    // We have variable 'nextvar' to branch on.
 	    DPLLContext subctx = (DPLLContext) ctx.clone();
@@ -193,13 +193,13 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    ctx.assignment = p.buildInitialAssignments();
 
 	    int r = ctx.optimize( p );
-	    if( r == 1 ){
+	    if( r == SATProblem.SATISFIED ){
 		if( !p.isSatisfied( ctx.assignment ) ){
 		    System.err.println( "Error: solution does not satisfy problem." );
 		}
 		return new SATSolution( ctx.assignment );
 	    }
-	    if( r == -1 ){
+	    if( r == SATProblem.CONFLICTING ){
 		return null;
 	    }
 
@@ -233,7 +233,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    s.abort();
 	}
         catch( SATException x ){
-            System.err.println( "Uncaught SATException " + x + "???" );
+            System.err.println( "Uncaught " + x + "???" );
         }
 
 	return res;

@@ -4,7 +4,7 @@
  * The context of the solve method. The fields in this class are cloned
  * for every recursion of the solve() method.
  */
-public class SATContext implements java.io.Serializable {
+public final class SATContext implements java.io.Serializable {
     /**
      * A symbolic name for the `unassigned' value in
      * the `assignment' array.
@@ -280,71 +280,84 @@ public class SATContext implements java.io.Serializable {
      * Returns null if no helpful clause can be constructed.
      * @param p The SAT problem.
      * @param cno The clause that is in conflict.
+     * @param var The variable that is in conflict.
+     * @param level The decision level of the conflict.
      * @return A new clause that should improve the efficiency of the search process, or null if no helpful clause can be constructed.
      */
-    private Clause buildConflictClause( SATProblem p, int cno, int level )
+    private Clause buildConflictClause( SATProblem p, int cno, int var, int level )
     {
-        boolean changed = false;
-        boolean anyChange = false;
-        Clause res = p.clauses[cno];
+	if( false ){
+	    boolean changed = false;
+	    boolean anyChange = false;
+	    Clause res = p.clauses[cno];
 
-        do {
-            changed = false;
-            int arr[] = res.pos;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
+	    do {
+		changed = false;
+		int arr[] = res.pos;
+		for( int i=0; i<arr.length; i++ ){
+		    int v = arr[i];
 
-                if( dl[v] == level ){
-                    int a = antecedent[v];
+		    if( dl[v] == level ){
+			int a = antecedent[v];
 
-                    if( a>=0 ){
-                        Clause newres = Clause.resolve( res, p.clauses[a], v );
-                        if( traceLearning ){
-                            System.err.println( "Resolving on v" + v + ":" );
-                            System.err.println( "  " + res );
-                            System.err.println( "  " + p.clauses[a] + " =>" );
-                            System.err.println( "  " + newres );
-                        }
-                        changed = true;
-                        anyChange = true;
-                        res = newres;
-                        break;
-                    }
-                }
-            }
-            arr = res.neg;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
+			if( a>=0 ){
+			    Clause newres = Clause.resolve( res, p.clauses[a], v );
+			    if( traceLearning ){
+				System.err.println( "Resolving on v" + v + ":" );
+				System.err.println( "  " + res );
+				System.err.println( "  " + p.clauses[a] + " =>" );
+				System.err.println( "  " + newres );
+			    }
+			    changed = true;
+			    anyChange = true;
+			    res = newres;
+			    break;
+			}
+		    }
+		}
+		arr = res.neg;
+		for( int i=0; i<arr.length; i++ ){
+		    int v = arr[i];
 
-                if( dl[v] == level ){
-                    int a = antecedent[v];
+		    if( dl[v] == level ){
+			int a = antecedent[v];
 
-                    if( a>=0 ){
-                        Clause newres = Clause.resolve( res, p.clauses[a], v );
-                        if( traceLearning ){
-                            System.err.println( "Resolving on v" + v + ":" );
-                            System.err.println( "  " + res );
-                            System.err.println( "  " + p.clauses[a] + " =>" );
-                            System.err.println( "  " + newres );
-                        }
-                        changed = true;
-                        anyChange = true;
-                        res = newres;
-                        break;
-                    }
-                }
-            }
-        } while( changed );
-        if( !anyChange ){
-            return null;
-        }
-        return res;
+			if( a>=0 ){
+			    Clause newres = Clause.resolve( res, p.clauses[a], v );
+			    if( traceLearning ){
+				System.err.println( "Resolving on v" + v + ":" );
+				System.err.println( "  " + res );
+				System.err.println( "  " + p.clauses[a] + " =>" );
+				System.err.println( "  " + newres );
+			    }
+			    changed = true;
+			    anyChange = true;
+			    res = newres;
+			    break;
+			}
+		    }
+		}
+	    } while( changed );
+	    if( !anyChange ){
+		return null;
+	    }
+	    return res;
+	}
+	else {
+	    int a = antecedent[var];
+
+	    if( a>=0 ){
+		return Clause.resolve( p.clauses[cno], p.clauses[a], var );
+	    }
+	    return null;
+	}
+
     }
 
     /**
      * Registers the fact that the specified clause is in conflict with
-     * the current assignments. If useful, this method may throw a
-     * restart exception.
+     * the current assignments. This method throws a
+     * restart exception if that is useful.
      * @param p The SAT problem.
      * @param cno The clause that is in conflict.
      */
@@ -356,7 +369,7 @@ public class SATContext implements java.io.Serializable {
             dumpAssignments();
             dumpAntecedents( "", p, cno );
         }
-        Clause cc = buildConflictClause( p, cno, level );
+        Clause cc = buildConflictClause( p, cno, var, level );
         if( traceLearning ){
             if( cc == null ){
                 System.err.println( "No interesting conflict clause could be constructed" );
@@ -502,6 +515,9 @@ public class SATContext implements java.io.Serializable {
 
 	satisfied[cno] = true;
 	unsatisfied--;
+	if( unsatisfied == 0 ){
+	    return SATProblem.SATISFIED;
+	}
 	Clause c = p.clauses[cno];
 	if( tracePropagation ){
 	    System.err.println( "Clause " + c + " is now satisfied, " + unsatisfied + " to go" );
@@ -639,10 +655,6 @@ public class SATContext implements java.io.Serializable {
 		}
 	    }
 	}
-	if( unsatisfied == 0 ){
-	    // All clauses are now satisfied, we have a winner!
-	    return SATProblem.SATISFIED;
-	}
 
 	// Now propagate unit clauses if there are any.
 	if( hasUnitClauses ){
@@ -718,10 +730,6 @@ public class SATContext implements java.io.Serializable {
 		    return res;
 		}
 	    }
-	}
-	if( unsatisfied == 0 ){
-	    // All clauses are now satisfied, we have a winner!
-	    return SATProblem.SATISFIED;
 	}
 
 	// Now propagate unit clauses if there are any.
