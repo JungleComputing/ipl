@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
     FILE *env_file;
     int		app_argc;
     char       *wrapper;
+    char       *dir = NULL;
 #ifdef __linux
     /*
      * provide the proper syscall information if our libc
@@ -50,8 +51,12 @@ int main(int argc, char *argv[])
 			    wrapper);
 		    exit(33);
 		}
-	    }
+	    } else
 #endif
+	    if (strcmp(argv[app_argc], "-cd") == 0) {
+		app_argc++;
+		dir = argv[app_argc];
+	    }
 	} else {
 	    break;
 	}
@@ -127,6 +132,13 @@ int main(int argc, char *argv[])
 //	    exit(0);
 	}
 	fprintf(stderr, "%s: Blocked SIGIO\n", wrapper);
+    }
+
+    if (dir != NULL) {
+	if (chdir(dir) != 0) {
+	    fprintf(stderr, "Cannot chdir to %s\n", dir);
+	    perror("chdir fails");
+	}
     }
 
     if (execve(argv[app_argc], &argv[app_argc], environ) == -1) {

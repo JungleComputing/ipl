@@ -22,8 +22,8 @@ public final class Monitor {
 	stats
     };
 
-    final static boolean DEBUG = TypedProperties.booleanProperty(dbg);
-    final static boolean STATISTICS = TypedProperties.booleanProperty(stats);
+    final static boolean DEBUG = TypedProperties.booleanProperty(dbg, false);
+    final static boolean STATISTICS = TypedProperties.booleanProperty(stats, false);
 
     final boolean	PRIORITY;
 
