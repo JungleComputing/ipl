@@ -21,8 +21,10 @@ import ibis.rmi.server.ExportException;
 import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
+
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -32,11 +34,13 @@ import java.util.Hashtable;
 
 public final class RTS {
 
-    static final String prefix = "rmi.";
-    static final String s_timer = "timer";
+    static final String prefix = "ibis.rmi.";
+    static final String s_timer = prefix + "timer";
+    static final String s_debug = prefix + "debug";
 
     static final String[] props = {
-	s_timer
+	s_timer,
+	s_debug
     };
 
     /** Sent when a remote invocation resulted in an exception. */
@@ -45,7 +49,7 @@ public final class RTS {
     /** Sent when a remote invocation did not result in an exception. */
     public final static byte RESULT       = 1;
 
-    public final static boolean DEBUG = false;
+    public final static boolean DEBUG = TypedProperties.booleanProperty(s_debug, false);
 
     //keys - impl objects, values - skeletons for those objects
     
@@ -241,10 +245,10 @@ public final class RTS {
 
 	    upcallHandler = new UpcallHandler();
 
-	    String h = InetAddress.getLocalHost().getHostName();
-	    InetAddress adres = InetAddress.getByName(h);
-	    adres = InetAddress.getByName(adres.getHostAddress());
-	    hostname = adres.getHostName();
+	    hostname = IPUtils.getLocalHostAddress().getHostName();
+	    // InetAddress adres = InetAddress.getByName(h);
+	    // adres = InetAddress.getByName(adres.getHostAddress());
+	    // hostname = adres.getHostName();
 
 	    if (DEBUG) {
 		System.out.println(hostname + ": init RMI RTS");

@@ -15,6 +15,7 @@ import ibis.ipl.WriteMessage;
 import ibis.util.PoolInfo;
 import ibis.util.Ticket;
 import ibis.util.TypedProperties;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -347,7 +348,7 @@ public final class Group implements GroupProtocol {
 	    stubclasses = new Hashtable();
 	    multicastSendports = new Hashtable();
 	    
-	    name = InetAddress.getLocalHost().getHostName();
+	    name = IPUtils.getLocalHostAddress().getHostName();
 
 	    if (DEBUG) {
 		System.out.println(name + ": init Group RTS");

@@ -8,6 +8,8 @@ import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.muxer.MuxerKey;
 import ibis.impl.net.muxer.MuxerOutput;
 
+import ibis.util.IPUtils;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -68,7 +70,7 @@ public final class UdpMuxOutput
 
 	super(portType, driver, context);
 
-	socket = new DatagramSocket(0, InetAddress.getLocalHost());
+	socket = new DatagramSocket(0, IPUtils.getLocalHostAddress());
 	lmtu   = Math.min(socket.getSendBufferSize(), 32768);//TOCHANGE
 	laddr  = socket.getLocalAddress();
 	lport  = socket.getLocalPort();

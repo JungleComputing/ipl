@@ -18,6 +18,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
+import ibis.util.IPUtils;
 
 public final class UdpMuxInput extends MuxerInput {
 
@@ -54,7 +55,7 @@ public final class UdpMuxInput extends MuxerInput {
 
 	super(pt, driver, context, inputUpcall);
 
-	socket = new DatagramSocket(0, InetAddress.getLocalHost());
+	socket = new DatagramSocket(0, IPUtils.getLocalHostAddress());
 	lmtu = Math.min(socket.getReceiveBufferSize(), UDP_MAX_MTU);
 	laddr = socket.getLocalAddress();
 	lport = socket.getLocalPort();

@@ -136,7 +136,7 @@ public class IPUtils {
 	    alt_localaddress.getHostName();
 
 	    if (DEBUG) {
-		System.err.println("Found address: " + alt_localaddress);
+		System.err.println("Found alt address: " + alt_localaddress);
 	    }
 	}
 	return alt_localaddress;
@@ -154,6 +154,7 @@ public class IPUtils {
 	    if (myIp != null) {
 		try {
 		    external = InetAddress.getByName(myIp);
+System.err.println("Specified alt ip addr " + external);
 		    return external;
 		} catch (java.net.UnknownHostException e) {
 		    System.err.println("IP addres property specified, but could not resolve it");
@@ -165,6 +166,9 @@ public class IPUtils {
 	    if (myIp != null) {
 		try {
 		    external = InetAddress.getByName(myIp);
+		    if (DEBUG) {
+			System.err.println("Found specified address " + external);
+		    }
 		    return external;
 		} catch (java.net.UnknownHostException e) {
 		    System.err.println("IP addres property specified, but could not resolve it");

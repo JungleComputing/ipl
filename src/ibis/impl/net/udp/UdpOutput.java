@@ -7,7 +7,9 @@ import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
+
 import ibis.io.Conversion;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -105,7 +107,7 @@ public final class UdpOutput extends NetBufferedOutput {
 		    System.err.println(this + ": setupConnection over " + cnx);
 		}
         
-		socket = new DatagramSocket(0, InetAddress.getLocalHost());
+		socket = new DatagramSocket(0, IPUtils.getLocalHostAddress());
 		lmtu   = Math.min(socket.getSendBufferSize(), 32768);//TOCHANGE
 		laddr  = socket.getLocalAddress();
 		lport  = socket.getLocalPort();

@@ -10,7 +10,9 @@ import ibis.impl.net.NetMessageStat;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+
 import ibis.io.Conversion;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -136,7 +138,7 @@ public final class UdpInput extends NetBufferedInput {
 		    System.err.println(this + ": setupConnection over " + cnx);
 		}
 
-		socket = new DatagramSocket(0, InetAddress.getLocalHost());
+		socket = new DatagramSocket(0, IPUtils.getLocalHostAddress());
 		lmtu = Math.min(socket.getReceiveBufferSize(), 16384);
 		laddr = socket.getLocalAddress();
 		lport = socket.getLocalPort();

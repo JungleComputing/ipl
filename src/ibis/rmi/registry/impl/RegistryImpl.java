@@ -7,6 +7,8 @@ import ibis.rmi.RemoteException;
 import ibis.rmi.impl.RTS;
 import ibis.rmi.registry.Registry;
 
+import ibis.util.IPUtils;
+
 import java.net.InetAddress;
 
 public class RegistryImpl implements Registry
@@ -16,21 +18,11 @@ public class RegistryImpl implements Registry
     
     private String localhostName() {
 	String hostname = null;
-	try {
-	    hostname = InetAddress.getLocalHost().getHostName();
-	    
-	    /* This stuff needed to get a proper hostname.
-	       If not included, you might get localhost.localdomain.
-	    */
-	    InetAddress adres = InetAddress.getByName(hostname);
-	    adres = InetAddress.getByName(adres.getHostAddress());
-	    hostname = adres.getHostName();
-	} catch (java.net.UnknownHostException e) {
-if(RTS.DEBUG)	
-	    System.err.println("hmmm... local host is unknown?");
+	InetAddress addr = IPUtils.getLocalHostAddress();
+	hostname = addr.getHostName();
+	if (RTS.DEBUG) {
+	    System.out.println("localhostName() returns " + hostname);
 	}
-if(RTS.DEBUG) 
-	System.out.println("localhostName() returns " + hostname);
 
 	return hostname;
     } 
@@ -41,7 +33,7 @@ if(RTS.DEBUG)
 	    try {
 		InetAddress adres = InetAddress.getByName(host);
 		if (adres.getHostAddress().equals("127.0.0.1")) {
-		    adres = InetAddress.getByName(InetAddress.getLocalHost().getHostName());
+		    adres = InetAddress.getByName(IPUtils.getLocalHostAddress().getHostName());
 		}
 		adres = InetAddress.getByName(adres.getHostAddress());
 		host = adres.getHostName();
@@ -59,9 +51,9 @@ if(RTS.DEBUG)
 	} else {	    
 	    RegistryImpl.port = port;
 	}
-if(RTS.DEBUG)  {
-    System.out.println("RegistryImpl<init>: host = "  + RegistryImpl.host + " port = " + RegistryImpl.port);
-}
+	if (RTS.DEBUG)  {
+	    System.out.println("RegistryImpl<init>: host = "  + RegistryImpl.host + " port = " + RegistryImpl.port);
+	}
 	
     }
     
@@ -93,8 +85,9 @@ if(RTS.DEBUG)  {
 	} catch (AlreadyBoundException e1) {
 	    throw new AlreadyBoundException(e1.getMessage(), e1);
 	} catch (Exception e2) {
-if (RTS.DEBUG)
-	    e2.printStackTrace();		    
+	    if (RTS.DEBUG) {
+		e2.printStackTrace();		    
+	    }
 	    throw new RemoteException(e2.getMessage(), e2);
 	}
 
@@ -131,8 +124,9 @@ if (RTS.DEBUG)
 	try {
 	    String url = "rmi://" + host + ":" + port + "/";
 	    String[] names = RTS.list(url);
-if (RTS.DEBUG) 
-	    System.out.println(names.length + " names bound in the registry");
+	    if (RTS.DEBUG)  {
+		System.out.println(names.length + " names bound in the registry");
+	    }
 	    return names;	    
 	} catch (Exception e) {
 	    throw new RemoteException(e.getMessage(), e);

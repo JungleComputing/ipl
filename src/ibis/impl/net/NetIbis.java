@@ -12,6 +12,7 @@ import ibis.ipl.StaticProperties;
 import ibis.util.IbisSocketFactory;
 import ibis.util.TypedProperties;
 import ibis.util.Timer;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -168,12 +169,8 @@ public final class NetIbis extends Ibis {
 		p = ibis.util.PoolInfo.createPoolInfo();
 	    } catch (RuntimeException e) {
 		// OK, no pool, so this better not be closed world
-		try {
-		    InetAddress addr = InetAddress.getLocalHost();
-		    addr = InetAddress.getByName(addr.getHostAddress());
-		    hostName = addr.getHostName();
-		} catch (UnknownHostException e1) {
-		}
+		InetAddress addr = IPUtils.getLocalHostAddress();
+		hostName = addr.getHostName();
 	    }
 	    poolInfo = p;
 	    if (poolInfo != null) {
@@ -459,7 +456,7 @@ public final class NetIbis extends Ibis {
 	protected void init() throws IbisException, IOException {
 
                 /* Builds the instance identifier out of our {@link InetAddress}. */
-		InetAddress addr = InetAddress.getLocalHost();
+		InetAddress addr = IPUtils.getLocalHostAddress();
 		identifier = new NetIbisIdentifier(name, addr);
 
                 /* Connects to the <I>name server<I> */

@@ -11,6 +11,8 @@ import ibis.ipl.ResizeHandler;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 
+import ibis.util.IPUtils;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
@@ -77,14 +79,8 @@ public final class Satin extends APIMethods implements ResizeHandler,
 		initTimers();
 		String hostName = null;
 
-		try {
-			InetAddress address = InetAddress.getLocalHost();
-			hostName = address.getHostName();
-
-		} catch (UnknownHostException e) {
-			System.err.println("SATIN:init: Cannot get ip of local host: " + e);
-			System.exit(1);
-		}
+		InetAddress address = IPUtils.getLocalHostAddress();
+		hostName = address.getHostName();
 
 		StaticProperties requestedProperties = new StaticProperties();
 

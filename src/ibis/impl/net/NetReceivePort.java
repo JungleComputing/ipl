@@ -11,6 +11,7 @@ import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.util.TypedProperties;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -729,7 +730,7 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
 
         private void initServerSocket() throws IOException {
                 log.in();
-		serverSocket = NetIbis.socketFactory.createServerSocket(0, 0, InetAddress.getLocalHost());
+		serverSocket = NetIbis.socketFactory.createServerSocket(0, 0, IPUtils.getLocalHostAddress());
                 log.out();
         }
 

@@ -8,7 +8,9 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+
 import ibis.util.PoolInfo;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -52,7 +54,7 @@ public final class RTS {
                 try {
                         skeletons = new Vector();
                         
-                        name = InetAddress.getLocalHost().getHostName();
+                        name = IPUtils.getLocalHostAddress().getHostName();
 
                         if (DEBUG) {
                                 System.out.println(name + ": init RepMI RTS");

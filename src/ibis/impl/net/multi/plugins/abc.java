@@ -3,6 +3,8 @@ package ibis.impl.net.multi.plugins;
 import ibis.impl.net.NetIbisIdentifier;
 import ibis.impl.net.multi.MultiPlugin;
 
+import ibis.util.IPUtils;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -24,7 +26,7 @@ public final class abc implements MultiPlugin {
                                     ObjectInputStream 	is) throws IOException {
                 String subContext = null;
 
-		InetAddress localHostAddr  = InetAddress.getLocalHost();
+		InetAddress localHostAddr  = IPUtils.getLocalHostAddress();
 		InetAddress remoteHostAddr = null;
 
 		try {

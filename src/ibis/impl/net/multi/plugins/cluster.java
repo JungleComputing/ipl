@@ -4,6 +4,8 @@ import ibis.impl.net.NetFile;
 import ibis.impl.net.NetIbisIdentifier;
 import ibis.impl.net.multi.MultiPlugin;
 
+import ibis.util.IPUtils;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -39,13 +41,7 @@ public final class cluster implements MultiPlugin {
 
         static {
                 Properties 	p   		= System.getProperties();
-                InetAddress 	localhost 	= null;
-
-                try {
-                        localhost = InetAddress.getLocalHost();
-                } catch (UnknownHostException e) {
-                        throw new Error(e);
-                }
+                InetAddress 	localhost 	= IPUtils.getLocalHostAddress();
 
                 String     	chn		= localhost.getCanonicalHostName();
                 String     	hn		= localhost.getHostName();
