@@ -27,7 +27,7 @@ class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 		total_num = info.size();
 		nodes     = new i_SOR[total_num];
 		num_nodes = 0;
-System.err.println(this + ": in ctor");
+// System.err.println(this + ": in ctor");
 // Thread.dumpStack();
 	}
 

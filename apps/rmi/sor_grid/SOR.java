@@ -61,7 +61,9 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 
 	private PoolInfo info;
 
-	SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, VisualBuffer visual, PoolInfo info) throws RemoteException {
+	private int	reduceFactor;
+
+	SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, VisualBuffer visual, PoolInfo info, int reduceFactor) throws RemoteException {
 		this.nrow = nrow; // Add two rows to borders.
 		this.ncol = ncol; // Add two columns to borders.
 		this.nit  = nit;
@@ -71,6 +73,8 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		this.info = info;
 
 		this.global = global;
+
+		this.reduceFactor = reduceFactor;
 
 		/* ranks of predecessor and successor for row exchanges */
     
@@ -343,6 +347,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 			System.out.println("stopdiff: " + stopdiff);
 			System.out.println("lb      : " + lb);
 			System.out.println("ub      : " + ub);
+			System.out.println("Rdc every " + reduceFactor);
 			System.out.println("");
 		} 
 
@@ -448,7 +453,9 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 			}
 
 			if (nit == 0 && nodes > 1) {
+			    if ((iteration % reduceFactor) == 0) {
 				maxdiff = global.reduceDiff(diff);
+			    }
 			} else {
 				// System.out.println("diff = " + diff);
 				maxdiff = diff;

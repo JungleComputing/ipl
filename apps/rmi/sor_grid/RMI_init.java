@@ -42,8 +42,20 @@ public class RMI_init {
 	InetAddress regAddr = InetAddress.getByName(registryOwner);
 
 	if (addr.equals(regAddr)) {
-	    System.out.println("Use LocateRegistry to create a Registry");
-	    reg = LocateRegistry.createRegistry(port);
+	    while (reg == null) {
+		try {
+		    reg = LocateRegistry.createRegistry(port);
+		    System.out.println("Use LocateRegistry to create a Registry");
+		    break;
+		} catch (RemoteException e) {
+		}
+		try {
+		    reg = LocateRegistry.getRegistry(registryOwner, port);
+		    System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr);
+		    break;
+		} catch (RemoteException e) {
+		}
+	    }
 
 	} else {
 	    System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr);
