@@ -290,7 +290,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * Given a SAT problem, returns a solution, or <code>null</code> if
      * there is no solution.
      * @param p The problem to solve.
-     * @return a solution of the problem, or <code>null</code> if there is no solution
+     * @return A solution of the problem, or <code>null</code> if there is no solution.
      */
     static SATSolution solveSystem( final SATProblem p, boolean learnTuple )
     {

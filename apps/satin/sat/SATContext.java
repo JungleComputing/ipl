@@ -528,28 +528,25 @@ public final class SATContext implements java.io.Serializable {
                 }
             }
         } while( changed );
-        // Now greedily resolve clauses as long as they are smaller.
         if( false ){
+            // Now greedily resolve clauses as long as they are smaller.
             do {
                 changed = false;
                 int arr[] = res.pos;
+                Clause bestclause = null;
+                int bestlength = res.getTermCount();
+
                 for( int i=0; i<arr.length; i++ ){
                     int v = arr[i];
                     int a = antecedent[v];
 
                     if( a>=0 ){
                         Clause newres = Clause.resolve( res, p.clauses[a], v );
-                        if( traceLearning ){
-                            System.err.println( "Resolving on v" + v + ":" );
-                            System.err.println( "  " + res );
-                            System.err.println( "  " + p.clauses[a] + " =>" );
-                            System.err.println( "  " + newres );
-                        }
-                        if( res.getTermCount()>newres.getTermCount() ){
-                            changed = true;
-                            anyChange = true;
-                            res = newres;
-                            break;
+                        int l = newres.getTermCount();
+
+                        if( bestlength>l ){
+                            bestclause = newres;
+                            bestlength = l;
                         }
                     }
                 }
@@ -558,21 +555,20 @@ public final class SATContext implements java.io.Serializable {
                     int v = arr[i];
                     int a = antecedent[v];
 
-                    if( a>=0 && a != bestDom ){
+                    if( a>=0 ){
                         Clause newres = Clause.resolve( res, p.clauses[a], v );
-                        if( traceLearning ){
-                            System.err.println( "Resolving on v" + v + ":" );
-                            System.err.println( "  " + res );
-                            System.err.println( "  " + p.clauses[a] + " =>" );
-                            System.err.println( "  " + newres );
-                        }
-                        if( res.getTermCount()>newres.getTermCount() ){
-                            changed = true;
-                            anyChange = true;
-                            res = newres;
-                            break;
+                        int l = newres.getTermCount();
+
+                        if( bestlength>l ){
+                            bestclause = newres;
+                            bestlength = l;
                         }
                     }
+                }
+                if( bestclause != null ){
+                    res = bestclause;
+                    changed = true;
+                    anyChange = true;
                 }
             } while( changed );
         }
