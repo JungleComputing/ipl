@@ -1,13 +1,15 @@
 import ibis.ipl.*;
 
+import java.util.Random;
+
 import java.io.IOException;
 
 public class Main {
 
 	public static final boolean DEBUG = false;
 
-	public static final int LEN   = 1024*1024;
-	public static final int COUNT = 100;
+	public static final int LEN   = 1024;
+	public static final int COUNT = 100000;
 
 	public static final int BOOLEAN_SIZE = 1;
 	public static final int BYTE_SIZE    = 1;
@@ -128,16 +130,30 @@ public class Main {
 	public static void main(String args[]) {
 		
 		try {			
-			boolean manta = false;
+			boolean manta = true;
+			boolean net = false;
 			int rank = 0, remoteRank = 1;
+			String id;
 
 			for(int i=0; i<args.length; i++) {
 				if(args[i].equals("-manta")) {
 					manta = true;
 				} 
+				if(args[i].equals("-net")) {
+					net = true;
+				} 
+				
 			}
-					
-			ibis = Ibis.createIbis("ibis", "ibis.impl.tcp.TcpIbis", null);
+			
+			id = "ibis:" + (new Random()).nextInt();
+
+			if (net) {		
+			    ibis = Ibis.createIbis(id, 
+					    "ibis.impl.net.NetIbis", null);
+			} else {
+			    ibis = Ibis.createIbis(id, 
+					    "ibis.impl.tcp.TcpIbis", null);
+			}
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();

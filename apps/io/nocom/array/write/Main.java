@@ -8,7 +8,7 @@ public class Main {
 
 	public static final boolean DEBUG = false;
 	public static final int LEN   = 100*1024;
-	public static final int COUNT = 100;
+	public static final int COUNT = 10000;
 	public static final int TESTS = 100;
 
 
