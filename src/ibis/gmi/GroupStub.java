@@ -288,7 +288,6 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    }		
 	    replyStack.put(ticket, m);
 	} 
-	r.finish();
     } 
 
     /**
