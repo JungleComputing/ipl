@@ -56,10 +56,6 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	    }
 	}
 
-	if (connectState != CONNECTED) {
-	    System.err.println(this + ": OOOOPS getMessage() but we are not yet connected");
-	}
-
 	ReadMessage msg = cachedMessage;
 
 	if (DEBUG) {
