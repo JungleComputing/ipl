@@ -50,6 +50,10 @@ final class NullArrayOutputStream extends ArrayOutputStream {
 	public final void finish() throws IOException { 
 	}
 
+	public final boolean finished() {
+	    return true;
+	}
+
 	public final void close() throws IOException { 
 	}
 

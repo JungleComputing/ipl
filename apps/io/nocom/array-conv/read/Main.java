@@ -13,11 +13,11 @@ public class Main {
 	public static final boolean DEBUG = false;
 	public static final int LEN   = 100*1024;
 	public static final int COUNT = 100;
-	public static final int TESTS = 10;
+	public static final int TESTS = 100;
 
 	public static final boolean doByte = true;
 	public static final boolean doInt = true;
-	public static final boolean doLong = false;
+	public static final boolean doLong = true;
 	public static final boolean doDouble = true;
 
 	public static double round(double val) {

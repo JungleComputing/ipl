@@ -144,7 +144,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 		// first, copy the data we do have to 'a' .
 		System.arraycopy(buffer, index, a, off, buffered_bytes);
 	    }
-	    int rd = buffered_bytes;;
+	    int rd = buffered_bytes;
 	    index = 0;
 	    do {
 		int n = in.read(a, off + rd, len - rd);

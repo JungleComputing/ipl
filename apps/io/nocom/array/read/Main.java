@@ -91,9 +91,9 @@ public class Main {
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-//				System.out.println();
-//				System.out.println("Read took " + time + " ms");
-//				System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
+				// System.out.println();
+				// System.out.println("Read took " + time + " ms");
+				// System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 
 				if (time < best_time) {
 					best_time = time;
@@ -281,9 +281,9 @@ public class Main {
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-//				System.out.println();
-//				System.out.println("Read took " + time + " ms");
-//				System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
+			//	System.out.println();
+			//	System.out.println("Read took " + time + " ms");
+			//	System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 
 				if (time < best_time) {
 					best_time = time;

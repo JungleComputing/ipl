@@ -207,19 +207,4 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	}
 	System.arraycopy(temp, 0, ref, off, len);
     }
-
-    /**
-     * This method should never be called. When it is, something went wrong
-     * with the initialization.
-     *
-     * @return nothing; an exception gets thrown.
-     * @exception IOException is always thrown.
-     */
-    protected Object doReadObject() throws IOException, ClassNotFoundException {
-	/*  We should not get here, because doReadObject is only
-	    called from readObjectOverride(), which is only called when
-	    we are not doing Sun serialization.
-	*/
-	throw new IOException("doReadObject called from sun serialization");
-    }
 }

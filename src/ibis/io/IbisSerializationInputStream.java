@@ -22,7 +22,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /**
      * List of objects, for cycle checking.
      */
-    IbisVector objects = new IbisVector();
+    IbisVector objects;
 
     /**
      * First free object index.
@@ -124,12 +124,126 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	IbisTypeInfo.getIbisTypeInfo(classDoubleArray);
 
     /**
+     * Each "bunch" of data is preceded by a header array, telling for
+     * each type, how many of those must be read. This header array is
+     * read into <code>indices_short</code>.
+     */
+    protected short[]	indices_short  = new short[PRIMITIVE_TYPES];
+
+    /**
+     * Storage for bytes (or booleans) read.
+     */
+    public byte[]	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
+
+    /**
+     * Storage for chars read.
+     */
+    public char[]	char_buffer    = new char[CHAR_BUFFER_SIZE];
+
+    /**
+     * Storage for shorts read.
+     */
+    public short[]	short_buffer   = new short[SHORT_BUFFER_SIZE];
+
+    /**
+     * Storage for ints read.
+     */
+    public int[]	int_buffer     = new int[INT_BUFFER_SIZE];
+
+    /**
+     * Storage for longs read.
+     */
+    public long[]	long_buffer    = new long[LONG_BUFFER_SIZE];
+
+    /**
+     * Storage for floats read.
+     */
+    public float[]	float_buffer   = new float[FLOAT_BUFFER_SIZE];
+
+    /**
+     * Storage for doubles read.
+     */
+    public double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
+
+    /**
+     * Current index in <code>byte_buffer</code>.
+     */
+    public int		byte_index;
+
+    /**
+     * Current index in <code>char_buffer</code>.
+     */
+    public int		char_index;
+
+    /**
+     * Current index in <code>short_buffer</code>.
+     */
+    public int		short_index;
+
+    /**
+     * Current index in <code>int_buffer</code>.
+     */
+    public int		int_index;
+
+    /**
+     * Current index in <code>long_buffer</code>.
+     */
+    public int		long_index;
+
+    /**
+     * Current index in <code>float_buffer</code>.
+     */
+    public int		float_index;
+
+    /**
+     * Current index in <code>double_buffer</code>.
+     */
+    public int		double_index;
+
+    /**
+     * Number of bytes in <code>byte_buffer</code>.
+     */
+    public int		max_byte_index;
+
+    /**
+     * Number of chars in <code>char_buffer</code>.
+     */
+    public int		max_char_index;
+
+    /**
+     * Number of shorts in <code>short_buffer</code>.
+     */
+    public int		max_short_index;
+
+    /**
+     * Number of ints in <code>int_buffer</code>.
+     */
+    public int		max_int_index;
+
+    /**
+     * Number of longs in <code>long_buffer</code>.
+     */
+    public int		max_long_index;
+
+    /**
+     * Number of floats in <code>float_buffer</code>.
+     */
+    public int		max_float_index;
+
+    /**
+     * Number of doubles in <code>double_buffer</code>.
+     */
+    public int		max_double_index;
+
+
+    /**
      * Constructor with an <code>IbisDissipator</code>.
      * @param in		the underlying <code>IbisDissipator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public IbisSerializationInputStream(IbisDissipator in) throws IOException {
 	super();
+	objects = new IbisVector(1024);
 	init(true);
 	this.in = in;
     }
@@ -157,8 +271,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    next_type = PRIMITIVE_TYPES;
 	}
 
-	objects.clear();
-	next_object = CONTROL_HANDLES;
+	clear();
     }
 
     /**
@@ -214,7 +327,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @inheritDoc
      */
     public int read() throws IOException {
-	return in.readByte();
+	return readByte();
     }
 
     /**
@@ -251,9 +364,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      */
     public int available() throws IOException {
 	/* @@@ NOTE: this is not right. There are also some buffered arrays..*/
-
-        /* @@@ NOTE(2): now it is ;) --N */
-
         return in.available();
 
     }
@@ -273,24 +383,206 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * Receive a new bunch of data.
+     *
+     * @exception IOException gets thrown when any of the reads throws it.
      */
-    public boolean readBoolean() throws IOException {
-	return in.readBoolean();
+    public final void receive() throws IOException {
+	if (DEBUG) {
+	    System.err.println("handler " + this + " is doing a receive()");
+	}
+	if(ASSERTS) {
+	    int sum = (max_byte_index - byte_index) + 
+		    (max_char_index - char_index) + 
+		    (max_short_index - short_index) + 
+		    (max_int_index - int_index) + 
+		    (max_long_index - long_index) + 
+		    (max_float_index - float_index) + 
+		    (max_double_index - double_index);
+	    if (sum != 0) { 
+		System.err.println("EEEEK : receiving while there is data in buffer !!!");
+		System.err.println("byte_index "   + (max_byte_index - byte_index));
+		System.err.println("char_index "   + (max_char_index - char_index));
+		System.err.println("short_index "  + (max_short_index -short_index));
+		System.err.println("int_index "    + (max_int_index - int_index));
+		System.err.println("long_index "   + (max_long_index -long_index));
+		System.err.println("double_index " + (max_double_index -double_index));
+		System.err.println("float_index "  + (max_float_index - float_index));
+
+		new Exception().printStackTrace();
+		System.exit(1);
+	    }
+	}
+
+	in.readArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
+
+	byte_index    = 0;
+	char_index    = 0;
+	short_index   = 0;
+	int_index     = 0;
+	long_index    = 0;
+	float_index   = 0;
+	double_index  = 0;
+
+	max_byte_index    = indices_short[TYPE_BYTE];
+	max_char_index    = indices_short[TYPE_CHAR];
+	max_short_index   = indices_short[TYPE_SHORT];
+	max_int_index     = indices_short[TYPE_INT];
+	max_long_index    = indices_short[TYPE_LONG];
+	max_float_index   = indices_short[TYPE_FLOAT];
+	max_double_index  = indices_short[TYPE_DOUBLE];
+
+	if(DEBUG) {
+	    System.err.println("reading bytes " + max_byte_index);
+	    System.err.println("reading char " + max_char_index);
+	    System.err.println("reading short " + max_short_index);
+	    System.err.println("reading int " + max_int_index);
+	    System.err.println("reading long " + max_long_index);
+	    System.err.println("reading float " + max_float_index);
+	    System.err.println("reading double " + max_double_index);
+	}
+
+	if (max_byte_index > 0) {
+	    in.readArray(byte_buffer, 0, max_byte_index);
+	}
+	if (max_char_index > 0) {
+	    in.readArray(char_buffer, 0, max_char_index);
+	}
+	if (max_short_index > 0) {
+	    in.readArray(short_buffer, 0, max_short_index);
+	}
+	if (max_int_index > 0) {
+	    in.readArray(int_buffer, 0, max_int_index);
+	}
+	if (max_long_index > 0) {
+	    in.readArray(long_buffer, 0, max_long_index);
+	}
+	if (max_float_index > 0) {
+	    in.readArray(float_buffer, 0, max_float_index);
+	}
+	if (max_double_index > 0) {
+	    in.readArray(double_buffer, 0, max_double_index);
+	}
     }
 
     /**
      * @inheritDoc
      */
-    public byte readByte() throws IOException {
-	return in.readByte();
+    public final boolean readBoolean() throws IOException {
+	while(byte_index == max_byte_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read boolean: " + 
+	      ((byte_buffer[byte_index]) != (byte)0));
+	}
+	return (byte_buffer[byte_index++] != (byte)0);
     }
 
     /**
      * @inheritDoc
      */
-    public int readUnsignedByte() throws IOException {
-	int i = in.readByte();
+    public final byte readByte() throws IOException {
+	while (byte_index == max_byte_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read byte: " + 
+	      byte_buffer[byte_index]);
+	}
+	return byte_buffer[byte_index++];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final char readChar() throws IOException {
+	while (char_index == max_char_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read char: " + 
+	      char_buffer[char_index]);
+	}
+	return char_buffer[char_index++];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final short readShort() throws IOException {
+	while (short_index == max_short_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read short: " + 
+	      short_buffer[short_index]);
+	}
+	return short_buffer[short_index++];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final int readInt() throws IOException {
+	while (int_index == max_int_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read int[HEX]: " + 
+	      int_buffer[int_index] + "[" +
+	      Integer.toHexString(int_buffer[int_index]) + "]");
+	}
+	return int_buffer[int_index++];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final long readLong() throws IOException {
+	while (long_index == max_long_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read long: " + 
+	      long_buffer[long_index]);
+	}
+	return long_buffer[long_index++];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final float readFloat() throws IOException {
+	while (float_index == max_float_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read float: " + 
+	      float_buffer[float_index]);
+	}
+	return float_buffer[float_index++];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final double readDouble() throws IOException {
+	while (double_index == max_double_index) {
+	    receive();
+	}
+	if (DEBUG) {
+	    System.out.println(" Read double: " + 
+	      double_buffer[double_index]);
+	}
+	return double_buffer[double_index++];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final int readUnsignedByte() throws IOException {
+	int i = readByte();
 	if (i < 0) {
 	    i += 256;
 	}
@@ -300,33 +592,12 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /**
      * @inheritDoc
      */
-    public short readShort() throws IOException {
-	return in.readShort();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public int readUnsignedShort() throws IOException {
-	int i = in.readShort();
+    public final int readUnsignedShort() throws IOException {
+	int i = readShort();
 	if (i < 0) {
 	    i += 65536;
 	}
 	return i;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public char readChar() throws IOException {
-	return in.readChar();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public int readInt() throws IOException {
-	return in.readInt();
     }
 
     /**
@@ -335,8 +606,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @exception IOException	gets thrown when an IO error occurs.
      * @return 			the handle read.
      */
-    private int readHandle() throws IOException {
-	int handle = in.readInt();
+    private final int readHandle() throws IOException {
+	int handle = readInt();
 
 	/* this replaces the checks for the reset handle
 	   everywhere else. --N */
@@ -345,7 +616,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		System.err.println("received a RESET");
 	    }
 	    do_reset();
-	    handle = in.readInt();
+	    handle = readInt();
 	}
 
 	if (DEBUG) {
@@ -353,27 +624,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
 
 	return handle;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public long readLong() throws IOException {
-	return in.readLong();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public float readFloat() throws IOException {
-	return in.readFloat();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public double readDouble() throws IOException {
-	return in.readDouble();
     }
 
     /**
@@ -461,7 +711,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /**
      * Reads the header of an array.
      * This header consists of a handle, a type, and an integer representing the length.
-     * Note that the data read is mostly redundant. TODO: optimize?
+     * Note that the data read is mostly redundant.
      *
      * @exception IOException			when an IO error occurs.
      * @exception ClassNotFoundException	when the array class could not be loaded.
@@ -665,7 +915,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @return	0 for a null object, -1 for a new object, and the handle for an
      * 		object already in the object table.
      */
-    public int readKnownTypeHeader() throws IOException {
+    public final int readKnownTypeHeader() throws IOException {
 	int handle_or_type = readHandle();
 
 	if ((handle_or_type & TYPE_BIT) == 0) {
@@ -1308,9 +1558,18 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * We cannot redefine <code>readObject, because it is final
+     * in <code>ObjectInputStream</code>. The trick for Ibis serialization
+     * is to have the <code>ObjectInputStream</code> be initialized with
+     * its parameter-less constructor.  This will cause its <code>readObject</code>
+     * method to call <code>readObjectOverride</code> instead of doing its own thing.
+     *
+     * @return the object read
+     * @exception IOException is thrown on an IO error.
+     * @exception ClassNotFoundException is thrown when the class of a
+     * serialized object is not found.
      */
-    public Object doReadObject() throws IOException, ClassNotFoundException {
+    public final Object readObjectOverride() throws IOException, ClassNotFoundException {
 
 	/*
 	 * ref < 0:    type

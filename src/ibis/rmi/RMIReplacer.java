@@ -2,6 +2,7 @@ package ibis.rmi;
 
 import ibis.io.Replacer;
 import ibis.rmi.server.RemoteStub;
+import ibis.rmi.Remote;
 
 public final class RMIReplacer implements Replacer {
 
@@ -10,8 +11,10 @@ public final class RMIReplacer implements Replacer {
 	if (o instanceof RemoteStub) {
 	    return o;
 	}
-	Object r = RTS.getStub(o);
-	if (r != null) return r;
+	if (o instanceof Remote) {
+	    Object r = RTS.getStub(o);
+	    if (r != null) return r;
+	}
 	return o;
     }
 } 

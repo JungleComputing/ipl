@@ -23,12 +23,6 @@ public interface IbisStreamFlags {
     static final Class classFloatArray   = IbisTypeInfo.getClass("[F");
     static final Class classDoubleArray  = IbisTypeInfo.getClass("[D");
 
-    /* This array can be indexed using a TYPE_XXX variable */
-    static final Class[] arrayClasses = {null, classBooleanArray, classByteArray, 
-					 classCharArray, classShortArray, classIntArray, 
-					 classLongArray, classFloatArray, classDoubleArray, 
-					 null, null};
-
     static final int	SIZEOF_BOOLEAN	= 1;
     static final int	SIZEOF_BYTE	= 1;
     static final int	SIZEOF_CHAR	= 2;
@@ -47,6 +41,7 @@ public interface IbisStreamFlags {
     static final int	TYPE_FLOAT	= 7;
     static final int	TYPE_DOUBLE	= 8;
 
+    static final int	BEGIN_TYPES	= 1;
     static final int	PRIMITIVE_TYPES	= 9;
 
     public static final int BOOLEAN_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BOOLEAN;

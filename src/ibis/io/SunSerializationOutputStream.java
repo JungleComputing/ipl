@@ -212,21 +212,6 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
     }
 
     /**
-     * This method should never be called. When it is, something went wrong
-     * with the initialization.
-     *
-     * @param ref the object to be written
-     * @exception <code>IOException</code> is always thrown.
-     */
-    protected void doWriteObject(Object ref) throws IOException {
-	/* We should not get here, because doWriteObject is only
-	   called from writeObjectOverride(), which is only called
-	   when we are not doing Sun serialization.
-	*/
-	throw new IOException("doWriteObject called from sun serialization");
-    }
-
-    /**
      * No statistics are printed for the Sun serialization version.
      */
     public void statistics() {

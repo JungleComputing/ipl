@@ -12,7 +12,7 @@ public class Main {
 
 	public static final boolean DEBUG = false;
 	public static final int LEN   = (1024)-1;
-	public static final int COUNT = 1000;
+	public static final int COUNT = 10000;
 	public static final int TESTS = 10;
 		
 	public static double round(double val) { 		
@@ -76,7 +76,7 @@ public class Main {
 				}
 				
 				end = System.currentTimeMillis();
-				
+
 				long time = end-start;
 				double rb = COUNT*bytes;
 				double kb = COUNT*LEN*DITree.KARMI_SIZE;
@@ -84,7 +84,7 @@ public class Main {
 				double rtp = ((1000.0*rb)/(1024*1024))/time;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				// System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
+				System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
 				// System.out.println("Payload bytes read " + kb + " throughput = " + round(ktp) + " MBytes/s");
 				// System.out.println("Real bytes read " + rb + " throughput = " + round(rtp) + " MBytes/s");
 

@@ -376,26 +376,26 @@ public class IOGenerator {
 	    }
 
 	    temp.append(new ALOAD(1));
-	    if (t instanceof BasicType) {
-		temp.append(factory.createFieldAccess(ibis_output_stream_name,
-						      "out",
-						      ibis_accumulator,
-						      Constants.GETFIELD));
-	    }
+//	    if (t instanceof BasicType) {
+//		temp.append(factory.createFieldAccess(ibis_output_stream_name,
+//						      "out",
+//						      ibis_accumulator,
+//						      Constants.GETFIELD));
+//	    }
 	    temp.append(new ALOAD(0));
 	    temp.append(factory.createFieldAccess(classname,
 						  field.getName(),
 						  t,
 						  Constants.GETFIELD));
 
-	    if (t instanceof BasicType) {
-		temp.append(factory.createInvoke(ibis_accumulator_name,
-						 info.write_name,
-						 Type.VOID,
-						 info.param_tp_arr,
-						 Constants.INVOKEINTERFACE));
-	    }
-	    else {
+//	    if (t instanceof BasicType) {
+//		temp.append(factory.createInvoke(ibis_accumulator_name,
+//						 info.write_name,
+//						 Type.VOID,
+//						 info.param_tp_arr,
+//						 Constants.INVOKEINTERFACE));
+//	    }
+//	    else {
 		temp.append(factory.createInvoke(info.primitive ?
 						    ibis_output_stream_name :
 						    sun_output_stream_name,
@@ -403,7 +403,7 @@ public class IOGenerator {
 						 Type.VOID,
 						 info.param_tp_arr,
 						 Constants.INVOKEVIRTUAL));
-	    }
+//	    }
 
 	    return temp;
 	}
@@ -423,18 +423,18 @@ public class IOGenerator {
 	    if (from_constructor || ! field.isFinal()) {
 		temp.append(new ALOAD(0));
 		temp.append(new ALOAD(1));
-		if (t instanceof BasicType) {
-		    temp.append(factory.createFieldAccess(ibis_input_stream_name,
-							  "in",
-							  ibis_dissipator,
-							  Constants.GETFIELD));
-		    temp.append(factory.createInvoke(ibis_dissipator_name,
-						     info.read_name,
-						     info.tp,
-						     Type.NO_ARGS,
-						     Constants.INVOKEINTERFACE));
-		}
-		else {
+//		if (t instanceof BasicType) {
+//		    temp.append(factory.createFieldAccess(ibis_input_stream_name,
+//							  "in",
+//							  ibis_dissipator,
+//							  Constants.GETFIELD));
+//		    temp.append(factory.createInvoke(ibis_dissipator_name,
+//						     info.read_name,
+//						     info.tp,
+//						     Type.NO_ARGS,
+//						     Constants.INVOKEINTERFACE));
+//		}
+//		else {
 		    temp.append(factory.createInvoke(info.primitive ?
 							ibis_input_stream_name:
 							sun_input_stream_name,
@@ -442,7 +442,7 @@ public class IOGenerator {
 						     info.tp,
 						     Type.NO_ARGS,
 						     Constants.INVOKEVIRTUAL));
-		}
+//		}
 
 		if (! info.primitive) {
 		    temp.append(factory.createCheckCast((ReferenceType) t));
@@ -630,7 +630,7 @@ public class IOGenerator {
 	    write_il.append(new ALOAD(5));
 	    write_il.append(new ALOAD(0));
 	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "get", Type.OBJECT, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
-	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "doWriteObject", Type.VOID, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeObjectOverride", Type.VOID, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
 	    InstructionHandle end_try = write_il.append(gotos[8]);
 
 	    write_il.insert(case_handles[0], new SWITCH(case_values, case_handles, default_handle));
@@ -802,7 +802,7 @@ public class IOGenerator {
 		read_il.append(new ALOAD(0));
 		read_il.append(new ALOAD(1));
 		if (tpname.equals("")) {
-		    read_il.append(factory.createInvoke(ibis_input_stream_name, "doReadObject", Type.OBJECT, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+		    read_il.append(factory.createInvoke(ibis_input_stream_name, "readObjectOverride", Type.OBJECT, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
 		}
 		else {
 		    read_il.append(factory.createInvoke(ibis_input_stream_name, "read" + tpname, tp, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
@@ -837,7 +837,7 @@ public class IOGenerator {
 	    read_il.append(new ALOAD(0));
 	    read_il.append(new ALOAD(1));
 	    if (tpname.equals("")) {
-		read_il.append(factory.createInvoke(ibis_input_stream_name, "doReadObject", tp, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+		read_il.append(factory.createInvoke(ibis_input_stream_name, "readObjectOverride", tp, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
 	    }
 	    else {
 		read_il.append(factory.createInvoke(ibis_input_stream_name, "read" + tpname, tp, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
@@ -1546,9 +1546,9 @@ public class IOGenerator {
 
 	primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo("writeBoolean", "readBoolean", "readFieldBoolean", Type.BOOLEAN, Type.BOOLEAN, true));
 
-	primitiveSerialization.put(Type.BYTE, new SerializationInfo("writeByte", "readByte", "readFieldByte", Type.BYTE, Type.BYTE, true));
+	primitiveSerialization.put(Type.BYTE, new SerializationInfo("writeByte", "readByte", "readFieldByte", Type.BYTE, Type.INT, true));
 
-	primitiveSerialization.put(Type.SHORT, new SerializationInfo("writeShort", "readShort", "readFieldShort", Type.SHORT, Type.SHORT, true));
+	primitiveSerialization.put(Type.SHORT, new SerializationInfo("writeShort", "readShort", "readFieldShort", Type.SHORT, Type.INT, true));
 
 	primitiveSerialization.put(Type.CHAR, new SerializationInfo("writeChar", "readChar", "readFieldChar", Type.CHAR, Type.CHAR, true));
 
@@ -1750,23 +1750,18 @@ public class IOGenerator {
 
 	*/
 	int lngth = classnames.size();
+	Object[] names = classnames.toArray();
+	
+	java.util.Arrays.sort(names);
 
-	if (verbose) {
-	    System.out.println("Loading classes");
-	    for (int i = 0; i < lngth; i++) {
-		System.out.print((String)(classnames.elementAt(i)) + " ");
-	    }
-	    System.out.println();
-	}
-
-	for (int i=0;i<lngth;i++) {
-	    if (verbose) System.out.println("  Loading class : " + (String)(classnames.elementAt(i)));
+	for (int i = lngth-1; i >= 0; i--) {
+	    if (verbose) System.out.println("  Loading class : " + (String)names[i]);
 
 	    JavaClass clazz = null;
 	    if(!file) {
-		clazz = Repository.lookupClass((String)(classnames.elementAt(i)));
+		clazz = Repository.lookupClass((String)names[i]);
 	    } else {
-		String className = new String((String)(classnames.elementAt(i)));
+		String className = new String((String)names[i]);
 		String className2 = new String(className);
 
 		System.err.println("class name = " + className);
@@ -1793,8 +1788,8 @@ public class IOGenerator {
 		}
 		else {
 		    if (verbose) System.out.println(clazz.getClassName() + " is not serializable");
+		    Repository.removeClass(clazz);
 		}
-		Repository.removeClass(clazz);
 	    }
 	}
 
@@ -1804,6 +1799,8 @@ public class IOGenerator {
 	    JavaClass clazz = (JavaClass)classes_to_rewrite.get(i);
 	    addReferencesToRewrite(clazz);
 	}
+
+	Repository.clearCache();
 
 	/* Sort class to rewrite. Super classes first.  */
 	do_sort_classes(classes_to_rewrite);

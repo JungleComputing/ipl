@@ -22,17 +22,25 @@ final class IbisHash {
     private Bucket cache;
 
     private static int contains, finds, rebuilds, collisions, rebuild_collisions, new_buckets;
-    private Bucket [] bucket = new Bucket[MIN_BUCKETS];
+    private Bucket [] bucket;
     private int offset = 0;
-    private int size = MIN_BUCKETS;
-    private int alloc_size = MIN_BUCKETS;
+    private int size;
+    private int initsize;
+    private int alloc_size;
     private int present = 0;
 
 
     IbisHash() {
-	if (STATS) contains = finds = 0;
+	this(MIN_BUCKETS);
     }
 
+    IbisHash(int sz) {
+	alloc_size = sz;
+	size = sz;
+	initsize = sz;
+	bucket = new Bucket[sz];
+	if (STATS) contains = finds = 0;
+    }
 
     private final Bucket getBucket() {
 	Bucket b = cache;
@@ -205,7 +213,7 @@ final class IbisHash {
 	    }
 	}
 
-	size = MIN_BUCKETS;
+	size = initsize;
 	offset = 0;
 	present = 0;
 

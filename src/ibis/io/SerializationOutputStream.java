@@ -18,7 +18,7 @@ import java.io.IOException;
  * </ul>
  */
 public abstract class SerializationOutputStream extends ObjectOutputStream {
-    private Replacer replacer;
+    protected Replacer replacer;
 
     /**
      * Constructor which must be called for Ibis serialization.
@@ -238,44 +238,6 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
     public void writeArray(Object[] ref) throws IOException {
 	writeArray(ref, 0, ref.length);
     }
-
-
-    /**
-     * Write objects and arrays.
-     * Duplicates are deteced when this call is used.
-     * The replacement mechanism is implemented here as well.
-     * We cannot redefine <code>writeObject</code>, because it is final in
-     * <code>ObjectOutputStream</code>. The trick for Ibis serialization is to have the
-     * <code>ObjectOutputStream</code> be initialized with its parameter-less constructor.
-     * This will cause its <code>writeObject</code> to call <code>writeObjectOverride</code>
-     * instead of doing its own thing.
-     *
-     * @param ref the object to be written
-     * @exception <code>IOException</code> is thrown when an IO error occurs.
-    */
-    protected final void writeObjectOverride(Object ref)
-	throws IOException {
-	if (ref != null && replacer != null) {
-	    ref = replacer.replace(ref);
-	}
-
-	doWriteObject(ref);
-    }
-
-    /**
-     * Write objects and arrays.
-     * To be specified by <code>IbisSerializationOutputStream</code>.
-     * The <code>SunSerializationOutputStream</code> version should never be
-     * called, because <code>doWriteObject</code> is only called from
-     * <code>writeObjectOverride</code>, which only gets called when we are
-     * doing Ibis serialization.
-     *
-     * @param ref the object to be written
-     * @exception <code>IOException</code> is thrown when an IO error occurs.
-    */
-    protected abstract void doWriteObject(Object ref)
-	throws IOException;
-
 
     /**
      * Print some statistics. 

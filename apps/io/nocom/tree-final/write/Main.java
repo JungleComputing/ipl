@@ -13,7 +13,7 @@ public class Main {
 
 	public static final boolean DEBUG = false;
 	public static final int LEN   = 1023;
-	public static final int COUNT = 100;
+	public static final int COUNT = 10000;
 	public static final int TESTS = 10;
 
 	public static double round(double val) { 		
@@ -65,6 +65,7 @@ public class Main {
 				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
 				System.out.println("Karmi bytes written " + kb + " throughput = " + ktp + " MBytes/s");
 				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
+				mout.statistics();
 
 				if (time < best_time) { 
 					best_time = time;

@@ -90,182 +90,186 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     /**
      * @inheritDoc
      */
-    public void doWriteArray(Object ref, int off, int len, int type)
+    public final void writeArray(boolean[] ref, int off, int len)
 	    throws IOException {
-	int size;
+	if (DEBUG) { 
+	    System.err.println("writeArray(boolean[" + off + " ... " + (off+len) + "])");
+	}			
 
-	switch(type) {
-	case TYPE_BOOLEAN:
-	    if (DEBUG) { 
-		System.err.println("writeArray(boolean[" + off + " ... " + (off+len) + "])");
-	    }			
+	do { 
+	    flush(0);
 
-	    do { 
-		flush(0);
+	    int size = Math.min(BUF_SIZE-index, len);
 
-		size = Math.min(BUF_SIZE-index, len);
+	    Conversion.boolean2byte(ref, off, size, buffer, index);
 
-		Conversion.boolean2byte((boolean[]) ref, off, size, buffer, index);
+	    off   += size;
+	    index += size;
+	    len   -= size;
 
-		off   += size;
-		index += size;
-		len   -= size;
-
-	    } while (len != 0);
-	    break;
-
-	case TYPE_BYTE:
-	    if (DEBUG) { 
-		System.err.println("writeArray(byte[" + off + " ... " + (off+len) + "])");
-
-	    }			
-
-	    if (len > (BUF_SIZE-index)) { 
-
-		if (index > 0) { 
-		    out.write(buffer, 0, index);
-		    index = 0;
-		} 
-		if (len >= BUF_SIZE) {
-		    out.write((byte[]) ref, off, len);
-		}
-		else {
-		    System.arraycopy((byte[]) ref, off, buffer, 0, len);
-		    index = len;
-		}
-	    } else { 
-		System.arraycopy((byte[]) ref, off, buffer, index, len);			
-		index += len;
-	    } 
-	    break;
-
-	case TYPE_CHAR:
-	    if (DEBUG) { 
-		System.err.println("writeArray(char[" + off + " ... " + (off+len) + "])");
-	    }			
-
-	    do { 
-		flush(SIZEOF_CHAR);
-
-		size = Math.min((BUF_SIZE-index)/SIZEOF_CHAR, len);
-
-		Conversion.char2byte((char[]) ref, off, size, buffer, index);
-
-		off   += size;
-		len   -= size;
-		index += size*SIZEOF_CHAR;
-
-	    } while (len != 0);
-	    break;
-
-	case TYPE_SHORT:
-	    if (DEBUG) { 
-		System.err.println("writeArray(short[" + off + " ... " + (off+len) + "])");
-	    }			
-
-	    do { 
-		flush(SIZEOF_SHORT);
-
-		size = Math.min((BUF_SIZE-index)/SIZEOF_SHORT, len);
-
-		//			System.err.println("Room to write " + size + " shorts");
-
-		Conversion.short2byte((short[]) ref, off, size, buffer, index);
-
-		off   += size;
-		len   -= size;
-		index += size*SIZEOF_SHORT;
-
-		//			System.err.println("Len = " + len + " index = " + index);
-
-	    } while (len != 0);	
-	    break;
-
-	case TYPE_INT:
-	    if (DEBUG) { 
-		System.err.println("writeArray(int[" + off + " ... " + (off+len) + "])");
-	    }			
-
-	    do { 
-		flush(SIZEOF_INT);
-
-		size = Math.min((BUF_SIZE-index)/SIZEOF_INT, len);
-
-		//			System.err.println("Room to write " + size + " ints");
-
-		Conversion.int2byte((int[]) ref, off, size, buffer, index);
-
-		off   += size;
-		len   -= size;
-		index += size*SIZEOF_INT;
-
-		//			System.err.println("Len = " + len + " index = " + index);
-
-	    } while (len != 0);	 
-	    break;
-
-	case TYPE_LONG:
-	    if (DEBUG) { 
-		System.err.println("writeArray(long[" + off + " ... " + (off+len) + "])");
-	    }			
-
-	    do { 
-		flush(SIZEOF_LONG);
-
-		size = Math.min((BUF_SIZE-index)/SIZEOF_LONG, len);
-
-		Conversion.long2byte((long[]) ref, off, size, buffer, index);
-
-		off   += size;
-		len   -= size;
-		index += size*SIZEOF_LONG;
-
-	    } while (len != 0);  
-	    break;
-
-	case TYPE_FLOAT:
-	    do { 
-		flush(SIZEOF_FLOAT);
-
-		size = Math.min((BUF_SIZE-index)/SIZEOF_FLOAT, len);
-
-		Conversion.float2byte((float[]) ref, off, size, buffer, index);
-
-		off   += size;
-		len   -= size;
-		index += size*SIZEOF_FLOAT;
-
-	    } while (len != 0);  
-	    break;
-
-	case TYPE_DOUBLE:
-	    if (DEBUG) { 
-		System.err.println("writeArray(double[" + off + " ... " + (off+len) + "])");
-	    }			
-
-	    do { 
-		flush(SIZEOF_DOUBLE);
-
-		size = Math.min((BUF_SIZE-index)/SIZEOF_DOUBLE, len);
-
-		Conversion.double2byte((double[]) ref, off, size, buffer, index);
-
-		off   += size;
-		len   -= size;
-		index += size*SIZEOF_DOUBLE;
-
-	    } while (len != 0);	 		
-	    break;
-	}
+	} while (len != 0);
     }
 
     /**
      * @inheritDoc
      */
-    public final void doFlush() throws IOException {
-	if (DEBUG) {
-	    System.out.println("Flushing ...");
-	}
+    public final void writeArray(byte[] ref, int off, int len)
+	    throws IOException {
+	if (DEBUG) { 
+	    System.err.println("writeArray(byte[" + off + " ... " + (off+len) + "])");
+
+	}			
+
+	if (len > (BUF_SIZE-index)) { 
+
+	    if (index > 0) { 
+		out.write(buffer, 0, index);
+		index = 0;
+	    } 
+	    if (len >= BUF_SIZE) {
+		out.write(ref, off, len);
+	    }
+	    else {
+		System.arraycopy(ref, off, buffer, 0, len);
+		index = len;
+	    }
+	} else { 
+	    System.arraycopy(ref, off, buffer, index, len);			
+	    index += len;
+	} 
+    }
+
+    public final void writeArray(char[] ref, int off, int len)
+	    throws IOException {
+	if (DEBUG) { 
+	    System.err.println("writeArray(char[" + off + " ... " + (off+len) + "])");
+	}			
+
+	do { 
+	    flush(SIZEOF_CHAR);
+
+	    int size = Math.min((BUF_SIZE-index)/SIZEOF_CHAR, len);
+
+	    Conversion.char2byte(ref, off, size, buffer, index);
+
+	    off   += size;
+	    len   -= size;
+	    index += size*SIZEOF_CHAR;
+
+	} while (len != 0);
+    }
+
+    public final void writeArray(short[] ref, int off, int len)
+	    throws IOException {
+	if (DEBUG) { 
+	    System.err.println("writeArray(short[" + off + " ... " + (off+len) + "])");
+	}			
+
+	do { 
+	    flush(SIZEOF_SHORT);
+
+	    int size = Math.min((BUF_SIZE-index)/SIZEOF_SHORT, len);
+
+	    //			System.err.println("Room to write " + size + " shorts");
+
+	    Conversion.short2byte(ref, off, size, buffer, index);
+
+	    off   += size;
+	    len   -= size;
+	    index += size*SIZEOF_SHORT;
+
+	    //			System.err.println("Len = " + len + " index = " + index);
+
+	} while (len != 0);	
+    }
+
+    public final void writeArray(int[] ref, int off, int len)
+	    throws IOException {
+	if (DEBUG) { 
+	    System.err.println("writeArray(int[" + off + " ... " + (off+len) + "])");
+	}			
+
+	do { 
+	    flush(SIZEOF_INT);
+
+	    int size = Math.min((BUF_SIZE-index)/SIZEOF_INT, len);
+
+	    //			System.err.println("Room to write " + size + " ints");
+
+	    Conversion.int2byte(ref, off, size, buffer, index);
+
+	    off   += size;
+	    len   -= size;
+	    index += size*SIZEOF_INT;
+
+	    //			System.err.println("Len = " + len + " index = " + index);
+
+	} while (len != 0);	 
+    }
+
+    public final void writeArray(long[] ref, int off, int len)
+	    throws IOException {
+	if (DEBUG) { 
+	    System.err.println("writeArray(long[" + off + " ... " + (off+len) + "])");
+	}			
+
+	do { 
+	    flush(SIZEOF_LONG);
+
+	    int size = Math.min((BUF_SIZE-index)/SIZEOF_LONG, len);
+
+	    Conversion.long2byte(ref, off, size, buffer, index);
+
+	    off   += size;
+	    len   -= size;
+	    index += size*SIZEOF_LONG;
+
+	} while (len != 0);  
+    }
+
+    public final void writeArray(float[] ref, int off, int len)
+	    throws IOException {
+	if (DEBUG) { 
+	    System.err.println("writeArray(float[" + off + " ... " + (off+len) + "])");
+	}			
+	do { 
+	    flush(SIZEOF_FLOAT);
+
+	    int size = Math.min((BUF_SIZE-index)/SIZEOF_FLOAT, len);
+
+	    Conversion.float2byte(ref, off, size, buffer, index);
+
+	    off   += size;
+	    len   -= size;
+	    index += size*SIZEOF_FLOAT;
+
+	} while (len != 0);  
+    }
+
+    public final void writeArray(double[] ref, int off, int len)
+	    throws IOException {
+	if (DEBUG) { 
+	    System.err.println("writeArray(double[" + off + " ... " + (off+len) + "])");
+	}			
+
+	do { 
+	    flush(SIZEOF_DOUBLE);
+
+	    int size = Math.min((BUF_SIZE-index)/SIZEOF_DOUBLE, len);
+
+	    Conversion.double2byte(ref, off, size, buffer, index);
+
+	    off   += size;
+	    len   -= size;
+	    index += size*SIZEOF_DOUBLE;
+
+	} while (len != 0);	 		
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final void flush() throws IOException {
 	flush(BUF_SIZE+1);	/* Forces flush */
 	out.flush();
     }
@@ -286,7 +290,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     /**
      * @inheritDoc
      */
-    public void close() throws IOException {
+    public final void close() throws IOException {
 	flush();
 	out.close();
     }
