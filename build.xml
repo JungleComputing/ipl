@@ -458,6 +458,15 @@
 	<delete dir="${docs}"/>
     </target>
 
+    <target name="clean-native">
+	<delete dir="${build}/lib"/>
+	<delete>
+	    <fileset dir="${build}">
+		<include name="**/*.o"/>
+	    </fileset>
+	</delete>
+    </target>
+
     <target name="distclean" depends="clean">
 	<delete dir="${rewritten-classlibs}"/>
 	<delete file="build-properties"/>
