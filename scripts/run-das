@@ -41,39 +41,67 @@ Dlibpath="-Djava.library.path=$IBIS_ROOT/build/lib:.::"
 # It must be *one* dir.
 Dibislibs="-Dibis.library.path=$IBIS_ROOT/build/lib"
 
-Dpool_host_num="-Dibis.pool.host_number=$PRUN_CPU_RANK"
-
 #PROFILING=-Xhprof:cpu=samples,file=profile.$1,depth=3
 PROFILING=
 
-NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
-Dpool_total="-Dibis.pool.total_hosts=$NHOSTS"
+cpumask="1"
+attach=0
+
+Dns_port="-Dibis.name_server.port=@IBIS_NS_PORT@"
+Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
+
+while [ $# -gt 0 ]
+do
+        qarg="'"$1"'"
+        # qarg="$1"
+# echo now inspect argument $1 -- left $#
+        case "$1" in
+	-attach)
+		attach=1
+		;;
+        -cpu)
+		shift
+		cpumask="$1"
+                ;;
+	-no-pool)
+		no_pool=1
+		;;
+	-ns)
+		shift
+		Dns_server="-Dibis.name_server.host=$1"
+		;;
+	-ns-port)
+		shift
+		Dns_port="-Dibis.name_server.port=$1"
+		;;
+        *)      java_args="$java_args $qarg"
+                ;;
+        esac
+        shift
+done
+
+
+if [ -z "$no_pool" ] ; then
+	NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
+	Dpool_total="-Dibis.pool.total_hosts=$NHOSTS"
+	Dpool_host_num="-Dibis.pool.host_number=$PRUN_CPU_RANK"
+	Dpool_host_names="-Dibis.pool.host_names=\"$HOSTS\""
+else
+	Dpool_total=
+	Dpool_host_num=
+	Dpool_host_names=
+fi
+if [ $attach -eq 1 ]
+then
+	JIT_OPTS="$JIT_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -Djava.compiler=NONE"
+fi
 
 Dns_pool="-Dibis.name_server.key=$PANDA_HOST_PORT_KEY"
 
 DEFAULT_USE_JAVA_WRAPPER=1
 
-JAVA_WRAPPER=$DEFAULT_USE_JAVA_WRAPPER
-if [ ! -z $NO_USE_JAVA_WRAPPER ]
-then
-	JAVA_WRAPPER=0
-fi
-if [ ! -z $USE_JAVA_WRAPPER ]
-then
-	JAVA_WRAPPER=1
-fi
-
-if [ $JAVA_WRAPPER -eq 1 ]
-then
-    wrapper_name="$IBIS_ROOT/bin/java_wrapper"
-else
-    wrapper_name=""
-fi
-
-Dns_port="-Dibis.name_server.port=@IBIS_NS_PORT@"
-
-Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
+wrapper_name="$IBIS_ROOT/bin/java_wrapper"
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-$wrapper_name $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
+eval $wrapper_name -cpu $cpumask $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dpool_total $Dpool_host_names $Dns_pool $Dns_port $Dns_server -Dibis.name_server.retry=yes -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH $java_args
