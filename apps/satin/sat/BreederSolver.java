@@ -218,11 +218,21 @@ public final class BreederSolver {
 	return new Genes( g, null, null );
     }
 
-    static int run( final SATProblem p_in, Genes genes, int startd, int cutoff )
+    /**
+     * Given a SAT problem, a set of genes, and an upper limit
+     * for the number of decisions to try, solve the given problem,
+     * and count the number of decisions that were required for it.
+     * @param p_in The SAT problem to solve.
+     * @param genes The configuration values to use.
+     * @param startd The number of decisions already used elsewhere.
+     * @param cutoff The maximum number of decisions to try before giving up.
+     * @return The number of decisions needed, or -1 if we're over
+     * the cutoff limit.
+     */
+    static int run( final SATProblem p_in, Genes genes, int cutoff )
        throws SATCutoffException
     {
         BreederSolver s = new BreederSolver();
-        s.decisions = startd;
         s.cutoff = cutoff;
 
 	SATProblem p = (SATProblem) p_in.clone();
@@ -231,28 +241,4 @@ public final class BreederSolver {
 	return s.decisions;
     }
 
-    /**
-     * Given a set of SAT problems, a set of genes, and an upper limit
-     * for the number of decisions to try, solve all the given problems,
-     * and count the number of decisions that were required for it.
-     * @param pl The list of SAT problems to solve.
-     * @param genes The configuration values to use.
-     * @param cutoff The maximum number of decisions to try before giving up.
-     * @return The number of decisions needed, or -1 if we're over
-     * the cutoff limit.
-     */
-    static int run( final SATProblem pl[], Genes genes, int cutoff )
-    {
-	int total = 0;
-
-        try {
-            for( int i=0; i<pl.length; i++ ){
-                total = run( pl[i], genes, total, cutoff );
-            }
-        }
-        catch( SATCutoffException x ){
-             return -1;
-        }
-	return total;
-    }
 }

@@ -51,17 +51,37 @@ public final class Breeder implements BreederInterface {
     };
 
 
+    /**
+     * Given a list of SAT problems and a set of genes, returns the
+     * number of decisions needed to solve these problems. The
+     * static variable <code>cutoff</code> is honoured: if more than
+     * that number of decisions are needed to solve the problem, give
+     * give up.
+     * @param pl The list of SAT problems to solve.
+     * @param genes The configuration to use.
+     * @return The number decisions needed, or -1 if that count is
+     * larger than <code>cutoff</code>.
+     */
     public int run( SATProblem pl[], Genes genes )
     {
-        int total = BreederSolver.run( pl, genes, cutoff );
-        int newCutoff = 2*total;
-        System.err.println( "newCutoff=" + newCutoff + "; cutoff = " + cutoff );
-        if( cutoff>newCutoff ){
-            // We may have a new cutoff value, broadcast it.
-            System.err.println( "Broadcasting cutoff update" );
-            SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
-            cutoff = newCutoff;
+	int total = 0;
+
+        try {
+            for( int i=0; i<pl.length; i++ ){
+                int d = BreederSolver.run( pl[i], genes, cutoff-total );
+		total += d;
+            }
         }
+        catch( SATCutoffException x ){
+             return -1;
+        }
+	int newCutoff = 3*total/2;
+	if( cutoff>newCutoff ){
+	    // We may have a new cutoff value, broadcast it.
+	    System.err.println( "Broadcasting cutoff update: cutoff=" + cutoff + "->cutoff=" + newCutoff );
+	    SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
+	    cutoff = newCutoff;
+	}
         return total;
     }
  
