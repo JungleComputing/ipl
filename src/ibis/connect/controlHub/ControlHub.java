@@ -1,3 +1,5 @@
+package ibis.connect.controlHub;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Hashtable;
@@ -18,12 +20,15 @@ import java.io.BufferedInputStream;
 
 import ibis.connect.routedMessages.HubProtocol;
 
-class NodeProxy  extends Thread
+/** Incarnates a thread dedicated to HubWire management 
+ * towards a given node.
+ */
+class NodeManager extends Thread
 {
     private String hostname;
     private HubProtocol.HubWire wire;
 
-    NodeProxy(Socket s) 
+    NodeManager(Socket s) 
 	throws IOException, ClassNotFoundException {
 	wire = new HubProtocol.HubWire(s);
 	hostname = wire.getPeerName();
@@ -40,7 +45,7 @@ class NodeProxy  extends Thread
 		HubProtocol.HubPacket packet = wire.recvPacket();
 		int      action = packet.getType();
 		String destHost = packet.getHost();
-		NodeProxy  node = (NodeProxy)ControlHub.resolveNode(destHost);
+		NodeManager  node = (NodeManager)ControlHub.resolveNode(destHost);
 
 		if(action == HubProtocol.DESTROY) {
 		    /* packet for the hub itself */
@@ -48,17 +53,17 @@ class NodeProxy  extends Thread
 		} else {
 		    /* packet to forward */
 		    if(node == null) {
-			System.out.println("# HubWire: node not found: "+destHost);
+			System.out.println("# ControlHub: node not found: "+destHost);
 		    } else {
 			node.sendPacket(packet);
 		    }
 		}
 
 	    } catch(EOFException e) {
-		System.out.println("# HubWire: EOF detected for "+hostname);
+		System.out.println("# ControlHub: EOF detected for "+hostname);
 		nodeRunning = false;
 	    } catch(SocketException e) {
-		System.out.println("# HubWire: error detected for "+hostname+"; wire closed.");
+		System.out.println("# ControlHub: error detected for "+hostname+"; wire closed.");
 		nodeRunning = false;
 	    } catch(Exception e) {
 		throw new Error(e);
@@ -89,12 +94,14 @@ public class ControlHub
     public static void main(String[] arg) {
 	try {
 	    ServerSocket server = new ServerSocket(port);
-	    System.out.println("\n# ControlHub: listening on port "+port);
+	    System.out.println("\n# ControlHub: listening on " +
+			       InetAddress.getLocalHost().getHostName()+ ":" +
+			       server.getLocalPort());
 	    while(true)	{
-		System.out.println("# ControHub ready- "+nodesNum+" connected");
+		System.out.println("# ControlHub: ready- "+nodesNum+" nodes currently connected");
 		Socket s = server.accept();
 		try {
-		    NodeProxy node = new NodeProxy(s);
+		    NodeManager node = new NodeManager(s);
 		    node.start();
 		} catch(Exception e) { /* ignore */ }
 	    }
