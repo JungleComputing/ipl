@@ -16,4 +16,17 @@ JAVACLASSPATH=$CLASSPATH:$IBIS_ROOT/build:
 
 Dhub=
 
+for i in $*
+do
+    case $i in
+    -controlhub)
+	# Note: ibis.connect.data_links must be set or ibis.connect does not
+	# work. However, the nameserver only uses control_links, so the
+	# contents for data_links does not really matter, as long as the
+	# socket type exists.
+	Dhub="-Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+	;;
+    esac
+done
+
 $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH $Dhub ibis.impl.nameServer.tcp.NameServer "$@"
