@@ -235,7 +235,6 @@ public abstract class Ibis {
 	synchronized(Ibis.class) {
 	    loadedIbises.add(impl);
 	}
-
 	return impl;
     }
 
@@ -820,6 +819,29 @@ public abstract class Ibis {
      * Ibis-implementation-specific initialization.
      */
     protected abstract void init() throws IbisException, IOException;
+
+    /**
+     * Returns the current Ibis version.
+     * @return the ibis version.
+     */
+    public String getVersion() {
+	InputStream in = ClassLoader.getSystemClassLoader().
+				getResourceAsStream("VERSION");
+	String version = "Unknown Ibis Version ID";
+	if (in != null) {
+	    byte[] b = new byte[512];
+	    int l = 0;
+	    try {
+		l = in.read(b);
+	    } catch(Exception e) {
+		// Ignored
+	    }
+	    if (l > 0) {
+		version = "Ibis Version ID " + new String(b, 0, l);
+	    }
+	}
+	return version + ", implementation = " + implName;
+    }
 
     /**
      * Notifies this Ibis instance that another Ibis instance has

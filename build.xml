@@ -17,6 +17,8 @@
 
     <property name="ibis"        location="."/>
 
+    <property name="ibis-version" value="0.2"/>
+
     <!--
 	This must come first.
 	We cannot require ant-contrib before we have configured.
@@ -39,6 +41,14 @@
 	-->
 
 	<mkdir dir="${build}"/>
+	<if>
+	    <not>
+		<available file="${build}/VERSION"/>
+	    </not>
+	    <then>
+		<echo file="${build}/VERSION">${ibis-version}</echo>
+	    </then>
+	</if>
     </target>
 
     <!--
@@ -572,7 +582,7 @@
 	<echo level="verbose" message="basename = ${package-basename}"/>
 	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
 		basedir="${ibis}/build"
-		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties ibis-properties"/>
+		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties ibis-properties VERSION"/>
     </target>
 
     <target name="jars"
@@ -582,7 +592,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
-		includes="**/*.class **/properties properties ibis-properties"/>
+		includes="**/*.class **/properties properties ibis-properties VERSION"/>
     </target>
 
     <target name="ibis-package-jars">
@@ -861,7 +871,6 @@
     </target>
 
     <property name="distr"        location="${ibis}/ibis-src-distr"/>
-    <property name="version"      value="0.2"/>
 
     <target name="src-distr">
 	<delete dir="${distr}"/>
@@ -896,18 +905,18 @@
 	<delete file="${distr}/ibis/src/scripts/cluster_wrapper"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
-	<move todir="${distr}/ibis-${version}">
+	<move todir="${distr}/ibis-${ibis-version}">
 	    <fileset dir="${distr}/ibis">
 	    </fileset>
 	</move>
 	<!--
 	  Cannot use the zip task: it strips file permissions.
-	<zip destfile="ibis-${version}-src-distr.zip"
+	<zip destfile="ibis-${ibis-version}-src-distr.zip"
 	</zip>
 	-->
 	<exec executable="/usr/bin/zip"
 	      dir="${distr}">
-	    <arg line="-qr ${ibis}/ibis-${version}-src-distr.zip ibis-${version}"/>
+	    <arg line="-qr ${ibis}/ibis-${ibis-version}-src-distr.zip ibis-${ibis-version}"/>
 	</exec>
     </target>
 
