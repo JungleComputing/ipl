@@ -1,7 +1,7 @@
 // File: $Id$
 
-class ByteBuffer implements java.io.Serializable, Magic {
-    byte buf[];
+public final class ByteBuffer implements java.io.Serializable, Magic {
+    private byte buf[];
     private int sz;
 
     public ByteBuffer( int len )
@@ -112,5 +112,11 @@ class ByteBuffer implements java.io.Serializable, Magic {
         }
         System.arraycopy( buf, pos, buf, sz, len );
         sz += len;
+    }
+
+    public void write( java.io.OutputStream s )
+        throws java.io.IOException
+    {
+        s.write( buf, 0, sz );
     }
 }

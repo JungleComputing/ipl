@@ -66,7 +66,7 @@ class Helpers {
         throws java.io.IOException
     {
         FileOutputStream output = new FileOutputStream( f );
-        output.write( buf.buf, 0, buf.getLength() );
+        buf.write( output );
         output.close();
     }
 }
