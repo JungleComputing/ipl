@@ -65,6 +65,7 @@ public class ExtSocketFactory
     /* static constructor
      */
     static {
+	ConnProps.checkProps();
 	if(MyDebug.VERBOSE())
 	    System.err.println("# ### ExtSocketFactory: starting configuration.");
 	

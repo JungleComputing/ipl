@@ -11,6 +11,7 @@ public class ConnProps {
     
     public static final String hub_port = PROPERTY_PREFIX + "hub_port";
     public static final String hub_host = PROPERTY_PREFIX + "hub_host";
+    public static final String enable = PROPERTY_PREFIX + "enable";
     public static final String debug = PROPERTY_PREFIX + "debug";
     public static final String par_numways = PROPERTY_PREFIX + "NumWays";
     public static final String par_blocksize = PROPERTY_PREFIX + "BlockSize";
@@ -25,6 +26,7 @@ public class ConnProps {
     private static final String[] sysprops = {
 	hub_port,
 	hub_host,
+	enable,
 	debug,
 	verbose,
 	port_range,
@@ -37,8 +39,7 @@ public class ConnProps {
 	sizes
     };
 
-    static {
-	System.out.println("ConnProps static initializer called ...");
+    public static void checkProps() {
 	TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
     }
 }
