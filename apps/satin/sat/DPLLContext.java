@@ -122,16 +122,10 @@ public final class DPLLContext implements java.io.Serializable {
 	    int v = arr[j];
 
 	    if( assignment[v] == 1 ){
-		System.err.println( "Error: positive variable " + v + " of clause " + c + " has positive assignment, but clause is not satisfied"  );
 		int[] pos = p.getPosClauses( v );
-		String verdict;
+		boolean verdict = Helpers.contains( pos, cno );
 
-		if( Helpers.contains( pos, cno ) ){
-		    verdict = "yes";
-		}
-		else {
-		    verdict = "no";
-		}
+		System.err.println( "Error: positive variable " + v + " of clause " + c + " has positive assignment, but clause is not satisfied"  );
 		System.err.println( "       Does variable " + v + " list clause " + cno + " as positive occurence? " + verdict );
 	    }
 	    else if( assignment[v] == UNASSIGNED ){
@@ -146,16 +140,10 @@ public final class DPLLContext implements java.io.Serializable {
 	    int v = arr[j];
 
 	    if( assignment[v] == 0 ){
-		System.err.println( "Error: negative variable " + v + " of clause " + c + " has negative assignment, but clause is not satisfied"  );
 		int neg[] = p.getNegClauses( v );
-		String verdict;
+		boolean verdict = Helpers.contains( neg, cno );
 
-		if( Helpers.contains( neg, cno ) ){
-		    verdict = "yes";
-		}
-		else {
-		    verdict = "no";
-		}
+		System.err.println( "Error: negative variable " + v + " of clause " + c + " has negative assignment, but clause is not satisfied"  );
 		System.err.println( "       Does variable " + v + " list clause " + cno + " as negative occurence? " + verdict );
 	    }
 	    else if( assignment[v] == UNASSIGNED ){
