@@ -8,8 +8,7 @@ import java.io.File;
 
 public class SATSolver {
     static class Context {
-	Clause clauses[];	// The clauses of the system.
-	SATVar variables[];
+	SATProblem problem;	// The problem to solve.
 	SATSolution solutions[];
 	int solutioncount;
 	int assignments[];
@@ -27,7 +26,7 @@ public class SATSolver {
     // propagate this variable to the clauses. 
     static void propagateTrueValue( Context ctx, final int var )
     {
-	final IntVector poscls = ctx.variables[var].getPosClauses();
+	final IntVector poscls = ctx.problem.getPosClauses( var );
 	final int sz = poscls.size();
 	boolean satisfied[] = ctx.satisfied;
 
@@ -40,7 +39,7 @@ public class SATSolver {
 	    }
 	}
 	int terms[] = ctx.terms;
-	final IntVector neg = ctx.variables[var].getNegClauses();
+	final IntVector neg = ctx.problem.getNegClauses( var );
 	final int szt = neg.size();
 
 	for( int ix=0; ix<szt; ix++ ){
@@ -54,7 +53,7 @@ public class SATSolver {
     // propagate this variable to the clauses. 
     static void propagateFalseValue( Context ctx, final int var )
     {
-	final IntVector neg = ctx.variables[var].getNegClauses();
+	final IntVector neg = ctx.problem.getNegClauses( var );
 	final int sz = neg.size();
 	boolean satisfied[] = ctx.satisfied;
 
@@ -67,7 +66,7 @@ public class SATSolver {
 	    }
 	}
 	int terms[] = ctx.terms;
-	final IntVector pos = ctx.variables[var].getPosClauses();
+	final IntVector pos = ctx.problem.getPosClauses( var );
 	final int szt = pos.size();
 
 	for( int ix=0; ix<szt; ix++ ){
@@ -144,7 +143,8 @@ public class SATSolver {
     // represent a solution of the system.
     static void verifySolution( Context ctx )
     {
-        final Clause clauses[] = ctx.clauses;
+	// TODO: move this method to the SATProblem class.
+        final Clause clauses[] = ctx.problem.clauses;
 
 	for( int ix=0; ix<clauses.length; ix++ ){
 	    verifyClauseSolution( ctx, clauses[ix] );
@@ -203,7 +203,7 @@ public class SATSolver {
 		int olda = gal[ix];
 
 		gal[ix] = -1;
-		if( satisfiesSolution( ctx.clauses, gal ) ){
+		if( satisfiesSolution( ctx.problem.clauses, gal ) ){
 		    if( traceSolver || printSatSolutions ){
 			System.out.println( "Found a valid generalized solution by omitting term " + (olda==0?"!":"") + ix );
 		    }
@@ -256,15 +256,16 @@ public class SATSolver {
 	    if( traceSolver ){
 		System.out.println( "Avoiding duplicate solutions with new clause: " + cl );
 	    }
-	    int clsz = ctx.clauses.length;
+	    int clsz = ctx.problem.clauses.length;
 
 	    // Grow the clause array to make room for the new clause.
-	    Clause arr[] = new Clause[ctx.clauses.length+1];
-	    System.arraycopy( ctx.clauses, 0, arr, 0, clsz );
+	    // TODO: make this a method of SATProblem.
+	    Clause arr[] = new Clause[ctx.problem.clauses.length+1];
+	    System.arraycopy( ctx.problem.clauses, 0, arr, 0, clsz );
 	    arr[clsz] = cl;
-	    ctx.clauses = arr;
+	    ctx.problem.clauses = arr;
 
-	    registerClauseVariables( ctx.variables, cl, clsz );
+	    registerClauseVariables( ctx.problem.variables, cl, clsz );
 	}
     }
 
@@ -278,10 +279,10 @@ public class SATSolver {
 
 	// Remember the size of the 'satisified' vector at the start. We will
 	// need it later, and the number of clauses may increase.
-	int old_satsize = ctx.clauses.length;
+	int old_satsize = ctx.problem.clauses.length;
 
-	int min_terms = ctx.variables.length+1;
-	int ix = ctx.clauses.length;
+	int min_terms = ctx.problem.variables.length+1;
+	int ix = ctx.problem.clauses.length;
 	int terms[] = ctx.terms;
 
 	// First search for the unsatisfied clause with the minimum number of
@@ -289,7 +290,7 @@ public class SATSolver {
 	// process, the `satisfied' array may be short. We know
 	// that remaining clauses are not satisfied, since they represent
 	// solutions that we already have registered.
-	for( int is=0; is<ctx.clauses.length; is++ ){
+	for( int is=0; is<ctx.problem.clauses.length; is++ ){
 	    if( is>=ctx.satisfied.length || !ctx.satisfied[is] ){
 		int thissz;
 
@@ -297,7 +298,7 @@ public class SATSolver {
 		    thissz = terms[is];
 		}
 		else {
-		    Clause cl = ctx.clauses[is];
+		    Clause cl = ctx.problem.clauses[is];
 		    thissz = cl.pos.length + cl.neg.length;
 		}
 
@@ -307,14 +308,14 @@ public class SATSolver {
 		}
 	    }
 	}
-	if( ix>=ctx.clauses.length ){
+	if( ix>=ctx.problem.clauses.length ){
 	    addSolutionList( ctx );
 	    return true;
 	}
 
 	// Clause with index `ix' is not satisfied. Try all possible
 	// assignments to satisfy it.
-	final Clause cl = ctx.clauses[ix];
+	final Clause cl = ctx.problem.clauses[ix];
 
 	// Start another branching level.
 	ctx.level++;
@@ -344,7 +345,7 @@ public class SATSolver {
 		{
 		    // Create a new `satisfied' array for this recursion.
 		    boolean old_satisfied[] = ctx.satisfied;
-		    ctx.satisfied = new boolean[ctx.clauses.length];
+		    ctx.satisfied = new boolean[ctx.problem.clauses.length];
 		    // We rely on the fact that a boolean array is initialized
 		    // with false values, since we only explicitly fill
 		    // the first part of the array.
@@ -352,7 +353,7 @@ public class SATSolver {
 
 		    // Create a new `terms' array for this recursion.
 		    int old_terms[] = ctx.terms;
-		    ctx.terms = buildNewTerms( old_terms, old_satisfied.length, ctx.clauses, ctx.assignments );
+		    ctx.terms = buildNewTerms( old_terms, old_satisfied.length, ctx.problem.clauses, ctx.assignments );
 
 		    // Our clause is satisfied...
 		    ctx.satisfied[ix] = true;
@@ -389,7 +390,7 @@ public class SATSolver {
 		{
 		    // Create a new `satisfied' array for this recursion.
 		    boolean old_satisfied[] = ctx.satisfied;
-		    ctx.satisfied = new boolean[ctx.clauses.length];
+		    ctx.satisfied = new boolean[ctx.problem.clauses.length];
 
 		    // We rely on the fact that a boolean array is initialized
 		    // with false values. 
@@ -397,7 +398,7 @@ public class SATSolver {
 
 		    // Create a new `terms' array for this recursion.
 		    int old_terms[] = ctx.terms;
-		    ctx.terms = buildNewTerms( old_terms, old_satsize, ctx.clauses, ctx.assignments );
+		    ctx.terms = buildNewTerms( old_terms, old_satsize, ctx.problem.clauses, ctx.assignments );
 
 		    // Our clause is satisfied...
 		    ctx.satisfied[ix] = true;
@@ -457,7 +458,8 @@ public class SATSolver {
     static SATSolution [] solveSystem( final SATProblem p )
     {
 	Context ctx = new Context();
-	ctx.variables = new SATVar[p.vars];
+	ctx.problem = p;
+	ctx.problem.variables = new SATVar[p.vars];
 	ctx.assignments = new int[p.vars];
 	// The list will be grown if necessary.
 	ctx.solutions = new SATSolution[20];
@@ -467,19 +469,19 @@ public class SATSolver {
 	boolean ok;
 
 	label = 0;
-	ctx.clauses = (Clause[]) p.clauses.clone();
+	ctx.problem.clauses = (Clause[]) p.clauses.clone();
 
 	// Now start with a vector of unassigned variables.
-	for( int ix=0; ix<ctx.variables.length; ix++ ){
+	for( int ix=0; ix<ctx.problem.variables.length; ix++ ){
 	    ctx.assignments[ix] = -1;
-	    ctx.variables[ix] = new SATVar( ix );
+	    ctx.problem.variables[ix] = new SATVar( ix );
 	}
 	// Construct a table occurences of all variables.
-	registerClauseVariables( ctx.variables, ctx.clauses );
-	ctx.satisfied = new boolean[ctx.clauses.length];
-	int terms[] = new int[ctx.clauses.length];
-	for( int ix=0; ix<ctx.clauses.length; ix++ ){
-	    final Clause cl = ctx.clauses[ix];
+	registerClauseVariables( ctx.problem.variables, ctx.problem.clauses );
+	ctx.satisfied = new boolean[ctx.problem.clauses.length];
+	int terms[] = new int[ctx.problem.clauses.length];
+	for( int ix=0; ix<ctx.problem.clauses.length; ix++ ){
+	    final Clause cl = ctx.problem.clauses[ix];
 
 	    terms[ix] = cl.pos.length + cl.neg.length;
 	}

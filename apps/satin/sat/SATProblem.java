@@ -11,6 +11,7 @@ import java.io.StreamTokenizer;
 class SATProblem {
     int vars;		 	// Number of variables in the problem.
     Clause clauses[];		// The clauses of the problem.
+    SATVar variables[];		// The variables of the problem.
     int clauseCount;		// The number of valid entries in `clauses'.
     int label = 0;
 
@@ -56,6 +57,16 @@ class SATProblem {
 	    clauses = nw;
 	}
 	clauses[clauseCount++] = cl;
+    }
+
+    public IntVector getPosClauses( int var )
+    {
+	return variables[var].getPosClauses();
+    }
+
+    public IntVector getNegClauses( int var )
+    {
+	return variables[var].getNegClauses();
     }
 
     // A CNF problem parser. Given a problem in DIMACS format,
