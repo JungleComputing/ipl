@@ -8,19 +8,22 @@ import java.util.Random;
 import java.io.IOException;
 
 interface OpenConfig {
+    static final boolean slowStart = true;
     static final boolean tracePortCreation = false;
     static final boolean traceCommunication = false;
     static final boolean showProgress = true;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = true;
-    static final int BOARDSIZE = 30000;
-    static final int GENERATIONS = 10;
+    static final int BOARDSIZE = 3000;
+    static final int GENERATIONS = 1000;
     static final int SHOWNBOARDWIDTH = 60;
     static final int SHOWNBOARDHEIGHT = 30;
+    static final int startDelay = 100;  // ms start delay multiplier.
 }
 
 class RszHandler implements OpenConfig, ResizeHandler {
     int members = 0;
+    IbisIdentifier prev = null;
 
     public void join( IbisIdentifier id )
     {
@@ -28,6 +31,17 @@ class RszHandler implements OpenConfig, ResizeHandler {
             System.err.println( "Join of " + id.name() );
         }
         members++;
+        if( id.equals( OpenCell1D.ibis.identifier() ) ){
+           // Hey! That's me. Now I know my member number and my left
+           // neighbour.
+           OpenCell1D.me = members;
+           OpenCell1D.leftNeighbour = prev;
+        }
+        else if( prev != null && prev.equals( OpenCell1D.ibis.identifier() ) ){
+            // The next one after me. No I know my right neighbour.
+            OpenCell1D.rightNeighbour = id;
+        }
+        prev = id;
     }
 
     public void leave( IbisIdentifier id )
@@ -57,7 +71,15 @@ class RszHandler implements OpenConfig, ResizeHandler {
 class OpenCell1D implements OpenConfig {
     static Ibis ibis;
     static Registry registry;
-    static ibis.util.PoolInfo info;
+    static IbisIdentifier leftNeighbour;
+    static IbisIdentifier rightNeighbour;
+    static IbisIdentifier myName;
+    static boolean amMaster = false;
+    static SendPort leftSendPort;
+    static SendPort rightSendPort;
+    static ReceivePort leftReceivePort;
+    static ReceivePort rightReceivePort;
+    static int me = -1;
 
     private static void usage()
     {
@@ -67,58 +89,41 @@ class OpenCell1D implements OpenConfig {
 
     /**
      * Creates an update send port that connected to the specified neighbour.
-     * @param t The type of the port to construct.
-     * @param me My own processor number.
-     * @param procno The processor number to connect to.
+     * @param updatePort The type of the port to construct.
+     * @param dest The destination processor.
+     * @param prefix The prefix of the port names.
      */
-    private static SendPort createUpdateSendPort( PortType t, int me, int procno )
+    private static SendPort createNeighbourSendPort( PortType updatePort, IbisIdentifier dest, String prefix )
         throws java.io.IOException
     {
-        String portclass;
+        String sendportname = prefix + "Send" + myName.name();
+        String receiveportname = prefix + "Receive" + dest.name();
 
-        if( me<procno ){
-            portclass = "Upstream";
-        }
-        else {
-            portclass = "Downstream";
-        }
-        String sendportname = "send" + portclass + me;
-        String receiveportname = "receive" + portclass + procno;
-
-        SendPort res = t.createSendPort( sendportname );
+        SendPort res = updatePort.createSendPort( sendportname );
         if( tracePortCreation ){
-            System.err.println( "P" + me + ": created send port " + sendportname  );
+            System.err.println( myName.name() + ": created send port " + sendportname  );
         }
         ReceivePortIdentifier id = registry.lookup( receiveportname );
         res.connect( id );
         if( tracePortCreation ){
-            System.err.println( "P" + me + ": connected " + sendportname + " to " + receiveportname );
+            System.err.println( myName.name() + ": connected " + sendportname + " to " + receiveportname );
         }
         return res;
     }
 
     /**
      * Creates an update receive port.
-     * @param t The type of the port to construct.
-     * @param me My own processor number.
-     * @param procno The processor to receive from.
+     * @param updatePort The type of the port to construct.
+     * @param prefix The prefix of the port names.
      */
-    private static ReceivePort createUpdateReceivePort( PortType t, int me, int procno )
+    private static ReceivePort createNeighbourReceivePort( PortType updatePort, String prefix )
         throws java.io.IOException
     {
-        String portclass;
+        String receiveportname = prefix + "Receive" + myName.name();
 
-        if( me<procno ){
-            portclass = "receiveDownstream";
-        }
-        else {
-            portclass = "receiveUpstream";
-        }
-        String receiveportname = portclass + me;
-
-        ReceivePort res = t.createReceivePort( receiveportname );
+        ReceivePort res = updatePort.createReceivePort( receiveportname );
         if( tracePortCreation ){
-            System.err.println( "P" + me + ": created receive port " + receiveportname  );
+            System.err.println( myName.name() + ": created receive port " + receiveportname  );
         }
         res.enableConnections();
         return res;
@@ -211,11 +216,11 @@ class OpenCell1D implements OpenConfig {
             hasPattern( board, x-1, y-2, vertTwister );
     }
 
-    private static void send( int me, SendPort p, byte data[] )
+    private static void send( SendPort p, byte data[] )
         throws java.io.IOException
     {
         if( traceCommunication ){
-            System.err.println( "P" + me + ": sending from port " + p );
+            System.err.println( myName.name() + ": sending from port " + p );
         }
         WriteMessage m = p.newMessage();
         m.writeArray( data );
@@ -223,11 +228,11 @@ class OpenCell1D implements OpenConfig {
         m.finish();
     }
 
-    private static void receive( int me, ReceivePort p, byte data[] )
+    private static void receive( ReceivePort p, byte data[] )
         throws java.io.IOException
     {
         if( traceCommunication ){
-            System.err.println( "P" + me + ": receiving on port " + p );
+            System.err.println( myName.name() + ": receiving on port " + p );
         }
         ReadMessage m = p.receive();
         m.readArray( data );
@@ -262,46 +267,51 @@ class OpenCell1D implements OpenConfig {
         if( count == -1 ) {
             count = GENERATIONS;
         }
-
         try {
-            info = new ibis.util.PoolInfo();
+            myName = ibis.identifier();
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
-            s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
-            s.add( "worldmodel", "closed" );
+            s.add( "communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt" );
+            s.add( "worldmodel", "open" );
             ibis = Ibis.createIbis( s, rszHandler );
 
-            // ibis.openWorld();
+            ibis.openWorld();
 
             registry = ibis.registry();
 
-            // This only works for a closed world...
-            final int me = info.rank();         // My processor number.
-            final int nProcs = info.size();     // Total number of procs.
+            // TODO: be more precise about the properties for the two
+            // port types.
+            PortType updatePort = ibis.createPortType( "neighbour update", s );
+            PortType loadbalancePort = ibis.createPortType( "loadbalance", s );
 
-            PortType t = ibis.createPortType( "neighbour update", s );
+            leftSendPort = null;
+            rightSendPort = null;
+            leftReceivePort = null;
+            rightReceivePort = null;
 
-            SendPort leftSendPort = null;
-            SendPort rightSendPort = null;
-            ReceivePort leftReceivePort = null;
-            ReceivePort rightReceivePort = null;
+            // TODO: wait until I know my left neighbour.
 
-            if( me != 0 ){
-                leftReceivePort = createUpdateReceivePort( t, me, me-1 );
+            if( leftNeighbour != null ){
+                leftReceivePort = createNeighbourReceivePort( updatePort, "upstream" );
             }
-            if( me != nProcs-1 ){
-                rightReceivePort = createUpdateReceivePort( t, me, me+1 );
+            if( rightNeighbour != null ){
+                rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
             }
-            if( me != 0 ){
-                leftSendPort = createUpdateSendPort( t, me, me-1 );
+            if( leftNeighbour != null ){
+                leftSendPort = createNeighbourSendPort( updatePort, leftNeighbour, "downstream" );
             }
-            if( me != nProcs-1 ){
-                rightSendPort = createUpdateSendPort( t, me, me+1 );
+            if( rightNeighbour != null ){
+                rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
             }
 
-            // The cells. There is a border of cells that are always empty,
-            // but make the border conditions easy to handle.
-            final int myColumns = BOARDSIZE/nProcs;
+            int myColumns = 0;
+            if( leftNeighbour == null ){
+                // If I'm the leftmost node, I start with the entire board.
+                // Workstealing will spread the load to other processors later
+                // on.
+                // TODO: do something smarter at startup.
+                myColumns = BOARDSIZE;
+            }
 
             // The Life board.
             byte board[][] = new byte[myColumns+2][BOARDSIZE+2];
@@ -315,7 +325,7 @@ class OpenCell1D implements OpenConfig {
             putTwister( board, 100, 3 );
             putPattern( board, 4, 4, glider );
 
-            if( me == 0 ){
+            if( leftNeighbour == null ){
                 System.out.println( "Started" );
             }
             long startTime = System.currentTimeMillis();
@@ -325,7 +335,7 @@ class OpenCell1D implements OpenConfig {
                 byte curr[] = board[0];
                 byte next[] = board[1];
 
-                if( showBoard && me == 0 ){
+                if( showBoard && leftNeighbour == null ){
                     System.out.println( "Generation " + iter );
                     for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
                         for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
@@ -360,47 +370,47 @@ class OpenCell1D implements OpenConfig {
                 }
                 if( (me % 2) == 0 ){
                     if( leftSendPort != null ){
-                        send( me, leftSendPort, board[1] );
+                        send( leftSendPort, board[1] );
                     }
                     if( rightSendPort != null ){
-                        send( me, rightSendPort, board[myColumns] );
+                        send( rightSendPort, board[myColumns] );
                     }
                     if( leftReceivePort != null ){
-                        receive( me, leftReceivePort, board[0] );
+                        receive( leftReceivePort, board[0] );
                     }
                     if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, board[myColumns+1] );
+                        receive( rightReceivePort, board[myColumns+1] );
                     }
                 }
                 else {
                     if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, board[myColumns+1] );
+                        receive( rightReceivePort, board[myColumns+1] );
                     }
                     if( leftReceivePort != null ){
-                        receive( me, leftReceivePort, board[0] );
+                        receive( leftReceivePort, board[0] );
                     }
                     if( rightSendPort != null ){
-                        send( me, rightSendPort, board[myColumns] );
+                        send( rightSendPort, board[myColumns] );
                     }
                     if( leftSendPort != null ){
-                        send( me, leftSendPort, board[1] );
+                        send( leftSendPort, board[1] );
                     }
                 }
                 if( showProgress ){
-                    if( me == 0 ){
+                    if( leftNeighbour == null ){
                         System.out.print( '.' );
                     }
                 }
             }
             if( showProgress ){
-                if( me == 0 ){
+                if( leftNeighbour == null ){
                     System.out.println();
                 }
             }
             if( !hasTwister( board, 100, 3 ) ){
                 System.out.println( "Twister has gone missing" );
             }
-            if( me == 0 ){
+            if( leftNeighbour == null ){
                 long endTime = System.currentTimeMillis();
                 double time = ((double) (endTime - startTime))/1000.0;
                 long updates = BOARDSIZE*BOARDSIZE*(long) GENERATIONS;
