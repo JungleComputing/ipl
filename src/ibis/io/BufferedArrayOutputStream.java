@@ -264,6 +264,9 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
      */
     public final void flush() throws IOException {
 	super.flush();
+	if (DEBUG) {
+	    System.out.println("Flushing ...");
+	}
 	flush(BUF_SIZE+1);	/* Forces flush */
 	out.flush();
     }

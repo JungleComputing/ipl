@@ -857,12 +857,12 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		} else if (type == java.lang.Class.class) {
 		    /* EEK this is not nice !! */
 		    writeUTF(((Class)ref).getName());
+		} else if (IbisSerializationInputStream.isIbisSerializable(type)) {
+		    ((ibis.io.Serializable)ref).generated_WriteObject(this);
 		} else if (ref instanceof java.io.Externalizable) {
 		    push_current_object(ref, 0);
 		    ((java.io.Externalizable) ref).writeExternal(this);
 		    pop_current_object();
-		} else if (IbisSerializationInputStream.isIbisSerializable(type)) {
-		    ((ibis.io.Serializable)ref).generated_WriteObject(this);
 		} else if (ref instanceof java.io.Serializable) {
 		    writeSerializableObject(ref, type);
 		} else { 
