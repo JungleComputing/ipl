@@ -95,6 +95,7 @@ class OpenCell1D implements OpenConfig {
     static ReceivePort leftReceivePort;
     static ReceivePort rightReceivePort;
     static int generation = 0;
+    static int boardsize = DEFAULTBOARDSIZE;
 
     /** The first column that is my responsibility. */
     static int firstColumn = -1;
@@ -239,6 +240,12 @@ class OpenCell1D implements OpenConfig {
             hasPattern( board, x-1, y-2, vertTwister );
     }
 
+    /**
+     * @param p The port to send to.
+     * @param firstColumn The first column to send.
+     * @param firstNoColumn The first column not to send.
+     * @param board The game board.
+     */
     private static void send( SendPort p, int firstColumn, int firstNoColumn, byte board[][] )
         throws java.io.IOException
     {
@@ -253,40 +260,42 @@ class OpenCell1D implements OpenConfig {
         m.writeInt( OpenCell1D.generation );
         m.writeInt( firstColumn );
         m.writeInt( firstNoColumn );
-        m.writeArray( board[firstColumn] );
+        for( int i=firstColumn; i<firstNoColumn; i++ ){
+            m.writeArray( board[i] );
+        }
         m.send();
         m.finish();
     }
 
     /**
      * @param p The port to receive on.
-     * @param data The array to put the bulk of the data in.
+     * @param board The game board.
      */
-    private static void receive( ReceivePort p, byte data[] )
+    private static void receive( ReceivePort p, byte board[][] )
         throws java.io.IOException
     {
-        if( data == null ){
-            System.err.println( "P" + me + ": cannot receive from " + p + " into a null array" );
-            return;
-        }
         if( traceCommunication ){
             System.out.println( myName.name() + ": receiving on port " + p );
         }
         ReadMessage m = p.receive();
         int gen = m.readInt();
-        int firstCol = m.readInt();
-        int firstNoCol = m.readInt();
         if( gen>=0 && OpenCell1D.generation<0 ){
             OpenCell1D.generation = gen;
         }
-        m.readArray( data );
+        int firstCol = m.readInt();
+        int firstNoCol = m.readInt();
+        for( int i=firstCol; i<firstNoCol; i++ ){
+            if( board[i] == null ){
+                board[i] = new byte[OpenCell1D.boardsize+2];
+            }
+            m.readArray( board[i] );
+        }
         m.finish();
     }
 
     public static void main( String [] args )
     {
         int count = GENERATIONS;
-        int boardsize = DEFAULTBOARDSIZE;
         int rank = 0;
         int remoteRank = 1;
         boolean noneSer = false;
@@ -469,18 +478,18 @@ class OpenCell1D implements OpenConfig {
                         send( rightSendPort, firstNoColumn-1, firstNoColumn, board );
                     }
                     if( leftReceivePort != null ){
-                        receive( leftReceivePort, board[firstColumn-1] );
+                        receive( leftReceivePort, board );
                     }
                     if( rightReceivePort != null ){
-                        receive( rightReceivePort, board[firstNoColumn] );
+                        receive( rightReceivePort, board );
                     }
                 }
                 else {
                     if( rightReceivePort != null ){
-                        receive( rightReceivePort, board[firstNoColumn] );
+                        receive( rightReceivePort, board );
                     }
                     if( leftReceivePort != null ){
-                        receive( leftReceivePort, board[firstColumn-1] );
+                        receive( leftReceivePort, board );
                     }
                     if( rightSendPort != null ){
                         if( aimFirstNoColumn>=firstColumn && aimFirstNoColumn<firstNoColumn ){
