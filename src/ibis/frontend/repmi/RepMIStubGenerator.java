@@ -121,7 +121,6 @@ class RepMIStubGenerator extends RepMIGenerator {
 				output.println(writeMessageType("\t\t\t", "w", params[j], "p" + j));
 			}
 		
-			output.println("\t\t\tw.send();");
 			output.println("\t\t\tw.finish();");
 		}
 

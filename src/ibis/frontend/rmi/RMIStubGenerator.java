@@ -83,7 +83,6 @@ class RMIStubGenerator extends RMIGenerator {
 		output.println(writeMessageType("\t\t\t\t", "w", params[j], "p" + j));
 	    }
 	    
-	    output.println("\t\t\t\tw.send();");
 	    output.println("\t\t\t\tw.finish();");
 
 	    output.println("\t\t\t\tReadMessage r = reply.receive();");

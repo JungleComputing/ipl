@@ -84,10 +84,6 @@ class Sender implements Config {
 			for(int i = 0; i< count; i++) {
 				WriteMessage writeMessage = sport.newMessage();
 				if(DEBUG) {
-					System.out.println("LAT: send message");
-				}
-				writeMessage.send();
-				if(DEBUG) {
 					System.out.println("LAT: finish message");
 				}
 				writeMessage.finish();
@@ -137,7 +133,6 @@ class ExplicitReceiver implements Config {
 				}
 				
 				WriteMessage writeMessage = sport.newMessage();
-				writeMessage.send();
 				writeMessage.finish();
 			}
 			if (c != null) c.printCycles("Server");
@@ -173,7 +168,6 @@ class UpcallReceiver implements Upcall {
 			}
 
 			WriteMessage writeMessage = sport.newMessage();
-			writeMessage.send();
 			writeMessage.finish();
 
 			count++;
@@ -233,7 +227,6 @@ class UpcallSender implements Upcall, Config {
 		try { 
 			System.err.println("Starting " + count);
 			WriteMessage writeMessage = sport.newMessage();
-			writeMessage.send();
 			writeMessage.finish();
 		} catch (Exception e) { 			
 			System.err.println("EEEEEK " + e);
@@ -275,10 +268,6 @@ class UpcallSender implements Upcall, Config {
 				System.err.println("SEND pre new");
 			}
 			WriteMessage writeMessage = sport.newMessage();
-			if(DEBUG) {
-				System.err.println("SEND pre send");
-			}
-			writeMessage.send();
 			if(DEBUG) {
 				System.err.println("SEND pre fin");
 			}

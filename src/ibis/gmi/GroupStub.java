@@ -312,7 +312,6 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    w.writeObject(((CombineReply)(m.rep)).binomialCombiner);
 	}
 	v.writeParameters(w);
-	w.send();
 	w.finish();
     }
 
@@ -442,7 +441,6 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 		w.writeInt(ticket);
 	    }
 	    params.writeParameters(w);
-	    w.send();
 	    w.finish();
 	}
 
@@ -550,7 +548,6 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 
 		    w.writeObject(info.stubids_tickets);
 		    params.writeParameters(w);
-		    w.send();
 		    w.finish();
 		    break;
 		}

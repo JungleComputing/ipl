@@ -113,7 +113,6 @@ public final class RTS {
 		WriteMessage w = skel.stubs[stubID].newMessage();
 		w.writeByte(EXCEPTION);
 		w.writeObject(e);
-		w.send();
 		w.finish();
 	    }
 	}
@@ -450,7 +449,6 @@ public final class RTS {
 	wm.writeInt(-1);
 	wm.writeInt(0);
 	wm.writeObject(r.identifier());
-	wm.send();
 	wm.finish();
 
 	if (DEBUG) {

@@ -125,7 +125,6 @@ final class GroupRegistry implements GroupProtocol {
 	    w.writeByte(CREATE_OK);
 	}
 
-	w.send();
 	w.finish();		
     } 
 
@@ -151,7 +150,6 @@ final class GroupRegistry implements GroupProtocol {
 	    w.writeByte(REGISTRY_REPLY);
 	    w.writeInt(ticket);
 	    w.writeByte(JOIN_UNKNOWN);
-	    w.send();
 	    w.finish();		
 
 	} else if (e.joined == e.groupSize) {
@@ -160,7 +158,6 @@ final class GroupRegistry implements GroupProtocol {
 	    w.writeByte(REGISTRY_REPLY);
 	    w.writeInt(ticket);
 	    w.writeByte(JOIN_FULL);
-	    w.send();
 	    w.finish();		
 
 	} else {
@@ -179,7 +176,6 @@ final class GroupRegistry implements GroupProtocol {
 		w.writeByte(REGISTRY_REPLY);
 		w.writeInt(ticket);
 		w.writeByte(JOIN_WRONG_TYPE);
-		w.send();
 		w.finish();	
 	    }
 	    
@@ -198,7 +194,6 @@ final class GroupRegistry implements GroupProtocol {
 		    w.writeInt(e.groupNumber);
 		    w.writeObject(e.memberRanks);
 		    w.writeObject(e.memberSkels);
-		    w.send();
 		    w.finish();		
 
 		    e.tickets[i] = 0;
@@ -237,7 +232,6 @@ final class GroupRegistry implements GroupProtocol {
 	    w.writeObject(e.memberRanks);
 	    w.writeObject(e.memberSkels);
 	}
-	w.send();
 	w.finish();		
     }
 
@@ -304,7 +298,6 @@ final class GroupRegistry implements GroupProtocol {
 
 	w.writeByte(COMBINED_OK);
 	w.writeObject(inf);
-	w.send();
 	w.finish();
     }
 

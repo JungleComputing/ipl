@@ -31,7 +31,6 @@ class Sender implements Upcall {
 			writeMessage.writeInt(0);
 			writeMessage.writeInt(0);
 			writeMessage.writeInt(0);
-			writeMessage.send();
 			writeMessage.finish();
 			/*
 			ibis.poll();
@@ -63,7 +62,6 @@ class Sender implements Upcall {
 			writeMessage.writeInt(0);
 			writeMessage.writeInt(0);
 			writeMessage.writeInt(0);
-			writeMessage.send();
 			writeMessage.finish();
 			/*
 			ibis.poll();
@@ -132,7 +130,6 @@ class UpcallReceiver implements Upcall {
 			writeMessage.writeInt(ticket);
 			writeMessage.writeByte((byte)0);
 			writeMessage.writeByte((byte)1);
-			writeMessage.send();
 			writeMessage.finish();
 
 			count++;

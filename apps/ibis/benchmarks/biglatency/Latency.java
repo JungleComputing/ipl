@@ -24,7 +24,6 @@ class Sender {
 			writeMessage.writeInt(4);
 			writeMessage.writeInt(5);
 			writeMessage.writeInt(6);
-			writeMessage.send();
 			writeMessage.finish();
 
 			ReadMessage readMessage = rport.receive();
@@ -45,7 +44,6 @@ class Sender {
 			writeMessage.writeInt(4);
 			writeMessage.writeInt(5);
 			writeMessage.writeInt(6);
-			writeMessage.send();
 			writeMessage.finish();
 
 			ReadMessage readMessage = rport.receive();
@@ -86,7 +84,6 @@ class ExplicitReceiver {
 			WriteMessage writeMessage = sport.newMessage();
 			writeMessage.writeByte((byte)0);
 			writeMessage.writeByte((byte)1);
-			writeMessage.send();
 			writeMessage.finish();
 		}
 	}
@@ -119,7 +116,6 @@ class UpcallReceiver implements Upcall {
 			WriteMessage writeMessage = sport.newMessage();
 			writeMessage.writeByte((byte)0);
 			writeMessage.writeByte((byte)1);
-			writeMessage.send();
 			writeMessage.finish();
 
 			count++;

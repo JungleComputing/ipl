@@ -38,7 +38,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Warmup "+ i);
@@ -54,7 +53,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Test "+ i);
@@ -88,7 +86,6 @@ public class Main {
 			}
 				
 			WriteMessage wm = s.newMessage();
-			wm.send();
 			wm.finish();
 
 			for (int i=0;i<count;i++) {
@@ -98,7 +95,6 @@ public class Main {
 			}
 				
 			wm = s.newMessage();
-			wm.send();
 			wm.finish();
 			 
 		} 
@@ -121,7 +117,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Warmup "+ i);
@@ -137,7 +132,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Test "+ i);
@@ -171,7 +165,6 @@ public class Main {
 			}
 				
 			WriteMessage wm = s.newMessage();
-			wm.send();
 			wm.finish();
 
 			for (int i=0;i<count;i++) {
@@ -181,7 +174,6 @@ public class Main {
 			}
 				
 			wm = s.newMessage();
-			wm.send();
 			wm.finish();
 			 
 		} 
@@ -204,7 +196,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Warmup "+ i);
@@ -220,7 +211,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Test "+ i);
@@ -254,7 +244,6 @@ public class Main {
 			}
 				
 			WriteMessage wm = s.newMessage();
-			wm.send();
 			wm.finish();
 
 			for (int i=0;i<count;i++) {
@@ -264,7 +253,6 @@ public class Main {
 			}
 				
 			wm = s.newMessage();
-			wm.send();
 			wm.finish();
 			 
 		} 
@@ -287,7 +275,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Warmup "+ i);
@@ -303,7 +290,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Test "+ i);
@@ -337,7 +323,6 @@ public class Main {
 			}
 				
 			WriteMessage wm = s.newMessage();
-			wm.send();
 			wm.finish();
 
 			for (int i=0;i<count;i++) {
@@ -347,7 +332,6 @@ public class Main {
 			}
 				
 			wm = s.newMessage();
-			wm.send();
 			wm.finish();
 			 
 		} 
@@ -370,7 +354,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Warmup "+ i);
@@ -386,7 +369,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Test "+ i);
@@ -420,7 +402,6 @@ public class Main {
 			}
 				
 			WriteMessage wm = s.newMessage();
-			wm.send();
 			wm.finish();
 
 			for (int i=0;i<count;i++) {
@@ -430,7 +411,6 @@ public class Main {
 			}
 				
 			wm = s.newMessage();
-			wm.send();
 			wm.finish();
 			 
 		} 
@@ -453,7 +433,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Warmup "+ i);
@@ -469,7 +448,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Test "+ i);
@@ -503,7 +481,6 @@ public class Main {
 			}
 				
 			WriteMessage wm = s.newMessage();
-			wm.send();
 			wm.finish();
 
 			for (int i=0;i<count;i++) {
@@ -513,7 +490,6 @@ public class Main {
 			}
 				
 			wm = s.newMessage();
-			wm.send();
 			wm.finish();
 			 
 		} 
@@ -536,7 +512,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Warmup "+ i);
@@ -552,7 +527,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Test "+ i);
@@ -586,7 +560,6 @@ public class Main {
 			}
 				
 			WriteMessage wm = s.newMessage();
-			wm.send();
 			wm.finish();
 
 			for (int i=0;i<count;i++) {
@@ -596,7 +569,6 @@ public class Main {
 			}
 			
 			wm = s.newMessage();
-			wm.send();
 			wm.finish();
 			 
 		} 
@@ -619,7 +591,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Warmup "+ i);
@@ -635,7 +606,6 @@ public class Main {
 			for (int i=0;i<count;i++) {
 				WriteMessage wm = s.newMessage();
 				wm.writeArray(temp);
-				wm.send();
 				wm.finish();
 				if (DEBUG) { 
 					System.err.println("Test "+ i);
@@ -669,7 +639,6 @@ public class Main {
 			}
 				
 			WriteMessage wm = s.newMessage();
-			wm.send();
 			wm.finish();
 
 			for (int i=0;i<count;i++) {
@@ -679,7 +648,6 @@ public class Main {
 			}
 				
 			wm = s.newMessage();
-			wm.send();
 			wm.finish();
 			 
 		} 

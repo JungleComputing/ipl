@@ -198,7 +198,6 @@ class RMISkeletonGenerator extends RMIGenerator {
 	    }
 
 	    output.println("\t\t\t\t}");
-	    output.println("\t\t\t\tw.send();");
 	    output.println("\t\t\t\tw.finish();");
 	    output.println("\t\t\t} catch(IOException e) {");
 	    output.println("\t\t\t\tthrow new ibis.rmi.MarshalException(\"error marshalling return\", e);");
@@ -226,7 +225,6 @@ class RMISkeletonGenerator extends RMIGenerator {
 	output.println("\t\t\t\tw.writeInt(id);");
 	output.println("\t\t\t\tw.writeInt(skeletonId);");
 	output.println("\t\t\t\tw.writeObject(destination);");
-	output.println("\t\t\t\tw.send();");
 	output.println("\t\t\t\tw.finish();");
 	output.println("\t\t\t} catch(IOException e) {");
 	output.println("\t\t\t\tthrow new ibis.rmi.MarshalException(\"error sending skeletonId\", e);");

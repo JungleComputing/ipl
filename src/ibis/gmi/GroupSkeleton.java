@@ -293,7 +293,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_FLOAT);
 		    w.writeFloat(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -318,7 +317,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_FLOAT);
 		    w.writeFloat(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -384,7 +382,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_FLOAT);
 		    w.writeDouble(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -409,7 +406,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_FLOAT);
 		    w.writeDouble(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -475,7 +471,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_LONG);
 		    w.writeLong(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -500,7 +495,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_LONG);
 		    w.writeLong(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -564,7 +558,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_INT);
 		    w.writeInt(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -589,7 +582,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_INT);
 		    w.writeInt(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -654,7 +646,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_SHORT);
 		    w.writeShort(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -679,7 +670,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_SHORT);
 		    w.writeShort(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -744,7 +734,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_CHAR);
 		    w.writeChar(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -769,7 +758,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_CHAR);
 		    w.writeChar(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -835,7 +823,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_BYTE);
 		    w.writeByte(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -860,7 +847,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_BYTE);
 		    w.writeByte(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -926,7 +912,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_BOOLEAN);
 		    w.writeBoolean(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -951,7 +936,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_BOOLEAN);
 		    w.writeBoolean(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -1017,7 +1001,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_OBJECT);
 		    w.writeObject(local_result);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -1042,7 +1025,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		    w.writeByte(RESULT_OBJECT);
 		    w.writeObject(local_result);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */
@@ -1109,7 +1091,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		} else { 
 		    w.writeByte(RESULT_VOID);
 		}
-		w.send();
 		w.finish();
 		break;
 	    }
@@ -1133,7 +1114,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 		} else { 
 		    w.writeByte(RESULT_VOID);
 		}
-		w.send();
 		w.finish();
 	    }
 	    /* receive result from root */

@@ -101,7 +101,6 @@ class GMISkeletonGenerator extends GMIGenerator {
 
 	writeResult(spacing + "\t\t", ret);
 
-	output.println(spacing + "\t\tw.send();");
 	output.println(spacing + "\t\tw.finish();");
 	output.println(spacing + "\t} else {");
 	output.println(spacing + "\t\tException[] excpts = null;");
@@ -141,7 +140,6 @@ class GMISkeletonGenerator extends GMIGenerator {
 	}
 	output.println(spacing + "\t\t\t}");
 	writeResult(spacing + "\t\t\t", ret);
-	output.println(spacing + "\t\t\tw.send();");
 	output.println(spacing + "\t\t\tw.finish();");
 	output.println(spacing + "\t\t}");
 

@@ -25,7 +25,6 @@ final class Receiver implements Upcall {
 			readMessage.finish();
 			
 			WriteMessage writeMessage = sport.newMessage();
-			writeMessage.send();
 			writeMessage.finish();
 
 			count++;
@@ -58,7 +57,6 @@ final class Receiver implements Upcall {
 				readMessage.finish();
 				
 				WriteMessage writeMessage = sport.newMessage();
-				writeMessage.send();
 				writeMessage.finish();
 			}	
 		} else {
@@ -69,7 +67,6 @@ final class Receiver implements Upcall {
 				
 				WriteMessage writeMessage = sport.newMessage();
 				writeMessage.writeObject(temp);
-				writeMessage.send();
 				writeMessage.finish();
 			}	
 		}
@@ -127,7 +124,6 @@ final class Main {
 		for (int i=0;i<count;i++) { 
 			WriteMessage writeMessage = sport.newMessage();
 			writeMessage.writeObject(data);
-			writeMessage.send();
 			writeMessage.finish();
 			
 			ReadMessage readMessage = rport.receive();
@@ -148,7 +144,6 @@ final class Main {
 		for (int i=0;i<count;i++) { 
 			WriteMessage writeMessage = sport.newMessage();
 			writeMessage.writeObject(data);
-			writeMessage.send();
 			writeMessage.finish();
 			
 			ReadMessage readMessage = rport.receive();

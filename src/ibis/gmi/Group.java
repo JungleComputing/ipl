@@ -405,7 +405,6 @@ public final class Group implements GroupProtocol {
 
 		    WriteMessage w = systemOut.newMessage(); 
 		    w.writeObject(pool);
-		    w.send();
 		    w.finish();
 		}
 	    } else { 
@@ -434,7 +433,6 @@ public final class Group implements GroupProtocol {
 		WriteMessage w = systemOut.newMessage();
 		w.writeObject(systemIn.identifier());
 		w.writeObject(receivePort.identifier());
-		w.send();
 		w.finish();
 
 		ReadMessage r = systemIn.receive();
@@ -475,11 +473,9 @@ public final class Group implements GroupProtocol {
 		    }
 		    
 		    WriteMessage w = systemOut.newMessage(); 
-		    w.send();
 		    w.finish();
 		} else { 
 		    WriteMessage w = systemOut.newMessage(); 
-		    w.send();
 		    w.finish();	
 		    ReadMessage r = systemIn.receive();
 		    r.finish();
@@ -653,7 +649,6 @@ public final class Group implements GroupProtocol {
 	    w.writeObject(name);
 	    w.writeObject(type.getName());
 	    w.writeInt(size);
-	    w.send();
 	    w.finish();
 
 	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") waiting for reply on ticket(" + ticket +")");
@@ -711,7 +706,6 @@ public final class Group implements GroupProtocol {
 		w.writeObject(name);
 		w.writeObject(o.groupInterfaces);
 		w.writeInt(o.mySkel);
-		w.send();
 		w.finish();
 
 		if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") waiting for reply on ticket(" + ticket +")");
@@ -785,7 +779,6 @@ public final class Group implements GroupProtocol {
 		    w.writeInt(_rank);
 		    w.writeInt(ticket);
 		    w.writeObject(name);
-		    w.send();
 		    w.finish();
 		    
 		    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
@@ -893,7 +886,6 @@ public final class Group implements GroupProtocol {
 	    w.writeInt(rank);
 	    w.writeInt(size);
 	    w.writeInt(mode);
-	    w.send();
 	    w.finish();
 		    
 	    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
@@ -976,7 +968,6 @@ public final class Group implements GroupProtocol {
 		    }
 		    
 		    WriteMessage w = systemOut.newMessage(); 
-		    w.send();
 		    w.finish();
 		    
 		    systemOut.close();
@@ -990,7 +981,6 @@ public final class Group implements GroupProtocol {
 		}
 		
 		WriteMessage w = systemOut.newMessage();
-		w.send();
 		w.finish();				
 
 		ReadMessage r = systemIn.receive();

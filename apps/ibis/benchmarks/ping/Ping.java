@@ -257,7 +257,6 @@ public final class Ping {
 
 				WriteMessage out = sport.newMessage();
 				out.writeArray(buffer);
-				out.send();
 
                                 out.finish();
                                 if (param_log) {
@@ -319,7 +318,6 @@ public final class Ping {
 
 				WriteMessage out = sport.newMessage();
 				out.writeArray(buffer);
-				out.send();
 				out.finish();
                                 if (param_log) {
                                         System.err.println("Ping: sending: <-- "+nb_samples);
@@ -382,7 +380,6 @@ public final class Ping {
                         }
 			WriteMessage out = sport.newMessage();
                         out.writeArray(buffer);
-			out.send();
 			out.finish();
                         if (param_log) {
                                 System.err.println("Pong: sending: <--");
@@ -415,7 +412,6 @@ public final class Ping {
 
 				WriteMessage out = sport.newMessage();
 				out.writeArray(buffer);
-				out.send();
 				out.finish();
                                 if (param_log) {
                                         System.err.println("Pong: sending: <-- "+nb_samples);

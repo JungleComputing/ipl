@@ -155,10 +155,6 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 	    }
 	}
 
-	// writeMessage.send();
-	// t_send.start();
-	writeMessage.send();
-	// t_send.stop();
 	// t_s_finish.start();
 	writeMessage.finish();
 	// t_s_finish.stop();
@@ -576,7 +572,6 @@ System.err.println("Server connects to client #" + i);
 	// Do a poor-man's barrier to allow the connections to proceed.
 	WriteMessage w = sport.newMessage();
 System.err.println("Poor-man's barrier send start...");
-	w.send();
 	w.finish();
 System.err.println("Poor-man's barrier send finished");
 

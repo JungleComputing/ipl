@@ -79,7 +79,6 @@ class Latency {
 
 				WriteMessage w = sport.newMessage();
 				w.writeInt(42);
-				w.send();
 				w.finish();
 
 				sport.close();
@@ -96,7 +95,6 @@ class Latency {
 
 				WriteMessage w = sport.newMessage();
 				w.writeObject(rport.identifier());
-				w.send();
 				w.finish();
 
 				sport.close();

@@ -104,7 +104,6 @@ public class Main {
 				for (int i=0;i<count;i++) {
 					WriteMessage wm = sport.newMessage();
 					wm.writeObject(temp);					
-					wm.send();
 					wm.finish();
 					if (DEBUG) { 
 						System.err.println("Warmup "+ i);
@@ -120,7 +119,6 @@ public class Main {
 				for (int i=0;i<count;i++) {
 					WriteMessage wm = sport.newMessage();
 					wm.writeObject(temp);					
-					wm.send();
 					wm.finish();
 					if (DEBUG) { 
 						System.err.println("Test "+ i);
@@ -163,7 +161,6 @@ public class Main {
 					}
 					
 					WriteMessage wm = sport.newMessage();
-					wm.send();
 					wm.finish();
 				}
 			

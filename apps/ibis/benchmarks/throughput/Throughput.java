@@ -30,7 +30,6 @@ class Throughput extends Thread {
 		for(int i = 0; i< count; i++) {
 			WriteMessage writeMessage = sport.newMessage();
 			writeMessage.writeArray(data);
-			writeMessage.send();
 			writeMessage.finish();
 
 			if (--w == 0) {
@@ -54,7 +53,6 @@ class Throughput extends Thread {
 			if (--w == 0) {
 				System.err.println("EEEEEEEEEEEK");
 				WriteMessage writeMessage = sport.newMessage();
-				writeMessage.send();
 				writeMessage.writeArray(data);
 				writeMessage.finish();
 				w = windowSize;

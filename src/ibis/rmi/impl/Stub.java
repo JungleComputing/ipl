@@ -59,7 +59,6 @@ public class Stub extends RemoteStub {
 	    wm.writeInt(-1);
 	    wm.writeInt(0);
 	    wm.writeObject(reply.identifier());
-	    wm.send();
 	    wm.finish();
 
 	    ReadMessage rm = reply.receive();

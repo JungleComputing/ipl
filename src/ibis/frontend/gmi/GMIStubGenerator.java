@@ -143,7 +143,6 @@ class GMIStubGenerator extends GMIGenerator {
 	    output.println(writeMessageType(spacing, "w", params[j], "p" + j));
 	}
 	
-	output.println(spacing + "w.send();");
 	output.println(spacing + "w.finish();");
     } 
 
@@ -485,7 +484,6 @@ class GMIStubGenerator extends GMIGenerator {
 		output.println(writeMessageType(spacing + "\t\t", "w", params[j], "pv[i].p" + j));
 	    }
 	}
-	output.println(spacing + "\t\tw.send();");
 	output.println(spacing + "\t\tw.finish();");
 	output.println(spacing + "\t}");
 

@@ -111,7 +111,6 @@ public final class RTS {
                                         
                                         WriteMessage w = systemOut.newMessage(); 
                                         w.writeObject(pool);
-                                        w.send();
                                         w.finish();                                     
                                 }
 
@@ -142,7 +141,6 @@ public final class RTS {
                                 WriteMessage w = systemOut.newMessage();
                                 w.writeObject(systemIn.identifier());
                                 w.writeObject(receivePort.identifier());
-                                w.send();
                                 w.finish();
 
                                 ReadMessage r = systemIn.receive();
@@ -260,7 +258,6 @@ public final class RTS {
 			wm.writeByte(Protocol.NEW_OBJECT);
 			wm.writeInt(number);
 			wm.writeObject(type);
-			wm.send();
 			wm.finish();
 
 			synchronized (skeletons) {

@@ -56,7 +56,6 @@ System.err.println(this + ": Connection established -- I'm a Sender");
 						writeMessage.writeObject("total world domination");
 					}
 
-					writeMessage.send();
 					if(DEBUG) {
 						System.out.println("LAT: finish message");
 					}

@@ -89,7 +89,6 @@ public class Sequencer {
 		w = s.newMessage();
 		w.writeInt(seq.getNo(name));
 	    }
-	    w.send();
 	    w.finish();
 	}
 
@@ -163,7 +162,6 @@ public class Sequencer {
 	    WriteMessage w = snd.newMessage();
 	    w.writeInt(-1);
 	    w.writeObject(rid);
-	    w.send();
 	    w.finish();
 	    ReadMessage r = rcv.receive();
 	    idno = r.readInt();
@@ -221,7 +219,6 @@ public class Sequencer {
 	WriteMessage w = snd.newMessage();
 	w.writeInt(idno);
 	w.writeString(name);
-	w.send();
 	w.finish();
 	ReadMessage r = rcv.receive();
 	int retval = r.readInt();

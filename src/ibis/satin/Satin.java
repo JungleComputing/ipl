@@ -985,7 +985,6 @@ public final class Satin implements Config, ResizeHandler {
 					}
 
 					writeMessage.writeByte(Protocol.EXIT);
-					writeMessage.send();
 					writeMessage.finish();
 				} catch (IOException e) {
 					synchronized(this) {
@@ -1016,7 +1015,6 @@ public final class Satin implements Config, ResizeHandler {
 				if(stats) {
 					writeMessage.writeObject(createStats());
 				}
-				writeMessage.send();
 				writeMessage.finish();
 			} catch (IOException e) {
 				synchronized(this) {
@@ -1127,12 +1125,10 @@ public final class Satin implements Config, ResizeHandler {
 					}
 					WriteMessage writeMessage = s.newMessage();
 					writeMessage.writeByte(Protocol.BARRIER_REPLY);
-					writeMessage.send();
 					writeMessage.finish();
 				}
 			} else {
 				WriteMessage writeMessage = barrierSendPort.newMessage();
-				writeMessage.send();
 				writeMessage.finish();
 				
 				if (!upcalls) {
@@ -1247,7 +1243,6 @@ public final class Satin implements Config, ResizeHandler {
 				writeMessage.writeObject(r.eek);
 				writeMessage.writeInt(r.stamp);
 			}
-			writeMessage.send();
 			long cnt = writeMessage.finish();
 
 			if(STEAL_STATS) {
@@ -1346,7 +1341,6 @@ public final class Satin implements Config, ResizeHandler {
 			}
 
 			writeMessage.writeByte(opcode);
-			writeMessage.send();
 			long cnt = writeMessage.finish();
 			if(STEAL_STATS) {
 				if(inDifferentCluster(v.ident)) {
@@ -1620,7 +1614,6 @@ public final class Satin implements Config, ResizeHandler {
 			writeMessage.writeByte(Protocol.ABORT);
 			writeMessage.writeInt(r.parentStamp);
 			writeMessage.writeObject(r.parentOwner);
-			writeMessage.send();
 			long cnt = writeMessage.finish();
 			if(STEAL_STATS) {
 				if(inDifferentCluster(r.stealer)) {
@@ -2540,7 +2533,6 @@ public final class Satin implements Config, ResizeHandler {
 				}
 				writeMessage.writeObject(key);
 				writeMessage.writeObject(data);
-				writeMessage.send();
 
 				if(TUPLE_STATS) {
 					tupleMsgs++;
@@ -2572,7 +2564,6 @@ public final class Satin implements Config, ResizeHandler {
 					writeMessage.writeByte(Protocol.TUPLE_ADD);
 					writeMessage.writeObject(key);
 					writeMessage.writeObject(data);
-					writeMessage.send();
 
 					if(TUPLE_STATS && i == 0) {
 						tupleMsgs++;
@@ -2628,7 +2619,6 @@ public final class Satin implements Config, ResizeHandler {
 				    writeMessage.writeInt(seqno);
 				}
 				writeMessage.writeObject(key);
-				writeMessage.send();
 
 				if(TUPLE_STATS) {
 					tupleMsgs++;
@@ -2660,7 +2650,6 @@ public final class Satin implements Config, ResizeHandler {
 					WriteMessage writeMessage = s.newMessage();
 					writeMessage.writeByte(Protocol.TUPLE_DEL);
 					writeMessage.writeObject(key);
-					writeMessage.send();
 
 					if(TUPLE_STATS && i == 0) {
 						tupleMsgs++;

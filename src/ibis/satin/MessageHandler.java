@@ -139,7 +139,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				} else {
 					m.writeByte(ASYNC_STEAL_REPLY_FAILED);
 				}
-				m.send();
 				long cnt = m.finish();
 				if(STEAL_STATS) {
 					if(satin.inDifferentCluster(ident.ibis())) {
@@ -201,7 +200,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 
 			m.writeObject(result);
-			m.send();
 			long cnt = m.finish();
 			if(STEAL_TIMING) {
 			    satin.invocationRecordWriteTimer.stop();
