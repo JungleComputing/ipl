@@ -27,6 +27,53 @@ public class SuffixArray implements Configuration, Magic {
      */
     int commonality[];
 
+    private SuffixArray( short text[] ) throws VerificationException
+    {
+        this.text = text;
+
+        buildArray();
+    }
+
+    SuffixArray( byte t[] ) throws VerificationException
+    {
+        length = t.length;
+        text = buildShortArray( t );
+
+        buildArray();
+    }
+
+    SuffixArray( String text ) throws VerificationException
+    {
+        this( text.getBytes() );
+    }
+
+    private SuffixArray( short t[], int l, int nextcode, int ixs[], int cs[] )
+    {
+        text = t;
+        length = l;
+        this.nextcode = nextcode;
+        indices = ixs;
+        commonality = cs;
+    }
+
+    /**
+     * Returns a clone of the SuffixArray.
+     * @return The clone.
+     */
+    public Object clone()
+    {
+        short nt[] = new short[length];
+        System.arraycopy( text, 0, nt, 0, length );
+
+        return new SuffixArray(
+            nt,
+            length,
+            nextcode,
+            new int[length],
+            new int[length]
+        );
+    }
+
     private static short[] buildShortArray( byte text[] )
     {
         short arr[] = new short[text.length+1];
@@ -138,26 +185,6 @@ public class SuffixArray implements Configuration, Magic {
 	}
 
         sort();
-    }
-
-    private SuffixArray( short text[] ) throws VerificationException
-    {
-        this.text = text;
-
-        buildArray();
-    }
-
-    SuffixArray( byte t[] ) throws VerificationException
-    {
-        length = t.length;
-        text = buildShortArray( t );
-
-        buildArray();
-    }
-
-    SuffixArray( String text ) throws VerificationException
-    {
-        this( text.getBytes() );
     }
 
     String buildString( int start, int len )
