@@ -23,9 +23,20 @@ import java.util.Vector;
  */
 public final class cluster implements MultiPlugin {
 
+
+        /**
+         * Store the network names the current node belongs to, for indexed lookup.
+         */
         static 	Vector   	netVector 	= null;
+
+        /**
+         * Store the network names the current node belongs to, for associative lookup.
+         */
         static 	Hashtable 	netTable  	= null;
 
+        /**
+         * Construct the plugin.
+         */
         public cluster() {}
 
         static {
@@ -158,6 +169,9 @@ public final class cluster implements MultiPlugin {
         }
 
 
+        /**
+         * Return a context string according to the networks both sides belong to.
+         */
         public String getSubContext(boolean 		isOutgoing,
                                     NetIbisIdentifier  	localId,
                                     NetIbisIdentifier  	remoteId,
