@@ -14,8 +14,10 @@ import ibis.io.MantaInputStream;
 
 public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializable, ibis.io.Serializable {
 	public static final int serialversionID = 1;
-	InetAddress address;
-	String name;
+	//InetAddress address;
+	String address; // use byte[] to avoid (SUN) serialization problems
+	String name; // This string contains the ip address in the form WWW.XXX.YYY.ZZZ
+	             // Therefore, *NO* lookups are needed.
 
 	public TcpIbisIdentifier() { 
 	}
@@ -25,13 +27,22 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 		stream.addObjectToCycleCheck(this);
 		int handle = stream.readInt();
 		if(handle < 0) {
-			address = (InetAddress) stream.readObject();
+			address = stream.readUTF();
 			name = stream.readUTF();
 			TcpIbis.globalIbis.identTable.addIbis(stream, -handle, this);
 		} else {
 			TcpIbisIdentifier ident = (TcpIbisIdentifier) TcpIbis.globalIbis.identTable.getIbis(stream, handle);
 			address = ident.address;
 			name = ident.name;
+		}
+	}
+
+	public final void generated_WriteObject(MantaOutputStream stream) throws IbisIOException {
+		int handle = TcpIbis.globalIbis.identTable.getHandle(stream, this);
+		stream.writeInt(handle);
+		if(handle < 0) { // First time, send it.
+			stream.writeUTF(address);
+			stream.writeUTF(name);
 		}
 	}
 
@@ -50,7 +61,15 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 	}
 
 	public String toString() {
-		return ("(TcpId: " + name + " on [" + address.getHostName() + ", " + address.getHostAddress() + "])");
+		InetAddress a;
+		try {
+			a = InetAddress.getByName(address);
+		} catch (Exception e) {
+			return ("(TcpId: " + name + " on [" + address + "])");
+		}
+		return ("(TcpId: " + name + " on [" + 
+			a.getHostName() + ", " + 
+			a.getHostAddress() + "])");
 	}
 
 	public String name() {
@@ -59,14 +78,5 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 
 	public int hashCode() {
 		return name.hashCode();
-	}
-
-	public final void generated_WriteObject(MantaOutputStream stream) throws IbisIOException {
-		int handle = TcpIbis.globalIbis.identTable.getHandle(stream, this);
-		stream.writeInt(handle);
-		if(handle < 0) { // First time, send it.
-			stream.writeObject(address);
-			stream.writeUTF(name);
-		}
 	}
 }
