@@ -67,7 +67,6 @@ public abstract class ArrayOutputStream
 
     /* protected */ public void flushBuffers() throws IbisIOException {
 
-System.err.println("Call this base type flushBuffers. HAVOC");
 	indices_short[TYPE_BYTE]    = (short) byte_index;
 	indices_short[TYPE_CHAR]    = (short) char_index;
 	indices_short[TYPE_SHORT]   = (short) short_index;
@@ -91,7 +90,6 @@ System.err.println("Call this base type flushBuffers. HAVOC");
 	if (handle_index > 0)  writeArray(handle_buffer, 0, handle_index);
 
 	reset_indices();
-System.err.println("Sure, reset them indeces");
     }
 
     /* protected */ public abstract void flush() throws IbisIOException;
