@@ -9,6 +9,8 @@ interface Config {
     static final boolean tracePortCreation = true;
     static final boolean traceCommunication = true;
     static final boolean traceClusterResizing = true;
+    static final int BOARDSIZE = 20000;
+    static final int GENERATIONS = 10;
 }
 
 class RszHandler implements Config, ResizeHandler {
@@ -134,7 +136,86 @@ class Cell1D implements Config {
         return res;
     }
 
-    private static void send( int me, SendPort p, int data[] )
+    private static byte horTwister[][] = {
+        { 0, 0, 0, 0, 0 },
+        { 0, 1, 1, 1, 0 },
+        { 0, 0, 0, 0, 0 },
+    };
+
+    private static byte vertTwister[][] = {
+        { 0, 0, 0 },
+        { 0, 1, 0 },
+        { 0, 1, 0 },
+        { 0, 1, 0 },
+        { 0, 0, 0 },
+    };
+
+    private static byte horTril[][] = {
+        { 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 0, 0 },
+        { 0, 1, 0, 0, 1, 0 },
+        { 0, 0, 1, 1, 0, 0 },
+        { 0, 0, 0, 0, 0, 0 },
+    };
+
+    private static byte vertTril[][] = {
+        { 0, 0, 0, 0, 0 },
+        { 0, 0, 1, 0, 0 },
+        { 0, 1, 0, 1, 0 },
+        { 0, 1, 0, 1, 0 },
+        { 0, 0, 1, 0, 0 },
+        { 0, 0, 0, 0, 0 },
+    };
+
+    /**
+     * Puts the given pattern at the given coordinates.
+     * Since we want the pattern to be readable, we take the first
+     * row of the pattern to be the at the top.
+     */
+    static protected void putPattern( byte board[][], int px, int py, byte pat[][] )
+    {
+        for( int y=pat.length-1; y>=0; y-- ){
+            byte paty[] = pat[y];
+
+            for( int x=0; x<paty.length; x++ ){
+                board[px+x][py+y] = paty[x];
+            }
+        }
+    }
+
+    /**
+     * Returns true iff the given pattern occurs at the given
+     * coordinates.
+     */
+    static protected boolean hasPattern( byte board[][], int px, int py, byte pat[][ ] )
+    {
+        for( int y=pat.length-1; y>=0; y-- ){
+            byte paty[] = pat[y];
+
+            for( int x=0; x<paty.length; x++ ){
+                if( board[px+x][py+y] != paty[x] ){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Put a twister (a bar of 3 cells) at the given center cell.
+    static protected void putTwister( byte board[][], int x, int y )
+    {
+        putPattern( board, x-2, y-1, horTwister );
+    }
+
+    // Given a position, return true iff there is a twister in hor or
+    // vertical position at that point.
+    static protected boolean hasTwister( byte board[][], int x, int y )
+    {
+        return hasPattern( board, x-2, y-1, horTwister ) ||
+            hasPattern( board, x-1, y-2, vertTwister );
+    }
+
+    private static void send( int me, SendPort p, byte data[] )
         throws java.io.IOException
     {
         if( traceCommunication ){
@@ -146,7 +227,7 @@ class Cell1D implements Config {
         m.finish();
     }
 
-    private static void receive( int me, ReceivePort p, int data[] )
+    private static void receive( int me, ReceivePort p, byte data[] )
         throws java.io.IOException
     {
         if( traceCommunication ){
@@ -224,38 +305,69 @@ class Cell1D implements Config {
                 rightSendPort = createUpdateSendPort( t, me, me+1 );
             }
 
-            int data[] = new int[] { 0, 1, 2 };
+            // The cells. There is a border of cells that are always empty,
+            // but make the border conditions easy to handle.
+            byte oldboard[][] = new byte[BOARDSIZE+2][BOARDSIZE+2];
+            byte newboard[][] = new byte[BOARDSIZE+2][BOARDSIZE+2];
 
-            for( int iter=0; iter<3; iter++ ){
+            putTwister( oldboard, 100, 3 );
+            if( me == 0 ){
+                System.out.println( "Started" );
+            }
+
+            byte tmp[][] = oldboard;
+            oldboard = newboard;
+            newboard = tmp;
+
+            for( int iter=0; iter<GENERATIONS; iter++ ){
+                for( int i=1; i<=BOARDSIZE; i++ ){
+                    for( int j=1; j<=BOARDSIZE; j++ ){
+                        int neighbours =
+                            oldboard[i-1][j-1] +
+                            oldboard[i-1][j] +
+                            oldboard[i-1][j+1] +
+                            oldboard[i][j-1] +
+                            oldboard[i][j+1] +
+                            oldboard[i+1][j-1] +
+                            oldboard[i+1][j] +
+                            oldboard[i+1][j+1];
+                        boolean alive = (neighbours == 3) || ((neighbours == 2) && (oldboard[i][j]==1));
+                        newboard[i][j] = alive?(byte) 1:(byte) 0;
+                    }
+                }
                 if( (me % 2) == 0 ){
                     if( leftSendPort != null ){
-                        send( me, leftSendPort, data );
+                        send( me, leftSendPort, oldboard[1] );
                     }
                     if( rightSendPort != null ){
-                        send( me, rightSendPort, data );
+                        send( me, rightSendPort, oldboard[BOARDSIZE] );
                     }
                     if( leftReceivePort != null ){
-                        receive( me, leftReceivePort, data );
+                        receive( me, leftReceivePort, oldboard[0] );
                     }
                     if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, data );
+                        receive( me, rightReceivePort, oldboard[BOARDSIZE+1] );
                     }
                 }
                 else {
                     if( leftReceivePort != null ){
-                        receive( me, leftReceivePort, data );
+                        receive( me, leftReceivePort, oldboard[0] );
                     }
                     if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, data );
+                        receive( me, rightReceivePort, oldboard[BOARDSIZE+1] );
                     }
                     if( leftSendPort != null ){
-                        send( me, leftSendPort, data );
+                        send( me, leftSendPort, oldboard[1] );
                     }
                     if( rightSendPort != null ){
-                        send( me, rightSendPort, data );
+                        send( me, rightSendPort, oldboard[BOARDSIZE] );
                     }
                 }
             }
+            if( !hasTwister( oldboard, 100, 3 ) ){
+                System.out.println( "Twister has gone missing" );
+            }
+            System.out.println( "Done" );
             ibis.end();
         }
         catch( Exception e ) {
