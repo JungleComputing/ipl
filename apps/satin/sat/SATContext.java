@@ -47,13 +47,71 @@ public class SATContext implements java.io.Serializable {
 	);
     }
 
+    /** Propagates any unit clauses in the problem.  */
+    private int propagateUnitClauses( SATProblem p )
+    {
+	for( int i=0; i<terms.length; i++ ){
+	    if( !satisfied[i] && terms[i] == 1 ){
+	        Clause c = p.clauses[i];
+		int arr[] = c.pos;
+		int var = -1;
+
+		// Now search for the variable that isn't satisfied.
+		for( int j=0; j<arr.length; j++ ){
+		    int v = arr[j];
+
+		    if( assignments[v] == -1 ){
+		        if( var != -1 ){
+			    System.err.println( "A unit clause with multiple unassigned variables???" );
+			    return 0;
+			}
+		    }
+		}
+		if( var != -1 ){
+		    // We have found the unassigned one, propagate it.
+		    int res = propagatePosAssignment( p, var );
+		    if( res != 0 ){
+			// The problem is now conflicting/satisfied, we're
+			// done.
+		        return res;
+		    }
+		}
+		else {
+		    // Keep searching for the unassigned variable 
+		    arr = c.neg;
+		    for( int j=0; j<arr.length; j++ ){
+			int v = arr[j];
+
+			if( assignments[v] == -1 ){
+			    if( var != -1 ){
+				System.err.println( "A unit clause with multiple unassigned variables???" );
+				return 0;
+			    }
+			}
+		    }
+		    if( var != -1 ){
+			// We have found the unassigned one, propagate it.
+			int res = propagatePosAssignment( p, var );
+			if( res != 0 ){
+			    // The problem is now conflicting/satisfied, we're
+			    // done.
+			    return res;
+			}
+		    }
+		}
+	    }
+	}
+	return 0;
+    }
+
     /**
      * Propagates the fact that variable 'var' is true.
-     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
+     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, 2 if there are now unit clauses, or 0 otherwise
      */
     public int propagatePosAssignment( SATProblem p, int var )
     {
         assignments[var] = 1;
+	boolean haveUnitClauses = false;
 
 	// Deduct this clause from all clauses that contain this as a
 	// negative term.
@@ -69,6 +127,9 @@ public class SATContext implements java.io.Serializable {
 	    if( terms[cno] == 0 ){
 		// We now have a term that cannot be satisfied. Conflict.
 	        return -1;
+	    }
+	    if( terms[cno] == 1 ){
+	        haveUnitClauses = true;
 	    }
 	}
 
@@ -88,6 +149,9 @@ public class SATContext implements java.io.Serializable {
 	    // All clauses are now satisfied, we have a winner!
 	    return 1;
 	}
+	if( haveUnitClauses ){
+	    propagateUnitClauses( p );
+	}
 	return 0;
     }
 
@@ -95,6 +159,7 @@ public class SATContext implements java.io.Serializable {
     public int propagateNegAssignment( SATProblem p, int var )
     {
         assignments[var] = 0;
+	boolean haveUnitClauses = false;
 
 	// Deduct this clause from all clauses that contain this as a
 	// Positive term.
@@ -111,10 +176,13 @@ public class SATContext implements java.io.Serializable {
 		// We now have a term that cannot be satisfied. Conflict.
 	        return -1;
 	    }
+	    if( terms[cno] == 1 ){
+	        haveUnitClauses = true;
+	    }
 	}
 
-		// Mark all clauses that contain this variable as a negative
-		// term as satisfied.
+	// Mark all clauses that contain this variable as a negative
+	// term as satisfied.
 	IntVector pos = p.getNegClauses( var );
 	sz = pos.size();
 	for( int i=0; i<sz; i++ ){
@@ -128,6 +196,9 @@ public class SATContext implements java.io.Serializable {
 	if( unsatisfied == 0 ){
 	    // All clauses are now satisfied, we have a winner!
 	    return 1;
+	}
+	if( haveUnitClauses ){
+	    propagateUnitClauses( p );
 	}
 	return 0;
     }
