@@ -25,6 +25,13 @@ public abstract class PortType {
     /** Counter for anonymous ports. */
     private int anon_counter;
 
+    /** 
+     * Dummy constructor; do not use:
+     * a <code>PortType</code> is created using the
+     * {@link Ibis#createPortType(String, StaticProperties)} method. 
+     */
+    public PortType() {}
+
     /**
      * Returns the name given to this PortType upon creation. 
      *
