@@ -21,20 +21,24 @@ class NodeManager extends Thread
     private String hostname;
     private HubProtocol.HubWire wire;
     private int hostport;
+    private ControlHub hub;
 
-    NodeManager(Socket s) 
+    NodeManager(Socket s, ControlHub hub) 
 	throws IOException, ClassNotFoundException {
 	wire = new HubProtocol.HubWire(s);
 	hostname = wire.getPeerName();
 	hostport = wire.getPeerPort();
+	this.hub = hub;
     }
+
     protected void sendPacket(String host, int port, HubProtocol.HubPacket p) 
 	throws IOException{
 	wire.sendMessage(host, port, p);
     }
+
     public void run() {
 	boolean nodeRunning = true;
-	ControlHub.registerNode(hostname, hostport, this);
+	hub.registerNode(hostname, hostport, this);
 	while(nodeRunning) {
 	    try {
 		HubProtocol.HubPacket packet = wire.recvPacket();
@@ -99,7 +103,7 @@ class NodeManager extends Thread
 		throw new Error(e);
 	    }
 	}
-	ControlHub.unregisterNode(hostname, hostport);
+	hub.unregisterNode(hostname, hostport);
     }
 }
 
@@ -132,21 +136,36 @@ public class ControlHub extends Thread
     private static int nodesNum = 0;
     public static final int defaultPort = 9827;
 
+    public ControlHub() {
+    }
+
     private static void showCount() {
 	System.err.println("# ControlHub: "+nodesNum+" nodes currently connected");
     }
 
-    public static void registerNode(String nodename, int nodeport, Object node) {
+    public void registerNode(String nodename, int nodeport, Object node) {
 	System.err.println("# ControlHub: new connection from "+nodename+":"+nodeport);
 	nodes.put(new Node(nodeport, nodename.toLowerCase()), node);
 	nodesNum++;
 	showCount();
     }
 
-    public static void unregisterNode(String nodename, int nodeport) {
+    public synchronized void waitForCount(int cnt) {
+	while (nodesNum > cnt) {
+	    try {
+		wait();
+	    } catch(InterruptedException e) {
+	    }
+	}
+    }
+
+    public void unregisterNode(String nodename, int nodeport) {
 	nodes.remove(new Node(nodeport, nodename.toLowerCase()));
 	nodesNum--;
 	showCount();
+	synchronized(this) {
+	    notifyAll();
+	}
     }
 
     public static Object resolveNode(String nodename, int nodeport) {
@@ -225,7 +244,7 @@ public class ControlHub extends Thread
 	    while(true)	{
 		Socket s = server.accept();
 		try {
-		    NodeManager node = new NodeManager(s);
+		    NodeManager node = new NodeManager(s, this);
 		    node.start();
 		} catch(Exception e) { /* ignore */ }
 	    }
