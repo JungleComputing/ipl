@@ -1,8 +1,3 @@
-class Coord {
-	int x, y;
-}
-
-
 final public class DistanceTable implements java.io.Serializable {
 
 	static final int	MAXX = 100,
