@@ -270,98 +270,96 @@ class Cell1D implements Config {
                 System.out.println( "Started" );
             }
 
-	    for (int warmup = 0; warmup < 2; warmup++) {
-		putTwister( board, 3, 100 );
-		putPattern( board, 4, 4, glider );
+            putTwister( board, 3, 100 );
+            putPattern( board, 4, 4, glider );
 
-		long startTime = System.currentTimeMillis();
+            long startTime = System.currentTimeMillis();
 
-		for( int iter=0; iter<count; iter++ ){
-		    byte prev[];
-		    byte curr[] = board[0];
-		    byte next[] = board[1];
+            for( int iter=0; iter<count; iter++ ){
+                byte prev[];
+                byte curr[] = board[0];
+                byte next[] = board[1];
 
-		    if( showBoard && me == 0 ){
-			System.out.println( "Generation " + iter );
-			for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
-			    for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
-				System.out.print( board[x][y] );
-			    }
-			    System.out.println();
-			}
-		    }
-		    for( int i=1; i<=myColumns; i++ ){
-			prev = curr;
-			curr = next;
-			next = board[i+1];
-			for( int j=1; j<=boardsize; j++ ){
-			    int neighbours =
-				prev[j-1] +
-				prev[j] +
-				prev[j+1] +
-				curr[j-1] +
-				curr[j+1] +
-				next[j-1] +
-				next[j] +
-				next[j+1];
-			    boolean alive = (neighbours == 3) || ((neighbours == 2) && (board[i][j]==1));
-			    updatecol[j] = alive?(byte) 1:(byte) 0;
-			}
-			
-			//
-			byte tmp[] = board[i];
-			board[i] = updatecol;
-			updatecol = nextupdatecol;
-			nextupdatecol = tmp;
-		    }
-		    if( (me % 2) == 0 ){
-			if( leftSendPort != null ){
-			    send( me, leftSendPort, board[1] );
-			}
-			if( rightSendPort != null ){
-			    send( me, rightSendPort, board[myColumns] );
-			}
-			if( leftReceivePort != null ){
-			    receive( me, leftReceivePort, board[0] );
-			}
-			if( rightReceivePort != null ){
-			    receive( me, rightReceivePort, board[myColumns+1] );
-			}
-		    }
-		    else {
-			if( rightReceivePort != null ){
-			    receive( me, rightReceivePort, board[myColumns+1] );
-			}
-			if( leftReceivePort != null ){
-			    receive( me, leftReceivePort, board[0] );
-			}
-			if( rightSendPort != null ){
-			    send( me, rightSendPort, board[myColumns] );
-			}
-			if( leftSendPort != null ){
-			    send( me, leftSendPort, board[1] );
-			}
-		    }
-		    if( showProgress ){
-			if( me == 0 ){
-			    System.out.print( '.' );
-			}
-		    }
-		}
-		if( showProgress ){
-		    if( me == 0 ){
-			System.out.println();
-		    }
-		}
-		if( me == 0 ){
-		    long endTime = System.currentTimeMillis();
-		    double time = ((double) (endTime - startTime))/1000.0;
-		    long updates = boardsize*boardsize*(long) count;
+                if( showBoard && me == 0 ){
+                    System.out.println( "Generation " + iter );
+                    for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
+                        for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
+                            System.out.print( board[x][y] );
+                        }
+                        System.out.println();
+                    }
+                }
+                for( int i=1; i<=myColumns; i++ ){
+                    prev = curr;
+                    curr = next;
+                    next = board[i+1];
+                    for( int j=1; j<=boardsize; j++ ){
+                        int neighbours =
+                            prev[j-1] +
+                            prev[j] +
+                            prev[j+1] +
+                            curr[j-1] +
+                            curr[j+1] +
+                            next[j-1] +
+                            next[j] +
+                            next[j+1];
+                        boolean alive = (neighbours == 3) || ((neighbours == 2) && (board[i][j]==1));
+                        updatecol[j] = alive?(byte) 1:(byte) 0;
+                    }
+                    
+                    //
+                    byte tmp[] = board[i];
+                    board[i] = updatecol;
+                    updatecol = nextupdatecol;
+                    nextupdatecol = tmp;
+                }
+                if( (me % 2) == 0 ){
+                    if( leftSendPort != null ){
+                        send( me, leftSendPort, board[1] );
+                    }
+                    if( rightSendPort != null ){
+                        send( me, rightSendPort, board[myColumns] );
+                    }
+                    if( leftReceivePort != null ){
+                        receive( me, leftReceivePort, board[0] );
+                    }
+                    if( rightReceivePort != null ){
+                        receive( me, rightReceivePort, board[myColumns+1] );
+                    }
+                }
+                else {
+                    if( rightReceivePort != null ){
+                        receive( me, rightReceivePort, board[myColumns+1] );
+                    }
+                    if( leftReceivePort != null ){
+                        receive( me, leftReceivePort, board[0] );
+                    }
+                    if( rightSendPort != null ){
+                        send( me, rightSendPort, board[myColumns] );
+                    }
+                    if( leftSendPort != null ){
+                        send( me, leftSendPort, board[1] );
+                    }
+                }
+                if( showProgress ){
+                    if( me == 0 ){
+                        System.out.print( '.' );
+                    }
+                }
+            }
+            if( showProgress ){
+                if( me == 0 ){
+                    System.out.println();
+                }
+            }
+            if( me == 0 ){
+                long endTime = System.currentTimeMillis();
+                double time = ((double) (endTime - startTime))/1000.0;
+                long updates = boardsize*boardsize*(long) count;
 
-		    System.out.println( ((warmup == 0) ? "Warmup" : "ExecutionTime") + ": " + time );
-		    System.out.println( "Did " + updates + " updates" );
-		}
-	    }
+                System.out.println( "ExecutionTime: " + time );
+                System.out.println( "Did " + updates + " updates" );
+            }
 
             if( leftSendPort != null ){
                 leftSendPort.close();

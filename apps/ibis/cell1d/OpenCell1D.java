@@ -943,7 +943,7 @@ class OpenCell1D implements OpenConfig {
 
             if( me == 0 ){
                 System.out.println( "Using " + ibis.implementationName() );
-                System.out.println( "DISTURBANCE=" + DISTURBANCE );
+                System.out.println( "disturbance=" + DISTURBANCE + ", workstealing=" + doWorkStealing );
                 System.out.println( "Started a run of " + count + " generations on a " + boardsize + "x" + boardsize + " board" );
             }
 

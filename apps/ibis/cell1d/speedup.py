@@ -81,7 +81,7 @@ def build_run_command( pno, command, port ):
     ot = ''
     if orderedTuples:
         ot = '-Dsatin.tuplespace.ordened=true '
-    return "prun -1 -t %s %s %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s" % (maxRunTime, run_ibis, pno, port, ot, command)
+    return "prun -t %s %s -nhosts %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s" % (maxRunTime, run_ibis, pno, port, ot, command)
 
 def runP( P, command, results ):
     cmd = build_run_command( P, command, nameserverport )
@@ -180,7 +180,11 @@ def run( command, logfile, runParallel ):
         mt.join()
     else:
         for P in ProcNos:
-            runP( P, command, results )
+            try:
+                runP( P, command, results )
+            except:
+                print "Run for P=%d failed: %s" % (P, sys.exc_info())
+                break
     report( "        P time", allstreams )
     for P in ProcNos:
         res = extractResult( results[P] )
@@ -253,6 +257,7 @@ def usage():
 def main():
     global ProcNos, nameserverport, maxRunTime, orderedTuples, timingTag, verbose
     try:
+        print "Command line: " + string.join( sys.argv )
         opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "parallel", "logfile=", "logdir=", "verbose", "tag=", "port=", "procs=", "time=","ordered-tuples"])
     except getopt.GetoptError:
         # print help information and exit:
