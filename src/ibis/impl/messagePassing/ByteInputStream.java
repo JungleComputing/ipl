@@ -5,7 +5,7 @@ import ibis.ipl.IbisIOException;
 
 final class ByteInputStream
 	extends java.io.InputStream
-	implements ibis.io.TypeSize {
+	implements ibis.io.IbisStreamFlags {
 
     int msgHandle;
     int msgSize;
