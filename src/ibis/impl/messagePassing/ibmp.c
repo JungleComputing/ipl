@@ -122,10 +122,11 @@ ibmp_error_printf(JNIEnv *env, const char *fmt, ...)
     if (ibmp_core_on_error) {
 	abort();
     } else {
-	(*env)->ThrowNew(env, cls_java_io_IOException, msg);
+	int v = (*env)->ThrowNew(env, cls_java_io_IOException, msg);
 #if EXIT_ON_ERROR
 	exit(33);
 #endif
+	fprintf(stderr, "ThrowNew returned %d\n", v);
     }
 }
 
@@ -533,6 +534,10 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
 	argv[argc++] = NULL;
 	argc--;
 	ibp_init(env, &argc, argv);
+    }
+
+    if ((*env)->ExceptionOccurred(env) != NULL) {
+	return java_args;
     }
 
     ibmp_me = ibp_pid_me();

@@ -598,6 +598,7 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 	orig_hosts = getenv("PRUN_HOSTNAMES");
 	if (orig_hosts == NULL) {
 	    ibmp_error(env, "HOSTS env var does not exist: use prun\n");
+	    return;
 	}
     }
     hosts = strdup(orig_hosts);
@@ -629,6 +630,7 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 	h = gethostbyname(fs_host[i]);
 	if (h == NULL) {
 	    ibmp_error(env, "gethostbyname fails");
+	    return;
 	}
 	if (h->h_length != sizeof(fs_host_inet)) {
 	    pan_panic("Inet address won't fit");
@@ -648,6 +650,7 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 
     if (gethostname(hostname, 256) == -1) {
 	ibmp_error(env, "Cannot get hostname");
+	return;
     }
 
     env_host_id = getenv("PRUN_CPU_RANK");
@@ -662,13 +665,16 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 	if (i == fs_nhosts) {
 	    ibmp_error(env, "Host name %s does not occur in HOSTS env var %s\n",
 			hostname, orig_hosts);
+	    return;
 	}
     } else {
 	if (sscanf(env_host_id, "%d", &me) != 1) {
 	    ibmp_error(env, "Host id is not a number: %s\n", env_host_id);
+	    return;
 	}
 	if (me < 0 || me >= fs_nhosts) {
 	    ibmp_error(env, "Host id is out of range: %d\n", me);
+	    return;
 	}
     }
     sprintf(myproc, "%d", me);
