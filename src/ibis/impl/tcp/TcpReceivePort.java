@@ -17,6 +17,7 @@ import java.io.ObjectInputStream;
 import java.io.BufferedInputStream;
 
 import ibis.io.*;
+import ibis.ipl.impl.generic.*;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -101,7 +102,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	void startNewHandlerThread(SerializationStreamReadMessage old) {
 		SerializationStreamConnectionHandler h = old.getHandler();
 		h.createNewMessage();
-		new Thread(h).start();
+//		new Thread(h).start();
+		ThreadPool.createNew(h);
 	}
 
 
