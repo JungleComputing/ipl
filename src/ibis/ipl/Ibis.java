@@ -40,6 +40,7 @@ public abstract class Ibis {
 
     private static final String[] excludes = {
 	"ibis.util.",
+	"ibis.connect.",
 	"ibis.pool.",
 	"ibis.io.",
 	"ibis.net.",
