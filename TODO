@@ -2,13 +2,21 @@ IBIS:
 
 - code formatting of entire tree
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
-  After distribution.
+    After distribution.
 - ibis-* scripts (with consistent command line options)
 - remove das detection from build system
+    No. (Ceriel+Rutger)
 - remove prun/wrapper/? support from run-ibis/ibis-run, move to new ibis-*
   scripts
-- move bcel source to location equal to package name
-- add native detection to timer
+    No: wrapper support should be in ibis-run, because otherwise you cannot
+    build a wrapper support script on top of ibis-run. (Ceriel)
+- in prun support script: if no nameserver is specified, start nameserver
+    on first node given. Could also be done in ibis-run when a list of
+    hostnames is specified.
++ move bcel source to location equal to package name
+    Done (Ceriel)
++ add native detection to timer
+    Done (Ceriel)
 - add java 1.5 timer to ibis.util.timer
 
 
@@ -22,5 +30,5 @@ satin:
 
 general:
 - IBISC maken / fixen
-  after distribution.
+    after distribution.
 - run central nameserver on fs0
