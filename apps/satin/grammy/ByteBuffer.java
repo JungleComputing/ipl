@@ -32,6 +32,7 @@ class ByteBuffer implements java.io.Serializable, Magic {
      */
     public void append( short text[] )
     {
+	// Allocate a buffer at the size that is minimally necessary.
         short arr[] = new short[text.length+1];
 
         for( int i=0; i<text.length; i++ ){
