@@ -157,7 +157,7 @@ public final class TcpInput extends NetInput {
 		mtu = 0;
 
                 if (upcallFunc != null) {
-                        (upcallThread = new UpcallThread(addr+"["+port+"]"))).start();
+                        (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                 }
 	}
 
