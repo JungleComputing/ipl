@@ -1,5 +1,4 @@
 import fcntl
-import FCNTL
 import getopt
 import os
 import popen2
@@ -22,6 +21,8 @@ maxRunTime = "10:00"
 
 orderedTuples = 0
 
+ibisName = None
+
 verbose = 0
 
 results = {}
@@ -38,11 +39,12 @@ def get_time_string():
     return time.strftime( "%d %b %Y %H:%M:%S", time.localtime())
 
 def makeNonBlocking( fd ):
-    fl = fcntl.fcntl(fd, FCNTL.F_GETFL)
-    try:
-	fcntl.fcntl(fd, FCNTL.F_SETFL, fl | FCNTL.O_NDELAY)
-    except AttributeError:
-	fcntl.fcntl(fd, FCNTL.F_SETFL, fl | FCNTL.FNDELAY)
+    fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+    fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+#    try:
+#	fcntl.fcntl(fd, fcntl.F_SETFL, fl | fcntl.O_NDELAY)
+#    except AttributeError:
+#	fcntl.fcntl(fd, fcntl.F_SETFL, fl | fcntl.FNDELAY)
     
 # Run the given command. Return a tuple with the exit code, the stdout text,
 # and the stderr text.
@@ -81,10 +83,14 @@ def getCommandOutput( command ):
     return (err, outdata, errdata)
 
 def build_run_command( pno, command, port ):
+    global ibisName
     ot = ''
     if orderedTuples:
         ot = '-Dsatin.tuplespace.ordered=true '
-    return "prun -t %s %s %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s -satin-closed" % (maxRunTime, run_ibis, pno, port, ot, command)
+    if ibisName != '':
+        ot += ('-Dibis.name=%s ' % ibisName)
+    #return "prun -t %s %s %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s -satin-closed" % (maxRunTime, run_ibis, pno, port, ot, command)
+    return "prun -t %s %s %d %s%s -satin-closed" % (maxRunTime, run_ibis, pno, ot, command)
 
 def runP( P, command, results ):
     cmd = build_run_command( P, command, nameserverport )
@@ -241,6 +247,7 @@ def usage():
     print "--ordered-tuples\tForce active tuples to be ordered."
     print "--parallel\t\tExecute the runs in parallel."
     print "--port <number>\t\tUse the given nameserver port."
+    print "--ibis <name>\t\tUse the given Ibis type."
     print "--procs <spec>\t\tDo runs with the given set of processor numbers (see below)."
     print "--time <time>\t\tMaximal time per run <time> = [[hh:]mm:]ss."
     print "--verbose\t\tShow some progress information."
@@ -259,9 +266,9 @@ def usage():
     print "The default processor set is `" + defaultProcSet + "'."
 
 def main():
-    global ProcNos, nameserverport, maxRunTime, orderedTuples, timingTag, verbose
+    global ProcNos, nameserverport, maxRunTime, orderedTuples, timingTag, verbose, ibisName
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "parallel", "logfile=", "logdir=", "verbose", "tag=", "port=", "procs=", "time=","ordered-tuples"])
+        opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "parallel", "logfile=", "logdir=", "verbose", "tag=", "port=", "procs=", "ibis=", "time=","ordered-tuples"])
     except getopt.GetoptError:
         # print help information and exit:
         usage()
@@ -284,6 +291,8 @@ def main():
             sys.exit()
         if o in ("--tag",):
             timingTag = a
+        if o in ("--ibis",):
+            ibisName = a
         if o in ("--time",):
             maxRunTime = a
         if o in ("--logdir",):
