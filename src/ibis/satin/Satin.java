@@ -433,14 +433,17 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				    "': TUPLE_STATS: tuple msgs: " + tupleMsgs +
 				    ", bytes = " + tupleBytes);
 		}
+
 		if(STEAL_STATS && stats) {
+			java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
+
 			out.println("SATIN '" + ident.name() + 
 				    "': INTRA_STATS: messages = " + intraClusterMessages +
-				    ", bytes = " + intraClusterBytes);
+				    ", bytes = " + nf.format(intraClusterBytes));
 
 			out.println("SATIN '" + ident.name() + 
 				    "': INTER_STATS: messages = " + interClusterMessages +
-				    ", bytes = " + interClusterBytes);
+				    ", bytes = " + nf.format(interClusterBytes));
 
 			out.println("SATIN '" + ident.name() + 
 				    "': STEAL_STATS 1: attempts = " + stealAttempts +
