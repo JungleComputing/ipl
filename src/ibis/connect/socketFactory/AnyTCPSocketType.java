@@ -37,7 +37,7 @@ public class AnyTCPSocketType extends SocketType
 	public ServerInfo() throws IOException {
 	    server = new ServerSocket();
 	    server.setReceiveBufferSize(0x10000);
-	    server.bind(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
+	    server.bind(new InetSocketAddress(IPUtils.getLocalHostAddress(), 0), 1);
 	    server.setSoTimeout(60000);	// one minute
 	}
 
