@@ -5,13 +5,22 @@ import java.io.PrintStream;
 
 public class MyDebug
 {
+    public static boolean DEBUG = false;
+    public static boolean VERBOSE = false;
+
     public static PrintStream out = System.out; /* needs a non-null default, ifever a class has 
-						   trace messages in its statis initializer */
+						   trace messages in its static initializer */
     
     static {
-	String sEnabled = System.getProperty("alex.debug", "false");
+	String sEnabled = System.getProperty("ibis.connect.debug", "false");
 	boolean enabled = sEnabled.equals("true");
-	//boolean enabled = true;
+
+	String sVerbose = System.getProperty("ibis.connect.verbose", "false");
+	boolean verbose = sVerbose.equals("true");
+
+	VERBOSE = verbose;
+	DEBUG = enabled;
+
 	if(enabled)
 	    {
 		System.out.println("MyDebug: traces enabled");
