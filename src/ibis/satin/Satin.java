@@ -607,6 +607,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 			double lbTime = (totalStats.stealTime - totalStats.invocationRecordReadTime -
 					 totalStats.invocationRecordWriteTime) / size;
+			if(lbTime < 0.0) lbTime = 0.0;
 			double lbPerc = lbTime/totalTimer.totalTimeVal() * 100.0;
 			double serTime = (totalStats.invocationRecordWriteTime +
 					  totalStats.invocationRecordReadTime) / size;
@@ -620,6 +621,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			double totalOverhead = lbTime + serTime + abortTime + tupleTime + pollTime;
 			double totalPerc = totalOverhead/totalTimer.totalTimeVal() * 100.0;
 			double appTime = totalTimer.totalTimeVal() - totalOverhead;
+			if(appTime < 0.0) appTime = 0.0;
 			double appPerc = appTime/totalTimer.totalTimeVal() * 100.0;
 
 			if(STEAL_TIMING) {
