@@ -200,7 +200,7 @@ class Latency {
 		int rank = 0, remoteRank = 1;
 		
 		try {
-			ibis     = Ibis.createIbis(null);
+			ibis     = Ibis.createIbis(null, null);
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();
