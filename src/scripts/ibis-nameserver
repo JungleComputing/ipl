@@ -99,8 +99,9 @@ The nameserver parameters are:
     enable debugging prints of communication with the controlhub (extremely
     verbose).
 -?
-    print this message
 -h
+-help
+--help
     print this message
 
 Unrecognized options are passed on to java.
@@ -112,7 +113,7 @@ EOF
 while [ $# -gt 0 ]
 do
     case "$1" in
-    -\?|-h)
+    -\?|-h|-help|--help)
 	usage
 	;;
     -hubdebug)

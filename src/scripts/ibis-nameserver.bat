@@ -68,6 +68,14 @@ if "%1"=="-h" (
     goto usage
 )
 
+if "%1"=="-help" (
+    goto usage
+)
+
+if "%1"=="--help" (
+    goto usage
+)
+
 if "%1"=="-controlhub" (
     set Dhub=%ConnectHub%
     set NS_ARGS=%NS_ARGS% -controlhub

@@ -77,6 +77,9 @@ The ibis-prun parameters are:
 -sleep <n>
     sleep <n> seconds before starting the run
 -?
+-h
+-help
+--help
     print this message
 --
     terminates the parameters for ibis-prun; following parameters are passed
@@ -175,7 +178,7 @@ do
 		shift
 		args="$args -sleep \"$1\""
 		;;
-	-\?)
+	-\?|-h|-help|--help)
 		usage
 		;;
 	--)

@@ -122,6 +122,15 @@ if "%1"=="-key" (
 if "%1"=="-?" (
     goto usage
 )
+if "%1"=="-h" (
+    goto usage
+)
+if "%1"=="-help" (
+    goto usage
+)
+if "%1"=="--help" (
+    goto usage
+)
 if "%1"=="--" (
     shift
     goto cont
@@ -208,6 +217,9 @@ goto end
     echo -key ^<key^>
     echo     use the specified key to identify this run with the nameserver
     echo -?
+    echo -h
+    echo -help
+    echo --help
     echo     print this message
     echo --
     echo     terminates the parameters for ibis-run; following parameters are passed

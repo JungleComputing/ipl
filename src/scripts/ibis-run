@@ -67,6 +67,9 @@ The ibis-run options are:
 -sleep <n>
     sleep <n> seconds before starting the run
 -?
+-h
+-help
+--help
     print this message
 --
     terminates the parameters for ibis-run; following parameters are passed
@@ -252,7 +255,7 @@ do
 		shift
 		sleep "$1"
 		;;
-	-\?)
+	-\?|-h|-help|--help)
 		usage
 		;;
 	--)
