@@ -223,8 +223,13 @@ public abstract class WorkStealing extends Stats {
 						if (FAULT_TOLERANCE) {
 							if (currentVictimCrashed) {
 								currentVictimCrashed = false;
-								if (gotStealReply == false)
+								if (gotStealReply == false) {
+									if (STEAL_TIMING) {
+										stealTimer.stop();
+									}
 									return null;
+								}
+								break;
 							}
 						}
 					}
@@ -239,8 +244,12 @@ public abstract class WorkStealing extends Stats {
 								currentVictimCrashed = false;
 								//							System.err.println("SATIN '" + ident.name() +
 								// "': current victim crashed");
-								if (gotStealReply == false)
+								if (gotStealReply == false) {
+									if (STEAL_TIMING) {
+										stealTimer.stop();
+									}
 									return null;
+								}
 								break;
 							}
 						}
@@ -265,8 +274,13 @@ public abstract class WorkStealing extends Stats {
 				if (FAULT_TOLERANCE) {
 					if (currentVictimCrashed) {
 						currentVictimCrashed = false;
-						if (gotStealReply == false)
+						if (gotStealReply == false) {
+							if (STEAL_TIMING) {
+								stealTimer.stop();
+							}
 							return null;
+						}
+						break;
 					}
 				}
 

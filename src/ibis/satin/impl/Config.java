@@ -65,12 +65,16 @@ public interface Config {
 	static final boolean ABORTS = true;
 	
 	/** Enable fault tolerance. */
-	static final boolean FAULT_TOLERANCE = false;
+	static final boolean FAULT_TOLERANCE = true;
 	/**
 	 * If true, the global result table is replicated if false, the table is
 	 * distributed
 	 */
-	static final boolean GLOBAL_RESULT_TABLE_REPLICATED = true;
+	static final boolean GLOBAL_RESULT_TABLE_REPLICATED = false;
+	/**
+	 *Use message combinining with global result table
+	 */
+	static final boolean GRT_MESSAGE_COMBINING = true;
 	/** 
 	 *If true, orphan jobs are not aborted. Pointers are stored immediately
 	 * after crashes and results later. Jobs stolen by crashed processors

@@ -69,6 +69,8 @@ class StatsMessage implements java.io.Serializable {
 	long tableResultUpdates;
 
 	long tableLockUpdates;
+	
+	long tableUpdateMessages;
 
 	long tableLookups;
 
@@ -137,6 +139,7 @@ class StatsMessage implements java.io.Serializable {
 		//fault tolerance
 		tableResultUpdates += s.tableResultUpdates;
 		tableLockUpdates += s.tableLockUpdates;
+		tableUpdateMessages += s.tableUpdateMessages;
 		tableLookups += s.tableLookups;
 		tableSuccessfulLookups += s.tableSuccessfulLookups;
 		tableRemoteLookups += s.tableRemoteLookups;

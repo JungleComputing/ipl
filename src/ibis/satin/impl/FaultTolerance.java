@@ -15,7 +15,7 @@ public abstract class FaultTolerance extends Inlets {
 	// The core of the fault tolerance mechanism, the crash recovery procedure
 	synchronized void handleCrashes() {
 		if (CRASH_TIMING) {
-			crashTimer.start();
+//			crashTimer.start();
 		}
 		if (COMM_DEBUG) {
 			out.print("SATIN '" + ident.name() + ": handling crashes");
@@ -25,10 +25,10 @@ public abstract class FaultTolerance extends Inlets {
 		IbisIdentifier id = null;
 		while (crashedIbises.size() > 0) {
 			id = (IbisIdentifier) crashedIbises.remove(0);
-//			if (COMM_DEBUG) {
+			if (COMM_DEBUG) {
 				out.println("SATIN '" + ident.name() + ": handling crash of "
 						+ id.name());
-//			}
+			}
 
 			if (algorithm instanceof ClusterAwareRandomWorkStealing) {
 				((ClusterAwareRandomWorkStealing) algorithm)
@@ -139,8 +139,10 @@ public abstract class FaultTolerance extends Inlets {
 			crashedIbis = id;
 			del = true;
 		}
+		
+		
 		if (CRASH_TIMING) {
-			crashTimer.stop();
+//			crashTimer.stop();
 		}
 
 		if (COMM_DEBUG) {
@@ -149,6 +151,11 @@ public abstract class FaultTolerance extends Inlets {
 		}
 
 		notifyAll();
+		
+		if (GRT_MESSAGE_COMBINING) {
+			globalResultTable.sendUpdates();
+		}
+		
 	}
 
 	// Used for fault tolerance
@@ -324,7 +331,7 @@ public abstract class FaultTolerance extends Inlets {
 	 */
 	protected boolean globalResultTableCheck(InvocationRecord r) {
 		if (TABLE_CHECK_TIMING) {
-			redoTimer.start();
+//			redoTimer.start();
 		}
 
 			GlobalResultTable.Key key = new GlobalResultTable.Key(r);
@@ -335,7 +342,7 @@ public abstract class FaultTolerance extends Inlets {
 
 			if (value == null) {
 				if (TABLE_CHECK_TIMING) {
-					redoTimer.stop();
+//					redoTimer.stop();
 				}
 				return false;
 			}
@@ -350,7 +357,7 @@ public abstract class FaultTolerance extends Inlets {
 				rr.assignTo(r);
 				r.spawnCounter.value--;
 				if (TABLE_CHECK_TIMING) {
-					redoTimer.stop();
+//					redoTimer.stop();
 				}
 				return true;
 
@@ -364,7 +371,7 @@ public abstract class FaultTolerance extends Inlets {
 						if (deadIbises.contains(value.owner)) {
 							//the one who's got the result has crashed
 							if (TABLE_CHECK_TIMING) {
-								redoTimer.stop();
+//								redoTimer.stop();
 							}							
 							return false;
 						}
@@ -375,7 +382,7 @@ public abstract class FaultTolerance extends Inlets {
 					
 					if (s == null) {
 						if (TABLE_CHECK_TIMING) {
-							redoTimer.stop();
+//							redoTimer.stop();
 						}
 						return false;
 					}
@@ -406,7 +413,7 @@ public abstract class FaultTolerance extends Inlets {
 						return false;
 					}
 					if (TABLE_CHECK_TIMING) {
-						redoTimer.stop();
+//						redoTimer.stop();
 					}
 					return true;
 				}
@@ -425,7 +432,7 @@ public abstract class FaultTolerance extends Inlets {
 					rr.assignTo(r);	
 					r.spawnCounter.value--;				
 					if (TABLE_CHECK_TIMING) {
-						redoTimer.stop();
+//						redoTimer.stop();
 					}
 					return true;
 				}

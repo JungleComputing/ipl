@@ -780,6 +780,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 						//to the sender of this message and return
 						//i'm writing an invocation record here, is that ok?
 						value.sendTo = ident;
+						if (GRT_TIMING) {
+							satin.handleLookupTimer.stop();
+						}						
 						return;
 					}
 				}
@@ -804,9 +807,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			// stamps
 			w.writeObject(value.result);
 			w.finish();
-			if (GRT_TIMING) {
-				satin.handleLookupTimer.stop();
-			}
 		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': trying to send result back, but got exception: " + e);
@@ -816,6 +816,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					+ "': trying to send result back, but got exception: " + e);
 			e.printStackTrace();
 		}
+		if (GRT_TIMING) {
+			satin.handleLookupTimer.stop();
+		}
+		
 
 	}
 

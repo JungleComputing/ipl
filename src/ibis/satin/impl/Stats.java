@@ -86,6 +86,7 @@ public abstract class Stats extends TupleSpace {
 		if (FAULT_TOLERANCE) {
 			s.tableResultUpdates = globalResultTable.numResultUpdates;
 			s.tableLockUpdates = globalResultTable.numLockUpdates;
+			s.tableUpdateMessages = globalResultTable.numUpdateMessages;
 			s.tableLookups = globalResultTable.numLookups;
 			s.tableSuccessfulLookups = globalResultTable.numLookupsSucceded;
 			s.tableRemoteLookups = globalResultTable.numRemoteLookups;
@@ -175,7 +176,8 @@ public abstract class Stats extends TupleSpace {
 
 		if (FAULT_TOLERANCE && GRT_STATS) {
 			out.println("SATIN: GLOBAL_RESULT_TABLE: result updates "
-					+ nf.format(totalStats.tableResultUpdates) + ",lock updates "
+					+ nf.format(totalStats.tableResultUpdates) + ",update messages "
+					+ nf.format(totalStats.tableUpdateMessages) + ", lock updates "
 					+ nf.format(totalStats.tableLockUpdates) + ",lookups "
 					+ nf.format(totalStats.tableLookups) + ",successful "
 					+ nf.format(totalStats.tableSuccessfulLookups) + ",remote "
@@ -552,6 +554,9 @@ public abstract class Stats extends TupleSpace {
 						+ globalResultTable.numLockUpdates
 						+ " lock updates of the table.");
 				out.println("SATIN '" + ident.name() + "': "
+						+ globalResultTable.numUpdateMessages
+						+ " update messages.");												
+				out.println("SATIN '" + ident.name() + "': "				
 						+ globalResultTable.numLookupsSucceded
 						+ " lookups succeded, of which:");
 				out.println("SATIN '" + ident.name() + "': "
