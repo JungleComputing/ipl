@@ -87,6 +87,8 @@ class Compress extends ibis.satin.SatinObject
         if( depth<Configuration.LOOKAHEAD_DEPTH ){
             // Evaluate the gain of just copying the character.
             Backref mv1 = selectBestMove( text, backrefs, pos+1, depth+1 );
+	    // See if we can get rid of this sync.
+	    sync();
             mv.addGain( mv1 );
         }
         else {
@@ -94,16 +96,22 @@ class Compress extends ibis.satin.SatinObject
             // as a zero-gain move.
         }
         for( int i=0; i<sites.length; i++ ){
-            Backref r = shallowEvaluateBackref( text, backrefs, sites[i], pos );
-
-            if( r != null && depth<Configuration.LOOKAHEAD_DEPTH ){
-                Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
-                sync();
-                r.addGain( m );
-            }
-            results[i] = r;
+            results[i] = shallowEvaluateBackref( text, backrefs, sites[i], pos );
         }
-        sync();
+        if( depth<Configuration.LOOKAHEAD_DEPTH ){
+            // We have some recursion left, add the best gain from the recursion
+            // to our own score.
+            for( int i=0; i<sites.length; i++ ){
+                Backref r = results[i];
+
+                if( r != null ){
+                    Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
+                    sync();
+                    r.addGain( m );
+                }
+            }
+            sync();
+        }
 
         int bestGain = 0;
         for( int i=0; i<results.length; i++ ){
