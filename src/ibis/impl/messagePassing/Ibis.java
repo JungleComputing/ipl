@@ -47,8 +47,8 @@ public class Ibis extends ibis.ipl.Ibis {
     Monitor monitor = new Monitor();
 
     ConditionVariable createCV() {
-		// return new ConditionVariable(this);
-		return monitor.createCV();
+	// return new ConditionVariable(this);
+	return monitor.createCV();
     }
 
     int nrCpus;
@@ -92,10 +92,11 @@ public class Ibis extends ibis.ipl.Ibis {
 	/*
 	 * This is an 1.3 feature; cannot we use it please?
 	 */
-	Runtime.getRuntime().addShutdownHook(new Thread("Ibis ShutdownHook") {
-			public void run() {
-				report();
-			}
+	Runtime.getRuntime().addShutdownHook(
+		new Thread("Ibis ShutdownHook") {
+		    public void run() {
+			report();
+		    }
 		});
 	/* */
     }
@@ -105,41 +106,41 @@ public class Ibis extends ibis.ipl.Ibis {
 					    StaticProperties p)
 	    throws IbisException {
 
-		myIbis.lock();
-		PortType tp = new PortType(this, name, p);
-		portTypeList.put(name, tp);
-		myIbis.unlock();
-		
-		return tp;
+	myIbis.lock();
+	PortType tp = new PortType(this, name, p);
+	portTypeList.put(name, tp);
+	myIbis.unlock();
+
+	return tp;
     }
 
 
     public ibis.ipl.Registry registry() {
-		return registry;
+	return registry;
     }
 
 
     ReceivePortNameServer createReceivePortNameServer() throws IOException{
-		return new ReceivePortNameServer();
+	return new ReceivePortNameServer();
     }
 
 
     ReceivePortNameServerClient createReceivePortNameServerClient() {
-		return new ReceivePortNameServerClient();
+	return new ReceivePortNameServerClient();
     }
 
 
 
     boolean getInputStreamMsg(int tags[]) {
-		return ByteInputStream.getInputStreamMsg(tags);
+	return ByteInputStream.getInputStreamMsg(tags);
     }
 
     public StaticProperties properties() {
-		return systemProperties;
+	return systemProperties;
     }
 
     public ibis.ipl.IbisIdentifier identifier() {
-		return ident;
+	return ident;
     }
 
 
@@ -148,15 +149,15 @@ public class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void join_upcall(byte[] serialForm) throws IOException {
-		checkLockOwned();
-		//manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
+	checkLockOwned();
+	//manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 
-		IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
-		if (DEBUG) {
-			System.err.println("Receive join message " + id.name() + "; now world = " + world + "; serialForm[" + serialForm.length + "] = " + serialForm);
-		}
-		ibisNameService.add(id);
-		world.join(id);
+	IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
+	if (DEBUG) {
+		System.err.println("Receive join message " + id.name() + "; now world = " + world + "; serialForm[" + serialForm.length + "] = " + serialForm);
+	}
+	ibisNameService.add(id);
+	world.join(id);
     }
 
     /* Called from native */
@@ -278,7 +279,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     final void waitPolling(PollClient client, long timeout, int preempt)
 	    throws IOException {
-		rcve_poll.waitPolling(client, timeout, preempt);
+	rcve_poll.waitPolling(client, timeout, preempt);
     }
 
     native long currentTime();
@@ -329,7 +330,7 @@ public class Ibis extends ibis.ipl.Ibis {
 // System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
 // manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
 // System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
-	
+
 	IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
 	String name = id.name();
 	if (lookupIbis(id.name(), id.getCPU()) == null) {
@@ -349,6 +350,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	myIbis.lock();
 	PortType tp = (PortType)getPortTypeLocked(name);
 	myIbis.unlock();
+
 	return tp;
     }
 
@@ -365,6 +367,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     ShadowSendPort lookupSendPort(int cpu, int port) {
 	checkLockOwned();
+
 	return (ShadowSendPort)sendPorts[cpu].lookup(port);
     }
 
@@ -375,6 +378,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     ReceivePort lookupReceivePort(int port) {
 	checkLockOwned();
+
 	return (ReceivePort)rcvePorts.lookup(port);
     }
 
