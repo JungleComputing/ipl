@@ -80,6 +80,9 @@ do
 	--panda-network=*)
 			PANDA_NETWORK=`expr $i : '--panda-network=\(.*\)'`
 			;;
+	--jikesBT-root=*)
+			JIKES_BT_ROOT=`expr $i : '--jikesBT-root=\(.*\)'`
+			;;
 	--help|-h|-?)
 			echo configure [options]
 			echo options:
