@@ -1,12 +1,12 @@
 @echo off
 
-rem %~dp0 is expanded pathname of the current script under NT
-
 if "%OS%"=="Windows_NT" @setlocal
+
+rem %~dp0 is expanded pathname of the current script under NT
 
 set DIR=%~dp0..
 
-"%DIR%\configuration.bat"
+%DIR%\configuration.bat
 
 set PRUN_CPU_RANK=0
 set NHOSTS=1
