@@ -116,4 +116,10 @@ public final class Rdtsc extends ibis.util.Timer {
 	public String lastTime() {
 		return format(lastTime / MHz);
 	}
+
+	public String toString() {
+		return "Timer stats: total time = " + totalTime()
+		    + " average time = " + averageTime() +
+		    " count = " + count;
+	}
 }
