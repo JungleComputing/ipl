@@ -98,7 +98,7 @@
 		<property name="native.optimize.value" value="true"/>
 	    </then>
 	    <else>
-		<!-- The tric is to NOT set native.optimize or java.optimize -->
+		<!-- The trick is to NOT set native.optimize or java.optimize -->
 		<property name="java.optimize.value" value="false"/>
 		<property name="native.optimize.value" value="false"/>
 	    </else>
