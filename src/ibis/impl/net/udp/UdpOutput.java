@@ -1,16 +1,9 @@
 package ibis.ipl.impl.net.udp;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetBufferedOutput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetReceivePortIdentifier;
-import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
@@ -83,11 +76,9 @@ public class UdpOutput extends NetBufferedOutput {
 	 * @param driver the TCP driver instance.
 	 * @param output the controlling output.
 	 */
-	UdpOutput(StaticProperties sp,
-		  NetDriver   	   driver,
-		  NetIO   	   up)
+	UdpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
-		super(sp, driver, up);
+		super(pt, driver, up, context);
 	}
 
 	/*
@@ -135,7 +126,7 @@ public class UdpOutput extends NetBufferedOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
+	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
 		packet.setData(b.data, 0, b.length);
 		try {
 			socket.send(packet);

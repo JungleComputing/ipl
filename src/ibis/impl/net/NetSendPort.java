@@ -139,8 +139,21 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		NetIbisIdentifier ibisId = (NetIbisIdentifier)ibis.identifier();
 		identifier               = new NetSendPortIdentifier(name, type.name(), ibisId);
 		outputLock 		 = new NetMutex(false);
-		driver   		 = type.getDriver();
-		output   		 = driver.newOutput(type.properties(), null);
+
+                {
+                        String mainDriverName = type.getStringProperty("/", "Driver");
+
+                        if (mainDriverName == null) {
+                                throw new IbisIOException("root driver not specified");
+                        }
+                        
+                        driver   		 = ibis.getDriver(mainDriverName);
+                        if (driver == null) {
+                                throw new IbisIOException("driver not found");
+                        }
+                }
+                
+		output   		 = driver.newOutput(type, null, null);
 		receivePortIdentifiers 	 = new Hashtable();
 		receivePortSockets     	 = new Hashtable();
 		receivePortIs          	 = new Hashtable();

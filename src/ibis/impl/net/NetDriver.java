@@ -1,7 +1,6 @@
 package ibis.ipl.impl.net;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -60,8 +59,7 @@ public abstract class NetDriver {
 	 *
 	 * @exception IbisIOException if the input creation fail.
 	 */
-	public abstract NetInput newInput(StaticProperties sp,
-					  NetIO            up)
+	public abstract NetInput newInput(NetPortType pt, NetIO up, String context)
 		throws IbisIOException;
 
 	/**
@@ -75,7 +73,6 @@ public abstract class NetDriver {
 	 *
 	 * @exception IbisIOException if the output creation fail.
 	 */
-	public abstract NetOutput newOutput(StaticProperties sp,
-					    NetIO            up)
+	public abstract NetOutput newOutput(NetPortType pt, NetIO up, String context)
 		throws IbisIOException;
 }

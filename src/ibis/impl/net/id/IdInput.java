@@ -1,32 +1,11 @@
 package ibis.ipl.impl.net.id;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetSendPortIdentifier;
+import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.SocketException;
-
-/* Only for java >= 1.4 
-import java.net.SocketTimeoutException;
-*/
-import java.io.InterruptedIOException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-
-import java.util.Hashtable;
 
 
 /**
@@ -52,11 +31,9 @@ public class IdInput extends NetInput {
 	 * @param driver the ID driver instance.
 	 * @param input the controlling input.
 	 */
-	IdInput(StaticProperties sp,
-		NetDriver        driver,
-		NetIO            up)
+	IdInput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
-		super(sp, driver, up);
+		super(pt, driver, up, context);
 	}
 
 	/*
@@ -66,35 +43,19 @@ public class IdInput extends NetInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer                rpn,
-				    ObjectInputStream 	   is,
-				    ObjectOutputStream	   os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
 			if (subDriver == null) {
-				subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+                                String subDriverName = getMandatoryProperty("Driver");
+				subDriver = driver.getIbis().getDriver(subDriverName);
 			}
 
-			subInput = subDriver.newInput(staticProperties, this);
+			subInput = newSubInput(subDriver);
 			this.subInput = subInput;
 		}
 		
 		subInput.setupConnection(rpn, is, os);
-		 
-		int _mtu = subInput.getMaximumTransfertUnit();
-
-		if ((mtu == 0)
-		    ||
-		    (mtu > _mtu)) {
-			mtu = _mtu;
-		}
-
-		int _headersLength = subInput.getHeadersLength();
-
-		if (headerOffset < _headersLength) {
-			headerOffset = _headersLength;
-		}
 	}
 
 	/**
@@ -107,7 +68,16 @@ public class IdInput extends NetInput {
 	 * @return {@inheritDoc}
 	 */
 	public Integer poll() throws IbisIOException {
-		return (subInput != null) ? subInput.poll() : null;
+                if (subInput == null)
+                        return null;
+                
+                Integer result = subInput.poll();
+                if (result != null) {
+                        mtu          = subInput.getMaximumTransfertUnit();
+                        headerOffset = subInput.getHeadersLength();
+                }
+
+		return result;
 	}
 	
 	/**
@@ -132,6 +102,14 @@ public class IdInput extends NetInput {
 		super.free();
 	}
 	
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+                return subInput.readByteBuffer(expectedLength);
+        }       
+
+        public void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+                subInput.readByteBuffer(buffer);
+        }
+
 
 	public boolean readBoolean() throws IbisIOException {
                 return subInput.readBoolean();

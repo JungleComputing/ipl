@@ -11,18 +11,17 @@ import ibis.ipl.Replacer;
 import ibis.ipl.Upcall;
 import ibis.util.Input;
 
-class NetPortType implements PortType {
-	/*
-	static final byte SERIALIZATION_SUN   = 0;
-	static final byte SERIALIZATION_MANTA = 1;
-	*/
+import java.util.Enumeration;
+import java.util.HashMap;
+
+public class NetPortType implements PortType {
 	private String 		 name 	     	   = null;
 	private StaticProperties staticProperties  = null;
-	private NetIbis          ibis              = null; 
-	// private byte             serializationType = SERIALIZATION_SUN;
-	private NetDriver        driver            = null;
+	private NetIbis          ibis              = null;
+        private NetPropertyTree  propertyTree      = null;
+        private HashMap          propertyCache     = null;
 
-	private static String readKey(Input in) {
+	private String readKey(Input in) {
 		// Skip comment lines starting with a '#' at col 0
 		if (!in.eof() && !in.eoln() && in.nextChar() == '#') {
 			return null;
@@ -41,7 +40,7 @@ class NetPortType implements PortType {
 		return s.toString();
 	}
 
-	private static String readVal(Input in) {
+	private String readVal(Input in) {
 		StringBuffer s = new StringBuffer();
 		while (!in.eof() && !in.eoln()) {
 			s.append(in.readChar());
@@ -49,7 +48,7 @@ class NetPortType implements PortType {
 
 		return s.toString();
 	}
-	private static void readProperties(Input in, StaticProperties sp) {
+	private void readProperties(Input in, StaticProperties sp) {
 		while(!in.eof()) {
 			String key = readKey(in);
 
@@ -75,42 +74,63 @@ class NetPortType implements PortType {
 		}
 	}
 
+        private Input tryOpen(String s) {
+                Input in = null;
+                try {
+                        in = new Input(s);
+                } catch (Exception e) {
+                                //
+                }
+                return in;
+        }
+        
+
 	public NetPortType (NetIbis ibis, String name, StaticProperties sp)
 		throws IbisIOException {
 		this.ibis             = ibis;
 		this.name             = name;
-
-                try {
-                        Input in = new Input("net_port_type_defaults.txt");
-                        System.err.println("NetPortType: reading defaults port settings from net_port_type_defaults.txt");
-                        readProperties(in, sp);
-                } catch (Exception e) {
-				// nothing
-                }
-
+                this.propertyTree     = new NetPropertyTree();
+                this.propertyCache    = new HashMap();
 		this.staticProperties = sp;
+                
+                /* Completes the static properties with default value */
+                {        
+                        Input  in = null;
+                        String filename = "";
 
-		driver = ibis.getDriver(sp.find("/:Driver"));
+                        in = tryOpen(filename = "net_port_type_defaults.txt");
+                        
+                        if (in != null) {
+                                try {
+                                        System.err.println("NetPortType: reading defaults port settings from "+filename);
+                                        readProperties(in, sp);
+                                } catch (Exception e) {
+				// nothing
+                                }
+                        }
+                }
+                
+                /* Builds the property tree */
+                {
+                        Enumeration e = sp.keys();
+
+                        while (e.hasMoreElements()) { 
+                                String key   = (String) e.nextElement();		       			
+                                String value = sp.find(key);
+
+                                propertyTree.put(key, value);
+                        }
+		} 
+                
 	}
 
-	/**
-	 * Returns the topmost driver for this type.
-	 */
-	public NetDriver getDriver() {
-		return driver;
-	}
-	
 	/**
 	 * Returns a reference to the owning Ibis instance.
 	 */
 	public NetIbis getIbis() {
 		return ibis;
 	}
-	/*
-	public byte serializationType() {
-		return serializationType;
-	}
-	*/
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -201,19 +221,42 @@ class NetPortType implements PortType {
 		return name.equals(temp.name);
 	}
 
+
+
+
+
+
+        private Object getProperty(String context, String name) {
+                if (context != null) {
+                        name = context+":"+name;
+                }
+                
+                Object result = null;
+                
+                if (propertyCache.containsKey(name)) {
+                        result =  propertyCache.get(name);
+                } else {
+                        result = propertyTree.get(name);
+                        propertyCache.put(name, result);
+                }
+
+                return result;
+        }
+        
+
 	/**
 	 * Special decoding function for boolean properties.
 	 */
-	public boolean getBooleanProperty(String  name,
-					  boolean def) {
-		boolean result = def;
-		String  value  = staticProperties.find(name);
+	public Boolean getBooleanStringProperty(String context, String name, Boolean defaultValue) {
+		Boolean result = defaultValue;
+		String  value  = (String)getProperty(context, name);
 
 		if (value != null) {
+                        value.toLowerCase();
 			if (value.equals(String.valueOf(true))) {
-				result = true;
+				result = new Boolean(true);
 			} else if (value.equals(String.valueOf(false))) {
-				result = false;
+				result = new Boolean(false);
 			} else {
 				__.abort__("invalid property value '"+value+"', should be "+String.valueOf(true)+" or "+String.valueOf(false));
 			}
@@ -221,4 +264,24 @@ class NetPortType implements PortType {
 
 		return result;
 	}
+
+        public String getStringProperty(String context, String name, String defaultValue) {
+                String result = defaultValue;
+                String value  = (String)getProperty(context, name);
+
+                if (value != null) {
+                        result = value;
+                }
+
+                return result;
+        }
+
+	public Boolean getBooleanStringProperty(String context, String name) {
+                return getBooleanStringProperty(context, name, null);
+        }
+        
+        public String getStringProperty(String context, String name) {
+                return getStringProperty(context, name, null);
+        }
+        
 }

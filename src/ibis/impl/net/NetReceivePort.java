@@ -387,10 +387,25 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		pollingLock    	       = new NetMutex(false);
 		connectionLock 	       = new NetMutex(true);
 		inputLock      	       = new NetMutex(false);
-		driver                 = type.getDriver();
-		input                  = driver.newInput(type.properties(), null);
-		usePollingThread       = type.getBooleanProperty("UsePollingThread", usePollingThread);
-		useYield               = type.getBooleanProperty("UseYield", useYield);
+
+		NetIbis ibis           = type.getIbis();
+
+                {
+                        String mainDriverName = type.getStringProperty("/", "Driver");
+
+                        if (mainDriverName == null) {
+                                throw new IbisIOException("root driver not specified");
+                        }
+                        
+                        driver   		 = ibis.getDriver(mainDriverName);
+                        if (driver == null) {
+                                throw new IbisIOException("driver not found");
+                        }
+                }
+                
+		input                  = driver.newInput(type, null, null);
+		usePollingThread       = (type.getBooleanStringProperty(null, "UsePollingThread", new Boolean(usePollingThread))).booleanValue();
+		useYield               = (type.getBooleanStringProperty(null, "UseYield",         new Boolean(useYield))).booleanValue();
 
 		try {
 			serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost());
@@ -403,7 +418,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		info.put("accept_address", serverSocket.getInetAddress());
 		info.put("accept_port",    new Integer(serverSocket.getLocalPort()));
 
-		NetIbis           ibis   = type.getIbis();
 		NetIbisIdentifier ibisId = (NetIbisIdentifier)ibis.identifier();
 		identifier    = new NetReceivePortIdentifier(name, type.name(), ibisId, info);
 		

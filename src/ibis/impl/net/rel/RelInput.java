@@ -1,34 +1,11 @@
 package ibis.ipl.impl.net.rel;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetBufferedInput;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetSendPortIdentifier;
+import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.SocketException;
-
-/* Only for java >= 1.4 
-import java.net.SocketTimeoutException;
-*/
-import java.io.InterruptedIOException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-
-import java.util.Hashtable;
-
 
 /**
  * The REL input implementation.
@@ -41,9 +18,14 @@ public class RelInput extends NetBufferedInput {
 	private NetDriver subDriver = null;
 
 	/**
-	 * The 'real' input.
+	 * The communication input.
 	 */
 	private NetInput  subInput  = null;
+
+	/**
+	 * The acknowledgement output.
+	 */
+	private NetOutput subOutput = null;
 
 	/**
 	 * Constructor.
@@ -53,62 +35,44 @@ public class RelInput extends NetBufferedInput {
 	 * @param driver the REL driver instance.
 	 * @param input the controlling input.
 	 */
-	RelInput(StaticProperties sp,
-		 NetDriver        driver,
-		 NetIO            up)
-		throws IbisIOException {
-		super(sp, driver, up);
+	RelInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+		super(pt, driver, up, context);
 
 		// The length of the header expressed in bytes
-		headerLength = 0;
+		headerLength = 8;
 	}
 
 	/*
-	 * Sets up an incoming REL connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
+	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
+
+                /* Main connection */
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
 			if (subDriver == null) {
-				subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+                                String subDriverName = getMandatoryProperty("Driver");
+				subDriver = driver.getIbis().getDriver(subDriverName);
 			}
 
-			subInput = subDriver.newInput(staticProperties, this);
+			subInput = newSubInput(subDriver);
 			this.subInput = subInput;
 		}
 		
 		subInput.setupConnection(rpn, is, os);
-		 
-		int _mtu = subInput.getMaximumTransfertUnit();
 
-		if ((mtu == 0)
-		    ||
-		    (mtu > _mtu)) {
-			mtu = _mtu;
-		}
+                /* Reverse connection */
+		NetOutput subOutput = this.subOutput;
+                if (subOutput == null) {
+                        subOutput = newSubOutput(subDriver);
+			this.subOutput = subOutput;
+                }
 
-		int _headersLength = subInput.getHeadersLength();
-
-		if (headerOffset < _headersLength) {
-			headerOffset = _headersLength;
-		}
+		subOutput.setupConnection(new Integer(-1), is, os);
 	}
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: This REL polling implementation uses the
-	 * {@link java.io.InputStream#available()} function to test whether at least one
-	 * data byte may be extracted without blocking.
-	 *
-	 * @return {@inheritDoc}
 	 */
 	public Integer poll() throws IbisIOException {
                 if (subInput == null)
@@ -116,6 +80,8 @@ public class RelInput extends NetBufferedInput {
                 
                 Integer result = subInput.poll();
                 if (result != null) {
+                        mtu          = subInput.getMaximumTransfertUnit();
+                        headerOffset = subInput.getHeadersLength();
                         initReceive();
                 }
 
@@ -129,17 +95,18 @@ public class RelInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public void readByteBuffer(NetReceiveBuffer b)
-		throws IbisIOException {
-                subInput.readSubArrayByte(b.data, 0, b.length);
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IbisIOException {
+                NetReceiveBuffer b = subInput.readByteBuffer(expectedLength);
+                long seq = NetConvert.readLong(b.data, headerOffset);
+                return b;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void finish() throws IbisIOException {
-		subInput.finish();
 		super.finish();
+		subInput.finish();
 	}
 
 	/**
@@ -152,7 +119,6 @@ public class RelInput extends NetBufferedInput {
 		}
 
 		subDriver = null;
-		
 		super.free();
 	}
 	

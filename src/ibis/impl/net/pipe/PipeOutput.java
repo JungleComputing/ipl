@@ -1,15 +1,8 @@
 package ibis.ipl.impl.net.pipe;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetBank;
-import ibis.ipl.impl.net.NetBufferedOutput;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -44,34 +37,22 @@ public class PipeOutput extends NetBufferedOutput {
 	 * @param driver the PIPE driver instance.
 	 * @param output the controlling output.
 	 */
-	PipeOutput(StaticProperties sp,
-		   NetDriver   	    driver,
-		   NetIO   	    up)
-		throws IbisIOException {
-		super(sp, driver, up);
+	PipeOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+		super(pt, driver, up, context);
 		headerLength = 4;
 	}
 
-	/*
-	 * Sets up an outgoing PIPE connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
 		this.rpn = rpn;
 	
 		try {
-			Hashtable info = null;
-			info 	       = receiveInfoTable(is);
+			Hashtable info = receiveInfoTable(is);
 			mtu  	       = ((Integer) info.get("pipe_mtu")).intValue();
-
 			NetBank          bank   = driver.getIbis().getBank();
-			Long             key  = (Long)info.get("pipe_istream_key");
+			Long             key    = (Long)info.get("pipe_istream_key");
 			PipedInputStream pipeIs = (PipedInputStream)bank.discardKey(key);
 
 			pipeOs = new PipedOutputStream(pipeIs);
@@ -82,9 +63,9 @@ public class PipeOutput extends NetBufferedOutput {
 		}
 	}
 
-	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
+	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
 		try {
-			writeInt(b.data, 0, b.length);
+			NetConvert.writeInt(b.length, b.data, 0);
 			pipeOs.write(b.data, 0, b.length);
 			Thread.currentThread().yield();
 		} catch (IOException e) {

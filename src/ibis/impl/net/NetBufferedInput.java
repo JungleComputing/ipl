@@ -42,17 +42,18 @@ public abstract class NetBufferedInput extends NetInput {
 	 * @param input the controlling input or <code>null</code> if this input is a
 	 *              root input.
 	 */
-	protected NetBufferedInput(StaticProperties staticProperties,
+	protected NetBufferedInput(NetPortType      portType,
 			   NetDriver 	    driver,
-			   NetIO  	    up) {
-		super(staticProperties, driver, up);
+			   NetIO  	    up,
+                           String           context) {
+		super(portType, driver, up, context);
 	}
 
         /**
          * Optional method for zero-copy reception.
-         * Note: at least one 'readByteBuffer' method must be implemented.
+         * Note: at least one 'receiveByteBuffer' method must be implemented.
          */
-        protected void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+        protected void receiveByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
                 int offset = buffer.base;
                 int length = buffer.length - offset;
 
@@ -61,7 +62,7 @@ public abstract class NetBufferedInput extends NetInput {
 
                 circularCheck = true;
                 while (length > 0) {
-                        NetReceiveBuffer b = readByteBuffer(length);
+                        NetReceiveBuffer b = receiveByteBuffer(length);
                         int copyLength = Math.min(length, b.length);
                         System.arraycopy(b.data, 0, buffer.data, buffer.base, copyLength);
                         offset += copyLength;
@@ -73,9 +74,9 @@ public abstract class NetBufferedInput extends NetInput {
 
         /**
          * Optional method for static buffer reception.
-         * Note: at least one 'readByteBuffer' method must be implemented.
+         * Note: at least one 'receiveByteBuffer' method must be implemented.
          */
-        protected NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+        protected NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IbisIOException {
                 NetReceiveBuffer b = null;
                 
                 if (circularCheck)
@@ -88,7 +89,7 @@ public abstract class NetBufferedInput extends NetInput {
                         b = new NetReceiveBuffer(new byte[expectedLength], 0);
                 }
                 
-                readByteBuffer(b);
+                receiveByteBuffer(b);
                 circularCheck = false;
                 return b;
         }
@@ -108,28 +109,39 @@ public abstract class NetBufferedInput extends NetInput {
         }
 
         private void pumpBuffer(NetReceiveBuffer buffer) throws IbisIOException {
-                readByteBuffer(buffer);
+                receiveByteBuffer(buffer);
                 buffer.free();
         }
 
 	private void pumpBuffer(int length) throws IbisIOException {
-		buffer       = readByteBuffer(length);
+		buffer       = receiveByteBuffer(dataOffset+length);
 		bufferOffset = dataOffset;
 	}
 
 	private void freeBuffer() {
 		if (buffer != null) {
 			buffer.free();
-			buffer = null;
+			buffer       = null;
+                        bufferOffset =    0;
 		}
-		
-		bufferOffset =    0;
 	}
 
 	public void finish() throws IbisIOException {
                 super.finish();
  		freeBuffer();
 	}
+
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+                freeBuffer();
+                return receiveByteBuffer(expectedLength);
+        }
+        
+
+        public void readByteBuffer(NetReceiveBuffer b) throws IbisIOException {
+                freeBuffer();
+                receiveByteBuffer(b);
+        }
+        
 
 	public byte readByte() throws IbisIOException {
                 //System.err.println("readbyte -->");

@@ -1,26 +1,11 @@
 package ibis.ipl.impl.net.rel;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetBufferedOutput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
-
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.SocketException;
 
 import java.io.ObjectInputStream;
-import java.io.InputStream;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-
-import java.util.Hashtable;
 
 /**
  * The REL output implementation.
@@ -33,9 +18,16 @@ public class RelOutput extends NetBufferedOutput {
 	private NetDriver subDriver = null;
 
 	/**
-	 * The 'real' output.
+	 * The communication output.
 	 */
 	private NetOutput subOutput = null;
+
+	/**
+	 * The acknowledgement input.
+	 */
+	private NetInput subInput = null;
+
+        private long     sequenceNumber = 0;
 
 	/**
 	 * Constructor.
@@ -45,54 +37,51 @@ public class RelOutput extends NetBufferedOutput {
 	 * @param driver the REL driver instance.
 	 * @param output the controlling output.
 	 */
-	RelOutput(StaticProperties sp,
-		  NetDriver   	   driver,
-		  NetIO   	   up)
-		throws IbisIOException {
-		super(sp, driver, up);
-
+	RelOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+		super(pt, driver, up, context);
 
 		// The length of the header expressed in bytes
-		headerLength = 0;
+		headerLength = 8;
 	}
 
 	/*
-	 * Sets up an outgoing REL connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
+	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
+                /* Main connection */
 		NetOutput subOutput = this.subOutput;
 		
 		if (subOutput == null) {
 			if (subDriver == null) {
-				subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+                                String subDriverName = getMandatoryProperty("Driver");
+				subDriver = driver.getIbis().getDriver(subDriverName);
 			}
 
-			subOutput = subDriver.newOutput(staticProperties, this);
+			subOutput = newSubOutput(subDriver);
 			this.subOutput = subOutput;
 		}
 
 		subOutput.setupConnection(rpn, is, os);
 
 		int _mtu = subOutput.getMaximumTransfertUnit();
-
-		if ((mtu == 0)
-		    ||
-		    (mtu > _mtu)) {
+		if (mtu == 0  ||  mtu > _mtu) {
 			mtu = _mtu;
 		}
 
-		int _headersLength = subOutput.getHeadersLength();
+ 		int _headersLength = subOutput.getHeadersLength();
+ 
+ 		if (headerOffset < _headersLength) {
+ 			headerOffset = _headersLength;
+ 		}
 
-		if (headerOffset < _headersLength) {
-			headerOffset = _headersLength;
-		}
+                /* Reverse connection */
+		NetInput subInput = this.subInput;
+                if (subInput == null) {
+                        subInput = newSubInput(subDriver);
+			this.subInput = subInput;
+                }
+
+		subInput.setupConnection(new Integer(-1), is, os);
 	}
 
 	/**
@@ -106,16 +95,17 @@ public class RelOutput extends NetBufferedOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
-                subOutput.writeSubArrayByte(b.data, 0, b.length);
+	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
+                NetConvert.writeLong(sequenceNumber++, b.data, headerOffset);
+                subOutput.writeByteBuffer(b);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void finish() throws IbisIOException {
-		subOutput.finish();
 		super.finish();
+		subOutput.finish();
 	}
 
 	/**
@@ -128,7 +118,6 @@ public class RelOutput extends NetBufferedOutput {
 		}
 		
 		subDriver = null;
-
 		super.free();
 	}
 	

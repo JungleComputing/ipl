@@ -1,17 +1,9 @@
 package ibis.ipl.impl.net.udp;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetAllocator;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetBufferedInput;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetSendPortIdentifier;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
@@ -145,11 +137,9 @@ public class UdpInput extends NetBufferedInput {
 	 * @param driver the TCP driver instance.
 	 * @param input the controlling input.
 	 */
-	UdpInput(StaticProperties sp,
-		 NetDriver        driver,
-		 NetIO             up)
+	UdpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
-		super(sp, driver, up);
+		super(pt, driver, up, context);
 	}
 
 	/*
@@ -250,7 +240,7 @@ public class UdpInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer readByteBuffer(int expectedLength)
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
 		throws IbisIOException {
 		if (buffer == null) {
 			byte[] b = allocator.allocate();
@@ -275,7 +265,7 @@ public class UdpInput extends NetBufferedInput {
 		return temp_buffer;
 	}
 
-	public void readByteBuffer(NetReceiveBuffer userBuffer)
+	public void receiveByteBuffer(NetReceiveBuffer userBuffer)
 		throws IbisIOException {
 		if (buffer == null) {
                         //

@@ -1,23 +1,12 @@
 package ibis.ipl.impl.net.gen;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetSendBuffer;
-
-import java.net.Socket;
+import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import java.net.InetAddress;
-
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -57,18 +46,13 @@ public class GenSplitter extends NetOutput {
 	 * @param driver the driver of this poller.
 	 * @param output  the controlling output.
 	 */
-	public GenSplitter (StaticProperties staticProperties,
-			    NetDriver 	     driver,
-			    NetIO 	     up) {
-		super(staticProperties, driver, up);
+	public GenSplitter(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+		super(pt, driver, up, context);
 		outputVector = new Vector();
 		isVector     = new Vector();
 		osVector     = new Vector();
 	}
 
-	// TODO: the target nodes of the corresponding 
-	// sendPort should be told about any change of
-	// the header offset
 	/**
 	 * Adds a new input to the output set.
 	 *
@@ -80,35 +64,29 @@ public class GenSplitter extends NetOutput {
 			       NetOutput output) {
 		int _mtu = output.getMaximumTransfertUnit();
 
-		if ((mtu == 0)
-		    ||
-		    (mtu > _mtu)) {
+		if (mtu == 0  ||  mtu > _mtu) {
 			mtu = _mtu;
 		}
-
-		outputVector.add(output);
 
 		int _headersLength = output.getHeadersLength();
 
 		if (headerOffset < _headersLength) {
 			headerOffset = _headersLength;
 		}
+
+		outputVector.add(output);
 	}
 
 	/**
-	 * Setup a new output.
-	 *
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer                  rpn,
-				    ObjectInputStream        is,
-				    ObjectOutputStream       os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
 		if (subDriver == null) {
-			subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			String subDriverName = getProperty("Driver");
+                        subDriver = driver.getIbis().getDriver(subDriverName);
 		}
 		
-		NetOutput no = subDriver.newOutput(staticProperties, this);
+		NetOutput no = newSubOutput(subDriver);
 		
 		no.setupConnection(rpn, is, os);
 		addOutput(rpn, no);
@@ -160,6 +138,13 @@ public class GenSplitter extends NetOutput {
 		super.free();
 	}		
 
+        public void writeByteBuffer(NetSendBuffer buffer) throws IbisIOException {
+                Iterator i = outputVector.listIterator();
+		do {
+			NetOutput no = (NetOutput)i.next();
+			no.writeByteBuffer(buffer);
+		} while (i.hasNext());
+        }
 
         /**
 	 * Writes a boolean value to the message.

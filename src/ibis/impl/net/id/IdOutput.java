@@ -1,25 +1,11 @@
 package ibis.ipl.impl.net.id;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
-
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.SocketException;
 
 import java.io.ObjectInputStream;
-import java.io.InputStream;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-
-import java.util.Hashtable;
 
 /**
  * The ID output implementation.
@@ -44,32 +30,23 @@ public class IdOutput extends NetOutput {
 	 * @param driver the ID driver instance.
 	 * @param output the controlling output.
 	 */
-	IdOutput(StaticProperties sp,
-		 NetDriver   	  driver,
-		 NetIO   	  up)
-		throws IbisIOException {
-		super(sp, driver, up);
+	IdOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+		super(pt, driver, up, context);
 	}
 
-	/*
-	 * Sets up an outgoing ID connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream  is, ObjectOutputStream os) throws IbisIOException {
 		NetOutput subOutput = this.subOutput;
 		
 		if (subOutput == null) {
 			if (subDriver == null) {
-				subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+                                String subDriverName = getProperty("Driver");
+				subDriver = driver.getIbis().getDriver(subDriverName);
 			}
 
-			subOutput = subDriver.newOutput(staticProperties, this);
+			subOutput = newSubOutput(subDriver);
 			this.subOutput = subOutput;
 		}
 
@@ -82,12 +59,12 @@ public class IdOutput extends NetOutput {
 		    (mtu > _mtu)) {
 			mtu = _mtu;
 		}
-
-		int _headersLength = subOutput.getHeadersLength();
-
-		if (headerOffset < _headersLength) {
-			headerOffset = _headersLength;
-		}
+ 
+ 		int _headersLength = subOutput.getHeadersLength();
+ 
+ 		if (headerOffset < _headersLength) {
+ 			headerOffset = _headersLength;
+ 		}
 	}
 
 	/**
@@ -119,6 +96,10 @@ public class IdOutput extends NetOutput {
 
 		super.free();
 	}
+
+        public void writeByteBuffer(NetSendBuffer buffer) throws IbisIOException {
+                subOutput.writeByteBuffer(buffer);
+        }
 
         /**
 	 * Writes a boolean value to the message.

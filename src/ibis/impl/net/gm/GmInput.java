@@ -1,33 +1,18 @@
 package ibis.ipl.impl.net.gm;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetAllocator;
-import ibis.ipl.impl.net.NetBufferedInput;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetMutex;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetSendPortIdentifier;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-/* Only for java >= 1.4 
-import java.net.SocketTimeoutException;
-*/
-import java.io.InterruptedIOException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 
 import java.util.Hashtable;
 
@@ -82,12 +67,9 @@ public class GmInput extends NetBufferedInput {
 	 * @param driver the GM driver instance.
 	 * @param input the controlling input.
 	 */
-	GmInput(StaticProperties sp,
-		 NetDriver        driver,
-		 NetIO            up)
+	GmInput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
-		super(sp, driver, up);
-		headerLength = 0;
+                super(pt, driver, up, context);
 
                 Driver.gmLock.lock();
                 deviceHandle = Driver.nInitDevice(0);
@@ -185,7 +167,7 @@ public class GmInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer readByteBuffer(int expectedLength)
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
 		throws IbisIOException {
                 byte [] b = null;
                 int     l =    0;
@@ -208,7 +190,7 @@ public class GmInput extends NetBufferedInput {
 		return new NetReceiveBuffer(b, l, allocator);
 	}
 
-	public void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+	public void receiveByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
                 Driver.gmLock.lock();
                 nPrepostBuffer(inputHandle, buffer.data, buffer.base, buffer.length);
 

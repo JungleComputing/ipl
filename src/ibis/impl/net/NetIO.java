@@ -37,39 +37,16 @@ public abstract class NetIO {
 	protected NetDriver 	   driver        	  = null;
 
 	/**
-	 * the properties of the corresponing {@linkplain NetSendPort send port}.
+	 * the type of the corresponing {@linkplain NetSendPort send port}.
 	 */
-	protected StaticProperties staticProperties       = null;
-
-	/**
-	 * the sorted property key prefixes for this I/O.
-	 *
-	 * The first matching key (prefix plus name) The order is:
-	 * <OL>
-	 * <LI> /up. ... .up.driver.name/...up.driver.name/this.driver.name
-	 * <LI> up. ... .up.driver.name/...up.driver.name/this.driver.name
-	 * <LI> ...
-	 * <LI> this.driver.name
-	 * </OL>
-	 *
-	 * Exemple:
-	 * <OL>
-	 * <LI> "/gen/udp"
-	 * <LI> "gen/udp"
-	 * <LI> "udp"
-	 * </OL>
-	 */
-	protected LinkedList       propertyKeys           = null;
-
-	/**
-	 * the property cache for this I/O.
-	 */
-	protected HashMap          propertyCache          = null;
+	protected NetPortType      type                   = null;
 
 	/**
 	 * the controling I/O if there is one.
 	 */
 	protected NetIO            up                     = null;
+
+        protected String           context                = null;
 
 	/**
 	 * Constructor.
@@ -78,35 +55,18 @@ public abstract class NetIO {
 	 * @param driver           the driver.
 	 * @param up the controlling I/O or <code>null</code> if this I/O is a root I/O.
 	 */
-	protected NetIO(StaticProperties staticProperties,
+	protected NetIO(NetPortType      type,
 			NetDriver 	 driver,
-			NetIO            up) {
-		this.staticProperties = staticProperties;
-		this.driver    	      = driver;
-		this.up               = up;
-	}
-
-	/**
-	 * Initializes a LinkedList with the property key prefixes in the right order.
-	 *
-	 * @see #propertyKeys
-	 */
-	private LinkedList initializePropertyKeys() {
-		LinkedList keys = new LinkedList();
-		NetIO  	   _up  = up;
-		String 	   key  = driver.getName();
-
-		keys.addFirst(key);
-
-		while (_up != null) {
-			key = _up.getDriverName() + "/" + key;
-			keys.addFirst(key);
-			_up = _up.getUp();
-		}
-
-		keys.addFirst("/" + key);
-
-		return keys;
+			NetIO            up,
+                        String           context) {
+		this.type    = type;
+		this.driver  = driver;
+		this.up      = up;
+                if (context != null) {
+                        this.context = context+"/"+getDriverName();
+                } else {
+                        this.context = "/"+getDriverName();
+                }
 	}
 
 	/**
@@ -116,70 +76,6 @@ public abstract class NetIO {
 	 */
 	protected NetIO getUp() {
 		return up;
-	}
-
-	/**
-	 * Lookup the properties for a property destinated to this input.
-	 *
-	 * Note: the lookup order is the following:
-	 * <OL>
-	 * <LI> "/up. ... .up.driver.name/...up.driver.name/this.driver.name:name"
-	 * <LI> "up. ... .up.driver.name/...up.driver.name/this.driver.name:name"
-	 * <LI> ...
-	 * <LI> "this.driver.name:name"
-	 * <LI> "name"
-	 * </OL>
-	 *
-	 * Exemple:
-	 * <OL>
-	 * <LI> "/gen/udp:timeout"
-	 * <LI> "gen/udp:timeout"
-	 * <LI> "udp:timeout"
-	 * <LI> "timeout"
-	 * </OL>
-	 *
-	 * The first matching key selects the value to be returned. 
-	 * Note: the key/value result of each new {@link #getProperty} call
-	 *       is stored in a cache for improving subsequent access latency.
-	 *       As a result, the {@link StaticProperties} object should not be
-	 *       modified after the initialization of the {@linkplain NetSendPort sendPort}
-	 *       or {@linkplain NetReceivePort receivePort}.
-	 *
-	 * @param name the name of the property.
-	 * @return the property or <code>null</code> if not found.
-	 */
-	protected String getProperty(String name) {
-		String result = null;
-		
-		if (propertyCache != null) {
-			if (propertyCache.containsKey(name)) {
-				return (String)propertyCache.get(name);
-			}
-		} else {
-			propertyCache = new HashMap();
-		}
-
-		if (propertyKeys == null) {
-			propertyKeys = initializePropertyKeys();
-		}
-
-		Iterator i = propertyKeys.iterator();
-		while (i.hasNext()) {
-			String key = (String)i.next();
-			result = staticProperties.find(key + ":" + name);
-
-			if (result != null) {
-				break;
-			}
-		}
-
-		if (result == null) {
-			result = staticProperties.find(name);
-		}
-		
-		propertyCache.put(name, result);
-
-		return result;
 	}
 
 	/**
@@ -229,6 +125,57 @@ public abstract class NetIO {
 		return driver.getName();
 	}
 
+        private String subContext(String contextValue) {
+                String sub = context;
+                if (contextValue != null) {
+                        sub += "#"+contextValue;
+                }
+                return sub;
+        }
+        
+        public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws IbisIOException {
+                return subDriver.newInput(type, this, subContext(contextValue));
+        }
+        
+        public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws IbisIOException {
+                return subDriver.newOutput(type, this, subContext(contextValue));
+        }
+
+        public final NetInput newSubInput(NetDriver subDriver) throws IbisIOException {
+                return newSubInput(subDriver, null);
+        }
+        
+        public final NetOutput newSubOutput(NetDriver subDriver) throws IbisIOException {
+                return newSubOutput(subDriver, null);
+        }
+
+        public final String getProperty(String contextValue, String name) {
+                return type.getStringProperty(subContext(contextValue), name);
+        }
+        
+        public final String getProperty(String name) {
+                return getProperty(null, name);
+        }
+        
+        public final String getMandatoryProperty(String contextValue, String name) {
+                String s = getProperty(contextValue, name);
+                if (s == null) {
+                        throw new Error(name+" property not specified");
+                }
+                
+                return s;
+        }
+        
+        public final String getMandatoryProperty(String name) {
+                String s = getProperty(name);
+                if (s == null) {
+                        throw new Error(name+" property not specified");
+                }
+                
+                return s;
+        }
+        
+
 	/**
 	 * Returns the maximum transfert unit for this input.
 	 *
@@ -274,127 +221,6 @@ public abstract class NetIO {
 		return mtu - (headerOffset + headerLength);
 	}
 
-
-	/**
-	 * Write an short in a byte buffer.
-	 * The first byte is the least significant byte.
-	 *
-	 * @param b the byte buffer.
-	 * @param offset the offset ar which to write the value.
-	 * @param value the short value to write in the buffer.
-	 */
-	public final void writeShort(byte [] b, int offset, short value) {
-		b[offset] = (byte)value;
-		value >>= 8;
-		b[offset + 1] = (byte)value;
-		value >>= 8;
-	}
-	
-	/**
-	 * Read an integer from a byte buffer.
-	 * The first byte is the least significant byte.
-	 *
-	 * @param b the byte buffer.
-	 * @param offset the offset of the first byte of the integer.
-	 * @return the short value.
-	 */
-	public final short readShort(byte [] b, int offset) {
-		short value = 0;
-
-		value |=  ((short)b[offset + 0])&0xFF;
-		value |= (((short)b[offset + 1])&0xFF) << 8;
-
-		return value;
-	}
-
-
-	/**
-	 * Write an integer in a byte buffer.
-	 * The first byte is the least significant byte.
-	 *
-	 * @param b the byte buffer.
-	 * @param offset the offset ar which to write the value.
-	 * @param value the integer value to write in the buffer.
-	 */
-	public final void writeInt(byte [] b, int offset, int value) {
-		b[offset] = (byte)value;
-		value >>= 8;
-		b[offset + 1] = (byte)value;
-		value >>= 8;
-		b[offset + 2] = (byte)value;
-		value >>= 8;
-		b[offset + 3] = (byte)value;
-	}
-	
-	/**
-	 * Read an integer from a byte buffer.
-	 * The first byte is the least significant byte.
-	 *
-	 * @param b the byte buffer.
-	 * @param offset the offset of the first byte of the integer.
-	 * @return the integer value.
-	 */
-	public final int readInt(byte [] b, int offset) {
-		int value = 0;
-
-		value |=  ((int)b[offset + 0])&0xFF;
-		value |= (((int)b[offset + 1])&0xFF) << 8;
-		value |= (((int)b[offset + 2])&0xFF) << 16;
-		value |= (((int)b[offset + 3])&0xFF) << 24;
-
-		return value;
-	}
-	
-
-	/**
-	 * Write an long in a byte buffer.
-	 * The first byte is the least significant byte.
-	 *
-	 * @param b the byte buffer.
-	 * @param offset the offset ar which to write the value.
-	 * @param value the long value to write in the buffer.
-	 */
-	public final void writeLong(byte [] b, int offset, long value) {
-		b[offset + 0] = (byte)value;
-		value >>= 8;
-		b[offset + 1] = (byte)value;
-		value >>= 8;
-		b[offset + 2] = (byte)value;
-		value >>= 8;
-		b[offset + 3] = (byte)value;
-		value >>= 8;
-		b[offset + 4] = (byte)value;
-		value >>= 8;
-		b[offset + 5] = (byte)value;
-		value >>= 8;
-		b[offset + 6] = (byte)value;
-		value >>= 8;
-		b[offset + 7] = (byte)value;
-	}
-	
-	/**
-	 * Read an long from a byte buffer.
-	 * The first byte is the least significant byte.
-	 *
-	 * @param b the byte buffer.
-	 * @param offset the offset ar which to write the value.
-	 * @return the long value.
-	 */
-	public final long readLong(byte [] b, int offset) {
-		long value = 0;
-
-		value |=  ((long)b[offset + 0])&0xFF;
-		value |= (((long)b[offset + 1])&0xFF) << 8;
-		value |= (((long)b[offset + 2])&0xFF) << 16;
-		value |= (((long)b[offset + 3])&0xFF) << 24;
-		value |= (((long)b[offset + 4])&0xFF) << 32;
-		value |= (((long)b[offset + 5])&0xFF) << 40;
-		value |= (((long)b[offset + 6])&0xFF) << 48;
-		value |= (((long)b[offset + 7])&0xFF) << 56;
-
-		return value;
-	}
-
 	/**
 	 * Actually establish a connection with a remote port.
 	 *
@@ -421,8 +247,8 @@ public abstract class NetIO {
 		headerOffset        =     0;
 		headerLength        =     0;
 		driver              =  null;
-		staticProperties    =  null;
-		propertyKeys        =  null;
+                type                =  null;
+                context             =  null;
 	}
 
 	/**

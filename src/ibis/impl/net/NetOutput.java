@@ -2,7 +2,6 @@ package ibis.ipl.impl.net;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 
 import java.net.InetAddress;
@@ -31,10 +30,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 * @param output the controlling output or <code>null</code>
 	 *               if this output is a root output.
 	 */
-	protected NetOutput(StaticProperties staticProperties,
-			    NetDriver 	     driver,
-			    NetIO 	     up) {
-		super(staticProperties, driver, up);
+	protected NetOutput(NetPortType      portType,
+			   NetDriver 	    driver,
+			   NetIO  	    up,
+                           String           context) {
+		super(portType, driver, up, context);
 	}
 
         /**
@@ -322,7 +322,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-
+        public abstract void writeByteBuffer(NetSendBuffer buffer) throws IbisIOException;
+        
 
         /**
 	 * Writes a boolean value to the message.

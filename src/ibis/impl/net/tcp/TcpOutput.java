@@ -1,13 +1,8 @@
 package ibis.ipl.impl.net.tcp;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.net.Socket;
 import java.net.InetAddress;
@@ -71,11 +66,9 @@ public class TcpOutput extends NetOutput {
 	 * @param driver the TCP driver instance.
 	 * @param output the controlling output.
 	 */
-	TcpOutput(StaticProperties sp,
-		  NetDriver   	   driver,
-		  NetIO   	   up)
+	TcpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
-		super(sp, driver, up);
+		super(pt, driver, up, context);
 	}
 
 	/*
@@ -85,9 +78,9 @@ public class TcpOutput extends NetOutput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer                  rpn,
-				    ObjectInputStream 	     is,
-				    ObjectOutputStream	     os)
+	public void setupConnection(Integer            rpn,
+				    ObjectInputStream  is,
+				    ObjectOutputStream os)
 		throws IbisIOException {
 		this.rpn = rpn;
 	
@@ -140,7 +133,16 @@ public class TcpOutput extends NetOutput {
                 }
                 //System.err.println("TcpOutput: reset <--");
         }
-
+        public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
+                try {
+                        for (int i = 0; i < b.length; i++) {
+			         tcpOs.writeByte((int)b.data[i]);
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+        
         
         public void writeBoolean(boolean b) throws IbisIOException {
                 try {

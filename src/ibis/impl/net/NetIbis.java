@@ -119,9 +119,12 @@ public final class NetIbis extends Ibis {
 
 		if (staticDriverLoading) {
 			driverTable.put("gen", new ibis.ipl.impl.net.gen.Driver(this));
+			driverTable.put("bytes", new ibis.ipl.impl.net.bytes.Driver(this));
+			driverTable.put("id", new ibis.ipl.impl.net.id.Driver(this));
+			driverTable.put("pipe", new ibis.ipl.impl.net.pipe.Driver(this));
 			driverTable.put("udp", new ibis.ipl.impl.net.udp.Driver(this));
 			driverTable.put("tcp", new ibis.ipl.impl.net.tcp.Driver(this));
-			driverTable.put("gm", new ibis.ipl.impl.net.gm.Driver(this));
+			driverTable.put("tcp_blk", new ibis.ipl.impl.net.tcp_blk.Driver(this));
 		}
 	}
 

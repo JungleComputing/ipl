@@ -36,13 +36,14 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * @param output the controlling output or <code>null</code>
 	 *               if this output is a root output.
 	 */
-	protected NetBufferedOutput(StaticProperties staticProperties,
-                                    NetDriver 	     driver,
-                                    NetIO 	     up) {
-		super(staticProperties, driver, up);
+	protected NetBufferedOutput(NetPortType      portType,
+			   NetDriver 	    driver,
+			   NetIO  	    up,
+                           String           context) {
+		super(portType, driver, up, context);
 	}
 
-        protected abstract void writeByteBuffer(NetSendBuffer buffer) throws IbisIOException;
+        protected abstract void sendByteBuffer(NetSendBuffer buffer) throws IbisIOException;
 
         public void initSend() throws IbisIOException {
                 if (mtu != 0) {
@@ -62,12 +63,11 @@ public abstract class NetBufferedOutput extends NetOutput {
                 //System.err.println("NetBufferedOutput: flush -->");
 		if (buffer != null) {
                         //System.err.println("NetBufferedOutput: flushing buffer, "+buffer.length+" bytes");
-			writeByteBuffer(buffer);
+			sendByteBuffer(buffer);
 			buffer.free();
 			buffer = null;
+                        bufferOffset = 0;
 		}
-
-		bufferOffset = 0;
                 //System.err.println("NetBufferedOutput: flush <--");
 	}
 
@@ -124,6 +124,12 @@ public abstract class NetBufferedOutput extends NetOutput {
                 flush();
                 super.reset(doSend);
 	}
+
+        public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
+                flush();
+                sendByteBuffer(b);
+        }
+
 
 	/**
 	 * Appends a byte to the current message.

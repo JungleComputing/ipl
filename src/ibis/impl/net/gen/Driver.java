@@ -1,20 +1,6 @@
 package ibis.ipl.impl.net.gen;
-
+import ibis.ipl.impl.net.*;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
-
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIbis;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetReceivePortIdentifier;
-
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.net.DatagramSocket;
 
 /**
  * The generic splitter/poller virtual driver.
@@ -36,39 +22,23 @@ public class Driver extends NetDriver {
 	}
 
 	/**
-	 * Returns the name of the driver.
-	 *
-	 * @return The driver name.
+	 * {@inheritDoc}
 	 */
 	public String getName() {
 		return name;
 	}
 
 	/**
-	 * Creates a new generic poller.
-	 *
-	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
-	 * @param input the controlling input.
-	 * @return The new generic poller.
+	 * {@inheritDoc}
 	 */
-	public NetInput newInput(StaticProperties sp,
-				 NetIO	          up)
-		throws IbisIOException {
-		return new GenPoller(sp, this, up);
+	public NetInput newInput(NetPortType pt, NetIO up, String context) throws IbisIOException {
+		return new GenPoller(pt, this, up, context);
 	}
 
 	/**
-	 * Creates a new generic splitter.
-	 *
-	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param output the controlling output.
-	 * @return The new generic splitter.
+	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(StaticProperties sp,
-				   NetIO            up)
-		throws IbisIOException {
-		return new GenSplitter(sp, this, up);
+	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws IbisIOException {
+		return new GenSplitter(pt, this, up, context);
 	}
 }

@@ -5,8 +5,6 @@ import ibis.ipl.IbisIOException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 
-import ibis.ipl.StaticProperties;
-
 import java.util.Hashtable;
 
 import java.net.InetAddress;
@@ -39,10 +37,11 @@ public abstract class NetInput extends NetIO implements ReadMessage {
 	 * @param input the controlling input or <code>null</code> if this input is a
 	 *              root input.
 	 */
-	protected NetInput(StaticProperties staticProperties,
+	protected NetInput(NetPortType      portType,
 			   NetDriver 	    driver,
-			   NetIO  	    up) {
-		super(staticProperties, driver, up);
+			   NetIO  	    up,
+                           String           context) {
+		super(portType, driver, up, context);
 	}
 
 	/**
@@ -351,10 +350,10 @@ public abstract class NetInput extends NetIO implements ReadMessage {
                 }
         }
 
+        
+        public abstract NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException;
 
-
-
-
+        public abstract void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException;
 
 	public boolean readBoolean() throws IbisIOException {
                 return defaultReadBoolean();

@@ -1,16 +1,8 @@
 package ibis.ipl.impl.net.pipe;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetAllocator;
-import ibis.ipl.impl.net.NetBank;
-import ibis.ipl.impl.net.NetBufferedInput;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetReceiveBuffer;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.io.InterruptedIOException;
 import java.io.IOException;
@@ -54,25 +46,15 @@ public class PipeInput extends NetBufferedInput {
 	 * @param driver the PIPE driver instance.
 	 * @param input the controlling input.
 	 */
-	PipeInput(StaticProperties sp,
-		 NetDriver        driver,
-		 NetIO            up)
-		throws IbisIOException {
-		super(sp, driver, up);
+	PipeInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+		super(pt, driver, up, context);
 		headerLength = 4;
 	}
 
-	/*
-	 * Sets up an incoming PIPE connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
 		this.rpn = rpn;
 		mtu      = defaultMtu;
 		 
@@ -133,7 +115,7 @@ public class PipeInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
         */
-	public NetReceiveBuffer readByteBuffer(int expectedLength)
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
 		throws IbisIOException {
 		byte [] b = allocator.allocate();
 		int     l = 0;
@@ -148,7 +130,7 @@ public class PipeInput extends NetBufferedInput {
 				offset += pipeIs.read(b, offset, 4);
 			} while (offset < 4);
 
-			l = readInt(b, 0);
+			l = NetConvert.readInt(b, 0);
 			
 			do {
 				while (pipeIs.available() < (l - offset)) {

@@ -1,27 +1,9 @@
 package ibis.ipl.impl.net.rel;
-
-import ibis.ipl.IbisException;
+import ibis.ipl.impl.net.*;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
-
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIbis;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
-
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.net.DatagramSocket;
 
 /**
  * The NetIbis 'reliability' driver.
- *
- * This driver is an example of a virtual driver. It just pass data untouched.
- * The goal of this driver is to provide a starting point for implementing
- * other virtual drives.
  */
 public class Driver extends NetDriver {
 
@@ -29,7 +11,6 @@ public class Driver extends NetDriver {
 	 * The driver name.
 	 */
 	private final String name = "rel";
-
 
 	/**
 	 * Constructor.
@@ -41,39 +22,23 @@ public class Driver extends NetDriver {
 	}	
 
 	/**
-	 * Returns the name of the driver.
-	 *
-	 * @return The driver name.
+	 * {@inheritDoc}
 	 */
 	public String getName() {
 		return name;
 	}
 
 	/**
-	 * Creates a new Rel input.
-	 *
-	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
-	 * @param input the controlling input.
-	 * @return The new Rel input.
+	 * {@inheritDoc}
 	 */
-	public NetInput newInput(StaticProperties sp,
-				 NetIO            up)
-		throws IbisIOException {
-		return new RelInput(sp, this, up);
+	public NetInput newInput(NetPortType pt, NetIO up, String context) throws IbisIOException {
+		return new RelInput(pt, this, up, context);
 	}
 
 	/**
-	 * Creates a new Rel output.
-	 *
-	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param output the controlling output.
-	 * @return The new Rel output.
+	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(StaticProperties sp,
-				   NetIO            up)
-		throws IbisIOException {
-		return new RelOutput(sp, this, up);
+	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws IbisIOException {
+		return new RelOutput(pt, this, up, context);
 	}
 }

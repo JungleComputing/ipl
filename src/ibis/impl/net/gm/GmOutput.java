@@ -1,15 +1,8 @@
 package ibis.ipl.impl.net.gm;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetBufferedOutput;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetMutex;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.net.Socket;
 import java.net.InetAddress;
@@ -58,12 +51,9 @@ public class GmOutput extends NetBufferedOutput {
          * @param driver the GM driver instance.
          * @param output the controlling output.
          */
-        GmOutput(StaticProperties sp,
-                 NetDriver        driver,
-                 NetIO            up)
+        GmOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
                 throws IbisIOException {
-                super(sp, driver, up);
-                headerLength = 0;
+                super(pt, driver, up, context);
 
                 Driver.gmLock.lock();
                 deviceHandle = Driver.nInitDevice(0);
@@ -128,7 +118,7 @@ public class GmOutput extends NetBufferedOutput {
         /**
          * {@inheritDoc}
          */
-        public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
+        public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
                 // System.err.println("sending buffer: "+b.length+" bytes");
                 Driver.gmLock.lock();
                 nPostSend(outputHandle, b.data, b.base, b.length);

@@ -1,14 +1,8 @@
 package ibis.ipl.impl.net.tcp_blk;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetBufferedOutput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.net.Socket;
 import java.net.InetAddress;
@@ -69,11 +63,9 @@ public class TcpOutput extends NetBufferedOutput {
 	 * @param driver the TCP driver instance.
 	 * @param output the controlling output.
 	 */
-	TcpOutput(StaticProperties sp,
-		  NetDriver   	   driver,
-		  NetIO   	   up)
+	TcpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
-		super(sp, driver, up);
+		super(pt, driver, up, context);
 		headerLength = 4;
 	}
 
@@ -119,13 +111,13 @@ public class TcpOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
          */
-	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
-		try {
-			writeInt(b.data, 0, b.length);
-			tcpOs.write(b.data, 0, b.length);
-		} catch (IOException e) {
-			throw new IbisIOException(e.getMessage());
-		} 
+	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
+ 		try {
+ 			NetConvert.writeInt(b.length, b.data, 0);
+ 			tcpOs.write(b.data, 0, b.length);
+ 		} catch (IOException e) {
+ 			throw new IbisIOException(e.getMessage());
+ 		} 
 	}
 
 	/**

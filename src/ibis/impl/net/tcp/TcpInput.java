@@ -1,15 +1,9 @@
 package ibis.ipl.impl.net.tcp;
 
-import ibis.ipl.impl.net.__;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetSendPortIdentifier;
+import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -83,13 +77,10 @@ public class TcpInput extends NetInput {
 	 * @param driver the TCP driver instance.
 	 * @param input the controlling input.
 	 */
-	TcpInput(StaticProperties sp,
-		 NetDriver        driver,
-		 NetIO            up)
+	TcpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
-		super(sp, driver, up);
+		super(pt, driver, up, context);
 	}
-
 
 	/*
 	 * Sets up an incoming TCP connection.
@@ -168,6 +159,35 @@ public class TcpInput extends NetInput {
                 //System.err.println("TcpInput: finish <-- from "+raddr+"("+rport+")");
         }
         
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+                NetReceiveBuffer b = new NetReceiveBuffer(new byte[expectedLength], 0);
+
+                try {
+                        for (int i = 0; i < expectedLength; i++) {
+			        b.data[i] = readByte();
+                                b.length++;
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+
+                return b;
+        }
+        
+
+        public void readByteBuffer(NetReceiveBuffer b) throws IbisIOException {
+                try {
+                        for (int i = 0; i < b.data.length; i++) {
+			        b.data[i] = readByte();
+                                b.length++;
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+        
+
+
 	public boolean readBoolean() throws IbisIOException {
                 boolean result = false;
                 

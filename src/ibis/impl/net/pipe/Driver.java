@@ -2,13 +2,8 @@ package ibis.ipl.impl.net.pipe;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIbis;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
+import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -53,10 +48,9 @@ public class Driver extends NetDriver {
 	 * @param input the controlling input.
 	 * @return The new PIPE input.
 	 */
-	public NetInput newInput(StaticProperties sp,
-				 NetIO            up)
+	public NetInput newInput(NetPortType pt, NetIO up, String context)
 		throws IbisIOException {
-		return new PipeInput(sp, this, up);
+		return new PipeInput(pt, this, up, context);
 	}
 
 	/**
@@ -67,9 +61,8 @@ public class Driver extends NetDriver {
 	 * @param output the controlling output.
 	 * @return The new PIPE output.
 	 */
-	public NetOutput newOutput(StaticProperties sp,
-				   NetIO            up)
+	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
 		throws IbisIOException {
-		return new PipeOutput(sp, this, up);
+		return new PipeOutput(pt, this, up, context);
 	}
 }

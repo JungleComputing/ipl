@@ -1,22 +1,12 @@
 package ibis.ipl.impl.net.gen;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-
-import java.net.InetAddress;
-import java.net.Socket;
+import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -57,10 +47,9 @@ public class GenPoller extends NetInput {
 	 * @param driver the driver of this poller.
 	 * @param input  the controlling input.
 	 */
-	public GenPoller(StaticProperties staticProperties,
-			 NetDriver 	  driver,
-			 NetIO  	  up) {
-		super(staticProperties, driver, up);
+	public GenPoller(NetPortType pt, NetDriver driver, NetIO up, String context)
+		throws IbisIOException {
+		super(pt, driver, up, context);
 		inputVector = new Vector();
 		isVector    = new Vector();
 		osVector    = new Vector();
@@ -76,19 +65,15 @@ public class GenPoller extends NetInput {
 	}
 
 	/**
-	 * Setup a new input.
-	 *
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer               rpn,
-				    ObjectInputStream     is,
-				    ObjectOutputStream    os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
 		if (subDriver == null) {
-			subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			String subDriverName = getMandatoryProperty("Driver");
+                        subDriver = driver.getIbis().getDriver(subDriverName);
 		}
 		
-		NetInput ni = subDriver.newInput(staticProperties, this);
+		NetInput ni = newSubInput(subDriver);
 
 		ni.setupConnection(rpn, is, os);
 		addInput(ni);
@@ -111,8 +96,10 @@ public class GenPoller extends NetInput {
 			Integer  num = null;
 			
 			if ((num = ni.poll()) != null) {
-				activeInput = ni;
-				activeNum   = num;
+				activeInput  = ni;
+				activeNum    = num;
+                                mtu          = activeInput.getMaximumTransfertUnit();
+                                headerOffset = activeInput.getHeadersLength();
 				break polling_loop;
 			}
 		}
@@ -152,6 +139,14 @@ public class GenPoller extends NetInput {
 
 		super.free();
 	}
+
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+                return activeInput.readByteBuffer(expectedLength);
+        }       
+
+        public void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+                activeInput.readByteBuffer(buffer);
+        }
 
 	public boolean readBoolean() throws IbisIOException {
                 return activeInput.readBoolean();

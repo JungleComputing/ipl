@@ -2,13 +2,8 @@ package ibis.ipl.impl.net.id;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.StaticProperties;
 
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIbis;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetOutput;
+import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -57,10 +52,9 @@ public class Driver extends NetDriver {
 	 * @param input the controlling input.
 	 * @return The new Id input.
 	 */
-	public NetInput newInput(StaticProperties sp,
-				 NetIO            up)
+	public NetInput newInput(NetPortType pt, NetIO up, String context)
 		throws IbisIOException {
-		return new IdInput(sp, this, up);
+		return new IdInput(pt, this, up, context);
 	}
 
 	/**
@@ -71,9 +65,8 @@ public class Driver extends NetDriver {
 	 * @param output the controlling output.
 	 * @return The new Id output.
 	 */
-	public NetOutput newOutput(StaticProperties sp,
-				   NetIO            up)
+	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
 		throws IbisIOException {
-		return new IdOutput(sp, this, up);
+		return new IdOutput(pt, this, up, context);
 	}
 }
