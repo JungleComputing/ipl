@@ -89,8 +89,8 @@ public final class Satinc implements BT_Opcodes {
 		}
 	}
 
-	Satinc(boolean verbose, boolean keep, boolean print, boolean invocationRecordCache,
-	       String classname, String mainClassname, String compiler, boolean supportAborts, boolean inletOpt) {
+	public Satinc(boolean verbose, boolean keep, boolean print, boolean invocationRecordCache,
+	       String classname, String mainClassname, String compiler, boolean supportAborts, boolean inletOpt, boolean createFactory) {
 		this.verbose = verbose;
 		this.keep = keep;
 		this.print = print;
@@ -101,7 +101,9 @@ public final class Satinc implements BT_Opcodes {
 		this.supportAborts = supportAborts;
 		this.inletOpt = inletOpt;
 
-		BT_Factory.factory = new SatinFactory(classname);
+		if(createFactory) {
+			BT_Factory.factory = new SatinFactory(classname);
+		}
 
 		c = BT_Class.forName(classname);
 
@@ -1535,6 +1537,7 @@ public final class Satinc implements BT_Opcodes {
 		for(int j=0; j<size; j++) {
 			BT_Method m = c.methods.elementAt(j);
 			BT_CodeAttribute code = m.getCode();
+			if(code == null) continue;
 			BT_InsVector ins = code.ins;
 			int maxLocals = code.maxLocals;
 			
@@ -2109,7 +2112,7 @@ public final class Satinc implements BT_Opcodes {
 		out.close();
 	}
 
-	void start() {
+	public void start() {
 		if (isSatin(c)) {
 			if(verbose) {
 				System.out.println(c.fullName() + " is a satin class");
@@ -2167,8 +2170,11 @@ public final class Satinc implements BT_Opcodes {
 				}
 			}
 			
-			BT_AttributeVector av = c.methods.elementAt(i).getCode().attributes;
-			BT_Attribute a = av.removeAttribute("LocalVariableTable");
+			if(c.methods.elementAt(i).getCode() != null) {
+				BT_AttributeVector av = c.methods.elementAt(i).getCode().attributes;
+				BT_Attribute a = av.removeAttribute("LocalVariableTable");
+				a = av.removeAttribute("LineNumberTable");
+			}
 		}
 
 		// now overwrite the classfile 
@@ -2233,6 +2239,6 @@ public final class Satinc implements BT_Opcodes {
 			mainClass = target;
 		}
 
-		new Satinc(verbose, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt).start();
+		new Satinc(verbose, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt, true).start();
 	}
 }

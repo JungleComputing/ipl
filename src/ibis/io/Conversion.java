@@ -207,7 +207,7 @@ final class Conversion {
 //			n_long2byte(src, off, len, dst, off2);
 //		}
 	}
-		
+
 	static final void byte2long(byte[] src, int index_src, long[] dst, int index_dst, int len) { 		
 
 //		if (len < BYTE2LONG_THRESHOLD) {
@@ -222,7 +222,7 @@ final class Conversion {
 						    ((long)(src[count+4] & 0xff) << 24) |
 						    ((long)(src[count+5] & 0xff) << 16) |
 						    ((long)(src[count+6] & 0xff) <<  8) |
-						    ((long)(src[count+8] & 0xff)));
+						    ((long)(src[count+7] & 0xff)));
 				count += 8;
 
 			}

@@ -174,10 +174,14 @@ final class MethodTable implements BT_Opcodes {
 			e.nrSpawns = calcNrSpawns(m);
 			e.spawnTable = new SpawnTableEntry[e.nrSpawns];
 			e.m = m;
-			e.origNrLocals = m.getCode().maxLocals;
+			if(m.getCode() != null) {
+				e.origNrLocals = m.getCode().maxLocals;
+			}
 			e.typesOfParams = getParamTypesThis(m);
 			e.typesOfParamsNoThis = getParamTypesNoThis(m);
-			fillSpawnTable(m, e);
+			if(m.getCode() != null) {
+				fillSpawnTable(m, e);
+			}
 			methodTable.addElement(e);
 		}
 	}
@@ -329,7 +333,9 @@ final class MethodTable implements BT_Opcodes {
 
 	private int calcNrSpawns(BT_Method m) {
 		BT_CodeAttribute code = m.getCode();
+		if(code == null) return 0;
 		BT_InsVector ins = code.ins;
+		if(ins == null) return 0;
 		int count = 0;
 
 		for(int i=0; i<ins.size(); i++) {
@@ -695,6 +701,7 @@ final class MethodTable implements BT_Opcodes {
 
 	boolean containsSpawnedCall(BT_Method m) {
 		BT_CodeAttribute code = m.getCode();
+		if(code == null) return false;
 		BT_InsVector ins = code.ins;
 
 		for(int i=0; i<ins.size(); i++) {
