@@ -64,8 +64,8 @@ export LD_LIBRARY_PATH
 LD_ASSUME_KERNEL	= 2.2.5
 export LD_ASSUME_KERNEL
 
-PANDA_THREADS	= ot
-# PANDA_THREADS	= pthread
+# PANDA_THREADS	= ot
+PANDA_THREADS	= pthread
 
 IBERTY	        = $(MYRINET_ROOT)/libiberty.a
 BFD		= $(MYRINET_ROOT)/libbfd.a
@@ -184,7 +184,6 @@ PKG_O_DOLLAR	:= $(subst $$,\$$,$(PKG_O_FILES))
 MANTA_LIB	= $(IBIS_ROOT)/ibis/lib/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
 MANTA_LDLIBS	=
-MANTA_LDLIBS	+= -$(PANDA_THREADS)
 MANTA_LDLIBS	+= $(MANTA_LIB)
 
 ifeq (gm, $(MPI_MODE))
@@ -269,9 +268,11 @@ TRASH_FILES += $(PKG_O_FILES) $(PKG_O_DOLLAR)
 	$(IOC_COMMAND) $(PACKAGEDOT)$*
 
 rmi_stub_%.java:	%.class
+	rm -f $@
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
 rmi_skeleton_%.java:	%.class
+	rm -f $@
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
 
