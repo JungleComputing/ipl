@@ -1,0 +1,141 @@
+#!/bin/sh
+
+if [ x$IBIS_ROOT != x ]
+then
+	IBIS_ROOT_ENV=$IBIS_ROOT
+fi
+
+if [ -f configuration ]
+then
+        echo "Previous configuration read from file 'configuration'."
+	echo "If you wish to discard the previous configuration,"
+	echo "please remove or rename the file 'configuration'"
+	echo "and run configure again."
+
+	source configuration
+
+	echo ""
+	echo "Copied configuration:"
+	cat configuration
+	echo ""
+fi
+
+if [ x$IBIS_ROOT_ENV != x ]
+then
+	IBIS_ROOT=$IBIS_ROOT_ENV
+elif [ x$IBIS_ROOT = x ]
+then
+	IBIS_ROOT=`cd ..; pwd`
+fi
+if [ x$JAVA_ROOT = x ]
+then
+	JAVA_ROOT=/usr/local/VU/jdk1.2.2
+fi
+if [ x$JAVAC = x ]
+then
+	JAVAC=jikes
+fi
+if [ x$MANTA_ROOT = x ]
+then
+	MANTA_ROOT=/usr/local/VU/manta
+fi
+if [ x$JIKES_BT_ROOT = x ]
+then
+	JIKES_BT_ROOT=$IBIS_ROOT
+fi
+if [ x$PANDA_ROOT = x ]
+then
+	PANDA_ROOT=/usr/local/VU/panda
+fi
+if [ x$DAS_LIB = x ]
+then
+	DAS_LIB=/usr/proj/daslib/lib/i386_Linux/libdas.a
+fi
+if [ x$PANDA_NETWORK = x ]
+then
+	PANDA_NETWORK=lfc
+fi
+
+for i
+do
+	case $i in
+	--java-root=*)
+			JAVA_ROOT=`expr $i : '--java-root=\(.*\)'`
+			;;
+	--javac=*)
+			JAVAC=`expr $i : '--javac=\(.*\)'`
+			;;
+	--ibis-root=*)
+			IBIS_ROOT=`expr $i : '--ibis-root=\(.*\)'`
+			;;
+	--manta-root=*)
+			MANTA_ROOT=`expr $i : '--manta-root=\(.*\)'`
+			;;
+	--panda-root=*)
+			PANDA_ROOT=`expr $i : '--panda-root=\(.*\)'`
+			;;
+	--das-lib=*)
+			DAS_LIB=`expr $i : '--das-lib=\(.*\)'`
+			;;
+	--panda-network=*)
+			PANDA_NETWORK=`expr $i : '--panda-network=\(.*\)'`
+			;;
+	--help|-h|-?)
+			echo configure [options]
+			echo options:
+			echo "	" option name "		" default
+			echo "	" --java-root=PATH "	" $JAVA_ROOT
+			echo "	" --javac=PATH "	" $JAVAC
+			echo "	" --ibis-root=PATH "	" $IBIS_ROOT
+			echo "	" --manta-root=PATH "	" $MANTA_ROOT
+			echo "	" --panda-root=PATH "	" $PANDA_ROOT
+			echo "	" --das-lib=PATH "	" $DAS_LIB
+			echo "	" --panda-network=PATH " " $PANDA_NETWORK
+			echo "	" --jikesBT-root=PATH "	" $JIKES_BT_ROOT
+			exit 0
+			;;
+	*)
+			echo No such option: $i -- ignored
+	esac
+done
+
+if [ -f config.mk ]
+then
+	cp config.mk config.mk.old
+fi
+
+if [ -f config.mk.orig ]
+then
+	diff -c config.mk.orig config.mk > .config.mk.diff
+else
+	rm -f .config.mk.diff
+fi
+
+sed -e "
+s+@JAVA_ROOT@+$JAVA_ROOT+
+s+@JAVAC@+$JAVAC+
+s+@IBIS_ROOT@+$IBIS_ROOT+
+s+@MANTA_ROOT@+$MANTA_ROOT+
+s+@PANDA_ROOT@+$PANDA_ROOT+
+s+@DAS_LIB@+$DAS_LIB+
+s+@PANDA_NETWORK@+$PANDA_NETWORK+
+s+@JIKES_BT_ROOT@+$JIKES_BT_ROOT+
+" < config.in > config.mk
+
+cp config.mk config.mk.orig
+if [ -f .config.mk.diff ]
+then
+	patch -p0 < .config.mk.diff
+	rm .config.mk.diff
+fi
+
+echo "
+JAVA_ROOT=$JAVA_ROOT
+JAVAC=$JAVAC
+IBIS_ROOT=$IBIS_ROOT
+MANTA_ROOT=$MANTA_ROOT
+PANDA_ROOT=$PANDA_ROOT
+DAS_LIB=$DAS_LIB
+PANDA_NETWORK=$PANDA_NETWORK
+JIKES_BT_ROOT=$JIKES_BT_ROOT
+" > configuration

@@ -1,0 +1,129 @@
+# -------------- start of user configuration -----------------------------
+
+# When using javac or jikes, set these values correctly and use "make"
+# or "make java". (Also make sure that your CLASSPATH is set correctly).     
+
+# default:	manta
+default:	java
+
+PROFILE		= 0
+OPTIMIZE	= 1
+
+MYRINET_ROOT    = /usr/local/package/myrinet/lib/intel_linux
+LFC_ROOT        = /usr/local/package/lfc/lib
+
+# -------------- end of user configuration -----------------------------
+
+PANDA		= @PANDA_ROOT@
+PANDA_NETWORK	= @PANDA_NETWORK@
+DAS		= @DAS_LIB@
+JPATH           = @JAVA_ROOT@
+JAVAC           = @JAVAC@
+JIKES_BT	= @JIKES_BT_ROOT@
+ifndef IBIS_ROOT
+IBIS_ROOT	= @IBIS_ROOT@
+endif
+
+JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
+JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
+JAVACLASSPATH	= $(IBIS_ROOT):.:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
+JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH)
+JAVAHFLAGS      += -classpath $(JAVACLASSPATH)
+
+LD_LIBRARY_PATH	= $(IBIS_ROOT)/ibis/ipl/impl/messagePassing
+export LD_LIBRARY_PATH
+
+IBERTY	        = $(MYRINET_ROOT)/libiberty.a
+BFD		= $(MYRINET_ROOT)/libbfd.a
+LANAIDEVICE	= $(MYRINET_ROOT)/libLanaiDevice.a
+DPI		= $(MYRINET_ROOT)/libDpi.a
+ENS		= /usr/proj/FastSockets/enameserver/enameserver-0.13/libens.a
+ifeq ($(OPTIMIZE), 1)
+LFC	        = $(LFC_ROOT)/optimized/liblfc.a
+PANDA_LIB	= $(PANDA)/panda4.0/lib/i386_linux/$(PANDA_NETWORK)/no_threads/optimized/libpanda.a
+else
+LFC	        = $(LFC_ROOT)/debug/liblfc.a
+PANDA_LIB	= $(PANDA)/panda4.0/lib/i386_linux/$(PANDA_NETWORK)/no_threads/libpanda.a
+endif
+
+GROUPC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.group.Main
+
+GROUP_FILES = $(SRC:%.java=%.gjava)
+CLASS_FILES = $(SRC:%.java=%.class)
+MAIN_CLASS = $(MAIN:%.java=%.class)
+MAIN_CLASS_NAME = $(MAIN:%.java=%)
+
+LDSO	= gcc -shared
+
+SATINC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.satin.Satinc -keep -compiler "$(JAVAC) -classpath $(JAVACLASSPATH)"
+
+IOC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.io.IOGenerator
+
+# When using Manta, set these values correctly and use "make manta"
+
+ifeq (, $(PANDA_NETWORK))
+PANDA_NETWORK	= udp
+endif
+
+CFLAGS		=
+MANTACFLAGS	=
+
+ifeq ($(OPTIMIZE), 1)
+CFLAGS		+= -O3 -DNDEBUG
+else
+MANTACFLAGS	+= -no-opt-comm
+endif
+ifeq ($(PROFILE), 1)
+CFLAGS		+= -pg
+# CFLAGS		+= -fno-inline-functions
+MANTACFLAGS	+= -pg
+endif
+
+PWD		= $(shell pwd)
+PACKAGE_SLASH	= $(subst $(IBIS_ROOT)/,,$(PWD))
+PACKAGE_MANGLE	= $(subst /,_,$(PACKAGE_SLASH))
+PACKAGE		= $(subst /,.,$(PACKAGE_SLASH))
+
+MANTA	= @MANTA_ROOT@
+export MANTA
+MANTACLASSPATH	= $(IBIS_ROOT):.
+MANTACFLAGS	+= -classpath $(MANTACLASSPATH)
+MANTACFLAGS	+= -g
+MANTACFLAGS	+= -no-shared-link
+MANTACFLAGS	+= -panda $(PANDA)/panda4.0
+ifeq (lfc, $(PANDA_NETWORK))
+MANTACFLAGS	+= -myrinet
+endif
+MANTAC_COMMAND = $(MANTA)/mantac $(MANTACFLAGS)
+O_FILES = $(SRC:%.java=%.o)
+PKG_SUF	= .$(PACKAGE_MANGLE:manta_ibis%=mib%)
+PKG_O_FILES = $(O_FILES:%.o=%$(PKG_SUF))
+
+MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
+MANTA_SO	= $(MANTA_LIB:%.a=%.so)
+
+JACKAL_PATCHERS	= $(SRC:%.java=diff_patch_%.c) $(MAIN:%.java=diff_patch_%.c)
+
+TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s $(OUT) *.class *.lasm *.d Satin_*_InvocationRecord.java Satin_*_ReturnRecord.java -r LASM_CACHE $(O_FILES) $(PKG_O_FILES) $(JACKAL_PATCHERS) Satin_*
+
+#conversion rules
+
+.SUFFIXES:
+.SUFFIXES:      .o .java .satin .class .c $(PKG_SUF)
+
+.java.o:
+	$(MANTAC_COMMAND) -c $*.java
+
+.o$(PKG_SUF):
+	cp $*.o $@
+
+.java.class:
+	$(JAVAC_COMMAND) $*.java
+
+.PHONY:	run
+run:
+	$(JPATH)/bin/java $(JAVACFLAGS) $(MAIN:%.java=%)
+
+.PHONY:	prun
+prun:
+	@echo "prun IBP_SEND_SYNC=100 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 CLASSPATH=$(CLASSPATH) -no-panda $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"

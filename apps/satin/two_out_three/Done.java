@@ -1,0 +1,1 @@
+class Done extends Exception {}

@@ -1,0 +1,177 @@
+API/implementation
+
+- we have defined an Ibis-API, which can be implemented by an Ibis-implementation 
+
+- every JVM may run multiple Ibis-implementations
+
+- the user can specify the Ibis-implementation at startup.
+
+- an Ibis-implementation offers certain PortType properties  
+
+- when creating an Ibis-implementation, it can negotiate with the application to see if 
+  it offers the required properties.
+
+- when creating an Ibis-implementation, a global unique name must be specified for it 
+  by the application.
+
+
+COMMUNICATION
+
+- communication is based on ReceivePorts and SendPorts of a certain PortType
+	
+- a PortType can be created using the 
+  createPortType(String name, Properties p) method, where
+      - a name is given to the PortType (e.g. "satin porttype" or 
+        "RMI porttype")
+      - port properties are given to the PortType (for example ports are 
+        "totally-ordered" and "reliable" and support "NWS"). 
+
+- for each PortType there is an ReceivePort and an SendPort
+      - only ReceivePorts and SendPorts of the same PortType can communicate.
+      - any number of ReceivePorts and SendPorts can be created on a JVM 
+        (even of the same PortType)
+
+- SEND and ReceivePorts are created by their PortType using the 
+  'createSendPort' and 'createReceivePort' methods
+			   	     
+- when creating an ReceivePort
+      - it must be associated with an object      
+         - if supplied by the user: it must implement the "handleMessage" 
+           interface. Upcalls are generated when messages arrive.
+	 - if not supplied by user: explicit receive must be used to read 
+           messages.
+
+- the system provides a globally unique ReceivePortIdentifier and 
+  SendPortIdentifier for every RECEIVE and SendPort
+       - these Identifiers are implementation specific.
+       - they are serializable (and can be send over the network/saved in a 
+         file etc.).
+
+- when a ReceivePort is created its ReceivePortIdentifier may be stored in a 
+  registry.
+       - the application storing the ReceivePortIdentifier is responsible for 
+         providing a globally unique name (key) that
+         identifies the ReceivePortIdentifier in the registry.
+
+- a SendPort takes the initiative to connect to or disconnect from 
+  ReceivePorts (otherwise the one-way traffic scheme is violated).
+
+- a SendPort can be connected to one or more ReceivePorts using their 
+  ReceivePortIdentifiers 
+       - these ReceivePortIdentifiers may be obtained using the registry, by 
+         sending them over the network, or any other way. 
+       - additional ReceivePorts may be connected at any time
+
+- a SendPort can be disconnected from one or more ReceivePorts using their 
+  ReceivePortIdentifiers 
+       - additional ReceivePorts may be disconnected at any time
+
+- when a SendPort is no longer used it must be returned to the PortType using 
+  the 'free' method. 
+       - all connections the SendPort has are disconnected. 
+
+- when a ReceivePort is no longer used it must be returned to the PortType 
+  using the 'free' method. 
+       - this call will block until connections to SendPorts are disconnected
+         (by the SendPorts). 
+       
+- a message can be send from an SendPort to the set of ReceivePorts it is 
+  connected to.
+       - to do this, a Message is obtained from the SendPort 
+         (this allows streaming, as the destination is known)
+       - data can be added to the message using "write" methods 
+         (this data may be immediately streamed to the ReceivePorts)
+       - the Message can send using a 'send' method. After send returns all 
+         data has been copied (it now may be changed) 
+         and the Message may no longer be used.
+	 
+ - when Message arrives at an ReceivePort, it depends on the associated 
+   object how it is handled:
+       - if the object is provided by the user
+	      - a "new" thread is started (UPCALL), that runs Message handler 
+                on object.
+	      - when the Message is no longer used it MAY be returned to the 
+                system using the 'free' method 
+                (after which the message may no longer be used)
+       - else 
+	      - the Message must is delivered when the "receive" method is 
+                called (EXPLICIT RECEIPT)
+	      - when the Message is no longer used it MUST be returned to the 
+                system using the 'free' method 
+                (after which the message may no longer be used) 
+                This is done to free possible resources in the
+                underlying implementation, as waiting for the GC may take too long.
+
+
+ORDERING OF COMMUNICATION
+
+- Messages provide a sequence number, which can be used to determine their 
+  order.
+
+- when a PortType specifies that the communication is not ordered:
+       - when EXPLICIT RECEIPT is used, Message will be delivered in an 
+         undefined order
+       - more than one Message may be delivered simultaneously using UPCALLs
+
+- when a PortType specifies that the communication is uses some order:
+       - when EXPLICIT RECEIPT is used, Message will be delivered in that order
+       - more than one Message may be delivered simultaneously using UPCALLs, 
+         after which their sequence numbers can be used to order them.
+
+
+ADDING AND REMOVING implementation
+
+- when an Ibis-implementation is added to the pool, all other implementations will receive an 
+  upcall, providing them with the user-specified unique name of the new implementation. 
+
+- when an Ibis-implementation wants to be removed from the pool, all other implementations will 
+  receive an upcall, providing them with the user-specified unique name of 
+  the implementation that wants to leave.
+         
+              
+---------------------------------RATIONALE----------------------------------
+
+With ReceivePorts and SendPorts we basically have a 'connection
+oriented' message passing model, based on one-way connections (S->R).
+
+Why is this better then the TCP/IP model ?
+    
+- With our model we can support message passing (unicast and
+  multicast), and an RPC-style model (using two one-way connections).
+  (TCP creates two-way connections and private channels, which is 
+   inappropriate for multicast)
+
+Why is it better then UDP or Panda ?
+
+- Our model is connection oriented: when a message is created the
+  destination is known. This allows the implementation to stream data
+  to the destination, even while the message is being built (allowing
+  a better bandwidth and memory utilization, and flow control with
+  complex data structures).
+
+- Our model allows messages to be send to an object (instead of a
+  process). This is much better suited for the Java model (and SMP
+  machines).
+
+- Our model is less restrictive then Panda. An upcall is a real
+  thread. It is not restricted in any way. (multiple upcalls may 
+  run simultaneously)
+
+- Our model does not have a closed world assumption. JVMs may be 
+  added / removed during the computation.
+
+In general:
+
+- Our model can be implemented efficiently, both on streams based 
+  (TCP/IP) and message passing systems. 
+
+- It allows the use of low-level optimizations such as hardware multicast 
+  (or LFC).
+
+- It is flexible, because, using the Properties mechanism, it allows 
+  the application to:
+   - test if the implementation provides the desired primitives
+   - select and configure the provided primitives at runtime
+
+- It is extensible, because, using the Properties mechanism, new functionality 
+  can be exported by implementation, without changing the interface.

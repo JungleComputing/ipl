@@ -1,0 +1,105 @@
+package ibis.ipl.impl.messagePassing;
+
+import java.io.IOException;
+
+import java.util.Enumeration;
+import java.util.Vector;
+import java.util.Hashtable;
+
+import ibis.ipl.IbisException;
+
+class ElectionServer
+	extends Thread
+	implements ibis.ipl.Upcall {
+
+    static private Hashtable elections;
+    private boolean started = false;
+
+    public void upcall(ibis.ipl.ReadMessage m) {
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+	try {
+	    int sender = m.readInt();
+	    String name = (String)m.readObject();
+	    Object o = m.readObject();
+	    m.finish();
+
+// System.err.println(Thread.currentThread() + "ElectionServer receives election " + name);
+	    Object e;
+	    synchronized (elections) {
+		while (! started) {
+		    try {
+			elections.wait();
+		    } catch (InterruptedException ie) {
+			// ignore
+		    }
+		}
+		e = elections.get(name);
+		if (e == null) {
+		    elections.put(name, o);
+		    e = o;
+		}
+	    }
+
+// System.err.println(Thread.currentThread() + "ElectionServer pronounces election " + name + " winner " + e);
+	    ibis.ipl.WriteMessage r = client_port[sender].newMessage();
+	    r.writeObject(e);
+	    r.send();
+	    r.finish();
+// System.err.println(Thread.currentThread() + "ElectionServer election " + name + " done");
+	} catch (IbisException e) {
+	    System.err.println(Thread.currentThread() + "ElectionServer upcall exception: " + e);
+	    Thread.dumpStack();
+	}
+    }
+
+    ibis.ipl.ReceivePort[] server_port;
+    ibis.ipl.SendPort[] client_port;
+
+    ElectionServer() throws IbisException {
+	if (elections != null) {
+	    throw new IbisException("Can have only one ElectionServer");
+	}
+	elections = new Hashtable();
+
+	start();
+    }
+
+    public void run() {
+	try {
+// System.err.println(Thread.currentThread() + "ElectionServer runs");
+	    server_port = new ibis.ipl.ReceivePort[ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus];
+	    client_port = new ibis.ipl.SendPort[ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus];
+
+	    ibis.ipl.PortType type = ibis.ipl.impl.messagePassing.Ibis.myIbis.createPortType("++++ElectionPort++++",
+							  new ibis.ipl.StaticProperties());
+
+	    for (int i = 0; i < ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus; i++) {
+// System.err.println(Thread.currentThread() + "ElectionServer will create ReceivePort " + i);
+		server_port[i] = type.createReceivePort("++++ElectionServer-" +
+							    i + "++++", 
+							this);
+		server_port[i].enableConnections();
+		server_port[i].enableUpcalls();
+// System.err.println(Thread.currentThread() + "ElectionServer will create SendPort " + i);
+		client_port[i] = type.createSendPort();
+	    }
+
+	    for (int i = 0; i < ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus; i++) {
+// System.err.println(Thread.currentThread() + "Now I'm gonna lookup ElectionClient receive port " + i);
+		ibis.ipl.ReceivePortIdentifier rid = ibis.ipl.impl.messagePassing.Ibis.myIbis.registry().lookup("++++ElectionClient-" + i + "++++");
+// System.err.println(Thread.currentThread() + "Now I'm gonna connect to ElectionClient receive port " + i + " RportID " + rid);
+		client_port[i].connect(rid);
+	    }
+
+	    synchronized (elections) {
+		started = true;
+		elections.notifyAll();
+	    }
+
+// System.err.println(Thread.currentThread() + "ElectionServer up");
+	} catch (IbisException e) {
+	    System.err.println("ElectionServer meets exception " + e);
+	}
+    }
+
+}
