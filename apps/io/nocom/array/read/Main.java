@@ -161,11 +161,7 @@ public class Main {
 			// Create array
 			byte [] temp2 = new byte[LEN];
 			
-<<<<<<< Main.java
-			// System.out.println("Writing long[" + (LEN/8) + "]");
-=======
 			System.out.println("Writing byte[" + (LEN) + "]");
->>>>>>> 1.3
 
 			mout.writeObject(temp2);
 			mout.flush();
