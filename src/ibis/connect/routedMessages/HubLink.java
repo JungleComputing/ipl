@@ -156,6 +156,7 @@ public class HubLink extends Thread
 		case HubProtocol.DATA:
 		    {
 			HubProtocol.HubPacketData p = (HubProtocol.HubPacketData)packet;
+			MyDebug.out.println(" HubLink.run()- Received DATA for port = "+p.port);
 			try {
 			    RMSocket s = resolveSocket(p.port);
 			    s.enqueueFragment(p.b);
@@ -167,9 +168,9 @@ public class HubLink extends Thread
 		case HubProtocol.CLOSE:
 		    {
 			HubProtocol.HubPacketClose p = (HubProtocol.HubPacketClose)packet;
+			MyDebug.out.println(" HubLink.run()- Received CLOSE for port = "+p.closePort);
 			try {
 			    RMSocket s = resolveSocket(p.closePort);
-			    MyDebug.out.println(" HubLink.run()- Received CLOSE for port = "+p.closePort);
 			    s.enqueueClose();
 			} catch(IOException e) { /* ignore */ }
 		    }

@@ -36,10 +36,14 @@ public class MyDebug
     
     static {
 	String sEnabled = System.getProperty("ibis.connect.debug", "false");
-	enableDebug = sEnabled.equals("true");
-
 	String sVerbose = System.getProperty("ibis.connect.verbose", "false");
-	enableVerbose = sVerbose.equals("true");
+
+	init(sEnabled.equals("true"), sVerbose.equals("true"));
+    }
+
+    public static void init(boolean debug, boolean verbose) {
+	enableDebug = debug;
+	enableVerbose = verbose;
 
 	if(enableDebug)
 	    {
