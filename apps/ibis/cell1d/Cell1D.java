@@ -10,7 +10,7 @@ interface Config {
     static final boolean traceCommunication = false;
     static final boolean showProgress = true;
     static final boolean traceClusterResizing = true;
-    static final int BOARDSIZE = 20000;
+    static final int BOARDSIZE = 30000;
     static final int GENERATIONS = 10;
 }
 
@@ -290,27 +290,28 @@ class Cell1D implements Config {
             // but make the border conditions easy to handle.
             final int myColumns = BOARDSIZE/nProcs;
 
-            byte oldboard[][] = new byte[myColumns+2][BOARDSIZE+2];
-            byte newboard[][] = new byte[myColumns+2][BOARDSIZE+2];
+            // The Life board.
+            byte board[][] = new byte[myColumns+2][BOARDSIZE+2];
 
-            putTwister( oldboard, 100, 3 );
+            // We need two extra column arrays to temporarily store the update
+            // of a column. These arrays will be circulated with the columns of
+            // the board.
+            byte updatecol[] = new byte[BOARDSIZE+2];
+            byte nextupdatecol[] = new byte[BOARDSIZE+2];
+
+            putTwister( board, 100, 3 );
             if( me == 0 ){
                 System.out.println( "Started" );
             }
 
-            byte tmp[][] = oldboard;
-            oldboard = newboard;
-            newboard = tmp;
-
             for( int iter=0; iter<count; iter++ ){
                 byte prev[];
-                byte curr[] = oldboard[0];
-                byte next[] = oldboard[1];
+                byte curr[] = board[0];
+                byte next[] = board[1];
                 for( int i=1; i<=myColumns; i++ ){
                     prev = curr;
                     curr = next;
-                    next = oldboard[i+1];
-                    byte res[] = newboard[i];
+                    next = board[i+1];
                     for( int j=1; j<=BOARDSIZE; j++ ){
                         int neighbours =
                             prev[j-1] +
@@ -321,36 +322,42 @@ class Cell1D implements Config {
                             next[j-1] +
                             next[j] +
                             next[j+1];
-                        boolean alive = (neighbours == 3) || ((neighbours == 2) && (oldboard[i][j]==1));
-                        res[j] = alive?(byte) 1:(byte) 0;
+                        boolean alive = (neighbours == 3) || ((neighbours == 2) && (board[i][j]==1));
+                        updatecol[j] = alive?(byte) 1:(byte) 0;
                     }
+                    
+                    //
+                    byte tmp[] = board[i];
+                    board[i] = updatecol;
+                    updatecol = nextupdatecol;
+                    nextupdatecol = tmp;
                 }
                 if( (me % 2) == 0 ){
                     if( leftSendPort != null ){
-                        send( me, leftSendPort, oldboard[1] );
+                        send( me, leftSendPort, board[1] );
                     }
                     if( rightSendPort != null ){
-                        send( me, rightSendPort, oldboard[myColumns] );
+                        send( me, rightSendPort, board[myColumns] );
                     }
                     if( leftReceivePort != null ){
-                        receive( me, leftReceivePort, oldboard[0] );
+                        receive( me, leftReceivePort, board[0] );
                     }
                     if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, oldboard[myColumns+1] );
+                        receive( me, rightReceivePort, board[myColumns+1] );
                     }
                 }
                 else {
                     if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, oldboard[myColumns+1] );
+                        receive( me, rightReceivePort, board[myColumns+1] );
                     }
                     if( leftReceivePort != null ){
-                        receive( me, leftReceivePort, oldboard[0] );
+                        receive( me, leftReceivePort, board[0] );
                     }
                     if( rightSendPort != null ){
-                        send( me, rightSendPort, oldboard[myColumns] );
+                        send( me, rightSendPort, board[myColumns] );
                     }
                     if( leftSendPort != null ){
-                        send( me, leftSendPort, oldboard[1] );
+                        send( me, leftSendPort, board[1] );
                     }
                 }
                 if( showProgress ){
@@ -360,9 +367,11 @@ class Cell1D implements Config {
                 }
             }
             if( showProgress ){
-                System.out.println();
+                if( me == 0 ){
+                    System.out.println();
+                }
             }
-            if( !hasTwister( oldboard, 100, 3 ) ){
+            if( !hasTwister( board, 100, 3 ) ){
                 System.out.println( "Twister has gone missing" );
             }
             if( me == 0 ){
