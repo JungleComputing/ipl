@@ -59,6 +59,7 @@ public class IOGenerator {
 	}
 
 	boolean verbose = false;
+	boolean local = true;
 
 	Hashtable primitiveSerialization;
 	SerializationInfo referenceSerialization;
@@ -73,12 +74,13 @@ public class IOGenerator {
 
 	Vector classes_to_rewrite, target_classes, classes_to_save;
 
-	public IOGenerator(boolean verbose, String[] args, int num) { 
+	public IOGenerator(boolean verbose, boolean local, String[] args, int num) { 
 		BT_Class clazz;
 		BT_Method writeMethod;
 		BT_Method readMethod;
 		SerializationInfo info;
 		this.verbose = verbose;
+		this.local = local;
 
 		if(args != null) { // from Ibisc, we have our own factory
 			BT_Factory.factory = new MyFactory(args, num);
@@ -601,19 +603,28 @@ public class IOGenerator {
 
 		for (int i=0;i<classes_to_save.size();i++) { 
 			BT_Class clazz = (BT_Class)classes_to_save.get(i);
-			if (verbose) System.out.println("  Saving class : " + clazz.className());
-			clazz.write();
+
+			int index = clazz.getName().lastIndexOf('.');
+			String classfile = clazz.getName().substring(index+1) + ".class";
+
+			if (verbose) System.out.println("  Saving class : " + classfile);
+			if(local) {
+				clazz.write(classfile);
+			} else {
+				clazz.write();
+			}
 		}
-	} 
+	}
 
 	public static void main(String[] args) throws IOException {
 
 		int num = 0;
 		int size = args.length;
 		boolean verbose = false;
+		boolean local = true;
 
 		if (args.length == 0) { 
-			System.out.println("Usage : java IOGenerator [-v] <fully qualified classname list | classfiles>");
+			System.out.println("Usage : java IOGenerator [-package] [-v] <fully qualified classname list | classfiles>");
 			System.exit(1);
 		}
 
@@ -624,7 +635,14 @@ public class IOGenerator {
 				args[size-1] = null;
 				size--;
 			} 
-				
+
+			if (args[i].equals("-package")) {
+				local = false;
+				args[i] = args[size-1];
+				args[size-1] = null;
+				size--;
+			} 
+
 			int index = args[i].lastIndexOf(".class");
 			
 			if (index != -1) { 
@@ -634,6 +652,6 @@ public class IOGenerator {
 			num++;
 		}
 
-		new IOGenerator(verbose, args, num).scanClass(args, num);
+		new IOGenerator(verbose, local, args, num).scanClass(args, num);
 	} 
 }

@@ -11,7 +11,7 @@ import ibis.io.Serializable;
 import ibis.io.MantaOutputStream;
 import ibis.io.MantaInputStream;
 
-// the implements should be unnecessary, but the IOGenerator soes not 
+// the implements should be unnecessary, but the IOGenerator does not 
 // see that the super class implents it, and rewrites the bytecode.
 public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.Serializable, ibis.io.Serializable {
 	public static final int serialversionID = 1;
