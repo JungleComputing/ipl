@@ -25,11 +25,48 @@ import java.net.InetSocketAddress;
  * connection is tried.
  */
 public class AnyTCPSocketType extends SocketType 
-    implements BrokeredSocketFactory, Runnable
+    implements BrokeredSocketFactory
 {
-    private ServerSocket server;
-    private Socket accpt = null;
-    boolean present = false;
+    private static class ServerInfo implements Runnable {
+	private ServerSocket server;
+	private Socket accpt = null;
+	boolean present = false;
+
+	public ServerInfo() throws IOException {
+	    server = new ServerSocket();
+	    server.setReceiveBufferSize(0x8000);
+	    server.bind(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
+	    server.setSoTimeout(60000);	// one minute
+	}
+
+	public void run() {
+	    synchronized(this) {
+		present = true;
+		notifyAll();
+	    }
+	    try {
+		accpt = server.accept();
+	    } catch(Exception e) {
+		MyDebug.trace("AnyTCPSocketType server accept got " + e);
+	    }
+	    if (accpt != null) {
+		synchronized(this) {
+		    notifyAll();
+		}
+	    }
+	}
+
+	private synchronized Socket waitForAccpt() {
+	    while (accpt == null) {
+		try {
+		    wait();
+		} catch(Exception e) {
+		}
+	    }
+	    return accpt;
+	}
+
+    }
 
     public AnyTCPSocketType() { super("AnyTCP"); }
 
@@ -46,24 +83,24 @@ public class AnyTCPSocketType extends SocketType
 	for (int i = 0; i < 2; i++) {
 	    if (hint) {
 		MyDebug.trace("AnyTCPSocketType server side attempt");
-		getServerSocket();
-		accpt = null;
-		String host = server.getInetAddress().getCanonicalHostName();
-		int port = server.getLocalPort();
+		ServerInfo srv = getServerSocket();
+		String host = srv.server.getInetAddress().getCanonicalHostName();
+		int port = srv.server.getLocalPort();
 		MyDebug.trace("AnyTCPSocketType server side host = " + host + ", port = " + port);
 		os.writeUTF(host);
 		os.writeInt(port);
 		os.flush();
 		int success = is.readInt();
 		if (success != 0) {
-		    waitForAccpt();
+		    s = srv.waitForAccpt();
 		}
-		server.close();		// will cause exception in accept
+
+		srv.server.close();	// will cause exception in accept
 					// when it is still running.
 		if (success != 0) {
 		    MyDebug.trace("AnyTCPSocketType server side succeeds");
-		    tuneSocket(accpt);
-		    return accpt;
+		    tuneSocket(s);
+		    return s;
 		}
 		MyDebug.trace("AnyTCPSocketType server side fails");
 	    }
@@ -71,12 +108,16 @@ public class AnyTCPSocketType extends SocketType
 		String host = is.readUTF();
 		int port = is.readInt();
 		MyDebug.trace("AnyTCPSocketType client got host = " + host + ", port = " + port);
+		InetSocketAddress target = new InetSocketAddress(host, port);
+		s = new Socket();
 		try {
-		    s = new Socket(host, port);
+		    s.connect(target, 2000);
+		    // s.connect(target);
 		} catch(Exception e) {
 		    MyDebug.trace("AnyTCPSocketType client got exception " + e);
 		    e.printStackTrace();
 		    os.writeInt(0);		// failure
+		    s = null;
 		}
 		if (s != null) {
 		    os.writeInt(1);		// success!
@@ -99,39 +140,12 @@ public class AnyTCPSocketType extends SocketType
 	return tp.createBrokeredSocket(in, out, hint, p);
     }
 
-    public void run() {
-	synchronized(this) {
-	    present = true;
-	    notifyAll();
-	}
-	try {
-	    accpt = server.accept();
-	} catch(Exception e) {
-	    MyDebug.trace("AnyTCPSocketType server accept got " + e);
-	}
-	if (accpt != null) {
-	    synchronized(this) {
-		notifyAll();
-	    }
-	}
-    }
 
-    private synchronized void waitForAccpt() {
-	while (accpt == null) {
-	    try {
-		wait();
-	    } catch(Exception e) {
-	    }
-	}
-    }
-
-    private void getServerSocket() throws IOException {
-	server = new ServerSocket();
-	server.setReceiveBufferSize(0x8000);
-	server.bind(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
-	server.setSoTimeout(60000);	// one minute
-	Thread thr = new Thread(this);
+    private ServerInfo getServerSocket() throws IOException {
+	ServerInfo s = new ServerInfo();
+	Thread thr = new Thread(s);
 	thr.start();
+	return s;
     }
 
     private static void tuneSocket(Socket s)
