@@ -34,7 +34,7 @@
 	    location="${ibis}/bcel-additions"/>
     <property
 	    name="package.home.bcel"
-	    location="/home/ceriel/bcel-5.1"/>
+	    location="/home2/ceriel/bcel-5.1"/>
     <property
 	    name="package.home.ant-contrib"
 	    location="${ibis}/../ant-contrib"/>

@@ -1,20 +1,24 @@
 <!DOCTYPE project [
-    <!ENTITY satinAppTargets  SYSTEM "../build-satin-app.xml">
+    <!ENTITY rmiAppProperties SYSTEM "../build-rmi-app.xml">
     <!ENTITY sharedProperties SYSTEM "../../../build-properties.xml">
     <!ENTITY iogenTargets     SYSTEM "../../../build-iogen.xml">
     <!ENTITY nativeTargets    SYSTEM "../../../build-native.xml">
-    <!ENTITY satinTargets     SYSTEM "../../../build-satin.xml">
+    <!ENTITY rmicTargets      SYSTEM "../../../build-rmic.xml">
 ]>
 
 <project
-    name="ibis.apps.satin.fib"
+    name="ibis.apps.rmi.rmi-bench"
     default="build"
     basedir=".">
+
+    <description>
+	Ibis RMI application build.
+    </description>
 
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    &satinAppTargets;
+    &rmiAppProperties;
 
 </project>
 

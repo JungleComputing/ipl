@@ -2,7 +2,6 @@
     <!ENTITY sharedProperties SYSTEM "../../../../build-properties.xml">
     <!ENTITY iogenTargets     SYSTEM "../../../../build-iogen.xml">
     <!ENTITY nativeTargets    SYSTEM "../../../../build-native.xml">
-    <!ENTITY javahTargets     SYSTEM "../../../../build-javah.xml">
     <!ENTITY satinTargets     SYSTEM "../../../../build-satin.xml">
 ]>
 
@@ -23,7 +22,6 @@
 
     &iogenTargets;
     &nativeTargets;
-    &javahTargets;
     &satinTargets;
 
     <target name="init">

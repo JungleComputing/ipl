@@ -32,12 +32,12 @@
     <target name="property-iogen-files"
 	    depends="property-init,property-iogen-build"
 	    unless="iogen-files">
-	<path id="all-classes">
+	<path id="prep-iogen-all-classes">
 	    <fileset dir="${iogen-build}">
 		<include name="**/*.class"/>
 	    </fileset>
 	</path>
-	<pathconvert pathsep=" " property="iogen-files" refid="all-classes">
+	<pathconvert pathsep=" " property="iogen-files" refid="prep-iogen-all-classes">
 	    <map from="${iogen-build}${file.separator}" to=""/>
 	</pathconvert>
     </target>
@@ -47,7 +47,7 @@
 
     <target name="iogen-files" depends="iogen-init">
 	<mkdir dir="${iogen-build}"/>
-	<echo message="All files to be rewritten: ${iogen-files}"/>
+	<echo level="debug" message="All files to be rewritten: ${iogen-files}"/>
 	<java   classname="ibis.frontend.io.IOGenerator"
 		taskname="IOGenerator"
 		dir="${iogen-build}"
@@ -60,14 +60,14 @@
     <target name="iogen"
 	depends="iogen-init">
 	<echo level="debug" message="IOGen all class files under ${iogen-build}"/>
-	<path id="all-classes">
+	<path id="iogen-all-classes">
 	    <fileset dir="${iogen-build}">
 		<include name="**/*.class"/>
 		<exclude name="classlibs/**/*.class"/>
 		<exclude name="ant-tasks/**/*.class"/>
 	    </fileset>
 	</path>
-	<pathconvert pathsep=" " property="iogen-files" refid="all-classes">
+	<pathconvert pathsep=" " property="iogen-files" refid="iogen-all-classes">
 	    <map from="${iogen-build}${file.separator}" to=""/>
 	</pathconvert>
 	<antcall target="iogen-files">

@@ -44,8 +44,10 @@
 		property="rmic-classes"
 		srcFile="${build}/RMIC-Classes">
 	</loadfile>
-	<echo message="All classes to be rewritten: ${rmic-classes}"/>
-	<echo message="Run ibis rmic over all classes under ${build}${file.separator}"/>
+	<echo	level="debug"
+		message="All classes to be rewritten: ${rmic-classes}"/>
+	<echo	level="debug"
+		message="Run ibis rmic over all classes under ${build}${file.separator}"/>
 	<java   classname="ibis.frontend.rmi.Main"
 		taskname="ibis rmic"
 		dir="${build}"

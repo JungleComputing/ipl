@@ -17,7 +17,8 @@
 
     <target name="-satin-one">
 	<property name="satin-class-path" refid="default.classpath"/>
-	<echo message="Run Satinc on class ${satin-class}"/>
+	<echo	level="debug"
+		message="Run Satinc on class ${satin-class}"/>
 	<java   classname="ibis.frontend.satin.Satinc"
 		taskname="Satinc"
 		dir="${build}"
@@ -56,8 +57,10 @@
 		property="satin-classes"
 		srcFile="${build}/SatinClasses">
 	</loadfile>
-	<echo message="Run Satinc over all classes under ${build}${file.separator}"/>
-	<echo message="List of all class files: ${satin-classes}"/>
+	<echo	level="debug"
+		message="Run Satinc over all classes under ${build}${file.separator}"/>
+	<echo	level="debug"
+		message="List of all class files: ${satin-classes}"/>
 	<!--
 	-->
 

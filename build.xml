@@ -2,7 +2,6 @@
     <!ENTITY sharedProperties SYSTEM "build-properties.xml">
     <!ENTITY iogenTargets     SYSTEM "build-iogen.xml">
     <!ENTITY nativeTargets    SYSTEM "build-native.xml">
-    <!ENTITY javahTargets     SYSTEM "build-javah.xml">
 ]>
 
 <project
@@ -18,6 +17,53 @@
 
     <property name="src"         location="${ibis}/.."/>
     <property name="build"       location="${ibis}/build"/>
+
+    <target name="configure">
+	<input	message="Please enter the install directory of BCEL: "
+		addproperty="config.bcel-home"/>
+	<input	message="Please enter the install directory of BCEL-additions: "
+		addproperty="config.bcel-additions"/>
+	<input	message="Please enter the install directory of ant-contrib: "
+		addproperty="config.ant-contrib"/>
+	<input	message="Please enter the install directory of ant-cpptasks: "
+		addproperty="config.ant-cpptasks"/>
+
+	<echo	file="config.status"
+		append="false">${config.bcel-home}
+	</echo>
+	<echo	file="config.status"
+		append="true">${config.bcel-additions}
+	</echo>
+	<echo	file="config.status"
+		append="true">${config.ant-contrib}
+	</echo>
+	<echo	file="config.status"
+		append="true">${config.ant-cpptasks}
+	</echo>
+
+	<copy
+		overwrite="true"
+		file="${ibis}/build-properties.xml.in"
+		tofile="${ibis}/build-properties.xml">
+	    <filterchain>
+		<filterreader
+			classname="org.apache.tools.ant.filters.ReplaceTokens">
+		    <param  type="token"
+			    name="BCEL_HOME"
+			    value="${config.bcel-home}"/>
+		    <param  type="token"
+			    name="BCEL_ADDITIONS"
+			    value="${config.bcel-additions}"/>
+		    <param  type="token"
+			    name="ANT_CPPTASKS"
+			    value="${config.ant-cpptasks}"/>
+		    <param  type="token"
+			    name="ANT_CONTRIB"
+			    value="${config.ant-contrib}"/>
+		</filterreader>
+	    </filterchain>
+	</copy>
+    </target>
 
 
     &sharedProperties;
@@ -69,7 +115,6 @@
 
 
     &iogenTargets;
-    &javahTargets;
 
 
     <!--
@@ -190,11 +235,14 @@
     </target>
 
 
+    &nativeTargets;
+
     <!--
 	Compile the native code in the directory indicated by native.dir
     -->
     <target name="-build-native">
-	<echo message="Invoke ant in ${native.dir}"/>
+	<echo	level="debug"
+		message="Invoke ant in ${native.dir}"/>
 	<ant inheritAll="false" dir="${native.dir}">
 	    <property name="native.dir" value="${native.dir}"/>
 	    <property name="build" value="${build}"/>
@@ -210,10 +258,13 @@
     <!--
 	Compile the native code in all directories indicated by native.src.path
     -->
-    <target name="natives">
+    <target name="natives"
+	    depends="javah">
 	    <!-- depends="compile,javah"-->
-	<echo message="Native directories = ${native.src.path}"/>
-	<echo message="package.home.ant-cpptasks = ${package.home.ant-cpptasks}"/>
+	<echo	level="debug"
+		message="Native directories = ${native.src.path}"/>
+	<echo	level="debug"
+		message="package.home.ant-cpptasks = ${package.home.ant-cpptasks}"/>
 	<foreach
 		list="${native.src.path}"
 		delimiter="${path.separator}"
@@ -229,7 +280,6 @@
 	    description="Build Ibis">
 	<antcall inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="iogen"/>
-	<antcall inheritRefs="true" target="javah"/>
 	<antcall inheritRefs="true" target="natives"/>
     </target>
 
@@ -257,7 +307,8 @@
 	<pathconvert pathsep=" " property="iogen-one-files" refid="iogen-files-ref">
 	    <map from="${rewritten-classlibs}${file.separator}" to=""/>
 	</pathconvert>
-	<echo message="Now try iogen over files ${iogen-one-files}"/>
+	<echo	level="debug"
+		message="Now try iogen over files ${iogen-one-files}"/>
 	<antcall target="iogen-files">
 	    <param name="iogen-files" value="${iogen-one-files}"/>
 	    <param name="iogen-build" value="${rewritten-classlibs}"/>
@@ -290,7 +341,8 @@
 	    </dirset>
 	</path>
 	<property name="java.classlibs.files" refid="java.classlibs.ref"/>
-	<echo message="Rewrite each of ${java.classlibs.files}"/>
+	<echo	level="debug"
+		message="Rewrite each of ${java.classlibs.files}"/>
 	<foreach
 		list="${java.classlibs.files}"
 		delimiter="${path.separator}"

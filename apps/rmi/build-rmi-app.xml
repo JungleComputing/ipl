@@ -1,0 +1,37 @@
+
+    &sharedProperties;
+
+    &iogenTargets;
+    &rmicTargets;
+    &nativeTargets;
+
+    <target name="init">
+	<tstamp/>
+	<mkdir dir="${build}"/>
+	<!--
+	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
+	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
+	<echo message="java.ext.dirs = ${java.ext.dirs}"/>
+	-->
+    </target>
+
+    <target name="compile"
+	    depends="init">
+	<javac  destdir="${build}"
+		debug="${java.debug.value}"
+		srcdir=".">
+	    <classpath refid="default.classpath"/>
+	    <include name="*.java"/>
+	</javac>
+    </target>
+
+    <target name="build"
+	    depends="init">
+	<antcall target="compile"/>
+	<antcall target="rmic"/>
+	<antcall target="iogen"/>
+    </target>
+
+    <target name="clean">
+	<delete dir="${build}"/>
+    </target>

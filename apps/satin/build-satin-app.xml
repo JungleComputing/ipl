@@ -1,0 +1,35 @@
+
+    &sharedProperties;
+
+    &iogenTargets;
+    &nativeTargets;
+    &satinTargets;
+
+
+    <target name="init">
+	<tstamp/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile"
+	    depends="init">
+	<javac  destdir="${build}"
+		debug="${java.debug.value}"
+		srcdir=".">
+	    <classpath refid="default.classpath"/>
+	    <include name="*.java"/>
+	</javac>
+    </target>
+
+    <target name="build"
+	    depends="init">
+	<antcall target="compile"/>
+	<antcall target="satin"/>
+	<antcall target="iogen"/>
+    </target>
+
+    <target name="clean">
+	<delete dir="${build}"/>
+    </target>
+
+

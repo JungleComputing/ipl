@@ -1,5 +1,182 @@
+<!--
+    Target definitions for javah and native compile under the current directory.
+-->
+
     <!--
-	Compile natives in this directory
+
+	Target definition for javah.
+
+	Requires prior inclusion of ${ibis}/ibis/build-properties.xml
+
+	Requires definition of the following properties:
+	build                  the root of the build tree to be javah'd
+	default.classpath      refid of sensible default classpath
+    -->
+
+    <target name="property-javah-build"
+	    depends="property-init"
+	    unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="javah-init"
+	    depends="property-javah-build">
+	<mkdir dir="${build}/include"/>
+    </target>
+
+
+    <target name="-one-javah"
+	    description="Do javah for one class in the build tree">
+	<!--
+	-->
+	<echo	level="debug"
+		message="Invoke javah for ${native.class} if it is out of date"/>
+
+	<echo message="${native.class}" file="${build}/include/name-tmp"/>
+	<replaceregexp
+		file="${build}/include/name-tmp"
+		flags="g"
+		match="\."
+		replace="_"/>
+	<replaceregexp
+		file="${build}/include/name-tmp"
+		match="(.*)"
+		replace="${build}\${file.separator}include\${file.separator}\1.h"/>
+	<loadfile
+		property="include-file-name"
+		srcFile="${build}/include/name-tmp"/>
+
+	<echo message="${native.class}" file="${build}/include/name-tmp"/>
+	<replaceregexp
+		file="${build}/include/name-tmp"
+		flags="g"
+		match="\."
+		replace="\${file.separator}"/>
+	<replaceregexp
+		file="${build}/include/name-tmp"
+		match="(.*)"
+		replace="${build}\${file.separator}\1.class"/>
+	<loadfile
+		property="class-file-name"
+		srcFile="${build}/include/name-tmp"/>
+
+	<!-- <delete file="${build}/include/name-tmp"/> -->
+	<echo	level="debug"
+		message="I think class file name for ${native.class} is ${class-file-name}"/>
+	<echo	level="debug"
+		message="I think include file name for ${native.class} is ${include-file-name}"/>
+
+	<outofdate>
+	    <sourcefiles>
+		<pathelement path="${class-file-name}"/>
+	    </sourcefiles>
+	    <targetfiles>
+		<pathelement path="${include-file-name}"/>
+	    </targetfiles>
+
+	    <sequential>
+		<echo	level="debug"
+			message="Invoke javah for one class: ${native.class}"/>
+		<javah destdir="${build}/include" verbose="false">
+		    <class name="${native.class}"/>
+		    <classpath refid="default.classpath"/>
+		</javah>
+	    </sequential>
+	</outofdate>
+    </target>
+
+
+    <target name="find-natives"
+	    depends="javah-init"
+	    description="In the build tree, locate classes with native methods">
+	<path id="all-classes">
+	    <fileset dir="${build}">
+		<include name="**/*.class"/>
+		<!--
+		<include name="ibis/ipl/impl/net/NetIbisException_ibis_io_Generator.class"/>
+		-->
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	    <map from="${build}${file.separator}" to=""/>
+	</pathconvert>
+	<pathconvert pathsep="${path.separator}" property="class-files.all" refid="all-classes"/>
+	<echo	level="debug"
+		message="Consider this path for outofdate: ${class-files.all}"/>
+	<!--
+	-->
+	<outofdate>
+	    <sourcefiles>
+		<pathelement path="${class-files.all}"/>
+	    </sourcefiles>
+	    <targetfiles>
+		<pathelement path="${build}/NativeMethodClasses"/>
+	    </targetfiles>
+
+	    <sequential>
+		<echo	level="debug"
+			message="List of all class files: ${classes.all}"/>
+		<echo	level="debug"
+			message="File separator is ${file.separator}"/>
+
+		<java   classname="ibis.frontend.io.CheckNativeMethods"
+			taskname="CheckNativeMethods"
+			dir="${build}"
+			output="${build}/NativeMethodClasses"
+			fork="true">
+		    <arg line="${classes.all}"/>
+		    <classpath refid="default.classpath"/>
+		</java>
+		<replaceregexp
+			byline="true"
+			file="${build}/NativeMethodClasses"
+			match=".class"
+			replace=""/>
+		<replaceregexp
+			byline="true"
+			file="${build}/NativeMethodClasses"
+			flags="g"
+			match="\${file.separator}"
+			replace="."/>
+	    </sequential>
+	</outofdate>
+    </target>
+
+
+    <target name="javah"
+	    depends="javah-init,find-natives"
+	    description="Invoke javah over list in ${build}/NativeMethodClasses">
+	<!--
+	<javah destdir="${build}/include" verbose="true">
+	    <class name="ibis.io.Conversion"/>
+	    <classpath refid="default.classpath"/>
+	</javah>
+	-->
+	<loadfile
+		property="classes.native"
+		srcFile="${build}/NativeMethodClasses">
+	    <filterchain>
+		<prefixlines prefix=" "/>
+		<striplinebreaks/>
+	    </filterchain>
+	</loadfile>
+	<if>
+	    <isset property="classes.native"/>
+	<then>
+	    <foreach
+		    list="${classes.native}"
+		    delimiter=" "
+		    target="-one-javah"
+		    param="native.class"/>
+	</then>
+	</if>
+    </target>
+
+
+    <!--
+	Target to Compile natives in this directory
 
 	Requires prior definition of following properties:
 	    native.dir		the directory of this build
@@ -96,6 +273,9 @@
     </target>
 
 
+    <!--
+	Invoke this target to compile the .c files in directory ${native.dir}
+    -->
     <target name="native-compile"
 	    depends="native-init">
 
@@ -120,3 +300,22 @@
 	    <!-- <compilerarg location="mid" value="-v"/> -->
 	</cc>
     </target>
+
+
+    <!--
+	Invoke this target to compile the .c files in the current
+	directory
+    -->
+    <target name="native"
+	    depends="native-init,javah">
+	<ant inheritAll="false" dir="." target="native-compile">
+	    <property name="native.dir" value="."/>
+	    <property name="build" value="${build}"/>
+	    <property name="ibis" value="${ibis}"/>
+	    <!--
+	    -->
+	    <property name="optimization" value="${optimization}"/>
+	    <property name="package.home.ant-cpptasks" value="${package.home.ant-cpptasks}"/>
+	</ant>
+    </target>
+
