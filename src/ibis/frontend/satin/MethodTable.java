@@ -235,61 +235,78 @@ final class MethodTable {
 
     private static HashMap analyzers = new HashMap();
 
+    private boolean available_slot(Type[] types, int ind, Type t) {
+	if (types[ind] != null) {
+	    if (t.equals(types[ind])) {
+		return true;
+	    }
+	    return false;
+	}
+	if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
+	    if (types[ind+1] != null) return false;
+	    types[ind+1] = Type.VOID;
+	}
+	types[ind] = t;
+	return true;
+    }
+
     // Make each stack position indicate a single variable.
     void rewriteLocals(MethodGen m) {
-	LocalVariableGen[] locals = m.getLocalVariables();
-	int maxindex = 0;
-	for (int i = 0; i < locals.length; i++) {
-	    int ind = locals[i].getIndex();
-	    Type t = locals[i].getType();
-	    if (ind > maxindex) {
-		maxindex = ind;
-		if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
-		    maxindex++;
-		}
+	// First, analyze how many stack positions are for parameters.
+	// We won't touch those.
+	int parameterpos = m.isStatic() ? 0 : 1;
+
+	Type[] parameters = m.getArgumentTypes();
+
+	parameterpos += parameters.length;
+	for (int i = 0; i < parameters.length; i++) {
+	    if (parameters[i].equals(Type.LONG) ||
+		parameters[i].equals(Type.DOUBLE)) {
+		parameterpos++;
 	    }
 	}
-	Type[] types = new Type[maxindex+1 + 2 * locals.length];
+
+	LocalVariableGen[] locals = m.getLocalVariables();
+	int maxpos = m.getMaxLocals();
+
+	Type[] types = new Type[2 * locals.length];
+
+	int stackpos = parameterpos;
 	for (int i = 0; i < locals.length; i++) {
 	    int ind = locals[i].getIndex();
+	    if (ind < parameterpos) {
+		continue;
+	    }
 	    Type t = locals[i].getType();
-	    if ((types[ind] != null && ! types[ind].equals(t)) ||
-		((t.equals(Type.LONG) || t.equals(Type.DOUBLE) &&
-		 types[ind+1] != null))) {
-		// this stack position is already in use.
+	    if (! available_slot(types, ind, t)) {
 		// Give this local a new stack position.
-		maxindex++;
-		locals[i].setIndex(maxindex);
+		locals[i].setIndex(maxpos);
+		types[maxpos] = t;
+		maxpos++;
 		if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
 		    // longs and doubles need two stack positions.
-		    maxindex++;
+		    types[maxpos] = Type.VOID;
+		    maxpos++;
 		}
+	    }
 
-		// now rewrite the instructions where this local is used.
-		InstructionHandle h = locals[i].getStart();
-		if (h.getPrev() != null) {
-		    h = h.getPrev();
-		    // This instruction should contain the store.
-		}
-		do {
-		    Instruction ins = h.getInstruction();
-		    if (ins instanceof LocalVariableInstruction) {
-			LocalVariableInstruction lins = (LocalVariableInstruction) ins;
-			if (lins.getIndex() == ind) {
-			    lins.setIndex(locals[i].getIndex());
-			}
+	    // now rewrite the instructions where this local is used.
+	    InstructionHandle h = locals[i].getStart();
+	    if (h.getPrev() != null) {
+		h = h.getPrev();
+		// This instruction should contain the store.
+	    }
+	    do {
+		Instruction ins = h.getInstruction();
+		if (ins instanceof LocalVariableInstruction) {
+		    LocalVariableInstruction lins = (LocalVariableInstruction) ins;
+		    if (lins.getIndex() == ind) {
+			lins.setIndex(locals[i].getIndex());
 		    }
-		    if (h == locals[i].getEnd()) break;
-		    h = h.getNext();
-		} while (h != null);
-	    }
-	    else {
-		types[ind] = t;
-		if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
-		    // Make sure that this slot is not used.
-		    types[ind+1] = Type.VOID;
 		}
-	    }
+		if (h == locals[i].getEnd()) break;
+		h = h.getNext();
+	    } while (h != null);
 	}
     }
 
