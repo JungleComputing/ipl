@@ -471,7 +471,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 			throw new NetIbisException(e.getMessage());
 		}
 
-                NetConnection cnx = new NetConnection(this, num, identifier, nrpi, link);
+                NetConnection cnx = new NetConnection(this, num, identifier, nrpi, link, replacer);
                 log.out();
 
                 return cnx;

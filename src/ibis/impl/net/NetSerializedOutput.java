@@ -3,6 +3,8 @@ package ibis.ipl.impl.net;
 import ibis.io.ArrayOutputStream;
 import ibis.io.SerializationOutputStream;
 
+import ibis.io.Replacer;
+
 import ibis.ipl.impl.net.*;
 
 /**
@@ -21,6 +23,8 @@ public abstract class NetSerializedOutput extends NetOutput {
 	protected NetOutput                 subOutput = null;
 
         private   SerializationOutputStream oss       = null;
+
+        private   Replacer                  replacer  = null;
 
         private   boolean                   needFlush = false;
 
@@ -52,6 +56,8 @@ public abstract class NetSerializedOutput extends NetOutput {
 			subOutput = newSubOutput(subDriver);
 			this.subOutput = subOutput;
 		}
+
+                replacer = cnx.getReplacer();
 
 		subOutput.setupConnection(cnx);
 
@@ -88,6 +94,7 @@ public abstract class NetSerializedOutput extends NetOutput {
                 if (oss == null) {
                         subOutput.writeByte((byte)1);
                         oss = newSerializationOutputStream();
+                        if (replacer != null) oss.setReplacer(replacer);
                 } else {
                         subOutput.writeByte((byte)0);
                 }                

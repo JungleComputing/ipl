@@ -1,5 +1,7 @@
 package ibis.ipl.impl.net;
 
+import ibis.io.Replacer;
+
 /**
  * Provide set of attributes describing a NetIbis connection.
  */
@@ -35,6 +37,38 @@ public final class NetConnection {
         private NetServiceLink           serviceLink    = null;
 
         /**
+         * Replacer ?.
+         */
+        private Replacer                 replacer       = null;
+
+        /**
+         * Construct the set of connection attributes.
+         *
+         * The actual network connection must have already been established.
+         *
+         * @param port the {@link NetSendPort} or the {@link
+         * NetReceivePort} that owns this connection.
+         * @param num the connection identifier.
+         * @param sendId the send-side port identifier.
+         * @param receiveId the receive-side port identifier.
+         * @param serviceLink a reference to the connection's service link.
+         * @param replacer ???
+         */
+        public NetConnection(NetPort                  port       ,
+                             Integer                  num        ,
+                             NetSendPortIdentifier    sendId     ,
+                             NetReceivePortIdentifier receiveId  ,
+                             NetServiceLink           serviceLink,
+                             Replacer                 replacer) {
+                this.port        = port       ;
+                this.num         = num        ;
+                this.sendId      = sendId     ;
+                this.receiveId   = receiveId  ;
+                this.serviceLink = serviceLink;
+                this.replacer    = replacer;
+        }
+
+        /**
          * Construct the set of connection attributes.
          *
          * The actual network connection must have already been established.
@@ -56,6 +90,7 @@ public final class NetConnection {
                 this.sendId      = sendId     ;
                 this.receiveId   = receiveId  ;
                 this.serviceLink = serviceLink;
+                this.replacer    = null;
         }
 
         /**
@@ -127,6 +162,10 @@ public final class NetConnection {
          */
         public synchronized NetServiceLink getServiceLink(){
                 return serviceLink;
+        }
+
+        public synchronized Replacer getReplacer() {
+                return replacer;
         }
 
         /**
