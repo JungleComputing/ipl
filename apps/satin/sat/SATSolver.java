@@ -299,6 +299,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 		System.err.println( "A null solution thrown???" );
 	    }
 	    res = r.s;
+	    s.abort();
 	}
 
 	return res;

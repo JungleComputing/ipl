@@ -10,6 +10,8 @@ public final class NQueens extends ibis.satin.SatinObject implements NQueensInte
 			throw new Abort(sofar);
 		}
 
+//		System.err.print(".");
+
 	tryNewRow:  for (int q = 0; q < size; q++) {
 			// Check if can place queen in column q of next row
 			for (int i = 0; i < row; i++) {
