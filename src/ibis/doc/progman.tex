@@ -158,13 +158,13 @@ An Ibis application consists of several parts:
 \begin{itemize}
 \item
 Creating an Ibis in each instance of the application.
-An Ibis application runs on multiple hosts. On each of these hosts, an Ibis
-must be created.
+An Ibis application can run on multiple hosts.
+On each of these hosts, an Ibis must be created.
 \item
-Setting up communication. A communication connection consists of a
-\emph{send port}, through which messages can be sent, and one or
-more \emph{receive ports},
-through which messages can be received, and a connection between them.
+Setting up communication. Communication setup in Ibis
+consists of creating one or more \emph{send ports}, through which messages
+can be sent, and creating one or more \emph{receive ports},
+through which messages can be received, and creating connections between them.
 \item
 Actually communicating. A send port is used to create a 
 \emph{write message}, which is sent to the receive ports that this send port
@@ -217,8 +217,47 @@ user-specified requirements.
 These requirements tell the system what features must be supported
 by the selected Ibis.
 They are summarized in an object of the
-\verb+ibis.ipl.StaticProperties+ class.
-For example, below is a snippet from the RPC example:
+\verb+ibis.ipl.StaticProperties+ class, as discussed in Section
+\ref{StaticProperties}
+
+The second parameter of \verb+createIbis()+ specifies an upcall handler
+with \verb+join+ and \verb+leave+ upcalls that get called when an Ibis
+joins or leaves the run.  In our RPC example, we will not use this, so we
+specify \verb+null+ instead.  However, when such a \verb+ResizeHandler+
+is used, its \verb+join+ upcall is called for every Ibis that joins the
+run, including the Ibis being created itself.
+Upcalls to the \verb+ResizeHandler+ must be explicitly enabled by
+invoking the \verb+openWorld+ method of the Ibis
+just created. This ensures that the \verb+ResizeHandler+ has been
+able to do the necessary initializations.
+
+The \verb+openWorld+ method blocks until the
+\verb+join+ upcall for this Ibis has been invoked.  Knowing which Ibises
+have joined the run, and how many there are, is often useful in dividing
+the work. See also section \ref{Which Instance Does What?}.
+
+Now back to our example. In Secion \ref{StaticProperties} we will
+discuss the creation of a variable \texttt{props} describing the
+static properties required. For the moment we will just assume its
+existence, and create an Ibis as follows:
+\begin{quote}
+\begin{verbatim}
+try {
+    Ibis ibis = createIbis(props, null);
+} catch(NoMatchingIbisException e) {
+    System.err.println("Could not find a matching Ibis");
+    ...
+}
+\end{verbatim}
+\end{quote}
+Note that the properties can be so specific that no matching Ibis
+can be found, and therefore \verb+createIbis+ may throw an exception
+indicating this.
+
+\mysubsection{StaticProperties}
+
+Below is a snippet from the RPC example, constructing the static
+properties as required:
 \begin{quote}
 \begin{verbatim}
 StaticProperties props = new StaticProperties();
@@ -274,7 +313,7 @@ This means that when the user creates a receiveport with an upcall
 handler installed, when a message arrives at that receive port, 
 this upcall handler is invoked automatically.
 \item[PollUpcalls]
-upcalls are supported but polling for them is required. When an
+upcalls are supported but polling for them may be required. When an
 Ibis implementation claims that it has this, it may also do
 AutoUpcalls but polling does no harm. When an application asks for
 this (and not AutoUpcalls), it must poll.
@@ -348,45 +387,12 @@ of Panda. This too is an experimental version.
 A user running an Ibis application can override a property, or make
 it more specific. This is done by means of Java system properties,
 which in many Java implementations can be set by means of a command
-line option.  For instance, the Sun JVM supports options of the form
+line option.  For instance, JVMs support options of the form
 -D\emph{property}=\emph{value}.  The system property name is that
 of the Ibis static property, prefixed with ``\verb+ibis.+''.  So,
 adding \verb+-Dibis.serialization=ibis+ to the command line will cause
 \verb+createIbis+ to look for an Ibis that supports Ibis serialization
 instead of any object serialization.
-
-The second parameter of \verb+createIbis()+ specifies an upcall handler
-with \verb+join+ and \verb+leave+ upcalls that get called when an Ibis
-joins or leaves the run.  In our RPC example, we will not use this, so we
-specify \verb+null+ instead.  However, when such a \verb+ResizeHandler+
-is used, its \verb+join+ upcall is called for every Ibis that joins the
-run, including the Ibis being created.
-Upcalls to the \verb+ResizeHandler+ must be explicitly enabled by
-invoking the \verb+openWorld+ method of the Ibis
-just created. This ensures that the \verb+ResizeHandler+ has been
-able to do the necessary initializations. In particular, it allows the
-handler to extract the name of the local Ibis.
-
-The \verb+openWorld+ method blocks until the
-\verb+join+ upcall for this Ibis has been invoked.  Knowing which Ibises
-have joined the run, and how many there are, is often useful in dividing
-the work. See also section \ref{Which Instance Does What?}.
-
-Now back to our example. 
-With the \verb+props+ as defined above, we create an Ibis as follows:
-\begin{quote}
-\begin{verbatim}
-try {
-    Ibis ibis = createIbis(props, null);
-} catch(NoMatchingIbisException e) {
-    System.err.println("Could not find a matching Ibis");
-    ...
-}
-\end{verbatim}
-\end{quote}
-Note that the properties can be so specific that no matching Ibis
-can be found, and therefore \verb+createIbis+ may throw an exception
-indicating this.
 
 \subsection{Setting up Communication}
 
@@ -448,7 +454,7 @@ that was not specified when creating the Ibis instance, this could
 result in an \verb+IbisException+.
 An \verb+IbisException+ could also result when the same name is
 already used for a port type with different properties.
-Port types are registered with an internal or external name server
+Port types are registered with a name server
 (this will be discussed in Section \ref{Compiling and Running an Ibis Application}).
 If communication with this name server fails, a
 \verb+java.io.IOException+ is thrown.
@@ -519,15 +525,15 @@ void upcall(ReadMessage m) throws java.io.IOException;
 
 We will go into the details of a \verb+ReadMessage+ in Section
 \ref{Communicating}. For now, we will assume that there is a
-class \verb+RPC_Upcall+ that implements this interface, and
-a field \verb+rpc_upcall+ of this type.
+class \verb+RpcUpcall+ that implements this interface, and
+a field \verb+rpcUpcall+ of this type.
 
 \begin{quote}
 \begin{verbatim}
 try {
-    SendPort server_sender = porttype.createSendPort();
-    ReceivePort server_receiver =
-        porttype.createReceivePort("server", rpc_upcall);
+    SendPort serverSender = porttype.createSendPort();
+    ReceivePort serverReceiver =
+        porttype.createReceivePort("server", rpcUpcall);
 } catch(java.io.IOException e) {
     ....
 }
@@ -539,13 +545,12 @@ to send a request and a receive port to receive an answer.
 The client is allowed to block waiting for an answer, so it will
 want a receive port that enables explicit receipt.
 So, the client will create an anonymous server port, and a named
-receive port that enables explicit receipt:
-
+receive port that enables explicit receipt (no upcall handler is supplied):
 \begin{quote}
 \begin{verbatim}
 try {
-    SendPort client_sender = porttype.createSendPort();
-    ReceivePort client_receiver =
+    SendPort clientSender = porttype.createSendPort();
+    ReceivePort clientReceiver =
         porttype.createReceivePort("client");
 } catch(java.io.IOException e) {
     ....
@@ -597,7 +602,7 @@ Our RPC server would set up the following connection:
 \begin{verbatim}
 try {
     ReceivePortIdentifier client = registry.lookup("client");
-    server_sender.connect(client);
+    serverSender.connect(client);
 } catch(IOException e) {
     ...
 }
@@ -610,7 +615,7 @@ Our RPC client would set up the following connection:
 \begin{verbatim}
 try {
     ReceivePortIdentifier srvr = registry.lookup("server");
-    client_sender.connect(srvr);
+    clientSender.connect(srvr);
 } catch(IOException e) {
     ...
 }
@@ -749,10 +754,11 @@ Our client in the RPC example could have the following:
 \begin{quote}
 \begin{verbatim}
 int obtainLength(String s) throws IOException {
-    WriteMessage w = client_sender.newMessage();
+    WriteMessage w = clientSender.newMessage();
     w.writeObject(s);
     w.finish();
     ...
+}
 \end{verbatim}
 \end{quote}
 
@@ -773,7 +779,7 @@ void upcall(ReadMessage m) throws IOException {
     String s = (String) m.readObject();
     int len = s.length;
     m.finish();
-    WriteMessage w = server_sender.newMessage();
+    WriteMessage w = serverSender.newMessage();
     w.writeInt(len);
     w.finish();
 }
@@ -791,7 +797,7 @@ Now, we can also finish the \verb+obtainLength+ method of the client:
 \begin{quote}
 \begin{verbatim}
     ...
-    ReadMessage r = client_receiver.receive();
+    ReadMessage r = clientReceiver.receive();
     int len = r.readInt();
     r.finish();
     return len;
@@ -811,8 +817,8 @@ Our RPC client will do the following:
 
 \begin{quote}
 \begin{verbatim}
-client_sender.close();
-client_receiver.close();
+clientSender.close();
+clientReceiver.close();
 \end{verbatim}
 \end{quote}
 and the code of the server should be clear by now.
@@ -840,7 +846,8 @@ Runtime.getRuntime().addShutdownHook(new Thread() {
 \end{verbatim}
 \end{quote}
 \noindent
-This shutdown hook gets invoked when the program terminates.
+This shutdown hook gets invoked when the program terminates, and
+forcibly closes all ports.
 
 \mysubsection{Ibis utilities}
 
@@ -943,9 +950,8 @@ interface are Satin jobs. For example, given the following interface:
 
 \begin{quote}
 \begin{verbatim}
-interface Searcher extends ibis.satin.Spawnable
-{
-    public int search( int a[], int from, int to, int val );
+interface Searcher extends ibis.satin.Spawnable {
+    public int search(int a[], int from, int to, int val);
 }
 \end{verbatim}
 \end{quote}
@@ -979,12 +985,11 @@ search method shown above:
 
 \begin{quote}
 \begin{verbatim}
-class Search1 extends ibis.satin.SatinObject
+class Search1Impl extends ibis.satin.SatinObject
               implements java.io.Serializable {
-    public int search( int a[], int from, int to, int val )
-    {
-        for( int i=from; i<to; i++ ){
-            if( a[i] == val ) return i;
+    public int search(int a[], int from, int to, int val) {
+        for(int i = from; i < to; i++) {
+            if (a[i] == val) return i;
         }
         return -1;
     }
@@ -996,12 +1001,12 @@ Now, this method can be invoked as follows:
 
 \begin{quote}
 \begin{verbatim}
-    Search1 s = new Search1();
+    Search1Impl s = new Search1Impl();
     int a[] = new int[200];
 
     // Do searches on two sub-domains of the array.
-    int res1 = s.search( a, 0, 100, 0 );
-    int res2 = s.search( a, 100, 200, 0 );
+    int res1 = s.search(a, 0, 100, 0);
+    int res2 = s.search(a, 100, 200, 0);
 
     // Wait for results of the two invocations above.
     s.sync();
@@ -1020,21 +1025,20 @@ It is also allowed to invoke job methods from job methods, for example:
 
 \begin{quote}
 \begin{verbatim}
-class Search2 extends ibis.satin.SatinObject
+class Search2Impl extends ibis.satin.SatinObject
               implements java.io.Serializable {
-    public int search( int a[], int from, int to, int val )
-    {
-        if( from==to ){
+    public int search(int a[], int from, int to, int val) {
+        if (from == to) {
             return -1;
         }
-        if( from+1==to ){
-            return (a[from] == val)?from:-1);
+        if (from+1 == to) {
+            return (a[from] == val) ? from : -1;
         }
         int mid = (from+to)/2;
-        int res1 = search( a, from, mid, val );
-        int res2 = search( a, mid, to, val );
+        int res1 = search(a, from, mid, val);
+        int res2 = search(a, mid, to, val);
         sync();
-        return (res1>0)?res1:res2;
+        return (res1 > 0) ? res1 : res2;
     }
 }
 \end{verbatim}
@@ -1061,25 +1065,24 @@ For example:
 \begin{verbatim}
 class SearchResultException extends ibis.satin.Inlet {
     int pos;
-    SearchResultException( int p ) { pos = p; }
+    SearchResultException(int p) { pos = p; }
 }
 
-class Search3 extends ibis.satin.SatinObject
+class Search3Impl extends ibis.satin.SatinObject
               implements java.io.Serializable {
-    public void search( int a[], int from, int to, int val )
-    {
-        if( from==to ){
+    public void search(int a[], int from, int to, int val) {
+        if (from == to) {
             return;
         }
-        if( from+1==to ){
-            if( a[from] == val ){
-                throw new SearchResultException( from );
+        if (from+1 == to) {
+            if (a[from] == val) {
+                throw new SearchResultException(from);
             }
             return;
         }
         int mid = (from+to)/2;
-        search( a, from, mid, val );
-        search( a, mid, to, val );
+        search(a, from, mid, val);
+        search(a, mid, to, val);
         sync();
     }
 }
@@ -1094,19 +1097,19 @@ jobs must be terminated. For example:
 
 \begin{quote}
 \begin{verbatim}
-    Search3 s = new Search3();
+    Search3Impl s = new Search3Impl();
     int a[] = new int[200];
     int res = -1;
 
     try {
         // Do searches on two sub-domains of the array.
-        s.search( a, 0, 100, 0 );
-        s.search( a, 100, 200, 0 );
+        s.search(a, 0, 100, 0);
+        s.search(a, 100, 200, 0);
 
         // Wait for results of the two invocations above.
         s.sync();
     }
-    catch( SearchResultException x ){
+    catch(SearchResultException x) {
         res = x.pos;
         s.abort();
     }
@@ -1122,7 +1125,8 @@ when using random work-stealing, when looking for work, each Satin
 first examines its own job queue. When this job queue is empty,
 it randomly selects another Satin and takes the first job on its job queue.
 If that job queue is empty, it randomly selects another Satin, et cetera,
-et cetera.  This strategy is the default.
+et cetera.  This strategy is the default, and has in the past been proven
+to be optimal, although that might seem counter-intuitive.
 \item[Cluster-aware random work-stealing]
 this strategy is very similar to random work-stealing, except that
 each participant first tries to steal jobs from other participants in its
@@ -1174,7 +1178,7 @@ Use NetIbis.
 \item[-satin-nio]
 Use NIO Ibis.
 \item[-satin-tcp]
-Use the TCP version of Ibis. This is the default.
+Use the TCP version of Ibis.
 \item[-satin-ibis]
 Use Ibis serialization. When no serialization is specified,
 the object serialization used is determined by Ibis.
