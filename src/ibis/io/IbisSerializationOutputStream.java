@@ -926,6 +926,9 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @inheritDoc
      */
     public void flush() throws IOException {
+	if (DEBUG) {
+	    System.out.println("flushing ...");
+	}
 	out.flush();
     }
 
