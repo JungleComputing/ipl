@@ -77,7 +77,7 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean tracePropagation = false;
     private static final boolean traceLearning = false;
     private static final boolean traceResolutionChain = false;
-    private static final boolean traceRestarts = false;
+    private static final boolean traceRestarts = true;
 
     private static final boolean doVerification = false;
     private static final boolean doLearning = true;
@@ -539,7 +539,7 @@ public final class SATContext implements java.io.Serializable {
      * @param mylevel The current level of recursion.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictLevel( int arr[], int mylevel )
+    private int calculateConflictLevel( SATProblem p, int arr[], int cno, int mylevel )
     {
         int level = -1;
 
@@ -548,9 +548,18 @@ public final class SATContext implements java.io.Serializable {
             int l = dl[v];
             int a = antecedent[v];
 
-	    //if( l != mylevel && l>level  ){
-	    if( a>=0 && l>level  ){
-		level = l;
+            if( a>=0 ){
+                if( a != cno ){
+                    int l1 = calculateConflictLevel( p, p.clauses[a], a, mylevel );
+                    if( l1>level ){
+                        level = l1;
+                    }
+                }
+            }
+            else {
+                if( l>level  ){
+                    level = l;
+                }
 	    }
         }
         return level;
@@ -563,10 +572,10 @@ public final class SATContext implements java.io.Serializable {
      * @param mylevel The current level of recursion.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictLevel( Clause c, int mylevel )
+    private int calculateConflictLevel( SATProblem p, Clause c, int cno, int mylevel )
     {
-        int level = calculateConflictLevel( c.pos, mylevel );
-        int neglevel = calculateConflictLevel( c.neg, mylevel );
+        int level = calculateConflictLevel( p, c.pos, cno, mylevel );
+        int neglevel = calculateConflictLevel( p, c.neg, cno, mylevel );
         if( neglevel>level ){
             level = neglevel;
         }
@@ -604,18 +613,13 @@ public final class SATContext implements java.io.Serializable {
                 else {
                     p.addConflictClause( cc );
                 }
-		int cl = calculateConflictLevel( cc, level );
+		int cl = calculateConflictLevel( p, cc, -1, level );
                 if( cl>=0 && cl<level ){
                     if( traceLearning | traceRestarts ){
                         System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
                     }
                     if( cl<level ){
                         throw new SATRestartException( cl-1 );
-                    }
-                }
-                else {
-                    if( traceRestarts ){
-                        System.err.println( "No useful restart level for " + cc );
                     }
                 }
 	    }
