@@ -6,6 +6,7 @@ import org.apache.bcel.generic.*;
 
 import ibis.util.BT_Analyzer;
 import java.util.Vector;
+import java.util.HashMap;
 
 final class MethodTable {
 
@@ -175,12 +176,13 @@ final class MethodTable {
     }
 
     private Vector methodTable; /* a vector of MethodTableEntries */
-    private BT_Analyzer analyzer;
     private JavaClass spawnableClass;
     private Satinc self;
     private boolean verbose;
     JavaClass c;
     ClassGen gen_c;
+
+    private static HashMap analyzers = new HashMap();
 
     MethodTable(JavaClass c, ClassGen gen_c, Satinc self, boolean verbose) {
 	this.verbose = verbose;
@@ -189,8 +191,6 @@ final class MethodTable {
 	this.gen_c = gen_c;
 
 	spawnableClass = Repository.lookupClass("ibis.satin.Spawnable");
-	analyzer = new BT_Analyzer(c, spawnableClass, verbose);
-	analyzer.start();
 
 	methodTable = new Vector();
 	
@@ -216,7 +216,7 @@ final class MethodTable {
 
     void print(java.io.PrintStream out) {
 	out.print("---------------------");
-	out.print("metod table of class " + c.getClassName());
+	out.print("method table of class " + c.getClassName());
 	out.println("---------------------");
 
 	for(int i=0; i<methodTable.size(); i++) {
@@ -237,7 +237,8 @@ final class MethodTable {
 	for (int k = 0; k < ins.length; k++) {
 	    if (ins[k].getInstruction() instanceof INVOKEVIRTUAL) {
 		Method target = self.findMethod((INVOKEVIRTUAL)(ins[k].getInstruction()));
-		if(analyzer.isSpecial(target)) {
+		JavaClass cl = self.findMethodClass((INVOKEVIRTUAL)(ins[k].getInstruction()));
+		if(isSpawnable(target, cl)) {
 		    // we have a spawn!
 		    analyzeSpawn(me, il, ins[k], spawnId);
 		    spawnId++;
@@ -321,15 +322,33 @@ final class MethodTable {
 	for(int i=0; i<ins.length; i++) {
 	    if (ins[i].getInstruction() instanceof INVOKEVIRTUAL) {
 		Method target = self.findMethod((INVOKEVIRTUAL) (ins[i].getInstruction()));
-		if (analyzer.isSpecial(target)) count++;
+		JavaClass cl = self.findMethodClass((INVOKEVIRTUAL) (ins[i].getInstruction()));
+		if (isSpawnable(target, cl)) count++;
 	    }
 	}
 
 	return count;
     }
 
-    boolean isSpawnable(Method m) {
-	return analyzer.isSpecial(m);
+    private BT_Analyzer getAnalyzer(JavaClass cl) {
+	BT_Analyzer b = (BT_Analyzer) analyzers.get(cl);
+	if (b == null) {
+	    b = new BT_Analyzer(cl, spawnableClass, verbose);
+	    b.start();
+	    analyzers.put(cl, b);
+	}
+	return b;
+    }
+
+    boolean isSpawnable(Method m, JavaClass cl) {
+	BT_Analyzer analyzer = getAnalyzer(cl);
+	System.out.println("isSpawnable: method = " + m + ", class = " + cl.getClassName());
+	boolean b =  analyzer.isSpecial(m);
+	System.out.println("isSpawnable returns " + b);
+	if (b) {
+	    Satinc.do_satinc(cl);
+	}
+	return b;
     }
 
     void addCloneToInletTable(Method mOrig, MethodGen mg) {
@@ -640,7 +659,8 @@ final class MethodTable {
 	    Instruction ins = ih[i].getInstruction();
 	    if (ins instanceof INVOKEVIRTUAL) {
 		Method target = self.findMethod((INVOKEVIRTUAL)(ins));
-		if(analyzer.isSpecial(target)) return true;
+		JavaClass cl = self.findMethodClass((INVOKEVIRTUAL)(ins));
+		if(isSpawnable(target, cl)) return true;
 	    }
 	}
 
