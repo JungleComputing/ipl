@@ -35,6 +35,10 @@ class PortTypeNameServer extends Thread implements Protocol {
 		LongObject(long v) {
 		    val = v;
 		}
+		
+		public String toString() {
+			return "" + val;
+		}
 	    }
 
 	    Sequencer() {
@@ -54,6 +58,10 @@ class PortTypeNameServer extends Thread implements Protocol {
 		    counters.put(name, i);
 		}
 		return i.val++;
+	    }
+	    
+	    public String toString() {
+	    	return "" + counters;
 	    }
 	}
 
@@ -165,5 +173,9 @@ class PortTypeNameServer extends Thread implements Protocol {
 				}
 			}
 		}
+	}
+
+	public String toString() {
+		return "portypeserver(porttypes=" + portTypes + ",seq=" + seq + ")"; 
 	}
 }
