@@ -1802,8 +1802,8 @@ ni_gm_eager_callback(struct gm_port *port,
 		     gm_status_t     gms)
 {
     struct s_packet  *packet = ptr;
-    struct s_output  *p_out = packet->p_out;
-    struct s_request *p_rq = &p_out->request;
+    struct s_output  *p_out  = packet->p_out;
+    struct s_request *p_rq   = &p_out->request;
 
     __in__();
 
@@ -1828,75 +1828,112 @@ ni_gm_eager_callback(struct gm_port *port,
 
 static
 void
-ni_gm_callback(struct gm_port *port,
-               void           *ptr,
-               gm_status_t     gms) {
-        struct s_request *p_rq   = NULL;
-        struct s_port    *p_port = NULL;
+ni_gm_rendez_vous_request_callback(struct gm_port *port,
+				   void           *ptr,
+				   gm_status_t     gms)
+{
+        struct s_request *p_rq   = ptr;
+        struct s_port    *p_port = p_rq->p_port;
+	struct s_output  *p_out  = p_rq->p_out;
 
         __in__();
 
-        p_rq         = ptr;
         p_rq->status = gms;
-        p_port       = p_rq->p_port;
 
-        assert(p_rq->p_out || p_rq->p_in);
+	assert(! p_rq->p_in);
 	assert(p_port->ni_gm_send_tokens++ >= 0);
 
-        if (p_rq->p_out) {
-                struct s_output *p_out = p_rq->p_out;
+	VPRINTF(100, ("Receive a ni_gm_rendez_vous_request_callback; p_out %p current state %s tokens := %d\n", p_out, ni_gm_sender_state(p_out->state), p_port->ni_gm_send_tokens));
 
-		VPRINTF(100, ("Receive a ni_gm_callback; p_out %p current state %s tokens := %d\n", p_out, ni_gm_sender_state(p_out->state), p_port->ni_gm_send_tokens));
+	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ) {
+		/* The Rendez-Vous ack from the receiver will unlock
+		 * the sender so it can proceed with its data */
 
-                assert(!p_rq->p_in);
+	} else if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_GRANTED) {
+		/* The Rendez-Vous ack from the receiver has unlocked
+		 * the sender so it can proceed with its data; that
+		 * ack has overtaken our ni_gm_rendez_vous_request_callback */
 
-                if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ) {
-			/* The Rendez-Vous ack from the receiver will unlock
-			 * the sender so it can proceed with its data */
+	} else if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA) {
 
-		} else if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_GRANTED) {
-			/* The Rendez-Vous ack from the receiver has unlocked
-			 * the sender so it can proceed with its data; that
-			 * ack has overtaken our ni_gm_callback */
+	} else if (p_out->state == NI_GM_SENDER_IDLE) {
 
-                } else if (p_out->state == NI_GM_SENDER_SENDING_EAGER) {
-                        p_out->state = NI_GM_SENDER_IDLE;
-                        __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
-                        ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
+	} else {
+		abort();
+	}
 
-                } else if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA) {
-                        ni_gm_deregister_block(p_port, p_out->p_cache);
-                        ni_gm_release_output_array(ni_gm_env(), p_out);
+	VPRINTF(90, ("Received a ni_gm_rendez_vous_request_callback; p_out %p state := %s\n", p_out, ni_gm_sender_state(p_out->state)));
 
-                        p_out->p_cache = NULL;
-                        p_out->length  = 0;
-                        p_out->state   = NI_GM_SENDER_IDLE;
-                        __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
-                        ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
+        __out__();
+}
 
-                } else {
-                        abort();
-                }
-		VPRINTF(90, ("Received a ni_gm_callback; p_out %p state := %s\n", p_out, ni_gm_sender_state(p_out->state)));
 
-        } else if (p_rq->p_in) {
-                struct s_input *p_in = NULL;
+static
+void
+ni_gm_rendez_vous_data_callback(struct gm_port *port,
+				void           *ptr,
+				gm_status_t     gms) {
+        struct s_request *p_rq   = ptr;
+        struct s_port    *p_port = p_rq->p_port;
+	struct s_output  *p_out  = p_rq->p_out;
 
-                assert(!p_rq->p_out);
-                p_in = p_rq->p_in;
-		VPRINTF(90, ("Receive a ni_gm_callback; p_in %p state %s tokens := %d\n", p_in, ni_gm_receiver_state(p_in->state), p_port->ni_gm_send_tokens));
-		if (p_in->state == NI_GM_RECEIVER_SENDING_RNDZVS_ACK) {
-		    p_in->state = NI_GM_RECEIVER_AWAITING_RNDZVS_DATA;
+        __in__();
 
-		} else if (p_in->state == NI_GM_RECEIVER_IDLE) {
-		    /* Rendez-vous data has overtaken our ack callback. */
+        p_rq->status = gms;
 
-		} else {
-		    abort();
-		}
-        } else {
-                abort();
-        }
+        assert(p_rq->p_out);
+	assert(! p_rq->p_in);
+	assert(p_port->ni_gm_send_tokens++ >= 0);
+
+	VPRINTF(100, ("Receive a ni_gm_rendez_vous_request_callback; p_out %p current state %s tokens := %d\n", p_out, ni_gm_sender_state(p_out->state), p_port->ni_gm_send_tokens));
+
+	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA) {
+		ni_gm_deregister_block(p_port, p_out->p_cache);
+		ni_gm_release_output_array(ni_gm_env(), p_out);
+
+		p_out->p_cache = NULL;
+		p_out->length  = 0;
+		p_out->state   = NI_GM_SENDER_IDLE;
+		__disp__("ni_gm_rendez_vous_request_callback: unlock(%d)\n", p_out->p_lock->id);
+		ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
+
+	} else {
+		abort();
+	}
+
+	VPRINTF(90, ("Received a ni_gm_rendez_vous_request_callback; p_out %p state := %s\n", p_out, ni_gm_sender_state(p_out->state)));
+
+        __out__();
+}
+
+
+static
+void
+ni_gm_rendez_vous_ack_callback(struct gm_port *port,
+			       void           *ptr,
+			       gm_status_t     gms) {
+        struct s_request *p_rq   = ptr;
+        struct s_port    *p_port = p_rq->p_port;
+	struct s_input   *p_in   = p_rq->p_in;
+
+        __in__();
+
+        p_rq->status = gms;
+
+        assert(! p_rq->p_out);
+	assert(p_rq->p_in);
+	assert(p_port->ni_gm_send_tokens++ >= 0);
+
+	VPRINTF(90, ("Receive a ni_gm_rendez_vous_ack_callback; p_in %p state %s tokens := %d\n", p_in, ni_gm_receiver_state(p_in->state), p_port->ni_gm_send_tokens));
+	if (p_in->state == NI_GM_RECEIVER_SENDING_RNDZVS_ACK) {
+	    p_in->state = NI_GM_RECEIVER_AWAITING_RNDZVS_DATA;
+
+	} else if (p_in->state == NI_GM_RECEIVER_IDLE) {
+	    /* Rendez-vous data has overtaken our ack callback. */
+
+	} else {
+	    abort();
+	}
 
         __out__();
 }
@@ -2156,7 +2193,7 @@ ni_gm_output_send_request(JNIEnv *env, struct s_output *p_out) {
         }
 	VPRINTF(90, ("Send to %s HIGH rendez-vous request seqno %ull p_port %p p_out %p for size %d tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), hdr->seqno, p_port, p_out, p_out->length, p_port->ni_gm_send_tokens));
 	assert(--p_port->ni_gm_send_tokens >= 0);
-	/* Protect ni_gm_callback */
+	/* Protect ni_gm_rendez_vous_request_callback */
 	ni_gm_current_env = env;
         gm_send_with_callback(p_port->p_gm_port,
 			      packet_data,
@@ -2165,7 +2202,7 @@ ni_gm_output_send_request(JNIEnv *env, struct s_output *p_out) {
                               GM_HIGH_PRIORITY,
                               p_out->dst_node_id,
 			      p_out->dst_port_id,
-                              ni_gm_callback, p_rq);
+                              ni_gm_rendez_vous_request_callback, p_rq);
 	ni_gm_current_env = NULL;
 	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ) {
 	    /* Poll just once; maybe save an interrupt for the sent callback */
@@ -2293,7 +2330,7 @@ ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) 
 
 	VPRINTF(90, ("Send to %s LOW rendez-vous data p_port %p p_out %p size %d tokens %d local count %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_port, p_out, len, p_port->ni_gm_send_tokens, p_out->rendez_vous_seqno++));
 	assert(--p_port->ni_gm_send_tokens >= 0);
-	/* Protect ni_gm_callback */
+	/* Protect ni_gm_rendez_vous_data_callback */
 	ni_gm_current_env = env;
         gm_send_with_callback(p_port->p_gm_port,
 			      b,
@@ -2302,7 +2339,7 @@ ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) 
                               GM_LOW_PRIORITY,
                               p_out->dst_node_id,
 			      p_out->dst_port_id,
-                              ni_gm_callback, p_rq);
+                              ni_gm_rendez_vous_data_callback, p_rq);
 	ni_gm_current_env = NULL;
 	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA) {
 	    /* Poll just once; maybe save an interrupt for the sent callback */
@@ -2454,7 +2491,7 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     hdr->type = NI_GM_MSG_TYPE_RENDEZ_VOUS_ACK; \
     \
     assert(--p_port->ni_gm_send_tokens >= 0); \
-    /* Protect ni_gm_callback */ \
+    /* Protect ni_gm_rendez_vous_ack_callback */ \
     VPRINTF(90, ("Send to %s rendez-vous ack %s p_port %p p_in %p buffer size %d bytes\n", gm_node_id_to_host_name(p_port->p_gm_port, p_in->src_node_id), #Jtype, p_port, p_in, data_size)); \
     ni_gm_current_env = env; \
     assert(p_in->state == NI_GM_RECEIVER_IDLE); \
@@ -2466,7 +2503,7 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
 			  GM_HIGH_PRIORITY, \
 			  p_in->src_node_id, \
 			  p_in->src_port_id, \
-			  ni_gm_callback, p_rq); \
+			  ni_gm_rendez_vous_ack_callback, p_rq); \
     ni_gm_current_env = NULL; \
     if (1) { \
 	/* Poll just once; maybe save an interrupt for the sent callback */ \
