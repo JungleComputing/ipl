@@ -9,9 +9,9 @@
     </description>
 
 
-    <target name="config.unix"
+    <target name="config.das"
 	    depends="config-set-os"
-	    if="config.os-is-unix">
+	    if="config.is-das">
 	<property
 		name="default.home.bcel"
 		location="/home2/ceriel/bcel-5.1/bcel-5.1.jar"/>
@@ -39,9 +39,9 @@
 		location="/usr/local/gm/current"/>
     </target>
 
-    <target name="config.windows"
+    <target name="config.workstation"
 	    depends="config-set-os"
-	    if="config.os-is-windows">
+	    unless="config.is-das">
 	<property
 		name="default.home.bcel"
 		location="../bcel/bcel-5.1/bcel-5.1.jar"/>
@@ -74,7 +74,42 @@
 	    if="config.os-is-windows">
     </target>
 
-    <target name="config-set-os">
+    <target name="config-domainname" depends="proprietary-tasks">
+	<hostname hostname="hostname" domainname="domainname"/>
+	<echo message="Hostname ${hostname} domainname ${domainname}"/>
+	<condition property="config.is-das">
+	    <or>
+		<equals arg1="${domainname}" arg2="das2.cs.vu.nl"/>
+		<!-- <equals arg1="${domainname}" arg2="cs.vu.nl"/> -->
+		<equals arg1="${domainname}" arg2="das2.liacs.nl"/>
+		<equals arg1="${domainname}" arg2="das2.nikhef.nl"/>
+		<equals arg1="${domainname}" arg2="das2.its.tudelft.nl"/>
+		<equals arg1="${domainname}" arg2="das2.phys.uu.nl"/>
+
+		<!-- Dunno why but the VU DAS workstations are not in
+		     the DAS domain -->
+		<equals arg1="${hostname}" arg2="mercury.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="venus.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="mars.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="drum.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="kog.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="swpc429.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc060.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc061.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc062.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc063.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc064.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc065.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc066.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc067.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc068.cs.vu.nl"/>
+		<equals arg1="${hostname}" arg2="fspc069.cs.vu.nl"/>
+	    </or>
+	</condition>
+	<echo message="config.is-das = ${config.is-das}"/>
+    </target>
+
+    <target name="config-set-os" depends="config-domainname">
 	<condition property="config.os-is-unix"    value="true">
 	    <os family="unix"/>
 	</condition>
@@ -86,7 +121,7 @@
 	</condition>
     </target>
 
-    <target name="config-init" depends="config.unix,config.windows,config.mac">
+    <target name="config-init" depends="config.das,config.workstation,config.mac">
     </target>
 
 
