@@ -1001,7 +1001,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    /*  Need conversion for allocation of uninitialized objects. */
 	    System.loadLibrary("conversion");
-	} catch(Exception e) {
+	} catch(Throwable t) {
 	    System.err.println("Could not load libconversion");
 	}
     }

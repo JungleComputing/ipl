@@ -34,13 +34,15 @@ PAR_RUN_OPTIONS += -satin-closed
 
 PAR_RUN_OPTIONS += -satin-ibis
 
+PAR_RUN_OPTIONS += -satin-panda
+
 SEQ_TIME = -asocial -t 5:0:0
 PAR_TIME = -asocial -t 1:0:0
 
 EXCLUDES =
 
-#NAME_SERVER = fs0.das2.cs.vu.nl
-NAME_SERVER = flits.cs.vu.nl
+NAME_SERVER = fs0.das2.cs.vu.nl
+#NAME_SERVER = flits.cs.vu.nl
 
 NAMESERVER_PORT = 5432
 
