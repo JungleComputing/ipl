@@ -22,8 +22,8 @@ class PortHash {
 	    }
 	    portDataBase = a;
 	}
-	if (x > maxPortDataBase) {
-	    maxPortDataBase = x;
+	if (x >= maxPortDataBase) {
+	    maxPortDataBase = x+1;
 	}
 	portDataBase[x] = p;
     }

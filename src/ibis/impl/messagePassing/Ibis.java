@@ -372,7 +372,6 @@ public class Ibis extends ibis.ipl.Ibis {
 // System.err.println(Thread.currentThread() + "receiveFragment origin " + origin);
 
 	if (origin == null) {
-	    System.out.println("src_cpu = " + src_cpu + ", src_port = " + src_port);
 	    throw new IbisIOException("Receive message from sendport we're not connected to");
 	}
 
