@@ -4,39 +4,19 @@ import java.io.File;
 
 class Compress extends ibis.satin.SatinObject
 {
-    static final boolean traceMatches = false;
-    static final boolean traceLookahead = false;
-    static final boolean traceSiteCount = false;
-    static final boolean parallelizeShallowEvaluation = false;
     static int lookahead_depth = Configuration.LOOKAHEAD_DEPTH;
     static boolean doVerification = false;
 
-    public Rule compressRange( byte text[], int from, int to )
-    {
-        if( from == to ){
-            return null;
-        }
-        if( from+1 == to ){
-            return new Rule( text[from] );
-        }
-        int mid = (from+to)/2;
-        return new Rule(
-            compressRange( text, from, mid ),
-            compressRange( text, mid, to )
-        );
-    }
-
     public ByteBuffer compress( byte text[] )
     {
-        Rule n = compressRange( text, 0, text.length );
-
-        ByteBuffer out = new ByteBuffer();
+	SuffixArray a = new SuffixArray( text );
+	ByteBuffer out = a.compress( lookahead_depth );
         return out;
     }
 
     static void usage()
     {
-        System.err.println( "Usage: [-verify] [-short <n>] [-depth <n>] <text> <compressedtext>" );
+        System.err.println( "Usage: [-verify] [-depth <n>] <text> <compressedtext>" );
     }
 
     /**
@@ -51,9 +31,6 @@ class Compress extends ibis.satin.SatinObject
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-verify" ) ){
                 doVerification = true;
-            }
-            else if( args[i].equals( "-short" ) ){
-                i++;
             }
             else if( args[i].equals( "-depth" ) ){
                 i++;
@@ -77,7 +54,7 @@ class Compress extends ibis.satin.SatinObject
         byte text[] = Helpers.readFile( infile );
 	long startTime = System.currentTimeMillis();
 
-        //System.out.println( "Recursion depth: " + lookahead_depth + ", max. shortening: " + max_shortening  );
+        System.out.println( "Recursion depth: " + lookahead_depth );
 
         Compress c = new Compress();
 
@@ -91,8 +68,7 @@ class Compress extends ibis.satin.SatinObject
 	System.out.println( "ExecutionTime: " + time );
         System.out.println( "In: " + text.length + " bytes, out: " + buf.sz + " bytes." );
         if( doVerification ){
-            // ByteBuffer debuf = Decompress.decompress( buf );
-            ByteBuffer debuf = null;
+            ByteBuffer debuf = Decompress.decompress( buf );
             byte nt[] = debuf.getText();
 
             if( nt.length != text.length ){

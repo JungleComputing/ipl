@@ -82,7 +82,7 @@ public class SuffixArray {
 	return( text[i0]<text[i1] );
     }
 
-    private void buildArray( short text[] ) throws VerificationException
+    private void buildArray( short text[] )
     {
 	indices = new int[text.length-1];
 	commonality = new int[text.length-1];
@@ -126,21 +126,21 @@ public class SuffixArray {
 	}
     }
 
-    private SuffixArray( short text[] ) throws VerificationException
+    private SuffixArray( short text[] )
     {
         this.text = text;
 
         buildArray( text );
     }
 
-    SuffixArray( byte t[] ) throws VerificationException
+    SuffixArray( byte t[] )
     {
         this.text = buildShortArray( t );
 
         buildArray( text );
     }
 
-    SuffixArray( String text ) throws VerificationException
+    SuffixArray( String text )
     {
         this( text.getBytes() );
     }
@@ -169,8 +169,16 @@ public class SuffixArray {
 
     }
 
-    public void test() throws VerificationException
+    public void test()
     {
+    }
+
+    /** Return a compressed version of the string represented by
+     * this suffix array.
+     */
+    public ByteBuffer compress( int lookahead_depth )
+    {
+	return new ByteBuffer();
     }
 
     public static void main( String args[] )
