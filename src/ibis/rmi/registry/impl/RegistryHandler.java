@@ -17,4 +17,3 @@ public class RegistryHandler implements ibis.rmi.registry.RegistryHandler {
 	return (Registry) new RegistryImpl(port);
     }
 }
-		    

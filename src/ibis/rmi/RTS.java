@@ -26,9 +26,6 @@ public final class RTS {
 
 	private static ThreadLocal clientHost;
 
-//	private static int stubcount = 0;
-//	private static int skelcount = 0;
-
 	static {
                 try {
                         skeletons = new Hashtable();
@@ -41,25 +38,25 @@ public final class RTS {
 
                         if (DEBUG) {
                                 System.out.println(hostname + ": init RMI RTS");
+				System.out.println(hostname + ": creating ibis");
                         }
 
+			ibis = Ibis.createIbis(null);
 
 			Properties p = System.getProperties();
 			String ibis_name = p.getProperty("ibis.name");
 
                         StaticProperties s = new StaticProperties();
-                        s.add("Serialization", "ibis");
-
-			if (DEBUG) {
-				System.out.println(hostname + ": creating ibis");
-				System.out.println("ibis.name = " + ibis_name);
+			String ibis_serialization = p.getProperty("ibis.serialization");
+			if (ibis_serialization != null) {
+			    System.out.println("Setting Serialization to " + ibis_serialization);
+			    s.add("Serialization", ibis_serialization);
+			} else {
+			    System.out.println("Setting Serialization to ibis");
+			    s.add("Serialization", "ibis");
 			}
 
-			if (ibis_name != null && ibis_name.equals("panda")) {
-			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.messagePassing.PandaIbis", null);
-
-			} else if (ibis_name != null && ibis_name.startsWith("net.")) {
-			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.net.NetIbis", null);
+			if (ibis_name != null && ibis_name.startsWith("net.")) {
 			    String driver = ibis_name.substring("net.".length());
 			    String path = "/";
 			    while (true) {
@@ -82,14 +79,6 @@ public final class RTS {
 				driver = driver.substring(dot + 1);
 			    }
 
-			} else if (ibis_name != null && ibis_name.equals("mpi")) {
-			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.messagePassing.MPIIbis", null);
-			} else {
-			    if (DEBUG) {
-				System.out.println(hostname + ": creating tcp ibis");
-			    }
-			    String ibisInstanceName = "ibis:" + hostname + "/" + (new java.rmi.server.UID()).toString();
-			    ibis = Ibis.createIbis(ibisInstanceName, "ibis.ipl.impl.tcp.TcpIbis", null);
 			}
 
 			if (DEBUG) {
@@ -100,12 +89,6 @@ public final class RTS {
                         ibisRegistry = ibis.registry();
 
                         portType = ibis.createPortType("RMI", s);
-
-//                        ch = new CallHandler();
-
-//                        receivePort = portType.createReceivePort("RMI Registry port on " + hostname, null);
-//                        receivePort.enableConnections();
-//                        receivePort.enableUpcalls();
 
 			clientHost = new ThreadLocal();
 
@@ -241,7 +224,6 @@ public final class RTS {
 			throw new AlreadyBoundException(url + " already bound");
 		}
 
-
 		Skeleton skel = (Skeleton) skeletons.get(o);
 		if (skel == null) {
 //		    throw new RemoteException("object not exported");
@@ -282,7 +264,6 @@ public final class RTS {
 		if (DEBUG) {
 			System.out.println(hostname + ": Trying to bind object to " + url);
 		}
-
 
 		Skeleton skel = (Skeleton) skeletons.get(o);
 		if (skel == null) {

@@ -56,6 +56,8 @@ public final class LocateRegistry
     static {
         String classname = registryPkgPrefix + ".RegistryHandler";
 	try {
+	    String hostname = RTS.getHostname();
+	    // Just to make sure that RTS is initialized and that there is an Ibis.
 	    Class cl = Class.forName(classname);
 	    handler = (RegistryHandler)(cl.newInstance());
 	} catch (Exception e) {
