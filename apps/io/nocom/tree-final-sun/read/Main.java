@@ -2,7 +2,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.ByteArrayInputStream;
+// import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 public class Main {
@@ -50,6 +50,7 @@ public class Main {
 			bytes = temp.length - mark;
 
 			ByteArrayInputStream bais = new ByteArrayInputStream(temp);
+			// java.io.BufferedInputStream bais = new java.io.BufferedInputStream(new ByteArrayInputStream(temp));
 			ObjectInputStream min = new ObjectInputStream(bais);
 			bais.mark(bytes);
 
