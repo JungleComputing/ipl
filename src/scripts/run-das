@@ -169,6 +169,9 @@ if [ -z "$no_pool" ] ; then
 	Dpool_total="-Dibis.pool.total_hosts=$NHOSTS"
 	Dpool_host_num="-Dibis.pool.host_number=$PRUN_CPU_RANK"
 	Dpool_host_names="-Dibis.pool.host_names=\"$HOSTS\""
+	if [ $PRUN_CPU_RANK -eq 0 ] ; then
+		$JAVA_ROOT/bin/java -version
+	fi
 else
 	Dpool_total=
 	Dpool_host_num=
@@ -190,6 +193,10 @@ if [ ! -z "$gprof" ]
 then
 	# JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$PRUN_CPU_RANK -Djava.compiler=NONE"
 	JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$PRUN_CPU_RANK"
+fi
+
+if [[ $JAVA_ROOT == *sun* ]] ; then
+	JIT_OPTS="$JIT_OPTS -server"
 fi
 
 DEFAULT_USE_JAVA_WRAPPER=1
