@@ -4,33 +4,33 @@ package ibis.satin.impl;
 
 final class MasterWorker extends Algorithm {
 
-	MasterWorker(Satin s) {
-		super(s);
+    MasterWorker(Satin s) {
+	super(s);
+    }
+
+    public InvocationRecord clientIteration() {
+	Victim v;
+
+	if (satin.master) {
+	    return null;
 	}
 
-	public InvocationRecord clientIteration() {
-		Victim v;
-
-		if (satin.master) {
-			return null;
-		}
-
-		synchronized (satin) {
-			v = satin.victims.getVictim(satin.masterIdent);
-		}
-
-		return satin.stealJob(v, true); // blocks at the server side
+	synchronized (satin) {
+	    v = satin.victims.getVictim(satin.masterIdent);
 	}
 
-	void jobAdded() {
-		synchronized (satin) {
-			satin.notifyAll();
-		}
-	}
+	return satin.stealJob(v, true); // blocks at the server side
+    }
 
-	public void exit() {
-		synchronized (satin) {
-			satin.notifyAll();
-		}
+    void jobAdded() {
+	synchronized (satin) {
+	    satin.notifyAll();
 	}
+    }
+
+    public void exit() {
+	synchronized (satin) {
+	    satin.notifyAll();
+	}
+    }
 }

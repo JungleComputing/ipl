@@ -15,386 +15,386 @@ import java.util.Vector;
 
 public abstract class SatinBase implements Config {
 
-	Ibis ibis; //used in GlobalResultTable
+    Ibis ibis; //used in GlobalResultTable
 
-	static Satin this_satin = null;
+    static Satin this_satin = null;
 
-	IbisIdentifier ident = null; // used in messageHandler
+    IbisIdentifier ident = null; // used in messageHandler
 
-	/* Options. */
-	boolean closed = false; // used in TupleSpace
+    /* Options. */
+    boolean closed = false; // used in TupleSpace
 
-	boolean stats = true; // used in messageHandler
+    boolean stats = true; // used in messageHandler
 
-	protected boolean detailedStats = false;
+    protected boolean detailedStats = false;
 
-	protected boolean ibisSerialization = false;
-	protected boolean sunSerialization = false;
+    protected boolean ibisSerialization = false;
+    protected boolean sunSerialization = false;
 
-	protected boolean upcallPolling = false;
+    protected boolean upcallPolling = false;
 
-	protected int killTime = 0; //used in automatic ft tests
+    protected int killTime = 0; //used in automatic ft tests
 
-	protected int deleteTime = 0;
-	
-	protected int deleteClusterTime = 0;
-	
-	protected String killCluster = null;
-	
-	protected String deleteCluster = null;
+    protected int deleteTime = 0;
 
-	int branchingFactor = 0; //if > 0, it is used for generating globally unique stamps
-	
-	protected boolean dump = false; //true if the node should dump its datastructures during shutdown
-				       //done by registering DumpThread as a shutdown hook
+    protected int deleteClusterTime = 0;
 
-	boolean getTable = true; //true if the node needs to download the contents of the global result table
+    protected String killCluster = null;
 
-	// of the global result table; protected by lock
+    protected String deleteCluster = null;
 
-	/* Am I the root (the one running main)? */
-	boolean master = false;
+    int branchingFactor = 0; //if > 0, it is used for generating globally unique stamps
 
-	boolean tuple_message_sent = false;
+    protected boolean dump = false; //true if the node should dump its datastructures during shutdown
+    //done by registering DumpThread as a shutdown hook
 
-	protected String[] mainArgs;
+    boolean getTable = true; //true if the node needs to download the contents of the global result table
 
-	protected String name;
+    // of the global result table; protected by lock
 
-	protected IbisIdentifier masterIdent = null;
+    /* Am I the root (the one running main)? */
+    boolean master = false;
 
-	protected long stealReplySeqNr;
+    boolean tuple_message_sent = false;
 
-	/* Am I the cluster coordinator? */
-	boolean clusterCoordinator = false;
+    protected String[] mainArgs;
 
-	IbisIdentifier clusterCoordinatorIdent;
+    protected String name;
 
-	/* My scheduling algorithm. */
-	protected Algorithm algorithm;
+    protected IbisIdentifier masterIdent = null;
 
-	volatile int exitReplies = 0;
+    protected long stealReplySeqNr;
 
-	long expected_seqno = ReadMessage.INITIAL_SEQNO;
+    /* Am I the cluster coordinator? */
+    boolean clusterCoordinator = false;
 
-	// WARNING: dijkstra does not work in combination with aborts.
-	DEQueue q;
+    IbisIdentifier clusterCoordinatorIdent;
 
-	protected PortType portType;
-	PortType tuplePortType;
-	protected PortType barrierPortType;
-	PortType globalResultTablePortType;
+    /* My scheduling algorithm. */
+    protected Algorithm algorithm;
 
-	protected ReceivePort receivePort;
-	ReceivePort tupleReceivePort;
+    volatile int exitReplies = 0;
 
-	protected ReceivePort barrierReceivePort; /* Only for the master. */
+    long expected_seqno = ReadMessage.INITIAL_SEQNO;
 
-	protected SendPort barrierSendPort; /* Only for the clients. */
+    // WARNING: dijkstra does not work in combination with aborts.
+    DEQueue q;
 
-	SendPort tuplePort; /* used to bcast tuples */
+    protected PortType portType;
+    PortType tuplePortType;
+    protected PortType barrierPortType;
+    PortType globalResultTablePortType;
 
-	//ft
-	protected long connectTimeout =  1500000; /*
-										   * Timeout for connecting to other
-										   * nodes (in joined()) who might be
-										   * crashed
-										   */
+    protected ReceivePort receivePort;
+    ReceivePort tupleReceivePort;
 
-	volatile boolean exiting = false; // used in messageHandler
+    protected ReceivePort barrierReceivePort; /* Only for the master. */
 
-	Random random = new Random(); // used in victimTable
+    protected SendPort barrierSendPort; /* Only for the clients. */
 
-	protected MessageHandler messageHandler;
+    SendPort tuplePort; /* used to bcast tuples */
 
-	protected ArrayList activeTupleKeyList = new ArrayList();
+    //ft
+    protected long connectTimeout =  1500000; /*
+					       * Timeout for connecting to other
+					       * nodes (in joined()) who might be
+					       * crashed
+					       */
 
-	protected ArrayList activeTupleDataList = new ArrayList();
+    volatile boolean exiting = false; // used in messageHandler
 
-	protected volatile boolean receivedResults = false;
+    Random random = new Random(); // used in victimTable
 
-	protected int stampCounter = 0;
+    protected MessageHandler messageHandler;
 
-	/*
-	 * Used to locate the invocation record corresponding to the result of a
-	 * remote job.
-	 */
-	protected IRVector outstandingJobs;
+    protected ArrayList activeTupleKeyList = new ArrayList();
 
-	protected IRVector resultList;
+    protected ArrayList activeTupleDataList = new ArrayList();
 
-	protected IRStack onStack;
+    protected volatile boolean receivedResults = false;
 
-	protected IRVector exceptionList;
+    protected int stampCounter = 0;
 
-	/* abort messages are queued until the sync. */
-	protected StampVector abortList = new StampVector();
+    /*
+     * Used to locate the invocation record corresponding to the result of a
+     * remote job.
+     */
+    protected IRVector outstandingJobs;
 
-	/* used for fault tolerance */
-	protected StampVector abortAndStoreList;
+    protected IRVector resultList;
 
-	/* used to store reply messages */
-	volatile boolean gotStealReply = false; // used in messageHandler
+    protected IRStack onStack;
 
-	volatile boolean gotBarrierReply = false; // used in messageHandler
+    protected IRVector exceptionList;
 
-	volatile boolean gotActiveTuples = false; // used in messageHandler
+    /* abort messages are queued until the sync. */
+    protected StampVector abortList = new StampVector();
 
-	protected boolean upcalls = true;
+    /* used for fault tolerance */
+    protected StampVector abortAndStoreList;
 
-	InvocationRecord stolenJob = null;
+    /* used to store reply messages */
+    volatile boolean gotStealReply = false; // used in messageHandler
 
-	//	IbisIdentifier stolenFrom = null;
+    volatile boolean gotBarrierReply = false; // used in messageHandler
 
-	protected int suggestedQueueSize = 1000;
+    volatile boolean gotActiveTuples = false; // used in messageHandler
 
-	/* Variables that contain statistics. */
-	protected long spawns = 0;
+    protected boolean upcalls = true;
 
-	protected long syncs = 0;
+    InvocationRecord stolenJob = null;
 
-	protected long aborts = 0;
+    //	IbisIdentifier stolenFrom = null;
 
-	protected long jobsExecuted = 0;
+    protected int suggestedQueueSize = 1000;
 
-	long abortedJobs = 0; // used in dequeue
+    /* Variables that contain statistics. */
+    protected long spawns = 0;
 
-	long abortMessages = 0;
+    protected long syncs = 0;
 
-	protected long stealAttempts = 0;
+    protected long aborts = 0;
 
-	protected long stealSuccess = 0;
+    protected long jobsExecuted = 0;
 
-	protected long tupleMsgs = 0;
+    long abortedJobs = 0; // used in dequeue
 
-	protected long tupleBytes = 0;
+    long abortMessages = 0;
 
-	long killedOrphans = 0;
-	
-	long restartedJobs = 0;
+    protected long stealAttempts = 0;
 
-	long stolenJobs = 0; // used in messageHandler
+    protected long stealSuccess = 0;
 
-	long stealRequests = 0; // used in messageHandler
+    protected long tupleMsgs = 0;
 
-	long interClusterMessages = 0;
+    protected long tupleBytes = 0;
 
-	long intraClusterMessages = 0;
+    long killedOrphans = 0;
 
-	long interClusterBytes = 0;
+    long restartedJobs = 0;
 
-	long intraClusterBytes = 0;
+    long stolenJobs = 0; // used in messageHandler
 
-	StatsMessage totalStats; // used in messageHandler
+    long stealRequests = 0; // used in messageHandler
 
-	/* Variables that contain data of the current job*/
-	protected int parentStamp = -1;
+    long interClusterMessages = 0;
 
-	protected IbisIdentifier parentOwner = null;
+    long intraClusterMessages = 0;
 
-	InvocationRecord parent = null;
+    long interClusterBytes = 0;
 
-	/* use these to avoid locking */
-	protected volatile boolean gotExceptions = false;
+    long intraClusterBytes = 0;
 
-	protected volatile boolean gotAborts = false;
+    StatsMessage totalStats; // used in messageHandler
 
-	protected volatile boolean gotCrashes = false;
+    /* Variables that contain data of the current job*/
+    protected int parentStamp = -1;
 
-	protected volatile boolean gotAbortsAndStores = false;
+    protected IbisIdentifier parentOwner = null;
 
-	protected volatile boolean gotDelete = false;
-	
-	protected volatile boolean gotDeleteCluster = false;
-	
-	protected volatile boolean updatesToSend = false;
+    InvocationRecord parent = null;
 
-	/*
-	 * used for fault tolerance we must know who the current victim is, in case
-	 * it crashes
-	 */
-	IbisIdentifier currentVictim = null;
+    /* use these to avoid locking */
+    protected volatile boolean gotExceptions = false;
 
-	boolean currentVictimCrashed = false;
+    protected volatile boolean gotAborts = false;
 
-//	IbisIdentifier asyncCurrentVictim = null;
+    protected volatile boolean gotCrashes = false;
 
-//	boolean asyncCurrentVictimCrashed = false;
+    protected volatile boolean gotAbortsAndStores = false;
 
-	/* historical name.. it's the global job table used in fault tolerance */
-	GlobalResultTable globalResultTable = null;
+    protected volatile boolean gotDelete = false;
 
-	//used in ft, true if the master crashed and the whole work was restarted
-	boolean restarted = false;
+    protected volatile boolean gotDeleteCluster = false;
 
-	//used for generating globally unique stamps, number of jobs spawned by
-	// root
-	//no node can execute the root job twice, so this counter does not have to
-	// be set to 0 after root crash
-	int rootNumSpawned = 0;
-	//list of finished children of the root node (which doesn't have and invocation record)
-	InvocationRecord rootFinishedChild = null;
-	//list of children of the root node which need to be restarted
-	InvocationRecord rootToBeRestartedChild = null;
-	
+    protected volatile boolean updatesToSend = false;
 
-	//for debugging ft
-	boolean del = false;
+    /*
+     * used for fault tolerance we must know who the current victim is, in case
+     * it crashes
+     */
+    IbisIdentifier currentVictim = null;
 
-	protected IbisIdentifier crashedIbis = null;
+    boolean currentVictimCrashed = false;
 
-	Vector allIbises = new Vector();
+    //	IbisIdentifier asyncCurrentVictim = null;
 
-	final static int NUM_CRASHES = 0;
+    //	boolean asyncCurrentVictimCrashed = false;
 
-	boolean connectionUpcallsDisabled = false;
+    /* historical name.. it's the global job table used in fault tolerance */
+    GlobalResultTable globalResultTable = null;
 
-	/* All victims, myself NOT included. The elements are Victims. */
-	VictimTable victims;
+    //used in ft, true if the master crashed and the whole work was restarted
+    boolean restarted = false;
 
-	Timer totalTimer = Timer.createTimer();
+    //used for generating globally unique stamps, number of jobs spawned by
+    // root
+    //no node can execute the root job twice, so this counter does not have to
+    // be set to 0 after root crash
+    int rootNumSpawned = 0;
+    //list of finished children of the root node (which doesn't have and invocation record)
+    InvocationRecord rootFinishedChild = null;
+    //list of children of the root node which need to be restarted
+    InvocationRecord rootToBeRestartedChild = null;
 
-	Timer stealTimer = Timer.createTimer();
 
-	Timer handleStealTimer = Timer.createTimer();
+    //for debugging ft
+    boolean del = false;
 
-	Timer abortTimer = Timer.createTimer();
+    protected IbisIdentifier crashedIbis = null;
 
-	Timer idleTimer = Timer.createTimer();
+    Vector allIbises = new Vector();
 
-	Timer pollTimer = Timer.createTimer();
+    final static int NUM_CRASHES = 0;
 
-	Timer tupleTimer = Timer.createTimer();
+    boolean connectionUpcallsDisabled = false;
 
-	Timer invocationRecordWriteTimer = Timer.createTimer();
+    /* All victims, myself NOT included. The elements are Victims. */
+    VictimTable victims;
 
-	Timer returnRecordWriteTimer = Timer.createTimer();
+    Timer totalTimer = Timer.createTimer();
 
-	Timer invocationRecordReadTimer = Timer.createTimer();
+    Timer stealTimer = Timer.createTimer();
 
-	Timer returnRecordReadTimer = Timer.createTimer();
+    Timer handleStealTimer = Timer.createTimer();
 
-	Timer tupleOrderingWaitTimer = Timer.createTimer();
+    Timer abortTimer = Timer.createTimer();
 
-	Timer lookupTimer = Timer.createTimer();
+    Timer idleTimer = Timer.createTimer();
 
-	Timer updateTimer = Timer.createTimer();
+    Timer pollTimer = Timer.createTimer();
 
-	Timer handleUpdateTimer = Timer.createTimer();
+    Timer tupleTimer = Timer.createTimer();
 
-	Timer handleLookupTimer = Timer.createTimer();
-	
-	Timer tableSerializationTimer = Timer.createTimer();
-	
-	Timer tableDeserializationTimer = Timer.createTimer();
+    Timer invocationRecordWriteTimer = Timer.createTimer();
 
-	Timer crashTimer = Timer.createTimer();
+    Timer returnRecordWriteTimer = Timer.createTimer();
 
-	Timer redoTimer = Timer.createTimer();
+    Timer invocationRecordReadTimer = Timer.createTimer();
 
-	Timer addReplicaTimer = Timer.createTimer();
+    Timer returnRecordReadTimer = Timer.createTimer();
 
-	long prevPoll = 0;
+    Timer tupleOrderingWaitTimer = Timer.createTimer();
 
-	//	float MHz = Timer.getMHz();
+    Timer lookupTimer = Timer.createTimer();
 
-	java.io.PrintStream out = System.out;
+    Timer updateTimer = Timer.createTimer();
 
-	/*
-	 * Used for fault tolerance Ibises that crashed recently and whose crashes
-	 * still need to be handled
-	 */
-	Vector crashedIbises = new Vector();
+    Timer handleUpdateTimer = Timer.createTimer();
 
-	/*
-	 * Used for fault tolerance All ibises that once took part in the
-	 * computation, but then crashed Assumption: ibis identifiers are uniqe in
-	 * time; the same ibis cannot crash and join the computation again
-	 */
-	Vector deadIbises = new Vector();
+    Timer handleLookupTimer = Timer.createTimer();
 
-	static {
-	    TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+    Timer tableSerializationTimer = Timer.createTimer();
+
+    Timer tableDeserializationTimer = Timer.createTimer();
+
+    Timer crashTimer = Timer.createTimer();
+
+    Timer redoTimer = Timer.createTimer();
+
+    Timer addReplicaTimer = Timer.createTimer();
+
+    long prevPoll = 0;
+
+    //	float MHz = Timer.getMHz();
+
+    java.io.PrintStream out = System.out;
+
+    /*
+     * Used for fault tolerance Ibises that crashed recently and whose crashes
+     * still need to be handled
+     */
+    Vector crashedIbises = new Vector();
+
+    /*
+     * Used for fault tolerance All ibises that once took part in the
+     * computation, but then crashed Assumption: ibis identifiers are uniqe in
+     * time; the same ibis cannot crash and join the computation again
+     */
+    Vector deadIbises = new Vector();
+
+    static {
+	TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+    }
+
+    static boolean trylock(Object o) {
+	try {
+	    o.notifyAll();
+	} catch (IllegalMonitorStateException e) {
+	    return false;
 	}
 
-	static boolean trylock(Object o) {
-		try {
-			o.notifyAll();
-		} catch (IllegalMonitorStateException e) {
-			return false;
-		}
+	return true;
+    }
 
+    static void assertLocked(Object o) {
+	if (!trylock(o)) {
+	    System.err.println("AssertLocked failed!: ");
+	    new Exception().printStackTrace();
+	    System.exit(1);
+	}
+    }
+
+    boolean inDifferentCluster(IbisIdentifier other) {
+	if (ASSERTS) {
+	    if (ident.cluster() == null || other.cluster() == null) {
+		System.err.println("WARNING: Found NULL cluster!");
+
+		/* this isn't severe enough to exit, so return something */
 		return true;
+	    }
 	}
 
-	static void assertLocked(Object o) {
-		if (!trylock(o)) {
-			System.err.println("AssertLocked failed!: ");
-			new Exception().printStackTrace();
-			System.exit(1);
-		}
-	}
+	return !ident.cluster().equals(other.cluster());
+    }
 
-	boolean inDifferentCluster(IbisIdentifier other) {
-		if (ASSERTS) {
-			if (ident.cluster() == null || other.cluster() == null) {
-				System.err.println("WARNING: Found NULL cluster!");
+    abstract boolean satinPoll();
 
-				/* this isn't severe enough to exit, so return something */
-				return true;
-			}
-		}
+    abstract void sendResult(InvocationRecord r, ReturnRecord rr);
 
-		return !ident.cluster().equals(other.cluster());
-	}
+    abstract void handleInlet(InvocationRecord r);
 
-	abstract boolean satinPoll();
+    abstract void handleAborts();
 
-	abstract void sendResult(InvocationRecord r, ReturnRecord rr);
+    abstract void handleExceptions();
 
-	abstract void handleInlet(InvocationRecord r);
+    abstract void handleResults();
 
-	abstract void handleAborts();
+    abstract void handleActiveTuples();
 
-	abstract void handleExceptions();
+    abstract void handleCrashes();
 
-	abstract void handleResults();
+    abstract void handleAbortsAndStores();
 
-	abstract void handleActiveTuples();
+    abstract void handleDelete();
 
-	abstract void handleCrashes();
+    abstract void handleDeleteCluster();
 
-	abstract void handleAbortsAndStores();
+    abstract void handleDelayedMessages();
 
-	abstract void handleDelete();
-	
-	abstract void handleDeleteCluster();
+    abstract void callSatinFunction(InvocationRecord job);
 
-	abstract void handleDelayedMessages();
+    abstract boolean globalResultTableCheck(InvocationRecord r);
 
-	abstract void callSatinFunction(InvocationRecord job);
+    abstract void addToOutstandingJobList(InvocationRecord r);
 
-	abstract boolean globalResultTableCheck(InvocationRecord r);
+    abstract StatsMessage createStats();
 
-	abstract void addToOutstandingJobList(InvocationRecord r);
+    abstract void printStats();
 
-	abstract StatsMessage createStats();
+    abstract void printDetailedStats();
 
-	abstract void printStats();
+    abstract void barrier();
 
-	abstract void printDetailedStats();
+    abstract SendPort getReplyPortWait(IbisIdentifier id);
 
-	abstract void barrier();
+    abstract void addToExceptionList(InvocationRecord r);
 
-	abstract SendPort getReplyPortWait(IbisIdentifier id);
+    abstract void attachToParentFinished(InvocationRecord r);
 
-	abstract void addToExceptionList(InvocationRecord r);
-	
-	abstract void attachToParentFinished(InvocationRecord r);
-	
-	abstract void attachToParentToBeRestarted(InvocationRecord r);
-	
-	Timer createTimer() {
-		return Timer.createTimer();
-	}
+    abstract void attachToParentToBeRestarted(InvocationRecord r);
+
+    Timer createTimer() {
+	return Timer.createTimer();
+    }
 }

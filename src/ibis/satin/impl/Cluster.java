@@ -3,55 +3,55 @@ package ibis.satin.impl;
 import java.util.Vector;
 
 final class Cluster {
-	String name; //all references to a cluster's name are the same
+    String name; //all references to a cluster's name are the same
 
-	Vector victims;
+    Vector victims;
 
-	public Cluster(String name) {
-		this.name = name;
-		victims = new Vector();
+    public Cluster(String name) {
+	this.name = name;
+	victims = new Vector();
+    }
+
+    public Cluster(Victim v) {
+	this(v.ident.cluster());
+	victims.add(v);
+    }
+
+    public boolean equals(Object o) {
+	if (o == this) {
+	    return true;
+	} else if (o instanceof Cluster) {
+	    Cluster other = (Cluster) o;
+	    return other.name.equals(name);
+	} else {
+	    return false;
 	}
+    }
 
-	public Cluster(Victim v) {
-		this(v.ident.cluster());
-		victims.add(v);
+    public boolean equals(Cluster other) {
+	if (other == this) {
+	    return true;
 	}
+	return other.name.equals(name);
+    }
 
-	public boolean equals(Object o) {
-		if (o == this) {
-			return true;
-		} else if (o instanceof Cluster) {
-			Cluster other = (Cluster) o;
-			return other.name.equals(name);
-		} else {
-			return false;
-		}
-	}
+    public int hashCode() {
+	return name.hashCode();
+    }
 
-	public boolean equals(Cluster other) {
-		if (other == this) {
-			return true;
-		}
-		return other.name.equals(name);
-	}
+    public void add(Victim v) {
+	victims.add(v);
+    }
 
-	public int hashCode() {
-		return name.hashCode();
-	}
+    public boolean remove(Victim v) {
+	return victims.remove(v);
+    }
 
-	public void add(Victim v) {
-		victims.add(v);
-	}
+    public Victim get(int index) {
+	return (Victim) victims.get(index);
+    }
 
-	public boolean remove(Victim v) {
-		return victims.remove(v);
-	}
-
-	public Victim get(int index) {
-		return (Victim) victims.get(index);
-	}
-
-	public int size() {
-		return victims.size();
-	}
+    public int size() {
+	return victims.size();
+    }
 }

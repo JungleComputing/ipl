@@ -9,7 +9,6 @@ package ibis.satin;
  * because the "this" parameter is also sent across the network when work is
  * transferred.
  */
-
 public interface Spawnable extends java.io.Serializable {
-	// just a marker interface
+    // just a marker interface
 }

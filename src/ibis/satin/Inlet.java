@@ -7,11 +7,20 @@ package ibis.satin;
  */
 public class Inlet extends Throwable {
 
-	public Inlet() {
-		/* do nothing */
-	}
+    /**
+     * Constructs an <code>Inlet</code>.
+     */
+    public Inlet() {
+	/* do nothing */
+    }
 
-	public Throwable fillInStackTrace() {
-		return this;
-	}
+    /**
+     * Overrides the <code>fillInStackTrace</code> from <code>Throwable</code>.
+     * This version does not actually create a stack trace, which are useless
+     * for inlets which in Satin are usually used for returning results.
+     * @return this inlet.
+     */
+    public Throwable fillInStackTrace() {
+	return this;
+    }
 }

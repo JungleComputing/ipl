@@ -7,173 +7,173 @@ package ibis.satin.impl;
 // is this true???
 final class DEQueueDijkstra extends DEQueue implements Config {
 
-	private static final int START_SIZE = 5000;
+    private static final int START_SIZE = 5000;
 
-	private InvocationRecord[] l = new InvocationRecord[START_SIZE];
+    private InvocationRecord[] l = new InvocationRecord[START_SIZE];
 
-	private volatile int size = START_SIZE;
+    private volatile int size = START_SIZE;
 
-	private volatile int head;
+    private volatile int head;
 
-	private volatile int tail;
+    private volatile int tail;
 
-	private Satin satin;
+    private Satin satin;
 
-	DEQueueDijkstra(Satin satin) {
-		this.satin = satin;
+    DEQueueDijkstra(Satin satin) {
+	this.satin = satin;
+    }
+
+    int size() {
+	synchronized (satin) {
+	    return head - tail;
+	}
+    }
+
+    void addToHead(InvocationRecord r) {
+	if (head == size) {
+	    //			System.err.println("doubling DEq, new size = " + (size*2));
+
+	    synchronized (satin) {
+		size *= 2;
+		InvocationRecord[] nl = new InvocationRecord[size];
+		System.arraycopy(l, 0, nl, 0, l.length);
+		l = nl;
+	    }
 	}
 
-	int size() {
-		synchronized (satin) {
-			return head - tail;
-		}
-	}
+	l[head] = r;
+	head++;
+    }
 
-	void addToHead(InvocationRecord r) {
-		if (head == size) {
-			//			System.err.println("doubling DEq, new size = " + (size*2));
+    void addToTail(InvocationRecord r) {
+	throw new Error("Not implemented");
+    }
 
-			synchronized (satin) {
-				size *= 2;
-				InvocationRecord[] nl = new InvocationRecord[size];
-				System.arraycopy(l, 0, nl, 0, l.length);
-				l = nl;
-			}
-		}
-
-		l[head] = r;
-		head++;
-	}
-
-	void addToTail(InvocationRecord r) {
-		throw new Error("Not implemented");
-	}
-
-	InvocationRecord getFromHead() {
+    InvocationRecord getFromHead() {
+	head--;
+	if (head < tail) {
+	    head++;
+	    synchronized (satin) {
 		head--;
 		if (head < tail) {
-			head++;
-			synchronized (satin) {
-				head--;
-				if (head < tail) {
-					head++;
-					return null;
-				}
-			}
+		    head++;
+		    return null;
 		}
-
-		// success
-		return l[head];
+	    }
 	}
 
-	synchronized InvocationRecord getFromTail() {
-		tail++;
-		if (head < tail) {
-			tail--;
-			return null;
-		}
+	// success
+	return l[head];
+    }
 
-		return l[tail - 1];
+    synchronized InvocationRecord getFromTail() {
+	tail++;
+	if (head < tail) {
+	    tail--;
+	    return null;
 	}
 
-	boolean contains(InvocationRecord r) {
-		for (int i = tail; i < head; i++) {
-			InvocationRecord curr = l[i];
-			if (curr.equals(r))
-				return true;
-		}
+	return l[tail - 1];
+    }
 
-		return false;
+    boolean contains(InvocationRecord r) {
+	for (int i = tail; i < head; i++) {
+	    InvocationRecord curr = l[i];
+	    if (curr.equals(r))
+		return true;
 	}
 
-	void removeJob(int index) {
-		if (ASSERTS) {
-			SatinBase.assertLocked(satin);
-		}
+	return false;
+    }
 
-		for (int i = index + 1; i < head; i++) {
-			l[i - 1] = l[i];
-		}
-
-		head--;
+    void removeJob(int index) {
+	if (ASSERTS) {
+	    SatinBase.assertLocked(satin);
 	}
 
-	/* hold the satin lock here! */
-	void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
-		if (ASSERTS) {
-			SatinBase.assertLocked(satin);
-		}
-
-		for (int i = tail; i < head; i++) {
-			InvocationRecord curr = l[i];
-			if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
-				if (ABORT_DEBUG) {
-					System.err.println("found local child: " + curr.stamp
-							+ ", it depends on " + targetStamp);
-				}
-
-				curr.aborted = true;
-				if (ABORT_STATS) {
-					satin.abortedJobs++;
-				}
-				if (SPAWN_DEBUG) {
-					curr.spawnCounter.decr(curr);
-				}
-				else	curr.spawnCounter.value--;
-				if (ASSERTS && curr.spawnCounter.value < 0) {
-					System.err.println("Just made spawncounter < 0");
-					new Exception().printStackTrace();
-					System.exit(1);
-				}
-				removeJob(i);
-				i--;
-				//				head--;
-				//				l[i] = l[head];
-				//				i--;
-			}
-		}
+	for (int i = index + 1; i < head; i++) {
+	    l[i - 1] = l[i];
 	}
 
-	/**
-	 * Used for fault tolerance Aborts all the descendents of any job stolen
-	 * from the given (crashed) processor
-	 * 
-	 * @param owner
-	 *            identifier of the processor whose jobs (and their descendents)
-	 *            will be aborted
-	 */
+	head--;
+    }
 
-	//never used -- dijkstra queue doesnt work with fault tolerance
-	void killSubtreeOf(ibis.ipl.IbisIdentifier owner) {
-		if (ASSERTS) {
-			SatinBase.assertLocked(satin);
+    /* hold the satin lock here! */
+    void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
+	if (ASSERTS) {
+	    SatinBase.assertLocked(satin);
+	}
+
+	for (int i = tail; i < head; i++) {
+	    InvocationRecord curr = l[i];
+	    if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+		if (ABORT_DEBUG) {
+		    System.err.println("found local child: " + curr.stamp
+			    + ", it depends on " + targetStamp);
 		}
 
-		for (int i = tail; i < head; i++) {
-			InvocationRecord curr = l[i];
-			if (Aborts.isDescendentOf1(curr, owner) || curr.owner.equals(owner)) //shouldn
-			// happen
-			{
-
-				curr.aborted = true;
-				if (SPAWN_DEBUG) {
-					curr.spawnCounter.decr(curr);
-				}
-				else	curr.spawnCounter.value--;
-				if (ASSERTS && curr.spawnCounter.value < 0) {
-					System.out.println("Just made spawncounter < 0");
-					new Exception().printStackTrace();
-					System.exit(1);
-				}
-				removeJob(i);
-				i--;
-			}
+		curr.aborted = true;
+		if (ABORT_STATS) {
+		    satin.abortedJobs++;
 		}
+		if (SPAWN_DEBUG) {
+		    curr.spawnCounter.decr(curr);
+		}
+		else	curr.spawnCounter.value--;
+		if (ASSERTS && curr.spawnCounter.value < 0) {
+		    System.err.println("Just made spawncounter < 0");
+		    new Exception().printStackTrace();
+		    System.exit(1);
+		}
+		removeJob(i);
+		i--;
+		//				head--;
+		//				l[i] = l[head];
+		//				i--;
+	    }
 	}
-	
-	void print(java.io.PrintStream out) {
-		// TODO
+    }
+
+    /**
+     * Used for fault tolerance Aborts all the descendents of any job stolen
+     * from the given (crashed) processor
+     * 
+     * @param owner
+     *            identifier of the processor whose jobs (and their descendents)
+     *            will be aborted
+     */
+
+    //never used -- dijkstra queue doesnt work with fault tolerance
+    void killSubtreeOf(ibis.ipl.IbisIdentifier owner) {
+	if (ASSERTS) {
+	    SatinBase.assertLocked(satin);
 	}
+
+	for (int i = tail; i < head; i++) {
+	    InvocationRecord curr = l[i];
+	    if (Aborts.isDescendentOf1(curr, owner) || curr.owner.equals(owner)) //shouldn
+		// happen
+	    {
+
+		curr.aborted = true;
+		if (SPAWN_DEBUG) {
+		    curr.spawnCounter.decr(curr);
+		}
+		else	curr.spawnCounter.value--;
+		if (ASSERTS && curr.spawnCounter.value < 0) {
+		    System.out.println("Just made spawncounter < 0");
+		    new Exception().printStackTrace();
+		    System.exit(1);
+		}
+		removeJob(i);
+		i--;
+	    }
+	}
+    }
+
+    void print(java.io.PrintStream out) {
+	// TODO
+    }
 
 }
 

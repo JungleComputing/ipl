@@ -5,5 +5,5 @@ package ibis.satin.impl;
  * implementation of the Global Result Table
  */
 public class ParameterRecord implements java.io.Serializable {
-	//    public abstract String toString();
+    //    public abstract String toString();
 }
