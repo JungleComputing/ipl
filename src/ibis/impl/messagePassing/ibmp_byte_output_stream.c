@@ -205,7 +205,8 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
     outstandingFrags = (*env)->GetIntField(env,
 				    byte_output_stream,
 				    fld_outstandingFrags);
-    if (waitingInPoll && outstandingFrags == 0) {
+// fprintf(stderr, "waitingInPoll = %d, outstandingFrags = %d\n", waitingInPoll, outstandingFrags);
+    if (waitingInPoll && outstandingFrags == 1) {
 	(*env)->CallVoidMethod(env, byte_output_stream, md_finished_upcall);
     } else {
 	(*env)->SetIntField(env,
@@ -580,6 +581,16 @@ void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array(
 	b = (*env)->NewGlobalRef(env, b); \
     } \
     a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
+if (0 && sizeof(jtype) == sizeof(double)) { \
+int i; \
+int *p = (int *) a; \
+fprintf(stderr, "Write Data = ["); \
+for (i = 0; i < len; i++) { \
+fprintf(stderr, "0x%x ", *p++); \
+fprintf(stderr, "0x%x\n", *p++); \
+} \
+fprintf(stderr, "]\n");\
+} \
     if (msg->copy) { \
 	ibmp_lock(env); \
 	iovec_grow(env, msg, 1); \
