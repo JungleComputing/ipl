@@ -70,8 +70,8 @@ while ( <> ) {
 }
 
 $marker = "--------------------------------------------------------------------\n";
-printf("%-8s %-8s %-24s %12s %12s\n",
-    "Ser", "Datatype", "Ibis", "max(MB/s)", "average(MB/s)");
+printf("%4s %-8s %-8s %-24s %12s %12s\n",
+    "N", "Ser", "Datatype", "Ibis", "max(MB/s)", "average(MB/s)");
 print $marker;
 foreach ( @ibises ) {
     $ibis = $_;
@@ -81,8 +81,8 @@ foreach ( @ibises ) {
 	    $datatype = $_;
 	    $ix = $ibis . "/" . $ser . "/" . $datatype;
 	    if ( $n { $ix } > 0) {
-		printf("%-8s %-8s %-24s %12.2f %12.2f\n",
-		    "$ser", "$datatype", "$ibis",
+		printf("%4d %-8s %-8s %-24s %12.2f %12.2f\n",
+		    $n { $ix }, "$ser", "$datatype", "$ibis",
 		    $max_thrp{ $ix },
 		    $average{ $ix } / $n { $ix });
 	    }

@@ -46,7 +46,8 @@ while ( <> ) {
 }
 
 $marker = "---------------------------------------------------------------------\n";
-printf("%4s %-30s %-8s %12s %12s\n", "N", "Ibis", "Ser", "min(us)", "average(us)");
+printf("%4s %-30s %-8s %12s %12s\n",
+	"N", "Ibis", "Ser", "min(us)", "average(us)");
 print $marker;
 foreach ( @ibises ) {
     $ibis = $_;
