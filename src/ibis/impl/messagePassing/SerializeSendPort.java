@@ -84,8 +84,13 @@ public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 		((SerializeWriteMessage)message).obj_out = obj_out;
 	    }
 	    obj_out.flush();
-	    out.send(true);
-	    out.finish();
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	    try {
+		out.send(true);
+		out.reset(true);
+	    } finally {
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	    }
 	} catch (java.io.IOException e) {
 	    throw new IbisIOException(e);
 	}

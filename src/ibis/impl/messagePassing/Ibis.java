@@ -128,6 +128,11 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
     }
 
 
+    static void dumpStack() {
+	new Throwable().printStackTrace();
+    }
+
+
     protected void init() throws IbisException, IbisIOException {
 
 	if (myIbis != null) {

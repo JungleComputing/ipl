@@ -10,6 +10,7 @@ void ibmp_lock(JNIEnv *env);
 void ibmp_unlock(JNIEnv *env);
 char *ibmp_currentThread(JNIEnv *env);
 void ibmp_dumpStack(JNIEnv *env);
+void ibmp_dumpStackFromNative(void);
 
 void ibmp_lock_check_owned(JNIEnv *env);
 void ibmp_lock_check_not_owned(JNIEnv *env);
@@ -40,14 +41,18 @@ int ibmp_stderr_printf(char *fmt, ...);
 extern JNIEnv	       *ibmp_JNIEnv;
 
 #ifndef NDEBUG
+extern pan_key_p	ibmp_env_key;
 #define ibmp_set_JNIEnv(env) \
 	{ \
 	    JNIEnv *old_env = ibmp_JNIEnv; \
+	    pan_key_setspecific(ibmp_env_key, env); \
 	    ibmp_JNIEnv = (env);
 #define ibmp_unset_JNIEnv() \
 	    ibmp_JNIEnv = old_env; \
 	}
+#define ibmp_get_JNIEnv()	pan_key_getspecific(ibmp_env_key)
 #else
+#define ibmp_get_JNIEnv()	(ibmp_JNIEnv)
 #define ibmp_set_JNIEnv(env)	do ibmp_JNIEnv = (env); while (0)
 #define ibmp_unset_JNIEnv()
 #endif

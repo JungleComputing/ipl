@@ -17,6 +17,10 @@
 
 JNIEnv  *ibmp_JNIEnv = NULL;
 
+#ifndef NDEBUG
+pan_key_p		ibmp_env_key;
+#endif
+
 
 static jclass		cls_Thread;
 static jmethodID	md_yield;
@@ -91,7 +95,16 @@ ibmp_currentThread(JNIEnv *env)
 void
 ibmp_dumpStack(JNIEnv *env)
 {
-    (*env)->CallStaticVoidMethod(env, cls_Thread, md_dumpStack);
+    // (*env)->CallStaticVoidMethod(env, cls_Thread, md_dumpStack);
+    (*env)->CallStaticVoidMethod(env, ibmp_cls_Ibis, md_dumpStack);
+}
+
+
+void
+ibmp_dumpStackFromNative(void)
+{
+    fprintf(stderr, "Dump Java stack trace, ibmp_JNIEnv = %p\n", ibmp_get_JNIEnv());
+    ibmp_dumpStack(ibmp_get_JNIEnv());
 }
 
 
@@ -223,6 +236,7 @@ ibmp_init(JNIEnv *env, jobject this)
     }
 
     md_dumpStack   = (*env)->GetStaticMethodID(env, cls_Thread, "dumpStack", "()V");
+    // md_dumpStack   = (*env)->GetStaticMethodID(env, ibmp_cls_Ibis, "dumpStack", "()V");
     if (md_dumpStack == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static method dumpStack()V\n", __FILE__, __LINE__);
 	abort();
@@ -234,6 +248,7 @@ ibmp_init(JNIEnv *env, jobject this)
 	abort();
     }
     ibmp_cls_Ibis = (jclass)(*env)->NewGlobalRef(env, (jobject)ibmp_cls_Ibis);
+fprintf(stderr, "%s.%d: ibmp_cls_Ibis = %p\n", __FILE__, __LINE__, ibmp_cls_Ibis);
 
     fld_Ibis_ibis = (*env)->GetStaticFieldID(env, ibmp_cls_Ibis, "myIbis", "Libis/ipl/impl/messagePassing/Ibis;");
     if (fld_Ibis_ibis == NULL) {
@@ -280,6 +295,10 @@ ibmp_init(JNIEnv *env, jobject this)
     IBP_VPRINTF(2000, env, ("here..\n"));
     ibmp_send_port_init(env);
     IBP_VPRINTF(2000, env, ("here..\n"));
+
+#ifndef NDEBUG
+    ibmp_env_key = pan_key_create();
+#endif
 }
 
 

@@ -209,7 +209,6 @@ public abstract class ByteOutputStream
 
     public abstract void close();
 
-
     public void flush() {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; msgHandle 0x" + Integer.toHexString(msgHandle));

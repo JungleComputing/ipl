@@ -186,7 +186,7 @@ ibp_pan_init(void)
 	fprintf(stderr, "HOSTS env var does not exist: use prun\n");
 	exit(-6);
     }
-    hosts = pan_strdup(orig_hosts);
+    hosts = strdup(orig_hosts);
 
     fs_nhosts = 0;
     name = strtok(hosts, " \t");
@@ -196,8 +196,8 @@ ibp_pan_init(void)
 	fs_nhosts++;
 	name = strtok(NULL, " \t");
     }
-    pan_free(hosts);
-    fs_host_inet = pan_malloc(fs_nhosts * sizeof(struct in_addr));
+    free(hosts);
+    fs_host_inet = malloc(fs_nhosts * sizeof(struct in_addr));
     for (i = 0; i < fs_nhosts; i++) {
 	h = gethostbyname(fs_host[i]);
 	if (h == NULL) {
@@ -249,7 +249,7 @@ ibp_pan_init(void)
     sprintf(myproc, "%d", me);
     sprintf(nprocs, "%d", fs_nhosts);
 
-    pan_free(fs_host_inet);
+    free(fs_host_inet);
 
     pan_init(&argc, argv);
 }
@@ -263,19 +263,20 @@ Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_ibmp_1init(JNIEnv *env, jobjec
 
     ibmp_init(env, this);
     IBP_VPRINTF(2000, env, ("here...\n"));
+fprintf(stderr, "%s.%d: ibmp_cls_Ibis = %p\n", __FILE__, __LINE__, ibmp_cls_Ibis);
 
     ibp_mp_init(env);
     IBP_VPRINTF(2000, env, ("here...\n"));
 
     fld_PandaIbis_nrCpus = (*env)->GetFieldID(env, ibmp_cls_Ibis, "nrCpus", "I");
     if (fld_PandaIbis_nrCpus == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field nrCpus:I\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find field nrCpus:I\n", __FILE__, __LINE__);
 	abort();
     }
     IBP_VPRINTF(2000, env, ("here...\n"));
     fld_PandaIbis_myCpu  = (*env)->GetFieldID(env, ibmp_cls_Ibis, "myCpu", "I");
     if (fld_PandaIbis_myCpu == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field myCpu:I\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find field myCpu:I\n", __FILE__, __LINE__);
 	abort();
     }
     IBP_VPRINTF(2000, env, ("here...\n"));

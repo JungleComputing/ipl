@@ -96,6 +96,7 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
     ibp_upcall_done = 1;	/* Keep polling */
     if (! ibp_upcall[hdr->port](ibmp_JNIEnv, msg, proto)) {
 	IBP_VPRINTF(50, ibmp_JNIEnv, ("clear panda msg %p\n", msg));
+	ibmp_lock_check_owned(ibmp_JNIEnv);
 	pan_msg_clear(msg);
     }
 }
@@ -106,6 +107,7 @@ ibp_mp_poll(JNIEnv *env)
 {
     //fprintf(stderr, "ibp_mp-poll\n");
 
+    ibmp_lock_check_owned(env);
     ibmp_set_JNIEnv(env);
     do {
 	ibp_upcall_done = 0;
@@ -121,7 +123,7 @@ ibp_mp_port_register(int (*upcall)(JNIEnv *, pan_msg_p, void *))
     int		port = ibp_n_upcall;
 
     ibp_n_upcall++;
-    ibp_upcall = pan_realloc(ibp_upcall, ibp_n_upcall * sizeof(*ibp_upcall));
+    ibp_upcall = realloc(ibp_upcall, ibp_n_upcall * sizeof(*ibp_upcall));
     ibp_upcall[port] = upcall;
 
     return port;
@@ -200,8 +202,9 @@ ibp_mp_init(JNIEnv *env)
     IBP_VPRINTF(2000, env, ("here...\n"));
 
 #ifdef IBP_VERBOSE
-    mp_upcalls = pan_calloc(pan_nr_processes(), sizeof(*mp_upcalls));
-    mp_sends = pan_calloc(pan_nr_processes(), sizeof(*mp_sends));
+    // ibmp_lock_check_owned(env);
+    mp_upcalls = calloc(pan_nr_processes(), sizeof(*mp_upcalls));
+    mp_sends = calloc(pan_nr_processes(), sizeof(*mp_sends));
 #endif
 }
 
