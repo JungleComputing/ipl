@@ -22,23 +22,20 @@ final class TranspositionTable {
 	static final byte UPPER_BOUND = 2;
 	static final byte EXACT_BOUND = 3;
 
-	long[] tags = new long[SIZE]; // index bits are redundant...
-	short[] values = new short[SIZE];
-	short[] bestChildren = new short[SIZE];
-	byte[] depths = new byte[SIZE];
-	boolean[] lowerBounds = new boolean[SIZE];
-
-	int bufCount = 0;
-	int[] bufindex = new int[BUF_SIZE];
-	long[] buftags = new long[BUF_SIZE]; // index bits are redundant...
-	short[] bufvalues = new short[BUF_SIZE];
-	short[] bufbestChildren = new short[BUF_SIZE];
-	byte[] bufdepths = new byte[BUF_SIZE];
-	boolean[] buflowerBounds = new boolean[BUF_SIZE];
-
 	PoolInfo info;
 	int rank;
 	int poolSize;
+
+    class TTShutdownHook extends Thread {
+	public void run() {
+	    System.err.println("tt: lookups: " + lookups + ", hits: " + hits + ", sorts: " + sorts +
+			       ", stores: " + stores + ", overwrites: " + overwrites + 
+			       ", score incs: " + scoreImprovements + 
+			       ", bcasts: " + bcasts + ", cutoffs: " + cutOffs + ", visited: " + visited);
+	    System.err.println("Transposition table size was " + TT_BITS + " bits = " + SIZE + " entries");
+	    System.err.println("Replicated depth >= " + REPLICATED_DEPTH);
+	}
+    }
 
 	TranspositionTable() {
 		Random random = new Random();
@@ -53,7 +50,7 @@ final class TranspositionTable {
 		rank = info.rank();
 		poolSize = info.size();
 
-		System.err.println(rank + ": TT created");
+		Runtime.getRuntime().addShutdownHook(new TTShutdownHook());
 	}
 
 	synchronized TTEntry lookup(long signature) {
@@ -88,14 +85,5 @@ final class TranspositionTable {
 		    TTEntry val = new TTEntry(tag, value, bestChild, depth, lowerBound);
 		    SatinTupleSpace.add(key, val);
 		}
-	}
-
-	protected void finalize() throws Throwable {
-		System.err.println("tt: lookups: " + lookups + ", hits: " + hits + ", sorts: " + sorts +
-				   ", stores: " + stores + ", overwrites: " + overwrites + 
-				   ", score incs: " + scoreImprovements + 
-				   ", bcasts: " + bcasts + ", cutoffs: " + cutOffs + ", visited: " + visited);
-		System.err.println("Transposition table size was " + TT_BITS + " bits = " + SIZE + " entries");
-		System.err.println("Replicated depth >= " + REPLICATED_DEPTH);
 	}
 }
