@@ -28,6 +28,23 @@ def sort1( text, indices, offset ):
                 c = offset+1
     return (res, comm)
 
+def isAcceptable1( indices, offset ):
+    """ Determine whether the given range of indices is useful for the
+    non-overlapping repeat we're searching. Too short or only overlapping
+    repeats cause a reject. """
+    if len( indices )<2:
+        return 0
+    for ix in range( len(indices) ):
+        for iy in range( ix+1, len( indices ) ):
+            if (indices[ix]+offset)<=indices[iy]:
+                return 1
+    return 0
+
+def isAcceptable( indices, offset ):
+    res = isAcceptable1( indices, offset )
+    print "offset:", offset, "indices:", indices, "res:", res
+    return res
+
 def sort( text ):
     """ Returns the fully sorted text."""
     (indices,comm) = sort1( text, range( len( text ) ), 0 )
@@ -37,31 +54,33 @@ def sort( text ):
         comm1 = []
         ix = 0
         offset += 1
+        acceptable = 0
         while ix<len( indices ):
             start = ix
             ix = ix+1
             while ix<len( indices ) and comm[ix] == offset:
                 ix = ix+1
             (i1,c1) = sort1( text, indices[start:ix], offset )
-            if len( c1 ) != 0:
+            if isAcceptable( i1, offset ):
+                acceptable = 1
                 c1[0] = comm[start]
-            indices1 += i1
-            comm1 += c1
-        if len( indices1 ) <2:
+                indices1 += i1
+                comm1 += c1
+        if acceptable == 0:
             break
         indices = indices1
         comm = comm1
-    return( indices, comm )
+    return( offset-1, indices, comm )
 
 def sort2( text ):
     l = range( len( text ) )
     return sort1( text, l, 0 )
 
-#text = [0, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2]
-text = 10*[0, 1, 2]
+text = [0, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2]
+#text = 10*[0, 1, 2]
 #(ix,comm) = sort2( text )
-(ix,comm) = sort( text )
+(offset,ix,comm) = sort( text )
 
-print "Commonality:", comm
-for i in ix:
-    print "%s: %s" % (i, text[i:])
+print "offset:", offset, "commonality:", comm
+for i in range( len( ix ) ):
+    print "[%2d] %2d: %s" % (comm[i], ix[i], text[ix[i]:])
