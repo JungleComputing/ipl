@@ -196,6 +196,9 @@ class OpenCell1D implements OpenConfig {
     static int requestedByLeft[] = null;
     static int requestedByRight[] = null;
 
+    static int previous_lsteal = -1;
+    static int previous_rsteal = -1;
+
     private static void usage()
     {
         System.out.println( "Usage: OpenCell1D [-size <int>] [count]" );
@@ -788,29 +791,33 @@ class OpenCell1D implements OpenConfig {
 
     private static void evaluateStealRequests( Problem p, int lsteal, int rsteal )
     {
-        if( aimFirstColumn == p.firstColumn && aimFirstNoColumn == p.firstNoColumn ){
-            int weight = 10;
-
-            // Everything is stable, honour steal requests.
-            for( int i=0; i<60; i++ ){
-                if( lsteal>0 ){
-                    if( aimFirstColumn+minLoad<aimFirstNoColumn ){
-                        aimFirstColumn++;
-                    }
-                    lsteal -= weight;
-                }
-                if( rsteal>0 ){
-                    if( aimFirstColumn+minLoad<aimFirstNoColumn ){
-                        aimFirstNoColumn--;
-                    }
-                    rsteal -= weight;
-                }
-                if( lsteal<=0 && rsteal<=0 ){
-                    break;
-                }
-                weight += weight;
-            }
+        if( aimFirstColumn != p.firstColumn && aimFirstNoColumn != p.firstNoColumn ){
+            previous_lsteal = -1;
+            previous_rsteal = -1;
+            return;
         }
+        int left = Math.min( previous_lsteal, lsteal );
+        int right = Math.min( previous_rsteal, rsteal );
+        double dampen = 0.3;
+
+        if( left>=right && left>0 ){
+            // The left neighbour needs columns the most, send them.
+            aimFirstColumn += (int) (dampen*left);
+            if( aimFirstColumn+minLoad<aimFirstNoColumn ){
+                aimFirstColumn = aimFirstNoColumn-minLoad;
+            }
+            lsteal = -1;        // Prevent a second work steal next cycle.
+        }
+        else if( right>0 ){
+            aimFirstNoColumn -= (int) (dampen*right
+            if( aimFirstColumn+minLoad<aimFirstNoColumn ){
+                aimFirstNoColumn = aimFirstColumn+minLoad;
+            }
+            rsteal = -1;        // Prevent a second work steal next cycle.
+        }
+
+        previous_lsteal = lsteal;
+        previous_rsteal = rsteal;
     }
 
     public static void main( String [] args )
