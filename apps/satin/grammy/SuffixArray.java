@@ -21,14 +21,14 @@ public class SuffixArray implements Configuration, Magic {
      */
     int commonality[];
 
-    private short[] buildShortArray( byte text[] )
+    private static short[] buildShortArray( byte text[] )
     {
-        length = text.length;
-        short arr[] = new short[length];
+        short arr[] = new short[text.length+1];
 
-        for( int i=0; i<length; i++ ){
+        for( int i=0; i<text.length; i++ ){
             arr[i] = (short) text[i];
         }
+        arr[text.length] = STOP;
         return arr;
     }
 
@@ -36,7 +36,7 @@ public class SuffixArray implements Configuration, Magic {
     private int commonLength( int i0, int i1 )
     {
 	int n = 0;
-	while( (i0<length) && (i1<length) && (text[i0] == text[i1]) ){
+	while( (text[i0] == text[i1]) && (text[i0] != STOP) ){
 	    i0++;
 	    i1++;
 	    n++;
@@ -48,11 +48,11 @@ public class SuffixArray implements Configuration, Magic {
     private boolean areCorrectlyOrdered( int i0, int i1 )
     {
         int n = commonLength( i0, i1 );
-	if( i0+n>=length ){
+	if( text[i0+n] == STOP ){
 	    // The sortest string is first, this is as it should be.
 	    return true;
 	}
-	if( i1+n>=length ){
+	if( text[i1+n] == STOP ){
 	    // The sortest string is last, this is not good.
 	    return false;
 	}
@@ -82,7 +82,7 @@ public class SuffixArray implements Configuration, Magic {
 		else {
 		    commonality[i] = Math.min( l, i0-i1 );
 		}
-		if( (i0+l>=length) || (i1+l<length && (text[i0+l]<text[i1+l])) ){
+		if( areCorrectlyOrdered( i0+l, i1+l ) ){
 		    // Things are sorted, or we're at the start of the array,
 		    // take a step forward.
 		    i++;
@@ -121,6 +121,7 @@ public class SuffixArray implements Configuration, Magic {
 
     SuffixArray( byte t[] ) throws VerificationException
     {
+        length = t.length;
         text = buildShortArray( t );
 
         buildArray();
@@ -218,53 +219,16 @@ public class SuffixArray implements Configuration, Magic {
      * the given length, with the given code. Also updates part of the
      * administration, but does NOT leave the adminstration in sorted order.
      */
-    private int replace( int pos, int len, short code )
+    private void replace( int pos, int len, short code, boolean deleted[] )
     {
         int ix = indices[pos];
 
-        // Move down all text behind the replaced string, and put in the
-        // code.
-        System.arraycopy( text, ix+len, text, ix+1, length-(ix+len) );
         text[ix] = code;
 
-        // Now update the suffix array.
-        for( int i=0; i<length; i++ ){
-            int iy = indices[i];
-
-            if( iy>ix ){
-                // This position is affected by the replacement, ajust it.
-                iy -= (len-1);
-                if( iy<=ix ){
-                    // This position is in the replaced string, mark it
-                    // as obsolete.
-                    iy = -1;
-                }
-                indices[i] = iy;
-            }
+        for( int i=1; i<len; i++ ){
+            // TODO: make sure there is no overlap.
+            deleted[ix+i] = true;
         }
-
-        // Now compact the indices and commonality arrays.
-        int j = 0;      // Index of the next clean entry.
-        for( int i=0; i<length; i++ ){
-            if( indices[i]>= 0 ){
-                // Copy this valid entry.
-                // Note that before the first deleted entry is encountered,
-                // we copy the entry onto itself. This is harmless.
-                indices[j] = indices[i];
-                commonality[j] =  commonality[i];
-                if( i == pos ){
-                    pos = j;
-                }
-                j++;
-            }
-        }
-
-        length -= (len-1);
-
-        // The suffix array is still not in the correct order, because
-        // we haven't ajusted the length  of the commonality. However,
-        // this will be corrected by the sorting pass we'll have to do anyway.
-        return pos;
     }
 
     /** Given an entry in the suffix array, creates a new grammar rule
@@ -278,33 +242,41 @@ public class SuffixArray implements Configuration, Magic {
         short t[] = new short[len];
         System.arraycopy( text, indices[pos], t, 0, len );
 
-        // Count the number of repeats.
-        int repeats = 2;
-        int i = pos+1;
-        while( i<length && commonality[i] == len ){
-            repeats++;
-            i++;
-        }
+        boolean deleted[] = new boolean[length];
+
         // Now assign a new variable and replace all occurences.
         short variable = nextcode++;
-        pos = 1+replace( pos-1, len, variable );
-        repeats--;
-        while( repeats>0 ){
-            pos = 1+replace( pos, len, variable );
-            repeats--;
+
+        replace( pos-1, len, variable, deleted );
+        int i = pos;
+        while( i<length && commonality[i] == len ){
+            replace( i, len, variable, deleted );
+            i++;
         }
 
+        int j = 0;
+        for( i=0; i<length; i++ ){
+            if( !deleted[i] ){
+                // Before the first deleted character this copies the
+                // character onto itself. This is harmless.
+                text[j++] = text[i];
+            }
+        }
+        length = j;
+
         // Separate the previous stuff from the grammar rule that follows.
-        indices[length] = length;
         text[length++] = STOP;
 
         // Add the new grammar rule.
         System.arraycopy( t, 0, text, length, len );
-        for( i=0; i<len; i++ ){
-            indices[length+i] = length+i;
-        }
         length += len;
+        text[length] = STOP;
 
+        // Re-initialize the indices array, and sort it again.
+        // TODO: do this in a more subtle manner.
+        for( i=0; i<length; i++ ){
+            indices[i] = i;
+        }
         sort();
     }
 
