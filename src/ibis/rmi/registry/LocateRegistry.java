@@ -9,6 +9,9 @@ import ibis.rmi.impl.RTS;
  */
 public final class LocateRegistry
 {
+    /**
+     * Private constructor prevents construction from outside.
+     */
     private LocateRegistry() {
         // prevent construction
     }

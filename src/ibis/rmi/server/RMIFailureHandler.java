@@ -9,6 +9,10 @@ package ibis.rmi.server;
  */
 public interface RMIFailureHandler {
 
+    /**
+     * No failure handler in Ibis RMI, but the socket factory requires
+     * this.
+     */
     public boolean failure(Exception e);
 
 }
