@@ -2366,7 +2366,7 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     __in__(); \
     VPRINTF(100, ("Post rendez-vous %s buffer size %d offset %d bytes\n", #Jtype, len, offset)); \
     if (get_region) { \
-	buffer = cache_msg_get(p_port->p_gm_port, data_size, offset); \
+	buffer = cache_msg_get(p_port->p_gm_port, data_size, offset / sizeof(jtype)); \
 	offset = 0; \
     } else { \
 	buffer = (*env)->Get ## Jtype ## ArrayElements(env, b, NULL); \
@@ -3572,7 +3572,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
     p_out->java.jarray	= (jtype ## Array)(*env)->NewGlobalRef(env, b); \
     \
     if (get_region) { \
-	buffer = cache_msg_get(p_out->p_port->p_gm_port, length, offset); \
+	buffer = cache_msg_get(p_out->p_port->p_gm_port, length, offset / sizeof(jtype)); \
 	(*env)->Get ## Jtype ## ArrayRegion(env, b, offset / sizeof(jtype), \
 					    length / sizeof(jtype), buffer); \
 	offset = 0; \
