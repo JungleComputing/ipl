@@ -29,15 +29,14 @@ import java.util.Vector;
 public class NameServer extends Thread implements Protocol {
 
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 
-	TypedProperties.intProperty(NSProps.s_port, 9826);
-    private static final int BUF_SIZE = 1024;
-
+	    TypedProperties.intProperty(NSProps.s_port, 9826);
     static final boolean DEBUG =
-	TypedProperties.booleanProperty(NSProps.s_debug);
+	    TypedProperties.booleanProperty(NSProps.s_debug);
     static final boolean VERBOSE =
-	TypedProperties.booleanProperty(NSProps.s_verbose);
+	    TypedProperties.booleanProperty(NSProps.s_verbose);
 
-    static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout, 300) * 1000;	// Property is in seconds, convert to milliseconds.
+    static int PINGER_TIMEOUT =
+	    TypedProperties.intProperty(NSProps.s_timeout, 300) * 1000;	// Property is in seconds, convert to milliseconds.
 
     InetAddress myAddress;
 
@@ -190,7 +189,7 @@ public class NameServer extends Thread implements Protocol {
 	    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /* do not retry */);
 
 	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d));
 	    out2.writeByte(IBIS_JOIN);
 	    out2.writeObject(id);
 	    NameServerClient.socketFactory.close(null, out2, s);
@@ -206,52 +205,89 @@ public class NameServer extends Thread implements Protocol {
 
     }
 
+    private boolean doPing(IbisInfo dest, String key) {
+	try {
+	    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
+		    dest.ibisNameServerport, null, -1 /* do not retry */);
+
+	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d));
+	    out2.writeByte(IBIS_PING);
+	    out2.flush();
+	    DummyInputStream i = new DummyInputStream(s.getInputStream());
+	    DataInputStream in2 = new DataInputStream(new BufferedInputStream(i));
+	    String k = in2.readUTF();
+	    NameServerClient.socketFactory.close(in2, out2, s);
+	    if (! k.equals(key)) {
+		return false;
+	    }
+	} catch (Exception e) {
+	    return false;
+	}
+	return true;
+    }
+
+    private void checkPool(RunInfo p, IbisIdentifier victim, String key) {
+
+	Vector deadIbises = new Vector();
+	if (victim != null) {
+	    deadIbises.add(victim);
+	}
+
+	for (int i=0;i<p.pool.size();i++) { 
+	    IbisInfo temp = (IbisInfo) p.pool.get(i);
+	    if (victim != null && temp.identifier.equals(victim)) {
+		continue;
+	    }
+	    if (doPing(temp, key)) {
+		continue;
+	    }
+	    deadIbises.add(temp);
+	}
+
+	if (deadIbises.size() != 0) {
+
+	    // Remove the dead ones from the pool.
+	    p.pool.removeAll(deadIbises);
+
+	    // Put the dead ones in an array.
+	    IbisIdentifier[] ids = new IbisIdentifier[deadIbises.size()];
+	    for (int j = 0; j < ids.length; j++) {
+		IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
+		ids[j] = temp2.identifier;
+	    }
+
+	    // Pass the dead ones on to the election server ...
+	    try {
+		electionKill(p, ids);
+	    } catch(IOException e) {
+		// ignored
+	    }
+
+	    // ... and to all other ibis instances in this pool.
+	    for (int i=0; i<p.pool.size(); i++) { 
+		forwardDead((IbisInfo) p.pool.get(i), ids);
+	    }
+	}
+
+	p.pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
+
+	if (p.pool.size() == 0) {
+	    pools.remove(key);
+	    String date = Calendar.getInstance().getTime().toString();
+	    System.out.println(date + " pool " + key + " seems to be dead.");
+	    killThreads(p);
+	}
+    }
+
     private void handleIbisIsalive(boolean kill) throws IOException, ClassNotFoundException {
 	String key = in.readUTF();
 	IbisIdentifier id = (IbisIdentifier) in.readObject();
 
 	RunInfo p = (RunInfo) pools.get(key);
 	if (p != null) {
-	    for (int i=0;i<p.pool.size();i++) { 
-		IbisInfo temp = (IbisInfo) p.pool.get(i);
-		if (temp.identifier.equals(id)) {
-		    if (! kill && doPing(temp, key)) {
-			// Its alive ...
-			return;
-		    }
-		}
-		// We found it, but it appears to be dead.
-		// Make a list of Ibis instances in this pool that seem to be dead.
-		Vector deadIbises = new Vector();
-		deadIbises.add(temp);
-		for (int j=0; j < p.pool.size(); j++) {
-		    IbisInfo temp2 = (IbisInfo) p.pool.get(j);
-		    if (! temp2.identifier.equals(id) &&
-			    ! doPing(temp2, key)) {
-			deadIbises.add(temp2);
-			    }
-		}
+	    checkPool(p, kill ? id : null, key);
 
-		// Remove the dead ones from the pool.
-		p.pool.removeAll(deadIbises);
-
-		// Put the dead ones in an array.
-		IbisIdentifier[] ids = new IbisIdentifier[deadIbises.size()];
-		for (int j = 0; j < ids.length; j++) {
-		    IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
-		    ids[j] = temp2.identifier;
-		}
-
-		// Pass the dead ones on to the election server ...
-		electionKill(p, ids);
-
-		// ... and to all other ibis instances in this pool.
-		for (int j=0; j<p.pool.size(); j++) { 
-		    forwardDead((IbisInfo) p.pool.get(i), ids);
-		}
-
-		break;
-	    }
 	}
     }
 
@@ -261,7 +297,7 @@ public class NameServer extends Thread implements Protocol {
 		    dest.ibisNameServerport, null, -1 /* do not retry */);
 
 	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d));
 	    out2.writeByte(IBIS_DEAD);
 	    out2.writeObject(ids);
 	    NameServerClient.socketFactory.close(null, out2, s);
@@ -364,24 +400,7 @@ public class NameServer extends Thread implements Protocol {
 	    return;
 	}
 
-	for (int i=0;i<p.pool.size();i++) { 
-	    IbisInfo temp = (IbisInfo) p.pool.get(i);
-	    if (doPing(temp, key)) {
-		// Pool is still alive. Reset its ping-limit.
-		p.pingLimit = t + PINGER_TIMEOUT;
-		return;
-	    }
-	}
-
-	// Pool is dead.
-	pools.remove(key);
-	try {
-	    String date = Calendar.getInstance().getTime().toString();
-	    System.out.println(date + " pool " + key + " seems to be dead.");
-	    killThreads(p);
-	} catch(IOException e) {
-	    // do nothing, killThreads failed.
-	}
+	checkPool(p, null, key);
     }	
 
     /**
@@ -395,28 +414,6 @@ public class NameServer extends Thread implements Protocol {
 	}
     }
 
-    private boolean doPing(IbisInfo dest, String key) {
-	try {
-	    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
-		    dest.ibisNameServerport, null, -1 /* do not retry */);
-
-	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d));
-	    out2.writeByte(IBIS_PING);
-	    out2.flush();
-	    DummyInputStream i = new DummyInputStream(s.getInputStream());
-	    DataInputStream in2 = new DataInputStream(new BufferedInputStream(i));
-	    String k = in2.readUTF();
-	    NameServerClient.socketFactory.close(in2, out2, s);
-	    if (! k.equals(key)) {
-		return false;
-	    }
-	} catch (Exception e) {
-	    return false;
-	}
-	return true;
-    }
-
     private void forwardLeave(IbisInfo dest, IbisIdentifier id) {
 	if (DEBUG) { 
 	    System.err.println("NameServer: forwarding leave of " + 
@@ -428,7 +425,7 @@ public class NameServer extends Thread implements Protocol {
 		    dest.ibisNameServerport, null, -1 /* do not retry */);
 
 	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d));
 	    out2.writeByte(IBIS_LEAVE);
 	    out2.writeObject(id);
 	    NameServerClient.socketFactory.close(null, out2, s);
@@ -440,29 +437,39 @@ public class NameServer extends Thread implements Protocol {
 	}
     }
 
-    private void killThreads(RunInfo p) throws IOException {
-	Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
-		p.portTypeNameServer.getPort(), null, 0 /* retry */);
-	DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+    private void killThreads(RunInfo p) {
+	try {
+	    Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
+		    p.portTypeNameServer.getPort(), null, -1 /* do not retry */);
+	    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+	    DataOutputStream out1 = new DataOutputStream(new BufferedOutputStream(d));
+	    out1.writeByte(PORTTYPE_EXIT);
+	    NameServerClient.socketFactory.close(null, out1, s);
+	} catch(IOException e) {
+	    // Ignore.
+	}
 
-	DataOutputStream out1 = new DataOutputStream(new BufferedOutputStream(d, BUF_SIZE));
-	out1.writeByte(PORTTYPE_EXIT);
-	NameServerClient.socketFactory.close(null, out1, s);
+	try {
+	    Socket s2 = NameServerClient.socketFactory.createSocket(myAddress, 
+		    p.receivePortNameServer.getPort(), null, -1 /* do not retry */);
+	    DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
+	    ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2));
+	    out2.writeByte(PORT_EXIT);
+	    NameServerClient.socketFactory.close(null, out2, s2);
+	} catch(IOException e) {
+	    // ignore
+	}
 
-	Socket s2 = NameServerClient.socketFactory.createSocket(myAddress, 
-		p.receivePortNameServer.getPort(), null, 0 /* retry */);
-	DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
-
-	ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2, BUF_SIZE));
-	out2.writeByte(PORT_EXIT);
-	NameServerClient.socketFactory.close(null, out2, s2);
-
-	Socket s3 = NameServerClient.socketFactory.createSocket(myAddress, 
-		p.electionServer.getPort(), null, 0 /* retry */);
-	DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
-	ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3, BUF_SIZE));
-	out3.writeByte(ELECTION_EXIT);
-	NameServerClient.socketFactory.close(null, out3, s3);
+	try {
+	    Socket s3 = NameServerClient.socketFactory.createSocket(myAddress, 
+		    p.electionServer.getPort(), null, -1 /* do not retry */);
+	    DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
+	    ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3));
+	    out3.writeByte(ELECTION_EXIT);
+	    NameServerClient.socketFactory.close(null, out3, s3);
+	} catch(IOException e) {
+	    // ignore
+	}
     }
 
     /**
@@ -476,7 +483,7 @@ public class NameServer extends Thread implements Protocol {
 	Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
 		p.electionServer.getPort(), null, -1 /* do not retry */);
 	DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-	ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+	ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d));
 	out2.writeByte(ELECTION_KILL);
 	out2.writeObject(ids);
 	NameServerClient.socketFactory.close(null, out2, s);
@@ -572,10 +579,10 @@ public class NameServer extends Thread implements Protocol {
 
 	    try {
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-		out = new ObjectOutputStream(new BufferedOutputStream(dos, BUF_SIZE));
+		out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
 		DummyInputStream di = new DummyInputStream(s.getInputStream());
-		in  = new ObjectInputStream(new BufferedInputStream(di, BUF_SIZE));
+		in  = new ObjectInputStream(new BufferedInputStream(di));
 
 		opcode = in.readByte();
 
