@@ -41,6 +41,10 @@ public abstract class DataOutputStream extends java.io.OutputStream
         return true;
     }
 
+    public abstract void flush() throws IOException;
+
+    public abstract void close() throws IOException;
+
     /**
      * Blocks until the data is written.
      * @exception IOException on IO error.

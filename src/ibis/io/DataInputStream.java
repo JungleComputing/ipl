@@ -12,6 +12,8 @@ import java.io.IOException;
 public abstract class DataInputStream extends java.io.InputStream
         implements DataInput {
 
+    public abstract void close() throws IOException;
+
     /**
      * Returns the number of bytes read from the stream 
      * since the last reset of this counter.
