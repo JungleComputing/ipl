@@ -426,7 +426,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	public void exit() {
 		/* send exit messages to all others */
 		int size;
-		java.text.NumberFormat nf;
+		java.text.NumberFormat nf = null;
 
 		if(!closed) {
 			ibis.closeWorld();
