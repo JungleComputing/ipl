@@ -27,18 +27,24 @@ public class SatinTupleSpace implements Config {
 //		newData = new ArrayList();
 	}
 
-	/** add an element to the global tuple space. 
-	    The key must be unique. **/
+	/** Adds an element with the specified key to the global tuple space. 
+          * If a tuple with this key already exists, it is overwritten
+          * with the new element. The propagation to other processors can
+          * take an arbitrary amount of time, but it is guaranteed that
+          * after multiple updates by the same processor, eventually all
+          * processors will have the latest value.
+          * <p>
+          * However, if multiple processors 
+          * update the value of the same key, the value
+          * of an updated key can be different on different processors.
+          * @param key The key of the new tuple.
+          * @param data The data associated with the key.
+           **/
 	public static void add(String key, Serializable data) {
 		synchronized(space) {
-			if(ASSERTS) {
-				if(space.containsKey(key)) {
-					throw new IbisError("Key " + key + " is already in the tuple space");
-				}
-				if(satin != null && !satin.closed) {
-					throw new IbisError("The tuple space currently only works with a closed world. Try running with -satin-closed");
-				}
-			}
+                        if(satin != null && !satin.closed) {
+                                throw new IbisError("The tuple space currently only works with a closed world. Try running with -satin-closed");
+                        }
 
 			space.put(key, data);
 //			newKeys.add(key);
