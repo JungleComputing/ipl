@@ -49,8 +49,14 @@ System.err.println(this + " See join of " + id + "; n := " + idents.size());
 }
 
 
-class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnectUpcall {
+class RPC
+	implements Upcall,
+		   Runnable,
+		   ReceivePortConnectUpcall,
+		   SendPortConnectUpcall {
+
     private static int BUFSIZ = TypedProperties.intProperty("socketbuffersize", 0);
+
     private Ibis        myIbis;
     private Registry    registry;
 
@@ -97,10 +103,12 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private int		server_spin = 0;
     private int		client_spin = 0;
     private java.util.Random rand = new java.util.Random();
+    private boolean	requireOneToMany = false;
 
 
     private final boolean USE_RESIZEHANDLER = false;
     private final boolean EMPTY_REPLY	= true; // false; // true;
+    private final boolean closePortsAtExit = false; // true;
 
     private final int DATA_BYTES   = 0;
     private final int DATA_SHORTS  = DATA_BYTES   + 1;
@@ -264,6 +272,8 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		    int r = rand.nextInt();
 		}
 		send_one(false /* Not is_server */);
+// System.err.print(".");
+// System.err.print(i + " ");
 	    }
 	    rcve_one(false /* Not read_data */, partners, 0);
 	} else {
@@ -296,13 +306,14 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 	    send_one(true /* is_server */, 0);
 	} else {
 	    for (int i = 0; i < count; i++) {
-// System.err.println("Server wants to receive message " + i + " out of " + count);
+System.err.println("Server wants to receive message " + i + " out of " + count);
 		rcve_one(true /* read_data */, partners);
 // System.err.print(":");
 		for (int k = 0; k < server_spin; k++) {
 		    int r = rand.nextInt();
 		}
 		if (clients == 1 || (i + 1) % clients == 0) {
+System.err.println("Server want to send reply " + i + " out of " + count);
 		    send_one(true /* is_server */);
 		}
 		if (gc_on_rcve) {
@@ -339,6 +350,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		// t_r_finish.stop();
 	    }
 // System.err.print("+");
+// System.err.print(services + " ");
 
 	    // Can we lift the synchronized from the increment?
 	    // After all, the implementation will surely do
@@ -454,7 +466,7 @@ System.err.println("services " + services + " first_warmup " + first_warmup + " 
 
 
     private void server() throws IOException, ClassNotFoundException {
-	System.err.println("Start service, warmup " + warmup + " msgs " + count);
+	System.err.println(rank + ": Start service, warmup " + warmup + " msgs " + count);
 
 	startBusyThread();
 
@@ -468,7 +480,7 @@ System.err.println("services " + services + " first_warmup " + first_warmup + " 
 			// ignore
 		    }
 		}
-System.err.println("Server: seen " + services + " msgs for warmup");
+System.err.println(rank + ": Server: seen " + services + " msgs for warmup");
 		services -= warmup;
 	    }
 	    if (one_way) {
@@ -492,7 +504,7 @@ System.err.println("Server: seen " + services + " msgs for warmup");
 		    }
 		}
 	    }
-System.err.println("Server: seen " + services + " msgs");
+System.err.println(rank + ": Server: seen " + services + " msgs");
 	    if (one_way) {
 		send_one(true /* is_server */, 0);
 	    }
@@ -538,10 +550,8 @@ System.err.println("Server: seen " + services + " msgs");
 		e.printStackTrace();
 	    }
 	}
-// manta.runtime.RuntimeSystem.DebugMe(3, 0);
 
 	myIbis.openWorld();
-// manta.runtime.RuntimeSystem.DebugMe(4, 0);
 
 	if (connectUpcalls) {
 	    rport = portType.createReceivePort("client port " + rank, (ReceivePortConnectUpcall)this);
@@ -597,10 +607,17 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 	report();
 
 	/* free the send ports first */
-	sport.close();
-	// System.err.println("Freed my send port");
-	rport.close();
-	// System.err.println("Freed my rcve port");
+	if (closePortsAtExit) { 
+	    sport.close();
+	    System.err.println("Freed my send port");
+	    try {
+		Thread.sleep(100);
+	    } catch (InterruptedException e) {
+		// Try again
+	    }
+	    rport.close();
+	    System.err.println("Freed my rcve port");
+	}
     }
 
 
@@ -612,7 +629,7 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 	} else {
 	    sport = portType.createSendPort("latency-server");
 	}
-// manta.runtime.RuntimeSystem.DebugMe(3, 0);
+
 	if (BUFSIZ != 0) {
 	    DynamicProperties dp = sport.properties();
 	    try {
@@ -625,7 +642,6 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 	}
 
 	myIbis.openWorld();
-// manta.runtime.RuntimeSystem.DebugMe(4, 0);
 
 	if (upcall) {
 	    if (connectUpcalls) {
@@ -687,10 +703,17 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 	report();
 
 	/* free the send ports first */
-	sport.close();
-	System.err.println("Freed my send port");
-	rport.close();
-	System.err.println("Freed my rcve port");
+	if (closePortsAtExit) {
+	    sport.close();
+	    System.err.println("Freed my send port");
+	    try {
+		Thread.sleep(100);
+	    } catch (InterruptedException e) {
+		// Try again
+	    }
+	    rport.close();
+	    System.err.println("Freed my rcve port");
+	}
     }
 
 
@@ -756,6 +779,9 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 
 	    } else if (args[i].equals("-busy")) {
 		busy = true;
+
+	    } else if (args[i].equals("-n2n")) {
+		requireOneToMany = true;
 
 	    } else if (args[i].equals("-byte")) {
 		data_type = DATA_BYTES;
@@ -877,8 +903,6 @@ System.err.println("Allocated double buffer size " + size);
 	    }
 	}
 
-// manta.runtime.RuntimeSystem.DebugMe(this, byte_buffer);
-
 	if (data_type == DATA_OBJ_2) {
 	    // System.err.println(single_object);
 	}
@@ -893,38 +917,35 @@ System.err.println("Allocated double buffer size " + size);
 	String total = p.getProperty("ibis.pool.total_hosts");
 	if (total != null) {
 	    ncpus = Integer.parseInt(total);
-	    switch (ncpus) {
-	    case 0:
+	    if (ncpus == 0) {
 		System.err.println("Property " + total + " should be > 0");
 		System.exit(41);
-		break;
-	    default:
-		if (bcast) {
-		    if (clients != -1 || servers != -1) {
-			System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
-			System.exit(33);
-		    }
-		    clients = 1;
-		    servers = ncpus - 1;
-		} else if (bcast_all) {
-		    if (clients != -1 || servers != -1) {
-			System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
-			System.exit(33);
-		    }
-		    clients = 1;
-		    servers = ncpus;
+	    } else if (bcast) {
+		if (clients != -1 || servers != -1) {
+		    System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
+		    System.exit(33);
 		}
-		if (clients == -1) {
-		    if (ncpus == 1) {
-			clients = 1;
-		    } else {
-			clients = ncpus - 1;
-		    }
+		clients = 1;
+		servers = ncpus - 1;
+	    } else if (bcast_all) {
+		if (clients != -1 || servers != -1) {
+		    System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
+		    System.exit(33);
 		}
-		if (servers == -1) {
-		    servers = 1;
+		clients = 1;
+		servers = ncpus;
+	    }
+	    if (clients == -1) {
+		if (ncpus == 1) {
+		    clients = 1;
+		} else {
+		    clients = ncpus - 1;
 		}
 	    }
+	    if (servers == -1) {
+		servers = 1;
+	    }
+
 	} else {
 	    /* Try to think of a sensible default */
 	    if (clients == -1) {
@@ -935,6 +956,8 @@ System.err.println("Allocated double buffer size " + size);
 	    }
 	    ncpus = 2;
 	}
+
+	requireOneToMany = requireOneToMany || bcast || bcast_all || clients > 1 || servers > 1;
 	String my_cpu = p.getProperty("ibis.pool.host_number");
 	if (my_cpu != null) {
 	    rank = Integer.parseInt(my_cpu);
@@ -944,13 +967,11 @@ System.err.println("Allocated double buffer size " + size);
 
 
     private void createIbis() throws IOException, IbisException {
-// manta.runtime.RuntimeSystem.DebugMe(this, byte_buffer);
 
 	if (USE_RESIZEHANDLER || rank == -1) {
 	    rszHandler = new RszHandler();
 	}
 
-// manta.runtime.RuntimeSystem.DebugMe(-1, 0);
 
 	java.util.Random random = new java.util.Random();
 	String hostName = "localhost";
@@ -961,12 +982,19 @@ System.err.println("Allocated double buffer size " + size);
 	    // let it be the default
 	}
 	StaticProperties s = new StaticProperties();
-	// s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt");
-	s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
+	if (requireOneToMany) {
+	    // s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt" + " Sequenced ManyToOne");
+	    s.add("communication", "OneToOne OneToMany ManyToOne Reliable AutoUpcalls ExplicitReceipt");
+	    if (rank == 0) {
+		System.err.println("Require a multicast/multireceive PortType");
+	    }
+	} else {
+	    // s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt" + " Sequenced ManyToOne");
+	    s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
+	}
 	s.add("serialization", "object");
 	myIbis = Ibis.createIbis(s, rszHandler);
 
-// manta.runtime.RuntimeSystem.DebugMe(0, 0);
 	// myIbis.init();
 
 	Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -981,19 +1009,25 @@ System.err.println("Allocated double buffer size " + size);
 	    }
 	});
 
-	portType = myIbis.createPortType("test type", null);
+	s = new StaticProperties();
+	if (requireOneToMany) {
+	    // s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt" + " Sequenced ManyToOne");
+	    s.add("communication", "OneToOne OneToMany ManyToOne Reliable AutoUpcalls ExplicitReceipt");
+	} else {
+	    // s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt" + " Sequenced ManyToOne");
+	    s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
+	}
+	portType = myIbis.createPortType("test type", s);
 
 	if (rank == -1 && rszHandler != null) {
 	    rszHandler.sync(clients + servers);
 	    rank = rszHandler.idents.indexOf(myIbis.identifier());
 	}
-// manta.runtime.RuntimeSystem.DebugMe(2, 0);
     }
 
 
     private void registerIbis() throws IOException, IbisException {
 	registry = myIbis.registry();
-// manta.runtime.RuntimeSystem.DebugMe(1, 0);
     }
 
 
@@ -1013,7 +1047,6 @@ System.err.println("Allocated double buffer size " + size);
 		IbisIdentifier master = (IbisIdentifier)registry.elect("RPC", myIbis.identifier());
 // System.err.println("Election master id=" + master + " name=" + master.name());
 // System.err.println("Election contender = " + myIbis + " id=" + myIbis.identifier() + " name=" + myIbis.identifier().name());
-// manta.runtime.RuntimeSystem.DebugMe(5, 0);
 		if (master.equals(myIbis.identifier())) {
 // System.err.println("YES--------- I'm the winner, master = " + master + "; me " + myIbis.identifier());
 		    rank = 0;
