@@ -20,7 +20,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 	protected transient InvocationRecord parent;
 
 	protected transient SpawnCounter spawnCounter;
-	protected transient Throwable eek;
+	public transient Throwable eek; // must be public, it is used from the generated code (in an other package) --Rob
 	protected transient InvocationRecord cacheNext; /* Used to link the records in the cache. */
 	protected transient boolean aborted;
 

@@ -904,6 +904,9 @@ public final class Satin implements Config, ResizeHandler {
 		}
 
 		if(master) {
+			exiting = true;
+			algorithm.exit(); // give the algorithm time to clean up
+
 			for (int i=0; i<size; i++) {
 				try {
 					WriteMessage writeMessage;
@@ -958,7 +961,7 @@ public final class Satin implements Config, ResizeHandler {
 			}
 		}
 
-		algorithm.exit(); //give the algorithm time to clean up
+//		algorithm.exit(); //give the algorithm time to clean up
 
 		barrier(); /* Wait until everybody agrees to exit. */
 
@@ -2112,6 +2115,8 @@ public final class Satin implements Config, ResizeHandler {
 		}
 
 		q.addToHead(r);
+
+		algorithm.jobAdded();
 
 		if(SPAWN_DEBUG) {
 			out.println("SATIN '" + ident.name() + 

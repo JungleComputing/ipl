@@ -387,9 +387,14 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				break;
 			case STEAL_REQUEST:
 			case ASYNC_STEAL_REQUEST:
-			case BLOCKING_STEAL_REQUEST:
 				ident = m.origin();
 				//              m.finish();
+				handleStealRequest(ident, opcode);
+				break;
+			case BLOCKING_STEAL_REQUEST:
+                                // If we are doing a blocking steal, we must do a finish first --Rob
+				ident = m.origin();
+				m.finish();
 				handleStealRequest(ident, opcode);
 				break;
 			case STEAL_REPLY_FAILED:

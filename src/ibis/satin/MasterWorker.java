@@ -23,7 +23,7 @@ final class MasterWorker extends Algorithm {
 			v = satin.victims.getVictim(satin.masterIdent);
 		}
 
-		satin.stealJob/*Blocking*/(v);
+		satin.stealJobBlocking(v);
 	}
 
 	public void stealReplyHandler(InvocationRecord ir, int opcode) {
@@ -41,7 +41,9 @@ final class MasterWorker extends Algorithm {
 	}
 
 	public void exit() {
-		// Everything's synchronous, we don't have to wait for/do anything
+		synchronized(satin) {
+			satin.notifyAll();
+		}
 	}
 
 	public void printStats(java.io.PrintStream out) {
