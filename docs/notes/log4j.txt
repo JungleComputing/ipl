@@ -1,0 +1,74 @@
+Some parts of Ibis use Log4j loggers as a replacement for lots of debugging
+prints like "if (DEBUG) System.out.println("...");". The problem of these
+prints was that they were a bit of a mess, some went to System.out, others went
+to System.err, et cetera. The advantage of using Log4j is that logger output
+can be redirected to a file, different loggers can write to different files,
+and they can be configured using a configuration file.
+
+
+ibis	gmi	GroupMember
+		Group
+		GroupRegistry
+		GroupSkeleton
+		GroupStub
+
+ibis	impl	nameServer	tcp	NameServer
+					ReceivePortNameServerClient
+					NameServerClient
+
+ibis	satin	comm
+		steal
+		spawn
+		inlet
+		abort
+		tuple
+		faultTolerance
+		grt
+
+ibis	rmi	registry	impl	RegistryImpl
+		impl	RTS
+
+ibis	util	ThreadPool
+		IPUtils
+		IbisSocketFactory
+		PoolInfoServer
+		Ticket
+
+ibis	connect	controlHub	ControlHub
+		routedMessages	HubProtocol
+				HubWire
+				HubLink
+				HubLinkFactory
+				RoutedMessagesServerSocket
+				RoutedMessagesSocket
+		socketFactory	PortRangeSocketType
+				ExtSocketFactory
+				AnyTCPSocketType
+		tcpSplicing	Splice
+				TCPSpliceSocketType
+		parallelStreams	ParallelStreams
+
+Below is an example log4j.properties file. For more information on Log4j
+see http://logging.apache.org/log4j/docs/
+
+log4j.rootLogger=WARN, A1
+log4j.appender.A1=org.apache.log4j.ConsoleAppender
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+
+# Print the date in ISO 8601 format
+log4j.appender.A1.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
+
+log4j.logger.ibis.satin=DEBUG
+log4j.logger.ibis.satin.tuple=DEBUG, A2
+
+# set additivity to false, otherwise messages for this logger will go to
+# A1 (the console appender) as well.
+
+log4j.additivity.ibis.satin.tuple=false
+
+# send tuple logger messages to a file called "tuplelog".
+log4j.appender.A2=org.apache.log4j.FileAppender
+log4j.appender.A2.file=tuplelog
+log4j.appender.A2.layout=org.apache.log4j.PatternLayout
+log4j.appender.A2.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
+
