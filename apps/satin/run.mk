@@ -75,38 +75,84 @@ test_par:
 	grep "application result" test_par_out > test_par_res
 	diff test_par_res test_goal
 
-csim:
-	if [ -z "$(CLUSTERS)" ]; then echo CLUSTERS not set; exit 1; fi
-	if [ -z "$(NODES)" ]; then echo NODES not set; exit 1; fi
-	if [ -z "$(SPIN)" ]; then echo SPIN not set; exit 1; fi
-	if [ -z "$(THRP)" ]; then echo THRP not set; exit 1; fi
-	../csim.sh $(CLUSTERS) $(NODES) $(SPIN) $(THRP) $(MAIN_CLASS_NAME) $(APP_OPTIONS)
+PANDA_SATIN_PARAMS=-satin-closed -satin-stats -satin-panda -satin-ibis -satin-alg $(ALG)
 
-csimtest:
-	if [ -z "$(CLUSTERS)" ]; then echo CLUSTERS not set; exit 1; fi
+panda_test:
+	make ALG=CRS PANDA_APP_OPTIONS=$(TEST_APP_OPTIONS) panda_runner
+
+panda_small:
+	make PANDA_APP_OPTIONS=$(SMALL_APP_OPTIONS) panda_runner
+
+panda_run:
+	make PANDA_APP_OPTIONS=$(APP_OPTIONS) panda_runner
+
+panda_runner:
 	if [ -z "$(NODES)" ]; then echo NODES not set; exit 1; fi
-	../csim.sh $(CLUSTERS) $(NODES) 0.000001 1048576 $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS)
+	if [ -z "$(ALG)" ]; then echo ALG not set; exit 1; fi
+	if [ -z "$(PANDA_APP_OPTIONS)" ]; then echo PANDA_APP_OPTIONS not set; exit 1; fi
+	prun -v -1 -o pandarun$(ID)$(ALG)$(NODES) ../../../bin/run_ibis $(NODES) foo bar $(MAIN_CLASS_NAME) $(PANDA_APP_OPTIONS) $(PANDA_SATIN_PARAMS)
+	beep; sleep 0.3; beep
+
+panda_runs:
+	make ALG=RS ID=0 panda_run
+	make ALG=RS ID=1 panda_run
+	#make ALG=CRS ID=0 panda_run
+	#make ALG=CRS ID=1 panda_run
+
+csim_test:
+	../csim.sh "$(LAYOUT)" "$(SCEN)" $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) $(PANDA_SATIN_PARAMS)
+
+csim_small:
+	../csim.sh "$(LAYOUT)" "$(SCEN)" $(MAIN_CLASS_NAME) $(SMALL_APP_OPTIONS) $(PANDA_SATIN_PARAMS)
+
+csim:
+	../csim.sh "$(LAYOUT)" "$(SCEN)" $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(PANDA_SATIN_PARAMS)
+
+csims:
+	make ALG=RS csim
+	make ALG=RS csim
+	make ALG=CRS csim
+	make ALG=CRS csim
+
+csims_small:
+	make ALG=RS csim_small
+	make ALG=RS csim_small
+	make ALG=CRS csim_small
+	make ALG=CRS csim_small
 
 csimtcp:
-	if [ -z "$(CLUSTERS)" ]; then echo CLUSTERS not set; exit 1; fi
-	if [ -z "$(NODES)" ]; then echo NODES not set; exit 1; fi
-	../csim-tcp.sh $(CLUSTERS) $(NODES) $(NAMESERVER_PORT) $(NAME_SERVER) $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS)
+	../csim-tcp.sh "$(CLUSTERS)" "$(NODES)" $(NAMESERVER_PORT) $(NAME_SERVER) $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-closed -satin-stats -satin-alg $(ALG)
+
+PPRUN_PARAMS=$(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME)
+PPRUN_SATIN_PARAMS=-satin-stats -satin-closed -satin-ibis -satin-alg $(ALG)
+pprun_test:
+	make PPRUN_APP_OPTS=$(TEST_APP_OPTIONS) pprunner
+
+pprun_small:
+	make PPRUN_APP_OPTS=$(SMALL_APP_OPTIONS) pprunner
 
 pprun:
-	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
-	../../../globus/pprun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(APP_OPTIONS) -satin-stats -satin-closed
+	make PPRUN_APP_OPTS=$(APP_OPTIONS) pprunner
 
-pprun_test:
+pprunner:
 	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
-	../../../globus/pprun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-stats -satin-closed
+	if [ -z "$(ALG)" ]; then echo ALG not set; exit 1; fi
+	../../../globus/pprun $(PPRUN_PARAMS) $(PPRUN_APP_OPTS)  $(PPRUN_SATIN_PARAMS)
+
+GRUN_SATIN_PARAMS=-satin-stats -satin-closed -satin-alg $(ALG)
+grun_test:
+	make GRUN_APP_OPTS=$(TEST_APP_OPTIONS) grunner
+
+grun_small:
+	make GRUN_APP_OPTS=$(SMALL_APP_OPTIONS) grunner
 
 grun:
-	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
-	../../../globus/grun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(APP_OPTIONS) -satin-stats -satin-closed
+	make GRUN_APP_OPTS=$(APP_OPTIONS) grunner
 
-grun_test:
+grunner:
 	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
-	../../../globus/grun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-stats -satin-closed
+	if [ -z "$(ALG)" ]; then echo ALG not set; exit 1; fi
+	../../../globus/grun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(GRUN_APP_OPTS) $(GRUN_SATIN_PARAMS)
 
 logclean:
 	rm -rf *.ps *~ out.plot *.dvi out.ps *.aux plots.log *.tmp out.log out.tex
