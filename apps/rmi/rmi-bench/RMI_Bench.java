@@ -12,7 +12,7 @@ import java.io.IOException;
 class RMI_Bench {
 
     static final int SERVER_HOST	= 1; // 0;
-    static final int REGISTRY_HOST	= 0; // 0;
+    static final int REGISTRY_HOST	= SERVER_HOST;
 
 
     public static void main(String[] argv) {
