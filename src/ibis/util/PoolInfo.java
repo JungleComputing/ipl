@@ -240,6 +240,41 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	}
 
 	/**
+	 * Return a Grid Cluster rank based on the lower IP byte of the host
+	 * names
+	 */
+	public int[] clusterIPRank() {
+	    int[] clusterRank = new int[hosts.length];
+	    byte[][] rawAddr = new byte[hosts.length][];
+
+	    for (int i = 0; i < hosts.length; i++) {
+		rawAddr[i] = hosts[i].getAddress();
+		clusterRank[i] = -1;
+	    }
+
+	    int nextFreeRank = 0;
+	    for (int i = 0; i < hosts.length; i++) {
+		if (clusterRank[i] == -1) {
+		    clusterRank[i] = nextFreeRank;
+		    for (int j = i + 1; j < hosts.length; j++) {
+			int b;
+			for (b = 0; b < 3; b++) {
+			    if (rawAddr[i][b] != rawAddr[j][b]) {
+				break;
+			    }
+			}
+			if (b == 3) {
+			    clusterRank[j] = nextFreeRank;
+			}
+		    }
+		    nextFreeRank++;
+		}
+	    }
+
+	    return clusterRank;
+	}
+
+	/**
 	 * Returns an array of cluster names, one for each host involved in
 	 * the run.
 	 * @return the cluster names
