@@ -36,25 +36,32 @@
     <property name="ibis-run-args" value=""/>
     <property name="java-args" value=""/>
 
-    <target name="set-tcp-arg">
-	<condition property="tcp-arg" value="&quot;-Dibis.name^=tcp&quot;">
+    <target name="set-ibis-name">
+
+	<condition property="ibis-nickname" value="tcp">
+	    <not>
+		<isset property="ibis-nickname"/>
+	    </not>
+	</condition>
+
+	<condition property="ibis-name" value="&quot;-Dibis.name^=${ibis-nickname}&quot;">
 	    <os family="windows"/>
 	</condition>
-	<condition property="tcp-arg" value="&quot;-Dibis.name=tcp&quot;">
+	<condition property="ibis-name" value="&quot;-Dibis.name=${ibis-nickname}&quot;">
 	    <not>
-		<isset property="tcp-arg"/>
+		<isset property="ibis-name"/>
 	    </not>
 	</condition>
     </target>
 
     <target name="run2"
-	depends="set-tcp-arg">
+	depends="set-ibis-name">
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/ibis-run"
 	      vmlauncher="false"
 	      spawn="true">
 	    <arg line="-ns localhost -ns-port 4567 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
-	    <arg value="${tcp-arg}"/>
+	    <arg value="${ibis-name}"/>
 	    <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
@@ -63,20 +70,38 @@
 	      failonerror="true"
 	      vmlauncher="false">
 	    <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
-	    <arg value="${tcp-arg}"/>
+	    <arg value="${ibis-name}"/>
+	    <arg line="${java-args} ${runjob}"/>
+	</exec>
+    </target>
+
+
+    <target name="prun2"
+	depends="set-ibis-name">
+	<condition property="prun-nprocs" value="2">
+	    <not>
+		<isset property="prun-nprocs"/>
+	    </not>
+	</condition>
+	<echo message="Running parallel test on ${prun-nprocs} nodes, ${ibis-nickname} Ibis"/>
+	<exec dir="${basedir}"
+	      executable="/usr/local/bin/prun"
+	      vmlauncher="false">
+	      <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs} ${ibis-run-args}"/>
+	    <arg value="${ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
 
     <target name="run1"
-	    depends="set-tcp-arg">
+	    depends="set-ibis-name">
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/ibis-run"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
 	    <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
-	    <arg value="${tcp-arg}"/>
+	    <arg value="${ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
@@ -108,6 +133,29 @@
 		    </else>
 		</if>
 		<antcall target="run2">
+		    <param name="runjob" value="${test-par-run}"/>
+		    <param name="java-args" value="${jargs}"/>
+		</antcall>
+	    </then>
+	</if>
+    </target>
+
+    <target name="test-prun-par"
+	    depends="build"
+	    description="Run a parallel test with prun if the property 'test-par-run' is set">
+	<if>
+	    <isset property="test-par-run"/>
+	    <then>
+		<if>
+		    <isset property="test-par-java-args"/>
+		    <then>
+			<property name="jargs" value="${test-par-java-args}"/>
+		    </then>
+		    <else>
+			<property name="jargs" value=""/>
+		    </else>
+		</if>
+		<antcall target="prun2">
 		    <param name="runjob" value="${test-par-run}"/>
 		    <param name="java-args" value="${jargs}"/>
 		</antcall>
