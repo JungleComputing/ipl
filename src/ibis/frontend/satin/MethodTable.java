@@ -244,9 +244,10 @@ final class MethodTable implements BT_Opcodes {
 		}
 
 		if(verbose) {
-			System.out.println("unused locals in all inlets: ");
+			System.out.println(m + ": unused locals in all inlets: ");
 			for(int k=0; k<se.isLocalUsed.length; k++) {
 				if(!se.isLocalUsed[k]) System.out.println("local " + k + " is unused");
+				else System.out.println("local " + k + " is used");
 			}
 		}
 	}

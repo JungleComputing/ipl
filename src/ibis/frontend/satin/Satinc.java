@@ -242,7 +242,7 @@ public final class Satinc implements BT_Opcodes {
 		mainCode[24] = BT_Ins.make(opc_goto, mainCode[27]);
 
 		code = new BT_CodeAttribute(mainCode);
-		code.setExceptionHandler(0, 28, 12, BT_Class.forName("java.lang.Throwable"));
+		code.setExceptionHandler(10, 11, 12, BT_Class.forName("java.lang.Throwable"));
 
 		BT_Method m = new BT_Method(c, "void", "main", "(java.lang.String[])", code);
 		m.becomePublic();
@@ -260,6 +260,17 @@ public final class Satinc implements BT_Opcodes {
 
 			System.exit(1);
 		}
+	}
+
+	static void printMethod(BT_Method m) {
+		System.out.println("code for method " + m + ":");
+		BT_InsVector ins = m.getCode().ins;
+
+		for(int i=0; i<ins.size(); i++) {
+			System.out.println(i + ": " + ins.elementAt(i));
+		}
+		System.out.println("*******************************************");
+		
 	}
 
 	String invocationRecordName(BT_Method m) {
@@ -370,6 +381,20 @@ public final class Satinc implements BT_Opcodes {
 		System.out.println("End of code for method: " + m);
 	}	
 
+	void overwriteIns(BT_InsVector ins, BT_Ins newIns, int pos) {
+		for(int i=0; i<ins.size(); i++) {
+			if(ins.elementAt(i) instanceof BT_JumpIns) {
+				BT_JumpIns curr = (BT_JumpIns)ins.elementAt(i);
+				int index = indexOfIns(ins, curr.target);
+				if(index == pos) {
+//					System.out.println("overwriting jump: ins = " + curr + ", index = " + index);
+					curr.changeReferencesFromTo(curr.target, newIns);
+				}
+			}
+		}
+		ins.setElementAt(newIns, pos);
+	}
+
 	void rewriteAbort(BT_Class c, BT_Method m, BT_CodeAttribute code, BT_InsVector ins, int i, int maxLocals) {
 		// in a clone, we have to abort two lists: the outstanding spawns of the parent, and the outstanding
 		// spawns of the clone.
@@ -380,9 +405,9 @@ public final class Satinc implements BT_Opcodes {
 				parentPos++;
 			}
 
-			ins.setElementAt(BT_Ins.make(opc_getstatic, satinField), i-2);
-			ins.setElementAt(BT_Ins.make(opc_aload, mtab.realMaxLocals(m)-3), i-1); // push outstanding spawns
-			ins.setElementAt(BT_Ins.make(opc_aload, parentPos), i); // push parent Invocationrecord
+			overwriteIns(ins, BT_Ins.make(opc_getstatic, satinField), i-2);
+			overwriteIns(ins, BT_Ins.make(opc_aload, mtab.realMaxLocals(m)-3), i-1); // push outstanding spawns
+			overwriteIns(ins, BT_Ins.make(opc_aload, parentPos), i); // push parent Invocationrecord
 
 			// and call Satin.abort
 			ins.insertElementAt(BT_Ins.make(opc_invokevirtual, 
@@ -393,9 +418,9 @@ public final class Satinc implements BT_Opcodes {
 			ins.insertElementAt(BT_Ins.make(opc_astore, mtab.realMaxLocals(m)-3), i+3); // write
 		} else {
 			if(mtab.containsInlet(m)) {
-				ins.setElementAt(BT_Ins.make(opc_getstatic, satinField), i-2);
-				ins.setElementAt(BT_Ins.make(opc_aload, maxLocals+1), i-1); // push outstanding spawns
-				ins.setElementAt(BT_Ins.make(opc_aconst_null), i); // push null
+				overwriteIns(ins, BT_Ins.make(opc_getstatic, satinField), i-2);
+				overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals+1), i-1); // push outstanding spawns
+				overwriteIns(ins, BT_Ins.make(opc_aconst_null), i); // push null
 
 				// and call Satin.abort
 				ins.insertElementAt(BT_Ins.make(opc_invokevirtual, 
@@ -406,8 +431,8 @@ public final class Satinc implements BT_Opcodes {
 				ins.insertElementAt(BT_Ins.make(opc_aconst_null), i+2); // push null
 				ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals+1), i+3); // write
 			} else {
-				ins.setElementAt(BT_Ins.make(opc_getstatic, satinField), i-1);
-				ins.setElementAt(BT_Ins.make(opc_aload, maxLocals+1), i); // push outstanding spawns
+				overwriteIns(ins, BT_Ins.make(opc_getstatic, satinField), i-1);
+				overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals+1), i); // push outstanding spawns
 				ins.insertElementAt(BT_Ins.make(opc_aconst_null), i+1); // push null
 
 				// and call Satin.abort
@@ -437,8 +462,8 @@ public final class Satinc implements BT_Opcodes {
 		}
 
 		if(!mtab.containsInlet(m)) {
-			ins.setElementAt(BT_Ins.make(opc_getstatic, satinField), i-1);
-			ins.setElementAt(BT_Ins.make(opc_aload, maxLocals), i);
+			overwriteIns(ins, BT_Ins.make(opc_getstatic, satinField), i-1);
+			overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals), i);
 
 			// and call Satin.sync 
 			ins.insertElementAt(BT_Ins.make(opc_invokevirtual, 
@@ -448,11 +473,11 @@ public final class Satinc implements BT_Opcodes {
 			firstJumpPos = i+2;
 			pos = i+3;
 		} else {
-			ins.setElementAt(BT_Ins.make(opc_getstatic, satinField), i-2);
-			ins.setElementAt(BT_Ins.make(opc_aload, maxLocals), i-1);
+			overwriteIns(ins, BT_Ins.make(opc_getstatic, satinField), i-2);
+			overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals), i-1);
 
 			// and call Satin.sync 
-			ins.setElementAt(BT_Ins.make(opc_invokevirtual, 
+			overwriteIns(ins, BT_Ins.make(opc_invokevirtual, 
 						     satinClass.findMethod("sync", "(ibis.satin.SpawnCounter)")), i);
 			
 			ins.insertElementAt(BT_Ins.make(opc_nop), i+1); // replace later by goto 
@@ -572,20 +597,20 @@ public final class Satinc implements BT_Opcodes {
 		// Outer loop test, the first goto jumps here. 
 		// The previous if_icmp_ne also jumps here. 
 		ins.insertElementAt(BT_Ins.make(opc_aload, maxLocals+1), pos);
-		ins.setElementAt(BT_Ins.make(opc_goto, ins.elementAt(pos)), firstJumpPos);
+		overwriteIns(ins, BT_Ins.make(opc_goto, ins.elementAt(pos)), firstJumpPos);
 		jumpTargets[idTable.size()-1] = ins.elementAt(pos);
 		pos++;
 
 		for(int j=startLoopPos; j<pos; j++) {
 			if(ins.elementAt(j).opcode == opc_xxxunusedxxx) {
-					ins.setElementAt(BT_Ins.make(opc_goto, ins.elementAt(pos-1)), j);
+					overwriteIns(ins, BT_Ins.make(opc_goto, ins.elementAt(pos-1)), j);
 			}
 		}
 
 		int k = 0;
 		for(int j=startLoopPos; j<pos; j++) {
 			if(ins.elementAt(j).opcode == opc_nop) {
-				ins.setElementAt(new BT_JumpOffsetIns(opc_if_icmpne, -1, 
+				overwriteIns(ins, new BT_JumpOffsetIns(opc_if_icmpne, -1, 
 								      jumpTargets[k]), j);
 				k++;
 			}
@@ -636,7 +661,7 @@ public final class Satinc implements BT_Opcodes {
 
 
 			// rewrite previous jump
-//			ins.setElementAt(new BT_JumpOffsetIns(opc_ifnull, -1, 
+//			overwriteIns(ins, new BT_JumpOffsetIns(opc_ifnull, -1, 
 //								 ins.elementAt(targetPos)), jmpPos);
 		}
 	}
@@ -817,6 +842,12 @@ public final class Satinc implements BT_Opcodes {
 	void removeUnusedLocals(BT_Method m, BT_InsVector ins) {
 		BT_Ins newIns;
 		for(int i=0; i<ins.size(); i++) {
+			if(ins.elementAt(i).opcode == opc_iinc) {
+				newIns = BT_Ins.make(opc_nop);
+				overwriteIns(ins, newIns, i);
+				continue;
+			}
+			
 			if(ins.elementAt(i) instanceof BT_LocalIns) {
 				BT_LocalIns curr = (BT_LocalIns) ins.elementAt(i);
 				if(curr.localNr < m.getCode().maxLocals-1 && !mtab.isLocalUsedInInlet(m, curr.localNr)) {
@@ -832,8 +863,8 @@ public final class Satinc implements BT_Opcodes {
 					case opc_dstore_2:
 					case opc_dstore_3:
 						newIns = BT_Ins.make(opc_pop2);
-						rewriteJumps(ins, curr, newIns);
-						ins.setElementAt(newIns, i);
+//						rewriteJumps(ins, curr, newIns);
+						overwriteIns(ins, newIns, i);
 						break;
 					case opc_istore:
 					case opc_istore_0:
@@ -851,8 +882,8 @@ public final class Satinc implements BT_Opcodes {
 					case opc_astore_2:
 					case opc_astore_3:
 						newIns = BT_Ins.make(opc_pop);
-						rewriteJumps(ins, curr, newIns);
-						ins.setElementAt(newIns, i);
+//						rewriteJumps(ins, curr, newIns);
+						overwriteIns(ins, newIns, i);
 						break;
 					case opc_aload_0:
 					case opc_aload_1:
@@ -860,8 +891,8 @@ public final class Satinc implements BT_Opcodes {
 					case opc_aload_3:
 					case opc_aload:
 						newIns = BT_Ins.make(opc_aconst_null);
-						rewriteJumps(ins, curr, newIns);
-						ins.setElementAt(newIns, i);
+//						rewriteJumps(ins, curr, newIns);
+						overwriteIns(ins, newIns, i);
 						break;
 					case opc_iload_0:
 					case opc_iload_1:
@@ -869,8 +900,8 @@ public final class Satinc implements BT_Opcodes {
 					case opc_iload_3:
 					case opc_iload:
 						newIns = BT_Ins.make(opc_iconst_0);
-						rewriteJumps(ins, curr, newIns);
-						ins.setElementAt(newIns, i);
+//						rewriteJumps(ins, curr, newIns);
+						overwriteIns(ins, newIns, i);
 						break;
 					case opc_fload_0:
 					case opc_fload_1:
@@ -878,8 +909,8 @@ public final class Satinc implements BT_Opcodes {
 					case opc_fload_3:
 					case opc_fload:
 						newIns = BT_Ins.make(opc_fconst_0);
-						rewriteJumps(ins, curr, newIns);
-						ins.setElementAt(newIns, i);
+//						rewriteJumps(ins, curr, newIns);
+						overwriteIns(ins, newIns, i);
 						break;
 					case opc_lload_0:
 					case opc_lload_1:
@@ -887,8 +918,8 @@ public final class Satinc implements BT_Opcodes {
 					case opc_lload_3:
 					case opc_lload:
 						newIns = BT_Ins.make(opc_lconst_0);
-						rewriteJumps(ins, curr, newIns);
-						ins.setElementAt(newIns, i);
+//						rewriteJumps(ins, curr, newIns);
+						overwriteIns(ins, newIns, i);
 						break;
 					case opc_dload_0:
 					case opc_dload_1:
@@ -896,8 +927,8 @@ public final class Satinc implements BT_Opcodes {
 					case opc_dload_3:
 					case opc_dload:
 						newIns = BT_Ins.make(opc_dconst_0);
-						rewriteJumps(ins, curr, newIns);
-						ins.setElementAt(newIns, i);
+//						rewriteJumps(ins, curr, newIns);
+						overwriteIns(ins, newIns, i);
 						break;
 					default:
 						System.out.println("unhandled ins in removeUnusedLocals: " + curr);
@@ -1090,7 +1121,7 @@ public final class Satinc implements BT_Opcodes {
 		String name = mtab.getLocalName(m, curr);
 		String fieldName = mtab.generatedLocalName(type, name);
 
-		ins.setElementAt(BT_Ins.make(opc_aload, maxLocals), i);
+		overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals), i);
 
 		if(type.equals("long") || type.equals("double")) {
 			ins.insertElementAt(BT_Ins.make(opc_dup_x2), i+1);
@@ -1111,7 +1142,7 @@ public final class Satinc implements BT_Opcodes {
 		String name = mtab.getLocalName(m, curr);
 		String fieldName = mtab.generatedLocalName(type, name);
 
-		ins.setElementAt(BT_Ins.make(opc_aload, maxLocals), i);
+		overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals), i);
 		ins.insertElementAt(BT_Ins.make(opc_getfield, localClass.findField(fieldName)), i+1);
 
 		return 1; // added one instruction 
@@ -1167,12 +1198,20 @@ public final class Satinc implements BT_Opcodes {
 			if(curr.opcode == opc_xxxunusedxxx) {
 				// rewrite to compare ne
 				typeCount++;
-				ins.setElementAt(new BT_JumpOffsetIns(opc_if_icmpne, -1, 
+				overwriteIns(ins, new BT_JumpOffsetIns(opc_if_icmpne, -1, 
 								      ins.elementAt(jumpTargets[typeCount])), i);
 			}
 		}
 
 		return pos;
+	}
+
+	static int indexOfIns(BT_InsVector ins, BT_Ins target) {
+		for (int i=0; i<ins.size(); i++) {
+			if(ins.elementAt(i).byteIndex == target.byteIndex) return i;
+		}
+
+		return -1;
 	}
 
 	void generateExceptionHandlingClone(BT_Class c, BT_Method mOrig) {
@@ -1190,6 +1229,11 @@ public final class Satinc implements BT_Opcodes {
 			parentPos++;
 		}
 
+//		System.out.println("generateExceptionHandlingClone of " + mOrig);
+//		for(int i=0; i<mOrig.getCode().ins.size(); i++) {
+//			System.out.println(i + ": " + mOrig.getCode().ins.elementAt(i));
+//		}
+
 		String returnType = mOrig.signature.returnType.useName();
 
 		BT_MethodSignature sig = BT_MethodSignature.create(returnType, "(int," + localRecordName(mOrig) +
@@ -1202,14 +1246,19 @@ public final class Satinc implements BT_Opcodes {
 		BT_CodeAttribute code = new BT_CodeAttribute(insCopy.toArray());
 		BT_InsVector ins = code.ins; // this only is a shallow copy, so now copy instructions 
 		for(int i=0; i<ins.size(); i++) {
-			ins.setElementAt((BT_Ins)ins.elementAt(i).clone(), i);
+			BT_Ins newIns = (BT_Ins)ins.elementAt(i).clone();
+			newIns.byteIndex = ((BT_Ins)ins.elementAt(i)).byteIndex;
+			ins.setElementAt(newIns, i);
 		}
 
 		// now rewrite references to old instructions. 
 		for(int i=0; i<ins.size(); i++) {
-			if(ins.elementAt(i) instanceof BT_JumpIns) {
+			if(mOrig.getCode().ins.elementAt(i) instanceof BT_JumpIns) {
+				BT_JumpIns orig = (BT_JumpIns)mOrig.getCode().ins.elementAt(i);
 				BT_JumpIns curr = (BT_JumpIns)ins.elementAt(i);
-				int index = mOrig.getCode().ins.indexOf(curr.target);
+//				int index = mOrig.getCode().ins.indexOf(orig.target);
+				int index = indexOfIns(mOrig.getCode().ins, orig.target);
+//				System.out.println("orig = " + orig + ", ins = " + curr + ", index = " + index);
 				BT_Ins newTarget = ins.elementAt(index);
 				curr.changeReferencesFromTo(curr.target, newTarget);
 			}
@@ -1239,8 +1288,8 @@ public final class Satinc implements BT_Opcodes {
 
 		// at pos 'startPos', the new of the local record starts. delete it, and replace with assignment from param
 		int startLocalPos = mOrig.getCode().ins.indexOf(mtab.getStartLocalAlloc(mOrig));
-		ins.setElementAt(BT_Ins.make(opc_aload, localRecordPos), startLocalPos); // load localrecord
-		ins.setElementAt(BT_Ins.make(opc_astore, mOrig.getCode().maxLocals-1+localsShift), startLocalPos+1); // save record
+		overwriteIns(ins, BT_Ins.make(opc_aload, localRecordPos), startLocalPos); // load localrecord
+		overwriteIns(ins, BT_Ins.make(opc_astore, mOrig.getCode().maxLocals-1+localsShift), startLocalPos+1); // save record
 
                 // Remove allocation of LocalRecord.
 		// The nr of instructions to be removed depends on the number of locals used.
@@ -1273,7 +1322,7 @@ public final class Satinc implements BT_Opcodes {
 			BT_Ins curr = ins.elementAt(i);
 			if(curr.opcode == opc_nop) {
 				// rewrite to compare ne
-				ins.setElementAt(new BT_JumpOffsetIns(opc_if_icmpne, -1, 
+				overwriteIns(ins, new BT_JumpOffsetIns(opc_if_icmpne, -1, 
 								      ins.elementAt(spawnIdTable[nrInlets+1])), i);
 			}
 		}
@@ -1334,20 +1383,28 @@ public final class Satinc implements BT_Opcodes {
 			if(isLocalStore(ins.elementAt(i))) {
 				BT_LocalIns curr = (BT_LocalIns) ins.elementAt(i);
 				if(!inletOpt || mtab.isLocalUsedInInlet(m, curr.localNr)) {
-					System.out.println(m + ": rewriting local " + curr.localNr);
+					if(verbose) {
+						System.out.println(m + ": rewriting local " + curr.localNr);
+					}
 					i += rewriteStore(m, ins, i, maxLocals, localClass);
 				} else {
-					System.out.println(m + ": NOT rewriting local " + curr.localNr);
+					if(verbose) {
+						System.out.println(m + ": NOT rewriting local " + curr.localNr);
+					}
 				}
 
 			}
 			if(isLocalLoad(ins.elementAt(i))) {
 				BT_LocalIns curr = (BT_LocalIns) ins.elementAt(i);
 				if(!inletOpt || mtab.isLocalUsedInInlet(m, curr.localNr)) {
-					System.out.println(m + ": rewriting local " + curr.localNr);
+					if(verbose) {
+						System.out.println(m + ": rewriting local " + curr.localNr);
+					}
 					i += rewriteLoad(m, ins, i, maxLocals, localClass);
 				} else {
-					System.out.println(m + ": NOT rewriting local " + curr.localNr);
+					if(verbose) {
+						System.out.println(m + ": NOT rewriting local " + curr.localNr);
+					}
 				}
 			}
 			switch(opcode) {
@@ -1355,14 +1412,16 @@ public final class Satinc implements BT_Opcodes {
 			case opc_iinc:
 				BT_IIncIns curr = (BT_IIncIns)ins.elementAt(i);
 				if(!inletOpt || mtab.isLocalUsedInInlet(m, curr.localNr)) {
-					System.out.println(m + ": rewriting local " + curr.localNr);
+					if(verbose) {
+						System.out.println(m + ": rewriting local " + curr.localNr);
+					}
 
 					int val = ((BT_IIncIns)ins.elementAt(i)).constant;
 					String fieldName = mtab.getLocalName(m, curr);
 					String fieldType = mtab.getLocalType(m, curr);
 					BT_Field f = localClass.findField(mtab.generatedLocalName(fieldType, fieldName));
 					
-					ins.setElementAt(BT_Ins.make(opc_aload, maxLocals), i);
+					overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals), i);
 					ins.insertElementAt(BT_Ins.make(opc_dup), i+1);
 					ins.insertElementAt(BT_Ins.make(opc_getfield, f), i+2);
 					ins.insertElementAt(BT_Ins.make(opc_bipush, val), i+3);
@@ -1370,7 +1429,9 @@ public final class Satinc implements BT_Opcodes {
 					ins.insertElementAt(BT_Ins.make(opc_putfield, f), i+5);
 					i += 5;
 				} else {
-					System.out.println(m + ": NOT rewriting local " + curr.localNr);
+					if(verbose) {
+						System.out.println(m + ": NOT rewriting local " + curr.localNr);
+					}
 				}
 				break;
 			}
@@ -1451,11 +1512,14 @@ public final class Satinc implements BT_Opcodes {
 		int size = c.methods.size();
 		for(int i=0; i<size; i++) {
 			if(mtab.containsSpawnedCall(c.methods.elementAt(i))) {
+//				printMethod(c.methods.elementAt(i));
 				if(mtab.containsInlet(c.methods.elementAt(i))) {
 					rewriteInletMethod(c, c.methods.elementAt(i));
+//					printMethod(c.methods.elementAt(i));
 				}
 
 				rewriteMethod(c, c.methods.elementAt(i));
+//				printMethod(c.methods.elementAt(i));
 
 				if(mtab.containsInlet(c.methods.elementAt(i))) {
 					generateExceptionHandlingClone(c, c.methods.elementAt(i));
