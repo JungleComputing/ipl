@@ -321,6 +321,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 		}
 
 		if (buf.length - buf.base > expectedLength) {
+// System.err.println("Demand-copy buffer; require " + expectedLength + " get " + (buf.length - buf.base));
 		    this.buf = buf;
 		    buf = createReceiveBuffer(0);
 		    System.arraycopy(this.buf.data, this.buf.base,
