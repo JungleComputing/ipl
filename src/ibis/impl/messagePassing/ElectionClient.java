@@ -50,7 +50,7 @@ class ElectionClient implements ElectionProtocol {
         rport.close();
         if (ElectionServer.DEBUG) {
             System.err.println("ElectionClient has freed receive port "
-		    + rport);
+                    + rport);
         }
     }
 

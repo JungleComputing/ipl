@@ -52,10 +52,10 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     public boolean equals(Object other) {
         if (other == this) {
             return true;
-	}
+        }
         if (other == null) {
             return false;
-	}
+        }
 
         if (other instanceof SendPortIdentifier) {
             SendPortIdentifier o = (SendPortIdentifier) other;

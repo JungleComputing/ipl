@@ -24,7 +24,7 @@ final class IbisShadowSendPort extends ShadowSendPort {
         if (Ibis.DEBUG) {
             System.err.println("Get a Ibis ReadMessage ");
             System.err.println(" >>>>>> >>>>>>> >>>>>>> "
-		    + " Don't forget to set the stream in the ReadMessage");
+                    + " Don't forget to set the stream in the ReadMessage");
         }
 
         if (msg != null) {

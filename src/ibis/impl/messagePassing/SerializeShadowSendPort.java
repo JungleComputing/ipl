@@ -55,8 +55,8 @@ final class SerializeShadowSendPort extends ShadowSendPort {
         if (msg != null) {
             if (connectState != CONNECTED) {
                 System.err.println(this + ": OOOOOPS getMessage(), "
-			+ " cachedMessage nonnull but connectState "
-			+ connectState + " (i.e. not connected)");
+                        + " cachedMessage nonnull but connectState "
+                        + connectState + " (i.e. not connected)");
             }
             cachedMessage = null;
 

@@ -93,7 +93,7 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements
     public boolean equals(Object o) {
         if (o == this) {
             return true;
-	}
+        }
 
         if (o instanceof IbisIdentifier) {
             IbisIdentifier other = (IbisIdentifier) o;

@@ -193,7 +193,7 @@ final public class SerializeSendPort extends SendPort {
         replacer = r;
         if (obj_out != null) {
             obj_out.setReplacer(replacer);
-	}
+        }
     }
 
     ibis.ipl.WriteMessage cachedMessage() throws IOException {

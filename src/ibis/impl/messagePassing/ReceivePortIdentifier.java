@@ -53,10 +53,10 @@ public final class ReceivePortIdentifier implements
     public boolean equals(Object other) {
         if (other == null) {
             return false;
-	}
+        }
         if (other == this) {
             return true;
-	}
+        }
 
         if (!(other instanceof ReceivePortIdentifier)) {
             return false;
@@ -94,7 +94,7 @@ public final class ReceivePortIdentifier implements
                 + " port " + port
                 + " ibis \""
                 + ((ibisIdentifier == null || ibisIdentifier.name() == null)
-		    ? "null" : ibisIdentifier.name()) + "\")");
+                    ? "null" : ibisIdentifier.name()) + "\")");
     }
 
 }

@@ -19,7 +19,7 @@ final class SerializeWriteMessage extends WriteMessage {
     public int send() throws IOException {
         if (DEBUG) {
             System.err.println(
-		    "%%%%%%%%%%%%%%%% Send an Ibis SerializeWriteMessage");
+                    "%%%%%%%%%%%%%%%% Send an Ibis SerializeWriteMessage");
         }
         obj_out.flush();
         return out.getSentFrags();

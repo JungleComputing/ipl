@@ -18,15 +18,15 @@ public class SendPort implements ibis.ipl.SendPort {
 
     protected final static boolean DEBUG = Ibis.DEBUG;
 
-    private final static boolean USE_BCAST =
-	TypedProperties.stringPropertyMatch(MPProps.s_broadcast, "native")
+    private final static boolean USE_BCAST
+        = TypedProperties.stringPropertyMatch(MPProps.s_broadcast, "native")
             || TypedProperties.booleanProperty(MPProps.s_bc_native, true);
 
-    private final static boolean USE_BCAST_ALL =
-	TypedProperties.booleanProperty(MPProps.s_bc_all);
+    private final static boolean USE_BCAST_ALL
+        = TypedProperties.booleanProperty(MPProps.s_bc_all);
 
-    private final static boolean USE_BCAST_AT_TWO =
-	TypedProperties.booleanProperty(MPProps.s_bc_2);
+    private final static boolean USE_BCAST_AT_TWO
+        = TypedProperties.booleanProperty(MPProps.s_bc_2);
 
     static {
         if (USE_BCAST && Ibis.myIbis.myCpu == 0) {
@@ -39,7 +39,7 @@ public class SendPort implements ibis.ipl.SendPort {
     private final static boolean SERIALIZE_SENDS_PER_CPU;
     static {
         SERIALIZE_SENDS_PER_CPU = TypedProperties.booleanProperty(
-		MPProps.s_ser_sends);
+                MPProps.s_ser_sends);
     }
 
     protected PortType type;
@@ -221,7 +221,7 @@ public class SendPort implements ibis.ipl.SendPort {
         }
         if (group == NO_BCAST_GROUP) {
             System.err.println(this + ": switch on totally ordered bcast");
-	}
+        }
 
         return true;
     }
@@ -237,8 +237,8 @@ public class SendPort implements ibis.ipl.SendPort {
         }
         /*
          if (USE_BCAST_ALL ? splitter.length != Ibis.myIbis.nrCpus
-		: splitter.length >= Ibis.myIbis.nrCpus - 1) {
-	     return false;
+                : splitter.length >= Ibis.myIbis.nrCpus - 1) {
+             return false;
          }
          */
         if (!USE_BCAST_AT_TWO && splitter.length == 1) {
@@ -247,7 +247,7 @@ public class SendPort implements ibis.ipl.SendPort {
         if (group == NO_BCAST_GROUP) {
             System.err.println(this
                     + ": switch on fast bcast. Consider disabling ordering");
-	}
+        }
 
         return true;
     }
@@ -371,7 +371,7 @@ public class SendPort implements ibis.ipl.SendPort {
             syncer[my_split].setAcks(1);
             ibmp_connect(rid.cpu, rid.getSerialForm(), ident.getSerialForm(),
                     syncer[my_split], null, messageCount, group,
-		    out.getMsgSeqno());
+                    out.getMsgSeqno());
             if (DEBUG) {
                 System.err.println(Ibis.myIbis.myCpu + "-"
                         + Thread.currentThread()
@@ -382,7 +382,7 @@ public class SendPort implements ibis.ipl.SendPort {
 
             if (!syncer[my_split].waitPolling(timeout)) {
                 throw new ConnectionTimedOutException(
-			"No connection to " + rid);
+                        "No connection to " + rid);
             }
             if (!syncer[my_split].accepted()) {
                 throw new ConnectionRefusedException("No connection to " + rid
@@ -398,8 +398,8 @@ public class SendPort implements ibis.ipl.SendPort {
             } else {
                 if (Ibis.DEBUG_RUTGER) {
                     System.err.println("This is NOT a home connection, my Ibis "
-			    + ident.ibis() + " their Ibis "
-			    + receiver.ibis());
+                            + ident.ibis() + " their Ibis "
+                            + receiver.ibis());
                 }
             }
         } finally {
@@ -494,8 +494,8 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connectedTo() {
-        ibis.ipl.ReceivePortIdentifier[] r =
-	    new ibis.ipl.ReceivePortIdentifier[splitter.length];
+        ibis.ipl.ReceivePortIdentifier[] r
+            = new ibis.ipl.ReceivePortIdentifier[splitter.length];
         for (int i = 0; i < splitter.length; i++) {
             r[i] = splitter[i];
         }
@@ -507,7 +507,7 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
     public void disconnect(ibis.ipl.ReceivePortIdentifier r)
-	    throws IOException {
+            throws IOException {
 
         if (splitter == null) {
             throw new IOException("disconnect: no connections");
@@ -523,8 +523,8 @@ public class SendPort implements ibis.ipl.SendPort {
                     byte[] sf = ident.getSerialForm();
                     ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, null,
                             messageCount);
-                    ReceivePortIdentifier[] v =
-			new ReceivePortIdentifier[n - 1];
+                    ReceivePortIdentifier[] v
+                        = new ReceivePortIdentifier[n - 1];
                     for (int j = 0; j < n - 1; j++) {
                         v[j] = splitter[j];
                     }

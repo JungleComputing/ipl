@@ -16,8 +16,8 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     WriteMessage(SendPort sPort) {
         if (Ibis.DEBUG) {
             System.err.println(
-		    "**************************************************"
-		    + " Creating new SendPort port = " + sPort);
+                    "**************************************************"
+                    + " Creating new SendPort port = " + sPort);
         }
         this.sPort = sPort;
         out = sPort.out;

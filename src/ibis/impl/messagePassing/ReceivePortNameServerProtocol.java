@@ -16,5 +16,5 @@ interface ReceivePortNameServerProtocol {
     static final byte PORT_KNOWN = 26, PORT_UNKNOWN = 27;
 
     static final boolean DEBUG = TypedProperties.booleanProperty(
-	    MPProps.s_ns_debug);
+            MPProps.s_ns_debug);
 }

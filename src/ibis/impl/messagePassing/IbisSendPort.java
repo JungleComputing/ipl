@@ -21,8 +21,8 @@ final public class IbisSendPort extends SendPort {
 
         if (Ibis.DEBUG) {
             System.err.println(
-		    ">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream "
-		    + obj_out + " for IbisWriteMessage " + this);
+                    ">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream "
+                    + obj_out + " for IbisWriteMessage " + this);
         }
     }
 

@@ -78,12 +78,12 @@ final public class Poll implements Runnable {
             if (DEBUG) {
                 if (NEED_POLLER_THREAD) {
                     System.err.println(
-			    "Poll: use a poll peeker thread. "
-			    + " Sure we need it (?)");
+                            "Poll: use a poll peeker thread. "
+                            + " Sure we need it (?)");
                 } else {
                     System.err.println(
-			    "Poll: don't start the poll peeker thread. "
-			    + "Sure we don't need it?");
+                            "Poll: don't start the poll peeker thread. "
+                            + "Sure we don't need it?");
                 }
             }
             if (STATISTICS) {
@@ -181,11 +181,11 @@ final public class Poll implements Runnable {
                         return;
                     }
                 }
-	    }
+            }
             if (DEBUG) {
                 if (preemptive_pollers > 0) {
                     System.err.println(
-			    "Gee, some other preemptive poller active");
+                            "Gee, some other preemptive poller active");
                     // Thread.dumpStack();
                 }
             }
@@ -209,7 +209,7 @@ final public class Poll implements Runnable {
             if (!go_to_sleep
                     && poller == null
                     && ((PREEMPTIVE_MAY_POLL && preempt == PREEMPTIVE) ||
-			(NONPREEMPTIVE_MAY_POLL && preempt != NON_POLLING))) {
+                        (NONPREEMPTIVE_MAY_POLL && preempt != NON_POLLING))) {
                 // OK, let me become poller
                 poller = me;
             }
@@ -240,8 +240,8 @@ final public class Poll implements Runnable {
                         } else {
                             if (DEBUG && preemptive_pollers > 0) {
                                 System.err.println("Am non-preemptive "
-					+ " but I seem to preempt a "
-					+ " preemptive poller");
+                                        + " but I seem to preempt a "
+                                        + " preemptive poller");
                             }
                             poll_yield_non_preempt++;
                         }

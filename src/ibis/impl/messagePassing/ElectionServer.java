@@ -21,7 +21,7 @@ class ElectionServer implements Runnable, ibis.ipl.Upcall {
     private boolean halted = false;
 
     final static boolean DEBUG = TypedProperties.booleanProperty(
-	    MPProps.s_elect_debug);
+            MPProps.s_elect_debug);
 
     public void upcall(ibis.ipl.ReadMessage m) {
         Ibis.myIbis.checkLockNotOwned();
@@ -143,9 +143,9 @@ class ElectionServer implements Runnable, ibis.ipl.Upcall {
             }
 
             for (int i = 0; i < n; i++) {
-                ibis.ipl.ReceivePortIdentifier rid =
-		    Ibis.myIbis.registry().lookupReceivePort(
-			    "++++ElectionClient-" + i + "++++");
+                ibis.ipl.ReceivePortIdentifier rid
+                    = Ibis.myIbis.registry().lookupReceivePort(
+                            "++++ElectionClient-" + i + "++++");
                 client_port[i].connect(rid);
             }
 
