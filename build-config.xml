@@ -11,7 +11,7 @@
 
     <property name="config.home.bcel" location="3rdparty/bcel-5.1.jar"/>
     <property name="config.home.ant-contrib" location="3rdparty/ant-contrib-0.4.jar"/>
-    <property name="config.home.ant-cpptasks" location="3rdparty/cpptasks-1.0b1.jar"/>
+    <property name="config.home.ant-cpptasks" location="3rdparty/cpptasks-1.0-cvs.jar"/>
 
 
     <target name="config.das"
@@ -56,7 +56,8 @@
 
     <target name="config.mac"
 	    depends="config-set-os"
-	    if="config.os-is-windows">
+	    if="config.os-is-mac">
+	<echo message="Yep, this is a mac"/>
     </target>
 
     <target name="config-domainname" depends="proprietary-tasks">
