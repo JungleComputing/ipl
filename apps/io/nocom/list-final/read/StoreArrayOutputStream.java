@@ -60,7 +60,14 @@ final class StoreArrayOutputStream extends ArrayOutputStream {
 	public void flush() throws ibis.ipl.IbisIOException { 
 	}
 
+	public void close() throws ibis.ipl.IbisIOException { 
+	}
+
 	public void finish() throws ibis.ipl.IbisIOException { 
+	}
+
+	public void resetBytesWritten() { 
+		len = 0;
 	}
 
 	public int bytesWritten() { 

@@ -7,6 +7,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.ServerSocket;
 
+import ibis.util.PoolInfo;
+
 public class Main { 
 
 	public static void main(String args[]) { 
@@ -22,9 +24,9 @@ public class Main {
 
 			int count3 = 10;
 
-			DasInfo info = new DasInfo();
+			PoolInfo info = new PoolInfo();
 
-			if (info.hostNumber() == 0) { 
+			if (info.rank() == 0) { 
 				
 				System.err.println("Main starting");
 
@@ -117,7 +119,7 @@ public class Main {
 				while (s == null) { 
 					try { 
 						Thread.sleep(1000);
-						s = new Socket(info.getHost(0), 1234);
+						s = new Socket(info.hostName(0), 1234);
 					} catch (Exception e) {
 						// ignore
 					} 

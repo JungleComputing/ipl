@@ -5,9 +5,8 @@ import ibis.io.ArrayInputStream;
 import ibis.io.ArrayOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
-//import ibis.io.MantaTypedBufferOutputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
 
 public class Main {
 
@@ -34,7 +33,7 @@ public class Main {
 
 			NullOutputStream naos = new NullOutputStream();
 			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(naos);
-			MantaOutputStream mout = new MantaOutputStream(baos);
+			IbisSerializationOutputStream mout = new IbisSerializationOutputStream(baos);
 				
 			// Create tree
 			temp = new List(LEN);

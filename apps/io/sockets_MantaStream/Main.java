@@ -1,8 +1,12 @@
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.BufferedArrayOutputStream;
+
+import ibis.util.PoolInfo;
 
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -22,9 +26,9 @@ public class Main {
 
 			int count3 = 10;
 
-			DasInfo info = new DasInfo();
+			PoolInfo info = new PoolInfo();
 
-			if (info.hostNumber() == 0) { 
+			if (info.rank() == 0) { 
 				
 				System.err.println("Main starting");
 
@@ -38,8 +42,10 @@ public class Main {
 				InputStream   in = s.getInputStream();
 				OutputStream out = s.getOutputStream();
 
-				MantaInputStream   min = new MantaInputStream(1024*64, in);
-				MantaOutputStream mout = new MantaOutputStream(1024*64, out);
+				BufferedArrayInputStream bin = new BufferedArrayInputStream(in);
+				IbisSerializationInputStream   min = new IbisSerializationInputStream(bin);
+				BufferedArrayOutputStream bout = new BufferedArrayOutputStream(out);
+				IbisSerializationOutputStream mout = new IbisSerializationOutputStream(bout);
 				
 				for (int i=0;i<len;i++) { 
 					temp = new Data((i+0.8)/1.3, temp);
@@ -69,9 +75,9 @@ public class Main {
 						   + ((1000.0*(end-start))/(count*len)) + " us/object");
 
 				System.err.println("Bytes written " 
-						   + mout.bytesWritten() 
+						   + bout.bytesWritten() 
 						   + " throughput = " 
-						   + ((1000.0*mout.bytesWritten()/(1024*1024))/(end-start))
+						   + ((1000.0*bout.bytesWritten()/(1024*1024))/(end-start))
 						   + " MBytes/s"); 
 
 				start = System.currentTimeMillis();
@@ -115,7 +121,7 @@ public class Main {
 				while (s == null) { 
 					try { 
 						Thread.sleep(1000);
-						s = new Socket(info.getHost(0), 1234);
+						s = new Socket(info.hostName(0), 1234);
 					} catch (Exception e) {
 						// ignore
 					} 
@@ -126,9 +132,11 @@ public class Main {
 				InputStream   in = s.getInputStream();
 				OutputStream out = s.getOutputStream();
 				
-				MantaInputStream   min = new MantaInputStream(1024*64, in);
-				MantaOutputStream mout = new MantaOutputStream(1024*64, out);
-
+				BufferedArrayInputStream bin = new BufferedArrayInputStream(in);
+				IbisSerializationInputStream   min = new IbisSerializationInputStream(bin);
+				BufferedArrayOutputStream bout = new BufferedArrayOutputStream(out);
+				IbisSerializationOutputStream mout = new IbisSerializationOutputStream(bout);
+				
 				for (int i=0;i<count;i++) { 
 					temp = (Data) min.readObject();
 				} 

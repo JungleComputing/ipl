@@ -1,7 +1,4 @@
-# SRC=  DowncallLatency.java
-
 SRC	=
-SRC	+= DasInfo.java
 SRC	+= Data.java
 
 MAIN = Main.java

@@ -5,10 +5,10 @@ import ibis.io.ArrayInputStream;
 import ibis.io.ArrayOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
+
+import ibis.util.PoolInfo;
 
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -29,7 +29,7 @@ public class Main {
 	public static final int FLOAT_SIZE   = 4;
 	public static final int DOUBLE_SIZE  = 8;
 
-	public static void testBoolean(int rank, int count, int bytes, MantaInputStream min, MantaOutputStream mout) throws Exception { 
+	public static void testBoolean(int rank, int count, int bytes, IbisSerializationInputStream min, IbisSerializationOutputStream mout) throws Exception { 
 
 		// Create array
 		long start, end;
@@ -102,7 +102,7 @@ public class Main {
 		} 
 	} 
 
-	public static void testByte(int rank, int count, int bytes, MantaInputStream min, MantaOutputStream mout) throws Exception { 
+	public static void testByte(int rank, int count, int bytes, IbisSerializationInputStream min, IbisSerializationOutputStream mout) throws Exception { 
 
 		// Create array
 		long start, end;
@@ -165,7 +165,7 @@ public class Main {
 		} 
 	} 
 
-	public static void testChar(int rank, int count, int bytes, MantaInputStream min, MantaOutputStream mout) throws Exception { 
+	public static void testChar(int rank, int count, int bytes, IbisSerializationInputStream min, IbisSerializationOutputStream mout) throws Exception { 
 
 		// Create array
 		long start, end;
@@ -228,7 +228,7 @@ public class Main {
 		} 
 	} 
 
-	public static void testShort(int rank, int count, int bytes, MantaInputStream min, MantaOutputStream mout) throws Exception { 
+	public static void testShort(int rank, int count, int bytes, IbisSerializationInputStream min, IbisSerializationOutputStream mout) throws Exception { 
 
 		// Create array
 		long start, end;
@@ -291,7 +291,7 @@ public class Main {
 		} 
 	} 
 
-	public static void testInt(int rank, int count, int bytes, MantaInputStream min, MantaOutputStream mout) throws Exception { 
+	public static void testInt(int rank, int count, int bytes, IbisSerializationInputStream min, IbisSerializationOutputStream mout) throws Exception { 
 
 		// Create array
 		long start, end;
@@ -354,7 +354,7 @@ public class Main {
 		} 
 	} 
 
-	public static void testLong(int rank, int count, int bytes, MantaInputStream min, MantaOutputStream mout) throws Exception { 
+	public static void testLong(int rank, int count, int bytes, IbisSerializationInputStream min, IbisSerializationOutputStream mout) throws Exception { 
 
 		// Create array
 		long start, end;
@@ -417,7 +417,7 @@ public class Main {
 		} 
 	} 
 
-	public static void testFloat(int rank, int count, int bytes, MantaInputStream min, MantaOutputStream mout) throws Exception { 
+	public static void testFloat(int rank, int count, int bytes, IbisSerializationInputStream min, IbisSerializationOutputStream mout) throws Exception { 
 
 		// Create array
 		long start, end;
@@ -480,7 +480,7 @@ public class Main {
 		} 
 	} 
 
-	public static void testDouble(int rank, int count, int bytes, MantaInputStream min, MantaOutputStream mout) throws Exception { 
+	public static void testDouble(int rank, int count, int bytes, IbisSerializationInputStream min, IbisSerializationOutputStream mout) throws Exception { 
 
 		// Create array
 		long start, end;
@@ -546,9 +546,9 @@ public class Main {
 	public static void main(String args[]) {
 		
 		try {								
-			DasInfo info = new DasInfo();
+			PoolInfo info = new PoolInfo();
 
-			if (info.hostNumber() == 0) {
+			if (info.rank() == 0) {
 								
 				System.err.println("Main starting");
 				
@@ -562,8 +562,8 @@ public class Main {
 				ArrayInputStream   in = new BufferedArrayInputStream(s.getInputStream());
 				ArrayOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
 				
-				MantaInputStream   min = new MantaInputStream(in);
-				MantaOutputStream mout = new MantaOutputStream(out);
+				IbisSerializationInputStream   min = new IbisSerializationInputStream(in);
+				IbisSerializationOutputStream mout = new IbisSerializationOutputStream(out);
 				
 				testBoolean(0, COUNT, LEN, min, mout);
 				testByte(0, COUNT, LEN, min, mout);
@@ -582,7 +582,7 @@ public class Main {
 				
 				while (s == null) {
 					try {
-						s = new Socket(info.getHost(0), 1234);
+						s = new Socket(info.hostName(0), 1234);
 					} catch (Exception e) {
 						Thread.sleep(1000);
 						// ignore
@@ -594,8 +594,8 @@ public class Main {
 				ArrayInputStream   in = new BufferedArrayInputStream(s.getInputStream());
 				ArrayOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
 				
-				MantaInputStream   min = new MantaInputStream(in);
-				MantaOutputStream mout = new MantaOutputStream(out);
+				IbisSerializationInputStream   min = new IbisSerializationInputStream(in);
+				IbisSerializationOutputStream mout = new IbisSerializationOutputStream(out);
 				
 				testBoolean(1, COUNT, LEN, min, mout);
 				testByte(1, COUNT, LEN, min, mout);

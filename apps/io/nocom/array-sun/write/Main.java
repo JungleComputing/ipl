@@ -5,10 +5,7 @@ import ibis.io.ArrayInputStream;
 import ibis.io.ArrayOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
 import java.io.*;
-//import ibis.io.MantaTypedBufferOutputStream;
 
 public class Main {
 

@@ -5,10 +5,10 @@ import ibis.io.ArrayInputStream;
 import ibis.io.ArrayOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
+
+import ibis.util.PoolInfo;
 
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -28,9 +28,9 @@ public class Main {
 			int count = COUNT;
 			int len = LEN;
 			
-			DasInfo info = new DasInfo();
+			PoolInfo info = new PoolInfo();
 
-			if (info.hostNumber() == 0) {
+			if (info.rank() == 0) {
 								
 				System.err.println("Main starting");
 				
@@ -44,8 +44,8 @@ public class Main {
 				ArrayInputStream   in = new BufferedArrayInputStream(s.getInputStream());
 				ArrayOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
 				
-				MantaInputStream   min = new MantaInputStream(in);
-				MantaOutputStream mout = new MantaOutputStream(out);
+				IbisSerializationInputStream   min = new IbisSerializationInputStream(in);
+				IbisSerializationOutputStream mout = new IbisSerializationOutputStream(out);
 				
 				// Create list
 				for (int i=0;i<len;i++) {
@@ -101,7 +101,7 @@ public class Main {
 				
 				while (s == null) {
 					try {
-						s = new Socket(info.getHost(0), 1234);
+						s = new Socket(info.hostName(0), 1234);
 					} catch (Exception e) {
 						Thread.sleep(1000);
 						// ignore
@@ -113,8 +113,8 @@ public class Main {
 				ArrayInputStream   in = new BufferedArrayInputStream(s.getInputStream());
 				ArrayOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
 				
-				MantaInputStream   min = new MantaInputStream(in);
-				MantaOutputStream mout = new MantaOutputStream(out);
+				IbisSerializationInputStream   min = new IbisSerializationInputStream(in);
+				IbisSerializationOutputStream mout = new IbisSerializationOutputStream(out);
 				
 				for (int i=0;i<count;i++) {
 					temp = (Data) min.readObject();

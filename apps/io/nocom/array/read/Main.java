@@ -5,8 +5,8 @@ import ibis.io.ArrayInputStream;
 import ibis.io.ArrayOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
 
 public class Main {
 
@@ -42,8 +42,8 @@ public class Main {
 		    StoreArrayOutputStream out = new StoreArrayOutputStream(buf);
 		    StoreArrayInputStream in = new StoreArrayInputStream(buf);
 
-		    MantaOutputStream mout = new MantaOutputStream(out);
-		    MantaInputStream min = new MantaInputStream(in);
+		    IbisSerializationOutputStream mout = new IbisSerializationOutputStream(out);
+		    IbisSerializationInputStream min = new IbisSerializationInputStream(in);
 
 		    if (doByte) {
 			best_time = 1000000;

@@ -5,8 +5,8 @@ import ibis.io.ArrayInputStream;
 import ibis.io.ArrayOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
 
 public class Main {
 
@@ -37,8 +37,8 @@ public class Main {
 			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(out);
 			BufferedArrayInputStream bais = new BufferedArrayInputStream(in);
 
-			MantaOutputStream mout = new MantaOutputStream(baos);
-			MantaInputStream min = new MantaInputStream(bais);
+			IbisSerializationOutputStream mout = new IbisSerializationOutputStream(baos);
+			IbisSerializationInputStream min = new IbisSerializationInputStream(bais);
 				
 			// Create array
 			byte [] temp = new byte[LEN];
