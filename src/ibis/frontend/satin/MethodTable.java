@@ -23,6 +23,7 @@ import org.apache.bcel.generic.LocalVariableInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReturnInstruction;
+import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 final class MethodTable {
@@ -317,7 +318,7 @@ final class MethodTable {
 	    h = h.getPrev();
 	    // This instruction should contain the store.
 	}
-	do {
+	while (h != null && h != toH) {
 	    Instruction ins = h.getInstruction();
 	    if (ins instanceof LocalVariableInstruction) {
 		LocalVariableInstruction lins = (LocalVariableInstruction) ins;
@@ -325,9 +326,8 @@ final class MethodTable {
 		    lins.setIndex(newindex);
 		}
 	    }
-	    if (h == toH) break;
 	    h = h.getNext();
-	} while (h != null);
+	}
     }
 
 
@@ -721,7 +721,14 @@ final class MethodTable {
             // given in the local variable table!
             if (localNr == lt[i].getIndex()
                     && pos >= lt[i].getStart().getPrev().getPosition()
-                    && pos <= (lt[i].getEnd().getPosition())) { return lt[i]; }
+                    && pos < (lt[i].getEnd().getPosition())) {
+		return lt[i];
+	    }
+
+//	    if (localNr == lt[i].getIndex()) {
+//		    System.err.println("Looking for local " + localNr + " on position " + pos);
+//		    System.err.println("found one with range " + lt[i].getStart().getPrev().getPosition() + ", " + lt[i].getEnd().getPosition());
+//	    }
         }
 
         new Exception().printStackTrace();

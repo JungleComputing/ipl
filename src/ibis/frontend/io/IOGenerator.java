@@ -1,10 +1,13 @@
 package ibis.frontend.io;
 
+import ibis.util.RunProcess;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.HashMap;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
@@ -72,6 +75,10 @@ public class IOGenerator {
     private static final Type[] ibis_output_stream_arrtp = new Type[] { ibis_output_stream };
 
     private static final Type	java_lang_class_type = Type.getType("Ljava/lang/Class;");
+
+    private static String serialver = "serialver";
+
+    private static HashMap serialversionids = new HashMap();
 
     private static class FieldComparator implements Comparator {
 	public int compare(Object o1, Object o2) {
@@ -164,43 +171,37 @@ public class IOGenerator {
 		}
 	    }
 
-	    Class cl = null;
-	    try {
-		cl = Class.forName(classname, false, this.getClass().getClassLoader());
-	    } catch(ClassNotFoundException e) {
-		return;
+	    long uid = 0;
+	    Long ui = (Long) serialversionids.get(classname);
+	    if (ui == null) {
+		String command = serialver + " " + classname;
+		RunProcess p = new RunProcess(command);
+		int res = p.getExitStatus();
+		if (res != 0) {
+		    System.err.println("Warning: could not get serialVersionUID for class " + classname);
+		    serialversionids.put(classname, new Long(0L));
+		    return;
+		}
+		String output = new String(p.getStdout());
+		// Format is: java.lang.Class:    static final long serialVersionUID = 3206093459760846163L;
+		int startindex = output.lastIndexOf(" = ") + 3;
+		int endindex = output.lastIndexOf("L;");
+		try {
+		    uid = Long.parseLong(output.substring(startindex, endindex));
+		    serialversionids.put(classname, new Long(uid));
+		} catch(NumberFormatException e) {
+		    System.err.println("Warning: could not find serialVersionUID for class " + classname);
+		}
 	    }
-	    if (cl != null) {
-		java.io.ObjectStreamClass ocl = null;
-		try {
-		    ocl = java.io.ObjectStreamClass.lookup(cl);
-		} catch(NoClassDefFoundError e) {
-		    System.err.println("Warning: could not get ObjectStreamClass for class " + classname);
-		    return;
-		}
-		if (ocl == null) {
-		    System.err.println("IOGenerator attempts to rewrite non-Serializable class " + classname + " -- ignore");
-		    return;
-		}
-		long uid = 0L;
-		try {
-		    uid = ocl.getSerialVersionUID();
-		} catch(Throwable e) {
-		    // Aargh, IBM141 actually invokes static initializers when
-		    // checking if there are any! X11 clients may then throw
-		    // an error if they cannot connect to an X11 server ...
-		}
-		if (uid != 0) {
-		    FieldGen f = new FieldGen(Constants.ACC_PRIVATE|Constants.ACC_FINAL|Constants.ACC_STATIC, 
-					  Type.LONG,
-					  "serialVersionUID",
-					  constantpool);
-		    f.setInitValue(uid);
-		    gen.addField(f.getField());
 
-		}
+	    if (uid != 0) {
+		FieldGen f = new FieldGen(Constants.ACC_PRIVATE|Constants.ACC_FINAL|Constants.ACC_STATIC, 
+				      Type.LONG,
+				      "serialVersionUID",
+				      constantpool);
+		f.setInitValue(uid);
+		gen.addField(f.getField());
 		fields = gen.getFields();
-		java.util.Arrays.sort(fields, fieldComparator);
 	    }
 	}
 
@@ -2179,6 +2180,9 @@ public class IOGenerator {
 		force_generated_calls = true;
 	    } else if (args[i].equals("-verify")) {
 		verify = true;
+	    } else if (args[i].equals("-sv")) {
+		serialver = args[i+1];
+		i++;
 	    } else if (args[i].equals("-package")) {
 		pack = args[i+1];
 		i++; // skip arg
