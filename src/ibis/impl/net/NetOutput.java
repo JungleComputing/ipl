@@ -41,7 +41,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
 	if (this instanceof NetBufferedOutputSupport) {
-// System.err.println("YEP!!! " + this);
 	    buffered = (NetBufferedOutputSupport)this;
 	}
     }
@@ -78,10 +77,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
      * @exception IOException an error occurred 
      **/
     public int send() throws IOException {
-        //
-	if (buffered != null) {
-	    buffered.flushBuffer();
-	}
         return 0;
     }
 
@@ -134,7 +129,10 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
      * @exception IOException in case of trouble.
      */
     public void sync(int ticket) throws IOException {
-        throw new Error("NetIbis.sync has not been implemented");
+        //
+	if (buffered != null) {
+	    buffered.flushBuffer();
+	}
     }
 
     protected void handleEmptyMsg() throws IOException {
