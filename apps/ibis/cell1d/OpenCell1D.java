@@ -896,8 +896,6 @@ class OpenCell1D implements OpenConfig {
         }
 
         try {
-            long startTime = System.currentTimeMillis();
-
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
             s.add( "communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt" );
@@ -912,6 +910,7 @@ class OpenCell1D implements OpenConfig {
             PortType updatePort = ibis.createPortType( "neighbour update", s );
             PortType stealPort = ibis.createPortType( "loadbalance", s );
 
+            long startTime = System.currentTimeMillis();
             ibis.enableResizeUpcalls();
 
             if( me != 0 && leftNeighbour == null ){
