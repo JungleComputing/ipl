@@ -846,7 +846,7 @@ public class IOGenerator {
 	/* Now, we need to generate the read constructor and generated_WriteObject. */
 	write_il = new InstructionList();
 	read_il = new InstructionList();
-	
+
 	/* write/read the superclass if neccecary */
 	if (super_is_ibis_serializable || (force_generated_calls && super_is_serializable)) { 
 	    write_il.append(new ALOAD(0));
@@ -874,6 +874,28 @@ public class IOGenerator {
 						 Type.VOID,
 						 new Type[] {Type.OBJECT, Type.STRING},
 						 Constants.INVOKEVIRTUAL));
+
+	    /* Byte-code verification does not like a call to readSerializableObject
+	       with an uninitialized object as parameter.
+	       We call the default constructor of the first non-serializable superclass
+	       first ...
+	    */
+	    JavaClass scl = super_class;
+	    String s = scl.getSuperclassName();
+
+	    do {
+		s = scl.getSuperclassName();
+		System.out.println("Serializable? " + s);
+		scl = Repository.lookupClass(s);
+	    } while(isSerializable(scl));
+
+	    read_il.append(new ALOAD(0));
+	    read_il.append(factory.createInvoke(s,
+						"<init>",
+						Type.VOID,
+						Type.NO_ARGS,
+						Constants.INVOKESPECIAL));
+	    
 	    read_il.append(new ALOAD(1));
 	    read_il.append(new ALOAD(0));
 	    read_il.append(new LDC(ind));
@@ -978,7 +1000,7 @@ public class IOGenerator {
 	read_cons_gen.setMaxLocals();
 
 	cg.setMethodAt(read_cons_gen.getMethod(), read_cons_index);
-	
+
 	write_gen = new MethodGen(class_methods[write_method_index], class_name, cg.getConstantPool());
 	write_il.append(write_gen.getInstructionList());
 	write_gen.setInstructionList(write_il);
