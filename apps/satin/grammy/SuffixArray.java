@@ -225,7 +225,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         void print()
         {
             for( int i=0; i<l; i++ ){
-                System.out.println( "c=" + comm[i] + " indices=" + indices[i] );
+                System.out.println( "" + indices[i] + " [" + buildString( indices[i], offset ) + "]" + (comm[i]?"":" <-")  );
             }
         }
     }
@@ -251,6 +251,8 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             offset++;
             boolean acceptable = false;
             int p = 0;
+            Result r = new Result( offset, l, indices, comm );
+            r.print();
             while( ix<l ){
                 int start = ix;
                 int oldp = p;
@@ -260,9 +262,15 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                     ix++;
                 }
                 p = sort1( next, indices1, comm1, p, indices, start, ix, offset );
+                if( text[indices[start]] == 'b' ){
+                    System.out.println( "start=" + start + " ix=" + ix + " oldp=" + oldp + " p=" + p );
+                }
                 if( isAcceptable( indices1, oldp, p, offset ) ){
                     acceptable = true;
                     comm1[oldp] = false;
+                }
+                else {
+                    p = oldp;
                 }
             }
             if( !acceptable ){
@@ -272,7 +280,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             int h[] = indices;
             indices = indices1;
             indices = h;
-            boolean hc[] = comm;
+            boolean hc[] = comm1;
             comm1 = comm;
             comm = hc;
             l = p;
@@ -463,7 +471,16 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         while( len>0 && i<this.length  ){
             int c = (text[i] & 0xFFFF);
 
-            if( c<255 ){
+            if( c == '\n' ){
+                s.append( "<nl>" );
+            }
+            else if( c == '\r' ){
+                s.append( "<cr>" );
+            }
+            else if( c == '\t' ){
+                s.append( "<tab>" );
+            }
+            else if( c<255 ){
                 s.append( (char) c );
             }
             else if( c == STOP ){
