@@ -64,7 +64,7 @@ class Compress extends ibis.satin.SatinObject
 	double time = ((double) (endTime - startTime))/1000.0;
 
 	System.out.println( "ExecutionTime: " + time );
-        System.out.println( "In: " + text.length + " bytes, out: " + buf.sz + " bytes." );
+        System.out.println( "In: " + text.length + " bytes, out: " + buf.getLength() + " bytes." );
         if( doVerification ){
             ByteBuffer debuf = Decompress.decompress( buf );
             byte nt[] = debuf.getText();

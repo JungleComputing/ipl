@@ -2,7 +2,7 @@
 
 class ByteBuffer implements java.io.Serializable, Magic {
     byte buf[];
-    int sz;
+    private int sz;
 
     public ByteBuffer( int len )
     {
@@ -96,7 +96,7 @@ class ByteBuffer implements java.io.Serializable, Magic {
         append( (byte) (v & 255) );
     }
 
-    public int getSize() { return sz; }
+    public int getLength() { return sz; }
 
     public void replicate( int d, int len )
     {

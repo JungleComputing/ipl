@@ -27,6 +27,6 @@ public class Tests extends TestCase {
 	short codes[] = { 0, 128, 254, 255, 2000, (short) 65530 };
 	buf.append( codes );
 
-	assertEquals( 12, buf.getSize() );
+	assertEquals( 12, buf.getLength() );
     }
 }
