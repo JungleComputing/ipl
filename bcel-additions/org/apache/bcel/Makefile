@@ -12,6 +12,7 @@ java:	java_local
 	(cd verifier/statics && make java)
 	(cd classfile && make java)
 	(cd util && make java)
+	(cd generic && make java)
 
 java_local:	$(CLASS_FILES) $(MAIN_CLASS)
 
@@ -23,5 +24,6 @@ clean:
 	(cd verifier/statics && make clean)
 	(cd classfile && make clean)
 	(cd util && make clean)
+	(cd generic && make clean)
 
 distclean:	clean
