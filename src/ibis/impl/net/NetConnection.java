@@ -39,7 +39,7 @@ public final class NetConnection {
         private NetServiceLink           serviceLink    = null;
 
         /**
-         * Replacer ?.
+         * Replacer. Allows for object replacement before serialization.
          */
         private Replacer                 replacer       = null;
 
@@ -54,7 +54,7 @@ public final class NetConnection {
          * @param sendId the send-side port identifier.
          * @param receiveId the receive-side port identifier.
          * @param serviceLink a reference to the connection's service link.
-         * @param replacer ???
+         * @param replacer allows for object replacement before serialization.
          */
         public NetConnection(NetPort                  port       ,
                              Integer                  num        ,
