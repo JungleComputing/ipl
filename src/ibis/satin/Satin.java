@@ -242,14 +242,6 @@ public final class Satin implements Config, ResizeHandler,
 	   and join the computation again*/
 	Vector deadIbises = new Vector(); 
 
-	/**
-	 * Require delay of join invocations until our Ibis has been
-	 * completely initialized. Until that time, delay join upcalls
-	 * in a queue.
-	 * 							RFHH
-	 */
-	private JoinHandler joinQueue = new JoinHandler();
-
 
 	/**
 	 * Creates a Satin instance and also an Ibis instance to run Satin on.
@@ -596,10 +588,6 @@ public final class Satin implements Config, ResizeHandler,
 			}
 
 			portType = ibis.createPortType("satin porttype", s);
-
-			joinQueue.setDaemon(true);
-			joinQueue.setName("Satin Ibis join decoupler");
-			joinQueue.start();
 
 			messageHandler = new MessageHandler(this);
 
@@ -1304,12 +1292,10 @@ public final class Satin implements Config, ResizeHandler,
 					System.err.println("SATIN: Could not send exit message to " + masterIdent);
 				}
 			}
+			algorithm.exit(); //give the algorithm time to clean up
 		}
 		
 		
-
-
-		algorithm.exit(); //give the algorithm time to clean up
 
 		barrier(); // Wait until everybody agrees to exit. 
 
@@ -1833,69 +1819,7 @@ public final class Satin implements Config, ResizeHandler,
 	}
 
 
-	/**
-	 * Add a queue to delay join upcalls until our Ibis portType has
-	 * been safely created.
-	 */
-	private class JoinQueue {
-	    IbisIdentifier joiner;
-	    JoinQueue      next;
-
-	    JoinQueue(IbisIdentifier joiner) {
-		this.joiner = joiner;
-		this.next   = null;
-	    }
-	}
-
-
-	private class JoinHandler extends Thread {
-
-	    private JoinQueue front;
-	    private JoinQueue tail;
-
-	    public void run() {
-		if (portType == null) {
-		    throw new Error("First create Satin portType, then me");
-		}
-
-		while (true) {
-
-		    JoinQueue elt;
-		    synchronized (this) {
-			while (front == null) {
-			    try {
-				wait();
-			    } catch (InterruptedException e) {
-				// Ignore
-			    }
-			}
-
-			elt = front;
-			front = front.next;
-		    }
-
-		    handleJoin(elt.joiner);
-		}
-	    }
-
-	    private synchronized void add(IbisIdentifier joiner) {
-		JoinQueue elt = new JoinQueue(joiner);
-
-		if (front == null) {
-		    front = elt;
-		} else {
-		    tail.next = elt;
-		}
-		tail = elt;
-
-		notify();
-	    }
-
-	}
-
-
 	private void handleJoin(IbisIdentifier joiner) {
-	    if (! joiner.equals(ident)) {
 		try {
 			ReceivePortIdentifier r = null;
 			SendPort s = portType.createSendPort("satin sendport");
@@ -1936,7 +1860,6 @@ public final class Satin implements Config, ResizeHandler,
 			System.exit(1);
 		}
 //		}
-	    }
 	}
 
 
@@ -1952,7 +1875,7 @@ public final class Satin implements Config, ResizeHandler,
 				    joiner.cluster() + "' is trying to join");
 		}		
 //		if (!victims.contains(joiner)) {		
-		joinQueue.add(joiner);
+		handleJoin(joiner);
 	}
 
 	public void leave(IbisIdentifier leaver) {		
