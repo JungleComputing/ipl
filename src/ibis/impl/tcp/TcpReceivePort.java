@@ -361,6 +361,7 @@ private boolean shouldLeave;
 			if(!found) {
 				throw new IbisError("TcpReceivePort: Connection handler not found in leave");
 			}
+			shouldLeave=true;
 			// Notify threads that might be blocked in a free
 			notifyAll();
 	}
