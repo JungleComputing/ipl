@@ -142,7 +142,9 @@ class Main {
 
 	    if (visualization) {
 		visual = new VisualBuffer(info, asyncVisualization);
+// System.err.println("Bound " + visual + " as VisualBuffer");
 		RMI_init.bind("VisualBuffer", visual);
+// System.err.println("Lookup " + visual + " as " + RMI_init.lookup("//" + info.hostName(info.rank()) + "/VisualBuffer"));
 	    }
 
 	    double[] nodeSpeed = null;	/* Speed of node[i] */
@@ -159,10 +161,8 @@ class Main {
 	    
 	    local = new SOR(nrow, ncol, nit, sync, global, visual, info);
 	    if (hetero_speed) {
-		nodeSpeed = global.scatter2all(local.rank, speed);
-		for (int i = 0; i < local.nodes; i++) {
-		    System.err.println(local.rank + ": cpu " + i + " speed " + nodeSpeed[i]);
-		}
+		nodeSpeed = global.scatter2all(info.rank(), speed);
+		System.err.println(info.rank() + ": speed " + nodeSpeed[info.rank()]);
 		local.setNodeSpeed(nodeSpeed);
 		global.sync();
 	    }

@@ -1,12 +1,14 @@
-/*
+/**
  * SOR.java
  * Successive over relaxation
  * SUN RMI version implementing a red-black SOR, based on earlier Orca source.
  * with cluster optimization, and split phase optimization, reusing a thread
  * each Wide-Area send. (All switchable)
  *
- * Rob van Nieuwpoort & Jason Maassen
- *
+ * @author Rob van Nieuwpoort
+ * @author Jason Maassen
+ * @author Rutger Hofman
+ * 	added heterogeneous processor speed; modified the visualization stuff
  */
 
 import java.rmi.RemoteException;
@@ -16,48 +18,48 @@ import ibis.util.PoolInfo;
 
 class SOR extends UnicastRemoteObject implements i_SOR {
 
-	static final double TOLERANCE = 0.001;         /* termination criterion */
-	static final double MAGIC = 1.00;               /* magic factor */
-	static final double LOCAL_STEPS = 0;
+	private static final double TOLERANCE = 0.001;         /* termination criterion */
+	private static final double MAGIC = 1.00;               /* magic factor */
+	private static final double LOCAL_STEPS = 0;
 
-	static final boolean PREV = true;
-	static final boolean NEXT = false;
+	private static final boolean PREV = true;
+	private static final boolean NEXT = false;
 
 	static final int    SYNC_SEND = 0;
 	static final int   ASYNC_SEND = 1;
 
-	i_GlobalData global;
+	private i_GlobalData global;
 
-	double[][] g;
+	private double[][] g;
 
-	int ncol,nrow;                    /* number of rows and columns */
+	private int ncol,nrow;                    /* number of rows and columns */
 
-	double r,omega,                   /* some float values */
+	private double r,omega,                   /* some float values */
 		stopdiff,maxdiff,diff;     /* differences btw grid points in iters */
 
-	int nodes, rank;                   /* process ranks */
+	private int nodes, rank;                   /* process ranks */
 
-	int lb,ub;                        /* lower and upper bound of grid stripe [lb ... ub] -> NOTE: ub is inclusive*/
+	private int lb,ub;                        /* lower and upper bound of grid stripe [lb ... ub] -> NOTE: ub is inclusive*/
 
-	i_SOR[] table;                      /* a table of all SOR threads */
+	private i_SOR[] table;                      /* a table of all SOR threads */
 
-	int waiting = 0;                  /* make sure we don't loose notifyAll calls */
+	private int waiting = 0;                  /* make sure we don't loose notifyAll calls */
 
-	boolean receivedPrev=false, receivedNext=false;
-	double[] prevCol, nextCol;
+	private boolean receivedPrev=false, receivedNext=false;
+	private double[] prevCol, nextCol;
 
-	int prevIndex, nextIndex;
-	int nit;
-	int sync;
-	VisualBuffer visual;
+	private int prevIndex, nextIndex;
+	private int nit;
+	private int sync;
+	private final VisualBuffer visual;
 
-	WaitingSendThread prevSender, nextSender;
+	private WaitingSendThread prevSender, nextSender;
 
 	private double[] nodeSpeed;	/* Speed of node[i] */
 
 	private long t_start,t_end;     /* time values */
 
-	PoolInfo info;
+	private PoolInfo info;
 
 	SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, VisualBuffer visual, PoolInfo info) throws RemoteException {
 		this.nrow = nrow; // Add two rows to borders.
@@ -95,6 +97,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	void setNodeSpeed(double[] nodeSpeed) {
 	    this.nodeSpeed = nodeSpeed;
 	}
+
 	public void setTable(i_SOR[] table) {
 		this.table = table;
 	}
@@ -149,12 +152,11 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	    speed_avg /= nodes;
 	    boolean homogeneous = true;
 	    for (int i = 0; i < nodes; i++) {
-		if (nodeSpeed[i] != speed_avg) {
+		if (Math.abs(nodeSpeed[i] - speed_avg) > 0.01 * speed_avg) {
 		    homogeneous = false;
 		    break;
 		}
 	    }
-System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg);
 	
 	    if (homogeneous) {
 		for (int i=0;i<nodes;i++) {
@@ -168,7 +170,9 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 		
 			llb += grain;
 		}
+
 	    } else {
+		System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg);
 		for (int i=0;i<nodes;i++) {
 		    if (i == nodes - 1) {
 			grain = nrow - 2 - llb;
@@ -349,6 +353,11 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 		    width = visual.getRawDataWidth();
 		    height = visual.getRawDataHeight();
 		    canvas = VisualBuffer.createDownsampledCanves(g, width, height);
+		}
+
+		/* Abuse reduce as a barrier */
+		if (nodes > 1) {
+		    global.reduceDiff(0.0);
 		}
 
 		/* now do the "real" computation */
