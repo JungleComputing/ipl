@@ -141,9 +141,16 @@
 		<include name="java_wrapper.c"/>
 	    </fileset>
 	</cc>
+	<echo message="Now compile this getpid"/>
+	<cc	outfile="${ibis}/bin/getpid"
+		outtype="executable">
+	    <fileset dir="${ibis}/src/ibis/util">
+		<include name="getpid.c"/>
+	    </fileset>
+	</cc>
     </target>
 
-    <target name="java_wrapper" if="config.is-das">
+    <target name="java_wrapper" depends="config-domainname" if="config.is-das">
 	<ant target="compile.java_wrapper" inheritAll="false">
 	    <property name="ibis" value="${ibis}"/>
 	</ant>
@@ -258,6 +265,14 @@ to the command line.
 	<echo	file="build-properties.cache"
 		append="true">default.home.gm     = ${default.home.gm}
 </echo>
+	<if>
+	    <isset property="config.is-das"/>
+	    <then>
+		<echo	file="build-properties.cache"
+			append="true">config.is-das          = true
+</echo>
+	    </then>
+	</if>
 	<replace
 		file="${ibis}/build-properties.cache"
 		token="${file.separator}"
@@ -305,6 +320,14 @@ to the command line.
 		file="${ibis}/build-properties"
 		token="${file.separator}"
 		value="/"/>
+	<if>
+	    <isset property="config.is-das"/>
+	    <then>
+		<echo	file="build-properties"
+			append="true">config.is-das          = true
+</echo>
+	    </then>
+	</if>
 
 	<!--
 	    It seems that putting 3rdparty Ant plugins in another
@@ -522,6 +545,7 @@ to the command line.
 	</concat>
 	<chmod file="${ibis}/bin/ibis_nameserver.bat" perm="+x"/>
 
+	<echo message="Now invoke ant java_wrapper"/>
 	<antcall target="java_wrapper"/>
     </target>
 

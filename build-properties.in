@@ -47,3 +47,6 @@ c.optimization              = optimize
 # The build system only checks whether this property is defined,
 # so giving it a value of "false" defeats your purpose.
 c.debug                     = true
+
+# The configure process may append properties of its choice here,
+# e.g. to signify whether this is a DAS build.
