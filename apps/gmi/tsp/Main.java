@@ -133,7 +133,5 @@ class Main {
             System.out.println("Oops " + rank + e);
             e.printStackTrace();
         }
-
-        System.exit(0);
     }
 }
