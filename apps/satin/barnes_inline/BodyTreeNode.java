@@ -476,6 +476,17 @@ final class BodyTreeNode extends ibis.satin.SatinObject
     }
 
     /**
+     * spawnable version of barnesBody(pos_x, pos_y, pos_z), that uses
+     * the tuplespace to get the (root of the) tree
+     */
+    public double[] barnesBodyTuple( double pos_x, double pos_y,
+				      double pos_z, String rootId ) {
+	BodyTreeNode root =
+	    (BodyTreeNode) ibis.satin.SatinTupleSpace.get(rootId);
+	return root.barnesBody(pos_x, pos_y, pos_z);
+    }
+
+    /**
      * debug version of barnesBody(pos_x, pos_y, pos_z)
      */
     public double[] barnesBodyDbg( double pos_x, double pos_y, double pos_z,
@@ -603,8 +614,15 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 
 	    for (i = 0; i < bodies.length; i++) {
 		bodyNumbers[i] = bodies[i].number;
+
+		//if (BarnesHut.debug) {
+		//    acc = interactTree.barnesBodyDbg
+		//	(bodies[i].pos_x, bodies[i].pos_y, bodies[i].pos_z,
+		//	 bodies[i].number == 0);
+		//	 } else {
 		acc = interactTree.barnesBody
 		    (bodies[i].pos_x, bodies[i].pos_y, bodies[i].pos_z);
+		//}
 
 		accs_x[i] = acc[0];
 		accs_y[i] = acc[1];
@@ -651,7 +669,6 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	    result = barnesSequential(interactTree);
 
 	} else { //cell node -> call children[].barnes()
-
 	    LinkedList res[] = new LinkedList[8];
 	    int lastValidChild = -1;
 
@@ -661,17 +678,10 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 			//necessaryTree creation
 			BodyTreeNode necessaryTree =
 			    new BodyTreeNode(interactTree, children[i]);
+			res[i] = children[i].barnes(necessaryTree,threshold-1);
 
 			//alternative: copy whole tree
-			//BodyTreeNode necessaryTree = interactTree;
-
-			/*System.err.println("Interacttree:");
-			  interactTree.print(System.err, 0);
-			  System.err.println("Job:");
-			  children[i].print(System.err, 0);
-			  System.err.println("Necessarytree:");
-			  necessaryTree.print(System.err, 0); */
-			res[i] = children[i].barnes(necessaryTree,threshold-1);
+			//res[i] = children[i].barnes(interactTree, threshold-1);
 		    } else { //reached the threshold -> no spawn
 			res[i] = children[i].barnesSequential(interactTree);
 		    }
@@ -699,7 +709,8 @@ final class BodyTreeNode extends ibis.satin.SatinObject
      * @param threshold the recursion depth at which work shouldn't
      *                  be spawned anymore
      */
-    public LinkedList barnesTuple(byte[] jobWalk, String rootId, int threshold) {
+    public LinkedList barnesTuple(byte[] jobWalk, String rootId,
+				  int threshold) {
 	BodyTreeNode root, job;
 	int i;
 	LinkedList result, res[] = new LinkedList[8];
@@ -758,8 +769,8 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 					     int lastValidIndex) {
 
 	if (BarnesHut.ASSERTS && lastValidIndex < 0) {
-	    System.err.println("BodyTreeNode.combineResults: EEK! " + 
-			       "lvi < 0! All children are null in caller!");
+	    System.err.println("BodyTreeNode.combineResults: EEK! " 
+			       + "lvi < 0! All children are null in caller!");
 	    System.exit(1);
 	}
 
@@ -788,7 +799,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	double[] accs_x = null, accs_y = null, accs_z = null;
 
 	it = suboptimal.iterator();	//calculate totalElements
-	while(it.hasNext()) {
+	while (it.hasNext()) {
 	    bodyNrs = (int[]) it.next();
 	    it.next(); // skip accs_x, accs_y, accs_z
 	    it.next();
@@ -805,7 +816,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 
 	position = 0;
 	it = suboptimal.iterator();
-	while(it.hasNext()) {
+	while (it.hasNext()) {
 	    bodyNrs = (int[]) it.next();
 	    accs_x = (double[]) it.next();
 	    accs_y = (double[]) it.next();
@@ -826,46 +837,6 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	optimal.add(allAccs_z);
 
 	return optimal;
-    }
-
-    /**
-     * Computes the interactions between the bodies in 'bodies' and those
-     * in 'this', by calling barnesBody for each body
-     * The acc_[xyz] fields in the body are set to the calculated interaction
-     *
-     * This version is actually *slower* than barnes(interactTree),
-     * probably because barnes(interactTree) has better cache behaviour
-     * due to better locality
-     */
-    public void barnes( Body[] bodies) {
-	int i;
-
-	double[][] accs = new double[bodies.length][];
-	for (i = 0; i < bodies.length; i++) {
-	    accs[i] = barnesBody(bodies[i].pos_x, bodies[i].pos_y,
-				 bodies[i].pos_z);
-	}
-	for (i = 0; i < bodies.length; i++) {
-	    bodies[i].acc_x = accs[i][0];
-	    bodies[i].acc_y = accs[i][1];
-	    bodies[i].acc_z = accs[i][2];
-	    if (BarnesHut.ASSERTS) bodies[i].updated = true;
-	}
-    }
-
-    //debug version of the method above
-    public void barnesDbg( Body[] bodies, int iteration) {
-	double[] acc;
-
-	for (int i = 0; i < bodies.length; i++) {
-	    acc = barnesBodyDbg(bodies[i].pos_x, bodies[i].pos_y,
-				bodies[i].pos_z, i == 0);
-	    //acc = barnesBodyDbg(bodies[i].pos, false);
-	    bodies[i].acc_x = acc[0];
-	    bodies[i].acc_y = acc[1];
-	    bodies[i].acc_z = acc[2];
-	    if (BarnesHut.ASSERTS) bodies[i].updated = true;
-	}
     }
 
     public void print(java.io.PrintStream out, int level) {
