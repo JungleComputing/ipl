@@ -8,7 +8,7 @@ import ibis.ipl.impl.generic.ConditionVariable;
 class ReceivePort
     implements ibis.ipl.ReceivePort, Protocol, Runnable, PollClient {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static int livingPorts = 0;
     private static Syncer portCounter = new Syncer();
@@ -53,7 +53,7 @@ class ReceivePort
 
     static {
 	if (DEBUG) {
-	    System.err.println("Turn on ReceivePort.DEBUG");
+	    System.err.println(Thread.currentThread() + "Turn on ReceivePort.DEBUG");
 	}
     }
 
@@ -82,7 +82,7 @@ class ReceivePort
 
     public synchronized void enableConnections() {
 	if (DEBUG) {
-	    System.err.println("Enable connections on " + this + " firstCall=" + firstCall);
+	    System.err.println(Thread.currentThread() + "Enable connections on " + this + " firstCall=" + firstCall);
 	}
 	if (firstCall) {
 	    firstCall = false;
@@ -117,7 +117,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
     public synchronized void enableUpcalls() {
 	if (DEBUG) {
-		System.err.println("*********** Enable upcalls");
+		System.err.println(Thread.currentThread() + "*********** Enable upcalls");
 	}
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	allowUpcalls = true;
@@ -127,7 +127,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
     public synchronized void disableUpcalls() {
 	if (DEBUG) {
-		System.err.println("*********** Disable upcalls");
+		System.err.println(Thread.currentThread() + "*********** Disable upcalls");
 	}
 	allowUpcalls = false;
     }
@@ -163,7 +163,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 							    int msgSeqno) {
 	if (ssp.msgSeqno > msgSeqno && ssp.msgSeqno != -1) {
 	    if (DEBUG) {
-		System.err.println("This is a SERIOUS BUG: the msgSeqno goes BACK!!!!!!!!!");
+		System.err.println(Thread.currentThread() + "This is a SERIOUS BUG: the msgSeqno goes BACK!!!!!!!!!");
 	    }
 	    ssp.msgSeqno = msgSeqno;
 	    return null;
@@ -227,7 +227,7 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 
 	if (msg != null) {
 	    if (DEBUG) {
-		System.err.println("Now dequeue msg " + msg);
+		System.err.println(Thread.currentThread() + "Now dequeue msg " + msg);
 	    }
 	    queueFront = msg.next;
 	    if (ibis.ipl.impl.messagePassing.Ibis.STATISTICS) {
@@ -244,7 +244,7 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 	if (DEBUG) {
-	    System.err.println("******* Now finish this ReceivePort message: " + currentMessage);
+	    System.err.println(Thread.currentThread() + "******* Now finish this ReceivePort message: " + currentMessage);
 	    // Thread.dumpStack();
 	}
 
@@ -259,6 +259,11 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 	}
 	if (queueFront != null && arrivedWaiters > 0) {
 	    messageArrived.cv_signal();
+	}
+
+	if (queueFront != null && handlingReceive == 0) {
+System.err.println("Create another UpcallThread because the previous one didn't terminate");
+		createNewUpcallThread();
 	}
 
 	ssp.tickReceive();
@@ -504,7 +509,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
     public void free() {
 
 	if (DEBUG) {
-	    System.out.println(name + ":Starting receiveport.free upcall = " + upcall);
+	    System.out.println(Thread.currentThread() + name + ":Starting receiveport.free upcall = " + upcall);
 	}
 
 	Shutdown shutdown = new Shutdown();
@@ -512,7 +517,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 
 	if (DEBUG) {
-	    System.out.println(name + ": got Ibis lock");
+	    System.out.println(Thread.currentThread() + name + ": got Ibis lock");
 	}
 
 	stop = true;
@@ -521,7 +526,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	messageArrived.cv_bcast();
 
 	if (DEBUG) {
-	    System.out.println(name + ": Enter shutdown.waitPolling; connections = " + connectionToString());
+	    System.out.println(Thread.currentThread() + name + ": Enter shutdown.waitPolling; connections = " + connectionToString());
 	}
 	try {
 	    while (connections.size() > 0) {
@@ -531,7 +536,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	    /* well, if it throws an exception, let's quit.. */
 	}
 	if (DEBUG) {
-	    System.out.println(name + ": Past shutdown.waitPolling");
+	    System.out.println(Thread.currentThread() + name + ": Past shutdown.waitPolling");
 	}
 	/*
 	while (connections.size() > 0) {
@@ -568,7 +573,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	/* unregister with name server */
 	try {
 	    if (DEBUG) {
-		System.out.println(name + ": unregister with name server");
+		System.out.println(Thread.currentThread() + name + ": unregister with name server");
 	    }
 	    type.freeReceivePort(name);
 	} catch(Exception e) {
@@ -576,7 +581,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	}
 
 	if (DEBUG) {
-	    System.out.println(name + ":done receiveport.free");
+	    System.out.println(Thread.currentThread() + name + ":done receiveport.free");
 	}
 
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
@@ -601,7 +606,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	    System.err.println(Thread.currentThread() + "ReceivePort runs but upcall == null");
 	}
 	if (DEBUG) {
-	    System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
+	    System.err.println(Thread.currentThread() + " ReceivePort " + name + ", daemon = " + this + " runs");
 	}
 
 	try {
@@ -614,7 +619,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 		try {
 		    if (stop || handlingReceive > 0) {
 			if (DEBUG) {
-			    System.err.println("Receive port " + name +
+			    System.err.println(Thread.currentThread() + "Receive port daemon " + this +
 					       " upcall thread polls " + upcall_poll);
 			}
 			break;
@@ -626,12 +631,12 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 		     * Nowadays, pass 'false' for the preempt flag. */
 		    handlingReceive++;
 		    if (DEBUG) {
-			System.err.println("*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
+			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		    }
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, false);
 		    if (DEBUG) {
 			upcall_poll++;
-			System.err.println("*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
+			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
 		    }
 
 		    while (! allowUpcalls) {
@@ -647,7 +652,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 
 		if (msg != null) {
 		    if (DEBUG) {
-			System.err.println("Now process this msg " + msg + " msg.fragmentFront.msgHandle " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)msg).fragmentFront.msgHandle));
+			System.err.println(Thread.currentThread() + "Now process this msg " + msg + " msg.fragmentFront.msgHandle " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)msg).fragmentFront.msgHandle));
 		    }
 		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 // for (int x = 0; x < handlingReceive + 1; x++) {
@@ -679,7 +684,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	}
 
 	if (DEBUG) {
-	    System.err.println("Receive port " + name +
+	    System.err.println(Thread.currentThread() + "Receive port " + name +
 			       " upcall thread polls " + upcall_poll);
 	}
     }
