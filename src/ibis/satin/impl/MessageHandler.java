@@ -880,6 +880,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 		}
 
+		m.finish();
+
 		synchronized(satin) {
 		    satin.exitReplies++;
 		    satin.notifyAll();
@@ -901,12 +903,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 									+ "': got exit message from "
 									+ ident.ibis().name());
 				}
+				m.finish();
 				satin.exiting = true;
 				synchronized (satin) {
 					satin.notifyAll();
 				}
 
-				//				m.finish();
 				break;
 			case EXIT_REPLY:
 				handleExitReply(m);

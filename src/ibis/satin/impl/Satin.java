@@ -12,6 +12,7 @@ import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 
 import ibis.util.IPUtils;
+import ibis.util.PoolInfo;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -90,18 +91,8 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
 		StaticProperties ibisProperties = createIbisProperties(requestedProperties);
 
+		PoolInfo pool = null;
 		int poolSize = 0; /* Only used with closed world. */
-		if (closed) {
-			Properties p = System.getProperties();
-			String pool = p.getProperty("ibis.pool.total_hosts");
-			if (pool == null) {
-				out.println("property 'ibis.pool.total_hosts' not set,"
-						+ " and running with closed world.");
-				System.exit(1);
-			}
-
-			poolSize = Integer.parseInt(pool);
-		}
 
 		if (COMM_DEBUG) {
 			out.println("SATIN '" + hostName + "': init ibis");
@@ -114,6 +105,12 @@ public final class Satin extends APIMethods implements ResizeHandler,
 					+ "': Could not start ibis: " + e.getMessage());
 			//			e.printStackTrace();
 			System.exit(1);
+		}
+
+		if (closed) {
+			pool = PoolInfo.createPoolInfo();
+
+			poolSize = pool.size();
 		}
 
 		ident = ibis.identifier();
@@ -130,7 +127,12 @@ public final class Satin extends APIMethods implements ResizeHandler,
 		try {
 			Registry r = ibis.registry();
 
-			masterIdent = (IbisIdentifier) r.elect("satin master", ident);
+			if (closed && pool.rank() != 0) {
+			    masterIdent = (IbisIdentifier) r.elect("satin master", null);
+			}
+			else {
+			    masterIdent = (IbisIdentifier) r.elect("satin master", ident);
+			}
 
 
 			if (masterIdent.equals(ident)) {
