@@ -11,10 +11,21 @@ import java.util.Properties;
  */
 public class StaticProperties extends Properties {
 
+    private final StaticProperties defaults;
+
     /**
      * Creates an emtpy property set.
      */
     public StaticProperties() {
+	defaults = null;
+    }
+
+    /**
+     * Creates an empty property set with defaults.
+     */
+    public StaticProperties(StaticProperties sp) {
+	super(sp);
+	defaults = sp;
     }
 
     /**
@@ -31,12 +42,11 @@ public class StaticProperties extends Properties {
      *  is <code>null</code>.
      */
     public void add(String key, String value) { 
-	if (containsKey(key)) { 
+	if (containsKey(key)) {
 	    throw new IbisRuntimeException("Property " + key +
 					   " already exists");
-	} else { 
-	    super.setProperty(key, value);
-	} 
+	}
+	super.setProperty(key, value);
     }
 
     /**
@@ -62,7 +72,7 @@ public class StaticProperties extends Properties {
      * @return a clone.
      */
     public Object clone() {
-	StaticProperties sp = new StaticProperties();
+	StaticProperties sp = new StaticProperties(defaults);
 	Enumeration e = keys();
 	while (e.hasMoreElements()) {
 	    String key = (String) e.nextElement();

@@ -127,12 +127,17 @@ public final class RTS {
 		System.out.println(hostname + ": creating ibis");
 	    }
 
+	    StaticProperties reqprops = new StaticProperties();
+	    reqprops.add("serialization", "sun, ibis");
+	    reqprops.add("world", "open");
+	    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, NoPollForUpcalls, Upcalls, ExplicitReceive");
+
 	    // @@@ start of horrible code
 	    //			System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
 	    //			new Exception().printStackTrace();
 	    // But HOW??? --Ceriel
 
-	    ibis = Ibis.createIbis(null);
+	    ibis = Ibis.createIbis(reqprops, null);
 
 	    Properties p = System.getProperties();
 	    String ibis_name = p.getProperty("ibis.name");

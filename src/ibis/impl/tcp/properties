@@ -1,3 +1,6 @@
-reliable = true
-unreliable = false
-multicast = true
+serialization = ibis, sun
+world = open, closed
+communication = OneToOne, OneToMany, ManyToOne, \
+		Reliable, NoPollForUpcalls, \
+		Upcalls, ExplicitReceipt, ConnectionAdministration, \
+		ConnectionUpcalls

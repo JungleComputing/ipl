@@ -185,9 +185,9 @@ public abstract class Ibis {
 	return res;
     }
 
-
     /**
-     * Creates a new Ibis instance, based on the property ibis.name.
+     * Creates a new Ibis instance, based on the required properties,
+     * or on the property ibis.name.
      * The currently recognized Ibis names are:
      * <br>
      * panda	Ibis built on top of Panda.
@@ -198,6 +198,8 @@ public abstract class Ibis {
      * <br>
      * net.*	The future version, for tcp, udp, GM, ...
      * <br>
+     * @param reqprop static properties required by the application,
+     *  or <code>null</code>.
      * @param  r a {@link ibis.ipl.ResizeHandler ResizeHandler} instance
      *  if upcalls for joining or leaving ibis instances are required,
      *  or <code>null</code>.
@@ -206,17 +208,12 @@ public abstract class Ibis {
      * @exception ConnectionRefusedException is thrown when the name turns
      *  out to be not unique.
      */
-    public static Ibis createIbis(ResizeHandler r)
+    public static Ibis createIbis(StaticProperties reqprop,
+				  ResizeHandler r)
 	throws IbisException, ConnectionRefusedException
     {
 	Properties p = System.getProperties();
 	String hostname;
-
-	// @@@ start of horrible code
-	//	    System.err.println("AARG! This code completely violates the
-	//	    whole Ibis philosophy!!!! please fix me! --Rob & Jason");
-	//	    new Exception().printStackTrace();
-	//	    But HOW?   -- Ceriel
 
 	try {
 	    hostname = InetAddress.getLocalHost().getHostName();
@@ -229,38 +226,81 @@ public abstract class Ibis {
 	}
 
 	String name = null;
+
+	String ibisname = p.getProperty("ibis.name");
+	String implementationname = null;
+	if (ibisname == null) {
+	    if (reqprop == null) {
+		ibisname = "tcp";
+	    }
+	    if (ibisname == null) {
+		String[] impls = list();
+		PropertyMatcher pm = new PropertyMatcher(reqprop);
+		for (int i = 0; i < impls.length; i++) {
+		    StaticProperties ibissp = staticProperties(impls[i]);
+//		    System.out.println("try " + impls[i]);
+		    if (pm.matchProperties(ibissp)) {
+//			System.out.println("match!");
+			implementationname = impls[i];
+			break;
+		    }
+		}
+		if (implementationname == null) {
+		    implementationname = "ibis.impl.tcp.TcpIbis";
+		}
+	    }
+	    else {
+		implementationname = "ibis.impl.tcp.TcpIbis";
+		if (ibisname.equals("panda")) {
+		    implementationname =  "ibis.impl.messagePassing.PandaIbis";
+		} else if (ibisname.equals("mpi")) {
+		    implementationname =  "ibis.impl.messagePassing.MPIIbis";
+		} else if (ibisname.startsWith("net")) {
+		    implementationname =  "ibis.impl.net.NetIbis";
+		} else if (! ibisname.equals("tcp")) {
+		    System.err.println("Warning: name '" + ibisname +
+			    "' not recognized, using TCP version");
+		}
+	    }
+	}
+
 	while(true) {
 	    try {
 		name = "ibis@" + hostname + "_" + System.currentTimeMillis();
-
-		String ibisname = p.getProperty("ibis.name");
-
-		if (ibisname == null) {
-		    // Create a default Ibis.
-		    ibisname = "tcp";
-		}
-
-		if (ibisname.equals("panda")) {
-		    return createIbis(name, "ibis.impl.messagePassing.PandaIbis", r);
-		} else if (ibisname.equals("mpi")) {
-		    return createIbis(name, "ibis.impl.messagePassing.MPIIbis", r);
-		} else if (ibisname.startsWith("net")) {
-		    return createIbis(name, "ibis.impl.net.NetIbis", r);
-		} else {
-		    // The default: tcp.
-		    if (! ibisname.equals("tcp")) {
-			System.err.println("Warning: name '" + ibisname +
-				"' not recognized, using TCP version");
-		    }
-		    return createIbis(name, "ibis.impl.tcp.TcpIbis", r);
-		}
-		// @@@ end of horrible code
+		return createIbis(name, implementationname, r);
 	    } catch (ConnectionRefusedException e) {
 		// retry
 	    }
 	}
     }
 
+    /**
+     * Reads the properties of an ibis implementation.
+     */
+    private static void addIbis(String name, Properties p) throws IOException {
+	StaticProperties sp = new StaticProperties();
+	String propertyFiles = p.getProperty(name);
+	if (propertyFiles != null) {
+	    StringTokenizer st = new StringTokenizer(propertyFiles,
+						     " ,\t\n\r\f");
+	    while (st.hasMoreTokens()) {
+		String file = st.nextToken();
+		InputStream in = ClassLoader.getSystemClassLoader().
+					getResourceAsStream(file);
+		if (in == null) {
+		    System.err.println("could not open " + file);
+		    System.exit(1);
+		}
+		sp.load(in);
+		in.close();
+	    }
+	}
+
+	synchronized(Ibis.class) {
+	    implList.add(name);
+	    implProperties.add(sp);
+	}
+    }
 
     /**
      * Reads the properties of the ibis implementations available on the
@@ -278,33 +318,22 @@ public abstract class Ibis {
 	p.load(in);
 	in.close();
 
+	String order = p.getProperty("order");
+
+	if (order != null) {
+	    StringTokenizer st = new StringTokenizer(order,
+						     " ,\t\n\r\f");
+	    while (st.hasMoreTokens()) {
+		addIbis(st.nextToken(), p);
+	    }
+	    return;
+	}
+
 	Enumeration en = p.propertyNames();
 
 	while (en.hasMoreElements()) {
 	    String name = (String) en.nextElement();
-
-	    StaticProperties sp = new StaticProperties();
-	    String propertyFiles = p.getProperty(name);
-	    if (propertyFiles != null) {
-		StringTokenizer st = new StringTokenizer(propertyFiles,
-							 " ,\t\n\r\f");
-		while (st.hasMoreTokens()) {
-		    String file = st.nextToken();
-		    in = ClassLoader.getSystemClassLoader().
-					getResourceAsStream(file);
-		    if (in == null) {
-			System.err.println("could not open " + file);
-			System.exit(1);
-		    }
-		    sp.load(in);
-		    in.close();
-		}
-	    }
-
-	    synchronized(Ibis.class) {
-		implList.add(name);
-		implProperties.add(sp);
-	    }
+	    addIbis(name, p);
 	}
     }
 

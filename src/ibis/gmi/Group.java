@@ -346,7 +346,8 @@ public final class Group implements GroupProtocol {
 		System.out.println(name + ": init Group RTS");
 	    }
 	
-	    ibis         = Ibis.createIbis(null);
+	    // TODO: required properties.
+	    ibis         = Ibis.createIbis(null, null);
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 	    

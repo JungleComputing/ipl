@@ -4,15 +4,25 @@
 # with an implementation name as propertey key, and a list of property
 # filenames as property value.
 #
-ibis.impl.messagePassing.MPIIbis \
-    ibis/impl/messagePassing/mpi/properties \
-    system_mpi_properties
+# The order in this file is not significant, because
+# java.util.Properties#load(InputStream) is used to read it. Therefore,
+# at the end, a property named "order" is given, which should give
+# a "preference" order: fastest one first.
+#
 
 ibis.impl.messagePassing.PandaIbis \
     ibis/impl/messagePassing/panda/properties \
     system_panda_properties
 
+ibis.impl.messagePassing.MPIIbis \
+    ibis/impl/messagePassing/mpi/properties \
+    system_mpi_properties
+
 ibis.impl.tcp.TcpIbis \
     ibis/impl/tcp/properties \
     system_tcp_properties
 
+order \
+    ibis.impl.messagePassing.PandaIbis \
+    ibis.impl.messagePassing.MPIIbis \
+    ibis.impl.tcp.TcpIbis
