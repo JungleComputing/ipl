@@ -172,9 +172,11 @@ fi
 
 DEFAULT_USE_JAVA_WRAPPER=1
 
-wrapper_name="$IBIS_ROOT/bin/java_wrapper -cpu $cpumask -cd $dir"
-if [ ! -x wrapper_name ] ; then
+WRAPPER=$IBIS_ROOT/bin/java_wrapper
+wrapper_name="$WRAPPER -cpu $cpumask -cd $dir"
+if [ ! -x $WRAPPER ] ; then
 	wrapper_name=""
+	echo "No wrapper"
 fi
 
 # Given a list, return the last element
