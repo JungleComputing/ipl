@@ -27,7 +27,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 	private ServerSocket systemServer;
 	private Hashtable others;
 	private Vector receivePorts;
-	private Thread thread;
 	private TcpIbisIdentifier me;
 	private int port;
 
@@ -48,8 +47,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 		others = new Hashtable();
 		receivePorts = new Vector();
 		
-		thread = new Thread(this, "TCP Port Handler");
-		thread.start();
+		ThreadPool.createNew(this);
 	}
 
 	int register(TcpReceivePort p) {
@@ -179,7 +177,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 					sout.close();
 					s.close();
 				}
-					
+
 				return true;
 			} else { 
 				obj_out.flush();

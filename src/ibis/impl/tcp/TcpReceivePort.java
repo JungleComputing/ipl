@@ -362,6 +362,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
+	static int counter = 0;
+
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in, int id) {	
 		try {
 // System.out.println(name + ": ADDING CONNECTION");			
@@ -381,7 +383,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			connections[connectionsIndex++] = con;
 
 //			if (upcall != null) {
-				new Thread(con, "TCP Port Handler").start();
+//				System.out.println("Creating new connection handler thread: " + (counter+1));
+//				new Thread(con, "SerializationStreamConnection Handler " + ++counter).start();
+				ThreadPool.createNew(con);
 //			}
 
 			connection_setup_present = false;
