@@ -152,7 +152,10 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         boolean done;
 
         while( jump>1 ){
-            jump /= 2;
+            jump = (5*jump)/11;
+            if( jump == 0 ){
+                jump = 1;
+            }
 
             do {
                 done = true;
@@ -394,7 +397,10 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	final int kC = 1;	// known commonality.
 
         while( jump>1 ){
-            jump /= 2;
+            jump = (5*jump)/11;
+            if( jump == 0 ){
+                jump = 1;
+            }
             boolean done;
 
             do {
@@ -422,7 +428,9 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 		    }
 		}
 		else {
-		    for( int j = start; j<(end-jump); j++ ){
+                    final int s = (end-jump);
+
+		    for( int j = start; j<s; j++ ){
 			int i = j + jump;
 			int ixi = indices[i];
 			int ixj = indices[j];
