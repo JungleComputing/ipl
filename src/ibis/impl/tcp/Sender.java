@@ -10,4 +10,5 @@ abstract class Sender {
 	abstract ibis.ipl.WriteMessage newMessage() throws IbisIOException;
 	abstract void connect(TcpReceivePortIdentifier ri, OutputStream sout, int id) throws IOException;
 	abstract void free();	
+	abstract void reset() throws IbisIOException;
 }

@@ -7,11 +7,13 @@ public interface ReceivePort {
 	public ReadMessage receive() throws IbisIOException;
 
 	/** Utility function that in essence performs:
-	    if (finishMe != null) finishMe.finish();
-	    return receive();
-
-	    Rationale is the possibility to save on locking overhead by
-	    combining an oft-recurring sequence.
+	 *  <tt>
+	 *  <br>if (finishMe \!= null) finishMe.finish();
+	 *  <br>return receive();
+	 *  </tt>
+	 *  <p>
+	 *  Rationale is the possibility to save on locking overhead by
+	 *  combining an oft-recurring sequence.
 	 **/
 	public ReadMessage receive(ReadMessage finishMe) throws IbisIOException;
 

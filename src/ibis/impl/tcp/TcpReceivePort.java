@@ -137,7 +137,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 			
 			if (m != null) { 
 				aMessageIsAlive = true;
-//				System.err.println(ident + ": polling DONE, returned m");
+//				System.err.println(ident + ": polling DONE, returned " + m);
 //				new Exception().printStackTrace();
 				return m;
 			}

@@ -64,7 +64,7 @@ LD_ASSUME_KERNEL	= 2.2.5
 export LD_ASSUME_KERNEL
 
 PANDA_THREADS	= ot
-# PANDA_THREADS	= pthreads
+# PANDA_THREADS	= pthread
 
 IBERTY	        = $(MYRINET_ROOT)/libiberty.a
 BFD		= $(MYRINET_ROOT)/libbfd.a
@@ -336,6 +336,10 @@ endif
 #
 .PHONY:	manta_lib
 manta_lib:	$(PKG_O_FILES) $(C_OBJ) $(SO_LIB)
+ifneq (, $(C_SRC))
+	# DON'T understand. Why is $(C_OBJ) as a target insufficient????
+	$(MAKE) $(MFLAGS) $(C_OBJ)
+endif
 	$(AR) ru $(MANTA_LIB) $(PKG_O_DOLLAR) $(C_OBJ)
 
 # Shared support for native code
@@ -381,4 +385,4 @@ run:
 #
 .PHONY:	prun
 prun:
-	@echo "prun IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. CLASSPATH=$(CLASSPATH) -no-panda $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"
+	@echo "prun IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. CLASSPATH=$(CLASSPATH) -no-panda -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"

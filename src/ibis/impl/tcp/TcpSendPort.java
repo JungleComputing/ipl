@@ -132,4 +132,9 @@ final class TcpSendPort implements SendPort, Config {
 	void release(TcpReceivePortIdentifier ri, int id) { 
 		TcpIbis.tcpPortHandler.releaseOutput(ri, id);
 	} 
+
+	void reset() throws IbisIOException {
+	    sender.reset();
+	}
+
 }
