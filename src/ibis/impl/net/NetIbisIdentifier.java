@@ -1,123 +1,91 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisIdentifier;
-
-import ibis.io.IbisSerializationOutputStream;
-import ibis.io.IbisSerializationInputStream;
 import java.io.IOException;
+import java.io.EOFException;
 
 import java.net.InetAddress;
 
-/**
- * Provides a identifier for {@link NetIbis} instances.
- */
-// the implements should be unnecessary, but the IOGenerator does not 
-// see that the super class implents it, and rewrites the bytecode.
-public final class NetIbisIdentifier
-	extends IbisIdentifier
-	implements java.io.Serializable, ibis.io.Serializable {
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisError;
 
-	/**
-	 * Serialization version ID
-	 */
-	public static final int serialversionID = 1;
+import ibis.io.Serializable;
+import ibis.ipl.impl.generic.IbisIdentifierTable;
 
-	/**
-	 * Default constructor (should not be called).
-	 *
-	 * Calling this constructor will result in the program being aborted.
-	 */
+public final class NetIbisIdentifier extends IbisIdentifier implements java.io.Serializable {
+
+	private static final long serialVersionUID = 9L;
+	private InetAddress address;
+	private static IbisIdentifierTable cache = new IbisIdentifierTable();
+
 	public NetIbisIdentifier() {
-		__.abort__("NetIbisIdentifier default constructor called");
+		throw new IbisError("EEK, NetIbisIdentifier default ctor!");
 	}
 
-	public NetIbisIdentifier(IbisSerializationInputStream stream) throws IOException {
-		stream.addObjectToCycleCheck(this);
-		generated_DefaultReadObject(stream, 0);
+	public NetIbisIdentifier(String name, InetAddress address) {
+		super(name);
+		this.address = address;
 	}
 
-	public final void generated_DefaultReadObject(IbisSerializationInputStream stream, int lvl) throws IOException {
-		int handle = stream.readInt();
-
-		if(handle < 0) {
-			address = InetAddress.getByName(stream.readUTF()); // this does not do a real lookup
-			name = stream.readUTF();
-			cluster = stream.readUTF();
-			NetIbis.globalIbis.identTable.addIbis(stream, -handle, this);
-		} else {
-			NetIbisIdentifier ident = (NetIbisIdentifier)NetIbis.globalIbis.identTable.getIbis(stream, handle);
-			address = ident.address;
-			name    = ident.name;
-			cluster = ident.cluster;
-		}
+	public InetAddress address() {
+		return address;
 	}
 
-	/**
-	 * Constructor.
-	 *
-	 * @param name the name of the instance.
-	 * @param address the {@linkplain InetAddress IP address} of the instance.
-	 */
-	public NetIbisIdentifier(String      name,
-				 InetAddress address) {
-		super(name, address);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public boolean equals(Object o) {
-		if (o == this) {
-			return true;
-		}
-		
+		if(o == this) return true;
 		if (o instanceof NetIbisIdentifier) {
 			NetIbisIdentifier other = (NetIbisIdentifier) o;
-
 			return equals(other);
 		}
 		return false;
 	}
 
-	/**
-	 * Specialized version of {link Object#equals}.
-	 */
 	public boolean equals(NetIbisIdentifier other) {
-		if (other == this) {
-			return true;
-		}
-		
-		return address.equals(other.address) && name.equals(other.name);
+		if(other == this) return true;
+		return /*address.equals(other.address) &&*/ name.equals(other.name);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public String toString() {
-		String a = address == null ? "<null>" : (address.getHostName()+", "+address.getHostAddress());
-		String n = name == null ? "<null>" : name;
-
-		return "(NetId: "+ n +" on ["+ a +"])";
+		String a = (address == null ? "<null>" : address.getHostName() + ", " + address.getHostAddress());
+		String n = (name == null ? "<null>" : name);
+		return ("(NetId: " + n + " on [" + a + "])");
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public int hashCode() {
 		return name.hashCode();
 	}
 
-	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws IOException {
-		int handle = NetIbis.globalIbis.identTable.getHandle(stream, this);
-		stream.writeInt(handle);
-		if (handle < 0) {
-			stream.writeUTF(address.getHostAddress());
-			stream.writeUTF(name);
-			stream.writeUTF(cluster);
+	// no need to serialize super class fields, this is done automatically
+	// We handle the address field special.
+	// Do not do a writeObject on it (or a defaultWriteObject of the current object),
+	// because InetAddress might not be rewritten as it is in the classlibs --Rob
+	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                int handle = cache.getHandle(out, this);
+		out.writeInt(handle);
+		if(handle < 0) { // First time, send it.
+                        out.writeUTF(address.getHostAddress());
 		}
 	}
 
-	public final void generated_DefaultWriteObject(IbisSerializationOutputStream stream, int lvl) throws IOException {
-		generated_WriteObject(stream);
+	// no need to serialize super class fields, this is done automatically
+	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+		int handle = in.readInt();
+		if(handle < 0) {
+			String addr = in.readUTF();
+			try {
+                                // this does not do a real lookup
+                                address = InetAddress.getByName(addr);
+                        } catch (Exception e) {
+                                throw new IbisError("EEK, could not create an inet address" +
+                                                                   "from a IP address. This shouldn't happen", e);
+                        }
+
+                        cache.addIbis(in, -handle, this);
+		} else {
+                        NetIbisIdentifier ident = (NetIbisIdentifier)
+                                cache.getIbis(in, handle);
+			address = ident.address;
+			name = ident.name;
+			cluster = ident.cluster;
+		}
 	}
 }

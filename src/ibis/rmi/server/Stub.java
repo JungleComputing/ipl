@@ -59,7 +59,7 @@ public class Stub extends RemoteStub {
 	    } catch(ClassNotFoundException e) {
 		throw new IbisError("Class String not found", e);
 	    }
-	    rm.finish();		
+	    rm.finish();
 
 	    initialized = true;
 	}

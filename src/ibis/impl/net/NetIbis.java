@@ -333,8 +333,10 @@ public final class NetIbis extends Ibis {
                 /* Gets <I>name server<I> {@link InetAddress} */
 		nameServerInet = InetAddress.getByName(nameServerName);
 
+
                 /* Connects to the <I>name server<I> */
 		nameServerClient = new NameServerClient(this,
+							addr,
 							identifier,
 							nameServerPool,
 							nameServerInet,
@@ -448,6 +450,4 @@ public final class NetIbis extends Ibis {
         protected int _closedPoolSize() {
                 return closedPoolSize;
         }
-
-
 }

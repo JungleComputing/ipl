@@ -1,5 +1,3 @@
-// handcrafted by Rob, do *NOT* overwrite!
-// We cache these identifiers for efficiency, Satin sends them frequently.
 package ibis.ipl.impl.messagePassing;
 
 import java.io.IOException;
@@ -13,60 +11,16 @@ import ibis.ipl.impl.generic.IbisIdentifierTable;
 // Make this final, make inlining possible
 final class IbisIdentifier
 	extends ibis.ipl.IbisIdentifier
-	implements java.io.Serializable, ibis.io.Serializable {
+	implements java.io.Serializable {
 
 	private int cpu;
 	private transient byte[] serialForm;
-
+	private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
 	IbisIdentifier(String name, int cpu) throws IOException {
-
-	    try {
-		    this.address = java.net.InetAddress.getLocalHost();
-	    } catch (java.net.UnknownHostException e) {
-		    // this should not happen.
-		    System.err.println("EEk: could not get my own IP address: " + e);
-		    System.exit(1);
-	    }
-
-	    this.name = new String(name);
+	    super(name);
 	    this.cpu  = cpu;
-		init_cluster();
 	    makeSerialForm();
-	}
-
-
-	public IbisIdentifier(IbisSerializationInputStream stream) throws IOException {
-		stream.addObjectToCycleCheck(this);
-		generated_DefaultReadObject(stream, 0);
-	}
-
-	public final void generated_DefaultReadObject
-		(IbisSerializationInputStream stream, int lvl)
-		throws IOException {
-
-		int handle = stream.readInt();
-		if(handle < 0) {
-			try {
-				// this does not do a real lookup
-				address = InetAddress.getByName(stream.readUTF());
-			} catch (Exception e) {
-				System.err.println("EEK, could not create an inet address from a IP address. This should not happen:" + e);
-				System.exit(1);
-			}
-			cpu = stream.readInt();
-			name = stream.readUTF();
-			cluster = stream.readUTF();
-			Ibis.myIbis.identTable.addIbis(stream, -handle, this);
-		} else {
-			IbisIdentifier ident = (IbisIdentifier) 
-				Ibis.myIbis.identTable.getIbis(stream, handle);
-
-			address = ident.address;
-			name = ident.name;
-			cluster = ident.cluster;
-			cpu = ident.cpu;
-		}
 	}
 
 
@@ -85,6 +39,30 @@ final class IbisIdentifier
 	}
 
 
+	// no need to serialize super class fields, this is done automatically
+	// We handle the address field special.
+	// Do not do a writeObject on it (or a defaultWriteObject of the current object),
+	// because InetAddress might not be rewritten as it is in the classlibs --Rob
+	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                int handle = cache.getHandle(out, this);
+		out.writeInt(handle);
+	}
+
+	// no need to serialize super class fields, this is done automatically
+	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+		int handle = in.readInt();
+		if(handle < 0) {
+                        cache.addIbis(in, -handle, this);
+		} else {
+                        IbisIdentifier ident = (IbisIdentifier)
+                                cache.getIbis(in, handle);
+			name = ident.name;
+			cluster = ident.cluster;
+			cpu = ident.cpu;
+		}
+	}
+
+
 	private void makeSerialForm() throws IOException {
 	    serialForm = SerializeBuffer.writeObject(this);
 	}
@@ -95,22 +73,6 @@ final class IbisIdentifier
 			makeSerialForm();
 	    }
 	    return serialForm;
-	}
-
-
-	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws IOException {
-		int handle = Ibis.myIbis.identTable.getHandle(stream, this);
-		stream.writeInt(handle);
-		if(handle < 0) { // First time, send it.
-			stream.writeUTF(address.getHostAddress());
-			stream.writeInt(cpu);
-			stream.writeUTF(name);
-			stream.writeUTF(cluster);
-		}
-	}
-
-	public final void generated_DefaultWriteObject(IbisSerializationOutputStream stream, int lvl) throws IOException {
-		generated_WriteObject(stream);
 	}
 
 	// Compare ranks here, much faster. This is method critical for Satin. --Rob
@@ -144,5 +106,4 @@ final class IbisIdentifier
 	int getCPU() {
 	    return cpu;
 	}
-
 }
