@@ -38,6 +38,11 @@ class TcpPortType implements PortType, Config {
 
 //				System.err.println("serializationType = SERIALIZATION_IBIS");
 				serializationType = SERIALIZATION_IBIS;
+			} else if (ser.equals("manta")) {
+				// backwards compatibility ...
+
+//				System.err.println("serializationType = SERIALIZATION_IBIS");
+				serializationType = SERIALIZATION_IBIS;
 			} else {
 				throw new IbisException("Unknown Serialization type " + ser);
 			}
