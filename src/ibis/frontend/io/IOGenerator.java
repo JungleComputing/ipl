@@ -344,8 +344,9 @@ public class IOGenerator {
 	String name = clazz.getClassName() + "_ibis_io_Generator";
 
 	ObjectType class_type = new ObjectType(clazz.getClassName());
-	
-	ClassGen gen = new ClassGen(name, "ibis.io.Generator", name.substring(name.lastIndexOf('.')+1) + ".class", Constants.ACC_FINAL|Constants.ACC_PUBLIC|Constants.ACC_SUPER, null);
+
+	String classfilename = name.substring(name.lastIndexOf('.')+1) + ".class";
+	ClassGen gen = new ClassGen(name, "ibis.io.Generator", classfilename, Constants.ACC_FINAL|Constants.ACC_PUBLIC|Constants.ACC_SUPER, null);
 	InstructionFactory factory = new InstructionFactory(gen);
 
 	InstructionList il = new InstructionList();
@@ -1152,22 +1153,17 @@ public class IOGenerator {
 	for (int i=0;i<classes_to_save.size();i++) { 
 	    JavaClass clazz = (JavaClass)classes_to_save.get(i);
 	    String cl = clazz.getClassName();
+	    String classfile = "";
 
-	    int index = cl.lastIndexOf('.');
-	    String classfile = cl.substring(index+1) + ".class";
-
-	    if (verbose) System.out.println("  Saving class : " + classfile);
 	    try {
 		if(local) {
-		    clazz.dump(classfile);
+		    int index = cl.lastIndexOf('.');
+		    classfile = cl.substring(index+1) + ".class";
 		} else {
-		    String pkg = clazz.getPackageName();
-		    if (pkg != null) {
-			pkg.replace('.', '/');
-			classfile = pkg + "/" + classfile;
-		    }
-		    clazz.dump(classfile);
+		    classfile = cl.replace('.', '/') + ".class";
 		}
+		if (verbose) System.out.println("  Saving class : " + classfile);
+		clazz.dump(classfile);
 	    } catch (IOException e) {
 		System.err.println("got exception while writing " + classfile + ": " + e);
 		System.exit(1);
