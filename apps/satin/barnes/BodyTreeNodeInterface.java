@@ -3,10 +3,9 @@ import java.util.LinkedList;
 interface BodyTreeNodeInterface extends ibis.satin.Spawnable {
     //public void computeCentersOfMass();
 
-    LinkedList barnes( BodyTreeNode interactTree, int threshold);
+    LinkedList barnesNTC( BodyTreeNode interactTree, int threshold);
 
-    /* this one should actually be static */
-    LinkedList barnes( byte[] jobWalk, String rootId, int threshold );
-
-    Vec3 spawn_barnesBody( Vec3 pos );
+    /* these ones should actually be static */
+    LinkedList barnesTuple( byte[] jobWalk, String rootId, int threshold );
+    LinkedList barnesTuple2( byte[] jobWalk, int threshold );
 }

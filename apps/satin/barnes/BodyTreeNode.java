@@ -1,4 +1,3 @@
-//import java.io.*;
 import java.util.*;
 
 /**
@@ -106,12 +105,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	initCenterSizeMaxtheta(max, min, theta);
 
 	for (i = 0; i < bodyArray.length; i++) {
-	    try {
-		addBody(bodyArray[i], maxLeafBodies);
-	    } catch (Exception e) {
-		print(System.err, 0);
-		System.exit(1);
-	    }
+	    addBody(bodyArray[i], maxLeafBodies);
 	}
 
 	trim();
@@ -321,9 +315,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	    //leaf node
 	    if (bodies.length != bodyCount) {
 		Body[] newBodies = new Body[bodyCount];
-		for (int i = 0; i < bodyCount; i++) {
-		    newBodies[i] = bodies[i];
-		}
+		System.arraycopy(bodies, 0, newBodies, 0, bodyCount);
 		bodies = newBodies;
 	    }
 	} else {
@@ -447,11 +439,6 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	    }
 	}
 	return totalAcc;
-    }
-
-    //spawnable version of barnesBody(Vec3 pos)
-    public Vec3 spawn_barnesBody (Vec3 pos) {
-	return barnesBody(pos);
     }
 
     /**
@@ -595,7 +582,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
      * @param threshold the recursion depth at which work shouldn't
      *                  be spawned anymore
      */
-    public LinkedList barnes( BodyTreeNode interactTree, int threshold ) {
+    public LinkedList barnesNTC( BodyTreeNode interactTree, int threshold ) {
 	LinkedList result;
 	int i;
 
@@ -606,7 +593,6 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	    result = barnesSequential(interactTree);
 
 	} else { //cell node -> call children[].barnes()
-
 	    LinkedList res[] = new LinkedList[8];
 	    int lastValidChild = -1;
 
@@ -616,17 +602,12 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 			//necessaryTree creation
 			BodyTreeNode necessaryTree =
 			    new BodyTreeNode(interactTree, children[i]);
+			res[i] = children[i].barnesNTC(necessaryTree,
+						       threshold-1);
 
 			//alternative: copy whole tree
-			//BodyTreeNode necessaryTree = interactTree;
-
-			/*System.err.println("Interacttree:");
-			  interactTree.print(System.err, 0);
-			  System.err.println("Job:");
-			  children[i].print(System.err, 0);
-			  System.err.println("Necessarytree:");
-			  necessaryTree.print(System.err, 0); */
-			res[i] = children[i].barnes(necessaryTree,threshold-1);
+			//res[i] = children[i].barnesNTC(interactTree,
+			//threshold-1);
 		    } else { //reached the threshold -> no spawn
 			res[i] = children[i].barnesSequential(interactTree);
 		    }
@@ -654,7 +635,8 @@ final class BodyTreeNode extends ibis.satin.SatinObject
      * @param threshold the recursion depth at which work shouldn't
      *                  be spawned anymore
      */
-    public LinkedList barnes(byte[] jobWalk, String rootId, int threshold) {
+    public LinkedList barnesTuple(byte[] jobWalk, String rootId,
+				  int threshold) {
 	BodyTreeNode root, job;
 	int i;
 	LinkedList result, res[] = new LinkedList[8];
@@ -686,9 +668,70 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 		    System.arraycopy(jobWalk, 0, newJobWalk, 0,jobWalk.length);
 		    newJobWalk[jobWalk.length] = (byte)i;
 
-		    res[i] = barnes(newJobWalk, rootId, threshold);
+		    res[i] = barnesTuple(newJobWalk, rootId, threshold);
 		} else {
 		    res[i] = job.children[i].barnesSequential(root);
+		}
+		lastValidChild = i;
+	    }
+	}
+
+	if (jobWalk.length < threshold) {
+	    sync();
+	    return combineResults(res, lastValidChild);
+	} else {
+	    //this was a sequential job, optimize!
+	    return optimizeList(combineResults(res, lastValidChild));
+	    //return combineResults(res, lastValidChild);
+	}
+    }
+
+
+    /**
+     * This version also spawns itself until the threshold is reached.
+     * It uses the satin tuplespace.
+     * In this function, threshold isn't decremented each recursive call
+     * because jobWalk.length indicates the recursion depth.
+     * @param jobWalk an array describing the walk through the tree from
+     *                the root to the job (null means: job == root)
+     * @param threshold the recursion depth at which work shouldn't
+     *                  be spawned anymore
+     */
+
+    public LinkedList barnesTuple2(byte[] jobWalk, int threshold) {
+	BodyTreeNode job;
+	int i;
+	LinkedList result, res[] = new LinkedList[8];
+	int lastValidChild = -1;
+	Integer integer;
+
+	//find job
+	job = BarnesHut.root;
+	if (jobWalk != null) {
+	    for (i = 0; i < jobWalk.length; i++) {
+		job = job.children[jobWalk[i]];
+	    }
+	} else {
+	    jobWalk = new byte[0];
+	}
+	
+	if (job.children == null) { //job is a leaf node
+	    // using optimizeList isn't useful for leaf nodes
+	    return job.barnesSequential(BarnesHut.root);
+	}
+	/* else */
+
+	for (i = 0; i < 8; i++) {
+	    if (job.children[i] != null) {
+		if (jobWalk.length < threshold) {
+		    //spawn new job
+		    byte[] newJobWalk = new byte[jobWalk.length + 1];
+		    System.arraycopy(jobWalk, 0, newJobWalk, 0,jobWalk.length);
+		    newJobWalk[jobWalk.length] = (byte)i;
+
+		    res[i] = barnesTuple2(newJobWalk, threshold);
+		} else {
+		    res[i] = job.children[i].barnesSequential(BarnesHut.root);
 		}
 		lastValidChild = i;
 	    }
@@ -772,38 +815,6 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	return optimal;
     }
 
-    /**
-     * Computes the interactions between the bodies in 'bodies' and those
-     * in 'this', by spawning a job for each body
-     * The acc field in the body is set to the calculated interaction
-     *
-     * This version is actually *slower* than barnes(interactTree),
-     * probably because barnes(interactTree) has better cache behaviour
-     * due to better locality
-     */
-    public void barnes( Body[] bodies) {
-	int i;
-
-	Vec3[] accs = new Vec3[bodies.length];
-	for (i = 0; i < bodies.length; i++) {
-	    accs[i] = spawn_barnesBody(bodies[i].pos);
-	}
-	sync();
-	for (i = 0; i < bodies.length; i++) {
-	    bodies[i].acc = accs[i];
-	    if (BarnesHut.ASSERTS) bodies[i].updated = true;
-	}
-    }
-
-    //debug version of the method above
-    public void barnesDbg( Body[] bodies, int iteration) {
-	for (int i = 0; i < bodies.length; i++) {
-	    bodies[i].acc = barnesBodyDbg(bodies[i].pos, i == 0);
-	    //bodies[i].acc = barnesBodyDbg(bodies[i].pos, false);
-	    if (BarnesHut.ASSERTS) bodies[i].updated = true;
-	}
-    }
-
     public void print(java.io.PrintStream out, int level) {
 	int i, j;
 	if (level == 0) {
@@ -812,6 +823,9 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	}
 
 	out.print(" at " + center);
+
+	out.print("CoM at " + centerOfMass.x + ", " +
+		  centerOfMass.y + ", " + centerOfMass.z);
 
 	if (children == null) {
 	    out.print(": leaf, ");
