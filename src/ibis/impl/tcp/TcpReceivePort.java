@@ -124,6 +124,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		notifyAll(); // now handle this message.
 
 		// Wait until the receiver thread finishes this message.
+		// We must wait here, because the thread that calls this method 
+		// wants to read an opcode from the stream.
+		// It can only read this opcode after the whole message is gone first.
 		while(this.m != null) {
 			try {
 				wait();
