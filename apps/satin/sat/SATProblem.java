@@ -762,9 +762,16 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 			return null;
 		    }
 		    if( tok.nval == 0 ){
-			res.addClause( pos, posix, neg, negix );
-			posix = 0;
-			negix = 0;
+                        if( posix != 0 || negix != 0 ){
+                            // Only add a real clause. Some naughty people
+                            // put empty clauses in the problem, usually
+                            // at the end of the input file. Strictly speaking
+                            // this makes the entire problem unsatisfiable, but
+                            // this is clearly not the intention.
+                            res.addClause( pos, posix, neg, negix );
+                            posix = 0;
+                            negix = 0;
+                        }
 		    }
 		    else if( tok.nval<0 ){
 			neg[negix++] = ((int) -tok.nval) - 1;
