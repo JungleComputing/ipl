@@ -30,7 +30,7 @@ public class PlainTCPSocketType extends SocketType
 	throws IOException
     {
 	ServerSocket s = new ServerSocket();
-	s.setReceiveBufferSize(0x8000);
+	s.setReceiveBufferSize(0x10000);
 	s.bind(addr, backlog);
 	return s;
     }
@@ -65,8 +65,8 @@ public class PlainTCPSocketType extends SocketType
     private static void tuneSocket(Socket s)
 	throws IOException
     {
-	s.setSendBufferSize(0x8000);
-	s.setReceiveBufferSize(0x8000);
+	s.setSendBufferSize(0x10000);
+	s.setReceiveBufferSize(0x10000);
 	s.setTcpNoDelay(true);
     }
 }

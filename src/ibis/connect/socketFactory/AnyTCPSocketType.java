@@ -36,7 +36,7 @@ public class AnyTCPSocketType extends SocketType
 
 	public ServerInfo() throws IOException {
 	    server = new ServerSocket();
-	    server.setReceiveBufferSize(0x8000);
+	    server.setReceiveBufferSize(0x10000);
 	    server.bind(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
 	    server.setSoTimeout(60000);	// one minute
 	}
@@ -154,8 +154,8 @@ public class AnyTCPSocketType extends SocketType
     private static void tuneSocket(Socket s)
 	throws IOException
     {
-	s.setSendBufferSize(0x8000);
-	s.setReceiveBufferSize(0x8000);
+	s.setSendBufferSize(0x10000);
+	s.setReceiveBufferSize(0x10000);
 	s.setTcpNoDelay(true);
     }
 }

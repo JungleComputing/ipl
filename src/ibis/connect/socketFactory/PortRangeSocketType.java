@@ -53,7 +53,7 @@ public class PortRangeSocketType
 	throws IOException
     {
 	ServerSocket s = new ServerSocket();
-	s.setReceiveBufferSize(0x8000);
+	s.setReceiveBufferSize(0x10000);
 	if(addr.getPort() == 0)
 	    addr = new InetSocketAddress(addr.getAddress(), allocLocalPort());
 	s.bind(addr, backlog);
@@ -71,8 +71,8 @@ public class PortRangeSocketType
     private static void tuneSocket(Socket s)
 	throws IOException
     {
-	s.setSendBufferSize(0x8000);
-	s.setReceiveBufferSize(0x8000);
+	s.setSendBufferSize(0x10000);
+	s.setReceiveBufferSize(0x10000);
 	s.setTcpNoDelay(true);
     }
 
