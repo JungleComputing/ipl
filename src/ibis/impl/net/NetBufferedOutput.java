@@ -52,8 +52,10 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
                 if (factory == null) {
                         factory = new NetBufferFactory(mtu, new NetSendBufferFactoryDefaultImpl());
                 } else {
-                        mtu = Math.min(mtu, factory.getMaximumTransferUnit());
-                        factory.setMaximumTransferUnit(mtu);
+                        int prev_mtu = factory.getMaximumTransferUnit();
+			if (prev_mtu < mtu) {
+			    factory.setMaximumTransferUnit(mtu);
+			}
                 }
 		super.initSend();	// Need this for GM, what would it break RFHH?
                 log.out();

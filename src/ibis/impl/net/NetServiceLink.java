@@ -813,7 +813,7 @@ public final class NetServiceLink {
 							    receiveSubstreamId(id);
 							}
 						    };
-					new Thread(r, "receive_substream_id").start();
+					ThreadPool.createNew(r);
 				}
 				break;
 

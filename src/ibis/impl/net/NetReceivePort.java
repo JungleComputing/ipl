@@ -19,6 +19,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Hashtable;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -131,6 +132,13 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                                 rpcu.gotConnection(NetReceivePort.this, spi);
                                                         }
 
+							if (connectionTable.size() == 1) {
+							    singleConnection = cnx;
+System.err.println(this + ": Set singleConnection");
+							} else {
+							    singleConnection = null;
+System.err.println(this + ": clear singleConnection");
+							}
 							if (connectionTable.size() > maxLiveConnections) {
 							    maxLiveConnections = connectionTable.size();
 							}
@@ -326,6 +334,12 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         private Hashtable                connectionTable     =  null;
 
+	/**
+	 * Cache a single connection for fast lookup in the frequent case of one
+	 * connection
+	 */
+	private NetConnection	singleConnection = null;
+
         /**
          * The port's topmost driver.
          */
@@ -458,13 +472,27 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 	private int			upcallsPending = 0;
 
 
-	private NetConnection checkClose() {
-
+	/**
+	 * Make a fast path for the (frequent) case that there is only one
+	 * connection
+	 */
+	private NetConnection getActiveConnection() {
 	    if (activeSendPortNum == null) {
 		return null;
 	    }
 
-	    NetConnection cnx = (NetConnection)connectionTable.get(activeSendPortNum);
+	    if (singleConnection != null) {
+		return singleConnection;
+	    }
+
+	    return (NetConnection)connectionTable.get(activeSendPortNum);
+	}
+
+
+	private NetConnection checkClose() {
+
+
+	    NetConnection cnx = getActiveConnection();
 	    cnx.msgSeqno++;
 	    if (cnx.msgSeqno >= cnx.closeSeqno) {
 // System.err.println("Now we can close the connection");
@@ -592,6 +620,14 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
 			    nspi = cnx.getSendId();
 
 			    cnx = (NetConnection)connectionTable.remove(cnx.getNum());
+			    if (connectionTable.size() == 1) {
+				Enumeration elts = connectionTable.elements();
+				singleConnection = (NetConnection)elts.nextElement();
+System.err.println(this + ": Set singleConnection");
+			    } else {
+				singleConnection = null;
+System.err.println(this + ": clear singleConnection");
+			    }
 
 			    disconnectedPeers.add(nspi);
 			}
@@ -712,13 +748,14 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
 
         private void initGlobalSettings(boolean upcallSpecified) {
                 log.in();
-                useYield               = type.getBooleanStringProperty(null, "UseYield",            useYield           );
+                useYield               = type.getBooleanStringProperty(null, "UseYield",            TypedProperties.booleanProperty(NetIbis.port_yield, useYield));
                 useUpcall              = type.getBooleanStringProperty(null, "UseUpcall",           useUpcall          );
                 //                useBlockingPoll        = type.getBooleanStringProperty(null, "UseBlockingPoll",     useBlockingPoll    );
 
                 if (!useUpcall && upcallSpecified) {
                         useUpcall = true;
                 }
+System.err.println("useYield " + useYield);
 
                 disp.disp("__ Configuration ____");
                 disp.disp("Upcall engine........", __.state__(useUpcall));
@@ -834,6 +871,7 @@ pollerThread = null;
                         polledLock.lock();
                 } else {
                         if (useYield) {
+// System.err.print("2");
                                 while (!_doPoll(useBlockingPoll)) {
                                         NetIbis.yield();
                                         // n_yield++;
@@ -921,16 +959,12 @@ pollerThread = null;
          */
         protected NetSendPortIdentifier getActiveSendPortIdentifier() {
                 log.in();
-                /*
-                if (activeSendPortNum == null)
-                        return null;
-                */
 
-                if (activeSendPortNum == null) {
+
+                NetConnection cnx = getActiveConnection();
+                if (cnx == null) {
                         throw new Error("no active sendPort");
 		}
-
-                NetConnection cnx = (NetConnection)connectionTable.get(activeSendPortNum);
                 if (cnx.getSendId() == null) {
                         throw new Error("invalid state: cnx.getSendId");
                 }

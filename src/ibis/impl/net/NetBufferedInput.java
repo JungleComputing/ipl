@@ -45,6 +45,11 @@ public abstract class NetBufferedInput extends NetInput
         private boolean circularCheck = false;
 
 	/**
+	 * Don't set mtu or headerOffset if this is the same between messages
+	 */
+	private Integer	currentNum	= null;
+
+	/**
 	 * @param portType the {@link ibis.impl.net.NetPortType NetPortType}.
 	 * @param driver the driver of this poller.
 	 * @param context the context.
@@ -156,11 +161,13 @@ public abstract class NetBufferedInput extends NetInput
 
                 if (factory == null) {
                         factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl(), bufferAllocator);
-                } else {
+			dataOffset = getHeadersLength();
+                } else if (num != currentNum) {
+			currentNum = num;
                         factory.setMaximumTransferUnit(Math.max(mtu, factory.getMaximumTransferUnit()));
+			dataOffset = getHeadersLength();
                 }
 
-                dataOffset = getHeadersLength();
                 log.out();
         }
 

@@ -45,6 +45,8 @@ public final class NetIbis extends Ibis {
 
 	public static final String multi_gen = prefix + "multi.gen";
 
+	public static final String port_yield = prefix + "port.yield";
+
 	private static final String[] properties = {
 	    alloc_stats,
 	    alloc_thres,
@@ -55,7 +57,8 @@ public final class NetIbis extends Ibis {
 	    poll_single_v,
 	    cfg_filenm,
 	    cfg_file,
-	    port_single
+	    port_single,
+	    port_yield
 	};
 
 	private static final String[] excludes = {
