@@ -28,7 +28,7 @@
 
 #include "ibp_env.h"
 
-#ifndef NOTDEF
+#ifndef NDEBUG
 pan_key_p		ibp_env_key;
 #endif
 
@@ -687,7 +687,7 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
     ibp_nr = pan_nr_processes();
     ibp_me = pan_my_pid();
 
-#ifndef NOTDEF
+#ifndef NDEBUG
     ibp_env_key = pan_key_create();
 #endif
 
