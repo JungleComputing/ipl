@@ -322,6 +322,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 		} catch (IOException e) {
 			System.err.println("satin msgHandler upcall: " + e);
+			e.printStackTrace();
 				// Ignore.
 		}
 	}

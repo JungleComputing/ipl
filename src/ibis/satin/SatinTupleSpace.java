@@ -23,6 +23,10 @@ public class SatinTupleSpace implements Config {
 
 	/** add an element to the global tuple space. The key must be unique. **/
 	public static void add(String key, Serializable data) {
+		if(ASSERTS && space.containsKey(key)) {
+			throw new IbisError("Key " + key + " is already in the tuple space");
+		}
+
 		space.put(key, data);
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": added key " + key);
@@ -47,12 +51,17 @@ public class SatinTupleSpace implements Config {
 				data = (Serializable) space.get(key);
 				if(data == null) {
 					try {
-			if(TUPLE_DEBUG) {
-				System.err.println("SATIN '" + satin.ident.name() + ": get key " 
-						   + key + " waiting");
-			}
+						if(TUPLE_DEBUG) {
+							System.err.println("SATIN '" + satin.ident.name() + ": get key " 
+									   + key + " waiting");
+						}
 
 						space.wait();
+						if(TUPLE_DEBUG) {
+							System.err.println("SATIN '" + satin.ident.name() + ": get key " 
+									   + key + " waiting DONE");
+						}
+
 					} catch (Exception e) {
 						// Ignore.
 					}
