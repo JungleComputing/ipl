@@ -12,7 +12,7 @@
     </target>
 
     <target name="compile"
-	    depends="init">
+	    depends="init,property-init">
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".">
@@ -23,9 +23,9 @@
 
     <target name="build"
 	    depends="init">
-	<antcall target="compile"/>
-	<antcall target="satin"/>
-	<antcall target="iogen"/>
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="satin"/>
+	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
     <target name="clean">
