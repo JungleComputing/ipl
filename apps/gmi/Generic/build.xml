@@ -1,5 +1,5 @@
 <project
-    name="ibis.apps.group.Generic"
+    name="ibis.apps.gmi.Generic"
     default="build"
     basedir=".">
 
@@ -10,6 +10,6 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    <import file="${ibis}/apps/group/build-gmi-app.xml"/>
+    <import file="${ibis}/apps/gmi/build-gmi-app.xml"/>
 
 </project>

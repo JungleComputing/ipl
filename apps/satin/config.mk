@@ -52,6 +52,6 @@ DATE = `date '+%Y-%m-%d'`
 #JVM_FLAGS = -server
 
 
-SEQ_RUN_COMMAND = (/home/rob/bin/check_rsh_ports; rm -f $(SEQ_OUT_FILE) $(SEQ_OUT_FILE).0; prun $(EXCLUDES) -1 -o $(SEQ_OUT_FILE) $(SEQ_TIME) -v $(IBIS_ROOT)/ibis/bin/run_ibis 1 $(NAMESERVER_PORT) $(NAME_SERVER) $(JVM_FLAGS) $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(SEQ_RUN_OPTIONS) < /dev/null; mv $(SEQ_OUT_FILE).0 $(SEQ_OUT_FILE)) &
+SEQ_RUN_COMMAND = (/home/rob/bin/check_rsh_ports; rm -f $(SEQ_OUT_FILE) $(SEQ_OUT_FILE).0; prun $(EXCLUDES) -1 -o $(SEQ_OUT_FILE) $(SEQ_TIME) -v $(IBIS_ROOT)/bin/run_ibis 1 $(NAMESERVER_PORT) $(NAME_SERVER) $(JVM_FLAGS) $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(SEQ_RUN_OPTIONS) < /dev/null; mv $(SEQ_OUT_FILE).0 $(SEQ_OUT_FILE)) &
 
-PAR_RUN_COMMAND = (/home/rob/bin/check_rsh_ports; rm -f $(PAR_OUT_FILE) $(PAR_OUT_FILE).*; prun $(EXCLUDES) -1 -o $(PAR_OUT_FILE) $(PAR_TIME) -v ~/projects/ibis/bin/run_ibis $$s $(NAMESERVER_PORT) $(NAME_SERVER) $(JVM_FLAGS) $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(PAR_RUN_OPTIONS) < /dev/null; cat $(PAR_OUT_FILE).* > $(PAR_OUT_FILE); rm -f $(PAR_OUT_FILE).*) &
+PAR_RUN_COMMAND = (/home/rob/bin/check_rsh_ports; rm -f $(PAR_OUT_FILE) $(PAR_OUT_FILE).*; prun $(EXCLUDES) -1 -o $(PAR_OUT_FILE) $(PAR_TIME) -v $(IBIS_ROOT)/bin/run_ibis $$s $(NAMESERVER_PORT) $(NAME_SERVER) $(JVM_FLAGS) $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(PAR_RUN_OPTIONS) < /dev/null; cat $(PAR_OUT_FILE).* > $(PAR_OUT_FILE); rm -f $(PAR_OUT_FILE).*) &
