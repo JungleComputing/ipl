@@ -636,7 +636,7 @@ System.err.println("*********** This ReceivePort daemon past wait, daemon " + th
 		System.err.println("A NULL Exception?????");
 		System.err.println("My stack: ");
 		Thread.dumpStack();
-		manta.runtime.RuntimeSystem.DebugMe(e, e);
+		// manta.runtime.RuntimeSystem.DebugMe(e, e);
 	    } else {
 		System.err.println(e);
 		e.printStackTrace();
