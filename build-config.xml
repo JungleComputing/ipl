@@ -135,6 +135,7 @@
 
     <target name="config-init"
 	    depends="config.das,config.workstation,config.mac,config.previous">
+	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
     </target>
 
     <target name="compile.java_wrapper" depends="cpptasks-init">
