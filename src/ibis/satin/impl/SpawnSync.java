@@ -4,6 +4,9 @@ import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 
 public abstract class SpawnSync extends Termination {
+
+	private static SpawnCounter spawnCounterCache = null;
+
 	/**
 	 * Obtains a new spawn counter. This does not need to be synchronized, only
 	 * one thread spawns.

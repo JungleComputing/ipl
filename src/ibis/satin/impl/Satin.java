@@ -342,7 +342,11 @@ public final class Satin extends APIMethods implements ResizeHandler,
 	 * arguments from it.
 	 */
 	public String[] getMainArgs() {
-		return mainArgs;
+		String[] r = new String[mainArgs.length];
+		for (int i = 0; i < r.length; i++) {
+		    r[i] = mainArgs[i];
+		}
+		return r;
 	}
 
 	/**

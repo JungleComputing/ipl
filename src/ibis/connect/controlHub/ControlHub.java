@@ -28,6 +28,7 @@ class NodeManager extends Thread
     private int[] nmessages;
     private static final boolean STATS 
 	    = TypedProperties.booleanProperty("ibis.controlhub.stats");
+    private static final int np = HubProtocol.getNPacketTypes();
 
     NodeManager(Socket s, ControlHub hub) 
 	throws IOException, ClassNotFoundException {
@@ -35,8 +36,8 @@ class NodeManager extends Thread
 	hostname = wire.getPeerName();
 	hostport = wire.getPeerPort();
 	this.hub = hub;
-	nmessages = new int[HubProtocol.names.length];
-	for (int i = 0; i < HubProtocol.names.length; i++) {
+	nmessages = new int[np+1];
+	for (int i = 0; i <= np; i++) {
 	    nmessages[i] = 0;
 	}
     }
@@ -124,8 +125,8 @@ class NodeManager extends Thread
 	}
 	if (STATS) {
 	    System.err.println("Wire statistics for host " + hostname +":" + hostport + ":");
-	    for (int i = 1; i < HubProtocol.names.length; i++) {
-		System.err.println(HubProtocol.names[i] + ": " + nmessages[i]);
+	    for (int i = 1; i <= np; i++) {
+		System.err.println(HubProtocol.getPacketType(i) + ": " + nmessages[i]);
 	    }
 	}
 	hub.unregisterNode(hostname, hostport);
@@ -190,7 +191,7 @@ public class ControlHub extends Thread
 	nodesNum--;
 	showCount();
 	synchronized(this) {
-	    notifyAll();
+	    this.notifyAll();
 	}
     }
 

@@ -29,11 +29,10 @@ import java.util.HashMap;
  * A sequence number is obtained from a sequencer <code>seq</code> by
  * the {@link #getSeqno seq.getSeqno(name)} call.
  */
-public class Sequencer {
+public final class Sequencer {
     /** The first sequence number that gets given out. */
     public static final int START_SEQNO = 1;
 
-    private int seqno = START_SEQNO;
     private IbisIdentifier ident;
     private boolean master;
     private ReceivePort rcv;

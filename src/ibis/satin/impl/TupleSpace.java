@@ -15,7 +15,7 @@ import java.util.Map;
 
 public abstract class TupleSpace extends Communication {
 
-	public static boolean use_seq;
+        static final boolean use_seq;
 	private static HashMap space;
 	private static boolean initialized = false;
 	private static boolean tuple_connected = false;
@@ -274,8 +274,8 @@ public abstract class TupleSpace extends Communication {
 				connectTuplePort();
 				tuple_connected = true;
 			    }
+			    tuple_message_sent = true;
 			}
-		        tuple_message_sent = true;
 
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();
@@ -401,8 +401,8 @@ public abstract class TupleSpace extends Communication {
 				connectTuplePort();
 				tuple_connected = true;
 			    }
+			    tuple_message_sent = true;
 			}
-		        tuple_message_sent = true;
 
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();

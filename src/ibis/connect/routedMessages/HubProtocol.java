@@ -26,7 +26,15 @@ public class HubProtocol
     public static final int PUTPORT = 7; // received port number from controlhub
     public static final int PORTSET = 8; // a port set
 
-    public static final String[] names = new String[] { "", "Connect", "Accept", "Reject", "Data", "Close", "Getport", "Putport", "PortSet"};
+    private static final String[] names = new String[] { "", "Connect", "Accept", "Reject", "Data", "Close", "Getport", "Putport", "PortSet"};
+
+    public static String getPacketType(int i) {
+	return names[i];
+    }
+
+    public static int getNPacketTypes() {
+	return names.length - 1;
+    }
 
     public static class HubWire
     {

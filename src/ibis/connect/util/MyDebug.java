@@ -6,10 +6,10 @@ import java.io.PrintStream;
 public class MyDebug
 {
     /** Some verbosity to trace protocols */
-    private static boolean enableVerbose = false;
+    private static final boolean enableVerbose;
 
     /** Really a lot of debug messages */
-    private static boolean enableDebug   = false;
+    private static final boolean enableDebug;
 
     public static boolean VERBOSE() {
 	return enableVerbose;
@@ -31,28 +31,23 @@ public class MyDebug
 	}
     }
 
-    public static PrintStream out = System.err; /* needs a non-null default, ifever a class has 
-						   trace messages in its static initializer */
-    
+    public static final PrintStream out; 
+
     static {
 	String sEnabled = System.getProperty("ibis.connect.debug", "false");
 	String sVerbose = System.getProperty("ibis.connect.verbose", "false");
 
-	init(sEnabled.equals("true"), sVerbose.equals("true"));
-    }
-
-    public static void init(boolean debug, boolean verbose) {
-	enableDebug = debug;
-	enableVerbose = verbose;
+	enableVerbose = sVerbose.equals("true");
+	enableDebug = sEnabled.equals("true");
 
 	if(enableDebug)
 	    {
 		System.err.println("MyDebug: traces enabled");
-		MyDebug.out = System.err;
+		out = System.err;
 	    }
 	else
 	    {
-		MyDebug.out = new PrintStream(new OutputStream() {
+		out = new PrintStream(new OutputStream() {
 			public void write(int b) { /* discard data */ } 
 		    });
 	    }

@@ -21,7 +21,6 @@ public class HubLink extends Thread
 
     private Map serverSockets    = new Hashtable();
     private Map connectedSockets = new Hashtable();
-    ArrayList released = new ArrayList();
     ArrayList available_ports = new ArrayList();
     private boolean newPortBusy = false;
     private int portnum = -2;

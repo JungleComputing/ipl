@@ -18,7 +18,7 @@ public abstract class SatinBase implements Config {
 
 	static Satin this_satin = null;
 
-	IbisIdentifier ident; // used in messageHandler
+	IbisIdentifier ident = null; // used in messageHandler
 
 	/* Options. */
 	boolean closed = false; // used in TupleSpace
@@ -102,8 +102,6 @@ public abstract class SatinBase implements Config {
 	Random random = new Random(); // used in victimTable
 
 	protected MessageHandler messageHandler;
-
-	protected static SpawnCounter spawnCounterCache = null;
 
 	protected ArrayList activeTupleKeyList = new ArrayList();
 

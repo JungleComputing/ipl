@@ -15,7 +15,7 @@ import java.io.InputStream;
  *     int status = p.getExitStatus();
  * </pre> 
  */
-public class RunProcess {
+public final class RunProcess {
     private static final Runtime r = Runtime.getRuntime();
 
     /** Where standard output is collected. */
