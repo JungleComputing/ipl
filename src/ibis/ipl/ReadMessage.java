@@ -21,6 +21,11 @@ import java.io.IOException;
 public interface ReadMessage { 
 
     /**
+     * The first sequence number when communication is sequenced.
+     */
+    public static final long INITIAL_SEQNO = 1;
+
+    /**
      * The <code>finish</code> operation is used to indicate that the
      * reader is done with the message.
      * After the finish, no more bytes can be read from the message.

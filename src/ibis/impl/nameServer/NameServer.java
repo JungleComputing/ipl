@@ -13,9 +13,6 @@ import java.util.Properties;
 **/
 public abstract class NameServer implements ibis.ipl.Registry {
 
-	/** Initial sequence number. **/
-	public static final int INIT_SEQNO = 1;
-
 	/** call on exit of an ibis **/
 	public abstract void leave() throws IOException;
 

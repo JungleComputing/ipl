@@ -50,7 +50,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 	    public synchronized long getSeqno(String name) throws IOException {
 		LongObject i = (LongObject) counters.get(name);
 		if (i == null) {
-		    i = new LongObject(ibis.impl.nameServer.NameServer.INIT_SEQNO);
+		    i = new LongObject(ibis.ipl.ReadMessage.INITIAL_SEQNO);
 		    counters.put(name, i);
 		}
 		return i.val++;
