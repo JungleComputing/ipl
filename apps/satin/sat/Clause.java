@@ -16,6 +16,36 @@ class Clause implements java.io.Serializable {
 	label = l;
     }
 
+    // Return true iff 'l' contains 'n'.
+    static boolean memberIntList( int l[], int n )
+    {
+        for( int ix=0; ix<l.length; ix++ ){
+	    if( l[ix] == n ){
+		return true;
+	    }
+	}
+	return false;
+    }
+
+    // Return true iff lb contains all symbols in la.
+    static boolean isSubsetIntList( int la[], int lb[] )
+    {
+	for( int ix=0; ix<la.length; ix++ ){
+	    if( !memberIntList( lb, la[ix] ) ){
+		return false;
+	    }
+	}
+	return true;
+    }
+
+    // Return true iff clause 'cy' is subsumed by this clause.
+    boolean isSubsumedClause( Clause cy )
+    {
+	return isSubsetIntList( this.pos, cy.pos ) &&
+	    isSubsetIntList( this.neg, cy.neg );
+    }
+
+
     // Given an array of assignments, return true iff this clause is
     // satisfied by these assignments.
     public boolean isSatisfied( int assignments[] )

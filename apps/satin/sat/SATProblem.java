@@ -13,6 +13,8 @@ class SATProblem implements java.io.Serializable {
     Clause clauses[];		// The clauses of the problem.
     private SATVar variables[];	// The variables of the problem.
     private int clauseCount;	// The number of valid entries in `clauses'.
+    private int deletedClauseCount;	// The number of deleted clauses.
+    static final boolean trace_simplification = true;
     private int label = 0;
 
     private SATProblem()
@@ -73,6 +75,32 @@ class SATProblem implements java.io.Serializable {
 	int aneg[] = cloneIntArray( neg, negsz );
 	Clause cl = new Clause( apos, aneg, label++ );
 
+        // First see if this clause is subsumed by an existing
+	// one, or subsumes an existing one.
+        for( int i=0; i<clauseCount; i++ ){
+	    Clause ci = clauses[i];
+	    
+	    if( ci.isSubsumedClause( cl ) ){
+		// The new clause is subsumed by an existing one,
+		// don't bother to register it.
+		if( trace_simplification ){
+		    System.err.println( "New clause " + cl + " is subsumed by existing clause " + ci ); 
+		}
+		deletedClauseCount++;
+	        return;
+	    }
+	    if( cl.isSubsumedClause( ci ) ){
+	        // The new clause subsumes an existing one. Remove
+		// it, move the last clause to this slot, and
+		// update clauseCount.
+		if( trace_simplification ){
+		    System.err.println( "New clause " + cl + " subsumes existing clause " + ci ); 
+		}
+		clauseCount--;
+		clauses[i] = clauses[clauseCount];
+		deletedClauseCount++;
+	    }
+	}
 	if( clauseCount>=clauses.length ){
 	    // Resize the clauses array. Even works for array of length 0.
 	    Clause nw[] = new Clause[1+clauses.length*2];
@@ -283,8 +311,8 @@ class SATProblem implements java.io.Serializable {
 	    // There are some pending terms, flush the clause.
 	    res.addClause( pos, posix, neg, negix );
 	}
-	if( res.clauseCount<promisedClauseCount ){
-	    System.out.println( "There are only " +  res.clauseCount + " clauses, although " + promisedClauseCount + " were promised" );
+	if( res.clauseCount+res.deletedClauseCount<promisedClauseCount ){
+	    System.out.println( "There are only " +  (res.clauseCount+res.deletedClauseCount) + " clauses, although " + promisedClauseCount + " were promised" );
 	}
 	return res;
     }
