@@ -7,7 +7,8 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.Upcall;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.ConnectUpcall;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.SendPortConnectUpcall;
 import ibis.io.Replacer;
 
 class TcpPortType implements PortType, Config { 
@@ -113,6 +114,23 @@ class TcpPortType implements PortType, Config {
 		return s;
 	}
 
+	public SendPort createSendPort(String name, SendPortConnectUpcall cU) throws IbisIOException {
+		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
+		return null;
+	}
+
+
+	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall cU) throws IbisIOException {
+		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
+		return null;
+	}
+
+
+	public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall cU) throws IbisIOException {
+		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
+		return null;
+	}
+
 	public ReceivePort createReceivePort(String name) throws IbisIOException {
 
 		TcpReceivePort p = new TcpReceivePort(this, name);
@@ -147,16 +165,16 @@ class TcpPortType implements PortType, Config {
 		return p;
 	}
 
-	public ReceivePort createReceivePort(String name, ConnectUpcall cU) throws IbisIOException {
+	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IbisIOException {
 
-		System.err.println("Must implement createReceivePort(..., ConnectUpcall) RFHH");
+		System.err.println("Must implement createReceivePort(..., ReceivePortConnectUpcall)");
 
 		return null;
 	}
 
-	public ReceivePort createReceivePort(String name, Upcall u, ConnectUpcall cU)  throws IbisIOException { 
+	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU)  throws IbisIOException { 
 
-		System.err.println("Must implement createReceivePort(..., ConnectUpcall) RFHH");
+		System.err.println("Must implement createReceivePort(..., ReceivePortConnectUpcall)");
 
 		return null;
 	}

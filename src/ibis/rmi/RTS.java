@@ -40,6 +40,10 @@ public final class RTS {
 				System.out.println(hostname + ": creating ibis");
                         }
 
+			// @@@ start of horrible code
+			System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
+			new Exception().printStackTrace();
+			
 			ibis = Ibis.createIbis(null);
 
 			Properties p = System.getProperties();
@@ -56,6 +60,8 @@ public final class RTS {
 			}
 
 			if (ibis_name != null && ibis_name.startsWith("net.")) {
+				System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
+				new Exception().printStackTrace();
 			    String driver = ibis_name.substring("net.".length());
 			    String path = "/";
 			    while (true) {
@@ -78,6 +84,8 @@ public final class RTS {
 				driver = driver.substring(dot + 1);
 			    }
 			}
+
+			// @@@ end of horrible code
 
 			if (DEBUG) {
 			    System.out.println(hostname + ": ibis created");

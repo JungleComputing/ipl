@@ -1,11 +1,6 @@
 package ibis.ipl.impl.tcp;
 
-import ibis.ipl.ReceivePort;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.DynamicProperties;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.IbisIOException;
-import ibis.ipl.Upcall;
+import ibis.ipl.*;
 
 import java.net.Socket;
 
@@ -257,6 +252,17 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return receive();
 	}
 
+
+	public ReadMessage receive(long timeoutMillis) throws IbisIOException {
+		System.err.println("receive with timeout not implemented!");
+		return null;
+	}
+
+	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IbisIOException {
+		System.err.println("receive with timeout not implemented!");
+		return null;
+	}
+
 	public DynamicProperties properties() { 
 		return null;
 	}
@@ -380,5 +386,29 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			System.err.println("Got exception " + e);
 			e.printStackTrace();
 		}
+	}
+
+
+	public void forcedClose() {
+		System.err.println("forcedClose not implemented!");
+	}
+
+	public void forcedClose(long timeoutMillis) {
+		System.err.println("forcedClose not implemented!");
+	}
+
+	public SendPortIdentifier connectedTo() {
+		System.err.println("connectedTo not implemented!");
+		return null;
+	}
+
+	public SendPortIdentifier[] lostConnections() {
+		System.err.println("lostConnections not implemented!");
+		return null;
+	}
+
+	public SendPortIdentifier[] newConnections() {
+		System.err.println("newConnections not implemented!");
+		return null;
 	}
 }

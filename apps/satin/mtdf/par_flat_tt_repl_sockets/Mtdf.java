@@ -75,7 +75,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 							abort();
 						}
 					}
-					return null;
+					return null; // exit inlet thread
 				}
 			}
 			

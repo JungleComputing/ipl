@@ -80,6 +80,10 @@ public abstract class Ibis {
 	    String ibisname = p.getProperty("ibis.name");
 	    String hostname;
 
+	    // @@@ start of horrible code
+	    System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
+	    new Exception().printStackTrace();
+
 	    try {
 		hostname = InetAddress.getLocalHost().getHostName();
 		InetAddress adres = InetAddress.getByName(hostname);
@@ -114,6 +118,7 @@ public abstract class Ibis {
 		}
 		return createIbis(name, "ibis.ipl.impl.tcp.TcpIbis", r);
 	    }
+	    // @@@ end of horrible code
 	}
 
 	private static String readString(Input in) {

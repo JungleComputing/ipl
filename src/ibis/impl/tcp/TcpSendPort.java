@@ -140,4 +140,14 @@ final class TcpSendPort implements SendPort, Config {
 	void reset() throws IbisIOException {
 	    sender.reset();
 	}
+
+	public ReceivePortIdentifier connectedTo() {
+		System.err.println("connectedTo not implemented!");
+		return null;
+	}
+	
+	public ReceivePortIdentifier[] lostConnections() {
+		System.err.println(" not implemented!");
+		return null;
+	}
 }

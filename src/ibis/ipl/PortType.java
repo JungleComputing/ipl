@@ -13,6 +13,11 @@ public interface PortType {
 	/** Create a named SendPort of this PortType. The name does not have to be unique **/
 	public SendPort createSendPort(String name) throws IbisIOException;
 
+	/** Create a named SendPort of this PortType. The name does not have to be unique
+	    When a connection is lost, a ConnectUpcall is performed.
+	 **/
+	public SendPort createSendPort(String name, SendPortConnectUpcall cU) throws IbisIOException;
+
 	/** Create a anonymous SendPort of this PortType. **/
 	public SendPort createSendPort() throws IbisIOException;
 
@@ -21,6 +26,16 @@ public interface PortType {
 
 	/** Create a SendPort of this PortType, with a replacer. **/
 	public SendPort createSendPort(String name, ibis.io.Replacer r) throws IbisIOException;
+
+	/** Create a anonymous SendPort of this PortType, with a replacer.
+	    When a connection is lost, a ConnectUpcall is performed.
+	**/
+	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall cU) throws IbisIOException;
+
+	/** Create a SendPort of this PortType, with a replacer.
+	    When a connection is lost, a ConnectUpcall is performed.
+	**/
+	public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall cU) throws IbisIOException;
 
 	/** Create a named ReceivePort of this PortType, with explicit receipt communication.
 	    New connections will not be accepted until ReceivePort.enableConnections() is invoked.
@@ -37,16 +52,16 @@ public interface PortType {
 	/** Create a named ReceivePort of this PortType, with explicit receipt communication.
 	    New connections will not be accepted until ReceivePort.enableConnections() is invoked.
 	    This is done to avoid upcalls during initilization.
-	    When a new connection request arrives, a ConnectUpcall is performed.
+	    When a new connection request arrives, or when a connection is lost, a ConnectUpcall is performed.
 	**/
-	public ReceivePort createReceivePort(String name, ConnectUpcall cU) throws IbisIOException;
+	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IbisIOException;
 
 	/** Create a named ReceivePort of this PortType, with upcall based communication.
 	    New connections will not be accepted until ReceivePort.enableConnections() is invoked.
 	    This is done to avoid upcalls during initilization.
-	    When a new connection request arrives, a ConnectUpcall is performed.
+	    When a new connection request arrives, or when a connection is lost, a ConnectUpcall is performed.
 	**/
-	public ReceivePort createReceivePort(String name, Upcall u, ConnectUpcall cU) throws IbisIOException;
+	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU) throws IbisIOException;
 
 	/** Compare two PortTypes. **/
 	public boolean equals(PortType other);
