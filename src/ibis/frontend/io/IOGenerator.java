@@ -288,14 +288,29 @@ public class IOGenerator {
 
 	InstructionList il = new InstructionList();
 	
-	il.append(factory.createNew(class_type));
-	il.append(new DUP());
-	il.append(new ALOAD(1));
-	il.append(factory.createInvoke(clazz.getClassName(),
-				       "<init>",
-				       Type.VOID,
-				       new Type [] { new ObjectType("ibis.io.IbisSerializationInputStream") },
-				       Constants.INVOKESPECIAL));
+	if (has_read_or_write_object(clazz)) {
+	    il.append(new ALOAD(1));
+	    il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+					   "createObjectInputStream",
+					   new ObjectType("java.io.ObjectInputStream"),
+					   Type.NO_ARGS,
+					   Constants.INVOKEVIRTUAL));
+	    il.append(factory.createInvoke("java.io.ObjectInputStream",
+					   "readObject",
+					   new ObjectType("java.lang.Object"),
+					   Type.NO_ARGS,
+					   Constants.INVOKEVIRTUAL));
+	}
+	else {
+	    il.append(factory.createNew(class_type));
+	    il.append(new DUP());
+	    il.append(new ALOAD(1));
+	    il.append(factory.createInvoke(clazz.getClassName(),
+					   "<init>",
+					   Type.VOID,
+					   new Type [] { new ObjectType("ibis.io.IbisSerializationInputStream") },
+					   Constants.INVOKESPECIAL));
+	}
 	il.append(new ARETURN());
 
 	/*
@@ -345,16 +360,37 @@ public class IOGenerator {
 	return gen.getJavaClass();
     } 
 
-    void generateCode(JavaClass clazz) { 
+    private static boolean has_read_or_write_object(JavaClass clazz) {
+	Method[] methods = clazz.getMethods();
 
-	if (verbose) System.out.println("  Generating method code class for class : " + clazz.getClassName());
+	for (int i = 0; i < methods.length; i++) {
+	    if (methods[i].getName().equals("readObject") &&
+	        methods[i].getSignature().equals("(Ljava/io/ObjectInputStream;)V")) return true;
+	    if (methods[i].getName().equals("writeObject") &&
+	        methods[i].getSignature().equals("(Ljava/io/ObjectOutputStream;)V")) return true;
+	}
+
+	String super_class_name = clazz.getSuperclassName();
+
+	if (super_class_name.equals("java.lang.Object")) return false;
+
+	JavaClass super_class = Repository.lookupClass(super_class_name);
+
+        return has_read_or_write_object(super_class);
+    }
+
+    void generateCode(JavaClass clazz) { 
+	String class_name = clazz.getClassName();
+
+	if (verbose) System.out.println("  Generating method code class for class : " + class_name);
 
 	if(clazz.isInterface()) return;
 
 	String super_class_name = clazz.getSuperclassName();
-	JavaClass super_clazz = Repository.lookupClass(super_class_name);
 
-	boolean super_is_serializable = isSerializable(super_clazz);
+	JavaClass super_class = Repository.lookupClass(super_class_name);
+
+	boolean super_is_serializable = isSerializable(super_class);
 
 	/* Generate code inside the methods */ 
 
@@ -385,227 +421,272 @@ public class IOGenerator {
 	InstructionList read_cons_il = new InstructionList();
 
 	InstructionFactory factory = new InstructionFactory(cg);
-	
-	/* Generate the code to write all the data. Note that the code is generated in reverse order */
 
-	/* first handle the reference fields */
+	if (has_read_or_write_object(clazz)) {
+	    /* The object class has its own readObject or writeObject method.
+	       For now, we use a Java object serialization for these cases.
+	       The generated write method just obtains the ObjectOutputStream and
+	       calls its writeObject method.
+	       The reader is more difficult, because the Ibis version uses a constructor, and
+	       we cannot use that because the ObjectInputStream has a readObject method that
+	       returns the object read. Therefore, we have to adapt the call-sites of this
+	       constructor.
+	       The "write" side is handled here, and an empty constructor is produced for
+	       the "read" side. This constructor will not be used. Instead, all call-sites
+	       of this constructor will need to be adapted.
+	    */
 
-	for (int i=0;i<fields.length;i++) { 
-	    Field field = fields[i];
-	    
-	    /* Don't send fields that are STATIC or TRANSIENT */
-	    if (! (field.isStatic() ||
-	           field.isTransient())) {
-		Type field_type = Type.getType(field.getSignature());       		
+	    write_il.append(new ALOAD(1));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
+						 "createObjectOutputStream",
+						 new ObjectType("java.io.ObjectOutputStream"),
+						 Type.NO_ARGS,
+						 Constants.INVOKEVIRTUAL));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.io.ObjectOutputStream",
+						 "writeObject",
+						 Type.VOID,
+						 new Type[] { new ObjectType("java.lang.Object") },
+						 Constants.INVOKEVIRTUAL));
+	}
+	else {
+	    /* Generate the code to write all the data. Note that the code is generated in reverse order */
 
-		if ((field_type instanceof ReferenceType) &&
-		    ! field_type.equals(Type.STRING)) {
-		    boolean isfinal = false;
-		    JavaClass field_class = null;
+	    /* first handle the reference fields */
 
-		    if (verbose) System.out.println("    writing reference field " + field.getName() + " of type " + field_type.getSignature());
+	    for (int i=0;i<fields.length;i++) {
+		Field field = fields[i];
+		
+		/* Don't send fields that are STATIC or TRANSIENT */
+		if (! (field.isStatic() ||
+		       field.isTransient())) {
+		    Type field_type = Type.getType(field.getSignature());       		
 
-		    if (field_type instanceof ObjectType) {
-			field_class = Repository.lookupClass(((ObjectType)field_type).getClassName());
-			if (field_class != null && field_class.isFinal()) isfinal = true;
+		    if ((field_type instanceof ReferenceType) &&
+			! field_type.equals(Type.STRING)) {
+			boolean isfinal = false;
+			JavaClass field_class = null;
+
+			if (verbose) System.out.println("    writing reference field " + field.getName() + " of type " + field_type.getSignature());
+
+			if (field_type instanceof ObjectType) {
+			    field_class = Repository.lookupClass(((ObjectType)field_type).getClassName());
+			    if (field_class != null && field_class.isFinal()) isfinal = true;
+			}
+			if (isfinal &&
+			    (! (Repository.implementationOf(field_class, "java.rmi.Remote") ||
+				Repository.implementationOf(field_class, "ibis.rmi.Remote"))) &&
+			    (!has_read_or_write_object(field_class)) &&
+			    !field_type.getSignature().startsWith("Ljava/")) {
+
+			    read_cons_il.append(new ALOAD(1));
+			    read_cons_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+							   "readKnownTypeHeader",
+							   Type.INT,
+							   Type.NO_ARGS,
+							   Constants.INVOKEVIRTUAL));
+			    read_cons_il.append(new ISTORE(2));
+			    read_cons_il.append(new ILOAD(2));
+			    read_cons_il.append(new ICONST(-1));
+
+			    IF_ICMPNE ifcmp  = new IF_ICMPNE(null);
+			    read_cons_il.append(ifcmp);
+
+			    read_cons_il.append(new ALOAD(0));
+
+			    if (has_read_or_write_object(field_class)) {
+				read_cons_il.append(new ALOAD(1));
+				read_cons_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+									 "createObjectInputStream",
+									 new ObjectType("java.io.ObjectInputStream"),
+									 Type.NO_ARGS,
+									 Constants.INVOKEVIRTUAL));
+				read_cons_il.append(factory.createInvoke("java.io.ObjectInputStream",
+									 "readObject",
+									 new ObjectType("java.lang.Object"),
+									 Type.NO_ARGS,
+									 Constants.INVOKEVIRTUAL));
+			    }
+			    else {
+				read_cons_il.append(factory.createNew((ObjectType)field_type));
+				read_cons_il.append(new DUP());
+				read_cons_il.append(new ALOAD(1));
+				read_cons_il.append(factory.createInvoke(field_class.getClassName(),
+							       "<init>",
+							       Type.VOID,
+							       new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
+							       Constants.INVOKESPECIAL));
+			    }
+			    read_cons_il.append(factory.createFieldAccess(class_name,
+									  field.getName(),
+									  field_type,
+									  Constants.PUTFIELD));
+
+			    GOTO gto  = new GOTO(null);
+			    read_cons_il.append(gto);
+
+			    InstructionHandle cmp_goto = read_cons_il.append(new ILOAD(2));
+			    ifcmp.setTarget(cmp_goto);
+
+			    read_cons_il.append(new ICONST(0));
+
+			    IF_ICMPEQ ifcmpeq = new IF_ICMPEQ(null);
+			    read_cons_il.append(ifcmpeq);
+			    read_cons_il.append(new ALOAD(0));
+			    read_cons_il.append(new ALOAD(1));
+			    read_cons_il.append(new ILOAD(2));
+			    read_cons_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+							   "getObjectFromCycleCheck",
+							   Type.OBJECT,
+							   new Type[] { Type.INT },
+							   Constants.INVOKEVIRTUAL));
+			    
+			    read_cons_il.append(factory.createCheckCast((ObjectType)field_type));
+			    read_cons_il.append(factory.createFieldAccess(class_name,
+								field.getName(),
+								field_type,
+								Constants.PUTFIELD));
+
+			    InstructionHandle target = read_cons_il.append(new NOP());
+			    ifcmpeq.setTarget(target);
+			    gto.setTarget(target);
+
+			    /* write part: */
+
+			    write_il.append(new ALOAD(1));
+			    write_il.append(new ALOAD(0));
+			    write_il.append(factory.createFieldAccess(class_name,
+								field.getName(),
+								field_type,
+								Constants.GETFIELD));
+			    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
+							   "writeKnownObjectHeader",
+							   Type.INT,
+							   new Type[] { Type.OBJECT },
+							   Constants.INVOKEVIRTUAL));
+			    write_il.append(new ISTORE(2));
+			    write_il.append(new ILOAD(2));
+			    write_il.append(new ICONST(1));
+
+			    ifcmp = new IF_ICMPNE(null);
+			    write_il.append(ifcmp);
+
+			    write_il.append(new ALOAD(0));
+			    write_il.append(factory.createFieldAccess(class_name,
+								field.getName(),
+								field_type,
+								Constants.GETFIELD));
+			    write_il.append(new ALOAD(1));
+
+			    write_il.append(factory.createInvoke(field_class.getClassName(),
+							   "generated_WriteObject",
+							   Type.VOID,
+							   new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream")},
+							   Constants.INVOKEVIRTUAL));
+
+			    target = write_il.append(new NOP());
+			    ifcmp.setTarget(target);
+			    
+			} else { 
+			    SerializationInfo info = getSerializationInfo(field_type);				
+			    write_il.append(info.writeInstructions(class_name, field, factory));		
+			    read_cons_il.append(info.readInstructions(class_name, field, factory));		
+			}
 		    }
-		    if (isfinal &&
-		        (field_class == null ||
-			 ! (Repository.implementationOf(field_class, "java.rmi.Remote") ||
-			    Repository.implementationOf(field_class, "ibis.rmi.Remote"))) &&
-			!field_type.getSignature().startsWith("Ljava/")) {
+		}
+	    } 			
 
-			read_cons_il.append(new ALOAD(1));
-			read_cons_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
-						       "readKnownTypeHeader",
-						       Type.INT,
-						       Type.NO_ARGS,
-						       Constants.INVOKEVIRTUAL));
-			read_cons_il.append(new ISTORE(2));
-			read_cons_il.append(new ILOAD(2));
-			read_cons_il.append(new ICONST(-1));
+	    /* then handle Strings */
 
-			IF_ICMPNE ifcmp  = new IF_ICMPNE(null);
-			read_cons_il.append(ifcmp);
+	    for (int i=0;i<fields.length;i++) { 
+		Field field = fields[i];
+		
+		/* Don't send fields that are STATIC or TRANSIENT  */
+		if (! (field.isStatic() ||
+		       field.isTransient())) {
+		    Type field_type = Type.getType(field.getSignature());       		
 
-			read_cons_il.append(new ALOAD(0));
+		    if (field_type.equals(Type.STRING)) {
+			if (verbose) System.out.println("    writing string field " + field.getName() + " of type " + field_type.getSignature());
 
-			read_cons_il.append(factory.createNew((ObjectType)field_type));
-			read_cons_il.append(new DUP());
-			read_cons_il.append(new ALOAD(1));
-			read_cons_il.append(factory.createInvoke(field_class.getClassName(),
-						       "<init>",
-						       Type.VOID,
-						       new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
-						       Constants.INVOKESPECIAL));
-			read_cons_il.append(factory.createFieldAccess(clazz.getClassName(),
-							    field.getName(),
-							    field_type,
-							    Constants.PUTFIELD));
-
-			GOTO gto  = new GOTO(null);
-			read_cons_il.append(gto);
-
-		        InstructionHandle cmp_goto = read_cons_il.append(new ILOAD(2));
-			ifcmp.setTarget(cmp_goto);
-
-			read_cons_il.append(new ICONST(0));
-
-			IF_ICMPEQ ifcmpeq = new IF_ICMPEQ(null);
-			read_cons_il.append(ifcmpeq);
-			read_cons_il.append(new ALOAD(0));
-			read_cons_il.append(new ALOAD(1));
-			read_cons_il.append(new ILOAD(2));
-			read_cons_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
-						       "getObjectFromCycleCheck",
-						       Type.OBJECT,
-						       new Type[] { Type.INT },
-						       Constants.INVOKEVIRTUAL));
-			
-			read_cons_il.append(factory.createCheckCast((ObjectType)field_type));
-			read_cons_il.append(factory.createFieldAccess(clazz.getClassName(),
-							    field.getName(),
-							    field_type,
-							    Constants.PUTFIELD));
-
-			InstructionHandle target = read_cons_il.append(new NOP());
-			ifcmpeq.setTarget(target);
-			gto.setTarget(target);
-
-			/* write part: */
-
-			write_il.append(new ALOAD(1));
-			write_il.append(new ALOAD(0));
-			write_il.append(factory.createFieldAccess(clazz.getClassName(),
-							    field.getName(),
-							    field_type,
-							    Constants.GETFIELD));
-			write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
-						       "writeKnownObjectHeader",
-						       Type.INT,
-						       new Type[] { Type.OBJECT },
-						       Constants.INVOKEVIRTUAL));
-		        write_il.append(new ISTORE(2));
-			write_il.append(new ILOAD(2));
-			write_il.append(new ICONST(1));
-
-			ifcmp = new IF_ICMPNE(null);
-			write_il.append(ifcmp);
-
-			write_il.append(new ALOAD(0));
-			write_il.append(factory.createFieldAccess(clazz.getClassName(),
-							    field.getName(),
-							    field_type,
-							    Constants.GETFIELD));
-			write_il.append(new ALOAD(1));
-
-			write_il.append(factory.createInvoke(field_class.getClassName(),
-						       "generated_WriteObject",
-						       Type.VOID,
-						       new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream")},
-						       Constants.INVOKEVIRTUAL));
-
-			target = write_il.append(new NOP());
-			ifcmp.setTarget(target);
-			
-		    } else { 
 			SerializationInfo info = getSerializationInfo(field_type);				
-			write_il.append(info.writeInstructions(clazz.getClassName(), field, factory));		
-			read_cons_il.append(info.readInstructions(clazz.getClassName(), field, factory));		
+			write_il.append(info.writeInstructions(class_name, field, factory));		
+			read_cons_il.append(info.readInstructions(class_name, field, factory));		
 		    }
 		}
-	    }
-	} 			
-
-	/* then handle Strings */
-
-	for (int i=0;i<fields.length;i++) { 
-	    Field field = fields[i];
-	    
-	    /* Don't send fields that are STATIC or TRANSIENT  */
-	    if (! (field.isStatic() ||
-	           field.isTransient())) {
-		Type field_type = Type.getType(field.getSignature());       		
-
-		if (field_type.equals(Type.STRING)) {
-		    if (verbose) System.out.println("    writing string field " + field.getName() + " of type " + field_type.getSignature());
-
-		    SerializationInfo info = getSerializationInfo(field_type);				
-		    write_il.append(info.writeInstructions(clazz.getClassName(), field, factory));		
-		    read_cons_il.append(info.readInstructions(clazz.getClassName(), field, factory));		
-		}
-	    }
-	} 			
-    
-	/* then handle the primitive fields */
-
-	for (int i=0;i<fields.length;i++) { 
-	    Field field = fields[i];
-	    
-	    /* Don't send fields that are STATIC, or TRANSIENT */
-	    if (! (field.isStatic() ||
-	           field.isTransient())) {
-		Type field_type = Type.getType(field.getSignature());       		
-
-		if (field_type instanceof BasicType) { 	       
-		    if (verbose) System.out.println("    writing basic field " + field.getName() + " of type " + field_type.getSignature());
-
-		    SerializationInfo info = getSerializationInfo(field_type);				
-		    write_il.append(info.writeInstructions(clazz.getClassName(), field, factory));		
-		    read_cons_il.append(info.readInstructions(clazz.getClassName(), field, factory));		
-		}
-	    }
-	} 			
+	    } 			
 	
-	/* finally write/read the superclass if neccecary */
-	
-	if (super_is_serializable) { 
-// @@@ Hier een geval vergeten: super is wel serializable, maar niet herschreven, plese fix :-)  --Rob
-	    InstructionList temp = new InstructionList();
+	    /* then handle the primitive fields */
 
-	    temp.append(new ALOAD(0));
-	    temp.append(new ALOAD(1));
-	    temp.append(factory.createInvoke(super_clazz.getClassName(),
-					     "generated_WriteObject",
-					     Type.VOID,
-					     new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream")},
-					     Constants.INVOKESPECIAL));
+	    for (int i=0;i<fields.length;i++) { 
+		Field field = fields[i];
+		
+		/* Don't send fields that are STATIC, or TRANSIENT */
+		if (! (field.isStatic() ||
+		       field.isTransient())) {
+		    Type field_type = Type.getType(field.getSignature());       		
 
-	    write_il.insert(temp);	
+		    if (field_type instanceof BasicType) { 	       
+			if (verbose) System.out.println("    writing basic field " + field.getName() + " of type " + field_type.getSignature());
 
-	    temp = new InstructionList();
+			SerializationInfo info = getSerializationInfo(field_type);				
+			write_il.append(info.writeInstructions(class_name, field, factory));		
+			read_cons_il.append(info.readInstructions(class_name, field, factory));		
+		    }
+		}
+	    } 			
+	    
+	    /* finally write/read the superclass if neccecary */
+	    
+	    if (super_is_serializable) { 
+    // @@@ Hier een geval vergeten: super is wel serializable, maar niet herschreven, plese fix :-)  --Rob
+		InstructionList temp = new InstructionList();
 
-	    temp.append(new ALOAD(0));
-	    temp.append(new ALOAD(1));
-	    temp.append(factory.createInvoke(super_clazz.getClassName(),
-					     "<init>",
-					     Type.VOID,
-					     new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
-					     Constants.INVOKESPECIAL));
+		temp.append(new ALOAD(0));
+		temp.append(new ALOAD(1));
+		temp.append(factory.createInvoke(super_class_name,
+						 "generated_WriteObject",
+						 Type.VOID,
+						 new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream")},
+						 Constants.INVOKESPECIAL));
 
-	    read_cons_il.insert(temp);
-	} else {
-	    InstructionList temp = new InstructionList();
+		write_il.insert(temp);	
 
-	    temp.append(new ALOAD(0));
-	    temp.append(factory.createInvoke(super_clazz.getClassName(),
-					     "<init>",
-					     Type.VOID,
-					     Type.NO_ARGS,
-					     Constants.INVOKESPECIAL));
-	    temp.append(new ALOAD(1));
-	    temp.append(new ALOAD(0));
+		temp = new InstructionList();
 
-	    temp.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
-					     "addObjectToCycleCheck",
-					     Type.VOID,
-					     new Type[] {Type.OBJECT},
-					     Constants.INVOKEVIRTUAL));
-	    read_cons_il.insert(temp);
-	} 
+		temp.append(new ALOAD(0));
+		temp.append(new ALOAD(1));
+
+		temp.append(factory.createInvoke(super_class_name,
+						 "<init>",
+						 Type.VOID,
+						 new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
+						 Constants.INVOKESPECIAL));
+
+		read_cons_il.insert(temp);
+	    } else {
+		InstructionList temp = new InstructionList();
+
+		temp.append(new ALOAD(0));
+		temp.append(factory.createInvoke(super_class_name,
+						 "<init>",
+						 Type.VOID,
+						 Type.NO_ARGS,
+						 Constants.INVOKESPECIAL));
+		temp.append(new ALOAD(1));
+		temp.append(new ALOAD(0));
+
+		temp.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+						 "addObjectToCycleCheck",
+						 Type.VOID,
+						 new Type[] {Type.OBJECT},
+						 Constants.INVOKEVIRTUAL));
+		read_cons_il.insert(temp);
+	    } 
+	}
 
 
-	MethodGen read_cons_gen = new MethodGen(class_methods[read_cons_index], clazz.getClassName(), cg.getConstantPool());
+	MethodGen read_cons_gen = new MethodGen(class_methods[read_cons_index], class_name, cg.getConstantPool());
 	read_cons_il.append(read_cons_gen.getInstructionList());
 	read_cons_gen.setInstructionList(read_cons_il);
 
@@ -614,7 +695,7 @@ public class IOGenerator {
 
 	cg.setMethodAt(read_cons_gen.getMethod(), read_cons_index);
 	
-	MethodGen write_gen = new MethodGen(class_methods[write_method_index], clazz.getClassName(), cg.getConstantPool());
+	MethodGen write_gen = new MethodGen(class_methods[write_method_index], class_name, cg.getConstantPool());
 	write_il.append(write_gen.getInstructionList());
 	write_gen.setInstructionList(write_il);
 
