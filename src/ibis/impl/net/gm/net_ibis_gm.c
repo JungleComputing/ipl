@@ -3948,7 +3948,7 @@ ni_gm_intr_init(JNIEnv *env)
 
     cenv = getenv("NI_GM_NO_INTR");
     if (cenv != NULL ||
-	    ! ni_getBooleanPropertyDflt(env, "ibis.net.gm.intr", 1)) {
+	    ! ni_getBooleanPropertyDflt(env, "ibis.net.gm.intr", 0)) {
 	fprintf(stderr, "NetIbis GM: interrupts disabled\n");
 	return 0;
     }

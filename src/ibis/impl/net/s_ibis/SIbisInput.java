@@ -19,6 +19,7 @@ public final class SIbisInput extends NetSerializedInput {
         public SIbisInput(NetPortType pt, NetDriver driver, String context) 
 						    throws IOException {
                 super(pt, driver, context);
+		requiresStreamReinit = false;
         }
 
         public SerializationInputStream newSerializationInputStream() 
@@ -27,42 +28,6 @@ public final class SIbisInput extends NetSerializedInput {
 
 		return new IbisSerializationInputStream(id);
         }
-
-
-	private void setNewInputStream() throws IOException {
-	    iss = newSerializationInputStream();
-	    if (activeNum == null) {
-		throw new Error("invalid state; activeNum is null");
-	    }
-	    if (iss == null) {
-		throw new Error("invalid state: stream is null");
-	    }
-
-	    streamTable.put(activeNum, iss);
-	}
-
-	public void initReceive(Integer num) throws IOException {
-	    log.in();
-	    activeNum    = num;
-	    mtu          = subInput.getMaximumTransfertUnit();
-	    headerOffset = subInput.getHeadersLength();
-
-	    iss = (SerializationInputStream)streamTable.get(activeNum);
-	    if (iss == null) {
-		setNewInputStream();
-		iss.readShort();
-	    } else {
-		short b = iss.readShort();
-		if (b != 0) {
-		    // The last act of the old stream is to tell us it has
-		    // disappeared. Go on with a fresh new stream.
-		    setNewInputStream();
-		    iss.readShort();
-		}
-	    }
-	    // For performance testing: byte b = iss.readByte();
-	    log.out();
-	}
 
 	protected void handleEmptyMsg() throws IOException {
 	    // super.handleEmptyMsg();

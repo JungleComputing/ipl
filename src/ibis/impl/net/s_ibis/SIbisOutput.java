@@ -18,6 +18,7 @@ public final class SIbisOutput extends NetSerializedOutput {
         public SIbisOutput(NetPortType pt, NetDriver driver, String context) 
 		throws IOException {
 	    super(pt, driver, context);
+	    requiresStreamReinit = false;
 	}
 
         public SerializationOutputStream newSerializationOutputStream() 
@@ -26,27 +27,6 @@ public final class SIbisOutput extends NetSerializedOutput {
 
 	    return new IbisSerializationOutputStream(ia);
         }
-
-	// For sentinels, we prefer shorts because things are more aligned
-	public void initSend() throws IOException {
-	    subOutput.initSend();
-	    if (oss == null) {
-		if (old_oss != null) {
-		    old_oss.writeShort((short)1);
-		    old_oss = null;
-		}
-		oss = newSerializationOutputStream();
-		if (replacer != null) {
-		    oss.setReplacer(replacer);
-		}
-		oss.writeShort((short)0);
-	    } else {
-		oss.writeShort((short)0);
-		oss.reset();
-	    }
-	    // For performance testing: oss.writeByte((byte)0);
-	    needFlush = true;
-	}
 
 	protected void handleEmptyMsg() throws IOException {
 	    // super.handleEmptyMsg();

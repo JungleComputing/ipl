@@ -37,16 +37,26 @@ public abstract class NetSerializedInput extends NetInput {
          *
          * The table is indexed by connection numbers.
          */
-	protected                         Hashtable                       streamTable             = null;
+	private                         Hashtable                       streamTable             = null;
 
         /**
          * The most recently activated upcall thread if it is still alive, or <code>null</code>.
          */
         protected       volatile        Thread                          activeUpcallThread      = null;
 
-        protected         volatile        Integer                         activeNum               = null;
+        private         volatile        Integer                         activeNum               = null;
 
 	private         int             waiters;
+
+
+	/**
+	 * Some serialization protocols (like Sun ObjectStreams) require a full
+	 * kill/recreate if another connection is added. This is the default
+	 * behaviour of this class. Some protocols (like Ibis ObjectStreams)
+	 * don't require any precautions. In that case, set this field to
+	 * false in the constructor.
+	 */
+	protected boolean	requiresStreamReinit = true;
 
 
 	public NetSerializedInput(NetPortType pt, NetDriver driver, String context) throws IOException {
@@ -86,35 +96,36 @@ public abstract class NetSerializedInput extends NetInput {
 
 
 	public void initReceive(Integer num) throws IOException {
-                log.in();
-// System.err.println(this + ": now in initReceive()");
+	    log.in();
+// System.err.println(this + ": now in initReceive() iss " + iss + " requiresStreamReinit " + requiresStreamReinit);
 // Thread.dumpStack();
-                activeNum = num;
-                mtu          = subInput.getMaximumTransfertUnit();
-                headerOffset = subInput.getHeadersLength();
+	    activeNum = num;
+	    mtu          = subInput.getMaximumTransfertUnit();
+	    headerOffset = subInput.getHeadersLength();
 
-                byte b = subInput.readByte();
+	    boolean makeNewStream;
+	    iss = (SerializationInputStream)streamTable.get(activeNum);
+	    if (requiresStreamReinit) {
+		byte b = subInput.readByte();
+		makeNewStream = (b != 0);
+	    } else {
+		makeNewStream = (iss == null);
+	    }
 
-                if (b != 0) {
-                        iss = newSerializationInputStream();
-                        if (activeNum == null) {
-                                throw new Error("invalid state: activeNum is null");
-                        }
+	    if (makeNewStream) {
+		iss = newSerializationInputStream();
+		if (activeNum == null) {
+		    throw new Error("invalid state: activeNum is null");
+		}
 
-                        if (iss == null) {
-                                throw new Error("invalid state: stream is null");
-                        }
+		streamTable.put(activeNum, iss);
+	    }
 
-                        streamTable.put(activeNum, iss);
-                } else {
-                        iss = (SerializationInputStream)streamTable.get(activeNum);
-
-                        if (iss == null) {
-                                throw new Error("invalid state: stream not found");
-                        }
-                }
-// System.err.println("OK, done the initReceive; control byte = " + b);
-                log.out();
+	    if (iss == null) {
+		throw new Error("invalid state: stream not found");
+	    }
+// System.err.println("OK, done the initReceive; iss " + this.iss);
+	    log.out();
 	}
 
         public void inputUpcall(NetInput input, Integer spn) throws IOException {

@@ -20,13 +20,21 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 */
 	protected NetOutput                 subOutput = null;
 
-        protected   SerializationOutputStream oss       = null;
+        private   SerializationOutputStream oss       = null;
 
-	protected   SerializationOutputStream old_oss   = null;
+        private   Replacer                  replacer  = null;
 
-        protected   Replacer                  replacer  = null;
+        private   boolean                   needFlush = false;
 
-        protected   boolean                   needFlush = false;
+
+	/**
+	 * Some serialization protocols (like Sun ObjectStreams) require a full
+	 * kill/recreate if another connection is added. This is the default
+	 * behaviour of this class. Some protocols (like Ibis ObjectStreams)
+	 * don't require any precautions. In that case, set this field to
+	 * false in the constructor.
+	 */
+	protected boolean	requiresStreamReinit = true;
 
 	/**
 	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
@@ -71,12 +79,9 @@ public abstract class NetSerializedOutput extends NetOutput {
  			headerOffset = _headersLength;
  		}
 
-                /*
-                 * Need to re-initialize the serialization stream state
-                 * in order to ensure consistency between multiple receivers.
-                 */
-		old_oss = oss;
-                oss = null;
+		if (requiresStreamReinit) {
+		    oss = null;
+		}
 	}
 
         public abstract SerializationOutputStream newSerializationOutputStream() throws IOException;
@@ -86,15 +91,20 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void initSend() throws IOException {
+// System.err.println(this + ": now in initSend() oss " + oss + " requiresStreamReinit " + requiresStreamReinit);
                 super.initSend();
                 subOutput.initSend();
                 if (oss == null) {
+		    if (requiresStreamReinit) {
                         subOutput.writeByte((byte)1);
-                        oss = newSerializationOutputStream();
-                        if (replacer != null) oss.setReplacer(replacer);
+		    }
+		    oss = newSerializationOutputStream();
+		    if (replacer != null) oss.setReplacer(replacer);
                 } else {
+		    if (requiresStreamReinit) {
                         subOutput.writeByte((byte)0);
-			oss.reset();
+		    }
+		    oss.reset();
                 }
 		needFlush = true;
 	}
