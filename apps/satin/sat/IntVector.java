@@ -8,48 +8,14 @@
  * classes, though.
  */
 public final class IntVector implements java.io.Serializable, Cloneable {
-    /**
-     * The amount by which the capacity of this vector is automatically
-     * incremented when its size becomes greater than its capacity.
-     */
-    protected int capacityIncrement;
-
-    /** The number of valid elements in this vector. */
-    protected int elementCount;
-
     /** The array containing the elements. */
     protected int elementData[];
 
     /**
-     * Constructs an empty vector with the specified initial capacity and
-     * capacity increment.
-     * 
-     * @param initialCapacity the initial capacity of this vector
-     * @param capacityIncrement the amount by which the capacity is increased
-     *            when this vector overflows
-     */
-    public IntVector( int initialCapacity, int capacityIncrement ) {
-	this.capacityIncrement = capacityIncrement;
-	elementData = new int[initialCapacity];
-	elementCount = 0;
-    }
-
-    /**
-     * Constructs and empty vector with the specified initial capacity and
-     * with its capacity increment equal to zero.
-     * 
-     * @param initialCapacity the initial capacity of this vector
-     */
-    public IntVector( int initialCapacity ) {
-	this( initialCapacity, 0 );
-    }
-
-    /**
-     * Constructs an empty vector so that is internal data array has size 10
-     * and its standard capacity increment is zero.
+     * Constructs an empty vector.
      */
     public IntVector() {
-	this( 10, 0 );
+	elementData = new int[0];
     }
 
     /**
@@ -58,9 +24,8 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      * @param v the vector
      */
     public IntVector( IntVector v ) {
-	this( v.elementCount, 0 );
+        elementData = new int[v.size()];
 	System.arraycopy( v.elementData, 0, elementData, 0, v.size() );
-	elementCount = v.elementCount;
     }
 
     /**
@@ -72,10 +37,9 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      * @param to the first element not to copy
      */
     public IntVector( IntVector v, int from, int to ) {
-	this( (to < from) ? 0 : to - from, 0 );
 	int length = (to < from) ? 0 : to - from;
+        elementData = new int[length];
 	System.arraycopy( v, from, elementData, 0, length );
-	elementCount = length;
     }
 
     /**
@@ -94,37 +58,7 @@ public final class IntVector implements java.io.Serializable, Cloneable {
 
     /** Removes all elements from this vector. */
     void clear() {
-	elementCount = 0;
-    }
-
-    /**
-     * Increases the capacity of this vector, if necessary, to ensure that it
-     * can hold at least the number of ints specified by the minimum capacity
-     * parameter.
-     * <p>
-     * If the current capacity of this vector is less than minCapacity, then
-     * its capacity is increased by replacing its internal data array, kept
-     * in the field elementData, with a laarger one. This size of the new
-     * data array will be the old size plus the capacityIncrement, unless the
-     * value of capacityIncrement is less than or equal to zero, in which
-     * case the new capacity will be minCapacity.
-     * 
-     * @param minCapacity the desired minimum capacity
-     */
-    public void ensureCapacity( int minCapacity ) {
-	if( elementData.length < minCapacity ){
-	    int newCapacity = elementData.length + capacityIncrement;
-	    if( capacityIncrement <= 0 ){
-		newCapacity += elementData.length;
-	    }
-	    if( newCapacity < minCapacity ){
-		newCapacity = minCapacity;
-	    }
-	    int arr[] = new int[newCapacity];
-
-	    System.arraycopy( elementData, 0, arr, 0, elementData.length );
-	    elementData = arr;
-	}
+	elementData = new int[0];
     }
 
     /**
@@ -156,7 +90,7 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      * @return The number of elements of this vector. 
      */
     public int size() {
-	return elementCount;
+	return elementData.length;
     }
 
     /**
@@ -166,7 +100,7 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      *         otherwise.
      */
     public boolean isEmpty() {
-	return elementCount == 0;
+	return elementData.length == 0;
     }
 
     /**
@@ -176,8 +110,12 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      * @return true (in analogy to the method in java.util.Vector)
      */
     public boolean add( int val ) {
-	ensureCapacity( elementCount + 1 );
-	elementData[elementCount++] = val;
+        int nw[] = new int[elementData.length+1];
+        int sz = elementData.length;
+
+	System.arraycopy( elementData, 0, nw, 0, sz );
+        nw[sz] = val;
+        elementData = nw;
 	return true;
     }
 
@@ -187,7 +125,7 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      * @return true iff the specified element occurs in this vector.
      */
     public boolean contains( int v ) {
-	for( int i = 0; i < elementCount; i++ ){
+	for( int i = 0; i < elementData.length; i++ ){
 	    if( elementData[i] == v ){
 		return true;
 	    }
@@ -200,7 +138,7 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      * @return An array with the elements of this vector.
      */
     public int[] toArray() {
-	return Helpers.cloneIntArray( elementData, elementCount );
+	return Helpers.cloneIntArray( elementData, elementData.length );
     }
 
     /**
@@ -211,7 +149,7 @@ public final class IntVector implements java.io.Serializable, Cloneable {
 	String res = "[";
 	boolean first = true;
 
-	for( int i = 0; i < elementCount; i++ ){
+	for( int i = 0; i < elementData.length; i++ ){
 	    if( first ){
 		first = false;
 	    } else{
