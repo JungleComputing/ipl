@@ -760,7 +760,12 @@ class OpenCell1D implements OpenConfig {
                     }
                     if( traceLoadBalancing ){
                         System.out.println( "P" + me + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
-                        System.out.println( "P" + me + ": I have columns " + p.firstColumn + "-" + p.firstNoColumn + ", I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
+                        if( p.firstColumn>=p.firstNoColumn ){
+                            System.out.println( "P" + me + ": I am idle, I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
+                        }
+                        else {
+                            System.out.println( "P" + me + ": I have columns " + p.firstColumn + "-" + p.firstNoColumn + ", I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
+                        }
                     }
                     knownMembers = members;
                 }
