@@ -166,7 +166,7 @@ public interface Config {
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS =
-	TypedProperties.booleanProperty(s_asserts, true);
+	TypedProperties.booleanProperty(s_asserts, false);
 
     /** Enable or disable aborts and inlets. */
     static final boolean ABORTS =
