@@ -1,6 +1,8 @@
 package ibis.ipl.impl.generic;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -31,6 +33,7 @@ public class IbisSocketFactory {
 				}
                                 connected = true;
                                 s.setTcpNoDelay(true);
+//				System.out.println("created socket linger = " + s.getSoLinger());
                         } catch (IOException e1) { 
 				if (!retry) { 
 					throw new IbisIOException("" + e1);
@@ -86,4 +89,40 @@ public class IbisSocketFactory {
 
 		return s;
 	} 
-} 
+
+	/** Use this to accept, it sets the socket parameters. **/
+	public static Socket accept(ServerSocket a) throws IbisIOException {
+		Socket s;
+		try {
+			s = a.accept();
+			s.setTcpNoDelay(true);
+//			System.out.println("accepted socket linger = " + s.getSoLinger());
+		} catch (IOException e) {
+			throw new IbisIOException("Accept got an error ", e);
+		}
+
+		return s;
+	}
+
+	/** Use this to close sockets, it nicely shuts down the streams, etc. **/
+	public static void close(InputStream in, OutputStream out, Socket s) throws IbisIOException {
+		try {
+			if(out != null) {
+				out.flush();
+				out.close();
+			}
+
+			if(in != null) {
+				in.close();
+			}
+
+			if(s != null) {
+				s.shutdownInput();
+				s.shutdownOutput();
+				s.close();
+			}
+		} catch (IOException e) {
+			throw new IbisIOException("Accept got an error ", e);
+		}
+	}
+}

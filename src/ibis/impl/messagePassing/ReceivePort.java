@@ -456,6 +456,20 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 
     }
 
+	/** Asynchronous receive. Return immediately when no message is available. 
+	 Also works for upcalls, then it is a normal poll. **/
+	public ibis.ipl.ReadMessage poll() throws IbisIOException {
+		System.err.println("poll not implemented");
+		return null;
+	}
+
+	/** Asynchronous receive, as above, but free an old message.
+	    Also works for upcalls, then it is a normal poll. **/
+	public ibis.ipl.ReadMessage poll(ibis.ipl.ReadMessage finishMe) throws IbisIOException {
+		System.err.println("poll not implemented");
+		return null;
+	}
+
 
     public void free() {
 

@@ -19,6 +19,14 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	out = sPort.out;
     }
 
+	public int getCount() {
+		return -1;
+		// please implement --Rob
+	}
+
+	public void resetCount() {
+		// please implement --Rob
+	}
 
     private void send(boolean doSend, boolean isReset) throws IbisIOException {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
