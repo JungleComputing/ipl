@@ -485,141 +485,153 @@ public abstract class NetPoller extends NetInput {
                 log.out();
         }
 
+        private NetInput activeInput() throws NetIbisException {
+                try {
+                        ReceiveQueue  rq    = activeQueue;
+                        NetInput      input = rq.input;
+                        if (input == null) {
+                                throw new NetIbisClosedException("input closed");
+                        }
+                        return input;
+                } catch (NullPointerException e) {
+                        throw new NetIbisClosedException(e);
+                }
+        }
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 log.in();
-                NetReceiveBuffer b = activeQueue.input.readByteBuffer(expectedLength);
+                NetReceiveBuffer b = activeInput().readByteBuffer(expectedLength);
                 log.out();
                 return b;
         }
 
         public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 log.in();
-                activeQueue.input.readByteBuffer(buffer);
+                activeInput().readByteBuffer(buffer);
                 log.out();
         }
 
 	public boolean readBoolean() throws NetIbisException {
                 log.in();
-                boolean v = activeQueue.input.readBoolean();
+                boolean v = activeInput().readBoolean();
                 log.out();
                 return v;
         }
 
 	public byte readByte() throws NetIbisException {
                 log.in();
-                byte v = activeQueue.input.readByte();
+                byte v = activeInput().readByte();
                 log.out();
                 return v;
         }
 
 	public char readChar() throws NetIbisException {
                 log.in();
-                char v = activeQueue.input.readChar();
+                char v = activeInput().readChar();
                 log.out();
                 return v;
         }
 
 	public short readShort() throws NetIbisException {
                 log.in();
-                short v = activeQueue.input.readShort();
+                short v = activeInput().readShort();
                 log.out();
                 return v;
         }
 
 	public int readInt() throws NetIbisException {
                 log.in();
-                int v = activeQueue.input.readInt();
+                int v = activeInput().readInt();
                 log.out();
                 return v;
         }
 
 	public long readLong() throws NetIbisException {
                 log.in();
-                long v = activeQueue.input.readLong();
+                long v = activeInput().readLong();
                 log.out();
                 return v;
         }
 
 	public float readFloat() throws NetIbisException {
                 log.in();
-                float v = activeQueue.input.readFloat();
+                float v = activeInput().readFloat();
                 log.out();
                 return v;
         }
 
 	public double readDouble() throws NetIbisException {
                 log.in();
-                double v = activeQueue.input.readDouble();
+                double v = activeInput().readDouble();
                 log.out();
                 return v;
         }
 
 	public String readString() throws NetIbisException {
                 log.in();
-                String v = (String)activeQueue.input.readString();
+                String v = (String)activeInput().readString();
                 log.out();
                 return v;
         }
 
 	public Object readObject() throws NetIbisException {
                 log.in();
-                Object v = activeQueue.input.readObject();
+                Object v = activeInput().readObject();
                 log.out();
                 return v;
         }
 
 	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceBoolean(b, o, l);
+                activeInput().readArraySliceBoolean(b, o, l);
                 log.out();
         }
 
 	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceByte(b, o, l);
+                activeInput().readArraySliceByte(b, o, l);
                 log.out();
         }
 
 	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceChar(b, o, l);
+                activeInput().readArraySliceChar(b, o, l);
                 log.out();
         }
 
 	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceShort(b, o, l);
+                activeInput().readArraySliceShort(b, o, l);
                 log.out();
         }
 
 	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceInt(b, o, l);
+                activeInput().readArraySliceInt(b, o, l);
                 log.out();
         }
 
 	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceLong(b, o, l);
+                activeInput().readArraySliceLong(b, o, l);
                 log.out();
         }
 
 	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceFloat(b, o, l);
+                activeInput().readArraySliceFloat(b, o, l);
                 log.out();
         }
 
 	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceDouble(b, o, l);
+                activeInput().readArraySliceDouble(b, o, l);
                 log.out();
         }
 
 	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
-                activeQueue.input.readArraySliceObject(b, o, l);
+                activeInput().readArraySliceObject(b, o, l);
                 log.out();
         }
 
