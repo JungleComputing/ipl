@@ -17,9 +17,12 @@ import java.io.StreamTokenizer;
  * @version $Revision$
  */
 
-public class SATProblem implements java.io.Serializable {
+public class SATProblem implements Cloneable, java.io.Serializable {
     /** The number of variables in the problem. */
     private int vars;
+
+    /** The number of known variables of the problem. */
+    private int knownVars;
 
     /** The number of clauses of the problem. */
     private int clauseCount;
@@ -33,7 +36,8 @@ public class SATProblem implements java.io.Serializable {
     /** The number of deleted clauses. */
     private int deletedClauseCount;
 
-    static final boolean trace_simplification = true;
+    static final boolean trace_simplification = false;
+    static final boolean trace_new_code = true;
     private int label = 0;
 
     /**
@@ -42,8 +46,53 @@ public class SATProblem implements java.io.Serializable {
     private SATProblem()
     {
         vars = 0;
+	knownVars = 0;
         createVarArray( 0 );
 	clauses = new Clause[0];
+    }
+
+    /**
+     * Construct a new SAT Problem with the given fields.
+     */
+    private SATProblem(
+        int vars,
+        int knownVars,
+	int clauseCount,
+	Clause clauses[],
+	SATVar variables[],
+	int deletedClauseCount,
+	int label
+    )
+    {
+        this.vars = vars;
+        this.knownVars = knownVars;
+        this.clauseCount = clauseCount;
+        this.clauses = clauses;
+        this.variables = variables;
+        this.deletedClauseCount = deletedClauseCount;
+        this.label = label;
+    }
+
+    public Object clone()
+    {
+	Clause cl[] = new Clause[clauseCount];
+	SATVar vl[] = new SATVar[vars];
+
+	for( int i=0; i<clauseCount; i++ ){
+	    cl[i] = clauses[i];
+	}
+	for( int i=0; i<vars; i++ ){
+	    vl[i] = variables[i];
+	}
+        return new SATProblem( 
+	    vars,
+	    knownVars,
+	    clauseCount,
+	    cl,
+	    vl,
+	    deletedClauseCount,
+	    label
+	);
     }
 
     /**
@@ -95,6 +144,12 @@ public class SATProblem implements java.io.Serializable {
         return vars;
     }
 
+    /** Returns the number of known variables in the problem.  */
+    public int getKnownVariableCount()
+    {
+        return knownVars;
+    }
+
     /** Returns the number of clauses of the problem.  */
     public int getClauseCount()
     {
@@ -133,7 +188,7 @@ public class SATProblem implements java.io.Serializable {
         for( int i=0; i<clauseCount; i++ ){
 	    Clause ci = clauses[i];
 	    
-	    if( ci.isSubsumedClause( cl ) ){
+	    if( ci.isSubsumed( cl ) ){
 		// The new clause is subsumed by an existing one,
 		// don't bother to register it.
 		if( trace_simplification ){
@@ -143,7 +198,7 @@ public class SATProblem implements java.io.Serializable {
 		label--;	// Don't waste an unused label.
 	        return -1;
 	    }
-	    if( cl.isSubsumedClause( ci ) ){
+	    if( cl.isSubsumed( ci ) ){
 	        // The new clause subsumes an existing one. Remove
 		// it, move the last clause to this slot, and
 		// update clauseCount.
@@ -290,10 +345,20 @@ public class SATProblem implements java.io.Serializable {
      * @param var The variable that is known to be true.
      * @return <code>true</code> iff the propagation deleted any clauses.
      */
-    boolean propagatePosAssignment( int var )
+    private boolean propagatePosAssignment( int var )
     {
 	boolean changed = false;
 
+	int oldAssignment = variables[var].getAssignment();
+	if( oldAssignment == 0 ){
+	    System.err.println( "Cannot propagate positive assignment of variable " + var + ", since it contradicts a previous one" );
+	    return false;
+	}
+	if( oldAssignment == 1 ){
+	    // Already known.
+	    return false;
+	}
+	knownVars++;
 	variables[var].setAssignment( 1 );
         for( int ix=0; ix<clauses.length; ix++ ){
 	    Clause cl = clauses[ix];
@@ -320,10 +385,20 @@ public class SATProblem implements java.io.Serializable {
      * @param var The variable that is known to be true.
      * @return <code>true</code> iff the propagation deleted any clauses.
      */
-    boolean propagateNegAssignment( int var )
+    private boolean propagateNegAssignment( int var )
     {
 	boolean changed = false;
 
+	int oldAssignment = variables[var].getAssignment();
+	if( oldAssignment == 1 ){
+	    System.err.println( "Cannot propagate negative assignment of variable " + var + ", since it contradicts a previous one" );
+	    return false;
+	}
+	if( oldAssignment == 0 ){
+	    // Already known.
+	    return false;
+	}
+	knownVars++;
 	variables[var].setAssignment( 0 );
         for( int ix=0; ix<clauses.length; ix++ ){
 	    Clause cl = clauses[ix];
@@ -368,12 +443,20 @@ public class SATProblem implements java.io.Serializable {
 
 	    // For the moment, sort the clauses into shortest-first order.
 	    java.util.Arrays.sort( clauses, 0, clauseCount );
+	    for( int ix=0; ix<variables.length; ix++ ){
+		SATVar v = variables[ix];
+
+		v.clearClauseRegister();
+	    }
 	    for( int i=0; i<clauseCount; i++ ){
 		registerClauseVariables( clauses[i], i );
 	    }
 	    for( int ix=0; ix<variables.length; ix++ ){
 		SATVar v = variables[ix];
 
+		if( !v.isUsed() ){
+		    continue;
+		}
 		if( v.isPosOnly() ){
 		    // Variable 'v' only occurs in positive terms, we may as
 		    // well assign to this variable, and propagate this
@@ -416,11 +499,70 @@ public class SATProblem implements java.io.Serializable {
 		    changed |= propagateNegAssignment( var );
 		    continue;
 		}
+		for( int j=i+1; j<clauseCount; j++ ){
+		    Clause cj = clauses[j];
+
+		    if( cj == null ){
+			continue;
+		    }
+		    if( cl.isSubsumed( cj ) ){
+		        if( trace_simplification ){
+			    System.err.println( "Clause " + cl + " subsumes clause " + cj ); 
+			}
+			clauses[j] = null;
+			changed = true;
+		    }
+		    else if( cj.isSubsumed( cl ) ){
+		        if( trace_simplification ){
+			    System.err.println( "Clause " + cj + " subsumes clause " + cl ); 
+			}
+			clauses[i] = null;
+			changed = true;
+			break;
+		    }
+		    else if( cl.joinClause( cj ) ){
+		        if( trace_simplification ){
+			    System.err.println( "Generalized clause: " + cl ); 
+			}
+			clauses[j] = null;
+			changed = true;
+		    }
+		}
 	    }
 	    if( changed ){
 		compactClauses();
 	    }
 	} while( changed );
+    }
+
+    /**
+     * Given a list of assignments, specializes the SAT problem to incorporate
+     * all definite assignments in the list.
+     * @param assignments the assignments
+     */
+    private void specialize( int assignments[] )
+    {
+	boolean changed = true;
+
+        for( int ix=0; ix<assignments.length; ix++ ){
+	    int a = assignments[ix];
+
+	    if( a != -1 ){
+	        if( variables[ix].getAssignment() != -1 ){
+		    // This is a new assignment. Propagate it.
+
+		    if( a == 1 ){
+			changed |= propagatePosAssignment( ix );
+		    }
+		    else {
+			changed |= propagateNegAssignment( ix );
+		    }
+		}
+	    }
+	}
+	if( changed ){
+	    optimize();
+	}
     }
 
     /**

@@ -1,6 +1,6 @@
 // File: $Id$
 
-/** An extremely simple but highly parallel SAT solver. Given a symbolic
+/** A simple but highly parallel SAT solver. Given a symbolic
  * boolean equation in CNF, find a set of assignments that make this
  * equation true.
  *
@@ -17,7 +17,8 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     static final boolean printSatSolutions = true;
     static int label = 0;
 
-    /** The method that implements a Satin task.
+    /**
+     * The method that implements a Satin task.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
      * @param p the SAT problem to solve
@@ -33,10 +34,12 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     ) throws SATResultException
     {
 	if( p.isSatisfied( assignments ) ){
-//	    if( traceSolver ){
-		System.err.println( "Found a solution" );
-//	    }
-	    throw new SATResultException( new SATSolution( assignments ) );
+	    SATSolution s = new SATSolution( assignments );
+
+	    if( traceSolver | printSatSolutions ){
+		System.err.println( "Found a solution: " + s );
+	    }
+	    throw new SATResultException( s );
 	}
 	if( p.isConflicting( assignments ) ){
 	    if( traceSolver ){
@@ -65,21 +68,10 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	posassignments[var] = 1;
 	negassignments[var] = 0;
 
-//	SATResultException t = null;
-
-//	try {
-		solve( p, posassignments, varlist, varix+1 );
-		solve( p, negassignments, varlist, varix+1 );
-//	} catch (SATResultException e) {
-//		throw e;
-//		t = e;
-//		abort();
-//		return;
-//	}
-
+	solve( p, posassignments, varlist, varix+1 );
+	solve( p, negassignments, varlist, varix+1 );
 	sync();
 
-//	if(t != null) throw t;
     }
 
     /** Given a list of symbolic clauses, produce a list of solutions. */
@@ -124,7 +116,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	System.out.println( "Problem has " + p.getVariableCount() + " variables and " + p.getClauseCount() + " clauses" );
+	System.out.println( "Problem has " + p.getVariableCount() + " variables (" + p.getKnownVariableCount() + " known) and " + p.getClauseCount() + " clauses" );
 	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );
 

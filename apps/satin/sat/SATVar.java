@@ -2,7 +2,7 @@
 //
 // Description of a single variable in the SAT solver.
 
-/** A single variable of a SAT problem. */
+/** A single variable of a SAT problem, with associated administration. */
 
 class SATVar implements java.io.Serializable, Comparable {
     private int label;
@@ -19,27 +19,32 @@ class SATVar implements java.io.Serializable, Comparable {
 	neg = new IntVector();
     }
 
-    // Register the fact that clause 'cno' uses this variable as
+    // Registers the fact that clause 'cno' uses this variable as
     // a positive variable.
     void registerPosClause( int cno ) { pos.add( cno ); }
 
-    // Register the fact that clause 'cno' uses this variable as
+    // Registers the fact that clause 'cno' uses this variable as
     // a negative variable.
     void registerNegClause( int cno ) { neg.add( cno ); }
+
+    void clearClauseRegister() { neg.clear(); pos.clear(); }
 
     IntVector getPosClauses() { return pos; }
     IntVector getNegClauses() { return neg; }
 
-    // Return true iff the variable only occurs in positive terms
+    /** Returns true iff the variable is used. */
+    boolean isUsed() { return (pos != null && pos.size() != 0) || (neg != null && neg.size() != 0); }
+
+    /** Returns true iff the variable only occurs in positive terms */
     boolean isPosOnly() { return neg == null || neg.size() == 0; }
 
-    // Return true iff the variable only occurs in negative terms
+    /** Returns true iff the variable only occurs in negative terms */
     boolean isNegOnly() { return pos == null || pos.size() == 0; }
 
-    // Register assignment 'v' for this variable.
+    /** Registers assignment 'v' for this variable. */
     void setAssignment( int v ) { assignment = v; }
 
-    // Get the assignment of this variable.
+    /** Gets the assignment of this variable. */
     int getAssignment() { return assignment; }
 
     int getIndex() { return ix; }

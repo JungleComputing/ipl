@@ -41,7 +41,9 @@ class Clause implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Return true iff 'l' contains 'n'.
+     * Returns true iff 'l' contains 'n'.
+     * @param l the list to search in
+     * @param n the value to search for
      */
     static boolean memberIntList( int l[], int n )
     {
@@ -54,7 +56,9 @@ class Clause implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Return true iff lb contains all symbols in la.
+     * Returns true iff lb contains all symbols in la.
+     * @param la the reference list
+     * @param lb the list that is being tested
      */
     static boolean isSubsetIntList( int la[], int lb[] )
     {
@@ -67,16 +71,42 @@ class Clause implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Return true iff clause 'cy' is subsumed by this clause.
+     * Returns true iff clause 'cy' is subsumed by this clause.
+     * @param cy the clause we compare to.
      */
-    boolean isSubsumedClause( Clause cy )
+    boolean isSubsumed( Clause cy )
     {
 	return isSubsetIntList( this.pos, cy.pos ) &&
 	    isSubsetIntList( this.neg, cy.neg );
     }
 
     /**
-     * Return true iff variable 'v' occurs as a positive term in this clause.
+     * Returns true iff the given clause `cy' can be joined with this
+     * clause to form a more general clause. This clause is updated to
+     * the more general version.
+     * @param cy the clause we try to join with
+     */
+    boolean joinClause( Clause cy )
+    {
+        int posa[] = pos;
+        int posb[] = cy.pos;
+        int nega[] = neg;
+        int negb[] = cy.neg;
+
+	// TODO: do something useful.
+	// Looking at the sizes of the lists, there are only two
+	// interesting cases:
+	if( (posa.length+1 == posb.length) && (nega.length == negb.length+1) ){
+	    return false;
+	}
+	else if( (posa.length == posb.length+1) && (nega.length+1 == negb.length) ){
+	    return false;
+	}
+	return false;
+    }
+
+    /**
+     * Returns true iff variable 'v' occurs as a positive term in this clause.
      */
     boolean occursPos( int var )
     {
