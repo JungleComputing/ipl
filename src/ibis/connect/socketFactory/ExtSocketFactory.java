@@ -206,6 +206,7 @@ public class ExtSocketFactory
 	    throw new Error(e);
 	}
 	s = f.createClientSocket(addr, port);
+	tuneSocket(s, null);
 	return s;
     }
 
@@ -254,6 +255,7 @@ public class ExtSocketFactory
 	MyDebug.debug("SocketFactory: creating brokered socket- hint="+hintIsServer+
 		      "; type="+t.getSocketTypeName());
 	s = f.createBrokeredSocket(in, out, hintIsServer, props);
+	tuneSocket(s, props);
 	return s;
     }
 
@@ -306,7 +308,8 @@ public class ExtSocketFactory
      */
     public static Socket createBrokeredSocketFromClientServer(ClientServerSocketFactory type,
 							      InputStream in, OutputStream out,
-							      boolean hintIsServer)
+							      boolean hintIsServer,
+							      ConnectProperties p)
 	throws IOException
     {
 	Socket s = null;
@@ -331,6 +334,7 @@ public class ExtSocketFactory
 	    int         rport = ((Integer)    rInfo.get("socket_port")   ).intValue();
 	    s = type.createClientSocket(raddr, rport);
 	}
+	tuneSocket(s, p);
 	return s;
     }
 
@@ -396,5 +400,26 @@ public class ExtSocketFactory
     public static BrokeredSocketFactory getBrokeredType() {
 	return (BrokeredSocketFactory) defaultBrokeredLink;
     }
-}
 
+    private static void tuneSocket(Socket s, ConnectProperties p)
+	throws IOException
+    {
+	int ibufsiz = 0x10000;
+	int obufsiz = 0x10000;
+
+	if (p != null) {
+	    String str = p.getProperty("InputBufferSize");
+	    if (str != null) {
+		ibufsiz = Integer.parseInt(str);
+	    }
+	    str = p.getProperty("OutputBufferSize");
+	    if (str != null) {
+		obufsiz = Integer.parseInt(str);
+	    }
+	}
+
+	s.setSendBufferSize(obufsiz);
+	s.setReceiveBufferSize(ibufsiz);
+	s.setTcpNoDelay(true);
+    }
+}

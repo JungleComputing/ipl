@@ -45,7 +45,6 @@ public class PortRangeSocketType
 	throws IOException
     {
 	Socket s = new Socket(addr, port);
-	tuneSocket(s);
 	return s;
     }
 
@@ -65,15 +64,7 @@ public class PortRangeSocketType
 				       ConnectProperties p)
 	throws IOException
     {
-	return ExtSocketFactory.createBrokeredSocketFromClientServer(this, in, out, hintIsServer);
-    }
-
-    private static void tuneSocket(Socket s)
-	throws IOException
-    {
-	s.setSendBufferSize(0x10000);
-	s.setReceiveBufferSize(0x10000);
-	s.setTcpNoDelay(true);
+	return ExtSocketFactory.createBrokeredSocketFromClientServer(this, in, out, hintIsServer, p);
     }
 
     private synchronized int allocLocalPort() {

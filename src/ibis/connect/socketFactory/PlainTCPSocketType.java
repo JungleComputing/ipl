@@ -24,7 +24,6 @@ public class PlainTCPSocketType extends SocketType
 	throws IOException
     {
 	Socket s = new Socket(addr, port);
-	tuneSocket(s);
 	return s;
     }
 
@@ -61,14 +60,6 @@ public class PlainTCPSocketType extends SocketType
 	    int rport = is.readInt();
 	    s = this.createClientSocket(raddr, rport);
 	}
-	tuneSocket(s);
 	return s;
-    }
-    private static void tuneSocket(Socket s)
-	throws IOException
-    {
-	s.setSendBufferSize(0x10000);
-	s.setReceiveBufferSize(0x10000);
-	s.setTcpNoDelay(true);
     }
 }

@@ -101,7 +101,6 @@ public class AnyTCPSocketType extends SocketType
 					// when it is still running.
 		if (success != 0) {
 		    MyDebug.trace("AnyTCPSocketType server side succeeds");
-		    tuneSocket(s);
 		    return s;
 		}
 		MyDebug.trace("AnyTCPSocketType server side fails");
@@ -128,7 +127,6 @@ public class AnyTCPSocketType extends SocketType
 		os.flush();
 		if (s != null) {
 		    MyDebug.trace("AnyTCPSocketType client side attempt succeeds");
-		    tuneSocket(s);
 		    return s;
 		}
 		MyDebug.trace("AnyTCPSocketType client side attempt fails");
@@ -149,13 +147,5 @@ public class AnyTCPSocketType extends SocketType
 	Thread thr = new Thread(s);
 	thr.start();
 	return s;
-    }
-
-    private static void tuneSocket(Socket s)
-	throws IOException
-    {
-	s.setSendBufferSize(0x10000);
-	s.setReceiveBufferSize(0x10000);
-	s.setTcpNoDelay(true);
     }
 }
