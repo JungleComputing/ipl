@@ -194,29 +194,37 @@ class ReceivePortNameServerClient
 	    while (true) {
 		long now = System.currentTimeMillis();
 		if (timeout > 0 && now - start > timeout) {
+		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+		    ns_busy = false;
+		    ns_free.cv_signal();
+		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 		    throw new IbisIOException("messagePassing.Ibis ReceivePort lookup failed");
 		}
 		if (now - last_try >= BACKOFF_MILLIS) {
 		    // synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+// System.err.println("Getting lock ...");
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+// System.err.println("Got lock ...");
 		    try {
 			ri = null;
 			ns_lookup(name);
 
-System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + ns_done);
+// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + ns_done);
 			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, BACKOFF_MILLIS, true);
-System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri.cpu = " + ri.cpu + " ns_done = " + ns_done);
+// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri.cpu = " + ri.cpu + " ns_done = " + ns_done);
 
 			if (ri != null && ri.cpu != -1) {
-System.err.println(Thread.currentThread() + "ReceivePortNSClient: clear lookup.ns_busy" + this);
+// System.err.println(Thread.currentThread() + "ReceivePortNSClient: clear lookup.ns_busy" + this);
 			    ns_busy = false;
-System.err.println(Thread.currentThread() + "ReceivePortNSClient: signal potential waiters");
+// System.err.println(Thread.currentThread() + "ReceivePortNSClient: signal potential waiters");
 			    ns_free.cv_signal();
 			    return ri;
 			}
 		    // }
 		    } finally {
+// System.err.println("Releasing lock ...");
 			ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+// System.err.println("Released lock ...");
 		    }
 		    last_try = System.currentTimeMillis();
 		}
