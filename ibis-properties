@@ -28,6 +28,10 @@ PropertyCategories:	communication worldmodel serialization
 #   ManyToOne
 #	many-to-one communication is supported (in Ibis terms: multiple
 #	sendports may connect to a single receiveport).
+#   Poll
+#       receiveport.poll() is supported.
+#   ReceiveTimeout
+#       blocking receives with a timeout are supported.
 #   FifoOrdered
 #   	messages from a sendport are delivered to its receiveports in the
 #   	order in which they were sent.
@@ -59,6 +63,7 @@ PropertyCategories:	communication worldmodel serialization
 #
 
 communication:	OneToOne, OneToMany, ManyToOne, \
+		Poll, ReceiveTimeout, \
 		FifoOrdered, TotallyOrdered, \
 		Reliable, Unreliable, \
 		AutoUpcalls, PollUpcalls, ExplicitReceipt, \
