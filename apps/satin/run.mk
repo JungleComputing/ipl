@@ -100,6 +100,14 @@ pprun_test:
 	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
 	../../../globus/pprun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-stats -satin-closed
 
+grun:
+	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
+	../../../globus/grun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(APP_OPTIONS) -satin-stats -satin-closed
+
+grun_test:
+	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
+	../../../globus/grun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-stats -satin-closed
+
 logclean:
 	rm -rf *.ps *~ out.plot *.dvi out.ps *.aux plots.log *.tmp out.log out.tex
 
