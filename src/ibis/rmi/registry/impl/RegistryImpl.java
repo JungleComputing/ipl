@@ -14,19 +14,27 @@ public class RegistryImpl implements Registry
 	String hostname = null;
 	try {
 	    hostname = InetAddress.getLocalHost().getHostName();
-	/*    InetAddress adres = InetAddress.getByName(hostname);
+	    
+	    /* This stuff needed to get a proper hostname.
+	       If not included, you might get localhost.localdomain.
+	    */
+	    InetAddress adres = InetAddress.getByName(hostname);
 	    adres = InetAddress.getByName(adres.getHostAddress());
-	    hostname = adres.getHostName();*/
+	    hostname = adres.getHostName();
+
 	} catch (java.net.UnknownHostException e) {
 if(RTS.DEBUG)	
 	    System.err.println("hmmm... local host is unknown?");
 	}
+if(RTS.DEBUG) 
+	System.out.println("localhostName() returns " + hostname);
+
 	return hostname;
     } 
     
     public RegistryImpl(String host, int port) 
     {
-	if (host != null && host != "") {
+	if (host != null && ! host.equals("")) {
 	    this.host = host;
 	} else {
 	    this.host = localhostName();
