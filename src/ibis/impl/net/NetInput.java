@@ -824,7 +824,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -852,7 +852,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -880,7 +880,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -908,7 +908,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -936,7 +936,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -964,7 +964,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -992,7 +992,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1021,7 +1021,7 @@ pollingThreads--;
 		/*
                 } catch (Exception e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1050,7 +1050,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
                         throw e;
@@ -1081,7 +1081,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1109,7 +1109,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1137,7 +1137,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1165,7 +1165,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1193,7 +1193,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1221,7 +1221,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1249,7 +1249,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1277,7 +1277,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
@@ -1305,7 +1305,7 @@ pollingThreads--;
                         throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
-                        if (msg.equalsIgnoreCase("connection closed")) {
+                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
                                 throw new ConnectionClosedException(e);
                         }
 
