@@ -8,6 +8,7 @@
 # APP_DIR=<dir>
 # MODE=<master|slave>
 # JOBID=<pid of grun>
+# IBISCLASSPATH=<classpath relative to $IBIS_ROOT>
 #
 #before this file
 
@@ -42,7 +43,11 @@ fi
 #handy variables
 IBIS_ROOT=`pwd`/tmp$JOBID
 
-CLASSPATH=$IBIS_ROOT/ibis/classlibs:$IBIS_ROOT:.
+CLASSPATH=.
+for i in $(echo $IBISCLASSPATH | sed 's/:/ /g'); do
+	CLASSPATH=$CLASSPATH:$IBIS_ROOT/$i
+done
+
 for i in $JAR_PATH/*.jar; do
 	CLASSPATH=$CLASSPATH:$i
 done
