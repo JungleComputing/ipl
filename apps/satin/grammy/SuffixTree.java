@@ -93,7 +93,7 @@ public class SuffixTree {
                     }
                     if( n<p.length ){
                         // We must split up this node.
-                        InternalNode nw = new InternalNode( start, n );
+                        InternalNode nw = new InternalNode( p.start, n );
                         nw.child = p;
                         nw.sister = p.sister;
                         p.sister = null;
