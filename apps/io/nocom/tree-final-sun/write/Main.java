@@ -1,12 +1,8 @@
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
-import ibis.io.ArrayInputStream;
-import ibis.io.ArrayOutputStream;
-import ibis.io.BufferedArrayInputStream;
-import ibis.io.BufferedArrayOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
 //import ibis.io.MantaTypedBufferOutputStream;
 
 public class Main {
@@ -33,8 +29,7 @@ public class Main {
 			System.err.println("Main starting");
 
 			NullOutputStream naos = new NullOutputStream();
-			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(naos);
-			MantaOutputStream mout = new MantaOutputStream(baos);
+			ObjectOutputStream mout = new ObjectOutputStream(naos);
 				
 			// Create tree
 			temp = new DITree(LEN);
