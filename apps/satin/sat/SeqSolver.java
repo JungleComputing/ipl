@@ -21,6 +21,8 @@ public final class SeqSolver {
     private static final boolean traceLearning = false;
     private static final boolean traceRestarts = false;
     private static int label = 0;
+
+    /** Total number of decisions in all solves. */
     private int decisions = 0;
 
     /**

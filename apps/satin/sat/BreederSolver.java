@@ -19,6 +19,8 @@ public final class BreederSolver {
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = false;
     private static final boolean traceNewCode = true;
+    private static final boolean traceLearning = false;
+    private static final boolean traceRestarts = false;
     private static int label = 0;
 
     /** Total number of decisions in all solves. */
@@ -32,11 +34,11 @@ public final class BreederSolver {
      * Solve the leaf part of a SAT problem.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
-     * @param level branching level
+     * @param level The branching level.
      * @param p the SAT problem to solve
-     * @param ctx the changable context of the solver
-     * @param var the next variable to assign
-     * @param val the value to assign
+     * @param ctx The changable context of the solver.
+     * @param var The next variable to assign.
+     * @param val The value to assign.
      */
     public void leafSolve(
 	int level,
@@ -46,10 +48,10 @@ public final class BreederSolver {
 	boolean val
     ) throws SATResultException, SATRestartException, SATCutoffException
     {
-	if( traceSolver ){
-	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
-	}
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
+	if( traceSolver ){
+	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
+	}
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level );
@@ -96,14 +98,14 @@ public final class BreederSolver {
         }
         catch( SATRestartException x ){
 	    if( x.level<level ){
-		//System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                if( traceRestarts ){
+                    System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                }
 		throw x;
 	    }
         }
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
-	// Also note that this call is a perfect candidate for tail
-	// call elimination.
         // However, we must update the administration with any
         // new clauses that we've learned recently.
         ctx.update( p );
@@ -115,7 +117,7 @@ public final class BreederSolver {
      * there is no solution.
      * @param p The problem to solve.
      * @param cutoff The maximum number of decisions to try.
-     * @return a solution of the problem, or <code>null</code> if there is no solution
+     * @return A solution of the problem, or <code>null</code> if there is no solution.
      */
     protected SATSolution solveSystem( final SATProblem p )
 	throws SATCutoffException
@@ -167,19 +169,27 @@ public final class BreederSolver {
                 leafSolve( 0, p, negctx, nextvar, firstvar );
             }
             catch( SATRestartException x ){
-                // Restart the search here, since we have an untried
-                // value.
+                if( x.level<0 ){
+                    if( traceRestarts ){
+                        System.err.println( "RestartException reaches top level, no solutions" );
+                    }
+                    return null;
+                }
             }
             ctx.update( p );
             leafSolve( 0, p, ctx, nextvar, !firstvar );
 	}
 	catch( SATResultException r ){
-	    if( r.s == null ){
-		System.err.println( "A null solution thrown???" );
-	    }
 	    res = r.s;
+	    if( res == null ){
+		System.err.println( "A null result thrown???" );
+	    }
+            return res;
 	}
         catch( SATRestartException x ){
+	    if( traceRestarts ){
+		System.err.println( "RestartException reaches top level: no solutions" );
+	    }
 	    // No solution found.
             res = null;
         }
@@ -224,7 +234,6 @@ public final class BreederSolver {
      * and count the number of decisions that were required for it.
      * @param p_in The SAT problem to solve.
      * @param genes The configuration values to use.
-     * @param startd The number of decisions already used elsewhere.
      * @param cutoff The maximum number of decisions to try before giving up.
      * @return The number of decisions needed, or -1 if we're over
      * the cutoff limit.
