@@ -306,8 +306,8 @@ typedef struct NI_GM_HDR {
 #endif
 } ni_gm_hdr_t, *ni_gm_hdr_p;
 
+static int NI_GM_PACKET_BODY_LEN = -1;
 #define NI_GM_PACKET_HDR_LEN	((int)sizeof(ni_gm_hdr_t))
-#define NI_GM_PACKET_BODY_LEN	ibis_impl_net_gm_Driver_packetMTU
 #define NI_GM_PACKET_LEN	(NI_GM_PACKET_HDR_LEN + NI_GM_PACKET_BODY_LEN)
 #define NI_GM_BYTE_BUFFER_OFFSET \
 				((int)offsetof(ni_gm_hdr_t, byte_buffer_offset))
@@ -1090,6 +1090,7 @@ int
 ni_gm_jni_init(JNIEnv *env)
 {
     jclass	cls_Monitor;
+    jfieldID	fld_MTU;
 
     cls_Driver   = ni_findClass(env, "ibis/impl/net/gm/Driver");
     cls_Driver   = (*env)->NewGlobalRef(env, cls_Driver);
@@ -1107,6 +1108,11 @@ ni_gm_jni_init(JNIEnv *env)
     cls_NetIbis = (*env)->NewGlobalRef(env, cls_NetIbis);
 
     md_now      = ni_getStaticMethod(env, cls_NetIbis, "now", "()F");
+
+    fld_MTU = ni_getStaticField(env, cls_Driver, "packetMTU", "I");
+    NI_GM_PACKET_BODY_LEN = (int)(*env)->GetStaticIntField(env,
+							   cls_Driver,
+							   fld_MTU);
 
     return 0;
 }

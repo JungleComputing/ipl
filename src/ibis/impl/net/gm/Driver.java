@@ -32,6 +32,7 @@ public final class Driver extends NetDriver {
 	static final String gm_intr =     prefix + "intr";
 	static final String gm_intr_frst =prefix + "intr.first";
 	static final String gm_debug =    prefix + "debug";
+	static final String gm_rndzv =    prefix + "rendez-vous";
 
 	private static final String[] properties = {
 	    gm_mtu,
@@ -41,7 +42,8 @@ public final class Driver extends NetDriver {
 	    gm_dynamic,
 	    gm_intr,
 	    gm_intr_frst,
-	    gm_debug
+	    gm_debug,
+	    gm_rndzv
 	};
 
 	// Native functions
@@ -62,7 +64,7 @@ public final class Driver extends NetDriver {
 
 	static final int        mtu = TypedProperties.intProperty(gm_mtu, 128 * 1024);
 
-        static final int	packetMTU = 16384; // 4096;
+        static final int	packetMTU = TypedProperties.intProperty(gm_rndzv, 16384); // 4096;
 
 	/**
 	 * Reserve this amount of space for the byte buffer that is
