@@ -651,9 +651,20 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         /*
          * Shouldn't the return type be an array?
          */
-	public ReceivePortIdentifier connectedTo() {
-                __.unimplemented__("connectedTo");
-                return null;
+	public ReceivePortIdentifier[] connectedTo() {
+                synchronized(connectionTable) {
+                        ReceivePortIdentifier t[] = new ReceivePortIdentifier[connectionTable.size()];
+
+                        Iterator it = connectionTable.values().iterator();
+                        int i = 0;
+
+                        while (it.hasNext()) {
+                                NetConnection cnx = (NetConnection)it.next();
+                                t[i++] = cnx.getReceiveId();
+                        }
+
+                        return t;
+                }
         }
 
 	public ReceivePortIdentifier[] lostConnections() {

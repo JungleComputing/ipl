@@ -850,9 +850,20 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return id;
         }
-	public SendPortIdentifier connectedTo() {
-                __.unimplemented__("connectedTo");
-                return null;
+	public SendPortIdentifier[] connectedTo() {
+                synchronized(connectionTable) {
+                        SendPortIdentifier t[] = new SendPortIdentifier[connectionTable.size()];
+
+                        Iterator it = connectionTable.values().iterator();
+                        int i = 0;
+
+                        while (it.hasNext()) {
+                                NetConnection cnx = (NetConnection)it.next();
+                                t[i++] = cnx.getSendId();
+                        }
+
+                        return t;
+                }
         }
 
 	public SendPortIdentifier[] lostConnections() {

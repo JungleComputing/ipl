@@ -397,7 +397,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		System.err.println("forcedClose not implemented!");
 	}
 
-	public SendPortIdentifier connectedTo() {
+	public SendPortIdentifier[] connectedTo() {
 		System.err.println("connectedTo not implemented!");
 		return null;
 	}

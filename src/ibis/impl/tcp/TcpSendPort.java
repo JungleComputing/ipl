@@ -141,7 +141,7 @@ final class TcpSendPort implements SendPort, Config {
 	    sender.reset();
 	}
 
-	public ReceivePortIdentifier connectedTo() {
+	public ReceivePortIdentifier[] connectedTo() {
 		System.err.println("connectedTo not implemented!");
 		return null;
 	}
