@@ -802,6 +802,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeByte(synchronous ? STEAL_REQUEST :
 					       ASYNC_STEAL_REQUEST);
 			writeMessage.send();
+			writeMessage.finish();
 			if(STEAL_STATS) {
 				if(inDifferentCluster(v.ident)) {
 					interClusterMessages++;
@@ -811,7 +812,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					intraClusterBytes += writeMessage.getCount();
 				}
 			}
-			writeMessage.finish();
 		} catch (IOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 					   "': Got Exception while sending " +
