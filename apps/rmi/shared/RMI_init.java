@@ -21,6 +21,8 @@ public class RMI_init {
     static Registry reg = null;
     static boolean isInitialized = false;
 
+    private static RMISocketFactory socketFactory = null;
+
     static {
 	if (USE_IP_MAP_FACTORY) {
 	    try {
@@ -29,6 +31,7 @@ public class RMI_init {
 		    f = new IPMapSocketFactory();
 		    try {
 			RMISocketFactory.setSocketFactory(f);
+			socketFactory = f;
 		    } catch (IOException e) {
 			System.err.println("Cannot set RMISocketFactory " + f
 				+ "; use default");
@@ -74,17 +77,25 @@ public class RMI_init {
 	if (addr.equals(regAddr)) {
 	    while (reg == null) {
 		try {
-		    reg = LocateRegistry.createRegistry(port);
+		    if (socketFactory != null) {
+			reg = LocateRegistry.createRegistry(port, socketFactory, socketFactory);
+		    } else {
+			reg = LocateRegistry.createRegistry(port);
+		    }
 		    if (VERBOSE) {
-			System.out.println("Use LocateRegistry to create a Registry");
+			System.out.println("Use LocateRegistry to create a Registry, socketFactory " + socketFactory);
 		    }
 		    break;
 		} catch (RemoteException e) {
 		}
 		try {
-		    reg = LocateRegistry.getRegistry(registryOwner, port);
+		    if (socketFactory != null) {
+			reg = LocateRegistry.getRegistry(registryOwner, port, socketFactory);
+		    } else {
+			reg = LocateRegistry.getRegistry(registryOwner, port);
+		    }
 		    if (VERBOSE) {
-			System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr);
+			System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr + ", socketFactory " + socketFactory);
 		    }
 		    break;
 		} catch (RemoteException e) {
@@ -93,11 +104,15 @@ public class RMI_init {
 
 	} else {
 	    if (VERBOSE) {
-		System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr);
+		System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr + ", socketFactory " + socketFactory);
 	    }
 	    while (reg == null) {
 		try {
-		    reg = LocateRegistry.getRegistry(registryOwner, port);
+		    if (socketFactory != null) {
+			reg = LocateRegistry.getRegistry(registryOwner, port, socketFactory);
+		    } else {
+			reg = LocateRegistry.getRegistry(registryOwner, port);
+		    }
 		} catch (RemoteException e) {
 		    try {
 			System.out.println("Look up registry: sleep a while..");
