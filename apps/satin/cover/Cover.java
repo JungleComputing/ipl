@@ -41,7 +41,7 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 		act[i] = 0;
 		for (k=0; k<no_skills; k++)
 			if ( skills[i][k] == 1 ){
-				if (covered[k]-- == 0) {
+				if (--covered[k] == 0) {
 					cover--;
 				}
 			}
@@ -120,12 +120,13 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 			return ret;
 		}
 
+		byte[] act_copy = (byte[]) act.clone();
+		byte[] covered_copy = (byte[]) covered.clone();
+
 		ret2 = spawn_try_it(i+1, N, no_skills, skills, cover, covered, act, opt2, opt_elems2);
 
 		/* recursive call with the current element */
-		/* must copy all OBJECTS we modify! */
-		byte[] act_copy = (byte[]) act.clone();
-		byte[] covered_copy = (byte[]) covered.clone();
+		/* must use copies of all OBJECTS we modify! */
 
 		act_copy[i] = 1;
 		for (k=0; k<no_skills; k++) {
