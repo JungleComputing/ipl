@@ -125,6 +125,10 @@ class Compress extends ibis.satin.SatinObject
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
             return mv;
         }
+        if( traceLookahead ){
+            generateIndent( System.out, depth );
+            System.out.println( "D" +  depth + ": @" + pos + ": selecting best move" );
+        }
         int sites[] = collectBackrefs( text, backrefs, pos );
 
         Backref results[] = new Backref[Magic.MAX_COST+1];
@@ -149,30 +153,26 @@ class Compress extends ibis.satin.SatinObject
             }
         }
 
-        if( !haveAlternatives && depth == 0 ){
-            // The only possible move is a copy, so don't bother to evaluate
-            // it any further. Note that we can only do this at top
-            // level, because at all other levels we must accurately
-            // calculate the gain of this move, so that the higher levels
-            // can do a valid comparison.
-            return mv;
-        }
-
-        if( depth<Configuration.LOOKAHEAD_DEPTH ){
-            // Evaluate the gain of just copying the character.
-            Backref mv1 = selectBestMove( text, backrefs, pos+1, depth+1 );
-	    // TODO: See if we can get rid of this sync.
-	    sync();
-            mv.addGain( mv1 );
-        }
-
         if( !haveAlternatives ){
+            // The only possible move is a copy.
+            if( depth>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
+                // It is permitted and useful to evaluate the copy move
+                // using recursion, so that higher levels can accurately
+                // compare it to other alternatives.
+                // Evaluate the gain of just copying the character.
+                Backref mv1 = selectBestMove( text, backrefs, pos+1, depth+1 );
+                // TODO: See if we can get rid of this sync.
+                sync();
+                mv.addGain( mv1 );
+            }
+            if( traceLookahead ){
+                generateIndent( System.out, depth );
+                System.out.println( "D" + depth + ": no backrefs, so only move is: " + mv );
+            }
             return mv;
         }
 
         if( traceLookahead ){
-            generateIndent( System.out, depth );
-            System.out.println( "D" + depth + ": minLen=" + minLen + ", maxLen=" + maxLen );
             generateIndent( System.out, depth );
             System.out.println( "D" + depth + ":  considering move " + mv );
             for( int c=0; c<results.length; c++ ){
@@ -202,11 +202,15 @@ class Compress extends ibis.satin.SatinObject
                 System.out.println( "D" + depth + ": @" + pos + ": evaluating backreferences of " + minLen + "..." + maxLen + " bytes" );
             }
 
+            // Spawn recurrent processes to evaluate a character copy
+            // and backreferences of a range of lengths.
+            Backref mv1 = selectBestMove( text, backrefs, pos+1, depth+1 );
             for( int i=minLen; i<=maxLen; i++ ){
-                a[i] = selectBestMove( text, backrefs, pos+i, depth );
+                a[i] = selectBestMove( text, backrefs, pos+i, depth+1 );
             }
             sync();
-            int bestGain = 0;
+            int bestGain = mv1.getGain();
+            mv.addGain( bestGain );
             for( int i=minLen; i<=maxLen; i++ ){
                 Backref r = a[i];
 
@@ -241,9 +245,7 @@ class Compress extends ibis.satin.SatinObject
             }
         }
         if( traceLookahead ){
-            for( int i=0; i<depth; i++ ){
-                System.out.print( ' ' );
-            }
+            generateIndent( System.out, depth );
             System.out.println( "D" + depth + ": best move is: " + mv );
         }
         return mv;

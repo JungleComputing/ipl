@@ -56,7 +56,7 @@ class Backref implements java.io.Serializable {
     public String toString()
     {
         if( len == -1 ){
-            return "@" + pos + " (copy)";
+            return "@" + pos + " (copy) gain=" + getGain();
         }
         return "@" + pos + "->" + backpos + " len=" + len +  " gain=" + getGain();
     }
