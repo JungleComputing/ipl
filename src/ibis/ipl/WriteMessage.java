@@ -25,7 +25,7 @@ public interface WriteMessage {
      * pushed into this message, as the send is NON-blocking.
      * It is only safe to touch the data after it has actually been
      * sent, which can be ensured by either calling {@link #finish} or
-     * a {@link #sync} corresponding to this send.
+     * {@link #reset}, or a {@link #sync} corresponding to this send.
      * The <code>send</code> method returns a ticket, which can be used
      * as a parameter to the {@link #sync} method, which will block until
      * the data corresponding to this ticket can be used again.
@@ -46,6 +46,19 @@ public interface WriteMessage {
      * @exception java.io.IOException	an error occurred 
      */
     public void sync(int ticket) throws IOException;
+
+    /**
+     * If needed sends, and then blocks until the entire message has been
+     * sent and then clears data within the message.
+     * After {@link #finish} or {@link #reset}, all data that was written
+     * may be touched again.
+     * <code>reset</code> can be seen as a shorthand for
+     * (possibly <code>send();</code>)
+     * <code>finish(); sendPort.newMessage();</code>.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void reset() throws IOException;
 
     /**
      * If needed, send, and then block until the entire message has been sent

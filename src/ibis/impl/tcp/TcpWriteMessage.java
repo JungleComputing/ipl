@@ -51,6 +51,11 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void finish() throws IOException {
+		reset();
+		sport.finishMessage();
+	}
+
+	public void reset() throws IOException {
 		try {
 			out.reset();
 		} catch (SplitterException e) {
@@ -61,7 +66,6 @@ final class TcpWriteMessage implements WriteMessage {
 		} catch (SplitterException e) {
 			forwardLosses(e);
 		}
-		sport.finishMessage();
 	}
 
 	public void sync(int ticket) throws IOException {

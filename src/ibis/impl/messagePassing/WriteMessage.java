@@ -60,6 +60,10 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	return 0;
     }
 
+    public void reset() throws IOException {
+	send(true, true);
+    }
+
 
     public void finish() throws IOException {
 	out.finish();

@@ -92,6 +92,22 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 		finished = false;
         }
 
+	/**
+	 * Reset the output state.
+	 *
+	 * The full reset functionality is not implemented.
+	 */
+	public void reset() throws IOException {
+		_finish();
+		send();
+		/* Calling finish() here i.s.o. replicating the code above
+		 * has an extra advantage (besides code nonmultiplication):
+		 * a subclass may override finish. This happens e.g. in
+		 * multi | NetBufferedOutput.
+		 */
+		finish();
+	}
+
         /**
          * Unimplemented.
          *

@@ -797,6 +797,21 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	}
 
 	/**
+	 * Unconditionnaly completes the message transmission and
+	 * releases the send port. The writeMessage is kept by
+	 * the application for the next send.
+	 */
+	public void reset() throws IOException {
+		log.in();
+		send();
+		_finish();
+		output.reset();
+		emptyMsg = true;
+		output.initSend();
+		log.out();
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public void sync(int ticket) throws IOException {

@@ -17,43 +17,55 @@ final class SerializeWriteMessage extends WriteMessage {
 // System.err.println("**************************************************Creating new SerializeWriteMessage");
     }
 
-
-    private void send(boolean doSend, boolean isReset) throws IOException {
+    public int send() throws IOException {
 	if (DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%%% Send an Ibis SerializeWriteMessage");
 // Thread.dumpStack();
 	}
-
-	if (doSend) {
-	    obj_out.flush();
-	}
-
+	obj_out.flush();
 	Ibis.myIbis.lock();
 	try {
-// out.report();
-	    if (doSend) {
-		out.send(true);
-	    }
-	    if (isReset) {
-		out.reset(false);
-	    }
+	    out.send(true);
+	    sPort.registerSend();
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
+	return 0;
+    }
+
+    public void sync(int ticket) throws IOException {
+	if (DEBUG) {
+	    System.err.println("%%%%%%%%%%%%%%%% Sync SerializeWriteMessage");
+	}
+	Ibis.myIbis.lock();
+	try {
+	    out.reset(false);
 	    sPort.registerSend();
 	} finally {
 	    Ibis.myIbis.unlock();
 	}
     }
 
-
-    public int send() throws IOException {
-	send(true, false);
-	return 0;
-    }
-
-    public void sync(int ticket) throws IOException {
-	send(false, true);
+    public void reset() throws IOException {
+	if (DEBUG) {
+	    System.err.println("%%%%%%%%%%%%%%%% Reset SerializeWriteMessage");
+	}
+	obj_out.flush();
+	obj_out.reset();
+	Ibis.myIbis.lock();
+	try {
+	    out.send(true);
+	    out.reset(false);
+	    sPort.registerSend();
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
     }
 
     public void finish() throws IOException {
+	if (DEBUG) {
+	    System.err.println("%%%%%%%%%%%%%%%% Finish SerializeWriteMessage");
+	}
 	obj_out.reset();
 	out.finish(); // : Now
     }

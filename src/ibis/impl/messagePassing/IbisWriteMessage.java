@@ -56,6 +56,10 @@ final public class IbisWriteMessage extends WriteMessage {
 	reset(false, true);
     }
 
+    public void reset() throws IOException {
+	reset(false, false);
+    }
+
     public void sync(int ticket) throws IOException {
 	Ibis.myIbis.lock();
 	try {
