@@ -76,7 +76,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private int		ncpus = -1;
     private int		rank = -1;
 
-    private int		clients = 1;
+    private int		clients = -1;
     private int		servers = 1;
     private boolean	i_am_client = false;
 
@@ -234,9 +234,11 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 	ReadMessage m = null;
 	for (int i = 0; i < partners; i++) {
 	    // t_get_msg.start();
+// System.err.println("Do a downcall receive from partner " + i);
 	    m = rport.receive(m);
 	    // t_get_msg.stop();
 	    rcve_one(read_data, size, m);
+// System.err.println("Done a downcall receive from partner " + i);
 	}
 	// t_r_finish.start();
 	if (m != null) {
@@ -329,13 +331,16 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 
     public void upcall(ReadMessage m) throws IOException {
 	try {
+// System.err.println(rank + ": upcall");
 	    // t_upcall.start();
 	    if (consume) {
 		rcve_one(true /* read_data */, size, m);
 	    }
+// System.err.println(rank + ": received msg");
 	    if (! one_way) {
 		if (clients == 1 || (services + 1) % clients == 0) {
 		    send_one(true /* is_server */, services == clients * count - 1);
+// System.err.println(rank + ": sent ack");
 		}
 	    }
 	    if (gc_on_rcve) {
@@ -535,10 +540,12 @@ System.err.println("Server: seen " + services + " msgs");
 	System.err.println(rank + ": client: connected");
 
 	// Do a poor-man's barrier to allow the connections to proceed.
-System.err.println(rank + ": Poor-man's barrier receive start...");
-	ReadMessage r = rport.receive();
-	r.finish();
-System.err.println(rank + ": Poor-man's barrier receive finished");
+	for (int i = 0; i < servers; i++) {
+System.err.println(rank + ": Poor-man's barrier " + i + " receive start...");
+	    ReadMessage r = rport.receive();
+	    r.finish();
+System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
+	}
 
 	System.err.println("Go ahead now!");
 
@@ -825,7 +832,9 @@ System.err.println("Poor-man's barrier send finished");
 		System.exit(41);
 		break;
 	    default:
-		clients = ncpus - 1;
+		if (clients == -1) {
+		    clients = ncpus - 1;
+		}
 	    }
 	} else {
 	    /* Try to think of a sensible default */
