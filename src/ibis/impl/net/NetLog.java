@@ -259,7 +259,7 @@ public final class NetLog {
          */
         public void disp(String s, Object obj) {
                 if (on) {
-                        System.err.println(id(1)+"- "+s + obj.toString());
+                        System.err.println(id(1)+"- "+s + obj);
                 }
         }
 
