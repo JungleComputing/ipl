@@ -270,39 +270,49 @@ public class SATContext implements java.io.Serializable {
 	Clause c = p.clauses[cno];
 
 	int pos[] = c.pos;
-	int neg[] = c.neg;
 	for( int i=0; i<pos.length; i++ ){
 	    int var = pos[i];
 
-	    posclauses[var]--;
+	    int pc = --posclauses[var];
 	    if( doVerification ){
 	        verifyClauseCount( p, var );
 	    }
-	    if( assignments[var] == -1 && posclauses[var] == 0 && negclauses[var] != 0 ){
-		if( tracePropagation ){
-		    System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
+	    if( pc == 0 ){
+		if( assignments[var] == -1 ){
+		    if( negclauses[var] == 0 ){
+			return -1;
+		    }
+		    if( tracePropagation ){
+			System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
+		    }
+		    // Only register the fact that there is an unipolar variable.
+		    // Don't propagate it yet, since the adminstration is
+		    // inconsistent.
+		    hasUniPolar = true;
 		}
-		// Only register the fact that there is an unipolar variable.
-		// Don't propagate it yet, since the adminstration is
-		// inconsistent.
-		hasUniPolar = true;
 	    }
 	}
+	int neg[] = c.neg;
 	for( int i=0; i<neg.length; i++ ){
 	    int var = neg[i];
 
-	    negclauses[var]--;
+	    int nc = --negclauses[var];
 	    if( doVerification ){
 	        verifyClauseCount( p, var );
 	    }
-	    if( assignments[var] == -1 && posclauses[var] != 0 && negclauses[var] == 0 ){
-		if( tracePropagation ){
-		    System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
+	    if( nc == 0 ){
+		if( assignments[var] == -1 ){
+		    if( posclauses[var] == 0 ){
+			return -1;
+		    }
+		    if( tracePropagation ){
+			System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
+		    }
+		    // Only register the fact that there is an unipolar variable.
+		    // Don't propagate it yet, since the adminstration is
+		    // inconsistent.
+		    hasUniPolar = true;
 		}
-		// Only register the fact that there is an unipolar variable.
-		// Don't propagate it yet, since the adminstration is
-		// inconsistent.
-		hasUniPolar = true;
 	    }
 	}
 	if( hasUniPolar ){
@@ -310,7 +320,7 @@ public class SATContext implements java.io.Serializable {
 	    for( int i=0; i<pos.length; i++ ){
 		int var = pos[i];
 
-		if( assignments[var] == -1 && posclauses[var] == 0 && negclauses[var] != 0 ){
+		if( assignments[var] == -1 && posclauses[var] == 0 ){
 		    int res = propagateNegAssignment( p, var );
 		    if( res != 0 ){
 			return res;
@@ -320,7 +330,7 @@ public class SATContext implements java.io.Serializable {
 	    for( int i=0; i<neg.length; i++ ){
 		int var = neg[i];
 
-		if( assignments[var] == -1 && posclauses[var] != 0 && negclauses[var] == 0 ){
+		if( assignments[var] == -1 && negclauses[var] == 0 ){
 		    int res = propagatePosAssignment( p, var );
 		    if( res != 0 ){
 			return res;
@@ -496,6 +506,7 @@ public class SATContext implements java.io.Serializable {
         // For the moment we return the variable that is used the most.
 	int bestvar = -1;
 	int bestusecount = 0;
+	int bestmaxcount = 0;
 
 	for( int i=0; i<assignments.length; i++ ){
 	    if( assignments[i] != -1 ){
@@ -503,10 +514,17 @@ public class SATContext implements java.io.Serializable {
 	        continue;
 	    }
 	    int usecount = posclauses[i] + negclauses[i];
-	    if( usecount>bestusecount ){
-		// This is a better one.
-	        bestvar = i;
-		bestusecount = usecount;
+	    if( usecount>=bestusecount ){
+		// Use maxcount to decide when usecounts are equal.
+		int maxcount = Math.max( posclauses[i], negclauses[i] );
+
+		if( (usecount>bestusecount) || (maxcount>bestmaxcount) ){
+		    // This is a better one.
+		    bestvar = i;
+		    bestusecount = usecount;
+		    bestmaxcount = maxcount;
+
+		}
 	    }
 	}
 	return bestvar;

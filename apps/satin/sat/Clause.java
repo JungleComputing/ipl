@@ -54,8 +54,9 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
      * Returns true iff 'l' contains 'n'.
      * @param l the list to search in
      * @param n the value to search for
+     * @return wether the list contains the element
      */
-    static boolean memberIntList( int l[], int n )
+    static private boolean memberIntList( int l[], int n )
     {
         for( int ix=0; ix<l.length; ix++ ){
 	    if( l[ix] == n ){
@@ -67,11 +68,18 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 
     /**
      * Returns true iff lb contains all symbols in la.
-     * @param la the reference list
-     * @param lb the list that is being tested
+     * We assume that neither array contains duplicate elements.
+     * @param la the reference array
+     * @param lb the array that is being tested
+     * @return wether la is a subset of lb
      */
-    static boolean isSubsetIntList( int la[], int lb[] )
+    static private boolean isSubsetIntList( int la[], int lb[] )
     {
+	if( la.length>lb.length ){
+	    // Since we assume the arrays do not contain duplicates,
+	    // la can never be a subset if it's larger.
+	    return false;
+	}
 	for( int ix=0; ix<la.length; ix++ ){
 	    if( !memberIntList( lb, la[ix] ) ){
 		return false;
