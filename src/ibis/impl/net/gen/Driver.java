@@ -5,6 +5,7 @@ import ibis.ipl.StaticProperties;
 
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetIbis;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetOutput;
 import ibis.ipl.impl.net.NetReceivePortIdentifier;
@@ -52,9 +53,9 @@ public class Driver extends NetDriver {
 	 * @return The new generic poller.
 	 */
 	public NetInput newInput(StaticProperties sp,
-				 NetInput	  input)
+				 NetIO	          up)
 		throws IbisIOException {
-		return new GenPoller(sp, this, input);
+		return new GenPoller(sp, this, up);
 	}
 
 	/**
@@ -66,8 +67,8 @@ public class Driver extends NetDriver {
 	 * @return The new generic splitter.
 	 */
 	public NetOutput newOutput(StaticProperties sp,
-				   NetOutput        output)
+				   NetIO            up)
 		throws IbisIOException {
-		return new GenSplitter(sp, this, output);
+		return new GenSplitter(sp, this, up);
 	}
 }

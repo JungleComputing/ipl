@@ -3,6 +3,7 @@ package ibis.ipl.impl.net.id;
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetInput;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetSendPortIdentifier;
 
@@ -53,9 +54,9 @@ public class IdInput extends NetInput {
 	 */
 	IdInput(StaticProperties sp,
 		NetDriver        driver,
-		NetInput         input)
+		NetIO            up)
 		throws IbisIOException {
-		super(sp, driver, input);
+		super(sp, driver, up);
 	}
 
 	/*

@@ -130,6 +130,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public NetSendPort(NetPortType type, Replacer replacer, String name)
 		throws IbisIOException {
+                System.err.println("NetSendPort: <init>-->");
 		this.name	  	 = name;
 		this.type	  	 = type;
 		NetIbis           ibis   = type.getIbis();
@@ -143,6 +144,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		receivePortIs          	 = new Hashtable();
 		receivePortOs          	 = new Hashtable();
                 this.replacer = replacer;
+                System.err.println("NetSendPort: <init><--");
 	}
 
 	/**
@@ -179,6 +181,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public void connect(ReceivePortIdentifier rpi)
 		throws IbisIOException {
+                System.err.println("NetSendPort: connect-->");
 		outputLock.lock();
 		NetReceivePortIdentifier nrpi	       = (NetReceivePortIdentifier)rpi;
 		Hashtable                info	       = nrpi.connectionInfo();
@@ -206,6 +209,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		receivePortOs.put(rpn, os);
 		output.setupConnection(rpn, is, os);				
 		outputLock.unlock();
+                System.err.println("NetSendPort: connect<--");
 	}
 
 	/**
@@ -228,7 +232,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public synchronized void free()
 		throws IbisIOException {
-                //System.err.println("NetSendPort.free() called");
+                System.err.println("NetSendPort: free-->");
 		try {
 			if (outputLock != null) {
 				outputLock.lock();
@@ -292,6 +296,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		} catch (Exception e) {
                         __.fwdAbort__(e);
 		}
+                System.err.println("NetSendPort: free<--");
 	}
 	
 	/**

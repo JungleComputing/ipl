@@ -3,6 +3,7 @@ package ibis.ipl.impl.net.tcp;
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetInput;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetSendPortIdentifier;
 
@@ -18,6 +19,8 @@ import java.net.SocketException;
 /* Only for java >= 1.4 
 import java.net.SocketTimeoutException;
 */
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +55,7 @@ public class TcpInput extends NetInput {
 	/**
 	 * The communication input stream.
 	 */
-	private InputStream  	      tcpIs	      = null;
+	private DataInputStream  	      tcpIs	      = null;
 
 	/**
 	 * The communication output stream.
@@ -60,7 +63,7 @@ public class TcpInput extends NetInput {
 	 * <BR><B>Note</B>: this stream is not really needed but may be used 
 	 * for debugging purpose.
 	 */
-	private OutputStream 	      tcpOs	      = null;
+	private DataOutputStream 	      tcpOs	      = null;
 
 	/**
 	 * Constructor.
@@ -72,9 +75,9 @@ public class TcpInput extends NetInput {
 	 */
 	TcpInput(StaticProperties sp,
 		 NetDriver        driver,
-		 NetInput         input)
+		 NetIO            up)
 		throws IbisIOException {
-		super(sp, driver, input);
+		super(sp, driver, up);
 	}
 
 
@@ -99,8 +102,8 @@ public class TcpInput extends NetInput {
 			sendInfoTable(os, info);
 
 			tcpSocket  = tcpServerSocket.accept();
-			tcpIs 	   = tcpSocket.getInputStream();
-			tcpOs 	   = tcpSocket.getOutputStream();
+			tcpIs 	   = new DataInputStream(tcpSocket.getInputStream());
+			tcpOs 	   = new DataOutputStream(tcpSocket.getOutputStream());
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -135,11 +138,11 @@ public class TcpInput extends NetInput {
 		return activeNum;
 	}
 
-	public byte readByte() throws IbisIOException {
-                byte result = 0;
+	public boolean readBoolean() throws IbisIOException {
+                boolean result = false;
                 
 		try {
-                        result = (byte)tcpIs.read();
+                        result = tcpIs.readBoolean();
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -147,6 +150,215 @@ public class TcpInput extends NetInput {
                 return result;
         }
         
+	public byte readByte() throws IbisIOException {
+                byte result = 0;
+                
+		try {
+                        result = tcpIs.readByte();
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+   
+                return result;
+        }
+        
+	public char readChar() throws IbisIOException {
+                char result = 0;
+                
+		try {
+                        result = tcpIs.readChar();
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+   
+                return result;
+        }
+        
+	public short readShort() throws IbisIOException {
+                short result = 0;
+                
+		try {
+                        result = tcpIs.readShort();
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+   
+                return result;
+        }
+        
+	public int readInt() throws IbisIOException {
+                int result = 0;
+                
+		try {
+                        result = tcpIs.readInt();
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+   
+                return result;
+        }
+        
+	public long readLong() throws IbisIOException {
+                long result = 0;
+                
+		try {
+                        result = tcpIs.readLong();
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+   
+                return result;
+        }
+        
+	public float readFloat() throws IbisIOException {
+                float result = 0;
+                
+		try {
+                        result = tcpIs.readFloat();
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+   
+                return result;
+        }
+        
+	public double readDouble() throws IbisIOException {
+                double result = 0;
+                
+		try {
+                        result = tcpIs.readDouble();
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+   
+                return result;
+        }
+        
+	public void readSubArrayBoolean(boolean [] b, int o, int l) throws IbisIOException {
+                try {
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = tcpIs.readBoolean();
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+
+	public void readSubArrayByte(byte [] b, int o, int l) throws IbisIOException {
+                try {
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = tcpIs.readByte();
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+
+	public void readSubArrayChar(char [] b, int o, int l) throws IbisIOException {
+                try {
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = tcpIs.readChar();
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+
+	public void readSubArrayShort(short [] b, int o, int l) throws IbisIOException {
+                try {
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = tcpIs.readShort();
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+
+	public void readSubArrayInt(int [] b, int o, int l) throws IbisIOException {
+                try {
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = tcpIs.readInt();
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+
+	public void readSubArrayLong(long [] b, int o, int l) throws IbisIOException {
+                try {
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = tcpIs.readLong();
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+
+	public void readSubArrayFloat(float [] b, int o, int l) throws IbisIOException {
+                try {
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = tcpIs.readFloat();
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+
+	public void readSubArrayDouble(double [] b, int o, int l) throws IbisIOException {
+                try {
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = tcpIs.readDouble();
+                        }
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+	public void readArrayBoolean(boolean [] b) throws IbisIOException {
+                readSubArrayBoolean(b, 0, b.length);
+        }
+
+
+	public void readArrayByte(byte [] b) throws IbisIOException {
+                readSubArrayByte(b, 0, b.length);
+        }
+
+
+	public void readArrayChar(char [] b) throws IbisIOException {
+                readSubArrayChar(b, 0, b.length);
+        }
+
+
+	public void readArrayShort(short [] b) throws IbisIOException {
+                readSubArrayShort(b, 0, b.length);
+        }
+
+
+	public void readArrayInt(int [] b) throws IbisIOException {
+                readSubArrayInt(b, 0, b.length);
+        }
+
+
+	public void readArrayLong(long [] b) throws IbisIOException {
+                readSubArrayLong(b, 0, b.length);
+        }
+
+
+	public void readArrayFloat(float [] b) throws IbisIOException {
+                readSubArrayFloat(b, 0, b.length);
+        }
+
+
+	public void readArrayDouble(double [] b) throws IbisIOException {
+                readSubArrayDouble(b, 0, b.length);
+        }
 	/**
 	 * {@inheritDoc}
 	 */

@@ -6,6 +6,7 @@ import ibis.ipl.StaticProperties;
 
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetInput;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetReceiveBuffer;
 
 import java.net.InetAddress;
@@ -58,8 +59,8 @@ public class GenPoller extends NetInput {
 	 */
 	public GenPoller(StaticProperties staticProperties,
 			 NetDriver 	  driver,
-			 NetInput  	  input) {
-		super(staticProperties, driver, input);
+			 NetIO  	  up) {
+		super(staticProperties, driver, up);
 		inputVector = new Vector();
 		isVector    = new Vector();
 		osVector    = new Vector();

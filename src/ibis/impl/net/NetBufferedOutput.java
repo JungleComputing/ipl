@@ -38,8 +38,8 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 */
 	protected NetBufferedOutput(StaticProperties staticProperties,
                                     NetDriver 	     driver,
-                                    NetOutput 	     output) {
-		super(staticProperties, driver, output);
+                                    NetIO 	     up) {
+		super(staticProperties, driver, up);
 	}
 
         protected abstract void writeByteBuffer(NetSendBuffer buffer) throws IbisIOException;

@@ -33,8 +33,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 */
 	protected NetOutput(StaticProperties staticProperties,
 			    NetDriver 	     driver,
-			    NetOutput 	     output) {
-		super(staticProperties, driver, output);
+			    NetIO 	     up) {
+		super(staticProperties, driver, up);
 	}
 
         /**

@@ -7,6 +7,7 @@ import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetOutput;
 import ibis.ipl.impl.net.NetSendBuffer;
 
@@ -62,9 +63,9 @@ public class BytesOutput extends NetOutput {
 	 */
 	BytesOutput(StaticProperties sp,
                    NetDriver   	    driver,
-                   NetOutput   	    output)
+                   NetIO   	    up)
 		throws IbisIOException {
-		super(sp, driver, output);
+		super(sp, driver, up);
                 an = new NetAllocator(anThreshold);
 	}
 

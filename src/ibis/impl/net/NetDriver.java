@@ -61,7 +61,7 @@ public abstract class NetDriver {
 	 * @exception IbisIOException if the input creation fail.
 	 */
 	public abstract NetInput newInput(StaticProperties sp,
-					  NetInput         input)
+					  NetIO            up)
 		throws IbisIOException;
 
 	/**
@@ -76,6 +76,6 @@ public abstract class NetDriver {
 	 * @exception IbisIOException if the output creation fail.
 	 */
 	public abstract NetOutput newOutput(StaticProperties sp,
-					    NetOutput        output)
+					    NetIO            up)
 		throws IbisIOException;
 }

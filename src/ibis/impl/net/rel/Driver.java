@@ -7,6 +7,7 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetIbis;
 import ibis.ipl.impl.net.NetInput;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetOutput;
 
 import java.io.ObjectInputStream;
@@ -57,9 +58,9 @@ public class Driver extends NetDriver {
 	 * @return The new Rel input.
 	 */
 	public NetInput newInput(StaticProperties sp,
-				 NetInput	  input)
+				 NetIO            up)
 		throws IbisIOException {
-		return new RelInput(sp, this, input);
+		return new RelInput(sp, this, up);
 	}
 
 	/**
@@ -71,8 +72,8 @@ public class Driver extends NetDriver {
 	 * @return The new Rel output.
 	 */
 	public NetOutput newOutput(StaticProperties sp,
-				   NetOutput	    output)
+				   NetIO            up)
 		throws IbisIOException {
-		return new RelOutput(sp, this, output);
+		return new RelOutput(sp, this, up);
 	}
 }

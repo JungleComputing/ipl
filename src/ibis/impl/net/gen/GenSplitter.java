@@ -6,6 +6,7 @@ import ibis.ipl.StaticProperties;
 
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetOutput;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetSendBuffer;
 
 import java.net.Socket;
@@ -58,8 +59,8 @@ public class GenSplitter extends NetOutput {
 	 */
 	public GenSplitter (StaticProperties staticProperties,
 			    NetDriver 	     driver,
-			    NetOutput 	     output) {
-		super(staticProperties, driver, output);
+			    NetIO 	     up) {
+		super(staticProperties, driver, up);
 		outputVector = new Vector();
 		isVector     = new Vector();
 		osVector     = new Vector();

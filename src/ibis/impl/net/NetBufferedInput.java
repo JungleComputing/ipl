@@ -44,8 +44,8 @@ public abstract class NetBufferedInput extends NetInput {
 	 */
 	protected NetBufferedInput(StaticProperties staticProperties,
 			   NetDriver 	    driver,
-			   NetInput  	    input) {
-		super(staticProperties, driver, input);
+			   NetIO  	    up) {
+		super(staticProperties, driver, up);
 	}
 
         /**

@@ -217,6 +217,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			connect_loop:
 				while (!stop) {
 					try {
+                                                System.err.println("NetReceivePort: <accept>-->");
 						connectionLock.ilock();
 						inputLock.lock();
 						sendPortIdentifiers.put(spn, spi);
@@ -241,6 +242,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 						}
 						inputLock.unlock();
 						connectionLock.unlock();
+                                        System.err.println("NetReceivePort: <accept><--");
 					} catch (InterruptedException e) {
                                                 System.err.println("Accept thread interrupted");
                                                 
@@ -299,7 +301,15 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
                                         //System.err.println("NetReceivePort: polling success");
 					if (upcallsEnabled && upcall != null) {
                                                 //System.err.println("NetReceivePort: upcall-->");
-						upcall.upcall(_receive());
+
+                                                final ReadMessage rm = _receive();
+                                                Runnable r = new Runnable() {
+                                                                public void run() {
+                                                                        upcall.upcall(rm);
+                                                                }
+                                                        };
+                                                (new Thread(r)).start();
+
                                                 //System.err.println("NetReceivePort: upcall<--");
 					} else {
 						polledLock.unlock();
@@ -354,6 +364,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			      String      name,
 			      Upcall      upcall)
 		throws IbisIOException {
+                System.err.println("NetReceivePort: <init>-->");
 		this.type   	       = type;
 		this.name   	       = name;
 		this.upcall 	       = upcall;
@@ -392,6 +403,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		}
 		
 		acceptThread.start();
+                System.err.println("NetReceivePort: <init><--");
 	}
 
 	/**
@@ -563,6 +575,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 * incoming message was ignored.
 	 */
 	public synchronized void free() {
+                System.err.println("NetReceivePort: free-->");
 		try {
                         int i = 0;
 
@@ -669,6 +682,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		} catch (Exception e) {
 			__.fwdAbort__(e);
 		}
+                System.err.println("NetReceivePort: free<--");
 	}
 	
 	protected void finalize()

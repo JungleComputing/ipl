@@ -6,6 +6,7 @@ import ibis.ipl.StaticProperties;
 
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetIbis;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetOutput;
 
@@ -53,9 +54,9 @@ public class Driver extends NetDriver {
 	 * @return The new TCP input.
 	 */
 	public NetInput newInput(StaticProperties sp,
-				 NetInput	  input)
+				 NetIO            up)
 		throws IbisIOException {
-		return new TcpInput(sp, this, input);
+		return new TcpInput(sp, this, up);
 	}
 
 	/**
@@ -67,8 +68,8 @@ public class Driver extends NetDriver {
 	 * @return The new TCP output.
 	 */
 	public NetOutput newOutput(StaticProperties sp,
-				   NetOutput	    output)
+				   NetIO            up)
 		throws IbisIOException {
-		return new TcpOutput(sp, this, output);
+		return new TcpOutput(sp, this, up);
 	}
 }

@@ -4,6 +4,7 @@ import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetMutex;
+import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetOutput;
 import ibis.ipl.impl.net.NetSendBuffer;
 
@@ -59,9 +60,9 @@ public class GmOutput extends NetBufferedOutput {
          */
         GmOutput(StaticProperties sp,
                  NetDriver        driver,
-                 NetOutput        output)
+                 NetIO            up)
                 throws IbisIOException {
-                super(sp, driver, output);
+                super(sp, driver, up);
                 headerLength = 0;
 
                 Driver.gmLock.lock();

@@ -41,8 +41,8 @@ public abstract class NetInput extends NetIO implements ReadMessage {
 	 */
 	protected NetInput(StaticProperties staticProperties,
 			   NetDriver 	    driver,
-			   NetInput  	    input) {
-		super(staticProperties, driver, input);
+			   NetIO  	    up) {
+		super(staticProperties, driver, up);
 	}
 
 	/**
@@ -50,7 +50,7 @@ public abstract class NetInput extends NetIO implements ReadMessage {
 	 *
 	 * Note: if <code>doPoll</code> is called again immediately
 	 * after a successful doPoll without extracting the message and
-	 * {@linkplain #release releasing} the input, the result is
+	 * {@linkplain #finish finishing} the input, the result is
 	 * undefined and data might get lost. Use {@link
 	 * #getActiveSendPortNum} instead.
 	 *

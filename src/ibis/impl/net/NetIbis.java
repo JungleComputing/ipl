@@ -274,6 +274,7 @@ public final class NetIbis extends Ibis {
 	 * @param joinIdent the identifier of the joining Ibis instance.
 	 */
 	public void join(IbisIdentifier joinIdent) { 
+                System.err.println("NetIbis: join-->");
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				joinedIbises.add(joinIdent);
@@ -286,6 +287,7 @@ public final class NetIbis extends Ibis {
 		if(resizeHandler != null) {
 			resizeHandler.join(joinIdent);
 		}
+                System.err.println("NetIbis: join<--");
 	}
 
 	/**
@@ -294,6 +296,7 @@ public final class NetIbis extends Ibis {
 	 * @param leaveIdent the identifier of the leaving Ibis instance.
 	 */
 	public void leave(IbisIdentifier leaveIdent) { 
+                System.err.println("NetIbis: leave-->");
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				leftIbises.add(leaveIdent);
@@ -306,9 +309,11 @@ public final class NetIbis extends Ibis {
 		if(resizeHandler != null) {
 			resizeHandler.leave(leaveIdent);
 		}
+                System.err.println("NetIbis: leave<--");
 	}
 
 	public void openWorld() {
+                System.err.println("NetIbis: openWorld-->");
 		if(resizeHandler != null) {
 			while(joinedIbises.size() > 0) {
 				resizeHandler.join((NetIbisIdentifier)joinedIbises.remove(0));
@@ -324,10 +329,15 @@ public final class NetIbis extends Ibis {
 		synchronized (this) {
 			open = true;
 		}
+                System.err.println("NetIbis: openWorld<--");
 	}
 
 	public synchronized void closeWorld() {
-		open = false;
+                System.err.println("NetIbis: closeWorld-->");
+		synchronized (this) {
+			open = false;
+		}
+                System.err.println("NetIbis: closeWorld<--");
 	}
 
 	/**
@@ -343,11 +353,13 @@ public final class NetIbis extends Ibis {
 	/** Requests the NetIbis instance to leave the Name Server pool.
 	 */
 	public void end() {
+                System.err.println("NetIbis: end-->");
 		try {
 			nameServerClient.leave();
 		} catch (Exception e) {
 			__.fwdAbort__(e);
 		}
+                System.err.println("NetIbis: end<--");
 	}
 
 	public void poll() {
