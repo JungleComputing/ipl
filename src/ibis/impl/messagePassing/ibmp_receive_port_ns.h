@@ -13,6 +13,7 @@ void ibmp_receive_port_ns_bind(JNIEnv *env,
 void ibmp_receive_port_ns_lookup(JNIEnv *env,
 				 jstring name,
 				 jint sender,
+				 jint seqno,
 				 jint client);
 void ibmp_receive_port_ns_unbind(JNIEnv *env,
 				 jstring name);

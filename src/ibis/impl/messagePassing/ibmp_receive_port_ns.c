@@ -38,13 +38,18 @@ ibmp_receive_port_ns_bind(JNIEnv *env,
 
 
 void
-ibmp_receive_port_ns_lookup(JNIEnv *env, jstring name, jint sender, jint client)
+ibmp_receive_port_ns_lookup(JNIEnv *env,
+			    jstring name,
+			    jint sender,
+			    jint seqno,
+			    jint client)
 {
     (*env)->CallVoidMethod(env,
 			   obj_Ibis_nameServer,
 			   md_NameServer_lookup,
 			   name,
 			   sender,
+			   seqno,
 			   client);
 }
 
@@ -145,9 +150,9 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     md_NameServer_lookup = (*env)->GetMethodID(env,
 					       cls_ns,
 					       "lookup",
-					       "(Ljava/lang/String;II)V");
+					       "(Ljava/lang/String;III)V");
     if (md_NameServer_lookup == NULL) {
-	fprintf(stderr, "%s.%d Cannot find method lookup(Ljava/lang/String;II)V\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find method lookup(Ljava/lang/String;III)V\n", __FILE__, __LINE__);
 	abort();
     }
     IBP_VPRINTF(2000, env, ("here..\n"));

@@ -61,11 +61,11 @@ final class ReceivePortNameServer implements ReceivePortNameServerProtocol {
         }
     }
 
-    private native void lookup_reply(int ret, int tag, int client,
+    private native void lookup_reply(int ret, int tag, int client, int seqno,
             byte[] rcvePortId);
 
     /* Called from native */
-    private void lookup(String name, int tag, int client) {
+    private void lookup(String name, int tag, int seqno, int client) {
         Ibis.myIbis.checkLockOwned();
 
         ReceivePortIdentifier storedId;
@@ -75,18 +75,22 @@ final class ReceivePortNameServer implements ReceivePortNameServerProtocol {
         if (storedId != null) {
             if (ReceivePortNameServerProtocol.DEBUG) {
                 System.err.println(Thread.currentThread()
-                        + "Give this client his ReceivePort \"" + name
-                        + "\"; cpu " + storedId.cpu + " port " + storedId.port);
+                        + "Give client " + client
+                        + ", tag " + tag 
+                        + ", seqno " + seqno
+                        + " his ReceivePort \"" + name + "\"; id " + storedId);
             }
             byte[] sf = storedId.getSerialForm();
-            lookup_reply(PORT_KNOWN, tag, client, sf);
+            lookup_reply(PORT_KNOWN, tag, client, seqno, sf);
         } else {
             if (ReceivePortNameServerProtocol.DEBUG) {
                 System.err.println(Thread.currentThread()
-                        + "Cannot give this client his ReceivePort \"" + name
-                        + "\"");
+                        + "Cannot give client " + client
+                        + ", tag " + tag 
+                        + ", seqno " + seqno
+                        + " his ReceivePort \"" + name + "\"");
             }
-            lookup_reply(PORT_UNKNOWN, tag, client, null);
+            lookup_reply(PORT_UNKNOWN, tag, client, seqno, null);
         }
     }
 

@@ -36,6 +36,7 @@ static int	ibp_ns_lookup_proto_size;
 typedef struct IBP_NS_LOOKUP_HDR {
     int		name_length;
     jint	client;
+    jint	seqno;
 } ibp_ns_lookup_hdr_t, *ibp_ns_lookup_hdr_p;
 
 static ibp_ns_lookup_hdr_p
@@ -49,7 +50,8 @@ JNIEXPORT void JNICALL
 Java_ibis_impl_messagePassing_ReceivePortNameServerClient_ns_1lookup(
 	JNIEnv *env,
 	jobject this,
-	jstring name)
+	jstring name,
+	jint seqno)
 {
     void       *proto = ibp_proto_create(ibp_ns_lookup_proto_size);
     ibp_ns_lookup_hdr_p hdr = ibp_ns_lookup_hdr(proto);
@@ -60,6 +62,7 @@ Java_ibis_impl_messagePassing_ReceivePortNameServerClient_ns_1lookup(
 
     hdr->name_length = ibp_string_push(env, name, &iov[0]);
     hdr->client = (jint)client;
+    hdr->seqno = seqno;
 
     IBP_VPRINTF(50, env, ("Send a lookup request to server %d, name %s\n",
 		ibmp_ns_server, (char *)iov[0].data));
@@ -81,7 +84,7 @@ ibp_ns_lookup_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     jint	sender = (jint)ibp_msg_sender(msg);
 
     name = ibp_string_consume(env, msg, hdr->name_length);
-    ibmp_receive_port_ns_lookup(env, name, sender, hdr->client);
+    ibmp_receive_port_ns_lookup(env, name, sender, hdr->seqno, hdr->client);
 
     return 0;
 }
@@ -97,6 +100,7 @@ typedef struct ibp_ns_lookup_reply_hdr {
     jint	port;
     int		rcve_length;
     jint	client;
+    jint	seqno;
 } ibp_ns_lookup_reply_hdr_t, *ibp_ns_lookup_reply_hdr_p;
 
 static ibp_ns_lookup_reply_hdr_p
@@ -131,6 +135,7 @@ Java_ibis_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 	jint ret,
 	jint tag,
 	jint client,
+	jint seqno,
 	jbyteArray rcvePortId)
 {
     ibp_ns_lookup_reply_hdr_p hdr;
@@ -161,6 +166,7 @@ Java_ibis_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 
     hdr->ret = ret;
     hdr->client = client;
+    hdr->seqno = seqno;
 
     ibp_mp_send_async(env, (int)tag, ibp_ns_lookup_reply_port,
 		      r->iov, iov_len,
@@ -183,7 +189,8 @@ ibp_ns_lookup_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     (*env)->CallVoidMethod(env,
 			   client,
 			   md_NameServerClient_lookup_reply,
-			   rcvePortId);
+			   rcvePortId,
+			   hdr->seqno);
 
     (*env)->DeleteGlobalRef(env, client);
 
@@ -217,9 +224,9 @@ ibmp_receive_port_ns_lookup_init(JNIEnv *env)
 					    env,
 					    cls_PandaReceivePortNameServerClient,
 					    "lookup_reply",
-					    "([B)V");
+					    "([BI)V");
     if (md_NameServerClient_lookup_reply == NULL) {
-	ibmp_error(env, "Cannot find method lookup_reply(Libis/impl/messagePassing/ReceivePortIdentifier;)V\n");
+	ibmp_error(env, "Cannot find method lookup_reply([BI)V\n");
     }
 
     cls = (*env)->FindClass(env,

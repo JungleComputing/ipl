@@ -63,7 +63,7 @@ final class ReceivePortNameServerClient implements
                 if (ReceivePortNameServerProtocol.DEBUG) {
                     System.err.println(Thread.currentThread()
                             + "Call this rp-ns bind() \"" + name + "\"");
-                    Thread.dumpStack();
+                    // Thread.dumpStack();
                 }
 
                 ns_bind(name, id.getSerialForm());
@@ -119,6 +119,9 @@ final class ReceivePortNameServerClient implements
 
         ReceivePortIdentifier ri;
 
+        int seqno = 0;
+        int expected_seqno = 0;
+
         private static final int BACKOFF_MILLIS = 100;
 
         public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout)
@@ -138,6 +141,7 @@ final class ReceivePortNameServerClient implements
                 }
             }
             ns_busy = true;
+            expected_seqno = seqno++;
             Ibis.myIbis.unlock();
 
             long start = System.currentTimeMillis();
@@ -159,7 +163,7 @@ final class ReceivePortNameServerClient implements
                     }
                     try {
                         ri = null;
-                        ns_lookup(name);
+                        ns_lookup(name, expected_seqno);
 
                         if (ReceivePortNameServerProtocol.DEBUG) {
                             System.err.println(Thread.currentThread()
@@ -176,20 +180,29 @@ final class ReceivePortNameServerClient implements
                                     + " this = " + this);
                         }
 
-                        if (ri != null && ri.cpu != -1) {
-                            if (ReceivePortNameServerProtocol.DEBUG) {
-                                System.err.println(Thread.currentThread()
-                                        + "ReceivePortNSClient: "
-                                        + " clear lookup.ns_busy" + this);
+                        if (ri != null) {
+                            if (ri.cpu != -1 && name.equals(ri.name())) {
+                                if (ReceivePortNameServerProtocol.DEBUG) {
+                                    System.err.println(Thread.currentThread()
+                                            + "ReceivePortNSClient: "
+                                            + " clear lookup.ns_busy" + this);
+                                }
+                                ns_busy = false;
+                                if (ReceivePortNameServerProtocol.DEBUG) {
+                                    System.err.println(Thread.currentThread()
+                                            + "ReceivePortNSClient: "
+                                            + " signal potential waiters");
+                                }
+                                ns_free.cv_signal();
+
+                                // System.err.println("ReceivePortNameServerClient: got " + ri);
+                                return ri;
+
                             }
-                            ns_busy = false;
                             if (ReceivePortNameServerProtocol.DEBUG) {
-                                System.err.println(Thread.currentThread()
-                                        + "ReceivePortNSClient: "
-                                        + " signal potential waiters");
+                                System.err.println("ReceivePortNameServerClient: requested " + name + ", but got " + ri + ", dropped ...");
                             }
-                            ns_free.cv_signal();
-                            return ri;
+                            ri = null;
                         }
                     } finally {
                         if (ReceivePortNameServerProtocol.DEBUG) {
@@ -217,17 +230,24 @@ final class ReceivePortNameServerClient implements
         }
     }
 
-    native void ns_lookup(String name);
+    native void ns_lookup(String name, int seqno);
 
     /* Called from native */
-    private void lookup_reply(byte[] rcvePortId) {
+    private void lookup_reply(byte[] rcvePortId, int seqno) {
         Ibis.myIbis.checkLockOwned();
+        if (lookup.expected_seqno != seqno) {
+            if (ReceivePortNameServerProtocol.DEBUG) {
+                System.err.println(Thread.currentThread()
+                        + "ReceivePortNSClient: lookup reply: got seqno "
+                        + seqno + ", expected " + lookup.expected_seqno);
+            }
+            return;
+        }
         if (ReceivePortNameServerProtocol.DEBUG) {
             System.err.println(Thread.currentThread()
                     + "ReceivePortNSClient: lookup reply " + rcvePortId + " "
                     + lookup);
         }
-        lookup.ri = null;
         if (rcvePortId != null) {
             try {
                 lookup.ri = (ReceivePortIdentifier) Conversion.byte2object(
@@ -240,6 +260,9 @@ final class ReceivePortNameServerClient implements
                 System.err.println("Cannot deserialize ReceivePortId");
                 Thread.dumpStack();
             }
+        }
+        else {
+            lookup.ri = ReceivePortIdentifier.dummy;
         }
     }
 

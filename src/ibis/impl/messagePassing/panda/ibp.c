@@ -747,8 +747,10 @@ ibp_end(JNIEnv *env)
 {
     ibp_report(env, stdout);
     IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
+/*
     pan_comm_intr_disable();
     IBP_VPRINTF(2000, env, ("here...\n"));
     pan_end();
     IBP_VPRINTF(2000, env, ("here...\n"));
+*/
 }

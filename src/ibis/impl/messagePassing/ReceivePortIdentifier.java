@@ -25,6 +25,13 @@ public final class ReceivePortIdentifier implements
 
     private transient byte[] serialForm;
 
+    static ReceivePortIdentifier dummy;
+
+    static {
+        dummy = new ReceivePortIdentifier(null, null);
+        dummy.cpu = -1;
+    }
+
     ReceivePortIdentifier(String name, String type) {
 
         synchronized (Ibis.myIbis) {
