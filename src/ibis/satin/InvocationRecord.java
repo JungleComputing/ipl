@@ -19,8 +19,8 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 	public transient boolean aborted;
 
 	/* These are used to link the records in the JobQueue. Not needed when Dijkstra is used. */
-	public transient InvocationRecord qprev;
-	public transient InvocationRecord qnext;
+//	public transient InvocationRecord qprev;
+//	public transient InvocationRecord qnext;
 
 	public transient int storeId; /* An id for the store where the result of the spawn must go. */
 	public transient int spawnId; /* An id for the spawn in the code. Needed to run the correct inlet. */
@@ -45,8 +45,8 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		stamp = -2;
 		spawnCounter = null;
 
-		qprev = null;
-		qnext = null;
+//		qprev = null;
+//		qnext = null;
 
 		storeId = -2;
 		stealer = null;

@@ -53,8 +53,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private Algorithm a;
 	private String alg;
 
-//	DEQueueDijkstra q = new DEQueueDijkstra(this);
-	DEQueue q = new DEQueue(this);
+	DEQueueDijkstra q = new DEQueueDijkstra(this);
+//	DEQueue q = new DEQueue(this);
 	private PortType portType;
 	private ReceivePort receivePort;
 	private ReceivePort barrierReceivePort; /* Only for the master. */
@@ -165,14 +165,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		for(int i=0; (i<10 && ibis == null); i++) {
 			try {
 				name = "ibis@" + hostName + "_" + Math.abs(random.nextInt());
-//				name = "foo";
 				if(panda) {
 					ibis = Ibis.createIbis(name, "ibis.ipl.impl.messagePassing.panda.PandaIbis", this);
 				} else {
 					ibis = Ibis.createIbis(name, "ibis.ipl.impl.tcp.TcpIbis", this);
 				}
 			} catch (IbisException e) {
-//				manta.runtime.RuntimeSystem.DebugMe(e, null);
 				System.err.println("SATIN '" + hostName + "': Could not start ibis with name '" + name + "': " + e);
 				e.printStackTrace();
 			}
@@ -202,9 +200,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			messageHandler = new MessageHandler(this);
 			receivePort = portType.createReceivePort("satin port on " + 
 								 ident.name(), messageHandler);
-
-			System.err.println("SATIN '" + hostName + "': created \"satin port on " + 
-								 ident.name() + "\"");
 
 			masterIdent = (IbisIdentifier) r.elect("satin master", ident);
 
@@ -242,13 +237,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					   "': init ibis DONE2");
 		}
 
-//		if(master) {
+		if(master) {
 			if(closed) {
 				System.out.println("SATIN '" + hostName + "': running with closed world, " + poolSize + " host(s)");
 			} else {
 				System.out.println("SATIN '" + hostName + "': running with open world");
 			}
-//		}
+		}
 
 		if(alg == null) {
 			if(master) {

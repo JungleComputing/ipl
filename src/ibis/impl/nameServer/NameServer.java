@@ -2,6 +2,7 @@ package ibis.ipl.impl.nameServer;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.InetAddress;
 
 import java.io.IOException;
 import java.io.EOFException;
@@ -19,7 +20,7 @@ import java.util.Hashtable;
 import ibis.ipl.*;
 import ibis.ipl.impl.generic.IbisSocketFactory;
 
-public class NameServer implements NameServerProtocol {
+public class NameServer implements NameServerProtocol, PortTypeNameServerProtocol, ReceivePortNameServerProtocol, ElectionProtocol {
 
 	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
 
@@ -106,7 +107,6 @@ public class NameServer implements NameServerProtocol {
 		}
 	}
 
-
 	private void handleIbisJoin() throws IbisIOException, ClassNotFoundException { 
 	    try {
 
@@ -149,22 +149,30 @@ public class NameServer implements NameServerProtocol {
 				System.err.println("NameServer: join to pool " + key + " of ibis " + id.toString() + " accepted");
 			}
 
+			// first send all existing nodes to the new one.
+			out.writeInt(p.pool.size());
+
+			for (int i=0;i<p.pool.size();i++) {
+				IbisInfo temp = (IbisInfo) p.pool.get(i);
+				out.writeObject(temp.identifier);
+			}
+
 			for (int i=0;i<p.pool.size();i++) { 
 				IbisInfo temp = (IbisInfo) p.pool.get(i);
-				
 				forwardJoin(temp, id);
-				forwardJoin(info, temp.identifier);
+//				forwardJoin(info, temp.identifier);
 			}
 
 			p.pool.add(info);
 		}
 			
 		out.flush();
+		System.out.println("JOIN: pool " + key + " now contains " + p.pool.size() + " nodes");
 	    } catch (IOException e) {
 		throw new IbisIOException(e);
 	    }
 	}	
-		
+
 	private void forwardLeave(IbisInfo dest, IbisIdentifier id) throws IbisIOException { 
 
 
@@ -175,7 +183,6 @@ public class NameServer implements NameServerProtocol {
 
 		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), 
 							     dest.ibisNameServerport, true);
-		
 		try {
 			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
 			out.writeByte(IBIS_LEAVE);
@@ -187,7 +194,36 @@ public class NameServer implements NameServerProtocol {
 		}
 	}
 
+	private void killThreads(RunInfo p) throws IbisIOException {
+		try {
+			Socket s = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+								  p.portTypeNameServer.getPort(), true);
+					ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(
+				s.getOutputStream()));
+			out.writeByte(PORTTYPE_EXIT);
+			out.flush();
+			out.close();
 
+			Socket s2 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+								  p.receivePortNameServer.getPort(), true);
+					ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(
+				s2.getOutputStream()));
+			out2.writeByte(PORT_EXIT);
+			out2.flush();
+			out2.close();
+
+			Socket s3 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+								  p.electionServer.getPort(), true);
+					ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(
+				s3.getOutputStream()));
+			out3.writeByte(ELECTION_EXIT);
+			out3.flush();
+			out3.close();
+		}  catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+	}
+	
 	private void handleIbisLeave() throws IbisIOException, ClassNotFoundException {
 
 		try {
@@ -233,6 +269,7 @@ public class NameServer implements NameServerProtocol {
 					    }
 
 					    pools.remove(key);
+					    killThreads(p);
 				    } 				
 			    } else { 
 				    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
@@ -240,6 +277,7 @@ public class NameServer implements NameServerProtocol {
 
 			    out.writeByte(0);
 		    }
+		    System.out.println("LEAVE: pool " + key + " now contains " + p.pool.size() + " nodes");
 		} catch (IOException e) {
 		    throw new IbisIOException(e);
 		}
