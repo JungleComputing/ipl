@@ -50,11 +50,12 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 	// We handle the address field special.
 	// Do not do a writeObject on it (or a defaultWriteObject of the current object),
 	// because InetAddress might not be rewritten as it is in the classlibs --Rob
+	// Is this still a problem? I don't think so --Ceriel
 	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
                 int handle = cache.getHandle(out, this);
 		out.writeInt(handle);
 		if(handle < 0) { // First time, send it.
-                        out.writeUTF(address.getHostAddress());
+                        out.defaultWriteObject();
 		}
 	}
 
@@ -62,15 +63,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		int handle = in.readInt();
 		if(handle < 0) {
-			String addr = in.readUTF();
-			try {
-                                // this does not do a real lookup
-                                address = InetAddress.getByName(addr);
-                        } catch (Exception e) {
-                                throw new IbisError("EEK, could not create an inet address" +
-                                                                   "from a IP address. This shouldn't happen", e);
-                        }
-
+			in.defaultReadObject();
                         cache.addIbis(in, -handle, this);
 		} else {
                         TcpIbisIdentifier ident = (TcpIbisIdentifier)

@@ -43,7 +43,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		port = systemServer.getLocalPort();
 
 		if(DEBUG) {
-			System.out.println("PORTHANDLER: port = " + port);
+			System.out.println("--> PORTHANDLER: port = " + port);
 		}
 
 		receivePorts = new ArrayList();
@@ -52,7 +52,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 
 	synchronized int register(TcpReceivePort p) {
 		if(DEBUG) {
-			System.err.println("TcpPortHandler registered " + p.name);
+			System.err.println("--> TcpPortHandler registered " + p.name);
 		}
 		receivePorts.add(p);
 		return port;
@@ -60,7 +60,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 
 	synchronized void deRegister(TcpReceivePort p) {
 		if(DEBUG) {
-			System.err.println("TcpPortHandler registered " + p.name);
+			System.err.println("--> TcpPortHandler deregistered " + p.name);
 		}
 		if(!receivePorts.remove(p)) {
 			throw new IbisError("Tcpporthandler: trying to remove unknown reveiveport");
@@ -90,7 +90,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			boolean reuse_connection = false;
 
 			if (DEBUG) {
-				System.err.println("Creating socket for connection to " + receiver);
+				System.err.println("--> Creating socket for connection to " + receiver);
 			}
 			s = socketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), timeout);
 
@@ -131,7 +131,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			} 
 
 			if(DEBUG) {
-				System.err.println("Sender Accepted"); 
+				System.err.println("--> Sender Accepted"); 
 			}
 
 			/* the other side accepts the connection, finds the correct 
@@ -148,7 +148,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				connectionCache.addFreeInput(receiver.ibis, s, sin, sout);
 
 				if(DEBUG) {
-					System.err.println("Created new connection to " + receiver);
+					System.err.println("--> Created new connection to " + receiver);
 				}
 
 				return sout;
@@ -159,7 +159,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				
 				OutputStream out = connectionCache.getFreeOutput(receiver.ibis);
 				if(DEBUG) {
-					System.err.println("Reused connection to " + receiver);
+					System.err.println("--> Reused connection to " + receiver);
 				}
 
 				sin.close();
@@ -204,7 +204,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 						
 			if (ident.equals(temp.identifier())) {
 				if (DEBUG) {
-					System.err.println("findRecPort found " + ident + " == " + 
+					System.err.println("--> findRecPort found " + ident + " == " + 
 							   temp.identifier());
 				}
 				rp = temp;
@@ -220,21 +220,17 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		throws Exception
 	{
 		if (DEBUG) { 
-			System.err.println("portHandler on " + me + " got new connection from " + 
+			System.err.println("--> portHandler on " + me + " got new connection from " + 
 					   s.getInetAddress() + ":" + s.getPort() + 
 					   " on local port " + s.getLocalPort());
 		}
 
 
-		if (DEBUG) {
-			System.err.println("it isn't a quit"); 
-		}
-				
 		ObjectInputStream obj_in  = new ObjectInputStream(new DummyInputStream(in));
 		DataOutputStream data_out = new DataOutputStream(new DummyOutputStream(out));
 
 		if (DEBUG) {
-			System.err.println("S Reading Data"); 
+			System.err.println("--> S Reading Data"); 
 		}
 
 		TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in.readObject();
@@ -242,16 +238,19 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		TcpIbisIdentifier ibis           = send.ibis;
 					
 		if (DEBUG) {
-			System.err.println("S finding RP"); 
+			System.out.println("--> got RP " + receive);
+			System.out.println("--> got SP " + send);
+			System.out.println("--> got ibis " + ibis);
+			System.err.println("--> S finding RP"); 
 		}
-					
+
 		/* First, try to find the receive port this message is for... */
 		TcpReceivePort rp = findReceivePort(receive);
 
 		if (DEBUG) {
-			System.err.println("S  RP = " + (rp == null ? "not found" : rp.identifier().toString() )); 
+			System.err.println("--> S  RP = " + (rp == null ? "not found" : rp.identifier().toString() )); 
 		}
-					
+
 		if (rp == null || !rp.connectionAllowed(send)) {
 			/* If we cannot find it, return access denied */
 			data_out.writeByte(RECEIVER_DENIED);
@@ -267,16 +266,16 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		/* It accepts the connection, now we try to find an unused stream 
 		   originating at the sending machine */ 
 		if (DEBUG) {
-			System.err.println("S getting peer");
+			System.err.println("--> S getting peer");
 		}
 
 		InputStream cin = connectionCache.getFreeInput(ibis);
 
 		if (DEBUG) {
 			if(cin != null) {
-				System.err.println("S found connection " + cin);
+				System.err.println("--> S found connection " + cin);
 			} else {
-				System.err.println("no connection found");
+				System.err.println("--> no connection found");
 			}
 		}
 
@@ -304,14 +303,14 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		}
 
 		if (DEBUG) {
-			System.err.println("S connected " + cin);
+			System.err.println("--> S connected " + cin);
 		}
-							
+
 		/* add the connection to the receiveport. */
 		rp.connect(send, cin);
 
 		if (DEBUG) {
-			System.err.println("S connect done ");
+			System.err.println("--> S connect done ");
 		}
 	}
 
@@ -319,14 +318,14 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		/* this thread handles incoming connection request from the connect(TcpSendPort) call */
 
 		if(DEBUG) {
-			System.err.println("TcpPortHandler running");
+			System.err.println("--> TcpPortHandler running");
 		}
 
 		while (true) {
 			Socket s = null;
 		
 			if (DEBUG) { 
-				System.err.println("PortHandler on " + me + " doing new accept()");
+				System.err.println("--> PortHandler on " + me + " doing new accept()");
 			}
 
 			try {
@@ -346,18 +345,21 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				throw new IbisError("Fatal: PortHandler could not do an accept");
 			}
 
+			if (DEBUG) { 
+				System.err.println("--> PortHandler on " + me + " through new accept()");
+			}
 			try {
 				InputStream sin = s.getInputStream();
 				OutputStream sout = s.getOutputStream();
 				if (sin.read() == QUIT_IBIS) { 
 					if (DEBUG) {
-						System.err.println("it is a quit"); 
+						System.err.println("--> it is a quit"); 
 					}
 
 					systemServer.close();
 					s.close();
 					if (DEBUG) {
-						System.err.println("it is a quit: RETURN"); 
+						System.err.println("--> it is a quit: RETURN"); 
 					}
 
 					cleanup();
