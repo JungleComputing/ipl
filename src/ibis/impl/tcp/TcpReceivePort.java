@@ -53,7 +53,7 @@ private boolean shouldLeave;
 		this.connUpcall = connUpcall;
 		this.ibis = ibis;
 		this.connectionAdministration = connectionAdministration;
-		if(connUpcall != null) connectionAdministration = true;
+		if(connUpcall != null) this.connectionAdministration = true;
 
 		this.name = name;
 
