@@ -144,9 +144,6 @@ public class NameServer implements Protocol {
 			// new run
 			p = new RunInfo();
 			
-			//quick hack against out of memory error..
-			pools = new Hashtable();
-			
 			pools.put(key, p);
 			
 			if (VERBOSE) { 
