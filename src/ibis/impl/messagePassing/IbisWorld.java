@@ -26,8 +26,8 @@ class IbisWorld extends Thread {
 	leaveId = new IbisIdentifier[myIbis.nrCpus];
 	System.err.println("static ibis = " + myIbis);
 	opened = new ConditionVariable(myIbis);
-	// setDaemon(true);
-	// start();
+	setDaemon(true);
+	start();
     }
 
 
@@ -59,25 +59,34 @@ class IbisWorld extends Thread {
 
 
     public void run() {
-	int	i_join = 0;
-	int	i_leave = 0;
 
-	while (true) {
+	synchronized (myIbis) {
+	    while (! isOpen) {
+		opened.cv_wait();
+	    }
+	}
+
+// System.err.println("IbisWorld thread: action! joinId = ");
+// for (int i = 0; i < myIbis.nrCpus; i++) {
+//     System.err.print(joinId[i] + ", ");
+// }
+// System.err.println();
+	for (int i = 0; isOpen && i < myIbis.nrCpus; i++) {
 	    synchronized (myIbis) {
-		while (! isOpen) {
+		while (joinId[i] == null) {
 		    opened.cv_wait();
 		}
 	    }
+	    myIbis.join(joinId[i]);
+	}
 
-	    while (isOpen && i_join < myIbis.nrCpus && joinId[i_join] != null) {
-		myIbis.join(joinId[i_join]);
-		i_join++;
+	for (int i = 0; isOpen && i < myIbis.nrCpus; i++) {
+	    synchronized (myIbis) {
+		while (leaveId[i] == null) {
+		    opened.cv_wait();
+		}
 	    }
-
-	    while (isOpen && i_leave < myIbis.nrCpus && leaveId[i_leave] != null) {
-		myIbis.leave(leaveId[i_leave]);
-		i_leave++;
-	    }
+	    myIbis.leave(leaveId[i]);
 	}
     }
 

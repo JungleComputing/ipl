@@ -22,7 +22,6 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     private Hashtable portTypeList = new Hashtable();
 
     private boolean started = false;
-    private Vector joinedIbises = new Vector();
     private Vector ibisNameService = new Vector();
 
     private final StaticProperties systemProperties = new StaticProperties();
@@ -88,7 +87,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void join_upcall(String ident_name, int cpu) {
-System.err.println("Receive join message " + ident_name + "; now joinedIbises.size() = " + (joinedIbises == null ? -1 : joinedIbises.size()));
+// System.err.println("Receive join message " + ident_name + "; now world = " + world);
 	synchronized (myIbis) {
 //manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 	    IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
@@ -166,10 +165,10 @@ if (DEBUG) System.err.println("An Ibis.join call for " + id);
 	}
 
 	synchronized (myIbis) {
-	    System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " joinedIbises.size() " + joinedIbises.size());
+	    System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " world " + world);
 	    for (int i = 0; i < nrCpus; i++) {
 		if (i != myCpu) {
-System.err.println("Send join message to " + i);
+// System.err.println("Send join message to " + i);
 		    send_join(i, ident.name());
 		}
 	    }
