@@ -1,6 +1,6 @@
 #!/bin/sh
 
-reserve="-reserve 642448"
+reserve="-reserve 647084"
 
 sers="byte ibis sun"
 # sers="ibis sun"
@@ -8,7 +8,7 @@ sers="byte ibis sun"
 ibises="panda net.gm"
 # ibises="panda"
 
-if `true`
+if `false`
 then
 for ibis in $ibises ; do
 	for x in 0 1 2 3 4 5 6 7 8 9 ; do
@@ -26,9 +26,11 @@ if `true`
 then
 for ibis in $ibises ; do
 	for x in 0 1 2 3 4 5 6 7 8 9 ; do
+	    for y in 0 1 2 3 4 ; do
 		for ser in $sers ; do
-			sh run-rpc $ibis $ser 100000 0 "$reserve" "" | tee -a latency.out 2>&1
+			sh run-rpc $ibis $ser 10000 0 "$reserve" "" | tee -a latency.out 2>&1
 		done
+	    done
 	done
 done
 fi

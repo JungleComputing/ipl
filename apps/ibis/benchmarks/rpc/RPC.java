@@ -26,6 +26,14 @@ System.err.println(this + " See join of " + id + "; n := " + idents.size());
 // System.err.println(this + " See leave of " + id + "; n := " + idents.size());
     }
 
+    public void delete(IbisIdentifier id) {
+	System.err.println("No idea what this means");
+    }
+
+    public void reconfigure() {
+	System.err.println("No idea what this means");
+    }
+
     void sync(int n) {
 	synchronized (this) {
 	    while (idents.size() < n) {
@@ -845,7 +853,8 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 	    // let it be the default
 	}
 	StaticProperties s = new StaticProperties();
-	s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt");
+	// s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt");
+	s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
 	s.add("serialization", "object");
 	s.add("worldmodel", "open");
 	myIbis = Ibis.createIbis(s, rszHandler);
