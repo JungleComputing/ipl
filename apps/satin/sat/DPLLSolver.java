@@ -115,7 +115,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
             my_p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
         }
 
-	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( my_p, var );
