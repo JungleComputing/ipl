@@ -117,6 +117,9 @@ public final class NetIbis extends Ibis {
          */
 	private   NetBank           bank             = new NetBank();
 
+        private   int               closedPoolRank   = -1;
+        private   int               closedPoolSize   =  0;
+
         /**
          * The master {@link Ibis} instance for this process.
          */
@@ -160,6 +163,20 @@ public final class NetIbis extends Ibis {
 			}
 		    }
 		}
+
+                Properties p = System.getProperties();
+
+                String pool_total_hosts = p.getProperty("pool_total_hosts");
+                if (pool_total_hosts != null) {
+                        closedPoolSize = Integer.parseInt(pool_total_hosts);
+                }
+                
+                String pool_host_number = p.getProperty("pool_host_number");
+                if (pool_total_hosts != null) {
+                        closedPoolRank = Integer.parseInt(pool_host_number);
+                }
+                
+                        
 	}
 
 	/**
@@ -436,4 +453,14 @@ public final class NetIbis extends Ibis {
 	public void poll() {
 		__.unimplemented__("poll");
 	}
+
+        protected int _closedPoolRank() {
+                return closedPoolRank;
+        }
+        
+        protected int _closedPoolSize() {
+                return closedPoolSize;
+        }
+        
+                
 }

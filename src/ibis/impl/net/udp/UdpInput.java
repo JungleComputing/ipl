@@ -59,7 +59,7 @@ public final class UdpInput extends NetBufferedInput {
         private int                   rport          =    0;
         private int                   rmtu           =    0;
         private NetReceiveBuffer      buffer         = null;
-        private Integer               spn            = null;
+        private volatile Integer      spn            = null;
         private int                   socketTimeout  =    0;
 
         private long            rcve_seqno;     /* For out-of-order debugging */
@@ -130,8 +130,6 @@ public final class UdpInput extends NetBufferedInput {
                         throw new Error("connection already established");
                 }
 
-                spn = cnx.getNum();
-
                 try {
                         socket = new DatagramSocket(0, InetAddress.getLocalHost());
                         lmtu = Math.min(socket.getReceiveBufferSize(), 16384);
@@ -185,6 +183,7 @@ public final class UdpInput extends NetBufferedInput {
                 }
 
                 setReceiveTimeout(receiveTimeout);
+                spn = cnx.getNum();
                 if (upcallFunc != null) {
                         upcallThread = new UpcallThread(raddr+"["+rport+"]");
                         upcallThread.start();

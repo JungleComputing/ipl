@@ -13,7 +13,7 @@ import java.util.Hashtable;
 
 public final class PipeInput extends NetBufferedInput {
 	private int              defaultMtu   = 512;
-	private Integer          spn          = null;
+	private volatile Integer spn          = null;
 	private PipedInputStream pipeIs       = null;
         private NetReceiveBuffer buf          = null;
         private boolean          upcallMode   = false;
@@ -68,8 +68,7 @@ public final class PipeInput extends NetBufferedInput {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = spn;
-		mtu      = defaultMtu;
+		mtu = defaultMtu;
 		 
                 if (upcallFunc != null) {
                         upcallMode = true;
@@ -101,6 +100,7 @@ public final class PipeInput extends NetBufferedInput {
 		// that factory in place.
 		factory.setMaximumTransferUnit(mtu);
 
+		this.spn = spn;
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread("this = "+this)).start();
                 }

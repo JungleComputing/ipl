@@ -17,7 +17,7 @@ public final class GmOutput extends NetBufferedOutput {
          * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
          * local number.
          */
-        private Integer    rpn          = null;
+        private volatile Integer rpn          = null;
                            
         private long       deviceHandle =  0;
         private long       outputHandle =  0;
@@ -71,12 +71,11 @@ public final class GmOutput extends NetBufferedOutput {
          * @param os {@inheritDoc}
          */
         public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
 
-                this.rpn = cnx.getNum();
-        
                 Driver.gmAccessLock.lock(false);
                 lnodeId = nGetOutputNodeId(outputHandle);
                 lportId = nGetOutputPortId(outputHandle);
@@ -123,7 +122,10 @@ public final class GmOutput extends NetBufferedOutput {
                         throw new Error(e);
                 }
 
+                this.rpn = cnx.getNum();
+        
                 mtu = 2*1024*1024;
+                log.out();
         }
         
 
@@ -131,8 +133,7 @@ public final class GmOutput extends NetBufferedOutput {
          * {@inheritDoc}
          */
         public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
-                log.log("sending "+b.length+"bytes");
-                
+                log.in();
                 //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length);
                 if (b.length > 4096) {
                         /* Post the 'request' */
@@ -171,10 +172,11 @@ public final class GmOutput extends NetBufferedOutput {
 		}
 
                 //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length+" - ok");
+                log.out();
         }
 
         public synchronized void close(Integer num) throws NetIbisException {
-                log.log("free-->");
+                log.in();
                 if (rpn == num) {
                         Driver.gmAccessLock.lock(true);
                         Driver.gmLockArray.deleteLock(lockId);
@@ -191,7 +193,7 @@ public final class GmOutput extends NetBufferedOutput {
                         Driver.gmAccessLock.unlock(true);
                         rpn = null;
                 }
-                log.log("free<--");
+                log.out();
         }
         
 
@@ -199,7 +201,7 @@ public final class GmOutput extends NetBufferedOutput {
          * {@inheritDoc}
          */
         public void free() throws NetIbisException {
-                log.log("free-->");
+                log.in();
                 rpn = null;
 
                 Driver.gmAccessLock.lock(true);
@@ -217,6 +219,6 @@ public final class GmOutput extends NetBufferedOutput {
                 Driver.gmAccessLock.unlock(true);
 
                 super.free();
-                log.log("free<--");
+                log.out();
         }
 }

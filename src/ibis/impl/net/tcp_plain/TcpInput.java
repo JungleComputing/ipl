@@ -38,7 +38,7 @@ public final class TcpInput extends NetInput {
 	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
-	private Integer               spn  	      = null;
+	private volatile Integer      spn  	      = null;
 
 	/**
 	 * The communication input stream.
@@ -132,8 +132,6 @@ public final class TcpInput extends NetInput {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = cnx.getNum();
-		 
 		try {
 			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
 			Hashtable lInfo    = new Hashtable();
@@ -159,6 +157,8 @@ public final class TcpInput extends NetInput {
 
 		mtu = 0;
 
+		this.spn = cnx.getNum();
+		 
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                 }

@@ -124,6 +124,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	private boolean       	      emptyMsg     	     = true;
 
+        private int                   messageCount           = 0;
+
 
 
 
@@ -525,10 +527,16 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	public WriteMessage newMessage() throws NetIbisException {
                 log.in();
 		outputLock.lock();
-                trace.disp("message send -->");
                 stat.begin();
 		emptyMsg = true;
                 output.initSend();
+                if (trace.on()) {
+                        final String messageId = (messageCount++)+"["+(((NetIbis)type.getIbis())._closedPoolRank())+"]";
+                        
+                        trace.disp("message "+messageId+" send -->");
+                        writeString(messageId);
+                }
+                
                 log.out();
                 
 		return this;

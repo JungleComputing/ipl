@@ -9,10 +9,10 @@ import java.net.SocketException;
 
 public final class DefInput extends NetBufferedInput {
 
-	private Integer      spn       = null;
-	private InputStream  defIs     = null;
-        private NetReceiveBuffer      buf             = null;
-        private UpcallThread          upcallThread = null;
+	private volatile Integer spn          = null;
+	private InputStream      defIs        = null;
+        private NetReceiveBuffer buf          = null;
+        private UpcallThread     upcallThread = null;
 
 	DefInput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
@@ -72,7 +72,6 @@ public final class DefInput extends NetBufferedInput {
                         throw new Error("connection already established");
                 }                
 
-		this.spn = cnx.getNum();
                 defIs    = cnx.getServiceLink().getInputSubStream(this, "def");
 
                 mtu = 1024;
@@ -82,6 +81,7 @@ public final class DefInput extends NetBufferedInput {
 		    factory.setMaximumTransferUnit(mtu);
 		}
 
+		this.spn = cnx.getNum();
                 if (upcallFunc != null) {
                         upcallThread = new UpcallThread("this = " + this);
                         upcallThread.start();

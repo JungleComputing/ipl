@@ -45,7 +45,7 @@ public final class NioInput extends NetInput {
 	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
-	private Integer               spn  	      = null;
+	private volatile Integer      spn  	     = null;
 
 
         private UpcallThread          upcallThread   = null;
@@ -124,8 +124,6 @@ public final class NioInput extends NetInput {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = spn;
-		 
 		try {
 			serverSocketChannel = ServerSocketChannel.open();
 			ServerSocket tcpServerSocket = 
@@ -154,6 +152,8 @@ public final class NioInput extends NetInput {
 
 		mtu = 0;
 
+		this.spn = spn;
+		 
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                 }

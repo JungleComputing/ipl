@@ -27,7 +27,7 @@ import java.util.Hashtable;
 public final class TcpInput extends NetInput {
 	private ServerSocket 	   tcpServerSocket    = null;
 	private Socket             tcpSocket          = null;
-	private Integer            spn  	      = null;
+	private volatile Integer   spn  	      = null;
 	private DataInputStream    tcpIs	      = null;
 	private DataOutputStream   tcpOs	      = null;
         private InetAddress        addr               = null;
@@ -100,8 +100,6 @@ public final class TcpInput extends NetInput {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = cnx.getNum();;
-		 
 		try {
 			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
 			Hashtable info    = new Hashtable();
@@ -117,6 +115,7 @@ public final class TcpInput extends NetInput {
                         
 			tcpIs 	   = new DataInputStream(tcpSocket.getInputStream());
 			tcpOs 	   = new DataOutputStream(tcpSocket.getOutputStream());
+                        this.spn = cnx.getNum();
                         if (upcallFunc != null) {
                                 (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                         }

@@ -559,7 +559,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         private NetMutex                 finishMutex         =  null;
 
         /* --- Upcall from main input object -- */
-        public synchronized void inputUpcall(NetInput input, Integer spn) {
+        public synchronized void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 log.in();
                 if (this.input == null) {
                         __.warning__("message lost");
@@ -860,10 +860,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         /**
          * Internally initializes a new reception.
          */
-        private ReadMessage _receive() {
+        private ReadMessage _receive() throws NetIbisException {
                 log.in();
                 emptyMsg = true;
-                trace.disp("message receive -->");
+                if (trace.on()) {
+                        final String messageId = readString();
+                        trace.disp("message "+messageId+" receive -->");
+                }
+                
                 log.out();
                 return this;
         }

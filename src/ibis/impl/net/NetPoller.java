@@ -71,10 +71,25 @@ public abstract class NetPoller extends NetInput {
                                         while (poll(true /* block */) == null) {
                                                 // Go on polling
                                         }
+                                        NetInput input = activeQueue.input;
+                                        Integer  spn   = activeNum;
+                                        log.disp("run.poll() succeeds, activeNum " + spn);
+                                        activeUpcallThread = this;
 
-                                        log.disp("run.poll() succeeds, activeNum " + activeNum);
-
-                                        inputUpcall(NetPoller.this, activeNum);
+                                        // inputUpcall(NetPoller.this, activeNum);
+                                        log.disp("upcall-->");
+                                        upcallFunc.inputUpcall(NetPoller.this, spn);
+                                        log.disp("upcall<--");
+                                        
+                                        synchronized(this) {
+                                                if (activeQueue != null && activeQueue.input == input && activeUpcallThread == this) {
+                                                        log.disp("clearing activeQueue, spn = "+spn);
+                                                        activeQueue = null;
+                                                        activeNum   = null;
+                                                        activeUpcallThread = null;
+                                                        notifyAll();
+                                                }
+                                        }
                                 } catch (NetIbisException e) {
                                         System.err.println(this + ": catch exception " + e);
                                         break;
@@ -144,13 +159,13 @@ public abstract class NetPoller extends NetInput {
                 log.in("spn = "+spn);
                 Thread me = Thread.currentThread();
 
-                //log.disp("waiting for sync");
+                log.disp("waiting for sync");
                 synchronized(this) {
                         while (activeQueue != null) {
                                 try {
-                                        //log.disp("activeQueue is not null, waiting");
+                                        log.disp("activeQueue is not null, waiting");
                                         wait();
-                                        //log.disp("woke up");
+                                        log.disp("woke up");
                                 } catch (InterruptedException e) {
                                         throw new NetIbisInterruptedException(e);
                                 }

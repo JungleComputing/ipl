@@ -49,12 +49,10 @@ public final class NetLockArray {
         }
         
 	public synchronized void lock(int id) throws NetIbisException {
-                // System.err.println("lock: "+id+"-->");
                 if (!m[id]) {
                         throw new NetIbisClosedException("uninitialized lock");
                 }
 
-                // System.err.println("lock: "+id+" = "+v[id]);
 		while (v[id] <= 0) {
 			try {
 				wait();
@@ -64,11 +62,9 @@ public final class NetLockArray {
 			} catch (InterruptedException e) {
 				//
 			}
-                        // System.err.println("lock: "+id+" = "+v[id]);
+
 		}
 		v[id]--;
-                // System.err.println("lock: "+id+" -> "+v[id]);
-                // System.err.println("lock: "+id+"<--");
 	}
 
 	public synchronized void ilock(int id) throws InterruptedException, NetIbisException {
@@ -86,18 +82,14 @@ public final class NetLockArray {
 	}
 
 	public synchronized boolean trylock(int id) throws NetIbisException {
-                // System.err.println("trylock: "+id+"-->");
                 if (!m[id]) {
                         throw new NetIbisClosedException("uninitialized lock");
                 }
 
-                // System.err.println("trylock: "+id+" = "+v[id]);
 		if (v[id] <= 0) {
-                        // System.err.println("trylock: "+id+"<--");
 			return false;
 		} else {
 			v[id]--;
-                        // System.err.println("trylock: "+id+"<-- -> "+v[id]);
 			return true;
 		}
 	}
@@ -189,7 +181,6 @@ public final class NetLockArray {
 
         
 	public synchronized int lockFirst(int [] ids) throws NetIbisException {
-                // System.err.println("lockFirst: -->");
                 int result = -1;
                 
                 for (int i = 0; i < ids.length; i++) {
@@ -201,7 +192,6 @@ public final class NetLockArray {
                 boolean state = false;
 
                 for (int i = 0; i < ids.length; i++) {
-                        // System.err.println("lockFirst: "+ids[i]+" = "+v[ids[i]]);
                         if (v[ids[i]] > 0) {
                                 result = i;
                                 state  = true;
@@ -220,11 +210,9 @@ public final class NetLockArray {
 			} catch (InterruptedException e) {
 				//
 			}
-                        // System.err.println("lockFirst: ---");
 
                         state = false;
                         for (int i = 0; i < ids.length; i++) {
-                                // System.err.println("lockFirst: "+ids[i]+" = "+v[ids[i]]);
                                 if (v[ids[i]] > 0) {
                                         result = i;
                                         state  = true;
@@ -234,9 +222,7 @@ public final class NetLockArray {
 		}
                 
                 v[ids[result]]--;
-                // System.err.println("lockFirst: "+ids[result]+" -> "+v[ids[result]]);
 
-                // System.err.println("lockFirst: <-- = "+result);
                 return result;
 	}
 
@@ -283,7 +269,6 @@ public final class NetLockArray {
 	}
 
 	public synchronized int trylockFirst(int [] ids) throws NetIbisException {
-                // System.err.println("trylockFirst: -->");
                 int result = -1;
                 
                 for (int i = 0; i < ids.length; i++) {
@@ -293,30 +278,23 @@ public final class NetLockArray {
                 }
 
                 for (int i = 0; i < ids.length; i++) {
-                        // System.err.println("trylockFirst: "+ids[i]+" = "+v[ids[i]]);
 
                         if (v[ids[i]] > 0) {
                                 result = i;
                                 v[ids[result]]--;
-                                // System.err.println("trylockFirst: "+ids[i]+" -> "+v[ids[i]]);
                                 break;
                         }
                 }
 
-                // System.err.println("trylockFirst: <-- -> "+result);
                 return result;
 	}
         
 	public synchronized void unlock(int id) throws NetIbisException {
-                // System.err.println("unlock: "+id+"-->");
                 if (!m[id]) {
                         throw new NetIbisClosedException("uninitialized lock");
                 }
 
-                // System.err.println("unlock: "+id+" = "+v[id]);
 		v[id]++;
-                // System.err.println("unlock: "+id+" -> "+v[id]);
-                // System.err.println("unlock: "+id+"<--");
 		notifyAll();
 	}
 

@@ -21,7 +21,7 @@ public final class GmInput extends NetBufferedInput {
 	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
-	private Integer               spn  	      = null;
+	private volatile Integer      spn  	      = null;
 
 	/**
 	 * The buffer block allocator.
@@ -87,6 +87,7 @@ public final class GmInput extends NetBufferedInput {
                 }                
 
                 public void run() {
+                        log.in();
                         while (!end) {
                                 //System.err.println("trying to get lock");
                                 try {
@@ -188,15 +189,20 @@ public final class GmInput extends NetBufferedInput {
                                         }
                                 }
                         }
+                        log.out();
                 }
 
                 public void exec() {
+                        log.in();
                         sleep.unlock();
+                        log.out();
                 }
 
                 public void end() {
+                        log.in();
                         end = true;
                         this.interrupt();
+                        log.out();
                 }
         }
 
@@ -208,6 +214,7 @@ public final class GmInput extends NetBufferedInput {
                 }                
 
                 public void run() {
+                        log.in();
                         while (!end) {
                                 try {
                                         gmDriver.blockingPump(lockId, lockIds);
@@ -234,11 +241,14 @@ public final class GmInput extends NetBufferedInput {
                                 
                                 activeNum = null;
                         }
+                        log.out();
                 }
 
                 public void end() {
+                        log.in();
                         end = true;
                         this.interrupt();
+                        log.out();
                 }
         }
 
@@ -250,21 +260,19 @@ public final class GmInput extends NetBufferedInput {
 	 * @param os {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
+                //System.err.println("setupConnection-->");
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = cnx.getNum();
-                if (spn == null) {
-                        throw new Error("invalid state");
-                }
-		 
                 Driver.gmAccessLock.lock(false);
                 lnodeId = nGetInputNodeId(inputHandle);
                 lportId = nGetInputPortId(inputHandle);
                 lmuxId  = nGetInputMuxId(inputHandle);
                 lockId  = lmuxId*2 + 2;
 
+                //System.err.println("initializing lockIds");
                 lockIds = new int[2];
                 lockIds[0] = lockId; // input lock
                 lockIds[1] = 0;      // main  lock
@@ -311,6 +319,11 @@ public final class GmInput extends NetBufferedInput {
                 mtu = 2*1024*1024;
                 
 		allocator = new NetAllocator(mtu);
+		this.spn = cnx.getNum();
+                if (spn == null) {
+                        throw new Error("invalid state");
+                }
+
                 if (upcallFunc != null) {
                         if (useUpcallThreadOpt) {
                                 PooledUpcallThread up = new PooledUpcallThread(lnodeId+":"+lportId+"("+lmuxId+") --> "+rnodeId+":"+rportId+"("+rmuxId+")");
@@ -320,12 +333,15 @@ public final class GmInput extends NetBufferedInput {
                                 (upcallThread = new UpcallThread(lnodeId+":"+lportId+"("+lmuxId+") --> "+rnodeId+":"+rportId+"("+rmuxId+")")).start();
                         }
                 }
+                log.out();
 	}
 
         /**
          * {@inheritDoc}
          */
 	public Integer poll(boolean block) throws NetIbisException {
+                log.in();
+                //System.err.println("poll-->");
 
                 if (activeNum != null) {
                         throw new Error("invalid state");
@@ -348,6 +364,7 @@ public final class GmInput extends NetBufferedInput {
                 activeNum  = spn;
                 firstBlock = true;
                 initReceive();
+                log.out();
 
                 return activeNum;
 	}
@@ -356,8 +373,8 @@ public final class GmInput extends NetBufferedInput {
 	 * {@inheritDoc}
 	 */
 	public void receiveByteBuffer(NetReceiveBuffer b) throws NetIbisException {
+                log.in();
                 //System.err.println("Receiving buffer, base = "+b.base+", length = "+b.length);
-
 
                 if (firstBlock) {
                         firstBlock = false;
@@ -401,12 +418,12 @@ public final class GmInput extends NetBufferedInput {
 
                 Driver.gmReceiveLock.unlock();
                 //System.err.println("Receiving buffer, base = "+b.base+", length = "+b.length+" - ok");
-
-                log.log("received "+b.length+"bytes");
+                log.out();
         }
         
 
         public void finish() throws NetIbisException {
+                log.in();
                 super.finish();
                 activeNum = null;
                 
@@ -432,10 +449,11 @@ public final class GmInput extends NetBufferedInput {
                         }
                 }
                 //System.err.println("GmInput: finish<--");
+                log.out();
         }
 
         public synchronized void close(Integer num) throws NetIbisException {
-                log.log("close-->");
+                log.in();
                 if (spn == num) {
                         Driver.gmAccessLock.lock(true);
                         Driver.gmLockArray.deleteLock(lockId);
@@ -467,7 +485,7 @@ public final class GmInput extends NetBufferedInput {
                         Driver.gmAccessLock.unlock(true);
                         spn = null;
                 }
-                log.log("close<--");
+                log.out();
         }
         
 
@@ -475,7 +493,7 @@ public final class GmInput extends NetBufferedInput {
 	 * {@inheritDoc}
 	 */
 	public void free() throws NetIbisException {
-                log.log("free-->");
+                log.in();
 		spn = null;
 
                 Driver.gmAccessLock.lock(true);
@@ -534,6 +552,6 @@ public final class GmInput extends NetBufferedInput {
                 Driver.gmAccessLock.unlock(true);
 
 		super.free();
-                log.log("free<--");
+                log.out();
 	}
 }

@@ -28,6 +28,7 @@ public final class NetLog {
          * If set to <code>true</code>, debugging messages are printed; otherwise, messages are silently discarded.
          */
         private                 boolean on              = false;
+        //static final private                 boolean on              = false;
 
         private static          Timer   timer           = null;
 
@@ -46,8 +47,8 @@ public final class NetLog {
          * @param moduleName logging object owner's name.
          */        
         public NetLog(boolean on, String moduleName, String logName) {
-                this.moduleName = moduleName;
                 this.on         = on;
+                this.moduleName = moduleName;
                 this.logName    = logName;
         }
         
@@ -116,15 +117,10 @@ public final class NetLog {
         /**
          * JDK >= 1.4 only
          */
-        private final static java.util.regex.Pattern p = java.util.regex.Pattern.compile("^.*[.]([^.]+[.][^.]+)[(][^)]+[)]$");
-        private final static java.util.regex.Pattern p2 = java.util.regex.Pattern.compile("^.*[.]([^.]+[.][^.]+)[(][^)]+[(]Compiled Code[)][)]$");
+        private final static java.util.regex.Pattern p = java.util.regex.Pattern.compile("^.*[.]([^.]+[.][^.]+)$");
         
         private String cleanFunctionName(String name) {
                 java.util.regex.Matcher m = p.matcher(name);
-                if (m.matches()) {
-                        return m.group(1);
-                }
-                m = p2.matcher(name);
                 if (m.matches()) {
                         return m.group(1);
                 }
@@ -149,10 +145,25 @@ public final class NetLog {
 
         */
 
+        private String buildLocationString(StackTraceElement caller) {
+                String s = "";
+                
+                s += caller.getClassName();
+                s += ".";
+                s += caller.getMethodName();
+                s += "(";
+                s += caller.getFileName();
+                s += ":";
+                s += caller.getLineNumber();
+                s += ")";
+
+                return s;
+        }
+        
+
         private String id(int f) {
                 String s = "";
-
-                String caller = getCaller(f + 1).toString();
+                StackTraceElement caller = getCaller(f + 1);
 
                 if (!human) {
                         s += timer.currentTimeNanos();
@@ -161,9 +172,9 @@ public final class NetLog {
                         s += "|";
                         s += moduleName;
                         s += "|";
-                        s += caller;
+                        s += buildLocationString(caller);
                 } else {
-                        s = cleanFunctionName(caller);
+                        s = cleanFunctionName(caller.getClassName()+"."+caller.getMethodName());
                 }                
                 
                 return _pre() + s + suf_();
@@ -217,6 +228,10 @@ public final class NetLog {
                 if (on) {
                         System.err.println(id(1)+"- "+s);
                 }
+        }
+
+        public boolean on() {
+                return on;
         }
 }
 

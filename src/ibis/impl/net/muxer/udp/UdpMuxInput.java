@@ -45,7 +45,7 @@ public final class UdpMuxInput extends MuxerInput {
 
     private NetReceiveBuffer	buffer;
 
-    private Integer		spn;
+    private volatile Integer	spn;
 
     private final static int	UDP_MAX_MTU = 16384;
 
@@ -88,8 +88,6 @@ public final class UdpMuxInput extends MuxerInput {
 	}
 
 	try {
-	    spn = cnx.getNum();
-
 	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + spn));
 	    /* We don't use the IP address of the sender port. Maybe it comes
 	     * in handy for debugging. */
@@ -121,6 +119,7 @@ public final class UdpMuxInput extends MuxerInput {
 		factory.setMaximumTransferUnit(max_mtu);
 	    }
 
+	    spn = cnx.getNum();
 	} catch (ClassNotFoundException e) {
 	    throw new NetIbisException(e);
 	} catch (IOException e) {

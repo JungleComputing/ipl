@@ -143,8 +143,6 @@ public final class TcpInput extends NetBufferedInput {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = cnx.getNum();
-		 
 		try {
                         tcpServerSocket   = new ServerSocket();
 			tcpServerSocket.setReceiveBufferSize(0x8000);
@@ -194,6 +192,8 @@ public final class TcpInput extends NetBufferedInput {
 		} else {
                         factory.setMaximumTransferUnit(mtu);
 		}
+
+		this.spn = cnx.getNum();		 
 
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
@@ -260,7 +260,7 @@ public final class TcpInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public synchronized Integer poll(boolean block) throws NetIbisException {
+	public Integer poll(boolean block) throws NetIbisException {
                 log.in();
                 if (activeNum != null) {
                         throw new Error("invalid call");
