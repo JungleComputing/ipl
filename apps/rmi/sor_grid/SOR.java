@@ -26,21 +26,6 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 
 	static final boolean   SYNC_SEND = true;
 
-	static PoolInfo info;
-
-	static {
-		try {
-			info = PoolInfo.createPoolInfo();
-			System.out.println("info.size(): " + info.size());	
-			System.out.println("info.rank(): " + info.rank());
-			System.out.println("info.hostName(): " + info.hostName());
-			System.out.println("info.hostName(0): " + info.hostName(0));
-		} catch (Throwable t) {
-			System.err.println("SOR: got exception in static block: " + t);
-			System.exit(1);
-		}
-	}
-
 	i_GlobalData global;
 
 	double[][] g;
@@ -68,13 +53,20 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 
 	WaitingSendThread prevSender, nextSender;
 
-	SOR(int nrow, int ncol, int nit, boolean sync, i_GlobalData global, boolean visualization) throws RemoteException {
+	private double[] nodeSpeed;	/* Speed of node[i] */
+
+	private long t_start,t_end;     /* time values */
+
+	PoolInfo info;
+
+	SOR(int nrow, int ncol, int nit, boolean sync, i_GlobalData global, boolean visualization, PoolInfo info) throws RemoteException {
 		this.nrow = nrow; // Add two rows to borders.
 		this.ncol = ncol; // Add two columns to borders.
 		this.nit  = nit;
 		this.visualization = visualization;
 
 		this.sync       = sync;
+		this.info = info;
 
 		this.global = global;
 
@@ -82,6 +74,11 @@ class SOR extends UnicastRemoteObject implements i_SOR {
     
 		nodes = info.size();
 		rank = info.rank();
+
+		this.nodeSpeed = new double[nodes];
+		for (int i = 0; i < nodes; i++) {
+		    this.nodeSpeed[i] = 1.0;
+		}
     
 		if (!SYNC_SEND) { 
 
@@ -93,6 +90,13 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		}
 	}
 
+	long getElapsedTime() {
+	    return t_end - t_start;
+	}
+
+	void setNodeSpeed(double[] nodeSpeed) {
+	    this.nodeSpeed = nodeSpeed;
+	}
 	public void setTable(i_SOR[] table) {
 		this.table = table;
 	}
@@ -135,11 +139,26 @@ class SOR extends UnicastRemoteObject implements i_SOR {
         /* compute lower and upper bound of the grid stripe */
 	private void get_bounds() {
   
-		// Very lame, but ensures same init as orca.
+	    // Very lame, but ensures same init as orca.
 	
-		int llb      = 0;
-		int grain    = 0; 
+	    int llb      = 0;
+	    int grain    = 0; 
 	
+	    double speed_avg = 0;
+	    for (int i=0;i<nodes;i++) {
+		speed_avg += nodeSpeed[i];
+	    }
+	    speed_avg /= nodes;
+	    boolean homogeneous = true;
+	    for (int i = 0; i < nodes; i++) {
+		if (nodeSpeed[i] != speed_avg) {
+		    homogeneous = false;
+		    break;
+		}
+	    }
+System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg);
+	
+	    if (homogeneous) {
 		for (int i=0;i<nodes;i++) {
 			grain = (nrow-2-llb) / (nodes-i);
 		
@@ -151,6 +170,23 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		
 			llb += grain;
 		}
+	    } else {
+		for (int i=0;i<nodes;i++) {
+		    if (i == nodes - 1) {
+			grain = nrow - 2 - llb;
+		    } else {
+			grain = (int)(((nrow-2) * nodeSpeed[i]) / (nodes * speed_avg));
+		    }
+
+		    if (i == rank) {
+			    lb = llb;
+			    ub = llb+grain+1;
+			    break;
+		    }
+
+		    llb += grain;
+		}
+	    }
 	
 		// System.out.println(rank + " [" + lb + " ... " + ub + "]");
 	}
@@ -276,10 +312,9 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		}	
 	}
 
-	public void start () throws RemoteException {
+	public void start (boolean doIO) throws RemoteException {
 		int phase;
 		int iteration;               /* counters */
-		long t_start,t_end;             /* time values */
 
 		r        = 0.5 * ( Math.cos( Math.PI / (ncol) ) + Math.cos( Math.PI / (nrow) ) );
 		omega    = 2.0 / ( 1.0 + Math.sqrt( 1.0 - r * r ) );
@@ -290,7 +325,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		get_bounds();
 		createGrid();
 	
-		if(rank==0) {
+		if( doIO && rank==0) {
 			System.out.println("Problem parameters");
 			System.out.println("r       : " + r);
 			System.out.println("omega   : " + omega);
@@ -304,6 +339,11 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		t_start = System.currentTimeMillis();
 
 		iteration = 0;
+
+		// ibis.util.nativeCode.Rdtsc rdtsc = null;
+		// if (rank == 0) {
+		//     rdtsc = new ibis.util.nativeCode.Rdtsc();
+		// }
 
 		do {
 			/*
@@ -329,6 +369,11 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 			}
 
 			diff = 0.0;
+
+			// if (rank == 0) {
+			//     rdtsc.reset();
+			//     rdtsc.start();
+			// }
 		
 			for (phase = 0; phase < 2 ; phase++){
 				// send to prev
@@ -382,8 +427,13 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		
 			iteration++;
 	
-			if(rank==0) {
+			if(doIO && rank==0) {
 				System.err.print(".");			
+
+				// rdtsc.stop();
+				// long t = (long)(rdtsc.totalTimeVal() * 10);
+				// System.out.println("" + (t / 10000000.0));
+
 				//			System.out.flush();
 				//System.out.println("" + maxdiff);
 			}
@@ -399,7 +449,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 			maxdiff = diff;
 		}
 
-		if (rank == 0 || nodes == 1){
+		if (doIO && (rank == 0 || nodes == 1)){
 			System.out.println("SOR " + nrow + " x " + ncol + " took " + ((t_end - t_start)/1000.0) + " sec.");
 			System.out.println("using " + iteration + " iterations, diff is " + maxdiff + " (allowed diff " + stopdiff + ")");
 			System.out.println("Application: " + "SOR " + nrow + " x " + ncol + "; Ncpus: " + info.size() +

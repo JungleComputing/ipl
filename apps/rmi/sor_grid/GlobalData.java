@@ -101,6 +101,92 @@ class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 		return diff;
 	}
  
+
+private int scatter_hit = 0;
+private int scatter_release = -1;
+private double[] scatter_vector;
+
+public synchronized double[] scatter2all(int rank, double value) throws RemoteException {
+    if (scatter_release == -1) {
+	scatter_release = total_num;
+    }
+
+    while (scatter_release != total_num) {
+	try {
+	    wait();
+	} catch (InterruptedException e) {
+	    throw new RemoteException(e.toString());
+	}
+    }
+
+    if (scatter_hit == 0) {
+	scatter_vector = new double[total_num];
+    }
+
+    scatter_vector[rank] = value;
+
+    scatter_hit++;
+    if (scatter_hit == total_num) {
+	scatter_release = 0;
+	notifyAll();
+    } else {
+	while (scatter_hit < total_num) {
+	    try {
+		wait();
+	    } catch (InterruptedException e) {
+		throw new RemoteException(e.toString());
+	    }
+	}
+    }
+
+    double[] res = scatter_vector;
+
+    scatter_release++;
+    if (scatter_release == total_num) {
+	scatter_hit = 0;
+	notifyAll();
+    }
+
+    return res;
+}
+
+
+private int sync_release = -1;
+private int sync_hit = 0;
+
+public synchronized void sync() throws RemoteException {
+    if (sync_release == -1) {
+	sync_release = total_num;
+    }
+
+    while (sync_release != total_num) {
+	try {
+	    wait();
+	} catch (InterruptedException e) {
+	    throw new RemoteException(e.toString());
+	}
+    }
+
+    sync_hit++;
+    if (sync_hit == total_num) {
+	sync_release = 0;
+	notifyAll();
+    } else {
+	while (sync_hit < total_num) {
+	    try {
+		wait();
+	    } catch (InterruptedException e) {
+		throw new RemoteException(e.toString());
+	    }
+	}
+    }
+
+    sync_release++;
+    if (sync_release == total_num) {
+	sync_hit = 0;
+	notifyAll();
+    }
+}
 	// used for visualization
 	public void setRawDataSize(int width, int height) throws RemoteException {
 		this.width = width;
