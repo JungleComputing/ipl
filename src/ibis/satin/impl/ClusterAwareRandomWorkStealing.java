@@ -78,7 +78,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
 		// if not is outstanding
 		// remoteVictim can be null on a single cluster run.
 		if (remoteVictim != null && !asyncStealInProgress) {
-			if (!FAULT_TOLERANCE || canDoAsync) {
+			if (!FAULT_TOLERANCE || FT_NAIVE || canDoAsync) {
 				asyncStealInProgress = true;
 				if (STEAL_STATS)
 					asyncStealAttempts++;

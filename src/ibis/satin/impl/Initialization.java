@@ -161,12 +161,10 @@ public abstract class Initialization extends SatinBase {
 			} else if (args[i].equals("-satin-delete-cluster")) {
 				i++;
 				try {
-					deleteTime = Integer.parseInt(args[i]);
+					deleteClusterTime = Integer.parseInt(args[i]);
 				} catch (NumberFormatException e) {
 					System.err.println("SATIN: invalid delete time");
 				}
-				i++;
-				deleteCluster = args[i];
 			} else if (args[i].equals("-satin-kill")) {
 				i++;
 				try {

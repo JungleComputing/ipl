@@ -129,9 +129,17 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		// Use our own local timer, and add the result to the global timer later.
 
 		if (STEAL_TIMING) {
-		     handleStealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+			handleStealTimer = satin.createTimer();
+			invocationRecordWriteTimer = satin.createTimer();
+			
+/*		     handleStealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 		     invocationRecordWriteTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-		     handleStealTimer.start();
+		     if(handleStealTimer == null) {
+			 handleStealTimer = new Timer();
+			 invocationRecordWriteTimer = new Timer();
+		     }*/
+
+		        handleStealTimer.start();
 		}
 
 		if (STEAL_STATS) {
@@ -736,9 +744,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	private void handleResultRequest(ReadMessage m) {
 		SendPort s = null;
 		GlobalResultTable.Value value = null;
+		Timer handleLookupTimer = null;
+		
 		try {
 			if (GRT_TIMING) {
-				satin.handleLookupTimer.start();
+				handleLookupTimer = satin.createTimer();
+				handleLookupTimer.start();
 			}
 			
 			GlobalResultTable.Key key = (GlobalResultTable.Key) m.readObject();
@@ -776,7 +787,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 						//i'm writing an invocation record here, is that ok?
 						value.sendTo = ident;
 						if (GRT_TIMING) {
-							satin.handleLookupTimer.stop();
+							handleLookupTimer.stop();
+							satin.handleLookupTimer.add(handleLookupTimer);
 						}						
 						return;
 					}
@@ -791,7 +803,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 							+ "': the node requesting a result died");
 				}
 				if (GRT_TIMING) {
-				    satin.handleLookupTimer.stop();
+				    handleLookupTimer.stop();
+				    satin.handleLookupTimer.add(handleLookupTimer);
 				}
 				return;
 			}
@@ -812,11 +825,40 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			e.printStackTrace();
 		}
 		if (GRT_TIMING) {
-			satin.handleLookupTimer.stop();
+			handleLookupTimer.stop();
+			satin.handleLookupTimer.add(handleLookupTimer);
 		}
 		
 
 	}
+
+	private void handleResultPush(ReadMessage m) {
+	    
+		System.err.println("SATIN '" + satin.ident.name() + ": handle result push");
+		
+		try {
+			
+			Map results = (Map) m.readObject();
+					
+			synchronized (satin) {
+			
+				satin.globalResultTable.updateAll(results);
+			}
+
+		} catch (IOException e) {
+			System.err.println("SATIN '" + satin.ident.name()
+					+ "': trying to read result push, but got exception: " + e);
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			System.err.println("SATIN '" + satin.ident.name()
+					+ "': trying to read result push, but got exception: " + e);
+			e.printStackTrace();
+		}
+		
+		System.err.println("SATIN '" + satin.ident.name() + ": handle result push finished");
+
+	}
+
 
 	private void handleExitReply(ReadMessage m) {
 
@@ -922,6 +964,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				break;
 			case RESULT_REQUEST:
 				handleResultRequest(m);
+				break;
+			case RESULT_PUSH:
+				handleResultPush(m);
 				break;
 			default:
 				System.err.println("SATIN '" + satin.ident.name()

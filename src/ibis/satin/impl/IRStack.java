@@ -1,6 +1,12 @@
 package ibis.satin.impl;
 
+import java.util.Map;
+import java.util.Hashtable;
+import java.io.IOException;
+
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 
 /** A stack of invocation records. */
 
@@ -226,6 +232,37 @@ final class IRStack implements Config {
 				s.globalResultTable.storeResult(child);
 				child = child.finishedSibling;
 			}
+		}
+	}
+
+	void pushAll(Victim victim) {
+		InvocationRecord curr, child;
+		Map toPush = new Hashtable();
+
+		for (int i = 0; i < count; i++) {
+			curr = l[i];
+			child = curr.finishedChild;
+			while (child != null) {
+				GlobalResultTable.Key key = new GlobalResultTable.Key(child);
+				GlobalResultTable.Value value = new GlobalResultTable.Value(GlobalResultTable.Value.TYPE_RESULT, child);
+				toPush.put(key, value);
+				child = child.finishedSibling;
+			}
+		}
+		
+		if (toPush.size() > 0) {		    
+			SendPort sp = victim.s;
+			try {
+				WriteMessage m = sp.newMessage();
+				m.writeByte(Protocol.RESULT_PUSH);
+				m.writeObject(toPush);
+				long numBytes = m.finish();
+				System.err.println("SATIN '" + s.ident.name() + "': " + numBytes + " bytes pushed");
+			} catch (IOException e) {
+				System.err.println("SATIN '" + s.ident.name() + "': error pushing results " + e);
+			}
+		} else {
+			System.err.println("to push is 0");
 		}
 	}
 

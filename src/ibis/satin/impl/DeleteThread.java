@@ -10,12 +10,6 @@ class DeleteThread extends Thread {
 		this.milis = 1000 * time;
 	}
 
-	DeleteThread(int time, String cluster) {
-		super("SatinDeleteThread");
-		this.milis = 1000 * time;
-		this.cluster = cluster;
-	}
-
 	public void run() {
 		try {
 			sleep(milis);
@@ -23,9 +17,7 @@ class DeleteThread extends Thread {
 			//ignore
 		}
 		Satin satin = Satin.this_satin;
-		if (satin.ident.cluster().equals(cluster) || cluster == null) {
-			satin.delete(satin.ident);
-		}
+		satin.delete(satin.ident);
 	}
 
 }

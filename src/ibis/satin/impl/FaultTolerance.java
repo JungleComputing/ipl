@@ -12,10 +12,12 @@ import java.io.IOException;
 
 public abstract class FaultTolerance extends Inlets {
 
+	int numCrashesHandled = 0;
+
 	// The core of the fault tolerance mechanism, the crash recovery procedure
 	synchronized void handleCrashes() {
 		if (CRASH_TIMING) {
-//			crashTimer.start();
+			crashTimer.start();
 		}
 		if (COMM_DEBUG) {
 			out.print("SATIN '" + ident.name() + ": handling crashes");
@@ -138,24 +140,23 @@ public abstract class FaultTolerance extends Inlets {
 			//for debugging
 			crashedIbis = id;
 			del = true;
+			
+			numCrashesHandled++;
 		}
 		
 		
 		if (CRASH_TIMING) {
-//			crashTimer.stop();
+			crashTimer.stop();
 		}
 
+		
 		if (COMM_DEBUG) {
 			out.println("SATIN '" + ident.name()
-					+ ": handling crashes finished");
+					+ ": numCrashes handled: " + numCrashesHandled);
 		}
 
 		notifyAll();
-		
-		if (GRT_MESSAGE_COMBINING) {
-			globalResultTable.sendUpdates();
-		}
-		
+				
 	}
 
 	// Used for fault tolerance
@@ -483,19 +484,54 @@ public abstract class FaultTolerance extends Inlets {
 
 	}
 
+	public void deleteCluster(String clusterName) {
+		
+		System.err.println("SATIN '" + ident.name() + "': delete cluster " + clusterName);
+		
+		if (ident.cluster().equals(clusterName)) {
+			gotDeleteCluster = true;
+		}
+	}
+
 	public void reconfigure() {
 	}
 
 	synchronized void handleDelete() {
+	
+		gotDelete = false;
 		
-		if (FAULT_TOLERANCE && !FT_NAIVE) {
+		if (FAULT_TOLERANCE) {
 			if (GLOBAL_RESULT_TABLE_REPLICATED) {
-			//so far it only works with the replicated table
 				onStack.storeAll();
-				killedOrphans += onStack.size();
-				killedOrphans += q.size();
+			} else {
+				Victim victim = victims.getRandomLocalVictim();
+				onStack.pushAll(victim);
 			}
+			killedOrphans += onStack.size();
+			killedOrphans += q.size();			
 		}
+		
 		System.exit(0);
 	}
+
+	synchronized void handleDeleteCluster() {
+	
+		System.err.println("SATIN '" + ident.name() + "': handle delete cluster");
+	
+		gotDeleteCluster = false;
+	
+		if (FAULT_TOLERANCE) {		
+			if (GLOBAL_RESULT_TABLE_REPLICATED) {
+				onStack.storeAll();
+			} else {
+				Victim victim = victims.getRandomRemoteVictim();
+				onStack.pushAll(victim);
+			}
+			killedOrphans += onStack.size();
+			killedOrphans += q.size();			
+		}
+		
+		System.exit(0);
+	}
+
 }

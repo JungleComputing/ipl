@@ -84,9 +84,9 @@ public abstract class Malleability extends FaultTolerance {
 		Victim v;
 
 		synchronized (this) {
-			if (FAULT_TOLERANCE && !FT_NAIVE) {
+/*			if (FAULT_TOLERANCE && !FT_NAIVE) {
 				globalResultTable.removeReplica(leaver);
-			}
+			}*/
 			v = victims.remove(leaver);
 			notifyAll();
 

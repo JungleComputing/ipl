@@ -227,6 +227,10 @@ public abstract class WorkStealing extends Stats {
 									if (STEAL_TIMING) {
 										stealTimer.stop();
 									}
+									if (IDLE_TIMING) {
+										idleTimer.stop();
+									}
+									
 									return null;
 								}
 								break;
@@ -246,7 +250,10 @@ public abstract class WorkStealing extends Stats {
 								// "': current victim crashed");
 								if (gotStealReply == false) {
 									if (STEAL_TIMING) {
-										stealTimer.stop();
+										stealTimer.stop();																				
+									}
+									if (IDLE_TIMING) {
+										idleTimer.stop();
 									}
 									return null;
 								}
@@ -278,6 +285,9 @@ public abstract class WorkStealing extends Stats {
 							if (STEAL_TIMING) {
 								stealTimer.stop();
 							}
+							if (IDLE_TIMING) {
+								idleTimer.stop();
+							}							
 							return null;
 						}
 						break;

@@ -37,6 +37,8 @@ public abstract class SatinBase implements Config {
 
 	protected int deleteTime = 0;
 	
+	protected int deleteClusterTime = 0;
+	
 	protected String killCluster = null;
 	
 	protected String deleteCluster = null;
@@ -202,6 +204,10 @@ public abstract class SatinBase implements Config {
 	protected volatile boolean gotAbortsAndStores = false;
 
 	protected volatile boolean gotDelete = false;
+	
+	protected volatile boolean gotDeleteCluster = false;
+	
+	protected volatile boolean updatesToSend = false;
 
 	/*
 	 * used for fault tolerance we must know who the current victim is, in case
@@ -359,6 +365,8 @@ public abstract class SatinBase implements Config {
 	abstract void handleAbortsAndStores();
 
 	abstract void handleDelete();
+	
+	abstract void handleDeleteCluster();
 
 	abstract void handleDelayedMessages();
 
@@ -383,4 +391,12 @@ public abstract class SatinBase implements Config {
 	abstract void attachToParentFinished(InvocationRecord r);
 	
 	abstract void attachToParentToBeRestarted(InvocationRecord r);
+	
+	Timer createTimer() {
+		Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		if (timer == null) {
+			timer = new Timer();
+		}
+		return timer;
+	}
 }

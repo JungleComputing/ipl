@@ -7,6 +7,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
+import ibis.util.Timer;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -152,7 +153,8 @@ public class GlobalResultTable implements Upcall, Config {
 		return lookup(key, stats);
 	}
 	
-	Value lookup(Key key, boolean stats) {
+	Value lookup(Key key, boolean stats) {		
+	
 		if (GRT_TIMING) {
 			satin.lookupTimer.start();
 		}
@@ -206,9 +208,12 @@ public class GlobalResultTable implements Upcall, Config {
 	
 
 	void update(Key key, Value value) {
+		Timer updateTimer = null;
+		Timer tableSerializationTimer = null;
 	
 		if (GRT_TIMING) {
-			satin.updateTimer.start();
+			updateTimer = satin.createTimer();
+			updateTimer.start();
 		}
 
 		if (ASSERTS) {
@@ -229,18 +234,20 @@ public class GlobalResultTable implements Upcall, Config {
 				} else {
 					toSend.put(key, pointerValue);
 				}			
+				satin.updatesToSend = true;
 			} else {
-				if (GRT_DEBUG) {
+//				if (GRT_DEBUG) {
 					System.err.println("SATIN '" + satin.ident.name()
     				    	    + "': sending update: " + key + "," + value);
-				}
+//				}
 			
 				//send an update message
-				Iterator sendIter = sends.values().iterator();
+				Iterator sendIter = sends.entrySet().iterator();
 				long size = 0;
 				int i = 0;
 				while (sendIter.hasNext()) {
-					SendPort send = (SendPort) sendIter.next();
+					Map.Entry entry = (Map.Entry) sendIter.next();
+					SendPort send = (SendPort) entry.getValue();
 					WriteMessage m = null;
 
 					try {
@@ -251,7 +258,8 @@ public class GlobalResultTable implements Upcall, Config {
 					}
 			    
 					if (GRT_TIMING) {
-						satin.tableSerializationTimer.start();
+						tableSerializationTimer = satin.createTimer();
+						tableSerializationTimer.start();
 					}
 					try {
 						m.writeObject(key);
@@ -267,14 +275,15 @@ public class GlobalResultTable implements Upcall, Config {
 					}
 			    
 					if (GRT_TIMING) {
-						satin.tableSerializationTimer.stop();
+						tableSerializationTimer.stop();
+						satin.tableSerializationTimer.add(tableSerializationTimer);
 					}
 					try {
 						size = m.finish();
 				
 						/*System.err.println("SATIN '" + satin.ident.name() + "': " + size 
 						+ " sent in " + satin.tableSerializationTimer.lastTimeVal()
-						+ " to " + send.connectedTo()[0].ibis().name());*/
+						+ " to " + entry.getKey());*/
 				
 					} catch (IOException e) {
 						//always happens after a crash
@@ -291,10 +300,10 @@ public class GlobalResultTable implements Upcall, Config {
 				* m.writeObject(value); m.finish(); } catch (IOException
 				* e) { //always happens after the crash }
 				*/
-				if (GRT_DEBUG) {
+//				if (GRT_DEBUG) {
 					System.err.println("SATIN '" + satin.ident.name()
 					+ "': update sent: " + key + "," + value);
-				}
+//				}
 			}	
 			 
 		}
@@ -312,32 +321,65 @@ public class GlobalResultTable implements Upcall, Config {
 		}
 		
 		if (GRT_TIMING) {
-			satin.updateTimer.stop();
+			updateTimer.stop();
+			satin.updateTimer.add(updateTimer);
 		}		
 		
 	}
+
+	void updateAll(Map updates) {
+
+		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+		
+		if (GRT_TIMING) {
+			satin.updateTimer.start();
+		}
+				
+		entries.putAll(updates);
+		toSend.putAll(updates);
+		
+		if (GRT_STATS) {
+			numResultUpdates += updates.size();
+		}
+		
+		if (GRT_TIMING) {
+			satin.updateTimer.stop();
+		}		
+		
+		satin.updatesToSend = true;
+	
+	}
 	
 	void sendUpdates() {
+		Timer updateTimer = null;
+		Timer tableSerializationTimer = null;
+	
 		if (ASSERTS && !GRT_MESSAGE_COMBINING) {
 			    System.err.println("SATIN '" + satin.ident.name() 
 				+ "': EEK send updates with GRT_MESSAGE_COMBINING off!");
 			    return;
 		}
-		if (ASSERTS) {
-			    Satin.assertLocked(satin);
-		}
+/*		if (ASSERTS) {
+			    satin.assertLocked(satin);
+		}*/
+		
+		satin.updatesToSend = false;
 				
 		if (toSend.size() == 0) return;
 		
 		if (GRT_TIMING) {
-			satin.updateTimer.start();
+			updateTimer = satin.createTimer();
+			updateTimer.start();
 		}
 		
 		
-		Iterator sendIter = sends.values().iterator();
+		Iterator sendIter = sends.entrySet().iterator();
 		
 		while (sendIter.hasNext()) {
-			SendPort send = (SendPort) sendIter.next();
+			Map.Entry entry = (Map.Entry) sendIter.next();
+			SendPort send = (SendPort) entry.getValue();
 			WriteMessage m = null;
 
 			try {
@@ -348,7 +390,8 @@ public class GlobalResultTable implements Upcall, Config {
 			}
 			
 			if (GRT_TIMING) {
-				satin.tableSerializationTimer.start();
+				tableSerializationTimer = satin.createTimer();
+				tableSerializationTimer.start();
 			}
 			try {
 			
@@ -359,12 +402,17 @@ public class GlobalResultTable implements Upcall, Config {
 			}
 			    
 			if (GRT_TIMING) {
-				satin.tableSerializationTimer.stop();
+				tableSerializationTimer.stop();
+				satin.tableSerializationTimer.add(tableSerializationTimer);
 			}
 
 			try {
-				m.finish();
+				long size = m.finish();
 				
+/*				System.err.println("SATIN '" + satin.ident.name() + "': " + size 
+				+ " sent in " + satin.tableSerializationTimer.lastTimeVal()
+				+ " to " + entry.getKey());*/
+								
 			} catch (IOException e) {
 				//always happens after a crash
 			}
@@ -374,7 +422,8 @@ public class GlobalResultTable implements Upcall, Config {
 		numUpdateMessages++;
 		
 		if (GRT_TIMING) {
-			satin.updateTimer.stop();
+			updateTimer.stop();
+			satin.updateTimer.add(updateTimer);
 		}
 
 	}				
@@ -491,15 +540,20 @@ public class GlobalResultTable implements Upcall, Config {
 		Map map = null;
 		Key key = null;
 		Value value = null;
+		Timer handleUpdateTimer = null;
+		Timer tableDeserializationTimer = null;
 	
 		if (GRT_TIMING) {
-			satin.handleUpdateTimer.start();
+			handleUpdateTimer = satin.createTimer();
+			handleUpdateTimer.start();
 		}
+		
+		if (GRT_TIMING) {
+			tableDeserializationTimer = satin.createTimer();
+			tableDeserializationTimer.start();
+		}
+		
 		try {
-			
-			if (GRT_TIMING) {
-				satin.tableDeserializationTimer.start();
-			}
 			
 			if (GRT_MESSAGE_COMBINING) {
 				map = (Map) m.readObject();
@@ -510,33 +564,8 @@ public class GlobalResultTable implements Upcall, Config {
 				//Value value = new Value(Value.TYPE_POINTER, null);
 				//value.owner = ident;
 			}
-			if (GRT_TIMING) {
-				satin.tableDeserializationTimer.stop();
-			}
-
-
-			synchronized (satin) {
-				if (GRT_MESSAGE_COMBINING) {
-					entries.putAll(map);
-				} else {
-					/* if (entries.size() < max) */entries.put(key, value);
-				}
-				if (GRT_STATS) {
-					if (entries.size() > maxNumEntries)
-						maxNumEntries = entries.size();
-				}
-			}
-
-			if (GRT_DEBUG) {
-				if (GRT_MESSAGE_COMBINING) {
-					System.err.println("SATIN '" + satin.ident.name()
-						+ "': upcall finished: " + entries.size());
-				} else {
-					System.err.println("SATIN '" + satin.ident.name()
-						+ "': upcall finished:" + key + "," + value + "," + entries.size());
-				}
-			}
-
+			
+		
 		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': Global result table - error reading message");
@@ -545,9 +574,49 @@ public class GlobalResultTable implements Upcall, Config {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': Global result table - error reading message");
 			e1.printStackTrace();
-		}
+		}		
+			
 		if (GRT_TIMING) {
-			satin.handleUpdateTimer.stop();
+			tableDeserializationTimer.stop();
+			satin.tableDeserializationTimer.add(tableDeserializationTimer);
+		}
+		
+		try {
+			m.finish();
+		} catch (IOException e) {
+			//ignore
+		}
+
+
+		synchronized (satin) {
+			if (GRT_MESSAGE_COMBINING) {
+				if (map != null) {
+					entries.putAll(map);
+				}
+			} else {
+				if (key != null && value != null) {
+					/* if (entries.size() < max) */entries.put(key, value);
+				}
+			}
+			if (GRT_STATS) {
+				if (entries.size() > maxNumEntries)
+					maxNumEntries = entries.size();
+			}
+		}
+
+		if (GRT_DEBUG) {
+			if (GRT_MESSAGE_COMBINING) {
+				System.err.println("SATIN '" + satin.ident.name()
+					+ "': upcall finished: " + entries.size());
+			} else {
+				System.err.println("SATIN '" + satin.ident.name()
+					+ "': upcall finished:" + key + "," + value + "," + entries.size());
+			}
+		}
+
+		if (GRT_TIMING) {
+			handleUpdateTimer.stop();
+			satin.handleUpdateTimer.add(handleUpdateTimer);
 		}
 //		System.err.println("handle update time: " + satin.handleUpdateTimer.lastTimeVal());
 	}

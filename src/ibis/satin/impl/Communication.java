@@ -174,7 +174,13 @@ public abstract class Communication extends SpawnSync {
 			if (gotAbortsAndStores)
 				handleAbortsAndStores();
 			if (gotDelete)
-				handleDelete();
+				handleDelete();				
+			if (gotDeleteCluster)
+				handleDeleteCluster();				
+			if (GRT_MESSAGE_COMBINING) {
+				if (updatesToSend) 
+					globalResultTable.sendUpdates();
+			}				
 		}
 	}
 

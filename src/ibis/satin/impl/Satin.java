@@ -305,10 +305,13 @@ public final class Satin extends APIMethods implements ResizeHandler,
 		
 		
 		if (killTime > 0) {
-			(new KillerThread(killTime, killCluster)).start();
+			(new KillerThread(killTime)).start();
 		}
 		if (deleteTime > 0) {
-			(new DeleteThread(deleteTime, deleteCluster)).start();
+			(new DeleteThread(deleteTime)).start();
+		}
+		if (deleteClusterTime > 0) {
+			(new DeleteClusterThread(deleteClusterTime)).start();
 		}
 		if (dump) {
 			DumpThread dumpThread = new DumpThread(this);
@@ -323,6 +326,18 @@ public final class Satin extends APIMethods implements ResizeHandler,
 				addReplicaTimer.start();
 			}
 		}		
+		
+		if (FAULT_TOLERANCE) {
+			if (FT_NAIVE) {
+				System.out.println("naive FT on");
+			} else {
+				System.out.println("FT on, GRT " + 
+				(GLOBAL_RESULT_TABLE_REPLICATED ? "replicated" : "distributed, message combining ") +
+				(GRT_MESSAGE_COMBINING ? "on" : "off"));
+			}
+		} else {
+			System.out.println("FT off");
+		}
 		
 		totalTimer.start();
 	}
