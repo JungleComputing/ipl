@@ -188,7 +188,9 @@ for s in $SITES; do
 	echo -n "-Dibis.name_server.port=$NS_PORT " >> pprun_remote$$$s
 	echo -n "-Dibis.name_server.host=`hostname -f` " >> pprun_remote$$$s
 	echo -n '-Dibis.pool.host_names="$HOSTS" -Xmx400M ' >> pprun_remote$$$s
-	#echo -n '-Dibis.pool.host_number=0 ' >> pprun_remote$$$s
+	echo -n "-Dpool.server.host=`hostname -f` " >> pprun_remote$$$s
+	echo -n "-Dpool.server.port=39457 " >> pprun_remote$$$s
+	echo -n "-Dpool.total_hosts=$TOTAL_COUNT " >> pprun_remote$$$s
 	echo -n -Xbootclasspath:'$JAVACLASSPATH ' >> pprun_remote$$$s
 	echo -n -classpath '$JAVACLASSPATH ' >> pprun_remote$$$s
 	echo "$APP_CLASS_PARAMS" >> pprun_remote$$$s
@@ -216,6 +218,12 @@ done
 
 #wait for the pruns to terminate
 for i in $PRUN_PIDS; do wait $i; done
+
+# kill the name server
+echo -n "- Killing Ibis name server..."
+REAL_NS_PID=`netstat -ltp 2>/dev/null | grep LISTEN | grep $NS_PORT | sed 's/.*LISTEN//' | sed 's/[ ]*\([0-9]*\)\/java/\1/'`
+if [ -n "$REAL_NS_PID" ]; then kill -9 $REAL_NS_PID >/dev/null 2>&1; fi
+echo "done."
 
 #copy output files
 echo gathering output...
