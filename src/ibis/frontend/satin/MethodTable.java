@@ -250,7 +250,7 @@ final class MethodTable {
 	return true;
     }
 
-    // Make each stack position indicate a single variable.
+    // Make each stack position indicate a single type of variable.
     void rewriteLocals(MethodGen m) {
 	// First, analyze how many stack positions are for parameters.
 	// We won't touch those.
@@ -282,6 +282,19 @@ final class MethodTable {
 		// Give this local a new stack position.
 		locals[i].setIndex(maxpos);
 		types[maxpos] = t;
+		rewriteLocal(locals[i].getStart(), locals[i].getEnd(), ind, maxpos);
+		// And give all other locals that have the same old stack
+		// position and the same type this new stack position.
+		for (int j = i+1; j < locals.length; j++) {
+		    if (locals[j].getIndex() == ind &&
+			locals[j].getType().equals(t)) {
+			locals[j].setIndex(maxpos);
+			rewriteLocal(locals[j].getStart(),
+				     locals[j].getEnd(),
+				     ind,
+				     maxpos);
+		    }
+		}
 		maxpos++;
 		if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
 		    // longs and doubles need two stack positions.
@@ -289,25 +302,31 @@ final class MethodTable {
 		    maxpos++;
 		}
 	    }
-
-	    // now rewrite the instructions where this local is used.
-	    InstructionHandle h = locals[i].getStart();
-	    if (h.getPrev() != null) {
-		h = h.getPrev();
-		// This instruction should contain the store.
-	    }
-	    do {
-		Instruction ins = h.getInstruction();
-		if (ins instanceof LocalVariableInstruction) {
-		    LocalVariableInstruction lins = (LocalVariableInstruction) ins;
-		    if (lins.getIndex() == ind) {
-			lins.setIndex(locals[i].getIndex());
-		    }
-		}
-		if (h == locals[i].getEnd()) break;
-		h = h.getNext();
-	    } while (h != null);
 	}
+    }
+
+    // Rewrite instructions where local is used.
+    void rewriteLocal(InstructionHandle fromH,
+		      InstructionHandle toH,
+		      int oldindex,
+		      int newindex) {
+
+	InstructionHandle h = fromH;
+	if (h.getPrev() != null) {
+	    h = h.getPrev();
+	    // This instruction should contain the store.
+	}
+	do {
+	    Instruction ins = h.getInstruction();
+	    if (ins instanceof LocalVariableInstruction) {
+		LocalVariableInstruction lins = (LocalVariableInstruction) ins;
+		if (lins.getIndex() == oldindex) {
+		    lins.setIndex(newindex);
+		}
+	    }
+	    if (h == toH) break;
+	    h = h.getNext();
+	} while (h != null);
     }
 
 
