@@ -80,6 +80,7 @@ public class PoolInfoClient extends PoolInfo {
         super(0);
 
         InetAddress serverAddress;
+        InetAddress myAddress = IPUtils.getAlternateLocalHostAddress();
 
         total_hosts = TypedProperties.intProperty(s_total);
         int remove_doubles = TypedProperties.booleanProperty(s_single) ? 1 : 0;
@@ -103,6 +104,11 @@ public class PoolInfoClient extends PoolInfo {
                         + " is not specified");
             }
         }
+
+        if (serverName.equals("localhost")) {
+            serverName = myAddress.getHostName();
+        }
+
         String key = TypedProperties.stringProperty(s_key);
         if (key == null) {
             key = TypedProperties.stringProperty("ibis.name_server.key");
@@ -115,6 +121,17 @@ public class PoolInfoClient extends PoolInfo {
         } catch (UnknownHostException e) {
             throw new RuntimeException("cannot get ip of pool server");
         }
+
+        if (serverAddress.equals(myAddress)) {
+            try {
+                PoolInfoServer p = new PoolInfoServer(serverPort, true);
+                p.setDaemon(true);
+                p.start();
+            } catch (Throwable e) {
+                // Ignored. Assume already present ...
+            }
+        }
+
         Socket socket = null;
         int cnt = 0;
         while (socket == null) {

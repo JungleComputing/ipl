@@ -171,7 +171,8 @@ public class NameServer extends Thread implements Protocol {
                 p.setDaemon(true);
                 p.start();
             } catch (Throwable e) {
-                throw new IOException("Could not start poolInfoServer" + e);
+                // May have been started by PoolInfoClient already.
+                // throw new IOException("Could not start poolInfoServer" + e);
             }
             poolServerStarted = true;
         }
