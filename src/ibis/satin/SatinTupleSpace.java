@@ -5,6 +5,7 @@ import ibis.ipl.IbisError;
 //import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import ibis.util.TypedProperties;
 //import java.util.ArrayList;
 
 /** This class implements an immutable global tuple space.
@@ -18,6 +19,7 @@ public class SatinTupleSpace implements Config {
 	// space must be synchronized, adds and dels arrive asynchronously
 	private static Satin satin;
 	private static HashMap space;
+	static boolean use_seq = false;
 //	private static ArrayList newKeys;
 //	private static ArrayList newData;
 
@@ -31,6 +33,11 @@ public class SatinTupleSpace implements Config {
 		}
 
 		space = new HashMap();
+		use_seq =
+		    SUPPORT_TUPLE_MULTICAST &&
+		    satin != null &&
+		    TypedProperties.booleanProperty("satin.tuplespace.ordened");
+		System.out.println("use_seq = " + use_seq);
 //		newKeys = new ArrayList();
 //		newData = new ArrayList();
 	}
@@ -49,12 +56,6 @@ public class SatinTupleSpace implements Config {
           * @param data The data associated with the key.
            **/
 	public static void add(String key, Serializable data) {
-		synchronized(space) {
-			space.put(key, data);
-//			newKeys.add(key);
-//			newData.add(data);
-		}
-
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": added key " + key);
 		}
@@ -62,9 +63,15 @@ public class SatinTupleSpace implements Config {
 		if (satin != null) { // can happen with sequential versions of Satin programs
 			satin.broadcastTuple(key, data);
 		}
-
-		if(data instanceof ActiveTuple) {
+		if (! use_seq || satin == null) {
+		    if(data instanceof ActiveTuple) {
 			((ActiveTuple)data).handleTuple(key);
+		    }
+		    else {
+			synchronized(space) {
+			    space.put(key, data);
+			}
+		    }
 		}
 
 		if(TUPLE_DEBUG) {
@@ -120,7 +127,18 @@ public class SatinTupleSpace implements Config {
 	 * @param key the key of the tuple to be removed.
 	 **/
 	public static void remove(String key) {
-		synchronized(space) {
+
+		if(TUPLE_DEBUG) {
+			System.err.println("SATIN '" + satin.ident.name() + ": removed key " + key);
+		}
+		if(satin != null) {
+			satin.broadcastRemoveTuple(key);
+			if(TUPLE_DEBUG) {
+				System.err.println("SATIN '" + satin.ident.name() + ": bcast remove key " + key + " done");
+			}
+		}
+		if (! use_seq || satin == null) {
+		    synchronized(space) {
 			if(ASSERTS && !space.containsKey(key)) {
 				throw new IbisError("Key " + key + " is not in the tuple space");
 			}
@@ -132,16 +150,7 @@ public class SatinTupleSpace implements Config {
 //			if(index != -1) {
 //				newData.remove(index);
 //			}
-		}
-
-		if(TUPLE_DEBUG) {
-			System.err.println("SATIN '" + satin.ident.name() + ": removed key " + key);
-		}
-		if(satin != null) {
-			satin.broadcastRemoveTuple(key);
-			if(TUPLE_DEBUG) {
-				System.err.println("SATIN '" + satin.ident.name() + ": bcast remove key " + key + " done");
-			}
+		    }
 		}
 	}
 

@@ -21,14 +21,14 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
 	protected transient SpawnCounter spawnCounter;
 	public transient Throwable eek; // must be public, it is used from the generated code (in an other package) --Rob
-	protected transient InvocationRecord cacheNext; /* Used to link the records in the cache. */
-    public transient boolean aborted; // must be public, is accessed from generated code. --Rob
+	public transient InvocationRecord cacheNext; /* Used to link the records in the cache. */
+	public transient boolean aborted; // must be public, is accessed from generated code. --Rob
 
 	/* These are used to link the records in the JobQueue. Not needed when Dijkstra is used. */
 	protected transient InvocationRecord qprev;
 	protected transient InvocationRecord qnext;
 
-	protected transient int storeId; /* An id for the store where the result of the spawn must go. */
+	public transient int storeId; /* An id for the store where the result of the spawn must go. */
 	protected transient int spawnId; /* An id for the spawn in the code. Needed to run the correct inlet. */
 	protected transient LocalRecord parentLocals;
 	protected transient IbisIdentifier stealer;

@@ -10,6 +10,8 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.io.Serializable;
 
+import java.util.HashMap;
+
 final class MessageHandler implements Upcall, Protocol, Config {
 	Satin satin;
 
@@ -309,34 +311,139 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 	}
 
+	private static class tuple_command {
+		byte command;
+		String key;
+		Serializable data;
+
+		tuple_command(byte c, String k, Serializable s) {
+			command = c;
+			key = k;
+			data = s;
+		}
+	}
+
+	private HashMap saved_tuple_commands = null;
+
+	private void add_to_queue(int seqno,
+				  String key,
+				  Serializable data, 
+				  byte command) {
+		if (saved_tuple_commands == null) {
+			saved_tuple_commands = new HashMap();
+		}
+		saved_tuple_commands.put(new Integer(seqno), new tuple_command(command, key, data));
+	}
+
+	private void scan_queue() {
+
+		if (saved_tuple_commands == null) {
+			return;
+		}
+
+		Integer i = new Integer(satin.expected_seqno);
+		tuple_command t = (tuple_command) saved_tuple_commands.remove(i);
+		while (t != null) {
+			switch(t.command) {
+			case TUPLE_ADD:
+				if(t.data instanceof ActiveTuple) {
+					synchronized(satin) {
+						satin.addToActiveTupleList(t.key, t.data);
+						satin.gotActiveTuples = true;
+					}
+				} else {
+					SatinTupleSpace.remoteAdd(t.key, t.data);
+				}
+				break;
+			case TUPLE_DEL:
+				SatinTupleSpace.remoteDel(t.key);
+				break;
+			}
+			satin.expected_seqno++;
+
+			i = new Integer(satin.expected_seqno);
+			t = (tuple_command) saved_tuple_commands.remove(i);
+		}
+	}
+
 	private void handleTupleAdd(ReadMessage m) {
+		int seqno = 0;
+		boolean done = false;
 		try {
+			if (SatinTupleSpace.use_seq) {
+			    seqno = m.readInt();
+			}
 			String key = (String) m.readObject();
 			Serializable data = (Serializable) m.readObject();
 
-			if(data instanceof ActiveTuple) {
-				synchronized(satin) {
-					satin.addToActiveTupleList(key, data);
-					satin.gotActiveTuples = true;
-				}
-			} else {
-				SatinTupleSpace.remoteAdd(key, data);
+			if (SatinTupleSpace.use_seq && seqno > satin.expected_seqno) {
+				add_to_queue(seqno, key, data, TUPLE_ADD);
 			}
+			else {
+				if(data instanceof ActiveTuple) {
+					synchronized(satin) {
+						satin.addToActiveTupleList(key, data);
+						satin.gotActiveTuples = true;
+					}
+				} else {
+					SatinTupleSpace.remoteAdd(key, data);
+				}
+				if (SatinTupleSpace.use_seq) {
+					satin.expected_seqno++;
+					scan_queue();
+				}
+				done = true;
+
+			}
+			m.finish();
+
 		} catch (Exception e) {
 			System.err.println("SATIN '" + satin.ident.name() + 
 					   "': Got Exception while reading tuple update: " + e);
+			e.printStackTrace();
 			System.exit(1);
+		}
+
+		if (SatinTupleSpace.use_seq) {
+			if (done) {
+				synchronized(satin.tuplePort) {
+					satin.tuplePort.notifyAll();
+				}
+			}
 		}
 	}
 
 	private void handleTupleDel(ReadMessage m) {
+		int seqno = 0;
+		boolean done = false;
 		try {
+			if (SatinTupleSpace.use_seq) {
+			    seqno = m.readInt();
+			}
 			String key = (String) m.readObject();
-			SatinTupleSpace.remoteDel(key);
+			if (SatinTupleSpace.use_seq && seqno > satin.expected_seqno) {
+				add_to_queue(seqno, key, null, TUPLE_DEL);
+			}
+			else {
+				SatinTupleSpace.remoteDel(key);
+				satin.expected_seqno++;
+				if (SatinTupleSpace.use_seq) {
+					scan_queue();
+				}
+				done = true;
+			}
+			m.finish();
 		} catch (Exception e) {
 			System.err.println("SATIN '" + satin.ident.name() + 
 					   "': Got Exception while reading tuple remove: " + e);
 			System.exit(1);
+		}
+		if (SatinTupleSpace.use_seq) {
+			if (done) {
+				synchronized(satin.tuplePort) {
+					satin.tuplePort.notifyAll();
+				}
+			}
 		}
 	}
 

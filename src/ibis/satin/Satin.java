@@ -17,6 +17,7 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 
 import ibis.util.Timer;
+import ibis.util.Sequencer;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -76,11 +77,14 @@ public final class Satin implements Config, ResizeHandler {
 	private String[] mainArgs;
 	private String name;
 	protected IbisIdentifier masterIdent;
+	private Sequencer sequencer;
 
 	/* My scheduling algorithm. */
 	protected final Algorithm algorithm;
 
 	volatile int exitReplies = 0;
+
+	int expected_seqno = Sequencer.START_SEQNO;
 
 	// WARNING: dijkstra does not work in combination with aborts.
 	DEQueue q = ABORTS ? ((DEQueue) new DEQueueNormal(this)) : 
@@ -89,7 +93,7 @@ public final class Satin implements Config, ResizeHandler {
 	private ReceivePort receivePort;
 	private ReceivePort barrierReceivePort; /* Only for the master. */
 	private SendPort barrierSendPort; /* Only for the clients. */
-	private SendPort tuplePort; /* used to bcast tuples */
+	SendPort tuplePort; /* used to bcast tuples */
 
 	volatile boolean exiting = false; // used in messageHandler
 	Random random = new Random(); // used in victimTable
@@ -563,6 +567,17 @@ public final class Satin implements Config, ResizeHandler {
 				}
 
 				ibis.closeWorld();
+			}
+
+			if (SatinTupleSpace.use_seq) {
+				connect(tuplePort, receivePort.identifier());
+				try {
+					sequencer = Sequencer.getSequencer(ibis);
+				} catch(IOException e) {
+					System.err.println("SATIN '" + ident.name() + 
+					       "': Got Exception while creating sequencer: " + e);
+					System.exit(1);
+				}
 			}
 
 			barrier();
@@ -2421,6 +2436,7 @@ public final class Satin implements Config, ResizeHandler {
 		long count = 0;
 		int size = 0;
 
+
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + ident.name() + 
 					   "': bcasting tuple " + key);
@@ -2430,16 +2446,21 @@ public final class Satin implements Config, ResizeHandler {
 			size = victims.size();
 		}
 
-		if(size == 0) return; // don't multicast when there is no-one.
+		if(! SUPPORT_TUPLE_MULTICAST && size == 0) return; // don't multicast when there is no-one.
 
 		if(TUPLE_TIMING) {
 			tupleTimer.start();
 		}
 
 		if(SUPPORT_TUPLE_MULTICAST) {
+			int seqno = 0;
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();
 				writeMessage.writeByte(Protocol.TUPLE_ADD);
+				if (sequencer != null) {
+				    seqno = sequencer.getSeqno("TupleSpace");
+				    writeMessage.writeInt(seqno);
+				}
 				writeMessage.writeObject(key);
 				writeMessage.writeObject(data);
 				writeMessage.send();
@@ -2456,6 +2477,16 @@ public final class Satin implements Config, ResizeHandler {
 				System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending tuple update: " + e);
 				System.exit(1);
+			}
+			if (sequencer != null) {
+			    synchronized(tuplePort) {
+				while (expected_seqno <= seqno) {
+				    try {
+					tuplePort.wait();
+				    } catch(Exception e) {
+				    }
+				}
+			    }
 			}
 		} else {
 			for(int i=0; i<size; i++) {
@@ -2511,9 +2542,14 @@ public final class Satin implements Config, ResizeHandler {
 		}
 
 		if(SUPPORT_TUPLE_MULTICAST) {
+			int seqno = 0;
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();
 				writeMessage.writeByte(Protocol.TUPLE_DEL);
+				if (sequencer != null) {
+				    seqno = sequencer.getSeqno("TupleSpace");
+				    writeMessage.writeInt(seqno);
+				}
 				writeMessage.writeObject(key);
 				writeMessage.send();
 
@@ -2529,6 +2565,16 @@ public final class Satin implements Config, ResizeHandler {
 				System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending tuple update: " + e);
 				System.exit(1);
+			}
+			if (sequencer != null) {
+			    synchronized(tuplePort) {
+				while (expected_seqno <= seqno) {
+				    try {
+					tuplePort.wait();
+				    } catch(Exception e) {
+				    }
+				}
+			    }
 			}
 		} else {
 			for(int i=0; i<size; i++) {
