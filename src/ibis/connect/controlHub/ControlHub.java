@@ -2,6 +2,7 @@ package ibis.connect.controlHub;
 
 import ibis.connect.routedMessages.HubProtocol;
 import ibis.connect.util.MyDebug;
+import ibis.connect.util.ConnProps;
 import ibis.util.TypedProperties;
 
 import java.io.EOFException;
@@ -27,7 +28,7 @@ class NodeManager extends Thread
     private ControlHub hub;
     private int[] nmessages;
     private static final boolean STATS 
-	    = TypedProperties.booleanProperty("ibis.controlhub.stats");
+	    = TypedProperties.booleanProperty(ConnProps.hub_stats);
     private static final int np = HubProtocol.getNPacketTypes();
 
     NodeManager(Socket s, ControlHub hub) 
@@ -323,7 +324,7 @@ public class ControlHub extends Thread
 	int port = defaultPort;
 	try {
 	    Properties p = System.getProperties();
-	    String portString = p.getProperty("ibis.connect.hub_port");
+	    String portString = p.getProperty(ConnProps.hub_port);
 	    if(portString != null){
 		port = Integer.parseInt(portString);
 	    }

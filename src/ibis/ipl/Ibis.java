@@ -1,6 +1,7 @@
 package ibis.ipl;
 
 import ibis.util.IPUtils;
+import ibis.util.TypedProperties;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,6 +29,30 @@ import java.util.StringTokenizer;
  */
 
 public abstract class Ibis { 
+
+    private static final String ldpath = "ibis.library.path";
+    private static final String propfile = "ibis.property.file";
+
+    private static final String[] sysprops = {
+	ldpath,
+	propfile
+    };
+
+    private static final String[] excludes = {
+	"ibis.util.",
+	"ibis.pool.",
+	"ibis.io.",
+	"ibis.net.",
+	"ibis.mp.",
+	"ibis.nio.",
+	"ibis.tcp.",
+	"ibis.name_server.",
+	"ibis.name",
+	"ibis.verbose",
+	"ibis.communication",
+	"ibis.serialization",
+	"ibis.worldmodel"
+    };
 
     /** A user-defined (or system-invented) name for this Ibis. */
     protected String name;
@@ -64,6 +89,7 @@ public abstract class Ibis {
     private static String defaultIbisName;
 
     static {
+	TypedProperties.checkProperties("ibis.", sysprops, excludes);
 	try {
 	    readGlobalProperties();
 	} catch(IOException e) {
@@ -90,7 +116,7 @@ public abstract class Ibis {
 	    throws SecurityException, UnsatisfiedLinkError
     {
 	Properties p = System.getProperties();
-	String libPath = p.getProperty("ibis.library.path");
+	String libPath = p.getProperty(ldpath);
 
 	if(libPath != null) {
 	    String s = System.mapLibraryName(name);
@@ -527,13 +553,13 @@ public abstract class Ibis {
      */
     private static InputStream openProperties() throws IOException {
 	Properties p = System.getProperties();
-	String s = p.getProperty("ibis.property.file");
+	String s = p.getProperty(propfile);
 	InputStream in;
 	if(s != null) {
 	    try {
 		return new FileInputStream(s);
 	    } catch(FileNotFoundException e) {
-		System.err.println("ibis.property.file set, " + 
+		System.err.println("" + propfile + " set, " + 
 				   "but could not read file " + s);
 	    }
 	}

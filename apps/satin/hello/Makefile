@@ -5,7 +5,7 @@ include ../../../config.mk
 include ../config.mk
 
 satin:
-	$(IBISC_COMMAND) -no-aborts $(MAIN)
+	$(IBISC_COMMAND) $(MAIN)
 
 clean:
 	rm -f $(TRASH_FILES)

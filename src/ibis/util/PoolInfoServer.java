@@ -188,7 +188,7 @@ public class PoolInfoServer extends Thread {
      *               as no keys are being processed anymore.
      */
     public PoolInfoServer(boolean single) {
-	this(TypedProperties.intProperty("ibis.pool.server.port",
+	this(TypedProperties.intProperty(PoolInfo.s_port,
 					 POOL_INFO_PORT),
 	     single);
     }

@@ -1,5 +1,6 @@
 package ibis.impl.messagePassing;
 
+import ibis.util.TypedProperties;
 
 interface ReceivePortNameServerProtocol {
 
@@ -13,5 +14,5 @@ interface ReceivePortNameServerProtocol {
 	PORT_KNOWN = 26,
 	PORT_UNKNOWN = 27;
     
-    static final boolean DEBUG = false; // TypedProperties.booleanProperty("ibis.mp.ns.debug");
+    static final boolean DEBUG = TypedProperties.booleanProperty(MPProps.s_ns_debug);
 }

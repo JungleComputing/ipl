@@ -81,28 +81,23 @@ public class PoolInfoClient extends PoolInfo {
 
 	InetAddress serverAddress;
 
-	total_hosts = TypedProperties.intProperty("ibis.pool.total_hosts");
-	String cluster = TypedProperties.stringPropertyValue("ibis.pool.cluster");
-	int remove_doubles = TypedProperties.booleanProperty("ibis.pool.single") ? 1 : 0;
+	total_hosts = TypedProperties.intProperty(s_total);
+	int remove_doubles = TypedProperties.booleanProperty(s_single) ? 1 : 0;
 
-	if (cluster == null) {
-//	    System.err.println("Warning: ibis.pool.cluster property not set, using 'unknown'");
-	    cluster = "unknown";
-	}
-	int serverPort = TypedProperties.intProperty("ibis.pool.server.port",
+	int serverPort = TypedProperties.intProperty(s_port,
 				PoolInfoServer.POOL_INFO_PORT);
-	String serverName = TypedProperties.stringPropertyValue("ibis.pool.server.host");
+	String serverName = TypedProperties.stringPropertyValue(s_host);
 	if (serverName == null) {
 	    serverName = TypedProperties.stringPropertyValue("ibis.name_server.host");
 	    if (serverName == null) {
-		throw new RuntimeException("property ibis.pool.server.host is not specified");
+		throw new RuntimeException("property " + s_host + " is not specified");
 	    }
 	}
-	String key = TypedProperties.stringPropertyValue("ibis.pool.key");
+	String key = TypedProperties.stringPropertyValue(s_key);
 	if (key == null) {
 	    key = TypedProperties.stringPropertyValue("ibis.name_server.key");
 	    if (key == null) {
-		// System.err.println("Warning: ibis.pool.key property not set, using 'unknown'");
+		// System.err.println("Warning: " + s_key + " property not set, using 'unknown'");
 		key = "unknown";
 	    }
 	}
@@ -118,7 +113,7 @@ public class PoolInfoClient extends PoolInfo {
 	    out.writeUTF(key);
 	    out.writeInt(total_hosts);
 	    out.writeInt(remove_doubles);
-	    out.writeUTF(cluster);
+	    out.writeUTF(clusterName);
 	    out.flush();
 
 	    ObjectInputStream in

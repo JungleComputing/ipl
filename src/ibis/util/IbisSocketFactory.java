@@ -10,15 +10,24 @@ import java.net.Socket;
 /**
  * Abstract socket factory class for creating client and server sockets.
  * An implementation can be chosen by means of the
- * <code>ibis.socketfactory</code> system property. If not set,
+ * <code>ibis.util.socketfactory</code> system property. If not set,
  * a default implementation is chosen.
  */
 public abstract class IbisSocketFactory {
+    private static final String prefix = "ibis.util.socketfactory.";
+    private static final String sf = prefix + "class";
+    private static final String rng = prefix + "port.range";
+    private static final String debug = prefix + "debug";
+    private static final String[] sysprops = {
+	sf,
+	debug,
+	rng
+    };
 
     private static String DEFAULT_SOCKET_FACTORY = "ibis.impl.util.IbisConnectSocketFactory";
     private static String socketFactoryName;
 
-    protected static final boolean DEBUG = TypedProperties.booleanProperty("ibis.util.socketFactory.debug", false);
+    protected static final boolean DEBUG = TypedProperties.booleanProperty(debug, false);
 
     static boolean firewall = false;
     static int portNr = 0;
@@ -26,8 +35,9 @@ public abstract class IbisSocketFactory {
     static int endRange = 0;
 
     static {
-	String sfClass = System.getProperty("ibis.socketfactory");
-	String range = System.getProperty("ibis.port.range");
+	TypedProperties.checkProperties(prefix, sysprops, null);
+	String sfClass = System.getProperty(sf);
+	String range = System.getProperty(rng);
         if (sfClass != null) {
 	    socketFactoryName = sfClass;
         } else {

@@ -14,6 +14,7 @@ import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 import ibis.util.PoolInfo;
 import ibis.util.Ticket;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -27,11 +28,18 @@ import java.util.Vector;
  * to create, join, lookup, and exit a group.
  */
 public final class Group implements GroupProtocol { 
+
+    private static final String PROPERTY_PREFIX = "gmi.";
+
+    private static final String DBG = PROPERTY_PREFIX + "debug";
+
+    private static final String[] properties = { DBG };
     
     /**
      * Enable/disable debugging prints.
      */
-    public final static boolean DEBUG = false;
+    public final static boolean DEBUG =
+	TypedProperties.booleanProperty(DBG, false);
 
     /**
      * Ibis rank number in this run.
@@ -330,6 +338,7 @@ public final class Group implements GroupProtocol {
      * group registry, creates send and receive ports.
      */
     static { 
+	TypedProperties.checkProperties(PROPERTY_PREFIX, properties, new String[] {});
 	try {
 	    ticketMaster = new Ticket();
 	    groups = new GroupSkeleton[10];

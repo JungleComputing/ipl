@@ -1,6 +1,7 @@
 package ibis.io;
 
 import ibis.util.Timer;
+import ibis.util.TypedProperties;
 
 
 /**
@@ -15,10 +16,13 @@ import ibis.util.Timer;
  */
 final class IbisHash { 
 
-    private static final boolean ASSERTS = false;
+    private static final boolean ASSERTS =
+	TypedProperties.booleanProperty(IOProps.s_hash_asserts);
     // private final boolean ASSERTS;
-    private static final boolean STATS = false; // true; // false;
-    private static final boolean TIMINGS = false; // true; // false;
+    private static final boolean STATS =
+	TypedProperties.booleanProperty(IOProps.s_hash_stats);
+    private static final boolean TIMINGS =
+	TypedProperties.booleanProperty(IOProps.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
 
@@ -77,7 +81,6 @@ final class IbisHash {
 
     IbisHash(int sz, boolean supportDelete) {
 	this.supportDelete = supportDelete;
-	// ASSERTS = supportDelete;
 
 	int x = 1;
 	while (x < sz) {

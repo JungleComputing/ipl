@@ -50,8 +50,8 @@ public abstract class SerializationInputStream extends ObjectInputStream {
      * Each serialization entry/exit point must start/stop the timer.
      */
     protected final static boolean TIME_SERIALIZATION =
-	TypedProperties.booleanProperty("ibis.serialization.timer", false) ||
-       	TypedProperties.booleanProperty("ibis.serialization.timer.input", false);
+	TypedProperties.booleanProperty(IOProps.s_timer, false) ||
+       	TypedProperties.booleanProperty(IOProps.s_timer_in, false);
 
     /**
      * The serialization timer

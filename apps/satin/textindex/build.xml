@@ -7,7 +7,7 @@
     <property name="build"       location="build"/>
 
     <!--
-    <property name="satinc-flags" value="-no-aborts"/>
+    <property name="satinc-flags" value=""/>
     -->
 
     <property name="satinc-flags" value="-keep"/>

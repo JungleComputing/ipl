@@ -72,7 +72,7 @@ public final class NetLog {
 
                 while (i < steArray.length) {
                         StackTraceElement ste = steArray[i];
-                        if (ste.getClassName() != this.getClass().getName()) {
+                        if (! ste.getClassName().equals(this.getClass().getName())) {
                                 return ste;
                         }
 

@@ -1,6 +1,7 @@
 package ibis.connect.tcpSplicing;
 
 import ibis.connect.util.MyDebug;
+import ibis.connect.util.ConnProps;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
@@ -15,12 +16,12 @@ import java.net.Socket;
 
 public class Splice
 {
-    private static int serverPort = TypedProperties.intProperty("ibis.connect.spliceport", 20246);
+    private static int serverPort = TypedProperties.intProperty(ConnProps.splice_port, 20246);
     private static int hintPort = serverPort + 1;
     private static final int defaultSendBufferSize = 64*1024;
     private static final int defaultRecvBufferSize = 64*1024;
     private static NumServer server;
-    private static final boolean setBufferSizes = ! TypedProperties.booleanProperty("ibis.connect.default.sizes");
+    private static final boolean setBufferSizes = ! TypedProperties.booleanProperty(ConnProps.sizes);
 
     private Socket    socket = null;
     private String localHost = null;

@@ -1,6 +1,8 @@
 package ibis.impl.nio;
 
 import ibis.impl.nameServer.NameServer;
+
+import ibis.util.TypedProperties;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
@@ -14,6 +16,27 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 public final class NioIbis extends Ibis implements Config {
+
+    static final String prefix = "ibis.nio.";
+
+    static final String s_numbered = prefix + "numbered";
+    static final String s_spi = prefix + "spi";
+    static final String s_rpi = prefix + "rpi";
+    static final String s_debug = prefix + "debug";
+    static final String s_log = prefix + "log";
+
+    static final String[] properties = {
+	s_numbered,
+	s_spi,
+	s_rpi,
+	s_debug,
+	s_log
+    };
+
+    static final String[] unchecked = {
+	s_spi + ".",
+	s_rpi + "."
+    };
 
     private NioIbisIdentifier ident;
 
@@ -35,6 +58,7 @@ public final class NioIbis extends Ibis implements Config {
     private boolean i_joined = false;
 
     public NioIbis() throws IbisException {
+	TypedProperties.checkProperties(prefix, properties, unchecked);
 	try {
 	    Runtime.getRuntime().addShutdownHook(new NioShutdown());
 	} catch (Exception e) {

@@ -28,16 +28,16 @@ public final class Driver extends NetDriver {
 	static final boolean	DEBUG = false; // true; // false;
 
 	static final boolean	VERBOSE_INTPT = DEBUG
-	    || TypedProperties.booleanProperty("ibis.net.gm.intr.verbose", false); // true; // false;
+	    || TypedProperties.booleanProperty(NetIbis.gm_intr_v, false);
 
 	static final boolean	TIMINGS = false; // true;
 
         static Monitor		gmAccessLock  = null;
         static NetLockArray	gmLockArray   = null;
 
-	static final boolean	PRIORITY = TypedProperties.booleanProperty("ibis.net.gm.prioritymutex", true);
+	static final boolean	PRIORITY = TypedProperties.booleanProperty(NetIbis.gm_prio, true);
 
-	static final int        mtu = TypedProperties.intProperty("ibis.net.gm.mtu", 128 * 1024);
+	static final int        mtu = TypedProperties.intProperty(NetIbis.gm_mtu, 128 * 1024);
 
         static final int	packetMTU = 16384; // 4096;
 
@@ -51,7 +51,7 @@ public final class Driver extends NetDriver {
 
 	private static int	interrupts = 0;	// Support poll interrupts
 
-	private final static int POLLS_BEFORE_YIELD = TypedProperties.intProperty("ibis.net.gm.polls", 300);	    
+	private final static int POLLS_BEFORE_YIELD = TypedProperties.intProperty(NetIbis.gm_polls, 300);	    
 
 	/**
 	 * The driver name.
@@ -85,7 +85,7 @@ public final class Driver extends NetDriver {
 
 
 	static {
-	    if (System.getProperty("ibis.net.gm.dynamic") != null) {
+	    if (System.getProperty(NetIbis.gm_dynamic) != null) {
 		Ibis.loadLibrary("gm");
 	    }
 

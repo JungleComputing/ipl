@@ -33,7 +33,7 @@ final class Debug {
 
 	debugTypes = new HashSet();
 
-	String debugProp = System.getProperty("ibis.nio.debug");
+	String debugProp = System.getProperty(NioIbis.s_debug);
 
 	if (debugProp != null) {
 	    StringTokenizer st = new StringTokenizer(debugProp, " ,\t\n\r\f");
@@ -45,7 +45,7 @@ final class Debug {
     }
 
     static void setName(String name) throws IOException {
-	if (System.getProperty("ibis.nio.log") != null) {
+	if (System.getProperty(NioIbis.s_log) != null) {
 	    file = new FileOutputStream(name + ".log");
 	    log = new PrintStream(file);
 	}

@@ -34,8 +34,8 @@ public class MyDebug
     public static final PrintStream out; 
 
     static {
-	String sEnabled = System.getProperty("ibis.connect.debug", "false");
-	String sVerbose = System.getProperty("ibis.connect.verbose", "false");
+	String sEnabled = System.getProperty(ConnProps.debug, "false");
+	String sVerbose = System.getProperty(ConnProps.verbose, "false");
 
 	enableVerbose = sVerbose.equals("true");
 	enableDebug = sEnabled.equals("true");

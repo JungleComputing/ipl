@@ -20,7 +20,8 @@ import java.io.OutputStream;
  *     taken when Ibis serialization is used.
  * </ul>
  */
-public abstract class SerializationOutputStream extends ObjectOutputStream {
+public abstract class SerializationOutputStream extends ObjectOutputStream
+	implements IbisStreamFlags {
     protected Replacer replacer;
 
     /**
@@ -52,8 +53,8 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
      * Each serialization entry/exit point must start/stop the timer.
      */
     protected final static boolean TIME_SERIALIZATION =
-	TypedProperties.booleanProperty("ibis.serialization.timer", false) ||
-       	TypedProperties.booleanProperty("ibis.serialization.timer.output", false);
+	TypedProperties.booleanProperty(IOProps.s_timer, false) ||
+       	TypedProperties.booleanProperty(IOProps.s_timer_out, false);
 
     /**
      * The serialization timer

@@ -7,16 +7,16 @@ compiles a sequential version that can be executed with:
 [rob@fs0:~/projects/ibis/apps/satin/tsp]$ ~/projects/ibis/bin/run_ibis 0 1 foo 9826 fs0.das2.cs.vu.nl Tsp 10
 
 
-(betekenis:
+(meaning:
 
-run_ibis PROC_NR AANTAL_PROCS POOL_ID (=random string) NAMESERVER_PORT NAMESERVER_HOSTNAME CLASSFILE <PARAMS> <SATIN_PARAMS>
+run_ibis PROCNR NPROCS POOL_ID (=random string) NAMESERVER_PORT NAMESERVER_HOSTNAME CLASSFILE <PARAMS> <SATIN_PARAMS>
 
 or simpler, run with:
 
 java -cp YOUR_IBIS_BUILD_DIR:build CLASS_NAME APP_OPTIONS
 
 
-parallel compileren:
+Compiling for parallel Satin runs:
 
 [rob@fs0:~/projects/ibis/apps/satin/tsp]$ ant clean build
 
@@ -32,7 +32,6 @@ After the name server has been started you can run it on just your
 local processor with:
 
 [rob@fs0:~/projects/ibis/apps/satin/tsp]$ ~/projects/ibis/bin/run_ibis 0 1 foo 9826 fs0.das2.cs.vu.nl Tsp 10
-
 
 To run it in parallel on the DAS2 you need to start the ibis_nameserver
 on the DAS2 fs0 processor (see above), and you can submit a job with:

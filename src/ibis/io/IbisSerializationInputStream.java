@@ -30,7 +30,7 @@ public class IbisSerializationInputStream
      * Record how many objects of any class are sent the expensive way:
      * via the uninitialized native creator.
      */
-    private static final boolean STATS_NONREWRITTEN = TypedProperties.booleanProperty("ibis.stats.io.nonrewritten");
+    private static final boolean STATS_NONREWRITTEN = TypedProperties.booleanProperty(IOProps.s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
     private static java.util.Hashtable nonRewritten = new java.util.Hashtable();
@@ -151,7 +151,7 @@ public class IbisSerializationInputStream
 	IbisTypeInfo.getIbisTypeInfo(classDoubleArray);
 
     static {
-	String clName = System.getProperty("ibis.serialization.classloader");
+	String clName = System.getProperty(IOProps.s_classloader);
 	if (clName != null) {
 	    //we try to instanciate it
 	    try {

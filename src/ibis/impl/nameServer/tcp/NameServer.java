@@ -1,5 +1,7 @@
 package ibis.impl.nameServer.tcp;
 
+import ibis.impl.nameServer.NSProps;
+
 import ibis.connect.controlHub.ControlHub;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
@@ -30,10 +32,10 @@ public class NameServer implements Protocol {
 	// public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 5678;
         private static final int BUF_SIZE = 1024;
 	
-	static boolean DEBUG = TypedProperties.booleanProperty("ibis.ns.debug");
-	static boolean VERBOSE = TypedProperties.booleanProperty("ibis.ns.verbose");
+	static boolean DEBUG = TypedProperties.booleanProperty(NSProps.s_debug);
+	static boolean VERBOSE = TypedProperties.booleanProperty(NSProps.s_verbose);
 
-	static int PINGER_TIMEOUT = TypedProperties.intProperty("ibis.ns.timeout", 300) * 1000;	// Property is in seconds, convert to milliseconds.
+	static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout, 300) * 1000;	// Property is in seconds, convert to milliseconds.
 
 	static class IbisInfo { 		
 		IbisIdentifier identifier;
@@ -692,7 +694,7 @@ public class NameServer implements Protocol {
 
 		if(!single) {
 			Properties p = System.getProperties();
-			String singleS = p.getProperty("single_run");
+			String singleS = p.getProperty(NSProps.s_single);
 			
 			single = (singleS != null && singleS.equals("true")); 
 		}

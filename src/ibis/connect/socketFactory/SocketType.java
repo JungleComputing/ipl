@@ -1,5 +1,6 @@
 package ibis.connect.socketFactory;
 
+import ibis.connect.util.ConnProps;
 
 public abstract class SocketType
 {
@@ -10,7 +11,7 @@ public abstract class SocketType
     public static class DefaultConnectProperties 
 	implements ConnectProperties {
 	public String getProperty(String name) {
-	    return System.getProperties().getProperty("ibis.connect."+name);
+	    return System.getProperties().getProperty(ConnProps.PROPERTY_PREFIX+name);
 	}
     }
 

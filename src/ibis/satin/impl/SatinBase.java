@@ -7,6 +7,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.util.Timer;
+import ibis.util.TypedProperties;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -302,6 +303,10 @@ public abstract class SatinBase implements Config {
 	 * time; the same ibis cannot crash and join the computation again
 	 */
 	Vector deadIbises = new Vector();
+
+	static {
+	    TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+	}
 
 	static boolean trylock(Object o) {
 		try {

@@ -8,7 +8,7 @@ import java.io.IOException;
 
 final public class SerializeSendPort extends SendPort {
 
-    private final boolean DEBUG = SendPort.DEBUG;
+    private static final boolean DEBUG = SendPort.DEBUG;
 
     ibis.io.SunSerializationOutputStream obj_out;
 

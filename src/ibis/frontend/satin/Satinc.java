@@ -52,6 +52,7 @@ import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.ILOAD;
 import org.apache.bcel.generic.INSTANCEOF;
 import org.apache.bcel.generic.INVOKEVIRTUAL;
+import org.apache.bcel.generic.IOR;
 import org.apache.bcel.generic.IRETURN;
 import org.apache.bcel.generic.ISTORE;
 import org.apache.bcel.generic.Instruction;
@@ -118,10 +119,8 @@ public final class Satinc {
     boolean invocationRecordCache;
     String classname;
     String compiler = "javac";
-    boolean supportAborts;
     boolean inletOpt;
     boolean spawnCounterOpt;
-    boolean faultTolerance;
     boolean errors = false;
     MethodTable mtab;
     boolean failed_verification = false;
@@ -206,8 +205,7 @@ public final class Satinc {
     private static Vector javalist = new Vector();
 
     public Satinc(boolean verbose, boolean local, boolean verify, boolean keep, boolean print, boolean invocationRecordCache,
-           String classname, String compiler, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt,
-	   boolean faultTolerance) {
+           String classname, String compiler, boolean inletOpt, boolean spawnCounterOpt) {
 
 	this.verbose = verbose;
 	this.verify = verify;
@@ -217,10 +215,8 @@ public final class Satinc {
 	this.invocationRecordCache = invocationRecordCache;
 	this.classname = classname;
 	this.compiler = compiler;
-	this.supportAborts = supportAborts;
 	this.inletOpt = inletOpt;
 	this.spawnCounterOpt = spawnCounterOpt;
-	this.faultTolerance = faultTolerance;
 
 	c = Repository.lookupClass(classname);
 
@@ -391,18 +387,24 @@ public final class Satinc {
 				     Type.NO_ARGS,
 				     Constants.INVOKEVIRTUAL));
 	// fault tolerance
-	if (faultTolerance) {
-	    il.append(getSatin(ins_f));
-	    il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
-				        "isMaster",
-				        Type.BOOLEAN,
-				        Type.NO_ARGS,
-				        Constants.INVOKEVIRTUAL));
-	    il.append(new IFNE(origMain_handle));
-	}
+	il.append(ins_f.createFieldAccess("ibis.satin.impl.Config",
+				      "FAULT_TOLERANCE",
+				      Type.BOOLEAN,
+				      Constants.GETSTATIC));
+	ifcmp = il.append(new IFEQ(null));
+	il.append(getSatin(ins_f));
+	il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
+				    "isMaster",
+				    Type.BOOLEAN,
+				    Type.NO_ARGS,
+				    Constants.INVOKEVIRTUAL));
+	il.append(new IFNE(origMain_handle));
 	//
 
 	InstructionHandle gto_target = il.append(getSatin(ins_f));
+	// fault tolerance
+	ifcmp.setTarget(gto_target);
+	//
 	try_end.setTarget(gto_target);
 	gto2.setTarget(gto_target);
 
@@ -803,22 +805,31 @@ public final class Satinc {
 	// jump back to start op loop 
 	il.insert(pos, new IFNONNULL(firstJumpPos.getNext()));
 
-	// only for aborts: add an if when this job may be aborted
-	if (supportAborts || faultTolerance) {
-	    if (verbose) {
-		System.out.println("outputting post-sync aborted check for " + m);
-	    }
-	    insertAbortedCheck(m, il, pos);
+	if (verbose) {
+	    System.out.println("outputting post-sync aborted check for " + m);
 	}
+	insertAbortedCheck(m, il, pos);
     }
 
     void insertAbortedCheck(MethodGen m, InstructionList il, InstructionHandle pos) {
 	// Generates:
-	//   if (satin.getParent() != null && satin.getParent().aborted) {
-	//       return null;
+	//   if (Config.FAULT_TOLERANCE || Config.ABORTS) {
+	//       if (satin.getParent() != null && satin.getParent().aborted) {
+	//           return null;
+	//       }
 	//   }
 	InstructionHandle abo = insertNullReturn(m, il, pos);
 
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
+				      "FAULT_TOLERANCE",
+				      Type.BOOLEAN,
+				      Constants.GETSTATIC));
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
+				      "ABORTS",
+				      Type.BOOLEAN,
+				      Constants.GETSTATIC));
+	il.insert(abo, new IOR());
+	il.insert(abo, new IFEQ(pos));
 	il.insert(abo, getSatin(ins_f));
 	il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin",
 					  "getParent",
@@ -1091,12 +1102,10 @@ public final class Satinc {
 				     Type.VOID,
 				     new Type[] { irType },
 				     Constants.INVOKEVIRTUAL));
-	if (supportAborts) {
-	    if (verbose) {
-		System.out.println("outputting post-spawn aborted check for " + m);
-	    }
-	    insertAbortedCheck(m, il, ih.getNext());
+	if (verbose) {
+	    System.out.println("outputting post-spawn aborted check for " + m);
 	}
+	insertAbortedCheck(m, il, ih.getNext());
     }
 
     /* replace store by pop, load by const push */
@@ -2190,13 +2199,13 @@ System.out.println("findMethod: could not find method " + name + sig);
 		out.println("        res.storeId = storeId;");
 
 		out.println("        if (ibis.satin.impl.Config.ABORTS) {");
-		out.println("                res.spawnId = spawnId;");
-		out.println("                res.parentLocals = parentLocals;");
+		out.println("            res.spawnId = spawnId;");
+		out.println("            res.parentLocals = parentLocals;");
 		out.println("        }");
 		
 		out.println("        if (ibis.satin.impl.Config.FAULT_TOLERANCE) {");
-		out.println("                res.spawnId = spawnId;");
-		out.println("		     res.numSpawned = 0;");
+		out.println("            res.spawnId = spawnId;");
+		out.println("            res.numSpawned = 0;");
 		out.println("        }");
 		
 		out.println("        return res;");
@@ -2270,9 +2279,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    // runLocal method 
 	    out.println("    public void runLocal() throws Throwable {");
-	    if (supportAborts) {
-		out.println("        try {");
-	    }
+	    out.println("        if (ibis.satin.impl.Config.ABORTS) {");
+	    out.println("            try {");
 
 	    if (! returnType.equals(Type.VOID)) {
 		out.print("            result = ");
@@ -2285,51 +2293,42 @@ System.out.println("findMethod: could not find method " + name + sig);
 		}
 	    }
 	    out.println(");");
-	    if (supportAborts) {
-		out.println("        } catch (Throwable e) {");
-		out.println("            if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"caught exception in runlocal: \" + e);");
-		out.println("            eek = e;");
-		out.println("        }");
+	    out.println("            } catch (Throwable e) {");
+	    out.println("                if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"caught exception in runlocal: \" + e);");
+	    out.println("                eek = e;");
+	    out.println("            }");
 
-		out.println("        if (eek != null && !inletExecuted) {");
-		out.println("            if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this);");
-		out.println("            if(parentLocals != null)");
-		out.println("                parentLocals.handleException(spawnId, eek, this);");
-		out.println("            if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
-		out.println("            if(parentLocals == null)");
-		out.println("                throw eek;");
-		out.println("        }");
+	    out.println("            if (eek != null && !inletExecuted) {");
+	    out.println("                if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this);");
+	    out.println("                if(parentLocals != null)");
+	    out.println("                    parentLocals.handleException(spawnId, eek, this);");
+	    out.println("                if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
+	    out.println("                if(parentLocals == null)");
+	    out.println("                    throw eek;");
+	    out.println("            }");
+	    out.println("        } else {");
+	    if (! returnType.equals(Type.VOID)) {
+		out.print("            result = ");
 	    }
+	    out.print("            self." + m.getName() + "(");
+	    for (int i=0; i<params.length; i++) {
+		out.print("param" + i);
+		if (i != params.length-1) {
+		    out.print(", ");
+		}
+	    }
+	    out.println(");");
+	    out.println("        }");
 	    out.println("    }\n");
 
 	    // runRemote method 
 	    out.println("    public ibis.satin.impl.ReturnRecord runRemote() {");
-
-	    // Code below commented out because it is wrong:
-	    // the "eek" field of the invocation record should be used. 
-    //	if (supportAborts) {
-    //	    out.println("        Throwable eek = null;");
-    //	}
-
-/*	    if (supportAborts) {
-		if (! returnType.equals(Type.VOID)) {
-		    out.print("        " + returnType + " result = ");
-		    out.print(getInitVal(returnType));
-		    out.println(";");
-		}
-	    } else {
-		if (! returnType.equals(Type.VOID)) {
-		    out.println("        " + returnType + " result;");
-		}
-	    }*/
-
-	    if (supportAborts) {
-		out.println("        try {");
-	    }
+	    out.println("        try {");
+	    out.print(  "            ");
 	    if (! returnType.equals(Type.VOID)) {
-		out.print("            result = ");
+		out.print("result = ");
 	    }
-	    out.print("            self." + m.getName() + "(");
+	    out.print("self." + m.getName() + "(");
 
 	    for (int i=0; i<params.length; i++) {
 		out.print("param" + i);
@@ -2338,12 +2337,20 @@ System.out.println("findMethod: could not find method " + name + sig);
 		}
 	    }
 	    out.println(");");
-	    if (supportAborts) {
-		out.println("        } catch (Throwable e) {");
-		out.println("            eek = e;");
-		out.println("        }");
-	    }
-	    out.print("        return new " + returnRecordName(m, classname));
+	    out.println("        } catch (Throwable e) {");
+	    out.println("            if (ibis.satin.impl.Config.ABORTS) {");
+	    out.println("                eek = e;");
+	    out.println("            } else {");
+	    out.println("                if (e instanceof Error) {");
+	    out.println("                    throw (Error) e;");
+	    out.println("                }");
+	    out.println("                if (e instanceof RuntimeException) {");
+	    out.println("                    throw (RuntimeException) e;");
+	    out.println("                }");
+	    out.println("                throw new RuntimeException(e);");
+	    out.println("            }");
+	    out.println("        }");
+	    out.print(  "        return new " + returnRecordName(m, classname));
 	    if (! returnType.equals(Type.VOID)) {
 		out.println("(result, eek, stamp);");
 	    } else {
@@ -2895,7 +2902,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    for (int i = 0; i < javalist.size(); i++) {
 		JavaClass cl = (JavaClass) (javalist.get(i));
 		new Satinc(verbose, local, verify, keep, print, invocationRecordCache,
-			    cl.getClassName(), compiler, supportAborts, inletOpt, spawnCounterOpt, faultTolerance).start();
+			    cl.getClassName(), compiler, inletOpt, spawnCounterOpt).start();
 	    }
 	}
 
@@ -2913,7 +2920,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
     public static void usage() {
 	System.err.println("Usage : java Satinc [[-no]-verbose] [[-no]-keep] [-dir|-local] [[-no]-print] [[-no]-irc] [[-no]-sc-opt]" +
-		   "[-compiler \"your compile command\" ] [[-no]-aborts] [[-no]-inlet-opt] [[-no]-fault-tolerance] <classname>*");
+		   "[-compiler \"your compile command\" ] [[-no]-inlet-opt] <classname>*");
 	System.exit(1);
     }
 
@@ -2966,11 +2973,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	boolean local = true;
 	boolean print = false;
 	boolean invocationRecordCache = true;
-	boolean supportAborts = true;
 	String compiler = "javac";
 	boolean inletOpt = true;
 	boolean spawnCounterOpt = true;
-	boolean faultTolerance = false;
 	Vector list = new Vector();
 
 	for (int i=0; i<args.length; i++) {
@@ -3007,10 +3012,6 @@ System.out.println("findMethod: could not find method " + name + sig);
 		invocationRecordCache = false;
 	    } else if (args[i].equals("-irc")) {
 		invocationRecordCache = true;
-	    } else if (args[i].equals("-no-aborts")) {
-		supportAborts = false;
-	    } else if (args[i].equals("-aborts")) {
-		supportAborts = true;
 	    } else if (args[i].equals("-no-inlet-opt")) {
 		inletOpt = false;
 	    } else if (args[i].equals("-inlet-opt")) {
@@ -3019,11 +3020,6 @@ System.out.println("findMethod: could not find method " + name + sig);
 		spawnCounterOpt = false;
 	    } else if (args[i].equals("-sc-opt")) {
 		spawnCounterOpt = true;
-	    } else if (args[i].equals("-fault-tolerance")) {
-		faultTolerance = true;
-		System.out.println("fault tolerance turned on");
-	    } else if (args[i].equals("-no-fault-tolerance")) {
-		faultTolerance = false;
 	    } else {
 		usage();
 	    }
@@ -3034,7 +3030,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
 
 	for (int i = 0; i < list.size(); i++) {
-	    new Satinc(verbose, local, verify, keep, print, invocationRecordCache, (String) list.get(i), compiler, supportAborts, inletOpt, spawnCounterOpt, faultTolerance).start();
+	    new Satinc(verbose, local, verify, keep, print, invocationRecordCache, (String) list.get(i), compiler, inletOpt, spawnCounterOpt).start();
 	}
     }
 

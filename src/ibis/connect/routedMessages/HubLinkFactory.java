@@ -1,6 +1,7 @@
 package ibis.connect.routedMessages;
 
 import ibis.connect.util.MyDebug;
+import ibis.connect.util.ConnProps;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -13,8 +14,8 @@ public class HubLinkFactory {
     static {
 	try {
 	    Properties p = System.getProperties();
-	    String host       = p.getProperty("ibis.connect.hub_host");
-	    String portString = p.getProperty("ibis.connect.hub_port");
+	    String host       = p.getProperty(ConnProps.hub_host);
+	    String portString = p.getProperty(ConnProps.hub_port);
 
 	    int port;
 

@@ -13,7 +13,7 @@ java:
 	$(JAVAC_COMMAND) $(MAIN)
 
 satin:
-	$(IBISC_COMMAND) -no-aborts $(MAIN)
+	$(IBISC_COMMAND) $(MAIN)
 
 manta: $(OBJ)
 	$(MANTAC)    $(MANTA_FLAGS) $(MAIN) -o $(EXEC) *.o

@@ -1,6 +1,7 @@
 package ibis.connect.socketFactory;
 
 import ibis.connect.util.MyDebug;
+import ibis.connect.util.ConnProps;
 import ibis.util.IPUtils;
 
 import java.io.IOException;
@@ -78,8 +79,8 @@ public class ExtSocketFactory
 			"ibis.connect.socketFactory.SSLSocketType");
 
 	Properties p = System.getProperties();
-	String bl = p.getProperty("ibis.connect.data_links");
-	String cs = p.getProperty("ibis.connect.control_links");
+	String bl = p.getProperty(ConnProps.datalinks);
+	String cs = p.getProperty(ConnProps.controllinks);
 	if(bl == null || cs == null) {
 	    if(MyDebug.VERBOSE())
 		System.err.println("# Loading defaults...");

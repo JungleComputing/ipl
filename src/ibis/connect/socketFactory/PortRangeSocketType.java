@@ -1,6 +1,7 @@
 package ibis.connect.socketFactory;
 
 import ibis.connect.util.MyDebug;
+import ibis.connect.util.ConnProps;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +24,7 @@ public class PortRangeSocketType
 
     static {
 	Properties p = System.getProperties();
-	String range = p.getProperty("ibis.connect.port_range");
+	String range = p.getProperty(ConnProps.port_range);
 	if(range != null) {
 	    try {
 		int pos = range.indexOf('-');

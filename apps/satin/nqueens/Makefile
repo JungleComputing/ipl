@@ -15,7 +15,7 @@ java:
 #	cd exceptions && make java
 
 satin: 
-	$(IBISC_COMMAND) -no-aborts $(MAIN)
+	$(IBISC_COMMAND) $(MAIN)
 #	cd abort && make satin
 #	cd simple_abort && make satin
 #	cd exceptions && make satin

@@ -1396,8 +1396,12 @@ our example program:
 Note that the assumption here is that Ibis is installed in
 \texttt{/usr/local/ibis}.
 
-Now, invoking \emph{ant} compiles the application, leaving the class files
-in a directory called \texttt{build}.
+Invoking \emph{ant clean compile} compiles a sequential version
+of the application, 
+leaving the class files in a directory called \texttt{build}.
+
+Invoking \emph{ant clean build} compiles the application for parallel
+runs.
 
 Running a Satin program is very much like running an Ibis application.
 See Section \ref{Compiling and Running an Ibis Application} for details.

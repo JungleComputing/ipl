@@ -1,8 +1,13 @@
 package ibis.io;
 
+import ibis.util.TypedProperties;
+
 public interface IbisStreamFlags { 
-    public static final boolean DEBUG = false;
-    public static final boolean ASSERTS = false;
+
+    public static final boolean DEBUG =
+	TypedProperties.booleanProperty(IOProps.s_dbg, false);
+    public static final boolean ASSERTS =
+	TypedProperties.booleanProperty(IOProps.s_asserts, false);
 
     public static final int BUFFER_SIZE = 2*1024;
     public static final int ARRAY_BUFFER_SIZE	= 1024;

@@ -41,13 +41,13 @@ final public class Poll implements Runnable {
     static {
 	int  polls = DEFAULT_YIELD_POLLS;
 
-	String envPoll = System.getProperty("ibis.mp.polls.yield");
+	String envPoll = System.getProperty(MPProps.s_polls_yield);
 	if (envPoll != null) {
 	    polls = Integer.parseInt(envPoll);
 	}
 	POLLS_BEFORE_YIELD = polls;
 
-	USE_SLEEP_FOR_YIELD = ! TypedProperties.booleanProperty("ibis.mp.yield")
+	USE_SLEEP_FOR_YIELD = ! TypedProperties.booleanProperty(MPProps.s_yield)
 		&& ! TypedProperties.stringProperty("java.compiler", "manta");
 
 	if (Ibis.myIbis.myCpu == 0) {

@@ -1,6 +1,7 @@
 package ibis.impl.nameServer.tcp;
 
 import ibis.impl.nameServer.NameServer;
+import ibis.impl.nameServer.NSProps;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
@@ -59,7 +60,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 		myAddress = IPUtils.getLocalHostAddress();
 
-		server = p.getProperty("ibis.name_server.host");
+		server = p.getProperty(NSProps.s_host);
 		if (server == null) {
 			throw new IbisConfigurationException("property ibis.name_server.host is not specified");
 		}
@@ -68,12 +69,12 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 		    server = myAddress.getHostName();
 		}
 
-		poolName = p.getProperty("ibis.name_server.key");
+		poolName = p.getProperty(NSProps.s_key);
 		if (poolName == null) {
 			throw new IbisConfigurationException("property ibis.name_server.key is not specified");
 		}
 
-		String nameServerPortString = p.getProperty("ibis.name_server.port");
+		String nameServerPortString = p.getProperty(NSProps.s_port);
 		if (nameServerPortString == null) {
 			port = ibis.impl.nameServer.tcp.NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
 		} else {
@@ -94,7 +95,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 		serverSocket = socketFactory.createServerSocket(0, myAddress, true);
 
-		boolean retry = TypedProperties.booleanProperty("ibis.name_server.retry");
+		boolean retry = TypedProperties.booleanProperty(NSProps.s_retry);
 
 		Socket s = null;
 		boolean failed_once = false;

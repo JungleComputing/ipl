@@ -68,7 +68,7 @@ class NioPortType extends PortType implements Config {
 	oneToMany = p.isProp("Communication", "OneToMany");
 	manyToOne = p.isProp("Communication", "ManyToOne");
 
-	if (systemProperties.getProperty("ibis.nio.numbered") != null) {
+	if (systemProperties.getProperty(NioIbis.s_numbered) != null) {
 	    numbered = true;
 	} else {
 	    numbered = p.isProp("Communication", "Numbered");
@@ -101,9 +101,8 @@ class NioPortType extends PortType implements Config {
 
 
 
-	String globalSPI = systemProperties.getProperty("ibis.nio.spi");
-	String typeSPI = systemProperties.getProperty("ibis.nio." + name 
-						      + ".spi");
+	String globalSPI = systemProperties.getProperty(NioIbis.s_spi);
+	String typeSPI = systemProperties.getProperty(NioIbis.s_spi + "." + name);
 
 	if (typeSPI != null) {
 	    if (typeSPI.equalsIgnoreCase("Blocking")) {
@@ -133,9 +132,8 @@ class NioPortType extends PortType implements Config {
 	    sendPortImplementation = IMPLEMENTATION_BLOCKING;
 	}
 
-	String globalRPI = systemProperties.getProperty("ibis.nio.rpi");
-	String typeRPI = systemProperties.getProperty("ibis.nio." 
-							+ name + ".rpi");
+	String globalRPI = systemProperties.getProperty(NioIbis.s_rpi);
+	String typeRPI = systemProperties.getProperty(NioIbis.s_rpi + "." + name); 
 
 	if (typeRPI != null) {
 	    if (typeRPI.equalsIgnoreCase("Blocking")) {

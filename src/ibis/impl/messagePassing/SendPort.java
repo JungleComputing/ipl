@@ -16,12 +16,12 @@ public class SendPort implements ibis.ipl.SendPort {
     protected final static boolean DEBUG = Ibis.DEBUG;
 
     private final static boolean USE_BCAST =
-	TypedProperties.stringProperty("ibis.mp.broadcast", "native") ||
-	TypedProperties.booleanProperty("ibis.mp.broadcast.native", true);
+	TypedProperties.stringProperty(MPProps.s_broadcast, "native") ||
+	TypedProperties.booleanProperty(MPProps.s_bc_native, true);
     private final static boolean USE_BCAST_ALL =
-		TypedProperties.booleanProperty("ibis.mp.broadcast.all");
+		TypedProperties.booleanProperty(MPProps.s_bc_all);
     private final static boolean USE_BCAST_AT_TWO =
-		TypedProperties.booleanProperty("ibis.mp.broadcast.2");
+		TypedProperties.booleanProperty(MPProps.s_bc_2);
 
     static {
 	if (USE_BCAST && Ibis.myIbis.myCpu == 0) {
@@ -33,7 +33,7 @@ public class SendPort implements ibis.ipl.SendPort {
     private final static boolean SERIALIZE_SENDS_PER_CPU;
     static {
 	SERIALIZE_SENDS_PER_CPU =
-		TypedProperties.booleanProperty("ibis.mp.serialize-sends");
+		TypedProperties.booleanProperty(MPProps.s_ser_sends);
     }
 
     protected PortType type;

@@ -112,7 +112,7 @@ final class ByteOutputStream
     }
 
     void setAllocator(DataAllocator allocator) {
-	if (TypedProperties.booleanProperty("ibis.mp.allocator", true)) {
+	if (TypedProperties.booleanProperty(MPProps.s_alloc, true)) {
 	    if (Ibis.myIbis.myCpu == 0 && ! warningPrinted) {
 		System.err.println(this + ": set allocator " + allocator);
 		warningPrinted = true;

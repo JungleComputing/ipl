@@ -116,7 +116,7 @@ public abstract class Conversion {
     public static final Conversion loadConversion(boolean bigEndian) {
 	Properties systemProperties = System.getProperties();
 
-	String conversion = systemProperties.getProperty("ibis.conversion");
+	String conversion = systemProperties.getProperty(IOProps.s_conversion);
 
 	if(conversion != null && conversion.equalsIgnoreCase("nio/wrap")) {
 	    try {

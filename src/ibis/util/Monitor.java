@@ -13,9 +13,17 @@ package ibis.util;
  */
 public final class Monitor {
 
-    final static boolean DEBUG = TypedProperties.booleanProperty("ibis.monitor.debug");
+    final private static String PROPERTY_PREFIX = "ibis.util.monitor.";
+    final private static String dbg = PROPERTY_PREFIX + "debug";
+    final private static String stats = PROPERTY_PREFIX + "stats";
 
-    final static boolean STATISTICS = false; // TypedProperties.booleanProperty("ibis.monitor.stats");
+    final private static String[] props = {
+	dbg,
+	stats
+    };
+
+    final static boolean DEBUG = TypedProperties.booleanProperty(dbg);
+    final static boolean STATISTICS = TypedProperties.booleanProperty(stats);
 
     final boolean	PRIORITY;
 
@@ -35,6 +43,7 @@ public final class Monitor {
     private static int	unlock_bcast;
 
     static {
+	TypedProperties.checkProperties(PROPERTY_PREFIX, props, null);
 	if (DEBUG) {
 	    System.err.println("Turn on Monitor.DEBUG");
 	}

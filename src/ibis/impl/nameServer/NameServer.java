@@ -37,7 +37,7 @@ public abstract class NameServer implements ibis.ipl.Registry {
 		NameServer res = null;
 
 		Properties p = System.getProperties();
-		String nameServerName = p.getProperty("ibis.name_server.impl");
+		String nameServerName = p.getProperty(NSProps.s_impl);
 		if(nameServerName == null) {
 			System.err.println("property ibis.name_server.impl not set, using TCP nameserver");
 			nameServerName = "ibis.impl.nameServer.tcp.NameServerClient";

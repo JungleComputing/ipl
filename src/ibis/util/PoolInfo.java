@@ -39,11 +39,40 @@ import java.util.StringTokenizer;
  */
 public class PoolInfo {
 
+	static final String PROPERTY_PREFIX = "ibis.pool.";
+	static final String s_cluster = PROPERTY_PREFIX + "cluster";
+	static final String s_names = PROPERTY_PREFIX + "host_names";
+	static final String s_total = PROPERTY_PREFIX + "total_hosts";
+	static final String s_hnum = PROPERTY_PREFIX + "host_number";
+	static final String s_single = PROPERTY_PREFIX + "single";
+	static final String s_port = PROPERTY_PREFIX + "server.port";
+	static final String s_host = PROPERTY_PREFIX + "server.host";
+	static final String s_key = PROPERTY_PREFIX + "key";
+
+	static final String [] sysprops = {
+	    s_cluster,
+	    s_names,
+	    s_total,
+	    s_hnum,
+	    s_single,
+	    s_port,
+	    s_host,
+	    s_key
+	};
+
 	int total_hosts;
 	int host_number;
 	String [] host_names;
 	InetAddress [] hosts;
-	private String clusterName;
+	static String clusterName;
+
+	static {
+		TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+		clusterName = TypedProperties.stringPropertyValue(s_cluster);
+		if (clusterName == null) {
+		    clusterName = "unknown";
+		}
+	}
 
 	/**
 	 * Constructs a <code>PoolInfo</code> object.
@@ -61,10 +90,6 @@ public class PoolInfo {
 	 * @exception IbisException is thrown when something is wrong.
 	 */
 	public PoolInfo(boolean forceSequential) throws IbisException {
-		clusterName = TypedProperties.stringPropertyValue("ibis.pool.cluster");
-		if (clusterName == null) {
-		    clusterName = "unknown";
-		}
 		if (forceSequential) {
 			sequentialPool();
 		} else {
@@ -104,16 +129,16 @@ public class PoolInfo {
 		
 		Properties p = System.getProperties();
 		
-		total_hosts = getIntProperty(p, "ibis.pool.total_hosts");
+		total_hosts = getIntProperty(p, s_total);
 		try {
-		    host_number = getIntProperty(p, "ibis.pool.host_number");
+		    host_number = getIntProperty(p, s_hnum);
 		} catch (IbisException e) {
 		    host_number = -1;
 		}
 		
-		ibisHostNames = p.getProperty("ibis.pool.host_names");
+		ibisHostNames = p.getProperty(s_names);
 		if(ibisHostNames == null) {
-			throw new IbisException("Property ibis.pool.host_names not set!");
+			throw new IbisException("Property " + s_names + " not set!");
 		}
 
 		host_names = new String[total_hosts];
@@ -127,7 +152,6 @@ public class PoolInfo {
 		} catch (java.net.UnknownHostException e) {
 		    my_hostname = null;
 		}
-		// System.err.println(my_hostname + ": I see rank \"" + p.getProperty("ibis.pool.rank") + "\"");
 		// System.err.println(my_hostname + ": I see host_names \"" + ibisHostNames+ "\"");
 		int match = 0;
 		int my_host = -1;
@@ -315,7 +339,7 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 		if (forceSeq) {
 			return new PoolInfo(true);
 		}
-		if (TypedProperties.stringPropertyValue("ibis.pool.host_names") != null) {
+		if (TypedProperties.stringPropertyValue(s_names) != null) {
 			return new PoolInfo();
 		}
 		try {

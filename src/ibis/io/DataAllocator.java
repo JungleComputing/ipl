@@ -9,18 +9,13 @@ import ibis.util.TypedProperties;
 public class DataAllocator implements IbisStreamFlags {
 
     /**
-     * asserts
-     */
-    private final static boolean ASSERTS = false;
-
-    /**
      * Number of buffers per type that is cached at maximum.
      */
     private final static int DEFAULT_CACHE_MAX = 512; // 64; // 256;
     private final static int CACHE_MAX;
 
     static {
-	CACHE_MAX = TypedProperties.intProperty("ibis.io.allocator.size", DEFAULT_CACHE_MAX);
+	CACHE_MAX = TypedProperties.intProperty(IOProps.s_cache_max, DEFAULT_CACHE_MAX);
     }
 
     /**
@@ -49,7 +44,7 @@ public class DataAllocator implements IbisStreamFlags {
     private IbisHash	floatHash    = new IbisHash(2 * CACHE_MAX, true);
     private IbisHash	doubleHash   = new IbisHash(2 * CACHE_MAX, true);
 
-    private final static boolean STATISTICS = false;
+    private final static boolean STATISTICS = TypedProperties.booleanProperty(IOProps.s_cache_stats);
 
     // if (STATISTICS)
     private int alloc_index;

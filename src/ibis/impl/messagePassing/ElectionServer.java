@@ -2,6 +2,7 @@ package ibis.impl.messagePassing;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -14,7 +15,7 @@ class ElectionServer
     private boolean finished = false;
     private boolean halted = false;
 
-    final static boolean DEBUG = false; // TypedProperties.booleanProperty("ibis.mp.elect.debug");
+    final static boolean DEBUG = TypedProperties.booleanProperty(MPProps.s_elect_debug);
 
 
     public void upcall(ibis.ipl.ReadMessage m) {

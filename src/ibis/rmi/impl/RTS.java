@@ -32,6 +32,13 @@ import java.util.Hashtable;
 
 public final class RTS {
 
+    static final String prefix = "rmi.";
+    static final String s_timer = "timer";
+
+    static final String[] props = {
+	s_timer
+    };
+
     /** Sent when a remote invocation resulted in an exception. */
     public final static byte EXCEPTION    = 0;
 
@@ -223,6 +230,7 @@ public final class RTS {
     private static UpcallHandler upcallHandler;
 
     static {
+	TypedProperties.checkProperties(prefix, props, null);
 	try {
 	    skeletons = new HashMap();
 	    stubs = new HashMap();

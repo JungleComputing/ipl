@@ -45,9 +45,9 @@ public abstract class SpawnSync extends Termination {
 	}
 
 	protected void callSatinFunction(InvocationRecord r) {
-		InvocationRecord oldParent;
-		int oldParentStamp;
-		IbisIdentifier oldParentOwner;
+		InvocationRecord oldParent = null;
+		int oldParentStamp = 0;
+		IbisIdentifier oldParentOwner = null;
 
 		handleDelayedMessages();
 		

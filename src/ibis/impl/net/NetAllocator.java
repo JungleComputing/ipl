@@ -13,7 +13,7 @@ public final class NetAllocator {
         /**
          * Activate allocator stats.
          */
-        private static  final   boolean                 STATISTICS      = TypedProperties.booleanProperty("ibis.net.allocator.stats", false);
+        private static  final   boolean                 STATISTICS      = TypedProperties.booleanProperty(NetIbis.alloc_stats, false);
 
         /**
          * Activate alloc-without-free checking.
@@ -42,7 +42,7 @@ public final class NetAllocator {
 	 *
 	 * Judicially choose the mtu of net.gm as the default value...
          */
-        private static  final   int                     bigBlockThreshold  = TypedProperties.intProperty("ibis.net.allocator.bigThr", 128*1024);
+        private static  final   int                     bigBlockThreshold  = TypedProperties.intProperty(NetIbis.alloc_thres, 128*1024);
 
 	/**
 	 * Allocate buffers in chunks

@@ -5,6 +5,7 @@ import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 import ibis.util.ConditionVariable;
 import ibis.util.Monitor;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -12,7 +13,7 @@ import java.util.Vector;
 
 public class Ibis extends ibis.ipl.Ibis {
 
-    static final boolean DEBUG = false; // TypedProperties.booleanProperty("ibis.mp.debug"); // false;
+    static final boolean DEBUG = TypedProperties.booleanProperty(MPProps.s_debug);
     static final boolean CHECK_LOCKS = DEBUG;
     static final boolean STATISTICS = true;
     static final boolean BCAST_VERBOSE = false;

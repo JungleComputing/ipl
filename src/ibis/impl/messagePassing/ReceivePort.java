@@ -21,7 +21,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
      * optimistic polling. */
     private static final int DEFAULT_OPTIMISTIC_POLLS = 500;
     private static final int polls_before_yield =
-	TypedProperties.intProperty("ibis.mp.polls.optimistic", DEFAULT_OPTIMISTIC_POLLS);
+	TypedProperties.intProperty(MPProps.s_polls_optim, DEFAULT_OPTIMISTIC_POLLS);
     // private static final int DEFAULT_OPTIMISTIC_POLLS = Poll.DEFAULT_YIELD_POLLS / 2;
 
     static {
@@ -83,7 +83,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
 
     private static final boolean DISABLE_INTR_MULTIFRAGMENT =
-	TypedProperties.booleanProperty("ibis.mp.intr.disable.multifragment", false);
+	TypedProperties.booleanProperty(MPProps.s_intr_dis_multi, false);
     private boolean interruptsDisabled;
 
     // DEBUG

@@ -22,10 +22,7 @@ public abstract class TupleSpace extends Communication {
 
 	static {
 	    space = new HashMap();
-	    use_seq = SUPPORT_TUPLE_MULTICAST
-			&& ( TypedProperties.booleanProperty("satin.tuplespace.ordened")
-			     || TypedProperties.booleanProperty("satin.tuplespace.ordered"));
-
+	    use_seq = SUPPORT_TUPLE_MULTICAST && TUPLE_ORDERED;
 	}
 
 	public static void initTupleSpace() {

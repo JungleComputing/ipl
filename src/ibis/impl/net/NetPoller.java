@@ -36,8 +36,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     private ReceiveQueue	singleton;
     private boolean		handlingSingleton;
     private int			waitingConnections;
-    private static final boolean SINGLETON_FASTPATH = TypedProperties.booleanProperty("ibis.net.poller.singleton", true)
-					&& TypedProperties.booleanProperty("ibis.net.poller.singleton.dynamic", false);
+    private static final boolean SINGLETON_FASTPATH = TypedProperties.booleanProperty(NetIbis.poll_single, true)
+					&& TypedProperties.booleanProperty(NetIbis.poll_single_dyn, false);
 
     /**
      * The driver used for the inputs.

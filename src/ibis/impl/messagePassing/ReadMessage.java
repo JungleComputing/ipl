@@ -22,8 +22,6 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
     boolean		multiFragment;
 
-    private int		sleepers = 0;
-
     long before;
 
     ReadMessage(ibis.ipl.SendPort s,

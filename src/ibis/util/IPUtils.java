@@ -7,8 +7,20 @@ import java.util.Properties;
  * Some utilities that deal with IPv4 addresses.
  */
 public class IPUtils {
+	private static final String prefix = "ibis.util.ip.";
+	private static final String dbg = prefix + "debug";
+	private static final String addr = prefix + "address";
 
-	static final boolean DEBUG = false;
+	private static final String[] sysprops = {
+	    dbg,
+	    addr
+	};
+
+	static {
+	    TypedProperties.checkProperties(prefix, sysprops, null);
+	}
+
+	private static final boolean DEBUG = TypedProperties.booleanProperty(dbg);
 
 	private static InetAddress localaddress = null;
 
@@ -114,7 +126,18 @@ public class IPUtils {
 
 		Properties p = System.getProperties();
 
-		String myIp = p.getProperty("ibis.ip.address");
+		String myIp = p.getProperty(addr);
+		if (myIp != null) {
+			try {
+				external = InetAddress.getByName(myIp);
+				return external;
+			} catch (java.net.UnknownHostException e) {
+				System.err.println("IP addres property specified, but could not resolve it");
+			}
+		}
+
+		// backwards compatibility
+		myIp = p.getProperty("ibis.ip.address");
 		if (myIp != null) {
 			try {
 				external = InetAddress.getByName(myIp);

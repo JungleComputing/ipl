@@ -4,6 +4,7 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
@@ -220,7 +221,7 @@ public final class RelOutput
 
 	factory.setMaximumTransferUnit(mtu);
 
-	String windowPreset = System.getProperty("ibis.rel.window");
+	String windowPreset = System.getProperty(NetIbis.rel_window);
 	if (windowPreset != null) {
 	    windowSize = Integer.parseInt(windowPreset);
 	    System.err.println("ibis.net.rel.windowSize set to " + windowSize);
