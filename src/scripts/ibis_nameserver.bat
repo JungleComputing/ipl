@@ -1,3 +1,4 @@
+@echo off
 
 set JAVACLASSPATH=%CLASSPATH%;%IBIS_ROOT%\build;
 
@@ -17,4 +18,4 @@ rem and for NT handling to skip to.
 
 :doneStart
 
-%JAVA_ROOT%\bin\java -classpath %JAVACLASSPATH% ibis.impl.nameServer.tcp.NameServer %IBIS_APP_ARGS%
+"%JAVA_ROOT%\bin\java" -classpath %JAVACLASSPATH% ibis.impl.nameServer.tcp.NameServer %IBIS_APP_ARGS%
