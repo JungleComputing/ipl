@@ -399,13 +399,9 @@ public class SuffixArray implements Configuration, Magic {
         StepList res = new StepList( top );
         for( int i=1; i<length; i++ ){
             if( commonality[i]>=mincom ){
-		// TODO: we should also consider pairs that
-		// have too much overlap, but make it up in subsequent
-		// entries. This does mean that we must create a new
-		// candidate array for each new possibility, since we
-		// may have to throw it away.
+                // A new candidate match. Start a list, and see if we
+                // get at least two non-overlapping strings.
                 int pos0 = indices[i-1];
-                // This is a better candidate.
                 candidates[0] = pos0;
                 p = 1;
 
@@ -420,7 +416,7 @@ public class SuffixArray implements Configuration, Magic {
 		    // We must test each one for overlap with all
 		    // previously selected strings.
                     // TODO: this fairly arbitrary way of gathering candidates
-                    // is not optimal, since a different subset of strings may
+                    // may not be optimal: a different subset of strings may
                     // be larger.
 		    int j = i;
 		    while( j<length && commonality[j]>=len ){
