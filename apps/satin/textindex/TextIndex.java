@@ -228,7 +228,9 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
         }
         Index res = ix.indexFileList( files );
         ix.sync();
-        res.write( new FileWriter( ixfile ) );
+        FileWriter output = new FileWriter( ixfile );
+        res.write( output );
+        output.close();
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
