@@ -22,6 +22,10 @@ run_ibis	run_ibis 0 2 pool 4566 fs0 Main (current)
 
 Binary distro	Do we want it? In what form? Timeframe?
 
+Central nameserver
+		Is it useful to have a single, central nameserver running
+		on at least the fs0?
+
 IbisC		The Ibis Compiler. Alternative for building apps to ANT?
 		Default build system for binary distro?
 
@@ -58,7 +62,7 @@ rmi helper class
 Ibis coordinator
 		expand and formalize the nameserver interface. give it a
 		better name (coordinator?) and use it in every Ibis
-		implementation. New functionalty includes:
+		implementation. New functionality includes:
 		- selection of ibis implementation.
 		- management (tell an Ibis to leave)
 		- ?
