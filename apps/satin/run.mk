@@ -61,6 +61,11 @@ simlogs:
 		) \
 	done)
 
+test_java:
+	PRUN_ENV=foo ../../../bin/run_ibis 0 1 foo bar $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) > test_out 2> test_err
+	grep "application result" test_out > test_res
+	diff test_res test_goal
+
 test:
 	../../../bin/ibis_nameserver -single -port $(NAMESERVER_PORT) &
 	PRUN_ENV=test_one_pool ../../../bin/run_ibis 0 1 $(NAMESERVER_PORT) localhost $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-stats -satin-closed > test_out 2> test_err
@@ -98,30 +103,6 @@ panda_runs:
 	make ALG=RS ID=1 panda_run
 	#make ALG=CRS ID=0 panda_run
 	#make ALG=CRS ID=1 panda_run
-
-csim_test:
-	../csim.sh "$(LAYOUT)" "$(SCEN)" $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) $(PANDA_SATIN_PARAMS)
-
-csim_small:
-	../csim.sh "$(LAYOUT)" "$(SCEN)" $(MAIN_CLASS_NAME) $(SMALL_APP_OPTIONS) $(PANDA_SATIN_PARAMS)
-
-csim:
-	../csim.sh "$(LAYOUT)" "$(SCEN)" $(MAIN_CLASS_NAME) $(APP_OPTIONS) $(PANDA_SATIN_PARAMS)
-
-csims:
-	make ALG=RS csim
-	make ALG=RS csim
-	make ALG=CRS csim
-	make ALG=CRS csim
-
-csims_small:
-	make ALG=RS csim_small
-	make ALG=RS csim_small
-	make ALG=CRS csim_small
-	make ALG=CRS csim_small
-
-csimtcp:
-	../csim-tcp.sh "$(CLUSTERS)" "$(NODES)" $(NAMESERVER_PORT) $(NAME_SERVER) $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-closed -satin-stats -satin-alg $(ALG)
 
 PPRUN_PARAMS=$(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME)
 PPRUN_SATIN_PARAMS=-satin-stats -satin-closed -satin-ibis -satin-alg $(ALG)
