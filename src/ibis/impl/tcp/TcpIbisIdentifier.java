@@ -28,6 +28,9 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 			TcpIbisIdentifier other = (TcpIbisIdentifier) o;
 			return equals(other);
 		}
+
+//		System.err.println("warning, comparing ibis ident with other object");
+		
 		return false;
 	}
 

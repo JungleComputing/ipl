@@ -8,19 +8,19 @@ final class MasterWorker extends Algorithm {
 	    super(s);
 	}
 
-	public void clientIteration() {
+	public InvocationRecord clientIteration() {
 		InvocationRecord r;
 		Victim v;
 
 		if (satin.master) {
-			return;
+			return null;
 		}
 
 		synchronized (satin) {
 			v = satin.victims.getVictim(satin.masterIdent);
 		}
 
-		satin.stealJob(v, true); // blocks at the server side
+		return satin.stealJob(v, true); // blocks at the server side
 	}
 
 	void jobAdded() {

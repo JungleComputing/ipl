@@ -397,10 +397,41 @@ public abstract class SpawnSync extends Termination {
 				}
 				callSatinFunction(r);
 			} else {
-				algorithm.clientIteration();
+				r = algorithm.clientIteration();
+				if(r != null) {
+				    callSatinFunction(r);
+				}
 			}
 		}
 
 		//		System.err.println("SATIN " + ident.name() + ": sync() done");
+	}
+
+	/**
+	 * Implements the main client loop: steal jobs and execute them.
+	 */
+	public void client() {
+
+		//		System.err.println("SATIN " + ident.name() + ": starting client()");
+
+		if (SPAWN_DEBUG) {
+			out.println("SATIN '" + ident.name() + "': starting client!");
+		}
+
+		while (!exiting) {
+			// steal and run jobs
+
+			satinPoll();
+			handleDelayedMessages();
+
+			InvocationRecord r = algorithm.clientIteration();
+			if(r != null) callSatinFunction(r);
+
+			//for ft
+			if (master)
+				return;
+		}
+
+		//		System.err.println("SATIN " + ident.name() + ": client() done");
 	}
 }

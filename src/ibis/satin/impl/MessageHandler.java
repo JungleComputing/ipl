@@ -164,10 +164,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			while (true) {
 				result = satin.q.getFromTail();
 				if (result != null) {
-					result.stealer = ident.ibis();
+				    result.stealer = ident.ibis();
 
-					/* store the job in the outstanding list */
-					satin.addToOutstandingJobList(result);
+				    /* store the job in the outstanding list */
+				    satin.addToOutstandingJobList(result);
 				}
 
 				if (opcode != BLOCKING_STEAL_REQUEST || satin.exiting
@@ -752,6 +752,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				case ASYNC_STEAL_AND_TABLE_REQUEST :
 				case STEAL_REQUEST :
 				case ASYNC_STEAL_REQUEST :
+				case BLOCKING_STEAL_REQUEST :
 					ident = m.origin();
 					if (COMM_DEBUG) {
 						if (opcode == STEAL_AND_TABLE_REQUEST
@@ -761,14 +762,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 									+ ident.ibis().name());
 						}
 					}
-					//              m.finish();
-					handleStealRequest(ident, opcode);
-					break;
-				case BLOCKING_STEAL_REQUEST :
-					// If we are doing a blocking steal, we must do a finish
-					// first --Rob
-					ident = m.origin();
-					m.finish();
+					m.finish(); // must finish, we will send back a reply.
 					handleStealRequest(ident, opcode);
 					break;
 				case STEAL_REPLY_FAILED :
@@ -806,6 +800,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					handleTupleDel(m);
 					break;
 				case RESULT_REQUEST :
+				    m.finish(); // must finish, we send a reply back.
 					handleResultRequest(m);
 					break;
 				default :

@@ -81,22 +81,25 @@ final class IRVector implements Config {
 		return null;
 	}
 
-	void remove(InvocationRecord r) {
+	InvocationRecord remove(InvocationRecord r) {
 		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
 		for (int i = count - 1; i >= 0; i--) {
 			if (l[i].equals(r)) {
+			    InvocationRecord res = l[i];
 				count--;
 				l[i] = l[count];
 				//				System.err.println("SATIN: " + satin.ident.address() +
 				// "remove2 count is: " + count);
-				return;
+				return res;
 			}
 		}
 
 		System.err.println("EEK, IRVector: removeing non-existant elt: " + r);
+		System.exit(1);
+		return null;
 	}
 
 	void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {

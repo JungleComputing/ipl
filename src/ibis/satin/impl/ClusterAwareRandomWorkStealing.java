@@ -24,7 +24,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm
 	    super(s);
 	}
 
-	public void clientIteration() {
+	public InvocationRecord clientIteration() {
 		Victim localVictim;
 		Victim remoteVictim = null;
 		boolean canDoAsync = true;
@@ -48,8 +48,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm
 				if (STEAL_STATS) {
 					asyncStealSuccess++;
 				}
-				satin.callSatinFunction(remoteJob);
-				return;
+				return remoteJob;
 			}
 		}
 
@@ -89,8 +88,10 @@ class ClusterAwareRandomWorkStealing extends Algorithm
 		// do a local steal, if possible (we might be the only node in this
 		// cluster)
 		if (localVictim != null) {
-			satin.stealJob(localVictim, false);
+			return satin.stealJob(localVictim, false);
 		}
+
+		return null;
 	}
 
 	public void stealReplyHandler(InvocationRecord ir, int opcode) {

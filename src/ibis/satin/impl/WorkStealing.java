@@ -89,7 +89,7 @@ public abstract class WorkStealing extends Stats {
 	 * side until work is available, or we must exit. This is used in
 	 * MasterWorker algorithms.
 	 */
-	protected void stealJob(Victim v, boolean blockOnServer) {
+	protected InvocationRecord stealJob(Victim v, boolean blockOnServer) {
 
 		if (ASSERTS && stolenJob != null) {
 			throw new IbisError(
@@ -104,7 +104,7 @@ public abstract class WorkStealing extends Stats {
 		}
 
 		sendStealRequest(v, true, blockOnServer);
-		waitForStealReply();
+		return waitForStealReply();
 	}
 
 	protected void sendStealRequest(Victim v, boolean synchronous,
@@ -182,7 +182,7 @@ public abstract class WorkStealing extends Stats {
 		}
 	}
 
-	protected boolean waitForStealReply() {
+	protected InvocationRecord waitForStealReply() {
 		//		if(exiting) return false;
 
 		if (IDLE_TIMING) {
@@ -216,7 +216,7 @@ public abstract class WorkStealing extends Stats {
 							if (currentVictimCrashed) {
 								currentVictimCrashed = false;
 								if (gotStealReply == false)
-									return false;
+									return null;
 							}
 						}
 					}
@@ -232,7 +232,7 @@ public abstract class WorkStealing extends Stats {
 								//							System.err.println("SATIN '" + ident.name() +
 								// "': current victim crashed");
 								if (gotStealReply == false)
-									return false;
+									return null;
 								break;
 							}
 						}
@@ -258,7 +258,7 @@ public abstract class WorkStealing extends Stats {
 					if (currentVictimCrashed) {
 						currentVictimCrashed = false;
 						if (gotStealReply == false)
-							return false;
+							return null;
 					}
 				}
 
@@ -282,7 +282,7 @@ public abstract class WorkStealing extends Stats {
 
 		/* If successfull, we now have a job in stolenJob. */
 		if (stolenJob == null) {
-			return false;
+			return null;
 		}
 
 		/* I love it when a plan comes together! */
@@ -314,11 +314,7 @@ public abstract class WorkStealing extends Stats {
 			}
 		}
 
-		// Don't call the method, just add it to the queue
-//		q.addToTail(myJob);
-		callSatinFunction(myJob);
-
-		return true;
+		return myJob;
 	}
 
 	// hold the lock when calling this

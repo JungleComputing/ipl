@@ -18,8 +18,9 @@ abstract class Algorithm {
 	/**
 	 * Called in every iteration of the client loop. It decides which jobs are
 	 * run, and what kind(s) of steal requests are done.
+	 * returns a job an success, null on failure.
 	 */
-	abstract public void clientIteration();
+	abstract public InvocationRecord clientIteration();
 
 	/**
 	 * This one is called for each steal reply by the MessageHandler, so the

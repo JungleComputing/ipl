@@ -328,35 +328,6 @@ public final class Satin extends APIMethods
 	}
 
 	/**
-	 * Implements the main client loop: steal jobs and execute them.
-	 */
-	public void client() {
-		InvocationRecord r;
-		SendPort s;
-
-		//		System.err.println("SATIN " + ident.name() + ": starting client()");
-
-		if (SPAWN_DEBUG) {
-			out.println("SATIN '" + ident.name() + "': starting client!");
-		}
-
-		while (!exiting) {
-			// steal and run jobs
-
-			satinPoll();
-			handleDelayedMessages();
-
-			algorithm.clientIteration();
-
-			//for ft
-			if (master)
-				return;
-		}
-
-		//		System.err.println("SATIN " + ident.name() + ": client() done");
-	}
-
-	/**
 	 * Returns the current Satin instance.
 	 * 
 	 * @return the current Satin instance.

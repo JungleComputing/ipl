@@ -8,7 +8,7 @@ final class RandomWorkStealing extends Algorithm implements Config {
 	    super(s);
 	}
 
-	public void clientIteration() {
+	public InvocationRecord clientIteration() {
 		Victim v;
 
 		synchronized (satin) {
@@ -24,8 +24,8 @@ final class RandomWorkStealing extends Algorithm implements Config {
 			}
 		}
 		if (v == null)
-			return; //can happen with open world if nobody joined.
+			return null; //can happen with open world if nobody joined.
 
-		satin.stealJob(v, false);
+		return satin.stealJob(v, false);
 	}
 }
