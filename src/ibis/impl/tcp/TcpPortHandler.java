@@ -32,6 +32,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 	private final TcpIbisIdentifier me;
 	private final int port;
 
+	private boolean quiting = false;
+
 	private final boolean use_brokered_links;
 	private final IbisSocketFactory socketFactory;
 
@@ -102,8 +104,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 
 			InputStream sin = s.getInputStream();
 			OutputStream sout = s.getOutputStream();
-
-			sout.write(NEW_CONNECTION);
 
 			if (use_brokered_links) {
 			    Socket s1 = ExtSocketFactory.createBrokeredSocket(sin, sout, false);
@@ -214,11 +214,11 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 
 	void quit() { 
 		try { 
+			quiting = true;
+			/* Connect to the serversocket, so that the port handler
+			 * thread wakes up.
+			 */
 			Socket s = socketFactory.createSocket(me.address(), port, me.address(), 0 /* retry */);
-			OutputStream sout = s.getOutputStream();
-			sout.write(QUIT_IBIS);
-			sout.flush();
-			sout.close();			
 		} catch (Exception e) { 
 			// Ignore
 		}
@@ -394,9 +394,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				System.err.println("--> PortHandler on " + me + " through new accept()");
 			}
 			try {
-				InputStream sin = s.getInputStream();
-				OutputStream sout = s.getOutputStream();
-				if (sin.read() == QUIT_IBIS) { 
+				if (quiting) {
 					if (DEBUG) {
 						System.err.println("--> it is a quit"); 
 					}
@@ -410,6 +408,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 					cleanup();
 					return;
 				}
+
+				InputStream sin = s.getInputStream();
+				OutputStream sout = s.getOutputStream();
 
 				if (use_brokered_links) {
 				    Socket s1 = ExtSocketFactory.createBrokeredSocket(sin, sout, true);
