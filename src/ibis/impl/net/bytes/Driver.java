@@ -6,6 +6,8 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 
+import ibis.util.TypedProperties;
+
 /**
  * The primitive to byte conversion driver.
  */
@@ -18,7 +20,7 @@ public final class Driver extends NetDriver {
 	};
 
 	static {
-	    ibis.util.TypedProperties.checkProperties(prefix, properties, null);
+	    TypedProperties.checkProperties(prefix, properties, null);
 	}
 
 

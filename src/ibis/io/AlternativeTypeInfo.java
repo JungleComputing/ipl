@@ -229,7 +229,7 @@ final class AlternativeTypeInfo {
     Object newInstance() {
 	if (newInstance != null) {
 	    try {
-		return newInstance.invoke(objectStreamClass, null);
+		return newInstance.invoke(objectStreamClass, (java.lang.Object[]) null);
 	    } catch(Exception e) {
 		// System.out.println("newInstance fails: got exception " + e);
 		return null;

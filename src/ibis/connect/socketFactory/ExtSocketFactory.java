@@ -154,13 +154,12 @@ public class ExtSocketFactory
     private static synchronized SocketType loadSocketType(String socketType)
     {
 	SocketType t = null;
-	Constructor cons;
 	String className = (String)nicknames.get(socketType.toLowerCase());
+	Class c = null;
 	if(className == null)
 	    className = socketType;
 	try {
-	    Class c = Class.forName(className);
-	    cons = c.getConstructor(null);
+	    c = Class.forName(className);
 	} catch(Exception e) {
 	    System.err.println("# ExtSocketFactory: error while loading socket type.");
 	    System.err.println("# ExtSocketFactory: socket type "+socketType+" not found.");
@@ -172,7 +171,7 @@ public class ExtSocketFactory
 	    throw new Error("ExtSocketFactory: class not found: "+className, e);
 	}
 	try {
-	    t = (SocketType)cons.newInstance(null);
+	    t = (SocketType)c.newInstance();
 	    if (MyDebug.VERBOSE()) {
 		System.err.println("# Registering socket type: "+t.getSocketTypeName());
 		System.err.println("#   class name: "+t.getClass().getName());

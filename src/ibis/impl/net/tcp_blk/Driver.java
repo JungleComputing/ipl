@@ -7,6 +7,8 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 
 /**
@@ -23,7 +25,7 @@ public final class Driver extends NetDriver {
 	};
 
 	static {
-		ibis.util.TypedProperties.checkProperties(prefix, properties, null);
+		TypedProperties.checkProperties(prefix, properties, null);
 	}
 
 	/**

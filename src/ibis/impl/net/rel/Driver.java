@@ -9,6 +9,8 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetVector;
 import ibis.ipl.IbisIdentifier;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 
 
@@ -26,7 +28,7 @@ public final class Driver extends NetDriver implements RelConstants {
 	};
 
 	static {
-		ibis.util.TypedProperties.checkProperties(prefix, properties, null);
+		TypedProperties.checkProperties(prefix, properties, null);
 	}
 
 	/**
