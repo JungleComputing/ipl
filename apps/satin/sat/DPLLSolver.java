@@ -92,6 +92,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
      * @param level The branching level.
+     * @param localLevel The number of parents also on this hosts.
      * @param p the SAT problem to solve
      * @param ctx The changable context of the solver.
      * @param var The next variable to assign.
@@ -99,6 +100,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
      */
     public void solve(
 	int level,
+        int localLevel,
         SATProblem p,
 	DPLLContext ctx,
 	int var,
@@ -107,6 +109,10 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     {
         SATProblem my_p = p;
 
+        if( !localJob() ){
+            // This job was migrated, reset the counter.
+            localLevel = 0;
+        }
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
@@ -153,11 +159,11 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        if( level<30 ){
+        if( localLevel<10 ){
 	    DPLLContext firstctx = (DPLLContext) ctx.clone();
-	    solve( level+1, p, firstctx, nextvar, firstvar );
+	    solve( level+1, localLevel+1, p, firstctx, nextvar, firstvar );
 	    DPLLContext secondctx = (DPLLContext) ctx.clone();
-	    solve( level+1, p, secondctx, nextvar, !firstvar );
+	    solve( level+1, localLevel+1, p, secondctx, nextvar, !firstvar );
 	    sync();
 	}
 	else {
@@ -223,8 +229,8 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 
 	    DPLLContext negctx = (DPLLContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
-            s.solve( 0, p, negctx, nextvar, firstvar );
-            s.solve( 0, p, ctx, nextvar, !firstvar );
+            s.solve( 0, 0, p, negctx, nextvar, firstvar );
+            s.solve( 0, 0, p, ctx, nextvar, !firstvar );
             s.sync();
 	}
 	catch( SATResultException r ){
