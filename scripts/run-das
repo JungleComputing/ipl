@@ -50,7 +50,7 @@ noJIT=0
 dedicated_nameserver=0
 
 JAVA_EXEC=java
-Xbootclasspath="-Xbootclasspath/p:$JAVACLASSPATH
+Xbootclasspath="-Xbootclasspath/p:$JAVACLASSPATH"
 
 action=eval
 
