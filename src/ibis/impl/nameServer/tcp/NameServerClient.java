@@ -58,7 +58,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 		Properties p = System.getProperties();
 
-		myAddress = IPUtils.getLocalHostAddress();
+		myAddress = IPUtils.getAlternateLocalHostAddress();
 
 		server = p.getProperty(NSProps.s_host);
 		if (server == null) {
