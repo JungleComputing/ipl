@@ -14,7 +14,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		try {
 			stamp = m.readInt();
 			owner = (IbisIdentifier) m.readObject();
-			m.finish();
+//			m.finish();
 		} catch (IbisIOException e) {
 			System.out.println("SATIN '" + satin.ident.name() + 
 					   "': got exception while reading job result: " + e);
@@ -32,7 +32,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		try {
 			i = (IbisIdentifier) m.readObject();
 			rr = (ReturnRecord) m.readObject();
-			m.finish();
+//			m.finish();
 		} catch (IbisIOException e) {
 			System.out.println("SATIN '" + satin.ident.name() + 
 					   "': got exception while reading job result: " + e);
@@ -181,7 +181,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 							   "': got exit message from " + ident.ibis().name());
 				}
 				satin.exiting = true;
-				m.finish();
+//				m.finish();
 				break;
 			case STEAL_REQUEST:
 				ident = m.origin();
@@ -195,7 +195,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					satin.out.println("SATIN '" + satin.ident.name() + 
 							   "': got steal request from " + ident.ibis().name());
 				}
-				m.finish();
+//				m.finish();
 				handleStealRequest(ident);
 				break;
 			case STEAL_REPLY_FAILED:
@@ -215,10 +215,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					} else if(opcode == STEAL_REPLY_FAILED) {
 						satin.out.println("SATIN '" + satin.ident.name() + 
 								   "': got steal reply message from " + ident.ibis().name() + ": FAILED");
-					} else {
-						satin.out.println("SATIN '" + satin.ident.name() + 
-								   "': got barrier reply message from " + ident.ibis().name() + ": FAILED");
-					}
+					} 
 				}
 				if(COMM_DEBUG) {
 					ident = m.origin();
@@ -230,14 +227,24 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				synchronized(satin) {
 					if(opcode == BARRIER_REPLY) {
 						satin.gotBarrierReply = true;
-					} else {
-						satin.gotStealReply = true;
-					}
+						satin.notifyAll();
+						return;
+					} 
+
+					satin.gotStealReply = true;
+					
 					if(opcode == STEAL_REPLY_SUCCESS) {
-						satin.m = m;
+						try {
+							satin.stolenJob = (InvocationRecord) m.readObject();
+//							m.finish();
+						} catch (IbisIOException e) {
+							System.err.println("SATIN '" + ident.name() + 
+									   "': Got Exception while reading steal reply: " + e);
+							System.exit(1);
+						}
 					} else {
-						satin.m = null;
-						m.finish();
+						satin.stolenJob = null;
+//						m.finish();
 					}
 					satin.notifyAll();
 				}

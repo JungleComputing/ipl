@@ -70,6 +70,12 @@ public final class Rdtsc extends ibis.ipl.Timer {
 		++ count;
 	}
 
+	public long currentTimeNanos() {
+		long curr = rdtsc();
+
+		return (long) (curr / (MHz/1000.0));
+	}
+
 	public double totalTimeVal() {
 		return (double) time / MHz;
 	}

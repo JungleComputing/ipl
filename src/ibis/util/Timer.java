@@ -11,6 +11,10 @@ public final class Timer extends ibis.ipl.Timer {
 		return 1e-3;
 	}
 
+	public long currentTimeNanos() {
+		return System.currentTimeMillis() * 1000000L;
+	}
+
 	public void reset() {
 		time = 0;
 	}
