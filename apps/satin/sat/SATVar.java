@@ -78,6 +78,9 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     /** Registers assignment 'v' for this variable. */
     void setAssignment( int v ) { assignment = v; }
 
+    /** Registers assignment 'v' for this variable. */
+    void setAssignment( boolean v ) { assignment = v?1:0; }
+
     /** Returns the assignment of this variable. */
     int getAssignment() { return assignment; }
 

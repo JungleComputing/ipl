@@ -198,12 +198,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    System.err.println( "as" + level + ": Trying assignment var[" + var + "]=" + val );
 	}
 	SATProblem p = (SATProblem) old_p.clone();
-	if( val ){
-	    p.propagatePosAssignment( var );
-	}
-	else {
-	    p.propagateNegAssignment( var );
-	}
+	p.propagateAssignment( var, val );
 	p.optimize();
 	if( traceSolver | traceNewCode ){
 	    p.report( System.err );
