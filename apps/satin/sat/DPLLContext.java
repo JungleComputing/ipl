@@ -256,7 +256,7 @@ public final class DPLLContext implements java.io.Serializable {
 		    System.err.println( "Propagating positive unit variable " + v + " from clause " + c );
 		}
 		int res = propagatePosAssignment( p, v );
-		if( res != 0 ){
+		if( (res != 0) || !doVerification ){
 		    // The problem is now conflicting/satisfied, we're
 		    // done.
 		    return res;
@@ -279,7 +279,7 @@ public final class DPLLContext implements java.io.Serializable {
 		    System.err.println( "Propagating negative unit variable " + v + " from clause " + c );
 		}
 		int res = propagateNegAssignment( p, v );
-		if( res != 0 ){
+		if( (res != 0) || !doVerification ){
 		    // The problem is now conflicting/satisfied, we're
 		    // done.
 		    return res;
@@ -287,7 +287,7 @@ public final class DPLLContext implements java.io.Serializable {
 		foundIt = true;
 	    }
 	}
-	if( !satisfied[i] && !foundIt ){
+	if( !foundIt ){
 	    System.err.println( "Error: unit clause " + c + " does not contain unassigned variables" );
 	}
 	return SATProblem.UNDETERMINED;
