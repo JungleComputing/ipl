@@ -90,12 +90,15 @@ class NodeManager extends Thread
 			    if (! ControlHub.hasPort(destHost, destPort, cls.closePort)) {
 				continue;
 			    }
+			    if (! ControlHub.hasPort(hostname, hostport, cls.localPort)) {
+				continue;
+			    }
 			}
 			/* replaces the destination with the sender. */
 			node.sendPacket(hostname, hostport, packet);
 			if (cls != null) {
 			    ControlHub.removePort(destHost, destPort, cls.closePort);
-			    // ControlHub.removePort(hostname, hostport, cls.localPort);
+			    ControlHub.removePort(hostname, hostport, cls.localPort);
 			}
 		    }
 		}

@@ -7,8 +7,8 @@ import ibis.util.IPUtils;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.Socket;
 
 /* On-the-wire protocol management for links between 
@@ -28,8 +28,8 @@ public class HubProtocol
     public static class HubWire
     {
 	private Socket             socket;
-	private ObjectInputStream  in;
-	private ObjectOutputStream out;
+	private DataInputStream    in;
+	private DataOutputStream   out;
 	private String             peerName;
 	private int		   peerPort;
 	private String             localHostName;
@@ -40,12 +40,12 @@ public class HubProtocol
 	    socket = s;
 	    localHostName = IPUtils.getLocalHostAddress().getHostName();
 	    localPort = s.getLocalPort();
-	    out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream(), 4096));
-	    out.writeObject(localHostName);
+	    out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream(), 4096));
+	    out.writeUTF(localHostName);
 	    out.writeInt(s.getLocalPort());
 	    out.flush();
-	    in = new ObjectInputStream(new BufferedInputStream(s.getInputStream(), 4096));
-	    peerName = ((String)in.readObject()).toLowerCase();
+	    in = new DataInputStream(new BufferedInputStream(s.getInputStream(), 4096));
+	    peerName = (in.readUTF()).toLowerCase();
 	    peerPort = in.readInt();
 	    if(MyDebug.VERBOSE()) {
 		String canonicalPeerName = s.getInetAddress().getCanonicalHostName().toLowerCase();
@@ -76,22 +76,22 @@ public class HubProtocol
 	    HubPacket p = null;
 	    synchronized(in) {
 		int      action = in.readInt();
-		String host = (String)in.readObject();
+		String host = in.readUTF();
 		int port = in.readInt();
 		switch(action) {
-		case CONNECT: p = HubPacketConnect.recv(in);
+		case CONNECT: p = HubPacketConnect.recv(in, host, port);
 		    break;
-		case ACCEPT:  p = HubPacketAccept.recv(in);
+		case ACCEPT:  p = HubPacketAccept.recv(in, host, port);
 		    break;
-		case REJECT:  p = HubPacketReject.recv(in);
+		case REJECT:  p = HubPacketReject.recv(in, host, port);
 		    break;
-		case DATA:    p = HubPacketData.recv(in);
+		case DATA:    p = HubPacketData.recv(in, host, port);
 		    break;
-		case CLOSE:   p = HubPacketClose.recv(in);
+		case CLOSE:   p = HubPacketClose.recv(in, host, port);
 		    break;
-		case PUTPORT: p = HubPacketPutPort.recv(in);
+		case PUTPORT: p = HubPacketPutPort.recv(in, host, port);
 		    break;
-		case GETPORT: p = HubPacketGetPort.recv(in);
+		case GETPORT: p = HubPacketGetPort.recv(in, host, port);
 		    break;
 		default:
 		    throw new Error("Received unknown type of HubPacket: "+action);
@@ -109,7 +109,7 @@ public class HubProtocol
 		throw new IOException("hub not connected");
 	    synchronized(out) {
 		out.writeInt(p.getType());
-		out.writeObject(p.h);
+		out.writeUTF(p.h);
 		out.writeInt(p.p);
 		p.send(out);
 		out.flush();
@@ -129,8 +129,8 @@ public class HubProtocol
 	public    String getHost() { return h; }
 	public    int    getPort() { return p; }
 	abstract public int getType();
-	abstract public void send(ObjectOutputStream out) throws IOException;
-	// static HubPacket recv(ObjectInputStream in) throws IOException, ClassNotFoundException;
+	abstract public void send(DataOutputStream out) throws IOException;
+	// static HubPacket recv(DataInputStream in, String h, int p) throws IOException, ClassNotFoundException;
     }
     public static class HubPacketConnect extends HubPacket {
 	public int    serverPort;
@@ -140,15 +140,16 @@ public class HubProtocol
 	    this.serverPort = serverPort;
 	    this.clientPort = clientPort;
 	}
-	public void send(ObjectOutputStream out) throws IOException {
+	public void send(DataOutputStream out) throws IOException {
 	    MyDebug.out.println("# HubPacketConnect.send()- sending CONNECT to port " + serverPort + " on " + h + ":" + p);
 	    out.writeInt(serverPort);
 	    out.writeInt(clientPort);
 	}
-	static public HubPacket recv(ObjectInputStream in) 
+	static public HubPacket recv(DataInputStream in, String h, int p) 
 	    throws IOException, ClassNotFoundException {
 	    int    serverPort = in.readInt();
 	    int    clientPort = in.readInt();
+	    MyDebug.out.println("# HubPacketConnect.recv()- got CONNECT to port " + serverPort + " from " + h + ":" + p);
 	    return new HubPacketConnect(serverPort, clientPort);
 	}
     };
@@ -163,17 +164,18 @@ public class HubProtocol
 	    this.serverHost  = serverHost;
 	    this.servantPort = servantPort;
 	}
-	public void send(ObjectOutputStream out) throws IOException {
-	    MyDebug.out.println("# HubPacketAccept.send()- sending ACCEPT");
+	public void send(DataOutputStream out) throws IOException {
+	    MyDebug.out.println("# HubPacketAccept.send()- sending ACCEPT to port " + clientPort + " on " + h + ":" + p);
 	    out.writeInt(clientPort);
-	    out.writeObject(serverHost);
+	    out.writeUTF(serverHost);
 	    out.writeInt(servantPort);
 	}
-	static public HubPacket recv(ObjectInputStream in)
+	static public HubPacket recv(DataInputStream in, String h, int p)
 	    throws IOException, ClassNotFoundException {
 	    int    clientPort  = in.readInt();
-	    String serverHost  = (String)in.readObject();
+	    String serverHost  = in.readUTF();
 	    int    servantPort = in.readInt();
+	    MyDebug.out.println("# HubPacketAccept.recv()- got ACCEPT to port " + servantPort + " from " + h + ":" + p);
 	    return new HubPacketAccept(clientPort, serverHost, servantPort);
 	}
     }
@@ -186,15 +188,16 @@ public class HubProtocol
 	    this.clientPort = clientPort;
 	    this.serverHost = serverHost;
 	}
-	public void send(ObjectOutputStream out) throws IOException {
-	    MyDebug.out.println("# HubPacketReject.send()- sending REJECT");
+	public void send(DataOutputStream out) throws IOException {
+	    MyDebug.out.println("# HubPacketReject.send()- sending REJECT to port " + clientPort + " on " + h + ":" + p);
 	    out.writeInt(clientPort);
-	    out.writeObject(serverHost);
+	    out.writeUTF(serverHost);
 	}
-	static public HubPacket recv(ObjectInputStream in)
+	static public HubPacket recv(DataInputStream in, String h, int p)
 	    throws IOException, ClassNotFoundException {
 	    int    clientPort = in.readInt();
-	    String serverHost = (String)in.readObject();
+	    String serverHost = in.readUTF();
+	    MyDebug.out.println("# HubPacketReject.recv()- got REJECT to port " + clientPort + " from " + h + ":" + p);
 	    return new HubPacketReject(clientPort, serverHost);
 	}
     }
@@ -205,13 +208,14 @@ public class HubProtocol
 	HubPacketGetPort(int port) {
 	    proposedPort = port;
 	}
-	public void send(ObjectOutputStream out) throws IOException {
-	    MyDebug.out.println("# HubPacketGetPort.send()- sending GETPORT");
+	public void send(DataOutputStream out) throws IOException {
+	    MyDebug.out.println("# HubPacketGetPort.send()- sending GETPORT to " + h + ":" + p);
 	    out.writeInt(proposedPort);
 	}
-	static public HubPacket recv(ObjectInputStream in)
+	static public HubPacket recv(DataInputStream in, String h, int p)
 	    throws IOException, ClassNotFoundException {
 	    int    port = in.readInt();
+	    MyDebug.out.println("# HubPacketGetPort.recv()- got GETPORT of port " + port + " from " + h + ":" + p);
 	    return new HubPacketGetPort(port);
 	}
     }
@@ -222,13 +226,14 @@ public class HubProtocol
 	public HubPacketPutPort(int port) {
 	    resultPort = port;
 	}
-	public void send(ObjectOutputStream out) throws IOException {
-	    MyDebug.out.println("# HubPacketPutPort.send()- sending PUTPORT");
+	public void send(DataOutputStream out) throws IOException {
+	    MyDebug.out.println("# HubPacketPuPort.send()- sending PUTPORT of " + resultPort + " to " + h + ":" + p);
 	    out.writeInt(resultPort);
 	}
-	static public HubPacket recv(ObjectInputStream in)
+	static public HubPacket recv(DataInputStream in, String h, int p)
 	    throws IOException, ClassNotFoundException {
 	    int    port = in.readInt();
+	    MyDebug.out.println("# HubPacketPutPort.recv()- got PUTPORT of port " + port + " from " + h + ":" + p);
 	    return new HubPacketPutPort(port);
 	}
     }
@@ -241,18 +246,19 @@ public class HubProtocol
 	    this.port = port;
 	    this.b = b;
 	}
-	public void send(ObjectOutputStream out) throws IOException {
-	    MyDebug.out.println("# HubPacketData.send()- sending- port="+port+"; size="+b.length);
+	public void send(DataOutputStream out) throws IOException {
+	    MyDebug.out.println("# HubPacketData.send()- sending- port="+port+"; size="+b.length + " to " + h + ":" + p);
 	    out.writeInt(port);
 	    out.writeInt(b.length);
 	    out.write(b);
 	}
-	static public HubPacket recv(ObjectInputStream in)
+	static public HubPacket recv(DataInputStream in, String h, int p)
 	    throws IOException, ClassNotFoundException {
 	    int port = in.readInt();
 	    int len = in.readInt();
 	    byte[] b = new byte[len];
 	    in.readFully(b);
+	    MyDebug.out.println("# HubPacketData.recv()- got DATA - port="+port+"; size="+b.length + " from " + h + ":" + p);
 	    return new HubPacketData(port, b);
 	}
     }
@@ -265,15 +271,16 @@ public class HubProtocol
 	    closePort = port;
 	    localPort = lport;
 	}
-	public void send(ObjectOutputStream out) throws IOException {
+	public void send(DataOutputStream out) throws IOException {
 	    MyDebug.out.println("# HubPacketConnect.send()- sending CLOSE of port " + closePort + " to " + h + ":" + p);
 	    out.writeInt(closePort);
 	    out.writeInt(localPort);
 	}
-	static public HubPacket recv(ObjectInputStream in)
+	static public HubPacket recv(DataInputStream in, String h, int p)
 	    throws IOException, ClassNotFoundException {
 	    int port = in.readInt();
 	    int lport = in.readInt();
+	    MyDebug.out.println("# HubPacketConnect.recv()- got CLOSE of port " + port + " from " + h + ":" + p);
 	    return new HubPacketClose(port, lport);
 	}
     }

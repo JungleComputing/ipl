@@ -34,6 +34,7 @@ public class RMSocket extends Socket
     /* misc methods for the HubLink to feed us
      */
     protected synchronized void enqueueFragment(byte[] b) {
+	MyDebug.out.println("# RMSocket.enqueueFragment, size = " + b.length);
 	incomingFragments.addLast(b);
 	this.notifyAll();
     }
@@ -50,13 +51,13 @@ public class RMSocket extends Socket
 	this.notifyAll();
     }
     protected synchronized void enqueueClose() {
-	MyDebug.out.println("# RMSocket.enqueueClose()- port = "+localPort);
+	MyDebug.out.println("# RMSocket.enqueueClose()- port = "+localPort + ", remotePort = " + remotePort);
 	state = state_CLOSED;
-	// if (localPort != -1) {
-	//     hub.removeSocket(localPort);
-	// }
-	// localPort = -1;
-	// remotePort = -1;
+	if (localPort != -1) {
+	    hub.removeSocket(localPort);
+	}
+	localPort = -1;
+	remotePort = -1;
 	this.notifyAll();
     }
     /* Initialization
@@ -128,14 +129,14 @@ public class RMSocket extends Socket
     public void close()
 	throws IOException
     {
-	MyDebug.out.println("# RMSocket.close()");
+	MyDebug.out.println("# RMSocket.close(), localPort = " + localPort + ", remotePort = " + remotePort);
 	state = state_CLOSED;
-	// if (remotePort != -1) {
+	if (remotePort != -1) {
 	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketClose(remotePort, localPort));
 	    hub.removeSocket(localPort);
-	// }
-	// localPort = -1;
-	// remotePort = -1;
+	}
+	localPort = -1;
+	remotePort = -1;
     }
 
     /* InputStream for RMSocket
