@@ -553,6 +553,12 @@ to the command line.
 	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/ibis_nameserver.bat" />
 	</concat>
 	<chmod file="${ibis}/bin/ibis_nameserver.bat" perm="+x"/>
+	<copy
+		overwrite="true"
+		file="${ibis}/src/scripts/ip_map.perl"
+		tofile="${ibis}/bin/ip_map.perl">
+	</copy>
+	<chmod file="${ibis}/bin/ip_map.perl" perm="+x"/>
 
 	<echo message="Now invoke ant java_wrapper"/>
 	<antcall target="java_wrapper"/>

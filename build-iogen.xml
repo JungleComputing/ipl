@@ -91,7 +91,7 @@
     <target name="iogen"
 	    depends="iogen-init"
 	    description="Preprocess serializable class files in the build tree">
-	<echo level="debug" message="IOGen all class files under ${iogen-build}"/>
+	<echo level="warning" message="IOGen all class files under ${iogen-build}"/>
 	<path id="iogen-all-classes">
 	    <fileset dir="${iogen-build}">
 		<include name="**/*.class"/>
