@@ -122,9 +122,17 @@ public abstract class Initialization extends SatinBase {
 				stats = true;
 				detailedStats = true;
 			} else if (args[i].equals("-satin-ibis")) {
+				if (sunSerialization) {
+				    System.err.println("-satin-sun and -satin-ibis specified!");
+				    System.exit(1);
+				}
 				ibisSerialization = true;
 			} else if (args[i].equals("-satin-sun")) {
-				ibisSerialization = false;
+				if (ibisSerialization) {
+				    System.err.println("-satin-sun and -satin-ibis specified!");
+				    System.exit(1);
+				}
+				sunSerialization = true;
 			} else if (args[i].equals("-satin-no-upcalls")) {
 				upcalls = false;
 			} else if (args[i].equals("-satin-upcalls")) {
@@ -256,8 +264,17 @@ public abstract class Initialization extends SatinBase {
 								+ str);
 				System.exit(1);
 			}
+			if (sunSerialization && !str.equals("sun")) {
+				System.err
+						.println("Inconsistent options: -satin-sun and -Dibis.serialization="
+								+ str);
+				System.exit(1);
+			}
 			if (str.equals("ibis")) {
 				ibisSerialization = true;
+			}
+			if (str.equals("sun")) {
+				sunSerialization = true;
 			}
 		}
 	}
@@ -268,8 +285,11 @@ public abstract class Initialization extends SatinBase {
 
 		if (ibisSerialization) {
 		    ibisProperties.add("serialization", "byte, ibis");
+		} else if (sunSerialization) {
+		    ibisProperties.add("serialization", "byte, sun");
+		} else {
+		    ibisProperties.add("serialization", "byte, object");
 		}
-		else ibisProperties.add("serialization", "byte, object");
 
 		if (closed) {
 			ibisProperties.add("worldmodel", "closed");
@@ -324,6 +344,8 @@ public abstract class Initialization extends SatinBase {
 //			if (master) {
 //				System.err.println("SATIN: using Ibis serialization");
 //			}
+		} else if (sunSerialization) {
+			satinPortProperties.add("serialization", "sun");
 		} else {
 			satinPortProperties.add("serialization", "object");
 		}
@@ -363,6 +385,8 @@ public abstract class Initialization extends SatinBase {
 //			if (master) {
 //				System.err.println("SATIN: using Ibis serialization");
 //			}
+		} else if (sunSerialization) {
+			satinPortProperties.add("serialization", "sun");
 		} else {
 			satinPortProperties.add("serialization", "object");
 		}
@@ -417,6 +441,8 @@ public abstract class Initialization extends SatinBase {
 //			if (master) {
 //				System.err.println("SATIN: using Ibis serialization");
 //			}
+		} else if (sunSerialization) {
+			satinPortProperties.add("Serialization", "sun");
 		} else {
 			satinPortProperties.add("serialization", "object");
 		}

@@ -28,7 +28,8 @@ public abstract class SatinBase implements Config {
 
 	protected boolean detailedStats = false;
 
-	protected boolean ibisSerialization = true;
+	protected boolean ibisSerialization = false;
+	protected boolean sunSerialization = false;
 
 	protected boolean upcallPolling = false;
 

@@ -143,8 +143,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 					out.println("SATIN '" + hostName
 							+ "': init ibis: I am the master");
 				}
-				System.out.println("master is " + masterIdent);
-				System.out.println("master name is " + masterIdent.name());
+				// System.out.println("master is " + masterIdent);
 				master = true;
 			} else {
 				if (COMM_DEBUG) {
