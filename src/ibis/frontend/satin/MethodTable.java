@@ -241,13 +241,21 @@ final class MethodTable {
 	int maxindex = 0;
 	for (int i = 0; i < locals.length; i++) {
 	    int ind = locals[i].getIndex();
-	    if (ind > maxindex) maxindex = ind;
+	    Type t = locals[i].getType();
+	    if (ind > maxindex) {
+		maxindex = ind;
+		if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
+		    maxindex++;
+		}
+	    }
 	}
-	Type[] types = new Type[maxindex+1];
+	Type[] types = new Type[maxindex+1 + 2 * locals.length];
 	for (int i = 0; i < locals.length; i++) {
 	    int ind = locals[i].getIndex();
 	    Type t = locals[i].getType();
-	    if (types[ind] != null && ! types[ind].equals(t)) {
+	    if ((types[ind] != null && ! types[ind].equals(t)) ||
+		((t.equals(Type.LONG) || t.equals(Type.DOUBLE) &&
+		 types[ind+1] != null))) {
 		// this stack position is already in use.
 		// Give this local a new stack position.
 		maxindex++;
@@ -275,7 +283,13 @@ final class MethodTable {
 		    h = h.getNext();
 		} while (h != null);
 	    }
-	    else types[ind] = locals[i].getType();
+	    else {
+		types[ind] = t;
+		if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
+		    // Make sure that this slot is not used.
+		    types[ind+1] = Type.VOID;
+		}
+	    }
 	}
     }
 
