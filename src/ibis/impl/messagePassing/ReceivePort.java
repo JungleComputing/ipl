@@ -157,8 +157,10 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
     private ibis.ipl.impl.messagePassing.ReadMessage locate(ShadowSendPort ssp,
 							    int msgSeqno) {
-	if (ssp.msgSeqno > msgSeqno) {
-	    System.err.println("This is a SERIOUS BUG: the msgSeqno goes BACK!!!!!!!!!");
+	if (ssp.msgSeqno > msgSeqno && ssp.msgSeqno != -1) {
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println("This is a SERIOUS BUG: the msgSeqno goes BACK!!!!!!!!!");
+	    }
 	    ssp.msgSeqno = msgSeqno;
 	    return null;
 	}
