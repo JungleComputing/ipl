@@ -282,7 +282,7 @@ public abstract class Stats extends TupleSpace {
 		if (lbTime < 0.0)
 			lbTime = 0.0;
 		double lbPerc = lbTime / totalTimer.totalTimeVal() * 100.0;
-		double serTime = (totalStats.invocationRecordWriteTime + totalStats.invocationRecordReadTime)
+		double serTime = (totalStats.invocationRecordWriteTime + totalStats.invocationRecordReadTime + totalStats.returnRecordWriteTime + totalStats.returnRecordReadTime)
 				/ size;
 		double serPerc = serTime / totalTimer.totalTimeVal() * 100.0;
 		double abortTime = totalStats.abortTime / size;
