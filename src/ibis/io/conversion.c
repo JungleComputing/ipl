@@ -62,3 +62,16 @@ TYPE2BYTE(int,     jint,     Int)
 TYPE2BYTE(long,    jlong,    Long)
 TYPE2BYTE(float,   jfloat,   Float)
 TYPE2BYTE(double,  jdouble,  Double)
+
+#include "ibis_io_MantaInputStream.h"
+
+JNIEXPORT jobject JNICALL Java_ibis_io_MantaInputStream_createUninitializedObject
+  (JNIEnv *, jobject, jclass);
+
+jobject Java_ibis_io_MantaTypedBufferInputStream_createUninitializedObject(
+	JNIEnv *env, 
+	jobject this, 
+	jclass type) 
+{ 
+	return (*env)->AllocObject(env, type);
+}
