@@ -72,7 +72,9 @@ public class HubLink extends Thread {
                 // ignored
             }
         }
+
         newPortBusy = true;
+        portnum = -2;
 
         sendPacket("", 0, new HubProtocol.HubPacketGetPort(port));
 
@@ -84,13 +86,15 @@ public class HubLink extends Thread {
             }
         }
 
+        newPortBusy = false;
+        notifyAll();
+
         if (portnum == -1) {
             throw new IOException("Port number already in use");
         }
+
         port = portnum;
         portnum = -2;
-        newPortBusy = false;
-        notifyAll();
         return port;
     }
 
