@@ -38,13 +38,18 @@ class CompressContext implements java.io.Serializable {
         return new CompressContext( arr );
     }
 
-    public int outputMove( byte text[], int pos, int mv, ByteBuffer out )
+    public void outputRef( byte text[], int pos, Backref ref, ByteBuffer out )
     {
-        int backpos = backref[(int) text[pos]][mv];
-        int len = Helpers.matchSpans( text, backpos, pos )-Configuration.MINIMAL_SPAN;
+        int backpos = ref.backpos;
+        int len = ref.len-Configuration.MINIMAL_SPAN;
         int d = (pos-backpos)-Configuration.MINIMAL_SPAN;
-        if( len<0 || d<0 ){
-            System.err.println( "bad match encoding attempt" );
+        System.out.println( "Encoding reference " + ref + " from position " + pos );
+        if( len<0 ){
+            System.err.println( "bad match encoding attempt: len=" + len );
+            System.exit( 1 );
+        }
+        if( d<0 ){
+            System.err.println( "bad match encoding attempt: d=" + d );
             System.exit( 1 );
         }
         if( d<256 ){
@@ -71,16 +76,15 @@ class CompressContext implements java.io.Serializable {
                 out.append( (short) d );
             }
         }
-        return pos;
     }
 
     /**
      * Given a hash value 'c' and a position 'pos', registers the fact
      * that a string entry with this hash code is at the given position.
      */
-    public void registerRef( byte c, int pos )
+    public void registerRef( int c, int pos )
     {
-        int refs[] = backref[(int) c];
+        int refs[] = backref[c];
 
         int i = refs.length;
         while( i>1 ){
