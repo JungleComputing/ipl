@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 public abstract class TupleSpace extends Communication {
 
-	static HashMap space;
+	static HashMap space = new HashMap();
 
 	public static boolean use_seq = false;
 
@@ -26,7 +26,6 @@ public abstract class TupleSpace extends Communication {
 			// closed world. Try running with -satin-closed");
 		}
 
-		space = new HashMap();
 		use_seq = SUPPORT_TUPLE_MULTICAST && this_satin != null
 				&& TypedProperties.booleanProperty("satin.tuplespace.ordened");
 		//				System.err.println("TupleSpace: use_seq = " + use_seq);
@@ -91,10 +90,9 @@ public abstract class TupleSpace extends Communication {
 	public static Serializable getTuple(String key) {
 		Serializable data = null;
 
-		//		if(TUPLE_DEBUG) {
-		//			System.err.println("SATIN '" + satin.ident.name() + ": get key " +
-		// key);
-		//		}
+		if(TUPLE_DEBUG) {
+			System.err.println("SATIN '" + this_satin.ident.name() + ": get key " + key);
+		}
 
 		synchronized (space) {
 			while (data == null) {
@@ -121,10 +119,9 @@ public abstract class TupleSpace extends Communication {
 				}
 			}
 
-			//			if(TUPLE_DEBUG) {
-			//				System.err.println("SATIN '" + satin.ident.name() + ": get key "
-			// + key + " DONE");
-			//			}
+			if(TUPLE_DEBUG) {
+				System.err.println("SATIN '" + this_satin.ident.name() + ": get key " + key + " DONE");
+			}
 
 			return data;
 		}
@@ -171,6 +168,9 @@ public abstract class TupleSpace extends Communication {
 		if (TUPLE_DEBUG) {
 			System.err.println("SATIN '" + this_satin.ident.name()
 					+ ": remote add of key " + key);
+			if (data == null) {
+			    System.err.println("data = null!");
+			}
 		}
 
 		synchronized (space) {
@@ -178,6 +178,10 @@ public abstract class TupleSpace extends Communication {
 			//			newKeys.add(key);
 			//			newData.add(data);
 			space.notifyAll();
+		}
+		if (TUPLE_DEBUG) {
+			System.err.println("SATIN '" + this_satin.ident.name()
+					+ ": remote add of key " + key + " DONE");
 		}
 	}
 

@@ -18,10 +18,6 @@ public class SatinTupleSpace implements Config {
 	// space must be synchronized, adds and dels arrive asynchronously
 //	private static Satin satin;
 
-	static {
-		Satin.initTupleSpace();
-	}
-
 	/*
 	 * public static void enableActiveTupleOrdening() { if (satin == null)
 	 * return; // sequential run if (!SUPPORT_TUPLE_MULTICAST) { System.err
