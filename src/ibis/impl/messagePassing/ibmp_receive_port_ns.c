@@ -70,6 +70,7 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     jfieldID	fld_ns;
     jclass	cls_ns;
 
+    IBP_VPRINTF(2000, env, ("here..\n"));
     fld_ibis = (*env)->GetStaticFieldID(env,
 				        ibmp_cls_Ibis,
 				        "myIbis",
@@ -78,6 +79,7 @@ ibmp_receive_port_ns_init(JNIEnv *env)
 	fprintf(stderr, "%s.%d Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n", __FILE__, __LINE__);
 	abort();
     }
+    IBP_VPRINTF(2000, env, ("here..\n"));
 
     obj_ibis = (*env)->GetStaticObjectField(env, ibmp_cls_Ibis, fld_ibis);
 // fprintf(stderr, "%s.%d obj_ibis = %p\n", __FILE__, __LINE__, obj_ibis);
@@ -90,6 +92,7 @@ ibmp_receive_port_ns_init(JNIEnv *env)
 	fprintf(stderr, "%s.%d Cannot find field registry:Libis/ipl/impl/messagePassing/Registry;\n", __FILE__, __LINE__);
 	abort();
     }
+    IBP_VPRINTF(2000, env, ("here..\n"));
 
     obj_registry = (*env)->GetObjectField(env, obj_ibis, fld_registry);
 // fprintf(stderr, "%s.%d obj_registry = %p\n", __FILE__, __LINE__, obj_registry);
@@ -100,6 +103,7 @@ ibmp_receive_port_ns_init(JNIEnv *env)
 	abort();
     }
     cls_Registry = (*env)->NewGlobalRef(env, cls_Registry);
+    IBP_VPRINTF(2000, env, ("here..\n"));
 
     fld_ns = (*env)->GetFieldID(env,
 				cls_Registry,
@@ -109,19 +113,27 @@ ibmp_receive_port_ns_init(JNIEnv *env)
 	fprintf(stderr, "%s.%d Cannot find field nameServer:Libis/ipl/impl/messagePassing/ReceivePortNameServer;\n", __FILE__, __LINE__);
 	abort();
     }
+    IBP_VPRINTF(2000, env, ("here..\n"));
 
-    obj_Ibis_nameServer = (*env)->GetObjectField(env,
-				obj_registry,
-				fld_ns);
-    obj_Ibis_nameServer = (*env)->NewGlobalRef(env, obj_Ibis_nameServer);
+    if (obj_registry != NULL) {
+	obj_Ibis_nameServer = (*env)->GetObjectField(env,
+				    obj_registry,
+				    fld_ns);
+	IBP_VPRINTF(2000, env, ("here..\n"));
+	obj_Ibis_nameServer = (*env)->NewGlobalRef(env, obj_Ibis_nameServer);
+	IBP_VPRINTF(2000, env, ("here..\n"));
+    }
 
     cls_ns = (*env)->FindClass(env,
 			    "ibis/ipl/impl/messagePassing/ReceivePortNameServer");
+    IBP_VPRINTF(2000, env, ("here..\n"));
     if (cls_ns == NULL) {
 	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/ReceivePortNameServer\n", __FILE__, __LINE__);
 	abort();
     }
+    IBP_VPRINTF(2000, env, ("here..\n"));
     cls_ns = (*env)->NewGlobalRef(env, cls_ns);
+    IBP_VPRINTF(2000, env, ("here..\n"));
 
     md_NameServer_bind = (*env)->GetMethodID(env,
 					     cls_ns,
@@ -131,6 +143,7 @@ ibmp_receive_port_ns_init(JNIEnv *env)
 	fprintf(stderr, "%s.%d Cannot find method bind([BII)V\n", __FILE__, __LINE__);
 	abort();
     }
+    IBP_VPRINTF(2000, env, ("here..\n"));
     md_NameServer_lookup = (*env)->GetMethodID(env,
 					       cls_ns,
 					       "lookup",
@@ -139,6 +152,7 @@ ibmp_receive_port_ns_init(JNIEnv *env)
 	fprintf(stderr, "%s.%d Cannot find method lookup(Ljava/lang/String;II)V\n", __FILE__, __LINE__);
 	abort();
     }
+    IBP_VPRINTF(2000, env, ("here..\n"));
     md_NameServer_unbind = (*env)->GetMethodID(env,
 					       cls_ns,
 					       "unbind",

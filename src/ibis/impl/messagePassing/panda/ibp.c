@@ -562,7 +562,10 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 void
 ibp_init(JNIEnv *env, int *argc, char *argv[])
 {
+    IBP_VPRINTF(2000, env, ("here...\n"));
+
     ibmp_check_ibis_name(env, "ibis.ipl.impl.messagePassing.PandaIbis");
+    IBP_VPRINTF(2000, env, ("here...\n"));
 
     ibp_pan_init(env, argc, argv);
     IBP_VPRINTF(2000, env, ("here...\n"));
@@ -614,5 +617,7 @@ ibp_end(JNIEnv *env)
     ibp_report(env, 1);
     IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
     pan_comm_intr_disable();
+    IBP_VPRINTF(2000, env, ("here...\n"));
     pan_end();
+    IBP_VPRINTF(2000, env, ("here...\n"));
 }

@@ -278,17 +278,26 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
     jstring s;
     const jbyte *class_name;
 
+    IBP_VPRINTF(2000, env, ("here...\n"));
     c = (*env)->GetObjectClass(env, ibmp_obj_Ibis_ibis);
+    IBP_VPRINTF(2000, env, ("here...\n"));
     classClass = (*env)->GetObjectClass(env, (jobject)c);
+    IBP_VPRINTF(2000, env, ("here...\n"));
     getName = (*env)->GetMethodID(env, (jobject)classClass, "getName", "()Ljava/lang/String;");
     if (getName == NULL) {
+	IBP_VPRINTF(2000, env, ("here...\n"));
 	ibmp_error(env, "Cannot find method java.lang.Class.getName()Ljava/lang/String;");
     }
+    IBP_VPRINTF(2000, env, ("here...\n"));
     s = (jstring)(*env)->CallObjectMethod(env, (jobject)c, getName);
+    IBP_VPRINTF(2000, env, ("here...\n"));
     class_name = (*env)->GetStringUTFChars(env, s, NULL);
+    IBP_VPRINTF(2000, env, ("here...\n"));
     if (strcmp(class_name, name) != 0) {
+	IBP_VPRINTF(2000, env, ("here...\n"));
 	ibmp_error(env, "Linked %s native lib with %s Ibis", name, class_name);
     }
+    IBP_VPRINTF(2000, env, ("here...\n"));
     (*env)->ReleaseStringUTFChars(env, s, class_name);
 }
 
@@ -494,7 +503,10 @@ fprintf(stderr, "%2d: ibmp_1end: hi folks... \n", ibmp_me);
     ibmp_receive_port_ns_unbind_end(env);
     ibmp_receive_port_ns_end(env);
     ibmp_poll_end(env);
+    IBP_VPRINTF(2000, env, ("here...\n"));
 
     ibp_mp_end(env);
+    IBP_VPRINTF(2000, env, ("here...\n"));
     ibp_end(env);
+    IBP_VPRINTF(2000, env, ("here...\n"));
 }
