@@ -477,15 +477,16 @@ to the command line.
 	<chmod file="${ibis}/bin/frun" perm="+x"/>
 
 	<!--
-	    Right for now, this is used only by me = RFHH so I hard-code
-	    ibis NS port and host. This should become a configuration
-	    thingy whenever other peope also want to use run-das
+	    Right for now, this is used only by me = RFHH so I choose values
+	    for ibis NS port and host that are sensible to *me*. This might
+	    become a configuration thingy whenever other peope also want to
+	    use run-das
 	-->
 	<concat destfile="${ibis}/bin/run-das">
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/run-das" />
 	</concat>
-	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_PORT@" value="7654"/>
-	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_HOST@" value="mercury.cs.vu.nl"/>
+	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_PORT@" value="9826"/>
+	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_HOST@" value="${hostname}"/>
 	<if>
 	    <os family="mac"/>
 	    <then>
