@@ -43,7 +43,7 @@ public class IbisSocketFactory {
 		}
 	}
 
-	private synchronized static int allocLocalPort() {
+	public synchronized static int allocLocalPort() {
 		if(firewall) {
 			int res = portNr++;
 			if(portNr >= endRange) {
