@@ -56,7 +56,7 @@ public final class GmPoller extends NetPoller {
 		Integer num = cnx.getNum();
 		setupConnection(cnx, num, ni);
 
-		Driver.gmAccessLock.ilock(true);
+		Driver.gmAccessLock.lock(true);
 
 		int[] _lockIds = new int[lockIds.length + 1];
 		System.arraycopy(lockIds, 0, _lockIds, 0, lockIds.length - 1);

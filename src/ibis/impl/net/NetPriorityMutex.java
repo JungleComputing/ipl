@@ -2,6 +2,11 @@ package ibis.impl.net;
 
 /**
  * Provide a special kind of mutex with a 2-level priority support.
+ *
+ * ToDo: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! RFHH
+ *     remove the notifyAll and replace with a set of condition variables,
+ *     one for low-priority lockers, one for high-priority lockers.
+ *     Cannot we switch to 1.5?
  */
 public final class NetPriorityMutex {
 
@@ -42,57 +47,81 @@ public final class NetPriorityMutex {
 	}
 
 
+	private void registerWait() {
+	    waiters++;
+	    if (DEBUG) {
+		if (waiters < waitingThreads.length) {
+		    waitingThreads[waiters] = Thread.currentThread();
+		}
+	    }
+	}
+
+
+	private void unregisterWait() {
+	    if (DEBUG) {
+		Thread me = Thread.currentThread();
+		for (int i = 0; i < waiters; i++) {
+		    if (waitingThreads[i] == me) {
+			waitingThreads[i] = waitingThreads[waiters - 1];
+			break;
+		    }
+		    if (i == waiters && waiters < waitingThreads.length) {
+			System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% inconsistent endWait()");
+			throw new Error("inconsistent endWait()");
+		    }
+		}
+	    }
+	    waiters--;
+	}
+
+
+	private void wakeupHigherPriorityThreads(boolean priority) {
+	    if (priority || priorityvalue <= 0) {
+		return;
+	    }
+
+	    /* I am not a priority thread, so I am sure to sleep on
+	     * because there are waiting priority threads. Now I must
+	     * wake (at least) one of them. */
+	    if (waiters == 0) {
+		throw new Error("Cannot be that priorityvalue > 0 && waiters == 0");
+	    }
+	    if (waiters == priorityvalue) {
+		// Sure we are going to wake up a prio waiter
+		notify();
+	    } else {
+		// Sorry, there are prio and nonprio waiters. To be sure a
+		// prio waiter comes alive, we have no choice but to wake all.
+		notifyAll();
+	    }
+	}
+
+
 	private void doWait(boolean priority) throws InterruptedIOException {
+	    registerWait();
 	    try {
-		if (DEBUG) {
-		    if (waiters < waitingThreads.length) {
-			waitingThreads[waiters] = Thread.currentThread();
-		    }
-		}
-		waiters++;
 		wait();
-
 	    } catch (InterruptedException e) {
-		if (priority) {
-		    synchronized(this) {
-			if (waiters > 0) {
-			    notify();
-			    // notifyAll();
-			}
-		    }
-		}
+		notifyAll();
 		throw new InterruptedIOException(e);
-
 	    } finally {
-		if (DEBUG) {
-		    Thread me = Thread.currentThread();
-		    for (int i = 0; i < waiters; i++) {
-			if (waitingThreads[i] == me) {
-			    waitingThreads[i] = waitingThreads[waiters - 1];
-			    break;
-			}
-			if (i == waiters && waiters < waitingThreads.length) {
-			    System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% inconsistent endWait()");
-			    throw new Error("inconsistent endWait()");
-			}
-		    }
-		}
-		waiters--;
+		unregisterWait();
 	    }
+	    wakeupHigherPriorityThreads(priority);
+	}
 
-	    if (! priority && priorityvalue > 0) {
-		if (waiters == 0) {
-		    throw new Error("Cannot be that priorityvalue > 0 && waiters == 0");
-		}
-		if (waiters == priorityvalue) {
-		    // Sure we are going to wake up a prio waiter
-		    notify();
-		} else {
-		    // Sorry, there are prio and nonprio waiters. To be sure a
-		    // prio waiter comes alive, we have no choice but to wake all.
-		    notifyAll();
-		}
+
+	private void idoWait(boolean priority) throws InterruptedException {
+	    registerWait();
+	    try {
+		wait();
+	    } catch (InterruptedException e) {
+		notifyAll();
+		throw e;
+	    } finally {
+		unregisterWait();
 	    }
+	    wakeupHigherPriorityThreads(priority);
 	}
 
 
@@ -108,14 +137,15 @@ public final class NetPriorityMutex {
          * interrupted while the method is blocked waiting for the
          * mutex.
          */
-	public synchronized void lock(boolean priority) throws InterruptedIOException{
+	public synchronized void lock(boolean priority)
+		throws InterruptedIOException{
+	    if (DEBUG && lockvalue <= 0 && owner == Thread.currentThread()) {
+		throw new IllegalMonitorStateException("Cannot lock twice");
+	    }
 	    if (priority) {
 		priorityvalue++;
 		try {
 		    while (lockvalue <= 0) {
-			if (DEBUG && owner == Thread.currentThread()) {
-			    throw new IllegalMonitorStateException("Cannot lock twice");
-			}
 			doWait(priority);
 		    }
 		} finally {
@@ -123,10 +153,6 @@ public final class NetPriorityMutex {
 		}
 	    } else {
 		while (priorityvalue > 0 || lockvalue <= 0) {
-		    if (DEBUG &&
-			    lockvalue <= 0 && owner == Thread.currentThread()) {
-			throw new IllegalMonitorStateException("Cannot lock twice");
-		    }
 		    doWait(priority);
 		}
 	    }
@@ -152,26 +178,23 @@ public final class NetPriorityMutex {
          * interrupted while the method is blocked waiting for the
          * mutex.
          */
-	public synchronized void ilock(boolean priority) throws InterruptedIOException {
+	public synchronized void ilock(boolean priority)
+		throws InterruptedException {
+	    if (DEBUG && lockvalue <= 0 && owner == Thread.currentThread()) {
+		throw new IllegalMonitorStateException("Cannot lock twice");
+	    }
 	    if (priority) {
 		priorityvalue++;
 		try {
 		    while (lockvalue <= 0) {
-			if (DEBUG && owner == Thread.currentThread()) {
-			    throw new IllegalMonitorStateException("Cannot lock twice");
-			}
-			doWait(priority);
+			idoWait(priority);
 		    }
 		} finally {
 		    priorityvalue--;
 		}
 	    } else {
 		while (priorityvalue > 0 || lockvalue <= 0) {
-		    if (DEBUG &&
-			    lockvalue <= 0 && owner == Thread.currentThread()) {
-			throw new IllegalMonitorStateException("Cannot lock twice");
-		    }
-		    doWait(priority);
+		    idoWait(priority);
 		}
 	    }
 	    if (DEBUG) {

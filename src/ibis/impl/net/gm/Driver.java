@@ -169,7 +169,7 @@ System.err.println("********** perform interrupt");
 		try {
 		    boolean locked;
 		    do {
-			gmAccessLock.ilock(false);
+			gmAccessLock.lock(false);
 // System.err.print(">");
 			nGmThread();
 // System.err.print("<");
