@@ -37,7 +37,12 @@ public final class Driver extends NetDriver {
 	}
 
 	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
-	    if (inputUpcall == null && pt.inputSingletonOnly()) {
+	    String subContext = context + "/" + name;
+// System.err.println(this + ": property\"Plugin\" subContext " + subContext + "  StringProperty " + pt.getStringProperty(subContext, "Plugin"));
+	    String pluginName = pt.getStringProperty(subContext, "Plugin");
+
+	    if (inputUpcall == null
+		    && (pt.inputSingletonOnly() || pluginName == null)) {
 		return new SingletonPoller(pt, this, context, inputUpcall);
 	    } else {
 		return new MultiPoller(pt, this, context, inputUpcall);
@@ -48,6 +53,7 @@ public final class Driver extends NetDriver {
 	    return new MultiSplitter(pt, this, context);
 	}
 
+	synchronized
         protected MultiPlugin loadPlugin(String name) throws IOException {
 		MultiPlugin plugin = (MultiPlugin)pluginTable.get(name);
 
@@ -74,4 +80,9 @@ public final class Driver extends NetDriver {
 
                 return plugin;
         }
+
+	static String defaultSubContext() {
+	    return "default";
+	}
+
 }

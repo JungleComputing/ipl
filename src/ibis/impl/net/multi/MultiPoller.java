@@ -16,12 +16,31 @@ import ibis.ipl.ConnectionClosedException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Hashtable;
+import java.util.Vector;
 
 /**
  * Provides a generic multiple network input poller.
  */
 public class MultiPoller extends NetPoller {
+
+	/*
+	 * Data structures required:
+	 * = subInput(s) -- shared between connections of the same plugin type.
+	 * 		One per plugin type.
+	 * = ReceiveQueue(s) -- inherited from NetPoller. Handles polling of
+	 * 		and input from one of our subInputs.
+	 * 		One per plugin type.
+	 * = subContext(s) -- key to do multiplexing between plugin types.
+	 * 		One per plugin type.
+	 * 		Requires a subContextTable, indexed by plugin type.
+	 * = Lane(s) -- Connection info.
+	 * 		One per connection.
+	 * 		Requires a laneTable, indexed by cnx.getNum().
+	 */
 
         protected final static class Lane {
                 ReceiveQueue  queue        = null;
@@ -76,9 +95,14 @@ public class MultiPoller extends NetPoller {
         /**
          * Our extension to the set of inputs.
          */
-        protected Hashtable laneTable = null;
+        protected Hashtable	laneTable = null;
 
-        private MultiPlugin plugin  = null;
+        private MultiPlugin	plugin  = null;
+
+	protected Lane		connectingLane;
+	protected Lane		singleLane;
+
+	protected Vector	subContextTable;
 
         public MultiPoller(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
                 throws IOException {
@@ -94,6 +118,7 @@ public class MultiPoller extends NetPoller {
 
 	private void init() throws IOException {
                 laneTable = new Hashtable();
+		subContextTable = new Vector();
 
                 String pluginName = getProperty("Plugin");
                 //System.err.println("multi-protocol plugin: "+pluginName);
@@ -104,6 +129,7 @@ public class MultiPoller extends NetPoller {
         }
 
 
+	/* is called synchronized(this) from NetPoller */
 	protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
 	    	throws IOException {
 	    NetInput ni = q.getInput();
@@ -115,11 +141,12 @@ public class MultiPoller extends NetPoller {
 		 * to our plugin), use that.
 		 * Else, go on and create a new subInput.
 		 */
-		// System.err.println(this + ": recycle existing subInput " + ni);
+		System.err.println(this + ": recycle existing subInput " + ni);
 		return ni;
 	    }
 
-	    Lane      lane          = (Lane)key;
+	    // Lane      lane          = (Lane)key;
+	    Lane      lane          = connectingLane;
 	    String    subContext    = lane.subContext;
 	    String    subDriverName = getProperty(subContext, "Driver");
 	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
@@ -140,6 +167,21 @@ public class MultiPoller extends NetPoller {
 
         public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
+
+		// Ensure that connections are not interleaved. The lock on
+		// (this) can be released in the code to disable the singleton
+		// fastpath in super.setSingleton(ReceiveQueue, boolean).
+		while (waitingConnections > 0) {
+System.err.println(this + ": Bingo, interleaved connections. Protect");
+		    waitingConnections++;
+		    try {
+			wait();
+		    } catch (InterruptedException e) {
+			// Go on waiting
+		    }
+		    waitingConnections--;
+		}
+
 		Integer num  = cnx.getNum();
 		NetServiceLink        link = cnx.getServiceLink();
 
@@ -160,14 +202,32 @@ public class MultiPoller extends NetPoller {
 		os.writeObject(localId);
 		os.flush();
 
-		String          subContext      = (plugin!=null)?plugin.getSubContext(false, localId, remoteId, os, is):null;
+		String  subContext = null;
+		if (plugin != null) {
+		    subContext     = plugin.getSubContext(false, localId, remoteId, os, is);
+		} else {
+		    subContext = Driver.defaultSubContext();
+		}
 
 		Lane    lane = new Lane();
+		laneTable.put(num, lane);
 		lane.subContext   = subContext;
+		if (! subContextTable.contains(subContext)) {
+		    subContextTable.add(subContext);
+		}
 
-		setupConnection(cnx, lane);
+		if (connectingLane != null) {
+		    throw new Error(this + ": race in subConnection setup");
+		}
+		connectingLane = lane;
 
-		ReceiveQueue q = (ReceiveQueue)inputMap.get(lane);
+		// Creates a ReceiveQueue if none exists for this plugin type
+		// setupConnection(cnx, lane);
+		setupConnection(cnx, subContext);
+
+		connectingLane = null;
+
+		ReceiveQueue q = (ReceiveQueue)inputMap.get(subContext);
 
 		lane.is           = is;
 		lane.os           = os;
@@ -176,12 +236,20 @@ public class MultiPoller extends NetPoller {
 		lane.headerLength = is.readInt();
 		lane.thread       = new ServiceThread("subcontext = "+subContext+", spn = "+num, lane);
 
-		laneTable.put(num, lane);
+		if (laneTable.values().size() == 1) {
+		    singleLane = lane;
+		} else {
+		    singleLane = null;
+		}
 
 		sis.registerPopup(lane.thread);
 
                 log.out();
         }
+
+	protected boolean isSingleton() {
+		return (subContextTable.size() == 1);
+	}
 
         protected Object getKey(Integer num) {
                 log.in();
@@ -195,7 +263,10 @@ public class MultiPoller extends NetPoller {
 
         protected void selectConnection(ReceiveQueue rq) {
                 log.in();
-                Lane lane = (Lane)laneTable.get(rq.activeNum());
+                Lane lane = singleLane;
+		if (lane == null) {
+		    lane = (Lane)laneTable.get(rq.activeNum());
+		}
                 synchronized (lane) {
                         mtu          = lane.mtu;
                         headerOffset = lane.headerLength;

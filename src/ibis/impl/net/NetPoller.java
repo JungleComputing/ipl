@@ -42,7 +42,7 @@ public class NetPoller
      */
     private ReceiveQueue	singleton;
     private boolean		handlingSingleton;
-    private int			waitingConnections;
+    protected int		waitingConnections;
     private static final boolean SINGLETON_FASTPATH = TypedProperties.booleanProperty(NetIbis.poll_single_dyn, true);
 
     /**
@@ -152,11 +152,13 @@ public class NetPoller
 	if (SINGLETON_FASTPATH && on) {
 
 	    if (singleton != null) {
-		throw new IllegalArgumentException("Only one singleton is allowed");
+		if (VERBOSE_SINGLETON) {
+		    System.err.println(this + ": Retain singleton fastpath, subInput " + q.getInput());
+		}
+		return;
 	    }
 
-	    Collection c = inputMap.values();
-	    if (c.size() != 1) {
+	    if (! isSingleton()) {
 		throw new IllegalArgumentException("Cannot enable singleton if #connections != 1");
 	    }
 
@@ -183,7 +185,7 @@ public class NetPoller
 
 	} else if (singleton != null) {
 	    if (VERBOSE_SINGLETON) {
-		System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton " + singleton.input + " fastpath.");
+		System.err.println(this + ": Disable singleton " + singleton.input + " fastpath.");
 	    }
 
 	    if (q == singleton) {
@@ -295,6 +297,10 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	return ni;
     }
 
+    protected boolean isSingleton() {
+	return (inputMap.values().size() == 1);
+    }
+
     /**
      * Actually establish a connection with a remote port
      *
@@ -324,14 +330,14 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	    q = new ReceiveQueue(cnx);
 	    inputMap.put(key, q);
 	}
-	boolean only = (inputMap.values().size() == 1);
+else System.err.println(this + ": recycle existing " + q + " for key " + key);
 
 	NetInput ni = newPollerSubInput(key, q);
 	q.setInput(ni);
 
 	ni.setupConnection(cnx);
 
-	setSingleton(q, only);
+	setSingleton(q, isSingleton());
 
 	/* If this NetPoller is used in downcallMode, the
 	 * upcall threads of the subInputs deliver their

@@ -32,9 +32,11 @@ public final class MultiSplitter extends NetSplitter {
                 String             subContext = null;
         }
 
-        private Hashtable laneTable        = null;
+        private Hashtable	laneTable        = null;
 
-        private MultiPlugin plugin         = null;
+        private MultiPlugin	plugin         = null;
+
+	protected Lane		singleLane;
 
 	/**
 	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
@@ -106,7 +108,13 @@ public final class MultiSplitter extends NetSplitter {
 		}
 
 
-		String          subContext      = (plugin!=null)?plugin.getSubContext(true, localId, remoteId, os, is):null;
+		String subContext = null;
+		if (plugin != null) {
+		    subContext      = plugin.getSubContext(true, localId, remoteId, os, is);
+		} else {
+		    subContext = Driver.defaultSubContext();
+		}
+
 		NetOutput 	no 		= (NetOutput)outputMap.get(subContext);
 
 		if (IS_GEN || no == null) {
@@ -149,13 +157,22 @@ public final class MultiSplitter extends NetSplitter {
 			updateSizes();
 		}
 
+		if (laneTable.values().size() == 1) {
+		    singleLane = lane;
+		} else {
+		    singleLane = null;
+		}
+
 		laneTable.put(cnx.getNum(), lane);
                 log.out();
 	}
 
         protected Object getKey(Integer num) {
                 log.in();
-                Lane lane = (Lane)laneTable.get(num);
+                Lane lane = singleLane;
+		if (singleLane == null) {
+		    lane = (Lane)laneTable.get(num);
+		}
                 Object key = lane.subContext;
                 log.out();
 

@@ -24,7 +24,6 @@ public class SingletonPoller extends MultiPoller {
      * The subInput
      */
     protected NetInput		subInput;
-    protected Lane		singleLane;
 
     /**
      * Constructor.
@@ -76,7 +75,8 @@ public class SingletonPoller extends MultiPoller {
 		return ni;
 	    }
 
-	    Lane      lane          = (Lane)key;
+	    // Lane      lane          = (Lane)key;
+	    Lane      lane          = connectingLane;
 	    String    subContext    = lane.subContext;
 	    String    subDriverName = getProperty(subContext, "Driver");
 	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
