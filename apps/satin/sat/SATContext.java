@@ -780,6 +780,7 @@ public final class SATContext implements java.io.Serializable {
 	if( tracePropagation ){
 	    System.err.println( "S" + level + ": propagating unit clause " + c );
 	}
+
 	// Now search for the variable that isn't satisfied.
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
@@ -1032,20 +1033,20 @@ public final class SATContext implements java.io.Serializable {
 	    int cno = neg[i];
 
             // Deduct the old info of this clause.
-            posinfo[var] -= p.reviewer.info( terms[cno] );
+            neginfo[var] -= p.reviewer.info( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
                 analyzeConflict( p, cno, var, level, learnAsTuple, learn );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
-		// Remember that we saw a unit clause, but don't
-		// propagate it yet, since the administration is inconsistent.
+		// Remember that we saw a unit clause, but don't propagate
+                // it yet, since the administration is currently inconsistent.
 		hasUnitClauses = true;
 	    }
             else {
                 // Add the new information of this clause.
-                posinfo[var] += p.reviewer.info( terms[cno] );
+                neginfo[var] += p.reviewer.info( terms[cno] );
             }
 	}
 
@@ -1124,8 +1125,8 @@ public final class SATContext implements java.io.Serializable {
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
-		// Remember that we saw a unit clause, but don't
-		// propagate it yet, since the administration is inconsistent.
+		// Remember that we saw a unit clause, but don't propagate
+                // it yet, since the administration is currently inconsistent.
 		hasUnitClauses = true;
 	    }
             else {
