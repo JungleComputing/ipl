@@ -100,6 +100,7 @@ class ElectionServer extends Thread implements Protocol {
 		    break;
 		case (ELECTION_EXIT):
 		    NameServerClient.socketFactory.close(in, out, s);
+		    serverSocket.close();
 		    return;
 		default: 
 		    System.err.println("ElectionServer: got an illegal opcode " + opcode);					

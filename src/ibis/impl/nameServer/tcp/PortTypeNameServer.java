@@ -152,6 +152,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 		    break;
 		case (PORTTYPE_EXIT):
 		    NameServerClient.socketFactory.close(in, out, s);
+		    serverSocket.close();
 		    return;
 		case (SEQNO):
 		    handleSeqno();

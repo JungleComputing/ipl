@@ -273,6 +273,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 			finishSweeper = true;
 			requestedPorts.notifyAll();
 		    }
+		    serverSocket.close();
 		    return;
 		default: 
 		    System.err.println("ReceivePortNameServer: got an illegal opcode " + opcode);
