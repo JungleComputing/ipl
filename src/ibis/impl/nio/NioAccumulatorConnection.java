@@ -97,11 +97,7 @@ class NioAccumulatorConnection implements Config {
 	return true;
     }
 
-    void close() {
-	try {
-	    channel.close();
-	} catch (IOException e) {
-	    //IGNORE
-	}
+    void close() throws IOException {
+	channel.close();
     }
 }

@@ -9,6 +9,8 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
+import ibis.ipl.ConnectionClosedException;
+
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -16,8 +18,27 @@ import java.net.InetSocketAddress;
 import java.nio.channels.Channel;
 import java.util.ArrayList;
 
+import ibis.util.nativeCode.Rdtsc;
+
 abstract class NioReceivePort implements ReceivePort, Runnable, 
 					 Config, Protocol {
+
+    //static list of all (thread-local) timers
+    private static ArrayList timers = new ArrayList();
+
+    //threadlocal object which holds a timer object for the current thread
+    private static ThreadLocal timer = new ThreadLocal() {
+	protected synchronized Object initialValue() {
+	    Rdtsc t = new Rdtsc();
+	    timers.add(t);
+	    return t;
+	}
+    };
+    
+    //function to get thread-local timer
+    static Rdtsc timer() {
+	return (Rdtsc) timer.get();
+    }
 
     protected NioPortType type;
     protected NioIbis ibis;
@@ -38,8 +59,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
     private boolean upcallThreadRunning = false;
 
     private NioReadMessage m = null; // only used when upcalls are off
-
-    protected volatile boolean exitOnNotConnected = false;
 
     /**
      * Fake readmessage used to indicate someone is trying to get a real
@@ -77,6 +96,9 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
 
     /**
      * Sees if the user is ok with a new connection from "spi"
+     * Called by the connection factory.
+     *
+     * @return the reply for the send port
      */
     byte connectionRequested(NioSendPortIdentifier spi,
 					  Channel channel) {
@@ -192,7 +214,8 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
     /**
      * gets a new message from the network. Will block until the deadline
      * has passed, or not at all if deadline = -1, or indefinitely if
-     * deadline = 0
+     * deadline = 0. Only used when upcalls are disabled. Uses global message 
+     * "m" to ensure only one message is alive at any time
      *
      */
     private NioReadMessage getMessage(long deadline) throws IOException {
@@ -205,61 +228,57 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
 	    Debug.enter("messages", this, "trying to fetch message");
 	}
 
-	if(upcall == null) {
-	    synchronized(this) {
-		while(m != null) {
-		    if(!waitForNotify(deadline)) {
-			if (DEBUG) {
-			    Debug.exit("messages", this, 
+	synchronized(this) {
+	    while(m != null) {
+		if(!waitForNotify(deadline)) {
+		    if (DEBUG) {
+			Debug.exit("messages", this, 
 				"!timeout while waiting on previous message");
-			}
-			throw new ReceiveTimedOutException("previous message"
-				+ " not finished yet");
 		    }
+		    throw new ReceiveTimedOutException("previous message"
+			    + " not finished yet");
 		}
-		m = dummy;  // reserve the global message so no-one will
-			    // try to receive a message while we are too.
 	    }
+	    m = dummy;  // reserve the global message so no-one will
+	    // try to receive a message while we are too.
 	}
 
 	try {
 	    dissipator  = getReadyDissipator(deadline);
 	} catch (ReceiveTimedOutException e) {
-	    if(upcall == null) {
-		synchronized(this) {
-		    m = null; //give up the lock
-		}
+	    synchronized(this) {
+		m = null; //give up the lock
 	    }
 	    if (DEBUG) {
 		Debug.exit("messages", this, 
 			"!timeout while waiting on dissipator with message");
 	    }
 	    throw e;
-	}
-
-	if(dissipator == null) {
+	} catch (ConnectionClosedException e) {
 	    synchronized(this) {
-		if(exitOnNotConnected) {
-		    if (DEBUG) {
-			Debug.exit("messages", this, "!no (more) connections");
-		    }
-		    return null;
-		} else {
-		    throw new IbisError("getReadyDissipator returned null"); 
-		}
+		m = null; //give up the lock
 	    }
+	    if (DEBUG) {
+		Debug.exit("messages", this, 
+			"!receiveport closed while waiting on message");
+	    }
+	    throw e;
 	}
 
-	if(type.numbered) {
-	    sequencenr = dissipator.sis.readLong();
+	try {
+	    if(type.numbered) {
+		sequencenr = dissipator.sis.readLong();
+	    }
+
+	    message = new NioReadMessage(this, dissipator, sequencenr);
+	} catch (IOException e) {
+	    errorOnRead(dissipator, e);
+	    //do recursive call
+	    return getMessage(deadline);
 	}
 
-	message = new NioReadMessage(this, dissipator, sequencenr);
-
-	if(upcall == null) {
-	    synchronized(this) {
-		m = message;
-	    }
+	synchronized(this) {
+	    m = message;
 	}
 
 	if (DEBUG) {
@@ -274,35 +293,28 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      * called by the readMessage. Finishes message. Also wakes up everyone who 
      * was waiting for it
      */
-    synchronized void finish(NioReadMessage m, long messageCount) 
+    void finish(NioReadMessage m, long messageCount) 
 	    throws IOException {
 
 	if (DEBUG) {
 	    Debug.message("messages", this, "finishing read message");
 	}
 
-	if(m.isFinished) {
-	    throw new IOException("finish called twice on a message!");
-	}
+	synchronized(this) {
+	    if(upcall == null) {
+		if(this.m != m) {
+		  throw new IOException("finish called on non-current message");
+		}
 
-	if(upcall == null) {
-	    if(this.m != m) {
-		throw new IOException("finish called on non-current message");
+		//no (global)message alive
+		this.m = null;
+		//wake up everybody who was waiting for this message to finish
+		notifyAll();
 	    }
-
-	    //no (global)message alive
-	    this.m = null;
+	    count += messageCount;
 	}
-
-	//wake up everybody who was waiting for this message to finish
-	notifyAll();
-
-	m.isFinished = true;
-
-	count += messageCount;
 
 	if(upcall != null) {
-
 	    //this finish was called from an upcall! Create a new thread to
 	    //fetch the next message (this upcall might not exit for a while)
 	    ThreadPool.createNew(this);
@@ -323,6 +335,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
 	    Debug.message("messages", this, 
 			  "!finishing read message with error");
 	}
+	m.isFinished = true;
 
 	//inform the subclass an error occured 
 	errorOnRead(m.dissipator, e);
@@ -331,15 +344,10 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
 	    if(this.m == m) {
 		this.m = null;
 	    }
-	}
 
-	//wake up everybody who was waiting for this message to finish
-	notifyAll();
-
-	m.isFinished = true;
-
-	if(upcall != null) {
-
+	    //wake up everybody who was waiting for this message to finish
+	    notifyAll();
+	} else {
 	    //this finish was called from an upcall! Create a new thread to
 	    //fetch the next message (this upcall might not exit for a while)
 	    ThreadPool.createNew(this);
@@ -356,6 +364,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
 
     public ReadMessage receive(long timeoutMillis) 
 							throws IOException {
+
 	long deadline, time;
 	ReadMessage m = null;
 
@@ -442,26 +451,8 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      * Free resourced held by receiport AFTER waiting for all the connections
      * to close down
      */
-    public synchronized void close() throws IOException {
-
-	disableConnections();
-	ibis.nameServer.unbind(ident.name);
-	ibis.factory.deRegister(this);
-	exitOnNotConnected = true;
-	notifyAll();
-
-	if (upcall == null) {
-	    if (m != null) {
-		throw new IOException("Message alive while doing close()");
-	    }
-	    if (getReadyDissipator(0) != null) {
-		throw new IOException("Message received while doing close()");
-	    }
-	} else {
-	    while (connectedTo().length > 0) {
-		waitForNotify(0);
-	    }
-	}
+    public void close() throws IOException {
+	doClose(0);
     }
 
     /**
@@ -469,71 +460,79 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      * to close down, or the timeout to pass.
      */
     public void close(long timeout) throws IOException {
-	if (timeout == 0L) {
-	    close();
-	}
-	else if (timeout > 0L) {
-	    forcedClose(timeout);
-	}
-	else {
-	    forcedClose();
+	if (timeout > 0L) {
+	    doClose(System.currentTimeMillis() + timeout);
+	} else {
+	    //-1 or 0
+	    doClose(timeout);
 	}
     }
 
 
     /**
-     * Free resources geld by receiveport after waiting for all the connections
-     * to close down, or the timeout to pass
+     * closes all connections after waiting for the deadline to pass.
      */
-    private synchronized void forcedClose(long timeoutMillis) {
-	long deadline = System.currentTimeMillis() + timeoutMillis;
+    void doClose(long deadline) throws IOException {
+	ReadMessage m;
+	long time;
 
-	try {
-	    disableConnections();
-	    ibis.nameServer.unbind(ident.name);
-	    ibis.factory.deRegister(this);
-	    exitOnNotConnected = true;
-	    notifyAll();
-
-	    if(upcall == null) {
-		if (m != null) {
-		    throw new IOException("Message alive while doing"
-					  + " forcedClose");
-		}
-		try {
-		    if (getReadyDissipator(deadline) != null) {
-			 throw new IOException("Message received while doing"
-					       + " forcedClose()");
-		    }
-		} catch (ReceiveTimedOutException e) {
-		    //close all remaining connections
-		    closeAllConnections();
-		    return;
-		}
-	    } else {
-		while(connectedTo().length > 0) {
-		    if(!waitForNotify(deadline)) {
-			//deadline passed, close all remaining connections
-			closeAllConnections();
-		    }
-		}
-	    }
-	} catch (IOException e) {
-	}
-    }
-
-    /**
-     * close all connections. Don't wait for them to go away by themselves
-     */
-    private synchronized void forcedClose() throws IOException {
 	disableConnections();
 	ibis.nameServer.unbind(ident.name);
 	ibis.factory.deRegister(this);
-	exitOnNotConnected = true;
-	notifyAll();
-	closeAllConnections();
-    }
 
+	closing(); //signal the subclass we are closing down
+
+	if(upcall == null) {
+	    synchronized(this) {
+		if (this.m != null) {
+		    throw new IOException("Message alive while doing close");
+		}
+	    }
+	    try {
+		m = getMessage(deadline);
+		throw new IOException(
+			"message received while closing receiveport");
+	    } catch (ConnectionClosedException e) {
+		//this is _excactly_ wat we want
+	    } catch (ReceiveTimedOutException e2) {
+		//there are some connections left, kill them
+		closeAllConnections();
+	    }
+	} else {
+	    if (deadline != -1) {
+		synchronized(this) {
+		    if(deadline == 0L) {
+			while(connectedTo().length > 0) {
+			    try {
+				wait();
+			    } catch (Exception e) {
+				//IGNORE
+			    }
+			}
+		    } else if (deadline > 0L) {
+			time = System.currentTimeMillis();
+			while(time < deadline && connectedTo().length > 0) {
+			    try {
+				wait(deadline - time);
+			    } catch (Exception e) {
+				//
+			    }
+			    time = System.currentTimeMillis();
+			}
+		    }
+		}
+	    } 
+	    closeAllConnections();
+	}
+	if(STATS) {
+	    synchronized(this) {
+		System.err.println("stats for receiveport: " + ident);
+		for(int i = 0; i < timers.size(); i++) {
+		    System.err.println((Rdtsc) timers.get(i));
+		}
+	    }
+	}
+    }
 
     public int hashCode() {
 	return name.hashCode();
@@ -556,32 +555,53 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
     }
 
     public void run() {
-	NioReadMessage m = null;
+	NioReadMessage m;
+	NioDissipator dissipator;
+	long sequencenr;
+
 
 	Thread.currentThread().setName(this + " upcall thread");
 
 	while(true) {
 	    try {
-		m = getMessage(0);
+		if(STATS) {
+		    timer().start();
+		}
+		dissipator = getReadyDissipator(0);
+		if(STATS) {
+		    timer().stop();
+		}
 	    } catch (ReceiveTimedOutException e) {
 		throw new IbisError("ReceiveTimedOutException caught while"
 			+ " doing a getMessage(0)! : " + e);
+	    } catch (ConnectionClosedException e2) {
+		synchronized(this) {
+		    //the receiveport was closed, exit
+		    notifyAll();
+		    return;
+		}
 	    } catch (IOException e) {
+		// FIXME: this is not very nice
 		continue;
 	    }
 
-	    if(m == null) {
-		synchronized(this) {
-		    if(exitOnNotConnected) {
-			notifyAll();
-			return;
-		    }
+	    try {
+		if(type.numbered) {
+		    sequencenr = dissipator.sis.readLong();
+		} else {
+		    sequencenr = 0;
 		}
+
+		m = new NioReadMessage(this, dissipator, sequencenr);
+	    } catch (IOException e) {
+		errorOnRead(dissipator, e);
+		continue;
 	    }
 
 	    synchronized(this) {
 		while(!upcallsEnabled) {
 		    try {
+			System.err.println("waiting for upcall to be enabled");
 			wait();
 		    } catch (InterruptedException e) {
 			//IGNORE
@@ -593,31 +613,20 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
 		upcall.upcall(m);
 	    } catch (IOException e) {
 		errorOnRead(m.dissipator, e);
-		synchronized(this) {
-		    notifyAll();
-		    m.isFinished = true;
-		}
-		continue;
 	    }
 
 
-	    synchronized(this) {
-		if(m.isFinished) {
-		    // a new thread was started to handle the next message,
-		    // exit
-		    return;
-		}
+	    if(m.isFinished) {
+		// a new thread was started to handle the next message,
+		// exit
+		return;
 	    }
 
-	    //don't hold lock during calls into dissipator
+	    //implicitly finish message
+
 	    long messageCount = m.dissipator.bytesRead();
 	    m.dissipator.resetBytesRead();
-
-	    synchronized(this) {
-		//implicitly finish message
-		notifyAll();
-		m.isFinished = true;
-	    }
+	    m.isFinished = true;
 	}
     }
 
@@ -637,22 +646,26 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      *
      * @param deadline the deadline after which searching has failed
      *
-     * @return a dissipator with a message waiting, or null if there are
-     *	       no connections and "exitOnNotConnected" = true
-     *
      * @throws ReceiveTimedOutException If no connections are ready after
      *         the deadline has passed
+     *
+     * @throws ConnectionClosedException if there a no more connections left
+     *	       and the receiveport is closing down.
      */
     abstract NioDissipator getReadyDissipator(long deadline) throws IOException;
 
     /**
-     * Generate an array of all connections to this receiveport
+     * Generate an array of all connections to this receiveport.
      */
     public abstract SendPortIdentifier[] connectedTo(); 
 
     /**
-     * Forcibly close all open connections. Doesn't update administration or
-     * generate upcalls.
+     * this receiveport is closing down.
+     */
+    abstract void closing();
+
+    /**
+     * Drop all open connections.
      */
     abstract void closeAllConnections();
 

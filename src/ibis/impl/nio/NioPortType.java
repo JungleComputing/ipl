@@ -164,8 +164,7 @@ class NioPortType extends PortType implements Config {
 	}
 
 	if (p.find("verbose") != null)  {
-	    System.err.println("Created new NioIbis PortType, with:"
-		    + "\nserialization = " 
+		    System.out.println( "serialization = " 
 		    + SERIALIZATION_NAMES[serializationType] 
 		    + "\nsend port implementation = "
 		    + IMPLEMENTATION_NAMES[sendPortImplementation]

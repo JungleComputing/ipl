@@ -18,7 +18,7 @@ import java.util.ArrayList;
 
 public final class NioSendPort implements SendPort, Config, Protocol {
 
-    private final NioPortType type;
+    final NioPortType type;
     private NioSendPortIdentifier ident;
     private boolean aMessageIsAlive = false;
     private SerializationOutputStream out = null;
@@ -219,24 +219,8 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	}
 	aMessageIsAlive = true;
 
-	if(out == null) {
-	    //set up a stream to send data through
-	    out = type.createSerializationOutputStream(accumulator);
-
-	    if (replacer != null) {
-		out.setReplacer(replacer);
-	    }
-
-	    message = new NioWriteMessage(this, out);
-	} else {
-	    out.reset();
-	}
-
-	out.writeByte(NEW_MESSAGE);
-	
 	if(type.numbered) {
 	    sequencenr = ibis.getSeqno(type.name);
-	    out.writeLong(sequencenr);
 	}
 
 	if (DEBUG) {
@@ -253,12 +237,31 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	    Debug.enter("messages", this, message);
 	}
 
+	if(out == null) {
+	    //set up a stream to send data through
+	    out = type.createSerializationOutputStream(accumulator);
+
+	    if (replacer != null) {
+		out.setReplacer(replacer);
+	    }
+
+	    message = new NioWriteMessage(this, out);
+	} else {
+	    out.reset();
+	}
+
+	out.writeByte(NEW_MESSAGE);
+
+	if(type.numbered) {
+	    out.writeLong(sequencenr);
+	}
+
+
 	return message;
     }
 
     synchronized long finish() {
-	long messageCount = accumulator.bytesWritten();
-	accumulator.resetBytesWritten();
+	long messageCount = accumulator.getAndResetBytesWritten();
 	count += messageCount;
 
 	aMessageIsAlive = false;
@@ -279,8 +282,12 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
 	NioReceivePortIdentifier[] connections = accumulator.connections();
 
-	for(int i = 0; i < connections.length; i++) { 
-	    accumulator.remove(connections[i]);
+	try {
+	    for(int i = 0; i < connections.length; i++) { 
+		accumulator.remove(connections[i]);
+	    }
+	} catch (IOException f) {
+	    // :(
 	}
 
 	aMessageIsAlive = false;

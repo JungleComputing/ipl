@@ -69,7 +69,8 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
 	}
     }
 
-    synchronized void waitUntilEmpty() throws IOException {
+//    synchronized void waitUntilEmpty() throws IOException {
+    synchronized void close() throws IOException {
 	while (!empty()) {
 	    if(error != null) {
 		throw error;
@@ -84,5 +85,6 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
 		//IGNORE
 	    }
 	}
+	channel.close();
     }
 }

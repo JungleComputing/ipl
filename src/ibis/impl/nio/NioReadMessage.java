@@ -32,7 +32,11 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public long finish() throws IOException {
 	long messageCount;
-	
+
+	if(isFinished) {
+	    throw new IOException("finish called twice on a message!");
+	}
+
 	in.clear();
 
 	messageCount = dissipator.bytesRead();
@@ -40,11 +44,14 @@ final class NioReadMessage implements ReadMessage, Config {
 
 	port.finish(this, messageCount);
 
+	isFinished = true;
+
 	return messageCount;
     }
 
     public void finish(IOException e) {
 	port.finish(this, e);
+	isFinished = true;
     }
 
     public SendPortIdentifier origin() {

@@ -2,6 +2,7 @@ package ibis.impl.nio;
 
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
+import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.util.Queue;
@@ -21,7 +22,9 @@ final class ThreadNioReceivePort extends NioReceivePort
 
     private ThreadNioDissipator current = null;
 
-    private Queue readyDissipators = new Queue();
+    private Queue readyDissipators;
+
+    private boolean closing = false;
 
     ThreadNioReceivePort(NioIbis ibis, NioPortType type, 
 	    String name, Upcall upcall, boolean connectionAdministration,
@@ -29,6 +32,7 @@ final class ThreadNioReceivePort extends NioReceivePort
 	super(ibis, type, name, upcall, connectionAdministration, connUpcall);
 
 	connections = new ThreadNioDissipator[INITIAL_DISSIPATOR_SIZE];
+	readyDissipators = new Queue();
     }
 
     synchronized void newConnection(NioSendPortIdentifier spi, Channel channel) 
@@ -81,6 +85,7 @@ final class ThreadNioReceivePort extends NioReceivePort
 
     NioDissipator getReadyDissipator(long deadline) throws IOException {
 	ThreadNioDissipator dissipator;
+	Object object;
 
 	synchronized(this) {
 	    if(current != null) {
@@ -91,33 +96,34 @@ final class ThreadNioReceivePort extends NioReceivePort
 	    }
 	}
 
-
 	//FIXME: if a connection doesn't close gracefully, we won't notice
 
 	while(true) {
 
-	    if(exitOnNotConnected) {
-		synchronized(this) {
+	    synchronized(this) {
+		if(closing) {
 		    if (nrOfConnections == 0) {
-			return null;
+			throw new ConnectionClosedException();
+			
 		    }
 		}
 	    }
 
-	    dissipator = (ThreadNioDissipator) readyDissipators
-							    .dequeue(deadline);
+	    object = readyDissipators.dequeue(deadline);
 
-	    if (dissipator == null) {
-		if(exitOnNotConnected) {
-		    synchronized(this) {
+	    if (object == null) {
+		synchronized(this) {
+		    if(closing) {
 			if (nrOfConnections == 0) {
-			    return null;
+			    throw new ConnectionClosedException();
 			}
 		    }
 		}
 		throw new ReceiveTimedOutException("deadline passed while"
 			+ " selecting dissipator");
 	    }
+
+	    dissipator = (ThreadNioDissipator) object;
 
 	    try {
 		if(dissipator.messageWaiting()) {
@@ -127,7 +133,9 @@ final class ThreadNioReceivePort extends NioReceivePort
 		    }
 		}
 	    } catch (IOException e) {
-		errorOnRead(dissipator, e);
+		if(dissipator != null) {
+		    errorOnRead(dissipator, e);
+		}
 	    }
 	}
     }
@@ -142,6 +150,10 @@ final class ThreadNioReceivePort extends NioReceivePort
 	    result[i] = connections[i].peer;
 	}
 	return result;
+    }
+
+    synchronized void closing() {
+	closing = true;
     }
 
     synchronized void closeAllConnections() {

@@ -4,6 +4,7 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
+import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.nio.channels.Channel;
@@ -22,6 +23,8 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 
     private NonBlockingChannelNioDissipator[] pendingConnections;
     private int nrOfPendingConnections = 0;
+
+    private boolean closing = false;
 
     Selector selector;
 
@@ -90,7 +93,9 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 	// wake up selector if needed
 	selector.wakeup();
 
-	notifyAll();
+	if(nrOfConnections == 1) {
+	    notifyAll();
+	}
 
 	if (DEBUG) {
 	    Debug.exit("connections", this, "registerred new connection");
@@ -114,6 +119,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 		}
 	    }
 	}
+
 	for (int i = 0; i < nrOfConnections; i++) {
 	    if(dissipator == connections[i]) {
 		try {
@@ -132,7 +138,6 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 				  "no more connections, waking up selector");
 		    }
 		    selector.wakeup();
-		    notifyAll();
 		}
 		if(DEBUG) {
 		    Debug.exit("connections", this, "removed connection");
@@ -176,16 +181,16 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 	}
 
 	while(!deadlinePassed) {
-	    synchronized(this) {
-		registerPendingConnections();
+	    registerPendingConnections();
 
+	    synchronized(this) {
 		if(nrOfConnections == 0) {
-		    if (exitOnNotConnected) {
+		    if (closing) {
 			if (DEBUG) {
 			    Debug.exit("connections", this, "!exiting "
-			     + "because we have no connections (as requested)");
+				    + "because we have no connections (as requested)");
 			}
-			return null;
+			throw new ConnectionClosedException();
 		    } else {
 			if (deadline == -1) {
 			    deadlinePassed = true;;
@@ -220,7 +225,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 		    }
 		}
 
-		if(firstTry && nrOfConnections == 1 && !type.manyToOne) {
+		if(firstTry && nrOfConnections == 1) {
 		    //optimisticly do a single receive, to avoid
 		    //the select statement below if possible
 		    try {
@@ -245,31 +250,53 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 			i--;
 		    }
 		}
-
-	    }
+	    } // end of synchronized block
 
 	    if (deadline == -1) {
 		if (DEBUG) {
 		    Debug.message("connections", this, "doing a selectNow");
 		}
-		selector.selectNow();
+		try {
+		    selector.selectNow();
+		} catch (IOException e) {
+		    //IGNORE
+		}
 		deadlinePassed = true;
 	    } else if (deadline == 0) {
 		if (DEBUG) {
-		    Debug.message("connections", this, "doing a select()");
+		    Debug.message("connections", this, "doing a select() on "
+			    + selector.keys().size() + " connections");
 		}
-		selector.select();
+		try {
+		    selector.select();
+		} catch (IOException e) {
+		    Debug.message("connections", this, 
+			    "!error on select: " + e);
+		    //IGNORE
+		}
 	    } else {
 		time = System.currentTimeMillis();
 		if (time >= deadline) {
 		    deadlinePassed = true;
 		} else {
-		if (DEBUG) {
-		    Debug.message("connections", this, 
-				    "doing a select(timeout)");
+		    if (DEBUG) {
+			Debug.message("connections", this, 
+				"doing a select(timeout)");
+		    }
+		    try {
+			selector.select(deadline - time);
+		    } catch (IOException e) {
+			Debug.message("connections", this, 
+				"!error on select: " + e);
+			//IGNORE
+		    }
 		}
-		    selector.select(deadline - time);
-		}
+	    }
+
+	    if (DEBUG) {
+		Debug.message("connections", this,
+			"selected " + selector.selectedKeys().size() 
+			+ " connections");
 	    }
 
 	    keys = selector.selectedKeys().iterator();
@@ -281,16 +308,16 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 		try {
 		    dissipator.readFromChannel();
 		} catch (IOException e) {
-		     errorOnRead(dissipator, e);
+		    errorOnRead(dissipator, e);
 		}
 	    }
 	    selector.selectedKeys().clear();
-	}
+	} // end of while(!deadlinePassed)
 	if (DEBUG) {
 	    Debug.exit("connections", this, "!deadline passed");
 	}
 	throw new ReceiveTimedOutException("timeout while waiting"
-					   + " for dissipator");
+		+ " for dissipator");
     }
 
     synchronized public SendPortIdentifier[] connectedTo() {
@@ -301,6 +328,9 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 	return result;
     }
 
+    synchronized void closing() {
+	closing = true;
+    }
 
     synchronized void closeAllConnections() {
 	for(int i = 0; i < nrOfConnections; i++) {

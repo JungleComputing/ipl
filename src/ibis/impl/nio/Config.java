@@ -11,10 +11,20 @@ interface Config {
      */
     static final boolean DEBUG = false;
 
+    /**
+     * Enables print out of warnings to standard error.
+     */
+    static final boolean WARNINGS = true;
+
     /*
      * Do we do asserts (may make it a bit slower)
      */
-    static final boolean ASSERT = true;
+    static final boolean ASSERT = false;
+
+    /*
+     * Gather and print some timing statistics
+     */
+    static final boolean STATS = false;
 
     /**
      * Byte buffer size used. Must be a multiple of eight.

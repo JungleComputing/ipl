@@ -69,6 +69,10 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
 
 	synchronized(this) {
 	    try {
+		if(!reading) {
+		    return;
+		}
+
 		bufferWasEmpty = (unUsedLength() == 0);
 
 		readFromChannel();
@@ -142,7 +146,7 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
     }
 
     public void reallyClose() throws IOException {
-	key = null;
+	reading = false;
 	channel.close();
     }
 }

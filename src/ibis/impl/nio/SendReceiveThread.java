@@ -28,7 +28,7 @@ final class SendReceiveThread implements Runnable, Config {
 
     private Selector selector;
 
-    private volatile boolean exit = false;
+    private boolean exit = false;
 
     SendReceiveThread() throws IOException {
 	selector = Selector.open();
@@ -189,7 +189,7 @@ final class SendReceiveThread implements Runnable, Config {
     /**
      * Stops the send/receive Thread
      */
-    void quit() {
+    synchronized void quit() {
 	exit = true;
     }
 
@@ -199,17 +199,27 @@ final class SendReceiveThread implements Runnable, Config {
 
 	Thread.currentThread().setName("send/receive thread");
 
+	//try to add some importance to this thread
+	try {
+	    int max = Thread.currentThread().getThreadGroup().getMaxPriority();
+	    int current = Thread.currentThread().getPriority();
+	    Thread.currentThread().setPriority(Math.min(max, (current + 1)));
+	} catch (Exception e) {
+	    //IGNORE
+	}
 
 	while(true) {
-	    if(exit) {
-		return;
-	    }
-
 	    if (DEBUG) {
 		Debug.enter("channels", this, "looking for work");
 	    }
 
 	    synchronized(this) {
+		if(exit) {
+		    if (DEBUG) {
+			Debug.exit("channels", this, "done looking for work");
+		    }
+		    return;
+		}
 		registerPendingChannels();
 		handlePendingKeys();
 	    }
@@ -222,9 +232,15 @@ final class SendReceiveThread implements Runnable, Config {
 	    try {
 		selector.select();
 	    } catch (IOException e) {
-		System.err.println("ibis.impl.nio.SendReceiveThread.run():" +
-			" select failed, exiting");
-		return;
+		if (WARNINGS) {
+		    System.err.println(
+			    "ibis.impl.nio.SendReceiveThread.run():" +
+			" select failed with exception: " + e);
+		    e.printStackTrace(System.err);
+		}
+		//IGNORE
+	    } catch (CancelledKeyException e) {
+		//INGORE
 	    }
 
 	    if (DEBUG) {

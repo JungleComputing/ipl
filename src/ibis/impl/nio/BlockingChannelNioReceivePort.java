@@ -4,6 +4,7 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
+import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.nio.channels.Channel;
@@ -20,6 +21,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 
     private BlockingChannelNioDissipator[] connections;
     private int nrOfConnections = 0;
+    private boolean closing = false;
 
 
     BlockingChannelNioReceivePort(NioIbis ibis, NioPortType type, 
@@ -54,7 +56,16 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 					(ReadableByteChannel) channel, type);
 	nrOfConnections++;
 
-	notifyAll();
+	if(nrOfConnections > 1) {
+	    System.err.println("warning! " + nrOfConnections 
+		    + " connections to a `" + type.name() 
+		    + "` blocking receiveport, added connection from "
+		    + spi + " to " + ident);
+	}
+
+	if(nrOfConnections == 1) {
+	    notifyAll();
+	}
 
     }
 
@@ -70,13 +81,13 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 		nrOfConnections--;
 		connections[i] = connections[nrOfConnections];
 		connections[nrOfConnections] = null;
-		notifyAll();
 		return;
 	    }
 	}
     }
 
     NioDissipator getReadyDissipator(long deadline) throws IOException {
+
 	Selector selector;
 	long time;
 	boolean deadlinePassed = false;
@@ -85,8 +96,8 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	SelectionKey[] keys = new SelectionKey[0];
 
 	synchronized(this) {
-	    if (nrOfConnections == 0 && exitOnNotConnected) {
-		return null;
+	    if (nrOfConnections == 0 && closing) {
+		throw new ConnectionClosedException();
 	    }
 	    for (int i = 0; i < nrOfConnections; i++) { 
 		try {
@@ -107,8 +118,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	//we can wait for ever for data we just do a blocking receive here
 	//on the one channel
 	try {
-	    while (dissipator != null && dissipator.channel.isOpen() &&
-		    !dissipator.messageWaiting()) {
+	    while (dissipator != null && !dissipator.messageWaiting()) {
 		if (dissipator.available() == 0) {
 		    try {
 			dissipator.receive();
@@ -131,8 +141,8 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	while(!deadlinePassed) {
 	    synchronized(this) {
 		if(nrOfConnections == 0) {
-		    if(exitOnNotConnected) {
-			return null;
+		    if(closing) {
+			throw new ConnectionClosedException();
 		    } else {
 			if (deadline == -1) {
 			    deadlinePassed = true;;
@@ -214,8 +224,8 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	    }
 
 	    synchronized(this) {
-		if (nrOfConnections == 0 && exitOnNotConnected) {
-		    return null;
+		if (nrOfConnections == 0 && closing) {
+		    throw new ConnectionClosedException();
 		}
 		for (int i = 0; i < nrOfConnections; i++) { 
 		    try {
@@ -241,6 +251,10 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	return result;
     }
 
+    synchronized void closing() {
+	closing = true;
+    }
+
     synchronized void closeAllConnections() {
 	for(int i = 0; i < nrOfConnections; i++) {
 	    try {
@@ -249,6 +263,5 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 		//IGNORE
 	    }
 	}
-	notifyAll();
     }
 }

@@ -21,6 +21,12 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 	    Debug.enter("connections", this, "registering new connection");
 	}
 
+	if((nrOfConnections + 1) > 1) {
+	    System.err.println("warning! " + (nrOfConnections + 1)
+		    + " connections from a `" + port.type.name() 
+		    +  "` blocking send port");
+	}
+
 	SelectableChannel sChannel = (SelectableChannel) channel;
 
 	sChannel.configureBlocking(true);

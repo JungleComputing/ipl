@@ -7,6 +7,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
 
+import ibis.ipl.IbisError;
+
 final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
     private final NioSendPort port;
@@ -116,6 +118,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 	int nrOfSendingConnections = 0;
 	NioAccumulatorConnection selected;
 	SelectionKey key;
+	boolean done = false;
 
 	if (DEBUG) {
 	    if(connection == null) {
@@ -123,6 +126,18 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 	    } else {
 		Debug.enter("channels", this, "doing a flush of a single"
 			+ " connection");
+	    }
+	}
+
+	if (ASSERT && connection != null) {
+	    boolean found = false;
+	    for (int i = 0; i < nrOfConnections; i++) {
+		if (connections[i] == connection) {
+		    found = true;
+		}
+	    }
+	    if (!found) {
+		throw new IbisError("tried to flush non existing connection");
 	    }
 	}
 
@@ -135,11 +150,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 		    nrOfSendingConnections++;
 		} else {
 		    if(connections[i] == connection) {
-			if (DEBUG) {
-			    Debug.exit("channels", this,
-				    "flush done for requested channel");
-			}
-			return;
+			done = true;
 		    }
 		    connections[i].key.interestOps(0);
 		}
@@ -153,6 +164,14 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 	    }
 	}
 
+	if (done || (nrOfSendingConnections == 0)) {
+	    if (DEBUG) {
+		Debug.exit("channels", this,
+			"flush done");
+	    }
+	    return;
+	}
+
 	if (DEBUG) {
 	    Debug.message("channels", this, "did one send for each connection"
 		    + ", " + nrOfSendingConnections + " connections with data"
@@ -160,12 +179,18 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 	}
 
 	//continually do a select and send data, until all data has been send
-	while(nrOfSendingConnections > 0) {
-	    selector.select();
+	while(!done) {
+	    selector.selectedKeys().clear();
+	    try {
+		selector.select();
+	    } catch (IOException e) {
+		//IGNORE
+	    }
 	    if (DEBUG) {
 		Debug.message("channels", this, "selected "
 			+ selector.selectedKeys().size() + " channels");
 	    }
+
 	    keys = selector.selectedKeys().iterator();
 	    while(keys.hasNext()) {
 		key = (SelectionKey) keys.next();
@@ -173,19 +198,21 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
 		try {
 		    if (selected.send()) {
+			if(ASSERT && key.interestOps() == 0) {
+			    throw new IbisError(
+				    "selected non-active channel");
+			}
 			key.interestOps(0);
 			nrOfSendingConnections--;
-			if(selected == connection) {
+
+			if(selected == connection
+				|| nrOfSendingConnections == 0) {
+			    done = true;
 			    if (DEBUG) {
-				Debug.exit("channels", this,
-					"done flushing given connection");
+				Debug.message("channels", this,
+					"done flushing a connection, "
+					+ nrOfSendingConnections + " left");
 			    }
-			    return;
-			}
-			if (DEBUG) {
-			    Debug.message("channels", this,
-				    "done flushing a connection, "
-				    + nrOfSendingConnections + " left");
 			}
 		    }
 		} catch (IOException e) {
@@ -202,8 +229,16 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 		    }
 		}
 	    }
-	    selector.selectedKeys().clear();
 	}
+
+	if (ASSERT && (connection == null)) {
+	    for (int i = 0; i < nrOfConnections; i++) {
+		if (!connections[i].empty()) {
+		    throw new IbisError("data left to send after doing flush");
+		}
+	    }
+	}
+
 	if (DEBUG) {
 	    Debug.exit("channels", this, "flush done");
 	}

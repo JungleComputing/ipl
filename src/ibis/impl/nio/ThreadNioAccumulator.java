@@ -98,6 +98,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
     }
 
     void doFlush() throws IOException {
+	/*
 	if (DEBUG) {
 	    Debug.enter("buffers", this, "doing flush");
 	}
@@ -107,5 +108,6 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 	if (DEBUG) {
 	    Debug.exit("buffers", this, "done flush");
 	}
+	*/
     }
 }

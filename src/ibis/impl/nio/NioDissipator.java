@@ -68,7 +68,6 @@ public abstract class NioDissipator extends Dissipator
 
     protected int usedPosition = 0; //first byte of in-use data
     protected int usedLimit = 0; //fist byte of not-used data (or empty space)
-     
 
     private ShortBuffer header;
     private LongBuffer longs;
@@ -210,8 +209,8 @@ public abstract class NioDissipator extends Dissipator
 	ByteOrder receivedOrder;
 	int next;
 	int totalSize;
-	int headerOffset;
 	int paddingLength;
+	short[] headerArray = new short[SIZEOF_HEADER / SIZEOF_SHORT];
 
 	if (DEBUG) {
 	    Debug.enter("buffers", this, "receiving buffer");
@@ -258,8 +257,11 @@ public abstract class NioDissipator extends Dissipator
 	}
 
 
-	//get byte order out of first byte in header
 	bytes.clear();
+	//extract padding length
+	paddingLength = (int) bytes.get(usedPosition + 1);
+
+	//get byte order out of first byte in header
 	if(bytes.get(usedPosition) == ((byte) 1)) {
 	    receivedOrder = ByteOrder.BIG_ENDIAN;
 	} else {
@@ -271,27 +273,20 @@ public abstract class NioDissipator extends Dissipator
 	    initViews(order);
 	}
 
-
 	next = setView(header, usedPosition, SIZEOF_HEADER, SIZEOF_SHORT);
-	headerOffset = header.position();
+	//extract header
+	header.get(headerArray);
 
-	totalSize = SIZEOF_HEADER;
-
-	//get total size from header
-	for(int i = LONGS; i <= BYTES; i++) {
-	    totalSize += header.get(headerOffset + i);
-	}
-
-	//include size of padding, defined in second byte of the header
-	bytes.clear();
-	paddingLength = (int) bytes.get(usedPosition + 1);
-	totalSize += paddingLength;
+	totalSize = SIZEOF_HEADER + headerArray[LONGS] + headerArray[DOUBLES]
+	    + headerArray[INTS] + headerArray[FLOATS] + headerArray[SHORTS]
+	    + headerArray[CHARS] + headerArray[BYTES] + paddingLength;
 
 	if(DEBUG) {
 	    Debug.message("buffers", this, 
 		    "total size of buffer we're receiving is: " + totalSize
 		    + " padding: " + paddingLength);
 	}
+
 
 	if(unUsedLength() < totalSize) {
 	    fillBuffer(totalSize);
@@ -300,28 +295,20 @@ public abstract class NioDissipator extends Dissipator
 	//claim space
 	usedLimit = (usedPosition + totalSize) % BUFFER_LIMIT;
 
-	next = setView(longs, next, header.get(headerOffset + LONGS), 
-		SIZEOF_LONG);
-	next = setView(doubles, next, header.get(headerOffset + DOUBLES), 
-		SIZEOF_DOUBLE);
-	next = setView(ints, next, header.get(headerOffset + INTS), 
-		SIZEOF_INT);
-	next = setView(floats, next, header.get(headerOffset + FLOATS), 
-		SIZEOF_FLOAT);
-	next = setView(shorts, next, header.get(headerOffset + SHORTS), 
-		SIZEOF_SHORT);
-	next = setView(chars, next, header.get(headerOffset + CHARS), 
-		SIZEOF_CHAR);
-	next = setView(bytes, next, header.get(headerOffset + BYTES), 
-		SIZEOF_BYTE);
+	next = setView(longs, next, headerArray[LONGS], SIZEOF_LONG);
+	next = setView(doubles, next, headerArray[DOUBLES], SIZEOF_DOUBLE);
+	next = setView(ints, next, headerArray[INTS], SIZEOF_INT);
+	next = setView(floats, next, headerArray[FLOATS], SIZEOF_FLOAT);
+	next = setView(shorts, next, headerArray[SHORTS], SIZEOF_SHORT);
+	next = setView(chars, next, headerArray[CHARS], SIZEOF_CHAR);
+	next = setView(bytes, next, headerArray[BYTES], SIZEOF_BYTE);
 
 	if(DEBUG) {
 	    Debug.exit("buffers", this, "received: l[" + longs.remaining()
 		    + "] d[" + doubles.remaining()
 		    + "] i[" + ints.remaining()
 		    + "] f[" + floats.remaining()
-		    + "] s[" + shorts.remaining()
-		    + "] c[" + chars.remaining()
+		    + "] s[" + shorts.remaining() + "] c[" + chars.remaining()
 		    + "] b[" + bytes.remaining()
 		    + "]");
 	}

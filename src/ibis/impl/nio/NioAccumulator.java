@@ -14,6 +14,8 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.GatheringByteChannel;
 
+import ibis.util.nativeCode.Rdtsc;
+
 /**
  * Nio Accumulator. Writes data to java.nio.ByteBuffer's
  *
@@ -67,6 +69,13 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	count = 0;
     }
 
+    synchronized public long getAndResetBytesWritten() {
+	long result = count;
+	count = 0;
+
+	return result;
+    }
+
     synchronized void add(NioReceivePortIdentifier receiver, 
 	    GatheringByteChannel channel) throws IOException {
 	for(int i = 0; i < nrOfConnections; i++) {
@@ -89,7 +98,7 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	nrOfConnections++;
     }
 
-    synchronized void remove(NioReceivePortIdentifier receiver) {
+    synchronized void remove(NioReceivePortIdentifier receiver) throws IOException {
 	for(int i = 0; i < nrOfConnections; i++) {
 	    if(connections[i].peer == receiver) {
 		connections[i].close();
@@ -140,6 +149,10 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
     }
 
+    /*
+     * makes sure all data given to the accumulator is send 
+     * ,or at least copied.
+     */
     synchronized public void flush() throws IOException {
 	send();
 	doFlush();
@@ -166,6 +179,7 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
 
 	buffer = null;
+
     }
 
     /**

@@ -95,7 +95,6 @@ final class SendBuffer implements Config {
 		Debug.message("buffers", null, 
 					"SendBuffer: recycling child buffer");
 	    }
-
 	    buffer.parent.copies--;
 	    if(buffer.parent.copies == 0) {
 		if(cacheSize >= BUFFER_CACHE_SIZE) {
@@ -184,7 +183,7 @@ final class SendBuffer implements Config {
 	floats = byteBuffers[FLOATS].asFloatBuffer();
 	shorts = byteBuffers[SHORTS].asShortBuffer();
 	chars = byteBuffers[CHARS].asCharBuffer();
-	bytes = byteBuffers[BYTES];
+	bytes = byteBuffers[BYTES].duplicate();
 
 	clear();
     }
@@ -210,7 +209,7 @@ final class SendBuffer implements Config {
      * sequencenr to a new value
      */
     void clear() {
-	header.clear();
+//	header.clear();
 	longs.clear();
 	doubles.clear();
 	ints.clear();
@@ -222,6 +221,7 @@ final class SendBuffer implements Config {
 	parent = null;
 	copies = 0;
 
+	//FIXME: this isn't thread safe
 	sequenceNr = nextSequenceNr;
 	nextSequenceNr++;
     }
@@ -233,36 +233,49 @@ final class SendBuffer implements Config {
 	int paddingLength;
 
 	//fill header with the size of the primitive arrays (in bytes)
+	short[] headerArray = new short[NR_OF_BUFFERS - 1];
+	headerArray[LONGS] = (short) (longs.position() * SIZEOF_LONG);
+	headerArray[DOUBLES] = (short) (doubles.position() * SIZEOF_DOUBLE);
+	headerArray[INTS] = (short) (ints.position() * SIZEOF_INT);
+	headerArray[FLOATS] = (short) (floats.position() * SIZEOF_FLOAT);
+	headerArray[SHORTS] = (short) (shorts.position() * SIZEOF_SHORT);
+	headerArray[CHARS] = (short) (chars.position() * SIZEOF_CHAR);
+	headerArray[BYTES] = (short) (bytes.position() * SIZEOF_BYTE);
 	header.clear();
-	header.put(LONGS, ((short) (longs.position() * SIZEOF_LONG)));
-	header.put(DOUBLES, ((short) (doubles.position() * SIZEOF_DOUBLE)));
-	header.put(INTS, ((short) (ints.position() * SIZEOF_INT)));
-	header.put(FLOATS, ((short) (floats.position() * SIZEOF_FLOAT)));
-	header.put(SHORTS, ((short) (shorts.position() * SIZEOF_SHORT)));
-	header.put(CHARS, ((short) (chars.position() * SIZEOF_CHAR)));
-	header.put(BYTES, ((short) (bytes.position() * SIZEOF_BYTE)));
+	header.put(headerArray);
 
-	//set up primitive buffers so they can be send
-	byteBuffers[HEADER].position(0).limit(SIZEOF_HEADER);
-	byteBuffers[LONGS].limit(longs.position() * SIZEOF_LONG)
-	    .position(0);
-	byteBuffers[DOUBLES].limit(doubles.position() * SIZEOF_DOUBLE)
-	    .position(0);
-	byteBuffers[INTS].limit(ints.position() * SIZEOF_INT)
-	    .position(0);
-	byteBuffers[FLOATS].limit(floats.position() * SIZEOF_FLOAT)
-	    .position(0);
-	byteBuffers[SHORTS].limit(shorts.position() * SIZEOF_SHORT)
-	    .position(0);
-	byteBuffers[CHARS].limit(chars.position() * SIZEOF_CHAR)
-	    .position(0);
-	byteBuffers[BYTES].flip();
+	byteBuffers[HEADER].position(0);
+	byteBuffers[HEADER].limit(SIZEOF_HEADER);
+
+	byteBuffers[LONGS].position(0);
+	byteBuffers[LONGS].limit(headerArray[LONGS]);
+
+	byteBuffers[DOUBLES].position(0);
+	byteBuffers[DOUBLES].limit(headerArray[DOUBLES]);
+
+	byteBuffers[INTS].position(0);
+	byteBuffers[INTS].limit(headerArray[INTS]);
+
+	byteBuffers[FLOATS].position(0);
+	byteBuffers[FLOATS].limit(headerArray[FLOATS]);
+
+	byteBuffers[SHORTS].position(0);
+	byteBuffers[SHORTS].limit(headerArray[SHORTS]);
+
+	byteBuffers[CHARS].position(0);
+	byteBuffers[CHARS].limit(headerArray[CHARS]);
+
+	byteBuffers[BYTES].position(0);
+	byteBuffers[BYTES].limit(headerArray[BYTES]);
 
 	//add padding to make the total nr of bytes send a multiple of eight
 
 	//find out length of padding we need
-	byteBuffers[PADDING].limit(0);
-	paddingLength = (int) (8 - (remaining() % 8));
+	int totalLength = SIZEOF_HEADER + headerArray[LONGS] 
+	    + headerArray[DOUBLES] + headerArray[INTS] + headerArray[FLOATS]
+	    + headerArray[SHORTS] + headerArray[CHARS] + headerArray[BYTES];
+
+	paddingLength = (int) (8 - (totalLength % 8));
 	byteBuffers[PADDING].position(0).limit(paddingLength);
 
 	//put a byte in the header indicating the length of the paddding
@@ -276,11 +289,10 @@ final class SendBuffer implements Config {
 		    + "] f[" + floats.position()
 		    + "] s[" + shorts.position()
 		    + "] c[" + chars.position()
-		    + "] b[" + bytes.remaining()
+		    + "] b[" + bytes.position()
 		    + "] total size: " + remaining() + " padding size: "
 		    + paddingLength);
 	}
-
     }
 
     /**
