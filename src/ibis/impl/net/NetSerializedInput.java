@@ -46,7 +46,7 @@ public abstract class NetSerializedInput extends NetInput {
          */
         protected       volatile        Thread                          activeUpcallThread      = null;
 
-        private                         Integer                         activeNum               = null;
+        private         volatile        Integer                         activeNum               = null;
 
 
 	public NetSerializedInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {

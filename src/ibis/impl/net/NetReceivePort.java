@@ -332,14 +332,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          * The flag is set on each new {@link #_receive} call and should
          * be cleared as soon as at least a byte as been added to the living message.
          */
-        private boolean                  emptyMsg            =  true;
+        private volatile boolean                  emptyMsg            =  true;
 
         private volatile boolean         finishNotify        =  false;
         private volatile boolean         pollingNotify       =  false;
         private volatile Runnable        currentThread       =  null;
-
-        private int                      threadStackPtr      = 0;
-        private int                      upcallThreadNum     = 0;
 
 
 
@@ -370,40 +367,45 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         private NetMutex                 finishMutex         =  null;
 
         /* --- Upcall from main input object -- */
-        public synchronized void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
+        public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 log.in();
-                if (this.input == null) {
-                        __.warning__("message lost");
-                        return;
-                }
+                //synchronized (this)
+                        {
+                        if (this.input == null) {
+                                __.warning__("message lost");
+                                return;
+                        }
 
-                if (spn == null) {
-                        throw new Error("invalid state");
-                }
+                        if (spn == null) {
+                                throw new Error("invalid state");
+                        }
 
-                activeSendPortNum = spn;
+                        activeSendPortNum = spn;
 
-                if (upcall != null && upcallsEnabled) {
-                        final ReadMessage rm = _receive();
-                        upcall.upcall(rm);
+                        if (upcall != null && upcallsEnabled) {
+                                final ReadMessage rm = _receive();
+                                currentThread = Thread.currentThread();
+                                upcall.upcall(rm);
+                                if (Thread.currentThread() == currentThread) {
+                                        currentThread = null;
 
-                        if (emptyMsg) {
-                                try {
-                                        readByte();
-                                } catch (Exception e) {
-                                        throw new Error(e.getMessage());
+                                        if (emptyMsg) {
+                                                try {
+                                                        readByte();
+                                                } catch (Exception e) {
+                                                        throw new Error(e.getMessage());
+                                                }
+
+                                                emptyMsg = false;
+                                        }
+
+                                        trace.disp("message receive <--");
                                 }
-
-                                emptyMsg = false;
+                        } else {
+                                finishNotify = true;
+                                polledLock.unlock();
+                                finishMutex.lock();
                         }
-
-                        if (Thread.currentThread() == currentThread) {
-                                trace.disp("message receive <--");
-                        }
-                } else {
-                        finishNotify = true;
-                        polledLock.unlock();
-                        finishMutex.lock();
                 }
                 log.out();
         }
@@ -920,8 +922,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
                 trace.disp("message receive <--");
                 activeSendPortNum = null;
-                input.finish();
                 currentThread = null;
+                input.finish();
 
                 if (finishNotify) {
                         finishNotify = false;

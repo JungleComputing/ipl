@@ -89,7 +89,11 @@ public abstract class NetPoller extends NetInput {
 
                                 upcallMode = (upcallFunc != null);
 
-				ni.setupConnection(cnx, q);
+                                 if (NetReceivePort.useBlockingPoll||upcallMode) {
+                                         ni.setupConnection(cnx, q);
+                                 } else {
+                                         ni.setupConnection(cnx, null);
+                                 }
 
                                 // Don't understand: wakeupBlockedReceiver();
                         }
@@ -127,8 +131,8 @@ public abstract class NetPoller extends NetInput {
 	protected final class ReceiveQueue
 		implements NetInputUpcall {
 
-                private NetInput	input     = null;
-                private Integer		activeNum = null;
+                private          NetInput	input     = null;
+                private volatile Integer	activeNum = null;
 
                 ReceiveQueue(NetInput input) {
                         this.input = input;

@@ -58,7 +58,7 @@ public final class BytesInput extends NetInput implements Settings {
 
         private volatile Thread activeUpcallThread = null;
 
-        private Integer activeNum = null;
+        private volatile Integer activeNum = null;
 
 	BytesInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
 		super(pt, driver, context);
