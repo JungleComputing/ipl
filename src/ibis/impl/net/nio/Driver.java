@@ -32,14 +32,16 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context) throws IbisIOException {
-		return new NioInput(pt, this, up, context);
+	public NetInput newInput(NetPortType pt, String context) 
+						throws NetIbisException {
+		return new NioInput(pt, this, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws IbisIOException {
-		return new NioOutput(pt, this, up, context);
+	public NetOutput newOutput(NetPortType pt, String context) 
+						throws NetIbisException {
+		return new NioOutput(pt, this, context);
 	}
 }
