@@ -192,6 +192,7 @@ for s in $SITES; do
 	echo "cd ~/tmp$$/$APP_DIR" >> pprun_remote$$$s
 	echo -n "prun ${!PRUN_OPTS_VAR} -o ~/tmp$$/pprun$$$s " >> pprun_remote$$$s
 	echo -n "-subst LD_ASSUME_KERNEL=2.2.5 " >> pprun_remote$$$s
+	#echo -n "LD_LIBRARY_PATH="'$HOME'"/tmp$$/ibis/lib:. " >> pprun_remote$$$s
 	echo -n '$HOME'"/tmp$$/run_java " >> pprun_remote$$$s
 	echo -n "${!COUNT_VAR} " >> pprun_remote$$$s
 	echo -n "-Dsun.boot.library.path=" >> pprun_remote$$$s
@@ -266,7 +267,6 @@ for s in $SITES; do
 
 	scp ${!SSH_OPTS_VAR} $s:tmp$$/pprun$$$s.* pprun_output/
 done
-
 
 #remove temp files
 if [ "$DEBUG" = "off" ]; then
