@@ -1,5 +1,3 @@
-import java.lang.*;
-
 
 strictfp
 public class BodyTree extends BodyTreeNode {

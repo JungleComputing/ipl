@@ -9,9 +9,9 @@
  *
  */
 
-import java.rmi.*;
+import java.rmi.Naming;
 import java.rmi.server.UnicastRemoteObject;
-import java.rmi.registry.*;
+import java.rmi.registry.Registry;
 
 import ibis.util.PoolInfo;
 

@@ -1,5 +1,4 @@
-import java.lang.*;
-import java.io.*;
+import java.io.Serializable;
 
 public final class SendBody implements Serializable, Cloneable {
 

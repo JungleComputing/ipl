@@ -1,8 +1,6 @@
-import java.rmi.*;
-import java.rmi.registry.*;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.net.*;
-import java.io.*;
 import ibis.util.PoolInfo;
 
 class Slave extends UnicastRemoteObject implements SlaveInterface {

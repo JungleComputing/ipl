@@ -1,5 +1,4 @@
-import java.io.*;
-import java.rmi.*;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 class Parts extends UnicastRemoteObject implements PartsInterface{

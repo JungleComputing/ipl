@@ -1,4 +1,5 @@
-import java.rmi.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 interface i_GlobalData extends Remote {
 

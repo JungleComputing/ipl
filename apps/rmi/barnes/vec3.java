@@ -1,5 +1,4 @@
-import java.lang.*;
-import java.io.*;
+import java.io.Serializable;
 
 strictfp
 public final class vec3 implements Serializable {

@@ -1,5 +1,4 @@
-import java.io.*;
-import java.rmi.registry.*;
+import java.io.Serializable;
 
 class Stats implements Serializable {
 

@@ -1,5 +1,5 @@
-import java.rmi.*;
-import java.rmi.server.*;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 class BroadcastObject extends UnicastRemoteObject implements i_BroadcastObject {
 

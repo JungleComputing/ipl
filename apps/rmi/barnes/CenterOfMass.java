@@ -1,5 +1,4 @@
-import java.lang.*;
-import java.io.*;
+import java.io.Serializable;
 
 strictfp
 final public class CenterOfMass implements Serializable {

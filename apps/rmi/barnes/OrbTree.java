@@ -1,6 +1,4 @@
-import java.lang.*;
-// import java.io.*;
-import java.rmi.*;
+import java.rmi.RemoteException;
 
 strictfp
 class OrbTreeNode {

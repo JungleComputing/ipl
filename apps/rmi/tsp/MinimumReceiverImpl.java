@@ -1,4 +1,4 @@
-import java.rmi.*;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 class MinimumReceiverImpl extends UnicastRemoteObject implements MinimumReceiver {

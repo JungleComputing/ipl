@@ -1,5 +1,4 @@
-import java.io.*;
-import java.rmi.*;
+import java.rmi.Naming;
 
 public class SlaveSort {
     

@@ -1,4 +1,4 @@
-import java.rmi.*;
+import java.rmi.Naming;
 
 class Client { 
 

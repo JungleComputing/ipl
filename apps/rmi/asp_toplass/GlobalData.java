@@ -1,8 +1,7 @@
 import ibis.util.PoolInfo;
 
-import java.rmi.*;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.rmi.registry.*;
 
 class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 

@@ -1,4 +1,5 @@
-import java.rmi.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 interface i_Data extends Remote { 
 	public Remote [] signup(int cpu, String name) throws RemoteException;

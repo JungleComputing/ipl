@@ -1,4 +1,4 @@
-import java.io.*;
+import java.io.Serializable;
 
 public final class DITree implements Serializable {
 

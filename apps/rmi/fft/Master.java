@@ -1,6 +1,6 @@
 import java.rmi.server.UnicastRemoteObject;
-import java.rmi.registry.*;
-import java.rmi.*;
+import java.rmi.registry.Registry;
+import java.rmi.RemoteException;
 
 class Master extends UnicastRemoteObject implements MasterInterface {
 

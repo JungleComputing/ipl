@@ -1,7 +1,7 @@
-import java.rmi.*;
-import java.net.*;
-import java.io.*;
-import java.rmi.registry.*;
+import java.rmi.RMISecurityManager;
+import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
 import ibis.util.PoolInfo;
 
 public class Water{

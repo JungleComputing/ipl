@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.awt.image.*;
-import java.awt.event.*;
 
 class SORCanvas extends Canvas {
 	private int width, height;

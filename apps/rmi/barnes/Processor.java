@@ -1,5 +1,5 @@
-import java.rmi.*;
-import java.lang.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 interface Processor extends Remote {
 

@@ -1,5 +1,5 @@
-import java.rmi.*;
-import java.rmi.server.*;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 class Data extends UnicastRemoteObject implements i_Data {
 

@@ -1,6 +1,5 @@
-import java.rmi.*;
-import java.rmi.registry.*;
-import java.io.*;
+import java.rmi.Naming;
+import java.rmi.registry.Registry;
 import ibis.util.PoolInfo;
 
 class Main {

@@ -1,5 +1,6 @@
-import java.rmi.*;
-import java.rmi.registry.*;
+import java.rmi.Naming;
+import java.rmi.registry.Registry;
+import java.rmi.Remote;
 
 import ibis.util.PoolInfo;
 

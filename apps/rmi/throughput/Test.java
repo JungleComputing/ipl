@@ -1,5 +1,3 @@
-import java.rmi.*;
-
 public final class Test implements myServer { 
 
 	boolean done = false;

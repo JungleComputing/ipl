@@ -1,8 +1,6 @@
 import java.awt.*;
-import java.util.*;
-import java.rmi.*;
-import java.rmi.registry.*;
-import java.rmi.server.*;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 
 class SORVisualizer {
 	int width;

@@ -1,4 +1,5 @@
-import java.rmi.*;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import ibis.util.PoolInfo;
 
 class Client extends Thread {

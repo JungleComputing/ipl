@@ -1,4 +1,5 @@
-import java.rmi.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 interface myServer extends Remote { 	
 	public void one(Object o) throws RemoteException;

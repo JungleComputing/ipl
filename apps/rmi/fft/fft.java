@@ -5,10 +5,9 @@
    date  : 10-5-1999
 */
 
-import java.rmi.registry.*;
-import java.rmi.*;
-import java.net.*;
-import java.io.*;
+import java.rmi.registry.Registry;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import ibis.util.PoolInfo;
 
 class fft {

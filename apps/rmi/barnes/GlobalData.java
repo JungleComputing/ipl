@@ -1,5 +1,6 @@
-import java.lang.*;
-import java.io.*;
+import java.io.Serializable;
+import java.io.PrintWriter;
+import java.io.FileOutputStream;
 
 strictfp
 public class GlobalData implements Cloneable, Serializable {

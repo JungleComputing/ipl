@@ -1,8 +1,7 @@
 import java.lang.Math;
-import java.io.*;
-import java.rmi.*;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.rmi.registry.*;
 
 public class WaterMaster extends UnicastRemoteObject 
     implements WaterMasterInterface, Runnable, ConstInterface {

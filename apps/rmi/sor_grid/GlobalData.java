@@ -1,6 +1,5 @@
-import java.rmi.*;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.rmi.registry.*;
 
 import ibis.util.PoolInfo;
 
