@@ -1202,13 +1202,41 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				addToJobResultList(r);
 			}
 		} else {
-			if(ABORT_DEBUG) {
-				out.println("SATIN '" + ident.name() + 
-					    "': got result for aborted job, ignoring.");
+			if(ABORTS) {
+				if (ABORT_DEBUG) {
+					out.println("SATIN '" + ident.name() + 
+						    "': got result for aborted job, ignoring.");
+				}
 			} else {
 				out.println("SATIN '" + ident.name() + 
 					    "': got result for unknown job!");
 				System.exit(1);
+			}
+		}
+	}
+
+	private void handleEmptyInlets(InvocationRecord r) {
+		if(r.parentLocals == null && r.eek != null) {
+			if(r.parentStamp == -1) { // root job
+				System.err.println("SATIN '" + ident.name() + ": Unexpected exception: " + r.eek);
+				r.eek.printStackTrace();
+				System.exit(1);
+			}
+
+			if(INLET_DEBUG) {
+				out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: " + r.eek + ": " + r.eek.getMessage());
+//				r.eek.printStackTrace();
+			}
+
+			if(SPAWN_STATS) {
+				aborts++;
+			}
+			synchronized(this) {
+				r.parent.eek = r.eek;
+				killChildrenOf(r.parent.stamp, r.parent.owner);
+				
+				// also kill the parent itself. it is either on the stack or on a remote machine.
+				r.parent.aborted = true;
 			}
 		}
 	}
@@ -1218,6 +1246,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			InvocationRecord r = resultList.removeIndex(0);
 			if(r == null) break;
 
+			handleEmptyInlets(r);
 			r.spawnCounter.value--;
 		}
 
@@ -1274,7 +1303,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				out.print("SATIN '" + ident.name());
 				out.print(": spawning job, parent was aborted! job = " + r);
 				out.println(", parent = " + r.parent + "\n");
-				//				System.exit(1);
 			}
 			r.spawnCounter.value--;
 			if(ASSERTS) {
@@ -1311,6 +1339,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    r.spawnCounter.value);
 			}
 			if(ABORTS) {
+				if(SPAWN_STATS) {
+					jobsExecuted++;
+				}
 				try {
 					r.runLocal();
 				} catch (Throwable t) { // this can only happen if an inlet has thrown an exception.
@@ -1319,21 +1350,25 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						t.printStackTrace();
 						System.exit(1);
 					}
-		    
-					out.println("SATIN '" + ident.name() + ": Got exception from an inlet!: " + t + ": " + t.getMessage());
-					t.printStackTrace();
-		    
+
+					if(INLET_DEBUG) {
+						out.println("SATIN '" + ident.name() + ": Got exception from an inlet!: " + t + ": " + t.getMessage());
+//						t.printStackTrace();
+					}
+
 					if(SPAWN_STATS) {
 						aborts++;
 					}
 					synchronized(this) {
 						r.parent.eek = t;
 						killChildrenOf(r.parent.stamp, r.parent.owner);
-						
+
 						// also kill the parent itself. it is either on the stack or on a remote machine.
 						r.parent.aborted = true;
 					}
 				}
+
+				handleEmptyInlets(r);
 			} else {
 				if(SPAWN_STATS) {
 					jobsExecuted++;
@@ -1505,7 +1540,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	void handleExceptions() {
 		if(!ABORTS) {
-			System.err.println("cannot handle inlets, set ABORTS to true in Config");
+			System.err.println("cannot handle inlets, set ABORTS to true in Config.java");
 			System.exit(1);
 		}
 
@@ -1587,17 +1622,26 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			satinPoll();
 		}
 
-		if ((ABORTS || POLL_FREQ > 0) && s.value == 0) { // sync is poll
+		if (POLL_FREQ > 0 && s.value == 0) { // sync is poll
 			if(POLL_FREQ > 0 && !upcalls) satinPoll();
-			if(ABORTS && gotAborts) handleAborts();
-			if(ABORTS && gotExceptions) handleExceptions();
+		}
+
+		if (ABORTS) { // sync is poll
+			if(gotAborts) handleAborts();
+			if(gotExceptions) handleExceptions();
+
+			if(parent != null && parent.aborted) return;
 		}
 
 		while(s.value > 0) {
 			if (ASSERTS && exiting) {
-				System.err.println("Satin: EEK! got exit msg while syncing!");
-				new Throwable().printStackTrace();
-				System.exit(1);
+				System.err.println("SATIN '" + ident.name() + 
+						   ": EEK! got exit msg while syncing!, spawn counter = " + s.value + 
+					" abort list count = " + abortList.count + " excep count = " + exceptionList.count + 
+					" parent = " + parent);
+//				new Throwable().printStackTrace();
+				exit();
+//				System.exit(1);
 			}
 			//pollAsyncResult(); // for CRS
 

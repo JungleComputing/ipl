@@ -2152,7 +2152,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    out.println("        if (eek != null) {");
 	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.out.println(\"runlocal: calling inlet for: \" + this);");
-	    out.println("            parentLocals.handleException(spawnId, eek, this);");
+	    out.println("            if(parentLocals != null)");
+	    out.println("                parentLocals.handleException(spawnId, eek, this);");
 	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.out.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
 	    out.println("        }");
 	}

@@ -91,6 +91,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 			result += ", spawnCounter = " + (spawnCounter == null ? "NULL" : "" + spawnCounter.value);
 			result += ", parentStamp = " + parentStamp;
 			result += ", parentOwner = " + (parentOwner == null ? "NULL" : "" + parentOwner);
+			result += ", aborted = " + aborted;
 			result += ", parentLocals = " + (parentLocals == null ? "NULL" : "" + parentLocals) + ")";
 
 			return result;
