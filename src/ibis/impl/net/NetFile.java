@@ -23,7 +23,6 @@ public class NetFile {
                 do {
                         i = f.read();
                         if (i < 0) {
-                                System.err.println("s = ["+s+"]");
                                 if (s.equals("")) {
                                         return null;
                                 } else {
