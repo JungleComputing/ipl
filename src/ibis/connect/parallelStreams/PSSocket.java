@@ -60,6 +60,24 @@ public class PSSocket extends Socket
 	out = null;
     }
 
+    public void setTcpNoDelay(boolean on) throws SocketException {
+	if (ps != null) {
+	    ps.setTcpNoDelay(on);
+	}
+    }
+
+    public void shutdownInput() throws IOException {
+	if (ps != null) {
+	    ps.shutdownInput();
+	}
+    }
+
+    public void shutdownOutput() throws IOException {
+	if (ps != null) {
+	    ps.shutdownOutput();
+	}
+    }
+
     private class PSInputStream extends InputStream
     {
 	public PSInputStream() {

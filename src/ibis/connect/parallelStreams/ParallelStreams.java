@@ -67,11 +67,11 @@ public class ParallelStreams
 
 	this.hint = hint;
 
+	MyDebug.trace("PS: connecting, numWays = "+numWays+" (hint="+hint+")");
+
 	for(i=0; i<numWays; i++) {
 	    out.flush();
-	    MyDebug.trace("PS: creating link #"+i+" (hint="+hint+")");
 	    Socket s = f.createBrokeredSocket(in, out, hint, props);
-	    MyDebug.trace("PS: link #"+i+" done ");
 	    sockets[i] = s;
 	    ins[i] = s.getInputStream();
 	    outs[i] = s.getOutputStream();
@@ -197,6 +197,27 @@ public class ParallelStreams
 		writerBusy = false;
 		notifyAll();
 	    }
+	}
+    }
+
+    public void shutdownInput() throws IOException {
+	MyDebug.trace("PS: shutdownInput");
+	for(int i=0; i< numWays; i++) {
+	    sockets[i].shutdownInput();
+	}
+    }
+
+    public void shutdownOutput() throws IOException {
+	MyDebug.trace("PS: shutdownOutput");
+	for(int i=0; i< numWays; i++) {
+	    sockets[i].shutdownOutput();
+	}
+    }
+
+    public void setTcpNoDelay(boolean on) throws SocketException {
+	MyDebug.trace("PS: setTcpNoDelay");
+	for(int i=0; i< numWays; i++) {
+	    sockets[i].setTcpNoDelay(on);
 	}
     }
 

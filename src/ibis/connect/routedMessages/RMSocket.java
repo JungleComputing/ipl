@@ -125,6 +125,12 @@ public class RMSocket extends Socket
     public void setTcpNoDelay(boolean on) {
     }
 
+    public void shutdownInput() {
+    }
+
+    public void shutdownOutput() {
+    }
+
     public void setSendBufferSize(int sz) {
     }
 
