@@ -2,7 +2,10 @@
 
 /** Helper methods. */
 
-class Helpers {
+final class Helpers {
+    /** Protect constructor since it is a static only class. */
+    private Helpers() {}
+
     /**
      * Given an int array <code>a</code> and a size <code>sz</code>, create a new array of size <code>sz</code>
      * that contains the first <code>sz</code> elements of <code>a</code>.
