@@ -655,7 +655,7 @@ public abstract class Ibis {
      * upcalls.
      * If a {@link ibis.ipl.ResizeHandler ResizeHandler} is installed,
      * this call blocks until its
-     * {@link ibis.ipl.ResizeHandler#joined() joined()}
+     * {@link ibis.ipl.ResizeHandler#joined(IbisIdentifier) joined()}
      * upcall for this Ibis is invoked.
      */
     public abstract void enableResizeUpcalls();

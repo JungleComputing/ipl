@@ -35,9 +35,9 @@ public interface ResizeHandler {
     /**
      * Upcall generated when an Ibis crashed or was killed, implicitly
      * removing it from the current run.
-     * @param ident the ibis identifier of the Ibis leaving the current run.
+     * @param corpse the ibis identifier of the Ibis leaving the current run.
      */
-    public void died(IbisIdentifier ibis);
+    public void died(IbisIdentifier corpse);
 
     /**
      * Upcall generated when one or more Ibisses are ordered to leave.
