@@ -33,6 +33,11 @@ public final class TcpInput extends NetBufferedInput
 		implements NetPollInterruptible {
 
 	/**
+	 * Debug switch
+	 */
+	private final boolean DEBUG = false; // true;
+
+	/**
 	 * The connection socket.
 	 */
 	private ServerSocket 	      tcpServerSocket = null;
@@ -212,26 +217,40 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 	}
 
 
-	private void cacheSurplusBuffers(NetReceiveBuffer buf,
-					 int totalSize,
-					 int currentSize) {
-	    if (totalSize == currentSize) {
-		return;
+	/**
+	 * @return the number of bytes missing in the last message
+	 */
+	private int cacheSurplusBuffers(NetReceiveBuffer buf,
+					int totalSize,
+					int currentSize) {
+	    if (DEBUG) {
+		System.err.println("First segment: start at " + 0
+				    + " size " + buf.length);
 	    }
-	    buf.length = currentSize;
-	    // System.err.println("First segment: start at " + 0 + " size " + buf.length);
+	    if (totalSize == currentSize) {
+		return currentSize;
+	    }
 
+	    NetReceiveBuffer b;
+	    int copySize;
 	    do {
-		NetReceiveBuffer b = createReceiveBuffer(0);
+		b = createReceiveBuffer(0);
 		int nextSize = NetConvert.readInt(buf.data, currentSize);
+		copySize = Math.min(nextSize, totalSize - currentSize);
 		System.arraycopy(buf.data, currentSize,
 				 b.data, b.base,
-				 nextSize);
+				 copySize);
 		b.length = nextSize;
-		// System.err.println("Next segment: start at " + currentSize + " size " + b.length);
+		if (DEBUG) {
+		    System.err.println("Next segment: start at " + currentSize
+					+ " size " + b.length
+					+ " missing " + (nextSize - copySize));
+		}
 		surplusEnqueue(b);
-		currentSize += nextSize;
+		currentSize += copySize;
 	    } while (totalSize > currentSize);
+
+	    return copySize;
 	}
 
 
@@ -246,9 +265,12 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 
 		try {
 			do {
-				// Try to read ahead as far as we can. read()
-				// will return no more than has been sent in
-				// this message.
+				/*
+				 * Try to read ahead as far as we can.
+				 * If read() returns more than has been sent
+				 * in one message, we buffer the extra buffers
+				 * aside.
+				 */
 				int result = 0;
 				try {
 					result = tcpIs.read(b, offset, b.length);
@@ -270,6 +292,24 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 
 			l = NetConvert.readInt(b);
 
+			buf.length = l;
+
+			/*
+			 * Our read may have slurped in more than one buffer.
+			 * Create a queue of the extra buffers.
+			 */
+			offset = cacheSurplusBuffers(buf, offset, l);
+
+			/*
+			 * If the last buffer read was incomplete, read the
+			 * rest now.
+			 */
+			if (surplusHead != null) {
+			    NetBuffer tail = surplusTail;
+			    l = tail.length;
+			    b = tail.data;
+			}
+
 			while (offset < l) {
 				int result = 0;
 				try {
@@ -288,9 +328,6 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 				offset += result;
 			}
 
-			buf.length = offset;
-
-			cacheSurplusBuffers(buf, offset, l);
 		} catch (SocketException e) {
 			String msg = e.getMessage();
 			if (tcpSocket.isClosed() ||
@@ -366,8 +403,6 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
 		log.in();
-// System.err.println("receive Byte Buffer; require " + expectedLength);
-// Thread.dumpStack();
 		NetReceiveBuffer buf = this.buf;
 		if (buf != null) {
 			this.buf = null;
@@ -376,22 +411,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 			buf = receive();
 		}
 
-		if (buf.length - buf.base >= expectedLength) {
-// System.err.println("Demand-copy buffer; require " + (expectedLength - headerLength) + "+" + headerLength + " get " + (buf.length - buf.base));
-		    this.buf = buf;
-		    buf = createReceiveBuffer(0);
-		    buf.base = headerLength;
-		    System.arraycopy(this.buf.data, this.buf.base + headerLength,
-				     buf.data, buf.base,
-				     expectedLength - headerLength);
-// System.err.print("Rcv buf = ["); for (int i = headerLength; i < expectedLength; i++) System.err.print(this.buf.data[this.buf.base + i] + ","); System.err.println();
-// System.err.print("Cpy buf = ["); for (int i = 0; i < expectedLength - headerLength; i++) System.err.print(buf.data[buf.base + i] + ","); System.err.println();
-		    buf.length += expectedLength;
-		    this.buf.base += expectedLength - headerLength;
-		}
-
 		log.out();
-
 		return buf;
 	}
 
@@ -401,8 +421,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 		//synchronized(this)
 		{
 // System.err.print("doFinish: buf " + buf); if (buf != null) System.err.print("; [" + buf.base + ".." + buf.length + "]"); System.err.println();
-			// buf may contain data for the next msg. Retain it.
-			// buf = null;
+			buf = null;
 		}
 		log.out();
 	}
