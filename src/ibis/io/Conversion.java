@@ -212,7 +212,6 @@ public abstract class Conversion {
     /**
      * Writes an object to a byte[].
      */
-
     public static final byte[] object2byte(Object o)
 	    throws IOException {
 	ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -226,7 +225,6 @@ public abstract class Conversion {
     /**
      * Reads an object from byte[].
      */
-
     public static final Object byte2object(byte [] b)
 	    throws IOException, ClassNotFoundException {
 	ByteArrayInputStream bis = new ByteArrayInputStream(b);
@@ -234,6 +232,20 @@ public abstract class Conversion {
 	Object               o   = ois.readObject();
 	ois.close();
 	return o;
+    }
+
+    /**
+     * Upwards-round <CODE>a</CODE> to a multiple of <CODE>d</CODE>
+     * d <STANDOUT>MUST</STANDOUT> be a power of two
+     */
+    public static int align(int a, int d) {
+	if (false) {
+	    if ((d | (d - 1)) != 2 * d - 1) {
+		throw new NumberFormatException("d should be a power of 2");
+	    }
+	}
+
+	return (a + d - 1) & ~(d - 1);
     }
 
 } 
