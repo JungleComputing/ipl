@@ -67,15 +67,15 @@ if "%1"=="-attach" (
     goto nextarg
 )
 if "%1"=="-nhosts" (
+    set Dpool_total="-Dibis.pool.total_hosts=%2"
+    set NHOSTS=%2
     shift
-    set Dpool_total="-Dibis.pool.total_hosts=%1"
-    set NHOSTS=%1
     goto nextarg
 )
 if "%1"=="-nhosts" (
+    set Dpool_host_num="-Dibis.pool.host_number=%2"
+    set PRUN_CPU_RANK=%2
     shift
-    set Dpool_host_num="-Dibis.pool.host_number=%1"
-    set PRUN_CPU_RANK=%1
     goto nextarg
 )
 if "%1"=="-jdb" (
@@ -99,13 +99,13 @@ if "%1"=="-n" (
     goto nextarg
 )
 if "%1"=="-ns" (
+    set Dns_server="-Dibis.name_server.host=%2"
     shift
-    set Dns_server="-Dibis.name_server.host=%1"
     goto nextarg
 )
 if "%1"=="-ns-port" (
+    set Dns_port="-Dibis.name_server.port=%2"
     shift
-    set Dns_port="-Dibis.name_server.port=%1"
     goto nextarg
 )
 if "%1"=="-ns-retry" (
@@ -117,18 +117,18 @@ if "%1"=="no--ns-retry" (
     goto nextarg
 )
 if "%1"=="-pg" (
+    set gprof="%2"
     shift
-    set gprof="%1"
     goto nextarg
 )
 if "%1"=="-p" (
+    set prof="%2"
     shift
-    set prof="%1"
     goto nextarg
 )
 if "%1"=="-key" (
+    set Dns_pool="-Dibis.name_server.key=%2"
     shift
-    set Dns_pool="-Dibis.name_server.key=%1"
     goto nextarg
 )
 if "%1"=="-?" (

@@ -47,18 +47,18 @@
 	      executable="${ibis}/bin/run-ibis"
 	      vmlauncher="false"
 	      spawn="true">
-	      <arg line="-ns localhost:4567 -nhosts 2 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -nhosts 2 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
-	      <arg line="${java-args} ibis.util.Postpone 3 ${runjob}"/>
+	      <arg line="${java-args} ibis.util.Postpone 4 ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/run-ibis"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost:4567 -nhosts 2 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -nhosts 2 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
-	      <arg line="${java-args} ibis.util.Postpone 3 ${runjob}"/>
+	      <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
     </target>
 
@@ -74,7 +74,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost:4567 -nhosts 1 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -nhosts 1 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
 	      <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
