@@ -262,9 +262,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                     ix++;
                 }
                 p = sort1( next, indices1, comm1, p, indices, start, ix, offset );
-                if( text[indices[start]] == 'b' ){
-                    System.out.println( "start=" + start + " ix=" + ix + " oldp=" + oldp + " p=" + p );
-                }
                 if( isAcceptable( indices1, oldp, p, offset ) ){
                     acceptable = true;
                     comm1[oldp] = false;
@@ -279,10 +276,10 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             // Swap the scratch version and the accepted version.
             int h[] = indices;
             indices = indices1;
-            indices = h;
-            boolean hc[] = comm1;
-            comm1 = comm;
-            comm = hc;
+            indices1 = h;
+            boolean hc[] = comm;
+            comm = comm1;
+            comm1 = hc;
             l = p;
         }
         return new Result( offset-1, l, indices, comm );
@@ -555,6 +552,8 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     {
         final int oldLength = length;   // Remember the old length for verif.
 
+        //System.out.println( "Applying compression step " + s );
+
         // First, move the grammar text aside.
         int len = s.len;
         short t[] = new short[len];
@@ -695,7 +694,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         }
         else {
             Result reps = selectRepeats();
-            reps.print();
+            //reps.print();
 
             boolean commonality[] = reps.comm;
             int indices[] = reps.indices;
