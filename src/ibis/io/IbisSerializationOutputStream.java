@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 
 final class ArrayDescriptor {
-	int		type;
-	Object	        array;
-	int		offset;
-	int		len;
+    int		type;
+    Object	array;
+    int		offset;
+    int		len;
 }
 
 
@@ -34,7 +34,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
     /* Notion of a "current" object.
        Needed for defaultWriteObject, and maybe others.
-    */
+       */
     private Object current_object;
     private int current_level;
     private ImplPutField current_putfield;
@@ -122,7 +122,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     public void writeUTF(String str) throws IOException {
-// System.out.println("WriteUTF: " + str);
+	// System.out.println("WriteUTF: " + str);
 	if(str == null) {
 	    writeInt(-1);
 	    return;
@@ -133,8 +133,8 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 	int len = str.length();
 
-//	writeInt(len);
-//	writeArray(str.toCharArray(), 0, len);
+	//	writeInt(len);
+	//	writeArray(str.toCharArray(), 0, len);
 
 	byte[] b = new byte[3 * len];
 	int bn = 0;
@@ -254,7 +254,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
     /* Often, the type of the array to be written is known (in an Ibis message
        for instance). Therefore, provide these methods for efficiency reasons.
-    */
+       */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
 	writeArray(ref, off, len, arrayClasses[TYPE_BOOLEAN], TYPE_BOOLEAN, false);
     }
@@ -316,7 +316,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     private boolean writeArrayHeader(Object ref, Class clazz, int len, boolean doCycleCheck)
-	    throws IOException {
+	throws IOException {
 
 	if (ref == null) {
 	    writeHandle(NUL_HANDLE);
@@ -419,7 +419,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     private void writeArray(Object ref, int off, int len, Class clazz, int type, boolean doCycleCheck)
-	    throws IOException {
+	throws IOException {
 	if(!writeArrayHeader(ref, clazz, len, doCycleCheck)) return;
 
 	if (array_index + 1 == ARRAY_BUFFER_SIZE) {
@@ -434,7 +434,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
     /* This must be public, it is called by generated code which is in
        another package. --Rob
-    */
+       */
     public int writeKnownObjectHeader(Object ref) throws IOException {
 
 	if (ref == null) {
@@ -569,7 +569,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	   IOGenerator.
 	   Note that the needed info is available in AlternativeTypeInfo,
 	   but we don't want to use that when we have ibis.io.Serializable.
-	*/
+	   */
 	int handle = references.find(ref);
 
 	if (handle == 0) {
@@ -626,7 +626,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    if (len < 0) {
 		len = -len;
 	    }
-	
+
 	    switch (array[i].type) {
 	    case TYPE_BOOLEAN:
 		out.writeArray((boolean[])array[i].array, array[i].offset, len);
@@ -683,7 +683,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
     /* annotateClass does not have to be redefined: it is empty in the
        ObjectOutputStream implementation.
-    */
+       */
 
     public void writeFields() throws IOException {
 	if (current_putfield == null) {
@@ -770,7 +770,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 
 	public void put(String name, Object value) {
-	    // throws IllegalArgumentException {
 	    references[t.getOffset(name, Object.class)] = value;
 	}
 
@@ -805,7 +804,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
 	/*  Find the type info corresponding to the current invocation.
 	    See the invokeWriteObject invocation in alternativeWriteObject.
-	*/
+	    */
 	while (t.level > depth) {
 	    t = t.alternativeSuperInfo;
 	}
@@ -827,7 +826,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    /* Note that this will take the generated_DefaultWriteObject of the
 	       dynamic type of ref. The current_level variable actually indicates
 	       which instance of generated_DefaultWriteObject should do some work.
-	    */
+	       */
 	    ((ibis.io.Serializable)ref).generated_DefaultWriteObject(this, current_level);
 	} else if (ref instanceof java.io.Serializable) {
 	    Class type = ref.getClass();
@@ -835,7 +834,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
 	    /*	Find the type info corresponding to the current invocation.
 		See the invokeWriteObject invocation in alternativeWriteObject.
-	    */
+		*/
 	    while (t.level > current_level) {
 		t = t.alternativeSuperInfo;
 	    }
