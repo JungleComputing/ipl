@@ -7,6 +7,7 @@ import java.io.IOException;
 
 interface Config {
     static final boolean DEBUG = false;
+    static final boolean tracePortCreation = true;
 }
 
 class RszHandler implements ResizeHandler {
@@ -33,74 +34,6 @@ class RszHandler implements ResizeHandler {
     {
         System.err.println( "Reconfigure" );
     }
-}
-
-class Sender implements Config
-{
-    SendPort sport;
-    ReceivePort rport;
-
-    Sender( ReceivePort rport, SendPort sport ) {
-        this.rport = rport;
-        this.sport = sport;
-    }
-
-    void send( int count, int repeat ) throws Exception
-    {
-        for( int r=0; r<repeat; r++ ) {
-            long time = System.currentTimeMillis();
-
-            for( int i = 0; i< count; i++ ) {
-                WriteMessage writeMessage = sport.newMessage();
-                if( DEBUG ) {
-                    System.out.println( "LAT: finish message" );
-                }
-                writeMessage.finish();
-                if( DEBUG ) {
-                    System.out.println( "LAT: message done" );
-                }
-                ReadMessage readMessage = rport.receive();
-                readMessage.finish();
-            }
-
-            time = System.currentTimeMillis() - time;
-
-            double speed = (time * 1000.0) / (double) count;
-            System.err.println( "Latency: " + count + " calls took " + ( time/1000.0 ) + " seconds, time/call = " + speed + " micros" );
-        }
-    }
-}
-
-class Receiver implements Config {
-
-	SendPort sport;
-	ReceivePort rport;
-
-	Receiver( ReceivePort rport, SendPort sport ) {
-            this.rport = rport;
-            this.sport = sport;
-	}
-
-	void receive( int count, int repeat ) throws IOException {
-            for( int r=0; r<repeat; r++ ) {
-                for( int i = 0; i< count; i++ ) {
-                    if( DEBUG ) {
-                        System.out.println( "LAT: in receive" );
-                    }
-                    ReadMessage readMessage = rport.receive();
-                    if( DEBUG ) {
-                        System.out.println( "LAT: receive done" );
-                    }
-                    readMessage.finish();
-                    if( DEBUG ) {
-                        System.out.println( "LAT: finish done" );
-                    }
-
-                    WriteMessage writeMessage = sport.newMessage();
-                    writeMessage.finish();
-                }
-            }
-	}
 }
 
 class Cell1D implements Config {
@@ -185,9 +118,35 @@ class Cell1D implements Config {
     private static SendPort createUpdateSendPort( PortType t, int me, int procno )
         throws java.io.IOException
     {
-        SendPort res = t.createSendPort( "update" + me );
-        ReceivePortIdentifier id = findReceivePort( "update" + procno );
-        connect( res, id );
+        String portclass;
+
+        if( me<procno ){
+            portclass = "Upstream";
+        }
+        else {
+            portclass = "Downstream";
+        }
+        String sendportname = "send" + portclass + me;
+        String receiveportname = "receive" + portclass + procno;
+
+        if( tracePortCreation ){
+            System.err.println( "Creating send port `" + sendportname + "'" );
+        }
+        SendPort res = t.createSendPort( sendportname );
+        if( tracePortCreation ){
+            System.err.println( "Created send port " + res  );
+        }
+        if( tracePortCreation ){
+            System.err.println( "Looking for receive port `" + receiveportname + "'" );
+        }
+        ReceivePortIdentifier id = findReceivePort( receiveportname );
+        if( tracePortCreation ){
+            System.err.println( "Found: " + id );
+        }
+        res.connect( id );
+        if( tracePortCreation ){
+            System.err.println( "Connected " + sendportname + " to " + receiveportname );
+        }
         return res;
     }
 
@@ -195,11 +154,29 @@ class Cell1D implements Config {
      * Creates an update receive port.
      * @param t The type of the port to construct.
      * @param me My own processor number.
+     * @param procno The processor to receive from.
      */
-    private ReceivePort createUpdateReceivePort( PortType t, int me, int procno )
+    private static ReceivePort createUpdateReceivePort( PortType t, int me, int procno )
         throws java.io.IOException
     {
-        ReceivePort res = t.createReceivePort( "update" + me );
+        String portclass;
+
+        if( me<procno ){
+            portclass = "receiveDownstream";
+        }
+        else {
+            portclass = "receiveUpstream";
+        }
+        String receiveportname = portclass + me;
+
+        if( tracePortCreation ){
+            System.err.println( "Creating receive port `" + receiveportname + "'" );
+        }
+        ReceivePort res = t.createReceivePort( receiveportname );
+        if( tracePortCreation ){
+            System.err.println( "Created receive port " + res  );
+        }
+        res.enableConnections();
         return res;
     }
 
@@ -248,9 +225,9 @@ class Cell1D implements Config {
 
             // This only works for a closed world...
             final int me = info.rank();         // My processor number.
-            final int NProcs = info.size();     // Total number of procs.
+            final int nProcs = info.size();     // Total number of procs.
 
-            System.err.println( "Me=" + me + ", NProcs=" + NProcs );
+            System.err.println( "me=" + me + ", nProcs=" + nProcs );
 
             PortType t = ibis.createPortType( "neighbour update", s );
 
@@ -260,15 +237,17 @@ class Cell1D implements Config {
             ReceivePort rightReceivePort = null;
 
             if( me != 0 ){
-                leftReceivePort = t.createReceivePort( "send port" );
-                leftSendPort = t.createSendPort( "send port" );
+                leftReceivePort = createUpdateReceivePort( t, me, me-1 );
             }
-            if( me != NProcs-1 ){
-                rightReceivePort = t.createReceivePort( "send port" );
-                rightSendPort = t.createSendPort( "send port" );
+            if( me != nProcs-1 ){
+                rightReceivePort = createUpdateReceivePort( t, me, me+1 );
             }
-            ReceivePort rport;
-            Cell1D lat = null;
+            if( me != 0 ){
+                leftSendPort = createUpdateSendPort( t, me, me-1 );
+            }
+            if( me != nProcs-1 ){
+                rightSendPort = createUpdateSendPort( t, me, me+1 );
+            }
 
             if( DEBUG ) {
                 System.out.println( "LAT: pre elect" );
