@@ -64,6 +64,8 @@ function usage () {
 	fi
 	echo "-singlecpu"
 	echo "    specifies that the javawrapper must be used"
+	echo "-no-singlecpu"
+	echo "    specifies that the javawrapper must not be used"
 	echo "-jdb"
 	echo "    execute jdb instead of java"
 	echo "-no-jit"
@@ -149,7 +151,6 @@ cpumask="1"
 attach=0
 noJIT=0
 dedicated_nameserver=0
-singlecpu=0
 no_pool=0
 portno_specified=0
 
@@ -164,10 +165,10 @@ action=eval
 
 . $IBIS_ROOT/bin/ns-env
 
-Dns_server="-Dibis.name_server.port=$IBIS_NAMESERVER_HOST"
+Dns_server="-Dibis.name_server.host=$IBIS_NAMESERVER_HOST"
 Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
+Dns_retry="-Dibis.name_server.retry=$IBIS_NAMESERVER_RETRY"
 Dns_pool="-Dibis.name_server.key=no_key_supplied"
-Dns_retry="-Dibis.name_server.retry=no"
 
 dir=$PWD
 
@@ -211,7 +212,10 @@ do
 		PRUN_CPU_RANK="$1"
 		;;
 	-singlecpu)
-		singlecpu=1
+		USE_JAVAWRAPPER=1
+		;;
+	-no-singlecpu)
+		USE_JAVAWRAPPER=0
 		;;
 	-jdb)
 		JAVA_EXEC=jdb
@@ -272,6 +276,9 @@ do
 		;;
 	-ns-retry)
 		Dns_retry="-Dibis.name_server.retry=yes"
+		;;
+	-no-ns-retry)
+		Dns_retry="-Dibis.name_server.retry=no"
 		;;
 	-karmi)
 		Xbootclasspath=""
@@ -397,7 +404,7 @@ fi
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-if [ $singlecpu -eq 1 ]
+if [ $USE_JAVAWRAPPER -eq 1 ]
 then
 	$action="$action $wrapper_name -cpu $cpumask -cd $dir"
 fi
