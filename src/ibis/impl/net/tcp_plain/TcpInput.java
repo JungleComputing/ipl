@@ -104,8 +104,9 @@ public final class TcpInput extends NetInput {
             public String getProperty(String name) {
                 if (p != null) {
                     String result = (String) p.find(name);
-                    if (result != null)
+                    if (result != null) {
                         return result;
+                    }
                 }
                 return nn.getProperty(name);
             }
@@ -133,8 +134,8 @@ public final class TcpInput extends NetInput {
      * {@inheritDoc}
      *
      * <BR><B>Note</B>: This TCP polling implementation uses the
-     * {@link java.io.InputStream#available()} function to test whether at least one
-     * data byte may be extracted without blocking.
+     * {@link java.io.InputStream#available()} function to test whether
+     * at least one data byte may be extracted without blocking.
      */
     public Integer doPoll(boolean block) throws IOException {
         if (spn == null) {
@@ -144,8 +145,9 @@ public final class TcpInput extends NetInput {
         if (block) {
             int i = tcpIs.read();
 
-            if (i < 0)
+            if (i < 0) {
                 throw new ConnectionClosedException("Broken pipe");
+            }
 
             first = true;
             firstbyte = (byte) (i & 0xFF);
@@ -165,7 +167,8 @@ public final class TcpInput extends NetInput {
     /**
      * {@inheritDoc}
      *
-     * <BR><B>Note</B>: this function may block if the expected data is not there.
+     * <BR><B>Note</B>: this function may block if the expected data is
+     * not there.
      */
     public byte readByte() throws IOException {
         byte b = 0;

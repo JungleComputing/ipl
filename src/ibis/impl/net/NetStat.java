@@ -39,7 +39,8 @@ public abstract class NetStat {
     /**
      * Returns plural of <code>word</code> if <code>value</code> > 1.
      *
-     * Note plural exceptions should be put in the table {@link #pluralExceptions} by subclasses.
+     * Note plural exceptions should be put in the table {@link
+     * #pluralExceptions} by subclasses.
      *
      * @param word the word to process.
      * @param value the value to consider.
@@ -60,7 +61,8 @@ public abstract class NetStat {
     /**
      * Returns plural of <code>word</code> if <code>value</code> > 1.
      *
-     * Note plural exceptions should be put in the table {@link #pluralExceptions} by subclasses.
+     * Note plural exceptions should be put in the table {@link
+     * #pluralExceptions} by subclasses.
      *
      * @param word the word to process.
      * @param value the value to consider.
@@ -118,7 +120,8 @@ public abstract class NetStat {
      * @param type the singular 'name' of 'something' (e.g. 'byte', 'message').
      * @param end end of sentence.
      */
-    protected void reportVal(Number value, String begin, String type, String end) {
+    protected void reportVal(Number value, String begin, String type,
+            String end) {
         if (value.longValue() < 1) {
             return;
         }
@@ -137,7 +140,8 @@ public abstract class NetStat {
      * @param type the singular 'name' of 'something' (e.g. 'byte', 'message').
      * @param end end of sentence.
      */
-    protected void reportVal(long value, String begin, String type, String end) {
+    protected void reportVal(long value, String begin, String type,
+            String end) {
         if (value < 1) {
             return;
         }
@@ -151,7 +155,8 @@ public abstract class NetStat {
      * Note: if <code>m.size()</code> is lower than 1, nothing is displayed.
      *
      * @param m the tree map of quantities.
-     * @param setType the 'name' of a 'set' of something (e.g. 'array', 'buffer').
+     * @param setType the 'name' of a 'set' of something (e.g. 'array',
+     * 		'buffer').
      * @param type the 'name' of 'something' (e.g. 'byte', 'message').
      */
     protected void reportMap(TreeMap m, String setType, String type) {

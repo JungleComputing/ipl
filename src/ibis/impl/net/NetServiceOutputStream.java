@@ -38,7 +38,8 @@ public class NetServiceOutputStream extends OutputStream {
     private int offset = 0;
 
     /**
-     * Permanent Conversion.INT_SIZE-byte buffer for 'buffer-length to bytes' conversion.
+     * Permanent Conversion.INT_SIZE-byte buffer for 'buffer-length to bytes'
+     * conversion.
      */
     private byte[] intBuffer = new byte[Conversion.INT_SIZE];
 
@@ -52,7 +53,8 @@ public class NetServiceOutputStream extends OutputStream {
      * @param b the byte block.
      * @param o the offset in the block of the first byte to write.
      * @param l the number of bytes to write.
-     * @exception IOtion when the write operation to the {@link #os socket stream} fails.
+     * @exception IOException when the write operation to the {@link #os
+     * 		socket stream} fails.
      */
     private void writeBlock(byte[] b, int o, int l) throws IOException {
         synchronized (os) {

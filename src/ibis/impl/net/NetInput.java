@@ -15,8 +15,8 @@ import java.io.IOException;
 public abstract class NetInput extends NetIO implements ReadMessage,
         NetInputUpcall {
     /**
-     * Active {@link ibis.impl.net.NetConnection connection} number or <code>null</code> if
-     * no connection is active.
+     * Active {@link ibis.impl.net.NetConnection connection} number or
+     * <code>null</code> if no connection is active.
      */
     private Integer activeNum = null;
 
@@ -26,7 +26,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
 
     private int threadStackPtr = 0;
 
-    private PooledUpcallThread[] threadStack = new PooledUpcallThread[threadStackSize];
+    private PooledUpcallThread[] threadStack
+        = new PooledUpcallThread[threadStackSize];
 
     private NetMutex threadStackLock = new NetMutex(false);
 
@@ -59,8 +60,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
 
     private int nonSpawnWaiters;
 
-    private static final boolean VERBOSE_INPUT_EXCEPTION = TypedProperties
-            .booleanProperty(NetIbis.input_exc_v, false);
+    private static final boolean VERBOSE_INPUT_EXCEPTION
+        = TypedProperties.booleanProperty(NetIbis.input_exc_v, false);
 
     /**
      * Synchronize between threads if an upcallFunc is installed after
@@ -192,11 +193,11 @@ public abstract class NetInput extends NetIO implements ReadMessage,
                 try {
                     sleep.ilock();
                     if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
-                        if (activeThread != null && activeThread != this)
-                            System.err
-                                    .println(this
-                                            + ": want to become activeThread; but activeThread is "
-                                            + activeThread);
+                        if (activeThread != null && activeThread != this) {
+                            System.err.println(this
+                                    + ": want to become activeThread; "
+                                    + " but activeThread is " + activeThread);
+                        }
                     }
                     activeThread = this;
 
@@ -243,17 +244,17 @@ public abstract class NetInput extends NetIO implements ReadMessage,
                         initReceive(activeNum);
                     } catch (ConnectionClosedException e) {
                         if (VERBOSE_INPUT_EXCEPTION) {
-                            System.err
-                                    .println("PooledUpcallThread + doPoll throws ConnectionClosedException. Should I quit??? "
-                                            + e);
+                            System.err.println("PooledUpcallThread + doPoll"
+                                    + " throws ConnectionClosedException. "
+                                    + " Should I quit??? " + e);
                         }
                         end = true;
                         return;
                     } catch (InterruptedIOException e) {
                         if (VERBOSE_INPUT_EXCEPTION) {
-                            System.err
-                                    .println("PooledUpcallThread + doPoll throws InterruptedIOException; end "
-                                            + end + ". Should I quit??? " + e);
+                            System.err.println("PooledUpcallThread + doPoll"
+                                    + " throws InterruptedIOException; end "
+                                    + end + ". Should I quit??? " + e);
                         }
                         if (end) {
                             return;
@@ -261,9 +262,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
                             throw new Error(e);
                         }
                     } catch (IOException e) {
-                        System.err
-                                .println("PooledUpcallThread + doPoll throws IOException. Should I quit??? "
-                                        + e);
+                        System.err.println("PooledUpcallThread + doPoll"
+                                + " throws IOException. Should I quit??? " + e);
                         // throw new Error(e);
                         return;
 
@@ -286,16 +286,15 @@ public abstract class NetInput extends NetIO implements ReadMessage,
                         return;
                     } catch (ConnectionClosedException e) {
                         if (VERBOSE_INPUT_EXCEPTION) {
-                            System.err
-                                    .println("PooledUpcallThread.inputUpcall() throws ConnectionClosedException "
-                                            + e);
+                            System.err.println(
+                                    "PooledUpcallThread.inputUpcall()"
+                                    + " throws ConnectionClosedException " + e);
                         }
                         end = true;
                         return;
                     } catch (IOException e) {
-                        System.err
-                                .println("PooledUpcallThread.inputUpcall() throws IOException. Should I quit??? "
-                                        + e);
+                        System.err.println("PooledUpcallThread.inputUpcall()"
+                                + " throws IOException. Should I quit??? " + e);
                         e.printStackTrace(System.err);
                         // throw new Error(e);
                         end = true;
@@ -330,9 +329,10 @@ public abstract class NetInput extends NetIO implements ReadMessage,
                         try {
                             implicitFinish();
                         } catch (Exception e) {
-                            System.err
-                                    .println("PooledUpcallThread,implicitFinish() throws IOException. Should I quit??? "
-                                            + e);
+                            System.err.println(
+                                    "PooledUpcallThread,implicitFinish()"
+                                    + " throws IOException. Should I quit??? "
+                                    + e);
                             // throw new Error(e);
                             return;
                         }
@@ -422,7 +422,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      *
      * Note: this method is only useful for filtering drivers.
      *
-     * @param input the {@link ibis.impl.net.NetInput sub-input} that generated the upcall.
+     * @param input the {@link ibis.impl.net.NetInput sub-input} that
+     * 		generated the upcall.
      * @param num   the active connection number
      * @exception IOException in case of trouble.
      */
@@ -476,7 +477,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      *
      * @param blockForMessage indicates whether this method must block until
      *        a message has arrived, or just query the input one.
-     * @return the {@link ibis.impl.net.NetConnection connection} identifier or <code>null</code> if no data is available.
+     * @return the {@link ibis.impl.net.NetConnection connection} identifier
+     * 		or <code>null</code> if no data is available.
      * @exception InterruptedIOException if the polling fails (!= the
      * polling is unsuccessful).
      */
@@ -534,7 +536,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      * undefined and data might get lost. Use {@link
      * #getActiveSendPortNum} instead.
      *
-     * @return the {@link ibis.impl.net.NetConnection connection} identifier or <code>null</code> if no data is available.
+     * @return the {@link ibis.impl.net.NetConnection connection} identifier
+     * 		or <code>null</code> if no data is available.
      * @exception InterruptedIOException if the polling fails (!= the
      * polling is unsuccessful).
      */
@@ -543,9 +546,13 @@ public abstract class NetInput extends NetIO implements ReadMessage,
     }
 
     /**
-     * Return the active {@link ibis.impl.net.NetConnection connection} identifier or <code>null</code> if no {@link ibis.impl.net.NetConnection connection} is active.
+     * Return the active {@link ibis.impl.net.NetConnection connection}
+     * identifier or <code>null</code> if no {@link
+     * ibis.impl.net.NetConnection connection} is active.
      *
-     * @return the active {@link ibis.impl.net.NetConnection connection} identifier or <code>null</code> if no {@link ibis.impl.net.NetConnection connection} is active.
+     * @return the active {@link ibis.impl.net.NetConnection connection}
+     * 		identifier or <code>null</code> if no {@link
+     * 		ibis.impl.net.NetConnection connection} is active.
      */
     public final Integer getActiveSendPortNum() {
         return activeNum;
@@ -631,9 +638,9 @@ public abstract class NetInput extends NetIO implements ReadMessage,
     }
 
     /**
-     * {@linkplain ibis.impl.net.NetInput NetInput}s may be capable of switching between upcall
-     * mode and downcall mode on-the-fly by invoking {@link
-     * #switchToUpcallMode} or {@link #switchToDowncallMode}.
+     * {@linkplain ibis.impl.net.NetInput NetInput}s may be capable of
+     * switching between upcall mode and downcall mode on-the-fly by
+     * invoking {@link #switchToUpcallMode} or {@link #switchToDowncallMode}.
      *
      * <BR>
      * The capacity to switch on-the-fly between upcall and downcall mode
@@ -651,8 +658,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      * @see	#switchToUpcallMode
      *
      * @return whether blocking poll is interruptible, which is equivalent
-     * 		to whether this {@linkplain ibis.impl.net.NetInput NetInput} supports
-     * 		switching between upcall mode and downcall mode.
+     * 		to whether this {@linkplain ibis.impl.net.NetInput NetInput}
+     * 		supports switching between upcall mode and downcall mode.
      */
     public boolean pollIsInterruptible() throws IOException {
         return false;
@@ -661,8 +668,9 @@ public abstract class NetInput extends NetIO implements ReadMessage,
     /**
      * Provide a hint that switching between upcall mode and downcall mode
      * is desired or not desired. The rationale for this method is that some
-     * {@linkplain ibis.impl.net.NetInput NetInput}s can provide interruptibility but only at
-     * an extra cost: <code>tcp_blk</code> is a case in point.
+     * {@linkplain ibis.impl.net.NetInput NetInput}s can provide
+     * interruptibility but only at an extra cost: <code>tcp_blk</code> is a
+     * case in point.
      *
      * @see	#pollIsInterruptible
      * @see	#interruptPoll
@@ -688,9 +696,9 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      * implemented.
      *
      * <BR>
-     * Method {@link #pollIsInterruptible} informs whether this
-     * {@linkplain ibis.impl.net.NetInput NetInput} supports poll interrupts and switching between
-     * upcall mode and downcall mode.
+     * Method {@link #pollIsInterruptible} informs whether this {@linkplain
+     * ibis.impl.net.NetInput NetInput} supports poll interrupts and switching
+     * between upcall mode and downcall mode.
      *
      * <BR>
      * The implementation of this method may be costly.
@@ -709,7 +717,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
     }
 
     /**
-     * Switch this {@linkplain ibis.impl.net.NetInput NetInput} to downcall mode.
+     * Switch this {@linkplain ibis.impl.net.NetInput NetInput} to downcall
+     * mode.
      *
      * Threads that are blocked in a receive must be interrupted before this
      * switch by calling {@link #interruptPoll}. These threads will return
@@ -717,13 +726,14 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      *
      * <BR>
      * Any previously registered {@link NetInputUpcall} is cleared and
-     * forgotten. The {@linkplain ibis.impl.net.NetInput NetInput} of which this is a subInput is
-     * responsible for doing downcall receives from now on.
+     * forgotten. The {@linkplain ibis.impl.net.NetInput NetInput} of which
+     * this is a subInput is responsible for doing downcall receives from
+     * now on.
      *
      * <BR>
-     * Method {@link #pollIsInterruptible} informs whether this
-     * {@linkplain ibis.impl.net.NetInput NetInput} supports poll interrupts and switching between
-     * upcall mode and downcall mode.
+     * Method {@link #pollIsInterruptible} informs whether this {@linkplain
+     * ibis.impl.net.NetInput NetInput} supports poll interrupts and switching
+     * between upcall mode and downcall mode.
      *
      * <BR>
      * The implementation of this method may be costly.
@@ -751,15 +761,16 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      * <BR>
      * If the caller is certain that no downcall receive may have been
      * posted yet, this method may be called without first interrupting
-     * the poll. In that case this {@linkplain ibis.impl.net.NetInput NetInput} need not be
-     * {@linkplain #pollIsInterruptible}. This occurs for instance when
-     * the poll and the connect are protected by one lock, that is still
-     * taken indivisibly with the connect when this method is invoked.
+     * the poll. In that case this {@linkplain ibis.impl.net.NetInput
+     * NetInput} need not be {@linkplain #pollIsInterruptible}. This occurs
+     * for instance when the poll and the connect are protected by one lock,
+     * that is still taken indivisibly with the connect when this method is
+     * invoked.
      *
      * <BR>
      * Method {@link #pollIsInterruptible} informs whether this
-     * {@linkplain ibis.impl.net.NetInput NetInput} supports poll interrupts and switching between
-     * upcall mode and downcall mode.
+     * {@linkplain ibis.impl.net.NetInput NetInput} supports poll interrupts
+     * and switching between upcall mode and downcall mode.
      *
      * <BR>
      * The implementation of this method may be costly.
@@ -788,7 +799,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      * @param contentsLength indicates how many bytes of data must be received.
      * 0 indicates that any length is fine and that the buffer.length field
      * should be filled with the length actually read.
-     * @throws an {@link IllegalArgumentException} if the factory has no default MTU
+     * @throws an {@link IllegalArgumentException} if the factory has no
+     * 		default MTU
      * @return the new {@link ibis.impl.net.NetReceiveBuffer}.
      */
     public NetReceiveBuffer createReceiveBuffer(int contentsLength) {
@@ -809,7 +821,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
      * should be filled with the length actually read.
      * @return the new {@link ibis.impl.net.NetReceiveBuffer}.
      */
-    public NetReceiveBuffer createReceiveBuffer(int length, int contentsLength) {
+    public NetReceiveBuffer createReceiveBuffer(int length,
+            int contentsLength) {
         log.in();
         NetReceiveBuffer b = (NetReceiveBuffer) createBuffer(length);
         b.length = contentsLength;
@@ -860,9 +873,8 @@ public abstract class NetInput extends NetIO implements ReadMessage,
 
         threadStackLock.lock();
         if (activeThread != null) {
-            trace
-                    .disp(this, ": active thread end --> ", activeThread
-                            .getName());
+            trace.disp(this, ": active thread end --> ",
+                    activeThread.getName());
             ((PooledUpcallThread) activeThread).end();
             while (true) {
                 try {
@@ -962,12 +974,11 @@ public abstract class NetInput extends NetIO implements ReadMessage,
             } else {
                 ut = new PooledUpcallThread("no " + upcallThreadNum++);
                 if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
-                    System.err
-                            .println(this
-                                    + ": msg.finish creates another PooledUpcallThread "
-                                    + ut + " " + threadStackPtr
-                                    + "; finishedUpcallThreads "
-                                    + finishedUpcallThreads);
+                    System.err.println(this
+                                + ": msg.finish creates another"
+                                + " PooledUpcallThread " + ut + " "
+                                + threadStackPtr + "; finishedUpcallThreads "
+                                + finishedUpcallThreads);
                 }
                 ut.start();
                 utStat.addAllocation();

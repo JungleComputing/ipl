@@ -21,7 +21,8 @@ public final class NetLog {
     /**
      * Active state flag.
      *
-     * If set to <code>true</code>, debugging messages are printed; otherwise, messages are silently discarded.
+     * If set to <code>true</code>, debugging messages are printed;
+     * otherwise, messages are silently discarded.
      */
     private boolean on = false;
 
@@ -59,7 +60,7 @@ public final class NetLog {
      * Generic caller frame retrieval.
      */
     private StackTraceElement getCaller() {
-        StackTraceElement[] steArray = (new Throwable()).getStackTrace();
+        StackTraceElement[] steArray = new Throwable().getStackTrace();
         int i = 1;
 
         while (i < steArray.length) {
@@ -81,7 +82,7 @@ public final class NetLog {
      */
     private StackTraceElement getCaller(int frame) {
         frame++;
-        StackTraceElement[] steArray = (new Throwable()).getStackTrace();
+        StackTraceElement[] steArray = new Throwable().getStackTrace();
 
         if (frame < steArray.length) {
             return steArray[frame];
@@ -109,8 +110,8 @@ public final class NetLog {
     /**
      * JDK >= 1.4 only
      */
-    private final static java.util.regex.Pattern p = java.util.regex.Pattern
-            .compile("^.*[.]([^.]+[.][^.]+)$");
+    private final static java.util.regex.Pattern p
+        = java.util.regex.Pattern.compile("^.*[.]([^.]+[.][^.]+)$");
 
     private String cleanFunctionName(String name) {
         java.util.regex.Matcher m = p.matcher(name);
@@ -306,8 +307,8 @@ public final class NetLog {
      */
     public void disp(int j, Object s, int i, Object obj) {
         if (on) {
-            System.err
-                    .println(id(1) + "- " + j + " " + s + " " + i + " " + obj);
+            System.err.println(id(1) + "- " + j + " " + s + " " + i
+                    + " " + obj);
         }
     }
 

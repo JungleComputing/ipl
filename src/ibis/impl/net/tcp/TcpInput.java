@@ -82,8 +82,9 @@ public final class TcpInput extends NetInput {
             public String getProperty(String name) {
                 if (p != null) {
                     String result = (String) p.find(name);
-                    if (result != null)
+                    if (result != null) {
                         return result;
+                    }
                 }
                 return nn.getProperty(name);
             }
@@ -109,8 +110,8 @@ public final class TcpInput extends NetInput {
     /**
      * {@inheritDoc}
      *
-     * <BR><B>Note</B>: This TCP polling implementation uses the
-     * {@link java.io.InputStream#available()} function to test whether at least one
+     * <BR><B>Note</B>: This TCP polling implementation uses the {@link
+     * java.io.InputStream#available()} function to test whether at least one
      * data byte may be extracted without blocking.
      */
     protected Integer doPoll(boolean block) throws IOException {
@@ -172,12 +173,13 @@ public final class TcpInput extends NetInput {
     }
 
     /*
-     public void switchToDowncallMode() throws IOException {
-     tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
-     installUpcallFunc(null);
-     System.err.println(this + ": interruptiblePoll support is INCOMPLETE. Please implement!");
-     }
-     */
+    public void switchToDowncallMode() throws IOException {
+        tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+        installUpcallFunc(null);
+        System.err.println(this + ": interruptiblePoll support is INCOMPLETE."
+                + " Please implement!");
+    }
+    */
 
     public void switchToUpcallMode(NetInputUpcall upcallFunc)
             throws IOException {

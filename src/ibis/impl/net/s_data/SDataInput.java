@@ -94,7 +94,8 @@ public final class SDataInput extends NetSerializedInput {
             return subInput.readDouble();
         }
 
-        public void readArray(boolean[] a, int off, int len) throws IOException {
+        public void readArray(boolean[] a, int off, int len)
+                throws IOException {
             subInput.readArray(a, off, len);
         }
 
@@ -124,8 +125,6 @@ public final class SDataInput extends NetSerializedInput {
 
         public void readArray(double[] a, int off, int len) throws IOException {
             subInput.readArray(a, off, len);
-            // System.err.println(this + ": read subInput " + subInput + " double[" + off + ":" + len + "]");
-            // for (int i = off; i < len + off; i++) { System.err.print(a[i] + " "); } System.err.println();
         }
 
     }

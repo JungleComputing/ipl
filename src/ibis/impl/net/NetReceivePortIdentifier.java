@@ -145,7 +145,8 @@ public final class NetReceivePortIdentifier implements ReceivePortIdentifier,
                 + (type == null ? "<null>" : type) + ", " + "ibis = "
                 + (ibis == null ? "<null>" : ibis.toString()) + ", "
                 + "info = "
-                + (infoBytes == null ? "<null>" : connectionInfo().toString()) + ")");
+                + (infoBytes == null ? "<null>" : connectionInfo().toString())
+                + ")");
     }
 
 }

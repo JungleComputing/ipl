@@ -533,8 +533,9 @@ public final class NetPortType extends PortType {
 
         NetPortType temp = (NetPortType) other;
 
-        if (temp == this)
+        if (temp == this) {
             return true;
+        }
 
         return name.equals(temp.name) && ibis.equals(temp.ibis);
     }
@@ -596,10 +597,9 @@ public final class NetPortType extends PortType {
             } else if (value.equals(String.valueOf(false))) {
                 result = Boolean.valueOf(false);
             } else {
-                __
-                        .abort__("invalid property value '" + value
-                                + "', should be " + String.valueOf(true)
-                                + " or " + String.valueOf(false));
+                __.abort__("invalid property value '" + value + "', should be "
+                        + String.valueOf(true) + " or "
+                        + String.valueOf(false));
             }
         }
 
@@ -625,10 +625,9 @@ public final class NetPortType extends PortType {
             } else if (value.equals(String.valueOf(false))) {
                 result = false;
             } else {
-                __
-                        .abort__("invalid property value '" + value
-                                + "', should be " + String.valueOf(true)
-                                + " or " + String.valueOf(false));
+                __.abort__("invalid property value '" + value + "', should be "
+                        + String.valueOf(true) + " or "
+                        + String.valueOf(false));
             }
         }
 

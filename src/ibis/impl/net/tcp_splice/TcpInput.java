@@ -90,8 +90,8 @@ public final class TcpInput extends NetBufferedInput {
 
     static {
         if (false) {
-            System.err
-                    .println("WARNING: Class net.tcp_splice.TcpInput (still) uses Conversion.defaultConversion");
+            System.err.println("WARNING: Class net.tcp_splice.TcpInput (still)"
+                    + " uses Conversion.defaultConversion");
         }
     }
 
@@ -120,14 +120,16 @@ public final class TcpInput extends NetBufferedInput {
             // MTU negociation
             Hashtable lInfo = new Hashtable();
             lInfo.put("tcp_mtu", new Integer(lmtu));
-            ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                    .getOutputSubStream(this, "tcp_splice_mtu"));
+            ObjectOutputStream os = new ObjectOutputStream(
+                    cnx.getServiceLink().getOutputSubStream(this,
+                        "tcp_splice_mtu"));
             os.writeObject(lInfo);
             os.flush();
 
             Hashtable rInfo = null;
-            ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                    .getInputSubStream(this, "tcp_splice_mtu"));
+            ObjectInputStream is = new ObjectInputStream(
+                    cnx.getServiceLink().getInputSubStream(this,
+                        "tcp_splice_mtu"));
             try {
                 rInfo = (Hashtable) is.readObject();
             } catch (ClassNotFoundException e) {
@@ -357,8 +359,7 @@ public final class TcpInput extends NetBufferedInput {
                 } catch (SocketTimeoutException e) {
                     if (interrupted) {
                         interrupted = false;
-                        System.err
-                                .println("Please store the data already read for the resume after the InterruptedIOException");
+                        System.err.println("Please store the data already read for the resume after the InterruptedIOException");
                         // throw Ibis.createInterruptedIOException(e);
                         return null;
                     }

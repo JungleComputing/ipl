@@ -34,8 +34,10 @@ public class NetBufferFactory {
      * Store the buffer wrapper cache maps.
      *
      * This map is indexed by {@link #impl} class name.
-     * <BR><B>Note:</B>&nbsp;This attribute should only be assigned once in the constructor.
-     * <BR><B>Note 2:</B>&nbsp;Access to this map should be synchronized on the map object.
+     * <BR><B>Note:</B>&nbsp;This attribute should only be assigned once in
+     * 		the constructor.
+     * <BR><B>Note 2:</B>&nbsp;Access to this map should be synchronized on
+     * 		the map object.
      */
     static private final HashMap sharedFreeWrapperMap = new HashMap();
 
@@ -43,8 +45,10 @@ public class NetBufferFactory {
      * Local reference to the current buffer cache map.
      *
      * This map is indexed by the <code>Integer(mtu)</code>.
-     * <BR><B>Note:</B>&nbsp;This attribute should only be assigned once in the constructor.
-     * <BR><B>Note 2:</B>&nbsp;Access to this map should be synchronized on the map object.
+     * <BR><B>Note:</B>&nbsp;This attribute should only be assigned once in
+     * 		the constructor.
+     * <BR><B>Note 2:</B>&nbsp;Access to this map should be synchronized on
+     * 		the map object.
      */
     private HashMap freeMap = null;
 
@@ -71,14 +75,16 @@ public class NetBufferFactory {
     private BufferList freeWrapperList = null;
 
     /**
-     * Store the actual factory {@linkplain ibis.impl.net.NetBufferFactoryImpl implementation}.
+     * Store the actual factory {@linkplain ibis.impl.net.NetBufferFactoryImpl
+     * implementation}.
      */
     private NetBufferFactoryImpl impl = null;
 
     /**
      * Store the current memory block allocator.
      *
-     * <BR><B>Note:</B>&nbsp;This allocator should be changed when the {@link #mtu} is changed.
+     * <BR><B>Note:</B>&nbsp;This allocator should be changed when the {@link
+     * #mtu} is changed.
      */
     private NetAllocator allocator = null;
 
@@ -103,7 +109,8 @@ public class NetBufferFactory {
         /**
          * Store the number of buffers currently in the list.
          *
-         * <BR><B>Invariant:</B>&nbsp; <code>nb <= {@link #bufferCacheSize}</code>
+         * <BR><B>Invariant:</B>&nbsp;
+         * 	<code>nb <= {@link #bufferCacheSize}</code>
          */
         int nb = 0;
     }

@@ -27,7 +27,7 @@ public abstract class NetIO {
     /**
      * Optional (general purpose) logging object.
      *
-     * This logging object should only be used temporarily for debugging purpose.
+     * Use only temporarily for debugging purpose.
      */
     protected NetLog disp = null;
 
@@ -57,7 +57,8 @@ public abstract class NetIO {
     protected NetDriver driver = null;
 
     /**
-     * the 'type' of the corresponding {@linkplain ibis.impl.net.NetSendPort send port} or {@linkplain ibis.impl.net.NetReceivePort receive port}.
+     * the 'type' of the corresponding {@linkplain ibis.impl.net.NetSendPort
+     * send port} or {@linkplain ibis.impl.net.NetReceivePort receive port}.
      */
     protected NetPortType type = null;
 
@@ -144,7 +145,8 @@ public abstract class NetIO {
     /**
      * Returns the {@link #driver}'s name.
      *
-     * @return a {@linkplain String string} containing the {@link #driver}'s name.
+     * @return a {@linkplain String string} containing the {@link #driver}'s
+     * 		name.
      */
     public final String getDriverName() {
         return driver.getName();
@@ -155,7 +157,8 @@ public abstract class NetIO {
      *
      * A subcontext string is a context string concatenated with a discriminant.
      *
-     * @param contextValue the subcontext discriminant {@linkplain String string}.
+     * @param contextValue the subcontext discriminant {@linkplain String
+     * 		string}.
      * @return a subcontext {@linkplain String string}.
      */
     private String subContext(String contextValue) {
@@ -167,12 +170,14 @@ public abstract class NetIO {
     }
 
     /**
-     * Creates and returns a new {@linkplain ibis.impl.net.NetInput input} object.
+     * Creates and returns a new {@linkplain ibis.impl.net.NetInput input}
+     * object.
      *
-     * @param subDriver the new {@linkplain ibis.impl.net.NetInput input}'s {@linkplain ibis.impl.net.NetDriver driver}.
+     * @param subDriver the new {@linkplain ibis.impl.net.NetInput input}'s
+     * 		{@linkplain ibis.impl.net.NetDriver driver}.
      * @param contextValue the subcontext discriminant.
      * @param inputUpcall the input upcall for upcall receives, or
-     *        <code>null</code> for downcall receives
+     * 		<code>null</code> for downcall receives
      * @return the new {@linkplain ibis.impl.net.NetInput input}.
      */
     public final NetInput newSubInput(NetDriver subDriver, String contextValue,
@@ -181,21 +186,25 @@ public abstract class NetIO {
     }
 
     /**
-     * Creates and returns a new {@linkplain ibis.impl.net.NetOutput output} object.
+     * Creates and returns a new {@linkplain ibis.impl.net.NetOutput output}
+     * object.
      *
-     * @param subDriver the new {@linkplain ibis.impl.net.NetOutput output}'s {@linkplain ibis.impl.net.NetDriver driver}.
+     * @param subDriver the new {@linkplain ibis.impl.net.NetOutput output}'s
+     * 		{@linkplain ibis.impl.net.NetDriver driver}.
      * @param contextValue the subcontext discriminant.
      * @return the new {@linkplain ibis.impl.net.NetOutput output}.
      */
-    public final NetOutput newSubOutput(NetDriver subDriver, String contextValue)
-            throws IOException {
+    public final NetOutput newSubOutput(NetDriver subDriver,
+            String contextValue) throws IOException {
         return subDriver.newOutput(type, subContext(contextValue));
     }
 
     /**
-     * Creates and returns a new {@linkplain ibis.impl.net.NetInput input} object with no subcontext discriminant.
+     * Creates and returns a new {@linkplain ibis.impl.net.NetInput input}
+     * object with no subcontext discriminant.
      *
-     * @param subDriver the new {@linkplain ibis.impl.net.NetInput input}'s {@linkplain ibis.impl.net.NetDriver driver}.
+     * @param subDriver the new {@linkplain ibis.impl.net.NetInput input}'s
+     * 		{@linkplain ibis.impl.net.NetDriver driver}.
      * @param inputUpcall the input upcall for upcall receives, or
      *        <code>null</code> for downcall receives
      * @return the new {@linkplain ibis.impl.net.NetInput input}.
@@ -206,12 +215,15 @@ public abstract class NetIO {
     }
 
     /**
-     * Creates and returns a new {@linkplain ibis.impl.net.NetOutput output} object with no subcontext discriminant.
+     * Creates and returns a new {@linkplain ibis.impl.net.NetOutput output}
+     * object with no subcontext discriminant.
      *
-     * @param subDriver the new {@linkplain ibis.impl.net.NetOutput output}'s {@linkplain ibis.impl.net.NetDriver driver}.
+     * @param subDriver the new {@linkplain ibis.impl.net.NetOutput output}'s
+     * 		{@linkplain ibis.impl.net.NetDriver driver}.
      * @return the new {@linkplain ibis.impl.net.NetOutput output}.
      */
-    public final NetOutput newSubOutput(NetDriver subDriver) throws IOException {
+    public final NetOutput newSubOutput(NetDriver subDriver)
+            throws IOException {
         return newSubOutput(subDriver, null);
     }
 
@@ -222,7 +234,8 @@ public abstract class NetIO {
      *
      * @param contextValue the property context {@linkplain String string}.
      * @param name the property name {@linkplain String string}.
-     * @return the property {@linkplain String string} value or <code>null</code> if not found.
+     * @return the property {@linkplain String string} value or
+     * 		<code>null</code> if not found.
      */
     public final String getProperty(String contextValue, String name) {
         return type.getStringProperty(subContext(contextValue), name);
@@ -231,7 +244,8 @@ public abstract class NetIO {
     /**
      * Returns a default property {@linkplain String string}.
      * @param name the property name {@linkplain String string}.
-     * @return the property {@linkplain String string} value or <code>null</code> if not found.
+     * @return the property {@linkplain String string} value or
+     * 		<code>null</code> if not found.
      */
     public final String getProperty(String name) {
         return getProperty(null, name);
@@ -240,7 +254,7 @@ public abstract class NetIO {
     /**
      * Returns a context sensitive property {@linkplain String string}.
      * Note: if the property is not found for that context, a default value
-     is searched for, recursively removing subcontexts discriminants.
+     * is searched for, recursively removing subcontexts discriminants.
      *
      * @param contextValue the property context {@linkplain String string}.
      * @param name the property name {@linkplain String string}.
@@ -275,7 +289,8 @@ public abstract class NetIO {
     }
 
     /**
-     * Install a custom {@link ibis.impl.net.NetBufferFactory} for atomic packet allocation.
+     * Install a custom {@link ibis.impl.net.NetBufferFactory} for atomic
+     * packet allocation.
      *
      * @param factory the {@link ibis.impl.net.NetBuffer} factory
      */
@@ -305,9 +320,11 @@ public abstract class NetIO {
     /**
      * Create a {@link ibis.impl.net.NetBuffer} using the installed factory.
      *
-     * This is only valid for a {@link ibis.impl.net.NetBufferFactory Factory} with MTU.
+     * This is only valid for a {@link ibis.impl.net.NetBufferFactory Factory}
+     * with MTU.
      *
-     * @throws java.lang.IllegalArgumentException if no factory is installed or the factory has no default MTU.
+     * @throws java.lang.IllegalArgumentException if no factory is installed or
+     * 		the factory has no default MTU.
      * @return the new {@link ibis.impl.net.NetBuffer buffer}.
      */
     public NetBuffer createBuffer() {
@@ -322,7 +339,8 @@ public abstract class NetIO {
      *
      * @param length the length of the data to be stored in the buffer.
      *        The buffer is a new byte array.
-     * @throws java.lang.IllegalArgumentException if the factory has no default MTU.
+     * @throws java.lang.IllegalArgumentException if the factory has no
+     * 		default MTU.
      * @return the new {@link ibis.impl.net.NetBuffer buffer}.
      */
     public NetBuffer createBuffer(int length) {
@@ -360,7 +378,8 @@ public abstract class NetIO {
     }
 
     /**
-     * Return the atomic packet header length for this {@link ibis.impl.net.NetIO}.
+     * Return the atomic packet header length for this {@link
+     * ibis.impl.net.NetIO}.
      *
      * @return the header length.
      */
@@ -388,7 +407,8 @@ public abstract class NetIO {
     /**
      * Unconditionaly closes the I/O.
      *
-     * Note: this method should not block and can be called at any time and several time for the same connection.
+     * Note: this method should not block and can be called at any time and
+     * several time for the same connection.
      * @param num the connection identifier
      * @exception IOException if this operation fails (that should not happen).
      */
@@ -408,7 +428,8 @@ public abstract class NetIO {
     /**
      * Finalizes this IO object.
      *
-     * Note: methods redefining this one should also call the superclass version at the end.
+     * Note: methods redefining this one should also call the superclass
+     * version at the end.
      * @exception Throwable in case of problem.
      */
     protected void finalize() throws Throwable {

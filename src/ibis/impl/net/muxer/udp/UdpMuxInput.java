@@ -85,8 +85,8 @@ public final class UdpMuxInput extends MuxerInput {
         Integer num = cnx.getNum();
 
         // ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + num));
-        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                .getInputSubStream(io, ":down"));
+        ObjectInputStream is = new ObjectInputStream(
+                cnx.getServiceLink().getInputSubStream(io, ":down"));
 
         try {
             /* We don't use the IP address of the sender port. Maybe it comes
@@ -106,8 +106,8 @@ public final class UdpMuxInput extends MuxerInput {
         }
 
         // ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + num));
-        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(io, ":up"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                cnx.getServiceLink().getOutputSubStream(io, ":up"));
 
         MuxerQueue q = createQueue(cnx, num);
         os.writeObject(laddr);
@@ -142,7 +142,8 @@ public final class UdpMuxInput extends MuxerInput {
         }
     }
 
-    private void setReceiveTimeout(int timeout) throws java.net.SocketException {
+    private void setReceiveTimeout(int timeout)
+            throws java.net.SocketException {
         if (timeout == socketTimeout) {
             return;
         }
@@ -202,10 +203,9 @@ public final class UdpMuxInput extends MuxerInput {
                 }
             } catch (InterruptedIOException e) {
                 if (Driver.DEBUG_HUGE) {
-                    System.err
-                            .println(this
-                                    + ": ***************** catch InterruptedIOException "
-                                    + e);
+                    System.err.println(this
+                            + ": *****************"
+                            + " catch InterruptedIOException " + e);
                     Thread.dumpStack();
                 }
                 buffer.free();

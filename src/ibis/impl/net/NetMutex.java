@@ -10,8 +10,8 @@ public final class NetMutex {
     /**
      * Activate the debugging code.
      */
-    private static final boolean DEBUG = TypedProperties
-            .booleanProperty(NetIbis.mutex_debug);
+    private static final boolean DEBUG
+        = TypedProperties.booleanProperty(NetIbis.mutex_debug);
 
     /**
      * Store the current mutex owner when DEBUG is set to

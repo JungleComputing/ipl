@@ -127,7 +127,8 @@ public final class Driver extends NetDriver implements RelConstants {
      * @param input the {@link RelInput} that owns the connection
      * @param id the {@link IbisIdentifier} of the remote {@link RelOutput}
      */
-    synchronized void registerInputConnection(RelInput input, IbisIdentifier id) {
+    synchronized void registerInputConnection(RelInput input,
+            IbisIdentifier id) {
         if (DEBUG) {
             System.err.println("Register InputConnection id " + id
                     + " for RelInput " + input);

@@ -103,8 +103,8 @@ public final class MultiSplitter extends NetSplitter {
         ObjectInputStream is = new ObjectInputStream(link.getInputSubStream(
                 this, "multi"));
 
-        NetIbisIdentifier localId = (NetIbisIdentifier) driver.getIbis()
-                .identifier();
+        Object ibisId = driver.getIbis().identifier();
+        NetIbisIdentifier localId = (NetIbisIdentifier) ibisId;
         os.writeObject(localId);
         os.flush();
 
@@ -205,34 +205,34 @@ public final class MultiSplitter extends NetSplitter {
     }
 
     /*
-     public synchronized void close(Integer num) throws IOException {
-     log.in();
-     if (laneTable != null) {
-     Lane lane = (Lane)laneTable.get(num);
+    public synchronized void close(Integer num) throws IOException {
+        log.in();
+        if (laneTable != null) {
+            Lane lane = (Lane)laneTable.get(num);
 
-     if (lane != null) {
-     if (lane.output != null) {
-     lane.output.close(num);
-     }
-     }
+            if (lane != null) {
+                if (lane.output != null) {
+                    lane.output.close(num);
+                }
+            }
 
-     laneTable.remove(num);
-     }
-     log.out();
-     }
-     */
+            laneTable.remove(num);
+        }
+        log.out();
+    }
+    */
 
     /*
-     public void free() throws IOException {
-     log.in();
-     if (laneTable != null) {
-     Iterator i = laneTable.values().iterator();
-     while (i.hasNext()) {
-     i.next();
-     i.remove();
-     }
-     }
-     log.out();
-     }
-     */
+    public void free() throws IOException {
+        log.in();
+        if (laneTable != null) {
+            Iterator i = laneTable.values().iterator();
+            while (i.hasNext()) {
+                i.next();
+                i.remove();
+            }
+        }
+        log.out();
+    }
+    */
 }

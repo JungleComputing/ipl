@@ -13,8 +13,8 @@ public class NetBufferFactoryDefaultImpl implements
      * @param data a byte array that becomes the data buffer of the created
      * 		{@link ibis.impl.net.NetBuffer}
      * @param length the length of the data to be stored in the buffer
-     * @param allocator the {@link ibis.impl.net.NetAllocator} used to manage the
-     * 		data array
+     * @param allocator the {@link ibis.impl.net.NetAllocator} used to manage
+     * 		the data array
      * @return the buffer
      */
     public NetBuffer createBuffer(byte[] data, int length,

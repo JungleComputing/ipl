@@ -25,19 +25,22 @@ public abstract class NetSerializedInput extends NetInput {
     protected NetInput subInput = null;
 
     /**
-     * The currently active {@linkplain SerializationInputStream serialization input stream}, or <code>null</code>.
+     * The currently active {@linkplain SerializationInputStream serialization
+     * input stream}, or <code>null</code>.
      */
     protected SerializationInputStream iss = null;
 
     /**
-     * The table containing each {@linkplain SerializationInputStream serialization input stream}.
+     * The table containing each {@linkplain SerializationInputStream
+     * serialization input stream}.
      *
      * The table is indexed by connection numbers.
      */
     private Hashtable streamTable = null;
 
     /**
-     * The most recently activated upcall thread if it is still alive, or <code>null</code>.
+     * The most recently activated upcall thread if it is still alive, or
+     * <code>null</code>.
      */
     protected Thread activeUpcallThread = null;
 
@@ -108,8 +111,9 @@ public abstract class NetSerializedInput extends NetInput {
 
     public void initReceive(Integer num) throws IOException {
         log.in();
-        if (activeNum != null)
+        if (activeNum != null) {
             throw new Error("Revise your calls to initReceive");
+        }
         activeNum = num;
         mtu = subInput.getMaximumTransfertUnit();
         headerOffset = subInput.getHeadersLength();

@@ -161,14 +161,14 @@ public final class UdpInput extends NetBufferedInput {
         lInfo.put("udp_mtu", new Integer(lmtu));
         Hashtable rInfo = null;
 
-        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(this, "udp-request"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                cnx.getServiceLink().getOutputSubStream(this, "udp-request"));
         os.writeObject(lInfo);
         os.flush();
         // System.err.println(this + ": setupConnection, now receive");
 
-        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                .getInputSubStream(this, "udp-reply"));
+        ObjectInputStream is = new ObjectInputStream(
+                cnx.getServiceLink().getInputSubStream(this, "udp-reply"));
         try {
             rInfo = (Hashtable) is.readObject();
         } catch (ClassNotFoundException e) {
@@ -220,9 +220,9 @@ public final class UdpInput extends NetBufferedInput {
         if (Driver.DEBUG) {
             long seqno = Conversion.defaultConversion.byte2long(buffer.data, 0);
             if (seqno < rcve_seqno) {
-                System.err
-                        .println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Receive: packet overtakes: "
-                                + seqno + " expect " + rcve_seqno);
+                System.err.println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Receive:"
+                        + " packet overtakes: " + seqno
+                        + " expect " + rcve_seqno);
             } else {
                 rcve_seqno = seqno;
             }
@@ -235,9 +235,9 @@ public final class UdpInput extends NetBufferedInput {
         if (Driver.DEBUG) {
             long seqno = Conversion.defaultConversion.byte2long(buffer.data, 0);
             if (seqno < deliver_seqno) {
-                System.err
-                        .println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Deliver: packet overtakes: "
-                                + seqno + " expect " + deliver_seqno);
+                System.err.println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Deliver:"
+                        + " packet overtakes: " + seqno
+                        + " expect " + deliver_seqno);
             } else {
                 deliver_seqno = seqno;
             }
@@ -249,8 +249,9 @@ public final class UdpInput extends NetBufferedInput {
      * {@inheritDoc}
      *
      * <BR><B>Note</B>: This UDP polling implementation uses a timed out
-     * {@link DatagramSocket#receive(DatagramPacket)}. As the minimum timeout value is one
-     * millisecond, an unsuccessful polling operation is rather expensive.
+     * {@link DatagramSocket#receive(DatagramPacket)}. As the minimum
+     * timeout value is one millisecond, an unsuccessful polling operation
+     * is rather expensive.
      */
     public Integer doPoll(boolean block) throws IOException {
         log.in();
@@ -326,9 +327,10 @@ public final class UdpInput extends NetBufferedInput {
     /**
      * {@inheritDoc}
      *
-     * <BR><B>Note</B>: this function may block if the expected data is not there.
-     * <BR><B>Note</B>: The expectedLength argument is simply ignored because the
-     * packet actually received might not be the one that is expected.
+     * <BR><B>Note</B>: this function may block if the expected data is not
+     * there.
+     * <BR><B>Note</B>: The expectedLength argument is simply ignored because
+     * the packet actually received might not be the one that is expected.
      */
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
             throws IOException {

@@ -33,8 +33,8 @@ public final class Demuxer extends NetBufferedInput {
     private static MuxerInput demux;
 
     static {
-        System.err
-                .println("WARNING: Class net.muxer.Demuxer (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class net.muxer.Demuxer (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     /**
@@ -47,8 +47,8 @@ public final class Demuxer extends NetBufferedInput {
         synchronized (driver) {
             if (subDriver == null) {
                 // String subDriverName = getMandatoryProperty("Driver");
-                System.err
-                        .println("It should depend on Driver properties which muxer subinput is created");
+                System.err.println("It should depend on Driver properties"
+                        + " which muxer subinput is created");
                 String subDriverName = "muxer.udp";
                 subDriver = driver.getIbis().getDriver(subDriverName);
                 System.err.println("The subDriver is " + subDriver);
@@ -136,8 +136,8 @@ public final class Demuxer extends NetBufferedInput {
 
         /* The demuxer has reset its buffers to a sufficient size. Let the
          * other side start sending if it feels like it. */
-        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(this, "muxer"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                cnx.getServiceLink().getOutputSubStream(this, "muxer"));
         os.writeInt(1);
         os.close();
 
@@ -172,9 +172,8 @@ public final class Demuxer extends NetBufferedInput {
      */
     public Integer doPoll(boolean block) throws IOException {
         if (myQueue == null) {
-            System.err
-                    .println(this
-                            + ": This CANNOT be true ... setupConnection does a handshake, right?");
+            System.err.println(this + ": This CANNOT be true ..."
+                    + " setupConnection does a handshake, right?");
             // Still connecting, presumably
             return null;
         }
@@ -185,9 +184,11 @@ public final class Demuxer extends NetBufferedInput {
     /**
      * {@inheritDoc}
      *
-     * <BR><B>Note</B>: this function may block if the expected data is not there.
-     * <BR><B>Note</B>: The expectedLength argument is simply ignored because the
-     * packet actually received might not be the one that is expected.
+     * <BR><B>Note</B>: this function may block if the expected data is
+     * not there.
+     * <BR><B>Note</B>: The expectedLength argument is simply ignored
+     * because the packet actually received might not be the one that
+     * is expected.
      */
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
             throws IOException {

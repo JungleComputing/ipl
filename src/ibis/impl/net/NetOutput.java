@@ -134,7 +134,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
      *
      * This is only valid for a Factory with MTU.
      *
-     * @throws an {@link IllegalArgumentException} if the factory has no default MTU
+     * @throws an {@link IllegalArgumentException} if the factory has no
+     * 		default MTU
      * @return the new {@link ibis.impl.net.NetSendBuffer}.
      */
     public NetSendBuffer createSendBuffer() {

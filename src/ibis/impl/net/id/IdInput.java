@@ -85,8 +85,8 @@ public final class IdInput extends NetInput {
     /**
      * {@inheritDoc}
      *
-     * <BR><B>Note</B>: This ID polling implementation uses the
-     * {@link java.io.InputStream#available()} function to test whether at least one
+     * <BR><B>Note</B>: This ID polling implementation uses the {@link
+     * java.io.InputStream#available()} function to test whether at least one
      * data byte may be extracted without blocking.
      */
     public Integer doPoll(boolean block) throws IOException {

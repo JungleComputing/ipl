@@ -77,7 +77,8 @@ public final class UdpMuxOutput extends MuxerOutput {
      *
      * <BR><B>Note</B>: this function also negociate the mtu.
      */
-    public void setupConnection(NetConnection cnx, NetIO io) throws IOException {
+    public void setupConnection(NetConnection cnx, NetIO io)
+            throws IOException {
 
         if (Driver.DEBUG) {
             System.err.println(this
@@ -90,8 +91,8 @@ public final class UdpMuxOutput extends MuxerOutput {
         rpn = cnx.getNum();
 
         // ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + rpn));
-        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(io, ":down"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                cnx.getServiceLink().getOutputSubStream(io, ":down"));
         os.writeObject(laddr);
         os.writeInt(lport);
         os.writeInt(lmtu);
@@ -104,8 +105,8 @@ public final class UdpMuxOutput extends MuxerOutput {
         }
 
         // ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + rpn));
-        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                .getInputSubStream(io, ":up"));
+        ObjectInputStream is = new ObjectInputStream(
+                cnx.getServiceLink().getInputSubStream(io, ":up"));
         InetAddress raddr;
         try {
             raddr = (InetAddress) is.readObject();
@@ -135,7 +136,8 @@ public final class UdpMuxOutput extends MuxerOutput {
         }
     }
 
-    synchronized public void sendByteBuffer(NetSendBuffer b) throws IOException {
+    synchronized public void sendByteBuffer(NetSendBuffer b)
+            throws IOException {
 
         UdpMuxerKey uk = (UdpMuxerKey) b.connectionId;
 

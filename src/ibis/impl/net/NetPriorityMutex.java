@@ -65,8 +65,8 @@ public final class NetPriorityMutex {
                     break;
                 }
                 if (i == waiters && waiters < waitingThreads.length) {
-                    System.err
-                            .println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% inconsistent endWait()");
+                    System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+                            + " inconsistent endWait()");
                     throw new Error("inconsistent endWait()");
                 }
             }
@@ -131,11 +131,11 @@ public final class NetPriorityMutex {
      * If the mutex is already locked, the method will block.
      *
      * @param priority indicates whether the call is a
-     * 'high-priority' request (<code>true</code>) or a
-     * 'low-priority' request (<code>false</code>).
+     * 		'high-priority' request (<code>true</code>) or a
+     * 		'low-priority' request (<code>false</code>).
      * @exception InterruptedIOException if the calling thread is
-     * interrupted while the method is blocked waiting for the
-     * mutex.
+     * 		interrupted while the method is blocked waiting for the
+     * 		mutex.
      */
     public synchronized void lock(boolean priority)
             throws InterruptedIOException {
@@ -172,11 +172,11 @@ public final class NetPriorityMutex {
      * This method version is {@linkplain Thread#interrupt interruptible}.
      *
      * @param priority indicates whether the call is a
-     * 'high-priority' request (<code>true</code>) or a
-     * 'low-priority' request (<code>false</code>).
+     * 		'high-priority' request (<code>true</code>) or a
+     * 		'low-priority' request (<code>false</code>).
      * @exception InterruptedIOException if the calling thread is
-     * interrupted while the method is blocked waiting for the
-     * mutex.
+     * 		interrupted while the method is blocked waiting for the
+     * 		mutex.
      */
     public synchronized void ilock(boolean priority)
             throws InterruptedException {
@@ -209,11 +209,11 @@ public final class NetPriorityMutex {
      * If the mutex is already locked, the method return <code>false</code>.
      *
      * @param priority indicates whether the call is a
-     * 'high-priority' request (<code>true</code>) or a
-     * 'low-priority' request (<code>false</code>).
+     * 		'high-priority' request (<code>true</code>) or a
+     * 		'low-priority' request (<code>false</code>).
      *
      * @return a boolean value indicating whether the lock has
-     * been successfully acquired or not.
+     * 		been successfully acquired or not.
      */
     public synchronized boolean trylock(boolean priority) {
         if (DEBUG && lockvalue <= 0 && owner == Thread.currentThread()) {

@@ -28,7 +28,8 @@ public final class NetPropertyTree {
     }
 
     /*
-     * Provide a replacement implementation of {@link String#split} for JDKs < 1.4.
+     * Provide a replacement implementation of {@link String#split} for
+     * JDKs < 1.4.
      */
     private String[] split(String s, String chars, int n) {
 
@@ -168,8 +169,8 @@ public final class NetPropertyTree {
                 levelMap.put(level, contextMap);
             }
 
-            NetPropertyTree propertyTree = (NetPropertyTree) contextMap
-                    .get(context);
+            NetPropertyTree propertyTree
+                = (NetPropertyTree) contextMap.get(context);
             if (propertyTree == null) {
                 propertyTree = new NetPropertyTree();
                 contextMap.put(context, propertyTree);
@@ -190,7 +191,7 @@ public final class NetPropertyTree {
      *
      * @param name the property name.
      * @return the direct or inherited property value, or
-     * <code>null</code> if the property was not found.
+     * 		<code>null</code> if the property was not found.
      */
     public Object get(String name) {
         //System.err.println("get: "+name);
@@ -210,95 +211,94 @@ public final class NetPropertyTree {
             }
         }
 
-        if (levels != null) {
-            //
-            String level = null;
-            String subLevels = null;
-
-            {
-                String[] a = levels.split("/", 2);
-
-                if (a.length == 1) {
-                    level = a[0];
-                } else if (a.length == 2) {
-                    level = a[0];
-                    subLevels = a[1];
-                } else {
-                    throw new Error("invalid state");
-                }
-            }
-
-            Object result = null;
-
-            do {
-                String context = null;
-                {
-                    String[] a = level.split("#");
-                    if (a.length == 1) {
-                        level = a[0];
-                    } else if (a.length == 2) {
-                        level = a[0];
-                        context = a[1];
-                    } else {
-                        throw new Error("invalid property name");
-                    }
-                }
-
-                //System.err.println("get: context = "+context+", level = "+level+", subLevels = "+subLevels);
-                HashMap contextMap = (HashMap) levelMap.get(level);
-                if (contextMap == null) {
-                    //System.err.println("get: no contextMap");
-                    break;
-                }
-
-                NetPropertyTree propertyTree = null;
-
-                if (context != null) {
-                    //System.err.println("get: context = "+context);
-                    propertyTree = (NetPropertyTree) contextMap.get(context);
-                    if (propertyTree != null) {
-                        result = propertyTree.get(subLevels + ":" + property);
-
-                        if (result != null) {
-                            //System.err.println("get: context = "+context+", found = "+result);
-                            return result;
-                        } else {
-                            propertyTree = null;
-                        }
-                    }
-
-                    context = null;
-                }
-
-                //System.err.println("get: context = null");
-
-                propertyTree = (NetPropertyTree) contextMap.get(null);
-
-                if (propertyTree == null) {
-                    break;
-                }
-
-                if (subLevels != null) {
-                    result = propertyTree.get(subLevels + ":" + property);
-                } else {
-                    result = propertyTree.get(property);
-                }
-            } while (false);
-
-            if (result == null) {
-                if (subLevels != null) {
-                    result = get(subLevels + ":" + property);
-                } else {
-                    result = get(property);
-                }
-            }
-
-            return result;
-        } else {
+        if (levels == null) {
             Object result = valueMap.get(property);
             //System.err.println("result = " + result);
             return result;
         }
+
+        String level = null;
+        String subLevels = null;
+
+        {
+            String[] a = levels.split("/", 2);
+
+            if (a.length == 1) {
+                level = a[0];
+            } else if (a.length == 2) {
+                level = a[0];
+                subLevels = a[1];
+            } else {
+                throw new Error("invalid state");
+            }
+        }
+
+        Object result = null;
+
+        do {
+            String context = null;
+            {
+                String[] a = level.split("#");
+                if (a.length == 1) {
+                    level = a[0];
+                } else if (a.length == 2) {
+                    level = a[0];
+                    context = a[1];
+                } else {
+                    throw new Error("invalid property name");
+                }
+            }
+
+            //System.err.println("get: context = "+context+", level = "+level+", subLevels = "+subLevels);
+            HashMap contextMap = (HashMap) levelMap.get(level);
+            if (contextMap == null) {
+                //System.err.println("get: no contextMap");
+                break;
+            }
+
+            NetPropertyTree propertyTree = null;
+
+            if (context != null) {
+                //System.err.println("get: context = "+context);
+                propertyTree = (NetPropertyTree) contextMap.get(context);
+                if (propertyTree != null) {
+                    result = propertyTree.get(subLevels + ":" + property);
+
+                    if (result != null) {
+                        //System.err.println("get: context = "+context+", found = "+result);
+                        return result;
+                    } else {
+                        propertyTree = null;
+                    }
+                }
+
+                context = null;
+            }
+
+            //System.err.println("get: context = null");
+
+            propertyTree = (NetPropertyTree) contextMap.get(null);
+
+            if (propertyTree == null) {
+                break;
+            }
+
+            if (subLevels != null) {
+                result = propertyTree.get(subLevels + ":" + property);
+            } else {
+                result = propertyTree.get(property);
+            }
+        } while (false);
+
+        if (result == null) {
+            if (subLevels != null) {
+                result = get(subLevels + ":" + property);
+            } else {
+                result = get(property);
+            }
+        }
+
+        return result;
     }
 
 }

@@ -200,8 +200,8 @@ public class MultiPoller extends NetPoller {
 
         os.flush();
 
-        NetIbisIdentifier localId = (NetIbisIdentifier) driver.getIbis()
-                .identifier();
+        Object ibisId = driver.getIbis().identifier();
+        NetIbisIdentifier localId = (NetIbisIdentifier) ibisId;
         NetIbisIdentifier remoteId;
         try {
             remoteId = (NetIbisIdentifier) is.readObject();
@@ -307,20 +307,20 @@ public class MultiPoller extends NetPoller {
     }
 
     /*
-     public void free() throws IOException {
-     log.in();trace.in();
-     if (laneTable != null) {
-     Iterator i = laneTable.values().iterator();
-     while (i.hasNext()) {
-     Lane lane = (Lane)i.next();
-     if (lane != null && lane.thread != null) {
-     lane.thread.end();
-     }
-     i.remove();
-     }
-     }
+    public void free() throws IOException {
+        log.in();trace.in();
+        if (laneTable != null) {
+            Iterator i = laneTable.values().iterator();
+            while (i.hasNext()) {
+                Lane lane = (Lane)i.next();
+                if (lane != null && lane.thread != null) {
+                    lane.thread.end();
+                }
+                i.remove();
+            }
+        }
 
-     trace.out();log.out();
-     }
-     */
+        trace.out();log.out();
+    }
+    */
 }

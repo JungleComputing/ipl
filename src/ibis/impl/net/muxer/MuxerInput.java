@@ -42,8 +42,8 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     private int pollTimeout = defaultPollTimeout;
 
     static {
-        System.err
-                .println("WARNING: Class net.muxer.MuxerInput (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class net.muxer.MuxerInput (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     /**
@@ -100,11 +100,13 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
             }
         }
 
-        if (!block)
+        if (!block) {
             System.err.println("Call doPoll(0)");
+        }
         Integer spn = doPoll(block ? 0 : pollTimeout);
-        if (!block)
+        if (!block) {
             System.err.println("Returned from doPoll(0)");
+        }
 
         if (!USE_POLLER_THREAD) {
             synchronized (this) {
@@ -223,7 +225,8 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
         return (MuxerQueue) keyHash.get(n);
     }
 
-    synchronized protected void releaseQueue(MuxerQueue key) throws IOException {
+    synchronized protected void releaseQueue(MuxerQueue key)
+            throws IOException {
         System.err.println(this + ": disconnect; connections was "
                 + liveConnections);
         keyHash.delete(key);
@@ -271,9 +274,8 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
                 receive();
 
             } catch (Exception e) {
-                System.err
-                        .println("************************ Poller thread handles exception "
-                                + e);
+                System.err.println("************************"
+                        + " Poller thread handles exception " + e);
             }
         }
 

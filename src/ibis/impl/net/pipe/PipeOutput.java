@@ -23,8 +23,8 @@ public final class PipeOutput extends NetBufferedOutput {
     private boolean upcallMode = false;
 
     static {
-        System.err
-                .println("WARNING: Class net.pipe.PipeOutput (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class net.pipe.PipeOutput (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     PipeOutput(NetPortType pt, NetDriver driver, String context)
@@ -42,8 +42,8 @@ public final class PipeOutput extends NetBufferedOutput {
 
         this.rpn = cnx.getNum();
 
-        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                .getInputSubStream(this, "pipe"));
+        ObjectInputStream is = new ObjectInputStream(
+                cnx.getServiceLink().getInputSubStream(this, "pipe"));
 
         Hashtable info;
         try {

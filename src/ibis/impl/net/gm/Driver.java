@@ -351,11 +351,13 @@ public final class Driver extends NetDriver {
 
                     do {
                         // System.err.print(">");
-                        if (Driver.TIMINGS)
+                        if (Driver.TIMINGS) {
                             Driver.t_native_poll.start();
+                        }
                         nGmThread();
-                        if (Driver.TIMINGS)
+                        if (Driver.TIMINGS) {
                             Driver.t_native_poll.stop();
+                        }
                         // System.err.print("<");
 
                         if (interrupts != Driver.interrupts) {
@@ -398,11 +400,11 @@ public final class Driver extends NetDriver {
             // System.err.println(Thread.currentThread() + ": blockingPump: return " + result);
         } catch (ibis.util.IllegalLockStateException e) {
             if (DEBUG) {
-                System.err
-                        .println("catch IllegalLockStateException; Driver.interrupts "
-                                + interrupts + " was " + interrupts);
-                System.err
-                        .println("Presume our channel was closed under our hands");
+                System.err.println("catch IllegalLockStateException;"
+                        + " Driver.interrupts " + interrupts
+                        + " was " + interrupts);
+                System.err.println("Presume our channel was closed under"
+                        + " our hands");
             }
             throw new ConnectionClosedException(e);
         }
@@ -453,11 +455,11 @@ public final class Driver extends NetDriver {
             }
         } catch (ibis.util.IllegalLockStateException e) {
             if (DEBUG) {
-                System.err
-                        .println("catch IllegalLockStateException; Driver.interrupts "
-                                + interrupts + " was " + interrupts);
-                System.err
-                        .println("Presume our channel was closed under our hands");
+                System.err.println("catch IllegalLockStateException;"
+                        + " Driver.interrupts " + interrupts
+                        + " was " + interrupts);
+                System.err.println("Presume our channel was closed under"
+                        + " our hands");
             }
             throw new ConnectionClosedException(e);
         }
@@ -492,11 +494,11 @@ public final class Driver extends NetDriver {
             }
         } catch (ibis.util.IllegalLockStateException e) {
             if (DEBUG) {
-                System.err
-                        .println("catch IllegalLockStateException; Driver.interrupts "
-                                + interrupts + " was " + interrupts);
-                System.err
-                        .println("Presume our channel was closed under our hands");
+                System.err.println("catch IllegalLockStateException;"
+                        + " Driver.interrupts " + interrupts
+                        + " was " + interrupts);
+                System.err.println("Presume our channel was closed"
+                        + " under our hands");
             }
             throw new ConnectionClosedException(e);
         }

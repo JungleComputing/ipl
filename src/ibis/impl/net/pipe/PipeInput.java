@@ -29,8 +29,8 @@ public final class PipeInput extends NetBufferedInput {
     private boolean upcallMode = false;
 
     static {
-        System.err
-                .println("WARNING: Class net.pipe.PipeInput (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class net.pipe.PipeInput (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     PipeInput(NetPortType pt, NetDriver driver, String context,
@@ -65,8 +65,8 @@ public final class PipeInput extends NetBufferedInput {
         info.put("pipe_istream_key", key);
         info.put("pipe_upcall_mode", Boolean.valueOf(upcallMode));
 
-        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(this, "pipe"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                cnx.getServiceLink().getOutputSubStream(this, "pipe"));
         os.writeObject(info);
         os.flush();
         InputStream is = cnx.getServiceLink().getInputSubStream(this, "pipe");

@@ -22,9 +22,8 @@ import java.io.StreamCorruptedException;
 /**
  * The REL output implementation.
  */
-public final class RelOutput extends NetBufferedOutput
-// extends NetOutput
-        implements RelConstants, RelSweep {
+public final class RelOutput extends NetBufferedOutput implements RelConstants,
+        RelSweep {
 
     /**
      * The driver used for the 'real' output.
@@ -108,8 +107,8 @@ public final class RelOutput extends NetBufferedOutput
     private int sendWaiters; /* count threads that block for credits */
 
     static {
-        System.err
-                .println("WARNING: Class net.rel.RelOutput (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class net.rel.RelOutput (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     static {
@@ -197,8 +196,8 @@ public final class RelOutput extends NetBufferedOutput
             dataOutput = newSubOutput(subDriver, "data");
             this.dataOutput = dataOutput;
         } else {
-            System.err
-                    .println("No support yet for one-to-many connections in RelOutput.java");
+            System.err.println("No support yet for one-to-many connections"
+                    + " in RelOutput.java");
         }
 
         dataOutput.setupConnection(cnx);
@@ -270,10 +269,9 @@ public final class RelOutput extends NetBufferedOutput
             controlInput.setBufferFactory(controlFactory);
             if (DEBUG) {
                 controlInput.dumpBufferFactoryInfo();
-                System.err
-                        .println(this
-                                + ": ########################## controlInput.factory = "
-                                + controlInput.factory);
+                System.err.println(this
+                        + ": ########################## controlInput.factory = "
+                        + controlInput.factory);
             }
         } else {
             controlFactory.setMaximumTransferUnit(mtu);
@@ -421,9 +419,8 @@ public final class RelOutput extends NetBufferedOutput
             Integer r = controlInput.poll(false /* block */);
             if (r == null) {
                 if (DEBUG_ACK) {
-                    System.err
-                            .println("Poll control channel fails, messageArrived "
-                                    + messageArrived);
+                    System.err.println("Poll control channel fails,"
+                            + " messageArrived " + messageArrived);
                 }
                 break;
             }
@@ -634,7 +631,9 @@ public final class RelOutput extends NetBufferedOutput
         }
 
         /* First all fragments up to ackOffset. */
-        for (scan = front; scan != null && scan.fragCount < ackOffset; scan = front) {
+        for (scan = front;
+                scan != null && scan.fragCount < ackOffset;
+                scan = front) {
             front = scan.next;
             windowStart++;
             if (DEBUG_ACK) {
@@ -660,10 +659,13 @@ public final class RelOutput extends NetBufferedOutput
 
         long now = System.currentTimeMillis();
 
-        for (RelSendBuffer scan = front; scan != null && scan.sent && /* Don't send unsent packets, that
-         * corrupts nextToSend */
-        scan.fragCount - windowStart < windowSize
-                && now - scan.lastSent > safetyInterval; scan = scan.next) {
+        for (RelSendBuffer scan = front;
+                scan != null
+                    /* Don't send unsent packets, that corrupts nextToSend */
+                    && scan.sent
+                    && scan.fragCount - windowStart < windowSize
+                    && now - scan.lastSent > safetyInterval;
+                scan = scan.next) {
             n++;
         }
 
@@ -701,10 +703,13 @@ public final class RelOutput extends NetBufferedOutput
             System.err.println("Rexmit: window start " + windowStart
                     + " nextAllocate " + nextAllocate);
         }
-        for (RelSendBuffer scan = front; scan != null && scan.sent && /* Don't send unsent packets, that
-         * corrupts nextToSend */
-        scan.fragCount - windowStart < windowSize
-                && now - scan.lastSent > safetyInterval; scan = scan.next) {
+        for (RelSendBuffer scan = front;
+                scan != null
+                    /* Don't send unsent packets, that corrupts nextToSend */
+                    && scan.sent
+                    && scan.fragCount - windowStart < windowSize
+                    && now - scan.lastSent > safetyInterval;
+                scan = scan.next) {
             if (DEBUG_REXMIT) {
                 System.err.println("Rexmit packet " + scan.fragCount
                         + "; now - lastSent " + (now - scan.lastSent));
@@ -747,8 +752,8 @@ public final class RelOutput extends NetBufferedOutput
 
     public void sendByteBuffer(NetSendBuffer b) throws IOException {
         if (DEBUG_HUGE) {
-            System.err
-                    .println(this + ": Try to send a buffer size " + b.length);
+            System.err.println(this + ": Try to send a buffer size "
+                    + b.length);
             Thread.dumpStack();
         }
 
@@ -760,19 +765,19 @@ public final class RelOutput extends NetBufferedOutput
 
         if (DEBUG) {
             if (rb.sent) {
-                System.err
-                        .println(this
-                                + ": HAVOC ##################### unsent packet has -sent- bit already set!");
+                System.err.println(this
+                        + ": HAVOC #####################"
+                        + " unsent packet has -sent- bit already set!");
             }
             if (rb.acked) {
-                System.err
-                        .println(this
-                                + ": HAVOC ##################### unsent packet has -acked- bit already set!");
+                System.err.println(this
+                        + ": HAVOC #####################"
+                        + " unsent packet has -acked- bit already set!");
             }
             if (rb.lastSent != -1) {
-                System.err
-                        .println(this
-                                + ": HAVOC ##################### unsent packet has lastSent field already set!");
+                System.err.println(this
+                        + ": HAVOC #####################"
+                        + " unsent packet has lastSent field already set!");
             }
         }
 

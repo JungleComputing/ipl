@@ -153,10 +153,10 @@ public final class GmPoller extends NetPoller {
     }
 
     /*
-     protected void switchToDowncallMode() throws IOException {
-     installUpcallFunc(null);
-     }
-     */
+    protected void switchToDowncallMode() throws IOException {
+        installUpcallFunc(null);
+    }
+    */
 
     public void switchToUpcallMode(NetInputUpcall inputUpcall)
             throws IOException {
@@ -210,12 +210,11 @@ public final class GmPoller extends NetPoller {
                         // try once more
                         interrupted = true;
                         if (Driver.VERBOSE_INTPT) {
-                            System.err
-                                    .print(NetIbis.hostName()
-                                            + " "
-                                            // + Thread.currentThread()
-                                            // + ": " + this
-                                            + ": ********** Catch InterruptedIOException");
+                            System.err.print(NetIbis.hostName() + " "
+                                    // + Thread.currentThread()
+                                    // + ": " + this
+                                    + ": **********"
+                                    + " Catch InterruptedIOException");
                             System.err.print("; lockIds " + lockIds + " = {");
                             for (int i = 0; i < lockIds.length; i++) {
                                 System.err.print(lockIds[i] + ",");

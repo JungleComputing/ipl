@@ -200,8 +200,13 @@ public abstract class NetBufferedOutput extends NetOutput implements
                         + Integer.toHexString(userBuffer[i] & 0xFF) + " ");
             }
             System.err.println(")");
-            // System.err.println("dataOffset " + dataOffset + " arrayThreshold " + arrayThreshold + " mtu " + mtu + " buffer " + buffer + " buffer.length " + (buffer != null ? buffer.length : -1));
-            // Thread.dumpStack();
+            if (false) {
+                System.err.println("dataOffset " + dataOffset
+                        + " arrayThreshold " + arrayThreshold + " mtu " + mtu
+                        + " buffer " + buffer + " buffer.length "
+                        + (buffer != null ? buffer.length : -1));
+                Thread.dumpStack();
+            }
         }
 
         if (length == 0) {

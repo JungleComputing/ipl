@@ -106,8 +106,8 @@ public final class NioOutput extends NetOutput {
         this.rpn = cnx.getNum();
 
         try {
-            ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                    .getInputSubStream(this, "nio"));
+            ObjectInputStream is = new ObjectInputStream(
+                    cnx.getServiceLink().getInputSubStream(this, "nio"));
 
             Hashtable rInfo = (Hashtable) is.readObject();
             is.close();
@@ -122,8 +122,8 @@ public final class NioOutput extends NetOutput {
             /* figure out what byteOrder we need
              for the output buffers */
 
-            if (((String) rInfo.get("byte_order"))
-                    .compareTo(ByteOrder.LITTLE_ENDIAN.toString()) == 0) {
+            String order = (String) rInfo.get("byte_order");
+            if (order.compareTo(ByteOrder.LITTLE_ENDIAN.toString()) == 0) {
                 peerOrder = ByteOrder.LITTLE_ENDIAN;
             } else {
                 peerOrder = ByteOrder.BIG_ENDIAN;

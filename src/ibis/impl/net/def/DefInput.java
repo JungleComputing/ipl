@@ -22,8 +22,8 @@ public final class DefInput extends NetBufferedInput {
     private NetReceiveBuffer buf = null;
 
     static {
-        System.err
-                .println("WARNING: Class net.DefInput (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class net.DefInput (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     DefInput(NetPortType pt, NetDriver driver, String context,

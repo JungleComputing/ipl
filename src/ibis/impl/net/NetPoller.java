@@ -16,8 +16,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     /**
      * Verbosity at manipulation of dynamic singleton state
      */
-    private static final boolean VERBOSE_SINGLETON = TypedProperties
-            .booleanProperty(NetIbis.poll_single_v, false);
+    private static final boolean VERBOSE_SINGLETON
+        = TypedProperties.booleanProperty(NetIbis.poll_single_v, false);
 
     /**
      * The set of inputs.
@@ -44,8 +44,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 
     protected int waitingConnections;
 
-    private static final boolean SINGLETON_FASTPATH = TypedProperties
-            .booleanProperty(NetIbis.poll_single_dyn, true);
+    private static final boolean SINGLETON_FASTPATH
+        = TypedProperties.booleanProperty(NetIbis.poll_single_dyn, true);
 
     /**
      * The driver used for the inputs.
@@ -72,7 +72,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     private boolean interrupted = false;
 
     /**
-     * The first queue that should be polled first next time we have to poll the queues.
+     * The first queue that should be polled first next time we have to
+     * poll the queues.
      */
     private int firstToPoll = 0;
 
@@ -179,10 +180,9 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                 ni.setInterruptible(true);
                 if (VERBOSE_SINGLETON) {
                     System.err.println("Set the thing to interruptible");
-                    System.err
-                            .println(this + ": " + q.getInput()
-                                    + " pollIsInterruptible "
-                                    + q.pollIsInterruptible());
+                    System.err.println(this + ": " + q.getInput()
+                            + " pollIsInterruptible "
+                            + q.pollIsInterruptible());
                 }
                 if (q.pollIsInterruptible()) {
 
@@ -199,11 +199,9 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                 }
             } catch (IllegalArgumentException e) {
                 if (VERBOSE_SINGLETON) {
-                    System.err
-                            .println(this
-                                    + ": "
-                                    + q.getInput()
-                                    + " does not support setInterruptible. Give up singleton");
+                    System.err.println(this + ": " + q.getInput()
+                            + " does not support setInterruptible."
+                            + " Give up singleton");
                 }
                 // Ah well, the subInput does not even support setInterruptible.
                 // Give up.
@@ -284,9 +282,10 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
         }
 
         setupConnection(cnx, cnx.getNum());
-        if (false && singleton != null)
+        if (false && singleton != null) {
             System.err.println(this + ": OK, we enabled singleton "
                     + singleton.input + " fastpath");
+        }
 
         log.out();
     }
@@ -340,8 +339,9 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
             throws IOException {
 
         if (false && singleton != null) {
-            System.err
-                    .println("Race between NetPoller.connect and poll(block = true). Repair by having one lock :-(");
+            System.err.println(
+                    "Race between NetPoller.connect and poll(block = true)."
+                    + " Repair by having one lock :-(");
         }
 
         log.in();
@@ -412,8 +412,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
             // System.err.println(this + ": OH HO.... interruptPoll on a nonsingleton!");
             // Thread.dumpStack();
             if (false) {
-                throw new Error(
-                        "interruptPoll was designed for singletons, but now used on nonsingleton");
+                throw new Error("interruptPoll was designed for singletons,"
+                        + " but now used on nonsingleton");
             } else {
                 synchronized (this) {
                     interrupted = true;
@@ -459,12 +459,16 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     synchronized public void switchToUpcallMode(NetInputUpcall inputUpcall)
             throws IOException {
         if (VERBOSE_SINGLETON) {
+            String interruptible;
+            if (singleton == null) {
+                interruptible = "N/A";
+            } else {
+                interruptible = "" + singleton.pollIsInterruptible();
+            }
             System.err.println(this
                     + ": switchToUpcallMode singleton "
                     + (singleton == null ? null : singleton.getInput())
-                    + " interruptible "
-                    + (singleton == null ? "N/A" : (singleton
-                            .pollIsInterruptible() ? "true" : "false")));
+                    + " interruptible " + interruptible);
         }
 
         /*
@@ -681,9 +685,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                 System.err.println(this
                         + "OHHHH HOOOOO switchToUpcallMode and upcall null");
                 if (true) {
-                    throw new Error(
-                            this
-                                    + ": switchToUpcallMode is only supported for blockingPoll or upcall receives");
+                    throw new Error(this + ": switchToUpcallMode is only"
+                            + " supported for blockingPoll or upcall receives");
                 } else {
                     input.switchToUpcallMode(null);
                 }
@@ -802,9 +805,9 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
             if (interrupted) {
                 interrupted = false;
                 if (VERBOSE_SINGLETON) {
-                    System.err
-                            .println(this
-                                    + ": blocked receiver is interrupted. Throw interruptedIOException");
+                    System.err.println(this
+                            + ": blocked receiver is interrupted."
+                            + " Throw interruptedIOException");
                 }
                 notifyAll();
                 throw new InterruptedIOException("Wait interrupted");
@@ -880,7 +883,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
         ReceiveQueue rq = null;
 
         if (activeQueue != null) {
-            throw new IOException("Call message.finish before calling Net.poll");
+            throw new IOException("Call message.finish before calling"
+                    + " Net.poll");
         }
 
         while (singleton == null) {
@@ -958,10 +962,11 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                             "Only one poll at a time allowed");
                 }
 
-                if (false) // No concurrent polls
+                if (false) {		// No concurrent polls
                     while (doingPoll) {
                         blockReceiver();
                     }
+                }
 
                 doingPoll = true;
             }
@@ -974,15 +979,13 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                     spn = pollSingleton(block);
                 }
             } catch (InterruptedIOException e) {
-                System.err
-                        .println(this
-                                + ": Ha, it throws us an InterruptedIOException. Sync with the interrupter and continue "
-                                + e);
+                System.err.println(this
+                        + ": Ha, it throws us an InterruptedIOException."
+                        + " Sync with the interrupter and continue " + e);
                 e.printStackTrace(System.err);
                 if (waitingConnections == 0) {
-                    System.err
-                            .println(this
-                                    + ": It is not for us. Throw it on for our superInput");
+                    System.err.println(this + ": It is not for us."
+                            + " Throw it on for our superInput");
                     throw e;
                 }
 
@@ -1048,13 +1051,12 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 
             trace.disp("1, ", this);
             if (inputMap.values().size() == 1) {
-                log
-                        .disp("Pity, missed the chance of a blocking NetPoller without thread switch");
+                log.disp("Pity, missed the chance of a blocking NetPoller"
+                        + " without thread switch");
             } else {
-                log
-                        .disp(
-                                "No chance of a blocking NetPoller without thread switch; size ",
-                                inputMap.values().size());
+                log.disp("No chance of a blocking NetPoller"
+                        + " without thread switch; size ",
+                        inputMap.values().size());
             }
 
             trace.disp("2, ", this);

@@ -66,27 +66,28 @@ public final class NetIbis extends Ibis {
     /**
      * The compiler name.
      */
-    private static final String COMPILER = java.lang.System
-            .getProperty("java.lang.compiler");
+    private static final String COMPILER
+        = java.lang.System.getProperty("java.lang.compiler");
 
     /**
      * The Ibis socket factory
      */
-    public static IbisSocketFactory socketFactory = IbisSocketFactory
-            .createFactory();
+    public static IbisSocketFactory socketFactory
+        = IbisSocketFactory.createFactory();
 
     /**
      * The driver loading mode.
      *
      * <DL>
-     * <DT><CODE>true</CODE><DD>known drivers are statically loaded at initialization time.
+     * <DT><CODE>true</CODE><DD>known drivers are statically loaded at
+     * initialization time.
      * <DT><CODE>false</CODE><DD>every driver is loaded dynamically.
      * </DL>
      * Note: if {@linkplain #COMPILER} is set and equals <code>manta</code>, this
      * flag is automatically set to <code>true</code>
      */
-    private static final boolean staticDriverLoading = (COMPILER != null && COMPILER
-            .equals("manta")) || false;
+    private static final boolean staticDriverLoading = (COMPILER != null
+            && COMPILER.equals("manta")) || false;
 
     /**
      * The cache for previously created port types.
@@ -99,7 +100,8 @@ public final class NetIbis extends Ibis {
     private Hashtable driverTable = new Hashtable();
 
     /**
-     * This {@link ibis.impl.net.NetIbis} instance identifier for the <I>name server</I>.
+     * This {@link ibis.impl.net.NetIbis} instance identifier for the
+     * <I>name server</I>.
      */
     private NetIbisIdentifier identifier = null;
 
@@ -113,29 +115,35 @@ public final class NetIbis extends Ibis {
     /**
      * The openness of our <I>world</I>.
      * <DL>
-     * <DT><CODE>true</CODE><DD>Any {@link ibis.impl.net.NetIbis} instance can connect to this {@link ibis.impl.net.NetIbis} instance
-     * <DT><CODE>false</CODE><DD>No {@link ibis.impl.net.NetIbis} instance can connect to this {@link ibis.impl.net.NetIbis} instance
+     * <DT><CODE>true</CODE><DD>Any {@link ibis.impl.net.NetIbis} instance can
+     * connect to this {@link ibis.impl.net.NetIbis} instance
+     * <DT><CODE>false</CODE><DD>No {@link ibis.impl.net.NetIbis} instance can
+     * connect to this {@link ibis.impl.net.NetIbis} instance
      * </DL>
      */
     private boolean open = false;
 
     /**
-     * The number of {@link ibis.impl.net.NetIbis} instances in our <I>name server</I> nameServer pool.
+     * The number of {@link ibis.impl.net.NetIbis} instances in our
+     * <I>name server</I> nameServer pool.
      */
     private int poolSize = 0;
 
     /**
-     * The {@link ibis.impl.net.NetIbis} instances that attempted to join our nameServer pool while our world was {@linkplain #open closed}.
+     * The {@link ibis.impl.net.NetIbis} instances that attempted to join our
+     * nameServer pool while our world was {@linkplain #open closed}.
      */
     private Vector joinedIbises = new Vector();
 
     /**
-     * The {@link ibis.impl.net.NetIbis} instances that attempted to leave our nameServer pool while our world was {@linkplain #open closed}.
+     * The {@link ibis.impl.net.NetIbis} instances that attempted to leave our
+     * nameServer pool while our world was {@linkplain #open closed}.
      */
     private Vector leftIbises = new Vector();
 
     /**
-     * The {@link ibis.impl.net.NetIbis} instances that died while our world was {@linkplain #open closed}.
+     * The {@link ibis.impl.net.NetIbis} instances that died while our world
+     * was {@linkplain #open closed}.
      */
     private Vector diedIbises = new Vector();
 
@@ -153,7 +161,8 @@ public final class NetIbis extends Ibis {
     private NetReceivePort receivePortList = null;
 
     /**
-     * The {@link ibis.impl.net.NetIbis} {@linkplain ibis.impl.net.NetBank bank}.
+     * The {@link ibis.impl.net.NetIbis} {@linkplain
+     * ibis.impl.net.NetBank bank}.
      *
      * This {@linkplain ibis.impl.net.NetBank bank} can be used as general
      * purpose and relatively safe repository for global object
@@ -252,7 +261,7 @@ public final class NetIbis extends Ibis {
         if (staticDriverLoading) {
             String[] drivers = { "gen", "bytes", "id", "pipe", "udp", "muxer",
                     "tcp", "tcp_blk", "rel"
-            // , "gm"
+                    // , "gm"
             };
             for (int i = 0; i < drivers.length; i++) {
                 try {
@@ -291,7 +300,8 @@ public final class NetIbis extends Ibis {
      * If the driver has not been loaded, it is instanciated on the fly. The
      * driver's name is the suffix to append to the NetIbis package to get
      * access to the driver's package. The driver's package must contain a
-     * class named <CODE>Driver</CODE> which extends {@link ibis.impl.net.NetDriver}.
+     * class named <CODE>Driver</CODE> which extends {@link
+     * ibis.impl.net.NetDriver}.
      *
      * @param name the driver's name.
      * @return The driver instance.
@@ -386,12 +396,14 @@ public final class NetIbis extends Ibis {
     }
 
     /**
-     * Creates a {@linkplain PortType port type} from a name and a set of {@linkplain StaticProperties properties}.
+     * Creates a {@linkplain PortType port type} from a name and a set of
+     * {@linkplain StaticProperties properties}.
      *
      * @param name the name of the type.
      * @param sp   the properties of the type.
      * @return     The port type.
-     * @exception  IbisException if the name server refused to register the new type.
+     * @exception  IbisException if the name server refused to register the
+     *             new type.
      */
     synchronized protected PortType newPortType(String name, StaticProperties sp)
             throws IOException, IbisException {
@@ -411,7 +423,8 @@ public final class NetIbis extends Ibis {
     }
 
     /**
-     * Returns the <I>name server</I> {@linkplain #nameServer client} {@linkplain Registry registry}.
+     * Returns the <I>name server</I> {@linkplain #nameServer client}
+     * {@linkplain Registry registry}.
      *
      * @return A reference to the instance's registry access.
      */
@@ -431,11 +444,14 @@ public final class NetIbis extends Ibis {
     /**
      * Initializes the NetIbis instance.
      *
-     * This function should be called before any attempt to use the NetIbis instance.
+     * This function should be called before any attempt to use the NetIbis
+     * instance.
      * <B>This function is not automatically called by the constructor</B>.
      *
-     * @exception IbisConfigurationException if the system-wide Ibis properties where not correctly set.
-     * @exception IOException if the local host name cannot be found or if the <I>name server</I> cannot be reached.
+     * @exception IbisConfigurationException if the system-wide Ibis
+     * 		properties where not correctly set.
+     * @exception IOException if the local host name cannot be found or if
+     * 		the <I>name server</I> cannot be reached.
      */
     protected void init() throws IbisException, IOException {
 
@@ -505,8 +521,8 @@ public final class NetIbis extends Ibis {
     public void enableResizeUpcalls() {
         if (resizeHandler != null) {
             while (joinedIbises.size() > 0) {
-                NetIbisIdentifier id = (NetIbisIdentifier) joinedIbises
-                        .remove(0);
+                Object ibisId = joinedIbises.remove(0);
+                NetIbisIdentifier id = (NetIbisIdentifier) ibisId;
                 resizeHandler.joined(id);
                 if (id.equals(identifier)) {
                     i_joined = true;
@@ -546,10 +562,12 @@ public final class NetIbis extends Ibis {
     }
 
     /**
-     * Returns the {@linkplain PortType port type} corresponding to the given type name.
+     * Returns the {@linkplain PortType port type} corresponding to the
+     * given type name.
      *
      * @param  name the name of the requested port type.
-     * @return A reference to the port type or <code>null</CODE> if the given name is not the name of a valid port type.
+     * @return A reference to the port type or <code>null</CODE> if the
+     * 		given name is not the name of a valid port type.
      */
     synchronized public PortType getPortType(String name) {
         return (PortType) portTypeTable.get(name);
@@ -628,7 +646,6 @@ public final class NetIbis extends Ibis {
                 // Ignore
             }
         }
-        // try {
         synchronized (this) {
             while (receivePortList != null) {
                 if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
@@ -638,9 +655,6 @@ public final class NetIbis extends Ibis {
                 receivePortList.close(-1L);
             }
         }
-        // } catch (IOException e) {
-        // // Leave the rest alive
-        // }
 
         nameServer.leave();
         socketFactory.shutdown();

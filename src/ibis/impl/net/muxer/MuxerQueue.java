@@ -98,9 +98,9 @@ public class MuxerQueue {
 
         if (!factory.isSuitableClass(buffer)) {
             if (true || Driver.DEBUG) {
-                System.err
-                        .println(this
-                                + ": A pity upon enqueue: received buffer type does not match requested buffer, now transfer");
+                System.err.println(this + ": A pity upon enqueue:"
+                        + " received buffer type does not match requested"
+                        + " buffer, now transfer");
             }
             NetReceiveBuffer b = (NetReceiveBuffer) factory.createBuffer(
                     buffer.data, buffer.length, buffer.allocator);
@@ -302,7 +302,9 @@ public class MuxerQueue {
 
     /**
      * Returns the first delivered buffer.
-     * <BR><B>Note</B>: this function may block if the expected data is not there.
+     * <BR><B>Note</B>: this function may block if the expected data is
+     * not there.
+     *
      * @param expectedLength is ignored because the packet actually received
      *        might not be the one that is expected.
      *
@@ -312,8 +314,8 @@ public class MuxerQueue {
             throws IOException {
 
         if (Driver.DEBUG) {
-            System.err
-                    .println("Downcall receive q " + this + ": start dequeue");
+            System.err.println("Downcall receive q " + this
+                    + ": start dequeue");
         }
 
         if (!MuxerInput.USE_POLLER_THREAD) {
@@ -341,7 +343,9 @@ public class MuxerQueue {
 
     /**
      * Receives data in the provided buffer.
-     * <BR><B>Note</B>: this function may block if the expected data is not there.
+     * <BR><B>Note</B>: this function may block if the expected data is
+     * not there.
+     *
      * @param userBuffer Receive data into this buffer. In the general case
      *        a copy is incurred.
      */

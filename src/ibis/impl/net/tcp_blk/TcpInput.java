@@ -94,8 +94,8 @@ public final class TcpInput extends NetBufferedInput {
 
     static {
         if (false) {
-            System.err
-                    .println("WARNING: Class net.tcp_blk.TcpInput (still) uses Conversion.defaultConversion");
+            System.err.println("WARNING: Class net.tcp_blk.TcpInput (still)"
+                    + " uses Conversion.defaultConversion");
         }
     }
 
@@ -114,7 +114,8 @@ public final class TcpInput extends NetBufferedInput {
         headerLength = 4;
     }
 
-    private Socket makeBrokeredConnection(NetConnection cnx) throws IOException {
+    private Socket makeBrokeredConnection(NetConnection cnx)
+            throws IOException {
         InputStream brokered_in = cnx.getServiceLink().getInputSubStream(this,
                 "tcp_blk_brokering");
         OutputStream brokered_out = cnx.getServiceLink().getOutputSubStream(
@@ -134,8 +135,9 @@ public final class TcpInput extends NetBufferedInput {
             public String getProperty(String name) {
                 if (p != null) {
                     String result = (String) p.find(name);
-                    if (result != null)
+                    if (result != null) {
                         return result;
+                    }
                 }
                 return nn.getProperty(name);
             }
@@ -163,14 +165,14 @@ public final class TcpInput extends NetBufferedInput {
         NetSendPortIdentifier sendId = cnx.getSendId();
         partner = sendId.ibis();
 
-        DataOutputStream os = new DataOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(this, "tcp_blk"));
+        DataOutputStream os = new DataOutputStream(
+                cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
         os.writeInt(lmtu);
         os.flush();
         os.close();
 
-        DataInputStream is = new DataInputStream(cnx.getServiceLink()
-                .getInputSubStream(this, "tcp_blk"));
+        DataInputStream is = new DataInputStream(
+                cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
         rmtu = is.readInt();
         int port = is.readInt();
         is.close();
@@ -233,11 +235,11 @@ public final class TcpInput extends NetBufferedInput {
     }
 
     /*
-     protected synchronized void switchToDowncallMode() throws IOException {
-     installUpcallFunc(null);
-     // System.err.println(Thread.currentThread() + ": " + this + ": setInterruptible, upcallFunc " + upcallFunc);
-     }
-     */
+    protected synchronized void switchToDowncallMode() throws IOException {
+        installUpcallFunc(null);
+        // System.err.println(Thread.currentThread() + ": " + this + ": setInterruptible, upcallFunc " + upcallFunc);
+    }
+    */
 
     public synchronized void switchToUpcallMode(NetInputUpcall upcallFunc)
             throws IOException {
@@ -403,8 +405,9 @@ public final class TcpInput extends NetBufferedInput {
                 } catch (SocketTimeoutException e) {
                     if (interrupted) {
                         interrupted = false;
-                        System.err
-                                .println("Please store the data already read for the resume after the InterruptedIOException");
+                        System.err.println("Please store the data already read"
+                                + " for the resume after the"
+                                + " InterruptedIOException");
                         // throw Ibis.createInterruptedIOException(e);
                         return null;
                     }
@@ -436,8 +439,8 @@ public final class TcpInput extends NetBufferedInput {
     /**
      * {@inheritDoc}
      *
-     * <BR><B>Note</B>: This TCP polling implementation uses the
-     * {@link java.io.InputStream#available()} function to test whether at least one
+     * <BR><B>Note</B>: This TCP polling implementation uses the {@link
+     * java.io.InputStream#available()} function to test whether at least one
      * data byte may be extracted without blocking.
      */
     public Integer doPoll(boolean block) throws IOException {
@@ -482,7 +485,8 @@ public final class TcpInput extends NetBufferedInput {
     /**
      * {@inheritDoc}
      *
-     * <BR><B>Note</B>: this function may block if the expected data is not there.
+     * <BR><B>Note</B>: this function may block if the expected data is
+     * not there.
      */
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
             throws IOException {
@@ -501,11 +505,7 @@ public final class TcpInput extends NetBufferedInput {
 
     public void doFinish() throws IOException {
         log.in();
-        //synchronized(this)
-        {
-            // System.err.print("doFinish: buf " + buf); if (buf != null) System.err.print("; [" + buf.base + ".." + buf.length + "]"); System.err.println();
-            buf = null;
-        }
+        buf = null;
         log.out();
     }
 

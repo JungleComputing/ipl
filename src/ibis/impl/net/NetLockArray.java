@@ -58,7 +58,8 @@ public final class NetLockArray {
     /**
      * Construct a lock array with a single lock entry and no live locks.
      *
-     * @param mon The {@link ibis.util.Monitor Monitor} that governs access to the lock array.
+     * @param mon The {@link ibis.util.Monitor Monitor} that governs access
+     * 		to the lock array.
      */
     public NetLockArray(Monitor mon) {
         this.mon = mon;

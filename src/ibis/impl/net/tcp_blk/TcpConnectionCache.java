@@ -26,6 +26,7 @@ class TcpConnectionCache {
 
     /**
      * Store unused input link in the cache.
+     *
      * @param ibis the partner's {@link ibis.ipl.IbisIdentifier}
      * @param socket the socket to which the link belongs
      * @return whether the link has been added to the cache. If the output
@@ -65,6 +66,7 @@ class TcpConnectionCache {
 
     /**
      * Store unused output link in the cache.
+     *
      * @param ibis the partner's {@link ibis.ipl.IbisIdentifier}
      * @param socket the socket to which the link belongs
      * @return whether the link has been added to the cache. If the input link
@@ -96,8 +98,8 @@ class TcpConnectionCache {
 
         oCache.add(socket);
         if (VERBOSE) {
-            System.err
-                    .println("Added output " + socket + " to cache " + oCache);
+            System.err.println("Added output " + socket + " to cache "
+                    + oCache);
         }
 
         return true;
@@ -105,6 +107,7 @@ class TcpConnectionCache {
 
     /**
      * Get the unused input link with a specified remote port from the cache.
+     *
      * @param ibis the partner's {@link ibis.ipl.IbisIdentifier}
      * @param port remote port; the output side has found this link in its
      * 		output cache and knows that the input link that belongs to it
@@ -147,6 +150,7 @@ class TcpConnectionCache {
 
     /**
      * Try to get an unused output link from the cache.
+     *
      * @param ibis the partner's {@link ibis.ipl.IbisIdentifier}
      * @return a socket whose output link was cached, or <code>null</code> if
      * 		there are no matching links in the cache

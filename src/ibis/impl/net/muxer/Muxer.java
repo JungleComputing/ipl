@@ -36,8 +36,8 @@ public final class Muxer extends NetBufferedOutput {
     private long seqno; /* For out-of-order debugging */
 
     static {
-        System.err
-                .println("WARNING: Class net.muxer.Muxer (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class net.muxer.Muxer (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     /**
@@ -54,8 +54,8 @@ public final class Muxer extends NetBufferedOutput {
             if (subDriver == null) {
                 // String subDriverName = getMandatoryProperty("Driver");
                 // System.err.println("subDriverName = " + subDriverName);
-                System.err
-                        .println("It should depend on Driver properties which muxer suboutput is created");
+                System.err.println("It should depend on Driver properties"
+                        + " which muxer suboutput is created");
                 String subDriverName = "muxer.udp";
                 subDriver = driver.getIbis().getDriver(subDriverName);
                 System.err.println("The subDriver is " + subDriver);
@@ -114,8 +114,8 @@ public final class Muxer extends NetBufferedOutput {
         myKey = muxer.getKey(cnx);
 
         int ok = 0;
-        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                .getInputSubStream(this, "muxer"));
+        ObjectInputStream is = new ObjectInputStream(
+                cnx.getServiceLink().getInputSubStream(this, "muxer"));
         ok = is.readInt();
         is.close();
         if (ok != 1) {

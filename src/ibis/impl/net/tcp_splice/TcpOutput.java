@@ -65,8 +65,8 @@ public final class TcpOutput extends NetBufferedOutput {
 
     static {
         if (false) {
-            System.err
-                    .println("WARNING: Class net.tcp_splice.TcpOutput (still) uses Conversion.defaultConversion");
+            System.err.println("WARNING: Class net.tcp_splice.TcpOutput (still)"
+                    + " uses Conversion.defaultConversion");
         }
     }
 
@@ -98,14 +98,16 @@ public final class TcpOutput extends NetBufferedOutput {
             // MTU negociation
             Hashtable lInfo = new Hashtable();
             lInfo.put("tcp_mtu", new Integer(lmtu));
-            ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                    .getOutputSubStream(this, "tcp_splice_mtu"));
+            ObjectOutputStream os = new ObjectOutputStream(
+                    cnx.getServiceLink().getOutputSubStream(this,
+                        "tcp_splice_mtu"));
             os.writeObject(lInfo);
             os.flush();
 
             Hashtable rInfo = null;
-            ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                    .getInputSubStream(this, "tcp_splice_mtu"));
+            ObjectInputStream is = new ObjectInputStream(
+                    cnx.getServiceLink().getInputSubStream(this,
+                        "tcp_splice_mtu"));
             try {
                 rInfo = (Hashtable) is.readObject();
             } catch (ClassNotFoundException e) {

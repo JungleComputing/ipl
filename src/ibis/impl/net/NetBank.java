@@ -74,8 +74,9 @@ public final class NetBank {
      * @param obj the object to store in the account.
      */
     public synchronized void put(Long key, Object obj) {
-        if (!map.containsKey(key))
+        if (!map.containsKey(key)) {
             __.abort__("invalid key");
+        }
 
         map.put(key, obj);
     }
@@ -102,8 +103,9 @@ public final class NetBank {
      * @return the contents of the account corresponding to the key.
      */
     public synchronized Object get(Long key) {
-        if (!map.containsKey(key))
+        if (!map.containsKey(key)) {
             __.abort__("invalid key");
+        }
 
         return map.get(key);
     }
@@ -120,8 +122,9 @@ public final class NetBank {
      * @return the previous contents of the account.
      */
     public synchronized Object exchange(Long key, Object obj) {
-        if (!map.containsKey(key))
+        if (!map.containsKey(key)) {
             __.abort__("invalid key");
+        }
 
         Object previousObj = map.get(key);
         map.put(key, obj);
@@ -145,8 +148,9 @@ public final class NetBank {
      * @return the former contents of the account.
      */
     public synchronized Object discardKey(Long key) {
-        if (!map.containsKey(key))
+        if (!map.containsKey(key)) {
             __.abort__("invalid key");
+        }
 
         return map.remove(key);
     }

@@ -40,8 +40,8 @@ public final class cluster implements MultiPlugin {
         //System.err.println("canonical local host name: "+chn);
         //System.err.println("local host name: "+hn);
 
-        String filename = p
-                .getProperty("netibis.multi.cluster.config.filename");
+        String filename
+            = p.getProperty("netibis.multi.cluster.config.filename");
         NetFile in = null;
 
         if (filename == null) {

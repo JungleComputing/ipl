@@ -96,8 +96,9 @@ public abstract class NetSerializedOutput extends NetOutput {
                 subOutput.writeByte((byte) 255);
             }
             oss = newSerializationOutputStream();
-            if (replacer != null)
+            if (replacer != null) {
                 oss.setReplacer(replacer);
+            }
         } else {
             if (requiresStreamReinit) {
                 subOutput.writeByte((byte) 0);

@@ -62,7 +62,8 @@ public abstract class NetDriver {
 
     /**
      * Create a new {@link ibis.impl.net.NetInput} according to the
-     * {@linkplain ibis.impl.net.NetPortType port type} settings and the context {@linkplain String string}.
+     * {@linkplain ibis.impl.net.NetPortType port type} settings and the
+     * context {@linkplain String string}.
      *
      * @param pt the port type.
      * @param context the context string.
@@ -76,7 +77,8 @@ public abstract class NetDriver {
 
     /**
      * Create a new {@link ibis.impl.net.NetOutput} according to the
-     * {@linkplain ibis.impl.net.NetPortType port type} settings and the context {@linkplain String string}.
+     * {@linkplain ibis.impl.net.NetPortType port type} settings and the
+     * context {@linkplain String string}.
      *
      * @param pt the port type.
      * @param context the context string.

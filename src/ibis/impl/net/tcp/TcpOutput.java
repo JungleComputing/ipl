@@ -105,8 +105,9 @@ public final class TcpOutput extends NetOutput {
             public String getProperty(String name) {
                 if (p != null) {
                     String result = (String) p.find(name);
-                    if (result != null)
+                    if (result != null) {
                         return result;
+                    }
                 }
                 return nn.getProperty(name);
             }

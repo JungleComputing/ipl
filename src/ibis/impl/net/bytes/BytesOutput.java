@@ -352,10 +352,12 @@ public final class BytesOutput extends NetOutput implements Settings,
             if (buffer == null) {
                 allocateBuffer();
             }
-            if (buffer == null)
+            if (buffer == null) {
                 throw new Error("buffer race");
-            if (buffer.data == null)
+            }
+            if (buffer.data == null) {
                 throw new Error("buffer corrupted");
+            }
 
             buffer.data[buffer.length++] = v;
             flushIfNeeded();
@@ -512,7 +514,8 @@ public final class BytesOutput extends NetOutput implements Settings,
 
     /**
      * Writes a float v to the message.
-     * @param     v             The float v to write.
+     *
+     * @param v The float v to write.
      */
     public void writeFloat(float v) throws IOException {
         log.in();
@@ -548,7 +551,8 @@ public final class BytesOutput extends NetOutput implements Settings,
 
     /**
      * Writes a double v to the message.
-     * @param     v             The double v to write.
+     *
+     * @param v The double v to write.
      */
     public void writeDouble(double v) throws IOException {
         log.in();
@@ -585,7 +589,8 @@ public final class BytesOutput extends NetOutput implements Settings,
     /**
      * Writes a Serializable string to the message.
      * Note: uses writeObject to send the string.
-     * @param     v             The string v to write.
+     *
+     * @param v The string v to write.
      */
     public void writeString(String v) throws IOException {
         log.in();
@@ -600,7 +605,8 @@ public final class BytesOutput extends NetOutput implements Settings,
 
     /**
      * Writes a Serializable object to the message.
-     * @param     v             The object v to write.
+     *
+     * @param v The object v to write.
      */
     public void writeObject(Object v) throws IOException {
         log.in();
@@ -636,8 +642,8 @@ public final class BytesOutput extends NetOutput implements Settings,
                     allocateBuffer();
                 }
 
-                int copyLength = Math
-                        .min(l, buffer.data.length - buffer.length);
+                int copyLength = Math.min(l,
+                        buffer.data.length - buffer.length);
                 conversion.boolean2byte(ub, o, copyLength, buffer.data,
                         buffer.length);
                 o += copyLength;
@@ -665,8 +671,8 @@ public final class BytesOutput extends NetOutput implements Settings,
                     allocateBuffer();
                 }
 
-                int copyLength = Math
-                        .min(l, buffer.data.length - buffer.length);
+                int copyLength = Math.min(l,
+                        buffer.data.length - buffer.length);
                 System.arraycopy(ub, o, buffer.data, buffer.length, copyLength);
                 o += copyLength;
                 l -= copyLength;
@@ -711,7 +717,7 @@ public final class BytesOutput extends NetOutput implements Settings,
 
                 int copyLength = Math.min(Conversion.CHAR_SIZE * l,
                         buffer.data.length - buffer.length)
-                        / Conversion.CHAR_SIZE;
+                            / Conversion.CHAR_SIZE;
 
                 if (copyLength == 0) {
                     flush();
@@ -937,34 +943,41 @@ public final class BytesOutput extends NetOutput implements Settings,
     public void writeArray(double[] ub, int o, int l) throws IOException {
         log.in();
 
-        if (timerOn)
+        if (timerOn) {
             writeArrayTimer.start();
+        }
         if (mtu <= 0) {
             if ((l * Conversion.DOUBLE_SIZE) <= anThreshold) {
                 byte[] b = an.allocate();
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.start();
+                }
                 conversion.double2byte(ub, o, l, b, 0);
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.stop();
+                }
                 subOutput.writeArray(b, 0, l * Conversion.DOUBLE_SIZE);
                 an.free(b);
             } else {
                 byte[] b = new byte[l * Conversion.DOUBLE_SIZE];
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.start();
+                }
                 conversion.double2byte(ub, o, l, b, 0);
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.stop();
+                }
                 subOutput.writeArray(b);
             }
 
         } else if (ensureLength(Conversion.DOUBLE_SIZE * (l + 1) - 1)) {
-            if (timerOn)
+            if (timerOn) {
                 conversionTimer.start();
+            }
             conversion.double2byte(ub, o, l, buffer.data, buffer.length);
-            if (timerOn)
+            if (timerOn) {
                 conversionTimer.stop();
+            }
             buffer.length += Conversion.DOUBLE_SIZE * l;
             flushIfNeeded();
 
@@ -988,20 +1001,23 @@ public final class BytesOutput extends NetOutput implements Settings,
                     continue;
                 }
 
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.start();
+                }
                 conversion.double2byte(ub, o, copyLength, buffer.data,
                         buffer.length);
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.stop();
+                }
                 o += copyLength;
                 l -= copyLength;
                 buffer.length += Conversion.DOUBLE_SIZE * copyLength;
                 flushIfNeeded();
             }
         }
-        if (timerOn)
+        if (timerOn) {
             writeArrayTimer.stop();
+        }
         log.out();
     }
 

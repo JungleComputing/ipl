@@ -149,8 +149,9 @@ public final class BytesInput extends NetInput implements Settings,
     public void initReceive(Integer num) throws IOException {
         log.in();
         synchronized (this) {
-            if (activeNum != null)
+            if (activeNum != null) {
                 throw new Error("Revise your initReceive calls");
+            }
             activeNum = num;
             mtu = Math.min(maxMtu, subInput.getMaximumTransfertUnit());
             /*
@@ -190,8 +191,9 @@ public final class BytesInput extends NetInput implements Settings,
             throw new Error("invalid call");
         }
 
-        if (subInput == null)
+        if (subInput == null) {
             return null;
+        }
 
         Integer result = subInput.poll(block);
 
@@ -1011,34 +1013,41 @@ public final class BytesInput extends NetInput implements Settings,
     public void readArray(double[] ub, int o, int l) throws IOException {
         log.in();
 
-        if (timerOn)
+        if (timerOn) {
             readArrayTimer.start();
+        }
         if (mtu <= 0) {
             if (l * Conversion.DOUBLE_SIZE <= anThreshold) {
                 byte[] b = an.allocate();
                 subInput.readArray(b, 0, l * Conversion.DOUBLE_SIZE);
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.start();
+                }
                 conversion.byte2double(b, 0, ub, o, l);
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.stop();
+                }
                 an.free(b);
             } else {
                 byte[] b = new byte[Conversion.DOUBLE_SIZE * l];
                 subInput.readArray(b);
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.start();
+                }
                 conversion.byte2double(b, 0, ub, o, l);
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.stop();
+                }
             }
 
         } else if (ensureLength(Conversion.DOUBLE_SIZE * (l + 1) - 1)) {
-            if (timerOn)
+            if (timerOn) {
                 conversionTimer.start();
+            }
             conversion.byte2double(buffer.data, bufferOffset, ub, o, l);
-            if (timerOn)
+            if (timerOn) {
                 conversionTimer.stop();
+            }
             bufferOffset += Conversion.DOUBLE_SIZE * l;
             freeBufferIfNeeded();
 
@@ -1062,20 +1071,23 @@ public final class BytesInput extends NetInput implements Settings,
                     continue;
                 }
 
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.start();
+                }
                 conversion.byte2double(buffer.data, bufferOffset, ub, o,
                         copyLength);
-                if (timerOn)
+                if (timerOn) {
                     conversionTimer.stop();
+                }
                 o += copyLength;
                 l -= copyLength;
                 bufferOffset += Conversion.DOUBLE_SIZE * copyLength;
                 freeBufferIfNeeded();
             }
         }
-        if (timerOn)
+        if (timerOn) {
             readArrayTimer.stop();
+        }
         log.out();
     }
 

@@ -57,7 +57,8 @@ public interface RelConstants {
 
     // The length of the ack header expressed in bytes
     // Here, we don't count the frag count
-    final static int headerLength = Conversion.INT_SIZE // the index for the reverse connection
+    final static int headerLength
+            = Conversion.INT_SIZE // the index for the reverse connection
             + Conversion.INT_SIZE // the contiguous ack
             + Conversion.INT_SIZE * ACK_SET_IN_INTS; // ack bitset beyond contiguous
 

@@ -177,8 +177,8 @@ public final class NioInput extends NetInput {
         lInfo.put("tcp_port", new Integer(tcpServerSocket.getLocalPort()));
         lInfo.put("byte_order", ByteOrder.nativeOrder().toString());
 
-        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(this, "nio"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                cnx.getServiceLink().getOutputSubStream(this, "nio"));
         os.writeObject(lInfo);
         os.close();
 
@@ -223,8 +223,8 @@ public final class NioInput extends NetInput {
             }
 
             if (bytePending) {
-                throw new IOException(
-                        "NioInput: Eek! Trying to poll while there is still a byte pending!");
+                throw new IOException("NioInput: Eek! Trying to poll while"
+                        + " there is still a byte pending!");
             }
 
             do {
@@ -638,7 +638,8 @@ public final class NioInput extends NetInput {
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
      */
-    public void readArray(int[] array, int offset, int size) throws IOException {
+    public void readArray(int[] array, int offset, int size)
+            throws IOException {
         int length;
 
         if (DEBUG) {

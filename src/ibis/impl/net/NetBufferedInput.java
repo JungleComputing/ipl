@@ -40,7 +40,7 @@ public abstract class NetBufferedInput extends NetInput implements
     private int bufferOffset = 0;
 
     /**
-     * Flag used to detect circular references in readByteBuffer default implementations.
+     * Detect circular references in readByteBuffer default implementations.
      */
     private boolean circularCheck = false;
 
@@ -121,8 +121,8 @@ public abstract class NetBufferedInput extends NetInput implements
      * Note: at least one 'receiveByteBuffer' method must be implemented.
      *
      * @param expectedLength the amount of data to be received
-     * @return a newly created {@link ibis.impl.net.NetReceiveBuffer} that contains
-     * 		the received data
+     * @return a newly created {@link ibis.impl.net.NetReceiveBuffer} that
+     * 		contains the received data
      */
     protected NetReceiveBuffer receiveByteBuffer(int expectedLength)
             throws IOException {
@@ -165,8 +165,8 @@ public abstract class NetBufferedInput extends NetInput implements
             dataOffset = getHeadersLength();
         } else if (num != currentNum) {
             currentNum = num;
-            factory.setMaximumTransferUnit(Math.max(mtu, factory
-                    .getMaximumTransferUnit()));
+            factory.setMaximumTransferUnit(
+                    Math.max(mtu, factory.getMaximumTransferUnit()));
             dataOffset = getHeadersLength();
         }
 

@@ -75,7 +75,8 @@ public final class NetSendPort extends NetPort implements SendPort,
      * The empty message detection flag.
      *
      * The flag is set on each new {@link #newMessage} call and should
-     * be cleared as soon as at least a byte as been added to the living message.
+     * be cleared as soon as at least a byte as been added to the living
+     * message.
      */
     private boolean emptyMsg = true;
 
@@ -126,7 +127,8 @@ public final class NetSendPort extends NetPort implements SendPort,
     private NetEventQueue eventQueue = null;
 
     /**
-     * The asynchronous {@link #eventQueue} listening & {@linkplain ibis.impl.net.NetPortEvent event} processing thread.
+     * The asynchronous {@link #eventQueue} listening and {@linkplain
+     * ibis.impl.net.NetPortEvent event} processing thread.
      */
     private NetEventQueueListener eventQueueListener = null;
 
@@ -137,7 +139,8 @@ public final class NetSendPort extends NetPort implements SendPort,
     /**
      * The network output synchronization lock.
      *
-     * Note: Only the owner of this lock may interact with the topmost {@link #output}
+     * Note: Only the owner of this lock may interact with the topmost
+     * {@link #output}
      */
     private NetMutex outputLock = null;
 
@@ -148,25 +151,28 @@ public final class NetSendPort extends NetPort implements SendPort,
     /**
      * The callback function for processing incoming events.
      *
-     * <BR><B>Note 1:</B> the only {@linkplain ibis.impl.net.NetPortEvent event}
-     * supported currently is the <I>close</I> {@linkplain ibis.impl.net.NetPortEvent
-     * event} ({@link ibis.impl.net.NetPortEvent#CLOSE_EVENT}) which is added to the
-     * eventQueue when a {@linkplain ibis.impl.net.NetConnection connection} is detected
-     * to have been remotely closed. The argument of the <I>close</I>
-     * {@linkplain ibis.impl.net.NetPortEvent event} is the {@linkplain ibis.impl.net.NetConnection
-     * connection} identification {@link Integer}.
+     * <BR><B>Note 1:</B> the only {@linkplain ibis.impl.net.NetPortEvent
+     * event} supported currently is the <I>close</I> {@linkplain
+     * ibis.impl.net.NetPortEvent event} ({@link
+     * ibis.impl.net.NetPortEvent#CLOSE_EVENT}) which is added to the
+     * eventQueue when a {@linkplain ibis.impl.net.NetConnection connection}
+     * is detected to have been remotely closed. The argument of the
+     * <I>close</I> {@linkplain ibis.impl.net.NetPortEvent event} is the
+     * {@linkplain ibis.impl.net.NetConnection connection} identification
+     * {@link Integer}.
      * <BR><B>Note 2:</B> there is a possible race condition in the case
-     * that the <I>close</I> {@linkplain ibis.impl.net.NetPortEvent event} is triggered
-     * before the {@linkplain ibis.impl.net.NetConnection connection} is added to the
-     * connection table. In that case, the {@linkplain ibis.impl.net.NetPortEvent event}
-     * is ignored and when the {@linkplain ibis.impl.net.NetConnection connection} later
+     * that the <I>close</I> {@linkplain ibis.impl.net.NetPortEvent event}
+     * is triggered before the {@linkplain ibis.impl.net.NetConnection
+     * connection} is added to the connection table. In that case, the
+     * {@linkplain ibis.impl.net.NetPortEvent event} is ignored and when
+     * the {@linkplain ibis.impl.net.NetConnection connection} later
      * gets finally added to the connection table, there is no mechanism
      * to remember that it has actually been closed and has no need to be
      * kept in the connection table. There is no "simple light" solution
      * to this problem as there is no "simple light way" to know whether
-     * a {@linkplain ibis.impl.net.NetConnection connection} is not in the connection
-     * table because it has not yet been added to it or because it as
-     * already been closed earlier.
+     * a {@linkplain ibis.impl.net.NetConnection connection} is not in the
+     * connection table because it has not yet been added to it or because
+     * it as already been closed earlier.
      *
      * @param e the {@linkplain ibis.impl.net.NetPortEvent event}.
      */
@@ -187,8 +193,9 @@ public final class NetSendPort extends NetPort implements SendPort,
              */
             synchronized (connectionTable) {
                 cnx = (NetConnection) connectionTable.remove(num);
-                if (cnx == null)
+                if (cnx == null) {
                     break;
+                }
 
                 nrpi = cnx.getReceiveId();
                 disconnectedPeers.add(nrpi);
@@ -249,8 +256,10 @@ public final class NetSendPort extends NetPort implements SendPort,
     /**
      * The class unloading time cleaning function.
      *
-     * <BR><B>Note 1:</B> the {@link #close} method is forcibly called, just in case it was not called before, in the user application.
-     * <BR><B>Note 2:</B> the eventQueue is closed there (that is, not in the {@link #close} method).
+     * <BR><B>Note 1:</B> the {@link #close} method is forcibly called,
+     * just in case it was not called before, in the user application.
+     * <BR><B>Note 2:</B> the eventQueue is closed there (that is, not in
+     * the {@link #close} method).
      */
     protected void finalize() throws Throwable {
         log.in();
@@ -302,8 +311,9 @@ public final class NetSendPort extends NetPort implements SendPort,
      */
     private void initIdentifier() throws IOException {
         log.in();
-        if (this.identifier != null)
+        if (this.identifier != null) {
             throw new IOException("identifier already initialized");
+        }
 
         NetIbisIdentifier ibisId = (NetIbisIdentifier) ibis.identifier();
 
@@ -324,7 +334,8 @@ public final class NetSendPort extends NetPort implements SendPort,
     /* ----- ACTIVE STATE INITIALIZATION _______________________________ */
 
     /**
-     * The {@link #eventQueue} construction and the {@link #eventQueueListener} thread activation.
+     * The {@link #eventQueue} construction and the {@link #eventQueueListener}
+     * thread activation.
      */
     private void initEventQueue() {
         log.in();
@@ -340,13 +351,17 @@ public final class NetSendPort extends NetPort implements SendPort,
     /**
      * The topmost {@link #driver} initialization.
      *
-     * <BR><B>Note:</B> the driver's name is looked for in the <code>"Driver"</code> property of the context <code>'/'</code> and (currently) with the <code>null</code> subcontext.
+     * <BR><B>Note:</B> the driver's name is looked for in the
+     * <code>"Driver"</code> property of the context <code>'/'</code> and
+     * (currently) with the <code>null</code> subcontext.
+     *
      * @exception IOException in case of trouble.
      */
     private void loadMainDriver() throws IOException {
         log.in();
-        if (this.driver != null)
+        if (this.driver != null) {
             throw new IOException("driver already loaded");
+        }
 
         String mainDriverName = type.getStringProperty("/", "Driver");
 
@@ -393,8 +408,16 @@ public final class NetSendPort extends NetPort implements SendPort,
     /**
      * The setup of an new outgoing <I>service</I> connection.
      *
-     * The service connection is an internal-use only streamed connection. A logical NetIbis {@linkplain ibis.impl.net.NetConnection connection} between a {@linkplain ibis.impl.net.NetSendPort send port} and a {@linkplain ibis.impl.net.NetReceivePort receive port} is made of a <I>service</I> connection <B>and</B> an <I>application</I> connection.
-     * <BR><B>Note:</B> establishing the 'service' part of a new {@linkplain ibis.impl.net.NetConnection connection} is the first step in building the connection with a remote {@linkplain ibis.impl.net.NetReceivePort port}.
+     * The service connection is an internal-use only streamed connection.
+     * A logical NetIbis {@linkplain ibis.impl.net.NetConnection connection}
+     * between a {@linkplain ibis.impl.net.NetSendPort send port} and a
+     * {@linkplain ibis.impl.net.NetReceivePort receive port} is made of a
+     * <I>service</I> connection <B>and</B> an <I>application</I> connection.
+     * <BR><B>Note:</B> establishing the 'service' part of a new {@linkplain
+     * ibis.impl.net.NetConnection connection} is the first step in building
+     * the connection with a remote {@linkplain ibis.impl.net.NetReceivePort
+     * port}.
+     *
      * @return    the new {@linkplain ibis.impl.net.NetConnection connection}.
      * @exception IOException in case of trouble.
      */
@@ -413,16 +436,16 @@ public final class NetSendPort extends NetPort implements SendPort,
         link.init(num);
 
         String peerPrefix = null;
-        ObjectOutputStream os = new ObjectOutputStream(link
-                .getOutputSubStream("__port__"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                link.getOutputSubStream("__port__"));
         os.writeObject(identifier);
         os.writeInt(sendPortMessageRank);
         os.writeInt(sendPortMessageId);
         os.writeLong(msgSeqno);
         os.flush();
         os.close();
-        ObjectInputStream is = new ObjectInputStream(link
-                .getInputSubStream("__port__"));
+        ObjectInputStream is = new ObjectInputStream(
+                link.getInputSubStream("__port__"));
         int rank = is.readInt();
         int rpmid = is.readInt();
 
@@ -448,9 +471,19 @@ public final class NetSendPort extends NetPort implements SendPort,
     /**
      * The setup of an new outgoing <I>application</I> connection.
      *
-     * The application connection is an application-use only network connection. A logical NetIbis {@linkplain ibis.impl.net.NetConnection connection} between a {@linkplain ibis.impl.net.NetSendPort send port} and a {@linkplain ibis.impl.net.NetReceivePort receive port} is made of a <I>service</I> connection <B>and</B> an <I>application</I> connection.
-     * <BR><B>Note:</B> establishing the 'application' part of a new {@linkplain ibis.impl.net.NetConnection connection} is the last step in building the connection with a remote {@linkplain ibis.impl.net.NetReceivePort port}.
-     * @param     cnx the {@linkplain ibis.impl.net.NetConnection connection} to setup.
+     * The application connection is an application-use only network
+     * connection. A logical NetIbis {@linkplain ibis.impl.net.NetConnection
+     * connection} between a {@linkplain ibis.impl.net.NetSendPort send port}
+     * and a {@linkplain ibis.impl.net.NetReceivePort receive port} is made
+     * of a <I>service</I> connection <B>and</B> an <I>application</I>
+     * connection.
+     * <BR><B>Note:</B> establishing the 'application' part of a new
+     * {@linkplain ibis.impl.net.NetConnection connection} is the last step
+     * in building the connection with a remote {@linkplain
+     * ibis.impl.net.NetReceivePort port}.
+     *
+     * @param     cnx the {@linkplain ibis.impl.net.NetConnection
+     * 		connection} to setup.
      * @exception IOException in case of trouble.
      */
     private void establishApplicationConnection(NetConnection cnx)
@@ -463,9 +496,13 @@ public final class NetSendPort extends NetPort implements SendPort,
     /**
      * The unconditionnal closing of a {@link ibis.impl.net.NetConnection}.
      *
-     * This function is mainly called by the {@link #event event-processing callback}.
-     * <BR><B>Note:</B> The <code>cnx</code> connection should be removed from the connection table before being passed to this function.
-     * @param     cnx the {@linkplain ibis.impl.net.NetConnection connection} to close.
+     * This function is mainly called by the {@link #event event-processing
+     * callback}.
+     * <BR><B>Note:</B> The <code>cnx</code> connection should be removed
+     * from the connection table before being passed to this function.
+     *
+     * @param     cnx the {@linkplain ibis.impl.net.NetConnection connection}
+     * 		to close.
      * @exception IOException in case of trouble.
      */
     private void close(NetConnection cnx) throws IOException {
@@ -520,9 +557,9 @@ public final class NetSendPort extends NetPort implements SendPort,
             output.writeSeqno(seqno);
         }
         if (trace.on()) {
-            final String messageId = (((NetIbis) type.getIbis())
-                    .closedPoolRank())
-                    + "-" + sendPortMessageId + "-" + (messageCount++);
+            int rank = ((NetIbis) type.getIbis()).closedPoolRank();
+            final String messageId = rank + "-" + sendPortMessageId
+                    + "-" + (messageCount++);
             trace.disp(sendPortTracePrefix, "message " + messageId
                     + " send to " + receiversPrefixes + "-->");
             writeString(messageId);
@@ -602,11 +639,12 @@ public final class NetSendPort extends NetPort implements SendPort,
                 connect(rpi);
                 success = true;
             } catch (IOException e) {
-                int timeLeft = (int) (start + timeout_millis - System
-                        .currentTimeMillis());
+                int timeLeft = (int) (start + timeout_millis
+                        - System.currentTimeMillis());
                 try {
-                    if (timeLeft > 0)
+                    if (timeLeft > 0) {
                         Thread.sleep(Math.min(timeLeft, 500));
+                    }
                 } catch (InterruptedException e2) {
                     // ignore               
                 }
@@ -617,8 +655,8 @@ public final class NetSendPort extends NetPort implements SendPort,
 
     public ReceivePortIdentifier[] connectedTo() {
         synchronized (connectionTable) {
-            ReceivePortIdentifier t[] = new ReceivePortIdentifier[connectionTable
-                    .size()];
+            int size = connectionTable.size();
+            ReceivePortIdentifier t[] = new ReceivePortIdentifier[size];
 
             Iterator it = connectionTable.values().iterator();
             int i = 0;
@@ -634,8 +672,8 @@ public final class NetSendPort extends NetPort implements SendPort,
 
     public ReceivePortIdentifier[] lostConnections() {
         synchronized (connectionTable) {
-            ReceivePortIdentifier t[] = new ReceivePortIdentifier[disconnectedPeers
-                    .size()];
+            int size = disconnectedPeers.size();
+            ReceivePortIdentifier t[] = new ReceivePortIdentifier[size];
             disconnectedPeers.copyInto(t);
             disconnectedPeers.clear();
 
@@ -673,8 +711,9 @@ public final class NetSendPort extends NetPort implements SendPort,
 
                         synchronized (connectionTable) {
                             Iterator i = connectionTable.values().iterator();
-                            if (!i.hasNext())
+                            if (!i.hasNext()) {
                                 break;
+                            }
 
                             cnx = (NetConnection) i.next();
                             i.remove();

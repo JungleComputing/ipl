@@ -85,8 +85,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
                 String peerPrefix = null;
 
                 try {
-                    ObjectInputStream is = new ObjectInputStream(link
-                            .getInputSubStream("__port__"));
+                    ObjectInputStream is = new ObjectInputStream(
+                            link.getInputSubStream("__port__"));
                     spi = (NetSendPortIdentifier) is.readObject();
                     int rank = is.readInt();
                     int spmid = is.readInt();
@@ -99,8 +99,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
                     peerPrefix = "_s" + rank + "-" + spmid + "_";
 
                     is.close();
-                    ObjectOutputStream os = new ObjectOutputStream(link
-                            .getOutputSubStream("__port__"));
+                    ObjectOutputStream os = new ObjectOutputStream(
+                            link.getOutputSubStream("__port__"));
                     os.writeInt(receivePortMessageRank);
                     os.writeInt(receivePortMessageId);
                     os.flush();
@@ -126,8 +126,7 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
                                 connectedPeers.add(spi);
                                 if (rpcu != null) {
-                                    rpcu
-                                            .gotConnection(NetReceivePort.this,
+                                    rpcu.gotConnection(NetReceivePort.this,
                                                     spi);
                                 }
 
@@ -136,7 +135,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
                                 } else {
                                     singleConnection = null;
                                 }
-                                if (connectionTable.size() > maxLiveConnections) {
+                                if (connectionTable.size()
+                                        > maxLiveConnections) {
                                     maxLiveConnections = connectionTable.size();
                                 }
                             }
@@ -164,28 +164,6 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
             log.out("accept thread leaving");
         }
 
-        /**
-         * Requests for the thread completion.
-         */
-        /*
-         protected void prepareEnd() {
-         end = true;
-
-         if (serverSocket != null) {
-         try {
-         serverSocket.close();
-         } catch (Exception e) {
-         throw new Error(e);
-         }
-         }
-         }
-
-         protected void end() {
-
-         this.interrupt();
-         }
-         */
-
         protected void end() throws IOException {
             log.in();
             synchronized (connectionLock) {
@@ -206,8 +184,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     private boolean useUpcall = false;
 
     /**
-     * Flag indicating whether unsuccessful active polling should be followed by
-     * a yield.
+     * Flag indicating whether unsuccessful active polling should be
+     * followed by a yield.
      *
      * Note: this flag only affects asynchronous multithreaded
      * polling or synchronous {@link #receive} operations. In
@@ -303,8 +281,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     /**
      * The empty message detection flag.
      *
-     * The flag is set on each new {@link #_receive} call and should
-     * be cleared as soon as at least a byte as been added to the living message.
+     * The flag is set on each new {@link #_receive} call and should be
+     * cleared as soon as at least a byte as been added to the living message.
      */
     private boolean emptyMsg = true;
 
@@ -662,8 +640,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
     private void initServerSocket() throws IOException {
         log.in();
-        serverSocket = NetIbis.socketFactory.createServerSocket(0, 0, IPUtils
-                .getLocalHostAddress());
+        serverSocket = NetIbis.socketFactory.createServerSocket(0, 0,
+                IPUtils.getLocalHostAddress());
         log.out();
     }
 
@@ -838,8 +816,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     }
 
     /**
-     * Returns the identifier of the current active port peer or <code>null</code>
-     * if no peer port is active.
+     * Returns the identifier of the current active port peer or
+     * <code>null</code> if no peer port is active.
      *
      * @return The identifier of the port.
      */
@@ -861,8 +839,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
     public SendPortIdentifier[] connectedTo() {
         synchronized (connectionTable) {
-            SendPortIdentifier t[] = new SendPortIdentifier[connectionTable
-                    .size()];
+            SendPortIdentifier t[]
+                = new SendPortIdentifier[connectionTable.size()];
 
             Iterator it = connectionTable.values().iterator();
             int i = 0;
@@ -878,8 +856,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
     public SendPortIdentifier[] lostConnections() {
         synchronized (connectionTable) {
-            SendPortIdentifier t[] = new SendPortIdentifier[disconnectedPeers
-                    .size()];
+            SendPortIdentifier t[]
+                = new SendPortIdentifier[disconnectedPeers.size()];
             disconnectedPeers.copyInto(t);
             disconnectedPeers.clear();
 
@@ -889,8 +867,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
     public SendPortIdentifier[] newConnections() {
         synchronized (connectionTable) {
-            SendPortIdentifier t[] = new SendPortIdentifier[connectedPeers
-                    .size()];
+            SendPortIdentifier t[]
+                = new SendPortIdentifier[connectedPeers.size()];
             connectedPeers.copyInto(t);
             connectedPeers.clear();
 
@@ -920,8 +898,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
                     connectionLock.lock();
                     break;
                 } catch (InterruptedIOException e) {
-                    System.err
-                            .println("InterruptedIOException ignored in NetReceivePort.disableConnections");
+                    System.err.println("InterruptedIOException ignored in "
+                            + this + ".disableConnections");
                 }
             }
         }
@@ -1066,8 +1044,9 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
                     synchronized (connectionTable) {
                         Iterator i = connectionTable.values().iterator();
-                        if (!i.hasNext())
+                        if (!i.hasNext()) {
                             break;
+                        }
 
                         cnx = (NetConnection) i.next();
                         if (rpcu != null) {

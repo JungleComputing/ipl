@@ -23,10 +23,12 @@ import java.util.Iterator;
 import java.util.Vector;
 
 /**
- * Provide a TCP connection parallel to an actual application network connection and dedicated for internal use.
+ * Provide a TCP connection parallel to an actual application network
+ * connection and dedicated for internal use.
  *
- * This service link is supposed to be used by the various drivers that compose the driver stack. It is split into
- * several multiplexed 'sub-streams' that can be allocated dynamically.
+ * This service link is supposed to be used by the various drivers that
+ * compose the driver stack. It is split into several multiplexed
+ * 'sub-streams' that can be allocated dynamically.
  */
 public final class NetServiceLink {
 
@@ -40,19 +42,25 @@ public final class NetServiceLink {
     private final static int _OP_eof = 0;
 
     /**
-     * 'Request substream id' opcode for the commands sent over the main sub-stream.
+     * 'Request substream id' opcode for the commands sent over the main
+     * sub-stream.
      *
-     *  This opcode is sent by a node when allocating a new outgoing sub-stream in order to
-     *  get the identification value for packets corresponding to thus sub-stream.
+     * This opcode is sent by a node when allocating a new outgoing
+     * sub-stream in order to get the identification value for packets
+     * corresponding to thus sub-stream.
+     *
      * @see ServiceThread#requestSubstreamId
      * @see ServiceThread#run
      */
     private final static int _OP_request_substream_id = 1;
 
     /**
-     * 'Receive substream id' opcode for the commands sent over the main sub-stream.
+     * 'Receive substream id' opcode for the commands sent over the main
+     * sub-stream.
      *
-     * This opcode is sent along with the answer to the {@link #_OP_request_substream_id 'Request substream id'} request.
+     * This opcode is sent along with the answer to the {@link
+     * #_OP_request_substream_id 'Request substream id'} request.
+     *
      * @see ServiceThread#receiveSubstreamId
      * @see ServiceThread#run
      */
@@ -100,14 +108,16 @@ public final class NetServiceLink {
     /**
      * The main outgoing sub-stream.
      *
-     * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink} object to send commands to its peer object.
+     * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink}
+     * object to send commands to its peer object.
      */
     private ObjectOutputStream main_oos = null;
 
     /**
      * The main incoming sub-stream.
      *
-     * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink} object to receive commands from its peer object.
+     * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink}
+     * object to receive commands from its peer object.
      */
     private ObjectInputStream main_ois = null;
 
@@ -188,8 +198,8 @@ public final class NetServiceLink {
 
     static {
         if (false) {
-            System.err
-                    .println("WARNING: Class NetServiceLink (still) uses Conversion.defaultConversion");
+            System.err.println("WARNING: Class NetServiceLink (still)"
+                    + " uses Conversion.defaultConversion");
         }
     }
 
@@ -390,14 +400,17 @@ public final class NetServiceLink {
     /**
      * Allocate a new output sub-stream.
      *
-     * <BR><B>Note:</B>&nbsp;The peer node is not required to synchronously allocate the corresponding input sub-stream.
-     * <BR><B>Note 2:</B>&nbsp;Requesting a output sub-stream after it has been closed will <B>not</B> reopen the stream.
+     * <BR><B>Note:</B>&nbsp;The peer node is not required to synchronously
+     * allocate the corresponding input sub-stream.
+     * <BR><B>Note 2:</B>&nbsp;Requesting a output sub-stream after it has
+     * been closed will <B>not</B> reopen the stream.
      *
-     * @param name the name associated to the stream, used to match this with the corresponding input sub-stream on the peer node.
+     * @param name the name associated to the stream, used to match this
+     * 		with the corresponding input sub-stream on the peer node.
      * @exception IOException when the operation fails.
      */
-    protected synchronized NetServiceOutputStream getOutputSubStream(String name)
-            throws IOException {
+    protected synchronized NetServiceOutputStream getOutputSubStream(
+            String name) throws IOException {
         OutputClient oc = null;
 
         synchronized (outputMap) {
@@ -477,16 +490,12 @@ public final class NetServiceLink {
      * Allocate a new output sub-stream.
      *
      * @see #getOutputSubStream(String)
-     *
-     * @param io the input or output object requesting the
-     * sub-stream.
-     *
-     * @param name the name associated to the stream, used to
-     * match this with the corresponding input sub-stream on the peer node;
-     * <B>Note:</B>&nbsp;this name will be prefixed by the {@link
-     * NetIO}'s {@linkplain ibis.impl.net.NetIO#context() context string} to
-     * provide some kind of dynamic namespace.
-     *
+     * @param io the input or output object requesting the sub-stream.
+     * @param name the name associated to the stream, used to match this
+     * 		with the corresponding input sub-stream on the peer node;
+     *		<B>Note:</B>&nbsp;this name will be prefixed by the {@link
+     *		NetIO}'s {@linkplain ibis.impl.net.NetIO#context() context
+     *		string} to provide some kind of dynamic namespace.
      * @exception IOException when the operation fails.
      */
     public NetServiceOutputStream getOutputSubStream(NetIO io, String name)
@@ -498,16 +507,12 @@ public final class NetServiceLink {
      * Allocate a new input sub-stream.
      *
      * @see #getInputSubStream(String)
-     *
-     * @param io the input or output object requesting the
-     * sub-stream.
-     *
-     * @param name the name associated to the stream, used to
-     * match this with the corresponding output sub-stream on the peer node;
-     * <B>Note:</B>&nbsp;this name will be prefixed by the {@link
-     * NetIO}'s {@linkplain ibis.impl.net.NetIO#context() context string} to
-     * provide some kind of dynamic namespace.
-     *
+     * @param io the input or output object requesting the sub-stream.
+     * @param name the name associated to the stream, used to match this
+     * 		with the corresponding output sub-stream on the peer node;
+     *		<B>Note:</B>&nbsp;this name will be prefixed by the {@link
+     *		NetIO}'s {@linkplain ibis.impl.net.NetIO#context() context
+     *		string} to provide some kind of dynamic namespace.
      * @exception IOException when the operation fails.
      */
     public NetServiceInputStream getInputSubStream(NetIO io, String name)
@@ -687,7 +692,8 @@ public final class NetServiceLink {
     }
 
     /**
-     * Provide a thread processing commands received over the {@linkplain #main_ois main input sub-stream}.
+     * Provide a thread processing commands received over the {@linkplain
+     * #main_ois main input sub-stream}.
      */
     private final class ServiceThread implements NetServicePopupThread {
 
@@ -794,37 +800,39 @@ public final class NetServiceLink {
 
             switch (op) {
 
-            case _OP_eof: {
-                exit = true;
-                close();
-            }
+            case _OP_eof:
+                {
+                    exit = true;
+                    close();
+                }
                 break;
 
-            case _OP_request_substream_id: {
-                final String name = main_ois.readUTF();
-                Runnable r = new Runnable() {
-                    public void run() {
-                        requestSubstreamId(name);
-                    }
-                };
-                ThreadPool.createNew(r);
-            }
+            case _OP_request_substream_id:
+                {
+                    final String name = main_ois.readUTF();
+                    Runnable r = new Runnable() {
+                        public void run() {
+                            requestSubstreamId(name);
+                        }
+                    };
+                    ThreadPool.createNew(r);
+                }
                 break;
 
-            case _OP_receive_substream_id: {
-                final Integer id = new Integer(main_ois.readInt());
-                Runnable r = new Runnable() {
-                    public void run() {
-                        receiveSubstreamId(id);
-                    }
-                };
-                ThreadPool.createNew(r);
-            }
+            case _OP_receive_substream_id:
+                {
+                    final Integer id = new Integer(main_ois.readInt());
+                    Runnable r = new Runnable() {
+                        public void run() {
+                            receiveSubstreamId(id);
+                        }
+                    };
+                    ThreadPool.createNew(r);
+                }
                 break;
 
-            default: {
+            default:
                 throw new Error("invalid operation");
-            }
             }
         }
 

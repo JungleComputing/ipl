@@ -119,16 +119,16 @@ public final class UdpOutput extends NetBufferedOutput {
         Hashtable rInfo = null;
 
         // System.err.println(this + ": setupConnection, now receive");
-        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                .getInputSubStream(this, "udp-request"));
+        ObjectInputStream is = new ObjectInputStream(
+                cnx.getServiceLink().getInputSubStream(this, "udp-request"));
         try {
             rInfo = (Hashtable) is.readObject();
         } catch (ClassNotFoundException e) {
             throw new Error(e);
         }
 
-        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(this, "udp-reply"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                cnx.getServiceLink().getOutputSubStream(this, "udp-reply"));
         os.writeObject(lInfo);
         os.close();
 

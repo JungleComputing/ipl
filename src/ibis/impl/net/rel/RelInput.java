@@ -105,8 +105,8 @@ public final class RelInput extends NetBufferedInput
     java.util.Random discardRandom;
 
     static {
-        System.err
-                .println("WARNING: Class net.rel.RelInput (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class net.rel.RelInput (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     static {
@@ -305,12 +305,12 @@ public final class RelInput extends NetBufferedInput
         int lastContiguous = nextContiguous;
 
         // Shortcut for the common case (avoid scanning for each receipt)
-        if (!always && /* User wants always, OK */
-        nextNonMissing >= maxFragCount &&
-        /* Already reported max. missing packet */
-        maxFragCount - lastContiguousAck < windowSize / 2
-        /* Half-window not yet reached */
-        ) {
+        if (!always		/* User wants always, OK */
+                && nextNonMissing >= maxFragCount
+                                /* Already reported max. missing packet */
+                && maxFragCount - lastContiguousAck < windowSize / 2
+                                /* Half-window not yet reached */
+            ) {
             if (DEBUG_ACK) {
                 System.err.println("fillAck: bail out because maxFragCount="
                         + maxFragCount + " - lastContiguousAck="
@@ -342,12 +342,12 @@ public final class RelInput extends NetBufferedInput
             // Thread.dumpStack();
         }
 
-        if (!always && /* User wants always, OK */
-        nextNonMissing >= maxFragCount &&
-        /* Already reported max. missing packet */
-        nextContiguous - lastContiguousAck < windowSize / 2
-        /* Half-window not yet reached */
-        ) {
+        if (!always		/* User wants always, OK */
+                && nextNonMissing >= maxFragCount
+                                /* Already reported max. missing packet */
+                && nextContiguous - lastContiguousAck < windowSize / 2
+                                /* Half-window not yet reached */
+            ) {
             if (DEBUG_ACK) {
                 System.err.println("fillAck: bail out because nextContiguous="
                         + nextContiguous + " - lastContiguousAck="
@@ -552,8 +552,8 @@ public final class RelInput extends NetBufferedInput
 
         checkUnlocked();
 
-        RelReceiveBuffer packet = (RelReceiveBuffer) dataInput
-                .readByteBuffer(mtu);
+        RelReceiveBuffer packet
+            = (RelReceiveBuffer) dataInput.readByteBuffer(mtu);
         if (DEBUG || (DEBUG_REXMIT && DEBUG_ACK)) {
             int first_int = RelOutput.reportPacket(System.err,
                     "Received Packet length " + packet.length, packet.data, 0, // headerStart,
@@ -639,8 +639,8 @@ public final class RelInput extends NetBufferedInput
 
         while (front == null || front.fragCount != nextDeliver) {
             /* This is no longer true: each packet is polled and finished.
-             // Nononono don't call poll() from here. We KNOW there will be some
-             // data, though it may be way past ma~nana
+             // Nononono don't call poll() from here. We KNOW there will be
+             // some data, though it may be way past ma~nana
              */
             if (pollDataInput(true)) {
                 receiveDataPacket();

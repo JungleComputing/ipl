@@ -16,8 +16,8 @@ public final class DefOutput extends NetBufferedOutput {
     private OutputStream defOs = null;
 
     static {
-        System.err
-                .println("WARNING: Class netDefOutput (still) uses Conversion.defaultConversion");
+        System.err.println("WARNING: Class netDefOutput (still)"
+                + " uses Conversion.defaultConversion");
     }
 
     /**

@@ -75,8 +75,8 @@ public final class TcpOutput extends NetBufferedOutput {
 
     static {
         if (false) {
-            System.err
-                    .println("WARNING: Class net.tcp_blk.TcpOutput (still) uses Conversion.defaultConversion");
+            System.err.println("WARNING: Class net.tcp_blk.TcpOutput (still)"
+                    + " uses Conversion.defaultConversion");
         }
     }
 
@@ -93,7 +93,8 @@ public final class TcpOutput extends NetBufferedOutput {
         headerLength = 4;
     }
 
-    private Socket makeBrokeredConnection(NetConnection cnx) throws IOException {
+    private Socket makeBrokeredConnection(NetConnection cnx)
+            throws IOException {
         InputStream brokering_in = cnx.getServiceLink().getInputSubStream(this,
                 "tcp_blk_brokering");
         OutputStream brokering_out = cnx.getServiceLink().getOutputSubStream(
@@ -113,8 +114,9 @@ public final class TcpOutput extends NetBufferedOutput {
             public String getProperty(String name) {
                 if (p != null) {
                     String result = (String) p.find(name);
-                    if (result != null)
+                    if (result != null) {
                         return result;
+                    }
                 }
                 return nn.getProperty(name);
             }
@@ -142,8 +144,8 @@ public final class TcpOutput extends NetBufferedOutput {
 
         this.rpn = cnx.getNum();
 
-        DataInputStream is = new DataInputStream(cnx.getServiceLink()
-                .getInputSubStream(this, "tcp_blk"));
+        DataInputStream is = new DataInputStream(
+                cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
         rmtu = is.readInt();
         is.close();
 
@@ -152,8 +154,8 @@ public final class TcpOutput extends NetBufferedOutput {
         tcpSocket = ((Driver) driver).getCachedOutput(partner);
         // System.err.println(this + ": cached socket(ibis=" + partner + ") " + tcpSocket);
 
-        DataOutputStream os = new DataOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(this, "tcp_blk"));
+        DataOutputStream os = new DataOutputStream(
+                cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
         os.writeInt(lmtu);
         if (tcpSocket == null) {
             os.writeInt(-1);

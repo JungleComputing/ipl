@@ -73,7 +73,8 @@ public final class NetAllocator {
         /**
          * Store the previously allocated blocks.
          *
-         * The use of a stack as the data structure means that the last freed block will be reallocated first.
+         * The use of a stack as the data structure means that the last freed
+         * block will be reallocated first.
          */
         byte[][] stack = null;
 
@@ -91,12 +92,14 @@ public final class NetAllocator {
     }
 
     /**
-     * A {@link ibis.impl.net.NetStat} for {@linkplain ibis.impl.net.NetAllocator allocator} monitoring.
+     * A {@link ibis.impl.net.NetStat} for
+     * {@linkplain ibis.impl.net.NetAllocator allocator} monitoring.
      */
     private static class NetAllocatorStat extends NetStat {
 
         /**
-         * The number of blocks allocated while the cache {@link #stack} is empty.
+         * The number of blocks allocated while the cache {@link #stack} is
+         * empty.
          */
         private int uncached_alloc = 0;
 
@@ -111,12 +114,14 @@ public final class NetAllocator {
         private int cached_free = 0;
 
         /**
-         * The number of blocks discarded because the cache {@link #stack} was full.
+         * The number of blocks discarded because the cache {@link #stack} was
+         * full.
          */
         private int uncached_free = 0;
 
         /**
-         * Store the stack trace at the allocator creation time for debugging purpose.
+         * Store the stack trace at the allocator creation time for debugging
+         * purpose.
          */
         String[] callerArray = null;
 
@@ -124,14 +129,14 @@ public final class NetAllocator {
          * The constructor.
          *
          * @param on indicates whether the stat object is active or not.
-         * @param moduleName is the name of the software entity the stat object is monitoring.
+         * @param moduleName is the name of the software entity the stat
+         * 		object is monitoring.
          */
         public NetAllocatorStat(boolean on, String moduleName) {
             super(on, moduleName);
 
             if (DEBUG) {
-                StackTraceElement[] steArray = (new Throwable())
-                        .getStackTrace();
+                StackTraceElement[] steArray = new Throwable().getStackTrace();
                 callerArray = new String[steArray.length];
                 for (int i = 0; i < steArray.length; i++) {
                     callerArray[i] = steArray[i].toString();
@@ -189,9 +194,12 @@ public final class NetAllocator {
          */
         public void report() {
             if (on) {
+                String separator
+                    = new String("____________________________________");
+
                 System.err.println();
                 System.err.println("Allocator stats " + moduleName);
-                System.err.println("------------------------------------");
+                System.err.println(separator);
 
                 reportVal(uncached_alloc, "uncached allocation");
                 reportVal(cached_alloc, "cached allocation");
@@ -208,8 +216,7 @@ public final class NetAllocator {
                             System.err.println("frame " + i + ": "
                                     + callerArray[i]);
                         }
-                        System.err
-                                .println("____________________________________");
+                        System.err.println(separator);
                     }
                 }
 
@@ -250,7 +257,7 @@ public final class NetAllocator {
      * Constructor allowing to select the block size and the cache
      * size of the allocator.
      *
-     * @param blockSize The size of the memory blocks provided by this allocator.
+     * @param blockSize size of the memory blocks provided by this allocator.
      */
     public NetAllocator(int blockSize) {
 
@@ -350,7 +357,8 @@ public final class NetAllocator {
     }
 
     /**
-     * Print some information at shutdown about the blocks that were not freed, for debugging purpose.
+     * Print some information at shutdown about the blocks that were not
+     * freed, for debugging purpose.
      */
     protected void shutdownHook() {
         if (DEBUG) {

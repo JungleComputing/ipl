@@ -182,14 +182,14 @@ public final class GmInput extends NetBufferedInput {
         lInfo.put("gm_mux_id", new Integer(lmuxId));
         Hashtable rInfo = null;
 
-        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
-                .getOutputSubStream(this, "gm"));
+        ObjectOutputStream os = new ObjectOutputStream(
+                cnx.getServiceLink().getOutputSubStream(this, "gm"));
 
         os.writeObject(lInfo);
         os.flush();
 
-        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
-                .getInputSubStream(this, "gm"));
+        ObjectInputStream is = new ObjectInputStream(
+                cnx.getServiceLink().getInputSubStream(this, "gm"));
 
         try {
             rInfo = (Hashtable) is.readObject();
@@ -224,22 +224,23 @@ public final class GmInput extends NetBufferedInput {
      */
     /* Must hold gmAccessLock on entry/exit */
     /*
-     private void pump(int[] lockIds) throws IOException {
-     boolean interrupted;
-     do {
-     try {
-     Driver.blockingPump(lockIds);
-     interrupted = false;
-     } catch (InterruptedIOException e) {
-     // try once more
-     interrupted = true;
-     if (Driver.VERBOSE_INTPT) {
-     System.err.println(this + ": ********** Catch InterruptedIOException " + e);
-     }
-     }
-     } while (interrupted);
-     }
-     */
+    private void pump(int[] lockIds) throws IOException {
+        boolean interrupted;
+        do {
+            try {
+                Driver.blockingPump(lockIds);
+                interrupted = false;
+            } catch (InterruptedIOException e) {
+                // try once more
+                interrupted = true;
+                if (Driver.VERBOSE_INTPT) {
+                    System.err.println(this
+                            + ": ********** Catch InterruptedIOException " + e);
+                }
+            }
+        } while (interrupted);
+    }
+    */
 
     /**
      * Pump in the face of InterruptedIOExceptions
@@ -273,9 +274,7 @@ public final class GmInput extends NetBufferedInput {
      */
     public Integer doPoll(boolean block) throws IOException {
         log.in();
-        System.err
-                .println(this
-                        + ": WARNING: nowadays, you should use GmPoller i.s.o. GmInput");
+
         if (true) {
             throw new Error("nowadays, you should use GmPoller i.s.o. GmInput");
         }
@@ -333,11 +332,13 @@ public final class GmInput extends NetBufferedInput {
         try {
             firstBlock();
 
-            if (Driver.TIMINGS)
+            if (Driver.TIMINGS) {
                 Driver.t_native_post.start();
+            }
             int result = nPostBuffer(inputHandle, b.data, 0, b.data.length);
-            if (Driver.TIMINGS)
+            if (Driver.TIMINGS) {
                 Driver.t_native_post.stop();
+            }
 
             // System.err.print("<_");
             // System.err.println("[" + lockId + "] Post byte buffer request length " + b.length + " data.length " + b.data.length + " result " + result);
@@ -430,11 +431,13 @@ public final class GmInput extends NetBufferedInput {
 
                 int _l = Math.min(l, mtu);
 
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.start();
+                }
                 int result = nPostBooleanBuffer(inputHandle, b, o, _l);
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.stop();
+                }
 
                 if (result == RENDEZ_VOUS_REQUEST) {
                     pump(); // Await receive of the rendez-vous data
@@ -464,11 +467,13 @@ public final class GmInput extends NetBufferedInput {
 
                 int _l = Math.min(l, mtu);
 
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.start();
+                }
                 int result = nPostByteBuffer(inputHandle, b, o, _l);
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.stop();
+                }
                 // System.err.println(this + ": in readArray(byte[]..); result " + result + " chunk " + _l + " currently l " + l);
 
                 if (result == RENDEZ_VOUS_REQUEST) {
@@ -500,11 +505,13 @@ public final class GmInput extends NetBufferedInput {
 
                 int _l = Math.min(l, mtu);
 
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.start();
+                }
                 int result = nPostCharBuffer(inputHandle, b, o, _l);
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.stop();
+                }
 
                 if (result == RENDEZ_VOUS_REQUEST) {
                     pump(); // Await receive of the rendez-vous data
@@ -536,13 +543,16 @@ public final class GmInput extends NetBufferedInput {
                 int _l = Math.min(l, mtu);
 
                 int result;
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.start();
-                if (b == null)
+                }
+                if (b == null) {
                     throw new Error("Cannot read into a null buffer");
+                }
                 result = nPostShortBuffer(inputHandle, b, o, _l);
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.stop();
+                }
                 // System.err.println(Thread.currentThread() + ": receive chunk of short, result " + result);
 
                 if (result == RENDEZ_VOUS_REQUEST) {
@@ -576,11 +586,13 @@ public final class GmInput extends NetBufferedInput {
 
                 int _l = Math.min(l, mtu);
 
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.start();
+                }
                 int result = nPostIntBuffer(inputHandle, b, o, _l);
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.stop();
+                }
 
                 if (result == RENDEZ_VOUS_REQUEST) {
                     pump(); // Await receive of the rendez-vous data
@@ -612,11 +624,13 @@ public final class GmInput extends NetBufferedInput {
 
                 int _l = Math.min(l, mtu);
 
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.start();
+                }
                 int result = nPostLongBuffer(inputHandle, b, o, _l);
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.stop();
+                }
 
                 if (result == RENDEZ_VOUS_REQUEST) {
                     pump(); // Await receive of the rendez-vous data
@@ -647,11 +661,13 @@ public final class GmInput extends NetBufferedInput {
 
                 int _l = Math.min(l, mtu);
 
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.start();
+                }
                 int result = nPostFloatBuffer(inputHandle, b, o, _l);
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.stop();
+                }
 
                 if (result == RENDEZ_VOUS_REQUEST) {
                     pump(); // Await receive of the rendez-vous data
@@ -682,11 +698,13 @@ public final class GmInput extends NetBufferedInput {
 
                 int _l = Math.min(l, mtu);
 
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.start();
+                }
                 int result = nPostDoubleBuffer(inputHandle, b, o, _l);
-                if (Driver.TIMINGS)
+                if (Driver.TIMINGS) {
                     Driver.t_native_post.stop();
+                }
 
                 if (result == RENDEZ_VOUS_REQUEST) {
                     pump(); // Await receive of the rendez-vous data

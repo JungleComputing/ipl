@@ -14,9 +14,9 @@ public final class NetConnection {
     private final static boolean DEBUG = false;
 
     /**
-     * Reference the {@link ibis.impl.net.NetSendPort} or {@link ibis.impl.net.NetReceivePort}
-     * which created this connection, and from which the {@link
-     * NetPortType} is 'inherited'.
+     * Reference the {@link ibis.impl.net.NetSendPort} or {@link
+     * ibis.impl.net.NetReceivePort} which created this connection, and from
+     * which the {@link NetPortType} is 'inherited'.
      */
     private NetPort port = null;
 
@@ -95,10 +95,10 @@ public final class NetConnection {
         this.replacer = replacer;
 
         try {
-            disconnect_os = new DataOutputStream(serviceLink
-                    .getOutputSubStream("disconnect"));
-            NetServiceInputStream sis = serviceLink
-                    .getInputSubStream("disconnect");
+            disconnect_os = new DataOutputStream(
+                    serviceLink.getOutputSubStream("disconnect"));
+            NetServiceInputStream sis = serviceLink.getInputSubStream(
+                    "disconnect");
             disconnect_is = new DataInputStream(sis);
             disconnectThread = new DisconnectThread();
             sis.registerPopup(disconnectThread);
@@ -154,7 +154,8 @@ public final class NetConnection {
     /**
      * Return the owner of this connection.
      *
-     * @return the {@link ibis.impl.net.NetSendPort} or the {@link ibis.impl.net.NetReceivePort} that owns this connection.
+     * @return the {@link ibis.impl.net.NetSendPort} or the {@link
+     * ibis.impl.net.NetReceivePort} that owns this connection.
      */
     public synchronized NetPort getPort() {
         return port;

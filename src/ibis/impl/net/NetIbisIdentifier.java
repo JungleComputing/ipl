@@ -26,8 +26,9 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
     }
 
     public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
+        }
         if (o instanceof NetIbisIdentifier) {
             NetIbisIdentifier other = (NetIbisIdentifier) o;
             return equals(other);
@@ -36,8 +37,9 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
     }
 
     public boolean equals(NetIbisIdentifier other) {
-        if (other == this)
+        if (other == this) {
             return true;
+        }
         return /*address.equals(other.address) &&*/name.equals(other.name);
     }
 
@@ -54,9 +56,11 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
 
     // no need to serialize super class fields, this is done automatically
     // We handle the address field special.
-    // Do not do a writeObject on it (or a defaultWriteObject of the current object),
-    // because InetAddress might not be rewritten as it is in the classlibs --Rob
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+    // Do not do a writeObject on it (or a defaultWriteObject of the current
+    // object), because InetAddress might not be rewritten as it is in the
+    // classlibs --Rob
+    private void writeObject(java.io.ObjectOutputStream out)
+            throws IOException {
         int handle = cache.getHandle(out, this);
         out.writeInt(handle);
         if (handle < 0) { // First time, send it.

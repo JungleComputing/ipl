@@ -41,7 +41,8 @@ public class NetServiceInputStream extends InputStream {
     /**
      * Set to true once the stream is closed.
      *
-     * The stream cannot be re-opened after having been closed (same semantics as a socket stream).
+     * The stream cannot be re-opened after having been closed (same
+     * semantics as a socket stream).
      */
     private boolean closed = false;
 
@@ -191,12 +192,10 @@ public class NetServiceInputStream extends InputStream {
     /**
      * Return the number of bytes immediately available.
      *
-     * The value returned is the value of the {@link
-     * #avail} attribute.
+     * The value returned is the value of the {@link #avail} attribute.
      *
      * @return the number of bytes immediately availables.
-     * @exception IOException to conform to the {@link
-     * InputStream} definition.
+     * @exception IOException to conform to the {@link InputStream} definition.
      */
     public synchronized int available() throws IOException {
         return avail;
@@ -205,8 +204,7 @@ public class NetServiceInputStream extends InputStream {
     /**
      * Close the stream.
      *
-     * The stream cannot be re-opened afterwards. Any
-     * unread data is lost.
+     * The stream cannot be re-opened afterwards. Any unread data is lost.
      */
     public synchronized void close() throws IOException {
         closed = true;
