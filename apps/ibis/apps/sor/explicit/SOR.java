@@ -96,6 +96,12 @@ public class SOR {
 	    }
 	    System.exit(1);
 	}
+	if (maxIters < 0 && REDUCE_ON_FIXED) {
+	    if (info.rank() == 0) {
+		System.out.println("Need to specify maxIters if -Dreduce=off");
+	    }
+	    System.exit(1);
+	}
 
 	this.N = N;
 	nrow = N;
