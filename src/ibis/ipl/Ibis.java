@@ -250,20 +250,20 @@ public abstract class Ibis {
 				"Could not find a matching Ibis");
 		}
 	    }
-	    else {
-		implementationname = "ibis.impl.tcp.TcpIbis";
-		if (ibisname.equals("panda")) {
-		    implementationname =  "ibis.impl.messagePassing.PandaIbis";
-		} else if (ibisname.equals("mpi")) {
-		    implementationname =  "ibis.impl.messagePassing.MPIIbis";
-		} else if (ibisname.startsWith("net")) {
-		    implementationname =  "ibis.impl.net.NetIbis";
-		    StaticProperties sp = staticProperties(implementationname);
-		    sp.add("IbisName", ibisname);
-		} else if (! ibisname.equals("tcp")) {
-		    System.err.println("Warning: name '" + ibisname +
-			    "' not recognized, using TCP version");
-		}
+	}
+	else {
+	    implementationname = "ibis.impl.tcp.TcpIbis";
+	    if (ibisname.equals("panda")) {
+		implementationname =  "ibis.impl.messagePassing.PandaIbis";
+	    } else if (ibisname.equals("mpi")) {
+		implementationname =  "ibis.impl.messagePassing.MPIIbis";
+	    } else if (ibisname.startsWith("net")) {
+		implementationname =  "ibis.impl.net.NetIbis";
+		StaticProperties sp = staticProperties(implementationname);
+		sp.add("IbisName", ibisname);
+	    } else if (! ibisname.equals("tcp")) {
+		System.err.println("Warning: name '" + ibisname +
+			"' not recognized, using TCP version");
 	    }
 	}
 
