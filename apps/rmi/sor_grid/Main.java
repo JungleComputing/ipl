@@ -154,7 +154,7 @@ class Main {
 	    double[] nodeSpeed = null;	/* Speed of node[i] */
 	    double speed = 1.0;
 	    if (hetero_speed) {
-		PoolInfo seqInfo = new PoolInfo(true);
+		PoolInfo seqInfo = PoolInfo.createPoolInfo(true);
 		GlobalData seqGlobal = new GlobalData(seqInfo);
 		local = new SOR(1024, 1024, nit, sync, seqGlobal, null, seqInfo, reduceFactor);
 		table = seqGlobal.table((i_SOR) local, seqInfo.rank());

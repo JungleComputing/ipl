@@ -75,7 +75,7 @@ public class PoolInfo {
 	/**
 	 * Constructs a <code>PoolInfo</code> object.
 	 */
-	public PoolInfo() {
+	private PoolInfo() {
 		this(false);
 	}
 
@@ -85,7 +85,7 @@ public class PoolInfo {
 	 * a sequential pool is created, with only the current node as
 	 * member. The system properties are ignored.
 	 */
-	public PoolInfo(boolean forceSequential) {
+	private PoolInfo(boolean forceSequential) {
 		if (forceSequential) {
 			sequentialPool();
 		} else {

@@ -3,9 +3,13 @@ IBIS:
 - autodetect connection setup mechanism (splicing, reverse, direct, central)
   Ceriel: not so easy. Once you are trying to set up a brokered socket,
   both sides have to agree on what types to try, use timeouts to detect
-  if a connection setup fails, ...
+  if a connection setup fails, ... AnyTCP comes close, but does not revert
+  to RoutedMessages when TCPSplice fails. Difficulty is in detecting when
+  TCPSplice fails, but it might be done with a timeout?
+  Anyway, issue for after first distribution.
 - code formatting of entire tree
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
+  After distribution.
 
 satin:
 - add semantic analysis to the compiler
@@ -17,8 +21,6 @@ satin:
 
 general:
 - IBISC maken / fixen
-- include grun in distro
+  after distribution.
+- include grun in distribution
 - run central nameserver on fs0
-
-
-

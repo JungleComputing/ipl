@@ -34,7 +34,7 @@ public final class ThreadPool {
     static {
 	int size;
 	try {
-	    PoolInfo info = new PoolInfo();
+	    PoolInfo info = PoolInfo.createPoolInfo();
 	    size = info.size() + minPoolSize;
 	    info = null;
 	} catch (RuntimeException e) {
