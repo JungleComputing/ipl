@@ -45,6 +45,8 @@ public class Client {
 		send_type = Datatype.CYCLIC;
 	    } else if (args[i].equals("-b")) {
 		send_type = Datatype.B;
+	    } else if (args[i].equals("-inner")) {
+		send_type = Datatype.INNER;
 	    } else if (args[i].equals("-warmup")) {
 		warm_up = Integer.parseInt(args[++i]);
 	    } else if (args[i].equals("-registry")) {
@@ -113,7 +115,7 @@ public class Client {
 	    } catch (ibis.rmi.NotBoundException eR) {
 		try {
 		    System.out.println("Look up server object: sleep a while...");
-		    Thread.sleep(100);
+		    Thread.sleep(1000);
 		} catch (InterruptedException eI) {
 		}
 	    } catch (Exception e) {
@@ -157,6 +159,13 @@ public class Client {
 		case Datatype.B:
 		    request = new B(size);
 		    break;
+		case Datatype.INNER:
+		    WithInner[] w = new WithInner[size];
+		    for (int i = 0; i < size; i++) {
+			w[i] = new WithInner();
+		    }
+		    request = w;
+		    break;
 		}
 	    }
 
@@ -197,7 +206,7 @@ public class Client {
 	    } else {
 		System.out.print(" bytes; ");
 	    }
-	    System.out.println(((double)total/N) + " ms./RMI");
+	    System.out.println(((1000.0 * total)/N) + " us./RMI");
 
 	    if (one_way) {
 		switch (send_type) {
@@ -229,6 +238,9 @@ public class Client {
 		    break;
 		case Datatype.CYCLIC:
 		    System.out.print("Cyclics");
+		    break;
+		case Datatype.INNER:
+		    System.out.print("With Inner");
 		    break;
 		}
 

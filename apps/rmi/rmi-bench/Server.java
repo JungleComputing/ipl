@@ -15,6 +15,8 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
     public Server(String[] args, Registry local) throws ibis.rmi.RemoteException {
 	super();
 
+	System.err.println("Server object: constructor");
+
 	int option = 0;
 	for (int i = 0; i < args.length; i++) {
 	    /* Eat away all the Client options. Just ignore them, the Server
@@ -30,6 +32,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 	    } else if (args[i].equals("-tree")) {
 	    } else if (args[i].equals("-cyc")) {
 	    } else if (args[i].equals("-b")) {
+	    } else if (args[i].equals("-inner")) {
 	    } else if (args[i].equals("-warmup")) {
 		i++;
 	    } else if (args[i].equals("-registry")) {
@@ -75,6 +78,8 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 	if (b instanceof B) {
 	    System.out.println("B.j = " + ((B)b).j);
 	    System.out.println("B.i = " + ((B)b).i);
+	} else if (b instanceof WithInner[]) {
+	    System.out.println("See a WithInner " + ((WithInner[])b)[0]);
 	}
 	return b;
     }
@@ -118,7 +123,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
     public void run() {
 
 	try {
-	    System.out.println("RMIenv done");
+	    System.out.println("Server: RMIenv done");
 	    local.rebind("server", this);
 
 	    // System.out.println("Server ready.");

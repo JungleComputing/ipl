@@ -32,14 +32,17 @@ class RMI_Bench {
 	    System.exit(33);
 	}
 
-	// System.out.println(my_cpu + ": connected to registry");
+	System.out.println(my_cpu + ": connected to registry");
+	System.out.println("ncpus " + ncpus + " my_cpu " + my_cpu);
 
 	if (ncpus == 1 || my_cpu == SERVER_HOST) {
 	    try {
 		System.out.println("RMI Benchmark");
 		Server s = new Server(argv, local);
 		if (ncpus == 1) {
-		    new Thread(s).start();
+		    Thread t = new Thread(s);
+		    t.setName("RMI_Bench server");
+		    t.start();
 		} else {
 		    s.run();
 		}

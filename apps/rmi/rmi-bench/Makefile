@@ -16,6 +16,7 @@ SRC		+= Cyclic.java
 SRC		+= Worker.java
 SRC		+= B.java
 SRC		+= A.java
+SRC		+= WithInner.java
 
 MAIN		= RMI_Bench.java
 
@@ -33,6 +34,8 @@ SERIALIZABLE	+= DITree.java
 SERIALIZABLE	+= Int32.java
 SERIALIZABLE	+= Cyclic.java
 SERIALIZABLE	+= B.java
+SERIALIZABLE	+= WithInner.java
+SERIALIZABLE	+= WithInner$$Inner.java
 
 # SRC		+= Escape.java
 
