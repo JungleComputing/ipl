@@ -198,7 +198,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		StaticProperties reqprops = new StaticProperties();
-		reqprops.add("serialization", "sun, ibis");
+		reqprops.add("serialization", "object");
 
 		boolean doUpcalls = true;
 
@@ -339,7 +339,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		try {
-			StaticProperties s = new StaticProperties();
+			StaticProperties s = new StaticProperties(reqprops);
 			Registry r = ibis.registry();
 
 			masterIdent = (IbisIdentifier) r.elect("satin master", ident);

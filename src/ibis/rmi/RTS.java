@@ -129,7 +129,7 @@ public final class RTS {
 	    }
 
 	    StaticProperties reqprops = new StaticProperties();
-	    reqprops.add("serialization", "sun, ibis");
+	    reqprops.add("serialization", "object");
 	    reqprops.add("worldmodel", "open");
 	    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceipt");
 
@@ -148,7 +148,7 @@ public final class RTS {
 	    ibisRegistry = ibis.registry();
 
 	    portType = ibis.createPortType("RMI",
-					   StaticProperties.userProperties());
+					   reqprops.combineWithUserProps());
 
 	    skeletonReceivePort = portType.createReceivePort("//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString(), upcallHandler);
 	    skeletonReceivePort.enableConnections();
