@@ -47,7 +47,7 @@ public class SuffixArray implements Configuration, Magic {
         this( text.getBytes() );
     }
 
-    private SuffixArray( short t[], int l, int nextcode, int ixs[], int cs[] )
+    private SuffixArray( short t[], int l, short nextcode, int ixs[], int cs[] )
     {
         text = t;
         length = l;

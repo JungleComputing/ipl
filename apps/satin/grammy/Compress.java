@@ -7,13 +7,31 @@ class Compress extends ibis.satin.SatinObject implements Configuration
     static boolean doVerification = false;
 
     /**
+     * Applies the given step in the compression process, and any
+     * subsequent steps that are also helpful.
+     */
+    private static SuffixArray applyFoldingStep( SuffixArray a, Step s, int top )
+        throws VerificationException
+    {
+        a.applyCompression( s );
+        if( traceIntermediateGrammars ){
+            a.printGrammar();
+        }
+        applyFolding( a, top );
+        if( doVerification ){
+            a.test();
+        }
+        return a;
+    }
+
+    /**
      * Applies one step in the folding process.
      * @return True iff a useful compression step could be done.
      */
-    public static boolean applyFolding( SuffixArray a, int top ) throws VerificationException
+    private static SuffixArray applyFolding( SuffixArray a, int top ) throws VerificationException
     {
         if( a.getLength() == 0 ){
-            return false;
+            return a;
         }
         StepList steps = a.selectBestSteps( top );
 
@@ -26,13 +44,9 @@ class Compress extends ibis.satin.SatinObject implements Configuration
             if( traceCompressionCosts ){
                 System.out.println( "Best step: string [" + a.buildString( mv )  + "]: " + mv );
             }
-            a.applyCompression( mv );
-            if( doVerification ){
-                a.test();
-            }
-            return true;
+            a = applyFoldingStep( a, mv, top );
         }
-        return false;
+        return a;
     }
 
     /** Returns a compressed version of the string represented by
@@ -40,14 +54,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration
      */
     public ByteBuffer compress( SuffixArray a, int top ) throws VerificationException
     {
-        boolean success;
-
-        do {
-            success = applyFolding( a, top );
-            if( traceIntermediateGrammars && success ){
-                a.printGrammar();
-            }
-        } while( success );
+        a = applyFolding( a, top );
 	return a.getByteBuffer();
     }
 
