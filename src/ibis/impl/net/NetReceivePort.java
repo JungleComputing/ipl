@@ -27,7 +27,9 @@ import java.util.Vector;
  * Provides an implementation of the {@link ReceivePort} and {@link
  * ReadMessage} interfaces of the IPL.
  */
-public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputUpcall, NetPort, NetEventQueueConsumer {
+public final class NetReceivePort
+		extends NetPort
+		implements ReceivePort, ReadMessage, NetInputUpcall, NetEventQueueConsumer {
 
 
 
@@ -230,7 +232,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
          * that necessarily precedes it, or whether we want to poll in a
          * busy-wait style from this.
          */
-        public static final boolean            useBlockingPoll     = true;
+        public static final boolean	useBlockingPoll     = true;
 
 
 
@@ -238,8 +240,8 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         /* ___ EVENT QUEUE _________________________________________________ */
 
-        private NetEventQueue         eventQueue             = null;
-        private NetEventQueueListener eventQueueListener     = null;
+        private NetEventQueue		eventQueue             = null;
+        private NetEventQueueListener	eventQueueListener     = null;
 
 
 
@@ -247,26 +249,6 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
 
         /* ___ LESS-IMPORTANT OBJECTS ______________________________________ */
-
-        /**
-         * The {@link ibis.impl.net.NetIbis} instance.
-         */
-        private NetIbis               ibis                   = null;
-
-	/**
-	 * The dynamic properties of the port.
-	 */
-	private NetDynamicProperties	props		     = null;
-
-        /**
-         * The name of the port.
-         */
-        private String                   name                =  null;
-
-        /**
-         * The type of the port.
-         */
-        private NetPortType              type                =  null;
 
         /**
          * The upcall callback function.
@@ -296,30 +278,6 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
          */
         // private int                  n_yield;
 
-        /**
-         * Optional (fine grained) logging object.
-         *
-         * This logging object should be used to display code-level information
-         * like function calls, args and variable values.
-         */
-        protected NetLog           log                    = null;
-
-        /**
-         * Optional (coarse grained) logging object.
-         *
-         * This logging object should be used to display concept-level information
-         * about high-level algorithmic steps (e.g. message send, new connection
-         * initialization.
-         */
-        protected NetLog           trace                  = null;
-
-        /**
-         * Optional (general purpose) logging object.
-         *
-         * This logging object should only be used temporarily for debugging purpose.
-         */
-        protected NetLog           disp                   = null;
-
 	/**
 	 * Maintain a linked list for cleanup
 	 */
@@ -330,18 +288,11 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         /* ___ IMPORTANT OBJECTS ___________________________________________ */
 
-        private Hashtable                connectionTable     =  null;
-
 	/**
 	 * Cache a single connection for fast lookup in the frequent case of one
 	 * connection
 	 */
 	private NetConnection	singleConnection = null;
-
-        /**
-         * The port's topmost driver.
-         */
-        private NetDriver                driver              =  null;
 
         /**
          * The port's topmost input.
@@ -653,13 +604,6 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
         }
 
 
-        /* --- NetPort part --- */
-        public NetPortType getPortType() {
-                log.in();
-                log.out();
-                return type;
-        }
-
 
         /* --- NetReceivePort part --- */
 
@@ -934,21 +878,11 @@ pollerThread = null;
                 return _receive();
         }
 
-        public DynamicProperties properties() {
-                log.in();
-                log.out();
-                return props;
-        }
-
         public ReceivePortIdentifier identifier() {
                 log.in();
                 log.out();
                 return identifier;
         }
-
-	public String name() {
-		return name;
-	}
 
         /**
          * Returns the identifier of the current active port peer or <code>null</code>

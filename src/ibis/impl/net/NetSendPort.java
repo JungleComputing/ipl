@@ -20,33 +20,15 @@ import java.util.Vector;
  * Provides an implementation of the {@link SendPort} and {@link
  * WriteMessage} interfaces of the IPL.
  */
-public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEventQueueConsumer {
+public final class NetSendPort
+		extends NetPort
+		implements SendPort, WriteMessage, NetEventQueueConsumer {
 
 
 
 
 
         /* ___ LESS-IMPORTANT OBJECTS ______________________________________ */
-
-        /**
-         * The {@link ibis.impl.net.NetIbis} instance.
-         */
-        private NetIbis               ibis                   = null;
-
-	/**
-	 * The dynamic properties of the port.
-	 */
-	private NetDynamicProperties	props		     = null;
-
-	/**
-	 * The port settings.
-	 */
-	private NetPortType           type       	     = null;
-
-	/**
-	 * The port name used for <I>name server</I> lookup requests.
-	 */
-	private String                name       	     = null;
 
 	/**
 	 * The port connection identifier.
@@ -62,30 +44,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * The next connection identification number.
          */
 	private int       	      nextReceivePortNum     = 0;
-
-        /**
-         * Optional (fine grained) logging object.
-         *
-         * This logging object should be used to display code-level information
-         * like function calls, args and variable values.
-         */
-        protected NetLog           log                    = null;
-
-        /**
-         * Optional (coarse grained) logging object.
-         *
-         * This logging object should be used to display concept-level information
-         * about high-level algorithmic steps (e.g. message send, new connection
-         * initialization.
-         */
-        protected NetLog           trace                  = null;
-
-        /**
-         * Optional (general purpose) logging object.
-         *
-         * This logging object should only be used temporarily for debugging purpose.
-         */
-        protected NetLog           disp                   = null;
 
         /**
          * Optional statistic object.
@@ -114,15 +72,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 
         /* ___ IMPORTANT OBJECTS ___________________________________________ */
-
-	/**
-         * The table of network {@linkplain ibis.impl.net.NetConnection connections} indexed by connection identification numbers. */
-        private Hashtable 	      connectionTable        = null;
-
-	/**
-	 * The topmost network driver.
-	 */
-	private NetDriver             driver     	     = null;
 
 	/**
 	 * The topmost network output.
@@ -296,28 +245,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                         throw new Error("invalid event code");
                 }
                 log.out();
-        }
-
-        /* ................................................................. */
-
-
-
-
-
-
-
-        /* ___ NETPORT RELATED FUNCTIONS ___________________________________ */
-
-
-        /**
-         * Returns the port type.
-         *
-         * @return the port type.
-         */
-        public NetPortType getPortType() {
-                log.in();
-                log.out();
-                return type;
         }
 
         /* ................................................................. */
@@ -658,12 +585,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		return this;
 	}
 
-	public DynamicProperties properties() {
-                log.in();
-                log.out();
-		return props;
-	}
-
 	/**
 	 * Returns the port {@linkplain ibis.impl.net.NetSendPortIdentifier identifier}.
 	 *
@@ -673,10 +594,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.in();
                 log.out();
 		return identifier;
-	}
-
-	public String name() {
-		return name;
 	}
 
 	/**
