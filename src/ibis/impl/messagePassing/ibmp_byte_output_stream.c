@@ -368,6 +368,8 @@ ibmp_msg_check(JNIEnv *env, jobject this, int msgHandle, int locked)
     ibmp_msg_freelist_verify();
 
     msg->copy = (int)(*env)->GetBooleanField(env, this, fld_makeCopy);
+fprintf(stderr, "Make %s intermediate copy in this BytOutputStream\n",
+		 msg->copy ? "an" : "NO");
     IBP_VPRINTF(820, env,
 		("Make %s intermediate copy in this BytOutputStream\n",
 		 msg->copy ? "an" : "NO"));
@@ -407,7 +409,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     if (msg == NULL || (! (lastFrag && msg->firstFrag) && msg->iov_len == 0)) {
 	IBP_VPRINTF(250, env, ("Skip send of an empty non-single fragment msg seqno %d\n", msgSeqno));
 
-	if (msg != NULL && lastFrag && lastSplitter && msg->firstFrag) {
+	if (msg != NULL && lastFrag && lastSplitter && ! msg->firstFrag) {
 #if DISABLE_SENDER_INTERRUPTS
 	    // ibp_intr_enable(env);
 	    intr_enable++;

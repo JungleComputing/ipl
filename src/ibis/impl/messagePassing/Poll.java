@@ -222,9 +222,13 @@ if (false)
 		if (preempt == PREEMPTIVE) {
 		    preemptive_waiters++;
 		}
-		if (NONPREEMPTIVE_MAY_POLL || preempt == PREEMPTIVE) insert(client);
+		if (NONPREEMPTIVE_MAY_POLL || preempt == PREEMPTIVE) {
+		    insert(client);
+		}
 		client.poll_wait(timeout);
-		if (NONPREEMPTIVE_MAY_POLL || preempt == PREEMPTIVE) remove(client);
+		if (NONPREEMPTIVE_MAY_POLL || preempt == PREEMPTIVE) {
+		    remove(client);
+		}
 		if (preempt == PREEMPTIVE) {
 		    preemptive_waiters--;
 		}
