@@ -28,12 +28,12 @@ public class RelOutput extends NetOutput {
 	/**
 	 * The driver used for the 'real' output.
 	 */
-	private NetDriver                subDriver = null;
+	private NetDriver subDriver = null;
 
 	/**
 	 * The 'real' output.
 	 */
-	private NetOutput                subOutput = null;
+	private NetOutput subOutput = null;
 
 	/**
 	 * Constructor.
@@ -61,9 +61,9 @@ public class RelOutput extends NetOutput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer                  rpn,
-				    ObjectInputStream 	     is,
-				    ObjectOutputStream	     os)
+	public void setupConnection(Integer            rpn,
+				    ObjectInputStream  is,
+				    ObjectOutputStream os)
 		throws IbisIOException {
 		NetOutput subOutput = this.subOutput;
 		

@@ -36,12 +36,12 @@ public class RelInput extends NetInput {
 	/**
 	 * The driver used for the 'real' input.
 	 */
-	private NetDriver             subDriver = null;
+	private NetDriver subDriver = null;
 
 	/**
 	 * The 'real' input.
 	 */
-	private NetInput              subInput  = null;
+	private NetInput  subInput  = null;
 
 	/**
 	 * Constructor.
@@ -68,9 +68,9 @@ public class RelInput extends NetInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer                rpn,
-				    ObjectInputStream 	   is,
-				    ObjectOutputStream	   os)
+	public void setupConnection(Integer            rpn,
+				    ObjectInputStream  is,
+				    ObjectOutputStream os)
 		throws IbisIOException {
 		NetInput subInput = this.subInput;
 		if (subInput == null) {

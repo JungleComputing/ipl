@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
  * Provides a generic {@link Ibis} implementation for pluggable network driver
  * support.
  */
-public class NetIbis extends Ibis {
+public final class NetIbis extends Ibis {
 	
 	/**
 	 * Selects the driver loading mode.
@@ -97,6 +97,11 @@ public class NetIbis extends Ibis {
 	 */
 	private   Vector 	    leftIbises       = new Vector();
 
+	/**
+	 * The NetIbis bank.
+	 */
+	private   NetBank           bank             = new NetBank();
+
 
 	/**
 	 * Default constructor.
@@ -110,6 +115,16 @@ public class NetIbis extends Ibis {
 			driverTable.put("tcp", new ibis.ipl.impl.net.tcp.Driver(this));
 		}
 	}
+
+	/**
+	 * Returns the NetIbis bank instance.
+	 *
+	 * @return The NetIbis bank.
+	 */
+	public NetBank getBank() {
+		return bank;
+	}
+	
 
 	/**
 	 * Returns an instance of the driver corresponding to the given name.

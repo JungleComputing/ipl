@@ -57,9 +57,9 @@ public class IdOutput extends NetOutput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer                  rpn,
-				    ObjectInputStream 	     is,
-				    ObjectOutputStream	     os)
+	public void setupConnection(Integer            rpn,
+				    ObjectInputStream  is,
+				    ObjectOutputStream os)
 		throws IbisIOException {
 		NetOutput subOutput = this.subOutput;
 		

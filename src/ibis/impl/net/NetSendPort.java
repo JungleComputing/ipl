@@ -511,49 +511,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param userBuffer the byte array to append to the message.
 	 */
 	public void writeArrayByte(byte [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
-			return;
-
-		emptyMsg = false;
-		
-		int length = userBuffer.length;
-		int offset = 0;
-
-		if (buffer != null) {
-			int availableLength = buffer.data.length - bufferOffset;
-			int copyLength      = Math.min(availableLength, length);
-
-			System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
-
-			bufferOffset  	 += copyLength;
-			buffer.length 	 += copyLength;
-			availableLength  -= copyLength;
-			offset        	 += copyLength;
-			length        	 -= copyLength;
-
-			if (availableLength == 0) {
-				flush();
-			}
-		}
-		
-		while (length > 0) {
-			allocateBuffer(length);
-
-			int availableLength = buffer.data.length - bufferOffset;
-			int copyLength   = Math.min(availableLength, length);
-
-			System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
-
-			bufferOffset  	+= copyLength;
-			buffer.length 	+= copyLength;
-			availableLength -= copyLength;
-			offset        	+= copyLength;
-			length        	-= copyLength;
-
-			if (availableLength == 0) {
-				flush();
-			}
-		}
+		writeSubArrayByte(userBuffer, 0, userBuffer.length);
 	}
 	
 	public void writeArrayChar(char [] destination) throws IbisIOException {
@@ -586,7 +544,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-		//System.err.println("write: "+offset+", "+length);
+		// System.err.println("write: "+offset+", "+length);
 		if (length == 0)
 			return;
 		
@@ -627,7 +585,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 				flush();
 			}
 		}
-		//System.err.println("write: "+offset+", "+length+": ok");
+		// System.err.println("write: "+offset+", "+length+": ok");
 	}
 	
 	public void writeSubArrayChar(char [] destination, int offset, int size) throws IbisIOException {

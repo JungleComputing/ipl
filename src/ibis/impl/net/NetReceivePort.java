@@ -782,47 +782,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 	public void readArrayByte(byte [] userBuffer)
 		throws IbisIOException {
-		if (userBuffer.length == 0)
-			return;
-
-		emptyMsg = false;
-		
-		int length = userBuffer.length;
-		int offset = 0;
-
-		if (buffer != null) {
-			int bufferLength = buffer.length - bufferOffset;
-			int copyLength   = Math.min(bufferLength, length);
-
-			System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
-
-			bufferOffset += copyLength;
-			bufferLength -= copyLength;
-			offset       += copyLength;
-			length       -= copyLength;
-
-			if (bufferLength == 0) {
-				freeBuffer();
-			}
-		}
-
-		while (length > 0) {
-			receiveBuffer(length);
-
-			int bufferLength = buffer.length - bufferOffset;
-			int copyLength   = Math.min(bufferLength, length);
-
-			System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
-
-			bufferOffset += copyLength;
-			bufferLength -= copyLength;
-			offset       += copyLength;
-			length       -= copyLength;
-
-			if (bufferLength == 0) {
-				freeBuffer();
-			}
-		}
+		readSubArrayByte(userBuffer, 0, userBuffer.length);
 	}
 
 	public void readArrayChar(char [] destination) throws IbisIOException {
