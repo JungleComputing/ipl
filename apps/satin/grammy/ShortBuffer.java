@@ -55,6 +55,12 @@ class ShortBuffer implements java.io.Serializable, Magic {
         buf[sz++] = b;
     }
 
+    public void append( int b )
+    {
+        reserve( sz+1 );
+        buf[sz++] = (short) b;
+    }
+
     public void append( short b[], int len )
     {
         reserve( sz+len );
@@ -68,4 +74,26 @@ class ShortBuffer implements java.io.Serializable, Magic {
     }
 
     public int getLength() { return sz; }
+
+    public short[] getShorts()
+    {
+        short res[] = new short[sz];
+
+        System.arraycopy( buf, 0, res, 0, sz );
+        return res;
+    }
+
+    public boolean isEqual( short a[] )
+    {
+        if( a.length != sz ){
+            return false;
+        }
+        for( int i=0; i<sz; i++ ){
+            if( a[i] != buf[i] ){
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

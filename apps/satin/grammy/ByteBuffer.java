@@ -140,15 +140,15 @@ public final class ByteBuffer implements java.io.Serializable, Magic {
             }
             else if( v == ESCAPE1 ){
                 i++;
-                res.append( (short) Helpers.decodeByte( buf[i] ) );
+                res.append( Helpers.decodeByte( buf[i] ) );
             }
             else if( v == ESCAPE2 ){
                 i++;
-                res.append( (short) Helpers.decodeShort( buf[i], buf[i+1] ) );
+                res.append( Helpers.decodeShort( buf[i], buf[i+1] ) );
                 i++;
             }
             else {
-                res.append( (short) ((Helpers.decodeShort( buf[i], buf[i+1] ) ) - (128<<8)) );
+                res.append( (Helpers.decodeShort( buf[i], buf[i+1] ) ) - (128<<8) );
                 i++;
             }
         }

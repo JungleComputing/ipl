@@ -30,5 +30,8 @@ public class Tests extends TestCase {
 	assertEquals( 12, buf.getLength() );
 
         ShortBuffer sbuf = buf.decodeByteStream();
+        assertTrue( sbuf.isEqual( codes ) );
+        sbuf.append( 42 );
+        assertFalse( sbuf.isEqual( codes ) );
     }
 }
