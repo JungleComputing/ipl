@@ -67,7 +67,7 @@
 	    <pathelement path="${package.home.daslib}/include"/>
 	</path>
 	<property name="local.includes" refid="local.includes-ref"/>
-	<echo message="local.includes = ${local.includes}"/>
+	<echo level="verbose" message="local.includes = ${local.includes}"/>
     </target>
 
     <target name="panda-init-opt" depends="property-init,native-init,arch-init" if="c.optimize">

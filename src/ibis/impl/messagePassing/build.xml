@@ -57,7 +57,7 @@
 	    <pathelement path="${package.home.daslib}/include"/>
 	</path>
 	<property name="local.includes" refid="mp-local.includes-ref"/>
-	<echo message="local.includes = ${local.includes}"/>
+	<echo level="verbose" message="local.includes = ${local.includes}"/>
     </target>
 
 
