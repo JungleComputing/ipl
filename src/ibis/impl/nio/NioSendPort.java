@@ -218,6 +218,10 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	    //set up a stream to send data through
 	    out = type.createSerializationOutputStream(accumulator);
 
+	    if (replacer != null) {
+		out.setReplacer(replacer);
+	    }
+
 	    message = new NioWriteMessage(this, out);
 	}
 

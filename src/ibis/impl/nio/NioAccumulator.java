@@ -176,8 +176,8 @@ public abstract class NioAccumulator extends Accumulator implements Config {
      * {@inheritDoc}
      */
     public void writeByte(byte value) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeByte(" + value + ")");
+	if(DEBUG) {
+	    Debug.message("data", this, "writeByte(" + value + ")");
 	}
 	try {
 	    bytes.put(value);
@@ -296,13 +296,14 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 
     public void writeArray(byte[] array, int off, int len) 
 	    throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.print("NioAccumulator.writeArray(byte[], off = " + off
-			       + " len = " + len + ") Contents: ");
+	if(DEBUG) {
+	    String message = "NioAccumulator.writeArray(byte[], off = " + off
+			     + " len = " + len + ") Contents: ";
+
 	    for(int i = off; i < (off+len); i++) {
-		System.err.print(array[i] + " ");
+		message = message + array[i] + " ";
 	    }
-	    System.err.println();
+	    Debug.message("data", this, message);
 	}
 
 	try {

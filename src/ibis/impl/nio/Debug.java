@@ -141,6 +141,8 @@ final class Debug {
 	    sourceString = source.getClass().getName();
 	}
 
+	sourceString = pad(sourceString, SOURCE_NAME_LENGTH);
+
 	System.err.println(threadString + " " + typeString + " "
 			   + sourceString + " " + spaces(level * 2) 
 			   + seperator + message);

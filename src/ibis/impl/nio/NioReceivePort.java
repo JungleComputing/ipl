@@ -236,7 +236,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
 	}
 
 	if (DEBUG) {
-	    Debug.message("messages", this, "new message received (#"
+	    Debug.exit("messages", this, "new message received (#"
 			  + sequencenr + ")");
 	}
 

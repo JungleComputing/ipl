@@ -475,12 +475,20 @@ public abstract class NioDissipator extends Dissipator
      * {@inheritDoc}
      */
     public byte readByte() throws IOException {
+	byte result;
+
 	try {
-	    return bytes.get();
+	    result = bytes.get();
 	} catch (BufferUnderflowException e) {
 	    receive();
-	    return bytes.get();
+	    result =  bytes.get();
 	}
+
+	if (DEBUG) {
+	    Debug.message("data", this, "received byte: " + result);
+	}
+
+	return result;
     }
 
     /**
@@ -576,13 +584,14 @@ public abstract class NioDissipator extends Dissipator
 	} catch (BufferUnderflowException e) {
 	    //do this the hard way
 	    int left = len;
+	    int offset = off;
 	    int size;
 
 	    while(left > 0) {
 		//copy as much as possible to the buffer
 		size = Math.min(left, bytes.remaining());
-		bytes.get(ref, off, size);
-		off += size;
+		bytes.get(ref, offset, size);
+		offset += size;
 		left -= size;
 
 		// if still needed, fetch some more bytes from the
@@ -591,6 +600,15 @@ public abstract class NioDissipator extends Dissipator
 		    receive();
 		}
 	    }
+	}
+
+	if (DEBUG) {
+	    String message = "received byte[], Contents: ";
+	    for (int i = off; i < (off+len); i++) {
+		message = message + ref[i] + " ";
+	    }
+
+	    Debug.message("data", this, message);
 	}
     }
 
