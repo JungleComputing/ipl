@@ -299,6 +299,8 @@ intpt_env_release(JNIEnv *env)
     }
 }
 
+#define POLLS_PER_INTERRUPT	4
+
 static int	intpts = 0;
 
 static void
@@ -309,10 +311,11 @@ ibp_intr_poll(void)
 
     intpts++;
 
+    // fprintf(stderr, "Do a poll from interrupt handler\n");
     ibmp_lock_check_owned(env);
-    for (i = 0; i < 4; i++) {
-// fprintf(stderr, "Do a poll[%d] from interrupt handler\n", i);
-	ibmp_poll(env);
+    for (i = 0; i < POLLS_PER_INTERRUPT; i++) {
+	// fprintf(stderr, "Do a poll[%d] from interrupt handler\n", i);
+	while (ibmp_poll(env));
     }
 
     intpt_env_release(env);
