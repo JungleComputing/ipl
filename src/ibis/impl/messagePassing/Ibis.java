@@ -57,7 +57,7 @@ public class Ibis extends ibis.ipl.Ibis {
     long tReceive;
     long tMsgSend;
 
-    public Ibis() throws IbisException {
+    Ibis() throws IbisException {
 	// Set my properties.
 	systemProperties.add("reliability", "true");
 	systemProperties.add("multicast", "false");
