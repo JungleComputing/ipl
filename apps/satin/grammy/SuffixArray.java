@@ -69,67 +69,39 @@ public class SuffixArray implements Configuration, Magic {
     /** Sorts the administration arrays to implement ordering. */
     private void sort()
     {
-        if( true ){
-            int jump = length;
-            boolean done;
+        // This implements Shell sort.
+        // Unfortunately we cannot use the sorting functions from the library
+        // (e.g. java.util.Arrays.sort), since the ones that work on int
+        // arrays do not accept a comparison function, but only allow
+        // sorting into natural order.
+        int jump = length;
+        boolean done;
 
-            while( jump>1 ){
-                jump /= 2;
+        while( jump>1 ){
+            jump /= 2;
 
-                do {
-                    done = true;
+            do {
+                done = true;
 
-                    for( int j = 0; j<(length-jump); j++ ){
-                        int i = j + jump;
+                for( int j = 0; j<(length-jump); j++ ){
+                    int i = j + jump;
 
-                        if( !areCorrectlyOrdered( indices[j], indices[i] ) ){
-                            // Things are in the wrong order, swap them and step back.
-                            int tmp = indices[i];
-                            indices[i] = indices[j];
-                            indices[j] = tmp;
-                            done = false;
-                        }
-                    }
-                } while( !done );
-            }
-
-            // TODO: integrate this with the stuff above.
-            for( int i=1; i<length; i++ ){
-                commonality[i] = commonLength( indices[i-1], indices[i] );
-            }
-            commonality[0] = -1;
-        }
-        else {
-            int i = 0;
-
-            // Now sort the indices. Uses `gnome sort' for the moment.
-            // Since we need the computation anyway, also fill the commonality
-            // array.
-            while( i<length ){
-                if( i == 0 ){
-                    i++;
-                }
-                else {
-                    int i0 = indices[i-1];
-                    int i1 = indices[i];
-                    int l = commonLength( i0, i1 );
-                    
-                    commonality[i] = l;
-                    if( areCorrectlyOrdered( i0+l, i1+l ) ){
-                        // Things are sorted, or we're at the start of the array,
-                        // take a step forward.
-                        i++;
-                    }
-                    else {
+                    if( !areCorrectlyOrdered( indices[j], indices[i] ) ){
                         // Things are in the wrong order, swap them and step back.
                         int tmp = indices[i];
-                        indices[i] = indices[i-1];
-                        i--;
-                        indices[i] = tmp;
+                        indices[i] = indices[j];
+                        indices[j] = tmp;
+                        done = false;
                     }
                 }
-            }
+            } while( !done );
         }
+
+        // TODO: integrate this with the stuff above.
+        for( int i=1; i<length; i++ ){
+            commonality[i] = commonLength( indices[i-1], indices[i] );
+        }
+        commonality[0] = -1;
     }
 
     /** Builds the suffix array and the commonality array. */
