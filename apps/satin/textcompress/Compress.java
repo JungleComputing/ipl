@@ -396,7 +396,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
     static void usage()
     {
-        System.err.println( "Usage: [-verify] [-short <n>] [-depth <n>] <text> <compressedtext>" );
+        System.err.println( "Usage: [-string <str>] [-verify] [-short <n>] [-depth <n>] <text> <compressedtext>" );
     }
 
     /**
@@ -408,6 +408,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 	File infile = null;
 	File outfile = null;
 	int max_shortening = Configuration.MAX_SHORTENING;
+        String intext = null;
 
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-verify" ) ){
@@ -421,6 +422,15 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 i++;
                 lookahead_depth = Integer.parseInt( args[i] );
             }
+            else if( args[i].equals( "-string" ) ){
+                i++;
+                if( intext != null || infile != null ){
+                    System.err.println( "More than one text to compress given" );
+                    usage();
+                    System.exit( 1 );
+                }
+                intext = args[i];
+            }
             else if( infile == null ){
                 infile = new File( args[i] );
             }
@@ -428,15 +438,28 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 outfile = new File( args[i] );
             }
             else {
+                System.err.println( "Superfluous parameter `" + args[i] + "'" );
                 usage();
                 System.exit( 1 );
             }
         }
-        if( infile == null || outfile == null ){
+        if( intext == null && (infile == null || outfile == null) ){
             usage();
             System.exit( 1 );
         }
-        byte text[] = Helpers.readFile( infile );
+        byte text[];
+        if( infile != null ){
+            text = Helpers.readFile( infile );
+        }
+        else if( intext != null ){
+            text = intext.getBytes();
+        }
+        else {
+            System.err.println( "No text to compress" );
+            usage();
+            System.exit( 1 );
+            text = null;
+        }
 	long startTime = System.currentTimeMillis();
 
         System.out.println( "Recursion depth: " + lookahead_depth + ", max. shortening: " + max_shortening  );
@@ -445,7 +468,9 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
         ByteBuffer buf = c.compress( text, max_shortening, lookahead_depth );
 
-        Helpers.writeFile( outfile, buf );
+        if( outfile != null ){
+            Helpers.writeFile( outfile, buf );
+        }
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;

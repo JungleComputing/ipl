@@ -20,13 +20,10 @@ public class Tests extends TestCase {
 	assertEquals( Helpers.decodeShort( (byte) -1, (byte) -1 ), 65535 );
     }
 
-    // For now disabled because the parallel version fails.
     public void notestCompressor()
+        throws java.io.IOException
     {
-	Compress c = new Compress();
-
-	ByteBuffer buf = c.compress( sample.getBytes(), 2, 2 );
-	ByteBuffer debuf = Decompress.decompress( buf );
-	assertEquals( sample, debuf.toString() );
+        String args[] = { "-short", "2", "-depth", "2", "-verify", "-string", sample };
+	Compress.main( args );
     }
 }
