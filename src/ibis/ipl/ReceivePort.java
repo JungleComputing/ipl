@@ -109,8 +109,8 @@ public interface ReceivePort {
     /**
      * Asynchronous explicit receive.
      * Returns immediately, wether or not a message is available. 
-     * Also works for upcalls, then it is a normal poll: it will always return null,
-     * but it might generate an upcall.
+     * Also works for ports configured for upcalls, in which case it is a normal poll:
+     * it will always return null, but it might generate an upcall.
      * @return the message received, or <code>null</code>.
      */
     public ReadMessage poll() throws IOException;

@@ -210,18 +210,8 @@ public final class TcpIbis extends Ibis implements Config {
 		} 
 	}
 
-	public ReadMessage poll() throws IOException {
-		Object[] a = portTypeList.values().toArray();
-
-		for(int i=0; i<a.length; i++) {
-			TcpPortType t = (TcpPortType) a[i];
-			ReadMessage m = t.poll(); // just forward all exceptions
-			if(m != null) {
-				return m;
-			}
-		}
-
-		return null;
+	public void poll() throws IOException {
+		// Empty implementation, as TCP Ibis has interrupts.
 	}
 
 	void bindReceivePort(String name, ReceivePortIdentifier p) throws IOException {

@@ -189,7 +189,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		count = 0;
 	}
 
-	private synchronized TcpReadMessage getMessage(long timeout) throws ReceiveTimedOutException {
+	private synchronized TcpReadMessage getMessage(long timeout) throws IOException {
 		while((m == null || delivered)/* && ! shouldLeave*/) {
 			try {
 				if(timeout > 0) {
@@ -204,7 +204,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		delivered = true;
 /*
 		if(shouldLeave) {
-			System.out.println("returned from receive operation");
+			throw new IOException("No connections!");
 		}
 */
 		return m;
@@ -363,7 +363,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 
 		synchronized(this) {
-//			shouldLeave = true;
 			notifyAll();
 		}
 	}
@@ -386,6 +385,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			throw new IbisError("Doing free while a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
 
+		// shouldLeave = true;
+		notifyAll();
+
 		while (connectionsIndex > 0) {
 			if (DEBUG) {
 				System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
@@ -403,7 +405,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 		/* unregister with nameserver */
 		try {
-			type.freeReceivePort(name);
+			ibis.unbindReceivePort(name);
 		} catch (Exception e) {
 			// Ignore.
 		}
@@ -450,7 +452,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 		/* unregister with nameserver */
 		try {
-			type.freeReceivePort(name);
+			ibis.unbindReceivePort(name);
 		} catch (Exception e) {
 			// Ignore.
 		}
@@ -471,6 +473,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 				}
 			}
 		}
+		// shouldLeave = true;
+		notifyAll();
 	}
 
 	public synchronized void forcedClose(long timeoutMillis) {

@@ -213,7 +213,6 @@ public abstract class Ibis {
 	    throws IbisException, ConnectionRefusedException
 	{
 	    Properties p = System.getProperties();
-	    String ibisname = p.getProperty("ibis.name");
 	    String hostname;
 
 	    // @@@ start of horrible code
@@ -231,20 +230,20 @@ public abstract class Ibis {
 		hostname = "unknown";
 	    }
 
+	    // Is this name unique enough?
+	    String name = "ibis:" + hostname + "@" + (new java.rmi.server.UID()).toString();
+
+	    String ibisname = p.getProperty("ibis.name");
+
 	    if (ibisname == null) {
 		// Create a default Ibis.
 		ibisname = "tcp";
 	    }
 
-	    // Is this name unique enough?
-	    String name = "ibis:" + hostname + "@" + (new Object()).hashCode() + "_" + System.currentTimeMillis();
-
 	    if (ibisname.equals("panda")) {
 		return createIbis(name, "ibis.impl.messagePassing.PandaIbis", r);
 	    } else if (ibisname.equals("mpi")) {
 		return createIbis(name, "ibis.impl.messagePassing.MPIIbis", r);
-	    } else if (ibisname.startsWith("net.")) {
-		return createIbis(name, "ibis.impl.net.NetIbis", r);
 	    } else if (ibisname.startsWith("net")) {
 		return createIbis(name, "ibis.impl.net.NetIbis", r);
 	    } else {
@@ -552,11 +551,9 @@ public abstract class Ibis {
 	 * There is one poll for the entire Ibis, as this
 	 * can sometimes be implemented more efficiently than polling per
 	 * port. Polling per port is provided in the receiveport itself.
-	 * @return a message when one is available on a receiveport that is
-	 * configured for explicit read, or <code>null</code>.
 	 * @exception IOException is thrown when a communication error occurs.
 	 */
-	public abstract ReadMessage poll() throws IOException;
+	public abstract void poll() throws IOException;
 	
 	/**
 	 * Returns the user-specified name of this Ibis instance.
