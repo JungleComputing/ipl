@@ -87,7 +87,6 @@ final class TcpSendPort implements SendPort {
 	}
 
 	public WriteMessage newMessage() throws IbisException { 
-
 		synchronized(this) {
 			while(aMessageIsAlive) {
 				try {
@@ -111,7 +110,6 @@ final class TcpSendPort implements SendPort {
 	}
 	
 	public void free() {
-
 		if(TcpIbis.DEBUG) {
 			System.out.println(type.ibis.name() + ": SendPort.free start");
 		}
@@ -128,4 +126,3 @@ final class TcpSendPort implements SendPort {
 		TcpIbis.tcpPortHandler.releaseOutput(ri, id);
 	} 
 }
-

@@ -4,6 +4,11 @@ import ibis.ipl.IbisIdentifier;
 final class IRStack implements Config {
 	private InvocationRecord[] l = new InvocationRecord[500];
 	private int count=0;
+	Satin s;
+
+	IRStack(Satin s) {
+		this.s = s;
+	}
 
 	boolean contains(InvocationRecord r) {
 		InvocationRecord curr;
@@ -44,6 +49,8 @@ final class IRStack implements Config {
 			curr = l[i];
 			if(Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
 				curr.aborted = true;
+				s.abortedJobs++;
+
 				if(ABORT_DEBUG) {
 					System.out.println("found child on the stack: " + curr.stamp + 
 							   ", it depends on " + targetStamp);

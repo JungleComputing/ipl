@@ -11,6 +11,7 @@ import ibis.ipl.IbisException;
 import ibis.ipl.Registry;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.impl.generic.IbisIdentifierTable;
 
 import java.net.Socket;
 import java.net.InetAddress;
@@ -32,6 +33,8 @@ public final class TcpIbis extends Ibis {
 	static final boolean DEBUG = false;
 
 	static TcpIbis globalIbis;
+
+	IbisIdentifierTable identTable = new IbisIdentifierTable();
 
 	private TcpIbisIdentifier ident; 
 
@@ -219,5 +222,8 @@ public final class TcpIbis extends Ibis {
 			throw new RuntimeException("TcpIbisNameServerClient: leave failed " + e);
 		} 
 	}
-}
 
+	public void poll() {
+		System.out.println("poll not implemented");
+	}
+}

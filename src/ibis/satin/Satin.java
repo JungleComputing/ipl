@@ -70,7 +70,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private IRVector outstandingJobs = new IRVector();
 	private int stampCounter = 0;
 
-	private IRStack onStack = new IRStack();
+	private IRStack onStack = new IRStack(this);
 
 	private IRVector exceptionList = new IRVector();
 
@@ -87,6 +87,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private long syncs = 0;
 	private long aborts = 0;
 	public long abortedJobs = 0; // used in dequeue
+	private long abortMessages = 0;
 	private long stealAttempts = 0;
 	private long stealSuccess = 0;
 	long stolenJobs = 0; // used in messageHandler
@@ -192,7 +193,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 
 			portType = ibis.createPortType("satin porttype", s);
-			
+
 			messageHandler = new MessageHandler(this);
 			receivePort = portType.createReceivePort("satin port on " + 
 								 ident.name(), messageHandler);
@@ -346,7 +347,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.out.println("SATIN '" + ident.name() + 
 					   "': SPAWN_STATS: spawns = " + spawns + " syncs = " + syncs);
 			System.out.println("SATIN '" + ident.name() + 
-					   "': SPAWN_STATS: aborts = " + aborts + " aborted jobs = " + abortedJobs);
+					   "': SPAWN_STATS: aborts = " + aborts + " abort msgs = " + abortMessages +
+					   " aborted jobs = " + abortedJobs);
 		}
 		if(STEAL_STATS && stats) {
 			System.out.println("SATIN '" + ident.name() + 
@@ -1118,6 +1120,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 				if(STEAL_STATS) {
 					abortedJobs++;
+					abortMessages++;
 				}
 				outstandingJobs.removeIndex(i);
 				i--;
