@@ -2,7 +2,7 @@ package ibis.ipl.impl.generic;
 
 public class Monitor {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     private boolean in_use = false;
     private int waiters = 0;
 
