@@ -977,8 +977,9 @@ public final class Pass3aVerifier extends PassVerifier{
 			Method m = findMethodinClass(name, ret, args, jc);
 			if (m != null) return m;
 			String supername = jc.getSuperclassName();
-			while (supername != null && ! supername.equals(jc.getClassName())) {
-				JavaClass j = Repository.lookupClass(supername);
+			JavaClass j = jc;
+			while (supername != null && ! supername.equals(j.getClassName())) {
+				j = Repository.lookupClass(supername);
 				m = findMethodinClass(name, ret, args, j);
 				if (m != null) return m;
 				supername = j.getSuperclassName();
