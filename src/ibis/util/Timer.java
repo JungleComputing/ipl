@@ -4,7 +4,7 @@ public final class Timer extends ibis.ipl.Timer {
 	private long time = 0;
 
 	public String implementationName() {
-		return "ibis.util.IbisTimer";
+		return "ibis.util.Timer";
 	}
 
 	public double accuracy() {
