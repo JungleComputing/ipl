@@ -371,7 +371,7 @@ class Slave extends GroupMember implements i_Slave {
 //					   totalComDuration + "\t Barriers: " + barDuration + " ms.\t     ");
 		}
 
-		if (myCpu == 0) { 
+		if (Group.rank() == 0) { 
 			System.out.println("FFT, M = " + M + " time " + ((end-start)/1000.0));
 			if (failed) {
 			    System.exit(1);
