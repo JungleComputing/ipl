@@ -369,43 +369,40 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         /* --- Upcall from main input object -- */
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 log.in();
-                synchronized (this)
-                        {
-                        if (this.input == null) {
-                                __.warning__("message lost");
-                                return;
-                        }
+                if (this.input == null) {
+                        __.warning__("message lost");
+                        return;
+                }
 
-                        if (spn == null) {
-                                throw new Error("invalid state");
-                        }
+                if (spn == null) {
+                        throw new Error("invalid state");
+                }
 
-                        activeSendPortNum = spn;
+                activeSendPortNum = spn;
 
-                        if (upcall != null && upcallsEnabled) {
-                                final ReadMessage rm = _receive();
-                                currentThread = Thread.currentThread();
-                                upcall.upcall(rm);
-                                if (Thread.currentThread() == currentThread) {
-                                        currentThread = null;
+                if (upcall != null && upcallsEnabled) {
+                        final ReadMessage rm = _receive();
+                        currentThread = Thread.currentThread();
+                        upcall.upcall(rm);
+                        if (Thread.currentThread() == currentThread) {
+                                currentThread = null;
 
-                                        if (emptyMsg) {
-                                                try {
-                                                        readByte();
-                                                } catch (Exception e) {
-                                                        throw new Error(e.getMessage());
-                                                }
-
-                                                emptyMsg = false;
+                                if (emptyMsg) {
+                                        try {
+                                                readByte();
+                                        } catch (Exception e) {
+                                                throw new Error(e.getMessage());
                                         }
 
-                                        trace.disp("message receive <--");
+                                        emptyMsg = false;
                                 }
-                        } else {
-                                finishNotify = true;
-                                polledLock.unlock();
-                                finishMutex.lock();
+
+                                trace.disp("message receive <--");
                         }
+                } else {
+                        finishNotify = true;
+                        polledLock.unlock();
+                        finishMutex.lock();
                 }
                 log.out();
         }
