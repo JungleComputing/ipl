@@ -73,7 +73,7 @@ shift
 Dns_server="-Dibis.name_server.host=$1"
 shift
 
-if [ ! -z "$HOSTS"]; then
+if [ ! -z "$HOSTS" ]; then
   Dpool_names="-Dibis.pool.host_names=\"$HOSTS\""
 fi
 
@@ -81,4 +81,4 @@ fi
 # choose 800, so jobs don't start paging.
 # use tcp nameserver for now...
 
-$wrapper_name $JAVA_ROOT/bin/java -Dibis.name_server.impl=ibis.impl.nameServer.tcp.NameServerClient $JIT_OPTS -Xmx800M $Dlibpath $Dibislibs $Dpool_host_num $Dpool_total $Dns_pool $Dns_port $Dns_server $Dpool_names -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
+$wrapper_name $JAVA_ROOT/bin/java -Dibis.name_server.impl=ibis.impl.nameServer.tcp.NameServerClient $JIT_OPTS -Xmx800M $Dlibpath $Dibislibs $Dpool_host_num $Dpool_total $Dns_pool $Dns_port $Dns_server "$Dpool_names" -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
