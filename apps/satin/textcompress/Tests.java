@@ -26,6 +26,6 @@ public class Tests extends TestCase {
 
 	ByteBuffer buf = c.compress( sample.getBytes(), 2, 2 );
 	ByteBuffer debuf = Decompress.decompress( buf );
-	// Yes, yes, we should compare the output with the sample.
+	assertEquals( sample, debuf.toString() );
     }
 }
