@@ -15,9 +15,7 @@ import java.io.IOException;
 
 public abstract class PortType {
 
-    /**
-     * Counter for anonymous ports.
-     */
+    /** Counter for anonymous ports. */
     private int anon_counter;
 
     /**

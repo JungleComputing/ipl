@@ -5,9 +5,7 @@ package ibis.ipl;
  */
 public class IbisError extends Error {
 
-    /**
-     * A nested throwable.
-     */
+    /** A nested throwable. */
     Throwable cause = null;
 
     /**

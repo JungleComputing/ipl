@@ -27,9 +27,7 @@ import java.io.IOException;
 
 public interface ReadMessage { 
 
-    /**
-     * The first sequence number when communication is numbered.
-     */
+    /** The first sequence number when communication is numbered. */
     public static final long INITIAL_SEQNO = 1;
 
     /**

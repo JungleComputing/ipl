@@ -6,6 +6,8 @@ import java.io.IOException;
  * Like java.io.IOException, but with a cause.
  */
 public class IbisIOException extends IOException {
+
+    /** A nested throwable. */
     Throwable cause = null;
 
     /**

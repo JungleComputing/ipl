@@ -5,9 +5,7 @@ package ibis.ipl;
  */
 public class IbisRuntimeException extends RuntimeException {
 
-    /**
-     * A nested throwable.
-     */
+    /** A nested throwable. */
     Throwable cause = null;
 
     /**

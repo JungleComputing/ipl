@@ -28,34 +28,22 @@ import java.util.StringTokenizer;
  */
 public class StaticProperties {
 
-    /**
-     * Set containing the category names.
-     */
+    /** Set containing the category names. */
     private static Set category_names;
 
-    /**
-     * User defined properties.
-     */
+    /** User defined properties. */
     private static final StaticProperties user_properties;
 
-    /**
-     * User defined properties that are to be merged.
-     */
+    /** User defined properties that are to be merged. */
     private static final StaticProperties user_merge_properties;
 
-    /**
-     * Ibis properties.
-     */
+    /** Ibis properties. */
     private static final StaticProperties ibis_properties;
 
-    /**
-     * Maps property names to property values.
-     */
+    /** Maps property names to property values. */
     private final HashMap mappings = new HashMap();
 
-    /**
-     * Default properties.
-     */
+    /** Default properties. */
     private final StaticProperties defaults;
 
     /**

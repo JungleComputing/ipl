@@ -4,6 +4,8 @@ package ibis.ipl;
  * Like java.lang.Exception, but with a cause.
  */
 public class IbisException extends Exception {
+    
+    /** A nested throwable. */
     Throwable cause = null;
 
     /**

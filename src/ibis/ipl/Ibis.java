@@ -64,8 +64,10 @@ public abstract class Ibis {
     /** A user-supplied resize handler, with join/leave upcalls. */
     protected ResizeHandler resizeHandler;
 
-    /** Properties, as given to
-     * {@link #createIbis(StaticProperties, ResizeHandler)} */
+    /**
+     * Properties, as given to
+     * {@link #createIbis(StaticProperties, ResizeHandler)}
+     */
     private StaticProperties requiredprops;
 
     /** User properties, combined with required properties. */
@@ -102,17 +104,17 @@ public abstract class Ibis {
 
 
     /** 
-      Loads a native library with ibis.
-      It might not be possible to load libraries the normal way,
-      because Ibis applications might override the bootclasspath
-      when the classlibraries have been rewritten.
-      In that case, the classloader will use the sun.boot.library.path 
-      which is not portable.
-
-      @param name the name of the library to be loaded.
-      @exception SecurityException may be thrown by loadLibrary.
-      @exception UnsatisfiedLinkError may be thrown by loadLibrary.
-     **/
+     * Loads a native library with ibis.
+     * It might not be possible to load libraries the normal way,
+     * because Ibis applications might override the bootclasspath
+     * when the classlibraries have been rewritten.
+     * In that case, the classloader will use the sun.boot.library.path 
+     * which is not portable.
+     *
+     * @param name the name of the library to be loaded.
+     * @exception SecurityException may be thrown by loadLibrary.
+     * @exception UnsatisfiedLinkError may be thrown by loadLibrary.
+     */
     public static void loadLibrary(String name)
 	    throws SecurityException, UnsatisfiedLinkError
     {
@@ -211,10 +213,12 @@ public abstract class Ibis {
 	    impl.requiredprops = impl.properties();
 	}
 	else if (reqprop.isProp("serialization", "object")) {
-	    // required properties had "object", but if we later
-	    // ask for "sun" or "ibis", these may not be in the
-	    // required properties, so put the original serialization
-	    // specs back.
+	    /*
+	     * required properties had "object", but if we later
+	     * ask for "sun" or "ibis", these may not be in the
+	     * required properties, so put the original serialization
+	     * specs back.
+	     */
 	    impl.requiredprops = new StaticProperties(reqprop);
 	    impl.requiredprops.add("serialization",
 				   impl.properties().find("serialization"));
@@ -707,15 +711,17 @@ public abstract class Ibis {
 	    p = combinedprops;
 	}
 	else {
-	    // The properties given as parameter have preference.
-	    // It is not clear to me if the user properties should have
-	    // preference here. The user could say that he wants Ibis
-	    // serialization, but the parameter could say: sun serialization.
-	    // On the other hand, the parameter could just say: object
-	    // serialization, in which case the user specification is
-	    // more specific.
-	    // The {@link StaticProperties#combine} method should deal
-	    // with that.
+	    /*
+	     * The properties given as parameter have preference.
+	     * It is not clear to me if the user properties should have
+	     * preference here. The user could say that he wants Ibis
+	     * serialization, but the parameter could say: sun serialization.
+	     * On the other hand, the parameter could just say: object
+	     * serialization, in which case the user specification is
+	     * more specific.
+	     * The {@link StaticProperties#combine} method should deal
+	     * with that.
+	     */
 	    p = new StaticProperties(combinedprops.combine(p));
 	    p.add("worldmodel", "");	// not significant for port type,
 					// and may conflict with the ibis prop.

@@ -9,9 +9,8 @@ package ibis.ipl;
  * This allows the Ibis implementation to cache <code>IbisIdentifier</code>s.
  */
 public abstract class IbisIdentifier implements java.io.Serializable {
-    /**
-     * The name of this Ibis, given to it when it was created.
-     */
+
+    /** The name of this Ibis, given to it when it was created. */
     protected String name;
 
     /**
