@@ -1,6 +1,4 @@
 // $Id$
-//
-// Description of a single variable in the SAT solver.
 
 /**
  * A single variable of a SAT problem, with associated administration.
@@ -10,25 +8,22 @@
  */
 
 final class SATVar implements java.io.Serializable, Comparable, Cloneable {
-    private int label;
     private int ix;		// The index in the the original var array.
     private IntVector pos;	// Clauses in which this var occurs as a pos.
     private IntVector neg;	// Clauses in which this var occurs as a neg.
     private int assignment = -1;	// 0 or 1 if it is a known variable.
 
     /** Constructs a new SATVar with the specified label and index. */
-    public SATVar( int lbl, int ix )
+    public SATVar( int ix )
     {
-	label = lbl;
 	this.ix = ix;
         pos = new IntVector();
 	neg = new IntVector();
     }
 
     /** Constructs a new SATVar with the specified fields. */
-    private SATVar( int label, int ix, IntVector pos, IntVector neg, int assignment )
+    private SATVar( int ix, IntVector pos, IntVector neg, int assignment )
     {
-	this.label = label;
 	this.ix = ix;
 	this.pos = pos;
 	this.neg = neg;
@@ -41,7 +36,6 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     public Object clone()
     {
 	return new SATVar(
-	    label,
 	    ix,
 	    (IntVector) pos.clone(),
 	    (IntVector) neg.clone(),
@@ -114,7 +108,7 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
 
     public String toString()
     {
-        return "(" + label + ")";
+        return "(" + ix + ")";
     }
    
     // Note: this comparator imposes orderings that are inconsistent

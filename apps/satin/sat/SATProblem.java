@@ -12,7 +12,7 @@ import java.io.*;
  * @version $Revision$
  */
 
-public class SATProblem implements Cloneable, java.io.Serializable {
+public final class SATProblem implements Cloneable, java.io.Serializable {
     /** The number of variables in the problem. */
     private int vars;
 
@@ -145,7 +145,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	variables = new SATVar[n];
 
 	for( int i=0; i<n; i++ ){
-	    variables[i] = new SATVar( i, i );
+	    variables[i] = new SATVar( i );
 	}
     }
 
@@ -171,7 +171,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      * Given a clause 'i', deletes it from the list.
      * @param i the index of the clause to delete
      */
-    void deleteClause( int i )
+    private void deleteClause( int i )
     {
 	clauseCount--;
 	clauses[i] = clauses[clauseCount];
