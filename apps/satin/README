@@ -39,6 +39,10 @@ cover
 fib
     This program calculates the Fibonacci numbers. In this Satin version,
     the recursion is replaced by spawns.
+fft
+    This FFT implementation was taken from the Princeton introduction to
+    Computer Science, see also http://www.cs.princeton.edu/introcs/97data,
+    and was adapted for Satin.
 grammy
     This directory contains a grammar-based text compressor. Given a text,
     it constructs a set of grammar rules that produce one sentence: the
