@@ -83,7 +83,7 @@
 		<isset property="prun-nprocs"/>
 	    </not>
 	</condition>
-	<echo message="Running parallel test on $uprun-nprocs} nodes, ${ibis-nickname} Ibis"/>
+	<echo message="Running parallel test on ${prun-nprocs} nodes, ${ibis-nickname} Ibis"/>
 	<exec dir="${basedir}"
 	      executable="/usr/local/bin/prun"
 	      vmlauncher="false">
