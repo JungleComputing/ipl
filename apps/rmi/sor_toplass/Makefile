@@ -7,7 +7,6 @@
 #   EXEC	= name of the binary
 
 SRC		=
-SRC		+= Main.java
 SRC		+= RMI_init.java
 SRC		+= WaitingSendThread.java
 SRC		+= i_GlobalData.java
@@ -17,7 +16,7 @@ MAIN		= Main.java
 
 REMOTE		+= SOR.java
 REMOTE		+= GlobalData.java
-		
+
 out		= sor
 
 
