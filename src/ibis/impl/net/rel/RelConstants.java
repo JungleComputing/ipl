@@ -53,7 +53,7 @@ public interface RelConstants {
     /**
      * Sweeper interval in ms.
      */
-    static final long	sweepInterval = 20000; // 100;
+    static final long	sweepInterval = 100; // 20000; // 100;
 
     final static long	SHUTDOWN_DELAY = 0 * sweepInterval;	// Wait for partner's last ack
 

@@ -92,41 +92,8 @@ public final class Driver extends NetDriver implements RelConstants {
 	}
 
 
-	class Vector {
-	    private final static int INCREMENT_DATABASE = 16;
-
-	    private int		n;
-	    private int		alloc;
-	    private Object[]	data;
-
-	    int add(Object x) {
-		if (n == alloc) {
-		    alloc += INCREMENT_DATABASE;
-		    Object[] new_data = new Object[alloc];
-		    if (n != 0) {
-			System.arraycopy(data, 0, new_data, 0, n);
-		    }
-		    data = new_data;
-		}
-		data[n] = x;
-		return n++;
-	    }
-
-	    Object get(int i) {
-		if (i < 0 || i >= n) {
-		    return null;
-		}
-		return data[i];
-	    }
-
-	    int size() {
-		return n;
-	    }
-	}
-
-
-	Vector input = new Vector();
-	Vector output = new Vector();
+	NetVector input = new NetVector();
+	NetVector output = new NetVector();
 
 	/**
 	 * Database of incoming and outgoing connections. Use this to
@@ -235,10 +202,14 @@ public final class Driver extends NetDriver implements RelConstants {
 	sweeper.registerSweep(sweep);
     }
 
+    void unRegisterSweep(RelSweep sweep) {
+	sweeper.unRegisterSweep(sweep);
+    }
+
 
     class Sweeper extends Thread {
 
-	private Vector sweep = new Vector();
+	private NetVector sweep = new NetVector();
 	private long sweepInterval = 30;
 
 	Sweeper(long sweepInterval) {
@@ -253,6 +224,10 @@ public final class Driver extends NetDriver implements RelConstants {
 	    this.sweep.add(sweep);
 	}
 
+	synchronized void unRegisterSweep(RelSweep sweep) {
+	    this.sweep.delete(sweep);
+	}
+
 
 	public void run() {
 	    while (true) {
@@ -265,7 +240,9 @@ public final class Driver extends NetDriver implements RelConstants {
 		}
 		for (int i = 0; i < sweep.size(); i++) {
 		    RelSweep s = (RelSweep)sweep.get(i);
-		    s.invoke();
+		    if (s != null) {
+			s.invoke();
+		    }
 		}
 	    }
 	}

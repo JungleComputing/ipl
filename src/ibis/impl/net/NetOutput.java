@@ -86,16 +86,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 } else {
                         throw new Error("full reset unimplemented");
                 }
-                
-                if (_outputConvertStream != null) {
-                        try {
-                                _outputConvertStream.close();
-                        } catch (IOException e) {
-                                throw new NetIbisException(e.getMessage());
-                        }
 
-                        _outputConvertStream = null;
-                }
+		/* Calling finish() here i.s.o. replicating the code above
+		 * has an extra advantage (besides code nonmultiplication):
+		 * a subclass may override finish. This happens e.g. in
+		 * multi | NetBufferedOutput.
+		 */
+		finish();
+                //System.err.println("NetOutput: reset <--");
         }
 
         /**

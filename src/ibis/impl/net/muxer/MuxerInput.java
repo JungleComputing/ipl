@@ -3,6 +3,8 @@ package ibis.ipl.impl.net.muxer;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import java.util.Hashtable;
+
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetPortType;
 import ibis.ipl.impl.net.NetDriver;
@@ -12,6 +14,7 @@ import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetBufferFactory;
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetIbisException;
+import ibis.ipl.impl.net.NetVector;
 
 public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
@@ -71,6 +74,9 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 	NetReceiveBuffer buffer = receiveByteBuffer(max_mtu);
 	int rKey = NetConvert.readInt(buffer.data, buffer.base);
 	MuxerQueue q = locateQueue(rKey);
+	if (q == null) {
+	    throw new NetIbisException("Message arrives for MuxerInput that is closed");
+	}
 	if (Driver.DEBUG) {
 	    System.err.println("Receive downcall UDP packet len " + buffer.length + " data " + buffer.data + "; key " + rKey + " /bound to " + q);
 	}
@@ -124,13 +130,18 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 	boolean proceed;
 	Integer r = null;
 
+	if (liveConnections == 0) {
+	    // Before start or past shutdown
+	    return null;
+	}
+
 	synchronized (this) {
 	    proceed = (pollerThreads == 0);
 	    if (proceed) {
 		pollerThreads++;
 	    }
 	}
-if (! proceed) System.err.print(proceed ? "v" : "-");
+// if (! proceed) System.err.print(proceed ? "v" : "-");
 
 	if (proceed) {
 	    if ((r = poll(block ? 0 : pollTimeout)) != null) {
@@ -146,18 +157,34 @@ if (! proceed) System.err.print(proceed ? "v" : "-");
     }
 
 
+    private NetVector	keyHash = new NetVector();
+    private Hashtable	cnxKeyHash = new Hashtable();
+
 
     /**
      * @method
      *
-     * This should be called before setupConnection in the subclass, before
+     * This should be called from setupConnection in the subclass, before
      * any communication takes place.
      */
-    protected MuxerQueue createQueue(Integer spn) {
+    synchronized
+    protected MuxerQueue createQueue(Object key, Integer spn)
+	    throws NetIbisException {
 	MuxerQueue q = new MuxerQueue(this, spn);
-	registerQueue(q);
+	int connectionKey = keyHash.add(q);
+System.err.println(this + ": register " + q + " at key " + connectionKey);
+Thread.dumpStack();
+	q.setConnectionKey(connectionKey);
+	liveConnections++;
+	cnxKeyHash.put(key, q);
 
 	return q;
+    }
+
+
+    synchronized
+    protected MuxerQueue locateQueue(Object key) {
+	return (MuxerQueue)cnxKeyHash.get(key);
     }
 
 
@@ -182,7 +209,7 @@ if (! proceed) System.err.print(proceed ? "v" : "-");
     public void disconnect(MuxerQueue q) throws NetIbisException {
 	if (Driver.DEBUG) {
 	    Thread.dumpStack();
-	    System.err.println("Now disconnect localQueue " + q.localKey() + " liveConnections was " + liveConnections());
+	    System.err.println("Now disconnect localQueue " + q.connectionKey() + " liveConnections was " + liveConnections());
 	}
 	releaseQueue(q);
 	if (USE_POLLER_THREAD) {
@@ -191,22 +218,15 @@ if (! proceed) System.err.print(proceed ? "v" : "-");
     }
 
 
-    private MuxerKeyHash keyHash = new MuxerKeyHash();
-
-    synchronized
-    protected void registerQueue(MuxerQueue q) {
-	keyHash.registerKey(q);
-	liveConnections++;
-    }
-
     synchronized
     protected MuxerQueue locateQueue(int n) {
-	return (MuxerQueue)keyHash.locateKey(n);
+	return (MuxerQueue)keyHash.get(n);
     }
+
 
     synchronized
     protected void releaseQueue(MuxerQueue key) throws NetIbisException {
-	keyHash.releaseKey(key);
+	keyHash.delete(key);
 	liveConnections--;
 	if (liveConnections == 0) {
 	    free();

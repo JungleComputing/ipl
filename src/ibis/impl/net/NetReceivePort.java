@@ -162,6 +162,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                 }
 
                                                 // System.err.println("receivePort: accept - connection");
+System.err.println(NetReceivePort.this + ": accept - connection");
                                                 if (useUpcall || (upcall != null && !usePollingThread)) {
                                                         input.setupConnection(cnx, NetReceivePort.this);
                                                 } else {
@@ -334,7 +335,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 * that necessarily precedes it, or whether we want to poll in a
 	 * busy-wait style from this.
 	 */
-	private boolean                  useBlockingPoll     = true;
+	public final static  boolean     useBlockingPoll     = true;
 
 
 
@@ -678,10 +679,13 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 if (! usePollingThread) {
-		    System.err.println("Run NetReceivePort without PollingThread");
+		    System.err.println("Run NetReceivePort " + this + " without PollingThread");
 		}
                 if (! useUpcall) {
-		    System.err.println("Run NetReceivePort without Upcall");
+		    System.err.println("Run NetReceivePort " + this + " without Upcall");
+		}
+                if (useBlockingPoll) {
+		    System.err.println("Run NetReceivePort " + this + " with useBlockingPoll");
 		}
 
 		try {

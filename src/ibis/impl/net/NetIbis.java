@@ -222,6 +222,7 @@ public final class NetIbis extends Ibis {
 	 * @return     The port type.
 	 * @exception  NetIbisException if the name server refused to register the new type.
 	 */
+	synchronized
 	public PortType createPortType(String name, StaticProperties sp)
 		throws NetIbisException {
 		NetPortType newPortType = new NetPortType(this, name, sp);
@@ -417,6 +418,7 @@ public final class NetIbis extends Ibis {
 	 * @param  name the name of the requested port type.
 	 * @return A reference to the port type or <code>null</CODE> if the given name is not the name of a valid port type.
 	 */
+	synchronized
 	public PortType getPortType(String name) { 
 		return (PortType) portTypeTable.get(name);
 	} 

@@ -20,8 +20,6 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import java.util.Hashtable;
-
 /**
  * The UDP Multiplexer output implementation.
  *
@@ -36,7 +34,6 @@ public final class Muxer extends NetBufferedOutput {
     private Integer		rpn    = null;
 
     private MuxerKey		myKey;
-    private int			myKeyVal;
 
 
     private static ibis.ipl.impl.net.NetDriver	subDriver;
@@ -57,13 +54,15 @@ public final class Muxer extends NetBufferedOutput {
 	    throws NetIbisException {
 	super(pt, driver, context);
 
-	if (subDriver == null) {
-	    // String subDriverName = getMandatoryProperty("Driver");
-	    System.err.println("It should depend on Driver properties which muxer suboutput is created");
-	    String subDriverName = "muxer.udp";
-	    subDriver = driver.getIbis().getDriver(subDriverName);
-	    System.err.println("The subDriver is " + subDriver);
-	    muxer = (MuxerOutput)subDriver.newOutput(null, null);
+	synchronized (driver) {
+	    if (subDriver == null) {
+		// String subDriverName = getMandatoryProperty("Driver");
+		System.err.println("It should depend on Driver properties which muxer suboutput is created");
+		String subDriverName = "muxer.udp";
+		subDriver = driver.getIbis().getDriver(subDriverName);
+		System.err.println("The subDriver is " + subDriver);
+		muxer = (MuxerOutput)subDriver.newOutput(null, null);
+	    }
 	}
     }
 
@@ -101,8 +100,6 @@ public final class Muxer extends NetBufferedOutput {
 
 	rpn = cnx.getNum();
 
-	myKeyVal = rpn.intValue();
-
 	muxer.setupConnection(cnx);
 
 	headerOffset = muxer.getHeaderLength();
@@ -117,7 +114,7 @@ public final class Muxer extends NetBufferedOutput {
 	} else {
 	    factory.setMaximumTransferUnit(mtu);
 	}
-	myKey = muxer.getKey(rpn);
+	myKey = muxer.getKey(cnx);
 
 	int ok = 0;
 	try {
@@ -145,7 +142,7 @@ public final class Muxer extends NetBufferedOutput {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": try to send buffer size " + b.length);
 	}
-	b.connectionId = rpn;
+	b.connectionId = myKey;
 
 	muxer.writeByteBuffer(b);
     }

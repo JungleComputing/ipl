@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import java.util.Hashtable;
-
 
 /**
  * The Multiplexer input implementation.
@@ -54,13 +52,15 @@ public final class Demuxer extends NetBufferedInput {
 	    throws NetIbisException {
 	super(pt, driver, context);
 
-	if (subDriver == null) {
-	    // String subDriverName = getMandatoryProperty("Driver");
-	    System.err.println("It should depend on Driver properties which muxer subinput is created");
-	    String subDriverName = "muxer.udp";
-	    subDriver = driver.getIbis().getDriver(subDriverName);
-	    System.err.println("The subDriver is " + subDriver);
-	    demux = (MuxerInput)subDriver.newInput(null, null);
+	synchronized (driver) {
+	    if (subDriver == null) {
+		// String subDriverName = getMandatoryProperty("Driver");
+		System.err.println("It should depend on Driver properties which muxer subinput is created");
+		String subDriverName = "muxer.udp";
+		subDriver = driver.getIbis().getDriver(subDriverName);
+		System.err.println("The subDriver is " + subDriver);
+		demux = (MuxerInput)subDriver.newInput(null, null);
+	    }
 	}
     }
 
@@ -113,7 +113,7 @@ dumpBufferFactoryInfo();
     public void setupConnection(NetConnection cnx)
 	    throws NetIbisException {
 	if (Driver.DEBUG) {
-	    System.err.println("Now enter Demuxer.setupConnection");
+	    System.err.println(this + ": Now enter Demuxer.setupConnection, spn = " + cnx.getNum());
 	}
 
 	if (this.spn != null) {
@@ -122,10 +122,12 @@ dumpBufferFactoryInfo();
 
 	this.spn = cnx.getNum();
 
-	/* Create our MuxerQueue */
-	myQueue = demux.createQueue(spn);
-	/* Set up the connection */
+	/* Set up the connection; it creates a MuxerQueue that is remembered
+	 * by our cnx */
 	demux.setupConnection(cnx);
+	/* Drag up the MuxerQueue that demux has created for us. It is
+	 * remembered by our cnx. */
+	myQueue = demux.locateQueue(cnx);
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": Input connect spn " + spn + " creates queue " + myQueue);
@@ -253,6 +255,11 @@ dumpBufferFactoryInfo();
      * {@inheritDoc}
      */
     public synchronized void close(Integer num) throws NetIbisException {
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": close.");
+	    Thread.dumpStack();
+	}
+
 	if (spn == num) {
 	    spn = null;
 	    demux.disconnect(myQueue);

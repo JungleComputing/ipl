@@ -35,6 +35,10 @@ public class MuxerQueue extends MuxerKey {
     private int			n_poll_wait;
     private int			n_poll_yield;
 
+    private Integer		spn;
+
+    protected int		connectionKey;
+
 
     /**
      * @Constructor
@@ -45,8 +49,19 @@ public class MuxerQueue extends MuxerKey {
      *        connection.
      */
     public MuxerQueue(MuxerInput input, Integer spn) {
-	super(spn);
+	super();
 	this.input = input;
+	this.spn   = spn;
+	this.connectionKey = -1;
+    }
+
+
+    public int connectionKey() {
+	return connectionKey;
+    }
+
+    public void setConnectionKey(int id) {
+	this.connectionKey = id;
     }
 
 
@@ -196,8 +211,8 @@ public class MuxerQueue extends MuxerKey {
 
     public Integer poll(boolean block) {
 	if (false && Driver.DEBUG) {
-	    System.err.println(this + ": poll; front " + front + " spn " + spn);
-	    if (false && spn.intValue() == 0) {
+	    System.err.println(this + ": poll; front " + front + " key " + connectionKey);
+	    if (false && connectionKey == 0) {
 		Thread.dumpStack();
 	    }
 	}

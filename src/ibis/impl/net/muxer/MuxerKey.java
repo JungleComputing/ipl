@@ -4,22 +4,11 @@ import ibis.ipl.impl.net.NetIbisException;
 
 public class MuxerKey {
 
-    private int			localKey;
-    protected Integer		spn;
-
-
-    public MuxerKey(Integer spn) {
-	this.spn  = spn;
-	this.localKey = spn.intValue();
-    }
-
-    public int localKey() {
-	return localKey;
+    public MuxerKey() {
     }
 
 
     public void free() throws NetIbisException {
-	spn = null;
     }
 
 }

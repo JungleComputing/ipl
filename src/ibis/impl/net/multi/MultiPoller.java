@@ -13,27 +13,27 @@ import java.util.Iterator;
 /**
  * Provides a generic multiple network input poller.
  */
-public final class MultiPoller extends NetInput {
+public final class MultiPoller extends NetPoller {
 
         private final class Lane {
                 NetConnection cnx          = null;
-                NetInput      input        = null;
+                ReceiveQueue  queue        = null;
                 int           headerLength =    0;
                 int           mtu          =    0;
                 ServiceThread thread       = null;
                 ObjectInputStream  is      =  null;
                 ObjectOutputStream os      =  null;
         }
-        
+
         private final class ServiceThread extends Thread {
-                private Lane               lane        =  null;                
+                private Lane               lane        =  null;
                 private boolean            exit        = false;
 
                 public ServiceThread(String name, Lane lane) throws NetIbisException {
                         super("ServiceThread: "+name);
                         this.lane = lane;
                 }
-                
+
                 public void run() {
                         while (!exit) {
                                 try {
@@ -44,7 +44,7 @@ public final class MultiPoller extends NetInput {
                                                 lane.mtu          = newMtu;
                                                 lane.headerLength = newHeaderLength;
                                         }
-                                        
+
                                         lane.os.writeInt(1);
                                         lane.os.flush();
                                 } catch (NetIbisInterruptedException e) {
@@ -67,19 +67,11 @@ public final class MultiPoller extends NetInput {
                         this.interrupt();
                 }
         }
-        
+
 
 	/**
-	 * The input that was last sucessfully polled, or <code>null</code>.
-         * Note: This value is not set during an upcall.
+	 * Our extension to the set of inputs.
 	 */
-	protected volatile NetInput activeInput        = null;
-        protected volatile Thread   activeUpcallThread = null;
-
-	/**
-	 * The set of inputs.
-	 */
-        protected Hashtable inputTable        = null;
         protected Hashtable laneTable         = null;
 
 	/**
@@ -90,48 +82,26 @@ public final class MultiPoller extends NetInput {
 	 */
 	public MultiPoller(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, context);
-                inputTable        = new Hashtable();
-                laneTable         = new Hashtable();
+	    super(pt, driver, context);
+	    laneTable         = new Hashtable();
 	}
 
-        public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
-                // System.err.println("MultiPoller: inputUpcall-->");
-                synchronized(this) {
-                        while (activeInput != null) {
-                                try {
-                                        wait();
-                                } catch (InterruptedException e) {
-                                        throw new NetIbisInterruptedException(e);
-                                }
-                        }                        
-                        Lane lane = (Lane)laneTable.get(spn);
-                        if (lane == null) {
-                                throw new NetIbisClosedException("connection "+spn+" closed");
-                        }
-                        
-                        activeInput = lane.input;
-                        if (activeInput == null) {
-                                throw new NetIbisClosedException("connection "+spn+" closed");
-                        }
-                        activeNum = spn;
-                        activeUpcallThread = Thread.currentThread();
-                }                
 
-                // System.err.println("MultiPoller: upcall-->");                
-                upcallFunc.inputUpcall(this, spn);
-                // System.err.println("MultiPoller: upcall<--");                
+	/**
+	 * {@inheritDoc}
+	 */
+	protected void selectInput(Integer spn) throws NetIbisClosedException {
+	    Lane lane = (Lane)laneTable.get(spn);
+	    if (lane == null) {
+		throw new NetIbisClosedException("connection "+spn+" closed");
+	    }
 
-                synchronized(this) {
-                        if (activeInput == input && activeUpcallThread == Thread.currentThread()) {
-                                activeInput = null;
-                                activeNum   = null;
-                                activeUpcallThread = null;
-                                notifyAll();
-                        }
-                }
-                // System.err.println("MultiPoller: inputUpcall<--");                
-        }
+	    activeQueue = lane.queue;
+	    if (activeQueue == null) {
+		throw new NetIbisClosedException("connection "+spn+" closed");
+	    }
+	}
+
 
         private String getSubContext(NetIbisIdentifier localId, InetAddress localHostAddr, NetIbisIdentifier remoteId, InetAddress remoteHostAddr) {
                 String subContext = null;
@@ -142,7 +112,7 @@ public final class MultiPoller extends NetInput {
                         byte [] l = localHostAddr.getAddress();
                         byte [] r = remoteHostAddr.getAddress();
                         int n = 0;
-                        
+
                         while (n < 4 && l[n] == r[n])
                                 n++;
 
@@ -152,27 +122,27 @@ public final class MultiPoller extends NetInput {
                                         subContext = "node";
                                         break;
                                 }
-                        
-                        case 3: 
+
+                        case 3:
                                 {
                                         subContext = "net_c";
                                         break;
                                 }
-                        
+
                         case 2:
                                 {
                                         subContext = "net_b";
                                         break;
                                 }
-                        
+
                         case 1:
                                 {
                                         subContext = "net_a";
                                         break;
                                 }
-                        
+
                         default:
-                                { 
+                                {
                                         subContext = "internet";
                                         break;
                                 }
@@ -181,7 +151,7 @@ public final class MultiPoller extends NetInput {
 
                 return subContext;
         }
-        
+
 
 	/**
 	 * {@inheritDoc}
@@ -196,14 +166,14 @@ public final class MultiPoller extends NetInput {
                         ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
                         os.flush();
 
-                        // System.err.println("MultiPoller: setupConnection - 2");
+                        //System.err.println("MultiPoller: setupConnection - 2");
                         NetIbisIdentifier localId  = (NetIbisIdentifier)driver.getIbis().identifier();
                         NetIbisIdentifier remoteId = (NetIbisIdentifier)is.readObject();
 
                         os.writeObject(localId);
                         os.flush();
 
-                        // System.err.println("MultiPoller: setupConnection - 3");
+                        //System.err.println("MultiPoller: setupConnection - 3");
 
                         InetAddress localHostAddr  = InetAddress.getLocalHost();
                         InetAddress remoteHostAddr = (InetAddress)is.readObject();
@@ -211,27 +181,29 @@ public final class MultiPoller extends NetInput {
                         os.writeObject(localHostAddr);
                         os.flush();
 
-                        // System.err.println("MultiPoller: setupConnection - 4");
+                        //System.err.println("MultiPoller: setupConnection - 4");
 
+			NetInput ni = null;
                         String   subContext = getSubContext(localId, localHostAddr, remoteId, remoteHostAddr);
-                        NetInput ni         = (NetInput)inputTable.get(subContext);
+                        ReceiveQueue q = (ReceiveQueue)inputTable.get(subContext);
 
-                        if (ni == null) {
+                        if (q == null) {
                                 String    subDriverName = getProperty(subContext, "Driver");
                                 NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
                                 ni                      = newSubInput(subDriver, subContext);
-                                inputTable.put(subContext, ni);
-                        }
-
-                        // System.err.println("MultiPoller: setupConnection - 5");
-
-                        if (upcallFunc != null) {
-                                ni.setupConnection(cnx, this);
                         } else {
-                                ni.setupConnection(cnx, null);
-                        }
+				ni = q.input;
+			}
 
-                        // System.err.println("MultiPoller: setupConnection - 6");
+                        //System.err.println("MultiPoller: setupConnection - 5");
+
+			super.setupConnection(cnx, subContext, ni);
+
+                        //System.err.println("MultiPoller: setupConnection - 6");
+
+			if (q == null) {
+			    q = (ReceiveQueue)inputTable.get(subContext);
+			}
 
                         Integer num  = cnx.getNum();
                         Lane    lane = new Lane();
@@ -239,12 +211,12 @@ public final class MultiPoller extends NetInput {
                         lane.is           = is;
                         lane.os           = os;
                         lane.cnx          = cnx;
-                        lane.input        = ni;
+                        lane.queue        = q;
                         lane.mtu          = is.readInt();
                         lane.headerLength = is.readInt();
                         lane.thread       = new ServiceThread("subcontext = "+subContext+", spn = "+num, lane);
 
-                        // System.err.println("MultiPoller: setupConnection - 7");
+                        //System.err.println("MultiPoller: setupConnection - 7");
 
                         laneTable.put(num, lane);
 
@@ -256,210 +228,77 @@ public final class MultiPoller extends NetInput {
                 // System.err.println("MultiPoller: setupConnection<--");
 	}
 
+
 	/**
-	 * Polls the inputs.
-	 *
 	 * {@inheritDoc}
 	 */
-	public synchronized Integer poll(boolean block) throws NetIbisException {		
-
-		if (block) {
-		    System.err.println(this + ": no support yet for blocking poll. Implement!");
-		    throw new NetIbisException(this + ": no support yet for blocking poll. Implement!");
-		}
-
-		activeInput = null;
-		activeNum   = null;
-		
-		Iterator i = inputTable.values().iterator();
-
-	polling_loop:
-		while (i.hasNext()) {
-			NetInput ni  = (NetInput)i.next();
-			Integer  num = null;
-			
-			if ((num = ni.poll()) != null) {
-				activeInput  = ni;
-				activeNum    = num;
-
-                                Lane lane = null;
-                                lane = (Lane)laneTable.get(num);
-
-                                synchronized(lane) {
-                                        mtu          = lane.mtu;
-                                        headerOffset = lane.headerLength;
-                                }
-                                
-				break polling_loop;
-			}
-		}
-		
-		return activeNum;
+	protected void selectConnection(ReceiveQueue ni) {
+	    Lane lane = (Lane)laneTable.get(activeNum);
+	    synchronized (lane) {
+		mtu          = lane.mtu;
+		headerOffset = lane.headerLength;
+	    }
 	}
 
+
 	/**
 	 * {@inheritDoc}
-	 */
+	 *
 	public void finish() throws NetIbisException {
                 // System.err.println("MultiPoller: finish-->");
+		activeQueue.input.finish();
 		super.finish();
-		activeInput.finish();
-                synchronized(this) {
-                        activeInput = null;
-                        activeNum   = null;
-                        activeUpcallThread = null;
-                        notifyAll();
-                }
                 // System.err.println("MultiPoller: finish<--");
 	}
+	*/
 
+
+	/**
+	 * {@inheritDoc}
+	 */
         public synchronized void close(Integer num) throws NetIbisException {
                 if (laneTable != null) {
                         Lane lane = (Lane)laneTable.get(num);
 
                         if (lane != null) {
-                                if (lane.input != null) {
-                                        lane.input.close(num);
+                                if (lane.queue.input != null) {
+                                        lane.queue.input.close(num);
                                 }
 
                                 if (lane.thread != null) {
                                         lane.thread.end();
                                 }
-                                
+
                                 laneTable.remove(num);
 
-                                if (activeInput == lane.input) {
-                                        activeInput = null;
+                                if (activeQueue == lane.queue) {
+                                        activeQueue = null;
                                         activeNum   = null;
                                         activeUpcallThread = null;
                                         notifyAll();
                                 }
                         }
                 }
-                
+
         }
-        
+
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void free() throws NetIbisException {
-                if (laneTable != null) {
-                        Iterator i = laneTable.values().iterator();
-                        while (i.hasNext()) {
-                                Lane lane = (Lane)i.next();
-                                if (lane != null && lane.thread != null) {
-                                        lane.thread.end();
-                                }
-                                i.remove();
-                        }
-                }
-                
-		if (inputTable != null) {
-                        Iterator i = inputTable.values().iterator();
+	    if (laneTable != null) {
+		    Iterator i = laneTable.values().iterator();
+		    while (i.hasNext()) {
+			    Lane lane = (Lane)i.next();
+			    if (lane != null && lane.thread != null) {
+				    lane.thread.end();
+			    }
+			    i.remove();
+		    }
+	    }
 
-                        while (i.hasNext()) {
-				NetInput ni  = (NetInput)i.next();
-                                if (ni != null) {
-                                        ni.free();
-                                }
-			}
-		}
-                
-		synchronized(this) {
-                        activeInput = null;
-                        activeNum   = null;
-                        activeUpcallThread = null;
-
-//                          while (activeInput != null)
-//                                  wait();
-                }
-
-		super.free();
+	    super.free();
 	}
 
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
-                return activeInput.readByteBuffer(expectedLength);
-        }       
-
-        public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
-                activeInput.readByteBuffer(buffer);
-        }
-
-	public boolean readBoolean() throws NetIbisException {
-                return activeInput.readBoolean();
-        }
-
-	public byte readByte() throws NetIbisException {
-                return activeInput.readByte();
-        }
-
-	public char readChar() throws NetIbisException {
-                return activeInput.readChar();
-        }
-
-	public short readShort() throws NetIbisException {
-                return activeInput.readShort();
-        }
-
-	public int readInt() throws NetIbisException {
-                return activeInput.readInt();
-        }
-
-	public long readLong() throws NetIbisException {
-                return activeInput.readLong();
-        }
-	
-	public float readFloat() throws NetIbisException {
-                return activeInput.readFloat();
-        }
-
-	public double readDouble() throws NetIbisException {
-                return activeInput.readDouble();
-        }
-
-	public String readString() throws NetIbisException {
-                return (String)activeInput.readString();
-        }
-
-	public Object readObject() throws NetIbisException {
-                return activeInput.readObject();
-        }
-
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceBoolean(b, o, l);
-        }
-
-	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceByte(b, o, l);
-        }
-
-	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceChar(b, o, l);
-        }
-
-	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceShort(b, o, l);
-        }
-
-	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceInt(b, o, l);
-        }
-
-	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceLong(b, o, l);
-        }
-
-	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceFloat(b, o, l);
-        }
-
-	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceDouble(b, o, l);
-        }
-
-	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
-                activeInput.readArraySliceObject(b, o, l);
-        }
-
-} 
+}

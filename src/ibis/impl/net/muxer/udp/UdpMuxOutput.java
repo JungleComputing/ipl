@@ -107,6 +107,12 @@ public final class UdpMuxOutput
 	try {
 	    rpn = cnx.getNum();
 
+	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + rpn));
+	    os.writeObject(laddr);
+	    os.writeInt(lport);
+	    os.writeInt(lmtu);
+	    os.close();
+
 	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + rpn));
 	    InetAddress raddr = (InetAddress)is.readObject();
 	    int rport         = is.readInt();
@@ -114,15 +120,8 @@ public final class UdpMuxOutput
 	    int rKey          = is.readInt();
 	    is.close();
 
-	    MuxerKey key = new UdpMuxerKey(rpn, raddr, rport, rKey);
-	    registerKey(key);
-
-	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + rpn));
-	    os.writeObject(laddr);
-	    os.writeInt(lport);
-	    os.writeInt(lmtu);
-	    os.writeInt(rpn.intValue());
-	    os.close();
+	    MuxerKey key = new UdpMuxerKey(raddr, rport, rKey);
+	    registerKey(cnx, key);
 
 	    mtu    = Math.min(lmtu, rmtu);
 
@@ -135,7 +134,6 @@ public final class UdpMuxOutput
 
 
     public void disconnect(MuxerKey key) throws NetIbisException {
-	releaseKey(key);
 	if (--liveConnections == 0) {
 	    free();
 	}
@@ -149,11 +147,10 @@ public final class UdpMuxOutput
     public void sendByteBuffer(NetSendBuffer b)
 	    throws NetIbisException {
 
-	int lKey = b.connectionId.intValue();
-	UdpMuxerKey uk = (UdpMuxerKey)locateKey(lKey);
+	UdpMuxerKey uk = (UdpMuxerKey)b.connectionId;
 
 	if (Driver.DEBUG) {
-	    System.err.println("Send packet, key " + lKey + " is " + uk);
+	    System.err.println("Send packet, key " + uk);
 	    System.err.println("Send packet size " + b.length + " key " + uk.remoteKey + "@" + b.base);
 	}
 	NetConvert.writeInt(uk.remoteKey, b.data, b.base);
@@ -180,6 +177,7 @@ public final class UdpMuxOutput
 		socket.close();
 		socket = null;
 	    }
+	    rpn = null;
 	}
     }
 

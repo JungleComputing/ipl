@@ -7,7 +7,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-/* Only for java >= 1.4 
+/* Only for java >= 1.4
  * import java.net.SocketTimeoutException;
  */
 import java.io.InterruptedIOException;
@@ -25,7 +25,7 @@ public final class UdpInput extends NetBufferedInput {
 	 *
 	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
 	 */
-	private final int             defaultPollTimeout    = 1; // milliseconds
+	private final int             defaultPollTimeout    = 1000; // 1; // milliseconds
 
 	/**
 	 * The default reception timeout in milliseconds.
@@ -47,7 +47,7 @@ public final class UdpInput extends NetBufferedInput {
 	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
 	 */
 	private int                   receiveTimeout = defaultReceiveTimeout; // milliseconds
-        private UpcallThread     upcallThread = null;
+        private UpcallThread          upcallThread = null;
 
 	private DatagramSocket 	      socket 	     = null;
 	private DatagramPacket 	      packet 	     = null;
@@ -76,6 +76,8 @@ public final class UdpInput extends NetBufferedInput {
 		if (Driver.DEBUG) {
 		    headerLength = 8;
 		}
+System.err.println(this + ": constructor; upcallFunc " + upcallFunc);
+Thread.dumpStack();
 	}
 
         private final class UpcallThread extends Thread {
@@ -90,20 +92,20 @@ public final class UdpInput extends NetBufferedInput {
                         end = true;
                         this.interrupt();
                 }
-                
+
                 public void run() {
                         while (!end) {
                                 if (buffer != null) {
                                         throw new Error("invalid state");
                                 }
-                                        
+
                                 try {
 					buffer = createReceiveBuffer(0);
 					packet.setData(buffer.data, 0, buffer.data.length);
 
                                         setReceiveTimeout(0);
                                         socket.receive(packet);
-// System.err.println("UdpInput thread receives buffer " + buffer);
+// System.err.println(UdpInput.this + ": UdpInput thread receives buffer " + buffer);
                                         buffer.length = packet.getLength();
                                         activeNum = spn;
                                         UdpInput.super.initReceive();
@@ -123,9 +125,9 @@ public final class UdpInput extends NetBufferedInput {
                 if (spn != null) {
                         throw new Error("connection already established");
                 }
-                
+
 		spn = cnx.getNum();
-		 
+
 		try {
 			socket = new DatagramSocket(0, InetAddress.getLocalHost());
 			lmtu = Math.min(socket.getReceiveBufferSize(), 16384);
@@ -142,7 +144,7 @@ public final class UdpInput extends NetBufferedInput {
                 lInfo.put("udp_port", 	 new Integer(lport));
                 lInfo.put("udp_mtu",  	 new Integer(lmtu));
                 Hashtable rInfo = null;
-                
+
                 try {
                         ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "udp"));
                         os.writeObject(lInfo);
@@ -156,7 +158,7 @@ public final class UdpInput extends NetBufferedInput {
 		} catch (ClassNotFoundException e) {
 			throw new Error(e);
 		}
-                
+
 		raddr =  (InetAddress)rInfo.get("udp_address");
 		rport = ((Integer)    rInfo.get("udp_port")  ).intValue();
 		rmtu  = ((Integer)    rInfo.get("udp_mtu")   ).intValue();
@@ -255,6 +257,7 @@ public final class UdpInput extends NetBufferedInput {
 				activeNum = spn;
 				super.initReceive();
 				checkReceiveSeqno(buffer);
+// System.err.print("^");
 
 			} catch (InterruptedIOException e) {
 				buffer.free();
@@ -277,7 +280,7 @@ public final class UdpInput extends NetBufferedInput {
 // System.err.println(this + ": poll returns " + activeNum);
 		return activeNum;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -297,16 +300,16 @@ public final class UdpInput extends NetBufferedInput {
 
 // System.err.println(this + ": hi -- activeNum " + activeNum + " buffer " + buffer);
 // Thread.dumpStack();
+// System.err.print("_");
 		if (this.buffer == null) {
 			throw new NetIbisException(this + ": receive corrupt: poll is nonnull but no buffer");
-// System.err.print("_");
 		}
 
 		NetReceiveBuffer temp_buffer = buffer;
 		buffer = null;
 
 		checkDeliverSeqno(temp_buffer);
-		
+
 		return temp_buffer;
 	}
 
@@ -319,7 +322,7 @@ public final class UdpInput extends NetBufferedInput {
 			try {
 				/* This is a blocking receive call. Don't
 				 * set a timeout. */
-System.err.print("p");
+// System.err.print("p");
 				setReceiveTimeout(0);
 				socket.receive(packet);
 				super.initReceive();
@@ -349,7 +352,7 @@ System.err.print("p");
 	}
 
 	/*
-	 * We need a way to set timeout through properties 
+	 * We need a way to set timeout through properties
 	 */
 	// timeout should be expressed in milliseconds
 	void setReceiveTimeout(int timeout) throws NetIbisException {
@@ -360,9 +363,9 @@ System.err.print("p");
 			} catch (SocketException e) {
 				throw new NetIbisException(e);
 			}
-		}		
+		}
 	}
-	
+
 	// returns the current reception timeout in milliseconds
 	// 0 means an infinite timeout
 	int getReceiveTimeout() throws NetIbisException {
@@ -386,25 +389,19 @@ System.err.print("p");
                         if (upcallThread != null) {
                                 upcallThread.end();
                         }
-                    
-                        spn = null;    
+
+                        spn = null;
 		}
         }
-        
+
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void free() throws NetIbisException {
-		if (socket != null) {
-			socket.close();
+		if (spn != null) {
+		    close(spn);
 		}
-                
-                if (upcallThread != null) {
-                        upcallThread.end();
-                }
-                    
-		spn = null;
 
 		super.free();
 
@@ -412,5 +409,5 @@ System.err.print("p");
 		    System.err.println("UdpInput: receiveFromPoll(timeout) " + receiveFromPoll + " (estimated loss " + (t_receiveFromPoll / 1000.0) + " s)");
 		}
 	}
-	
+
 }

@@ -155,7 +155,9 @@ public final class UdpOutput extends NetBufferedOutput {
 		    NetConvert.writeLong(seqno++, b.data, 0);
 		}
 		packet.setData(b.data, 0, b.length);
-// System.err.print("|");
+// System.err.println(this + ": send packet size " + b.length);
+// Thread.dumpStack();
+// System.err.print("]");
 		try {
 			socket.send(packet);
 		} catch (IOException e) {

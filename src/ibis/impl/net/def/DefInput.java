@@ -122,8 +122,6 @@ public final class DefInput extends NetBufferedInput {
                                 }                                
                                 offset += result;
 			} while (offset < l);
-                } catch (SocketException e) {
-                        return null;
 		} catch (IOException e) {
 			throw new NetIbisException(e.getMessage());
 		} 

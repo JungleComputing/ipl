@@ -20,7 +20,9 @@ public final class RelOutput
     /**
      * The driver used for the 'real' output.
      */
-    private NetDriver subDriver = null;
+    private NetDriver	subDriver = null;
+
+    private Integer	rpn;
 
     /**
      * The communication output.
@@ -64,7 +66,7 @@ public final class RelOutput
      * The sliding window descriptor.
      * The window size is in rel.Driver.
      */
-    private static final int DEFAULT_WINDOW_SIZE = 16; // 4;
+    private static final int DEFAULT_WINDOW_SIZE = 8; // 16; 8; // 4;
     private int		windowSize = DEFAULT_WINDOW_SIZE;
     private int		nextAllocate = FIRST_PACKET_COUNT; // Allocated to send up to here
     private int		windowStart = FIRST_PACKET_COUNT;  // Acked up to here
@@ -167,6 +169,12 @@ public final class RelOutput
     public synchronized void setupConnection(NetConnection cnx)
 	    throws NetIbisException {
 
+	if (rpn != null) {
+	    throw new NetIbisException("connection already established");
+	}
+
+	rpn = cnx.getNum();
+
 	/* Main connection */
 	NetOutput dataOutput = this.dataOutput;
 
@@ -209,6 +217,9 @@ public final class RelOutput
 	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "rel"));
 
 	    partnerIbisId = (IbisIdentifier)is.readObject();
+	    if (DEBUG) {
+		System.err.println(this + ": my partner IbisID " + partnerIbisId);
+	    }
 
             ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "rel"));
 	    os.writeObject(relDriver.getIbis().identifier());
@@ -251,6 +262,7 @@ public final class RelOutput
 		throw new NetIbisException(this + ": connection handshake fails");
 	    }
             is.close();
+System.err.println(this + ": Connection established");
 	} catch (java.io.IOException e) {
 	    System.err.println("Catch exception " + e);
 	    e.printStackTrace();
@@ -736,7 +748,7 @@ public final class RelOutput
      */
     public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
 	if (DEBUG) {
-	    System.err.println("Try to send a buffer size " + b.length);
+	    System.err.println(this + ": Try to send a buffer size " + b.length);
 	    Thread.dumpStack();
 	}
 
@@ -817,11 +829,52 @@ public final class RelOutput
 	    dataOutput.finish();
     }
 
+
+    synchronized public void close(Integer num) throws NetIbisException {
+	// to implement
+	//
+	// - 'num' is the is the Integer identifier of the connection to close
+	// - close should not complain is the connection is already closed
+	// - close must be synchronized with its counterpart 'setupconnection'
+	// - close should not block if possible (except for sync with 
+	//   setupconnection)
+	// - close should not free the input/output objects which can be used
+	//   for subsequent new connections
+	// - close is supposed to be called by the NetIbis port layer 
+	//   when the peer port is closed
+	// - close is also supposed to be called by the user once the IPL
+	//   provide the feature, to remove a connection from the connection set
+	//   of the port
+	// - close must be carefully designed to avoid race conditions with upcall
+	//   handling and to avoid distributed deadlocks
+
+	if (num != rpn) {
+	    return;
+	}
+
+	connected = false;
+
+	// The rexmit watchdog:
+	relDriver.unRegisterSweep(this);
+
+	if (dataOutput != null) {
+	    dataOutput.close(rpn);
+	}
+	if (controlInput != null) {
+	    controlInput.close(rpn);
+	}
+
+	rpn = null;
+    }
+
+
     /**
      * {@inheritDoc}
      */
     public void free() throws NetIbisException {
-	report();
+	if (rpn != null) {
+	    close(rpn);
+	}
 
 	if (dataOutput != null) {
 	    dataOutput.free();
@@ -831,25 +884,8 @@ public final class RelOutput
 	}
 
 	super.free();
-    }
 
-    synchronized public void close(Integer num) throws NetIbisException {
-            // to implement
-            //
-            // - 'num' is the is the Integer identifier of the connection to close
-            // - close should not complain is the connection is already closed
-            // - close must be synchronized with its counterpart 'setupconnection'
-            // - close should not block if possible (except for sync with 
-            //   setupconnection)
-            // - close should not free the input/output objects which can be used
-            //   for subsequent new connections
-            // - close is supposed to be called by the NetIbis port layer 
-            //   when the peer port is closed
-            // - close is also supposed to be called by the user once the IPL
-            //   provide the feature, to remove a connection from the connection set
-            //   of the port
-            // - close must be carefully designed to avoid race conditions with upcall
-            //   handling and to avoid distributed deadlocks
+	report();
     }
 
 }

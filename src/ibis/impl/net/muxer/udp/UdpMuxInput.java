@@ -23,6 +23,7 @@ import ibis.ipl.impl.net.NetBufferFactory;
 import ibis.ipl.impl.net.NetIbisException;
 
 import ibis.ipl.impl.net.muxer.MuxerInput;
+import ibis.ipl.impl.net.muxer.MuxerQueue;
 
 
 public final class UdpMuxInput extends MuxerInput {
@@ -89,20 +90,22 @@ public final class UdpMuxInput extends MuxerInput {
 	try {
 	    spn = cnx.getNum();
 
-	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + spn));
-
-	    os.writeObject(laddr);
-	    os.writeInt(lport);
-	    os.writeInt(lmtu);
-	    os.writeInt(spn.intValue());
-	    os.close();
-
 	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + spn));
+	    /* We don't use the IP address of the sender port. Maybe it comes
+	     * in handy for debugging. */
 	    InetAddress raddr = (InetAddress)is.readObject();
 	    int         rport = is.readInt();
 	    int         rmtu  = is.readInt();
-	    int         rKey  = is.readInt();
 	    is.close();
+
+	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + spn));
+
+	    MuxerQueue q = createQueue(cnx, spn);
+	    os.writeObject(laddr);
+	    os.writeInt(lport);
+	    os.writeInt(lmtu);
+	    os.writeInt(q.connectionKey());
+	    os.close();
 
 	    int mtu = Math.min(lmtu, rmtu);
 	    if (Driver.DEBUG) {
@@ -218,9 +221,10 @@ System.err.println(this + ": ***************** catch Exception " + e);
 	if (num == spn) {
 	    if (socket != null) {
 		socket.close();
+		socket = null;
 	    }
 
-	    socket = null;
+	    spn = null;
 
 	    if (Driver.STATISTICS) {
 		System.err.println("UdpMuxInput: receiveFromPoll(timeout) " + receiveFromPoll + " (estimated loss " + (t_receiveFromPoll / 1000.0) + " s)");

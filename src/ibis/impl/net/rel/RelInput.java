@@ -36,6 +36,9 @@ public final class RelInput
 
     private Driver		relDriver;
 
+    private UpcallThread	upcallThread = null;
+
+
     /**
      * The index number of our piggyback partner
      */
@@ -146,6 +149,46 @@ public final class RelInput
 	if (RANDOM_DISCARDS > 0.0) {
 	    discardRandom = new java.util.Random();
 	}
+
+// System.err.println(this + ": constructed");
+// Thread.dumpStack();
+    }
+
+
+    private final class UpcallThread extends Thread {
+
+	private volatile boolean end = false;
+
+	public UpcallThread(String name) {
+	    super("RelInput.UpcallThread: "+name);
+	}
+
+	public void end() {
+	    // System.err.println("Wave the upcall thread goodbye");
+	    end = true;
+	    this.interrupt();
+	    try {
+		this.join(300);
+	    } catch (InterruptedException e) {
+		System.err.println("Poller thread won't hear from us, let it be");
+	    }
+	}
+	
+	public void run() {
+	    while (!end) {
+		try {
+		    while (poll(true) == null) {
+			if (end) {
+			    return;
+			}
+		    }
+		    upcallFunc.inputUpcall(RelInput.this, activeNum);
+		} catch (NetIbisException e) {
+// System.err.println(RelInput.this + ": exception " + e);
+		    throw new Error(e);
+		}
+	    }
+	}
     }
 
 
@@ -198,7 +241,11 @@ public final class RelInput
 	    partnerIndex = is.readInt();
 	    windowSize = is.readInt();
             is.close();
-            
+
+	    if (DEBUG) {
+		System.err.println(this + ": set up connection with " + partnerId);
+	    }
+
 	    relDriver.registerInputConnection(this, partnerId);
 
 	    /* Reverse connection */
@@ -224,6 +271,15 @@ public final class RelInput
 
 	    os.writeInt(1);
             os.close();
+
+	    if (upcallFunc != null) {
+		upcallThread = new UpcallThread("RelInput[" + spn + "]");
+		upcallThread.start();
+	    }
+
+	    if (DEBUG) {
+		System.err.println(this + ": " + Thread.currentThread() + ": established connection with " + partnerId + "; upcallFunc = " + upcallFunc);
+	    }
 	} catch (java.io.IOException e) {
 	    System.err.println("Catch exception " + e);
 	    e.printStackTrace();
@@ -436,8 +492,8 @@ public final class RelInput
 
 	checkLocked();
 
-	if (DEBUG_REXMIT_NACK) {
-	    System.err.println(this + ": !!!!!!!!!!!!!!!!! Receive duplicate packet " + packet.fragCount + "; what should I do?");
+	if (DEBUG_REXMIT_NACK || DEBUG_REXMIT) {
+	    System.err.println(this + ": Receive duplicate packet " + packet.fragCount + "; what should I do?");
 	}
 	packet.free();
 	sendExplicitAck(true);
@@ -544,7 +600,7 @@ public final class RelInput
     }
 
 
-    // No need to call this synchronized or non-synchronized
+    // If we want to yield() here, better call it non-synchronized
     private boolean pollDataInput(boolean block) throws NetIbisException {
 	boolean dataPending;
 	while (true) {
@@ -586,18 +642,13 @@ public final class RelInput
 	activeNum = null;
 
 	pollQueue();
-	if (activeNum != null) {
-	    /* Seems there were still some queue packets pending */
-	    return activeNum;
-	}
-
-	if (pollDataInput(block)) {
+	if (activeNum == null && pollDataInput(block)) {
 	    /* There is something to receive from the dataInput. Take a look */
 	    receiveDataPacket();
 	    pollQueue();
 	}
 
-	if (false && DEBUG) {
+	if (DEBUG) {
 	    System.err.println(this + ": poll() returns " + activeNum);
 	}
 
@@ -697,33 +748,6 @@ public final class RelInput
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
-    public void free() throws NetIbisException {
-	for (int i = 0; i < SHUTDOWN_DELAY / sweepInterval; i++) {
-	    synchronized (this) {
-		sendExplicitAck(true);
-		try {
-		    wait(sweepInterval);
-		} catch (InterruptedException e) {
-		    /* Quits if they go interrupting us */
-		}
-	    }
-	}
-
-	report();
-	if (dataInput != null) {
-	    dataInput.free();
-	}
-	if (controlOutput != null) {
-	    controlOutput.free();
-	}
-
-	super.free();
-    }
-
-
     synchronized public void close(Integer num) throws NetIbisException {
             // to implement
             //
@@ -739,6 +763,56 @@ public final class RelInput
             // - close is also supposed to be called by the user once the IPL
             //   provide the feature, to remove a connection from the connection set
             //   of the port.
+	if (spn != num) {
+	    return;
+	}
+
+	for (int i = 0; i < SHUTDOWN_DELAY / sweepInterval; i++) {
+	    synchronized (this) {
+		sendExplicitAck(true);
+		try {
+		    wait(sweepInterval);
+		} catch (InterruptedException e) {
+		    /* Quits if they go interrupting us */
+		}
+	    }
+	}
+
+	if (upcallThread != null) {
+	    upcallThread.end();
+	    upcallThread = null;
+	}
+
+// System.err.println(this + ": close my subinputs");
+	if (dataInput != null) {
+	    dataInput.close(spn);
+	}
+	if (controlOutput != null) {
+	    controlOutput.close(spn);
+	}
+
+	spn = null;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void free() throws NetIbisException {
+	if (spn != null) {
+	    close(spn);
+	}
+
+	super.free();
+
+	report();
+
+	if (dataInput != null) {
+	    dataInput.free();
+	}
+	if (controlOutput != null) {
+	    controlOutput.free();
+	}
     }
 
 }

@@ -249,7 +249,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 this.replacer = replacer;
                 this.ibis     = type.getIbis();
 
+System.err.println("Now init passive state");
                 initPassiveState();
+System.err.println("Now init active state");
                 initActiveState();
 	}
 

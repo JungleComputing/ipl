@@ -94,6 +94,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * Sends what remains to be sent.
 	 */
 	public void send() throws NetIbisException{
+// System.err.println(this + ": send...");
                 super.send();
 	}
 

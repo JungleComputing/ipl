@@ -58,7 +58,7 @@ public class NetBuffer implements Cloneable {
 	 * Multiplexing drivers require that the buffer has information on
 	 * the connection it wants to travel on.
 	 */
-	public Integer connectionId;
+	public Object connectionId;
 
 	/**
 	 * Indicates whether some layer has claimed ownership for this buffer.
