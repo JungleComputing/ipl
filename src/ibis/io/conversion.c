@@ -63,12 +63,12 @@ TYPE2BYTE(long,    jlong,    Long)
 TYPE2BYTE(float,   jfloat,   Float)
 TYPE2BYTE(double,  jdouble,  Double)
 
-#include "ibis_io_MantaInputStream.h"
+#include "ibis_io_IbisSerializationInputStream.h"
 
-JNIEXPORT jobject JNICALL Java_ibis_io_MantaInputStream_createUninitializedObject
+JNIEXPORT jobject JNICALL Java_ibis_io_IbisSerializationInputStream_createUninitializedObject
   (JNIEnv *, jobject, jclass);
 
-jobject Java_ibis_io_MantaInputStream_createUninitializedObject(
+jobject Java_ibis_io_IbisSerializationInputStream_createUninitializedObject(
 	JNIEnv *env, 
 	jobject this, 
 	jclass type) 
