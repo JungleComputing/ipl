@@ -8,7 +8,7 @@ while ( <> ) {
     chomp;
     # printf "current $_\n";
 
-    if ($_ =~ /ser=(\S+) node=(\S+) ibis=(\S+)/) {
+    if ($_ =~ /ser=(\S+) nodes?=(\S+) ibis=(\S+)/) {
 	$ser = $1;
 	$node = $2;
 	$ibis = $3;
@@ -45,6 +45,7 @@ while ( <> ) {
 	if ( ! $found ) {
 	    @ibises = sort( @ibises, $ibis );
 	}
+
 	# printf "ibis $ibis; ser $ser; node $node\n";
     }
 
