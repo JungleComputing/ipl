@@ -234,6 +234,7 @@ public final class Group implements GroupProtocol {
 		    ticket = m.readInt();
 		    RegistryReply r = (RegistryReply) m.readObject();
 		    if (Group.DEBUG) System.out.println(Group._rank + ": REGISTRY_REPLY forwarded to ticketMaster (" + ticket + ")");
+		    m.finish();		// ticketMaster may block.
 		    Group.ticketMaster.put(ticket, r);
 		    break;
 
@@ -595,8 +596,8 @@ public final class Group implements GroupProtocol {
 	    w.writeByte(CREATE_GROUP);
 	    w.writeInt(_rank);
 	    w.writeInt(ticket);
-	    w.writeObject(nm);
-	    w.writeObject(type.getName());
+	    w.writeString(nm);
+	    w.writeString(type.getName());
 	    w.writeInt(size);
 	    w.finish();
 
@@ -646,7 +647,7 @@ public final class Group implements GroupProtocol {
 		w.writeByte(JOIN_GROUP);
 		w.writeInt(_rank);
 		w.writeInt(ticket);
-		w.writeObject(nm);
+		w.writeString(nm);
 		w.writeObject(o.groupInterfaces);
 		w.writeInt(o.mySkel);
 		w.finish();
@@ -715,7 +716,7 @@ public final class Group implements GroupProtocol {
 		    w.writeByte(FIND_GROUP);
 		    w.writeInt(_rank);
 		    w.writeInt(ticket);
-		    w.writeObject(nm);
+		    w.writeString(nm);
 		    w.finish();
 		    
 		    RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
@@ -804,8 +805,8 @@ public final class Group implements GroupProtocol {
 	    w.writeInt(groupID);
 	    w.writeInt(_rank);
 	    w.writeInt(ticket);
-	    w.writeObject(nm);
-	    w.writeObject(method);
+	    w.writeString(nm);
+	    w.writeString(method);
 	    w.writeInt(rank);
 	    w.writeInt(size);
 	    w.writeInt(mode);

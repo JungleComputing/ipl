@@ -286,12 +286,8 @@ final class GroupRegistry implements GroupProtocol {
 	groupID = r.readInt();
 	cpu = r.readInt();
 	ticket = r.readInt();
-	try {
-	    name = (String) r.readObject();
-	    method = (String) r.readObject();
-	} catch (ClassNotFoundException e) {
-	    throw new StreamCorruptedException(e.toString());
-	}
+	name = r.readString();
+	method = r.readString();
 	rank = r.readInt();
 	size = r.readInt();
 	mode = r.readInt();
@@ -300,10 +296,6 @@ final class GroupRegistry implements GroupProtocol {
 	String id = name + "?" + method + "?" + groupID;
 	CombinedInvocationInfo inf;
 
-	WriteMessage w = Group.unicast[cpu].newMessage();
-	w.writeByte(REGISTRY_REPLY);
-	w.writeInt(ticket);
-
 	synchronized(this) {
 	    inf = (CombinedInvocationInfo) combinedInvocations.get(id);
 	    if (inf == null) {
@@ -311,16 +303,15 @@ final class GroupRegistry implements GroupProtocol {
 		combinedInvocations.put(id, inf);
 	    }
 
-	    if (inf.mode != mode || inf.numInvokers != size) {
+	    if (inf.mode != mode ||
+		    inf.numInvokers != size || inf.present == size) {
+		WriteMessage w = Group.unicast[cpu].newMessage();
+		w.writeByte(REGISTRY_REPLY);
+		w.writeInt(ticket);
 		w.writeObject(new RegistryReply(COMBINED_FAILED,
-						"Inconsistent combined invocation"));
-		w.finish();
-		return;
-	    }
-
-	    if (inf.present == size) {
-		w.writeObject(new RegistryReply(COMBINED_FAILED,
-						"Combined invocation full"));
+				    inf.present == size ?
+					"Combined invocation full" :
+					"Inconsistent combined invocation"));
 		w.finish();
 		return;
 	    }
@@ -328,6 +319,9 @@ final class GroupRegistry implements GroupProtocol {
 
 	inf.addAndWaitUntilFull(rank, cpu);
 
+	WriteMessage w = Group.unicast[cpu].newMessage();
+	w.writeByte(REGISTRY_REPLY);
+	w.writeInt(ticket);
 	w.writeObject(new RegistryReply(COMBINED_OK, inf));
 	w.finish();
     }
@@ -350,10 +344,6 @@ final class GroupRegistry implements GroupProtocol {
 
 	BarrierInfo inf;
 
-	WriteMessage w = Group.unicast[cpu].newMessage();
-	w.writeByte(REGISTRY_REPLY);
-	w.writeInt(ticket);
-
 	synchronized(this) {
 	    inf = (BarrierInfo) barriers.get(id);
 	    if (inf == null) {
@@ -362,6 +352,10 @@ final class GroupRegistry implements GroupProtocol {
 	    }
 
 	    if (inf.size != size) {
+		WriteMessage w = Group.unicast[cpu].newMessage();
+		w.writeByte(REGISTRY_REPLY);
+		w.writeInt(ticket);
+
 		w.writeObject(new RegistryReply(BARRIER_FAILED,
 						"Inconsistent barrier size"));
 		w.finish();
@@ -377,6 +371,10 @@ final class GroupRegistry implements GroupProtocol {
 		barriers.remove(id);
 	    }
 	}
+
+	WriteMessage w = Group.unicast[cpu].newMessage();
+	w.writeByte(REGISTRY_REPLY);
+	w.writeInt(ticket);
 	w.writeObject(new RegistryReply(BARRIER_OK));
 	w.finish();
     }
@@ -405,8 +403,8 @@ final class GroupRegistry implements GroupProtocol {
 	    case CREATE_GROUP:
 		rank = r.readInt();		
 		ticket = r.readInt();
-		name = (String) r.readObject();
-		type = (String) r.readObject();
+		name = r.readString();
+		type = r.readString();
 		size = r.readInt();
 		r.finish();
 		
@@ -424,7 +422,7 @@ final class GroupRegistry implements GroupProtocol {
 	    case JOIN_GROUP:
 		rank = r.readInt();
 		ticket = r.readInt();
-		name = (String) r.readObject();
+		name = r.readString();
 		interfaces = (String []) r.readObject();
 		memberSkel = r.readInt();
 		r.finish();
@@ -439,7 +437,7 @@ final class GroupRegistry implements GroupProtocol {
 	    case FIND_GROUP:
 		rank = r.readInt();
 		ticket = r.readInt();
-		name = (String) r.readObject();
+		name = r.readString();
 		r.finish();
 
 		if (Group.DEBUG) { 

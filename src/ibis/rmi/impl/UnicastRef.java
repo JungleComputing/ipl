@@ -29,13 +29,13 @@ public class UnicastRef implements RemoteRef, java.io.Serializable
 
     public void writeExternal(ObjectOutput out) throws IOException 
     {
-	out.writeObject(GUID);
+	out.writeUTF(GUID);
     }
 
     public void readExternal(ObjectInput in)
-	throws IOException, ClassNotFoundException
+	throws IOException
     {
-	GUID = (String)in.readObject();
+	GUID = in.readUTF();
     }
     
     public String remoteToString() {
