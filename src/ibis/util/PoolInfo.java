@@ -46,7 +46,8 @@ public class PoolInfo {
 				InetAddress adres = InetAddress.getByName(t);
 				adres             = InetAddress.getByName(adres.getHostAddress());
 				host_names[i]     = adres.getHostName();
-				if (host_names[i].toUpperCase().equals(t.toUpperCase())) {
+				if (! host_names[i].equals(t) &&
+				    host_names[i].toUpperCase().equals(t.toUpperCase())) {
 				    System.err.println("This is probably M$ Windows. Restore lower case in host name " + t);
 				    host_names[i] = t;
 				}
