@@ -3,7 +3,6 @@ package ibis.group;
 import java.io.IOException;
 
 import ibis.ipl.ReadMessage;
-import ibis.util.SpecialStack;
 
 /**
  * The {@link Forwarder} class serves as a base class for user-defined forwarders.
@@ -143,7 +142,7 @@ public class Forwarder implements GroupProtocol {
 	this.stub = stub;
 	receivedResults = 0;
 	
-	stub.replyStack.putData(ticket, this);
+	stub.replyStack.put(ticket, this);
     } 
 
     /**
@@ -251,7 +250,7 @@ public class Forwarder implements GroupProtocol {
 //System.out.println("Received Results " + receivedResults);
 	if (receivedResults == numResults) { 
 //System.out.println("Freeing position " + ticket);
-	    stub.replyStack.freePosition(ticket);
+	    stub.replyStack.freeTicket(ticket);
 	    inUse = false;
 	} 
     }

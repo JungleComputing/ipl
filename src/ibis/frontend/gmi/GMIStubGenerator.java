@@ -132,7 +132,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "case ReplyScheme.R_FORWARD:");		
 	output.println(spacing + "case ReplyScheme.R_RETURN:");		
 	output.println(spacing + "\tw.writeInt(Group._rank);");
-	output.println(spacing + "\tticket = replyStack.getPosition();");
+	output.println(spacing + "\tticket = replyStack.get();");
 	output.println(spacing + "\tw.writeInt(shiftedStubID | ticket);");
 	output.println(spacing + "\tbreak;");
 	
@@ -236,7 +236,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\t}");
 	output.println(spacing + "\t} else {");
 	output.println(spacing + "\t\tif (result_mode != ReplyScheme.R_DISCARD) {");
-	output.println(spacing + "\t\t\tr = (GroupMessage) replyStack.getDataAndFreePosition(ticket);");
+	output.println(spacing + "\t\t\tr = (GroupMessage) replyStack.collect(ticket);");
 	output.println(spacing + "\t\t\tif (r.exceptionResult != null) {");
 	output.println(spacing + "\t\t\t\tex = r.exceptionResult;");
 	
@@ -270,7 +270,7 @@ class GMIStubGenerator extends GMIGenerator {
 
 	output.println(spacing + "case ReplyScheme.R_COMBINE_BINOMIAL:");		
 	output.println(spacing + "case ReplyScheme.R_RETURN:");		
-	output.println(spacing + "\tr = (GroupMessage) replyStack.getDataAndFreePosition(ticket);");
+	output.println(spacing + "\tr = (GroupMessage) replyStack.collect(ticket);");
 
 	output.println(spacing + "\tif (r.exceptionResult != null) {");
 	output.println(spacing + "\t\tex = r.exceptionResult;");
@@ -320,7 +320,7 @@ class GMIStubGenerator extends GMIGenerator {
 
 	output.println(spacing + "\tfor (int i=0;i<targetGroupSize;i++) {"); 
 
-	output.println(spacing + "\t\tr = (GroupMessage) replyStack.getData(ticket);");
+	output.println(spacing + "\t\tr = (GroupMessage) replyStack.get(ticket);");
 
 	output.println(spacing + "\t\tif (r.exceptionResult != null) {");		
 	output.println(spacing + "\t\t\texceptions[r.rank] = r.exceptionResult;");		
@@ -336,7 +336,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\t}");
 	output.println(spacing + "\t\tfreeGroupMessage(r);");
 	output.println(spacing + "\t}");
-	output.println(spacing + "\treplyStack.freePosition(ticket);");		
+	output.println(spacing + "\treplyStack.freeTicket(ticket);");		
 
 	if (ret instanceof BasicType) { 
 	    if (ret.equals(Type.VOID)) { 			
@@ -466,7 +466,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tcase ReplyScheme.R_RETURN:");		
 	output.println(spacing + "\t\t\tw.writeInt(Group._rank);");
 	output.println(spacing + "\t\t\tif (!haveTicket) {");
-	output.println(spacing + "\t\t\t\tticket = replyStack.getPosition();");
+	output.println(spacing + "\t\t\t\tticket = replyStack.get();");
 	output.println(spacing + "\t\t\t\thaveTicket = true;");
 	output.println(spacing + "\t\t\t}");
 	output.println(spacing + "\t\t\tw.writeInt(shiftedStubID | ticket);");

@@ -6,7 +6,7 @@ import ibis.ipl.WriteMessage;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.IbisException;
 
-import ibis.util.SpecialStack;
+import ibis.util.Ticket;
 
 /**
  * The {@link GroupStub} class provides a base class for generated stubs. A GroupStub
@@ -63,7 +63,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
     /**
      * Where the replies are pushed, identified by tickets.
      */
-    protected SpecialStack replyStack;
+    protected Ticket replyStack;
 
     /**
      * A list of the methods in this group.
@@ -141,7 +141,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	// init the ticketservice
 	realStubID    = stubID;
 	shiftedStubID = stubID << 16;
-	replyStack = new SpecialStack(this);
+	replyStack = new Ticket();
 	if (Group.DEBUG) System.out.println("GroupStub.init(" + stubID + ") done, multicastHostsID = " + multicastHostsID);
     }             	
 
@@ -202,7 +202,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
     protected final void handleResultMessage(ReadMessage r, int ticket, byte resultMode) throws IbisException, IOException { 
 
 	if (resultMode == ReplyScheme.R_FORWARD) { 
-	    Forwarder f = (Forwarder) replyStack.peekData(ticket);
+	    Forwarder f = (Forwarder) replyStack.peek(ticket);
 	    synchronized(this) {
 		f.receive(r);
 	    }
@@ -285,7 +285,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 		}
 		break;
 	    }		
-	    replyStack.putData(ticket, m);
+	    replyStack.put(ticket, m);
 	} 
 	r.finish();
     } 
@@ -419,7 +419,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    case ReplyScheme.R_COMBINE_FLAT:
 	    case ReplyScheme.R_FORWARD:
 	    case ReplyScheme.R_RETURN:
-		ticket = replyStack.getPosition();
+		ticket = replyStack.get();
 		info.stubids_tickets[0] = shiftedStubID | ticket;
 	    }
 	    do_invoke(m, inv, personalizer);
@@ -437,7 +437,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    case ReplyScheme.R_COMBINE_FLAT:
 	    case ReplyScheme.R_FORWARD:
 	    case ReplyScheme.R_RETURN:
-		ticket = replyStack.getPosition();
+		ticket = replyStack.get();
 		w.writeInt(ticket);
 	    }
 	    params.writeParameters(w);
@@ -454,7 +454,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    }
 	    return null;
 	default:
-	    return (GroupMessage) replyStack.getDataAndFreePosition(ticket);
+	    return (GroupMessage) replyStack.collect(ticket);
 	}
     }
 
@@ -508,7 +508,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    case ReplyScheme.R_COMBINE_FLAT:
 	    case ReplyScheme.R_FORWARD:
 	    case ReplyScheme.R_RETURN:
-		ticket = replyStack.getPosition();
+		ticket = replyStack.get();
 		break;
 	    }
 	    info.stubids_tickets[info.myInvokerRank] = ticket | shiftedStubID;
@@ -580,7 +580,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    }
 	    return null;
 	default:
-	    return (GroupMessage) replyStack.getDataAndFreePosition(ticket);
+	    return (GroupMessage) replyStack.collect(ticket);
 	}
     }
 
