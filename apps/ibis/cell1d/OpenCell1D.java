@@ -9,11 +9,12 @@ import java.io.IOException;
 
 interface OpenConfig {
     static final boolean tracePortCreation = false;
+    static final boolean traceGenerations = false;
     static final boolean traceCommunication = false;
-    static final boolean showProgress = true;
+    static final boolean showProgress = false;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
-    static final boolean traceLoadBalancing = true;
+    static final boolean traceLoadBalancing = false;
     static final int DEFAULTBOARDSIZE = 4000;
     static final int GENERATIONS = 30;
     static final int SHOWNBOARDWIDTH = 60;
@@ -476,6 +477,9 @@ class OpenCell1D implements OpenConfig {
         int gen = m.readInt();
         if( gen>=0 && generation<0 ){
             generation = gen;
+            if( traceGenerations ){
+                System.out.println( "P" + me + ": set generation counter to " + generation + " based on packet from P" + (me-1) );
+            }
         }
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
@@ -551,6 +555,9 @@ class OpenCell1D implements OpenConfig {
         int gen = m.readInt();
         if( gen>=0 && generation<0 ){
             generation = gen;
+            if( traceGenerations ){
+                System.out.println( "P" + me + ": set generation counter to " + generation + " based on packet from P" + (me+1) );
+            }
         }
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
@@ -776,7 +783,7 @@ class OpenCell1D implements OpenConfig {
                 if( traceLoadBalancing ){
                     System.out.println( "P" + me + ": ready and waiting for work" );
                 }
-                receiveRight( rightReceivePort, p );
+                receiveLeft( leftReceivePort, p );
             }
 
             while( generation<count ){

@@ -13,8 +13,7 @@ interface Config {
     static final boolean showProgress = true;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = true;
-    static final int BOARDSIZE = 30000;
-    static final int GENERATIONS = 10;
+    static final int GENERATIONS = 100;
     static final int SHOWNBOARDWIDTH = 60;
     static final int SHOWNBOARDHEIGHT = 30;
 }
@@ -23,6 +22,7 @@ class Cell1D implements Config {
     static Ibis ibis;
     static Registry registry;
     static ibis.util.PoolInfo info;
+    static int boardsize = 3000;
 
     private static void usage()
     {
@@ -209,9 +209,9 @@ class Cell1D implements Config {
 
         /* Parse commandline parameters. */
         for( int i=0; i<args.length; i++ ){
-            if( args[i].equals( "-repeat" ) ){
+            if( args[i].equals( "-size" ) ){
                 i++;
-                repeat = Integer.parseInt( args[i] );
+                boardsize = Integer.parseInt( args[i] );
             }
             else {
                 if( count == -1 ){
@@ -265,16 +265,16 @@ class Cell1D implements Config {
 
             // The cells. There is a border of cells that are always empty,
             // but make the border conditions easy to handle.
-            final int myColumns = BOARDSIZE/nProcs;
+            final int myColumns = boardsize/nProcs;
 
             // The Life board.
-            byte board[][] = new byte[myColumns+2][BOARDSIZE+2];
+            byte board[][] = new byte[myColumns+2][boardsize+2];
 
             // We need two extra column arrays to temporarily store the update
             // of a column. These arrays will be circulated with the columns of
             // the board.
-            byte updatecol[] = new byte[BOARDSIZE+2];
-            byte nextupdatecol[] = new byte[BOARDSIZE+2];
+            byte updatecol[] = new byte[boardsize+2];
+            byte nextupdatecol[] = new byte[boardsize+2];
 
             putTwister( board, 100, 3 );
             putPattern( board, 4, 4, glider );
@@ -302,7 +302,7 @@ class Cell1D implements Config {
                     prev = curr;
                     curr = next;
                     next = board[i+1];
-                    for( int j=1; j<=BOARDSIZE; j++ ){
+                    for( int j=1; j<=boardsize; j++ ){
                         int neighbours =
                             prev[j-1] +
                             prev[j] +
@@ -367,7 +367,7 @@ class Cell1D implements Config {
             if( me == 0 ){
                 long endTime = System.currentTimeMillis();
                 double time = ((double) (endTime - startTime))/1000.0;
-                long updates = BOARDSIZE*BOARDSIZE*(long) GENERATIONS;
+                long updates = boardsize*boardsize*(long) GENERATIONS;
 
                 System.out.println( "ExecutionTime: " + time );
                 System.out.println( "Did " + updates + " updates" );
