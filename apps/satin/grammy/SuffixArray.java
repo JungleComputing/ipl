@@ -63,7 +63,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         short arr[] = new short[text.length+1];
 
         for( int i=0; i<text.length; i++ ){
-            arr[i] = (short) text[i];
+            arr[i] = (short) ((int) text[i] & 0xFF);
         }
         arr[text.length] = STOP;
         return arr;
