@@ -162,8 +162,8 @@ for i in $SITES; do
 	declare -i SLAVES=${!COUNT_VAR}-1
 
 	echo $0: copying ibis to ${!HOSTNAME_VAR}...
-	if ! ssh ${!HOSTNAME_VAR} mkdir tmp$$ ||
-	   ! scp $IBIS_ROOT/ibis$$.tgz ${!HOSTNAME_VAR}:tmp$$/ibis.tgz;
+	if ! ssh -p 2222 ${!HOSTNAME_VAR} mkdir tmp$$ ||
+	   ! scp -P 2222 $IBIS_ROOT/ibis$$.tgz ${!HOSTNAME_VAR}:tmp$$/ibis.tgz;
 	then
 		echo $0: Error while copying ibis to ${!HOSTNAME_VAR}! Aborting!
 		ABORT=true
@@ -171,7 +171,7 @@ for i in $SITES; do
 	fi
 
 	#remove any possibly remaining master_is_ready indicator
-	ssh ${!HOSTNAME_VAR} rm grun$$_master_is_ready
+	ssh -p 2222 ${!HOSTNAME_VAR} rm grun$$_master_is_ready
 
 	#generate master-rsl for this site
 	echo "(&" >> grun$$.rsl
@@ -244,7 +244,7 @@ if [ "$DEBUG" = "off" ]; then
 	RM_PIDS=
 	for i in $SITES; do
 		eval HOSTNAME_VAR=${i}_HOSTNAME
-		ssh ${!HOSTNAME_VAR} rm -rf tmp$$ grun$$_master_is_ready &
+		ssh -p 2222 ${!HOSTNAME_VAR} rm -rf tmp$$ grun$$_master_is_ready &
 		RM_PIDS="$RM_PIDS $!"
 	done
 	#wait for the removes to terminate
