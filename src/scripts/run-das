@@ -198,6 +198,9 @@ fi
 if [[ $JAVA_ROOT == *sun* ]] ; then
 	JIT_OPTS="$JIT_OPTS -server"
 fi
+if [[ $JAVA_ROOT == *ibm* ]] ; then
+	JIT_OPTS="$JIT_OPTS -Xcomp"
+fi
 
 DEFAULT_USE_JAVA_WRAPPER=1
 
