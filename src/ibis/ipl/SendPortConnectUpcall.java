@@ -9,7 +9,7 @@ public interface SendPortConnectUpcall {
      * Upcall that indicates that a connection to a receiveport was lost.
      * If a {@link SendPort} has been configured with connection upcalls,
      * an upcall is generated for each connection that is lost.
-     * This may be because the sender just closed the connection,
+     * This may be because the receiver just closed the connection,
      * or it may be because there is some problem with the connection itself.
      * <P>
      * This upcall may run completely asynchronously,
