@@ -80,7 +80,6 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 				System.out.println(" with length " + length);
 			}
 
-			minimum = length;
 			SatinTupleSpace.remove("min");
 			SatinTupleSpace.add("min", new MinimumUpdater(length));
 			return;
