@@ -120,10 +120,14 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
         int lookahead = DEFAULT_LOOKAHEAD;
         String intext = null;
         boolean quiet = false;
+        boolean compression = true;
 
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-verify" ) ){
                 doVerification = true;
+            }
+            else if( args[i].equals( "-nocompress" ) ){
+                compression = false;
             }
             else if( args[i].equals( "-quiet" ) ){
                 quiet = true;
@@ -177,9 +181,17 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 		text = null;
 	    }
             long startTime = System.currentTimeMillis();
+            ByteBuffer buf;
 
-            Compress c = new Compress( top, lookahead );
-            ByteBuffer buf = c.compress( text );
+            if( compression ){
+                Compress c = new Compress( top, lookahead );
+                buf = c.compress( text );
+            }
+            else {
+                // Only test the byte convesion.
+                SuffixArray a = new SuffixArray( text );
+                buf = a.getByteBuffer();
+            }
             if( outfile != null ){
                 Helpers.writeFile( outfile, buf );
             }
