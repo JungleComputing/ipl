@@ -27,18 +27,10 @@ class IbisTypeInfo implements IbisStreamFlags {
 	    Class gen_class = null;
 	    String name = clazz.getName() + "_ibis_io_Generator";
 	    try {
-		gen_class = Class.forName(name);
+		gen_class = IbisStreamTypes.doLoadClass(name);
 	    } catch (ClassNotFoundException e) {
-		// The loading of the class failed.
-		// Maybe, Ibis was loaded using the primordial classloader
-		// and the needed class was not.
-		try {
-		    gen_class = Thread.currentThread().getContextClassLoader()
-				.loadClass(name);
-		} catch(ClassNotFoundException e1) {
-		    if (DEBUG) {
-			System.out.println("Class " + name + " not found!");
-		    }
+		if (DEBUG) {
+		    System.out.println("Class " + name + " not found!");
 		}
 	    }
 	    if (gen_class != null) {

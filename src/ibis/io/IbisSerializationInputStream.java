@@ -299,7 +299,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	IbisTypeInfo t = readType(handle & TYPE_MASK);
 
 	String s = readUTF();
-	Class c = Class.forName(s);
+	Class c = IbisStreamTypes.doLoadClass(s);
 	addObjectToCycleCheck(c);
 	return c;
     }
@@ -548,18 +548,9 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    }
 	    Class clazz = null;
 	    try {
-		clazz = Class.forName(typeName);        
+		clazz = IbisStreamTypes.doLoadClass(typeName);
 	    } catch (ClassNotFoundException e) {
-		// The loading of the class failed.
-		// Maybe, Ibis was loaded using the primordial classloader
-		// and the needed class was not.
-		// Fix is by Fabrice Huet.
-		try {
-		    clazz = Thread.currentThread().getContextClassLoader()
-				.loadClass(typeName);
-		} catch(ClassNotFoundException e1) {
-		    throw new IOException("class " + typeName + " not found");
-		}
+		throw new IOException("class " + typeName + " not found");
 	    }
 
 	    IbisTypeInfo t = new IbisTypeInfo(clazz);
@@ -790,7 +781,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public Object create_uninitialized_object(String classname) throws IOException {
 	Class clazz = null;
 	try {
-	    clazz = Class.forName(classname);
+	    clazz = IbisStreamTypes.doLoadClass(classname);
 	} catch (ClassNotFoundException e) {
 	    throw new IOException("class " + classname + " not found");
 	}
@@ -929,7 +920,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    addObjectToCycleCheck(obj);
 	} else if (t.isClass) {
 	    String name = readUTF();
-	    obj = Class.forName(name);
+	    obj = IbisStreamTypes.doLoadClass(name);
 	    addObjectToCycleCheck(obj);
 	} else if (t.gen != null) {
 	    obj = t.gen.generated_newInstance(this);
