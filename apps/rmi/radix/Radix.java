@@ -3,6 +3,7 @@ import java.net.*;
 import java.io.*;
 import ibis.rmi.registry.*;
 import ibis.util.PoolInfo;
+import ibis.ipl.IbisException;
 
 public class Radix{
     
@@ -22,7 +23,7 @@ public class Radix{
     PoolInfo d = null;
     String output_file = null;
  
-    Radix(){
+    Radix() throws IbisException {
 	d = new PoolInfo();
         nhosts = d.size();
         host  = d.rank();
@@ -170,7 +171,13 @@ public class Radix{
     }     
      
     public static void main(String argv[]){
-        new Radix().start(argv);        
+	try {
+	    new Radix().start(argv);        
+	} catch(Exception e) {
+	    System.err.println("Oops: " + e);
+	    e.printStackTrace();
+	    System.exit(1);
+	}
 	System.exit(0);
     }
 }

@@ -31,9 +31,7 @@ class ACP {
 	int [] list_change;
 	int poz_change;
 
-	public static PoolInfo info = new PoolInfo();
-
-	public ACP(int numVariables, int numValues, int numConnections, int numRelations, int numRelationPairs, int seed, 
+	public ACP(int cpu, int numVariables, int numValues, int numConnections, int numRelations, int numRelationPairs, int seed, 
 		   i_Data data, i_Work work, i_Matrix matrix) { 
 	    
 		this.numVariables     = numVariables;
@@ -45,8 +43,7 @@ class ACP {
 		this.data             = data;
 		this.work             = work;
 		this.matrix           = matrix;
-
-		cpu = info.rank();
+		this.cpu 	      = cpu;
 
 		poz_change = removed = 0;
 		checks = 0;
@@ -254,7 +251,7 @@ class ACP {
 	public static void main(String args[]) {		
 
 		try {
-			
+			PoolInfo info = new PoolInfo();
 			int numVariables; 
 			int numValues; 
 			int numConnections; 
@@ -376,7 +373,7 @@ class ACP {
 				} 
 			}
 			
-			new ACP(numVariables, numValues, numConnections, numRelations, numRelationPairs, seed, data, work, matrix).start();
+			new ACP(info.rank(), numVariables, numValues, numConnections, numRelations, numRelationPairs, seed, data, work, matrix).start();
 		
 		} catch (Exception e) {
 			System.out.println("OOPS: main got exception " + e);

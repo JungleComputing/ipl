@@ -34,8 +34,6 @@ private static void usage(String[] args) {
 
 public static void main (String[] args) {
 
-    PoolInfo info = new PoolInfo();
-
     SOR local = null;
     i_SOR [] table = null;
     i_GlobalData global = null;
@@ -45,6 +43,8 @@ public static void main (String[] args) {
     int nrow, ncol, nit, sync;
 
     try {
+
+	    PoolInfo info = new PoolInfo();
 
 	    sync = nit = nrow = ncol = 0;
 	    boolean hetero_speed = false;
@@ -188,7 +188,7 @@ public static void main (String[] args) {
 	    System.gc();
 	    
     } catch (Exception e) {
-	    System.out.println("Oops " + info.rank() + e);
+	    System.out.println("Oops " + e);
 	    e.printStackTrace();
     }
 

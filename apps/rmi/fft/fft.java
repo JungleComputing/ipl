@@ -23,7 +23,14 @@ class fft {
     DataOutputStream output = null;
 
     fft(String[] argv) {
-	PoolInfo d = new PoolInfo();
+	PoolInfo d = null;
+	try {
+	    d = new PoolInfo();
+	} catch(Exception e) {
+	    System.err.println("Oops: " + e);
+	    e.printStackTrace();
+	    System.exit(1);
+	}
 
 	host = d.rank();
 	cpus = d.size();

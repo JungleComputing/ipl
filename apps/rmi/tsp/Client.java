@@ -2,13 +2,13 @@ import ibis.rmi.*;
 import ibis.util.PoolInfo;
 
 class Client extends Thread {
-	static PoolInfo info = Server.info;
 	DistanceTable distanceTable;
 	JobQueue jobQueue;
 	Minimum minimum;
 	int nrCities;
 	int min;
 	MinimumReceiverImpl minReceiver;
+	PoolInfo info;
 
 	// static final boolean NODE_STATISTICS = true;
 	static final boolean NODE_STATISTICS = false;
@@ -16,10 +16,12 @@ class Client extends Thread {
 	int jobs_done = 0;
 	int nodes_done = 0;
 
-	Client(String[] argv) {
+	Client(PoolInfo info, String[] argv) {
 		String filename = null;
 		int bound = Integer.MAX_VALUE;
 		int cpu = info.rank();
+		
+		this.info = info;
 
 		int options = 0;
 		for (int i = 0; i < argv.length; i++) {

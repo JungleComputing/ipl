@@ -6,18 +6,20 @@ import ibis.util.PoolInfo;
 
 class Server {
 
-	static PoolInfo info = new PoolInfo();
 	static Registry local = null;
 
 	DistanceTable distanceTable;
 	JobQueueImpl jobQueue;
 	MinimumImpl minimum;
 	int nrCities;
+	PoolInfo info;
 
-	Server(String[] argv) {
+	Server(PoolInfo info, String[] argv) {
 		String filename = null;
 		int bound = Integer.MAX_VALUE;
 		int cpu = info.rank();
+		
+		this.info = info;
 
 		int options = 0;
 		for (int i = 0; i < argv.length; i++) {
@@ -121,6 +123,7 @@ class Server {
 	public static void main(String argv[]) {
 
 	    try {
+		PoolInfo info = new PoolInfo();
 		int cpu = info.rank();
 
 		System.out.println("I am " + info.hostName(cpu));
@@ -130,18 +133,18 @@ class Server {
 
 		System.out.println("Got registry on " + info.hostName(0));
 
-		Client c = new Client(argv);
+		Client c = new Client(info, argv);
 
 		c.start();
 
 		if (cpu == 0) {
-			new Server(argv).start();
+			new Server(info, argv).start();
 		}
 
 		c.join();
 		System.exit(0);
 	    } catch(Exception e) {
-		System.out.println("Oops " + info.rank() + e);
+		System.out.println("Oops " + e);
 		e.printStackTrace();
 	    }
 	}

@@ -170,7 +170,15 @@ strictfp public class BarnesHutt {
     
     ProcessorThread p;
  
-    PoolInfo d = new PoolInfo();
+    PoolInfo d = null;
+
+    try {
+	d = new PoolInfo();
+    } catch(Exception e) {
+	System.err.println("Oops: " + e);
+	e.printStackTrace();
+	System.exit(1);
+    }
 
     //    if (d.rank()==0 )
       System.out.println("Running distributed (" + d.size() + " nodes)" );

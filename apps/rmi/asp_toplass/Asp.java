@@ -36,7 +36,11 @@ Asp(i_GlobalData g, int n, boolean use_threads, boolean use_thread_pool, boolean
 
 	this.n = n;
 
-	this.info  = new PoolInfo();
+	try {
+	    this.info  = new PoolInfo();
+	} catch(Exception e) {
+	    throw new Error("Problem in PoolInfo", e);
+	}
  
 	this.nodes = info.size();
 	this.rank  = info.rank();

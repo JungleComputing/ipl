@@ -6,8 +6,6 @@ import ibis.util.PoolInfo;
 
 public class Water{
 
-    static PoolInfo info = new PoolInfo();
-
     WaterMaster master;
     String hostName, masterName;
     int hostNr, nHosts;
@@ -52,6 +50,18 @@ public class Water{
     }
 
     public void start(String[] args){
+
+	PoolInfo info = null;
+	
+	try {
+	    info = new PoolInfo();
+	} catch(Exception e) {
+	    System.err.println("Oops: " + e);
+            e.printStackTrace();
+            System.err.println("Problem with PoolInfo");
+	    System.exit(1);
+	}
+
 	if (args.length == 0) {
 	} else if (args.length == 1) {
 	    inputfile = args[0];

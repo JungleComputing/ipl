@@ -6,11 +6,9 @@ import ibis.rmi.registry.*;
 
 class Main {
 
-static PoolInfo info = new PoolInfo();
-
 public static void main(String[] argv) {
-
 	try {
+		PoolInfo info = new PoolInfo();
 	
 		int n = 4000;
 		
@@ -106,7 +104,7 @@ public static void main(String[] argv) {
 		System.gc();
 		
 	} catch (Exception e) {
-		System.out.println("Oops " + info.rank() + e);
+		System.out.println("Oops " + e);
 		e.printStackTrace();
 	}
 	

@@ -15,7 +15,14 @@ class RMI_Bench {
 
 
     public static void main(String[] argv) {
-	PoolInfo dasInfo = new PoolInfo();
+	PoolInfo dasInfo = null;
+	try {
+	    dasInfo = new PoolInfo();
+	} catch(Exception e) {
+	    System.err.println("Oops: " + e);
+	    e.printStackTrace();
+	    System.exit(1);
+	}
 	int	my_cpu = dasInfo.rank();
 	int	ncpus  = dasInfo.size();
 	String	masterName = dasInfo.hostName(REGISTRY_HOST);
