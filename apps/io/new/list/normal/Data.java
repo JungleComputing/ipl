@@ -1,12 +1,14 @@
 import java.io.Serializable;
 import java.io.IOException;
 
-public final class Data implements Serializable { 
+public class Data implements Serializable { 
 
-	double v1, v2, v3, v4;
+	public static final int OBJECT_SIZE = 4*4+4;
+
+	int v1, v2, v3, v4;
         Data next;
 
-	public Data(double value, Data next) { 
+	public Data(int value, Data next) { 
                 v1 = v2 = v3 = v4 = value;
                 this.next  = next;
         } 

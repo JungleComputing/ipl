@@ -2,13 +2,13 @@
 
 SRC	=
 SRC	+= DasInfo.java
-SRC	+= Data.java
+SRC	+= DITree.java
 
 MAIN = Main.java
 
 OUT=latency
 
-include ../../../config.mk
+include ../../../../../config.mk
 
 ifeq ($(PROFILE), 1)
 OUT	:= $(OUT).gprof
@@ -19,7 +19,7 @@ MANTACFLAGS	+= -v
 MANTACFLAGS	+= -no-opt-comm
 
 java: $(CLASS_FILES) $(MAIN_CLASS)
-	java ibis.frontend.io.IOGenerator Data.class
+	java ibis.frontend.io.IOGenerator DITree.class
 
 manta: $(MAIN) $(O_FILES)
 	$(MANTAC_COMMAND) -v -o $(OUT) $(MAIN) $(O_FILES) $(MANTA_LIB)

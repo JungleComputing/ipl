@@ -8,7 +8,7 @@ MAIN = Main.java
 
 OUT=latency
 
-include ../../../config.mk
+include ../../../../../config.mk
 
 ifeq ($(PROFILE), 1)
 OUT	:= $(OUT).gprof

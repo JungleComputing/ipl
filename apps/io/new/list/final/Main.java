@@ -16,19 +16,17 @@ import java.net.ServerSocket;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	
+	public static final int LEN   = 100;
+	public static final int COUNT = 10000;
+		
 	public static void main(String args[]) {
 		
 		try {
 			Data temp = null;
 			long start, end;
 			
-			int count = 1000;
-			int len = 10;
-			
-			int count2 = 1000; // 10000;
-			
-			int count3 = 100;
+			int count = COUNT;
+			int len = LEN;
 			
 			DasInfo info = new DasInfo();
 
@@ -49,8 +47,9 @@ public class Main {
 				MantaInputStream   min = new MantaTypedBufferInputStream(in);
 				MantaOutputStream mout = new MantaTypedBufferOutputStream(out);
 				
+				// Create list
 				for (int i=0;i<len;i++) {
-					temp = new Data((i+0.8)/1.3, temp);
+					temp = new Data(i, temp);
 				}
 
 				System.err.println("Writing list of " + len + " Data objects");
@@ -61,7 +60,7 @@ public class Main {
 					mout.flush();
 					mout.reset();
 					if (DEBUG) { 
-						System.err.print("+");
+						System.err.println("Warmup "+ i);
 					}
 				}
 
@@ -75,7 +74,7 @@ public class Main {
 					mout.flush();
 					mout.reset();
 					if (DEBUG) { 
-						System.err.println("=========================================================");
+						System.err.println("Test "+ i);
 					}
 				}
 
@@ -89,89 +88,11 @@ public class Main {
 						   + ((1000.0*(end-start))/(count*len)) + " us/object");
 				
 				System.err.println("Bytes written "
-						   + mout.bytesWritten()
+						   + (count*len*Data.OBJECT_SIZE)
 						   + " throughput = "
-						   + ((1000.0*mout.bytesWritten()/(1024*1024))/(end-start))
+						   + (((1000.0*(count*len*Data.OBJECT_SIZE))/(1024*1024))/(end-start))
 						   + " MBytes/s");
-				
-				start = System.currentTimeMillis();
-				
-				for (int i=0;i<count2;i++) {
-					mout.writeByte(1);
-					mout.flush();
-					min.readByte();
-				}
-				
-				end = System.currentTimeMillis();
-				
-				System.err.println("Write took "
-						   + (end-start) + " ms.  => 1 byte latency : "
-						   + ((1000.0*(end-start))/count2) + " us. ");
-				
-				byte [] b = new byte[1024*1024];
-				
-				for (int warmup = 0; warmup < 2; warmup++) {
-					start = System.currentTimeMillis();
-
-					for (int i=0;i<count3;i++) {
-						mout.write(b);
-					}
-					
-					mout.flush();
-					min.readByte();
-					
-					end = System.currentTimeMillis();
-					
-					System.err.println("Bytes written "
-							   + (1024*1024*count3)
-							   + " throughput = "
-							   + ((1000.0*(1024*1024*count3)/(1024*1024))/(end-start))
-							   + " MBytes/s");
-					
-					mout.reset();
-					
-					start = System.currentTimeMillis();
-					
-					for (int i=0;i<count3;i++) {
-						mout.writeObject(b);
-					}
-					
-					mout.flush();
-					
-					min.readByte();
-					
-					end = System.currentTimeMillis();
-					
-					System.err.println("Bytes written "
-							   + (1024*1024*count3)
-							   + " throughput = "
-							   + ((1000.0*(1024*1024*count3)/(1024*1024))/(end-start))
-							   + " MBytes/s");
-				}
-				
-				
-				double [] d = new double[128*1024];
-
-				for (int warmup = 0; warmup < 2; warmup++) {
-					
-					start = System.currentTimeMillis();
-					
-					mout.writeObject(d);
-					
-					mout.flush();
-					mout.reset();
-					
-					min.readByte();
-					
-					end = System.currentTimeMillis();
-					
-					System.err.println("Doubles written "
-							   + (128*1024)
-							   + " throughput = "
-							   + ((1000.0*(1024*1024)/(1024*1024))/(end-start))
-							   + " MBytes/s");
-				}
-				
+							
 				s.close();
 				
 			} else {
@@ -198,8 +119,8 @@ public class Main {
 				for (int i=0;i<count;i++) {
 					temp = (Data) min.readObject();
 					if (DEBUG) { 
-						System.err.print("-");
-					} 
+						System.err.println("Warmup "+ i);
+					}
 				}
 						
 				mout.writeByte(1);
@@ -208,45 +129,13 @@ public class Main {
 				for (int i=0;i<count;i++) {
 					temp = (Data) min.readObject();
 					if (DEBUG) { 
-						System.err.println("=========================================================");
-					} 
+						System.err.println("Test "+ i);
+					}
 				}
 
 				mout.writeByte(1);
 				mout.flush();
-				
-				for (int i=0;i<count2;i++) {
-					min.readByte();
-					mout.writeByte(1);
-					mout.flush();
-				}
-
-				byte [] b = new byte[1024*1024];
-				
-				for (int warmup = 0; warmup < 2; warmup++) {
-					for (int i=0;i<count3;i++) {
-						min.readFully(b);
-					}
-					
-					mout.writeByte(1);
-					mout.flush();
-					
-					for (int i=0;i<count3;i++) {
-						b = (byte[])min.readObject();
-					}
-					
-					mout.writeByte(1);
-					mout.flush();
-				}
-				
-				for (int warmup = 0; warmup < 2; warmup++) {
-					
-					double[] d = (double[])min.readObject();
-					
-					mout.writeByte(1);
-					mout.flush();
-				}
-				
+			
 				s.close();
 			}
 
