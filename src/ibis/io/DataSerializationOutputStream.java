@@ -730,7 +730,6 @@ public class DataSerializationOutputStream
 	    array[i] = new ArrayDescriptor();
 	}
 	// allocator = new DataAllocator();
-	// No, as long as the leaks in MessagePassing are not fixed:
 	allocator = new DummyAllocator();
 
 	indices_short  = allocator.getIndexArray();
@@ -748,6 +747,9 @@ public class DataSerializationOutputStream
      * when they are finished. The allocator may cache/reuse them.
      */
     public DataAllocator getAllocator() {
+	if (allocator instanceof DummyAllocator) {
+	    return null;
+	}
 	return allocator;
     }
 
