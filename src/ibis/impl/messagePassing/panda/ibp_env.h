@@ -8,7 +8,12 @@
 extern int		ibp_intr_enabled;
 extern JNIEnv	       *ibp_JNIEnv;
 
-#ifndef NDEBUG
+/* #ifndef NDEBUG
+ * Rutger, I changed a couple of NDEBUG to NOTDEF.
+ * Seems to help but I haven't got a clue ...
+ * (Ceriel)
+ */
+#ifndef NOTDEF
 extern pan_key_p	ibp_env_key;
 #define ibp_set_JNIEnv(env) \
 	{ \
