@@ -11,7 +11,7 @@ import ibis.ipl.IbisException;
 import ibis.ipl.IbisError;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortConnectUpcall;
-import ibis.io.Replacer;
+import ibis.ipl.Replacer;
 import java.util.ArrayList;
 import ibis.ipl.ReadMessage;
 
@@ -135,13 +135,13 @@ class TcpPortType implements PortType, Config {
 	}
 
 
-	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall cU) throws IOException {
+	public SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IOException {
 		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
 		return null;
 	}
 
 
-	public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall cU) throws IOException {
+	public SendPort createSendPort(String name, Replacer r, SendPortConnectUpcall cU) throws IOException {
 		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
 		return null;
 	}

@@ -7,7 +7,6 @@ import java.io.IOException;
 
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.IbisSerializationOutputStream;
-import ibis.io.Replacer;
 
 import ibis.ipl.impl.generic.IbisIdentifierTable;
 import ibis.ipl.impl.generic.ConditionVariable;

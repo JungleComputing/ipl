@@ -7,8 +7,7 @@ import java.io.IOException;
 import ibis.ipl.IbisException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.ConnectionRefusedException;
-
-import ibis.io.Replacer;
+import ibis.ipl.Replacer;
 
 final public class SerializeSendPort extends SendPort {
 

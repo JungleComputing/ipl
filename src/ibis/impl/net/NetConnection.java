@@ -1,6 +1,6 @@
 package ibis.ipl.impl.net;
 
-import ibis.io.Replacer;
+import ibis.ipl.Replacer;
 
 import java.io.IOException;
 

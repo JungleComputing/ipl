@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import java.io.IOException;
 
-import ibis.io.Replacer;
+import ibis.ipl.Replacer;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.ConnectionRefusedException;

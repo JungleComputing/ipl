@@ -3,7 +3,7 @@ package ibis.ipl.impl.net;
 import ibis.io.ArrayOutputStream;
 import ibis.io.SerializationOutputStream;
 
-import ibis.io.Replacer;
+import ibis.ipl.Replacer;
 
 import ibis.ipl.impl.net.*;
 

@@ -1,5 +1,7 @@
 package ibis.io;
 
+import ibis.ipl.Replacer;
+
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.IOException;

@@ -3,8 +3,8 @@ package ibis.ipl.impl.messagePassing;
 import java.io.IOException;
 
 import ibis.ipl.IbisException;
+import ibis.ipl.Replacer;
 import ibis.io.IbisSerializationOutputStream;
-import ibis.io.Replacer;
 
 final public class IbisSendPort extends SendPort {
 
@@ -23,11 +23,9 @@ final public class IbisSendPort extends SendPort {
 	super(type, name, conn, r,
 	      false,	/* syncMode */
 	      false	/* makeCopy */);
+	obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
 	if (replacer != null) {
-	    obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
 	    obj_out.setReplacer(replacer);
-	} else {
-	    obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
 	}
 	if (Ibis.DEBUG) {
 	    System.err.println(">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream " + obj_out + " for IbisWriteMessage " + this);

@@ -8,7 +8,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.io.Replacer;
+import ibis.ipl.Replacer;
 
 import java.util.Vector;
 import java.io.IOException;

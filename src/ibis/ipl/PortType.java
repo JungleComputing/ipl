@@ -39,25 +39,25 @@ public interface PortType {
 	 * Create a anonymous SendPort of this PortType, with a replacer. 
 	 * @exception java.io.IOException is thrown from the Port implementation
 	 **/
-	public SendPort createSendPort(ibis.io.Replacer r) throws IOException;
+	public SendPort createSendPort(Replacer r) throws IOException;
 
 	/**
 	 * Create a SendPort of this PortType, with a replacer. 
 	 * @exception java.io.IOException is thrown from the Port implementation
 	 **/
-	public SendPort createSendPort(String name, ibis.io.Replacer r) throws IOException;
+	public SendPort createSendPort(String name, Replacer r) throws IOException;
 
 	/** Create a anonymous SendPort of this PortType, with a replacer.
 	    When a connection is lost, a ConnectUpcall is performed.
 	 * @exception java.io.IOException is thrown from the Port implementation
 	 **/
-	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall cU) throws IOException;
+	public SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IOException;
 
 	/** Create a SendPort of this PortType, with a replacer.
 	    When a connection is lost, a ConnectUpcall is performed.
 	 * @exception java.io.IOException is thrown from the Port implementation
 	 **/
-	public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall cU) throws IOException;
+	public SendPort createSendPort(String name, Replacer r, SendPortConnectUpcall cU) throws IOException;
 
 	/** Create a named ReceivePort of this PortType, with explicit receipt communication.
 	    New connections will not be accepted until ReceivePort.enableConnections() is invoked.

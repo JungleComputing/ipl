@@ -7,12 +7,11 @@ import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.Replacer;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-
-import ibis.io.Replacer;
 
 import java.net.InetAddress;
 import java.net.Socket;

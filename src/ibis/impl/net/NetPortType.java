@@ -8,8 +8,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.Upcall;
 import ibis.ipl.IbisException;
-
-import ibis.io.Replacer;
+import ibis.ipl.Replacer;
 
 import ibis.util.Input;
 
@@ -294,11 +293,11 @@ public final class NetPortType implements PortType {
 		return new NetSendPort(this, r, name, null);
 	}
 
-	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall spcu) throws IOException {
+	public SendPort createSendPort(Replacer r, SendPortConnectUpcall spcu) throws IOException {
                 return new NetSendPort(this, r, null, spcu);
         }
 
-        public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall spcu) throws IOException {
+        public SendPort createSendPort(String name, Replacer r, SendPortConnectUpcall spcu) throws IOException {
                 return new NetSendPort(this, r, name, spcu);
         }
 
