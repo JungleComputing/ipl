@@ -15,10 +15,15 @@ class ByteBuffer implements java.io.Serializable, Magic {
         this( 1000 );
     }
 
+    public ByteBuffer( short text[], int len )
+    {
+        this( len );
+	append( text, len );
+    }
+
     public ByteBuffer( short text[] )
     {
-	this( text.length );
-	append( text );
+	this( text, text.length );
     }
 
     /** Encode the given array of shorts as a byte array. For compactness
@@ -30,12 +35,12 @@ class ByteBuffer implements java.io.Serializable, Magic {
      * ESCAPE2       2                The followup is the value (MSB first)
      * 128..ESCAPE2  1                Byte itself -128 is MSB, next is LSB.
      */
-    public void append( short text[] )
+    public void append( short text[], int len )
     {
 	// Allocate a buffer at the size that is minimally necessary.
         short arr[] = new short[text.length+1];
 
-        for( int i=0; i<text.length; i++ ){
+        for( int i=0; i<len; i++ ){
 	    int v = (text[i] & 0xFFFF);
 	    if( v<128 ){
 		append( (byte) v );
@@ -53,6 +58,11 @@ class ByteBuffer implements java.io.Serializable, Magic {
 		append( (short) v );
 	    }
         }
+    }
+
+    public void append( short text[] )
+    {
+        append( text, text.length );
     }
 
     /** Returns a byte array containing the current text in the buffer. */

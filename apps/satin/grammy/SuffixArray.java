@@ -252,7 +252,6 @@ public class SuffixArray implements Configuration, Magic {
         short variable = nextcode++;
         pos = 1+replace( pos-1, len, variable );
         while( pos<length && commonality[pos] == len ){
-            System.out.println( "Repeated replacement" );
             pos = replace( pos, len, variable );
             pos++;
         }
@@ -262,7 +261,6 @@ public class SuffixArray implements Configuration, Magic {
         // the new rule. The grammar rule can be recognized because it is the
         // first occurence of that particular nonterminal code.
 
-        System.out.println( "text.length=" + text.length +  " len=" + len + " length=" + length );
         System.arraycopy( text, 0, text, len+1, length );
         System.arraycopy( t, 0, text, 0, len );
         text[len] = variable;
@@ -340,7 +338,7 @@ public class SuffixArray implements Configuration, Magic {
     public ByteBuffer compress()
     {
 	applyFolding();
-	return new ByteBuffer( text );
+	return new ByteBuffer( text, length );
     }
 
     public static void main( String args[] )
