@@ -150,7 +150,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        if( level>30 || ctx.unsatisfied<100 || !needMoreJobs() ){
+        if( !needMoreJobs() ){
 	    // We're nearly there, use the leaf solver.
 	    // We have variable 'nextvar' to branch on.
 	    DPLLContext subctx = (DPLLContext) ctx.clone();
