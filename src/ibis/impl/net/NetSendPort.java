@@ -653,7 +653,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 					} catch (IOException e) {
 						int timeLeft = (int)(start + timeout_millis - System.currentTimeMillis());
 						try {
-							Thread.sleep(Math.min(timeLeft, 500));
+							if (timeLeft > 0) Thread.sleep(Math.min(timeLeft, 500));
 						} catch (InterruptedException e2) {
 							// ignore               
 						}
