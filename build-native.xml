@@ -137,6 +137,7 @@
 			taskname="CheckNativeMethods"
 			dir="${build}"
 			output="${build}/NativeMethodClasses"
+			failonerror="true"
 			fork="true">
 		    <arg line="${classes.all}"/>
 		    <classpath refid="default.classpath"/>

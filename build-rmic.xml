@@ -75,6 +75,7 @@
 	<java   classname="ibis.frontend.rmi.Main"
 		taskname="ibis rmic"
 		dir="${build}"
+		failonerror="true"
 		fork="true">
 		<arg line="${rmic-flags.value} -dir ${rmic-classes}"/>
 	    <classpath refid="default.classpath"/>

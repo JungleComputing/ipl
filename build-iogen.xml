@@ -61,6 +61,7 @@
 	<java   classname="ibis.frontend.io.IOGenerator"
 		taskname="IOGenerator"
 		dir="${iogen-build}"
+		failonerror="true"
 		fork="true">
 	    <arg line="-dir ${iogen-files}"/>
 	    <classpath refid="default.classpath"/>

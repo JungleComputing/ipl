@@ -66,6 +66,7 @@
 	<java   classname="ibis.frontend.repmi.Main"
 		taskname="ibis repmi"
 		dir="${build}"
+		failonerror="true"
 		fork="true">
 	    <arg line="-dir ${repmi-classes}"/>
 	    <classpath refid="default.classpath"/>

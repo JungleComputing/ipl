@@ -64,6 +64,7 @@
 	<java   classname="ibis.frontend.gmi.Main"
 		taskname="ibis gmi"
 		dir="${build}"
+		failonerror="true"
 		fork="true">
 	    <arg line="-dir ${gmi-classes}"/>
 	    <classpath refid="default.classpath"/>
