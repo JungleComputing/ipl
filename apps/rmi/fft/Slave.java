@@ -27,13 +27,12 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 	    Thread.sleep(500);
 	    try {
 		master = (MasterInterface)Naming.lookup("//" + masterName + "/FFT_Master");
-		System.out.println(cpu + ": Slave has found Master reference");
+		System.out.println(cpu + ": Slave has found Master " + master);
 		break;
 	    } catch (Exception e) {
 		System.out.println(cpu + ": lookup master -- sleep a while...");
 	    }
 	}
-	System.out.println("master is " + master);
 	myCpu = cpu;
 	this.cpus = cpus;
 	this.N = N;
@@ -54,16 +53,25 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 	}
 	slaveArray = master.table((SlaveInterface) this, myCpu);
 
+	// System.err.println(myCpu + ": gonna hit barrier I");
+
 	if (cpus > 1) master.sync();
+
+	// System.err.println(myCpu + ": past barrier I");
 
 	int myFirst = rootN * myCpu / cpus;
 	int myLast = rootN * (myCpu + 1) / cpus;
 	ind1 = new int[cpus][cpus];
 	ind2 = new int[cpus][cpus];
 	initIndexBlocks(ind1, ind2);
+	// System.err.println(myCpu + ": Past initIndexBlocks");
 	initX(ind1, myFirst);
 
+	// System.err.println(myCpu + ": gonna hit barrier II");
+
 	if (cpus > 1) master.sync();
+
+	// System.err.println(myCpu + ": past barrier II, start clock");
 
 	long start = System.currentTimeMillis();
 
@@ -153,10 +161,14 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 		    slaveNr = distribution[0][ ind[myCpu][i / rowsperproc] ];
 		    matrixNr =distribution[1][ ind[myCpu][i / rowsperproc] ];
 		    if (slaveNr == myCpu) {
+			// System.err.print("=" + slaveNr);
 			setCopyValues(matrixNr, matrix);
+			// System.err.print(">");
 //			System.out.println(slaveNr + "Exchange got matrix " + matrixNr + " " + matrix[0]); 
 		    } else { 
+			// System.err.print("<" + slaveNr);
 			  slaveArray[slaveNr].setValues(matrixNr, matrix);
+			// System.err.print(">");
 		    }
 		    
 		}
