@@ -91,6 +91,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	synchronized void finishMessage() {
 		SerializationStreamReadMessage old = m;
+
+		if(m.isFinished) {
+			System.err.println("warning: finished is called twice on this message, port = " + name);
+		}
+
+		m.isFinished = true;
 		m = null;
 		notifyAll();
 
@@ -108,6 +114,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 
 	boolean setMessage(SerializationStreamReadMessage m) {
+		m.isFinished = false;
 		if(upcall != null) {
 			return doUpcall(m);
 		} else {
@@ -282,7 +289,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 
 		if(m != null) {
-			System.err.println("EEK: a msg is alive!");
+			System.err.println(ident + "EEK: a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
 
 		while (connectionsIndex > 0) {
@@ -307,9 +314,15 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 						}
 					}
 					if(connectionsIndex > 0) {
-						try { 
+						try {
 							wait(500);
+							if(m != null) {
+								System.err.println(ident + "EEK2: a msg is alive, port = " + name + " fin = " + m.isFinished);
+								System.err.println("opcode = " + m.readByte());
+								System.exit(1);
+							}
 						} catch (Exception e) {
+							System.err.println("Eek3: exc: " + e);
 							// Ignore
 						}
 					}

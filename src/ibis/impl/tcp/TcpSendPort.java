@@ -136,5 +136,4 @@ final class TcpSendPort implements SendPort, Config {
 	void reset() throws IbisIOException {
 	    sender.reset();
 	}
-
 }
