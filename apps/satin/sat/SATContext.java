@@ -53,12 +53,18 @@ public final class SATContext implements java.io.Serializable {
         Resolution next;        // The next one in the chain.
         int cno;                // The clause to resolve with.
         int var;                // The variable to resolve on.
+        int distToDom;          // The distance to the Dominator.
 
-        Resolution( Resolution next, int cno, int var )
+        Resolution( Resolution next, int cno, int var, int d )
         {
             this.next = next;
             this.cno = cno;
             this.var = var;
+            this.distToDom = d;
+        }
+        public String toString()
+        {
+            return "[(" + cno + "),v" + var + ",d=" + distToDom + "]";
         }
     }
 
@@ -91,7 +97,7 @@ public final class SATContext implements java.io.Serializable {
 
     private static final boolean tracePropagation = false;
     private static final boolean traceLearning = true;
-    private static final boolean traceResolutionChain = false;
+    private static final boolean traceResolutionChain = true;
     private static final boolean doVerification = false;
     private static final boolean propagatePureVariables = false;
 
@@ -293,28 +299,163 @@ public final class SATContext implements java.io.Serializable {
     }
 
     /**
-     * Given the SAT problem and the index of the conflicting clause,
-     * computes the first clause thas dominates the conflict in the
-     * deductions at this level. Returns the index if this clause.
+     * Given a clause, returns the implication of this clause.
+     * @param c The clause to examine.
+     * @return The variable that is implied by this clause, or -1 if there is none (i.e. the clause is in conflict), or -2 if there is morethan one.
      */
-    int registerDistance( SATProblem p, int cno, int level, int dist[], Resolution chain[], int d )
+    private int getImplication( Clause c, int cno )
+    {
+	int arr[] = c.pos;
+        int res = -1;
+        
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            int a = antecedent[v];
+
+            if( a == cno ){
+                if( res != -1 ){
+                    // There already is an implication. This isn't right.
+                    return -2;
+                }
+                res = v;
+            }
+        }
+        arr = c.neg;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            int a = antecedent[v];
+
+            if( a == cno ){
+                if( res != -1 ){
+                    // There already is an implication. This isn't right.
+                    return -2;
+                }
+                res = v;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Given a clause index, print the implications that cause this
+     * clause to be satisfied/conflicting.
+     * @param indent The indent string to use for the output.
+     * @param p The sat problem.
+     * @param cno The clause to dump.
+     */
+    private void dumpImplications( String indent, SATProblem p, int cno )
     {
         Clause c = p.clauses[cno];
-        int res = -1;
+        int impl = getImplication( c, cno );
+
+        String conclusion;
+        if( impl == -2 ){
+            conclusion = "(nothing to conclude)";
+        }
+        else if( impl == -1 ){
+            conclusion = "(conflict)";
+        }
+        else {
+            conclusion = "==> v" + impl + "=" + assignment[impl];
+        }
+        System.err.println( indent + c + " " + conclusion );
+	int arr[] = c.pos;
+        String indent1 = indent + " ";
+        
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            int a = antecedent[v];
+
+            if( a>=0 ){
+                if( a != cno ){
+                    dumpImplications( indent1, p, a );
+                }
+            }
+        }
+        arr = c.neg;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            int a = antecedent[v];
+
+            if( a>=0 ){
+                if( a != cno ){
+                    dumpImplications( indent1, p, a );
+                }
+            }
+        }
+    }
+
+    /**
+     * Given a link in the resolution chain, print that chain.
+     */
+    static void dumpResolutionChain( Resolution p )
+    {
+        if( p == null ){
+            return;
+        }
+        System.err.print( "Resolution chain: " );
+        while( p != null ){
+            System.err.print( "(" + p.cno + ") on v" + p.var );
+            if( p.next != null ){
+                System.err.print( " -> " );
+            }
+            p = p.next;
+        }
+        System.err.println();
+    }
+
+    /**
+     * Given the SAT problem and the index of the conflicting clause,
+     * computes the first clause thas dominates the conflict in the
+     * deductions at this level. Returns the distance of the dominator
+     * of this clause to the conflict.
+     * @param p The SAT problem.
+     * @param cno The index of the clause to consider.
+     * @param level The level of decision making.
+     * @param dist The distance in the deduction chain from the conflicting clause, or 0 if unknown/irrelevant.
+     * @param chain The chain of resolutions to resolve this clause and all
+     *  other clauses in the chain up to and including the dominating clause.
+     * @param distFromConflict The currently known distance from the conflict clause.
+     * @return The distance of the dominating clause to the conflict, or -1 if there is none.
+     */
+    int updateResolutionChain( SATProblem p, int cno, int level, int dist[], Resolution chain[], int distFromConflict )
+    {
+        Clause c = p.clauses[cno];
+        int bestDist = -1;
         int impliedVariable = -1;
 
-        if( dist[cno] != 0 && dist[cno]<=d ){
-            // In our walk back over the deductions, we come across
+        if( traceResolutionChain ){
+            System.err.println( "Clause " + c + " is " + distFromConflict + " steps from the conflict" );
+        }
+        if( dist[cno] != 0 ){
+            // We've been here before, so this is a dominator.
+	    if( traceResolutionChain ){
+		System.err.println( "Clause " + c + " is a dominator" );
+            }
+            chain[cno] = null;
+            return 0;
+        }
+        if( dist[cno] != 0 && dist[cno]<=distFromConflict ){
+            // In our walk back over the deductions, we have come across
             // a previous marking with a shorter distance than ours.
             // This clause dominates more than one chain of deductions,
             // so return it as the answer. Don't bother updating
             // the distances upstream, since the previous chain
             // of deductions has a shorter distance anyway.
             
-            return cno;
-        }
+	    if( traceResolutionChain ){
+		System.err.println( "Current distance from conflict " + distFromConflict + " of clause " + c + " is larger than previously recorded " + dist[cno] );
+	    }
+            if( chain[cno] == null ){
+                return -1;
+            }
 
-	int arr[] = c.pos;
+            // This is a dominator.
+            return 0;
+        }
+        dist[cno] = distFromConflict;
+
+        int arr[] = c.pos;
 
         for( int i=0; i<arr.length; i++ ){
             int v = arr[i];
@@ -324,20 +465,24 @@ public final class SATContext implements java.io.Serializable {
                 // The variable was deduced at our level, so it's
                 // interesting.
 
-                if( a>=0 ){
-                    // The variable is not a decision variable, we're
-                    // still interested.
+                if( a<0 ){
+                    // The decision variable at our level.
+                    chain[cno] = null;
+                    bestDist = 1;
+                }
+                else {
+                    // The variable is not a decision variable.
                     if( a == cno ){
                         impliedVariable = v;
                     }
                     else {
                         // Variable is not implied by this clause, we're
                         // still interested.
-                        int res1 = registerDistance( p, a, level, dist, chain, d+1 );
-                        if( res1 != -1 ){
-                            if( res == -1 || dist[res1]<dist[res] ){
-                                res = res1;
-                                chain[cno] = new Resolution( chain[res], cno, -1 );
+                        int dist1 = updateResolutionChain( p, a, level, dist, chain, distFromConflict+1 );
+                        if( dist1 != -1 ){
+                            if( bestDist > dist1 ){
+                                bestDist = dist1;
+                                chain[cno] = new Resolution( chain[a], cno, -1, bestDist );
                             }
                         }
                     }
@@ -353,20 +498,24 @@ public final class SATContext implements java.io.Serializable {
                 // The variable was deduced at our level, so it's
                 // interesting.
 
-                if( a>=0 ){
-                    // The variable is not a decision variable, we're
-                    // still interested.
+                if( a<0 ){
+                    // The decision variable at our level.
+                    chain[cno] = null;
+                    bestDist = 1;
+                }
+                else {
+                    // The variable is not a decision variable.
                     if( a == cno ){
                         impliedVariable = v;
                     }
                     else {
                         // Variable is not implied by this clause, we're
                         // still interested.
-                        int res1 = registerDistance( p, a, level, dist, chain, d+1 );
-                        if( res1 != -1 ){
-                            if( res == -1 || dist[res1]<dist[res] ){
-                                res = res1;
-                                chain[cno] = new Resolution( chain[res], cno, -1 );
+                        int dist1 = updateResolutionChain( p, a, level, dist, chain, distFromConflict+1 );
+                        if( dist1 != -1 ){
+                            if( bestDist > dist1 ){
+                                bestDist = dist1;
+                                chain[cno] = new Resolution( chain[a], cno, -1, bestDist );
                             }
                         }
                     }
@@ -379,12 +528,19 @@ public final class SATContext implements java.io.Serializable {
         if( dist[cno] != 0 ){
             // Someone has been here before. Return this one as
             // dominating clause.
-            res = cno;
+            bestDist = 0;
         }
         // We only get to this point if any previously recorded distance
-        // was longer than 'd', so we can always overwrite.
-        dist[cno] = d;
-        return res;
+        // was longer than 'distFromConflict', so we can always overwrite.
+        dist[cno] = distFromConflict;
+        if( traceResolutionChain ){
+            System.err.println( "Clause " + c + " has the closest dominator at distance " + bestDist );
+            dumpResolutionChain( chain[cno] );
+        }
+        if( bestDist == -1 ){
+            return bestDist;
+        }
+        return bestDist + 1;
     }
 
     /**
@@ -400,11 +556,11 @@ public final class SATContext implements java.io.Serializable {
         // as indication that we haven't considered this clause yet.
         int dist[] = new int[satisfied.length];
         Resolution chain[] = new Resolution[satisfied.length];
-        int cc = registerDistance( p, cno, level, dist, chain, 1 );
+        int cc = updateResolutionChain( p, cno, level, dist, chain, 1 );
         if( cc<0 ){
             return null;
         }
-        return chain[cno].next;
+        return chain[cno];
     }
 
     /**
@@ -468,15 +624,15 @@ public final class SATContext implements java.io.Serializable {
 			    break;
 			}
 		    }
-		}
-	    } while( changed );
-	    if( !anyChange ){
-		return null;
-	    }
-	    return res;
-	}
-	else {
-	    int a = antecedent[var];
+                }
+            } while( changed );
+            if( !anyChange ){
+                return null;
+            }
+            return res;
+        }
+        else {
+            int a = antecedent[var];
 
             Resolution chain = computeResolutionChain( p, cno, level );
             if( chain == null ){
@@ -494,7 +650,7 @@ public final class SATContext implements java.io.Serializable {
             Resolution r = chain;
             Clause res = p.clauses[cno];
             while( r != null ){
-		res = Clause.resolve( res, p.clauses[r.cno], r.var );
+                res = Clause.resolve( res, p.clauses[r.cno], r.var );
                 r = r.next;
             }
 	    return res;
@@ -515,7 +671,7 @@ public final class SATContext implements java.io.Serializable {
             System.err.println( "Clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
             dumpAssignments();
             if( traceResolutionChain ){
-                dumpAntecedents( "", p, cno );
+                dumpImplications( "", p, cno );
             }
         }
         Clause cc = buildConflictClause( p, cno, var, level );
