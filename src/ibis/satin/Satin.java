@@ -230,7 +230,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 			} catch (IbisException e) {
 				System.err.println("SATIN '" + hostName + 
-                    "': Could not start ibis with name '" + name + "': " + e ", retrying.");
+                    "': Could not start ibis with name '" + name + "': " + e + ", retrying.");
 //				e.printStackTrace();
 			}
 		}
