@@ -1067,6 +1067,63 @@ The Ibis distribution also provides \emph{grun}, which is a tool for
 running Ibis applications on a Globus-based grid. See the
 \texttt{grun/doc} subdirectory for more information.
 
+\mysubsection{Running the example}
+In order to run the example, we first have to compile it.
+Please go to the example directory and type:
+\noindent
+\begin{verbatim}
+[~/ibis-1.0/ibis-example]$ ../ant
+\end{verbatim}
+\noindent
+After a couple of seconds, the example should be compiled.
+You can run the example both with and without the ibis-run script.
+If you want to use the script:
+In shell 1 type:
+\begin{verbatim}
+[~/ibis-1.0]$ ~/ibis-1.0/bin/ibis-nameserver 
+\end{verbatim}
+\noindent
+In shell 2 type:
+\begin{verbatim}
+[~/ibis-1.0/ibis-example]$ ~/ibis-1.0/bin/ibis-run \
+    -nhosts 2 -hostno 0 Example
+\end{verbatim}
+\noindent
+In shell 3 type:
+\begin{verbatim}
+[~/ibis-1.0/ibis-example]$ ~/ibis-1.0/bin/ibis-run \
+    -nhosts 2 -hostno 1 Example
+\end{verbatim}
+\noindent
+Now, it should run and print:
+\begin{verbatim}
+Test succeeded!
+\end{verbatim}
+\noindent
+If you don't use the ibis-run script, you have to set several properties.
+Normally you don't have to start an external nameserver, Ibis will
+start one itself if possible.
+In both shells, type:
+\begin{verbatim}
+[~/ibis-1.0/ibis-example]$ java \
+    -cp ~/ibis-1.0/build/ibis.jar:build \
+    -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
+    -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
+    Example
+\end{verbatim}
+\noindent
+The \texttt{name\_server.key} value can be any random string, it identifiers
+your run. This is done because one nameserver can serve multiple
+runs. For this test, we need to provide Ibis with the total numer of
+CPUs in the run, because it is a closed-world test. Ibis waits until
+both processors have joined the computation. Both the
+\texttt{ibis.pool.server.host} and the \texttt{ibis.name\_server.host} properties should
+be set to the machine you run the nameserver on.  In this case, we use
+\texttt{localhost}. Because we also run the application on \texttt{localhost}, Ibis will
+automatically start a nameserver. If you provide a hostname where the
+Ibis applicaiton does not run, you will have to start a nameserver
+yourself.
+
 \mysection{The Satin Divide-and-Conquer System}
 
 Satin is a parallel programming environment for divide-and-conquer
@@ -1481,7 +1538,12 @@ See Section \ref{Compiling and Running an Ibis Application} for details.
 
 \mysection{Ibis RMI}
 
+There is very little difference between the usage of Sun RMI and Ibis
+RMI. The programs are exactly the same, you only have to compile them
+with Ibis \texttt{rmic} instead of the Sun \texttt{rmic}. 
+
 \remark{TODO: limitations/restrictions.}
+
 
 \mysubsection{Compiling and running an Ibis RMI program}
 
@@ -1511,11 +1573,63 @@ Note that the assumption here is that Ibis is installed in
 
 Invoking \emph{ant build-sun} compiles a standard Java RMI version of
 the application, leaving the class files in a directory called \texttt{build}.
-
 Invoking \emph{ant build} compiles the application for Ibis RMI.
-
 Running an Ibis RMI program is very much like running an Ibis application.
-See Section \ref{Compiling and Running an Ibis Application} for details.
+
+To test this for yourself, it is best to start with
+an example, say \texttt{ibis-1.0/apps/rmi/tsp}. 
+If you want to test your own application, it is easiest to just copy
+the \texttt{build.xml} file from \texttt{ibis-1.0/apps/rmi/tsp}, and adapt it for your
+application. 
+To compile the TSP example, please type
+\begin{verbatim}
+[~/ibis-1.0/apps/rmi/tsp]$ ../../../ant clean build-sun
+\end{verbatim}
+\noindent
+Now, this example application will be compiled with Sun RMI.
+Running the TSP example with Sun RMI can be done as follows. Run the command
+\begin{verbatim}
+[~/ibis-1.0/apps/rmi/tsp]$ java \
+    -cp ~/ibis-1.0/build/ibis.jar:build \
+    -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
+    Server table_15.1 
+\end{verbatim}
+\noindent
+in two seperate shells. The application should now run ``in parallel''
+on the local machine.  
+
+The TSP application uses the \texttt{PoolInfo}
+class that comes with Ibis. This utility class can be used both with
+Sun RMI and Ibis RMI. This class is there for convenience, it provides
+some methods to retrieve the number of processors in the parallel run
+and the ranks of the participating processors. Because this class
+comes with Ibis, \texttt{ibis.jar} has to be in the classpath, even
+when running with Sun RMI.  The \texttt{PoolInfo} class needs the
+\texttt{ibis.pool.total\_hosts} and \texttt{ibis.pool.server.host}
+properties in order to be able to assign ranks to processors. The RMI
+pool server is statred automatically when you start an ibis nameserver
+with the \texttt{ibis-namesever} script (in the case of this example, this is done automatically).
+
+Now, we can run the same application with Ibis RMI as follows.
+Remember that you first have to recompile it with the Ibis rmic:
+\begin{verbatim}
+[~/ibis-1.0/apps/rmi/tsp]$ ../../../ant clean build
+\end{verbatim}
+\noindent
+Now we can run it by typing the following command in two seperate shells:
+\begin{verbatim}
+[~/ibis-1.0/apps/rmi/tsp]$ java \
+    -cp ~/ibis-1.0/build/ibis.jar:build \
+    -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
+    -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
+    Server table_15.1 
+\end{verbatim}
+\noindent
+
+This should produce the same result as the Sun RMI test.
+See Section \ref{Compiling and Running an Ibis Application} for
+details on how to run the application with the \texttt{ibis-run}
+script.
 
 \mysection{Further Reading}
 
