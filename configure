@@ -12,7 +12,7 @@ then
 	echo "please remove or rename the file 'configuration'"
 	echo "and run configure again."
 
-	source configuration
+	. configuration
 
 	echo ""
 	echo "Copied configuration:"
