@@ -42,8 +42,8 @@ public interface Config {
 	/* Enable or disable debug prints. */
 	static final boolean COMM_DEBUG  = false;
 	static final boolean STEAL_DEBUG = false;
-	static final boolean SPAWN_DEBUG = true;
-	static final boolean INLET_DEBUG = true;
-	static final boolean ABORT_DEBUG = true;
+	static final boolean SPAWN_DEBUG = false;
+	static final boolean INLET_DEBUG = false;
+	static final boolean ABORT_DEBUG = false;
 	static final boolean TUPLE_DEBUG = false;
 }
