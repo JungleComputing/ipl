@@ -141,6 +141,9 @@ public class SuffixArray implements Configuration, Magic {
             if( c<255 ){
                 s += (char) c;
             }
+            else if( c == STOP ){
+                s += "<stop>";
+            }
             else {
                 s += "<" + c + ">";
             }
@@ -188,22 +191,25 @@ public class SuffixArray implements Configuration, Magic {
     {
         int start = 0;
         boolean busy;
+        int rule = 0;   // The rule we're printing, or 0 for the top level.
 
-        do {
-            busy = true;
+        for( int i=0; i<length+1; i++ ){
+            if( i>=length || text[i] == STOP ){
+                // We're at the end of a rule. Print it.
+                String var;
 
-            for( int i=start; i<length; i++ ){
-                // TODO: only first occurence is a grammar def'n.
-                if( text[i] >= FIRSTCODE ){
-                    // We have a grammar rule, print it, and move on.
-                    System.out.println( "<" + text[i] + "> -> [" + buildString( start, i-start ) + "] (start=" + start + ", i=" + i + ")" );
-                    start = i+1;
-                    break;
+                if( rule == 0 ){
+                    var = "<start>";
+                    rule = FIRSTCODE;
                 }
-                busy = false;
+                else {
+                    var = "<" + rule + ">";
+                    rule++;
+                }
+                System.out.println( var + " -> [" + buildString( start, i-start ) + "]" );
+                start = i+1;
             }
-        } while( busy );
-        System.out.println( "<start> -> [" + buildString( start ) + "]" );
+        }
     }
 
     /**
@@ -217,7 +223,7 @@ public class SuffixArray implements Configuration, Magic {
 
         // Move down all text behind the replaced string, and put in the
         // code.
-        System.arraycopy( text, ix+1, text, ix+len, length-(ix+len) );
+        System.arraycopy( text, ix+len, text, ix+1, length-(ix+len) );
         text[ix] = code;
 
         // Now update the suffix array.
@@ -274,37 +280,22 @@ public class SuffixArray implements Configuration, Magic {
         // Now assign a new variable 
         short variable = nextcode++;
         pos = 1+replace( pos-1, len, variable );
-        System.out.println( "After first replacement" );
-        printGrammar();
         while( pos<length && commonality[pos] == len ){
-            pos = replace( pos, len, variable );
-            System.out.println( "After subsequent replacement" );
-            printGrammar();
-            pos++;
+            pos = 1+replace( pos, len, variable );
         }
 
-        // Add the new grammar rule in front by copying the grammar body
-        // back into the text, and terminating it with the grammar code of
-        // the new rule. The grammar rule can be recognized because it is the
-        // first occurence of that particular nonterminal code.
+        // Separate the previous stuff from the grammar rule that follows.
+        indices[length] = length;
+        text[length++] = STOP;
 
-        System.arraycopy( text, 0, text, len+1, length );
-        System.arraycopy( t, 0, text, 0, len );
-        text[len] = variable;
-
-        for( int i=0; i<length; i++ ){
-            indices[i] += len+1;
+        // Add the new grammar rule.
+        System.arraycopy( t, 0, text, length, len );
+        for( int i=0; i<len; i++ ){
+            indices[length+i] = length+i;
         }
-        System.arraycopy( indices, 0, indices, len+1, length );
-        for( int i=0; i<=len; i++ ){
-            indices[i] = i;
-        }
+        length += len;
 
-        length += len+1;
         sort();
-
-        System.out.println( "After adding grammar rule" );
-        printGrammar();
     }
 
     public void test() throws VerificationException
