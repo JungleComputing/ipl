@@ -292,7 +292,7 @@ final class AlternativeTypeInfo {
      *
      * @param o		the object on which <code>readObject</code> is to
      * 			be invoked
-     * @param out	the <code>ObjectInputStream</code> to be given
+     * @param in	the <code>ObjectInputStream</code> to be given
      * 			as parameter
      * @exception IOException
      * 			when anything goes wrong

@@ -84,10 +84,9 @@ public final class NioInput extends NetInput {
     /**
      * Constructor.
      *
-     * @param sp the properties of the input's 
-     * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+     * @param pt the properties of the input's 
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
      * @param driver the Nio driver instance.
-     * @param input the controlling input.
      */
     NioInput(NetPortType pt, NetDriver driver, String context)
 	throws IOException {

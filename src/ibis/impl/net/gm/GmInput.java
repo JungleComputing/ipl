@@ -86,7 +86,7 @@ public final class GmInput extends NetBufferedInput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the input's
+	 * @param pt the properties of the input's
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the GM driver instance.
 	 */

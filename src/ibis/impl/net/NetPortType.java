@@ -51,7 +51,7 @@ public final class NetPortType implements PortType {
          * Read a property key.
          *
          * @param in the {@link Input} from which the key is read.
-         * @param return the property key or <code>null</code>.
+         * @return the property key or <code>null</code>.
          */
 	private String readKey(Input in) {
 		// Skip comment lines starting with a '#' at col 0
@@ -76,7 +76,7 @@ public final class NetPortType implements PortType {
          * Read a property value.
          *
          * @param in the {@link Input} from which the value is read.
-         * @param return the property value.
+         * @return the property value.
          */
 	private String readVal(Input in) {
 		StringBuffer s = new StringBuffer();

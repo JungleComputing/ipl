@@ -183,7 +183,6 @@ public final class Group implements GroupProtocol {
 	/**
 	 * Creates a new stub for the group at hand.
 	 *
-	 * @param stubID an identification for the new stub
 	 * @return the new stub.
 	 */
 	GroupStub newStub() { 

@@ -96,7 +96,6 @@ public class CombinedInvocationInfo implements java.io.Serializable {
      *
      * @param rank the rank number within the nodes involved in the combined invocation
      * @param cpu the node number within the global group
-     * @param stubId the identification of the stub
      */
     synchronized void addAndWaitUntilFull(int rank, int cpu) { 
         if (participating_cpus[rank] != -1) { 

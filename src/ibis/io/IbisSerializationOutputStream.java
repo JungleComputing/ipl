@@ -876,7 +876,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     /**
      * Writes an array, but possibly only a handle.
      * @param ref		the array to be written
-     * @param arrayClazz	the <code>Class</code> representing the array type
+     * @param arrayClass	the <code>Class</code> representing the array type
      * @param unshared		set when no cycle detection check shoud be done
      * @exception IOException	gets thrown when an IO error occurs.
      */

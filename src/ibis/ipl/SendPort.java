@@ -2,122 +2,137 @@ package ibis.ipl;
 
 import java.io.IOException;
 
-         /**
-	    Sendports maintain connections to one or more receive ports.
-	    The general contract is as follows.
-	    Connections are unrelated to messages! If the sending of a message 
-	    did not generate an exception, this does not mean that it actually 
-	    arrived at the receive port. There may still be data in Ibis or 
-	    operating system buffers, or in the network itself. 
-	    
-	    When creating a sendport, it is possible to pass a ConnectUpcall 
-	    object. Ibis will call the gotConnection upcall of this object 
-	    when a sendport tries to initiate a new connection.
-	    When a connection is lost for some reason (normal close or 
-	    link error), the lostConnection ore closedConnection upcalls are performed. Both 
-	    upcalls are completely asynchronous, but Ibis ensures that 
-	    only one ConnectUpcall is alive at any given time.
-	    
-	    If no ConnectUpcall is registered, the user is NOT informed 
-	    of connections that are lost. No exceptions are thrown by 
-	    the write message. It is then the user's own responisbility 
-	    to use the lostConnections() method to poll for connections 
-	    that are lost.
-         **/
-public interface SendPort {        
+/**
+ * Maintains connections to one or more receive ports.
+ *
+ * When creating a sendport, it is possible to pass a
+ * {@link SendPortConnectUpcall} object.
+ * When a connection is lost for some reason (normal close or 
+ * link error), the 
+ * {@link SendPortConnectUpcall#lostConnection(SendPort, ReceivePortIdentifier, Exception)} upcall is invoked.
+ * This upcall is completely asynchronous, but Ibis ensures that 
+ * at most one is alive at any given time.
+ *
+ * If no {@link SendPortConnectUpcall} is registered, the user is NOT informed 
+ * of connections that are lost. No exceptions are thrown by 
+ * the write message. It is then the user's own responisbility 
+ * to use the {@link #lostConnections()} method to poll for connections 
+ * that are lost.
+ *
+ * Connections are unrelated to messages! If the sending of a message 
+ * did not generate an exception, this does not mean that it actually 
+ * arrived at the receive port. There may still be data in Ibis or 
+ * operating system buffers, or in the network itself. 
+ *
+ * For a given sendport, only one message is alive at any time.
+ * Only one message is alive at one time for a given
+ * sendport. This is done to prevent flow control problems.  When a
+ * message is alive, and a new message is requested, the request is
+ * blocked until the live message is finished.
+ */
+public interface SendPort
+{
+    /**
+     * Requests a new message from this sendport.
+     * It is allowed to get a message for a sendport that is not connected.
+     * All data that is written into the message is then silently discarded.
+     *
+     * @return a <code>WriteMessage</code>.
+     * @exception IOException may be thrown when something goes wrong.
+     */
+    public WriteMessage newMessage () throws IOException;
 
-	/**
-	   Request a new message from this sendport.
-	   Only one message is alive at one time for a given
-	   sendport. This is done to prevent flow control problems.  When a
-	   message is alive, and a new message is requested, the request is
-	   blocked until the live message is finished.
-	   It is allowed to get a message for a sendport that is not connected.
-	   All data that is written into the message is then silently discarded.
+    /**
+     * Returns the {@link DynamicProperties} of this ibis implementation.
+     * What is the idea? Currently there are no Ibis implementations
+     * that implement this! ????
+     */
+    public DynamicProperties properties ();
 
-	   @return a <code>WriteMessage</code>.
-	   @exception IOException may be thrown when something goes wrong.
-	**/
-	public WriteMessage newMessage() throws IOException;
+    /**
+     * Obtains an identification for this sendport.
+     * @return the identification.
+     */
+    public SendPortIdentifier identifier ();
 
-	/**
-	   Returns the {@link DynamicProperties} of this ibis implementation.
-	   What is the idea? Currently there are no Ibis implementations
-	   that implement this! ????
-	**/
-	public DynamicProperties properties();
+    /**
+     * Returns the name of the sendport.
+     * When the sendport was created anonymously,
+     * a system-invented name will be returned.
+     *
+     * @return the name.
+     */
+    public String name ();
 
-	/**
-	   Obtain an identification for this sendport.
-	   @return the identification.
-	**/
-	public SendPortIdentifier identifier();
+    /**
+     * Returns the number of bytes that was written to this sendport.
+     * @return the number of bytes written.
+     */
+    public long getCount ();
 
-	public String name();
+    /**
+     * Resets the counter for the number of bytes that was written to this
+     * sendport to zero.
+     */
+    public void resetCount ();
 
-	/**
-	 * Returns the number of bytes that was written to this sendport.
-	 * @return the number of bytes written.
-	 **/
-	public long getCount();
+    /**
+     * Attempts to set up a connection with a receiver.
+     *
+     * @param receiver identifies the {@link ReceivePort} to connect to
+     * @exception ConnectionRefusedException is thrown
+     * if the receiver denies the connection, or if the port was already
+     * connected to the receiver.
+     * Multiple connections to the same receiver are NOT allowed.
+     * @exception PortMismatchException is thrown if the receiveport
+     * port and the sendport are of different types.
+     */
+    public void connect (ReceivePortIdentifier receiver) throws IOException;
 
-	/**
-	 * Resets the counter for the number of bytes that was written to this sendport
-	 * to zero.
-	 **/
-	public void resetCount();
+    /**
+     * Attempts to set up a connection with receiver.
+     *
+     * @param receiver identifies the {@link ReceivePort} to connect to
+     * @param timeoutMillis timeout in milliseconds
+     * @exception ibis.ipl.ConnectionTimedOutException is thrown
+     * if an accept/deny has not arrived within <code>timeoutmillis</code>.
+     * A value of 0 for <code>timeoutmillis</code> signifies no
+     * timeout on the connection attempt.
+     * @exception ConnectionRefusedException is thrown
+     * if the receiver denies the connection, or if the port was already
+     * connected to the receiver.
+     * Multiple connections to the same receiver are NOT allowed.
+     * @exception PortMismatchException is thrown if the receiveport
+     * port and the sendport are of different types.
+     */
+    public void connect (ReceivePortIdentifier receiver,
+			 long timeoutMillis) throws IOException;
 
-	/**
-	   Attempt a connection with receiver.
-	   @exception ConnectionRefusedException is thrown
-	   if the receiver denies the connection, or if the port was already
-	   connected to the receiver.
-	   Multiple connections to the same receiver are NOT allowed.
-	   @exception PortMismatchException is thrown if this receive
-	   port and the send port are of different types.
-	   @param receiver identifies the <code>ReceivePort</code> to connect to
-	*/
-	public void connect(ReceivePortIdentifier receiver) throws IOException;
+    /**
+     * Frees the resources held by the sendport.
+     * If a free is attempted when a message is still alive, an exception
+     * will be thrown. Even if this call throws an exception, the connection
+     * cannot be used anymore.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public void free () throws IOException;
 
-	/**
-	   Attempt a connection with receiver.
-	   @exception ibis.ipl.ConnectionTimedOutException is thrown
-	   if an accept/deny has not arrived within <code>timeout_millis</code>.
-	   A value of 0 for <code>timeout_millis</code> signifies no
-	   timeout on the connection attempt.
-	   @exception ConnectionRefusedException is thrown
-	   if the receiver denies the connection.
-	   Multiple connections to the same receiver are NOT allowed.
-	   @exception PortMismatchException is thrown if this receive
-	   port and the send port are of different types.
-	   @param receiver identifies the <code>ReceivePort</code> to connect to
-	   @param timeoutMillis timeout in milliseconds
-	*/
-	public void connect(ReceivePortIdentifier receiver, long timeoutMillis) throws IOException;
+    /** 
+     * Returns the set of receiveports this sendport is connected to.
+     * 
+     * @return a set of receiveport identifiers.
+     */
+    public ReceivePortIdentifier[] connectedTo ();
 
-	/** Free the resources held by the SendPort.
-	    If a free is attempted when a message is still alive, an exception will be thrown. 
-	    Even if this call throws an exception, the connection cannot be
-	    used anymore.
-	   @exception IOException in case of trouble.
-	**/
-	public void free() throws IOException;
-
-	/** 
-	   Returns the set of receiveports this sendport is connected to.
-	   @return a set of receiveport identifiers.
-	**/
-	public ReceivePortIdentifier[] connectedTo();
-
-	/** 
-	   Poll to find out whether any connections are lost or closed.
-	   Returns the changes since the last lostConnections call,
-	   or, if this is the first call, all connectcions that were lost since
-	   the port was created.
-	   This call only works if the connectionAdministration parameter was true when this port was created.
-	   Otherwise, null is returned.
-	   @return a set of receiveport identifiers to which the connection
-	   is lost.
-	**/
-	public ReceivePortIdentifier[] lostConnections();
+    /** 
+     * Polls to find out whether any connections are lost or closed.
+     * Returns the changes since the last <code>lostConnections</code> call,
+     * or, if this is the first call, all connectcions that were lost since
+     * the port was created.
+     * This call only works if the connectionAdministration parameter was true
+     * when this port was created. Otherwise, null is returned.
+     * @return a set of receiveport identifiers to which the connection
+     * is lost.
+     */
+    public ReceivePortIdentifier[] lostConnections ();
 }

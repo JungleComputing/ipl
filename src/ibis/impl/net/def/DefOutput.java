@@ -18,7 +18,7 @@ public final class DefOutput extends NetBufferedOutput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the output's 
+	 * @param pt the properties of the output's 
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the DEF driver instance.
 	 */

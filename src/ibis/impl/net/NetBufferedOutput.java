@@ -77,7 +77,7 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 	/**
 	 * Allocate a new buffer.
 	 *
-	 * @param the preferred length. This is just a hint. The
+	 * @param length the preferred length. This is just a hint. The
 	 * actual buffer length may differ.
 	 */
 	private void allocateBuffer(int length) throws IOException {

@@ -27,7 +27,7 @@ public final class IdInput extends NetInput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the input's
+	 * @param pt the properties of the input's
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 */

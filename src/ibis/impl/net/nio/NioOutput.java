@@ -68,10 +68,9 @@ public final class NioOutput extends NetOutput {
     /**
      * Constructor.
      *
-     * @param sp the properties of the output's 
-     * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+     * @param pt the properties of the output's 
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
      * @param driver the Tcp driver instance.
-     * @param output the controlling output.
      */
     NioOutput(NetPortType pt, NetDriver driver, String context) 
 	throws IOException {

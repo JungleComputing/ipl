@@ -47,7 +47,7 @@ public final class TcpOutput extends NetOutput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the output's 
+	 * @param pt the properties of the output's 
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
 	 */

@@ -93,7 +93,7 @@ public final class TcpInput extends NetBufferedInput
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the input's
+	 * @param pt the properties of the input's
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
 	 */

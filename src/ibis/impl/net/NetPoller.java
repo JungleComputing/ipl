@@ -713,7 +713,7 @@ nCurrent++;
 
 
 	/**
-	 * @param fromUpcall indicates whether this is an implicit finish
+	 * @param implicit indicates whether this is an implicit finish
 	 *        from a returned upcall
 	 *
 	 * Call this synchronized(this)

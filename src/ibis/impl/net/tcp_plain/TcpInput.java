@@ -63,10 +63,9 @@ public final class TcpInput extends NetInput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the input's
+	 * @param pt the properties of the input's
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
-	 * @param input the controlling input.
 	 */
 	TcpInput(NetPortType pt, NetDriver driver, String context)
 		throws IOException {
