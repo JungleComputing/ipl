@@ -355,7 +355,7 @@
 </echo>
 	<echo
 		append="true"
-		file="${ibis}/configuration.sh">JIT_OPTS=${JIT_OPTS}
+		file="${ibis}/configuration.sh">JIT_OPTS="${JIT_OPTS}"
 </echo>
 	<echo
 		append="true"
