@@ -421,7 +421,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.in();
                 disconnectedPeers  = new Vector();
                 eventQueue         = new NetEventQueue();
-                eventQueueListener = new NetEventQueueListener(this, "SendPort: " + ((name != null)?name:"anonymous"), eventQueue);
+                eventQueueListener = new NetEventQueueListener(this, "SendPort: " + name, eventQueue);
                 eventQueueListener.start();
                 log.out();
         }

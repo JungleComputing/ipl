@@ -6,7 +6,7 @@ import java.io.IOException;
  * A <code>PortType</code> is used to create send and receive ports.
  * A <code>PortType</code> can be created using the
  * {@link Ibis#createPortType(String, StaticProperties)} method. 
- * connectionAdministration can be explicitly turned on and off, because
+ * Support for connection downcalls can be explicitly turned on and off, because
  * it might incur some overhead. Moreover, if downcalls are used,
  * the amount of administration that must be kept is dependent on the
  * frequency of the user downcalls. If the user does never do a downcall,
@@ -14,6 +14,11 @@ import java.io.IOException;
  */
 
 public abstract class PortType {
+
+    /**
+     * Counter for anonymous ports.
+     */
+    private int anon_counter;
 
     /**
      * Returns the name given to this PortType upon creation. 
@@ -37,7 +42,7 @@ public abstract class PortType {
      * created.
      */
     public SendPort createSendPort() throws IOException {
-	return createSendPort(null, null, null, false);
+	return doCreateSendPort(null, null, null, false);
     }
 
     /**
@@ -48,9 +53,11 @@ public abstract class PortType {
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public SendPort createSendPort(String name) throws IOException {
-	return createSendPort(name, null, null, false);
+	return doCreateSendPort(name, null, null, false);
     }
 
     /**
@@ -61,24 +68,28 @@ public abstract class PortType {
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public SendPort createSendPort(Replacer r) throws IOException {
-	return createSendPort(null, r, null, false);
+	return doCreateSendPort(null, r, null, false);
     }
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
      * 
-     * @param connectionAdministration set when this port must keep
+     * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
      * downcall.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
-    public SendPort createSendPort(boolean connectionAdministration)
+    public SendPort createSendPort(boolean connectionDowncalls)
 	    throws IOException {
-	return createSendPort(null, null, null, connectionAdministration);
+	return doCreateSendPort(null, null, null, connectionDowncalls);
     }
 
     /**
@@ -86,17 +97,19 @@ public abstract class PortType {
      * The name does not have to be unique.
      *
      * @param name the name of this sendport.
-     * @param connectionAdministration set when this port must keep
+     * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
      * downcall.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public SendPort createSendPort(String name,
-				   boolean connectionAdministration)
+				   boolean connectionDowncalls)
 	    throws IOException {
-	return createSendPort(name, null, null, connectionAdministration);
+	return doCreateSendPort(name, null, null, connectionDowncalls);
     }
 
     /** 
@@ -111,10 +124,12 @@ public abstract class PortType {
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public SendPort createSendPort(String name, SendPortConnectUpcall cU)
 	    throws IOException {
-	return createSendPort(name, null, cU, false);
+	return doCreateSendPort(name, null, cU, false);
     }
 
     /**
@@ -122,16 +137,18 @@ public abstract class PortType {
      * with a {@link Replacer}. 
      *
      * @param r an object replacer, used in object serialization.
-     * @param connectionAdministration set when this port must keep
+     * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
      * downcall.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
-    public SendPort createSendPort(Replacer r, boolean connectionAdministration)
+    public SendPort createSendPort(Replacer r, boolean connectionDowncalls)
 	    throws IOException {
-	return createSendPort(null, r, null, connectionAdministration);
+	return doCreateSendPort(null, r, null, connectionDowncalls);
     }
 
     /**
@@ -140,18 +157,20 @@ public abstract class PortType {
      *
      * @param name the name of this sendport.
      * @param r an object replacer, used in object serialization.
-     * @param connectionAdministration set when this port must keep
+     * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
      * downcall.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public SendPort createSendPort(String name,
 				   Replacer r,
-				   boolean connectionAdministration)
+				   boolean connectionDowncalls)
 	    throws IOException {
-	return createSendPort(name, r, null, connectionAdministration);
+	return doCreateSendPort(name, r, null, connectionDowncalls);
     }
 
     /**
@@ -165,10 +184,12 @@ public abstract class PortType {
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public SendPort createSendPort(Replacer r, SendPortConnectUpcall cU)
 	    throws IOException {
-	return createSendPort(null, r, cU, false);
+	return doCreateSendPort(null, r, cU, false);
     }
 
     /**
@@ -183,14 +204,15 @@ public abstract class PortType {
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public SendPort createSendPort(String name,
 				   Replacer r,
 				   SendPortConnectUpcall cU)
 	    throws IOException {
-	return createSendPort(name, r, cU, false);
+	return doCreateSendPort(name, r, cU, false);
     }
-
 
     /**
      * Creates a {@link SendPort} of this <code>PortType</code>,
@@ -201,7 +223,49 @@ public abstract class PortType {
      * @param cU object implementing the
      * {@link SendPortConnectUpcall#lostConnection(SendPort,
      * ReceivePortIdentifier, Exception)} method.
-     * @param connectionAdministration set when this port must keep
+     * @param connectionDowncalls set when this port must keep
+     * connection administration to support the lostConnections
+     * downcall.
+     * @return the new sendport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    private SendPort doCreateSendPort(String name,
+				   Replacer r,
+				   SendPortConnectUpcall cU,
+				   boolean connectionDowncalls)
+	    throws IOException {
+	if (cU != null) {
+	    if (! properties().isProp("communication", "ConnectionDowncalls")) {
+		throw new IbisConfigurationException(
+			"no connection downcalls requested for this port type");
+	    }
+	}
+	if (connectionDowncalls) {
+	    if (! properties().isProp("communication", "ConnectionUpcalls")) {
+		throw new IbisConfigurationException(
+			"no connection upcalls requested for this port type");
+	    }
+	}
+	if (name == null) {
+	    name = "__Send__" + name() + "__" + anon_counter++;
+	}
+
+	return createSendPort(name, r, cU, connectionDowncalls);
+    }
+
+    /**
+     * Creates a {@link SendPort} of this <code>PortType</code>,
+     * with a {@link Replacer}. 
+     *
+     * @param name the name of this sendport.
+     * @param r an object replacer, used in object serialization.
+     * @param cU object implementing the
+     * {@link SendPortConnectUpcall#lostConnection(SendPort,
+     * ReceivePortIdentifier, Exception)} method.
+     * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
      * downcall.
      * @return the new sendport.
@@ -211,7 +275,7 @@ public abstract class PortType {
     protected abstract SendPort createSendPort(String name,
 				   Replacer r,
 				   SendPortConnectUpcall cU,
-				   boolean connectionAdministration)
+				   boolean connectionDowncalls)
 	    throws IOException;
 
 
@@ -226,9 +290,11 @@ public abstract class PortType {
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public ReceivePort createReceivePort(String name) throws IOException {
-	return createReceivePort(name, null, null, false);
+	return doCreateReceivePort(name, null, null, false);
     }
 
 
@@ -240,17 +306,19 @@ public abstract class PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the name of this receiveport.
-     * @param connectionAdministration set when this port must keep
+     * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public ReceivePort createReceivePort(String name,
-					 boolean connectionAdministration)
+					 boolean connectionDowncalls)
 	throws IOException {
-	return createReceivePort(name, null, null, connectionAdministration);
+	return doCreateReceivePort(name, null, null, connectionDowncalls);
     }
 
     /** 
@@ -265,10 +333,12 @@ public abstract class PortType {
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public ReceivePort createReceivePort(String name, Upcall u)
 	throws IOException {
-	return createReceivePort(name, u, null, false);
+	return doCreateReceivePort(name, u, null, false);
     }
 
     /** 
@@ -280,18 +350,20 @@ public abstract class PortType {
      *
      * @param name the name of this receiveport.
      * @param u the upcall handler.
-     * @param connectionAdministration set when this port must keep
+     * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public ReceivePort createReceivePort(String name,
 					 Upcall u,
-					 boolean connectionAdministration)
+					 boolean connectionDowncalls)
 	throws IOException {
-	return createReceivePort(name, u, null, connectionAdministration);
+	return doCreateReceivePort(name, u, null, connectionDowncalls);
     }
 
     /** 
@@ -309,11 +381,13 @@ public abstract class PortType {
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public ReceivePort createReceivePort(String name,
 					 ReceivePortConnectUpcall cU)
 	    throws IOException {
-	return createReceivePort(name, null, cU, false);
+	return doCreateReceivePort(name, null, cU, false);
     }
 
     /** 
@@ -332,12 +406,14 @@ public abstract class PortType {
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
     public ReceivePort createReceivePort(String name,
 					 Upcall u,
 					 ReceivePortConnectUpcall cU)
 	    throws IOException {
-	return createReceivePort(name, u, cU, false);
+	return doCreateReceivePort(name, u, cU, false);
     }
 
     /** 
@@ -353,7 +429,69 @@ public abstract class PortType {
      * @param u the upcall handler.
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
-     * @param connectionAdministration set when this port must keep
+     * @param connectionDowncalls set when this port must keep
+     * connection administration to support the lostConnections and
+     * newConnections downcalls.
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    private ReceivePort doCreateReceivePort(String name,
+					 Upcall u,
+					 ReceivePortConnectUpcall cU,
+					 boolean connectionDowncalls)
+	    throws IOException
+    {
+	StaticProperties p = properties();
+	if (cU != null) {
+	    if (! p.isProp("communication", "ConnectionDowncalls")) {
+		throw new IbisConfigurationException(
+			"no connection downcalls requested for this port type");
+	    }
+	}
+	if (connectionDowncalls) {
+	    if (! p.isProp("communication", "ConnectionUpcalls")) {
+		throw new IbisConfigurationException(
+			"no connection upcalls requested for this port type");
+	    }
+	}
+	if (u != null) {
+	    if (! p.isProp("communication", "AutoUpcalls") &&
+	        ! p.isProp("communication", "PollUpcalls")) {
+		throw new IbisConfigurationException(
+			"no message upcalls requested for this port type");
+	    }
+	}
+	else {
+	    if (! p.isProp("communication", "ExplicitReceipt")) {
+		throw new IbisConfigurationException(
+			"no explicit receipt requested for this port type");
+	    }
+	}
+	if (name == null) {
+	    name = "__Receive__" + name() + "__" + anon_counter++;
+	}
+
+	return createReceivePort(name, u, cU, connectionDowncalls);
+    }
+
+
+    /** 
+     * Creates a named {@link ReceivePort} of this <code>PortType</code>,
+     * with upcall based communication.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     * When a new connection request arrives, or when a connection is lost,
+     * a ConnectUpcall is performed.
+     *
+     * @param name the name of this receiveport.
+     * @param u the upcall handler.
+     * @param cU object implementing <code>gotConnection</code>() and
+     * <code>lostConnection</code>() upcalls.
+     * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new receiveport.
@@ -363,7 +501,7 @@ public abstract class PortType {
     protected  abstract ReceivePort createReceivePort(String name,
 					 Upcall u,
 					 ReceivePortConnectUpcall cU,
-					 boolean connectionAdministration)
+					 boolean connectionDowncalls)
 	    throws IOException;
 
     /**

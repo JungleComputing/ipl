@@ -52,10 +52,7 @@ public final class NioReceivePortIdentifier implements ReceivePortIdentifier, ja
     }
 
     public String name() {
-	if (name != null) {
-	    return name;
-	}
-	return "__anonymous__";
+	return name;
     }
 
     public String type() {

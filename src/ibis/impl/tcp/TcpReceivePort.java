@@ -52,11 +52,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		this.connectionAdministration = connectionAdministration;
 		if(connUpcall != null) connectionAdministration = true;
 
-		if(name == null) {
-			this.name = "anonymous";
-		} else {
-			this.name = name;
-		}
+		this.name = name;
 
 		connections = new ConnectionHandler[2];
 		connectionsIndex = 0;

@@ -260,7 +260,11 @@ final class Main {
 				System.out.println("Creating ibis ...");
 			}
 
-			ibis = Ibis.createIbis(null, null);
+			StaticProperties s = new StaticProperties();
+			s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
+			s.add("serialization", "object");
+			s.add("worldmodel", "closed");
+			ibis = Ibis.createIbis(s, null);
 
 			if (verbose) { 
 				System.out.println("Ibis created; getting registry ...");
@@ -272,10 +276,7 @@ final class Main {
 				System.out.println("Got registry");
 			}
 
-			StaticProperties s = new StaticProperties();
-			s.add("serialization", "ibis");
-
-			PortType t = ibis.createPortType("test type", s);			
+			PortType t = ibis.createPortType("test type", null);			
 			SendPort sport = t.createSendPort();					      
 			ReceivePort rport;
 

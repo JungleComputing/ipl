@@ -45,10 +45,7 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 	//end gosia
 
 	public String name() {
-		if (name != null) {
-			return name;
-		}
-		return "__anonymous__";
+		return name;
 	}
 
 	public String type() {

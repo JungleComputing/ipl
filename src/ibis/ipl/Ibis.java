@@ -38,6 +38,9 @@ public abstract class Ibis {
     /** A user-supplied resize handler, with join/leave upcalls. */
     protected ResizeHandler resizeHandler;
 
+    /** User properties */
+    private StaticProperties requiredprops;
+
     /** User properties, combined with required properties. */
     private StaticProperties combinedprops;
 
@@ -129,12 +132,13 @@ public abstract class Ibis {
 				  ResizeHandler resizeHandler)
 	    throws IbisException, ConnectionRefusedException
     {
-	return createIbis(name, implName, null, resizeHandler);
+	return createIbis(name, implName, null, null, resizeHandler);
     }
 
     private static Ibis createIbis(String name,
 				   String implName,
 				   StaticProperties prop,
+				   StaticProperties reqprop,
 				   ResizeHandler resizeHandler)
 	    throws IbisException, ConnectionRefusedException
     {
@@ -171,7 +175,20 @@ public abstract class Ibis {
 	impl.name = name;
 	impl.implName = implName;
 	impl.resizeHandler = resizeHandler;
+	impl.requiredprops = reqprop;
 	impl.combinedprops = prop;
+	if (reqprop == null) {
+	    impl.requiredprops = impl.properties();
+	}
+	else if (reqprop.isProp("serialization", "object")) {
+	    // required properties had "object", but if we later
+	    // ask for "sun" or "ibis", these may not be in the
+	    // required properties, so put the original serialization
+	    // specs back.
+	    impl.requiredprops = new StaticProperties(reqprop);
+	    impl.requiredprops.add("serialization",
+				   impl.properties().find("serialization"));
+	}
 
 	try {
 	    impl.init();
@@ -254,8 +271,6 @@ public abstract class Ibis {
 	    hostname = "unknown";
 	}
 
-	String implementationname = null;
-
 	StaticProperties combinedprops;
 
 	if (reqprop == null) {
@@ -274,17 +289,18 @@ public abstract class Ibis {
 
 	String[] impls = list();
 
+	ArrayList implementation_names = new ArrayList();
+
 	if (ibisname == null) {
 	    for (int i = 0; i < impls.length; i++) {
 		StaticProperties ibissp = staticProperties(impls[i]);
 //		System.out.println("try " + impls[i]);
 		if (combinedprops.matchProperties(ibissp)) {
 //		    System.out.println("match!");
-		    implementationname = impls[i];
-		    break;
+		    implementation_names.add(impls[i]);
 		}
 	    }
-	    if (implementationname == null) {
+	    if (implementation_names.size() == 0) {
 //		System.err.println("Properties:");
 //		System.err.println(combinedprops.toString());
 		throw new NoMatchingIbisException(
@@ -299,30 +315,76 @@ public abstract class Ibis {
 	    }
 	    for (int i = 0; i < nicks.length; i++) {
 		if (name.equals(nicks[i])) {
-		    implementationname = impls[i];
+		    implementation_names.add(impls[i]);
 		    break;
 		}
 	    }
-	    if (implementationname == null) {
+	    if (implementation_names.size() == 0) {
 		System.err.println("Warning: name '" + ibisname +
 			"' not recognized, using " + defaultIbisName);
-		implementationname = defaultIbisName;
+		implementation_names.add(defaultIbisName);
 	    }
 	    else if (ibisname.startsWith("net")) {
-		StaticProperties sp = staticProperties(implementationname);
+		StaticProperties sp =
+		    staticProperties((String)implementation_names.get(0));
 		sp.add("IbisName", ibisname);
 	    }
 	}
 
-	while(true) {
-	    try {
-		String name = "ibis@" + hostname + "_" +
-				System.currentTimeMillis();
-		return createIbis(name, implementationname, combinedprops, r);
-	    } catch (ConnectionRefusedException e) {
-		// retry
+	int n = implementation_names.size();
+
+	for (int i = 0; i < n; i++) {
+	    while(true) {
+		try {
+		    String name = "ibis@" + hostname + "_" +
+				    System.currentTimeMillis();
+		    return createIbis(name,
+				      (String) implementation_names.get(i),
+				      combinedprops,
+				      reqprop,
+				      r);
+		} catch (ConnectionRefusedException e) {
+		    // retry
+		} catch(IbisException e) {
+		    if (i == n-1) {
+			// No more Ibis to try.
+			throw e;
+		    }
+		    else {
+			System.err.println("Warning: could not create " +
+				      (String) implementation_names.get(i) +
+				      ", trying " +
+				      (String) implementation_names.get(i+1));
+			break;
+		    }
+		} catch(RuntimeException e) {
+		    if (i == n-1) {
+			// No more Ibis to try.
+			throw e;
+		    }
+		    else {
+			System.err.println("Warning: could not create " +
+				      (String) implementation_names.get(i) +
+				      ", trying " +
+				      (String) implementation_names.get(i+1));
+			break;
+		    }
+		} catch(Error e) {
+		    if (i == n-1) {
+			// No more Ibis to try.
+			throw e;
+		    }
+		    else {
+			System.err.println("Warning: could not create " +
+				      (String) implementation_names.get(i) +
+				      ", trying " +
+				      (String) implementation_names.get(i+1));
+			break;
+		    }
+		}
 	    }
 	}
+	throw new IbisException("Could not create Ibis");
     }
 
     /**
@@ -543,6 +605,13 @@ public abstract class Ibis {
      * A name is given to the <code>PortType</code> (e.g. "satin porttype"
      * or "RMI porttype"), and Port properties are specified (for example
      * ports are "totally-ordered" and "reliable" and support "NWS").
+     * If no static properties are given, the properties that were
+     * requested from the Ibis implementation are used, possibly combined
+     * with properties specified by the user (using the -Dibis.<category>="..."
+     * mechanism). If static properties <strong>are</strong> given,
+     * the default properties described above are used for categories 
+     * not specifiedby the given properties.
+     * <p>
      * The name and properties <strong>together</strong> define the
      * <code>PortType</code>.
      * If two Ibis implementations want to communicate, they must both
@@ -569,8 +638,13 @@ public abstract class Ibis {
 	throws IOException, IbisException
     {
 	if (p == null) {
+	    p = combinedprops;
 	}
 	else {
+	    // The properties given as parameter have preference.
+	    p = new StaticProperties(combinedprops.combine(p));
+	    p.add("worldmodel", "");	// not significant for port type,
+					// and may conflict with the ibis prop.
 	    checkPortProperties(p);
 	}
 	if (name == null) {
@@ -595,8 +669,10 @@ public abstract class Ibis {
     private void checkPortProperties(StaticProperties p)
 	    throws IbisException
     {
-	if (! p.matchProperties(properties())) {
-	    throw new IbisException("Port properties don't match this Ibis");
+	if (! p.matchProperties(requiredprops)) {
+	    System.err.println("Ibis required properties: " + requiredprops);
+	    System.err.println("Port required properties: " + p);
+	    throw new IbisException("Port properties don't match the required properties of Ibis");
 	}
     }
 

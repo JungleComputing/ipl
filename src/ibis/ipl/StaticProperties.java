@@ -103,6 +103,7 @@ public class StaticProperties {
 		}
 		else s += ", " + str;
 	    }
+	    if (s == null) return "";
 	    return s;
 	}
 
@@ -239,15 +240,23 @@ public class StaticProperties {
      * @return the combined static properties.
      */
     public StaticProperties combineWithUserProps() {
-	StaticProperties combined = new StaticProperties(this);
-	StaticProperties u = userProperties();
+	return combine(userProperties());
+    }
 
-	Set e = u.propertyNames();
+    /**
+     * Combines the properties with the specified properties,
+     * giving preference to the latter.
+     * @return the combined static properties.
+     */
+    public StaticProperties combine(StaticProperties p) {
+	StaticProperties combined = new StaticProperties(this);
+
+	Set e = p.propertyNames();
 	Iterator i = e.iterator();
 
 	while (i.hasNext()) {
 	    String name = ((String) i.next());
-	    String prop = u.find(name);
+	    String prop = p.find(name);
 
 	    combined.add(name, prop);
 	}

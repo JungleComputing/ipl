@@ -240,8 +240,7 @@ class ConcurrentSenders implements Config {
 				rank = 1;
 			}
 
-			StaticProperties s = new StaticProperties();
-			PortType t = ibis.createPortType("test type", s);
+			PortType t = ibis.createPortType("test type", null);
 
 			if (rank == 0) {
 				new Receiver(ibis, t, count, repeat, senders, doFinish);

@@ -111,8 +111,7 @@ System.err.println(">>>>>>>> Righto, I'm the master");
 System.err.println(">>>>>>>> Righto, I'm the slave");
 			}
 
-			StaticProperties s = new StaticProperties();
-			PortType t = ibis.createPortType("test type", s);
+			PortType t = ibis.createPortType("test type", null);
 			rport = t.createReceivePort("test port " + rank);
 			rport.enableConnections();
 			sport = t.createSendPort();

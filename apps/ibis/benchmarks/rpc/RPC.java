@@ -221,16 +221,12 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 	for (int i = 0; i < partners; i++) {
 	    // t_get_msg.start();
 // System.err.println("Do a downcall receive from partner " + i);
-	    m = rport.receive(m);
+	    m = rport.receive();
 	    // t_get_msg.stop();
 	    rcve_one(read_data, size, m);
+	    m.finish();
 // System.err.println("Done a downcall receive from partner " + i);
 	}
-	// t_r_finish.start();
-	if (m != null) {
-	    m.finish();
-	}
-	// t_r_finish.stop();
     }
 
 
@@ -830,7 +826,11 @@ System.err.println("Poor-man's barrier send finished");
 	} catch (java.net.UnknownHostException e) {
 	    // let it be the default
 	}
-	myIbis = Ibis.createIbis(null, rszHandler);
+	StaticProperties s = new StaticProperties();
+	s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt");
+	s.add("serialization", "object");
+	s.add("worldmodel", "open");
+	myIbis = Ibis.createIbis(s, rszHandler);
 
 // manta.runtime.RuntimeSystem.DebugMe(0, 0);
 	// myIbis.init();
@@ -847,7 +847,7 @@ System.err.println("Poor-man's barrier send finished");
 	    }
 	});
 
-	portType = myIbis.createPortType("test type", StaticProperties.userProperties());
+	portType = myIbis.createPortType("test type", null);
 // manta.runtime.RuntimeSystem.DebugMe(2, 0);
     }
 

@@ -103,12 +103,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 	this.ibis = ibis;
 	this.connectionAdministration = connectionAdministration;
 
-	//FIXME : what if there are 2 anonymous ports?
-	if(name == null) {
-	    this.name = "anonymous";
-	} else {
-	    this.name = name;
-	}
+	this.name = name;
 
 	InetSocketAddress address = ibis.factory.register(this);
 

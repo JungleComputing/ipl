@@ -51,11 +51,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		    boolean connectionAdministration, SendPortConnectUpcall cU)
 		throws IOException {
 
-		if(name == null) {
-			this.name = "anonymous";
-		} else {
-			this.name = name;
-		}
+		this.name = name;
 		this.type = type;
 		this.replacer = r;
 		this.ibis = ibis;

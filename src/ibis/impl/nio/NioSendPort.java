@@ -59,11 +59,6 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
     NioSendPort(NioIbis ibis, NioPortType type, String name, Replacer r, 
 	    boolean connectionAdministration, SendPortConnectUpcall cU)
 							throws IOException {
-
-	// FIXME : this is not unique if we have more than one anonymous port
-	if(name == null) {
-	    name = "anonymous";
-	}
 	this.type = type;
 	this.replacer = r;
 	this.ibis = ibis;

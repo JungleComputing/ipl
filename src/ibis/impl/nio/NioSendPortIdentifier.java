@@ -41,11 +41,7 @@ public final class NioSendPortIdentifier implements SendPortIdentifier, java.io.
     } 
 
     public final String name() {
-	if (name != null) {
-	    return name;
-	}
-
-	return "__anonymous__";
+	return name;
     }
 
     public final String type() {

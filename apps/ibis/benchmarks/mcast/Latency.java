@@ -48,8 +48,7 @@ class Latency {
 			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.impl.tcp.TcpIbis", null);
 			registry = ibis.registry();
 
-			StaticProperties s = new StaticProperties();
-			PortType t = ibis.createPortType("test type", s);
+			PortType t = ibis.createPortType("test type", null);
 
 			ReceivePort rport = t.createReceivePort("receive port " + rank);
 			SendPort sport = t.createSendPort("send port " + rank);

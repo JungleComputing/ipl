@@ -63,11 +63,7 @@ final class SendPortIdentifier
     }
 
     public String name() {
-	if (name != null) {
-	    return name;
-	}
-
-	return "__anonymous__";
+	return name;
     }
 
     public String type() {

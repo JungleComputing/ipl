@@ -147,8 +147,7 @@ public final class RTS {
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 
-	    portType = ibis.createPortType("RMI",
-					   reqprops.combineWithUserProps());
+	    portType = ibis.createPortType("RMI", null);
 
 	    skeletonReceivePort = portType.createReceivePort("//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString(), upcallHandler);
 	    skeletonReceivePort.enableConnections();

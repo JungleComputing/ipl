@@ -97,11 +97,7 @@ public final class NetSendPortIdentifier
 	 * @return The name.
 	 */
 	public String name() {
-		if (name != null) {
-			return name;
-		}
-
-		return "__anonymous__";
+		return name;
 	}
 	
 	/**

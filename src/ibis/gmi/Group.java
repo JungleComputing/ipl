@@ -360,9 +360,8 @@ public final class Group implements GroupProtocol {
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 	    
-	    portType = ibis.createPortType("GMI",
-					   reqprops.combineWithUserProps());
-	               
+	    portType = ibis.createPortType("GMI", null);
+
 	    groupCallHandler = new GroupCallHandler();
 
 	    receivePort = portType.createReceivePort("GMI port on " + name, groupCallHandler);

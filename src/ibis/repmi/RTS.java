@@ -65,9 +65,8 @@ public final class RTS {
                         ibisRegistry = ibis.registry();
 //                      ibis.start);
 
-                        portType = ibis.createPortType("RepMI",
-						       StaticProperties.userProperties());
-                       
+                        portType = ibis.createPortType("RepMI", null);
+
                         ch = new CallHandler();
 
                         receivePort = portType.createReceivePort("RepMI port on " + name, ch);                     
