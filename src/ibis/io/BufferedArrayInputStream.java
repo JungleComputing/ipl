@@ -67,6 +67,8 @@ public class BufferedArrayInputStream
 		int useable, converted;
 		int to_convert = len * SIZEOF_BOOLEAN;
 
+
+
 		while (buffered_bytes < to_convert) {
 			// not enough data in the buffer
 
