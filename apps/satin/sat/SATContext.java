@@ -539,15 +539,17 @@ public final class SATContext implements java.io.Serializable {
      * @param mylevel The current level of recursion.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictingLevel( int arr[], int mylevel )
+    private int calculateConflictLevel( int arr[], int mylevel )
     {
         int level = -1;
 
         for( int i=0; i<arr.length; i++ ){
             int v = arr[i];
             int l = dl[v];
+            int a = antecedent[v];
 
-	    if( l != mylevel && l>level  ){
+	    //if( l != mylevel && l>level  ){
+	    if( a>=0 && l>level  ){
 		level = l;
 	    }
         }
@@ -561,10 +563,10 @@ public final class SATContext implements java.io.Serializable {
      * @param mylevel The current level of recursion.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictingLevel( Clause c, int mylevel )
+    private int calculateConflictLevel( Clause c, int mylevel )
     {
-        int level = calculateConflictingLevel( c.pos, mylevel );
-        int neglevel = calculateConflictingLevel( c.neg, mylevel );
+        int level = calculateConflictLevel( c.pos, mylevel );
+        int neglevel = calculateConflictLevel( c.neg, mylevel );
         if( neglevel>level ){
             level = neglevel;
         }
@@ -602,8 +604,8 @@ public final class SATContext implements java.io.Serializable {
                 else {
                     p.addConflictClause( cc );
                 }
-		int cl = calculateConflictingLevel( cc, level );
-                if( cl>=0 ){
+		int cl = calculateConflictLevel( cc, level );
+                if( cl>=0 && cl<level ){
                     if( traceLearning | traceRestarts ){
                         System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
                     }
