@@ -22,3 +22,4 @@ clean:
 	cd radix && $(MAKE) $(MFLAGS) clean
 	cd leq && $(MAKE) $(MFLAGS) clean
 	cd acp && $(MAKE) $(MFLAGS) clean
+	cd qr && $(MAKE) $(MFLAGS) clean
