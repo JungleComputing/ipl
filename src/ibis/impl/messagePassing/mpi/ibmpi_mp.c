@@ -236,7 +236,7 @@ ibmpi_finished_get(void)
 
     if (i > finished_max) {
 	finished_max = i;
-fprintf(stderr, "%d: finished_max := %d\n", ibmp_me, i);
+	// fprintf(stderr, "%d: finished_max := %d\n", ibmp_me, i);
     }
 
     f->status = IBMPI_allocated;
@@ -263,7 +263,7 @@ ibmpi_finished_put(ibmpi_finished_p f)
 		break;
 	    }
 	}
-fprintf(stderr, "%d: finished_max := %d\n", ibmp_me, i);
+	// fprintf(stderr, "%d: finished_max := %d\n", ibmp_me, i);
 	finished_max = i;
     }
 }
@@ -296,7 +296,7 @@ ibmpi_finished_poll(JNIEnv *env)
     for (i = 0; i < hits; i++) {
 	x = finished_index[i];
 	f = &finished[x];
-fprintf(stderr, "Testsome says [%d] = [[%d]] completed, finished= %p\n", x, i, f);
+	// fprintf(stderr, "Testsome says [%d] = [[%d]] completed, finished= %p\n", x, i, f);
 	f->callback(f->arg);
 	if (f->to_free != NULL) {
 	    free(f->to_free);
@@ -461,6 +461,8 @@ no_such_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
     fprintf(stderr, "%2d: receive a Ibis/MPI MP message for a port already cleared\n", ibmp_me);
 
     abort();
+
+    return 0;
 }
 
 
