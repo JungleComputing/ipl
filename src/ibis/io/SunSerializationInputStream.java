@@ -26,7 +26,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
      * Constructor. Calls constructor of superclass with a newly created
      * <code>InputStream</code> from the <code>IbisDissipator</code> parameter.
      *
-     * @param s the <code>IbisDissipator</code>
+     * @param in the <code>IbisDissipator</code>
      * @exception IOException when an IO error occurs.
      */
 

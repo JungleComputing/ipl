@@ -41,14 +41,14 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     private long bytes = 0;
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public long bytesWritten() { 
 	return bytes;
     } 
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void resetBytesWritten() {
 	bytes = 0;
@@ -88,7 +88,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final void writeArray(boolean[] ref, int off, int len)
 	    throws IOException {
@@ -111,7 +111,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final void writeArray(byte[] ref, int off, int len)
 	    throws IOException {
@@ -267,7 +267,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final void flush() throws IOException {
 	flush(BUF_SIZE+1);	/* Forces flush */
@@ -275,20 +275,20 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final void finish() throws IOException {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final boolean finished() {
 	return true;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final void close() throws IOException {
 	flush();

@@ -22,7 +22,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 
     /**
      * Reads (a slice of) an array of bytes in place.
-     * See {@link #readArray(boolean[], int, int) for a description of
+     * See {@link #readArray(boolean[], int, int)} for a description of
      * the parameters and exceptions.
      */
     public abstract void readArray(byte[] a, int off, int len)
@@ -30,7 +30,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 
     /**
      * Reads (a slice of) an array of shorts in place.
-     * See {@link #readArray(boolean[], int, int) for a description of
+     * See {@link #readArray(boolean[], int, int)} for a description of
      * the parameters and exceptions.
      */
     public abstract void readArray(short[] a, int off, int len)
@@ -38,7 +38,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 
     /**
      * Reads (a slice of) an array of chars in place.
-     * See {@link #readArray(boolean[], int, int) for a description of
+     * See {@link #readArray(boolean[], int, int)} for a description of
      * the parameters and exceptions.
      */
     public abstract void readArray(char[] a, int off, int len)
@@ -46,7 +46,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 
     /**
      * Reads (a slice of) an array of ints in place.
-     * See {@link #readArray(boolean[], int, int) for a description of
+     * See {@link #readArray(boolean[], int, int)} for a description of
      * the parameters and exceptions.
      */
     public abstract void readArray(int[] a, int off, int len)
@@ -54,7 +54,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 
     /**
      * Reads (a slice of) an array of longs in place.
-     * See {@link #readArray(boolean[], int, int) for a description of
+     * See {@link #readArray(boolean[], int, int)} for a description of
      * the parameters and exceptions.
      */
     public abstract void readArray(long[] a, int off, int len)
@@ -62,7 +62,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 
     /**
      * Reads (a slice of) an array of floats in place.
-     * See {@link #readArray(boolean[], int, int) for a description of
+     * See {@link #readArray(boolean[], int, int)} for a description of
      * the parameters and exceptions.
      */
     public abstract void readArray(float[] a, int off, int len)
@@ -70,7 +70,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
 
     /**
      * Reads (a slice of) an array of doubles in place.
-     * See {@link #readArray(boolean[], int, int) for a description of
+     * See {@link #readArray(boolean[], int, int)} for a description of
      * the parameters and exceptions.
      */
     public abstract void readArray(double[] a, int off, int len)

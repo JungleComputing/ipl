@@ -189,7 +189,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     private int			array_index;
 
     /**
-     * Collects all indices of the <code>..._buffer</code> arrays.
+     * Collects all indices of the <code>_buffer</code> arrays.
      */
     protected short[]	indices_short  = new short[PRIMITIVE_TYPES];
 
@@ -244,14 +244,14 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inhetitDoc
+     * {@inheritDoc}
      */
     public String serializationImplName() {
 	return "ibis";
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void reset() throws IOException {
 	if (next_handle > CONTROL_HANDLES) {
@@ -273,7 +273,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void statistics() {
 	if (false) {
@@ -287,28 +287,28 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     /* This is the data output / object output part */
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void write(int v) throws IOException {
 	writeByte((byte)(0xff & v));
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void write(byte[] b) throws IOException {
 	write(b, 0, b.length);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void write(byte[] b, int off, int len) throws IOException {
 	writeArray(b, off, len);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeUTF(String str) throws IOException {
 	// dbPrint("writeUTF: " + str);
@@ -696,7 +696,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeBytes(String s) throws IOException {
 
@@ -711,7 +711,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeChars(String s) throws IOException {
 
@@ -725,7 +725,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classBooleanArray, len, false)) {
@@ -734,7 +734,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classByteArray, len, false)) {
@@ -743,7 +743,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classShortArray, len, false)) {
@@ -752,7 +752,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classCharArray, len, false)) {
@@ -761,7 +761,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classIntArray, len, false)) {
@@ -770,7 +770,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classLongArray, len, false)) {
@@ -779,7 +779,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classFloatArray, len, false)) {
@@ -788,7 +788,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classDoubleArray, len, false)) {
@@ -797,7 +797,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeArray(Object[] ref, int off, int len) throws IOException {
 	Class clazz = ref.getClass();
@@ -1292,7 +1292,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeUnshared(Object ref) throws IOException {
 	if (ref == null) {
@@ -1339,7 +1339,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void close() throws IOException {
 	flush();
@@ -1347,21 +1347,21 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void useProtocolVersion(int version) {
 	/* ignored. */
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     protected void writeStreamHeader() {
 	/* ignored. */
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     protected void writeClassDescriptor(ObjectStreamClass desc) {
 	/* ignored */
@@ -1372,7 +1372,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     */
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void writeFields() throws IOException {
 	if (current_putfield == null) {
@@ -1382,7 +1382,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public PutField putFields() throws IOException {
 	if (current_putfield == null) {
@@ -1528,7 +1528,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void defaultWriteObject() throws IOException, NotActiveException {
 	if (current_object == null) {

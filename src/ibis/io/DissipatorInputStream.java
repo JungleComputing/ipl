@@ -23,21 +23,21 @@ public final class DissipatorInputStream extends InputStream {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int available() throws IOException {
 	return in.available();
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int read() throws IOException {
 	return (int)in.readByte();
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int read(byte[] b) throws IOException {
 	in.readArray(b, 0, b.length);
@@ -45,7 +45,7 @@ public final class DissipatorInputStream extends InputStream {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int read(byte[] b, int off, int len) throws IOException {
 	in.readArray(b, off, len);
@@ -53,7 +53,7 @@ public final class DissipatorInputStream extends InputStream {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void close() throws IOException {
 	in.close();

@@ -32,8 +32,8 @@ public class ConnectionTimedOutException extends IbisIOException {
      * @param s		the detail message
      * @param cause	the cause
      */
-    public ConnectionTimedOutException(String name, Throwable cause) {
-	super(name, cause);
+    public ConnectionTimedOutException(String s, Throwable cause) {
+	super(s, cause);
     }
 
     /**

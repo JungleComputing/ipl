@@ -21,8 +21,8 @@ public class ConnectionRefusedException extends IbisIOException {
      *
      * @param s		the detail message
      */
-    public ConnectionRefusedException(String name) {
-	super(name);
+    public ConnectionRefusedException(String s) {
+	super(s);
     }
 
     /**
@@ -32,8 +32,8 @@ public class ConnectionRefusedException extends IbisIOException {
      * @param s		the detail message
      * @param cause	the cause
      */
-    public ConnectionRefusedException(String name, Throwable cause) {
-	super(name, cause);
+    public ConnectionRefusedException(String s, Throwable cause) {
+	super(s, cause);
 	initCause(cause);
     }
 

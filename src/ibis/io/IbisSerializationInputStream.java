@@ -287,7 +287,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public String serializationImplName() {
 	return "ibis";
@@ -304,7 +304,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void clear() {
 	if (DEBUG) {
@@ -314,21 +314,23 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void statistics() {
 	System.err.println("IbisSerializationInputStream: statistics() not yet implemented");
     }
 
     /**
-     * @inheritDoc
+     * The number of bytes read from the network 
+     * since the last reset of this counter
+     * @return The number of bytes read.
      */
     public long bytesRead() {
 	return in.bytesRead();
     }
 
     /**
-     * @inheritDoc
+     * Resets the "number of bytes read" counter.
      */
     public void resetBytesRead() {
 	in.resetBytesRead();
@@ -337,21 +339,21 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /* This is the data output / object output part */
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int read() throws IOException {
 	return readByte();
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int read(byte[] b) throws IOException {
 	return read(b, 0, b.length);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int read(byte[] b, int off, int len) throws IOException {
 	readArray(b, off, len);
@@ -359,21 +361,21 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public long skip(long n) throws IOException {
 	throw new IOException("skip not meaningful in a typed input stream");
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int skipBytes(int n) throws IOException {
 	throw new IOException("skipBytes not meaningful in a typed input stream");
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public int available() throws IOException {
 	/* @@@ NOTE: this is not right. There are also some buffered arrays..*/
@@ -382,14 +384,14 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readFully(byte[] b) throws IOException {
 	readFully(b, 0, b.length);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readFully(byte[] b, int off, int len) throws IOException {
 	read(b, off, len);
@@ -478,7 +480,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final boolean readBoolean() throws IOException {
 	while(byte_index == max_byte_index) {
@@ -491,7 +493,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final byte readByte() throws IOException {
 	while (byte_index == max_byte_index) {
@@ -504,7 +506,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final char readChar() throws IOException {
 	while (char_index == max_char_index) {
@@ -517,7 +519,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final short readShort() throws IOException {
 	while (short_index == max_short_index) {
@@ -530,7 +532,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final int readInt() throws IOException {
 	while (int_index == max_int_index) {
@@ -543,7 +545,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final long readLong() throws IOException {
 	while (long_index == max_long_index) {
@@ -556,7 +558,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final float readFloat() throws IOException {
 	while (float_index == max_float_index) {
@@ -569,7 +571,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final double readDouble() throws IOException {
 	while (double_index == max_double_index) {
@@ -582,7 +584,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final int readUnsignedByte() throws IOException {
 	int i = readByte();
@@ -593,7 +595,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public final int readUnsignedShort() throws IOException {
 	int i = readShort();
@@ -630,7 +632,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public String readUTF() throws IOException {
 	int bn = readInt();
@@ -745,33 +747,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
     }
 
-
     /**
-     * @inheritDoc
-     */
-    public String readBytes() throws IOException {
-	int len = readInt();
-	byte[] bytes = new byte[len];
-	for (int i = 0; i < len; i++) {
-	    bytes[i] = readByte();
-	}
-	return new String(bytes);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public String readChars() throws IOException {
-	int len = readInt();
-	char[] chars = new char[len];
-	for (int i = 0; i < len; i++) {
-	    chars[i] = readChar();
-	}
-	return new String(chars);
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(boolean[] ref, int off, int len) throws IOException {
 	try {
@@ -788,7 +765,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(byte[] ref, int off, int len) throws IOException {
 	try {
@@ -805,7 +782,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(char[] ref, int off, int len) throws IOException {
 	try {
@@ -822,7 +799,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(short[] ref, int off, int len) throws IOException {
 	try {
@@ -839,7 +816,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(int[] ref, int off, int len) throws IOException {
 	try {
@@ -856,7 +833,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(long[] ref, int off, int len) throws IOException {
 	try {
@@ -873,7 +850,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(float[] ref, int off, int len) throws IOException {
 	try {
@@ -890,7 +867,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(double[] ref, int off, int len) throws IOException {
 	try {
@@ -907,7 +884,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void readArray(Object[] ref, int off, int len)
 	throws IOException, ClassNotFoundException {
@@ -1187,7 +1164,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * to native fields without falling back to native code.
      *
      * @param ref		object with a final field
-     * @param fieldName		name of the field
+     * @param fieldname		name of the field
      * @exception IOException	is thrown when an IO error occurs.
      */
     public void readFieldDouble(Object ref, String fieldname) throws IOException {
@@ -1718,7 +1695,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void close() throws IOException {
 	types = null;
@@ -1733,7 +1710,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public GetField readFields() throws IOException, ClassNotFoundException {
 	if (current_object == null) {
@@ -1851,7 +1828,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void defaultReadObject()
 	throws ClassNotFoundException, IOException, NotActiveException {

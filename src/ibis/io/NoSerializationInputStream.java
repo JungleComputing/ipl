@@ -26,7 +26,7 @@ public final class NoSerializationInputStream extends SerializationInputStream {
 	 * Constructor. Calls constructor of superclass with a newly created
 	 * <code>InputStream</code> from the <code>IbisDissipator</code> parameter.
 	 *
-	 * @param s the <code>IbisDissipator</code>
+	 * @param in the <code>IbisDissipator</code>
 	 * @exception IOException when an IO error occurs.
 	 */
 
@@ -100,14 +100,6 @@ public final class NoSerializationInputStream extends SerializationInputStream {
 	}
 
 	public Class readClass() throws IOException, ClassNotFoundException {
-		throw new IOException("Illegal data type read");
-	}
-
-	public String readBytes() throws IOException {
-		throw new IOException("Illegal data type read");
-	}
-
-	public String readChars() throws IOException {
 		throw new IOException("Illegal data type read");
 	}
 
