@@ -94,7 +94,9 @@ public final class TcpIbisIdentifier extends IbisIdentifier
 	}
 
 	public String toString() {
-		return ("(TcpId: " + name + " on [" + address.getHostName() + ", " + address.getHostAddress() + "])");
+		String a = (address == null ? "<null>" : address.getHostName() + ", " + address.getHostAddress());
+		String n = (name == null ? "<null>" : name);
+		return ("(TcpId: " + n + " on [" + a + "])");
 	}
 
 	public int hashCode() {
