@@ -13,14 +13,10 @@ import ibis.io.SimpleLittleConversion;
 
 public final class HybridWrapLittleConversion extends SimpleLittleConversion { 
 
-    public static final int BUFFER_SIZE = 10 * 1024;
+    public static final int BUFFER_SIZE = 8 * 1024;
 
-    public static final int CHAR_THRESHOLD = 600 / CHAR_SIZE;
-    public static final int SHORT_THRESHOLD = 600 / SHORT_SIZE;
-    public static final int INT_THRESHOLD = 600 / INT_SIZE;
-    public static final int LONG_THRESHOLD = 600 / LONG_SIZE;
-    public static final int FLOAT_THRESHOLD = 60 / FLOAT_SIZE;
-    public static final int DOUBLE_THRESHOLD = 96 / DOUBLE_SIZE;
+    public static final int THRESHOLD = 512; //bytes
+    public static final int FP_THRESHOLD = 64; //bytes
 
     private final ByteOrder order;
 
@@ -50,7 +46,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void char2byte(char[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if (len < CHAR_THRESHOLD) {
+	if (len < THRESHOLD / CHAR_SIZE) {
 	    super.char2byte(src, off, len, dst, off2);
 	} else if(len > (BUFFER_SIZE / 2)) {
 	    CharBuffer buffer = ByteBuffer.wrap(dst,off2,len * 2).
@@ -68,7 +64,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void byte2char(byte[] src, int index_src, 
 	    char[] dst, int index_dst, int len) {
 
-	if (len < CHAR_THRESHOLD) {
+	if (len < THRESHOLD / CHAR_SIZE) {
 	    super.byte2char(src, index_src, dst, index_dst, len);
 	} else if(len > (BUFFER_SIZE / 2)) {
 	    CharBuffer buffer = ByteBuffer.wrap(src,index_src,len * 2).
@@ -86,7 +82,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void short2byte(short[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if (len < SHORT_THRESHOLD) {
+	if (len < THRESHOLD / SHORT_SIZE) {
 	    super.short2byte(src, off, len, dst, off2);
 	} else if(len > (BUFFER_SIZE / 2)) {
 	    ShortBuffer buffer = ByteBuffer.wrap(dst,off2,len * 2).
@@ -104,7 +100,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void byte2short(byte[] src, int index_src, 
 	    short[] dst, int index_dst, int len) {
 
-	if (len < SHORT_THRESHOLD) {
+	if (len < THRESHOLD / SHORT_SIZE) {
 	    super.byte2short(src, index_src, dst, index_dst, len);
 	} else if(len > (BUFFER_SIZE / 2)) {
 	    ShortBuffer buffer = ByteBuffer.wrap(src,index_src,len * 2).
@@ -122,7 +118,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
 
     public void int2byte(int[] src, int off, int len, byte [] dst, int off2) {
 
-	if (len < INT_THRESHOLD) {
+	if (len < THRESHOLD / INT_SIZE) {
 	    super.int2byte(src, off, len, dst, off2);
 	} else if(len > (BUFFER_SIZE / 4)) {
 	    IntBuffer buffer = ByteBuffer.wrap(dst,off2,len * 4).
@@ -140,7 +136,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void byte2int(byte[] src, int index_src, int[] dst, 
 	    int index_dst, int len) {
 
-	if (len < INT_THRESHOLD) {
+	if (len < THRESHOLD / INT_SIZE) {
 	    super.byte2int(src, index_src, dst, index_dst, len);
 	} else if(len > (BUFFER_SIZE / 4)) {
 	    IntBuffer buffer = ByteBuffer.wrap(src,index_src,len * 4).
@@ -158,7 +154,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void long2byte(long[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if (len < LONG_THRESHOLD) {
+	if (len < THRESHOLD / LONG_SIZE) {
 	    super.long2byte(src, off, len, dst, off2);
 	} else if(len > (BUFFER_SIZE / 8)) {
 	    LongBuffer buffer = ByteBuffer.wrap(dst,off2,len * 8).
@@ -176,7 +172,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void byte2long(byte[] src, int index_src, 
 	    long[] dst, int index_dst, int len) { 		
 
-	if (len < LONG_THRESHOLD) {
+	if (len < THRESHOLD / LONG_SIZE) {
 	    super.byte2long(src, index_src, dst, index_dst, len);
 	} else if(len > (BUFFER_SIZE / 8)) {
 	    LongBuffer buffer = ByteBuffer.wrap(src,index_src,len * 8).
@@ -194,7 +190,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void float2byte(float[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if (len < FLOAT_THRESHOLD) {
+	if (len < FP_THRESHOLD / FLOAT_SIZE) {
 	    super.float2byte(src, off, len, dst, off2);
 	} else if(len > (BUFFER_SIZE / 4)) {
 	    FloatBuffer buffer = ByteBuffer.wrap(dst,off2,len * 4).
@@ -212,7 +208,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void byte2float(byte[] src, int index_src, 
 	    float[] dst, int index_dst, int len) { 
 
-	if (len < FLOAT_THRESHOLD) {
+	if (len < FP_THRESHOLD / FLOAT_SIZE) {
 	    super.byte2float(src, index_src, dst, index_dst, len);
 	} else if(len > (BUFFER_SIZE / 4)) {
 	    FloatBuffer buffer = ByteBuffer.wrap(src,index_src,len * 4).
@@ -231,7 +227,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void double2byte(double[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if (len < DOUBLE_THRESHOLD) {
+	if (len < FP_THRESHOLD / DOUBLE_SIZE) {
 	    super.double2byte(src, off, len, dst, off2);
 	} else if (len > (BUFFER_SIZE / 8)) {
 	    DoubleBuffer buffer = ByteBuffer.wrap(dst,off2,len * 8).
@@ -250,7 +246,7 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
     public void byte2double(byte[] src, int index_src, 
 	    double[] dst, int index_dst, int len) { 
 
-	if (len < DOUBLE_THRESHOLD) {
+	if (len < FP_THRESHOLD / DOUBLE_SIZE) {
 	    super.byte2double(src, index_src, dst, index_dst, len);
 	} else if (len > (BUFFER_SIZE / 8)) {
 	    DoubleBuffer buffer = ByteBuffer.wrap(src,index_src,len * 8).

@@ -14,7 +14,7 @@ import ibis.io.SimpleLittleConversion;
 
 public final class HybridChunkBigConversion extends SimpleBigConversion { 
 
-    public final int BUFFER_SIZE = 10 * 1024; //bytes
+    public final int BUFFER_SIZE = 8 * 1024; //bytes
 
     public final int THRESHOLD = 512; // bytes
     public final int FP_THRESHOLD = 64; // bytes
