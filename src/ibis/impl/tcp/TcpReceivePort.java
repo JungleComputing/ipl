@@ -84,6 +84,14 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 				}
 			}
 
+			while (! allowUpcalls) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					// Ignore.
+				}
+			}
+
 			this.m = m;
 		}
 
@@ -160,7 +168,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 
-	boolean setMessage(TcpReadMessage m) throws IOException {
+	synchronized boolean setMessage(TcpReadMessage m) throws IOException {
 		
 		// We're not allowed to read from the message until 
 		// the isFinished flag is set to true, so start by 
