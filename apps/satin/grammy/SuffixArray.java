@@ -103,7 +103,12 @@ public class SuffixArray {
 		int i1 = indices[i];
 		int l = commonLength( text, i0, i1 );
 		
-		commonality[i] = l;
+		if( i0<i1 ){
+		    commonality[i] = Math.min( l, i1-i0 );
+		}
+		else {
+		    commonality[i] = Math.min( l, i0-i1 );
+		}
 		if( text[i0+l]<text[i1+l] ){
 		    // Things are sorted, or we're at the start of the array,
 		    // take a step forward.
@@ -145,7 +150,7 @@ public class SuffixArray {
 	}
     }
 
-    private void printMaximum( PrintStream s )
+    private void printMaxima( PrintStream s )
     {
 	int max = 0;
 
@@ -154,7 +159,11 @@ public class SuffixArray {
 		max = i;
 	    }
 	}
-	s.println( "maximum: " + indices[max] + " " + commonality[max] + " " + buildString( text, indices[max], commonality[max] ) );
+	for( int i=1; i<indices.length; i++ ){
+	    if( commonality[i] >= commonality[max] ){
+		s.println( "maximum: " + indices[i] + " " + commonality[i] + " " + buildString( text, indices[i], commonality[i] ) );
+	    }
+	}
 
     }
 
@@ -168,8 +177,7 @@ public class SuffixArray {
             SuffixArray t = new SuffixArray( args[0] );
 
             t.test();
-            t.print( System.out );
-            t.printMaximum( System.out );
+            t.printMaxima( System.out );
         }
         catch( Exception x )
         {
