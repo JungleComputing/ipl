@@ -60,7 +60,7 @@ final class IRStack implements Config {
 				s.abortedJobs++;
 
 				if(ABORT_DEBUG) {
-					System.out.println("found child on the stack: " + curr.stamp + 
+					System.err.println("found child on the stack: " + curr.stamp + 
 							   ", it depends on " + targetStamp);
 				}
 			}
@@ -82,7 +82,7 @@ final class IRStack implements Config {
 				s.abortedJobs++;
 
 				if(ABORT_DEBUG) {
-					System.out.println("found child on the stack: " + curr.stamp + 
+					System.err.println("found child on the stack: " + curr.stamp + 
 							   ", it depends on " + targetStamp);
 				}
 			}

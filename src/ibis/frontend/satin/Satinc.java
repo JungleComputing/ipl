@@ -246,14 +246,6 @@ public final class Satinc {
 	return (s instanceof ReferenceType);
     }
 
-    private static Type getReturnType(Method m) {
-	return Type.getReturnType(m.getSignature());
-    }
-
-    private static Type[] getArgumentTypes(Method m) {
-	return Type.getArgumentTypes(m.getSignature());
-    }
-
     CodeExceptionGen getExceptionHandler(MethodGen m, InstructionHandle self) {
 	CodeExceptionGen exc[] = m.getExceptionHandlers();
 
@@ -594,11 +586,11 @@ public final class Satinc {
 	il.insert(i, new ASTORE(maxLocals-3));				// write
     }
 
-    void rewriteSync(Method m, InstructionList il, InstructionHandle i, int maxLocals) {
+    void rewriteSync(MethodGen m, InstructionList il, InstructionHandle i, int maxLocals) {
 	int ifnullPos = -1;
 	BranchHandle firstJumpPos = null;
 	InstructionHandle pos = null;
-	Type returnType = getReturnType(m);
+	Type returnType = m.getReturnType();
 
 	if (verbose) {
 	    System.out.println("rewriting sync, class = " + c);
@@ -665,7 +657,7 @@ public final class Satinc {
 	// loop over all ids handed out in this method 
 	for (int k=0; k<idTable.size(); k++) {
 	    String invClass = invocationRecordName(getStoreTarget(k), getStoreClass(k));
-	    Type target_returntype = getReturnType(getStoreTarget(k));
+	    Type target_returntype = getStoreTarget(k).getReturnType();
 
 	    // Now generate code to test the id, and do the assignment to the result variable. 
 	    // The previous ifnull jumps here.
@@ -771,75 +763,75 @@ public final class Satinc {
 	    if (verbose) {
 		System.out.println("outputting post-sync aborted check for " + m);
 	    }
-
-	    InstructionHandle abo = insertNullReturn(m, il, pos);
-
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-						   satinFieldName,
-						   satinType,
-						   Constants.GETSTATIC));
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-						   "parent",
-						   irType,
-						   Constants.GETFIELD));
-
-// @@@ FIX: forget to delete spawn counter here! --Rob
-
-	    // test for null (root job)
-	    il.insert(abo, new IFNULL(pos));
-
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-						   satinFieldName,
-						   satinType,
-						   Constants.GETSTATIC));
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-						   "parent",
-						   irType,
-						   Constants.GETFIELD));
-
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
-						   "aborted",
-						   Type.BOOLEAN,
-						   Constants.GETFIELD));
-	    il.insert(abo, new IFEQ(pos));
-
-/*
-////@@@@@@@@@@2 this needs fixing :-(
-	    // Test for parent.eek, if non-null, throw it (exception in inlet).
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-						   satinFieldName,
-						   satinType,
-						   Constants.GETSTATIC));
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-						   "parent",
-						   irType,
-						   Constants.GETFIELD));
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
-						   "eek",
-						   new ObjectType("java.lang.Throwable"),
-						   Constants.GETFIELD));
-	    il.insert(abo, new IFNULL(abo));
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-						   satinFieldName,
-						   satinType,
-						   Constants.GETSTATIC));
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-						   "parent",
-						   irType,
-						   Constants.GETFIELD));
-	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
-						   "eek",
-						   new ObjectType("java.lang.Throwable"),
-						   Constants.GETFIELD));
-
-	    il.insert(abo, new ATHROW());
-*/
-
+	    insertAbortedCheck(m, il, pos);
 	}
     }
 
-    InstructionHandle insertNullReturn(Method m, InstructionList il, InstructionHandle pos) {
-	Type returnType = getReturnType(m);
+    void insertAbortedCheck(MethodGen m, InstructionList il, InstructionHandle pos) {
+	InstructionHandle abo = insertNullReturn(m, il, pos);
+
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
+					       satinFieldName,
+					       satinType,
+					       Constants.GETSTATIC));
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
+					       "parent",
+					       irType,
+					       Constants.GETFIELD));
+
+	// test for null (root job)
+	il.insert(abo, new IFNULL(pos));
+
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
+					       satinFieldName,
+					       satinType,
+					       Constants.GETSTATIC));
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
+					       "parent",
+					       irType,
+					       Constants.GETFIELD));
+
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
+					       "aborted",
+					       Type.BOOLEAN,
+					       Constants.GETFIELD));
+	il.insert(abo, new IFEQ(pos));
+
+/*
+////@@@@@@@@@@2 this needs fixing :-(
+	// Test for parent.eek, if non-null, throw it (exception in inlet).
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
+					       satinFieldName,
+					       satinType,
+					       Constants.GETSTATIC));
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
+					       "parent",
+					       irType,
+					       Constants.GETFIELD));
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
+					       "eek",
+					       new ObjectType("java.lang.Throwable"),
+					       Constants.GETFIELD));
+	il.insert(abo, new IFNULL(abo));
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
+					       satinFieldName,
+					       satinType,
+					       Constants.GETSTATIC));
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
+					       "parent",
+					       irType,
+					       Constants.GETFIELD));
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
+					       "eek",
+					       new ObjectType("java.lang.Throwable"),
+					       Constants.GETFIELD));
+
+	il.insert(abo, new ATHROW());
+*/
+    }
+
+    InstructionHandle insertNullReturn(MethodGen m, InstructionList il, InstructionHandle pos) {
+	Type returnType = m.getReturnType();
 	InstructionHandle retval;
 
 	if (returnType instanceof ReferenceType) {
@@ -973,8 +965,8 @@ public final class Satinc {
 	// Keep the store instruction, and remove it from the instruction vector. 
 	// We must give this store instruction an method-unique id. 
 	
-	Type[] params = getArgumentTypes(target);
-	Type returnType = getReturnType(target);
+	Type[] params = target.getArgumentTypes();
+	Type returnType = target.getReturnType();
 	
 	if (! returnType.equals(Type.VOID)) {
 	    storeIns = i.getNext().getInstruction();
@@ -990,19 +982,19 @@ public final class Satinc {
 	i.setInstruction(new ALOAD(maxLocals));
 
 	// push outstandingSpawns 
-	i = il.append(i, new ALOAD(maxLocals+1));
+	InstructionHandle ih = il.append(i, new ALOAD(maxLocals+1));
 
 	// push storeId 
-	i = il.append(i, new BIPUSH((byte)storeId));
+	ih = il.append(ih, new BIPUSH((byte)storeId));
 
 	// push spawnId 
-	i = il.append(i, new BIPUSH((byte)spawnId));
+	ih = il.append(ih, new BIPUSH((byte)spawnId));
 
 	// push parentLocals 
 	if (getExceptionHandler(m, i) != null) {
-	    i = il.append(i, new ALOAD(maxLocals-1));
+	    ih = il.append(ih, new ALOAD(maxLocals-1));
 	} else {
-	    i = il.append(i, new ACONST_NULL());
+	    ih = il.append(ih, new ACONST_NULL());
 	}
 
 	// Call getNewInvocationRecord 
@@ -1031,32 +1023,38 @@ public final class Satinc {
 	parameters[ix++] = Type.INT;
 	parameters[ix++] = new ObjectType("ibis.satin.LocalRecord");
 	
-	i = il.append(i, ins_f.createInvoke(invocationRecordName(target, classname),
+	ih = il.append(ih, ins_f.createInvoke(invocationRecordName(target, classname),
 					     methodName,
 					     new ObjectType(invocationRecordName(target, classname)),
 					     parameters,
 					     Constants.INVOKESTATIC));
 
 	// Store result in outstandingSpawns 
-	i = il.append(i, new ASTORE(maxLocals+1));
+	ih = il.append(ih, new ASTORE(maxLocals+1));
 
 	// Now, we call Satin.spawn(outstandingSpawns) 
 	
 	// push s 
-	i = il.append(i, ins_f.createFieldAccess("ibis.satin.Satin",
+	ih = il.append(ih, ins_f.createFieldAccess("ibis.satin.Satin",
 					  satinFieldName,
 					  satinType,
 					  Constants.GETSTATIC));
 	
 	// push outstandingSpawns 
-	i = il.append(i, new ALOAD(maxLocals+1));
+	ih = il.append(ih, new ALOAD(maxLocals+1));
 	
 	// and call Satin.spawn 
-	i = il.append(i, ins_f.createInvoke("ibis.satin.Satin",
+	ih = il.append(ih, ins_f.createInvoke("ibis.satin.Satin",
 				     "spawn",
 				     Type.VOID,
 				     new Type[] { irType },
 				     Constants.INVOKEVIRTUAL));
+	if (supportAborts) {
+	    if (verbose) {
+		System.out.println("outputting post-spawn aborted check for " + m);
+	    }
+	    // insertAbortedCheck(m, il, ih.getNext());
+	}
     }
 
     /* replace store by pop, load by const push */
@@ -1310,7 +1308,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		if (target.getName().equals("sync") &&
 		    target.getSignature().equals("()V")) {
 		    if (cl != null && cl.equals(satinObjectClass)) {
-		        rewriteSync(mOrig, il, i, maxLocals);
+		        rewriteSync(m, il, i, maxLocals);
 			rewritten = true;
 		    }
 		} 
@@ -1859,7 +1857,7 @@ System.out.println("findMethod: could not find method " + name + sig);
     }
 
     void insertReturnPop(Method m, InstructionList il) {
-	Type returnType = getReturnType(m);
+	Type returnType = m.getReturnType();
 
 	if (returnType.equals(Type.DOUBLE) || returnType.equals(Type.LONG)) {
 	    il.append(new POP2());
@@ -1917,8 +1915,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 		il.append(ins_f.createInvoke(classname,
 					  clone.getName(),
-					  getReturnType(clone),
-					  getArgumentTypes(clone),
+					  clone.getReturnType(),
+					  clone.getArgumentTypes(),
 					  clone.isStatic() ? Constants.INVOKESTATIC : Constants.INVOKEVIRTUAL));
 		insertReturnPop(m, il);
 		il.append(new RETURN());
@@ -2063,7 +2061,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	// generate a method that runs the clone in case of exceptions 
 	out.println("    public void handleException(int spawnId, Throwable t, ibis.satin.InvocationRecord parent) {");
-	out.println("        if (ibis.satin.Config.INLET_DEBUG) System.out.println(\"handleE: spawnId = \" + spawnId + \", t = \" + t + \", parent = \" + parent + \", this = \" + this);");
+	out.println("        if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"handleE: spawnId = \" + spawnId + \", t = \" + t + \", parent = \" + parent + \", this = \" + this);");
 	// This will later be replaced with call to exception handler
 	out.println("    }");
 
@@ -2089,7 +2087,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    params_types_as_names[i] = params[i].toString();
 	}
 
-	Type returnType = getReturnType(m);
+	Type returnType = m.getReturnType();
 
 	out.println("import ibis.satin.*;\n");
 	out.println("final class " + name + " extends InvocationRecord {");
@@ -2250,15 +2248,15 @@ System.out.println("findMethod: could not find method " + name + sig);
 	out.println(");");
 	if (supportAborts) {
 	    out.println("        } catch (Throwable e) {");
-	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.out.println(\"caught exception in runlocal: \" + e);");
+	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"caught exception in runlocal: \" + e);");
 	    out.println("                eek = e;");
 	    out.println("        }");
 
 	    out.println("        if (eek != null && !inletExecuted) {");
-	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.out.println(\"runlocal: calling inlet for: \" + this);");
+	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this);");
 	    out.println("            if(parentLocals != null)");
 	    out.println("                parentLocals.handleException(spawnId, eek, this);");
-	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.out.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
+	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
 	    out.println("        }");
 	}
 	out.println("    }\n");
@@ -2326,7 +2324,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	DollarFilter b2 = new DollarFilter(b);
 	PrintStream out = new PrintStream(b2);
 
-	Type returnType = getReturnType(m);
+	Type returnType = m.getReturnType();
 
 	out.println("import ibis.satin.*;\n");
 	out.println("final class " + name + " extends ReturnRecord {");

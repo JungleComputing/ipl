@@ -22,7 +22,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 
 	void addToHead(InvocationRecord r) {
 		if(head == size) {
-			System.out.println("doubling DEq, new size = " + (size*2));
+//			System.err.println("doubling DEq, new size = " + (size*2));
 			
 			synchronized(satin) {
 				size *= 2;
@@ -99,7 +99,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 			InvocationRecord curr = l[i];
 			if(Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
 				if(ABORT_DEBUG) {
-					System.out.println("found local child: " + curr.stamp + ", it depends on " + targetStamp);
+					System.err.println("found local child: " + curr.stamp + ", it depends on " + targetStamp);
 				}
 
 				curr.aborted = true;
@@ -108,7 +108,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 				}
 				curr.spawnCounter.value--;
 				if(ASSERTS && curr.spawnCounter.value < 0) {
-					System.out.println("Just made spawncounter < 0");
+					System.err.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
 					System.exit(1);
 				}

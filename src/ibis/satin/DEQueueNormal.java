@@ -121,7 +121,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 		out.println("work queue: " + length + " elements");
 		InvocationRecord curr = head;
 		while(curr != null) {
-			System.out.println("    " + curr);
+			out.println("    " + curr);
 			curr = curr.qnext;
 		}
 	}
@@ -143,12 +143,12 @@ final class DEQueueNormal extends DEQueue implements Config {
 			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
 
 				if(ABORT_DEBUG) {
-					System.out.println("found local child: " + curr.stamp + ", it depends on " + targetStamp);
+					System.err.println("found local child: " + curr.stamp + ", it depends on " + targetStamp);
 				}
 				
 				curr.spawnCounter.value--;
 				if(ASSERTS && curr.spawnCounter.value < 0) {
-					System.out.println("Just made spawncounter < 0");
+					System.err.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
