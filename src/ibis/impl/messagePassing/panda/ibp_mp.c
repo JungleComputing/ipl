@@ -122,6 +122,7 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
 	IBP_VPRINTF(50, ibp_JNIEnv, ("clear panda msg %p\n", msg));
 	assert(ibp_JNIEnv == NULL || (ibmp_lock_check_owned(ibp_JNIEnv), 1));
 	pan_msg_clear(msg);
+	IBP_VPRINTF(50, ibp_JNIEnv, ("cleared panda msg %p\n", msg));
     }
 }
 

@@ -85,6 +85,8 @@ public class IbisSocketFactory {
 			}
 
                         try {
+				s = null;
+
 				if(localIP == null) {
 					s = new Socket(dest, port);
 				} else {
@@ -103,6 +105,12 @@ public class IbisSocketFactory {
 					e1.printStackTrace();
 				}
 
+				if (s != null && ! s.isClosed()) {
+				    s.close();
+				}
+
+System.err.println("Socket connect hits " + e1);
+
 				if(timeoutMillis < 0) {
 					throw new ConnectionTimedOutException("" + e1);
 				} else if (timeoutMillis == 0) {
@@ -111,6 +119,7 @@ public class IbisSocketFactory {
 					} catch (InterruptedException e2) { 
 						// don't care
 					}
+
 				} else {
 					currentTime = System.currentTimeMillis();
 					if(currentTime - startTime < timeoutMillis) {

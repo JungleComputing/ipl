@@ -266,7 +266,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		}
 		send_one(false /* Not is_server */, i == count - 1);
 		rcve_one(false /* Not read_data */, partners);
-System.err.print(".");
+// System.err.print(".");
 	    }
 	}
     }
@@ -853,7 +853,14 @@ System.err.println("Poor-man's barrier send finished");
 // manta.runtime.RuntimeSystem.DebugMe(-1, 0);
 
 	java.util.Random random = new java.util.Random();
-	myIbis = Ibis.createIbis("RPC_" + Math.abs(random.nextInt()), ibis_path, rszHandler);
+	String hostName = "localhost";
+	try {
+	    java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
+	    hostName = addr.getHostName();
+	} catch (java.net.UnknownHostException e) {
+	    // let it be the default
+	}
+	myIbis = Ibis.createIbis("RPC_" + hostName + "_" + Math.abs(random.nextInt()), ibis_path, rszHandler);
 
 // manta.runtime.RuntimeSystem.DebugMe(0, 0);
 	// myIbis.init();

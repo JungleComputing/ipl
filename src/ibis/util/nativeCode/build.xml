@@ -21,11 +21,13 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
+    <!--
+    <property name="ibis" location="../../../.."/>
+    -->
+
+    <import file="${ibis}/build-properties.xml"/>
+
     <property name="local.lib" value="Rdtsc"/>
-
-    <property name="ibis" location="../.."/>
-
-    <property name="omni" location="${ibis}/3rdparty/omni"/>
 
     <path id="local.includes-ref">
 	<pathelement path="${omni}"/>
@@ -34,19 +36,17 @@
 
     <import file="${ibis}/build-native.xml"/>
 
+    <property name="omni" location="${ibis}/3rdparty/omni"/>
+    <libset id="local.libset-ref"
+	    dir="${omni}/OmniTimer/build/lib"
+	    libs="OTTimer"
+	    if="os-is-mac"/>
+
+    <!--
+    <target name="build" depends="native-compile"/>
+    -->
     <target name="build">
-	<if>
-	    <os family="mac"/>
-	    <then>
-		<path id="extra.libs-ref">
-		    <pathelement path="${omni}/OmniTimer/build/lib/libOTTimer.a"/>
-		</path>
-		<antcall inheritRefs="true" target="native-compile"/>
-	    </then>
-	    <else>
-		<antcall inheritRefs="true" target="native-compile"/>
-	    </else>
-	</if>
+	<antcall inheritRefs="true" target="native-compile"/>
     </target>
 
 </project>

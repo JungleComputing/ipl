@@ -49,22 +49,22 @@ public class PoolInfo {
 
 
 	private void propertiesPool() throws IbisException {
-		String temp;
+		String ibisHostNames;
 		
 		Properties p = System.getProperties();
 		
 		total_hosts = getIntProperty(p, "ibis.pool.total_hosts");
 		host_number = getIntProperty(p, "ibis.pool.host_number");
 		
-		temp = p.getProperty("ibis.pool.host_names");
-		if(temp == null) {
+		ibisHostNames = p.getProperty("ibis.pool.host_names");
+		if(ibisHostNames == null) {
 			throw new IbisException("Property ibis.pool.host_names not set!");
 		}
 		
-		if (temp == null) { 
-			temp = p.getProperty("hosts");
+		if (ibisHostNames == null) { 
+			ibisHostNames = p.getProperty("hosts");
 
-			if (temp == null) { 
+			if (ibisHostNames == null) { 
 				throw new IbisException("Host names not found!");
 			} 
 		} 
@@ -76,7 +76,7 @@ public class PoolInfo {
 		host_names = new String[total_hosts];
 		hosts      = new InetAddress[total_hosts];
 		
-		StringTokenizer tok = new StringTokenizer(temp, " ", false);
+		StringTokenizer tok = new StringTokenizer(ibisHostNames, " ", false);
 		
 		for (int i=0;i<total_hosts;i++) {
 			

@@ -23,13 +23,6 @@
     -->
     <import file="${ibis}/build-config.xml"/>
 
-    <import file="${ibis}/build-properties.xml"/>
-
-    <property name="src"         location="${ibis}/src"/>
-    <property name="build"       location="${ibis}/build"/>
-    <property name="docs"        location="${ibis}/docs"/>
-    <property name="devel-docs"  location="${ibis}/developer-docs"/>
-
     <target name="init" depends="config-init-initial,property-init">
 	<tstamp/>
 
@@ -47,6 +40,34 @@
 
 	<mkdir dir="${build}"/>
     </target>
+
+    <!--
+	Compile, run IOGenerator, compile native code for the whole of Ibis
+    -->
+    <target name="build"
+	    depends="init"
+	    description="Build Ibis">
+	<patternset id="build.sources.all">
+	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/net/nio/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
+	    <exclude name="ibis/repmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	    <reference refid="build.sources.all" torefid="build.sources"/>
+	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
+	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+	<antcall inheritAll="true" inheritRefs="true" target="natives"/>
+	<antcall inheritAll="true" inheritRefs="true" target="jars"/>
+    </target>
+
+    <import file="${ibis}/build-properties.xml"/>
+
+    <property name="src"         location="${ibis}/src"/>
+    <property name="build"       location="${ibis}/build"/>
+    <property name="docs"        location="${ibis}/docs"/>
+    <property name="devel-docs"  location="${ibis}/developer-docs"/>
 
 
     <!--
@@ -226,14 +247,12 @@
     <target name="-build-native">
 	<echo	level="debug"
 		message="Invoke ant in ${native.dir}"/>
-	<ant inheritAll="false" dir="${native.dir}">
+	<ant inheritRefs="false" inheritAll="false" dir="${native.dir}">
 	    <property name="native.dir" value="${native.dir}"/>
 	    <property name="build" value="${build}"/>
 	    <property name="ibis" value="${ibis}"/>
 	    <!--
 	    <property name="optimization" value="${optimization}"/>
-	    <property name="package.home.ant-cpptasks" value="${package.home.ant-cpptasks}"/>
-	    <property name="package.home.ant-contrib" value="${package.home.ant-contrib}"/>
 	    -->
 	    <property name="contrib.initialized" value="${contrib.initialized}"/>
 	</ant>
@@ -328,15 +347,10 @@
     </target>
 
     <target name="jars"
-	    depends="contrib-init"
 	    description="Generate jar files for ibis">
-	<!--
-	-->
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
 		includes="**/*.class"/>
-	<!--
-	-->
 	<foreach target="jar.package"
 		param="ibis.sub-package">
 	    <path>
@@ -357,27 +371,6 @@
 	<jar	destfile="${ibis}/build/bcel-extensions.jar"
 		basedir="${ibis}/build"
 		includes="org/**/*.class"/>
-    </target>
-
-    <!--
-	Compile, run IOGenerator, compile native code for the whole of Ibis
-    -->
-    <target name="build"
-	    depends="init"
-	    description="Build Ibis">
-	<patternset id="build.sources.all">
-	    <include name="**/*.java"/>
-	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
-	    <exclude name="ibis/repmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
-	    <reference refid="build.sources.all" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
-	<antcall inheritAll="true" inheritRefs="true" target="natives"/>
-	<antcall inheritAll="true" inheritRefs="true" target="jars"/>
     </target>
 
     <!--

@@ -222,19 +222,11 @@ ibmp_receive_port_ns_lookup_init(JNIEnv *env)
 	ibmp_error(env, "Cannot find method lookup_reply(Libis/impl/messagePassing/ReceivePortIdentifier;)V\n");
     }
 
-#if MUST_USE_INTERFACE
-    cls = (*env)->FindClass(env,
-			    "ibis/impl/messagePassing/ReceivePortNameServerProtocol");
-    if (cls == NULL) {
-	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ReceivePortNameServer\n");
-    }
-#else
     cls = (*env)->FindClass(env,
 			    "ibis/impl/messagePassing/ReceivePortNameServer");
     if (cls == NULL) {
 	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ReceivePortName\n");
     }
-#endif
 
     fld = (*env)->GetStaticFieldID(env,
 				cls,

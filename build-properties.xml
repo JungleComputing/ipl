@@ -15,6 +15,18 @@
 
     <property name="build-properties.xml-imported" value="true"/>
 
+
+    <property file="${ibis}/build-properties"/>
+    <property name="ibisBuild"   location="${ibis}/build"/>
+
+    <property name="package.home.ant-contrib" location="${ibis}/3rdparty/ant-contrib-0.4.jar"/>
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+
+    <property
+	    name="package.home.bcel"
+	    location="${ibis}/3rdparty/bcel-5.1.jar"/>
+
+
     <target name="property-init"
 	    depends="property-init-once"
 	    unless="property.initialized">
@@ -33,17 +45,20 @@
 	    <os family="unix"/>
 	    <then>
 		<property name="os.family" value="unix"/>
+		<property name="os-is-unix" value="true"/>
 	    </then>
 	<elseif>
 	    <os family="windows"/>
 	    <then>
 		<property name="os.family" value="windos"/>
+		<property name="os-is-windows" value="true"/>
 	    </then>
 	</elseif>
 	<elseif>
 	    <os family="mac"/>
 	    <then>
 		<property name="os.family" value="mac"/>
+		<property name="os-is-mac" value="true"/>
 	    </then>
 	</elseif>
 	</if>
@@ -76,30 +91,7 @@
 
 
     <target name="property-init-once"
-	    depends="property-config-init,property-compiler-init,contrib-init,proprietary-tasks">
-    </target>
-
-
-    <target name="property-config-init">
-	<!--
-	    User-configured defines shared by all projects under ibis
-	-->
-
-	<property file="${ibis}/build-properties"/>
-
-	<property name="ibisBuild"   location="${ibis}/build"/>
-    </target>
-
-
-    <target name="contrib-init"
-	    depends="property-config-init">
-	<echo level="verbose"
-		message="ant-contrib home is ${package.home.ant-contrib}"/>
-	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
-	    <classpath>
-		<pathelement location="${package.home.ant-contrib}"/>
-	    </classpath>
-	</taskdef>
+	    depends="property-compiler-init,proprietary-tasks">
     </target>
 
 

@@ -208,15 +208,6 @@
 		    inheritall="true"
 		    inheritrefs="true"
 		    />
-	    <!--
-	    <javah destdir="${build}/include">
-		<!-
-		<class name="${classes.native}"/>
-		->
-		<class name="ibis.impl.messagePassing.Ibis,ibis.impl.messagePassing.Poll"/>
-		<classpath refid="default.classpath"/>
-	    </javah>
-	    -->
 	</then>
 	</if>
     </target>
@@ -241,8 +232,10 @@
 
     -->
 
-    <target name="property-compiler-init"
-	    depends="property-config-init,contrib-init">
+    <taskdef resource="cpptasks.tasks"/>
+    <typedef resource="cpptasks.types"/>
+
+    <target name="property-compiler-init">
 
 	<if>
 	    <isset property="c.debug"/>
@@ -317,25 +310,8 @@
     </target>
 
 
-    <target name="cpptasks-init" unless="cpptasks.initialized" depends="property-init">
-	<echo	level="verbose"
-		message="package.home.ant-cpptasks = ${package.home.ant-cpptasks}"/>
-	<taskdef resource="cpptasks.tasks">
-	    <classpath>
-		<pathelement location="${package.home.ant-cpptasks}"/>
-	    </classpath>
-	</taskdef>
-	<typedef resource="cpptasks.types">
-	    <classpath>
-		<pathelement location="${package.home.ant-cpptasks}"/>
-	    </classpath>
-	</typedef>
-	<property name="cpptasks.initialized" value="true"/>
-    </target>
-
-
     <target name="native-init"
-	    depends="property-native-build,property-native-local.lib,property-native-outtype,cpptasks-init,property-config-init">
+	    depends="property-native-build,property-native-local.lib,property-native-outtype">
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${build}/lib"/>
@@ -352,8 +328,7 @@
 
 	<echo	message="native.dir = ${native.dir}"
 		level="verbose"/>
-	<echo	message="default.includes = ${default.includes}"
-		level="verbose"/>
+	<echo message="default.includes = ${default.includes}"/>
 	<pathconvert pathsep=" " property="native-path">
 	    <path>
 		<pathelement path="${native.dir}"/>
@@ -396,10 +371,11 @@
 
 	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
 	<if>
-	    <isreference refid="extra.libs-ref"/>
+	    <isreference refid="local.libset-ref"/>
 	    <then>
-		<property name="extra.libs" refid="extra.libs-ref"/>
-		<echo message="Specify extra libs ${extra.libs}"/>
+		<property name="local.libset" refid="local.libset-ref"/>
+		<echo message="Specify extra libs ${local.libset}"/>
+		<echo message="Specify extra libs ref ${local.libset-ref}"/>
 	    </then>
 	</if>
 
@@ -431,7 +407,9 @@
 			<pathelement path="${local.includes}"/>
 			<pathelement path="${default.includes}"/>
 		    </includepath>
+		    <libset refid="local.libset-ref" if="local.libset"/>
 		    <!--
+		    <libset refid="local.libset-ref"/>
 		    <fileset refid="extra.libs-ref" if="extra.libs"/>
 		    <libset dir="${ibis}/3rdparty/omni/OmniTimer/build/lib" libs="OTTimer"/>
 		    -->
@@ -448,19 +426,19 @@
 	directory
     -->
     <target name="native"
+	    depends="native-init,native-compile"
+	    description="Compile native files in the current directory"/>
+    <!--
+    <target name="native"
 	    depends="native-init"
 	    description="Compile native files in the current directory">
-	    <!-- ",javah" -->
 	<ant inheritAll="false" dir="." antfile="build-native.xml" target="native-compile">
 	    <property name="native.dir" value="."/>
 	    <property name="build" value="${build}"/>
 	    <property name="ibis" value="${ibis}"/>
-	    <!--
-	    -->
 	    <property name="optimization" value="${optimization}"/>
-	    <property name="package.home.ant-cpptasks" value="${package.home.ant-cpptasks}"/>
-	    <property name="package.home.ant-contrib" value="${package.home.ant-contrib}"/>
 	</ant>
     </target>
+    -->
 
 </project>

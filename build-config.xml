@@ -9,11 +9,6 @@
     </description>
 
 
-    <property name="config.home.bcel" location="3rdparty/bcel-5.1.jar"/>
-    <property name="config.home.ant-contrib" location="3rdparty/ant-contrib-0.4.jar"/>
-    <property name="config.home.ant-cpptasks" location="3rdparty/cpptasks-1.0-cvs.jar"/>
-
-
     <target name="config.previous"
 	    depends="config-set-os"
 	    if="config.has-previous">
@@ -138,7 +133,7 @@
 	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
     </target>
 
-    <target name="compile.java_wrapper" depends="cpptasks-init">
+    <target name="compile.java_wrapper">
 	<echo message="Now compile this java_wrapper"/>
 	<cc	outfile="${ibis}/bin/java_wrapper"
 		outtype="executable">
@@ -156,8 +151,9 @@
 
     <property environment="env"/>
 
-    <target name="-config-build-properties">
+    <property name="ant.home" location="3rdparty/apache-ant-1.6.1"/>
 
+    <target name="-config-build-properties">
 	<echo>
 ----------------------------------------------------------------
 Now, your Ibis build is being configured under ${ibis}.
@@ -265,15 +261,6 @@ to the command line.
 		token="${file.separator}"
 		value="/"/>
 
-	<!--
-	<echo	file="config.status"
-		append="true">${config.home.ant-contrib}
-	</echo>
-	<echo	file="config.status"
-		append="true">${config.home.ant-cpptasks}
-	</echo>
-	-->
-
 	<copy	file="${ibis}/build-properties"
 		tofile="${ibis}/build-properties.backup"
 		failonerror="false"
@@ -292,18 +279,6 @@ to the command line.
 		file="${ibis}/build-properties"
 		token="@IBIS@"
 		value="${config.home.ibis}"/>
-	<replace
-		file="${ibis}/build-properties"
-		token="@BCEL_HOME@"
-		value="${config.home.bcel}"/>
-	<replace
-		file="${ibis}/build-properties"
-		token="@ANT_CPPTASKS@"
-		value="${config.home.ant-cpptasks}"/>
-	<replace
-		file="${ibis}/build-properties"
-		token="@ANT_CONTRIB@"
-		value="${config.home.ant-contrib}"/>
 	<replace
 		file="${ibis}/build-properties"
 		token="@GM_HOME@"
@@ -329,6 +304,17 @@ to the command line.
 		token="${file.separator}"
 		value="/"/>
 
+	<!--
+	    It seems that putting 3rdparty Ant plugins in another
+	    directory than our ant base triggers classloader
+	    problems, e.g. for defining/using top-level libsets
+	-->
+	<copy todir="${ant.home}">
+	    <fileset dir="${ibis}/3rdparty">
+		<include name="ant-contrib-0.4.jar"/>
+		<include name="cpptasks-1.0-cvs.jar"/>
+	    </fileset>
+	</copy>
 
 	<!--
 	==============================================================
@@ -389,10 +375,6 @@ to the command line.
 	<echo
 		append="true"
 		file="${ibis}/configuration.sh">PANDA_NETWORK=lfc
-</echo>
-	<echo
-		append="true"
-		file="${ibis}/configuration.sh">BCEL=${config.home.bcel}
 </echo>
 
 	<!-- Concat the stuff in scripts to the bin directory -->

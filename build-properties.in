@@ -9,9 +9,6 @@
 
 JAVA_HOME                   = @JAVA@
 package.home.ibis           = @IBIS@
-package.home.bcel           = @BCEL_HOME@
-package.home.ant-contrib    = @ANT_CONTRIB@
-package.home.ant-cpptasks   = @ANT_CPPTASKS@
 
 package.home.gm             = @GM_HOME@
 package.home.daslib         = @DASLIB_HOME@
