@@ -20,8 +20,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					   "': got exception while reading job result: " + e);
 			System.exit(1);
 		}
-
-		satin.addToAbortList(stamp, owner);
+		synchronized(satin) {
+			satin.addToAbortList(stamp, owner);
+		}
 	}
 
 	void handleJobResult(ReadMessage m) {

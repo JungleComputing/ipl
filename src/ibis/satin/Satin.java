@@ -86,7 +86,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private long spawns = 0;
 	private long syncs = 0;
 	private long aborts = 0;
-	long abortedJobs = 0; // used in messageHandler
+	private long abortedJobs = 0;
 	private long stealAttempts = 0;
 	private long stealSuccess = 0;
 	long stolenJobs = 0; // used in messageHandler
@@ -94,7 +94,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	private int parentStamp = -1;
 	private IbisIdentifier parentOwner = null;
-	public InvocationRecord parent = null;
+	public InvocationRecord parent = null; // used in generated code
 
 	/* use these to avoid locking */
 	private volatile boolean gotExceptions = false;
@@ -106,6 +106,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	public Satin(String[] args) {
 		init(args);
 	}
+
+//	private native void DebugMe(Object o, Object o2);
 
 	private void init(String[] args) {
 		Properties p = System.getProperties();
@@ -168,6 +170,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					ibis = Ibis.createIbis(name, "ibis.ipl.impl.tcp.TcpIbis", this);
 				}
 			} catch (IbisException e) {
+//				manta.runtime.RuntimeSystem.DebugMe(e, null);
 				System.err.println("SATIN '" + hostName + "': Could not start ibis with name '" + name + "': " + e);
 				e.printStackTrace();
 			}
@@ -354,6 +357,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					   "': STEAL_STATS 2: requests = " + stealRequests + " jobs stolen = " + stolenJobs);
 		}
 
+		// Do a gc, and run the finalizers. Useful for printing statistics in Satin applications.
 		System.gc();
 		System.runFinalization();
 		System.runFinalizersOnExit(true);
@@ -641,7 +645,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
-	synchronized void addToAbortList(int stamp, IbisIdentifier owner) {
+	void addToAbortList(int stamp, IbisIdentifier owner) {
 		if(ASSERTS) {
 			assertLocked(this);
 		}
@@ -676,12 +680,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 
+	/* message combining for abort messages does not work (I tried). It is very unlikely that
+	   one node stole more than one job from me */
 	private void sendAbortMessage(InvocationRecord r) {
 		if(ABORT_DEBUG) {
 			System.out.println("SATIN '" + ident.name() + ": sending abort message to: " + 
 					   r.stealer + " for job " + r.stamp);
 		}
-
 		try {
 			SendPort s = getReplyPort(r.stealer);
 			WriteMessage writeMessage = s.newMessage();
@@ -892,6 +897,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			spawns++;
 		}
 
+		if(ABORTS && gotAborts) handleAborts();
+		if(ABORTS && gotExceptions) handleExceptions();
+
 		r.spawnCounter.value++;
 		r.stamp = stampCounter++;
 		r.owner = ident;
@@ -1019,8 +1027,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						   "': Sync, counter = " + s.value);
 			}
 
-			if(ABORTS && gotExceptions) handleExceptions();
 			if(ABORTS && gotAborts) handleAborts();
+			if(ABORTS && gotExceptions) handleExceptions();
 
 			r = q.getFromHead();
 			if(r != null) {
@@ -1088,6 +1096,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 	private void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+		if(ASSERTS) {
+			assertLocked(this);
+		}
+
 		// try work queue, outstanding jobs and jobs on the stack
 		q.killChildrenOf(targetStamp, targetOwner);
 
@@ -1104,7 +1116,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
-				abortedJobs++;
+				if(STEAL_STATS) {
+					abortedJobs++;
+				}
 				outstandingJobs.removeIndex(i);
 				i--;
 				sendAbortMessage(curr);

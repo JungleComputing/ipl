@@ -7,7 +7,7 @@ public interface Config {
 	static final boolean STEAL_STATS = true;
 
 	/* Enable or disable asserts. */
-	static final boolean ASSERTS = false;
+	static final boolean ASSERTS = true;
 
 	/* Enable or disable aborts and inlets. */
 	static final boolean ABORTS = true;
