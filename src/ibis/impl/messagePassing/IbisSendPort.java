@@ -3,6 +3,7 @@
 package ibis.impl.messagePassing;
 
 import ibis.io.IbisSerializationOutputStream;
+import ibis.io.DataSerializationOutputStream;
 import ibis.ipl.Replacer;
 
 import java.io.IOException;
@@ -12,11 +13,16 @@ import java.io.IOException;
  */
 final public class IbisSendPort extends SendPort {
 
-    IbisSerializationOutputStream obj_out;
+    DataSerializationOutputStream obj_out;
 
     public IbisSendPort(PortType type, String name) throws IOException {
         super(type, name);
-        obj_out = new IbisSerializationOutputStream(out);
+        if (type.serializationType == PortType.SERIALIZATION_DATA) {
+            obj_out = new DataSerializationOutputStream(out);
+        }
+        else {
+            obj_out = new IbisSerializationOutputStream(out);
+        }
         out.setAllocator(obj_out.getAllocator());
 
         if (Ibis.DEBUG) {

@@ -9,7 +9,7 @@ import java.io.IOException;
  */
 final public class IbisWriteMessage extends WriteMessage {
 
-    private ibis.io.IbisSerializationOutputStream obj_out;
+    private ibis.io.DataSerializationOutputStream obj_out;
 
     private boolean needs_flush = true;
 

@@ -3,6 +3,7 @@
 package ibis.impl.messagePassing;
 
 import ibis.io.IbisSerializationInputStream;
+import ibis.io.DataSerializationInputStream;
 
 import java.io.IOException;
 
@@ -11,13 +12,17 @@ import java.io.IOException;
  */
 final class IbisShadowSendPort extends ShadowSendPort {
 
-    IbisSerializationInputStream obj_in;
+    DataSerializationInputStream obj_in;
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
     IbisShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId,
             int startSeqno, int group, int groupStartSeqno) throws IOException {
         super(rId, sId, startSeqno, group, groupStartSeqno);
-        obj_in = new IbisSerializationInputStream(in);
+        if (type.serializationType == PortType.SERIALIZATION_DATA) {
+            obj_in = new DataSerializationInputStream(in);
+        } else {
+            obj_in = new IbisSerializationInputStream(in);
+        }
     }
 
     ReadMessage getMessage(int seqno) {
