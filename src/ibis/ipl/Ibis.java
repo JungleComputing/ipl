@@ -386,7 +386,9 @@ public abstract class Ibis {
                     if (combinedprops.find("verbose") != null) {
                         System.err.println("Warning: could not create "
                                 + (String) implementation_names.get(i)
-                                + ", trying "
+                                + ", got exception:" + e);
+                        e.printStackTrace();
+                        System.err.println("Trying "
                                 + (String) implementation_names.get(i + 1));
                     }
                     break;
@@ -398,7 +400,9 @@ public abstract class Ibis {
                     if (combinedprops.find("verbose") != null) {
                         System.err.println("Warning: could not create "
                                 + (String) implementation_names.get(i)
-                                + ", trying "
+                                + ", got exception:" + e);
+                        e.printStackTrace();
+                        System.err.println("Trying "
                                 + (String) implementation_names.get(i + 1));
                     }
                     break;
@@ -410,7 +414,9 @@ public abstract class Ibis {
                     if (combinedprops.find("verbose") != null) {
                         System.err.println("Warning: could not create "
                                 + (String) implementation_names.get(i)
-                                + ", trying "
+                                + ", got exception:" + e);
+                        e.printStackTrace();
+                        System.err.println("Trying "
                                 + (String) implementation_names.get(i + 1));
                     }
                     break;
