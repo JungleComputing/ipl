@@ -1931,4 +1931,24 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.err.println("SATIN '" + ident.name() + ": bcast of " + count + " bytes took: " + tupleTimer.lastTime());
 		}
 	}
+
+        /* ------------------- pause/resume space stuff ---------------------- */
+
+	/** Pause Satin operation. 
+	    This method can optionally be called before a large sequential part in a program.
+	    This will temporarily pause Satin's internal load distribution strategies to 
+	    avoid communication overhead during sequential code.
+	**/
+	public static void pause() {
+		if(me == null || !me.upcalls) return;
+		me.receivePort.disableUpcalls();
+	}
+
+	/** Resume Satin operation. 
+	    This method can optionally be called after a large sequential part in a program.
+	**/
+	public static void resume() {
+		if(me == null || !me.upcalls) return;
+		me.receivePort.enableUpcalls();
+	}
 }
