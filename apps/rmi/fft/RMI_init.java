@@ -52,7 +52,7 @@ public class RMI_init {
 	    }
 	}
 
-	System.out.println("Registry is " + reg);
+	// System.out.println("Registry is " + reg);
 
 	return reg;
     }

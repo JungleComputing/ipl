@@ -22,6 +22,7 @@ class fft {
     DataOutputStream output = null;
 
     fft(String[] argv) {
+	int rounds = 1;
 	PoolInfo d = null;
 	try {
 	    d = PoolInfo.createPoolInfo();
@@ -34,16 +35,18 @@ class fft {
 	host = d.rank();
 	cpus = d.size();
 	masterName = d.hostName(0);
-	if (argv.length == 0) {
-	    M = 16;
-	} else if (argv.length != 1) {
-	    System.out.println("Parameters: M");
-	    System.exit(1);
-	} else {
-	    try {
-		M = Integer.parseInt(argv[0]);
-	    } catch (NumberFormatException e) {
-		System.out.println(e.getMessage());
+	int options = 0;
+	M = 16;
+	for (int i = 0; i < argv.length; i++) {
+	    if (false) {
+	    } else if (argv[i].equals("-warmup")) {
+		++i;
+		rounds = 1 + Integer.parseInt(argv[i]);
+	    } else if (options == 0) {
+		M = Integer.parseInt(argv[i]);
+		options++;
+	    } else {
+		System.out.println("Parameters: M");
 		System.exit(1);
 	    }
 	}
@@ -88,7 +91,7 @@ class fft {
 
 	try {
 	    new Slave(masterName, host, cpus, N, M, rootN,
-		      rowsperproc, u, u2, distribution, d);
+		      rowsperproc, u, u2, distribution, d, rounds);
 	} catch (Exception e) {
 	    System.out.println("Exception: " + e);
 	    fatal("Couldn't create slave");

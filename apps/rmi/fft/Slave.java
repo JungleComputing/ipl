@@ -21,7 +21,7 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
     Slave(String masterName, int cpu, int cpus, int N, int M,
 	  int rootN, int rowsperproc, double[] u, double[] u2,
-	  int[][] dis, PoolInfo d) throws Exception {
+	  int[][] dis, PoolInfo d, int rounds) throws Exception {
 
 	while (true) {
 	    Thread.sleep(500);
@@ -55,54 +55,68 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
 	// System.err.println(myCpu + ": gonna hit barrier I");
 
-	if (cpus > 1) master.sync();
+	long total = 0;
 
-	// System.err.println(myCpu + ": past barrier I");
+	for (int warmup = 0; warmup < rounds; warmup++) {
 
-	int myFirst = rootN * myCpu / cpus;
-	int myLast = rootN * (myCpu + 1) / cpus;
-	ind1 = new int[cpus][cpus];
-	ind2 = new int[cpus][cpus];
-	initIndexBlocks(ind1, ind2);
-	// System.err.println(myCpu + ": Past initIndexBlocks");
-	initX(ind1, myFirst);
+	    long start = System.currentTimeMillis();
 
-	// System.err.println(myCpu + ": gonna hit barrier II");
+	    if (cpus > 1) master.sync();
 
-	if (cpus > 1) master.sync();
+	    // System.err.println(myCpu + ": past barrier I");
 
-	// System.err.println(myCpu + ": past barrier II, start clock");
+	    int myFirst = rootN * myCpu / cpus;
+	    int myLast = rootN * (myCpu + 1) / cpus;
+	    ind1 = new int[cpus][cpus];
+	    ind2 = new int[cpus][cpus];
+	    initIndexBlocks(ind1, ind2);
+	    // System.err.println(myCpu + ": Past initIndexBlocks");
+	    initX(ind1, myFirst);
 
-	long start = System.currentTimeMillis();
+	    // System.err.println(myCpu + ": gonna hit barrier II");
 
-	double checksum1 = checksum();
+	    if (cpus > 1) master.sync();
 
-	doFFT(FORWARD,  u, u2, myFirst, myLast);
-	double checksum3 = checksum();
-	doFFT(BACKWARD, u, u2, myFirst, myLast);
-	double checksum2 = checksum();
+	    // System.err.println(myCpu + ": past barrier II, start clock");
 
-	if (cpus > 1) master.sync();
+	    System.gc();
 
-	long end = System.currentTimeMillis();
+	    double checksum1 = checksum();
 
-	if (Math.abs(checksum1 - checksum2) > 0.1) {
-		System.out.println("CPU" + myCpu + " checksum ERROR !!! (" +
-				   checksum1 + "," + checksum2 + ")   " + checksum3);
-	} else {
+	    doFFT(FORWARD,  u, u2, myFirst, myLast);
+	    double checksum3 = checksum();
+	    doFFT(BACKWARD, u, u2, myFirst, myLast);
+	    double checksum2 = checksum();
+
+	    if (cpus > 1) master.sync();
+
+	    long end = System.currentTimeMillis();
+
+	    total += end - start;
+
+	    if (Math.abs(checksum1 - checksum2) > 0.1) {
+		    System.out.println("CPU" + myCpu + " checksum ERROR !!! (" +
+				       checksum1 + "," + checksum2 + ")   " + checksum3);
+	    } else {
 //		System.out.println("CPU" + myCpu + " checksum OK (" + 
 //				   checksum1+","+checksum2+")   " + checksum3);
-	
+
 //		System.out.println(myCpu + "-> FFT: " + fftDuration + "\t Trans: " +
 //				   transposeAndFFT + "\t Communication: " +
 //				   totalComDuration + "\t Barriers: " + barDuration +
 //				   " ms.\t     ");
-	}
+	    }
 
-	if (myCpu == 0) { 
-		System.out.println("FFT, M = " + M + " time " + ((end-start)/1000.0));
+	    if (myCpu == 0) { 
+		    System.out.println("FFT round " + warmup + " time " + (end - start) / 1000.0);
+	    }
 	}
 	//d.printTime("FFT, M = " + M, transposeAndFFT);
+
+	if (myCpu == 0) { 
+		long per_round = total / rounds;
+		System.out.println("FFT, iterate " + rounds + "; M = " + M + " time " + total / 1000.0 + "; per round " + per_round / 1000.0);
+	}
     }
 
 
