@@ -1,17 +1,12 @@
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import ibis.io.ArrayInputStream;
-import ibis.io.ArrayOutputStream;
-import ibis.io.BufferedArrayInputStream;
-import ibis.io.BufferedArrayOutputStream;
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
+import java.io.*;
 
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = (16*1024)-1;
+	public static final int LEN   = (1024)-1;
 	public static final int COUNT = 100;
 	public static final int TESTS = 10;
 		
@@ -35,11 +30,8 @@ public class Main {
 			StoreOutputStream out = new StoreOutputStream(buf);
 			StoreInputStream in = new StoreInputStream(buf);
 			
-			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(out);
-			BufferedArrayInputStream bais = new BufferedArrayInputStream(in);
-
-			MantaOutputStream mout = new MantaOutputStream(baos);
-			MantaInputStream min = new MantaInputStream(bais);
+			ObjectOutputStream mout = new ObjectOutputStream(out);
+			ObjectInputStream min = new ObjectInputStream(in);
 				
 			// Create tree
 			temp = new DITree(LEN);

@@ -7,13 +7,14 @@ import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.MantaInputStream;
 import ibis.io.MantaOutputStream;
+import java.io.*;
 //import ibis.io.MantaTypedBufferOutputStream;
 
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 16 * 1024; // 1024*1024;
-	public static final int COUNT = 100;
+	public static final int LEN   = 100*1024;
+	public static final int COUNT = 1000;
 	public static final int TESTS = 10;
 
 
@@ -32,8 +33,7 @@ public class Main {
 			System.out.println("Main starting");
 
 			NullOutputStream naos = new NullOutputStream();
-			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(naos);
-			MantaOutputStream mout = new MantaOutputStream(baos);
+			ObjectOutputStream mout = new ObjectOutputStream(naos);
 							
 			System.out.println("Writing int[" + (LEN/4) + "]");
 

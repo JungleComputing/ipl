@@ -41,6 +41,67 @@ public class Main {
 			MantaInputStream min = new MantaInputStream(bais);
 				
 			// Create array
+			byte [] temp0 = new byte[LEN];
+			
+			System.out.println("Reading byte[" + (LEN) + "]");
+
+			mout.writeObject(temp0);
+			mout.flush();
+			mout.reset();
+
+			System.out.println("Wrote " + out.getAndReset() + " bytes");
+			
+//			System.out.println("Reading int[" + (LEN/4) + "]");
+			min.readObject();
+			in.reset();
+			buf.clear();
+
+//			System.out.println("Rewriting int[" + (LEN/4) + "]");
+
+			mout.writeObject(temp0);
+			mout.flush();
+			mout.reset();
+
+			bytes = out.getAndReset();
+
+			System.out.println("Wrote " + bytes + " bytes");
+			
+//			System.out.println("Starting test");
+
+			for (int j=0;j<TESTS;j++) { 
+
+				start = System.currentTimeMillis();
+				
+				for (int i=0;i<COUNT;i++) {
+					min.readObject();
+					in.reset();
+				}
+				
+				end = System.currentTimeMillis();
+				
+				long time = end-start;
+				double kb = COUNT*LEN;
+				double ktp = ((1000.0*kb)/(1024*1024))/time;
+				
+//				System.out.println();
+//				System.out.println("Read took " + time + " ms");
+//				System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
+
+				if (time < best_time) { 
+					best_time = time;
+					best_ktp = ktp;
+				}
+			} 
+
+			System.out.println("" + round(best_ktp));
+			temp0 = null;
+			in.reset();
+			buf.clear();
+			best_time= 1000000;
+			/*********************************/
+
+
+			// Create array
 			int [] temp1 = new int[LEN/4];
 			
 			System.out.println("Reading int[" + (LEN/4) + "]");

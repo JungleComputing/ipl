@@ -12,41 +12,38 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = (1024*16)-1;
-	public static final int COUNT = 100;
+	public static final int COUNT = 10000;
 	public static final int TESTS = 10;
 
+
 	public static double round(double val) { 		
-		return (Math.ceil(val*10.0)/10.0);
+		return (Math.ceil(val*100.0)/100.0);
 	} 
 
 	public static void main(String args[]) {
 		
 		try {
-			DITree temp = null;
-			long start, end;
 			int bytes;
-
-			double best_rtp = 0.0, best_ktp = 0.0;
+			long start, end;
+			double best_ktp = 0.0;
 			long best_time = 1000000;
 
-			System.err.println("Main starting");
+			System.out.println("Main starting");
 
 			NullOutputStream naos = new NullOutputStream();
 			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(naos);
 			MantaOutputStream mout = new MantaOutputStream(baos);
-				
-			// Create tree
-			temp = new DITree(LEN);
-			
-			System.err.println("Writing tree of " + LEN + " DITree objects");
+							
+			System.out.println("Writing int[" + (4*1023) + "]");
+
+			int [] temp1 = new int[4*1023];
 
 			for (int j=0;j<TESTS;j++) { 
 
 				start = System.currentTimeMillis();
 				
 				for (int i=0;i<COUNT;i++) {
-					mout.writeObject(temp);
+					mout.writeObject(temp1);
 					mout.flush();
 					mout.reset();
 				}
@@ -56,27 +53,25 @@ public class Main {
 				bytes = naos.getAndReset();
 				
 				long time = end-start;
-				double rb = bytes;
-				double kb = COUNT*LEN*DITree.KARMI_SIZE;
-
-				double rtp = ((1000.0*rb)/(1024*1024))/time;
+				double kb = COUNT*(4*1023*4);
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
-				System.out.println("Karmi bytes written " + kb + " throughput = " + ktp + " MBytes/s");
-				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
+				System.out.println("Write took " + time + " ms");
+//				System.out.println("Payload bytes written " + kb + " throughput = " + ktp + " MBytes/s");
+				System.out.println("Real bytes written per write : " + (bytes/COUNT));
 
 				if (time < best_time) { 
 					best_time = time;
-					best_rtp = rtp;
 					best_ktp = ktp;
 				}
 			} 
 
-			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("" + round(best_rtp) + " " + round(best_ktp));
+//			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
+			System.out.println("int [] : " + round(best_ktp));
+			temp1 = null;
+
 		} catch (Exception e) {
-			System.err.println("Main got exception " + e);
+			System.out.println("Main got exception " + e);
 			e.printStackTrace();
 		}
 	}

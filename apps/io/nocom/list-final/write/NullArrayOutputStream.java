@@ -48,4 +48,8 @@ final class NullArrayOutputStream extends ArrayOutputStream {
 
 	public void finish() throws IbisIOException { 
 	}
+
+	public int bytesWritten() { 
+		return len;
+	} 
 } 

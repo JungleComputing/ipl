@@ -11,18 +11,18 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = (16*1024)-1;
-	public static final int COUNT = 100;
+	public static final int LEN   = 1023;
+	public static final int COUNT = 10000;
 	public static final int TESTS = 10;
 		
 	public static double round(double val) { 		
-		return (Math.ceil(val*10.0)/10.0);
+		return (Math.ceil(val*100.0)/100.0);
 	} 
 
 	public static void main(String args[]) {
 		
 		try {
-			DITree temp = null;
+			List temp = null;
 			long start, end;
 			int bytes;
 		
@@ -34,17 +34,17 @@ public class Main {
 			StoreBuffer buf = new StoreBuffer();
 			StoreOutputStream out = new StoreOutputStream(buf);
 			StoreInputStream in = new StoreInputStream(buf);
-			
+
 			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(out);
 			BufferedArrayInputStream bais = new BufferedArrayInputStream(in);
 
 			MantaOutputStream mout = new MantaOutputStream(baos);
 			MantaInputStream min = new MantaInputStream(bais);
 				
-			// Create tree
-			temp = new DITree(LEN);
+			// Create list
+			temp = new List(LEN);
 			
-			System.err.println("Writing tree of " + LEN + " DITree objects");
+			System.err.println("Writing list of " + LEN + " objects");
 
 			mout.writeObject(temp);
 			mout.flush();
@@ -52,12 +52,12 @@ public class Main {
 
 			System.err.println("Wrote " + out.getAndReset() + " bytes");
 			
-			System.err.println("Reading tree of " + LEN + " DITree objects");
+			System.err.println("Reading list of " + LEN + " objects");
 			min.readObject();
 			in.reset();
 			buf.clear();
 
-			System.err.println("Rewriting tree of " + LEN + " DITree objects");
+			System.err.println("Rewriting list of " + LEN + " objects");
 
 			mout.writeObject(temp);
 			mout.flush();
@@ -82,12 +82,13 @@ public class Main {
 				
 				long time = end-start;
 				double rb = COUNT*bytes;
-				double kb = COUNT*LEN*DITree.KARMI_SIZE;
+				double kb = COUNT*LEN*List.KARMI_SIZE;
 
 				double rtp = ((1000.0*rb)/(1024*1024))/time;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
-
-				System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
+				
+				System.out.println();
+				//System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
 				System.out.println("Karmi bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 				System.out.println("Real bytes read " + rb + " throughput = " + rtp + " MBytes/s");
 

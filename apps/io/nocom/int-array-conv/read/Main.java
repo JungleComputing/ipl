@@ -11,63 +11,61 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = (16*1024)-1;
-	public static final int COUNT = 100;
+	public static final int COUNT = 10000;
 	public static final int TESTS = 10;
 		
 	public static double round(double val) { 		
-		return (Math.ceil(val*10.0)/10.0);
+		return (Math.ceil(val*100.0)/100.0);
 	} 
 
 	public static void main(String args[]) {
 		
 		try {
-			DITree temp = null;
 			long start, end;
 			int bytes;
 		
-			double best_rtp = 0.0, best_ktp = 0.0;
+			double best_ktp = 0.0;
 			long best_time = 1000000;
 
-			System.err.println("Main starting");
+			System.out.println("Main starting");
 			
 			StoreBuffer buf = new StoreBuffer();
 			StoreOutputStream out = new StoreOutputStream(buf);
 			StoreInputStream in = new StoreInputStream(buf);
-			
+
 			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(out);
 			BufferedArrayInputStream bais = new BufferedArrayInputStream(in);
 
 			MantaOutputStream mout = new MantaOutputStream(baos);
 			MantaInputStream min = new MantaInputStream(bais);
 				
-			// Create tree
-			temp = new DITree(LEN);
+			// Create array
+			int [] temp1 = new int[4*1023];
 			
-			System.err.println("Writing tree of " + LEN + " DITree objects");
+			System.out.println("Reading int[" + (4*1023) + "]");
 
-			mout.writeObject(temp);
+			mout.writeObject(temp1);
 			mout.flush();
 			mout.reset();
 
-			System.err.println("Wrote " + out.getAndReset() + " bytes");
+//			System.out.println("Wrote " + out.getAndReset() + " bytes");
 			
-			System.err.println("Reading tree of " + LEN + " DITree objects");
+//			System.out.println("Reading int[" + (LEN/4) + "]");
 			min.readObject();
 			in.reset();
 			buf.clear();
 
-			System.err.println("Rewriting tree of " + LEN + " DITree objects");
+//			System.out.println("Rewriting int[" + (LEN/4) + "]");
 
-			mout.writeObject(temp);
+			mout.writeObject(temp1);
 			mout.flush();
 			mout.reset();
 
 			bytes = out.getAndReset();
 
-			System.err.println("Wrote " + bytes + " bytes");
+//			System.out.println("Wrote " + bytes + " bytes");
 			
-			System.err.println("Starting test");
+//			System.out.println("Starting test");
 
 			for (int j=0;j<TESTS;j++) { 
 
@@ -81,27 +79,23 @@ public class Main {
 				end = System.currentTimeMillis();
 				
 				long time = end-start;
-				double rb = COUNT*bytes;
-				double kb = COUNT*LEN*DITree.KARMI_SIZE;
-
-				double rtp = ((1000.0*rb)/(1024*1024))/time;
+				double kb = COUNT*(4*1023*4);
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
-
-				System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
-				System.out.println("Karmi bytes read " + kb + " throughput = " + ktp + " MBytes/s");
-				System.out.println("Real bytes read " + rb + " throughput = " + rtp + " MBytes/s");
+				
+//				System.out.println();
+//				System.out.println("Read took " + time + " ms");
+//				System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 
 				if (time < best_time) { 
 					best_time = time;
-					best_rtp = rtp;
 					best_ktp = ktp;
 				}
 			} 
 
-			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("" + round(best_rtp) + " " + round(best_ktp));
+			System.out.println("" + round(best_ktp));
+			
 		} catch (Exception e) {
-			System.err.println("Main got exception " + e);
+			System.out.println("Main got exception " + e);
 			e.printStackTrace();
 		}
 	}

@@ -12,18 +12,18 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = (1024*16)-1;
-	public static final int COUNT = 100;
+	public static final int LEN   = 1023;
+	public static final int COUNT = 10000;
 	public static final int TESTS = 10;
 
 	public static double round(double val) { 		
-		return (Math.ceil(val*10.0)/10.0);
+		return (Math.ceil(val*100.0)/100.0);
 	} 
 
 	public static void main(String args[]) {
 		
 		try {
-			DITree temp = null;
+			List temp = null;
 			long start, end;
 			int bytes;
 
@@ -37,9 +37,9 @@ public class Main {
 			MantaOutputStream mout = new MantaOutputStream(baos);
 				
 			// Create tree
-			temp = new DITree(LEN);
+			temp = new List(LEN);
 			
-			System.err.println("Writing tree of " + LEN + " DITree objects");
+			System.err.println("Writing list of " + LEN + " objects");
 
 			for (int j=0;j<TESTS;j++) { 
 
@@ -57,7 +57,7 @@ public class Main {
 				
 				long time = end-start;
 				double rb = bytes;
-				double kb = COUNT*LEN*DITree.KARMI_SIZE;
+				double kb = COUNT*LEN*List.KARMI_SIZE;
 
 				double rtp = ((1000.0*rb)/(1024*1024))/time;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
