@@ -41,8 +41,6 @@ PropertyCategories:	communication worldmodel serialization
 #	them. The sequencing is per port type.
 #   Reliable
 #	reliable communication is supported.
-#   Unreliable
-#	unreliable communication is explicitly supported.
 #   AutoUpcalls
 #	upcalls are supported and polling for them is not required.
 #   PollUpcalls
@@ -61,7 +59,7 @@ PropertyCategories:	communication worldmodel serialization
 communication:	OneToOne, OneToMany, ManyToOne, \
 		Poll, ReceiveTimeout, \
 		FifoOrdered, Sequenced, \
-		Reliable, Unreliable, \
+		Reliable, \
 		AutoUpcalls, PollUpcalls, ExplicitReceipt, \
 		ConnectionDowncalls, ConnectionUpcalls
 
@@ -71,8 +69,6 @@ communication:	OneToOne, OneToMany, ManyToOne, \
 
 OneToMany:	OneToOne
 ManyToOne:	OneToOne
-TotallyOrdered:	FifoOrdered
-Reliable:	Unreliable
 
 #
 # The possible "worldmodel" properties are:
