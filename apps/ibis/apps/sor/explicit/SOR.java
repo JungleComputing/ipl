@@ -293,8 +293,6 @@ class SOR {
 		    System.err.println(rank + ": t_compute " + t_compute.nrTimes() + " time " + t_compute.averageTime());
 		    System.err.println(rank + ": t_communicate " + t_communicate.nrTimes() + " time " + t_communicate.averageTime());
 		    System.err.println(rank + ": t_reduce " + t_reduce.nrTimes() + " time " + t_reduce.averageTime());
-		    t_communicate = new Rdtsc();
-		    t_reduce      = new Rdtsc();
 		}
 	}
 
