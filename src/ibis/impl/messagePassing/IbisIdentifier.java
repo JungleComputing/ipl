@@ -70,6 +70,10 @@ final class IbisIdentifier
 	}
     }
 
+    public void free() {
+	cache.removeIbis(this);
+    }
+
 
     private void makeSerialForm() throws IOException {
 	serialForm = Conversion.object2byte(this);

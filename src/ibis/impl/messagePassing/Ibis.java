@@ -32,8 +32,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private IbisIdentifier ident;
 
-    private IbisIdentifierTable identTable = new IbisIdentifierTable();
-
     private Registry registry;
 
     private int poolSize;
