@@ -23,7 +23,10 @@ public class DataSerializationOutputStream
     /**
      * Allocator for the typed buffer arrays.
      */
-    private DataAllocator	allocator;
+    private static final DataAllocator	allocator =
+	TypedProperties.booleanProperty(IOProps.s_cache, false)
+	     ? new DataAllocator()
+	     : (DataAllocator) new DummyAllocator();
 
     /**
      * Storage for bytes (or booleans) written.
@@ -731,12 +734,6 @@ public class DataSerializationOutputStream
 	array = new ArrayDescriptor[ARRAY_BUFFER_SIZE];
 	for (int i = 0; i < ARRAY_BUFFER_SIZE; i++) {
 	    array[i] = new ArrayDescriptor();
-	}
-	if (TypedProperties.booleanProperty(IOProps.s_cache, false)) {
-	    allocator = new DataAllocator();
-	}
-	else {
-	    allocator = new DummyAllocator();
 	}
 
 	indices_short  = allocator.getIndexArray();
