@@ -208,19 +208,19 @@ public final class SATContext implements java.io.Serializable {
      * Propagates the specified unit clause.
      * @param p the SAT problem to solve
      * @param i the index of the unit clause
-     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
+     * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int propagateUnitClause( SATProblem p, int i )
     {
 	if( satisfied[i] ){
 	    // Not interesting.
-	    return 0;
+	    return SATProblem.UNDETERMINED;
 	}
 	Clause c = p.clauses[i];
         if( doVerification ){
             if( terms[i] != 1 ){
                 System.err.println( "Error: cannot propagate clause " + c + " since it's not a unit clause" );
-                return 0;
+                return SATProblem.UNDETERMINED;
             }
         }
 	int arr[] = c.pos;
@@ -235,7 +235,7 @@ public final class SATContext implements java.io.Serializable {
 	    if( assignments[v] == UNASSIGNED ){
 		if( foundIt ){
 		    System.err.println( "Error: a unit clause with multiple unassigned variables" );
-		    return 0;
+		    return SATProblem.UNDETERMINED;
 		}
 		// We have found the unassigned one, propagate it.
 		if( tracePropagation ){
@@ -258,7 +258,7 @@ public final class SATContext implements java.io.Serializable {
 	    if( assignments[v] == UNASSIGNED ){
 		if( foundIt ){
 		    System.err.println( "Error: a unit clause with multiple unassigned variables" );
-		    return 0;
+		    return SATProblem.UNDETERMINED;
 		}
 		// We have found the unassigned one, propagate it.
 		if( tracePropagation ){
@@ -276,12 +276,12 @@ public final class SATContext implements java.io.Serializable {
 	if( !satisfied[i] && !foundIt ){
 	    System.err.println( "Error: unit clause " + c + " does not contain unassigned variables" );
 	}
-	return 0;
+	return SATProblem.UNDETERMINED;
     }
 
     /**
      * Registers the fact that the specified clause is satisfied.
-     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
+     * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int markClauseSatisfied( SATProblem p, int cno )
     {
@@ -305,7 +305,7 @@ public final class SATContext implements java.io.Serializable {
 	    if( pc == 0 ){
 		if( assignments[var] == UNASSIGNED ){
 		    if( negclauses[var] == 0 ){
-			return -1;
+			return SATProblem.CONFLICTING;
 		    }
 		    if( tracePropagation ){
 			System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
@@ -328,7 +328,7 @@ public final class SATContext implements java.io.Serializable {
 	    if( nc == 0 ){
 		if( assignments[var] == UNASSIGNED ){
 		    if( posclauses[var] == 0 ){
-			return -1;
+			return SATProblem.CONFLICTING;
 		    }
 		    if( tracePropagation ){
 			System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
@@ -363,7 +363,7 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 	}
-	return 0;
+	return SATProblem.UNDETERMINED;
     }
 
     private void dumpAssignments()
@@ -381,7 +381,7 @@ public final class SATContext implements java.io.Serializable {
 
     /**
      * Propagates the fact that variable 'var' is true.
-     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
+     * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int propagatePosAssignment( SATProblem p, int var )
     {
@@ -407,7 +407,7 @@ public final class SATContext implements java.io.Serializable {
 		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=true" );
 		    dumpAssignments();
 		}
-	        return -1;
+	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
 		// Remember that we saw a unit clause, but don't
@@ -438,7 +438,7 @@ public final class SATContext implements java.io.Serializable {
 	}
 	if( unsatisfied == 0 ){
 	    // All clauses are now satisfied, we have a winner!
-	    return 1;
+	    return SATProblem.SATISFIED;
 	}
 
 	// Now propagate unit clauses if there are any.
@@ -458,12 +458,12 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 	}
-	return 0;
+	return SATProblem.UNDETERMINED;
     }
 
     /**
      * Propagates the fact that variable 'var' is false.
-     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
+     * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int propagateNegAssignment( SATProblem p, int var )
     {
@@ -489,7 +489,7 @@ public final class SATContext implements java.io.Serializable {
 		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=false" );
 		    dumpAssignments();
 		}
-	        return -1;
+	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
 		// Remember that we saw a unit clause, but don't
@@ -520,7 +520,7 @@ public final class SATContext implements java.io.Serializable {
 	}
 	if( unsatisfied == 0 ){
 	    // All clauses are now satisfied, we have a winner!
-	    return 1;
+	    return SATProblem.SATISFIED;
 	}
 
 	// Now propagate unit clauses if there are any.
@@ -540,7 +540,7 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 	}
-	return 0;
+	return SATProblem.UNDETERMINED;
     }
 
     /**
@@ -636,7 +636,7 @@ public final class SATContext implements java.io.Serializable {
      * Optimize the problem by searching for and propagating all unit
      * clauses and pure variables that we can find.
      * @param p The SAT problem this is the context for.
-     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
+     * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int optimize( SATProblem p )
     {
@@ -668,6 +668,6 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 	}
-	return 0;
+	return SATProblem.UNDETERMINED;
     }
 }
