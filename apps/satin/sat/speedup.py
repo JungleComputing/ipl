@@ -21,7 +21,7 @@ ProcNos = [ 1, 2, 4, 8, 16, 32 ]
 nameserverport = 2001
 
 def get_time_stamp():
-    return time.strftime( "%Y-%m-%d %H:%M:%S", time.localtime())
+    return time.strftime( "%Y-%m-%d-%H:%M:%S", time.localtime())
 
 
 def makeNonBlocking( fd ):
@@ -32,7 +32,7 @@ def makeNonBlocking( fd ):
 	fcntl.fcntl(fd, FCNTL.F_SETFL, fl | FCNTL.FNDELAY)
     
 # Run the given command. Return a tuple with the exit code, the stdout text,
-# and the stderr text
+# and the stderr text.
 def getCommandOutput( command ):
     child = popen2.Popen3(command, 1) # capture stdout and stderr from command
     child.tochild.close()             # don't need to talk to child
@@ -85,8 +85,11 @@ def reportRun( label, data, lf = None ):
     reportTrace( out, label + " output stream", lf )
     reportTrace( err, label + " error stream", lf )
 
-def reportedRun( label, cmd, lf = None ):
+def reportedRun( P, lf = None ):
+    cmd = build_run_command( P, solver, problem, nameserverport )
+    report( "Command: " + cmd, lf )
     data = getCommandOutput( cmd )
+    label = "P=%d" % P
     reportRun( label, data, lf )
 
 def run():
@@ -96,9 +99,7 @@ def run():
     report( "Problem: " + problem, lf )
 
     for P in ProcNos:
-        cmd = build_run_command( P, solver, problem, nameserverport )
-        report( "Command: " + cmd, lf )
-        reportedRun( "P=%d" % P, cmd, lf )
+        reportedRun( P, lf )
 
 #reportedRun( "test", "ls" )
 run()
