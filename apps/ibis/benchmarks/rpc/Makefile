@@ -16,7 +16,7 @@ MANTACFLAGS	+= -S
 
 # Only for .class compiler O_FILES		+= RszHandler.o
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
+# java: $(CLASS_FILES) $(MAIN_CLASS)
 
 manta:
 	@echo Don't make a manta exec here\!
@@ -24,4 +24,4 @@ manta:
 
 clean:
 	rm -f $(TRASH_FILES)
-	cd manta; $(MAKE) $(MFLAGS) clean
+	-cd manta; $(MAKE) $(MFLAGS) clean

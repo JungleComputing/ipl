@@ -142,6 +142,11 @@ System.err.println(">>>>>>>> Righto, I'm the slave");
 			
 			System.exit(0);
 
+		} catch (IbisException e) { 
+			System.out.println("Got exception " + e);
+			System.out.println("StackTrace:");
+			e.printStackTrace();
+
 		} catch (IbisIOException e) { 
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");

@@ -220,6 +220,11 @@ class Latency {
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();
+
+		} catch (IbisException e) { 
+			System.out.println("Got exception " + e);
+			System.out.println("StackTrace:");
+			e.printStackTrace();
 		}
 	} 
 } 
