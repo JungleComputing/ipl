@@ -180,7 +180,7 @@ System.err.println("This IS a home-only connection");
 
     private void createNewUpcallThread() {
 	if (sleeping_receivers > 0) {
-System.err.println(Thread.currentThread() + "(actually woke up a sleeping one)");
+// System.err.println(Thread.currentThread() + "(actually woke up a sleeping one)");
 	    sleepers.cv_signal();
 	}
 	else {
@@ -247,7 +247,7 @@ System.err.println(Thread.currentThread() + "(actually woke up a sleeping one)")
 		upcall_msgs++;
 	    }
 	    if (handlingReceive == 0 && ! aMessageIsAlive) {
-System.err.println("enqueue: Create another UpcallThread because the previous one didn't terminate");
+// System.err.println("enqueue: Create another UpcallThread because the previous one didn't terminate");
 // (new Throwable()).printStackTrace();
 		createNewUpcallThread();
 	    }

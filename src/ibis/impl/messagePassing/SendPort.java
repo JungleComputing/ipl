@@ -22,6 +22,14 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     int newMessageWaiters;
     int messageCount;
 
+    /*
+     * If one of the connections is a Home connection, do some polls
+     * after our send to see to it that the receive side doesn't have
+     * to await a time slice.
+     */
+    private boolean homeConnection;
+    final private static int homeConnectionPolls = 8;
+
     ibis.ipl.impl.messagePassing.WriteMessage message = null;
 
     OutputConnection outConn;
@@ -130,6 +138,10 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	    if (! syncer[my_split].accepted) {
 		throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + rid);
 	    }
+
+	    if (ident.ibis().equals(receiver.ibis())) {
+		homeConnection = true;
+	    }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -171,8 +183,13 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     }
 
 
-    void registerSend() {
+    void registerSend() throws IbisIOException {
 	messageCount++;
+	if (homeConnection) {
+	    for (int i = 0; i < homeConnectionPolls; i++) {
+		Ibis.myIbis.pollLocked();
+	    }
+	}
     }
 
 

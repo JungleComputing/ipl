@@ -43,13 +43,13 @@ public class Poll implements Runnable {
 
 	/*
 	 * This is an 1.3 feature; cannot we use it please?
-	 *
+	 */
 	Runtime.getRuntime().addShutdownHook(new Thread() {
 	    public void run() {
 		report();
 	    }
 	});
-	*/
+	/* */
     }
 
 
