@@ -94,5 +94,4 @@ public interface Registry {
 	 */
 	public String[] list(String pattern)
 		throws IOException;
-
 }

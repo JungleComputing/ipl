@@ -10,7 +10,7 @@ import ibis.ipl.IbisConfigurationException;
 
 import ibis.ipl.impl.generic.IbisIdentifierTable;
 
-import ibis.ipl.impl.nameServer.*;
+import ibis.ipl.impl.nameServer.NameServer;
 
 import java.io.IOException;
 
@@ -84,7 +84,7 @@ public final class NetIbis extends Ibis {
 	/**
 	 * This {@link NetIbis} instance <I>name server</I> client.
 	 */
-	protected NameServerClient  nameServerClient = null;
+	protected NameServer  nameServer = null;
 
 	/**
 	 * The openness of our <I>world</I>.
@@ -252,8 +252,7 @@ public final class NetIbis extends Ibis {
 		NetPortType newPortType = new NetPortType(this, name, sp);
 		sp = newPortType.properties();
 
-		PortTypeNameServerClient client = nameServerClient.portTypeNameServerClient;
-		if (client.newPortType(name, sp)) {
+		if (nameServer.newPortType(name, sp)) {
 			portTypeTable.put(name, newPortType);
 		}
 
@@ -266,7 +265,7 @@ public final class NetIbis extends Ibis {
 	 * @return A reference to the instance's registry access.
 	 */
 	public Registry registry() {
-		return nameServerClient.registry;
+		return nameServer;
 	}
 
 	/**
@@ -302,54 +301,8 @@ public final class NetIbis extends Ibis {
 		InetAddress addr = InetAddress.getLocalHost();
 		identifier = new NetIbisIdentifier(name, addr);
 
-                /* Decodes <I>name server</I> properties informations. */
-		{
-			Properties p = System.getProperties();
-
-			nameServerName = p.getProperty("ibis.name_server.host");
-                        if (nameServerName == null) {
-                                throw new IbisConfigurationException("property ibis.name_server.host is not specified");
-                        }
-
-			nameServerPool = p.getProperty("ibis.name_server.key");
-                        if (nameServerPool == null) {
-                                throw new IbisConfigurationException("property ibis.name_server.key is not specified");
-                        }
-
-                        String nameServerPortString = p.getProperty("ibis.name_server.port");
-
-                        if (nameServerPortString == null) {
-                                nameServerPort = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
-                        } else {
-                                try {
-                                        nameServerPort = Integer.parseInt(nameServerPortString);
-                                } catch (Exception e) {
-                                        System.err.println("illegal nameserver port: " + nameServerPortString + ", using default");
-                                        nameServerPort = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
-                                }
-                        }
-		}
-
-                /* Gets <I>name server<I> {@link InetAddress} */
-		nameServerInet = InetAddress.getByName(nameServerName);
-
-
                 /* Connects to the <I>name server<I> */
-		nameServerClient = new NameServerClient(this,
-							addr,
-							identifier,
-							nameServerPool,
-							nameServerInet,
-							nameServerPort);
-	}
-
-	/**
-	 * Returns the NetIbis instance's access to the name server receive-port name {@linkplain ReceivePortNameServerClient registry}.
-	 *
-	 * @return A reference to the instance's receive-port name registry access.
-	 */
-	public ReceivePortNameServerClient receivePortNameServerClient() {
-		return nameServerClient.receivePortNameServerClient;
+		nameServer = NameServer.loadNameServer(this);
 	}
 
         /*
@@ -436,7 +389,7 @@ public final class NetIbis extends Ibis {
 	/** Requests the NetIbis instance to leave the Name Server pool.
 	 */
 	public void end() throws IOException {
-		nameServerClient.leave();
+		nameServer.leave();
 	}
 
 	public ibis.ipl.ReadMessage poll() throws IOException {

@@ -29,8 +29,8 @@ public abstract class Ibis {
 	protected String name;
 	protected String implName;
 	protected ResizeHandler resizeHandler;
-	protected static ArrayList implList; /* string list */
-	protected static ArrayList implProperties; /* StaticProperties list */
+	private static ArrayList implList; /* string list */
+	private static ArrayList implProperties; /* StaticProperties list */
 	private static ArrayList loadedIbises = new ArrayList();
 
 	static {
@@ -393,7 +393,6 @@ public abstract class Ibis {
 	} 
 
 	public abstract IbisIdentifier identifier();
-
 
 	/** returns null when the implementation could not be loaded **/
 	public static Timer newTimer(String impl) {

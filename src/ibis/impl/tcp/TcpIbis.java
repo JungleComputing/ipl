@@ -5,6 +5,7 @@ import ibis.ipl.PortType;
 import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisException;
@@ -13,7 +14,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
 import ibis.ipl.ReadMessage;
 
-import ibis.ipl.impl.nameServer.*;
+import ibis.ipl.impl.nameServer.NameServer;
 
 import java.net.Socket;
 import java.net.InetAddress;
@@ -35,11 +36,7 @@ public final class TcpIbis extends Ibis implements Config {
 	private TcpIbisIdentifier ident;
 	private InetAddress myAddress;
 
-	protected NameServerClient        tcpIbisNameServerClient;
-	protected PortTypeNameServerClient    tcpPortTypeNameServerClient;
-	protected ReceivePortNameServerClient tcpReceivePortNameServerClient;
-	protected ElectionClient              tcpElectionClient;
-	protected Registry                    tcpRegistry;
+	private NameServer nameServer;
 
 	private String nameServerName;
 	private String nameServerPool;
@@ -73,9 +70,7 @@ public final class TcpIbis extends Ibis implements Config {
 		TcpPortType resultPort = new TcpPortType(this, name, p);
 		p = resultPort.properties();
 
-		PortTypeNameServerClient temp = tcpIbisNameServerClient.portTypeNameServerClient;
-
-		if (temp.newPortType(name, p)) { 
+		if (nameServer.newPortType(name, p)) { 
 			/* add type to our table */
 			portTypeList.put(name, resultPort);
 
@@ -88,7 +83,7 @@ public final class TcpIbis extends Ibis implements Config {
 	}
 
 	public Registry registry() {
-		return tcpRegistry;
+		return nameServer;
 	} 
 
 	public StaticProperties properties() { 
@@ -106,32 +101,6 @@ public final class TcpIbis extends Ibis implements Config {
 		poolSize = 1;
 
 		Properties p = System.getProperties();
-		nameServerName = p.getProperty("ibis.name_server.host");
-		if (nameServerName == null) {
-			throw new IbisException("property ibis.name_server.host is not specified");
-		}
-
-		nameServerPool = p.getProperty("ibis.name_server.key");
-		if (nameServerPool == null) {
-			throw new IbisException("property ibis.name_server.key is not specified");
-		}
-
-		String nameServerPortString = p.getProperty("ibis.name_server.port");
-		if (nameServerPortString == null) {
-			nameServerPort = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
-		} else {
-			try {
-				nameServerPort = Integer.parseInt(nameServerPortString);
-				System.err.println("Using nameserver port: " + nameServerPort);
-			} catch (Exception e) {
-				System.err.println("illegal nameserver port: " + nameServerPortString + ", using default");
-			}
-		}
-
-		nameServerInet = InetAddress.getByName(nameServerName);
-		if(DEBUG) {
-			System.err.println("Found nameServerInet " + nameServerInet);
-		}
 
 		String myIp = p.getProperty("ip_address");
 		if (myIp == null) {
@@ -143,25 +112,10 @@ public final class TcpIbis extends Ibis implements Config {
 
 		if(DEBUG) {
 			System.err.println("Created IbisIdentifier " + ident);
-/*
-			InetAddress[] res = InetAddress.getAllByName(myIp);
-			for(int i=0; i<res.length; i++) {
-				System.err.println("IP: " + res[i] + 
-				    (res[i].isSiteLocalAddress() ? " SL" : " !SL") + 
-				    (res[i].isLinkLocalAddress() ? " LL" : " !LL") + 
-				    (res[i].isLoopbackAddress() ? " LOOP" : " !LOOP") + 
-				    (res[i].isAnyLocalAddress() ? " ANYL" : " !ANYL") + 
-				    (res[i].isMulticastAddress() ? " MULTI" : " !MULTI"));
-			}
-*/
 		}
 
-		tcpIbisNameServerClient = new NameServerClient(this, myAddress, ident, nameServerPool, nameServerInet, 
-							       nameServerPort);
-		tcpPortTypeNameServerClient = tcpIbisNameServerClient.portTypeNameServerClient;
-		tcpReceivePortNameServerClient = tcpIbisNameServerClient.receivePortNameServerClient;
-		tcpElectionClient = tcpIbisNameServerClient.electionClient;
-		tcpRegistry = tcpIbisNameServerClient.registry;
+		nameServer = NameServer.loadNameServer(this);
+
 		tcpPortHandler = new TcpPortHandler(ident);
 		if(DEBUG) {
 			System.err.println("Out of TcpIbis.init()");
@@ -256,7 +210,7 @@ public final class TcpIbis extends Ibis implements Config {
 
 	public void end() {
 		try { 
-			tcpIbisNameServerClient.leave();		
+			nameServer.leave();
 			tcpPortHandler.quit();			
 		} catch (Exception e) { 
 			throw new RuntimeException("TcpIbisNameServerClient: leave failed " + e);
@@ -275,5 +229,13 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 
 		return null;
+	}
+
+	void bindReceivePort(String name, ReceivePortIdentifier p) throws IOException {
+		nameServer.bind(name, p);
+	}
+
+	void unbindReceivePort(String name) throws IOException {
+		nameServer.unbind(name);
 	}
 }

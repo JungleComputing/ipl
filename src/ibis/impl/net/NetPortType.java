@@ -377,7 +377,7 @@ public final class NetPortType implements PortType {
 					     boolean connectionAdministration) throws IOException {
 		NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu, connectionAdministration);
 
-		ibis.receivePortNameServerClient().bind(name, nrp);
+		ibis.registry().bind(name, nrp.identifier());
 
 		return nrp;
 	}

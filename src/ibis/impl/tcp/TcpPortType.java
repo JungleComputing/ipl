@@ -163,7 +163,7 @@ class TcpPortType implements PortType, Config {
 			System.out.println(ibis.name() + ": Receiveport created name = '" + name() + "'");
 		}
 
-		ibis.tcpReceivePortNameServerClient.bind(name, p);
+		ibis.bindReceivePort(name, p.identifier());
 
 		if(DEBUG) {
 			System.out.println(ibis.name() + ": Receiveport bound in registry, name = '" + name() + "'");
@@ -182,7 +182,7 @@ class TcpPortType implements PortType, Config {
 				ReceivePort rp = (ReceivePort) receivePorts.get(i);
 				if(rp.equals(name)) {
 					receivePorts.remove(i);
-					ibis.tcpReceivePortNameServerClient.unbind(name);
+					ibis.unbindReceivePort(name);
 					return;
 				}
 			}
