@@ -141,11 +141,34 @@ System.err.println("Specified alt ip addr " + external);
 	    }
 	}
 
+	try {
+	    String hostname = InetAddress.getLocalHost().getHostName();
+	    InetAddress[] all = InetAddress.getAllByName(hostname);
+	    if (all != null) {
+		for(int i=0; i<all.length; i++) {
+		    if (isExternalAddress(all[i])) {
+			external = all[i];
+			if (DEBUG) {
+			    System.err.println("trying address: " + external +
+				    " EXTERNAL");
+			}
+			break;
+		    }
+		}
+	    }
+	} catch (java.net.UnknownHostException e) {
+	    if (DEBUG) {
+		System.err.println("InetAddress.getLocalHost().getHostName() failed");
+	    }
+	}
+
 	Enumeration e = null;
 	try {
 	    e = NetworkInterface.getNetworkInterfaces();
 	} catch(SocketException ex) {
-	    System.err.println("Could not get network interfaces. Trying local.");
+	    if (DEBUG) {
+		System.err.println("Could not get network interfaces. Trying local.");
+	    }
 	}
 	boolean first = true;
 	/*
@@ -170,6 +193,8 @@ System.err.println("Specified alt ip addr " + external);
 		    if(isExternalAddress(address)) {
 			if(external == null) {
 			    external = address;
+			} else if (external.equals(address)) {
+			    // OK
 			} else if (! (external instanceof Inet4Address) &&
 				   address instanceof Inet4Address) {
 			    // Preference for IPv4
