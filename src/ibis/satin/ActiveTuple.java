@@ -6,6 +6,6 @@ package ibis.satin;
  one that inserted the element.  the inserted tuple key is passed as
  parameter.
 **/
-interface ActiveTuple extends java.io.Serializable {
-	void handleTuple(String key);
+public interface ActiveTuple extends java.io.Serializable {
+	public void handleTuple(String key);
 }
