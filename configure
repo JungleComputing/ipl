@@ -33,3 +33,7 @@ then
 	patch -p0 < .config.mk.diff
 	rm .config.mk.diff
 fi
+
+(cd src/ibis/util; make CFLAGS=-g getpid java_wrapper)
+cp src/ibis/util/getpid bin/
+cp src/ibis/util/java_wrapper bin/
