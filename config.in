@@ -3,6 +3,9 @@
 # When using javac or jikes, set these values correctly and use "make"
 # or "make java". (Also make sure that your CLASSPATH is set correctly).     
 
+.PHONY:		manta
+.PHONY:		java
+
 # default:	manta
 default:	java
 
@@ -27,7 +30,7 @@ LFC_ROOT	= @LFC_ROOT@
 
 JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
 JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
-JAVACLASSPATH	= $(IBIS_ROOT):.:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
+JAVACLASSPATH	= $(IBIS_ROOT):$(IBIS_ROOT)/ibis:.:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH)
 JAVAHFLAGS      += -classpath $(JAVACLASSPATH)
 
@@ -46,6 +49,7 @@ else
 LFC	        = $(LFC_ROOT)/lib/debug/liblfc.a
 PANDA_LIB	= $(PANDA)/panda4.0/lib/i386_linux/$(PANDA_NETWORK)/no_threads/libpanda.a
 endif
+GM		= $(GM_ROOT)/lib/libgm.a
 
 GROUPC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.group.Main
 
@@ -87,7 +91,7 @@ PACKAGE		= $(subst /,.,$(PACKAGE_SLASH))
 
 MANTA	= @MANTA_ROOT@
 export MANTA
-MANTACLASSPATH	= $(IBIS_ROOT):.
+MANTACLASSPATH	= $(IBIS_ROOT):$(IBIS_ROOT)/ibis:$(MANTA)/javalibs:.
 MANTACFLAGS	+= -classpath $(MANTACLASSPATH)
 MANTACFLAGS	+= -g
 MANTACFLAGS	+= -no-shared-link
