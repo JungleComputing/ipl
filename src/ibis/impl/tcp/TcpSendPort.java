@@ -48,7 +48,8 @@ final class TcpSendPort implements SendPort, Config {
 			ident = new TcpSendPortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
 			sender = new SerializationStreamSender(this);
 		} catch (Exception e) { 
-			throw new IbisIOException("Could not create SendPort");
+			e.printStackTrace();
+			throw new IbisIOException("Could not create SendPort", e);
 		}
 	}
 
