@@ -11,31 +11,19 @@
     <property name="build"       location="build"/>
 
     <import file="${ibis}/apps/ibis/build-ibis-app.xml"/>
+    <import file="${ibis}/apps/build-run.xml"/>
 
-    <target name="run"
+    <target name="test"
 	    depends="build"
 	    description="Run test">
-	<exec dir="${basedir}"
-	      executable="../bin/ibis_nameserver"
-	      vmlauncher="false"
-	      spawn="true">
-	      <arg line="-single -port 4567"/>
-	</exec>
-	<!-- Give nameserver time to start up -->
-	<sleep seconds="2"/>
-	<exec dir="${basedir}"
-	      executable="../bin/run-ibis"
-	      vmlauncher="false"
-	      spawn="true">
-	      <arg line="-ns localhost:4567 -Dibis.name=tcp Example"/>
-	</exec>
-	<exec dir="${basedir}"
-	      executable="../bin/run-ibis"
-	      timeout="10000"
-	      failonerror="true"
-	      vmlauncher="false">
-	      <arg line="-ns localhost:4567 -Dibis.name=tcp Example"/>
-	</exec>
+	<antcall target="run2">
+	    <param name="runjob" value="Example"/>
+	</antcall>
+    </target>
+
+    <target name="run"
+	    depends="test"
+	    description="Run test (deprecated, use 'ant test')">
     </target>
 
 </project>
