@@ -12,9 +12,9 @@ while (my $line = <F>) {
     if ($words[0] eq "IBIS_ROOT") {
 	print OUTFILE "IBIS_ROOT=${IBIS_TEST_DIR}\n";
     } elsif ($words[0] eq "JAVA_ROOT") {
-	print OUTFILE "JAVA_ROOT=/usr/local/ibm-java/IBMJava2-131\n";
+	print OUTFILE "JAVA_ROOT=/usr/local/ibm-java/IBMJava2-14\n";
     } elsif ($words[0] eq "JAVAC") {
-	print OUTFILE "JAVAC=/usr/local/ibm-java/IBMJava2-131/bin/javac\n";
+	print OUTFILE "JAVAC=/usr/local/ibm-java/IBMJava2-14/bin/javac\n";
     } else {
 	print OUTFILE $line;
     }
