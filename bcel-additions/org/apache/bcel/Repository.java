@@ -136,7 +136,6 @@ public abstract class Repository {
       }
       return clazz;
     } catch(ClassNotFoundException ex) {
-	System.out.println("Class " + class_name + ": not found");
 	return null;
     }
   }
