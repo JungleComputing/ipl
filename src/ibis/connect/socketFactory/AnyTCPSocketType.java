@@ -115,7 +115,6 @@ public class AnyTCPSocketType extends SocketType
 		    // No, a connect without timeout sometimes just hangs.
 		} catch(Exception e) {
 		    MyDebug.trace("AnyTCPSocketType client got exception " + e);
-		    e.printStackTrace();
 		    os.writeInt(0);		// failure
 		    s = null;
 		}
