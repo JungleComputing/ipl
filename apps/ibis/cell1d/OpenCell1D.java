@@ -9,7 +9,7 @@ import java.io.IOException;
 
 interface OpenConfig {
     static final boolean tracePortCreation = false;
-    static final boolean traceCommunication = true;
+    static final boolean traceCommunication = false;
     static final boolean showProgress = true;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
@@ -416,9 +416,9 @@ class OpenCell1D implements OpenConfig {
         // empty.
 
         // ... and always send our first column as border to the neighbour.
-        int ix = p.firstNoColumn-1;
-        m.writeInt( ix );
         if( p.firstColumn<p.firstNoColumn ){
+            int ix = p.firstNoColumn-1;
+            m.writeInt( ix );
             if( traceCommunication ){
                 System.out.println( "P" + me + ":" + generation + ": sending border column " + ix + " to P" + (me+1) );
             }
@@ -430,9 +430,12 @@ class OpenCell1D implements OpenConfig {
             m.writeArray( buf );
         }
         else {
+            // We don't have columns, so no border columns either. Tell
+            // that to the opposite side.
             if( traceCommunication ){
                 System.out.println( "P" + me + ":" + generation + ": there is no border column to send to P" + (me+1) );
             }
+            m.writeInt( boardsize );
         }
         m.send();
         m.finish();
