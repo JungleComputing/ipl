@@ -18,6 +18,8 @@ public final class SeqSolver {
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
+    private static final boolean traceLearning = false;
+    private static final boolean traceRestarts = false;
     private static int label = 0;
     private int decisions = 0;
 
@@ -25,11 +27,11 @@ public final class SeqSolver {
      * Solve the leaf part of a SAT problem.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
-     * @param level branching level
+     * @param level The branching level.
      * @param p the SAT problem to solve
-     * @param ctx the changable context of the solver
-     * @param var the next variable to assign
-     * @param val the value to assign
+     * @param ctx The changable context of the solver.
+     * @param var The next variable to assign.
+     * @param val The value to assign.
      */
     public void leafSolve(
 	int level,
@@ -39,10 +41,10 @@ public final class SeqSolver {
 	boolean val
     ) throws SATResultException, SATRestartException
     {
-	if( traceSolver ){
-	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
-	}
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
+	if( traceSolver ){
+	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
+	}
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level );
@@ -86,14 +88,14 @@ public final class SeqSolver {
         }
         catch( SATRestartException x ){
 	    if( x.level<level ){
-		//System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                if( traceRestarts ){
+                    System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                }
 		throw x;
 	    }
         }
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
-	// Also note that this call is a perfect candidate for tail
-	// call elimination.
         // However, we must update the administration with any
         // new clauses that we've learned recently.
         ctx.update( p );
@@ -155,18 +157,28 @@ public final class SeqSolver {
                 leafSolve( 0, p, negctx, nextvar, firstvar );
             }
             catch( SATRestartException x ){
-                // Restart the search here, since we have an untried
-                // value.
+                if( x.level<0 ){
+                    if( traceRestarts ){
+                        System.err.println( "RestartException reaches top level, no solutions" );
+                    }
+                    return null;
+                }
             }
             ctx.update( p );
             leafSolve( 0, p, ctx, nextvar, !firstvar );
 	}
 	catch( SATResultException r ){
-	    if( r.s == null ){
-		System.err.println( "A null solution thrown???" );
-	    }
 	    res = r.s;
+	    if( res == null ){
+		System.err.println( "A null result thrown???" );
+	    }
+            return res;
 	}
+        catch( SATRestartException x ){
+            if( traceRestarts ){
+                System.err.println( "RestartException reaches top level, no solutions" );
+            }
+        }
         catch( SATException x ){
             System.err.println( "Uncaught " + x + "???" );
         }
