@@ -80,8 +80,6 @@ public class IOGenerator {
 
     private static final Type	java_lang_class_type = Type.getType("Ljava/lang/Class;");
 
-    private static String serialver = "serialver";
-
     private static HashMap serialversionids = new HashMap();
 
     private static class FieldComparator implements Comparator {
@@ -2311,9 +2309,6 @@ public class IOGenerator {
 		force_generated_calls = true;
 	    } else if (args[i].equals("-verify")) {
 		verify = true;
-	    } else if (args[i].equals("-sv")) {
-		serialver = args[i+1];
-		i++;
 	    } else if (args[i].equals("-package")) {
 		pack = args[i+1];
 		i++; // skip arg

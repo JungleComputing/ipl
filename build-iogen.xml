@@ -75,16 +75,13 @@
 	    </then>
 	</if>
 
-	<property name="iogen-class-path" refid="default.classpath"/>
-	<property name="serialver" location="${JAVA_HOME}/bin/serialver"/>
-
 	<java   classname="ibis.frontend.io.IOGenerator"
 		taskname="IOGenerator"
 		dir="${iogen-build}"
 		failonerror="true"
 		maxmemory="256m"
 		fork="true">
-		<arg line="-sv '${serialver} -classpath ${iogen-class-path}${path.separator}' -silent -dir ${iogen-files}"/>
+		<arg line="-silent -dir ${iogen-files}"/>
 	    <classpath refid="default.classpath"/>
 	    <classpath refid="app.classpath"/>
 	</java>
