@@ -8,16 +8,16 @@ import ibis.ipl.Upcall;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.ConnectUpcall;
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 
-class TcpPortType implements PortType { 
+class TcpPortType implements PortType, Config { 
 
 	StaticProperties p;
 	String name;
 	TcpIbis ibis;
 	
 	static final byte SERIALIZATION_SUN = 0;
-	static final byte SERIALIZATION_MANTA = 1;
+	static final byte SERIALIZATION_IBIS = 1;
 
 	byte serializationType = SERIALIZATION_SUN;
 
@@ -34,10 +34,10 @@ class TcpPortType implements PortType {
 			if (ser.equals("sun")) {
 				serializationType = SERIALIZATION_SUN;
 //				System.err.println("serializationType = SERIALIZATION_SUN");
-			} else if (ser.equals("manta")) {
+			} else if (ser.equals("ibis")) {
 
-//				System.err.println("serializationType = SERIALIZATION_MANTA");
-				serializationType = SERIALIZATION_MANTA;
+//				System.err.println("serializationType = SERIALIZATION_IBIS");
+				serializationType = SERIALIZATION_IBIS;
 			} else {
 				throw new IbisException("Unknown Serialization type " + ser);
 			}
@@ -65,7 +65,7 @@ class TcpPortType implements PortType {
 
 		s = new TcpSendPort(this);
 
-		if(TcpIbis.DEBUG) {
+		if(DEBUG) {
 			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
 		}
 
@@ -77,7 +77,19 @@ class TcpPortType implements PortType {
 
 		s = new TcpSendPort(this, r);
 
-		if(TcpIbis.DEBUG) {
+		if(DEBUG) {
+			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
+		}
+
+		return s;
+	}
+
+	public SendPort createSendPort(String portname, Replacer r) throws IbisIOException {
+		SendPort s;
+
+		s = new TcpSendPort(this, r, portname);
+
+		if(DEBUG) {
 			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
 		}
 
@@ -89,8 +101,8 @@ class TcpPortType implements PortType {
 
 		s = new TcpSendPort(this, portname);
 
-		if(TcpIbis.DEBUG) {
-			System.out.println(ibis.name() + ": Sendport " + name + " created of of type '" + this.name + "'");
+		if(DEBUG) {
+			System.out.println(ibis.name() + ": Sendport '" + portname + "' created of of type '" + this.name + "'");
 		}
 
 		return s;
@@ -100,13 +112,13 @@ class TcpPortType implements PortType {
 
 		TcpReceivePort p = new TcpReceivePort(this, name);
 
-		if(TcpIbis.DEBUG) {
+		if(DEBUG) {
 			System.out.println(ibis.name() + ": Receiveport created of type '" + this.name + "', name = '" + name + "'");
 		}
 
 		ibis.tcpReceivePortNameServerClient.bind(name, p);
 
-		if(TcpIbis.DEBUG) {
+		if(DEBUG) {
 			System.out.println(ibis.name() + ": Receiveport bound in registry, type = '" + this.name + "', name = '" + name + "'");
 		}
 
@@ -117,13 +129,13 @@ class TcpPortType implements PortType {
 
 		TcpReceivePort p = new TcpReceivePort(this, name, u);
 
-		if(TcpIbis.DEBUG) {
+		if(DEBUG) {
 			System.out.println(ibis.name() + ": Receiveport created of type '" + this.name + "', name = '" + name + "'");
 		}
 
 		ibis.tcpReceivePortNameServerClient.bind(name, p);
 
-		if(TcpIbis.DEBUG) {
+		if(DEBUG) {
 			System.out.println(ibis.name() + ": Receiveport bound in registry, type = '" + this.name + "', name = '" + name + "'");
 		}
 

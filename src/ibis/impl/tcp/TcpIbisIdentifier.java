@@ -1,4 +1,5 @@
 // handcrafted by Rob, do *NOT* overwrite!
+// We cache these identifiers for efficiency, Satin sends them frequently.
 package ibis.ipl.impl.tcp;
 
 import java.io.DataInputStream;
@@ -8,8 +9,8 @@ import java.io.EOFException;
 import java.net.InetAddress;
 import ibis.ipl.IbisIdentifier;
 import ibis.io.Serializable;
-import ibis.io.MantaOutputStream;
-import ibis.io.MantaInputStream;
+import ibis.io.IbisSerializationOutputStream;
+import ibis.io.IbisSerializationInputStream;
 
 // the implements should be unnecessary, but the IOGenerator does not 
 // see that the super class implents it, and rewrites the bytecode.
@@ -24,7 +25,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 		super(name, address);
 	}
 
-	public TcpIbisIdentifier(MantaInputStream stream) throws ibis.ipl.IbisIOException {
+	public TcpIbisIdentifier(IbisSerializationInputStream stream) throws ibis.ipl.IbisIOException {
 		stream.addObjectToCycleCheck(this);
 		int handle = stream.readInt();
 		if(handle < 0) {
@@ -40,6 +41,15 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 			TcpIbisIdentifier ident = (TcpIbisIdentifier) TcpIbis.globalIbis.identTable.getIbis(stream, handle);
 			address = ident.address;
 			name = ident.name;
+		}
+	}
+
+	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws ibis.ipl.IbisIOException {
+		int handle = TcpIbis.globalIbis.identTable.getHandle(stream, this);
+		stream.writeInt(handle);
+		if(handle < 0) { // First time, send it.
+			stream.writeUTF(address.getHostAddress());
+			stream.writeUTF(name);
 		}
 	}
 
@@ -65,14 +75,6 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 		return name.hashCode();
 	}
 
-	public final void generated_WriteObject(MantaOutputStream stream) throws ibis.ipl.IbisIOException {
-		int handle = TcpIbis.globalIbis.identTable.getHandle(stream, this);
-		stream.writeInt(handle);
-		if(handle < 0) { // First time, send it.
-			stream.writeUTF(address.getHostAddress());
-			stream.writeUTF(name);
-		}
-	}
 /*
 	public void writeExternal(java.io.ObjectOutput out) throws IOException {
 		out.writeObject(address);

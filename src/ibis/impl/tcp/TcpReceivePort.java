@@ -20,26 +20,28 @@ import ibis.io.*;
 import java.io.*;
 import java.util.ArrayList;
 
-final class TcpReceivePort implements ReceivePort, TcpProtocol {
+final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private int sequenceNr = 0;
-	private TcpPortType type;
+	protected TcpPortType type;
 	private TcpReceivePortIdentifier ident;
 	private int sequenceNumber = 0;
 	private int connectCount = 0;
 	String name; // needed to unbind
 
-	private ConnectionHandler [] connections;
+	private SerializationStreamConnectionHandler [] connections;
 	private int connectionsSize;
 	private int connectionsIndex;
 
 	private volatile boolean stop = false;
 
-	boolean aMessageIsAlive = false;
 	boolean allowUpcalls = false;
-	Upcall upcall;	
+	Upcall upcall;
 	
 	private boolean started = false;
 	private boolean connection_setup_present = false;
+
+	private SerializationStreamReadMessage m = null;
+
 
 	TcpReceivePort(TcpPortType type, String name) throws IbisIOException {
 		this(type, name, null);
@@ -50,7 +52,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		this.name   = name;
 		this.upcall = upcall;
 
-		connections = new ConnectionHandler[2];
+		connections = new SerializationStreamConnectionHandler[2];
 		connectionsSize = 2;
 		connectionsIndex = 0;
 
@@ -58,28 +60,93 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		ident = new TcpReceivePortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier(), port);
 	}
 
-	void doUpcall(ReadMessage m) {
-	        synchronized (this) {  
-		    while (!allowUpcalls || aMessageIsAlive) {
-			try {
-				wait();
-			} catch(InterruptedException e) {
+	// returns:  was the message already finised?
+	boolean doUpcall(SerializationStreamReadMessage m) {
+	        synchronized (this) {
+			// Wait until the previous message was finished.
+			while(this.m != null) {
+				try {
+					wait();
+				} catch (Exception e) {
 				// Ignore.
+				}
 			}
-		    }
-		}	
+
+			this.m = m;
+		}
 
 		upcall.upcall(m);
 
-		synchronized (this) { 
-		    while (aMessageIsAlive) {
+		synchronized(this) {
+			if(!m.isFinished) { // It wasn't finished. Cool, this means that we don't have to start a new thread!
+				this.m = null;
+				notifyAll();
+
+				return false;
+			}
+		}
+		return true;
+	}
+
+	synchronized void finishMessage() {
+		SerializationStreamReadMessage old = m;
+		m = null;
+		notifyAll();
+
+		if(upcall != null) {
+			startNewHandlerThread(old);
+		}
+	}
+
+	void startNewHandlerThread(SerializationStreamReadMessage old) {
+		SerializationStreamConnectionHandler h = old.getHandler();
+		h.createNewMessage();
+		new Thread(h).start();
+	}
+
+
+	boolean setMessage(SerializationStreamReadMessage m) {
+		if(upcall != null) {
+			return doUpcall(m);
+		} else {
+			setBlockingReceiveMessage(m);
+			return false;
+		}
+	}
+
+	private synchronized void setBlockingReceiveMessage(SerializationStreamReadMessage m) {
+		// Wait until the previous message was finished.
+		while(this.m != null) {
 			try {
 				wait();
-			} catch(InterruptedException e) {
+			} catch (Exception e) {
 				// Ignore.
 			}
-		    }
 		}
+
+		this.m = m;
+		notifyAll(); // now handle this message.
+
+		// Wait until the receiver thread finishes this message.
+		while(this.m != null) {
+			try {
+				wait();
+			} catch (Exception e) {
+				// Ignore.
+			}
+		}
+	}
+
+	synchronized SerializationStreamReadMessage getMessage() {
+		while(m == null) {
+			try {
+				wait();
+			} catch (Exception e) {
+				// Ignore.
+			}
+		}
+
+		return m;
 	}
 
 	public synchronized void enableConnections() {		
@@ -126,39 +193,24 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		return sequenceNr++;
 	}
 
-	private synchronized ReadMessage doPoll() throws IbisIOException {
-		ReadMessage m = null;
-//		System.err.println("polling, connections = " + connectionsIndex);
-		while (aMessageIsAlive) { 
-			try { 
-				wait();
-			} catch (InterruptedException e) {
-				// ignore.
-			} 
-		}
-		
-		for (int i=0; i<connectionsIndex; i++) { 
-			m = connections[i].poll();
-			
-			if (m != null) { 
-				aMessageIsAlive = true;
-//				System.err.println(ident + ": polling DONE, returned " + m);
-//				new Exception().printStackTrace();
-				return m;
+	public ReadMessage poll() throws IbisIOException {
+		while(true) {
+			boolean success = false;
+			synchronized(this) {
+				for (int i=0; i<connectionsIndex; i++) { 
+					if(connections[i].m.available() > 0) {
+						success = true;
+						break;
+					}
+				}
+			}
+
+			if(success) {
+				Thread.yield();
+			} else {
+				return null;
 			}
 		}
-
-//		System.err.println("polling DONE, no m");
-		return m;
-	}
-
-	public synchronized ReadMessage poll() throws IbisIOException {
-		if(upcall != null) {
-			Thread.yield();
-			return null;
-		}
-
-		return doPoll();
 	}
 
 	public synchronized ReadMessage poll(ReadMessage finishMe) throws IbisIOException {
@@ -169,17 +221,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	}
 
 	public ReadMessage receive() throws IbisIOException { 
-		ReadMessage m = null;
-
-		while (m == null) {
-			m = doPoll();
-			if (m != null) { 
-				break;
-			} 
-			Thread.yield();
+		if(upcall != null) {
+			throw new IbisIOException("illegal receive");
 		}
-		
-		return m;
+
+		return getMessage();
 	}
 
 	public ReadMessage receive(ReadMessage finishMe) throws IbisIOException { 
@@ -198,13 +244,20 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		return ident;
 	} 
 
-	synchronized void leave(ConnectionHandler leaving, TcpSendPortIdentifier si, int id) {
-		for (int i=0;i<connectionsIndex;i++) { 
+	synchronized void leave(SerializationStreamConnectionHandler leaving, TcpSendPortIdentifier si, int id) {
+		boolean found = false;
+		for (int i=0;i<connectionsIndex; i++) { 
 			if (connections[i] == leaving) { 
 				connections[i] = connections[connectionsIndex-1];
 				connectionsIndex--;
+				found = true;
 				break;
 			} 
+		}
+
+		if(!found) {
+			System.err.println("EEEK, connection handler not found in leave");
+			System.exit(1);
 		}
 
 		TcpIbis.tcpPortHandler.releaseInput(si, id);
@@ -212,18 +265,17 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	}
 
 	public synchronized void free() {
-		if (TcpIbis.DEBUG) { 
+		if (DEBUG) { 
 			System.err.println("TcpReceivePort.free: " + name + ": Starting");
 		}
 
-			if(aMessageIsAlive) {
-				System.err.println("EEK: a msg is alive!");
-			}
+		if(m != null) {
+			System.err.println("EEK: a msg is alive!");
+		}
 
 		while (connectionsIndex > 0) {
-
 			if (upcall != null) { 
-				if (TcpIbis.DEBUG) { 
+				if (DEBUG) { 
 					System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
 				}
 				try {
@@ -232,34 +284,20 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 					// Ignore.
 				}
 			} else { 
-				if (TcpIbis.DEBUG) { 
+				if (DEBUG) { 
 					System.err.println(name + " trying to close all connections (" + connectionsIndex + ")");
 				}
 				
 				while (connectionsIndex > 0) { 
-				
 					for (int i=0;i<connectionsIndex;i++) { 
-						if (TcpIbis.DEBUG) { 
+						if (DEBUG) { 
 							System.err.println(name + " trying to close " + i);
-						}
-						
-						try {
-							ReadMessage m = connections[i].poll();
-							if(m != null) {
-								// o my, a message was in the pipe while this free was issued!
-								System.err.println("EEK, message in pipe during free, this is a bug in your code: the sender and receiver do not agree to close the channel");
-								return;
-//								System.exit(1);
-
-							}
-						} catch (IbisIOException e) {
-							// Ignore
 						}
 					}
 					if(connectionsIndex > 0) {
 						try { 
-							Thread.sleep(1);
-						}	catch (Exception e) {
+							wait(500);
+						} catch (Exception e) {
 							// Ignore
 						}
 					}
@@ -267,9 +305,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 			}
 		}
 
-				if (TcpIbis.DEBUG) { 
-					System.err.println(name + " all connections closed");
-				}
+		if (DEBUG) { 
+			System.err.println(name + " all connections closed");
+		}
 
 		/* unregister with name server */
 		try {
@@ -278,33 +316,19 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 			// Ignore.
 		}
 
-		if (TcpIbis.DEBUG) { 
+		if (DEBUG) { 
 			System.err.println(name + ":done receiveport.free");
 		}
 	}
 
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in, int id) {	
-
-		try { 
+		try {
 //			out.println(name + " ADDING CONNECTION");			
 				
-			ConnectionHandler con = null;
-
-			switch(type.serializationType) {
-			case TcpPortType.SERIALIZATION_SUN:
-				con = new ObjectStreamConnectionHandler(origin, this, in, id);
-				break;
-			case TcpPortType.SERIALIZATION_MANTA:
-				con = new MantaTypedBufferStreamConnectionHandler(origin, this, in, id);
-				break;
-			default:
-				System.err.println("EEK: serialization type unknown");
-				System.exit(1);
-			}
+			SerializationStreamConnectionHandler con = new SerializationStreamConnectionHandler(origin, this, in, id);
 
 			if (connectionsSize == connectionsIndex) { 
-				
-				ConnectionHandler [] temp = new ConnectionHandler[2*connectionsSize];
+				SerializationStreamConnectionHandler [] temp = new SerializationStreamConnectionHandler[2*connectionsSize];
 				for (int i=0;i<connectionsIndex;i++) { 
 					temp[i] = connections[i];
 				}
@@ -312,19 +336,18 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 				connections = temp;
 				connectionsSize = 2*connectionsSize;
 			} 
-			
+
 			connections[connectionsIndex++] = con;
 
-			if (upcall != null) {
+//			if (upcall != null) {
 				new Thread(con).start();
-			}			
+//			}
 
 			connection_setup_present = false;
 			notifyAll();
-
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			System.err.println("Got exception " + e);
 			e.printStackTrace();
-		} 
+		}
 	}
 }

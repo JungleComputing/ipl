@@ -32,8 +32,6 @@ import java.io.DataOutputStream;
 
 public final class TcpIbis extends Ibis implements Config {
 
-	static final boolean DEBUG = false;
-
 	static TcpIbis globalIbis;
 
 	IbisIdentifierTable identTable = new IbisIdentifierTable();
@@ -89,7 +87,7 @@ public final class TcpIbis extends Ibis implements Config {
 			/* add type to our table */
 			portTypeList.put(name, resultPort);
 
-			if(TcpIbis.DEBUG) {
+			if(DEBUG) {
 				System.out.println(this.name + ": created PortType '" + name + "'");
 			}
 		}

@@ -6,7 +6,7 @@ import ibis.ipl.DynamicProperties;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 
 import java.util.Vector;
 import java.io.IOException;
@@ -21,16 +21,12 @@ import java.io.BufferedOutputStream;
 import ibis.io.*;
 
 final class TcpSendPort implements SendPort, Config {
-
 	TcpPortType type;
 	TcpSendPortIdentifier ident;
 	String name;
-	boolean aMessageIsAlive = false;
-	Sender sender;
+	private boolean aMessageIsAlive = false;
+	SerializationStreamSender sender;
 	Replacer replacer = null;
-
-	// @@@ Ronald needs this as a quick fix around his bugs:
-	ibis.ipl.WriteMessage ronald_wm;
 
 	TcpSendPort(TcpPortType type) throws IbisIOException {
 		this(type, null, null);
@@ -50,31 +46,20 @@ final class TcpSendPort implements SendPort, Config {
 			this.type = type;
 			this.replacer = r;
 			ident = new TcpSendPortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
-			
-			switch(type.serializationType) {
-			case TcpPortType.SERIALIZATION_SUN:
-				sender = new ObjectStreamSender(this);
-				break;
-			case TcpPortType.SERIALIZATION_MANTA:
-				sender = new MantaTypedBufferStreamSender(this);
-				break;
-			default:
-				System.err.println("EEK, serialization type unknown");
-				System.exit(1);
-			}
-
-		} catch (IOException e) { 
+			sender = new SerializationStreamSender(this);
+		} catch (Exception e) { 
 			throw new IbisIOException("Could not create SendPort");
-		} 
+		}
 	}
 
+	// @@@ add sanity check: no message should be alive.
 	void connect(TcpReceivePortIdentifier ri, OutputStream sout, int id) throws IOException { 
 		sender.connect(ri, sout, id);
 	}
 
 	public void connect(ReceivePortIdentifier receiver) throws IbisIOException {
-		if(TcpIbis.DEBUG) {
-//			System.err.println(name + " connecting to " + receiver); 
+		if(DEBUG) {
+			System.err.println("Sendport '" + name + "' connecting to " + receiver); 
 		}
 
 		/* first check the types */
@@ -88,8 +73,8 @@ final class TcpSendPort implements SendPort, Config {
 			throw new IbisIOException("Could not connect");
 		} 
 		
-		if(TcpIbis.DEBUG) {
-//			System.err.println(name + " connecting to " + receiver + " done"); 
+		if(DEBUG) {
+			System.err.println("Sendport '" + name + "' connecting to " + receiver + " done"); 
 		}
 	}
 
@@ -109,8 +94,12 @@ final class TcpSendPort implements SendPort, Config {
 			
 			aMessageIsAlive = true;
 		}
-		ronald_wm = sender.newMessage();
-		return ronald_wm;
+		return sender.newMessage();
+	}
+
+	synchronized void finishMessage() {
+		aMessageIsAlive = false;
+		notifyAll();
 	}
 
 	public DynamicProperties properties() {
@@ -128,14 +117,14 @@ final class TcpSendPort implements SendPort, Config {
 			}
 		}
 
-		if(TcpIbis.DEBUG) {
+		if(DEBUG) {
 			System.err.println(type.ibis.name() + ": SendPort.free start");
 		}
 
 		sender.free();
 		ident = null;
 
-		if(TcpIbis.DEBUG) {
+		if(DEBUG) {
 			System.err.println(type.ibis.name() + ": SendPort.free DONE");
 		}
 	}
