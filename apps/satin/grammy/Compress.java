@@ -19,7 +19,6 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
      * subsequent steps that are also helpful.
      */
     public SuffixArray applyFoldingStep( SuffixArray a, Step s, int levels )
-        throws VerificationException
     {
         a.applyCompression( s );
 	if( levels>0 ){
@@ -33,7 +32,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
      * try to find the optimal compression.
      * @return The compressed text.
      */
-    private SuffixArray applyFolding( SuffixArray a, int levels ) throws VerificationException
+    private SuffixArray applyFolding( SuffixArray a, int levels )
     {
         SuffixArray res;
 
@@ -81,7 +80,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
     /** Returns a compressed version of the string represented by
      * this suffix array.
      */
-    public ByteBuffer compress( SuffixArray a ) throws VerificationException
+    public ByteBuffer compress( SuffixArray a )
     {
 	int startLength;
 	do {
@@ -96,7 +95,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
         return a.getByteBuffer();
     }
 
-    public ByteBuffer compress( byte text[] ) throws VerificationException
+    public ByteBuffer compress( byte text[] )
     {
 	SuffixArray a = new SuffixArray( text );
 	return compress( a );
@@ -185,7 +184,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 
             if( compression ){
                 if( !quiet ){
-                    Helpers.printPlatformVersion();
+                    System.out.println( Helpers.getPlatformVersion() );
                     System.out.println( "Compressing " + infile );
                 }
                 Compress c = new Compress( top, lookahead );

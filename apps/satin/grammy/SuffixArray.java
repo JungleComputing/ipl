@@ -17,24 +17,24 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     /** The next grammar rule number to hand out. */
     private short nextcode = FIRSTCODE;
 
-    private SuffixArray( short text[] ) throws VerificationException
+    private SuffixArray( short text[] )
     {
         this.text = text;
         length = text.length;
     }
 
-    public SuffixArray( ShortBuffer b ) throws VerificationException
+    public SuffixArray( ShortBuffer b )
     {
         this( b.getText() );
     }
 
-    SuffixArray( byte t[] ) throws VerificationException
+    SuffixArray( byte t[] )
     {
         length = t.length;
         text = buildShortArray( t );
     }
 
-    SuffixArray( String text ) throws VerificationException
+    SuffixArray( String text )
     {
         this( text.getBytes() );
     }
@@ -769,7 +769,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
      * to take advantage of the commonality indicated by that entry.
      * It also covers any further entries with the same commonality.
      */
-    public void applyCompression( Step s ) throws VerificationException
+    public void applyCompression( Step s )
     {
         final int oldLength = length;   // Remember the old length for verif.
 

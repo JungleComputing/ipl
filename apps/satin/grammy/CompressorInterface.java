@@ -8,5 +8,5 @@
 
 interface CompressorInterface extends ibis.satin.Spawnable
 {
-    public SuffixArray applyFoldingStep( SuffixArray a, Step s, int levels ) throws VerificationException;
+    public SuffixArray applyFoldingStep( SuffixArray a, Step s, int levels );
 }
