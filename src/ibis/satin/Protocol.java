@@ -13,4 +13,5 @@ interface Protocol {
 	static final byte JOB_RESULT =               10;
 	static final byte ABORT =                    11;
 	static final byte TUPLE_ADD =                12;
+	static final byte TUPLE_DEL =                13;
 }

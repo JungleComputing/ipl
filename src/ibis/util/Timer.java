@@ -2,6 +2,7 @@ package ibis.util;
 
 public final class Timer extends ibis.ipl.Timer {
 	private long time = 0;
+	private long lastTime = 0;
 
 	public String implementationName() {
 		return "ibis.util.Timer";
@@ -20,11 +21,14 @@ public final class Timer extends ibis.ipl.Timer {
 	}
 
 	public void start() {
-		time -= System.currentTimeMillis();
+		lastTime = System.currentTimeMillis();
+		time -= lastTime;
 	}
 
 	public void stop() {
-		time += System.currentTimeMillis();
+		long tmp = System.currentTimeMillis();
+		time += tmp;
+		lastTime = tmp - lastTime;
 		++ count;
 	}
 
@@ -48,5 +52,13 @@ public final class Timer extends ibis.ipl.Timer {
 			return format(1000*time / (count));
 		}
 		return "0.0";
+	}
+
+	public double lastTimeVal() {
+		return 1000.0*(double)lastTime;
+	}
+
+	public String lastTime() {
+		return format(1000*lastTime);
 	}
 }

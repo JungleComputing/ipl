@@ -33,6 +33,12 @@ public abstract class Timer {
 	/** Return the average measured time in microseconds, nicely formatted. **/
 	public abstract String averageTime();
 
+	/** Return the last measured time in microseconds. **/
+	public abstract double lastTimeVal();
+
+	/** Return the last measured time in microseconds, nicely formatted. **/
+	public abstract String lastTime();
+
 	/** Return the number of measurements. **/
 	public int nrTimes() {
 		return count;

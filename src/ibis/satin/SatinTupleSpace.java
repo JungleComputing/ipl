@@ -9,7 +9,7 @@ import java.util.HashMap;
 /** This class implements an immutable global tupe space. **/
 public class SatinTupleSpace implements Config {
 
-	// no need for locking the space itself, there is only one thread using it.
+	// space must be synchronized, adds and dels arrive asynchronously
 	private static Satin satin;
 	private static HashMap space;
 
@@ -24,11 +24,13 @@ public class SatinTupleSpace implements Config {
 
 	/** add an element to the global tuple space. The key must be unique. **/
 	public static void add(String key, Serializable data) {
-		if(ASSERTS && space.containsKey(key)) {
-			throw new IbisError("Key " + key + " is already in the tuple space");
-		}
+		synchronized(space) {
+			if(ASSERTS && space.containsKey(key)) {
+				throw new IbisError("Key " + key + " is already in the tuple space");
+			}
 
-		space.put(key, data);
+			space.put(key, data);
+		}
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": added key " + key);
 		}
@@ -79,17 +81,40 @@ public class SatinTupleSpace implements Config {
 
 	/** Remove an element from the tuple space. **/
 	public static void remove(String key) throws IOException {
-		System.err.println("tuple remove not implemented");
+		synchronized(space) {
+			if(ASSERTS && !space.containsKey(key)) {
+				throw new IbisError("Key " + key + " is not in the tuple space");
+			}
+
+			space.remove(key);
+		}
+
+		if(TUPLE_DEBUG) {
+			System.err.println("SATIN '" + satin.ident.name() + ": removed key " + key);
+		}
+		satin.broadcastRemoveTuple(key);
+		if(TUPLE_DEBUG) {
+			System.err.println("SATIN '" + satin.ident.name() + ": bcast remove key " + key + " done");
+		}
 	}
 
 	protected static void remoteAdd(String key, Serializable data) {
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": remote add of key " + key);
 		}
-		space.put(key, data);
 
 		synchronized(space) {
+			space.put(key, data);
 			space.notifyAll();
+		}
+	}
+
+	protected static void remoteDel(String key) {
+		if(TUPLE_DEBUG) {
+			System.err.println("SATIN '" + satin.ident.name() + ": remote del of key " + key);
+		}
+		synchronized(space) {
+			space.remove(key);
 		}
 	}
 }

@@ -7,6 +7,7 @@ public final class Rdtsc extends ibis.ipl.Timer {
 	// time += rdtsc() at finish, but time += rdtsc() - t_start
 	// at finish.
 	private long t_start;
+	private long lastTime;
 	private static final float MHz;
 
 	private boolean started;
@@ -51,7 +52,8 @@ public final class Rdtsc extends ibis.ipl.Timer {
 
 	public void stop() {
 		if (started) {
-			time += rdtsc() - t_start;
+			lastTime = rdtsc() - t_start;
+			time += lastTime;
 			++ count;
 			started = false;
 		}
@@ -89,5 +91,19 @@ public final class Rdtsc extends ibis.ipl.Timer {
 	 */
 	public String averageTime() {
 		return format(time / (count * MHz));
+	}
+
+	/**
+	 * Timer reading in us
+	 */
+	public double lastTimeVal() {
+		return (double) lastTime / MHz;
+	}
+
+	/**
+	 * Timer reading in us
+	 */
+	public String lastTime() {
+		return format(lastTime / MHz);
 	}
 }

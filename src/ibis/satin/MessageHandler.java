@@ -264,6 +264,17 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		}
 	}
 
+	private void handleTupleDel(ReadMessage m) {
+		try {
+			String key = (String) m.readObject();
+			SatinTupleSpace.remoteDel(key);
+		} catch (Exception e) {
+			System.err.println("SATIN '" + satin.ident.name() + 
+					   "': Got Exception while reading tuple update: " + e);
+			System.exit(1);
+		}
+	}
+
 	public void upcall(ReadMessage m) {
 		SendPortIdentifier ident;
 
@@ -319,6 +330,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				break;
 			case TUPLE_ADD:
 				handleTupleAdd(m);
+				break;
+			case TUPLE_DEL:
+				handleTupleDel(m);
 				break;
 			default:
 				System.err.println("SATIN '" + satin.ident.name() + 

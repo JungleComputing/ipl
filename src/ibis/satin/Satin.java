@@ -292,7 +292,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			StaticProperties s = new StaticProperties();
 			if(ibisSerialization) {
 				s.add("Serialization", "ibis");
-				System.err.println("satin: IBIS SER");
+				System.err.println("satin: using Ibis serialization");
 			}
 
 			portType = ibis.createPortType("satin porttype", s);
@@ -1788,6 +1788,67 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(TUPLE_TIMING) {
 			tupleTimer.stop();
+			System.err.println("bcast took: " + tupleTimer.lastTime());
+		}
+	}
+
+	protected synchronized void broadcastRemoveTuple(String key) {
+
+		if(TUPLE_DEBUG) {
+			System.err.println("SATIN '" + ident.name() + 
+					   "': bcasting remove tuple" + key);
+		}
+
+		if(victims.size() == 0) return; // don't multicast when there is no-one.
+
+		if(TUPLE_TIMING) {
+			tupleTimer.start();
+		}
+
+		if(SUPPORT_TUPLE_MULTICAST) {
+			try {
+				WriteMessage writeMessage = tuplePort.newMessage();
+				writeMessage.writeByte(TUPLE_DEL);
+				writeMessage.writeObject(key);
+				writeMessage.send();
+				writeMessage.finish();
+
+				if(TUPLE_STATS) {
+					tupleMsgs++;
+					tupleBytes += writeMessage.getCount();
+				}
+
+			} catch (IOException e) {
+				System.err.println("SATIN '" + ident.name() + 
+						   "': Got Exception while sending tuple update: " + e);
+				System.exit(1);
+			}
+		} else {
+			for(int i=0; i<victims.size(); i++) {
+				try {
+					SendPort s = victims.getPort(i);
+					WriteMessage writeMessage = s.newMessage();
+					writeMessage.writeByte(TUPLE_DEL);
+					writeMessage.writeObject(key);
+					writeMessage.send();
+					writeMessage.finish();
+
+					if(TUPLE_STATS && i == 0) {
+						tupleMsgs++;
+						tupleBytes += writeMessage.getCount();
+					}
+
+				} catch (IOException e) {
+					System.err.println("SATIN '" + ident.name() + 
+							   "': Got Exception while sending tuple update: " + e);
+					System.exit(1);
+				}
+			}
+		}
+
+		if(TUPLE_TIMING) {
+			tupleTimer.stop();
+			System.err.println("bcast took: " + tupleTimer.lastTime());
 		}
 	}
 }
