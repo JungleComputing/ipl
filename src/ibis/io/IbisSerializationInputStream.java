@@ -455,8 +455,14 @@ public class IbisSerializationInputStream
      * {@inheritDoc}
      */
     public int available() throws IOException {
-	/* @@@ NOTE: this is not right. There are also some buffered arrays..*/
-        return in.available();
+        return in.available() +
+		(max_byte_index - byte_index) * SIZEOF_BYTE +
+		(max_char_index - char_index) * SIZEOF_CHAR +
+		(max_short_index - short_index) * SIZEOF_SHORT +
+		(max_int_index - int_index) * SIZEOF_INT +
+		(max_long_index - long_index) * SIZEOF_LONG +
+		(max_float_index - float_index) * SIZEOF_FLOAT +
+		(max_double_index - double_index) * SIZEOF_DOUBLE;
     }
 
     /**
