@@ -5,18 +5,21 @@ import java.io.IOException;
 import java.util.Vector;
 
 public final class OutputStreamSplitter extends OutputStream {
-
+	static final int START_SIZE = 128;
 	private OutputStream [] out;
 	private int size, index;
+	static final boolean DEBUG = false;
 
 	public OutputStreamSplitter() { 
-		out = new OutputStream[16];
-		size = 16;
+		out = new OutputStream[START_SIZE];
+		size = START_SIZE;
 		index = 0;
 	}
 			
 	public void add(OutputStream s) {
-
+		if (DEBUG) {
+			System.err.println("SPLIT: ADDING: " + s);
+		}
 		if (index == size) { 
 			OutputStream [] temp = new OutputStream[2*size];
 			for (int i=0;i<size;i++) { 
@@ -30,7 +33,6 @@ public final class OutputStreamSplitter extends OutputStream {
 	}
 
 	public boolean remove(OutputStream s) {
-
 		boolean found = false;
 
 		for (int i=0;i<index;i++) { 
@@ -53,6 +55,9 @@ public final class OutputStreamSplitter extends OutputStream {
 
 	public void write(int b) throws IOException {
 		IOException e = null;
+		if (DEBUG) {
+			System.err.println("SPLIT: writing: " + b);
+		}
 
 		for (int i=0; i<index; i++) {
 			try {
@@ -69,6 +74,9 @@ public final class OutputStreamSplitter extends OutputStream {
 
 	public void write(byte[] b) throws IOException {
 		IOException e = null;
+		if (DEBUG) {
+			System.err.println("SPLIT: writing: " + b);
+		}
 
 		for (int i=0; i<index; i++) {
 			try {
@@ -85,6 +93,9 @@ public final class OutputStreamSplitter extends OutputStream {
 
 	public void write(byte[] b, int off, int len) throws IOException {
 		IOException e = null;
+		if (DEBUG) {
+			System.err.println("SPLIT: writing: " + b);
+		}
 
 		for (int i=0; i<index; i++) {
 			try {
@@ -101,6 +112,9 @@ public final class OutputStreamSplitter extends OutputStream {
 
 	public void flush() throws IOException {
 		IOException e = null;
+		if (DEBUG) {
+			System.err.println("SPLIT: flush");
+		}
 
 		for (int i=0; i<index; i++) {
 			try {
@@ -116,8 +130,10 @@ public final class OutputStreamSplitter extends OutputStream {
 	}
 
 	public void close() throws IOException {
-
 		IOException e = null;
+		if (DEBUG) {
+			System.err.println("SPLIT: close");
+		}
 
 		for (int i=0; i<index; i++) {
 			try {

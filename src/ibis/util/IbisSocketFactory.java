@@ -9,46 +9,86 @@ import java.net.ServerSocket;
 import java.net.InetAddress;
 
 import ibis.ipl.IbisIOException;
+import java.util.*;
 
+public class IbisSocketFactory {
+	private static final boolean DEBUG = false;
+	private static boolean firewall = false;
+	private static int portNr = 0;
+	private static int startRange = 0;
+	private static int endRange = 0;
 
-public class IbisSocketFactory { 
+	static {
+		Properties p = System.getProperties();
+		String range = p.getProperty("firewall_range");
+		if(range != null) {
+			int pos = range.indexOf('-');
+			if(pos < 0) {
+				System.err.println("Specify a firewall range in this format: 3000-4000.");
+				System.exit(1);
+			} else {
+				String from = range.substring(0, pos);
+				String to = range.substring(pos+1, range.length());
 
-	static final boolean DEBUG = false;
+				try {
+					startRange = Integer.parseInt(from);
+					endRange = Integer.parseInt(to);
+					firewall = true;
+					portNr = startRange;
+				} catch (Exception e) {
+					System.err.println("Specify a firewall range in this format: 3000-4000.");
+					System.exit(1);
+				}
+			}
+		}
+	}
+
+	private synchronized static int allocLocalPort() {
+		if(firewall) {
+			int res = portNr++;
+			if(portNr >= endRange) {
+				portNr = startRange;
+				System.err.println("WARNING, used more ports than available within firewall range. Wrapping around");
+			}
+			return res;
+		} else {
+			return 0; /* any free port */
+		}
+	}
 
 	public static Socket createSocket(InetAddress dest, int port, boolean retry) throws IbisIOException { 
-		
 		boolean connected = false;
 		Socket s = null;
 
-		if (DEBUG) { 
-			System.out.println("Trying to connect Socket connect to " + dest + ":" + port);
-		}
+		while (!connected) {
+			int localPort = allocLocalPort();
+			if (DEBUG) {
+				System.err.println("Trying to connect Socket (local port " + localPort + ") connect to " + dest + ":" + port);
+			}
+                        try {
+                                s = new Socket(dest, port, InetAddress.getLocalHost(), localPort);
 
-		while (!connected) { 
-                        try { 
-                                s = new Socket(dest, port);
-
-				if (DEBUG) { 
-					System.out.println("DONE");
+				if (DEBUG) {
+					System.err.println("DONE, local port: " + s.getLocalPort());
 				}
                                 connected = true;
                                 s.setTcpNoDelay(true);
-//				System.out.println("created socket linger = " + s.getSoLinger());
+//				System.err.println("created socket linger = " + s.getSoLinger());
                         } catch (IOException e1) { 
 				if (!retry) { 
 					throw new IbisIOException("" + e1);
 				} else {      
 					if (DEBUG) { 
-						System.out.println("Socket connect to " + dest + ":" + port + " failed, retrying");
+						System.err.println("Socket connect to " + dest + ":" + port + " failed (" + e1 + "), retrying");
 					}
                               
-					try { 
+					try {
 						Thread.sleep(500);
 					} catch (InterruptedException e2) { 
 						// don't care
 					}
 				}
-                        }                       
+                        }
                 } 
 
 		return s;
@@ -56,26 +96,34 @@ public class IbisSocketFactory {
 	
         /** a port of 0 means choose a free port **/
 	public static ServerSocket createServerSocket(int port, boolean retry) throws IbisIOException { 
-
 		boolean connected = false;
-		ServerSocket s = null;
+		/*Ibis*/ServerSocket s = null;
+		int localPort;
 
 		while (!connected) { 
                         try {
-				if (DEBUG) {
-					System.out.println("Creating new ServerSocket on port " + port);
+				if(port == 0) {
+					localPort = allocLocalPort();
+				} else {
+					localPort = port;
 				}
-                                s = new ServerSocket(port);
+
 				if (DEBUG) {
-					System.out.println("DONE");
+					System.err.println("Creating new ServerSocket on port " + localPort);
+				}
+
+				s = new /*Ibis*/ServerSocket(localPort);
+
+				if (DEBUG) {
+					System.err.println("DONE, with port = " + s.getLocalPort());
 				}
                                 connected = true;
-                        } catch (IOException e1) {   
-				if (!retry) { 
+                        } catch (IOException e1) {
+				if (!retry) {
 					throw new IbisIOException("" + e1);
 				} else {         
 					if (DEBUG) { 
-						System.out.println("ServerSocket connect to " + port + " failed, retrying");
+						System.err.println("ServerSocket connect to " + port + " failed, retrying");
 					}
                                                          
 					try { 
@@ -96,11 +144,16 @@ public class IbisSocketFactory {
 		try {
 			s = a.accept();
 			s.setTcpNoDelay(true);
-//			System.out.println("accepted socket linger = " + s.getSoLinger());
+//			System.err.println("accepted socket linger = " + s.getSoLinger());
 		} catch (IOException e) {
 			throw new IbisIOException("Accept got an error ", e);
 		}
 
+		if(DEBUG) {
+			System.out.println("accepted new connection from " + s.getInetAddress() + ":" + s.getPort() + 
+					   ", local port = " + s.getLocalPort());
+		}
+		
 		return s;
 	}
 

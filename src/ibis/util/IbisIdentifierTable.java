@@ -5,7 +5,7 @@ import java.util.HashMap;
 import ibis.ipl.*;
 
 final class SendNode {
-	MantaOutputStream outStream;
+	IbisSerializationOutputStream outStream;
 	IbisIdentifier ident;
 	int handle;
 
@@ -21,7 +21,7 @@ final class SendNode {
 }
 
 final class ReceiveNode {
-	MantaInputStream inStream;
+	IbisSerializationInputStream inStream;
 	IbisIdentifier ident;
 	int handle;
 
@@ -47,7 +47,7 @@ final public class IbisIdentifierTable {
 //	int cachehits=0;
 
 	// returns -handle for never sent before, or +handle.
-	public synchronized int getHandle(MantaOutputStream stream, IbisIdentifier ident) {
+	public synchronized int getHandle(IbisSerializationOutputStream stream, IbisIdentifier ident) {
 		tmpSendNode.ident = ident;
 		tmpSendNode.outStream = stream;
 
@@ -66,7 +66,7 @@ final public class IbisIdentifierTable {
 		return n.handle;
 	}
 
-	public synchronized void addIbis(MantaInputStream stream, int handle, IbisIdentifier ident) {
+	public synchronized void addIbis(IbisSerializationInputStream stream, int handle, IbisIdentifier ident) {
 		ReceiveNode n = new ReceiveNode();
 		n.inStream = stream;
 		n.handle = handle;
@@ -76,7 +76,7 @@ final public class IbisIdentifierTable {
 //		System.out.println("added ibis " + ident + " with handle " + n.handle + " to rectable");
 	}
 
-	public synchronized IbisIdentifier getIbis(MantaInputStream stream, int handle) {
+	public synchronized IbisIdentifier getIbis(IbisSerializationInputStream stream, int handle) {
 		tmpReceiveNode.handle = handle;
 		tmpReceiveNode.inStream = stream;
 
