@@ -6,7 +6,12 @@ import java.rmi.registry.Registry;
 
 import java.io.IOException;
 
+import ibis.util.TypedProperties;
+import ibis.util.Timer;
+
 public class Client {
+
+    private final static boolean VARIANCE_TIMER = TypedProperties.booleanProperty("variance-timer", false);
 
     private int N = 10000;
     private int size = 0;
@@ -83,6 +88,13 @@ public class Client {
     private void do_rmis(i_Server s, Object request, int n) throws RemoteException {
 	Object reply;
 
+	Timer t = null;
+	Timer sum = null;
+	if (VARIANCE_TIMER) {
+	    t = Timer.createTimer("ibis.util.nativeCode.Rdtsc");
+	    sum = Timer.createTimer("ibis.util.nativeCode.Rdtsc");
+	}
+
 	if (request == null) {
 	    if (send_type == Datatype.TWO_INT) {
 		for (int i = 0; i < n; i++) {
@@ -94,7 +106,21 @@ public class Client {
 		}
 	    } else {
 		for (int i = 0; i < n; i++) {
+		    if (VARIANCE_TIMER) {
+			t.reset();
+			t.start();
+		    }
 		    s.empty();
+		    if (VARIANCE_TIMER) {
+			t.stop();
+			double tNow = t.totalTimeVal();
+			double tAv  = sum.averageTimeVal();
+			if (i > 0 && tNow > 10 * tAv) {
+			    System.err.println("Now see " + tNow + "; av " + tAv);
+			} else {
+			    sum.add(t);
+			}
+		    }
 // System.err.print(".");
 		}
 	    }

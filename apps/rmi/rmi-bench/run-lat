@@ -1,6 +1,6 @@
 #!/bin/bash
 
-reserve="-reserve 201953"
+# reserve="-reserve 201953"
 # javaflags="-ip-map /home/rutger/myrinet-ip-map"
 
 myrinet_N=1000000
@@ -25,7 +25,7 @@ for (( i = 0; i < $n; i++ )) ; do
 	done
     fi
 
-    ibises="tcp net.multi.bytes.gen.tcp_blk net.gen.tcp_blk"
+    ibises="tcp net.multi.bytes.gen.tcp_blk net.bytes.gen.tcp_blk"
     # ibises="SUN"
 
     if true ; then
