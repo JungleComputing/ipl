@@ -17,6 +17,9 @@
 # SO_LIB	= libbla.so for jit builds. Otherwise, the default
 #		  Ibis library (IBISROOT/ibis/lib/libibis.a) is used.
 #
+# SERIALIZABLE	= List of .java files that implement Serializable
+# REMOTE        = List of .java files that implement remote
+#
 # All these must be specified *before* inclusion of config.mk!
 
 .PHONY:		manta
@@ -65,7 +68,7 @@ LD_ASSUME_KERNEL	= 2.2.5
 export LD_ASSUME_KERNEL
 
 # PANDA_THREADS	= ot
-PANDA_THREADS	= pthread
+PANDA_THREADS	= pthreads
 
 IBERTY	        = $(MYRINET_ROOT)/libiberty.a
 BFD		= $(MYRINET_ROOT)/libbfd.a
@@ -158,18 +161,22 @@ endif
 MANTAC_COMMAND = $(MANTA)/mantac $(MANTACFLAGS)
 
 SRC		+= $(REMOTE)
-SRC		+= $(REMOTE:%.java=rmi_skeleton_%.java)
-SRC		+= $(REMOTE:%.java=rmi_stub_%.java)
+SRC		+= $(REMOTE_STUBS)
+SRC		+= $(REMOTE_SKELETONS)
 
 ifneq (, $(strip $(SERIALIZABLE)))
 SERIALIZABLE_O	:= $(SERIALIZABLE:%.java=%.o)
+SERIALIZABLE_CLASS	:= $(SERIALIZABLE:%.java=%.class)
+.PRECIOUS:	$(SERIALIZABLE_CLASS)
 # O_FILES		:= $(filter-out $(SERIALIZABLE_O), $(O_FILES))
 O_FILES		+= $(SERIALIZABLE_O:%.o=%_ibis_io_Generator.o)
 
-SERIALIZABLE_CLASS	:= $(SERIALIZABLE:%.java=%.class)
 SERIALIZABLE_GENERATED	:= $(SERIALIZABLE:%.java=%_ibis_io_Generator.class)
 CLASS_FILES	+= $(SERIALIZABLE_GENERATED)
 endif
+
+# It turns out that stub files are also Serializable
+CLASS_FILES	+= $(REMOTE:%.java=rmi_stub_%_ibis_io_Generator.class)
 
 O_FILES		:= $(CLASS_FILES:%.class=%.o)
 
@@ -230,7 +237,7 @@ endif
 #JACKAL_PATCHERS	=
 #JACKAL_PATCHERS	+= $(SRC:%.java=diff_patch_%.c)
 #JACKAL_PATCHERS	+= $(MAIN:%.java=diff_patch_%.c)
-#JACKAL_PATCHERS	+= $(SERIALIZE:%.java=diff_patch_%.c)
+#JACKAL_PATCHERS	+= $(SERIALIZE:%=diff_patch_%.c)
 
 TRASH_FILES  =  
 TRASH_FILES += *core 
@@ -250,6 +257,8 @@ TRASH_FILES += -r LASM_CACHE
 TRASH_FILES += Satin_*
 TRASH_FILES += *.jad
 TRASH_FILES += $(PKG_O_FILES) $(PKG_O_DOLLAR)
+TRASH_FILES	+= $(REMOTE_STUBS)
+TRASH_FILES	+= $(REMOTE_SKELETONS)
 
 #conversion rules
 
@@ -268,20 +277,22 @@ TRASH_FILES += $(PKG_O_FILES) $(PKG_O_DOLLAR)
 	$(IOC_COMMAND) $(PACKAGEDOT)$*
 
 rmi_stub_%.java:	%.class
-	rm -f $@
+	-rm -f $@
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
 rmi_skeleton_%.java:	%.class
-	rm -f $@
+	-rm -f $@
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
 
 ifneq (, $(strip $(SERIALIZABLE)))
 .PHONY: serializers
-serializers:	$(SERIALIZABLE_CLASS)
+REMOTE_STUBS		= $(REMOTE:%.java=rmi_stub_%.java)
+REMOTE_SKELETONS	= $(REMOTE:%.java=rmi_skeleton_%.java)
+.PRECIOUS:	$(REMOTE_STUBS) $(REMOTE_SKELETONS)
 serializers:	$(SERIALIZABLE_GENERATED)
-serializers:	$(REMOTE:%.java=rmi_stub_%.java)
-serializers:	$(REMOTE:%.java=rmi_skeleton_%.java)
+serializers:	$(REMOTE_STUBS)
+serializers:	$(REMOTE_SKELETONS)
 endif
 
 
@@ -387,4 +398,4 @@ run:
 #
 .PHONY:	prun
 prun:
-	@echo "prun IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. CLASSPATH=$(CLASSPATH) -no-panda -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"
+	@echo "prun IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. CLASSPATH=$(CLASSPATH) -no-panda -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"
