@@ -162,8 +162,10 @@ action=eval
 # nameserver defaults
 #
 
-Dns_port="-Dibis.name_server.port=@IBIS_NS_PORT@"
-Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
+. $IBIS_ROOT/bin/ns-env
+
+Dns_server="-Dibis.name_server.port=$IBIS_NAMESERVER_HOST"
+Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
 Dns_pool="-Dibis.name_server.key=no_key_supplied"
 Dns_retry="-Dibis.name_server.retry=no"
 
@@ -369,6 +371,7 @@ function strip_array () {
 	echo "$RESULT"
 }
 
+i_am_nameserver=0
 if [ $dedicated_nameserver -eq 1 ]
 then
 	# A dedicated nameserver is run on HOSTS[#HOSTS - 1]
@@ -387,6 +390,9 @@ then
 	# echo Dpool_host_names $Dpool_host_names
 
 	export PRUN_HOSTNAMES=`strip_array $PRUN_HOSTNAMES`
+	if  [ $PRUN_CPU_RANK -eq $NHOSTS ] ; then
+	    i_am_nameserver=1
+	fi
 fi
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
@@ -396,7 +402,7 @@ then
 	$action="$action $wrapper_name -cpu $cpumask -cd $dir"
 fi
 
-if [ \( $dedicated_nameserver -eq 1 \) -a \( $PRUN_CPU_RANK -eq $NHOSTS \) ]
+if [ $i_am_nameserver -eq 1 ]
 then
 	echo Start run-once name server on `hostname`
 	$action $JAVA_ROOT/bin/$JAVA_EXEC \

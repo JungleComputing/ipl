@@ -473,8 +473,6 @@ to the command line.
 	<concat destfile="${ibis}/bin/run-das">
 	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-das" />
 	</concat>
-	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_PORT@" value="9826"/>
-	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_HOST@" value="${hostname}"/>
 	<if>
 	    <os family="mac"/>
 	    <then>
@@ -486,8 +484,6 @@ to the command line.
 	<concat destfile="${ibis}/bin/run-ibis">
 	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-ibis" />
 	</concat>
-	<replace file="${ibis}/bin/run-ibis" token="@IBIS_NS_PORT@" value="9826"/>
-	<replace file="${ibis}/bin/run-ibis" token="@IBIS_NS_HOST@" value="${hostname}"/>
 	<if>
 	    <os family="mac"/>
 	    <then>
@@ -495,6 +491,27 @@ to the command line.
 	    </then>
 	</if>
 	<chmod file="${ibis}/bin/run-ibis" perm="+x"/>
+
+	<copy
+		file="${ibis}/src/scripts/ns-env.in"
+		tofile="${ibis}/bin/ns-env"/>
+	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_PORT@" value="9826"/>
+	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="${hostname}"/>
+	<chmod file="${ibis}/bin/ns-env" perm="+x"/>
+
+	<copy
+		file="${ibis}/bin/ns-env"
+		tofile="${ibis}/bin/ns-env.bat">
+	</copy>
+	<replaceregexp
+	    file="${ibis}/bin/ns-env.bat"
+		flags="g"
+		match="export (.*)="
+		replace="set \1="/>
+	<replace
+	    file="${ibis}/bin/ns-env.bat"
+		token="#"
+		value="rem "/>
 
 	<copy
 		overwrite="true"

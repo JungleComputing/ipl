@@ -54,8 +54,10 @@ Xbootclasspath="-Xbootclasspath/p:$JAVACLASSPATH"
 
 action=eval
 
-Dns_port="-Dibis.name_server.port=@IBIS_NS_PORT@"
-Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
+. $IBIS_ROOT/bin/ns-env
+
+Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
+Dns_server="-Dibis.name_server.host=$IBIS_NAMESERVER_HOST"
 Dns_pool="-Dibis.name_server.key=$PANDA_HOST_PORT_KEY"
 
 dir=$PWD
