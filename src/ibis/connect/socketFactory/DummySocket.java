@@ -213,7 +213,6 @@ public class DummySocket extends Socket {
     }
 
     public String toString() {
-	System.err.println("toString() not implemented by " + this);
-	throw new RuntimeException("toString() not implemented by " + this);
+	return "unimplemented toString()!";
     }
 }
