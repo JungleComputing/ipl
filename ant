@@ -1,0 +1,2 @@
+#!/bin/sh
+`dirname $0`/3rdparty/apache-ant-1.6.1/bin/ant
