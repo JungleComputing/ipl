@@ -26,8 +26,5 @@ MANTACFLAGS	+= -v
 java: $(CLASS_FILES) $(MAIN_CLASS)
 	java ibis.frontend.io.IOGenerator List.class
 
-manta: $(MAIN) $(O_FILES)
-#	$(MANTAC_COMMAND) -v -o $(OUT) $(MAIN) $(O_FILES) $(MANTA_LIB)
-
 clean:
 	rm -f $(TRASH_FILES)
