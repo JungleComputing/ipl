@@ -561,6 +561,7 @@ public class IOGenerator {
 
 	    InstructionHandle begin_try = write_il.append(new PUSH(constantpool, classname));
 	    write_il.append(factory.createInvoke("java.lang.Class", "forName", java_lang_class_type, new Type[] { Type.STRING}, Constants.INVOKESTATIC));
+	    write_il.append(new ALOAD(3));
 	    write_il.append(factory.createInvoke("java.lang.Class", "getField", new ObjectType("java.lang.reflect.Field"), new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
 	    write_il.append(new ASTORE(5));
 	    
@@ -815,7 +816,7 @@ public class IOGenerator {
 	    h = read_il.append(new ILOAD(6));
 	    read_il.append(new PUSH(constantpool, Constants.ACC_FINAL));
 	    read_il.append(new IAND());
-	    IF_ICMPEQ eq = new IF_ICMPEQ(null);
+	    IFEQ eq = new IFEQ(null);
 	    read_il.append(eq);
 	    read_il.append(new ALOAD(1));
 	    read_il.append(new ALOAD(0));
@@ -879,6 +880,7 @@ public class IOGenerator {
 
 	    InstructionHandle begin_try = read_il.append(new PUSH(constantpool, classname));
 	    read_il.append(factory.createInvoke("java.lang.Class", "forName", java_lang_class_type, new Type[] { Type.STRING}, Constants.INVOKESTATIC));
+	    read_il.append(new ALOAD(3));
 	    read_il.append(factory.createInvoke("java.lang.Class", "getField", new ObjectType("java.lang.reflect.Field"), new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
 	    read_il.append(new ASTORE(5));
 
