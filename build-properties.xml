@@ -39,7 +39,6 @@
 	<if>
 	    <isreference refid="extra-classpath"/>
 	    <then>
-		<echo message="I see a ref property 'extra-classpath'"/>
 		<path id="default.classpath">
 		    <pathelement path="${ibisBuild}"/>
 		    <pathelement path="${build}"/>
@@ -52,7 +51,6 @@
 
 	    </then>
 	    <else>
-		<echo message="I see NO ref property 'extra-classpath'"/>
 		<path id="default.classpath">
 		    <pathelement path="${ibisBuild}"/>
 		    <pathelement path="${build}"/>
