@@ -76,6 +76,7 @@ public final class TcpOutput extends NetBufferedOutput {
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
 		throws NetIbisException {
+                // System.err.println("tcp_blk.TcpOutput: setupConnection -->");
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
@@ -121,6 +122,7 @@ public final class TcpOutput extends NetBufferedOutput {
 		}
 
 		mtu = Math.min(lmtu, rmtu);
+                // System.err.println("tcp_blk.TcpOutput: setupConnection <--");
 	}
 
         public void finish() throws NetIbisException {

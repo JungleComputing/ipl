@@ -67,11 +67,11 @@ public final class TcpInput extends NetInput {
                                                 throw new Error("invalid code "+i);
                                         }
                                         
-                                        synchronized(this) {
+                                        synchronized(TcpInput.this) {
                                                 activeNum = num;
                                         }
                                         upcallFunc.inputUpcall(TcpInput.this, activeNum);
-                                        synchronized(this) {
+                                        synchronized(TcpInput.this) {
                                                 if (activeNum == num) {
                                                         finish();
                                                 }
@@ -129,8 +129,10 @@ public final class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws NetIbisException {
-		activeNum = null;
+	public synchronized Integer poll() throws NetIbisException {
+                if (activeNum != null) {
+                        throw new Error("invalid call");
+                }                
 
 		if (spn == null) {
 			return null;
@@ -160,7 +162,10 @@ public final class TcpInput extends NetInput {
                         _inputConvertStream = null;
                 }
 
-                activeNum = null;
+                synchronized(this) {
+                        activeNum = null;
+                }
+                
         }        
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {

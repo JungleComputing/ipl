@@ -104,6 +104,7 @@ public final class MultiSplitter extends NetOutput {
                         try {
                                 _lane.os.writeInt(mtu);
                                 _lane.os.writeInt(headerOffset);
+                                _lane.os.flush();
                         } catch (IOException e) {
                                 throw new NetIbisIOException(e);
                         }
@@ -127,20 +128,33 @@ public final class MultiSplitter extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                // System.err.println("MultiSplitter: setupConnection-->");
                 try {
                         NetServiceLink link = null;
                         link = cnx.getServiceLink();
 
                         ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("multi"));
+                        os.flush();
+
                         ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream ("multi"));
+
+                        // System.err.println("MultiSplitter: setupConnection - 2");
 
                         NetIbisIdentifier localId  = (NetIbisIdentifier)driver.getIbis().identifier();
                         os.writeObject(localId);
+                        os.flush();
+                        
                         NetIbisIdentifier remoteId = (NetIbisIdentifier)is.readObject();
+
+                        // System.err.println("MultiSplitter: setupConnection - 3");
 
                         InetAddress localHostAddr = InetAddress.getLocalHost();
                         os.writeObject(localHostAddr);
+                        os.flush();
+                        
                         InetAddress remoteHostAddr = (InetAddress)is.readObject();
+
+                        // System.err.println("MultiSplitter: setupConnection - 4");
 
                         String subContext = getSubContext(localId, localHostAddr,
                                                           remoteId, remoteHostAddr);
@@ -153,7 +167,11 @@ public final class MultiSplitter extends NetOutput {
                                 outputTable.put(subContext, no);
                         }
                         
+                        // System.err.println("MultiSplitter: setupConnection - 5");
+
                         no.setupConnection(cnx);
+
+                        // System.err.println("MultiSplitter: setupConnection - 6");
 
                         Lane lane = new Lane();
                         lane.os           = os;
@@ -185,11 +203,14 @@ public final class MultiSplitter extends NetOutput {
                                 }
                         }
 
+                        // System.err.println("MultiSplitter: setupConnection - 7");
+
                         laneTable.put(cnx.getNum(), lane);
                 } catch (Exception e) {
                         e.printStackTrace();
                         throw new NetIbisException(e);
                 }
+                // System.err.println("MultiSplitter: setupConnection<--");
 	}
 
 	/**
@@ -209,12 +230,14 @@ public final class MultiSplitter extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void finish() throws NetIbisException {
+                // System.err.println("MultiSplitter: finish-->");
                 super.finish();
 		Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.finish();
 		} while (i.hasNext());
+                // System.err.println("MultiSplitter: finish<--");
 	}
 
         public synchronized void close(Integer num) throws NetIbisException {

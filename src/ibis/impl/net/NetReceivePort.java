@@ -475,7 +475,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 	/* --- Upcall from main input object -- */
         public synchronized void inputUpcall(NetInput input, Integer spn) {
-                //System.err.println("NetReceivePort: inputUpcall-->");
+                // System.err.println("NetReceivePort: inputUpcall-->");
                 if (this.input == null) {
                         __.warning__("message lost");
                         return;
@@ -548,7 +548,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         polledLock.unlock();
                         finishMutex.lock();
                 }
-                //System.err.println("NetReceivePort: inputUpcall<--");
+                // System.err.println("NetReceivePort: inputUpcall<--");
         }
         
 
@@ -874,7 +874,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 * throw NetIbisException while SendPort.free does.
 	 */
 	public void free() {
-                //System.err.println("NetReceivePort: free-->");
+                // System.err.println("NetReceivePort: free-->");
                 //System.err.println("NetReceivePort["+this+"]: free-->");
                 synchronized(this) {
                         try {
@@ -914,7 +914,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         }
                 }
                 //System.err.println("NetReceivePort["+this+"]: free<--");
-                //System.err.println("NetReceivePort: free<--");
+                // System.err.println("NetReceivePort: free<--");
 	}
 	
 	protected void finalize() throws Throwable {
@@ -998,7 +998,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	/* --- ReadMessage Part --- */
 	public void finish() throws NetIbisException {
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish-->");
-                //System.err.println("NetReceivePort: finish-->");
+                // System.err.println("NetReceivePort: finish-->");
 		if (emptyMsg) {
 			readByte();
                         emptyMsg = false;
@@ -1017,7 +1017,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         pollingLock.unlock();
                 }
 
-                //System.err.println("NetReceivePort: finish<--");
+                // System.err.println("NetReceivePort: finish<--");
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish<--");
 	}
 

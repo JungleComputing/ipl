@@ -48,11 +48,16 @@ public final class MultiPoller extends NetInput {
                                         lane.os.writeInt(1);
                                         lane.os.flush();
                                 } catch (NetIbisInterruptedException e) {
-                                        exit = true;
+                                        break;
                                 } catch (NetIbisClosedException e) {
-                                        exit = true;
+                                        break;
+                                } catch (java.io.InterruptedIOException e) {
+                                        break;
+                                } catch (java.io.EOFException e) {
+                                        break;
                                 } catch (Exception e) {
-                                        throw new Error(e.getMessage());
+                                        e.printStackTrace();
+                                        throw new Error(e);
                                 }
                         }
                 }
@@ -91,8 +96,8 @@ public final class MultiPoller extends NetInput {
                 laneTable         = new Hashtable();
 	}
 
-        public synchronized void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
-                System.err.println("GenPoller: inputUpcall-->");
+        public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
+                // System.err.println("MultiPoller: inputUpcall-->");
                 synchronized(this) {
                         while (activeInput != null) {
                                 try {
@@ -101,24 +106,32 @@ public final class MultiPoller extends NetInput {
                                         throw new NetIbisInterruptedException(e);
                                 }
                         }                        
-
-                        activeInput = (NetInput)inputTable.get(spn);
+                        Lane lane = (Lane)laneTable.get(spn);
+                        if (lane == null) {
+                                throw new NetIbisClosedException("connection "+spn+" closed");
+                        }
+                        
+                        activeInput = lane.input;
                         if (activeInput == null) {
-                                return;
+                                throw new NetIbisClosedException("connection "+spn+" closed");
                         }
                         activeNum = spn;
+                        activeUpcallThread = Thread.currentThread();
                 }                
 
-                upcallFunc.inputUpcall(input, spn);
+                // System.err.println("MultiPoller: upcall-->");                
+                upcallFunc.inputUpcall(this, spn);
+                // System.err.println("MultiPoller: upcall<--");                
 
                 synchronized(this) {
-                        if (activeInput == input) {
+                        if (activeInput == input && activeUpcallThread == Thread.currentThread()) {
                                 activeInput = null;
                                 activeNum   = null;
+                                activeUpcallThread = null;
                                 notifyAll();
                         }
                 }
-                System.err.println("GenPoller: inputUpcall<--");                
+                // System.err.println("MultiPoller: inputUpcall<--");                
         }
 
         private String getSubContext(NetIbisIdentifier localId, InetAddress localHostAddr, NetIbisIdentifier remoteId, InetAddress remoteHostAddr) {
@@ -175,21 +188,31 @@ public final class MultiPoller extends NetInput {
 	 * {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                // System.err.println("MultiPoller: setupConnection-->");
                 try {
                         NetServiceLink link = cnx.getServiceLink();
 
                         ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream ("multi"));
-                        ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("multi"));
 
+                        ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("multi"));
+                        os.flush();
+
+                        // System.err.println("MultiPoller: setupConnection - 2");
                         NetIbisIdentifier localId  = (NetIbisIdentifier)driver.getIbis().identifier();
                         NetIbisIdentifier remoteId = (NetIbisIdentifier)is.readObject();
 
                         os.writeObject(localId);
+                        os.flush();
+
+                        // System.err.println("MultiPoller: setupConnection - 3");
 
                         InetAddress localHostAddr  = InetAddress.getLocalHost();
                         InetAddress remoteHostAddr = (InetAddress)is.readObject();
 
                         os.writeObject(localHostAddr);
+                        os.flush();
+
+                        // System.err.println("MultiPoller: setupConnection - 4");
 
                         String   subContext = getSubContext(localId, localHostAddr, remoteId, remoteHostAddr);
                         NetInput ni         = (NetInput)inputTable.get(subContext);
@@ -201,11 +224,15 @@ public final class MultiPoller extends NetInput {
                                 inputTable.put(subContext, ni);
                         }
 
+                        // System.err.println("MultiPoller: setupConnection - 5");
+
                         if (upcallFunc != null) {
                                 ni.setupConnection(cnx, this);
                         } else {
                                 ni.setupConnection(cnx, null);
                         }
+
+                        // System.err.println("MultiPoller: setupConnection - 6");
 
                         Integer num  = cnx.getNum();
                         Lane    lane = new Lane();
@@ -218,6 +245,8 @@ public final class MultiPoller extends NetInput {
                         lane.headerLength = is.readInt();
                         lane.thread       = new ServiceThread("subcontext = "+subContext+", spn = "+num, lane);
 
+                        // System.err.println("MultiPoller: setupConnection - 7");
+
                         laneTable.put(num, lane);
 
                         lane.thread.start();
@@ -225,6 +254,7 @@ public final class MultiPoller extends NetInput {
                         e.printStackTrace();
                         throw new NetIbisException(e);
                 }
+                // System.err.println("MultiPoller: setupConnection<--");
 	}
 
 	/**
@@ -266,13 +296,16 @@ public final class MultiPoller extends NetInput {
 	 * {@inheritDoc}
 	 */
 	public void finish() throws NetIbisException {
+                // System.err.println("MultiPoller: finish-->");
 		super.finish();
 		activeInput.finish();
                 synchronized(this) {
                         activeInput = null;
                         activeNum   = null;
+                        activeUpcallThread = null;
                         notifyAll();
                 }
+                // System.err.println("MultiPoller: finish<--");
 	}
 
         public synchronized void close(Integer num) throws NetIbisException {
@@ -293,6 +326,7 @@ public final class MultiPoller extends NetInput {
                                 if (activeInput == lane.input) {
                                         activeInput = null;
                                         activeNum   = null;
+                                        activeUpcallThread = null;
                                         notifyAll();
                                 }
                         }
@@ -327,7 +361,14 @@ public final class MultiPoller extends NetInput {
 			}
 		}
                 
-		activeInput = null;
+		synchronized(this) {
+                        activeInput = null;
+                        activeNum   = null;
+                        activeUpcallThread = null;
+
+//                          while (activeInput != null)
+//                                  wait();
+                }
 
 		super.free();
 	}

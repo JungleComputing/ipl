@@ -70,7 +70,7 @@ public final class GenPoller extends NetInput {
 	}
 
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
-                //System.err.println("GenPoller: inputUpcall--> spn = "+spn);
+                // System.err.println("GenPoller: inputUpcall--> spn = "+spn);
                 synchronized(this) {
                         while (activeInput != null) {
                                 try {
@@ -84,7 +84,7 @@ public final class GenPoller extends NetInput {
                         activeInput = (NetInput)inputTable.get(spn);
                         if (activeInput == null) {
                                 //System.err.println("GenPoller: inputUpcall - setting activeInput - input closed, spn = "+spn);
-                                return;
+                                throw new NetIbisClosedException("connection "+spn+" closed");
                         }
                         activeNum = spn;
                         activeUpcallThread = Thread.currentThread();
@@ -105,7 +105,7 @@ public final class GenPoller extends NetInput {
                                 //System.err.println("GenPoller: inputUpcall - clearing activeInput - ok, spn = "+spn);
                         }
                 }
-                //System.err.println("GenPoller: inputUpcall<-- spn = "+spn);
+                // System.err.println("GenPoller: inputUpcall<-- spn = "+spn);
         }
 
 	/**
@@ -140,7 +140,7 @@ public final class GenPoller extends NetInput {
 	 * {@inheritDoc}
 	 */
 	public void finish() throws NetIbisException {
-                //System.err.println("GenPoller: finish-->");
+                // System.err.println("GenPoller: finish-->");
 		super.finish();
                 activeInput.finish();
                 synchronized(this) {
@@ -149,7 +149,7 @@ public final class GenPoller extends NetInput {
                         activeUpcallThread = null;
                         notifyAll();
                 }
-                //System.err.println("GenPoller: finish<--");
+                // System.err.println("GenPoller: finish<--");
 	}
 
 	/**

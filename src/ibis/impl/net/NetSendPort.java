@@ -344,11 +344,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	 * @return The message instance.
 	 */	
 	public WriteMessage newMessage() throws NetIbisException {
-                //System.err.println("NetSendPort: newMessage-->");
+                // System.err.println("NetSendPort: newMessage-->");
 		outputLock.lock();
 		emptyMsg = true;
                 output.initSend();
-                //System.err.println("NetSendPort: newMessage<--");
+                // System.err.println("NetSendPort: newMessage<--");
 		return this;
 	}
 
@@ -414,7 +414,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	 */
 	public void free()
 		throws NetIbisException {
-                //System.err.println("NetSendPort: free-->");
+                // System.err.println("NetSendPort: free-->");
                 synchronized(this) {
                         try {
                                 if (outputLock != null) {
@@ -452,7 +452,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
                                 __.fwdAbort__(e);
                         }
                 }
-                //System.err.println("NetSendPort: free<--");
+                // System.err.println("NetSendPort: free<--");
 	}
 	
 
@@ -484,11 +484,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	 * Completes the message transmission and releases the send port.
 	 */
 	public void finish() throws NetIbisException{
-                //System.err.println("NetSendPort: finish-->");
+                // System.err.println("NetSendPort: finish-->");
 		_finish();
 		output.finish();
 		outputLock.unlock();
-                //System.err.println("NetSendPort: finish<--");
+                // System.err.println("NetSendPort: finish<--");
 	}
 
 	/**
