@@ -120,14 +120,17 @@ SRC		+= $(REMOTE)
 SRC		+= $(REMOTE:%.java=rmi_skeleton_%.java)
 SRC		+= $(REMOTE:%.java=rmi_stub_%.java)
 
-O_FILES		:= $(SRC:%.java=%.o) $(INNER_CLASS:%.class=%.o)
-
-ifneq (, $(SERIALIZABLE))
+ifneq (, $(strip $(SERIALIZABLE)))
 SERIALIZABLE_O	:= $(SERIALIZABLE:%.java=%.o)
-O_FILES		:= $(filter-out $(SERIALIZABLE_O), $(O_FILES))
+# O_FILES		:= $(filter-out $(SERIALIZABLE_O), $(O_FILES))
+O_FILES		+= $(SERIALIZABLE_O:%.o=%_ibis_io_Generator.o)
 
 SERIALIZABLE_CLASS	:= $(SERIALIZABLE:%.java=%.class)
+SERIALIZABLE_GENERATED	:= $(SERIALIZABLE:%.java=%_ibis_io_Generator.class)
+CLASS_FILES	+= $(SERIALIZABLE_GENERATED)
 endif
+
+O_FILES		:= $(CLASS_FILES:%.class=%.o)
 
 ifeq (ibis., $(findstring ibis.,$(PACKAGE)))
 PKG_SUF		:= .$(PACKAGE_MANGLE)
@@ -170,9 +173,11 @@ TRASH_FILES += $(PKG_O_FILES) $(PKG_O_DOLLAR)
 .SUFFIXES:      .o .class .java .c $(PKG_SUF) _ibis_io_Generator.class
 
 
-.class.o:
-	$(MANTAC_COMMAND) -c $(subst $$,\$$,$*.class)
+# Rules and targets for java (and Manta) compilation
+#
 
+.java.class:
+	$(JAVAC_COMMAND) $*.java
 
 
 .class_ibis_io_Generator.class:
@@ -184,22 +189,51 @@ rmi_stub_%.java:	%.class
 rmi_skeleton_%.java:	%.class
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
+
+ifneq (, $(strip $(SERIALIZABLE)))
+.PHONY: serializers
+serializers:	$(SERIALIZABLE_CLASS)
+serializers:	$(SERIALIZABLE_GENERATED)
+serializers:	$(REMOTE:%.java=rmi_stub_%.java)
+serializers:	$(REMOTE:%.java=rmi_skeleton_%.java)
+endif
+
+
+java:	class_files
+
+.PHONY:	class_files
+class_files:
+ifneq (, $(strip $(SERIALIZABLE)))
+	$(MAKE) $(MFLAGS) serializers
+endif
+ifneq (, $(strip $(CLASS_FILES) $(MAIN_CLASS)))
+	$(MAKE) $(MFLAGS) $(CLASS_FILES) $(MAIN_CLASS)
+endif
+
+
+
+# Rules and targets for Manta compilation
+#
+
+.class.o:
+	$(MANTAC_COMMAND) -c $(subst $$,\$$,$*.class)
+
 .o$(PKG_SUF):
 	cp $(subst $$,\$$,$*.o) $(subst $$,\$$,$@)
 
-.java.class:
-	$(JAVAC_COMMAND) $*.java
 
 manta:	$(LASM_CACHE)
 
-manta:
-ifneq (, $(SERIALIZABLE))
-	@echo Now make manta:serializers
-	$(MAKE) $(MFLAGS) serializers
-endif
-	@echo Now make manta:class files
-	$(MAKE) $(MFLAGS) $(CLASS_FILES)
-ifneq (, $(C_SRC))
+manta:	manta_local
+
+# Compile the files in the current directory; first make class files and
+# serializers, then invoke mantac
+#
+.PHONY:	manta_local
+manta_local:
+	@echo Make class files and serializers
+	$(MAKE) $(MFLAGS) class_files
+ifneq (, $(strip $(C_SRC)))
 	@echo Now make manta:.h files for native
 	$(MAKE) $(MFLAGS) h_files
 endif
@@ -213,13 +247,20 @@ else
 	$(MAKE) $(MFLAGS) manta_lib
 endif
 
+
+# Invoke mantac on the class files
+#
 .PHONY:	manta_lib
 manta_lib:	$(PKG_O_FILES) $(C_OBJ)
 	$(AR) ru $(MANTA_LIB) $(PKG_O_DOLLAR) $(C_OBJ)
 
+
 $(LASM_CACHE):
 	-mkdir -p $@
 
+
+# A link-only target is a much-used feature in making/debugging applications
+#
 link:
 	$(MANTAC_COMMAND) -link-only \
 		-o $(OUT) \
@@ -227,24 +268,17 @@ link:
 		$(O_FILES) \
 		$(MANTA_LIB)
 
-java:
-ifneq (, $(SERIALIZABLE))
-	$(MAKE) $(MFLAGS) serializers
-endif
-	$(MAKE) $(MFLAGS) $(CLASS_FILES) $(MAIN_CLASS)
+$(OUT): $(MAIN_CLASS) $(O_FILES) $(MANTA_LIB)
+	echo O_FILES = $(O_FILES)
+	$(MANTAC_COMMAND) -o $@ $(MAIN_CLASS) $(O_FILES) $(MANTA_LIB)
 
-ifneq (, $(SERIALIZABLE))
-.PHONY: serializers
-serializers:	$(SERIALIZABLE:%.java=%.class) $(SERIALIZABLE:%.java=%_ibis_io_Generator.class) $(REMOTE:%.java=rmi_stub_%.java) $(REMOTE:%.java=rmi_skeleton_%.java)
-endif
-
-$(OUT): $(MAIN:%.java=%.class) $(O_FILES) $(MANTA_LIB)
-	$(MANTAC_COMMAND) -o $@ $(MAIN:%.java=%.class) $(O_FILES) $(MANTA_LIB)
 
 .PHONY:	run
 run:
 	$(JPATH)/bin/java $(JAVACFLAGS) $(MAIN:%.java=%)
 
+# Print a feasible prun command; mouse this into your command line
+#
 .PHONY:	prun
 prun:
 	@echo "prun IBP_SEND_SYNC=100 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 CLASSPATH=$(CLASSPATH) -no-panda $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"
