@@ -52,7 +52,7 @@ public class SuffixArray {
         return arr;
     }
 
-    // Return the number of common characters in the two given spans.
+    /** Returns the number of common characters in the two given spans. */
     private int commonLength( short text[], int i0, int i1 )
     {
 	int n = 0;
@@ -64,7 +64,7 @@ public class SuffixArray {
 	return n;
     }
 
-    // Return true iff i0 refers to a smaller text than i1.
+    /** Returns true iff i0 refers to a smaller text than i1. */
     private boolean areCorrectlyOrdered( short text[], int i0, int i1 )
     {
 	while( i0<text.length && i1<text.length && text[i0] == text[i1] ){
@@ -82,6 +82,7 @@ public class SuffixArray {
 	return( text[i0]<text[i1] );
     }
 
+    /** Build the suffix array and the commonality array. */
     private void buildArray( short text[] )
     {
 	indices = new int[text.length-1];
