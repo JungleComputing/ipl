@@ -167,7 +167,7 @@ public class ClusterReducer extends TreeReducer {
 		}
 	    }
 	}
-// System.err.println(rank + ": local connection OK");
+System.err.println(rank + ": local connection OK");
 
 
 	if (rank == clusterRoot[myCluster]) {
@@ -196,7 +196,7 @@ public class ClusterReducer extends TreeReducer {
 		    reduceSinter.connect(id);
 		}
 	    }
-// System.err.println(rank + ": interlocal connection OK");
+System.err.println(rank + ": interlocal connection OK");
 	}
 
     }
