@@ -41,12 +41,6 @@ static int	ibmp_byte_output_stream_alive = 0;
 static int	sent_data = 0;
 #endif
 
-#define DISABLE_SENDER_INTERRUPTS	1
-
-#if DISABLE_SENDER_INTERRUPTS
-static int	intr_enable = 0;
-static int	intr_disable = 0;
-#endif
 static int	send_frag = 0;
 static int	send_first_frag = 0;
 static int	send_last_frag = 0;
@@ -1210,18 +1204,13 @@ ARRAY_WRITE(Double, jdouble)
 
 
 void
-ibmp_byte_output_stream_report(JNIEnv *env)
+ibmp_byte_output_stream_report(JNIEnv *env, FILE *f)
 {
 #ifdef IBP_VERBOSE
     fprintf(stderr, "%2d: PandaBufferedOutputStream.sent data %d\n", ibmp_me, sent_data);
 #endif
-#if DISABLE_SENDER_INTERRUPTS
-    fprintf(stderr, "%2d: IBP intr enable %d disable %d send msg %d frag %d (first %d last %d skip %d sync %d) \n",
-	    ibmp_me, intr_enable, intr_disable, send_msg, send_frag, send_first_frag, send_last_frag, send_frag_skip, send_sync);
-#else
-    fprintf(stderr, "%2d: IBP send msg %d frag %d (skip %d sync %d) \n",
-	    ibmp_me, send_msg, send_frag, send_frag_skip, send_sync);
-#endif
+    fprintf(f, "send msg %d frag %d (skip %d sync %d) ",
+	    send_msg, send_frag, send_frag_skip, send_sync);
 }
 
 
@@ -1299,5 +1288,5 @@ ibmp_byte_output_stream_end(JNIEnv *env)
 {
     ibmp_byte_output_stream_alive = 0;
 
-    ibmp_byte_output_stream_report(env);
+    ibmp_byte_output_stream_report(env, stderr);
 }

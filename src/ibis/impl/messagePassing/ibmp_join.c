@@ -4,14 +4,13 @@
 #include <pan_sys.h>
 #include <pan_align.h>
 
-#include "ibmp.h"
-
 #include "ibp.h"
 #include "ibp_mp.h"
 
-#include "ibis_impl_messagePassing_Ibis.h"
-
+#include "ibmp.h"
 #include "ibmp_join.h"
+
+#include "ibis_impl_messagePassing_Ibis.h"
 
 
 static int	proto_start;
@@ -66,9 +65,13 @@ join_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
     join_hdr_p	hdr = join_hdr(proto);
     jbyteArray	ibisId = ibp_byte_array_consume(env, msg, hdr->addr_len);
 
+    assert(env == ibp_JNIEnv);
+
     IBP_VPRINTF(80, env, ("Receive join message from %d", ibp_msg_sender(msg)));
 
     (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_join_upcall, ibisId);
+
+    assert(env == ibp_JNIEnv);
 
     return 0;
 }
@@ -103,7 +106,11 @@ leave_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
     join_hdr_p	hdr = join_hdr(proto);
     jstring	ibisId = ibp_byte_array_consume(env, msg, hdr->addr_len);
 
+    assert(env == ibp_JNIEnv);
+
     (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_leave_upcall, ibisId);
+
+    assert(env == ibp_JNIEnv);
 
     return 0;
 }

@@ -76,13 +76,14 @@ class ShadowSendPort extends SendPort {
 	receivePort = Ibis.myIbis.lookupReceivePort(rId.port);
 	if (! rId.type().equals(ident.type())) {
 	    System.err.println("********************** ShadowSendPort type does not equal connected ReceivePort type");
-	    throw new PortMismatchException("************************** Want to connect send port and receive port of different types: " + type + " <-> " + receivePort.identifier().type());
+	    throw new PortMismatchException("Cannot connect send port and receive port of different types: " + type + " <-> " + receivePort.identifier().type());
 	}
 	this.type = receivePort.type();
 
 	connect_allowed = receivePort.connect(this);
 	if (! connect_allowed) {
 	    Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
+System.err.println(this + ": cannot connect to local ReceivePort " + receivePort);
 	} else if (group != NO_BCAST_GROUP) {
 	    if (Ibis.DEBUG) {
 		System.err.println("Bind group " + group + " to port " + rId.port + "; sender " + sId.cpu + " port " + sId.port);
@@ -141,9 +142,10 @@ class ShadowSendPort extends SendPort {
     }
 
 
-    /* Serialize streams need a complicated x-phase startup because they start
-     * reading in the constructor. Provide a handle to create the Serialize
-     * streams after we have deposited the first msg/fragment in the queue. */
+    /* Sun-Serialize streams need a complicated x-phase startup because they
+     * start reading in the constructor. Provide a handle to create the
+     * Sun-Serialize streams after we have deposited the first msg/fragment
+     * in the queue. */
     boolean checkStarted(ReadMessage msg) throws IOException {
 	return true;
     }

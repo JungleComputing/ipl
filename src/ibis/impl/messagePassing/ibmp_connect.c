@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include <jni.h>
 
 #include "ibis_impl_messagePassing_OutputConnection.h"
@@ -7,9 +9,9 @@
 
 #include "ibp.h"
 #include "ibp_mp.h"
-#include "ibmp_connect.h"
 
 #include "ibmp.h"
+#include "ibmp_connect.h"
 #include "ibmp_send_port.h"
 
 
@@ -133,6 +135,8 @@ ibmp_connect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     jbyteArray rcvePortId = ibp_byte_array_consume(env, msg, hdr->rcve_length);
     jbyteArray sendPortId = ibp_byte_array_consume(env, msg, hdr->send_length);
     jboolean accept;
+
+    assert(env == ibp_JNIEnv);
 
     ibmp_lock_check_owned(env);
     IBP_VPRINTF(100, env, ("ibp MP port %d start upcall connect_handle()\n",

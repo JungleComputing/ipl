@@ -4,6 +4,7 @@
 /* Native methods for ibis.impl.messagePassing.ByteOutputStream
  */
 
+#include <stdio.h>
 #include <jni.h>
 
 extern int	ibmp_byte_stream_proto_start;
@@ -23,7 +24,7 @@ struct IBP_BYTE_STREAM_HDR {
 
 void ibmp_bcast_home_ack(ibmp_byte_stream_hdr_p hdr);
 
-void ibmp_byte_output_stream_report(JNIEnv *env);
+void ibmp_byte_output_stream_report(JNIEnv *env, FILE *f);
 
 void ibmp_byte_output_stream_init(JNIEnv *env);
 void ibmp_byte_output_stream_end(JNIEnv *env);

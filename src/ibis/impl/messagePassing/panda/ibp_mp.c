@@ -20,8 +20,6 @@
 #include "ibp.h"
 #include "ibp_mp.h"
 
-#include "ibp_env.h"
-
 
 static int	ibp_upcall_done;
 
@@ -97,6 +95,9 @@ static void
 ibp_mp_upcall(pan_msg_p msg, void *proto)
 {
     ibp_mp_hdr_p	hdr = ibp_mp_hdr(proto);
+#ifndef NDEBUG
+    JNIEnv	       *current_env = ibp_JNIEnv;
+#endif
 
 #if JASON
     JavaVM *vm = current_VM();
@@ -120,10 +121,13 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
     ibp_upcall_done = 1;	/* Keep polling */
     if (! ibp_upcall[hdr->port](ibp_JNIEnv, (ibp_msg_p)msg, proto)) {
 	IBP_VPRINTF(50, ibp_JNIEnv, ("clear panda msg %p\n", msg));
-	assert(ibp_JNIEnv == NULL || (ibmp_lock_check_owned(ibp_JNIEnv), 1));
+	/* The upcall must maintain ibp_JNIEnv, possibly restoring it when
+	 * it has released/reacquired the Ibis lock */
+	assert(ibp_JNIEnv == current_env);
 	pan_msg_clear(msg);
 	IBP_VPRINTF(50, ibp_JNIEnv, ("cleared panda msg %p\n", msg));
     }
+    assert(current_env == ibp_JNIEnv);
 }
 
 
@@ -137,12 +141,13 @@ ibp_mp_poll(JNIEnv *env)
     while (1) {
 	ibp_upcall_done = 0;
 	pan_poll();
+	assert(ibp_JNIEnv == env);
 	if (! ibp_upcall_done) {
 	    break;
 	}
 	done_anything = 1;
     }
-    ibp_unset_JNIEnv();
+    ibp_unset_JNIEnv(env);
 
     return done_anything;
 }
@@ -197,7 +202,8 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
     hdr->port = port;
     pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, PAN_MP_DELAYED);
     IBP_VPRINTF(800, env, ("Done a Panda MP send\n"));
-    ibp_unset_JNIEnv();
+    assert(ibp_JNIEnv == env);
+    ibp_unset_JNIEnv(env);
 }
 
 
@@ -227,7 +233,7 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
     IBP_VPRINTF(800, env, ("Done a Panda MP send %d async to %d size %d\n",
 		mp_sends[cpu], cpu, ibmp_iovec_len(iov, iov_size)));
 
-    ibp_unset_JNIEnv();
+    ibp_unset_JNIEnv(env);
 }
 
 
@@ -254,7 +260,7 @@ ibp_mp_bcast(JNIEnv *env, int port,
     IBP_VPRINTF(800, env, ("Done a Panda group send %d async to %d size %d\n",
 		group_sends, ibmp_iovec_len(iov, iov_size)));
 
-    ibp_unset_JNIEnv();
+    ibp_unset_JNIEnv(env);
 }
 
 

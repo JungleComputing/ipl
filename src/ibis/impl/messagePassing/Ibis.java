@@ -5,6 +5,7 @@ import ibis.ipl.StaticProperties;
 import ibis.util.ConditionVariable;
 import ibis.util.IbisIdentifierTable;
 import ibis.util.Monitor;
+import ibis.util.PoolInfo;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -17,6 +18,14 @@ public class Ibis extends ibis.ipl.Ibis {
     static final boolean STATISTICS = true;
 
     static Ibis	myIbis;
+
+    static PoolInfo poolInfo = null;
+    static { 
+	try {
+	    poolInfo = new PoolInfo();
+	} catch (IbisException e) {
+	}
+    }
 
     int nrCpus;
     int myCpu;
@@ -59,11 +68,6 @@ public class Ibis extends ibis.ipl.Ibis {
     protected native String[] ibmp_init(String[] args);
     protected native void ibmp_start();
     protected native void ibmp_end();
-
-    private long tMsgPoll;
-    private long tSend;
-    private long tReceive;
-    private long tMsgSend;
 
     Ibis() throws IbisException {
 
@@ -514,8 +518,6 @@ public class Ibis extends ibis.ipl.Ibis {
 	}
 	world.leave(ident);
 
-	System.err.println("t native poll " + t2d(tMsgPoll) + " send " + t2d(tMsgSend));
-	System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
 	// report();
 
 	// ReceivePort.end();

@@ -26,14 +26,8 @@
 #include "ibp.h"
 #include "ibp_mp.h"
 
-#include "ibp_env.h"
 
-#ifndef NDEBUG
-pan_key_p		ibp_env_key;
-#endif
-
-JNIEnv	       *ibp_JNIEnv = NULL;
-int		ibp_intr_enabled = 1;
+static int	ibp_intr_enabled = 1;
 
 
 int		ibp_me;
@@ -59,7 +53,7 @@ ibp_msg_clear(JNIEnv *env, ibp_msg_p msg)
 {
     ibp_set_JNIEnv(env);
     pan_msg_clear((pan_msg_p)msg);
-    ibp_unset_JNIEnv();
+    ibp_unset_JNIEnv(env);
 }
 
 
@@ -151,6 +145,7 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
 #else
 	rd += pan_msg_consume_non_blocking((pan_msg_p)msg, (char *)buf + rd, len - rd);
 #endif
+assert(ibp_JNIEnv == env);
 	if (rd == len) {
 	    break;
 	}
@@ -161,18 +156,15 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
 	    break;
 	}
 
-#if SET_JNI_ENV_ON_YIELD
-	ibp_unset_JNIEnv();
-#endif
+	ibp_unset_JNIEnv(env);
 	ibmp_unlock(env);
 	ibmp_thread_yield(env);
 	ibmp_lock(env);
-#if SET_JNI_ENV_ON_YIELD
 	ibp_set_JNIEnv(env);
-#endif
     }
 
-    ibp_unset_JNIEnv();
+    ibp_unset_JNIEnv(env);
+assert(ibp_JNIEnv == env);
 
     return rd;
 }
@@ -192,7 +184,10 @@ ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len)
 	buf = stack_buf;
     }
 
+    ibp_set_JNIEnv(env);
+
     ibp_consume(env, msg, buf, len);
+assert(ibp_JNIEnv == env);
     buf[len] = '\0';
     IBP_VPRINTF(400, env, ("Msg %p consume string[%d] = \"%s\"\n", msg, len, (char *)buf));
     str = (*env)->NewStringUTF(env, buf);
@@ -200,6 +195,8 @@ ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len)
     if (len > STACK_STRING) {
 	free(buf);
     }
+
+    ibp_unset_JNIEnv(env);
 #undef STACK_STRING
 
     return str;
@@ -226,19 +223,32 @@ ibp_byte_array_consume(JNIEnv *env, ibp_msg_p msg, int len)
     jbyte	stack_buf[STACK_STRING];
     jbyte      *buf;
 
+    if (a == NULL) {
+	fprintf(stderr, "Created a NULL byte array[%d] object from native\n",
+		len);
+	abort();
+    }
+
     if (len > STACK_STRING) {
 	buf = malloc(len);
     } else {
 	buf = stack_buf;
     }
 
+    ibp_set_JNIEnv(env);
+
     ibp_consume(env, msg, buf, len);
+assert(ibp_JNIEnv == env);
+
     (*env)->SetByteArrayRegion(env, a, 0, len, buf);
+assert(ibp_JNIEnv == env);
 
     if (len > STACK_STRING) {
 	free(buf);
     }
 #undef STACK_STRING
+
+    ibp_unset_JNIEnv(env);
 
     return a;
 }
@@ -512,17 +522,10 @@ ibp_intr_disable(JNIEnv *env)
 
 
 void
-ibp_report(JNIEnv *env, jint out)
+ibp_report(JNIEnv *env, FILE *f)
 {
-    FILE *f;
-
-    if (out == 1) {
-	f = stdout;
-    } else {
-	f = stderr;
-    }
 #if INTERRUPTS_AS_UPCALLS
-    fprintf(f, "%2d: intpts %d\n", pan_my_pid(), intpts);
+    fprintf(f, "intpts %d ", intpts);
 #endif
 }
 
@@ -687,10 +690,6 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
     ibp_nr = pan_nr_processes();
     ibp_me = pan_my_pid();
 
-#ifndef NDEBUG
-    ibp_env_key = pan_key_create();
-#endif
-
     if (ibp_intr_enabled) {
 	void pan_comm_intr_register(void (*)(void), void (*)(void), void (*)(void));
 
@@ -721,7 +720,7 @@ ibp_start(JNIEnv *env)
 void
 ibp_end(JNIEnv *env)
 {
-    ibp_report(env, 1);
+    ibp_report(env, stderr);
     IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
     pan_comm_intr_disable();
     IBP_VPRINTF(2000, env, ("here...\n"));

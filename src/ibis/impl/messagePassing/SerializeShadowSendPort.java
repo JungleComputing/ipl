@@ -124,6 +124,7 @@ final class SerializeShadowSendPort
 	if (initializing) {
 	    if (Ibis.DEBUG) {
 		System.err.println(Thread.currentThread() + ": Negotiate the ObjectStream init race " + this + " -- BINGO BINGO");
+		Thread.dumpStack();
 	    }
 	    /* Right. We hit a race here. Some thread is reading the
 	     * initial message, and has to unlock for that.

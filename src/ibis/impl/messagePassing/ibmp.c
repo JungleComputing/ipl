@@ -28,6 +28,8 @@
 #include "ibmp_byte_output_stream.h"
 
 
+JNIEnv	       *ibp_JNIEnv = NULL;
+
 static jclass		cls_Thread;
 static jmethodID	md_yield;
 static jmethodID	md_currentThread;
@@ -49,6 +51,8 @@ jclass			ibmp_cls_Ibis;
 jobject			ibmp_obj_Ibis_ibis;
 
 jclass			cls_java_io_IOException;
+
+static jmethodID	md_printStackTrace;
 
 int			ibmp_me;
 int			ibmp_nr;
@@ -223,6 +227,13 @@ IBP_VPRINTF(100, env, ("\n"));
 }
 
 
+void
+ibmp_throwable_printStackTrace(JNIEnv *env, jthrowable exc)
+{
+    (*env)->CallVoidMethod(env, (jobject)exc, md_printStackTrace);
+}
+
+
 
 void
 ibmp_thread_yield(JNIEnv *env)
@@ -357,8 +368,12 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
 JNIEXPORT void JNICALL
 Java_ibis_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, jint out)
 {
-    ibmp_byte_output_stream_report(env);
-    ibp_report(env, out);
+    FILE *f = out == 1 ? stdout : stderr;
+
+    fprintf(f, "%2d: IBP ", ibmp_me);
+    ibmp_byte_output_stream_report(env, f);
+    ibp_report(env, f);
+    fprintf(f, "\n");
 }
 
 
@@ -368,6 +383,7 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
     jfieldID	fld_Ibis_ibis;
     jfieldID	fld_Ibis_nrCpus;
     jfieldID	fld_Ibis_myCpu;
+    jclass	cls_Throwable;
     int		argc;
     char      **argv;
 
@@ -450,6 +466,17 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
 				       "()V");
     if (md_checkLockNotOwned == NULL) {
 	ibmp_error(env, "Cannot find method checkLockNotOwned\n");
+    }
+    IBP_VPRINTF(2000, env, ("here..\n"));
+    
+    cls_Throwable = (*env)->FindClass(env, "java/lang/Throwable");
+    if (cls_Throwable == NULL) {
+	ibmp_error(env, "Cannot find class java/lang/Throwable\n");
+    }
+    md_printStackTrace = (*env)->GetMethodID(env, cls_Throwable, "printStackTrace",
+				       "()V");
+    if (md_printStackTrace == NULL) {
+	ibmp_error(env, "Cannot find method md_printStackTrace\n");
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 
@@ -554,6 +581,7 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1start(JNIEnv *env, jobject this)
 JNIEXPORT void JNICALL
 Java_ibis_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
 {
+    fprintf(stderr, "%2d: IBP ", ibmp_me);
     ibmp_connect_end(env);
     ibmp_disconnect_end(env);
     ibmp_receive_port_ns_bind_end(env);
@@ -571,4 +599,5 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
     IBP_VPRINTF(2000, env, ("here...\n"));
     ibp_end(env);
     IBP_VPRINTF(2000, env, ("here...\n"));
+    fprintf(stderr, "\n");
 }

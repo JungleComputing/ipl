@@ -1,15 +1,17 @@
+#include <assert.h>
+
 #include <jni.h>
 
 #include <pan_sys.h>
 #include <pan_align.h>
 
-#include "ibmp.h"
-#include "ibmp_send_port.h"
-
 #include "ibis_impl_messagePassing_OutputConnection.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
+
+#include "ibmp.h"
+#include "ibmp_send_port.h"
 #include "ibmp_disconnect.h"
 
 
@@ -68,6 +70,8 @@ ibmp_disconnect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     ibmp_disconnect_hdr_p hdr = ibmp_disconnect_hdr(proto);
     jbyteArray rcvePortId = ibp_byte_array_consume(env, msg, hdr->rcve_length);
     jbyteArray sendPortId = ibp_byte_array_consume(env, msg, hdr->send_length);
+
+    assert(env == ibp_JNIEnv);
 
     IBP_VPRINTF(10, env, ("Rcve disconnect upcall local port\n"));
     (void)ibmp_send_port_disconnect(env, rcvePortId, sendPortId,

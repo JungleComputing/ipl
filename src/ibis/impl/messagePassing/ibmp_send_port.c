@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include <jni.h>
@@ -139,6 +140,8 @@ ibmp_bind_group_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     jint sender = (jint)ibp_msg_sender(msg);
     jbyteArray sendPortId = ibp_byte_array_consume(env, msg, hdr->send_length);
 
+    assert(env == ibp_JNIEnv);
+
     ibmp_lock_check_owned(env);
     IBP_VPRINTF(100, env, ("ibp MP port %d start upcall bind_group_handle()\n",
 		    ibmp_bind_group_port, (int)sender));
@@ -150,6 +153,9 @@ ibmp_bind_group_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 				 sender,
 				 sendPortId,
 				 hdr->group);
+
+    assert(env == ibp_JNIEnv);
+
     if ((*env)->ExceptionOccurred(env) != NULL) {
 	(*env)->ExceptionDescribe(env);
     }
@@ -196,6 +202,7 @@ ibmp_send_port_new(JNIEnv *env,
 		   jint group)
 {
     jobject s;
+    jthrowable exc;
 
     IBP_VPRINTF(900, env, ("Now call this method createShadowSendPort...\n"));
     s = (*env)->CallStaticObjectMethod(env,
@@ -204,7 +211,10 @@ ibmp_send_port_new(JNIEnv *env,
 				       rcvePort,
 				       sendPort,
 				       group);
-    if ((*env)->ExceptionOccurred(env) != NULL) {
+    /* The call to md_createSSP may have mucked up ibp_JNIEnv. Restore it. */
+    ibp_set_JNIEnv(env);
+
+    if ((exc = (*env)->ExceptionOccurred(env)) != NULL) {
 	(*env)->ExceptionDescribe(env);
     }
 
@@ -224,6 +234,9 @@ ibmp_send_port_disconnect(JNIEnv *env,
 				 rcvePort,
 				 sendPort,
 				 messageCount);
+
+    /* The call to md_createSSP may have mucked up ibp_JNIEnv. Restore it. */
+    ibp_set_JNIEnv(env);
 }
 
 
