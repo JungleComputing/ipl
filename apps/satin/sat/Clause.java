@@ -16,6 +16,27 @@ class Clause {
 	label = l;
     }
 
+    // Given an array of assignments, return true iff this clause is
+    // satisfied by these assignments.
+    public boolean isSatisfied( int assignments[] )
+    {
+	for( int ix=0; ix<pos.length; ix++ ){
+	    int v = pos[ix];
+
+	    if( assignments[v] == 1 ){
+		return true;
+	    }
+	}
+	for( int ix=0; ix<neg.length; ix++ ){
+	    int v = neg[ix];
+
+	    if( assignments[v] == 0 ){
+		return true;
+	    }
+	}
+	return false;
+    }
+
     // Given an output stream, print the clause to it in DIMACS format.
     public void printDIMACS( PrintStream s )
     {

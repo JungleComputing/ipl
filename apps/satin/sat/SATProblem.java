@@ -82,7 +82,6 @@ class SATProblem {
 	}
 	int clauseno = clauseCount++;
 	clauses[clauseno] = cl;
-	System.out.println( "Adding a new clause " + cl );
 	registerClauseVariables( cl, clauseno );
     }
 
@@ -118,6 +117,28 @@ class SATProblem {
     public IntVector getNegClauses( int var )
     {
 	return variables[var].getNegClauses();
+    }
+
+    // Given a list of assignments, return the index of a clause that
+    // is not satisfied, or -1 if they all are satisfied.
+    public int getUnsatisfied( int assignments[] )
+    {
+	for( int ix=0; ix<clauseCount; ix++ ){
+	    if( !clauses[ix].isSatisfied( assignments ) ){
+		return ix;
+	    }
+	}
+	return -1;
+    }
+
+    public boolean isSatisified( int assignments[] )
+    {
+	for( int ix=0; ix<clauseCount; ix++ ){
+	    if( !clauses[ix].isSatisfied( assignments ) ){
+		return false;
+	    }
+	}
+	return true;
     }
 
     // A CNF problem parser. Given a problem in DIMACS format,

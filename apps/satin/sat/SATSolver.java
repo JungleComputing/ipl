@@ -93,8 +93,7 @@ public class SATSolver {
 	for( int it=old_terms.length; it<clauseCount; it++ ){
 	    final Clause cl = clauses[it];
 
-	    // Take the variable we are trying to assign to into account.
-	    int n = 1;
+	    int n = 0;
 	    final int pos[] = cl.pos;
 
 	    for( int ix=0; ix<pos.length; ix++ ){
@@ -114,84 +113,15 @@ public class SATSolver {
 	return new_terms;
     }
 
-    // Given the current solver context, and a clause, verify that the clause
-    // is in fact satisfied by the current assignments.
-    static void verifyClauseSolution( Context ctx, final Clause cl )
-    {
-        int pos[] = cl.pos;
-        int neg[] = cl.neg;
-	int assignments[] = ctx.assignments;
-
-	// We implement this by walking over all terms of the clause,
-	// and comparing them with the assignments in ctx.assignments.
-	// If one of them matches, the clause is satisfied, and we
-	// can go away happy.
-	for( int ix=0; ix<pos.length; ix++ ){
-	    if( assignments[pos[ix]] == 1 ){
-		// Yep, this one is satisfied.
-	        return;
-	    }
-	}
-	for( int ix=0; ix<neg.length; ix++ ){
-	    if( assignments[neg[ix]] == 0 ){
-		// Yep, this one is satisfied.
-	        return;
-	    }
-	}
-	System.err.println( "Verification failed: clause " + cl.label + " is not satisfied" );
-    }
-
     // Given the current solver context, verify that it does in fact
     // represent a solution of the system.
     static void verifySolution( Context ctx )
     {
-	// TODO: move this method to the SATProblem class.
-        final Clause clauses[] = ctx.problem.clauses;
+	int unsat = ctx.problem.getUnsatisfied( ctx.assignments );
 
-	for( int ix=0; ix<ctx.problem.getClauseCount(); ix++ ){
-	    verifyClauseSolution( ctx, clauses[ix] );
+	if( unsat>=0 ){
+	    System.err.println( "Verification failed: clause " + unsat + " is not satisfied" );
 	}
-    }
-
-    // Given a clauses and a list of assignments, return true iff the
-    // assignments satisfy the clause.
-    static boolean satisfiesClause( Clause cl, int al[] )
-    {
-	final int pos[] = cl.pos;
-
-	// We implement this by walking over all terms of the clause,
-	// and comparing them with the assignments in ctx.assignments.
-	// If one of them matches, the clause is satisfied, and we
-	// can return true.
-	for( int ix=0; ix<pos.length; ix++ ){
-	    int p = pos[ix];
-
-	    if( al[p] == 1 ){
-		return true;
-	    }
-	}
-	final int neg[] = cl.neg;
-
-	for( int ix=0; ix<neg.length; ix++ ){
-	    int p = neg[ix];
-
-	    if( al[p] == 0 ){
-		return true;
-	    }
-	}
-	return false;
-    }
-
-    // Given the clauses and a solution, return true iff the solution
-    // satisfies the clauses.
-    static boolean satisfiesSolution( Clause clauses[], int clauseCount, int  al[] )
-    {
-	for( int ix=0; ix<clauseCount; ix++ ){
-	    if( !satisfiesClause( clauses[ix], al ) ){
-		return false;
-	    }
-	}
-	return true;
     }
 
     // Given an existing solution context, try to register a generalized
@@ -205,7 +135,7 @@ public class SATSolver {
 		int olda = gal[ix];
 
 		gal[ix] = -1;
-		if( satisfiesSolution( ctx.problem.clauses, ctx.problem.getClauseCount(), gal ) ){
+		if( ctx.problem.isSatisfied( gal ) ){
 		    if( traceSolver || printSatSolutions ){
 			System.out.println( "Found a valid generalized solution by omitting term " + (olda==0?"!":"") + ix );
 		    }
