@@ -36,35 +36,48 @@
     <property name="ibis-run-args" value=""/>
     <property name="java-args" value=""/>
 
-    <target name="run2">
+    <target name="set-tcp-arg">
+	<condition property="tcp-arg" value="&quot;-Dibis.name^=tcp&quot;">
+	    <os family="windows"/>
+	</condition>
+	<condition property="tcp-arg" value="&quot;-Dibis.name=tcp&quot;">
+	    <not>
+		<isset property="tcp-arg"/>
+	    </not>
+	</condition>
+    </target>
+
+    <target name="run2"
+	depends="set-tcp-arg">
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/ibis-run"
 	      vmlauncher="false"
 	      spawn="true">
-	      <arg line="-ns localhost -ns-port 4567 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
-	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
-	      <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
+	    <arg line="-ns localhost -ns-port 4567 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
+	    <arg value="${tcp-arg}"/>
+	    <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/ibis-run"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
-	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
-	      <arg line="${java-args} ${runjob}"/>
+	    <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
+	    <arg value="${tcp-arg}"/>
+	    <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
 
-    <target name="run1">
+    <target name="run1"
+	    depends="set-tcp-arg">
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/ibis-run"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
-	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
-	      <arg line="${java-args} ${runjob}"/>
+	    <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
+	    <arg value="${tcp-arg}"/>
+	    <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
 
