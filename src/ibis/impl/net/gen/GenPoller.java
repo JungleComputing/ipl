@@ -61,12 +61,21 @@ public final class GenPoller extends NetPoller {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected void selectConnection(ReceiveQueue ni) {
+	protected void selectConnection(ReceiveQueue rq) {
                 log.in();
-                NetInput    input = ni.input;
-
+                NetInput    input = rq.input();
+                log.disp("1");
                 mtu = input.getMaximumTransfertUnit();
+                log.disp("2");
                 headerOffset = input.getHeadersLength();
                 log.out();
 	}
+
+        /**
+         * {@inheritDoc}
+         */
+        public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException {
+                //
+        }
+
 }

@@ -139,7 +139,7 @@ public final class UdpMuxInput extends MuxerInput {
     }
 
 
-    protected Integer poll(int timeout)
+    protected Integer doPoll(int timeout)
 	    throws NetIbisException {
 	if (spn == null) {
 	    return null;
@@ -147,11 +147,12 @@ public final class UdpMuxInput extends MuxerInput {
 
 	polls++;
 
+        boolean result = false;
+
 	if (buffer != null) {
 	    /* Pending packet. Finish that first. */
-	    activeNum = spn;
+	    result = true;
 	} else {
-	    activeNum = null;
 	    buffer = createReceiveBuffer(mtu);
 	    /* Make a copy of the packet pointer. Maybe the mtu and the
 	     * associated instance packet changes under our hands. */
@@ -168,7 +169,7 @@ public final class UdpMuxInput extends MuxerInput {
 		setReceiveTimeout(timeout);
 		socket.receive(packet);
 		buffer.length = packet.getLength();
-		activeNum = spn;
+		result = true;
 		// super.initReceive();
 	    } catch (InterruptedIOException e) {
 // System.err.println(this + ": ***************** catch InterruptedIOException " + e);
@@ -190,7 +191,7 @@ System.err.println(this + ": ***************** catch Exception " + e);
 	    }
 	}
 
-	return activeNum;
+	return result?spn:null;
     }
 
 
@@ -198,7 +199,7 @@ System.err.println(this + ": ***************** catch Exception " + e);
 	    throws NetIbisException {
 
 	while (buffer == null) {
-	    poll(0);
+	    doPoll(0);
 	}
 
 	if (Driver.STATISTICS) {
@@ -216,7 +217,7 @@ System.err.println(this + ": ***************** catch Exception " + e);
     }
 
 
-    synchronized public void close(Integer num) throws NetIbisException {
+    synchronized public void doClose(Integer num) throws NetIbisException {
 	if (num == spn) {
 	    if (socket != null) {
 		socket.close();
@@ -232,14 +233,12 @@ System.err.println(this + ": ***************** catch Exception " + e);
     }
 
 
-    public void free() throws NetIbisException {
+    public void doFree() throws NetIbisException {
 	if (spn == null) {
 	    return;
 	}
 
 	close(spn);
-
-	super.free();
     }
 
 }

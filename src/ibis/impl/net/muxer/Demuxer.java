@@ -87,26 +87,6 @@ dumpBufferFactoryInfo();
     }
 
 
-    private final class UpcallThread extends Thread {
-
-	    public void run() {
-		while (true) {
-		    try {
-			NetReceiveBuffer buffer = createReceiveBuffer(demux.getMaximumTransfertUnit());
-			myQueue.receiveByteBuffer(buffer);
-			activeNum = spn;
-			Demuxer.super.initReceive();
-			upcallFunc.inputUpcall(Demuxer.this, activeNum);
-			activeNum = null;
-		    } catch (Exception e) {
-			System.err.println("Upcall thread: " + e);
-		    }
-		}
-	    }
-
-    }
-
-
     /**
      * Sets up a connection over the underlying DemuxerInput.
      */
@@ -119,8 +99,6 @@ dumpBufferFactoryInfo();
 	if (this.spn != null) {
 	    throw new Error("connection already established");
 	}
-
-	this.spn = cnx.getNum();
 
 	/* Set up the connection; it creates a MuxerQueue that is remembered
 	 * by our cnx */
@@ -164,9 +142,8 @@ dumpBufferFactoryInfo();
 	    System.err.println(this + ": my queue is " + myQueue);
 	}
 
-	if (upcallFunc != null) {
-	    (new UpcallThread()).start();
-	}
+	this.spn = cnx.getNum();
+        startUpcallThread();
     }
 
 
@@ -195,6 +172,10 @@ dumpBufferFactoryInfo();
 	}
     }
 
+    protected void initReceive() {
+        //
+    }
+    
 
     /**
      * {@inheritDoc}
@@ -205,7 +186,7 @@ dumpBufferFactoryInfo();
      *
      * @return {@inheritDoc}
      */
-    public Integer poll(boolean block) throws NetIbisException {
+    public Integer doPoll(boolean block) throws NetIbisException {
 	if (myQueue == null) {
 	    // Still connecting, presumably
 	    return null;
@@ -228,7 +209,6 @@ dumpBufferFactoryInfo();
 	    throws NetIbisException {
 
 	NetReceiveBuffer b = myQueue.receiveByteBuffer(expectedLength);
-	super.initReceive();
 	return b;
     }
 
@@ -239,22 +219,21 @@ dumpBufferFactoryInfo();
 // System.err.println(this + ": receiveByteBuffer, my headerLength " + headerLength);
 // Thread.dumpStack();
 	myQueue.receiveByteBuffer(userBuffer);
-	super.initReceive();
     }
 
 
     /**
      * {@inheritDoc}
      */
-    public void finish() throws NetIbisException {
-	super.finish();
+    public void doFinish() throws NetIbisException {
+        //
     }
 
 
     /**
      * {@inheritDoc}
      */
-    public synchronized void close(Integer num) throws NetIbisException {
+    public synchronized void doClose(Integer num) throws NetIbisException {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": close.");
 	    Thread.dumpStack();
@@ -274,7 +253,7 @@ dumpBufferFactoryInfo();
     /**
      * {@inheritDoc}
      */
-    public void free() throws NetIbisException {
+    public void doFree() throws NetIbisException {
 	if (spn == null) {
 	    return;
 	}

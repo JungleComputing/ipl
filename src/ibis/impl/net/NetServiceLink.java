@@ -24,7 +24,7 @@ public final class NetServiceLink {
         private final int _OP_eof                  = 0;
         private final int _OP_request_substream_id = 1;
         private final int _OP_receive_substream_id = 2;
-        
+
         private volatile boolean closed = false;
 
         private boolean      incoming = false;
@@ -58,7 +58,7 @@ public final class NetServiceLink {
         protected NetServiceLink(NetEventQueue portEventQueue, ServerSocket ss) throws NetIbisException {
                 this.portEventQueue = portEventQueue;
                 incoming = true;
-                
+
                 try {
                         socket = ss.accept();
                 } catch (SocketException e) {
@@ -75,7 +75,7 @@ public final class NetServiceLink {
                 incoming = false;
                 InetAddress raddr =  (InetAddress)nfo.get("accept_address");
 		int         rport = ((Integer)    nfo.get("accept_port"   )).intValue();
-		
+
                 try {
 			socket = new Socket(raddr, rport);
 		} catch (IOException e) {
@@ -150,7 +150,7 @@ public final class NetServiceLink {
                 } catch (IOException e) {
                         throw new NetIbisIOException(e);
                 }
-                
+
 
                 serviceThread.start();
         }
@@ -160,7 +160,7 @@ public final class NetServiceLink {
                 if (closed) {
                         return;
                 }
-                
+
                 closed = true;
 
                 if (listenThread != null) {
@@ -195,7 +195,7 @@ public final class NetServiceLink {
 
                         serviceThread = null;
                 }
-                
+
                 synchronized(outputMap) {
                         if (outputMap != null) {
                                 Iterator i = outputMap.values().iterator();
@@ -214,14 +214,14 @@ public final class NetServiceLink {
                                 outputMap = null;
                         }
                 }
-                
-                
+
+
                 inputVector = null;
-                
+
                 synchronized(inputMap) {
                         if (inputMap != null) {
                                 Iterator i = inputMap.values().iterator();
-                                
+
                                 while (i.hasNext()) {
                                         InputClient ic  = (InputClient)i.next();
 
@@ -253,10 +253,10 @@ public final class NetServiceLink {
 
         protected synchronized OutputStream getOutputSubStream(String name) throws NetIbisException {
                 OutputClient oc = null;
-                
+
                 synchronized(outputMap) {
                         oc = (OutputClient)outputMap.get(name);
-                
+
                         if (oc == null) {
                                 oc = new OutputClient();
 
@@ -265,11 +265,11 @@ public final class NetServiceLink {
                                                 main_oos.writeInt(_OP_request_substream_id);
                                                 main_oos.writeUTF(name);
                                                 main_oos.flush();
-                                        }                   
+                                        }
                                 } catch (IOException e) {
                                         throw new NetIbisIOException(e);
                                 }
-                        
+
                                 requestReady.unlock();
                                 requestCompletion.lock();
                                 oc.name = name;
@@ -277,15 +277,15 @@ public final class NetServiceLink {
 
                                 oc.sos = new ServiceOutputStream(oc.id);
                                 outputMap.put(name, oc);
-                        }                
+                        }
                 }
-                
+
                 return oc.sos;
         }
 
         protected synchronized InputStream getInputSubStream(String name) throws NetIbisException {
                 InputClient ic = null;
-                
+
                 synchronized(inputMap) {
                         ic = (InputClient)inputMap.get(name);
 
@@ -298,12 +298,12 @@ public final class NetServiceLink {
                                 if (ic.id >= inputVector.size()) {
                                         inputVector.setSize(ic.id+1);
                                 }
-                                
+
                                 inputVector.setElementAt(ic.sis, ic.id);
                                 inputMap.put(name, ic);
                         }
                 }
-                
+
                 return ic.sis;
         }
 
@@ -354,8 +354,8 @@ public final class NetServiceLink {
                                 os.write(b, o, l);
                         }
                 }
-                
-                
+
+
 
                 public ServiceOutputStream(int id) {
                         this.id = id;
@@ -363,45 +363,45 @@ public final class NetServiceLink {
 
                 private void doFlush() throws IOException {
                         // System.err.println("ServiceOutputStream("+id+").doFlush-->");
-                        if (offset > 0) {                                
+                        if (offset > 0) {
                                 writeBlock(buffer, 0, offset);
                                 offset = 0;
                         }
-                        // System.err.println("ServiceOutputStream("+id+").doFlush<--");                        
+                        // System.err.println("ServiceOutputStream("+id+").doFlush<--");
                 }
-                
-                
+
+
                 public void close() throws IOException {
                         // System.err.println("ServiceOutputStream("+id+").close-->");
                         closed = true;
                         doFlush();
                         // System.err.println("ServiceOutputStream("+id+").close<--");
                 }
-                
+
                 public void flush() throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
                         }
-                        doFlush();                        
+                        doFlush();
                 }
-                
+
                 public void write(byte[] buf) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
                         }
-                        
+
                         write(buf, 0, buf.length);
                 }
-                
+
                 public void write(byte[] buf, int off, int len) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
                         }
-                        
+
                         if (len <= length-offset) {
                                 System.arraycopy(buf, off, buffer, offset, len);
                                 offset += len;
-                                
+
                                 if (offset == length) {
                                         flush();
                                 }
@@ -410,25 +410,25 @@ public final class NetServiceLink {
                                 writeBlock(buf, off, len);
                         }
                 }
-                
+
                 public void write(int val) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
                         }
-                        
+
                         buffer[offset++] = (byte)(val & 0xFF);
 
                         if (offset == length) {
                                 doFlush();
                         }
                 }
-                
+
         }
 
-        
-        
+
+
         public final class ServiceInputStream extends InputStream {
-                
+
                 private class BufferList {
                         BufferList    previous = null;
                         BufferList    next     = null;
@@ -461,22 +461,22 @@ public final class NetServiceLink {
                         }
 
                         avail += bl.buf.length;
-                                                
+
                         notifyAll();
-                }                
+                }
 
                 public synchronized int available() throws IOException {
                         return avail;
                 }
-                
+
                 public synchronized void close() throws IOException {
                         closed = true;
                         notifyAll();
                 }
-                
+
                 public boolean markSupported() {
                         return false;
-                }      
+                }
 
                 private void nextBlock() {
                         offset = 0;
@@ -490,7 +490,7 @@ public final class NetServiceLink {
                                 first = temp;
                         }
                 }
-                
+
 
                 public synchronized int read() throws IOException {
                         if (closed && avail == 0) {
@@ -498,7 +498,7 @@ public final class NetServiceLink {
                         }
 
                         int result = 0;
-                        
+
                         if (avail == 0) {
                                 try {
                                         wait();
@@ -514,7 +514,7 @@ public final class NetServiceLink {
                                 result = 0xFF & (int)first.buf[offset++];
                                 avail--;
                         }
-                        
+
                         if (offset == first.buf.length) {
                                 nextBlock();
                         }
@@ -525,14 +525,14 @@ public final class NetServiceLink {
                 public int read(byte[] b) throws IOException {
                         return read(b, 0, b.length);
                 }
-                
+
                 public synchronized int read(byte[] buf, int off, int len) throws IOException {
                         if (closed && avail == 0) {
                                 throw new EOFException("stream closed");
                         }
 
                         int result = 0;
-                        
+
                         while (len > 0) {
                                 if (avail == 0) {
                                         if (closed) {
@@ -556,7 +556,7 @@ public final class NetServiceLink {
                                 off    += copylength;
                                 len    -= copylength;
                                 avail  -= copylength;
-                                
+
                                 if (offset == first.buf.length) {
                                         nextBlock();
                                 }
@@ -565,7 +565,7 @@ public final class NetServiceLink {
                         return result;
                 }
         }
-        
+
 
 
 
@@ -583,7 +583,7 @@ public final class NetServiceLink {
                 public void run() {
                 main_loop:
                         while (!exit) {
-                                
+
                                 try {
                                         int id  = is.read();
 
@@ -591,17 +591,17 @@ public final class NetServiceLink {
                                                 exit = true;
                                                 continue;
                                         }
-                                        
+
                                         ServiceInputStream sis = null;
-                                        
+
                                         synchronized(inputMap) {
                                                 sis = (ServiceInputStream)inputVector.elementAt(id);
                                         }
-                                        
+
                                         if (sis == null) {
                                                 throw new NetIbisException("invalid id");
                                         }
-                                        
+
                                         is.read(intBuffer);
                                         byte [] b = new byte[NetConvert.readInt(intBuffer)];
                                         is.read(b);
@@ -623,13 +623,13 @@ public final class NetServiceLink {
                 }
 
                 protected void end() throws NetIbisException {
-                        exit = true; 
+                        exit = true;
                         try {
                                 is.close();
                         } catch (IOException e) {
                                 throw new NetIbisIOException(e);
                         }
-                }                
+                }
         }
 
         private final class ServiceThread extends Thread {
@@ -662,7 +662,7 @@ public final class NetServiceLink {
                                         if (ic.id >= inputVector.size()) {
                                                 inputVector.setSize(ic.id+1);
                                         }
-                                        
+
                                         inputVector.setElementAt(ic.sis, ic.id);
                                         inputMap.put(name, ic);
                                 }
@@ -678,7 +678,7 @@ public final class NetServiceLink {
                                 }
                         }
                 }
-                
+
 
                 private void receiveSubstreamId(Object o) {
                         requestReady.lock();
@@ -693,7 +693,7 @@ public final class NetServiceLink {
 
                                         switch (op) {
 
-                                        case _OP_eof: 
+                                        case _OP_eof:
                                                 {
                                                         exit = true;
                                                         close();

@@ -36,8 +36,6 @@ public final class RelInput
 
     private Driver		relDriver;
 
-    private UpcallThread	upcallThread = null;
-
 
     /**
      * The index number of our piggyback partner
@@ -155,42 +153,6 @@ public final class RelInput
     }
 
 
-    private final class UpcallThread extends Thread {
-
-	private volatile boolean end = false;
-
-	public UpcallThread(String name) {
-	    super("RelInput.UpcallThread: "+name);
-	}
-
-	public void end() {
-	    // System.err.println("Wave the upcall thread goodbye");
-	    end = true;
-	    this.interrupt();
-	    try {
-		this.join(300);
-	    } catch (InterruptedException e) {
-		System.err.println("Poller thread won't hear from us, let it be");
-	    }
-	}
-	
-	public void run() {
-	    while (!end) {
-		try {
-		    while (poll(true) == null) {
-			if (end) {
-			    return;
-			}
-		    }
-		    upcallFunc.inputUpcall(RelInput.this, activeNum);
-		} catch (NetIbisException e) {
-// System.err.println(RelInput.this + ": exception " + e);
-		    throw new Error(e);
-		}
-	    }
-	}
-    }
-
 
     /*
      * {@inheritDoc}
@@ -198,7 +160,7 @@ public final class RelInput
     public synchronized void setupConnection(NetConnection cnx)
 	    throws NetIbisException {
 
-	spn = cnx.getNum();
+	Integer spn = cnx.getNum();
 
 	/* Main connection */
 	NetInput dataInput = this.dataInput;
@@ -272,10 +234,8 @@ public final class RelInput
 	    os.writeInt(1);
             os.close();
 
-	    if (upcallFunc != null) {
-		upcallThread = new UpcallThread("RelInput[" + spn + "]");
-		upcallThread.start();
-	    }
+            this.spn = spn;
+            startUpcallThread();
 
 	    if (DEBUG) {
 		System.err.println(this + ": " + Thread.currentThread() + ": established connection with " + partnerId + "; upcallFunc = " + upcallFunc);
@@ -612,18 +572,25 @@ public final class RelInput
 	}
     }
 
+    protected void initReceive() throws NetIbisException {
+        //
+    }
 
     // No need to call this synchronized or non-synchronized
-    private void pollQueue() {
+    // Note O.A.: - initReceive is now called by NetInput.poll()
+    //            - activeNum is now private to NetInput
+    private boolean pollQueue() {
 	if (front != null && front.fragCount == nextDeliver) {
-	    initReceive();
-	    activeNum = spn;
 	    if (DEBUG) {
 		System.err.println("Initialize " + this + " from poll");
-		System.err.println("Poll: return my activeNum " + activeNum);
+		System.err.println("Poll: return my activeNum " + spn);
 		// Thread.dumpStack();
 	    }
+
+            return true;
 	}
+
+        return false;
     }
 
 
@@ -631,7 +598,8 @@ public final class RelInput
      * {@inheritDoc}
      */
     // Call this non-synchronized
-    public Integer poll(boolean block) throws NetIbisException {
+    public Integer doPoll(boolean block) throws NetIbisException {
+        boolean result = false;
 
 	checkUnlocked();
 
@@ -639,20 +607,18 @@ public final class RelInput
 	    return null;
 	}
 
-	activeNum = null;
-
-	pollQueue();
-	if (activeNum == null && pollDataInput(block)) {
+	result = pollQueue();
+	if (!result && pollDataInput(block)) {
 	    /* There is something to receive from the dataInput. Take a look */
 	    receiveDataPacket();
-	    pollQueue();
+	    result = pollQueue();
 	}
 
 	if (DEBUG) {
-	    System.err.println(this + ": poll() returns " + activeNum);
+	    System.err.println(this + ": poll() returns " + (result?spn:null));
 	}
 
-	return activeNum;
+	return result?spn:null;
     }
 
 
@@ -742,13 +708,12 @@ public final class RelInput
     /**
      * {@inheritDoc}
      */
-    public void finish() throws NetIbisException {
-	    super.finish();
+    public void doFinish() throws NetIbisException {
 	    dataInput.finish();
     }
 
 
-    synchronized public void close(Integer num) throws NetIbisException {
+    synchronized public void doClose(Integer num) throws NetIbisException {
             // to implement
             //
             // - 'num' is the is the Integer identifier of the connection to close
@@ -778,11 +743,6 @@ public final class RelInput
 	    }
 	}
 
-	if (upcallThread != null) {
-	    upcallThread.end();
-	    upcallThread = null;
-	}
-
 // System.err.println(this + ": close my subinputs");
 	if (dataInput != null) {
 	    dataInput.close(spn);
@@ -798,12 +758,10 @@ public final class RelInput
     /**
      * {@inheritDoc}
      */
-    public void free() throws NetIbisException {
+    public void doFree() throws NetIbisException {
 	if (spn != null) {
 	    close(spn);
 	}
-
-	super.free();
 
 	report();
 

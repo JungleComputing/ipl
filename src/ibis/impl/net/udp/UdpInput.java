@@ -47,7 +47,6 @@ public final class UdpInput extends NetBufferedInput {
          * <BR><B>Note</B>: this will be replaced by a property setting in the future.
          */
         private int                   receiveTimeout = defaultReceiveTimeout; // milliseconds
-        private UpcallThread          upcallThread = null;
 
         private DatagramSocket        socket         = null;
         private DatagramPacket        packet         = null;
@@ -79,6 +78,8 @@ public final class UdpInput extends NetBufferedInput {
                 Thread.dumpStack();                
         }
 
+        /*
+          To remove
         private final class UpcallThread extends Thread {
 
                 private volatile boolean end = false;
@@ -109,11 +110,9 @@ public final class UdpInput extends NetBufferedInput {
                                         socket.receive(packet);
                                         stat.begin();
                                         buffer.length = packet.getLength();
-                                        activeNum = spn;
-                                        UdpInput.super.initReceive();
+                                        initReceive(spn);
                                         upcallFunc.inputUpcall(UdpInput.this, activeNum);
                                         stat.end();
-                                        activeNum = null;
                                 } catch (InterruptedIOException e) {
                                         // Nothing
                                 } catch (Exception e) {
@@ -123,6 +122,7 @@ public final class UdpInput extends NetBufferedInput {
                         log.out();
                 }
         }
+        */
 
         public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
                 log.in();
@@ -184,10 +184,7 @@ public final class UdpInput extends NetBufferedInput {
 
                 setReceiveTimeout(receiveTimeout);
                 spn = cnx.getNum();
-                if (upcallFunc != null) {
-                        upcallThread = new UpcallThread(raddr+"["+rport+"]");
-                        upcallThread.start();
-                }
+                startUpcallThread();
                 log.out();
         }
 
@@ -229,7 +226,7 @@ public final class UdpInput extends NetBufferedInput {
          *
          * @return {@inheritDoc}
          */
-        public Integer poll(boolean block) throws NetIbisException {
+        public Integer doPoll(boolean block) throws NetIbisException {
                 log.in();
                 Integer result = poll(block ? 0 : pollTimeout);
                 log.out();
@@ -237,8 +234,14 @@ public final class UdpInput extends NetBufferedInput {
                 return result;
         }
 
+        protected void initReceive(Integer num) throws NetIbisException {
+                super.initReceive(num);
+                checkReceiveSeqno(buffer);
+        }
 
         private Integer poll(int timeout) throws NetIbisException {
+                Integer result = null;
+                
                 log.in();
                 if (spn == null) {
                         log.out("unconnected");
@@ -247,10 +250,8 @@ public final class UdpInput extends NetBufferedInput {
 
                 if (buffer != null) {
                         // Pending packet -- shouldn't we finish that first?
-                        activeNum = spn;
+                        result = spn;
                 } else {
-                        activeNum = null;
-
                         buffer = createReceiveBuffer(0);
                         packet.setData(buffer.data, 0, buffer.data.length);
                         setReceiveTimeout(timeout);
@@ -258,9 +259,7 @@ public final class UdpInput extends NetBufferedInput {
                         try {
                                 socket.receive(packet);
                                 buffer.length = packet.getLength();
-                                activeNum = spn;
-                                super.initReceive();
-                                checkReceiveSeqno(buffer);
+                                result = spn;
                         } catch (InterruptedIOException e) {
                                 buffer.free();
                                 buffer = null;
@@ -278,7 +277,7 @@ public final class UdpInput extends NetBufferedInput {
                 stat.begin();
                 log.out();
                 
-                return activeNum;
+                return result;
         }
 
         /**
@@ -320,7 +319,10 @@ public final class UdpInput extends NetBufferedInput {
                                  * set a timeout. */
                                 setReceiveTimeout(0);
                                 socket.receive(packet);
-                                super.initReceive();
+
+                                // ???
+                                // super.initReceive();
+
                                 checkReceiveSeqno(buffer);
                         } catch (IOException e) {
                                 throw new NetIbisException(e);
@@ -339,10 +341,9 @@ public final class UdpInput extends NetBufferedInput {
         /**
          * {@inheritDoc}
          */
-        public void finish() throws NetIbisException {
+        public void doFinish() throws NetIbisException {
                 log.out();
                 buffer = null;
-                super.finish();
                 stat.end();
                 log.out();
         }
@@ -380,15 +381,11 @@ public final class UdpInput extends NetBufferedInput {
                 return t;
         }
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws NetIbisException {
                 log.in();
                 if (spn == num) {
                         if (socket != null) {
                                 socket.close();
-                        }
-
-                        if (upcallThread != null) {
-                                upcallThread.end();
                         }
 
                         spn = null;
@@ -400,13 +397,11 @@ public final class UdpInput extends NetBufferedInput {
         /**
          * {@inheritDoc}
          */
-        public void free() throws NetIbisException {
+        public void doFree() throws NetIbisException {
                 log.in();
                 if (spn != null) {
                         close(spn);
                 }
-
-                super.free();
                 log.out();
         }
 

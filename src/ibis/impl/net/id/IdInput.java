@@ -21,7 +21,7 @@ public final class IdInput extends NetInput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the input's 
+	 * @param sp the properties of the input's
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 */
@@ -48,7 +48,7 @@ public final class IdInput extends NetInput {
 			subInput = newSubInput(subDriver);
 			this.subInput = subInput;
 		}
-		
+
                 if (upcallFunc != null) {
                         subInput.setupConnection(cnx, this);
                 } else {
@@ -57,14 +57,14 @@ public final class IdInput extends NetInput {
 	}
 
         public synchronized void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
-                activeNum = spn;
-
                 // Note: the IdInput instance is bypassed during upcall reception
                 upcallFunc.inputUpcall(input, spn);
-
-                activeNum = null;
         }
 
+        public void initReceive(Integer num) {
+                mtu          = subInput.getMaximumTransfertUnit();
+                headerOffset = subInput.getHeadersLength();
+        }
 
 	/**
 	 * {@inheritDoc}
@@ -75,49 +75,42 @@ public final class IdInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws NetIbisException {
                 if (subInput == null)
                         return null;
-                
+
                 Integer result = subInput.poll(block);
-                if (result != null) {
-                        mtu          = subInput.getMaximumTransfertUnit();
-                        headerOffset = subInput.getHeadersLength();
-                }
 
 		return result;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws NetIbisException {
+	public void doFinish() throws NetIbisException {
 		subInput.finish();
-		super.finish();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
+	public void doFree() throws NetIbisException {
 		if (subInput != null) {
 			subInput.free();
 		}
-
-		super.free();
 	}
-	
-        public synchronized void close(Integer num) throws NetIbisException {
+
+        public synchronized void doClose(Integer num) throws NetIbisException {
                 if (subInput != null) {
 			subInput.close(num);
 			subInput = null;
 		}
         }
-        
+
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 return subInput.readByteBuffer(expectedLength);
-        }       
+        }
 
         public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 subInput.readByteBuffer(buffer);
@@ -127,12 +120,12 @@ public final class IdInput extends NetInput {
 	public boolean readBoolean() throws NetIbisException {
                 return subInput.readBoolean();
         }
-        
+
 
 	public byte readByte() throws NetIbisException {
                 return subInput.readByte();
         }
-        
+
 
 	public char readChar() throws NetIbisException {
                 return subInput.readChar();
@@ -153,7 +146,7 @@ public final class IdInput extends NetInput {
                 return subInput.readLong();
         }
 
-	
+
 	public float readFloat() throws NetIbisException {
                 return subInput.readFloat();
         }

@@ -23,7 +23,7 @@ public final class BytesInput extends NetInput implements Settings {
 	private NetInput  subInput  = null;
 
         /*
-         * 
+         *
          */
         private NetAllocator a2 = new NetAllocator(2, 1024);
         private NetAllocator a4 = new NetAllocator(4, 1024);
@@ -58,6 +58,8 @@ public final class BytesInput extends NetInput implements Settings {
 
         private volatile Thread activeUpcallThread = null;
 
+        private Integer activeNum = null;
+
 	BytesInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
 		super(pt, driver, context);
                 an = new NetAllocator(anThreshold);
@@ -78,7 +80,7 @@ public final class BytesInput extends NetInput implements Settings {
 			subInput = newSubInput(subDriver);
 			this.subInput = subInput;
 		}
-		
+
                 if (upcallFunc != null) {
                         subInput.setupConnection(cnx, this);
                 } else {
@@ -87,8 +89,15 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
 	}
 
-        protected void initReceive() {
+        protected void initReceive(Integer num) {
                 log.in();
+                        mtu          = Math.min(maxMtu, subInput.getMaximumTransfertUnit());
+                        /*
+                        if (mtu == 0) {
+                                mtu = maxMtu;
+                        }
+                        */
+                        headerOffset = subInput.getHeadersLength();
                 if (mtu != 0) {
 			if (bufferAllocator == null || bufferAllocator.getBlockSize() != mtu) {
 				bufferAllocator = new NetAllocator(mtu);
@@ -104,7 +113,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
         }
 
-	public synchronized Integer poll(boolean block) throws NetIbisException {
+	public synchronized Integer doPoll(boolean block) throws NetIbisException {
                 log.in();
                 if (activeNum != null) {
                         throw new Error("invalid call");
@@ -112,22 +121,13 @@ public final class BytesInput extends NetInput implements Settings {
 
                 if (subInput == null)
                         return null;
-                
+
                 Integer result = subInput.poll(block);
-                if (result != null) {
-                        mtu          = Math.min(maxMtu, subInput.getMaximumTransfertUnit());
-                        /*
-                        if (mtu == 0) {
-                                mtu = maxMtu;
-                        }
-                        */
-                        headerOffset = subInput.getHeadersLength();
-                        initReceive();
-                }
+
                 log.out();
 		return result;
 	}
-	
+
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 log.in();
                 synchronized(this) {
@@ -138,24 +138,16 @@ public final class BytesInput extends NetInput implements Settings {
                                         throw new NetIbisInterruptedException(e);
                                 }
                         }
-                        
+
                         if (spn == null) {
                                 throw new Error("invalid connection num");
                         }
-                        
+
                         activeNum = spn;
                         activeUpcallThread = Thread.currentThread();
+                        initReceive(spn);
                 }
 
-                mtu = Math.min(maxMtu, subInput.getMaximumTransfertUnit());
-                /*
-                if (mtu == 0) {
-                        mtu = maxMtu;
-                }
-                */
-                headerOffset = subInput.getHeadersLength();
-                initReceive();
-                
                 upcallFunc.inputUpcall(this, spn);
 
                 synchronized(this) {
@@ -199,36 +191,36 @@ public final class BytesInput extends NetInput implements Settings {
                         } else {
                                 log.disp("buffer already flushed");
                         }
-                }        
+                }
                 log.out();
 	}
 
         private boolean ensureLength(int l) throws NetIbisException {
                 log.in();
                 log.disp("param l = "+l);
-                
+
                 if (l > mtu - dataOffset) {
                         log.disp("split mandatory");
-                        
+
                         log.out();
                         return false;
                 }
-                
+
                 if (buffer == null) {
-                        log.disp("no split needed but buffer allocation required");                        
+                        log.disp("no split needed but buffer allocation required");
                         pumpBuffer();
                 } else {
                         //final int availableLength = buffer.length - bufferOffset;
                         final int availableLength = mtu - bufferOffset;
                         log.disp("availableLength = "+ availableLength);
-                        
+
                         if (l > availableLength) {
                                 if (l - availableLength > splitThreshold) {
                                         log.disp("split required");
                                         log.out();
                                         return false;
                                 } else {
-                                        log.disp("split avoided, buffer allocation required");                        
+                                        log.disp("split avoided, buffer allocation required");
                                         freeBuffer();
                                         pumpBuffer();
                                 }
@@ -238,49 +230,46 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
                 return true;
         }
-        
+
 
 
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws NetIbisException {
+	public void doFinish() throws NetIbisException {
                 log.in();
-		super.finish();
 		subInput.finish();
                 freeBuffer();
-                
+
                 synchronized(this) {
                         activeNum = null;
                         activeUpcallThread = null;
                         notifyAll();
                 }
-                
+
                 log.out();
 	}
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws NetIbisException {
                 log.in();
                 if (subInput != null) {
                         subInput.close(num);
                 }
                 log.out();
         }
-        
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
+	public void doFree() throws NetIbisException {
                 log.in();
 		if (subInput != null) {
 			subInput.free();
 		}
-
-		super.free();
                 log.out();
 	}
-	
+
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 log.in();
@@ -288,7 +277,7 @@ public final class BytesInput extends NetInput implements Settings {
                 NetReceiveBuffer b = subInput.readByteBuffer(expectedLength);
                 log.out();
                 return b;
-        }       
+        }
 
         public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 log.in();
@@ -300,7 +289,7 @@ public final class BytesInput extends NetInput implements Settings {
 	public boolean readBoolean() throws NetIbisException {
                 log.in();
                 boolean v = false;
-                
+
                 if (mtu > 0) {
                         if (buffer == null) {
                                 pumpBuffer();
@@ -315,12 +304,12 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
                 return v;
         }
-        
+
 
 	public byte readByte() throws NetIbisException {
                 log.in();
                 byte v = 0;
-                
+
                 if (mtu > 0) {
                         if (buffer == null) {
                                 pumpBuffer();
@@ -330,12 +319,12 @@ public final class BytesInput extends NetInput implements Settings {
                         freeBufferIfNeeded();
                 } else {
                         v = subInput.readByte();
-                }                
+                }
 
                 log.out();
                 return v;
         }
-        
+
 
 	public char readChar() throws NetIbisException {
                 log.in();
@@ -352,7 +341,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 if (buffer == null) {
                                         pumpBuffer();
                                 }
-                        
+
                                 b[0] = buffer.data[bufferOffset++];
                                 freeBuffer();
 
@@ -391,7 +380,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 if (buffer == null) {
                                         pumpBuffer();
                                 }
-                        
+
                                 b[0] = buffer.data[bufferOffset++];
                                 freeBuffer();
 
@@ -402,7 +391,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 v = NetConvert.readShort(b);
                                 a2.free(b);
                         }
-                        
+
                 } else {
                         byte [] b = a2.allocate();
                         subInput.readArrayByte(b);
@@ -430,8 +419,8 @@ public final class BytesInput extends NetInput implements Settings {
                                 for (int i = 0; i < 4; i++) {
                                         if (buffer == null) {
                                                 pumpBuffer();
-                                        }                        
-                                        
+                                        }
+
                                         b[i] = buffer.data[bufferOffset++];
                                         freeBufferIfNeeded();
                                 }
@@ -445,7 +434,7 @@ public final class BytesInput extends NetInput implements Settings {
                         subInput.readArrayByte(b);
                         v = NetConvert.readInt(b);
                         a4.free(b);
-                }                
+                }
 
                 log.out();
                 return v;
@@ -467,8 +456,8 @@ public final class BytesInput extends NetInput implements Settings {
                                 for (int i = 0; i < 8; i++) {
                                         if (buffer == null) {
                                                 pumpBuffer();
-                                        }                        
-                                        
+                                        }
+
                                         b[i] = buffer.data[bufferOffset++];
                                         freeBufferIfNeeded();
                                 }
@@ -483,12 +472,12 @@ public final class BytesInput extends NetInput implements Settings {
                         v = NetConvert.readLong(b);
                         a8.free(b);
                 }
-                
+
                 log.out();
                 return v;
         }
 
-	
+
 	public float readFloat() throws NetIbisException {
                 log.in();
                 float v = 0;
@@ -504,8 +493,8 @@ public final class BytesInput extends NetInput implements Settings {
                                 for (int i = 0; i < 4; i++) {
                                         if (buffer == null) {
                                                 pumpBuffer();
-                                        }                        
-                                        
+                                        }
+
                                         b[i] = buffer.data[bufferOffset++];
                                         freeBufferIfNeeded();
                                 }
@@ -520,7 +509,7 @@ public final class BytesInput extends NetInput implements Settings {
                         v = NetConvert.readFloat(b);
                         a4.free(b);
                 }
-                
+
                 log.out();
                 return v;
         }
@@ -541,8 +530,8 @@ public final class BytesInput extends NetInput implements Settings {
                                 for (int i = 0; i < 8; i++) {
                                         if (buffer == null) {
                                                 pumpBuffer();
-                                        }                        
-                                        
+                                        }
+
                                         b[i] = buffer.data[bufferOffset++];
                                         freeBufferIfNeeded();
                                 }
@@ -557,7 +546,7 @@ public final class BytesInput extends NetInput implements Settings {
                         v = NetConvert.readDouble(b);
                         a8.free(b);
                 }
-                
+
                 log.out();
                 return v;
         }
@@ -568,7 +557,7 @@ public final class BytesInput extends NetInput implements Settings {
                 final int l = readInt();
                 char [] a = new char[l];
                 readArraySliceChar(a, 0, l);
-                
+
                 String s = new String(a);
                 log.out();
 
@@ -675,7 +664,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         freeBuffer();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.readArraySliceChar(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -699,7 +688,7 @@ public final class BytesInput extends NetInput implements Settings {
                 }
                 log.out();
         }
-        
+
 
 	public void readArraySliceShort(short [] ub, int o, int l) throws NetIbisException {
                 log.in();
@@ -728,7 +717,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         freeBuffer();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.readArraySliceShort(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -752,7 +741,7 @@ public final class BytesInput extends NetInput implements Settings {
                 }
                 log.out();
         }
-        
+
 
 	public void readArraySliceInt(int [] ub, int o, int l) throws NetIbisException {
                 log.in();
@@ -781,7 +770,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         freeBuffer();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.readArraySliceInt(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -806,7 +795,7 @@ public final class BytesInput extends NetInput implements Settings {
 
                 log.out();
         }
-        
+
 
 	public void readArraySliceLong(long [] ub, int o, int l) throws NetIbisException {
                 log.in();
@@ -834,7 +823,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         freeBuffer();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.readArraySliceLong(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -858,7 +847,7 @@ public final class BytesInput extends NetInput implements Settings {
                 }
                 log.out();
         }
-        
+
 
 	public void readArraySliceFloat(float [] ub, int o, int l) throws NetIbisException {
                 log.in();
@@ -886,7 +875,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         freeBuffer();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.readArraySliceFloat(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -909,7 +898,7 @@ public final class BytesInput extends NetInput implements Settings {
                         }
                 }
                 log.out();
-        }        
+        }
 
 	public void readArraySliceDouble(double [] ub, int o, int l) throws NetIbisException {
                 log.in();
@@ -937,7 +926,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         freeBuffer();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.readArraySliceDouble(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -961,12 +950,12 @@ public final class BytesInput extends NetInput implements Settings {
                 }
                 log.out();
         }
-        
+
 	public void readArraySliceObject(Object [] ub, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         ub[o+i] = readObject();
                 }
                 log.out();
-        }       
+        }
 }

@@ -89,13 +89,13 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
      *
      * @param timeout poll timeout in msec. 0 signifies indefinite timeout.
      */
-    abstract protected Integer poll(int timeout) throws NetIbisException;
+    abstract protected Integer doPoll(int timeout) throws NetIbisException;
 
 
     /**
      * {@inheritDoc}
      */
-    public Integer poll(boolean block) throws NetIbisException {
+    public Integer doPoll(boolean block) throws NetIbisException {
 
 	if (! USE_POLLER_THREAD) {
 	    synchronized (this) {
@@ -103,7 +103,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 	    }
 	}
 
-	Integer spn = poll(block ? 0 : pollTimeout);
+	Integer spn = doPoll(block ? 0 : pollTimeout);
 
 	if (! USE_POLLER_THREAD) {
 	    synchronized (this) {
@@ -144,7 +144,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 // if (! proceed) System.err.print(proceed ? "v" : "-");
 
 	if (proceed) {
-	    if ((r = poll(block ? 0 : pollTimeout)) != null) {
+	    if ((r = doPoll(block ? 0 : pollTimeout)) != null) {
 		receive();
 	    }
 
@@ -264,7 +264,7 @@ Thread.dumpStack();
 		if (Driver.DEBUG) {
 		    System.err.println(this + ": poller thread does a blocking receive");
 		}
-		while (poll(0) == null) {
+		while (doPoll(0) == null) {
 		    /* try again */
 		}
 

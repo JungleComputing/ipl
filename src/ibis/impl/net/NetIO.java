@@ -103,7 +103,7 @@ public abstract class NetIO {
                 }
 
                 String s = "//"+type.name()+this.context;
-                
+
                 if (this instanceof NetOutput) {
                         s += ".output";
                 } else if (this instanceof NetInput) {
@@ -128,7 +128,7 @@ public abstract class NetIO {
         protected NetMessageStat newMessageStat(boolean on, String moduleName) {
                 return new NetMessageStat(on, moduleName);
         }
-        
+
         /**
          * Returns the {@link #context} {@linkplain String string}.
          *

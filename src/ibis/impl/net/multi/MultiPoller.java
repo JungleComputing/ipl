@@ -192,7 +192,7 @@ public final class MultiPoller extends NetPoller {
                                 NetDriver       subDriver       = driver.getIbis().getDriver(subDriverName);
                                 ni = newSubInput(subDriver, subContext);
                         } else {
-                                ni = q.input;
+                                ni = q.input();
                         }
 
                         super.setupConnection(cnx, subContext, ni);
@@ -225,9 +225,9 @@ public final class MultiPoller extends NetPoller {
         /**
          * {@inheritDoc}
          */
-        protected void selectConnection(ReceiveQueue ni) {
+        protected void selectConnection(ReceiveQueue rq) {
                 log.in();
-                Lane lane = (Lane)laneTable.get(activeNum);
+                Lane lane = (Lane)laneTable.get(rq.activeNum());
                 synchronized (lane) {
                         mtu          = lane.mtu;
                         headerOffset = lane.headerLength;
@@ -238,14 +238,14 @@ public final class MultiPoller extends NetPoller {
         /**
          * {@inheritDoc}
          */
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException {
                 log.in();
                 if (laneTable != null) {
                         Lane lane = (Lane)laneTable.get(num);
 
                         if (lane != null) {
-                                if (lane.queue.input != null) {
-                                        lane.queue.input.close(num);
+                                if (lane.queue.input() != null) {
+                                        lane.queue.input().close(num);
                                 }
 
                                 if (lane.thread != null) {
@@ -253,13 +253,6 @@ public final class MultiPoller extends NetPoller {
                                 }
 
                                 laneTable.remove(num);
-
-                                if (activeQueue == lane.queue) {
-                                        activeQueue        = null;
-                                        activeNum          = null;
-                                        activeUpcallThread = null;
-                                        notifyAll();
-                                }
                         }
                 }
                 log.out();

@@ -55,7 +55,7 @@ public abstract class NetBufferedInput extends NetInput {
 	public NetReceiveBuffer createReceiveBuffer(int length)
 		throws NetIbisException {
                 NetReceiveBuffer b = null;
-                
+
                 log.in();
                 if (factory == null) {
                         byte[] data = null;
@@ -121,13 +121,13 @@ public abstract class NetBufferedInput extends NetInput {
                 receiveByteBuffer(b);
                 circularCheck = false;
                 log.out();
-                
+
                 return b;
         }
 
 
 
-        protected void initReceive() {
+        protected void initReceive(Integer num) throws NetIbisException {
                 log.in();
                 if (mtu != 0) {
 			if (bufferAllocator == null || bufferAllocator.getBlockSize() != mtu) {
@@ -155,6 +155,10 @@ public abstract class NetBufferedInput extends NetInput {
 	private void pumpBuffer(int length) throws NetIbisException {
                 log.in();
 		buffer       = receiveByteBuffer(dataOffset+length);
+                if (buffer == null) {
+                        throw new NetIbisClosedException("connection closed");
+                }
+
 		bufferOffset = dataOffset;
                 log.out();
 	}
@@ -169,9 +173,8 @@ public abstract class NetBufferedInput extends NetInput {
                 log.out();
 	}
 
-	public void finish() throws NetIbisException {
+	public void doFinish() throws NetIbisException {
                 log.in();
-                super.finish();
  		freeBuffer();
                 log.out();
 	}
@@ -261,7 +264,7 @@ public abstract class NetBufferedInput extends NetInput {
                                 }
                         }
                 }
-                
+
 		log.out();
 	}
 

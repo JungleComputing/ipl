@@ -12,7 +12,6 @@ public final class DefInput extends NetBufferedInput {
 	private volatile Integer spn          = null;
 	private InputStream      defIs        = null;
         private NetReceiveBuffer buf          = null;
-        private UpcallThread     upcallThread = null;
 
 	DefInput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
@@ -20,49 +19,6 @@ public final class DefInput extends NetBufferedInput {
 		headerLength = 4;
 	}
 
-        private final class UpcallThread extends Thread {
-                private volatile boolean end = false;
-
-                public UpcallThread(String name) {
-                        super("DefInput.UpcallThread: "+name);
-                        setDaemon(true);
-                }
-                
-                public void end() {
-                        end = true;
-                        this.interrupt();
-                }
-                
-
-                public void run() {
-                        while (!end) {
-                                try {
-                                        buf = receiveByteBuffer(0);
-                                } catch (IOException e) {
-                                        throw new Error(e);
-                                }
-                                
-                                if (buf == null)
-                                        break;
-
-                                activeNum = spn;
-                                initReceive();
-                                try {
-                                        upcallFunc.inputUpcall(DefInput.this, activeNum);
-                                } catch (NetIbisInterruptedException e) {
-                                        activeNum = null;
-                                        break;
-                                } catch (NetIbisClosedException e) {
-                                        break;
-                                } catch (NetIbisException e) {
-                                        throw new Error(e.getMessage());
-                                }
-                                
-                                activeNum = null;
-                        }
-                }
-        }
-        
 	/*
 	 * {@inheritDoc}
 	 */
@@ -70,7 +26,7 @@ public final class DefInput extends NetBufferedInput {
 		throws NetIbisException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
-                }                
+                }
 
                 defIs    = cnx.getServiceLink().getInputSubStream(this, "def");
 
@@ -82,10 +38,7 @@ public final class DefInput extends NetBufferedInput {
 		}
 
 		this.spn = cnx.getNum();
-                if (upcallFunc != null) {
-                        upcallThread = new UpcallThread("this = " + this);
-                        upcallThread.start();
-                }
+                startUpcallThread();
 	}
 
 	/* Create a NetReceiveBuffer and do a blocking receive. */
@@ -104,27 +57,27 @@ public final class DefInput extends NetBufferedInput {
                                         if (offset != 0) {
                                                 throw new Error("broken pipe");
                                         }
-                                        
+
                                         // System.err.println("tcp_blk: receiveByteBuffer <-- null");
                                         return null;
                                 }
-                                
+
                                 offset += result;
                         } while (offset < 4);
 
                         l = NetConvert.readInt(b);
-                        //System.err.println("received "+l+" bytes");    
-                        
+                        //System.err.println("received "+l+" bytes");
+
 			do {
 				int result = defIs.read(b, offset, l - offset);
                                 if (result == -1) {
                                         throw new Error("broken pipe");
-                                }                                
+                                }
                                 offset += result;
 			} while (offset < l);
 		} catch (IOException e) {
 			throw new NetIbisException(e.getMessage());
-		} 
+		}
 
 		buf.length = l;
 		return buf;
@@ -134,42 +87,28 @@ public final class DefInput extends NetBufferedInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Integer poll(boolean block) throws NetIbisException {
-		activeNum = null;
-
-		if (block) {
-		    System.err.println(this + ": no support yet for blocking poll. Implement!");
-		    throw new NetIbisException(this + ": no support yet for blocking poll. Implement!");
-		}
-
+	public Integer doPoll(boolean block) throws NetIbisException {
 		if (spn == null) {
 			return null;
 		}
 
 		try {
 			if (block) {
-				if (buf != null) {
-					return activeNum;
-				}
 				buf = receive();
 				if (buf != null) {
-					activeNum = spn;
-					initReceive();
+					return spn;
 				}
 			} else if (defIs.available() > 0) {
-				activeNum = spn;
-                                initReceive();
+				return spn;
 			}
 		} catch (IOException e) {
 			throw new NetIbisException(e);
-		} 
+		}
 
-		return activeNum;
+		return null;
 	}
 
-       	public void finish() throws NetIbisException {
-                super.finish();
-                activeNum = null;
+       	public void doFinish() throws NetIbisException {
         }
 
 
@@ -191,51 +130,31 @@ public final class DefInput extends NetBufferedInput {
 		return buf;
 	}
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws NetIbisException {
                 if (spn == num) {
                         try {
                                 defIs.close();
                         } catch (IOException e) {
                                 throw new Error(e);
-                        }          
-              
-                        spn = null;
-
-                        if (upcallThread != null) {
-                                upcallThread.end();
                         }
+
+                        spn = null;
                 }
         }
-        
+
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
+	public void doFree() throws NetIbisException {
                 if (defIs != null) {
                         try {
                                 defIs.close();
                         } catch (IOException e) {
                                 throw new Error(e);
-                        }                        
+                        }
                 }
 
                 spn = null;
-
-                if (upcallThread != null) {
-                        upcallThread.end();
-                        //System.err.println("waiting for DEF upcall thread to join");
-                        while (true) {
-                                try {
-                                        upcallThread.join();
-                                        break;
-                                } catch (InterruptedException e) {
-                                        //
-                                }
-                        }
-                        //System.err.println("DEF upcall thread joined");
-                }
-                
-		super.free();
 	}
 }

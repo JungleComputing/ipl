@@ -14,7 +14,7 @@ import java.util.Hashtable;
  */
 public final class GmInput extends NetBufferedInput {
 
-        private final boolean         useUpcallThreadOpt = true;        
+        private final boolean         useUpcallThreadOpt = true;
 
 
 	/**
@@ -40,15 +40,9 @@ public final class GmInput extends NetBufferedInput {
         private int                   rmuxId         =   -1;
         private int                   blockLen       =    0;
         private boolean               firstBlock     = true;
-        private UpcallThread          upcallThread   = null;
-        private volatile Runnable    currentThread   =  null;
-        private final int            threadStackSize = 256;
-        private int                  threadStackPtr  = 0;
-        private PooledUpcallThread[] threadStack     = new PooledUpcallThread[threadStackSize];
-        private int                  upcallThreadNum = 0;
 
         private Driver               gmDriver     = null;
-        
+
 	native long nInitInput(long deviceHandle) throws NetIbisException;
         native int  nGetInputNodeId(long inputHandle) throws NetIbisException;
         native int  nGetInputPortId(long inputHandle) throws NetIbisException;
@@ -60,7 +54,7 @@ public final class GmInput extends NetBufferedInput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the input's 
+	 * @param sp the properties of the input's
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the GM driver instance.
 	 */
@@ -78,180 +72,6 @@ public final class GmInput extends NetBufferedInput {
                 arrayThreshold = 256;
 	}
 
-        private final class PooledUpcallThread extends Thread {
-                private boolean  end   = false;
-                private NetMutex sleep = new NetMutex(true);
-
-                public PooledUpcallThread(String name) {
-                        super("GmInput.PooledUpcallThread: "+name);
-                }                
-
-                public void run() {
-                        log.in();
-                        while (!end) {
-                                //System.err.println("trying to get lock");
-                                try {
-                                        sleep.ilock();
-                                        currentThread = this;
-                                } catch (InterruptedException e) {
-                                        continue;
-                                }
-                                
-                                while (!end) {
-                                        //System.err.println("got lock, pumping");
-                                        try {
-                                                gmDriver.blockingPump(lockId, lockIds);
-                                        } catch (NetIbisClosedException e) {
-                                                end = true;
-                                                continue;
-                                        } catch (NetIbisException e) {
-                                                throw new Error(e.getMessage());
-                                        }
-                                        
-                                        //System.err.println("got message, starting upcall");
-                                        activeNum = spn;
-                                        firstBlock = true;
-                                        initReceive();
-                                        if (activeNum == null) {
-                                                throw new Error("invalid state, spn = "+spn);
-                                        }
-                                        
-                                        try {
-                                                upcallFunc.inputUpcall(GmInput.this, activeNum);
-                                        } catch (NetIbisInterruptedException e) {
-                                                if (currentThread == this) {
-                                                        activeNum = null;
-                                                        PooledUpcallThread ut = null;
-                                        
-                                                        synchronized(threadStack) {
-                                                                if (threadStackPtr > 0) {
-                                                                        ut = threadStack[--threadStackPtr];
-                                                                } else {
-                                                                        ut = new PooledUpcallThread("no "+upcallThreadNum++);
-                                                                        ut.start();
-                                                                }        
-                                                        }
-
-                                                        currentThread = ut;
-
-                                                        if (ut != null) {
-                                                                ut.exec();
-                                                        }
-                                                }
-                                                break;
-                                        } catch (NetIbisClosedException e) {
-                                                if (currentThread == this) {
-                                                        activeNum = null;
-                                                        PooledUpcallThread ut = null;
-                                        
-                                                        synchronized(threadStack) {
-                                                                if (threadStackPtr > 0) {
-                                                                        ut = threadStack[--threadStackPtr];
-                                                                } else {
-                                                                        ut = new PooledUpcallThread("no "+upcallThreadNum++);
-                                                                        ut.start();
-                                                                }        
-                                                        }
-
-                                                        currentThread = ut;
-
-                                                        if (ut != null) {
-                                                                ut.exec();
-                                                        }
-                                                }
-                                                break;
-                                        } catch (NetIbisException e) {
-                                                throw new Error(e.getMessage());
-                                        }
-                                        
-                                        
-                                        if (currentThread == this) {
-                                                
-                                                try {
-                                                        GmInput.super.finish();
-                                                } catch (Exception e) {
-                                                        throw new Error(e.getMessage());
-                                                }
-                                                
-                                                //System.err.println("reusing thread");
-                                                continue;
-                                        } else {
-                                                synchronized (threadStack) {
-                                                        if (threadStackPtr < threadStackSize) {
-                                                                //System.err.println("storing thread");
-                                                                threadStack[threadStackPtr++] = this;
-                                                        } else {
-                                                                //System.err.println("distroying thread");
-                                                                return;
-                                                        }
-                                                }
-                                                break;
-                                        }
-                                }
-                        }
-                        log.out();
-                }
-
-                public void exec() {
-                        log.in();
-                        sleep.unlock();
-                        log.out();
-                }
-
-                public void end() {
-                        log.in();
-                        end = true;
-                        this.interrupt();
-                        log.out();
-                }
-        }
-
-        private final class UpcallThread extends Thread {
-                private boolean end = false;
-
-                public UpcallThread(String name) {
-                        super("GmInput.UpcallThread: "+name);
-                }                
-
-                public void run() {
-                        log.in();
-                        while (!end) {
-                                try {
-                                        gmDriver.blockingPump(lockId, lockIds);
-                                } catch (NetIbisClosedException e) {
-                                        end = true;
-                                        continue;
-                                } catch (NetIbisException e) {
-                                        throw new Error(e.getMessage());
-                                }
-                                
-                                activeNum = spn;
-                                firstBlock = true;
-                                initReceive();
-                                try {
-                                        upcallFunc.inputUpcall(GmInput.this, activeNum);
-                                } catch (NetIbisInterruptedException e) {
-                                        activeNum = null;
-                                        break;
-                                } catch (NetIbisClosedException e) {
-                                        break;
-                                } catch (NetIbisException e) {
-                                        throw new Error(e.getMessage());
-                                }
-                                
-                                activeNum = null;
-                        }
-                        log.out();
-                }
-
-                public void end() {
-                        log.in();
-                        end = true;
-                        this.interrupt();
-                        log.out();
-                }
-        }
-
 	/*
 	 * Sets up an incoming GM connection.
 	 *
@@ -265,7 +85,7 @@ public final class GmInput extends NetBufferedInput {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
-                
+
                 Driver.gmAccessLock.lock(false);
                 lnodeId = nGetInputNodeId(inputHandle);
                 lportId = nGetInputPortId(inputHandle);
@@ -284,7 +104,7 @@ public final class GmInput extends NetBufferedInput {
                 lInfo.put("gm_port_id", new Integer(lportId));
                 lInfo.put("gm_mux_id", new Integer(lmuxId));
                 Hashtable rInfo = null;
-                
+
 
 		try {
                         ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
@@ -317,40 +137,20 @@ public final class GmInput extends NetBufferedInput {
                 }
 
                 mtu = 2*1024*1024;
-                
+
 		allocator = new NetAllocator(mtu);
 		this.spn = cnx.getNum();
-                if (spn == null) {
-                        throw new Error("invalid state");
-                }
-
-                if (upcallFunc != null) {
-                        if (useUpcallThreadOpt) {
-                                PooledUpcallThread up = new PooledUpcallThread(lnodeId+":"+lportId+"("+lmuxId+") --> "+rnodeId+":"+rportId+"("+rmuxId+")");
-                                up.start();
-                                up.exec();
-                        } else {
-                                (upcallThread = new UpcallThread(lnodeId+":"+lportId+"("+lmuxId+") --> "+rnodeId+":"+rportId+"("+rmuxId+")")).start();
-                        }
-                }
+                startUpcallThread();
                 log.out();
 	}
 
         /**
          * {@inheritDoc}
          */
-	public Integer poll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws NetIbisException {
                 log.in();
-                //System.err.println("poll-->");
-
-                if (activeNum != null) {
-                        throw new Error("invalid state");
-                }
-                
-                activeNum = null;
-                
-		if (spn == null) {
-			return null;
+                if (spn == null) {
+                        return null;
 		}
 
                 if (block) {
@@ -359,22 +159,24 @@ public final class GmInput extends NetBufferedInput {
                         if (!gmDriver.tryPump(lockId, lockIds)) {
                                 return null;
                         }
-                }                
-                                
-                activeNum  = spn;
-                firstBlock = true;
-                initReceive();
+                }
+
                 log.out();
 
-                return activeNum;
+                return spn;
 	}
+
+        public void initReceive(Integer num) throws NetIbisException {
+                firstBlock = true;
+                super.initReceive(num);
+        }
+
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void receiveByteBuffer(NetReceiveBuffer b) throws NetIbisException {
                 log.in();
-                //System.err.println("Receiving buffer, base = "+b.base+", length = "+b.length);
 
                 if (firstBlock) {
                         firstBlock = false;
@@ -382,14 +184,12 @@ public final class GmInput extends NetBufferedInput {
                         /* Request reception */
                         gmDriver.blockingPump(lockId, lockIds);
                 }
-  
+
                 Driver.gmReceiveLock.lock();
 
                 Driver.gmAccessLock.lock(true);
                 int result = nPostBuffer(inputHandle, b.data, 0, b.data.length);
                 Driver.gmAccessLock.unlock(true);
-
-                //System.err.println("receiveByteBuffer: size = "+result);
 
                 if (result == 0) {
                         /* Ack completion */
@@ -405,7 +205,7 @@ public final class GmInput extends NetBufferedInput {
                                         throw new Error("length mismatch: got "+blockLen+" bytes, "+b.length+" bytes were required");
                                 }
                         }
-                
+
                 } else {
                         if (b.length == 0) {
                                 b.length = result;
@@ -417,42 +217,17 @@ public final class GmInput extends NetBufferedInput {
                 }
 
                 Driver.gmReceiveLock.unlock();
-                //System.err.println("Receiving buffer, base = "+b.base+", length = "+b.length+" - ok");
                 log.out();
         }
-        
 
-        public void finish() throws NetIbisException {
+
+        public void doFinish() throws NetIbisException {
                 log.in();
-                super.finish();
-                activeNum = null;
-                
-                //System.err.println("GmInput: finish-->");
-                if (currentThread != null) {
-                        //System.err.println("GmInput: finish, need to select another thread");
-
-                        PooledUpcallThread ut = null;
-                                        
-                        synchronized(threadStack) {
-                                if (threadStackPtr > 0) {
-                                        ut = threadStack[--threadStackPtr];
-                                } else {
-                                        ut = new PooledUpcallThread("no "+upcallThreadNum++);
-                                        ut.start();
-                                }        
-                        }
-
-                        currentThread = ut;
-
-                        if (ut != null) {
-                                ut.exec();
-                        }
-                }
-                //System.err.println("GmInput: finish<--");
+                //
                 log.out();
         }
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws NetIbisException {
                 log.in();
                 if (spn == num) {
                         Driver.gmAccessLock.lock(true);
@@ -462,37 +237,23 @@ public final class GmInput extends NetBufferedInput {
                                 nCloseInput(inputHandle);
                                 inputHandle = 0;
                         }
-                
+
                         if (deviceHandle != 0) {
                                 Driver.nCloseDevice(deviceHandle);
                                 deviceHandle = 0;
                         }
 
-                        synchronized (threadStack) {                
-                                if (upcallThread != null) {
-                                        upcallThread.end();
-                                }
-
-                                if (currentThread != null) {
-                                        ((PooledUpcallThread)currentThread).end();
-                                }
-                
-                                while (threadStackPtr > 0) {
-                                        threadStack[--threadStackPtr].end();
-                                }
-                        }
-                
                         Driver.gmAccessLock.unlock(true);
                         spn = null;
                 }
                 log.out();
         }
-        
+
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
+	public void doFree() throws NetIbisException {
                 log.in();
 		spn = null;
 
@@ -503,55 +264,13 @@ public final class GmInput extends NetBufferedInput {
                         nCloseInput(inputHandle);
                         inputHandle = 0;
                 }
-                
+
                 if (deviceHandle != 0) {
                         Driver.nCloseDevice(deviceHandle);
                         deviceHandle = 0;
                 }
 
-                if (upcallThread != null) {
-                        upcallThread.end();
-                        while (true) {
-                                try {
-                                        upcallThread.join();
-                                        break;
-                                } catch (InterruptedException e) {
-                                        //
-                                }
-                        }
-                }
-
-                synchronized (threadStack) {                
-                        if (currentThread != null) {
-                                ((PooledUpcallThread)currentThread).end();
-                                while (true) {
-                                        try {
-                                                ((PooledUpcallThread)currentThread).join();
-                                                break;
-                                        } catch (InterruptedException e) {
-                                                //
-                                        }
-                                }
-                        }
-
-                        for (int i = 0; i < threadStackSize; i++) {
-                                if (threadStack[i] != null) {
-                                        threadStack[i].end();
-                                        while (true) {
-                                                try {
-                                                        threadStack[i].join();
-                                                        break;
-                                                } catch (InterruptedException e) {
-                                                        //
-                                                }
-                                        }
-                                }
-                        }
-                }
-                
                 Driver.gmAccessLock.unlock(true);
-
-		super.free();
                 log.out();
 	}
 }

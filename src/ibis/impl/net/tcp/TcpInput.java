@@ -9,7 +9,7 @@ import java.net.Socket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-/* Only for java >= 1.4 
+/* Only for java >= 1.4
 import java.net.SocketTimeoutException;
 */
 import java.io.DataInputStream;
@@ -32,74 +32,23 @@ public final class TcpInput extends NetInput {
 	private DataOutputStream   tcpOs	      = null;
         private InetAddress        addr               = null;
         private int                port               =    0;
-        private ObjectInputStream _inputConvertStream = null;        
+        private ObjectInputStream _inputConvertStream = null;
         private long               seq                =    0;
-        private UpcallThread       upcallThread       = null;
-        private NetMutex           upcallEnd          = new NetMutex(true);
 
 	TcpInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
 		super(pt, driver, context);
 	}
 
-        private final class UpcallThread extends Thread {
-
-                private volatile boolean end = false;
-
-                public UpcallThread(String name) {
-                        super("TcpInput.UpcallThread: "+name);
-                }                
-
-                public void end() {
-                        log.in();
-                        end = true;
-                        this.interrupt();
-                        log.out();
-                }
-                
-                public void run() {
-                        log.in();
-                        while (!end) {
-                                try {
-                                        Integer num = spn;
-                                        int i = tcpIs.read();
-                                        if (i == -1) {
-                                                break;
-                                        }
-                                        
-                                        if (i != 1) {
-                                                throw new Error("invalid code "+i);
-                                        }
-                                        
-                                        synchronized(TcpInput.this) {
-                                                activeNum = num;
-                                        }
-                                        upcallFunc.inputUpcall(TcpInput.this, activeNum);
-                                        synchronized(TcpInput.this) {
-                                                if (activeNum == num) {
-                                                        finish();
-                                                }
-                                        }
-                                        
-                                } catch (java.io.InterruptedIOException e) {
-                                        break;
-                                } catch (SocketException e) {
-                                        break;
-                                } catch (IOException e) {
-                                        throw new Error(e);
-                                }
-                        }
-
-                        upcallEnd.unlock();
-                        log.out();
-                }
-        }        
+        public void initReceive(Integer num) {
+                //
+        }
 
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
                 log.in();
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
-                
+
 		try {
 			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
 			Hashtable info    = new Hashtable();
@@ -112,13 +61,12 @@ public final class TcpInput extends NetInput {
 			tcpSocket  = tcpServerSocket.accept();
                         addr = tcpSocket.getInetAddress();
                         port = tcpSocket.getPort();
-                        
+
 			tcpIs 	   = new DataInputStream(tcpSocket.getInputStream());
 			tcpOs 	   = new DataOutputStream(tcpSocket.getOutputStream());
                         this.spn = cnx.getNum();
-                        if (upcallFunc != null) {
-                                (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
-                        }
+
+                        startUpcallThread();
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
@@ -136,12 +84,8 @@ public final class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public synchronized Integer poll(boolean block) throws NetIbisException {
+	protected synchronized Integer doPoll(boolean block) throws NetIbisException {
                 log.in();
-                if (activeNum != null) {
-                        throw new Error("invalid call");
-                }                
-
 		if (spn == null) {
                         log.out("not connected");
 			return null;
@@ -150,34 +94,29 @@ public final class TcpInput extends NetInput {
 		try {
 			if (block || tcpIs.available() > 0) {
                                 tcpIs.read();
-				activeNum = spn;
+				return spn;
 			}
 		} catch (IOException e) {
 			throw new NetIbisException(e);
-		} 
+		}
 
                 log.out();
-		return activeNum;
+		return null;
 	}
 
-        public void finish() throws NetIbisException {
+        protected void doFinish() throws NetIbisException {
                 log.in();
-                super.finish();
                 if (_inputConvertStream != null) {
                         try {
                                 _inputConvertStream.close();
                         } catch (IOException e) {
                                 throw new NetIbisException(e.getMessage());
                         }
-                        
+
                         _inputConvertStream = null;
                 }
-
-                synchronized(this) {
-                        activeNum = null;
-                }
                 log.out();
-        }        
+        }
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 log.in();
@@ -194,7 +133,7 @@ public final class TcpInput extends NetInput {
                 log.out();
                 return b;
         }
-        
+
 
         public void readByteBuffer(NetReceiveBuffer b) throws NetIbisException {
                 log.in();
@@ -208,135 +147,135 @@ public final class TcpInput extends NetInput {
 		}
                 log.out();
         }
-        
+
 
 
 	public boolean readBoolean() throws NetIbisException {
                 log.in();
                 boolean result = false;
-                
+
 		try {
                         result = tcpIs.readBoolean();
                 } catch (IOException e) {
                         throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
-        
 
-        
+
+
 	public byte readByte() throws NetIbisException {
                 log.in();
                 byte result = 0;
-                
+
 		try {
                         result = tcpIs.readByte();
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
-        
-        
+
+
 	public char readChar() throws NetIbisException {
                 log.in();
                 char result = 0;
-                
+
 		try {
                         result = tcpIs.readChar();
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
-        
+
 	public short readShort() throws NetIbisException {
                 log.in();
                 short result = 0;
-                
+
 		try {
                         result = tcpIs.readShort();
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
-        
+
 	public int readInt() throws NetIbisException {
                 log.in();
                 int result = 0;
-                
+
 		try {
                         result = tcpIs.readInt();
                 } catch (IOException e) {
 			throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
-        
+
 	public long readLong() throws NetIbisException {
                 log.in();
                 long result = 0;
-                
+
 		try {
                         result = tcpIs.readLong();
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
-        
+
 	public float readFloat() throws NetIbisException {
                 log.in();
                 float result = 0;
-                
+
 		try {
                         result = tcpIs.readFloat();
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
-        
+
 	public double readDouble() throws NetIbisException {
                 log.in();
                 double result = 0;
-                
+
 		try {
                         result = tcpIs.readDouble();
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
 
 	public String readString() throws NetIbisException {
                 log.in();
                 String result = "";
-                
+
 		try {
                         result = tcpIs.readUTF();
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
                 log.out();
-   
+
                 return result;
         }
 
@@ -348,17 +287,17 @@ public final class TcpInput extends NetInput {
                                 DummyInputStream dis = new DummyInputStream();
                                 _inputConvertStream = new ObjectInputStream(dis);
                         }
-                
+
                         o = _inputConvertStream.readObject();
                 } catch (Exception e) {
                         throw new NetIbisException(e.getMessage());
                 }
                 log.out();
-                
+
                 return o;
         }
-        
-        
+
+
 	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
                 for (int i = 0; i < l; i++) {
@@ -442,20 +381,16 @@ public final class TcpInput extends NetInput {
 	/**
 	 * Reset the TCP connection if it exists.
 	 */
-	public void doFree() throws NetIbisException {
+	protected void doFree() throws NetIbisException {
                 log.in();
 		try {
 			if (tcpOs != null) {
                                 tcpOs.close();
 			}
-		
+
 			if (tcpIs != null) {
 				tcpIs.close();
 			}
-
-                        if (upcallThread != null) {
-                                upcallThread.end();
-                        }
 
 			if (tcpSocket != null) {
                                 tcpSocket.close();
@@ -473,13 +408,6 @@ public final class TcpInput extends NetInput {
                 log.out();
 	}
 
-	public void free() throws NetIbisException {
-                log.in();
-                doFree();
-		super.free();
-                log.out();
-        }
-        
         private final class DummyInputStream extends InputStream {
                 private long seq = 0;
 
@@ -487,7 +415,7 @@ public final class TcpInput extends NetInput {
                 public int read() throws IOException {
                         log.in();
                         int result = 0;
-                        
+
                         try {
                                 result = readByte();
                         } catch (NetIbisException e) {
@@ -505,12 +433,12 @@ public final class TcpInput extends NetInput {
                  */
         }
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        protected synchronized void doClose(Integer num) throws NetIbisException {
                 log.in();
                 if (spn == num) {
                         doFree();
                 }
                 log.out();
         }
-        
+
 }

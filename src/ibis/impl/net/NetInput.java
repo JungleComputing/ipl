@@ -25,12 +25,114 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 * Active {@link NetConnection connection} number or <code>null</code> if
 	 * no connection is active.
 	 */
-	protected volatile Integer        activeNum  = null;
+	private		volatile 	Integer                 activeNum       = null;
+        private   	volatile 	PooledUpcallThread      activeThread    = null;
+        private   	final    	int                     threadStackSize =  256;
+        private  			int                     threadStackPtr  =    0;
+        private  			PooledUpcallThread[] 	threadStack     = new PooledUpcallThread[threadStackSize];
+        private				int                  	upcallThreadNum =    0;
+        private                         volatile boolean        upcallThreadNotStarted = true;
 
         /**
          * Upcall interface for incoming messages.
          */
         protected          NetInputUpcall upcallFunc = null;
+
+
+
+        private final class PooledUpcallThread extends Thread {
+                private boolean  end   = false;
+                private NetMutex sleep = new NetMutex(true);
+
+                public PooledUpcallThread(String name) {
+                        super("NetInput.PooledUpcallThread: "+name);
+                }
+
+                public void run() {
+                        log.in();
+                        while (!end) {
+                                log.disp("sleeping...");
+                                try {
+                                        sleep.ilock();
+                                        activeThread = this;
+                                } catch (InterruptedException e) {
+                                        log.disp("was interrupted...");
+                                        continue;
+                                }
+
+                                log.disp("just woke up, polling...");
+                                while (!end) {
+                                        try {
+                                                activeNum = poll(true);
+                                                if (activeNum == null) {
+                                                        // the connection was probably closed
+                                                        // let the 'while' test the end flag
+                                                        continue;
+                                                }
+                                                initReceive(activeNum);
+                                        } catch (NetIbisClosedException e) {
+                                                end = true;
+                                                return;
+                                        } catch (NetIbisException e) {
+                                                throw new Error(e);
+                                        }
+
+                                        try {
+                                                upcallFunc.inputUpcall(NetInput.this, activeNum);
+                                        } catch (NetIbisInterruptedException e) {
+                                                if (end != true) {
+                                                        throw new Error(e);
+                                                }
+                                                return;
+                                        } catch (NetIbisClosedException e) {
+                                                end = true;
+                                                return;
+                                        } catch (NetIbisException e) {
+                                                throw new Error(e);
+                                        }
+
+
+                                        if (activeThread == this) {
+
+                                                try {
+                                                        implicitFinish();
+                                                } catch (Exception e) {
+                                                        throw new Error(e.getMessage());
+                                                }
+                                                log.disp("reusing thread");
+                                                continue;
+                                        } else {
+                                                synchronized (threadStack) {
+                                                        if (threadStackPtr < threadStackSize) {
+                                                                threadStack[threadStackPtr++] = this;
+                                                                log.disp("storing thread into the stack");
+                                                        } else {
+                                                                log.disp("discarding the thread");
+                                                                return;
+                                                        }
+                                                }
+                                                break;
+                                        }
+                                }
+                        }
+                        log.out();
+                }
+
+                public void exec() {
+                        log.in();
+                        sleep.unlock();
+                        log.out();
+                }
+
+                public void end() {
+                        log.in();
+                        end = true;
+                        this.interrupt();
+                        log.out();
+                }
+        }
+
+
 
 	/**
 	 * Constructor.
@@ -56,10 +158,14 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @exception NetIbisException in case of trouble.
          */
         public synchronized void inputUpcall(NetInput input, Integer num) throws NetIbisException {
+                log.in();
                 activeNum = num;
                 upcallFunc.inputUpcall(this, num);
                 activeNum = null;
+                log.out();
         }
+
+        protected abstract void initReceive(Integer num) throws NetIbisException;
 
 	/**
 	 * Test for incoming data.
@@ -76,7 +182,25 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 * @exception NetIbisException if the polling fails (!= the
 	 * polling is unsuccessful).
 	 */
-	public abstract Integer poll(boolean blockForMessage) throws NetIbisException;
+	public final Integer poll(boolean blockForMessage) throws NetIbisException {
+                log.in();
+                if (activeNum != null) {
+                        throw new Error("invalid state");
+                }
+
+                activeNum = null;
+
+                activeNum = doPoll(blockForMessage);
+
+                if (activeNum != null) {
+                        initReceive(activeNum);
+                }
+                log.out();
+
+                return activeNum;
+        }
+
+	protected abstract Integer doPoll(boolean blockForMessage) throws NetIbisException;
 
 	/**
 	 * Unblockingly test for incoming data.
@@ -111,11 +235,28 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param inputUpcall the upcall function for incoming message notification.
 	 * @exception NetIbisException if the connection setup fails.
 	 */
-	public void setupConnection(NetConnection  cnx,
-                                    NetInputUpcall inputUpcall) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection  cnx,
+                                                 NetInputUpcall inputUpcall) throws NetIbisException {
+                log.in();
                 this.upcallFunc = inputUpcall;
+                log.disp("this.upcallFunc = "+this.upcallFunc);
                 setupConnection(cnx);
+                log.out();
         }
+
+        protected final void startUpcallThread() {
+                log.in();
+                synchronized(threadStack) {
+                        if (upcallFunc != null && upcallThreadNotStarted) {
+                                upcallThreadNotStarted = false;
+                                PooledUpcallThread up = new PooledUpcallThread("no "+upcallThreadNum++);
+                                up.start();
+                                up.exec();
+                        }
+                }
+                log.out();
+        }
+
 
 	/**
 	 * Utility function to get a {@link NetReceiveBuffer} from our
@@ -129,8 +270,10 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @return the new {@link NetReceiveBuffer}.
 	 */
 	public NetReceiveBuffer createReceiveBuffer(int contentsLength) throws NetIbisException {
+                log.in();
                 NetReceiveBuffer b = (NetReceiveBuffer)createBuffer();
                 b.length = contentsLength;
+                log.out();
                 return b;
 	}
 
@@ -146,11 +289,34 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 */
 	public NetReceiveBuffer createReceiveBuffer(int length, int contentsLength)
 		throws NetIbisException {
+                log.in();
                 NetReceiveBuffer b = (NetReceiveBuffer)createBuffer(length);
                 b.length = contentsLength;
+                log.out();
                 return b;
 	}
 
+        public final synchronized void close(Integer num) throws NetIbisException {
+                log.in();
+                doClose(num);
+                if (activeNum == num) {
+                        activeNum = null;
+                }
+
+                synchronized (threadStack) {
+                        if (activeThread != null) {
+                                ((PooledUpcallThread)activeThread).end();
+                        }
+
+                        while (threadStackPtr > 0) {
+                                threadStack[--threadStackPtr].end();
+                        }
+                        upcallThreadNotStarted = true;
+                }
+                log.out();
+        }
+
+        protected abstract void doClose(Integer num) throws NetIbisException;
 
 	/*
          * Closes the I/O.
@@ -159,23 +325,73 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *       we need to add something here
          * @exception NetIbisException if this operation fails.
 	 */
-	public void free()
-		throws NetIbisException {
+	public void free() throws NetIbisException {
+                log.in();
+                doFree();
 		activeNum = null;
+                synchronized (threadStack) {
+                        if (activeThread != null) {
+                                ((PooledUpcallThread)activeThread).end();
+                                while (true) {
+                                        try {
+                                                ((PooledUpcallThread)activeThread).join();
+                                                break;
+                                        } catch (InterruptedException e) {
+                                                //
+                                        }
+                                }
+                        }
+
+                        for (int i = 0; i < threadStackSize; i++) {
+                                if (threadStack[i] != null) {
+                                        threadStack[i].end();
+                                        while (true) {
+                                                try {
+                                                        threadStack[i].join();
+                                                        break;
+                                                } catch (InterruptedException e) {
+                                                        //
+                                                }
+                                        }
+                                }
+                        }
+                }
 		super.free();
+                log.out();
 	}
 
+	protected abstract void doFree() throws NetIbisException;
+
 	/**
-         * {@inheritDoc} 
+         * {@inheritDoc}
 	 */
-	protected void finalize()
-		throws Throwable {
+	protected void finalize() throws Throwable {
+                log.in();
 		free();
 		super.finalize();
+                log.out();
 	}
 
 
         /* ReadMessage Interface */
+
+        private final void implicitFinish() throws NetIbisException {
+                log.in();
+                if (_inputConvertStream != null) {
+                        try {
+                                _inputConvertStream.close();
+                        } catch (IOException e) {
+                                throw new NetIbisException(e.getMessage());
+                        }
+
+                        _inputConvertStream = null;
+                }
+
+                doFinish();
+
+                activeNum = null;
+                log.out();
+        }
 
 	/**
          * Complete the current incoming message extraction.
@@ -188,17 +404,31 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @exception NetIbisException in case of trouble.
          */
-       	public void finish() throws NetIbisException {
-                if (_inputConvertStream != null) {
-                        try {
-                                _inputConvertStream.close();
-                        } catch (IOException e) {
-                                throw new NetIbisException(e.getMessage());
+       	public final void finish() throws NetIbisException {
+                log.in();
+                implicitFinish();
+                if (activeThread != null) {
+                        PooledUpcallThread ut = null;
+
+                        synchronized(threadStack) {
+                                if (threadStackPtr > 0) {
+                                        ut = threadStack[--threadStackPtr];
+                                } else {
+                                        ut = new PooledUpcallThread("no "+upcallThreadNum++);
+                                        ut.start();
+                                }
                         }
 
-                        _inputConvertStream = null;
+                        activeThread = ut;
+
+                        if (ut != null) {
+                                ut.exec();
+                        }
                 }
+                log.out();
         }
+
+        protected abstract void doFinish() throws NetIbisException;
 
         /**
          * Unimplemented.
@@ -474,8 +704,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                 b[o++] = _inputConvertStream.readByte();
                         }
                 } catch (IOException e) {
-                        e.printStackTrace();
-                        throw new NetIbisException(e.getMessage());
+                        throw new NetIbisException(e);
                 }
         }
 
@@ -654,7 +883,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public boolean readBoolean() throws NetIbisException {
                 return defaultReadBoolean();
@@ -663,14 +892,14 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract a byte from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public abstract byte readByte() throws NetIbisException;
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public char readChar() throws NetIbisException {
                 return defaultReadChar();
@@ -679,7 +908,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public short readShort() throws NetIbisException {
                 return defaultReadShort();
@@ -688,7 +917,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public int readInt() throws NetIbisException {
                 return defaultReadInt();
@@ -697,7 +926,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public long readLong() throws NetIbisException {
                 return defaultReadLong();
@@ -706,7 +935,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public float readFloat() throws NetIbisException {
                 return defaultReadFloat();
@@ -715,7 +944,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public double readDouble() throws NetIbisException {
                 return defaultReadDouble();
@@ -724,7 +953,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public String readString() throws NetIbisException {
                 return (String)defaultReadString();
@@ -733,7 +962,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public Object readObject() throws NetIbisException {
                 return defaultReadObject();
@@ -747,7 +976,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceBoolean(b, o, l);
@@ -760,7 +989,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceByte(b, o, l);
@@ -773,7 +1002,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceChar(b, o, l);
@@ -786,7 +1015,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceShort(b, o, l);
@@ -799,7 +1028,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceInt(b, o, l);
@@ -812,7 +1041,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceLong(b, o, l);
@@ -825,7 +1054,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceFloat(b, o, l);
@@ -838,7 +1067,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceDouble(b, o, l);
@@ -851,7 +1080,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
                 defaultReadArraySliceObject(b, o, l);
@@ -863,7 +1092,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayBoolean(boolean [] b) throws NetIbisException {
                 readArraySliceBoolean(b, 0, b.length);
@@ -874,7 +1103,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayByte(byte [] b) throws NetIbisException {
                 readArraySliceByte(b, 0, b.length);
@@ -885,7 +1114,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayChar(char [] b) throws NetIbisException {
                 readArraySliceChar(b, 0, b.length);
@@ -896,7 +1125,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayShort(short [] b) throws NetIbisException {
                 readArraySliceShort(b, 0, b.length);
@@ -907,7 +1136,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayInt(int [] b) throws NetIbisException {
                 readArraySliceInt(b, 0, b.length);
@@ -918,7 +1147,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayLong(long [] b) throws NetIbisException {
                 readArraySliceLong(b, 0, b.length);
@@ -929,7 +1158,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayFloat(float [] b) throws NetIbisException {
                 readArraySliceFloat(b, 0, b.length);
@@ -940,7 +1169,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayDouble(double [] b) throws NetIbisException {
                 readArraySliceDouble(b, 0, b.length);
@@ -951,7 +1180,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception NetIbisException in case of trouble.
          */
 	public final void readArrayObject(Object [] b) throws NetIbisException {
                 readArraySliceObject(b, 0, b.length);

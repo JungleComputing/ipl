@@ -43,7 +43,7 @@ public final class Driver extends NetDriver {
 	 */
 	public Driver(NetIbis ibis) {
 		super(ibis);
-	}	
+	}
 
 	/**
 	 * Returns the name of the driver.
@@ -57,20 +57,20 @@ public final class Driver extends NetDriver {
 	/**
 	 * Creates a new GM input.
 	 *
-	 * @param sp the properties of the input's 
+	 * @param sp the properties of the input's
 	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
 	 * @return The new GM input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
 		throws NetIbisException {
-                
+
 		return new GmInput(pt, this, context);
 	}
 
 	/**
 	 * Creates a new GM output.
 	 *
-	 * @param sp the properties of the output's 
+	 * @param sp the properties of the output's
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @return The new GM output.
 	 */
@@ -84,12 +84,12 @@ public final class Driver extends NetDriver {
                 int result = gmLockArray.lockFirst(lockIds);
                 if (result == 1) {
                         /* got GM main lock, let's pump */
-                        do { 
+                        do {
                                 gmAccessLock.lock(false);
                                 nGmThread();
                                 gmAccessLock.unlock(false);
                         } while (!gmLockArray.trylock(lockId));
-                        
+
                         /* request completed, release GM main lock */
                         gmLockArray.unlock(0);
 
@@ -98,7 +98,7 @@ public final class Driver extends NetDriver {
                         throw new Error("invalid state");
                 }
         }
-        
+
         protected void pump(int lockId, int []lockIds) throws NetIbisException {
                 int result = gmLockArray.lockFirst(lockIds);
                 if (result == 1) {
@@ -109,19 +109,19 @@ public final class Driver extends NetDriver {
                         if (!gmLockArray.trylock(lockId)) {
                                 int i = speculativePolls;
 
-                                do { 
-                                        // WARNING: yield 
+                                do {
+                                        // WARNING: yield
                                         if (--i == 0) {
                                                 (Thread.currentThread()).yield();
                                                 i = speculativePolls;
                                         }
-                                        
+
                                         gmAccessLock.lock(false);
                                         nGmThread();
                                         gmAccessLock.unlock(false);
                                 } while (!gmLockArray.trylock(lockId));
                         }
-                        
+
                         /* request completed, release GM main lock */
                         gmLockArray.unlock(0);
 
@@ -130,7 +130,7 @@ public final class Driver extends NetDriver {
                         throw new Error("invalid state");
                 }
         }
-        
+
         protected boolean tryPump(int lockId, int []lockIds) throws NetIbisException {
                 int result = gmLockArray.trylockFirst(lockIds);
                 if (result == -1) {
@@ -139,7 +139,7 @@ public final class Driver extends NetDriver {
                         return true;
                 } else if (result == 1) {
                         boolean value = false;
-                        
+
                         /* got GM main lock, let's pump */
                         if (gmAccessLock.trylock(false)) {
                                 int i = speculativePolls;
@@ -147,12 +147,12 @@ public final class Driver extends NetDriver {
                                         nGmThread();
                                         value = gmLockArray.trylock(lockId);
                                 } while (!value && --i > 0);
-                                
+
                                 gmAccessLock.unlock(false);
                         } else {
                                 value = gmLockArray.trylock(lockId);
                         }
-                        
+
                         /* request completed, release GM main lock */
                         gmLockArray.unlock(0);
 
@@ -161,6 +161,6 @@ public final class Driver extends NetDriver {
                         throw new Error("invalid state");
                 }
         }
-        
+
 
 }

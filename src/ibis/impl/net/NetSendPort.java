@@ -55,7 +55,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * Replacer ???.
          */
         private Replacer              replacer               = null;
-        
+
         /**
          * The next connection identification number.
          */
@@ -89,7 +89,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * Optional statistic object.
          */
         protected NetMessageStat   stat                   = null;
-        
+
 
 
 
@@ -98,7 +98,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 	/**
          * The table of network {@linkplain NetConnection connections} indexed by connection identification numbers. */
-        private Hashtable 	      connectionTable        = null;        
+        private Hashtable 	      connectionTable        = null;
 
 	/**
 	 * The topmost network driver.
@@ -170,7 +170,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 
 
-        
+
 
         /* ___ NET EVENT QUEUE CONSUMER RELATED FUNCTIONS __________________ */
 
@@ -185,9 +185,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         public void event(NetEvent e) {
                 log.in();
                 NetPortEvent event = (NetPortEvent)e;
-                
+
                 switch (event.code()) {
-                        case NetPortEvent.CLOSE_EVENT: 
+                        case NetPortEvent.CLOSE_EVENT:
                                 {
                                         Integer num = (Integer)event.arg();
                                         NetConnection cnx = null;
@@ -200,7 +200,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                         synchronized(connectionTable) {
                                                 cnx = (NetConnection)connectionTable.remove(num);
                                         }
-                                                
+
                                         if (cnx != null) {
                                                 try {
                                                         close(cnx);
@@ -223,7 +223,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 
 
-        
+
 
         /* ___ NETPORT RELATED FUNCTIONS ___________________________________ */
 
@@ -245,7 +245,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 
 
-        
+
 
         /* ___ SENDPORT RELATED FUNCTIONS __________________________________ */
 
@@ -310,7 +310,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                 if (eventQueueListener != null) {
                         eventQueueListener.end();
-                
+
                         while (true) {
                                 try {
                                         eventQueueListener.join();
@@ -341,7 +341,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 this.disp  = new NetLog(disp,  s, "DISP");
                 this.stat  = new NetMessageStat(stat, s);
         }
-        
+
 
         /**
          * The port connection {@link #identifier} generation.
@@ -366,8 +366,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 initIdentifier();
                 log.out();
         }
-        
-        
+
+
 
 
 
@@ -383,7 +383,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 eventQueueListener.start();
                 log.out();
         }
-        
+
         /**
          * The topmost {@link #driver} initialization.
          *
@@ -396,11 +396,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                         throw new NetIbisException("driver already loaded");
 
                 String mainDriverName = type.getStringProperty("/", "Driver");
-                
+
                 if (mainDriverName == null) {
                         throw new NetIbisException("root driver not specified");
                 }
-                
+
                 NetDriver driver = ibis.getDriver(mainDriverName);
 
                 if (driver == null) {
@@ -422,7 +422,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		this.outputLock = new NetMutex(false);
 		this.output     = driver.newOutput(type, null);
                 log.out();
-        }        
+        }
 
         /**
          * The <I>active</I> port state initialization part.
@@ -455,13 +455,13 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 NetServiceLink link = new NetServiceLink(eventQueue, info);
 
                 Integer num = null;
-                
+
                 synchronized(this) {
                         num = new Integer(nextReceivePortNum++);
                 }
-                
+
                 link.init(num);
-                
+
 		try {
                         ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("__port__"));
                         os.writeObject(identifier);
@@ -473,10 +473,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                 NetConnection cnx = new NetConnection(this, num, identifier, nrpi, link);
                 log.out();
-                
+
                 return cnx;
         }
-        
+
         /**
          * The setup of an new outgoing <I>application</I> connection.
          *
@@ -490,7 +490,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		output.setupConnection(cnx);
                 log.out();
         }
-        
+
         /**
          * The unconditionnal closing of a {@link NetConnection}.
          *
@@ -499,14 +499,14 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * @param     cnx the {@linkplain NetConnection connection} to close.
          * @exception NetIbisException in case of trouble.
          */
-        private void close(NetConnection cnx) throws NetIbisException {                
+        private void close(NetConnection cnx) throws NetIbisException {
                 log.in();
                 if (cnx == null) {
                         log.out("cnx = null");
 
                         return;
                 }
-                
+
                 try {
                         output.close(cnx.getNum());
                 } catch (Exception e) {
@@ -515,10 +515,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                 cnx.close();
                 log.out();
-        }        
+        }
 
 
-        
+
 
 
         /* ----- PUBLIC SendPort API _______________________________________ */
@@ -527,7 +527,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 * Starts the construction of a new message.
 	 *
 	 * @return The message instance.
-	 */	
+	 */
 	public WriteMessage newMessage() throws NetIbisException {
                 log.in();
 		outputLock.lock();
@@ -539,9 +539,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                         trace.disp("message "+messageId+" send -->");
                         writeString(messageId);
                 }
-                
+
                 log.out();
-                
+
 		return this;
 	}
 
@@ -549,7 +549,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 * Unimplemented.
 	 *
 	 * @return null.
-	 */	
+	 */
 	public DynamicProperties properties() {
                 log.in();
                 log.out();
@@ -581,7 +581,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 synchronized(connectionTable) {
                         connectionTable.put(cnx.getNum(), cnx);
                 }
-                
+
                 establishApplicationConnection(cnx);
 		outputLock.unlock();
                 log.out();
@@ -609,17 +609,20 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	public void free()
 		throws NetIbisException {
-                log.in();                
+                log.in();
+                trace.disp("send port shutdown-->");
                 synchronized(this) {
                         try {
                                 if (outputLock != null) {
                                         outputLock.lock();
                                 }
-		
+
+                                trace.disp("send port shutdown: output locked");
+
                                 if (connectionTable != null) {
                                         while (true) {
                                                 NetConnection cnx = null;
-                                        
+
                                                 synchronized(connectionTable) {
                                                         Iterator i = connectionTable.values().iterator();
                                                         if (!i.hasNext())
@@ -628,28 +631,34 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                                         cnx = (NetConnection)i.next();
                                                         i.remove();
                                                 }
-                                 
+
                                                 if (cnx != null) {
                                                         close(cnx);
                                                 }
                                         }
                                 }
-		
+                                trace.disp("send port shutdown: all connections closed");
+
                                 if (output != null) {
                                         output.free();
                                 }
 
+                                trace.disp("send port shutdown: all outputs freed");
+
                                 if (outputLock != null) {
                                         outputLock.unlock();
                                 }
-		
+
+                                trace.disp("send port shutdown: output lock released");
                         } catch (Exception e) {
                                 __.fwdAbort__(e);
                         }
                 }
+
+                trace.disp("send port shutdown<--");
                 log.out();
 	}
-	
+
 
 
         /* ----- PUBLIC WriteMessage API ___________________________________ */
@@ -676,7 +685,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		}
                 log.out();
 	}
-	
+
 	/**
 	 * Completes the message transmission and releases the send port.
 	 */
@@ -771,7 +780,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		output.writeLong(v);
                 log.out();
 	}
-	
+
 	public void writeFloat(float v) throws NetIbisException {
                 log.in();
 		emptyMsg = false;
@@ -815,37 +824,37 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		writeArraySliceByte(b, 0, b.length);
                 log.out();
 	}
-	
+
 	public void writeArrayChar(char [] b) throws NetIbisException {
                 log.in();
                 writeArraySliceChar(b, 0, b.length);
                 log.out();
 	}
-	
+
 	public void writeArrayShort(short [] b) throws NetIbisException {
                 log.in();
                 writeArraySliceShort(b, 0, b.length);
                 log.out();
 	}
-	
+
 	public void writeArrayInt(int [] b) throws NetIbisException {
                 log.in();
                 writeArraySliceInt(b, 0, b.length);
                 log.out();
 	}
-	
+
 	public void writeArrayLong(long [] b) throws NetIbisException {
                 log.in();
                 writeArraySliceLong(b, 0, b.length);
                 log.out();
 	}
-	
+
 	public void writeArrayFloat(float [] b) throws NetIbisException {
                 log.in();
                 writeArraySliceFloat(b, 0, b.length);
                 log.out();
 	}
-	
+
 	public void writeArrayDouble(double [] b) throws NetIbisException {
                 log.in();
                 writeArraySliceDouble(b, 0, b.length);
@@ -870,7 +879,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 output.writeArraySliceBoolean(b, o, l);
                 log.out();
 	}
-	
+
 	public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
@@ -883,7 +892,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 output.writeArraySliceByte(b, o, l);
                 log.out();
 	}
-	
+
 	public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
@@ -896,7 +905,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 output.writeArraySliceChar(b, o, l);
                 log.out();
 	}
-	
+
 	public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
@@ -909,7 +918,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 output.writeArraySliceShort(b, o, l);
                 log.out();
 	}
-	
+
 	public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
@@ -922,7 +931,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 output.writeArraySliceInt(b, o, l);
                 log.out();
 	}
-	
+
 	public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
@@ -935,20 +944,20 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 output.writeArraySliceLong(b, o, l);
                 log.out();
 	}
-	
+
 	public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
 			log.out("l = 0");
 			return;
 		}
-                
+
                 emptyMsg = false;
                 stat.addFloatArray(l);
                 output.writeArraySliceFloat(b, o, l);
                 log.out();
 	}
-	
+
 	public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
                 log.in();
 		if (l == 0) {
