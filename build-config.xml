@@ -368,6 +368,10 @@ to the command line.
 		append="true"
 		file="${ibis}/configuration.sh">MANTA_ROOT=/usr/local/VU/manta
 </echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">BCEL=${package.home.bcel}
+</echo>
 	<!--
 	    Methinks there is no need at all for the run scripts
 	    to know the location of the native libraries
