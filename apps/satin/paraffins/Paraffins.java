@@ -392,6 +392,5 @@ final class Paraffins implements Constants {
 		System.out.println("Elapsed Time " + startTime/60000 +":"+
 				   (startTime%60000)/1000+":"+(startTime%1000));
 
-		System.exit(0);
 	}
 }
