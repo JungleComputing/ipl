@@ -291,7 +291,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 				 */
 				int result = 0;
 				try {
-					result = tcpIs.read(b, offset, b.length);
+					result = tcpIs.read(b, offset, b.length - offset);
 				} catch (SocketTimeoutException e) {
 					if (interrupted) {
 						interrupted = false;
