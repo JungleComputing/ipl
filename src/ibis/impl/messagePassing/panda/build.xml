@@ -94,6 +94,15 @@
     <target name="panda-lib" depends="panda-init,property-init">
 	<!-- ,native-compile -->
 	<maplibrary property="library.path" name="${closure.lib}"/>
+
+	<maplibrary
+		property="gm.path"
+		name="${gm.lib.dir}/libgm.a"
+		outtype="static"/>
+	<!--  see comments in impl/net/gm/build.xml about libgm.so
+	-->
+	<copy file="${gm.path}" todir="${ibis}/build/lib"/>
+
 	<echo level="warning" message="The library is ${library.path}"/>
 	<outofdate>
 	    <sourcefiles>
