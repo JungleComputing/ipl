@@ -363,6 +363,19 @@ public class SuffixArray implements Configuration, Magic {
         }
     }
 
+    /** Returns true iff none of the `sz' strings in `a' overlaps with
+     * `pos' over a length `len'.
+     */
+    private static boolean areOverlapping( int a[], int sz, int pos, int len )
+    {
+	for( int i=0; i<sz; i++ ){
+	    if( areOverlapping( a[i], pos, len ) ){
+		return true;
+	    }
+	}
+	return false;
+    }
+
     /**
      * Calculates the best folding step to take.
      * @return The best step, or null if there is nothing worthwile.
@@ -376,36 +389,39 @@ public class SuffixArray implements Configuration, Magic {
 
         for( int i=1; i<length; i++ ){
             if( commonality[i]>=mincom ){
+		// TODO: we should also consider pairs that
+		// have too much overlap, but make it up in subsequent
+		// entries. This does mean that we must create a new
+		// candidate array for each new possibility, since we
+		// may have to throw it away.
                 int pos0 = indices[i-1];
+		int pos1 = indices[i];
+		int len = Math.min( Math.abs( pos1-pos0 ), commonality[i] );
 
-                if( areOverlapping( pos0, indices[i], commonality[i] ) ){
-                    for( int j=i; j<length; j++ ){
-                        if( commonality[j]<mincom ){
-                            break;
-                        }
-                        int pos1 = indices[j];
+		if( len>maxlen ){
+		    // This is a better candidate.
+		    candidates[0] = pos0;
+		    candidates[1] = pos1;
+		    p = 2;
 
-                        int len = disjunctMatch( pos0, pos1 );
-                        if( len>maxlen ){
-                            maxlen = len;
-                            candidates[0] = pos0;
-                            candidates[1] = pos1;
-                            p = 2;
-                            mincom = len;
-                        }
-                    }
-                }
-                else {
-                    int len = commonality[i];
+		    // Now search for non-overlapping substrings that 
+		    // are equal for `len' characters. All possibilities
+		    // are the subsequent entries up to the first one
+		    // with less than 'len' characters commonality.
+		    // We must test each one for overlap with all
+		    // previous strings.
+		    int j = i+1;
+		    while( j<length && commonality[j]>=len ){
+			int posj = indices[j];
 
-                    if( len>maxlen ){
-                        maxlen = len;
-                        candidates[0] = pos0;
-                        candidates[1] = indices[i];
-                        p = 2;
-                        mincom = len;
-                    }
-                }
+			if( !areOverlapping( candidates, p, posj, len ) ){
+			    candidates[p++] = posj;
+			}
+			j++;
+		    }
+		    maxlen = len;
+		    mincom = len;
+		}
             }
         }
         if( maxlen == 0 ){
@@ -425,10 +441,10 @@ public class SuffixArray implements Configuration, Magic {
         }
         Step mv = selectBestStep();
 
-        if( mv != null ){
+        if( mv != null && mv.getGain()>0 ){
             // It is worthwile to do this compression.
             if( traceCompressionCosts ){
-                System.out.println( "Best step: string [" + buildString( mv.occurences[0], mv.len ) + "]" );
+                System.out.println( "Best step: string [" + buildString( mv.occurences[0], mv.len ) + "]: " + mv );
             }
             applyCompression( mv );
             if( doVerification ){
