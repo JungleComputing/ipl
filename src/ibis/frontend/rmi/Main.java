@@ -5,10 +5,17 @@ import ibis.util.BT_Analyzer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.io.IOException;
 import java.util.Vector;
 
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.ConstantPool;
+import org.apache.bcel.generic.ClassGen;
+import org.apache.bcel.generic.ConstantPoolGen;
 
 class Main {
 	static boolean local = true;
@@ -35,14 +42,89 @@ class Main {
 		return new PrintWriter(fileOut);
 	}
 
+	public static String sig_java2ibis(String s) {
+		for (int i = 0; i < s.length(); i++) {
+			if (s.charAt(i) == 'L') {
+				if (s.startsWith("java/rmi/", i+1)) {
+					s = s.substring(0, i+1) + "ibis" + s.substring(i+5);
+				}
+				do {
+					i++;
+				} while (s.charAt(i) != ';');
+			}
+		}
+		return s;
+	}
+
+	public static JavaClass cvt_java2ibis(JavaClass c) {
+		ClassGen cg = new ClassGen(c);
+		ConstantPoolGen cpg = cg.getConstantPool();
+		ConstantPool cp = c.getConstantPool();
+		boolean changed = false;
+
+		for (int i = 0; i < cp.getLength(); i++) {
+			Constant co = cp.getConstant(i);
+			if (co instanceof ConstantNameAndType) {
+				ConstantNameAndType conap = (ConstantNameAndType) co;
+				String name = conap.getName(cp);
+				if (name.startsWith("java.rmi.")) {
+					changed = true;
+					name = "ibis" + name.substring(4);
+					conap.setNameIndex(cpg.addUtf8(name));
+				}
+
+				String sig = conap.getSignature(cp);
+				if (sig.indexOf("java/rmi/") >= 0) {
+					changed = true;
+					sig = sig_java2ibis(sig);
+					conap.setSignatureIndex(cpg.addUtf8(sig));
+				}
+
+				System.out.println("Got ConstantNameAndType with name " + name + " and signature " + sig);
+				cpg.setConstant(i, conap);
+			}
+			else if (co instanceof ConstantClass) {
+				ConstantClass coc = (ConstantClass) co;
+				String name = coc.getBytes(cp);
+
+				if (name.startsWith("java/rmi/")) {
+					changed = true;
+					name = "ibis" + name.substring(4);
+					coc.setNameIndex(cpg.addUtf8(name));
+					cpg.setConstant(i, coc);
+				}
+
+				System.out.println("Got ConstantClass with name " + name);
+			}
+		}
+
+		if (changed) {
+			Repository.removeClass(c);
+			c = cg.getJavaClass();
+			Repository.addClass(c);
+			String classname = c.getClassName();
+			String classfile = classname.replace('.', java.io.File.separatorChar) + ".class";
+			try {
+				c.dump(classfile);
+			} catch(IOException e) {
+				System.err.println("got IOException " + e);
+				e.printStackTrace();
+				System.exit(1);
+			}
+		}
+
+		return c;
+	}
+
 	public static void main(String [] args) {
 
 		Vector classes = new Vector();
 		boolean verbose = false;
+		boolean java2ibis = false;
 		JavaClass rmiInterface = null;
 
 		if (args.length == 0) {
-			System.err.println("Usage : java Main [-v] [-dir | -local] classname");
+			System.err.println("Usage : java Main [-v] [-java2ibis] [-dir | -local] classname");
 			System.exit(1);
 		}
 
@@ -56,6 +138,10 @@ class Main {
 				num--;
 			} else if (args[i].equals("-dir")) {
 				local = false;
+				args[i] = args[num-1];
+				num--;
+			} else if (args[i].equals("-java2ibis")) {
+				java2ibis = true;
 				args[i] = args[num-1];
 				num--;
 			} else if (args[i].equals("-local")) {
@@ -81,6 +167,12 @@ class Main {
 				System.exit(1);
 			}
 			classes.addElement(c);
+		}
+
+		if (java2ibis) {
+			for (i=0;i<classes.size();i++) {
+				classes.setElementAt(cvt_java2ibis((JavaClass) classes.get(i)), i);
+			}
 		}
 
 		for (i=0;i<classes.size();i++) {
