@@ -141,7 +141,7 @@ class RMIStubGenerator extends RMIGenerator {
 	void generate() { 		
 		header();		
 		constructor();		
-		body(data.subjectSpecialMethods);
+		body(data.specialMethods);
 		trailer();
 	} 
 
