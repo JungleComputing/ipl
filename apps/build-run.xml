@@ -47,7 +47,7 @@
 	      executable="${ibis}/bin/run-ibis"
 	      vmlauncher="false"
 	      spawn="true">
-	      <arg line="-ns localhost -ns-port 4567 -nhosts 2 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -ns-retry -nhosts 2 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
 	      <arg line="${java-args} ibis.util.Postpone 4 ${runjob}"/>
 	</exec>
@@ -56,7 +56,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost -ns-port 4567 -nhosts 2 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -ns-retry -nhosts 2 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
 	      <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
@@ -74,7 +74,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost -ns-port 4567 -nhosts 1 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -ns-retry -nhosts 1 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
 	      <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
@@ -90,11 +90,59 @@
 	</exec>
     </target>
 
+    <target name="test-par"
+	    depends="build"
+	    description="Run a parallel test if the property 'test-par-run' is set">
+	<if>
+	    <isset property="test-par-run"/>
+	    <then>
+		<echo message="Running parallel test on two JVM instances"/>
+		<if>
+		    <isset property="test-par-java-args"/>
+		    <then>
+			<property name="jargs" value="${test-par-java-args}"/>
+		    </then>
+		    <else>
+			<property name="jargs" value=""/>
+		    </else>
+		</if>
+		<antcall target="run2">
+		    <param name="runjob" value="${test-par-run}"/>
+		    <param name="java-args" value="${jargs}"/>
+		</antcall>
+	    </then>
+	</if>
+    </target>
+
+    <target name="test-seq"
+	    depends="build"
+	    description="Run a sequential test if the property 'test-seq-run' is set">
+	<if>
+	    <isset property="test-seq-run"/>
+	    <then>
+		<echo message="Running sequential test"/>
+		<if>
+		    <isset property="test-seq-java-args"/>
+		    <then>
+			<property name="jargs" value="${test-seq-java-args}"/>
+		    </then>
+		    <else>
+			<property name="jargs" value=""/>
+		    </else>
+		</if>
+		<antcall target="run1">
+		    <param name="runjob" value="${test-seq-run}"/>
+		    <param name="java-args" value="${jargs}"/>
+		</antcall>
+	    </then>
+	</if>
+    </target>
+
     <!-- Default test target, for if the application does not have one.
-	 Causes a build.
+	 Does test-par as well as test-seq.
     -->
     <target name="test"
-	    depends="build">
+	    depends="test-seq,test-par">
     </target>
 
 </project>

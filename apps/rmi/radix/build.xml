@@ -10,15 +10,10 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
+    <property name="test-par-run" value="Radix -t"/>
+    <property name="test-seq-run" value="Radix -t"/>
 
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-		<param name="runjob" value="Radix -t"/>
-	</antcall>
-    </target>
+    <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
 
 </project>
 

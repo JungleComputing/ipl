@@ -5,19 +5,14 @@
 
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
-    <property name="satinc-flags" value=""/>
 
+    <property name="satinc-flags" value=""/>
     <property name="satin-main-class" value="Mmult"/>
 
-    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+    <property name="test-par-run" value="Mmult -satin-closed 4 0 32"/>
+    <property name="test-seq-run" value="Mmult -satin-closed 4 0 32"/>
 
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-		<param name="runjob" value="Mmult -satin-closed 4 0 32"/>
-	</antcall>
-    </target>
+    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
 </project>
 

@@ -5,19 +5,13 @@
 
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
-    <property name="satinc-flags" value=""/> 
 
+    <property name="satinc-flags" value=""/> 
     <property name="satin-main-class" value="Raytracer"/>
+
+    <property name="test-par-run" value="Raytracer -satin-closed"/>
+    <property name="test-seq-run" value="Raytracer -satin-closed"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-		<param name="runjob" value="Raytracer -satin-closed"/>
-	</antcall>
-    </target>
 </project>
-
-

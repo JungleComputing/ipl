@@ -131,7 +131,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 			Registry r = ibis.registry();
 
 			masterIdent = (IbisIdentifier) r.elect("satin master", ident);
-			
+
 
 			if (masterIdent.equals(ident)) {
 				/* I an the master. */

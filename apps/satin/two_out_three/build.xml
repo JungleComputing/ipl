@@ -7,18 +7,11 @@
     <property name="build"       location="build"/>
 
     <property name="satinc-flags" value="-keep"/>
-
     <property name="satin-main-class" value="TwoOutThree"/>
+
+    <property name="test-par-run" value="TwoOutThree -satin-closed"/>
+    <property name="test-seq-run" value="TwoOutThree -satin-closed"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-		<param name="runjob" value="TwoOutThree -satin-closed"/>
-	</antcall>
-    </target>
 </project>
-
-

@@ -8,19 +8,17 @@
 
     <property name="satin-main-class" value="BarnesHut"/>
 
+    <property name="test-par-run"
+	      value="BarnesHut -tuple2 -v 100 5 -satin-closed"/>
+    <property name="test-seq-run"
+	      value="BarnesHut -tuple2 -v 100 5 -satin-closed"/>
+
     <fileset dir="." id="src.excludes-ref">
 	<include name="BodyCanvas.java"/>
     </fileset>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-		<param name="runjob" value="BarnesHut -tuple2 -v 100 5 -satin-closed"/>
-	</antcall>
-    </target>
 </project>
 
 

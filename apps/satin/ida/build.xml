@@ -5,19 +5,15 @@
 
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
-    <property name="satinc-flags" value=""/>
 
+    <property name="satinc-flags" value=""/>
     <property name="satin-main-class" value="Ida"/>
+
+    <property name="test-par-run" value="Ida -satin-closed"/>
+    <property name="test-seq-run" value="Ida -satin-closed"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-		<param name="runjob" value="Ida -satin-closed"/>
-	</antcall>
-    </target>
 </project>
 
 

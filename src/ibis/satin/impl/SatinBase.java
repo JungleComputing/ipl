@@ -61,7 +61,7 @@ public abstract class SatinBase implements Config {
 
 	protected String name;
 
-	protected IbisIdentifier masterIdent;
+	protected IbisIdentifier masterIdent = null;
 
 	protected long stealReplySeqNr;
 

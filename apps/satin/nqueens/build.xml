@@ -5,9 +5,12 @@
 
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
-    <property name="satinc-flags" value="-keep"/>
 
+    <property name="satinc-flags" value="-keep"/>
     <property name="satin-main-class" value="NQueens"/>
+
+    <property name="test-par-run" value="NQueens -satin-closed 14"/>
+    <property name="test-seq-run" value="NQueens -satin-closed 14"/>
 
     <fileset dir="." id="src.excludes-ref">
 	<include name="abort/**/*.java"/>
@@ -19,13 +22,4 @@
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-		<param name="runjob" value="NQueens -satin-closed 14"/>
-	</antcall>
-    </target>
 </project>
-
-

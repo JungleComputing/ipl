@@ -10,15 +10,11 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
+    <property name="test-par-run" value="Main 20"/>
+    <property name="test-par-java-args" value="-Xmx256M"/>
+    <property name="test-seq-run" value="Main 20"/>
+    <property name="test-seq-java-args" value="-Xmx256M"/>
+
     <import file="${ibis}/apps/gmi/build-gmi-app.xml"/>
 
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-		<param name="runjob" value="Main 20"/>
-	</antcall>
-    </target>
 </project>
-
-
