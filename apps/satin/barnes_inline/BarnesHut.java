@@ -5,7 +5,7 @@ final class BarnesHut {
 
     static boolean debug = false;   //use -(no)debug to modify
     static boolean verbose = false; //use -v to turn on
-    static final boolean ASSERTS = true;  //also used in other barnes classes
+    static final boolean ASSERTS = false;  //also used in other barnes classes
 
     private static final int IMPL_NTC = 1;   // -ntc option
     private static final int IMPL_TUPLE = 2; // -tuple option
@@ -23,12 +23,11 @@ final class BarnesHut {
     private long btcomTime = 0, updateTime = 0;
     private long[] forceCalcTimes;
 
-
     //Parameters for the BarnesHut algorithm / simulation
     private static final double THETA = 2.0; //cell subdivision tolerance
     private static final double DT = 0.025; //integration time-step
 
-    //we do 7 iterations (first one (two with tuple2) isn't measured)
+    //we do 7 iterations (first one isn't measured)
     static final double START_TIME = 0.0;
     static final double END_TIME = 0.175;
 
@@ -41,8 +40,6 @@ final class BarnesHut {
     //Indicates if we are the root divide-and-conquer node
     static boolean I_AM_ROOT = false;
 
-    //final int nBodies;
-
     BarnesHut(int n, int m) {
 	I_AM_ROOT = true; //constructor is only called at the root node
 
@@ -54,7 +51,7 @@ final class BarnesHut {
 	    Initializer init = new Initializer(n, m);
 	    ibis.satin.SatinTupleSpace.add("init", init);
 	}
-	
+
 	/* The RMI version contained magic code equivalent to this:
 	   (the DEFAULT_* variables were different)
 
@@ -162,7 +159,7 @@ final class BarnesHut {
 	    if (impl == IMPL_TUPLE) {
 		rootId = "root" + iteration;
 		ibis.satin.SatinTupleSpace.add(rootId, root);
-	    }		
+	    }
 
 	    ibis.satin.Satin.resume(); //turn ON divide-and-conquer stuff
 
@@ -222,8 +219,7 @@ final class BarnesHut {
 	double[] accs_y = new double[bodyArray.length];
 	double[] accs_z = new double[bodyArray.length];
 
-	long start = 0, end;
-	long phaseStart = 0, phaseEnd;
+	long start = 0, end, phaseStart = 0, phaseEnd;
 
 	TreeUpdater u;
 	String key;
@@ -231,9 +227,9 @@ final class BarnesHut {
 	for (iteration = 0; iteration < ITERATIONS; iteration++) {
 	    System.out.println("Starting iteration " + iteration);
 
-	    //don't measure the first two iterations (numbers 0 and 1)
-	    //the body update phase of the second iteration *is* measured ???
-	    if (iteration == 2) {
+	    //don't measure the first iteration
+	    //the body update phase of the first iteration *is* measured ???
+	    if (iteration == 1) {
 		start = System.currentTimeMillis();
 	    }
 
@@ -264,11 +260,10 @@ final class BarnesHut {
 	    if (phase_timing) {
 		phaseStart = System.currentTimeMillis();
 	    }
-	    ibis.satin.Satin.resume();
 
+	    ibis.satin.Satin.resume();
 	    result = dummyNode.barnesTuple2(null, spawn_threshold);
 	    dummyNode.sync();
-
 	    ibis.satin.Satin.pause();
 
 	    processLinkedListResult(result, accs_x, accs_y, accs_z);
@@ -282,8 +277,6 @@ final class BarnesHut {
 
 	    //body updates will be done in the next iteration, or below
 	}
-
-	//ibis.satin.Satin.pause(); //will be resumed in main()
 
 	//do the final body update phase (this phase is otherwise done at
 	//the start of the next iteration)
@@ -352,8 +345,6 @@ final class BarnesHut {
  	}
     }
 
-
-
     /*private BodyCanvas visualize() {
       JFrame.setDefaultLookAndFeelDecorated(true);
 
@@ -373,11 +364,10 @@ final class BarnesHut {
       }*/
 
     void run() {
-	Body b;
 	int i;
 
 	System.out.println("Iterations: " + ITERATIONS + " (timings DON'T " +
-			   "include the first iteration (two with tuple2!)!)");
+			   "include the first iteration!)");
 
 	switch(impl) {
 	case IMPL_NTC:
@@ -408,17 +398,16 @@ final class BarnesHut {
 	if (phase_timing) {
 	    long total = 0;
 	    if (impl != IMPL_TUPLE2) {
-		System.out.println("  tree building and");
-		System.out.println("CoM computation took: " +
+		System.out.println("tree building and CoM computation took: " +
 				   btcomTime/1000.0 + " s");
-		System.out.println("Updating bodies took: " +
+		System.out.println("                  Updating bodies took: " +
 				   updateTime/1000.0 + " s");
 	    }
 	    System.out.println("Force calculation took: ");
 	    for (i = 0; i < ITERATIONS; i++) {
 		System.out.println("  iteration " + i + ": " +
 				   forceCalcTimes[i]/1000.0 + " s");
-		if (i >= 2 || (i > 1 && impl != IMPL_TUPLE2)) {
+		if (i >= 1) {
 		    total += forceCalcTimes[i];
 		}
 	    }
@@ -479,10 +468,10 @@ final class BarnesHut {
 	    nBodies = 100;
 	}
 
+	System.out.println("BarnesHut: simulating " + nBodies +
+			   " bodies, " + mlb + " bodies/leaf node, " +
+			   "theta = " + THETA);
 	try {  
-	    System.out.println("BarnesHut: simulating " + nBodies +
-			       " bodies, " + mlb + " bodies/leaf node, " +
-			       "theta = " + THETA);
 	    new BarnesHut(nBodies, mlb).run();
 	} catch (StackOverflowError e) {
 	    System.err.println("EEK!" + e + ":");

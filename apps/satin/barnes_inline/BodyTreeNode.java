@@ -1,4 +1,3 @@
-//import java.io.*;
 import java.util.*;
 
 /**
@@ -333,9 +332,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	    //leaf node
 	    if (bodies.length != bodyCount) {
 		Body[] newBodies = new Body[bodyCount];
-		for (int i = 0; i < bodyCount; i++) {
-		    newBodies[i] = bodies[i];
-		}
+		System.arraycopy(bodies, 0, newBodies, 0, bodyCount);
 		bodies = newBodies;
 	    }
 	} else {
@@ -468,17 +465,6 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	    }
 	}
 	return totalAcc;
-    }
-
-    /**
-     * spawnable version of barnesBody(pos_x, pos_y, pos_z), that uses
-     * the tuplespace to get the (root of the) tree
-     */
-    public double[] barnesBodyTuple( double pos_x, double pos_y,
-				      double pos_z, String rootId ) {
-	BodyTreeNode root =
-	    (BodyTreeNode) ibis.satin.SatinTupleSpace.get(rootId);
-	return root.barnesBody(pos_x, pos_y, pos_z);
     }
 
     /**
@@ -670,14 +656,14 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 		if (children[i] != null) {
 		    if (threshold > 0) {
 			//necessaryTree creation
-			BodyTreeNode necessaryTree =
-			    new BodyTreeNode(interactTree, children[i]);
-			res[i] = children[i].barnesNTC(necessaryTree,
-						       threshold-1);
+			  BodyTreeNode necessaryTree =
+			      new BodyTreeNode(interactTree, children[i]);
+			  res[i] = children[i].barnesNTC(necessaryTree,
+  						       threshold-1);
 
 			//alternative: copy whole tree
-			//res[i] = children[i].barnesNTC(interactTree,
-			//threshold-1);
+			  //res[i] = children[i].barnesNTC(interactTree,
+				//		       threshold-1);
 		    } else { //reached the threshold -> no spawn
 			res[i] = children[i].barnesSequential(interactTree);
 		    }

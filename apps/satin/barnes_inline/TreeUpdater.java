@@ -16,7 +16,6 @@ final class TreeUpdater implements ibis.satin.ActiveTuple {
     }
 
     public void handleTuple(String key) {
-	System.out.println("Updating at iteration " + key);
 	int iteration = Integer.parseInt(key);
 
 	if (iteration > 0) {
