@@ -5,9 +5,10 @@ package ibis.impl.net;
  */
 public final class NetPriorityMutex {
 
-	private final static boolean DEBUG = false;
+	private final static boolean DEBUG = true;
 
 	private Thread owner;
+	private Thread[] waitingThreads = new Thread[32];
 
         /**
          * Store the mutex value, which cannot be negative.
@@ -40,6 +41,62 @@ public final class NetPriorityMutex {
 		lockvalue = locked?0:1;
 	}
 
+
+	private void doWait(boolean priority) throws InterruptedIOException {
+	    try {
+		if (DEBUG) {
+		    if (waiters < waitingThreads.length) {
+			waitingThreads[waiters] = Thread.currentThread();
+		    }
+		}
+		waiters++;
+		wait();
+
+	    } catch (InterruptedException e) {
+		if (priority) {
+		    synchronized(this) {
+			if (waiters > 0) {
+			    notify();
+			    // notifyAll();
+			}
+		    }
+		}
+System.err.println("********************* interrupted in NetPrioMutex.lock ********");
+		throw new InterruptedIOException(e);
+
+	    } finally {
+		if (DEBUG) {
+		    Thread me = Thread.currentThread();
+		    for (int i = 0; i < waiters; i++) {
+			if (waitingThreads[i] == me) {
+			    waitingThreads[i] = waitingThreads[waiters - 1];
+			    break;
+			}
+			if (i == waiters && waiters < waitingThreads.length) {
+			    System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% inconsistent endWait()");
+			    throw new Error("inconsistent endWait()");
+			}
+		    }
+		}
+		waiters--;
+	    }
+
+	    if (! priority && priorityvalue > 0) {
+		if (waiters == 0) {
+		    throw new Error("Cannot be that priorityvalue > 0 && waiters == 0");
+		}
+		if (waiters == priorityvalue) {
+		    // Sure we are going to wake up a prio waiter
+		    notify();
+		} else {
+		    // Sorry, there are prio and nonprio waiters. To be sure a
+		    // prio waiter comes alive, we have no choice but to wake all.
+		    notifyAll();
+		}
+	    }
+	}
+
+
         /**
          * Attempt to lock the mutex.
          *
@@ -53,47 +110,31 @@ public final class NetPriorityMutex {
          * mutex.
          */
 	public synchronized void lock(boolean priority) throws InterruptedIOException{
-                if (priority) {
-                        priorityvalue++;
-                        while (lockvalue <= 0) {
-				if (DEBUG && owner == Thread.currentThread()) {
-					throw new IllegalMonitorStateException("Cannot lock twice");
-				}
-                                try {
-					waiters++;
-                                        wait();
-					waiters--;
-                                } catch (InterruptedException e) {
-                                        synchronized(this) {
-                                                priorityvalue--;
-						if (waiters > 0) {
-							notify();
-							// notifyAll();
-						}
-                                        }
-                                        throw new InterruptedIOException(e);
-                                }
-                        }
-                        priorityvalue--;
-                } else {
-                        while (priorityvalue > 0 || lockvalue <= 0) {
-				if (DEBUG && lockvalue <= 0 && owner == Thread.currentThread()) {
-					throw new IllegalMonitorStateException("Cannot lock twice");
-				}
-				waiters++;
-				try {
-					wait();
-				} catch (InterruptedException e) {
-					throw new InterruptedIOException(e);
-				} finally {
-					waiters--;
-				}
-                        }
-                }
-		if (DEBUG) {
-			owner = Thread.currentThread();
+	    if (priority) {
+		priorityvalue++;
+		try {
+		    while (lockvalue <= 0) {
+			if (DEBUG && owner == Thread.currentThread()) {
+			    throw new IllegalMonitorStateException("Cannot lock twice");
+			}
+			doWait(priority);
+		    }
+		} finally {
+		    priorityvalue--;
 		}
-		lockvalue--;
+	    } else {
+		while (priorityvalue > 0 || lockvalue <= 0) {
+		    if (DEBUG &&
+			    lockvalue <= 0 && owner == Thread.currentThread()) {
+			throw new IllegalMonitorStateException("Cannot lock twice");
+		    }
+		    doWait(priority);
+		}
+	    }
+	    if (DEBUG) {
+		owner = Thread.currentThread();
+	    }
+	    lockvalue--;
 	}
 
         /**
@@ -113,49 +154,31 @@ public final class NetPriorityMutex {
          * mutex.
          */
 	public synchronized void ilock(boolean priority) throws InterruptedIOException {
-                if (priority) {
-                        priorityvalue++;
-                        while (lockvalue <= 0) {
-				if (DEBUG && owner == Thread.currentThread()) {
-					throw new IllegalMonitorStateException("Cannot lock twice");
-				}
-                                try {
-					waiters++;
-                                        wait();
-					waiters--;
-				} catch (InterruptedException e) {
-					throw new InterruptedIOException(e);
-                                } finally {
-                                        synchronized(this) {
-                                                priorityvalue--;
-						if (waiters > 0) {
-							notify();
-							// // notify();
-							// notifyAll();
-						}
-                                        }
-                                }
-                        }
-                        priorityvalue--;
-                } else {
-                        while (priorityvalue > 0 || lockvalue <= 0) {
-				if (DEBUG && lockvalue <= 0 && owner == Thread.currentThread()) {
-					throw new IllegalMonitorStateException("Cannot lock twice");
-				}
-				waiters++;
-				try {
-					wait();
-				} catch (InterruptedException e) {
-					throw new InterruptedIOException(e);
-				} finally {
-					waiters--;
-				}
-                        }
-                }
-		if (DEBUG) {
-			owner = Thread.currentThread();
+	    if (priority) {
+		priorityvalue++;
+		try {
+		    while (lockvalue <= 0) {
+			if (DEBUG && owner == Thread.currentThread()) {
+			    throw new IllegalMonitorStateException("Cannot lock twice");
+			}
+			doWait(priority);
+		    }
+		} finally {
+		    priorityvalue--;
 		}
-		lockvalue--;
+	    } else {
+		while (priorityvalue > 0 || lockvalue <= 0) {
+		    if (DEBUG &&
+			    lockvalue <= 0 && owner == Thread.currentThread()) {
+			throw new IllegalMonitorStateException("Cannot lock twice");
+		    }
+		    doWait(priority);
+		}
+	    }
+	    if (DEBUG) {
+		owner = Thread.currentThread();
+	    }
+	    lockvalue--;
 	}
 
         /**
@@ -189,7 +212,7 @@ public final class NetPriorityMutex {
                 }
 
 		if (DEBUG) {
-			owner = Thread.currentThread();
+		    owner = Thread.currentThread();
 		}
                 lockvalue--;
                 return true;
