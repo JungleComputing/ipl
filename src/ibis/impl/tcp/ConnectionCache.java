@@ -25,13 +25,22 @@ class ConnectionCache implements Config {
 			void kill() {
 				in = null;
 				out = null;
-				try { 
+
+				try { 	// What is the use of this??? (Ceriel)
+					// and don't combine this with the next try-catch
+					// clause, or your sockets may never be closed! (Ceriel)
 					s.shutdownOutput();
 					s.shutdownInput();
-					s.close();
 				} catch (IOException e) { 
 					// ignore
 				} 
+
+				try { 
+					s.close();
+				} catch (IOException e) { 
+					// ignore
+				}
+
 				s = null;
 			}
 
