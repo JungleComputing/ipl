@@ -690,49 +690,48 @@ public class Ibis extends ibis.ipl.Ibis {
 		myIbis.unlock();
 	    }
 	    registry.end();
-	}
-
 
 // System.err.println("Ibis.end(): grab Ibis lock");
 
-	myIbis.lock();
-	try {
-	    while (sendPortList != null) {
-// System.err.println("Ibis.end(): Invoke close() of " + sendPortList);
-		sendPortList.closeLocked();
-	    }
-
-	    ReceivePortShutter receivePortShutter = new ReceivePortShutter();
-
-	    receivePortShutter.waitPolling(1000);
-
-	    while (receivePortList != null) {
-// System.err.println("Ibis.end(): Invoke forced close() of " + receivePortList);
-		receivePortList.closeLocked(true);
-	    }
-
-	    ibisNameService.remove(ident);
+	    myIbis.lock();
 	    try {
-		byte[] sf = ident.getSerialForm();
-		for (int i = 0; i < nrCpus; i++) {
-		    if (i != myCpu) {
-// System.err.println("Send leave message to " + i);
-			send_leave(i, sf);
-		    }
+		while (sendPortList != null) {
+    // System.err.println("Ibis.end(): Invoke close() of " + sendPortList);
+		    sendPortList.closeLocked();
 		}
-	    } catch (IOException e) {
-		System.err.println("Cannot send leave msg");
+
+		ReceivePortShutter receivePortShutter = new ReceivePortShutter();
+
+		receivePortShutter.waitPolling(1000);
+
+		while (receivePortList != null) {
+    // System.err.println("Ibis.end(): Invoke forced close() of " + receivePortList);
+		    receivePortList.closeLocked(true);
+		}
+
+		ibisNameService.remove(ident);
+		try {
+		    byte[] sf = ident.getSerialForm();
+		    for (int i = 0; i < nrCpus; i++) {
+			if (i != myCpu) {
+    // System.err.println("Send leave message to " + i);
+			    send_leave(i, sf);
+			}
+		    }
+		} catch (IOException e) {
+		    System.err.println("Cannot send leave msg");
+		}
+		world.leave(ident);
+
+		// report();
+
+		// ReceivePort.end();
+
+		ibmp_end();
+
+	    } finally {
+		myIbis.unlock();
 	    }
-	    world.leave(ident);
-
-	    // report();
-
-	    // ReceivePort.end();
-
-	    ibmp_end();
-
-	} finally {
-	    myIbis.unlock();
 	}
     }
 
