@@ -172,5 +172,6 @@ public class Index implements java.io.Serializable {
             }
             w.write( '\n' );
         }
+	w.close();
     }
 }
