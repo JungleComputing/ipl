@@ -399,7 +399,7 @@ public class SuffixArray implements Configuration, Magic {
         if( mv != null ){
             // It is worthwile to do this compression.
             if( traceCompressionCosts ){
-                System.out.println( "Best move: string [" + buildString( indices[mv.i], mv.len ) + "]" );
+                System.out.println( "Best step: string [" + buildString( mv.i, mv.len ) + "]" );
             }
             applyCompression( mv );
             if( doVerification ){
