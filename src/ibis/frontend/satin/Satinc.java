@@ -20,6 +20,7 @@ import org.apache.bcel.generic.ACONST_NULL;
 import org.apache.bcel.generic.ALOAD;
 import org.apache.bcel.generic.ARETURN;
 import org.apache.bcel.generic.ASTORE;
+import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.ArrayInstruction;
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BIPUSH;
@@ -1394,18 +1395,6 @@ System.out.println("findMethod: could not find method " + name + sig);
 	InstructionHandle startPos = pos;
 	InstructionHandle[] jumpTargets = new InstructionHandle[catches.size()+1];
 
-	// optimization: if there is only one type of exception, no need to test.
-	if (catches.size() == 1) {
-	    CodeExceptionGen e = (CodeExceptionGen) (catches.elementAt(0));
-	    ObjectType type = e.getCatchType();
-	    InstructionHandle catchTarget = e.getHandlerPC();
-
-	    il.insert(pos, new ALOAD(exceptionPos));
-	    il.insert(pos, ins_f.createCheckCast(type));
-	    il.insert(pos, new GOTO(catchTarget));
-	    return pos;
-	}
-
 	BranchHandle[] jumps = new BranchHandle[catches.size()];
 
 	for (int i=0; i<catches.size(); i++) {
@@ -1427,6 +1416,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	for (int i=0; i<catches.size(); i++) {
 	    jumps[i].setTarget(jumpTargets[i+1]);
 	}
+
+	il.insert(pos, new ALOAD(exceptionPos));
+	il.insert(pos, new ATHROW());
 
 	return pos;
     }

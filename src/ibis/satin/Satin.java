@@ -1376,7 +1376,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				System.err.println("parent = " + r.parent);
 			}
 			if(r.parent == null) {
-				System.err.println("EEEK, root job?");
+				System.err.println("EEEK, root job?" + t);
 				t.printStackTrace();
 				System.exit(1);
 			}
