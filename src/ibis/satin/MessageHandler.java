@@ -133,7 +133,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 		result.stealer = ident.ibis();
 
-		/* store the job int he outstanding list */
+		/* store the job in the outstanding list */
 		synchronized(satin) {
 			satin.addToOutstandingJobList(result);
 		}
