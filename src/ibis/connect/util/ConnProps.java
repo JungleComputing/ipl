@@ -22,6 +22,8 @@ public class ConnProps {
     public static final String datalinks = PROPERTY_PREFIX + "data_links";
     public static final String controllinks = PROPERTY_PREFIX + "control_links";
     public static final String sizes = PROPERTY_PREFIX + "default.sizes";
+    public static final String isize = PROPERTY_PREFIX + "InputBufferSize";
+    public static final String osize = PROPERTY_PREFIX + "OutputBufferSize";
 
     private static final String[] sysprops = {
 	hub_port,
@@ -36,7 +38,9 @@ public class ConnProps {
 	controllinks,
 	par_numways,
 	par_blocksize,
-	sizes
+	sizes,
+	isize,
+	osize
     };
 
     public static void checkProps() {

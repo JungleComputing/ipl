@@ -204,16 +204,10 @@ public class IbisSerializationInputStream
      * comment tells you otherwise.
      */
 
-    /**
-     * {@inheritDoc}
-     */
     public String serializationImplName() {
 	return "ibis";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void close() throws IOException {
 	super.close();
 	types = null;
@@ -226,9 +220,6 @@ public class IbisSerializationInputStream
      * The rest is built on top of these.
      */
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(boolean[] ref, int off, int len) throws IOException {
 	startTimer();
 	try {
@@ -245,9 +236,6 @@ public class IbisSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(byte[] ref, int off, int len) throws IOException {
 	startTimer();
 	try {
@@ -264,9 +252,6 @@ public class IbisSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(char[] ref, int off, int len) throws IOException {
 	startTimer();
 	try {
@@ -283,9 +268,6 @@ public class IbisSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(short[] ref, int off, int len) throws IOException {
 	startTimer();
 	try {
@@ -302,9 +284,6 @@ public class IbisSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(int[] ref, int off, int len) throws IOException {
 	startTimer();
 	try {
@@ -321,9 +300,6 @@ public class IbisSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(long[] ref, int off, int len) throws IOException {
 	startTimer();
 	try {
@@ -340,9 +316,6 @@ public class IbisSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(float[] ref, int off, int len) throws IOException {
 	startTimer();
 	try {
@@ -359,9 +332,6 @@ public class IbisSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(double[] ref, int off, int len) throws IOException {
 	startTimer();
 	try {
@@ -378,9 +348,6 @@ public class IbisSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(Object[] ref, int off, int len)
 	    throws IOException, ClassNotFoundException {
 	startTimer();
@@ -535,9 +502,6 @@ public class IbisSerializationInputStream
 	init(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void clear() {
 	if (DEBUG) {
 	    dbPrint("explicit clear: next handle = " + next_handle + ".");
@@ -545,9 +509,6 @@ public class IbisSerializationInputStream
 	init(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void statistics() {
 	System.err.println("IbisSerializationInputStream: " +
 			   "statistics() not yet implemented");
@@ -581,9 +542,6 @@ public class IbisSerializationInputStream
 	return handle;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String readUTF() throws IOException {
 	startTimer();
 	int bn = readInt();
@@ -1761,9 +1719,6 @@ public class IbisSerializationInputStream
     protected void readStreamHeader() {
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public GetField readFields() throws IOException, ClassNotFoundException {
 	if (current_object == null) {
 	    throw new NotActiveException("not in readObject");
@@ -1898,9 +1853,6 @@ public class IbisSerializationInputStream
 	return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void defaultReadObject()
 	throws ClassNotFoundException, IOException, NotActiveException {
 	if (current_object == null) {

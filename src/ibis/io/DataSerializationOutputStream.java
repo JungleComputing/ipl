@@ -168,16 +168,10 @@ public class DataSerializationOutputStream
 	out = null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String serializationImplName() {
 	return "data";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void statistics() {
     }
 
@@ -716,9 +710,6 @@ public class DataSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void close() throws IOException {
 	flush();
 	out.close();
@@ -765,31 +756,19 @@ public class DataSerializationOutputStream
 	DataSerializationInputStream.debuggerPrint(this + ": " + s);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void reset() throws IOException {
     }
 
     /* This is the data output / object output part */
 
-    /**
-     * {@inheritDoc}
-     */
     public void write(int v) throws IOException {
 	writeByte((byte)(0xff & v));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void write(byte[] b) throws IOException {
 	write(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void write(byte[] b, int off, int len) throws IOException {
 	writeArray(b, off, len);
     }
@@ -1019,9 +998,6 @@ public class DataSerializationOutputStream
 	throw new IOException("Illegal data type written");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void useProtocolVersion(int version) {
 	/* ignored. */
     }

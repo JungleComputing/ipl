@@ -17,10 +17,11 @@ import java.io.IOException;
  * array written with any of the <code>writeArray</code> methods of
  * {@link WriteMessage} can be read by {@link #readObject}.
  * <strong>
- * In particular, an array written with {@link #writeObject writeObject}
+ * In particular, an array written with
+ * {@link WriteMessage#writeObject writeObject}
  * cannot be read with <code>readArray</code>, because
- * {@link #writeObject writeObject} does duplicate detection, and may
- * have written only a handle.
+ * {@link WriteMessage#writeObject writeObject} does duplicate detection,
+ * and may have written only a handle.
  * </strong>
  **/
 

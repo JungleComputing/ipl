@@ -224,38 +224,23 @@ public final class NoSerializationInputStream extends SerializationInputStream {
 	in.close();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read() throws IOException {
 	return readByte();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read(byte[] b) throws IOException {
 	return read(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read(byte[] b, int off, int len) throws IOException {
 	readArray(b, off, len);
 	return len;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readFully(byte[] b) throws IOException {
 	readFully(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readFully(byte[] b, int off, int len) throws IOException {
 	readArray(b, off, len);
     }

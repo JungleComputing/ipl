@@ -148,16 +148,10 @@ public class DataSerializationInputStream
 	in = null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String serializationImplName() {
 	return "data";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean readBoolean() throws IOException {
 	startTimer();
 	while(byte_index == max_byte_index) {
@@ -171,9 +165,6 @@ public class DataSerializationInputStream
 	return a;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public byte readByte() throws IOException {
 	startTimer();
 	while (byte_index == max_byte_index) {
@@ -187,9 +178,6 @@ public class DataSerializationInputStream
 	return a;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public char readChar() throws IOException {
 	startTimer();
 	while (char_index == max_char_index) {
@@ -203,9 +191,6 @@ public class DataSerializationInputStream
 	return a;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public short readShort() throws IOException {
 	startTimer();
 	while (short_index == max_short_index) {
@@ -219,9 +204,6 @@ public class DataSerializationInputStream
 	return a;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int readInt() throws IOException {
 	startTimer();
 	while (int_index == max_int_index) {
@@ -236,9 +218,6 @@ public class DataSerializationInputStream
 	return a;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long readLong() throws IOException {
 	startTimer();
 	while (long_index == max_long_index) {
@@ -252,9 +231,6 @@ public class DataSerializationInputStream
 	return a;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public float readFloat() throws IOException {
 	startTimer();
 	while (float_index == max_float_index) {
@@ -268,9 +244,6 @@ public class DataSerializationInputStream
 	return a;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public double readDouble() throws IOException {
 	startTimer();
 	while (double_index == max_double_index) {
@@ -412,9 +385,6 @@ public class DataSerializationInputStream
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int available() throws IOException {
         return in.available() +
 		(max_byte_index - byte_index) * SIZEOF_BYTE +
@@ -426,16 +396,10 @@ public class DataSerializationInputStream
 		(max_double_index - double_index) * SIZEOF_DOUBLE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void close() throws IOException {
 	in.close();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(boolean[] ref, int off, int len) throws IOException {
 	startTimer();
 	int received = readInt();
@@ -443,18 +407,12 @@ public class DataSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(byte[] ref, int off, int len) throws IOException {
 	startTimer();
 	int received = readInt();
 	readByteArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(char[] ref, int off, int len) throws IOException {
 	startTimer();
 	int received = readInt();
@@ -462,9 +420,6 @@ public class DataSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(short[] ref, int off, int len) throws IOException {
 	startTimer();
 	int received = readInt();
@@ -472,9 +427,6 @@ public class DataSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(int[] ref, int off, int len) throws IOException {
 	startTimer();
 	int received = readInt();
@@ -482,9 +434,6 @@ public class DataSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(long[] ref, int off, int len) throws IOException {
 	startTimer();
 	int received = readInt();
@@ -492,9 +441,6 @@ public class DataSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(float[] ref, int off, int len) throws IOException {
 	startTimer();
 	int received = readInt();
@@ -502,9 +448,6 @@ public class DataSerializationInputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(double[] ref, int off, int len) throws IOException {
 	startTimer();
 	int received = readInt();
@@ -550,67 +493,40 @@ public class DataSerializationInputStream
 	System.err.println(s);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void clear() {
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void statistics() {
     }
 
     /* This is the data output / object output part */
 
-    /**
-     * {@inheritDoc}
-     */
     public int read() throws IOException {
 	return readByte();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read(byte[] b) throws IOException {
 	return read(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read(byte[] b, int off, int len) throws IOException {
 	readArray(b, off, len);
 	return len;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long skip(long n) throws IOException {
 	throw new IOException("skip not meaningful in typed input stream");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int skipBytes(int n) throws IOException {
 	throw new IOException("skipBytes not meaningful in typed input stream");
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void readFully(byte[] b) throws IOException {
 	readFully(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readFully(byte[] b, int off, int len) throws IOException {
 	readArray(b, off, len);
     }
@@ -701,9 +617,6 @@ public class DataSerializationInputStream
 	resumeTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public final int readUnsignedByte() throws IOException {
 	int i = readByte();
 	if (i < 0) {
@@ -712,9 +625,6 @@ public class DataSerializationInputStream
 	return i;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public final int readUnsignedShort() throws IOException {
 	int i = readShort();
 	if (i < 0) {

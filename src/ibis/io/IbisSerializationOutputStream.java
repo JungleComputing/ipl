@@ -266,16 +266,10 @@ public class IbisSerializationOutputStream
 	next_handle = CONTROL_HANDLES;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String serializationImplName() {
 	return "ibis";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void statistics() {
 	if (false) {
 	    System.err.print("IbisOutput: references -> ");
@@ -301,9 +295,6 @@ public class IbisSerializationOutputStream
 	next_type = PRIMITIVE_TYPES;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void reset() throws IOException {
 	if (next_handle > CONTROL_HANDLES) {
 	    if(DEBUG) {
@@ -325,9 +316,6 @@ public class IbisSerializationOutputStream
 
     /* This is the data output / object output part */
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeUTF(String str) throws IOException {
 	// dbPrint("writeUTF: " + str);
 	startTimer();
@@ -415,9 +403,6 @@ public class IbisSerializationOutputStream
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeBytes(String s) throws IOException {
 
 	startTimer();
@@ -432,9 +417,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeChars(String s) throws IOException {
 
 	startTimer();
@@ -448,9 +430,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
 	startTimer();
 	if(writeArrayHeader(ref, classBooleanArray, len, false)) {
@@ -459,9 +438,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 	startTimer();
 	if(writeArrayHeader(ref, classByteArray, len, false)) {
@@ -470,9 +446,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(short[] ref, int off, int len) throws IOException {
 	startTimer();
 	if(writeArrayHeader(ref, classShortArray, len, false)) {
@@ -481,9 +454,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(char[] ref, int off, int len) throws IOException {
 	startTimer();
 	if(writeArrayHeader(ref, classCharArray, len, false)) {
@@ -492,9 +462,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(int[] ref, int off, int len) throws IOException {
 	startTimer();
 	if(writeArrayHeader(ref, classIntArray, len, false)) {
@@ -503,9 +470,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(long[] ref, int off, int len) throws IOException {
 	startTimer();
 	if(writeArrayHeader(ref, classLongArray, len, false)) {
@@ -514,9 +478,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(float[] ref, int off, int len) throws IOException {
 	startTimer();
 	if(writeArrayHeader(ref, classFloatArray, len, false)) {
@@ -525,9 +486,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(double[] ref, int off, int len) throws IOException {
 	startTimer();
 	if(writeArrayHeader(ref, classDoubleArray, len, false)) {
@@ -536,9 +494,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(Object[] ref, int off, int len) throws IOException {
 	startTimer();
 	Class clazz = ref.getClass();
@@ -1206,9 +1161,6 @@ public class IbisSerializationOutputStream
 	stopTimer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeUnshared(Object ref) throws IOException {
 	if (ref == null) {
 	    writeHandle(NUL_HANDLE);
@@ -1257,23 +1209,14 @@ public class IbisSerializationOutputStream
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void useProtocolVersion(int version) {
 	/* ignored. */
     }
 
-    /**
-     * {@inheritDoc}
-     */
     protected void writeStreamHeader() {
 	/* ignored. */
     }
 
-    /**
-     * {@inheritDoc}
-     */
     protected void writeClassDescriptor(ObjectStreamClass desc) {
 	/* ignored */
     }
@@ -1282,9 +1225,6 @@ public class IbisSerializationOutputStream
        ObjectOutputStream implementation.
     */
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeFields() throws IOException {
 	if (current_putfield == null) {
 	    throw new NotActiveException("no PutField object");
@@ -1292,9 +1232,6 @@ public class IbisSerializationOutputStream
 	current_putfield.writeFields();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public PutField putFields() throws IOException {
 	if (current_putfield == null) {
 	    if (current_object == null) {
@@ -1479,9 +1416,6 @@ public class IbisSerializationOutputStream
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void defaultWriteObject() throws IOException, NotActiveException {
 	if (current_object == null) {
 	    throw new NotActiveException("defaultWriteObject: no object");

@@ -41,7 +41,7 @@ public abstract class Syncer implements PollClient {
     }
 
     /**
-     * Wake up one waiting thread. satisfied() need not be true.
+     * Wake up one waiting thread. Method satisfied() need not be true.
      */
     public final void wakeup() {
 	if (waiters > 0) {
@@ -50,7 +50,7 @@ public abstract class Syncer implements PollClient {
     }
 
     /**
-     * Wake up all waiting threads. satisfied() need not be true.
+     * Wake up all waiting threads. Method satisfied() need not be true.
      */
     public final void wakeupAll() {
 	if (waiters > 0) {

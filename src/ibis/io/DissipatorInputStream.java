@@ -23,39 +23,24 @@ public final class DissipatorInputStream extends InputStream {
 	this.in = in;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int available() throws IOException {
 	return in.available();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read() throws IOException {
 	return in.readByte();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read(byte[] b) throws IOException {
 	in.readArray(b, 0, b.length);
 	return b.length;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read(byte[] b, int off, int len) throws IOException {
 	in.readArray(b, off, len);
 	return len;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void close() throws IOException {
 	in.close();
     }

@@ -145,30 +145,18 @@ public class PoolInfoClient extends PoolInfo {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String clusterName() {
 	return host_clusters[host_number];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String clusterName(int rank) {
 	return host_clusters[rank];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String[] clusterNames() {
 	return (String[]) host_clusters.clone();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String toString() {
 	String result = "pool info: size = " + total_hosts +
 	    "; my rank is " + host_number + "; host list:\n";
