@@ -1,10 +1,12 @@
 package ibis.frontend.rmi;
 
-import com.ibm.jikesbt.*;   
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.util.*;
 
 import java.util.Vector;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import ibis.util.BT_Analyzer;
 
 class RMISkeletonGenerator extends RMIGenerator { 
@@ -51,18 +53,18 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("\t\t\tswitch(method) {");		
 
 		for (int i=0;i<methods.size();i++) { 
-			BT_Method m = (BT_Method) methods.get(i);
-			BT_Class ret = getReturnType(m);
-			BT_ClassVector params = getParameterTypes(m);
+			Method m = (Method) methods.get(i);
+			Type ret = getReturnType(m);
+			Type[] params = getParameterTypes(m);
 			
 			output.println("\t\t\tcase " + i + ":");
 			output.println("\t\t\t{");		       
 
 			output.println("\t\t\t\t/* First - Extract the parameters */");		       
 			
-			for (int j=0;j<params.size();j++) { 
-				BT_Class temp = (BT_Class) params.elementAt(j);
-				output.println(readMessageType("\t\t\t\t", getType(temp) + " p" + j, "r", temp));
+			for (int j=0;j<params.length;j++) { 
+				Type temp = params[j];
+				output.println(readMessageType("\t\t\t\t", temp + " p" + j, "r", temp));
 			}
 			
 			output.println("\t\t\t\tr.finish();");
@@ -70,23 +72,23 @@ class RMISkeletonGenerator extends RMIGenerator {
 			
 			output.println("\t\t\t\t/* Second - Invoke the method */");		       
 			
-			if (!ret.equals(BT_Class.getVoid())) { 
+			if (!ret.equals(Type.VOID)) { 
 				output.println("\t\t\t\t" + getInitedLocal(ret, "result") + ";");
 			}
 
 			output.println("\t\t\t\ttry {");
 			output.print("\t\t\t\t\t");
 		
-			if (!ret.equals(BT_Class.getVoid())) { 
+			if (!ret.equals(Type.VOID)) { 
 				output.print("result = ");
 			} 
 
 			output.print("((" + dest_name + ") destination)." + m.getName() + "(");
 			
-			for (int j=0;j<params.size();j++) { 
+			for (int j=0;j<params.length;j++) { 
 				output.print("p" + j);
 				
-				if (j<params.size()-1) { 
+				if (j<params.length-1) { 
 					output.print(", ");
 				}
 			}
@@ -103,7 +105,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 			output.println("\t\t\t\t} else {");
 			output.println("\t\t\t\t\tw.writeByte(ibis.rmi.Protocol.RESULT);");
 
-			if (!ret.equals(BT_Class.getVoid())) { 
+			if (!ret.equals(Type.VOID)) { 
 				output.println(writeMessageType("\t\t\t\t\t", "w", ret, "result"));
 			} 
 

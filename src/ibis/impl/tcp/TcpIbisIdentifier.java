@@ -24,7 +24,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 		super(name, address);
 	}
 
-	public TcpIbisIdentifier(MantaInputStream stream) throws ibis.ipl.IbisIOException, ClassNotFoundException {
+	public TcpIbisIdentifier(MantaInputStream stream) throws ibis.ipl.IbisIOException {
 		stream.addObjectToCycleCheck(this);
 		int handle = stream.readInt();
 		if(handle < 0) {

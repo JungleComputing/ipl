@@ -9,7 +9,7 @@ include ../../../config.mk
 
 java: $(CLASS_FILES) $(MAIN_CLASS)
 	rm -f repmi_s*_Test.java
-	java manta.frontend.repmi.Main -v Test
+	java ibis.frontend.repmi.Main -v Test
 	$(JAVAC_COMMAND) repmi_s*.java
 
 clean:

@@ -1,4 +1,4 @@
-import manta.repmi.ReplicatedMethods;
+import ibis.repmi.ReplicatedMethods;
 
 interface myRep extends ReplicatedMethods { 	
 	void foo();

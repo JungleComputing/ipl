@@ -29,13 +29,13 @@ public class Stub implements java.io.Serializable, ibis.io.Serializable {
 		s.writeInt(objectID);
 	}
 	
-	private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException  {
+	private void readObject(ObjectInputStream s) throws IOException {
 		objectID = s.readInt();
 		localSkeleton = RTS.findSkeleton(objectID);
 	}
 
 	/* THIS IS THE MANTA.IO PART */
-	public Stub(MantaInputStream mantainputstream) throws IOException, ClassNotFoundException {
+	public Stub(MantaInputStream mantainputstream) throws IOException {
 		mantainputstream.addObjectToCycleCheck(this);
 		objectID = mantainputstream.readInt();
 		localSkeleton = RTS.findSkeleton(objectID);
@@ -45,7 +45,7 @@ public class Stub implements java.io.Serializable, ibis.io.Serializable {
 		mantaoutputstream.writeInt(objectID);
 	}
 	
-	public void generated_ReadObject(MantaInputStream mantainputstream) throws ibis.ipl.IbisIOException, ClassNotFoundException {
+	public void generated_ReadObject(MantaInputStream mantainputstream) throws ibis.ipl.IbisIOException {
 		objectID = mantainputstream.readInt();
 		localSkeleton = RTS.findSkeleton(objectID);
 	}

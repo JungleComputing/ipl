@@ -73,7 +73,7 @@ final class Receiver implements Upcall {
 	} 
 } 
 
-final class Man { 
+final class Main { 
 
 	public static boolean verbose = false;
 	public static final double MB = (1024.0*1024.0);
@@ -202,7 +202,7 @@ final class Man {
 			int retries     = 10;
 			boolean upcalls = false;
 			boolean panda   = false;
-			boolean manta   = true;
+			boolean manta   = false;
 			int rank = info.hostNumber(); 
 			int tests = 0;
 
@@ -220,7 +220,7 @@ final class Man {
 				} else if (args[i].equals("-array")) { 
 					array = true;
 					i++;
-					tests += 4;
+					tests += 3;
 				} else if (args[i].equals("-objectarray")) { 
 					oarray = true;
 					i++;
@@ -258,12 +258,25 @@ final class Man {
 				} 
 			} 
 
+			if (verbose) { 
+				System.out.println("Creating ibis ...");
+			}
+
 			if(!panda) {
 				ibis = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.tcp.TcpIbis", null);
 			} else {
 				ibis = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
 			}
+
+			if (verbose) { 
+				System.out.println("Ibis created; getting registry ...");
+			}
+
 			registry = ibis.registry();
+
+			if (verbose) { 
+				System.out.println("Got registry");
+			}
 
 			StaticProperties s = new StaticProperties();
 			if (manta) { 
@@ -273,6 +286,10 @@ final class Man {
 			PortType t = ibis.createPortType("test type", s);			
 			SendPort sport = t.createSendPort();					      
 			ReceivePort rport;
+
+			if (verbose) { 
+				System.out.println("Got sendport");
+			}
 
 			if (rank == 0) {
 				rport = t.createReceivePort("test port 0");
@@ -305,16 +322,6 @@ final class Man {
 
 					time = runTest(rport, sport, count, retries, data, one_way);
 					System.out.println("int[" + alen + "] = " + tp((one_way ? arraysize*count : 2*arraysize*count), time) + " MBytes/sec.");
-/*
-					alen = arraysize/8;
-					data = new long[alen];				
-					if (verbose) { 
-						System.out.println("starting long[" + alen + "] test");
-					} 
-				
-					time = runTest(rport, sport, count, retries, data, one_way);
-					System.out.println("long[" + alen + "] = " + tp((one_way ? arraysize*count : 2*arraysize*count), time) + " MBytes/sec.");
-*/
 
 					alen = arraysize/8;
 					data = new double[alen];				
@@ -401,7 +408,8 @@ final class Man {
                         rport.free();
 			ibis.end();
 		} catch (Exception e) { 
-			System.out.println("OOPS" + e);
+			System.out.println("OOPS " + e);
+			e.printStackTrace();
 		} 
 	} 
 }

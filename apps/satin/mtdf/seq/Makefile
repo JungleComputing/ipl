@@ -19,7 +19,7 @@ EXEC		= awari
 .SUFFIXES: .java
 
 java:
-	jikes *.java
+	javac *.java
 
 manta: $(OBJ)
 	$(MANTAC)    $(MANTA_FLAGS) $(MAIN) -o $(EXEC) *.o

@@ -62,11 +62,7 @@ class ElectionClient implements ElectionProtocol {
 
 	ibis.ipl.ReadMessage r = rport.receive();
 	Object winner = null;
-	try {
-	    winner = r.readObject();
-	} catch (ClassNotFoundException e) {
-	    throw new IbisIOException(e);
-	}
+	winner = r.readObject();
 	r.finish();
 	if (ElectionServer.DEBUG) {
 	    System.err.println(Thread.currentThread() + "ElectionClient: elect() finished, winner " + winner + " my stake " + candidate);

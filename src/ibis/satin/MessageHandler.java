@@ -19,10 +19,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			System.out.println("SATIN '" + satin.ident.name() + 
 					   "': got exception while reading job result: " + e);
 			System.exit(1);
-		} catch (ClassNotFoundException e1) {
-			System.out.println("SATIN '" + satin.ident.name() + 
-					   "': got exception while reading job result: " + e1);
-			System.exit(1);
 		}
 		synchronized(satin) {
 			satin.addToAbortList(stamp, owner);
@@ -40,10 +36,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		} catch (IbisIOException e) {
 			System.out.println("SATIN '" + satin.ident.name() + 
 					   "': got exception while reading job result: " + e);
-			System.exit(1);
-		} catch (ClassNotFoundException e1) {
-			System.out.println("SATIN '" + satin.ident.name() + 
-					   "': got exception while reading job result: " + e1);
 			System.exit(1);
 		}
 

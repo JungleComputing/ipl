@@ -56,9 +56,6 @@ class ElectionServer
 	    if (ElectionServer.DEBUG) {
 		System.err.println(Thread.currentThread() + "ElectionServer election " + name + " done");
 	    }
-	} catch (ClassNotFoundException e) {
-	    System.err.println(Thread.currentThread() + ": ElectionServer upcall exception " + e);
-	    Thread.dumpStack();
 	} catch (IbisIOException e) {
 	    System.err.println(Thread.currentThread() + ": ElectionServer upcall exception " + e);
 	    Thread.dumpStack();

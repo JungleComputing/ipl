@@ -734,10 +734,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while reading steal reply: " + e);
 			System.exit(1);
-		} catch (ClassNotFoundException e1) {
-			System.err.println("SATIN '" + ident.name() + 
-						   "': Got Exception while reading steal reply: " + e1);
-			System.exit(1);
 		}
 
 //		long tend = System.currentTimeMillis();

@@ -33,15 +33,15 @@ then
 fi
 if [ x$JAVAC = x ]
 then
-	JAVAC=jikes
+	JAVAC=javac
 fi
 if [ x$MANTA_ROOT = x ]
 then
 	MANTA_ROOT=/usr/local/VU/manta
 fi
-if [ x$JIKES_BT_ROOT = x ]
+if [ x$BCEL_ROOT = x ]
 then
-	JIKES_BT_ROOT=$IBIS_ROOT
+	BCEL_ROOT=/home2/ceriel/bcel-5.0
 fi
 if [ x$PANDA_ROOT = x ]
 then
@@ -94,8 +94,8 @@ do
 	--panda-network=*)
 			PANDA_NETWORK=`expr $i : '--panda-network=\(.*\)'`
 			;;
-	--jikesBT-root=*)
-			JIKES_BT_ROOT=`expr $i : '--jikesBT-root=\(.*\)'`
+	--BCEL-root=*)
+			BCEL_ROOT=`expr $i : '--BCEL-root=\(.*\)'`
 			;;
 	--help|-h|-?)
 			echo configure [options]
@@ -110,7 +110,7 @@ do
 			echo "	" --gm-root=PATH "	" $GM_ROOT
 			echo "	" --das-lib=PATH "	" $DAS_LIB
 			echo "	" --panda-network=PATH " " $PANDA_NETWORK
-			echo "	" --jikesBT-root=PATH "	" $JIKES_BT_ROOT
+			echo "	" --BCEL-root=PATH "	" $BCEL_ROOT
 			exit 0
 			;;
 	*)
@@ -140,7 +140,7 @@ s+@LFC_ROOT@+$LFC_ROOT+
 s+@GM_ROOT@+$GM_ROOT+
 s+@DAS_LIB@+$DAS_LIB+
 s+@PANDA_NETWORK@+$PANDA_NETWORK+
-s+@JIKES_BT_ROOT@+$JIKES_BT_ROOT+
+s+@BCEL_ROOT@+$BCEL_ROOT+
 " < config.in > config.mk
 
 cp config.mk config.mk.orig
@@ -160,7 +160,7 @@ LFC_ROOT=$LFC_ROOT
 GM_ROOT=$GM_ROOT
 DAS_LIB=$DAS_LIB
 PANDA_NETWORK=$PANDA_NETWORK
-JIKES_BT_ROOT=$JIKES_BT_ROOT
+BCEL_ROOT=$BCEL_ROOT
 " > configuration
 
 cat scripts/preamble configuration scripts/ibisc > bin/ibisc

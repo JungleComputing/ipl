@@ -1,10 +1,12 @@
 package ibis.frontend.repmi;
 
-import com.ibm.jikesbt.*;   
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.util.*;
 
 import java.util.Vector;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import ibis.util.BT_Analyzer;
 
 class RepMISkeletonGenerator extends RepMIGenerator { 
@@ -27,12 +29,12 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 			output.println();
 		}
 
-		output.println("import manta.repmi.*;");		
-		output.println("import manta.ibis.*;");		
+		output.println("import ibis.repmi.*;");		
+		output.println("import ibis.ipl.*;");		
 		output.println("import java.lang.reflect.*;");		
 		output.println();
 	
-		output.println("public final class repmi_skeleton_" + dest_name + " extends manta.repmi.Skeleton {");
+		output.println("public final class repmi_skeleton_" + dest_name + " extends ibis.repmi.Skeleton {");
 		output.println();		
 	} 
 
@@ -47,18 +49,17 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 		output.println("\t\tswitch(method) {");		
 
 		for (int i=0;i<methods.size();i++) { 
-			BT_Method m = (BT_Method) methods.get(i);
-			BT_Class ret = getReturnType(m);
-			BT_ClassVector params = getParameterTypes(m);
+			Method m = (Method) methods.get(i);
+			Type ret = Type.getReturnType(m.getSignature());
+			Type[] params = Type.getArgumentTypes(m.getSignature());
 			
 			output.println("\t\tcase " + i + ":");
 			output.println("\t\t{");		       
 
 			output.println("\t\t\t/* First - Extract the parameters */");		       
 			
-			for (int j=0;j<params.size();j++) { 
-				BT_Class temp = (BT_Class) params.elementAt(j);
-				output.println(readMessageType("\t\t\t", getType(temp) + " p" + j, "r", temp));
+			for (int j=0;j<params.length;j++) { 
+				output.println(readMessageType("\t\t\t", params[j] + " p" + j, "r", params[j]));
 			}
 			
 			output.println("\t\t\tr.finish();");
@@ -68,20 +69,16 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 
 			output.print("\t\t\t");
 		
-			if (!ret.equals(BT_Class.getVoid())) { 
-				if (ret.isPrimitive()) {					
-					output.print(getType(ret) + " result = ");
-				} else { 
-					output.print(getType(ret) + " result = ");
-				}		
+			if (!ret.equals(Type.VOID)) { 
+				output.print(ret + " result = ");
 			} 
 
 			output.print("((" + dest_name + ") destination)." + m.getName() + "(");
 			
-			for (int j=0;j<params.size();j++) { 
+			for (int j=0;j<params.length;j++) { 
 				output.print("p" + j);
 				
-				if (j<params.size()-1) { 
+				if (j<params.length-1) { 
 					output.print(", ");
 				}
 			}

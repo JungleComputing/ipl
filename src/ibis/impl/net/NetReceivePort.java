@@ -770,7 +770,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	}
 	
 	public Object readObject()
-		throws IbisIOException, ClassNotFoundException {
+		throws IbisIOException {
 		return null;
 	}
 	

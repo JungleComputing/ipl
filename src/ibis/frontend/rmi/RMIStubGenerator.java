@@ -1,10 +1,12 @@
 package ibis.frontend.rmi;
 
-import com.ibm.jikesbt.*;   
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.util.*;
 
 import java.util.Vector;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import ibis.util.BT_Analyzer;
 
 class RMIStubGenerator extends RMIGenerator { 
@@ -13,39 +15,23 @@ class RMIStubGenerator extends RMIGenerator {
 	PrintWriter output;
 	boolean verbose;
 
-	BT_Ins putfield;
-
 	RMIStubGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
 		this.data   = data;		
 		this.output = output;
 		this.verbose = verbose;
 	} 
 
-	boolean isWriteMethod(BT_Method m) { 
-		BT_CodeAttribute code = m.getCode();
-		BT_InsVector ins = code.ins;
-		BT_Ins [] bytes = ins.toArray();
-
-		for (int i=0;i<bytes.length;i++) { 
-			if (bytes[i].opcode == BT_Ins.opc_putfield) { 
-				return true;
-			} 
-		}
-
-		return false;
-	} 
-
-	void methodHeader(BT_Method m, int number) { 
+	void methodHeader(Method m, int number) { 
 		
-		BT_Class ret          = getReturnType(m);
-		BT_ClassVector params = getParameterTypes(m);
+		Type ret          = getReturnType(m);
+		Type[] params = getParameterTypes(m);
 		
-		output.print("\tpublic final " + getType(ret) + " " + m.getName() + "(");
+		output.print("\tpublic final " + ret + " " + m.getName() + "(");
 		
-		for (int j=0;j<params.size();j++) { 
-			output.print(getType((BT_Class) params.elementAt(j)) + " p" + j);
+		for (int j=0;j<params.length;j++) { 
+			output.print(params[j] + " p" + j);
 
-			if (j<params.size()-1) { 
+			if (j<params.length-1) { 
 				output.print(", ");
 			} 
 		}
@@ -53,17 +39,15 @@ class RMIStubGenerator extends RMIGenerator {
 		output.print(") throws java.rmi.RemoteException {\n");
 	}
 
-	void methodBody(BT_Method m, int number) { 
-		
-	    //boolean write = isWriteMethod(m);
-	    BT_Class ret = getReturnType(m);
-	    BT_ClassVector params = getParameterTypes(m);
+	void methodBody(Method m, int number) { 
+	    Type ret          = getReturnType(m);
+	    Type[] params = getParameterTypes(m);
 	    
 	    //if (verbose) System.out.println(m.getName() + " is a " + (write ? "write" : "read") + " method");
 	    
 //	    output.println("\t\t\tif (RTS.DEBUG) System.out.println(\"rmi_stub_" + data.classname + "." + m.getName() + " doing RMI call\");");	
 
-	    if (!ret.equals(BT_Class.getVoid())) { 
+	    if (!ret.equals(Type.VOID)) { 
 		output.println("\t\t" + getInitedLocal(ret, "result") + ";");
 	    }
 
@@ -72,8 +56,8 @@ class RMIStubGenerator extends RMIGenerator {
 	    output.println("\t\t\tw.writeInt(" + number + ");");
 	    output.println("\t\t\tw.writeInt(stubID);");
 
-	    for (int j=0;j<params.size();j++) { 
-		output.println(writeMessageType("\t\t\t", "w", params.elementAt(j), "p" + j));
+	    for (int j=0;j<params.length;j++) { 
+		output.println(writeMessageType("\t\t\t", "w", params[j], "p" + j));
 	    }
 	    
 	    output.println("\t\t\tw.send();");
@@ -86,7 +70,7 @@ class RMIStubGenerator extends RMIGenerator {
 	    output.println("\t\t\t\tthrow e;");
 	    output.println("\t\t\t}");
 	    output.println("\t\t\t//else: normal result");	    
-	    if (!ret.equals(BT_Class.getVoid())) { 		
+	    if (!ret.equals(Type.VOID)) { 		
 		output.println(readMessageType("\t\t\t", "result", "r", ret));
 	    }
 	    output.println("\t\t\tr.finish();");
@@ -96,14 +80,14 @@ class RMIStubGenerator extends RMIGenerator {
 	    output.println("\t\t}");
 	} 
 
-	void methodTrailer(BT_Method m) { 
+	void methodTrailer(Method m) { 
 
-		BT_Class ret = getReturnType(m);
+	    Type ret          = getReturnType(m);
 
-		if (!ret.equals(BT_Class.getVoid())) {       
-			output.println("\t\treturn result;"); 
-		} 
-		output.println("\t}\n");			
+	    if (!ret.equals(Type.VOID)) {       
+		output.println("\t\treturn result;"); 
+	    } 
+	    output.println("\t}\n");			
 	} 
 
 	void header() { 
@@ -123,7 +107,7 @@ class RMIStubGenerator extends RMIGenerator {
 		output.print("public final class rmi_stub_" + data.classname + " extends ibis.rmi.Stub implements ");		
 
 		for (int i=0;i<interfaces.size();i++) { 
-			output.print(getType((BT_Class) interfaces.get(i)));
+			output.print(((JavaClass) interfaces.get(i)).getClassName());
 
 			if (i<interfaces.size()-1) { 
 				output.print(", ");
@@ -142,7 +126,7 @@ class RMIStubGenerator extends RMIGenerator {
 	void body(Vector methods) { 
 
 		for (int i=0;i<methods.size();i++) { 
-			BT_Method m = (BT_Method) methods.get(i);
+			Method m = (Method) methods.get(i);
 			methodHeader(m, i);
 			methodBody(m, i);
 			methodTrailer(m);		

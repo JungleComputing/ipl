@@ -9,7 +9,10 @@ import java.util.Vector;
 
 import ibis.util.BT_Analyzer;
 
-import com.ibm.jikesbt.*;   
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.util.*;
 
 class Main { 
 	
@@ -35,7 +38,7 @@ class Main {
 	       
 		Vector classes = new Vector();
 		boolean verbose = false;
-		BT_Class repmiInterface = null;
+		JavaClass repmiInterface = null;
 	
 		if (args.length == 0) { 
 			System.err.println("Usage : java Main [-v] classname");
@@ -55,33 +58,30 @@ class Main {
 			}
 		} 
 
-		BT_Factory.factory = new MyFactory(args, num, verbose);
+		repmiInterface = Repository.lookupClass("ibis.repmi.ReplicatedMethods");
 
-		try { 
-			repmiInterface = BT_Class.forName("manta.repmi.ReplicatedMethods");
-		} catch (RuntimeException e) { 
-			System.err.println("Class manta.repmi.ReplicatedMethods not found");
+		if (repmiInterface == null) {
+			System.err.println("Class ibis.repmi.ReplicatedMethods not found");
 			System.exit(1);
 		}
 
 		for (i=0;i<num;i++) { 
-			try { 
-				BT_Class c = BT_Class.forName(args[i]);
-				classes.addElement(c);
-			} catch (Exception e) { 
+			JavaClass c = Repository.lookupClass(args[i]);
+			if (c == null) {
 				System.err.println("Class " + args[i] + " not found");
 				System.exit(1);
 			}
+			classes.addElement(c);
 		} 
 				
 		for (i=0;i<classes.size();i++) { 
 			
 			try { 
 				PrintWriter output;
-				BT_Class subject = (BT_Class) classes.get(i);
+				JavaClass subject = (JavaClass) classes.get(i);
 				
 				if (verbose) { 
-					System.out.println("Handling " + subject.getName());
+					System.out.println("Handling " + subject.getClassName());
 				}
 				
 				BT_Analyzer a = new BT_Analyzer(subject, repmiInterface, verbose);

@@ -42,7 +42,7 @@ public abstract class GroupSkeleton {
 		size = dest.size;
 	}
 
-	public synchronized final void handleCombineMessage(ReadMessage m) throws IbisException, IbisIOException, java.lang.ClassNotFoundException { 
+	public synchronized final void handleCombineMessage(ReadMessage m) throws IbisException, IbisIOException { 
 		int rank = m.readInt();
 		byte result_type = m.readByte();
 		

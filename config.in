@@ -38,7 +38,7 @@ DAS		= @DAS_LIB@
 JPATH           = @JAVA_ROOT@
 export JPATH
 JAVAC           = @JAVAC@
-JIKES_BT	= @JIKES_BT_ROOT@
+BCEL		= @BCEL_ROOT@
 ifndef IBIS_ROOT
 IBIS_ROOT	= @IBIS_ROOT@
 endif
@@ -49,7 +49,7 @@ GM_ROOT		= @GM_ROOT@
 
 JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
 JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
-JAVACLASSPATH	= .:$(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT):$(IBIS_ROOT)/ibis:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
+JAVACLASSPATH	= .:$(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT):$(IBIS_ROOT)/ibis:.:$(JPATH)/jre/lib/rt.jar:$(IBIS_ROOT)/ibis/bcel-additions:$(BCEL)/bcel.jar:$(BCEL)/lib
 JAVABOOTCLASSPATH = $(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis
 JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/ibis/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH)
@@ -102,6 +102,11 @@ IBISC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.ibis
 ifeq (, $(PANDA_NETWORK))
 PANDA_NETWORK	= udp
 endif
+
+CC		= gcc
+
+MANTACFLAGS	=
+CFLAGS		=
 
 ifeq (1, $(OPTIMIZE))
 JAVAOPTFLAGS	+= -O

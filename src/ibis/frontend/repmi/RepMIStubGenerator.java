@@ -1,10 +1,12 @@
 package ibis.frontend.repmi;
 
-import com.ibm.jikesbt.*;   
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.util.*;
 
 import java.util.Vector;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import ibis.util.BT_Analyzer;
 
 class RepMIStubGenerator extends RepMIGenerator { 
@@ -13,21 +15,19 @@ class RepMIStubGenerator extends RepMIGenerator {
 	PrintWriter output;
 	boolean verbose;
 
-	BT_Ins putfield;
-
 	RepMIStubGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
 		this.data   = data;		
 		this.output = output;
 		this.verbose = verbose;
 	} 
 
-	boolean isWriteMethod(BT_Method m) { 
-		BT_CodeAttribute code = m.getCode();
-		BT_InsVector ins = code.ins;
-		BT_Ins [] bytes = ins.toArray();
+	boolean isWriteMethod(Method m) { 
+		Code code = m.getCode();
+		InstructionList il = new InstructionList(code.getCode());
+		Instruction[] ins = il.getInstructions();
 
-		for (int i=0;i<bytes.length;i++) { 
-			if (bytes[i].opcode == BT_Ins.opc_putfield) { 
+		for (int i=0;i<ins.length;i++) { 
+			if (ins[i].getOpcode() == Constants.PUTFIELD) { 
 				return true;
 			} 
 		}
@@ -35,58 +35,51 @@ class RepMIStubGenerator extends RepMIGenerator {
 		return false;
 	} 
 
-	void methodHeader(BT_Method m) { 
-		
-		BT_Class ret          = getReturnType(m);
-		BT_ClassVector params = getParameterTypes(m);
+	void methodHeader(Method m) { 
+		Type ret      = Type.getReturnType(m.getSignature());
+		Type[] params = Type.getArgumentTypes(m.getSignature());
 	       
-		output.print("\tpublic final " + getType(ret) + " " + m.getName() + "(");
+		output.print("\tpublic final " + ret + " " + m.getName() + "(");
 		
-		for (int j=0;j<params.size();j++) { 
-			output.print(getType((BT_Class) params.elementAt(j)) + " p" + j);
+		for (int j=0;j<params.length;j++) { 
+			output.print(params[j] + " p" + j);
 
-			if (j<params.size()-1) { 
+			if (j<params.length-1) { 
 				output.print(", ");
 			} 
 		}
 		
 		output.print(") {\n");
 			
-		if (!ret.equals(BT_Class.getVoid())) { 
-			
-			if (ret.isPrimitive()) {
-				
-				output.print("\t\t" + getType(ret) + " result = ");
-				
-				if (ret.equals(BT_Class.getByte())) { 
-					output.println("(byte) 0;");
-				} else if (ret.equals(BT_Class.getChar())) { 
-					output.println("(char) 0;");
-				} else if (ret.equals(BT_Class.getShort())) {
-					output.println("(short) 0;");
-				} else if (ret.equals(BT_Class.getInt())) {
-					output.println("(int) 0;");
-				} else if (ret.equals(BT_Class.getLong())) {
-					output.println("(long) 0;");
-				} else if (ret.equals(BT_Class.getFloat())) {
-					output.println("(float) 0.0;");
-				} else if (ret.equals(BT_Class.getDouble())) {
-					output.println("(double) 0.0;");
-				} else if (ret.equals(BT_Class.getBoolean())) {
-					output.println("false;");
-				} 					       
+		if (!ret.equals(Type.VOID)) {
+			output.print("\t\t" + ret + " result = ");
+			if (ret.equals(Type.BYTE)) {
+				output.println("(byte) 0;");
+			} else if (ret.equals(Type.CHAR)) {
+				output.println("(char) 0;");
+			} else if (ret.equals(Type.SHORT)) {
+				output.println("(short) 0;");
+			} else if (ret.equals(Type.INT)) {
+				output.println("(int) 0;");
+			} else if (ret.equals(Type.LONG)) {
+				output.println("(long) 0;");
+			} else if (ret.equals(Type.FLOAT)) {
+				output.println("(float) 0.0;");
+			} else if (ret.equals(Type.DOUBLE)) {
+				output.println("(double) 0.0;");
+			} else if (ret.equals(Type.BOOLEAN)) {
+				output.println("false;");
 			} else { 
-				output.println("\t\t" + getType(ret) + " result = null;");
+				output.println("null;");
 			} 
-		
 		} 
 	}
 
-	void methodBody(BT_Method m, int number) { 
+	void methodBody(Method m, int number) { 
 		
 		boolean write = isWriteMethod(m);
-		BT_Class ret = getReturnType(m);
-		BT_ClassVector params = getParameterTypes(m);
+		Type ret      = Type.getReturnType(m.getSignature());
+		Type[] params = Type.getArgumentTypes(m.getSignature());
 
 		output.println("\t\ttry {");			
 
@@ -96,16 +89,16 @@ class RepMIStubGenerator extends RepMIGenerator {
 			output.println("\t\t\tif (RTS.DEBUG) System.out.println(\"repmi_stub_" + data.classname + "." + m.getName() + " doing LOCAL call\");");				
 			output.print("\t\t\t");				
 
-			if (!ret.equals(BT_Class.getVoid())) { 
+			if (!ret.equals(Type.VOID)) { 
 				output.print("result = ");			
 			} 
 		
 			output.print("(("+ data.classname + ")localSkeleton.destination)." + m.getName() + "(");
-			for (int j=0;j<params.size();j++) { 
+			for (int j=0;j<params.length;j++) { 
 				
 				output.print("p" + j);
 				
-				if (j<params.size()-1) { 
+				if (j<params.length-1) { 
 					output.print(", ");
 				}
 			}
@@ -115,13 +108,13 @@ class RepMIStubGenerator extends RepMIGenerator {
 			output.println("\t\t\tif (RTS.DEBUG) System.out.println(\"repmi_stub_" + data.classname + "." + m.getName() + " doing GROUP call\");");	
 
 			output.println("\t\t\tWriteMessage w = RTS.multicast.newMessage();");
-			output.println("\t\t\tw.writeByte(manta.repmi.Protocol.INVOCATION);");
+			output.println("\t\t\tw.writeByte(ibis.repmi.Protocol.INVOCATION);");
 			output.println("\t\t\tw.writeInt(objectID);");
 			
 			output.println("\t\t\tw.writeInt(" + number + ");");
 			
-			for (int j=0;j<params.size();j++) { 
-				output.println(writeMessageType("\t\t\t", "w", params.elementAt(j), "p" + j));
+			for (int j=0;j<params.length;j++) { 
+				output.println(writeMessageType("\t\t\t", "w", params[j], "p" + j));
 			}
 		
 			output.println("\t\t\tw.send();");
@@ -134,11 +127,10 @@ class RepMIStubGenerator extends RepMIGenerator {
 		output.println("\t\t}");
 	} 
 
-	void methodTrailer(BT_Method m) { 
-		
-		BT_Class ret = getReturnType(m);
+	void methodTrailer(Method m) { 
+		Type ret      = Type.getReturnType(m.getSignature());
 
-		if (!ret.equals(BT_Class.getVoid())) {       
+		if (!ret.equals(Type.VOID)) {       
 			output.println("\t\treturn result;"); 
 		} 
 		
@@ -154,14 +146,14 @@ class RepMIStubGenerator extends RepMIGenerator {
 			output.println();
 		}
 
-		output.println("import manta.repmi.*;");		
-		output.println("import manta.ibis.*;");		
+		output.println("import ibis.repmi.*;");		
+		output.println("import ibis.ipl.*;");		
 		output.println();
 
-		output.print("public final class repmi_stub_" + data.classname + " extends manta.repmi.Stub implements ");		
+		output.print("public final class repmi_stub_" + data.classname + " extends ibis.repmi.Stub implements ");		
 
 		for (int i=0;i<interfaces.size();i++) { 
-			output.print(getType((BT_Class) interfaces.get(i)));
+			output.print(((JavaClass) interfaces.get(i)).getClassName());
 
 			if (i<interfaces.size()-1) { 
 				output.print(", ");
@@ -180,7 +172,7 @@ class RepMIStubGenerator extends RepMIGenerator {
 	void body(Vector methods) { 
 
 		for (int i=0;i<methods.size();i++) { 
-			BT_Method m = (BT_Method) methods.get(i);
+			Method m = (Method) methods.get(i);
 			methodHeader(m);
 			methodBody(m, i);
 			methodTrailer(m);		
@@ -197,5 +189,4 @@ class RepMIStubGenerator extends RepMIGenerator {
 		body(data.subjectSpecialMethods);
 		trailer();
 	} 
-
 } 

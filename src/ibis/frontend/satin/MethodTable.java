@@ -1,745 +1,677 @@
 package ibis.frontend.satin;
 
-import com.ibm.jikesbt.*;   
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.util.*;
+
 import ibis.util.BT_Analyzer;
 import java.util.Vector;
 
-final class MethodTable implements BT_Opcodes {
-	int indexOf(BT_InsVector vec, BT_Ins ins) {
-		return vec.indexOf(ins);
-	}
+final class MethodTable {
 
-	class SpawnTableEntry {
-		BT_ExceptionTableEntryVector catchBlocks; /* indexed on spawnId */
-		boolean hasInlet;
-		boolean[] isLocalUsed;
+    class SpawnTableEntry {
+	Vector catchBlocks; 	/* indexed on spawnId */
+	boolean hasInlet;
+	boolean[] isLocalUsed;
 
-		SpawnTableEntry() {}
+	SpawnTableEntry() {}
 
-		boolean[] analyseUsedLocals(BT_Method m, BT_ExceptionTableEntry catchBlock, int handlerIndex, 
-					    boolean verbose) {
-			int maxLocals = m.getCode().maxLocals;
-			BT_InsVector ins = m.getCode().ins;
-			int end = getEndOfCatchBlock(m, catchBlock, handlerIndex);
+	boolean[] analyseUsedLocals(MethodGen mg, CodeExceptionGen catchBlock, boolean verbose) {
+	    int maxLocals = mg.getMaxLocals();
+	    InstructionHandle end = getEndOfCatchBlock(mg, catchBlock);
 
-			// Start with all false.
-			boolean[] used = new boolean[maxLocals];
+	    // Start with all false.
+	    boolean[] used = new boolean[maxLocals];
 
+	    if(verbose) {
+		System.out.println("analysing used locals for " + mg + ", maxLocals = " + maxLocals);
+	    }
+
+	    if (end == null) {
+		if(verbose) {
+		    System.out.println("finally clause; assuming all locals are used");
+		}
+		for(int j=0; j<maxLocals; j++) {
+		    used[j] = true;
+		}
+		return used;
+	    }
+
+	    Instruction endIns = end.getInstruction();
+	    if (! (endIns instanceof ReturnInstruction) && ! (endIns instanceof ATHROW)) {
+		if(verbose) {
+		    System.out.println("no return at end of inlet, assuming all locals are used");
+		}
+
+		// They are all used.
+		for(int j=0; j<maxLocals; j++) {
+		    used[j] = true;
+		}
+		return used;
+	    }
+
+	    for (InstructionHandle i = catchBlock.getHandlerPC(); i != null; i = i.getNext()) {
+		Instruction curr = i.getInstruction();
+		if(verbose) {
+		    System.out.println("ins: " + curr);
+		}
+		if (curr instanceof BranchInstruction) {
+		    InstructionHandle dest = ((BranchInstruction) curr).getTarget();
+
+		    if (dest.getPosition() < catchBlock.getHandlerPC().getPosition() || // backjump out of handler
+		       dest.getPosition() > end.getPosition()) { // forward jump beyond catch
 			if(verbose) {
-				System.out.println("analysing used locals for " + m + ", maxLocals = " + maxLocals);
+				System.out.println("inlet contains a jump to exit, assuming all locals are used");
 			}
 
-			BT_Ins endIns = ins.elementAt(end);
-			if (!Satinc.isRetIns(endIns) && endIns.opcode != opc_athrow) {
-				if(verbose) {
-					System.out.println("no return at end of inlet, assuming all locals are used");
-				}
-
-				// They are all used.
-				for(int j=0; j<maxLocals; j++) {
-					used[j] = true;
-				}
-				return used;
+			// They are all used.
+			for(int j=0; j<maxLocals; j++) {
+				used[j] = true;
 			}
-
-			for (int i=handlerIndex; i<ins.size(); i++) {
-				BT_Ins curr = ins.elementAt(i);
-				if(verbose) {
-					System.out.println("ins: " + curr);
-				}
-				if(curr instanceof BT_JumpIns) {
-					int dest = ins.indexOf(((BT_JumpIns)curr).target);
-					if(dest < handlerIndex || // backjump out of handler
-					   dest > end) { // forward jump beyond catch
-						if(verbose) {
-							System.out.println("inlet contains a jump to exit, assuming all locals are used");
-						}
-
-						// They are all used.
-						for(int j=0; j<maxLocals; j++) {
-							used[j] = true;
-						}
-						return used;
-					}
-				} else if (Satinc.isRetIns(curr) || curr.opcode == opc_athrow) {
-					if(verbose) {
-						System.out.println("return:");
-						for(int k=0; k<used.length; k++) {
-							if(!used[k]) {
-								System.out.println("RET: local " + k + " is unused");
-							}
-						}
-					}
-//					System.out.println("inlet local opt triggered");
-					return used;
-				} else if (curr instanceof BT_LocalIns) {
-					BT_LocalIns l = (BT_LocalIns) curr;
-					used[l.localNr] = true;
-					if(verbose) {
-						System.out.println("just used local " + l.localNr);
-					}
-				}
-			}
-
-			System.out.println("HMM");
 			return used;
-		}
-
-		SpawnTableEntry(SpawnTableEntry orig, BT_Method m, BT_Method origM) {
-			BT_InsVector origVec = origM.getCode().ins;
-			BT_InsVector newVec = m.getCode().ins;
-			isLocalUsed = new boolean[origM.getCode().maxLocals];
-
-			hasInlet = orig.hasInlet;
-			if(hasInlet) {
-				/* copy and rewite exception table */
-				catchBlocks = new BT_ExceptionTableEntryVector();
-				for(int i=0; i<orig.catchBlocks.size(); i++) {
-					BT_ExceptionTableEntry origCatch = orig.catchBlocks.elementAt(i);
-					int startIndex = origVec.indexOf(origCatch.startPCTarget);
-					int endIndex = origVec.indexOf(origCatch.endPCTarget);
-					int handlerIndex = origVec.indexOf(origCatch.handlerTarget);
-					BT_ExceptionTableEntry newCatch = new BT_ExceptionTableEntry(
-						newVec.elementAt(startIndex),
-						newVec.elementAt(endIndex),
-						newVec.elementAt(handlerIndex),
-						origCatch.catchType);
-					catchBlocks.addElement(newCatch);
+		    }
+		} else if (curr instanceof ReturnInstruction || curr instanceof ATHROW) {
+		    if(verbose) {
+			System.out.println("return:");
+			for(int k=0; k<used.length; k++) {
+				if(!used[k]) {
+					System.out.println("RET: local " + k + " is unused");
 				}
 			}
+		    }
+//		    System.out.println("inlet local opt triggered");
+		    return used;
+		} else if (curr instanceof LocalVariableInstruction) {
+		    LocalVariableInstruction l = (LocalVariableInstruction) curr;
+		    used[l.getIndex()] = true;
+		    if(verbose) {
+			System.out.println("just used local " + l.getIndex());
+		    }
 		}
+	    }
+
+	    System.out.println("HMM");
+	    return used;
 	}
 
-	class MethodTableEntry {
-		BT_Method m;
-		boolean containsInlet;
-		MethodTableEntry clone;
-		int nrSpawns;
-		SpawnTableEntry[] spawnTable;
-		boolean isClone;
-		int origNrLocals;
-		String[] typesOfParams;
-		String[] typesOfParamsNoThis;
-		BT_Ins startLocalAlloc;
 
-		MethodTableEntry() {}
+	SpawnTableEntry(SpawnTableEntry orig, MethodGen mg, MethodGen origM) {
+	    isLocalUsed = new boolean[origM.getMaxLocals()];
 
-		MethodTableEntry(MethodTableEntry orig, BT_Method m) {
-			this.m = m;
-			containsInlet = orig.containsInlet;
-			clone = null;
-			nrSpawns = orig.nrSpawns;
-			isClone = true;
-			origNrLocals = orig.origNrLocals;
-			typesOfParams = orig.typesOfParams;
-			typesOfParamsNoThis = orig.typesOfParamsNoThis;
-			startLocalAlloc = orig.startLocalAlloc;
+	    hasInlet = orig.hasInlet;
+	    if(hasInlet) {
+		/* copy and rewite exception table */
+		CodeExceptionGen origE[] = origM.getExceptionHandlers();
+		CodeExceptionGen newE[] = mg.getExceptionHandlers();
 
-			spawnTable = new SpawnTableEntry[orig.spawnTable.length];
-			for(int i=0; i<spawnTable.length; i++) {
-				spawnTable[i] = new SpawnTableEntry(orig.spawnTable[i], m, orig.m);
+		catchBlocks = new Vector();
+
+		for(int i=0; i<orig.catchBlocks.size(); i++) {
+		    CodeExceptionGen origCatch = (CodeExceptionGen) orig.catchBlocks.elementAt(i);
+		    for (int j = 0; j < origE.length; j++) {
+			if (origCatch == origE[j]) {
+			    catchBlocks.addElement(newE[j]);
+			    break;
 			}
+		    }
 		}
-
-		void print(java.io.PrintStream out) {
-			out.println("Method: " + m);
-			out.println("params(" + typesOfParams.length + "): ");
-			for(int i=0; i<typesOfParams.length; i++) {
-				out.println("    " + typesOfParams[i]);
-			}
-
-			out.println("This method contains " + nrSpawns + " spawn(s)");
-
-			if(isClone) {
-				out.println("This method is a clone of an inlet method");
-			} else {
-				out.println("This method is not a clone of an inlet method");
-			}
-
-			if(containsInlet) {
-				out.println("This method contains an inlet");
-			} else {
-				out.println("This method does not contain an inlet");
-			}
-			out.println("---------------------");
-		}
+	    }
 	}
+    }
 
-	private Vector methodTable; /* a vector of MethodTableEntries */
-	private BT_Analyzer analyzer;
-	private BT_Class spawnableClass;
-	private Satinc self;
-	private boolean verbose;
-	BT_Class c;
+    class MethodTableEntry {
+	Method m;
+	MethodGen mg;
+	boolean containsInlet;
+	MethodTableEntry clone;
+	int nrSpawns;
+	SpawnTableEntry[] spawnTable;
+	boolean isClone;
+	Type[] typesOfParams;
+	Type[] typesOfParamsNoThis;
+	int startLocalAlloc;
 
-	MethodTable(BT_Class c, Satinc self, boolean verbose) {
-		this.verbose = verbose;
-		this.self = self;
-		this.c = c;
+	MethodTableEntry() {}
 
-		spawnableClass = BT_Class.forName("ibis.satin.Spawnable");
-		analyzer = new BT_Analyzer(c, spawnableClass, verbose);
-		analyzer.start();
+	MethodTableEntry(MethodTableEntry orig, MethodGen mg) {
+	    this.mg = mg;
+	    containsInlet = orig.containsInlet;
+	    clone = null;
+	    nrSpawns = orig.nrSpawns;
+	    isClone = true;
+	    typesOfParams = orig.typesOfParams;
+	    typesOfParamsNoThis = orig.typesOfParamsNoThis;
+	    
+	    startLocalAlloc = orig.startLocalAlloc;
 
-		methodTable = new Vector();
-		for(int i=0; i<c.methods.size(); i++) {
-			BT_Method m = c.methods.elementAt(i);
-			MethodTableEntry e = new MethodTableEntry();
-			e.nrSpawns = calcNrSpawns(m);
-			e.spawnTable = new SpawnTableEntry[e.nrSpawns];
-			e.m = m;
-			if(m.getCode() != null) {
-				e.origNrLocals = m.getCode().maxLocals;
-			}
-			e.typesOfParams = getParamTypesThis(m);
-			e.typesOfParamsNoThis = getParamTypesNoThis(m);
-			if(m.getCode() != null) {
-				fillSpawnTable(m, e);
-			}
-			methodTable.addElement(e);
-		}
+	    spawnTable = new SpawnTableEntry[orig.spawnTable.length];
+	    for(int i=0; i<spawnTable.length; i++) {
+		spawnTable[i] = new SpawnTableEntry(orig.spawnTable[i], mg, orig.mg);
+	    }
 	}
 
 	void print(java.io.PrintStream out) {
-		out.print("---------------------");
-		out.print("metod table of class " + c.useName());
-		out.println("---------------------");
+	    out.println("Method: " + m);
+	    out.println("params(" + typesOfParams.length + "): ");
+	    for(int i=0; i<typesOfParams.length; i++) {
+		out.println("    " + typesOfParams[i]);
+	    }
 
-		for(int i=0; i<methodTable.size(); i++) {
-			MethodTableEntry m = (MethodTableEntry)methodTable.elementAt(i);
-			m.print(out);
-		}
-		out.println("---------------------");
+	    out.println("This method contains " + nrSpawns + " spawn(s)");
+
+	    if(isClone) {
+		out.println("This method is a clone of an inlet method");
+	    } else {
+		out.println("This method is not a clone of an inlet method");
+	    }
+
+	    if(containsInlet) {
+		out.println("This method contains an inlet");
+	    } else {
+		out.println("This method does not contain an inlet");
+	    }
+	    out.println("---------------------");
 	}
+    }
 
-	private void fillSpawnTable(BT_Method m, MethodTableEntry me) {
-		BT_CodeAttribute code = m.getCode();
-		BT_InsVector ins = code.ins;
-		int spawnId = 0;
+    private Vector methodTable; /* a vector of MethodTableEntries */
+    private BT_Analyzer analyzer;
+    private JavaClass spawnableClass;
+    private Satinc self;
+    private boolean verbose;
+    JavaClass c;
+    ClassGen gen_c;
 
-		for(int k=0; k<ins.size(); k++) {
-			int opcode = ins.elementAt(k).opcode;
-			if (opcode == opc_invokevirtual) {
-				BT_Method target = ins.elementAt(k).getMethodTarget();
-				if(analyzer.isSpecial(target)) {
-					// we have a spawn!
-					analyzeSpawn(m, me, code, ins, ins.elementAt(k), spawnId);
-					spawnId++;
-				}
-			}
-		}
+    MethodTable(JavaClass c, ClassGen gen_c, Satinc self, boolean verbose) {
+	this.verbose = verbose;
+	this.self = self;
+	this.c = c;
+	this.gen_c = gen_c;
+
+	spawnableClass = Repository.lookupClass("ibis.satin.Spawnable");
+	analyzer = new BT_Analyzer(c, spawnableClass, verbose);
+	analyzer.start();
+
+	methodTable = new Vector();
+	
+	Method[] methods = gen_c.getMethods();
+	for (int i = 0; i < methods.length; i++) {
+	    Method m = methods[i];
+	    MethodGen mg = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
+	    MethodTableEntry e = new MethodTableEntry();
+
+	    e.nrSpawns = calcNrSpawns(mg);
+	    e.spawnTable = new SpawnTableEntry[e.nrSpawns];
+	    e.m = m;
+	    e.mg = mg;
+	    e.typesOfParams = this.getParamTypesThis(m);
+	    e.typesOfParamsNoThis = this.getParamTypesNoThis(m);
+
+	    if (mg.getInstructionList() != null) {
+		fillSpawnTable(e);
+	    }
+	    methodTable.addElement(e);
 	}
+    }
 
-	private void analyzeSpawn(BT_Method m, MethodTableEntry me, BT_CodeAttribute code, BT_InsVector ins, 
-			  BT_Ins spawnIns, int spawnId) {
-		SpawnTableEntry se = me.spawnTable[spawnId] = new SpawnTableEntry();
-		se.isLocalUsed = new boolean[code.maxLocals];
+    void print(java.io.PrintStream out) {
+	out.print("---------------------");
+	out.print("metod table of class " + c.getClassName());
+	out.println("---------------------");
 
-                // We have a spawn. Is it in a try block?
-		for(int j=0; j<code.exceptions.size(); j++) {
-			BT_ExceptionTableEntry e = code.exceptions.elementAt(j);
-			
-			if(self.comesBefore(code.ins, e.startPCTarget, spawnIns) && 
-			   self.comesBefore(code.ins, spawnIns, e.endPCTarget)) {
-				/* ok, we have an inlet, add try-catch block info to table */
-				me.containsInlet = true;
-				se.hasInlet = true;
-				se.catchBlocks = new BT_ExceptionTableEntryVector();
+	for(int i=0; i<methodTable.size(); i++) {
+	    MethodTableEntry m = (MethodTableEntry)methodTable.elementAt(i);
+	    m.print(out);
+	}
+	out.println("---------------------");
+    }
 
-				se.catchBlocks.addElement(e);
-				if(verbose) {
-					System.out.println("spawn " + spawnId + 
-							   " with inlet, type = " + e.catchType);
-				}
+    private void fillSpawnTable(MethodTableEntry me) {
+	InstructionList il = me.mg.getInstructionList();
+	InstructionHandle[] ins = il.getInstructionHandles();
 
-				boolean[] used = se.analyseUsedLocals(m, e, ins.indexOf(e.handlerTarget), verbose);
-				for(int k=0; k<used.length; k++) {
-					if(used[k]) {
-						se.isLocalUsed[k] = true;
-					}
-				}
-			}
+	il.setPositions();
+
+	int spawnId = 0;
+
+	for (int k = 0; k < ins.length; k++) {
+	    if (ins[k].getInstruction() instanceof INVOKEVIRTUAL) {
+		Method target = self.findMethod((INVOKEVIRTUAL)(ins[k].getInstruction()));
+		if(analyzer.isSpecial(target)) {
+		    // we have a spawn!
+		    analyzeSpawn(me, il, ins[k], spawnId);
+		    spawnId++;
 		}
+	    }
+	}
+    }
+
+    private void analyzeSpawn(MethodTableEntry me, InstructionList il, 
+			      InstructionHandle spawnIns, int spawnId) {
+	SpawnTableEntry se = me.spawnTable[spawnId] = new SpawnTableEntry();
+	se.isLocalUsed = new boolean[me.mg.getMaxLocals()];
+
+	CodeExceptionGen[] exceptions = me.mg.getExceptionHandlers();
+
+	// We have a spawn. Is it in a try block?
+	for (int j = 0; j < exceptions.length; j++) {
+	    CodeExceptionGen e = exceptions[j];
+	    int startPC = e.getStartPC().getPosition();
+	    int endPC   = e.getEndPC().getPosition();
+	    int PC	= spawnIns.getPosition();
+	    
+	    if(PC >= startPC && PC <= endPC) {
+		/* ok, we have an inlet, add try-catch block info to table */
+		me.containsInlet = true;
+		se.hasInlet = true;
+
+		if (se.catchBlocks == null) {
+		    se.catchBlocks = new Vector();
+		}
+
+		se.catchBlocks.addElement(e);
 
 		if(verbose) {
-			System.out.println(m + ": unused locals in all inlets: ");
-			for(int k=0; k<se.isLocalUsed.length; k++) {
-				if(!se.isLocalUsed[k]) System.out.println("local " + k + " is unused");
-				else System.out.println("local " + k + " is used");
-			}
-		}
-	}
-
-	static String[] getParamTypesThis(BT_Method m) {
-		int startIndex = m.useName().indexOf("(") + 1;
-		int endIndex = m.useName().indexOf(")");
-
-		String params = m.useName().substring(startIndex, endIndex);
-		Vector res = new Vector();
-		int end = -1;
-		int start = 0;
-		if(startIndex != endIndex) {
-			while(end != params.length()) {
-				int index = params.indexOf(",", start);
-				
-				if(index > 0) { // more params to follow 
-					end = index;
-				} else {
-					end = params.length();
-				}
-				
-				res.add(params.substring(start, end));
-				start = end+1;
-			}
+		    System.out.println("spawn " + spawnId + " with inlet " + e);
 		}
 
-		int size = res.size();
-		int startPos = 0;
-		if(!m.isClassMethod()) {
-			size++;
-			startPos = 1;
+		boolean[] used = se.analyseUsedLocals(me.mg, e, verbose);
+		for(int k=0; k<used.length; k++) {
+		    if(used[k]) {
+			se.isLocalUsed[k] = true;
+		    }
 		}
+	    }
+	}
 
-		String[] result = new String[size];
-		if(!m.isClassMethod()) {
-			result[0] = m.cls.useName();
+	if(verbose) {
+	    System.out.println(me.m + ": unused locals in all inlets: ");
+	    for(int k=0; k<se.isLocalUsed.length; k++) {
+		if(!se.isLocalUsed[k]) System.out.println("local " + k + " is unused");
+		else System.out.println("local " + k + " is used");
+	    }
+	}
+    }
+
+    private Type[] getParamTypesNoThis(Method m) {
+	return Type.getArgumentTypes(m.getSignature());
+    }
+
+    private Type[] getParamTypesThis(Method m) {
+	Type[] params = getParamTypesNoThis(m);
+
+	if (m.isStatic()) return params;
+
+	Type[] newparams = new Type[1+params.length];
+	newparams[0] = new ObjectType(c.getClassName());
+	for (int i = 0; i < params.length; i++) {
+	    newparams[i+1] = params[i];
+	}
+	return newparams;
+    }
+
+
+    private int calcNrSpawns(MethodGen mg) {
+	InstructionList il = mg.getInstructionList();
+	if (il == null) return 0;
+
+	InstructionHandle[] ins = il.getInstructionHandles();
+	int count = 0;
+
+	for(int i=0; i<ins.length; i++) {
+	    if (ins[i].getInstruction() instanceof INVOKEVIRTUAL) {
+		Method target = self.findMethod((INVOKEVIRTUAL) (ins[i].getInstruction()));
+		if (analyzer.isSpecial(target)) count++;
+	    }
+	}
+
+	return count;
+    }
+
+    boolean isSpawnable(Method m) {
+	return analyzer.isSpecial(m);
+    }
+
+    void addCloneToInletTable(Method mOrig, MethodGen mg) {
+	for(int i=0; i<methodTable.size(); i++) {
+	    MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
+	    if(e.m.equals(mOrig)) {
+		MethodTableEntry newE = new MethodTableEntry(e, mg);
+		methodTable.addElement(newE);
+		e.clone = newE;
+		return;
+	    }
+	}
+	System.err.println("illegal method in addCloneToInletTable: " + mOrig);
+
+	System.exit(1);
+    }
+
+    private MethodTableEntry findMethod (MethodGen mg) {
+	for(int i=0; i<methodTable.size(); i++) {
+	    MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
+	    if(e.mg == mg) {
+		return e;
+	    }
+	}
+
+	System.err.println("Unable to find method " + mg);
+	new Exception().printStackTrace();
+	System.exit(1);
+
+	return null;
+    }
+
+    private MethodTableEntry findMethod (Method m) {
+	for(int i=0; i<methodTable.size(); i++) {
+	    MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
+	    if(e.m == m) {
+		return e;
+	    }
+	}
+
+	System.err.println("Unable to find method " + m);
+	new Exception().printStackTrace();
+	System.exit(1);
+
+	return null;
+    }
+
+    boolean hasInlet(Method m, int spawnId) {
+	MethodTableEntry e = findMethod(m);
+	return e.spawnTable[spawnId].hasInlet;
+    }
+
+    boolean isLocalUsedInInlet(Method m, int localNr) {
+	MethodTableEntry e = findMethod(m);
+
+	if(localNr >= e.mg.getMaxLocals()) {
+	    System.out.println("eek, local nr too large: " + localNr + ", max: " + e.mg.getMaxLocals());
+	}
+
+	for(int i=0; i<e.spawnTable.length; i++) {
+	    if (e.spawnTable[i].isLocalUsed[localNr]) {
+		return true;
+	    }
+	}
+
+	return false;
+    }
+
+    Type[] typesOfParams(Method m) {
+	MethodTableEntry e = findMethod(m);
+	return e.typesOfParams;
+    }
+
+    Type[] typesOfParamsNoThis(Method m) {
+	MethodTableEntry e = findMethod(m);
+	return e.typesOfParamsNoThis;
+    }
+
+    Vector getCatchTypes(MethodGen m, int spawnId) {
+	MethodTableEntry e = findMethod(m);
+	return e.spawnTable[spawnId].catchBlocks;
+    }
+
+    Method getExceptionHandlingClone(Method m) {
+	return findMethod(m).clone.m;
+    }
+
+    boolean containsInlet(MethodGen m) {
+	return findMethod(m).containsInlet;
+    }
+
+    boolean containsInlet(Method m) {
+	return findMethod(m).containsInlet;
+    }
+
+    boolean isClone(MethodGen m) {
+	return findMethod(m).isClone;
+    }
+
+    boolean isClone(Method m) {
+	return findMethod(m).isClone;
+    }
+
+    int nrSpawns(Method m) {
+	return findMethod(m).nrSpawns;
+    }
+
+    void setStartLocalAlloc(MethodGen m, InstructionHandle i) {
+	m.getInstructionList().setPositions();
+	findMethod(m).startLocalAlloc = i.getPosition();
+    }
+
+    int getStartLocalAlloc(Method m) {
+	return findMethod(m).startLocalAlloc;
+    }
+
+    InstructionHandle getEndOfCatchBlock(MethodGen m, CodeExceptionGen catchBlock) {
+
+	if (catchBlock.getCatchType() == null) {
+	    // finally clause, no local variable!
+	    return null;
+	}
+
+	LocalVariableGen[] lt = m.getLocalVariables();
+
+	InstructionHandle handler = catchBlock.getHandlerPC();
+
+	for(int i=0; i<lt.length; i++) {
+	    InstructionHandle start = lt[i].getStart();
+	    InstructionHandle end = lt[i].getEnd();
+
+	    // dangerous, javac is one instruction further...
+	    if ((start == handler || start == handler.getNext() || start == handler.getNext().getNext())
+		&& lt[i].getType().equals(catchBlock.getCatchType())) {
+// System.out.println("found range of catch block: " + handler + " - " + end);
+		return end.getPrev();
+	    }
+	}
+
+	System.err.println("Could not find end of catch block, did you compile with the '-g' option?");
+	System.exit(1);
+	return null;
+    }
+
+    private static LocalVariableTable getLocalTable(Method m) {
+	LocalVariableTable lt =  m.getLocalVariableTable();
+
+	if (lt == null) {
+	    System.err.println("Could not get local variable table, did you compile with the '-g' option?");
+	    System.exit(1);
+	}
+
+	return lt;
+    }
+
+    private final LocalVariableGen[] getLocalTable(MethodGen m) {
+	LocalVariableGen[] lt =  m.getLocalVariables();
+
+	if (lt == null) {
+	    System.err.println("Could not get local variable table, did you compile with the '-g' option?");
+	    System.exit(1);
+	}
+
+	return lt;
+    }
+
+    static String getParamName(Method m, int paramNr) {
+	LocalVariable[] lt = getLocalTable(m).getLocalVariableTable();
+
+	int minPos = Integer.MAX_VALUE;
+	String res = null;
+
+	for (int i=0; i<lt.length; i++) {
+	    LocalVariable l = lt[i];
+	    if(l.getIndex() == paramNr) {
+		int startPos = l.getStartPC();
+
+		if(startPos < minPos) {
+		    minPos = startPos;
+		    res = l.getName();
 		}
-
-		for(int i=0; i<res.size(); i++) {
-			result[i+startPos] = (String) res.elementAt(i);
-		}
-
-		return result;
+	    }
 	}
 
-	static String[] getParamTypesNoThis(BT_Method m) {
-		int startIndex = m.useName().indexOf("(") + 1;
-		int endIndex = m.useName().indexOf(")");
-		if(startIndex == endIndex) {
-			return new String[0];
-		}
-		String params = m.useName().substring(startIndex, endIndex);
-		Vector res = new Vector();
-		int end = -1;
-		int start = 0;
-
-		while(end != params.length()) {
-			int index = params.indexOf(",", start);
-
-			if(index > 0) { // more params to follow 
-				end = index;
-			} else {
-				end = params.length();
-			}
-
-			res.add(params.substring(start, end));
-			start = end+1;
-		}
-
-		String[] result = new String[res.size()];
-		for(int i=0; i<res.size(); i++) {
-			result[i] = (String) res.elementAt(i);
-		}
-
-		return result;
+	if(res != null) {
+	    return res;
 	}
 
+	System.err.println("getParamName: could not find name of param " + paramNr);
+	System.exit(1);
 
-	private int calcNrSpawns(BT_Method m) {
-		BT_CodeAttribute code = m.getCode();
-		if(code == null) return 0;
-		BT_InsVector ins = code.ins;
-		if(ins == null) return 0;
-		int count = 0;
+	return null;
+    }
 
-		for(int i=0; i<ins.size(); i++) {
-			int opcode = ins.elementAt(i).opcode;
-			if(opcode == opc_invokevirtual) {
-				BT_Method target = ins.elementAt(i).getMethodTarget();
-				if(analyzer.isSpecial(target)) count++;
-			}
-		}
+    static String getParamNameNoThis(Method m, int paramNr) {
+	if (! m.isStatic()) paramNr++;
+	return getParamName(m, paramNr);
+    }
 
-		return count;
+    Type getParamType(Method m, int paramNr) {
+	return findMethod(m).typesOfParams[paramNr];
+    }
+
+    private final LocalVariableGen getLocal(MethodGen m, LocalVariableInstruction curr, int pos) {
+	int localNr = curr.getIndex();
+	LocalVariableGen[] lt = getLocalTable(m);
+
+	for (int i = 0; i < lt.length; i++) {
+	    // Watch out. The first initialization seems not to be included in the range
+	    // given in the local variable table!
+	    if (localNr == lt[i].getIndex() &&
+		pos >= lt[i].getStart().getPrev().getPosition() &&
+		pos <= (lt[i].getEnd().getPosition())) {
+		return lt[i];
+	    }
 	}
 
-	boolean isSpawnable(BT_Method m) {
-		return analyzer.isSpecial(m);
+	new Exception().printStackTrace();
+	System.err.println("getLocal: could not find local " + localNr);
+	System.err.println("Maybe you need to initialize the variable");
+	System.exit(1);
+	return null;
+    }
+
+    String getLocalName(MethodGen m, LocalVariableInstruction curr, int pos) {
+	LocalVariableGen a = getLocal(m, curr, pos);
+
+	return a.getName();
+    }
+
+    Type getLocalType(MethodGen m, LocalVariableInstruction curr, int pos) {
+	LocalVariableGen a = getLocal(m, curr, pos);
+
+	return a.getType();
+    }
+
+    static String generatedLocalName(Type type, String name) {
+	return name + "_" + type.toString().replace('.', '_').replace('[', '_').replace(']', '_');
+    }
+
+    static String[] getAllLocalDecls(Method m) {
+	LocalVariable[] lt = getLocalTable(m).getLocalVariableTable();
+	Vector v = new Vector();
+
+	for(int i=0; i<lt.length; i++) {
+	    LocalVariable l = lt[i];
+	    Type tp = Type.getType(l.getSignature());
+	    String e = tp.toString() + " " + generatedLocalName(tp, l.getName()) + ";";
+	    if(!v.contains(e)) {
+		v.addElement(e);
+	    }
 	}
 
-	void addCloneToInletTable(BT_Method mOrig, BT_Method m) {
-		for(int i=0; i<methodTable.size(); i++) {
-			MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
-			if(e.m.equals(mOrig)) {
-				MethodTableEntry newE = new MethodTableEntry(e, m);
-				methodTable.addElement(newE);
-				e.clone = newE;
-				return;
-			}
-		}
-		System.err.println("illegal method in addCloneToInletTable: " + mOrig);
-
-		System.exit(1);
-	}
-
-	private MethodTableEntry findMethod (BT_Method m) {
-		for(int i=0; i<methodTable.size(); i++) {
-			MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
-			if(e.m.equals(m)) {
-				return e;
-			}
-		}
-
-		System.err.println("Unable to find method " + m);
-		new Exception().printStackTrace();
-		System.exit(1);
-
-		return null;
-	}
-
-	boolean hasInlet(BT_Method m, int spawnId) {
-		MethodTableEntry e = findMethod(m);
-		return e.spawnTable[spawnId].hasInlet;
-	}
-
-	boolean isLocalUsedInInlet(BT_Method m, int localNr) {
-		MethodTableEntry e = findMethod(m);
-
-		if(localNr >= m.getCode().maxLocals) {
-			System.out.println("eek, local nr too large: " + localNr + ", max: " + m.getCode().maxLocals);
-		}
-
-		for(int i=0; i<e.spawnTable.length; i++) {
-			if(e.spawnTable[i].isLocalUsed[localNr]) return true;
-		}
-
-		return false;
-	}
-
-	int origNrLocals(BT_Method m) {
-		MethodTableEntry e = findMethod(m);
-		return e.origNrLocals;
-	}
-
-	String[] typesOfParams(BT_Method m) {
-		MethodTableEntry e = findMethod(m);
-		return e.typesOfParams;
-	}
-
-	String[] typesOfParamsNoThis(BT_Method m) {
-		MethodTableEntry e = findMethod(m);
-		return e.typesOfParamsNoThis;
-	}
-
-	BT_ExceptionTableEntryVector getCatchTypes(BT_Method m, int spawnId) {
-		MethodTableEntry e = findMethod(m);
-		return e.spawnTable[spawnId].catchBlocks;
-	}
-
-	BT_Method getExcpetionHandlingClone(BT_Method m) {
-		return findMethod(m).clone.m;
-	}
-
-	boolean containsInlet(BT_Method m) {
-		return findMethod(m).containsInlet;
-	}
-
-	boolean isClone(BT_Method m) {
-		return findMethod(m).isClone;
-	}
-
-	int nrSpawns(BT_Method m) {
-		return findMethod(m).nrSpawns;
-	}
-
-	void setStartLocalAlloc(BT_Method m, BT_Ins i) {
-		findMethod(m).startLocalAlloc = i;
-	}
-
-	BT_Ins getStartLocalAlloc(BT_Method m) {
-		return findMethod(m).startLocalAlloc;
-	}
-
-	int getEndOfCatchBlock(BT_Method m, BT_ExceptionTableEntry catchBlock, int handlerIndex) {
-		BT_InsVector ins = m.getCode().ins;
-		BT_LocalVariableAttribute a = getLocalAttribute(m);
-
-		for(int i=0; i<a.localVariables.length; i++) {
-			BT_LocalVariableAttribute.LV l = a.localVariables[i];
-			int start = ins.indexOf(l.startIns);
-
-			// dangerous, javac is one instruction further...
-			if(start == handlerIndex || start == handlerIndex + 1 || start == handlerIndex + 2 && 
-			   l.descriptorC.equals(catchBlock.catchType)) {
-				int end = ins.indexOf(l.beyondIns) - 1;
-//				System.out.println("found end of catch block: " + handlerIndex + " - " + end);
-				return end;
-			}
-		}
-
-		System.err.println("Could not find end of catch block, did you compile with the '-g' option?");
-		System.exit(1);
-		return -1;
-	}
-
-	private static BT_LocalVariableAttribute getLocalAttribute(BT_Method m) {
-		BT_AttributeVector av = m.getCode().attributes;
-		BT_Attribute a = av.getAttribute("LocalVariableTable");
-
-		BT_LocalVariableAttribute res = (BT_LocalVariableAttribute) a;
-
-		if(res == null) {
-			System.err.println("Could not get local variable table, did you compile with the '-g' option?");
-			System.exit(1);
-		}
-
-		return res;
-	}
-
-	static String getParamName(BT_Method m, int paramNr) {
-		BT_LocalVariableAttribute a = getLocalAttribute(m);
-		BT_InsVector ins = m.getCode().ins;
-
-		int minPos = Integer.MAX_VALUE;
-		String res = null;
-
-		for(int i=0; i<a.localVariables.length; i++) {
-			BT_LocalVariableAttribute.LV l = a.localVariables[i];
-			if(l.localIndex == paramNr) {
-				int startPos = ins.indexOf(l.startIns);
-				if(startPos < 0) startPos = 0;
-
-				if(startPos < minPos) {
-					minPos = startPos;
-					res = l.nameS;
-				}
-			}
-		}
-
-		if(res != null) {
-			return res;
-		}
-
-		System.out.println("code for " + m);
-		for(int i=0; i<ins.size(); i++) {
-			System.out.println("ins [" + i + "]:   " + ins.elementAt(i));
-		}
-		System.out.println();
-
-		System.err.println("getParamName: could not find name of param " + paramNr);
-		System.exit(1);
-
-		return null;
-	}
-
-	static String getParamType(BT_Method m, int paramNr) {
-		BT_LocalVariableAttribute a = getLocalAttribute(m);
-		BT_InsVector ins = m.getCode().ins;
-
-		int minPos = Integer.MAX_VALUE;
-		String res = null;
-
-		for(int i=0; i<a.localVariables.length; i++) {
-			BT_LocalVariableAttribute.LV l = a.localVariables[i];
-			if(l.localIndex == paramNr) {
-				int startPos = ins.indexOf(l.startIns);
-				if(startPos < 0) startPos = 0;
-
-				if(startPos < minPos) {
-					minPos = startPos;
-					res = l.descriptorC.useName();
-				}
-			}
-		}
-
-		if(res != null) {
-			return res;
-		}
-
-		System.err.println("getParamType: could not find type of param " + paramNr);
-		new Exception().printStackTrace();
-		System.exit(1);
-
-		return null;
-	}
-
-	static String getLocalName(BT_Method m, BT_Ins curr) {
-		BT_LocalVariableAttribute a = getLocalAttribute(m);
-		int localNr;
-		if(curr instanceof BT_LocalIns) {
-			localNr = ((BT_LocalIns) curr).localNr;
-		} else {
-			localNr = ((BT_IIncIns) curr).localNr;
-		}
-		BT_InsVector ins = m.getCode().ins;
-		int currPos = ins.indexOf(curr);
-
-		for(int i=0; i<a.localVariables.length; i++) {
-			BT_LocalVariableAttribute.LV l = a.localVariables[i];
-			if(l.localIndex == localNr) {
-				int startPos = ins.indexOf(l.startIns)-1;
-				int beyondPos = ins.indexOf(l.beyondIns);
-				if(beyondPos < 0) beyondPos = ins.size();
-				if(beyondPos == ins.size()-1) beyondPos++;
-
-				if(startPos <= currPos && beyondPos > currPos) {
-					return l.nameS;
-				}
-			}
-		}
-
-		new Exception().printStackTrace();
-		System.err.println("getLocalName: could not find name of local " + localNr);
-		System.err.println("Maybe you need to initialize the variable");
-		System.exit(1);
-		return null;
-	}
-
-	static BT_Class getLocalBTType(BT_Method m, BT_Ins curr) {
-		BT_LocalVariableAttribute a = getLocalAttribute(m);
-		int localNr;
-		if(curr instanceof BT_LocalIns) {
-			localNr = ((BT_LocalIns) curr).localNr;
-		} else {
-			localNr = ((BT_IIncIns) curr).localNr;
-		}
-		BT_InsVector ins = m.getCode().ins;
-		int currPos = ins.indexOf(curr);
-//		System.out.println("getLocalType START: localNr = " + localNr + ", currPos = " + currPos);
-
-		for(int i=0; i<a.localVariables.length; i++) {
-			BT_LocalVariableAttribute.LV l = a.localVariables[i];
-//			System.out.println("getLocalType: found data for local " + l.localIndex);
-
-			if(l.localIndex == localNr) {
-				int startPos = ins.indexOf(l.startIns)-1;
-				int beyondPos = ins.indexOf(l.beyondIns);
-				if(beyondPos < 0) beyondPos = ins.size();
-				if(beyondPos == ins.size()-1) beyondPos++;
-
-//				System.out.println("local " + localNr + "(" +
-//						   l.nameS + "): start = " + startPos + ", end = " + beyondPos +
-//						   ", myPos = " + currPos + " size = " + ins.size());
-
-				if(startPos <= currPos && beyondPos > currPos) {
-					return l.descriptorC;
-				}
-			}
-		}
-
-		System.out.println("code for " + m);
-		for(int i=0; i<ins.size(); i++) {
-			System.out.println("ins [" + i + "]:   " + ins.elementAt(i));
-		}
-		System.out.println();
-
-		new Exception().printStackTrace();
-		System.err.println("getLocalType: could not find type of local " + localNr + ", method = " + m);
-		System.err.println("Maybe you need to initialize the variable");
-		System.exit(1);
-		return null;
-	}
-
-	static String getLocalType(BT_Method m, BT_Ins curr) {
-		return getLocalBTType(m, curr).useName();
-	}
-
-	static String generatedLocalName(BT_Class type, String name) {
-		return name + "_" + type.useName().replace('.', '_').replace('[', '_').replace(']', '_');
-	}
-
-	static String generatedLocalName(String type, String name) {
-		return name + "_" + type.replace('.', '_').replace('[', '_').replace(']', '_');
-	}
-
-	static String[] getAllLocalDecls(BT_Method m) {
-		BT_LocalVariableAttribute a = getLocalAttribute(m);
-		Vector v = new Vector();
-
-		for(int i=0; i<a.localVariables.length; i++) {
-			BT_LocalVariableAttribute.LV l = a.localVariables[i];
-			String e = l.descriptorC.useName() + " " + generatedLocalName(l.descriptorC, l.nameS) + ";";
-			if(!v.contains(e)) {
-				v.addElement(e);
-			}
-		}
-
-		String[] result = new String[v.size()];
-		for(int i=0; i<v.size(); i++) {
-			result[i] = (String) v.elementAt(i);
+	String[] result = new String[v.size()];
+	for(int i=0; i<v.size(); i++) {
+	    result[i] = (String) v.elementAt(i);
 //			System.out.println("localdecls for " + m + ": " + result[i]);
-		}
-
-		return result;
 	}
 
-	static String[] getAllLocalTypes(BT_Method m) {
-		BT_LocalVariableAttribute a = getLocalAttribute(m);
-		Vector v = new Vector();
+	return result;
+    }
 
-		for(int i=0; i<a.localVariables.length; i++) {
-			BT_LocalVariableAttribute.LV l = a.localVariables[i];
-			String e = l.descriptorC.useName();
-//			if(!v.contains(e)) {
-				v.addElement(e);
-//			}
-		}
+    static Type[] getAllLocalTypes(Method m) {
+	LocalVariable[] lt = getLocalTable(m).getLocalVariableTable();
+	Vector v = new Vector();
 
-		String[] result = new String[v.size()];
-		for(int i=0; i<v.size(); i++) {
-			result[i] = (String) v.elementAt(i);
-		}
-
-		return result;
+	for(int i=0; i<lt.length; i++) {
+	    LocalVariable l = lt[i];
+	    Type tp = Type.getType(l.getSignature());
+	    v.addElement(tp);
 	}
 
-	static String[] getAllLocalNames(BT_Method m) {
-		BT_LocalVariableAttribute a = getLocalAttribute(m);
-		Vector v = new Vector();
-
-		for(int i=0; i<a.localVariables.length; i++) {
-			BT_LocalVariableAttribute.LV l = a.localVariables[i];
-			String e = generatedLocalName(l.descriptorC, l.nameS);
-//			if(!v.contains(e)) {
-				v.addElement(e);
-//			}
-		}
-
-		String[] result = new String[v.size()];
-		for(int i=0; i<v.size(); i++) {
-			result[i] = (String) v.elementAt(i);
-		}
-
-		return result;
+	Type[] result = new Type[v.size()];
+	for(int i=0; i<v.size(); i++) {
+	    result[i] = (Type) v.elementAt(i);
 	}
 
-	boolean containsSpawnedCall(BT_Method m) {
-		BT_CodeAttribute code = m.getCode();
-		if(code == null) return false;
-		BT_InsVector ins = code.ins;
+	return result;
+    }
 
-		for(int i=0; i<ins.size(); i++) {
-			int opcode = ins.elementAt(i).opcode;
-			if(opcode == opc_invokevirtual) {
-				BT_Method target = ins.elementAt(i).getMethodTarget();
-				if(analyzer.isSpecial(target)) return true;
-			}
-		}
+    static String[] getAllLocalNames(Method m) {
+	LocalVariable[] lt = getLocalTable(m).getLocalVariableTable();
+	Vector v = new Vector();
 
-		return false;
+	for(int i=0; i<lt.length; i++) {
+	    LocalVariable l = lt[i];
+	    Type tp = Type.getType(l.getSignature());
+	    String e = generatedLocalName(tp, l.getName());
+	    v.addElement(e);
 	}
 
-	static int realMaxLocals(BT_Method m) {
-		BT_CodeAttribute code = m.getCode();
-		int maxLocals = 0;
-
-		for(int i=0; i<code.ins.size(); i++) {
-			if(code.ins.elementAt(i) instanceof BT_LocalIns) {
-				BT_LocalIns ins = (BT_LocalIns) code.ins.elementAt(i);
-				if (ins.localNr > maxLocals) maxLocals = ins.localNr;
-			}
-		}
-
-		return maxLocals + 1;
+	String[] result = new String[v.size()];
+	for(int i=0; i<v.size(); i++) {
+	    result[i] = (String) v.elementAt(i);
 	}
+
+	return result;
+    }
+
+    boolean containsSpawnedCall(MethodGen m) {
+	InstructionList code = m.getInstructionList();
+
+	if (code == null) return false;
+
+	InstructionHandle ih[] = code.getInstructionHandles();
+
+	for (int i = 0; i < ih.length; i++) {
+	    Instruction ins = ih[i].getInstruction();
+	    if (ins instanceof INVOKEVIRTUAL) {
+		Method target = self.findMethod((INVOKEVIRTUAL)(ins));
+		if(analyzer.isSpecial(target)) return true;
+	    }
+	}
+
+	return false;
+    }
+
+    boolean containsSpawnedCall(Method m) {
+	MethodGen mg = getMethodGen(m);
+
+	return containsSpawnedCall(mg);
+    }
+
+    static int realMaxLocals(MethodGen m) {
+        m.setMaxLocals();
+        return m.getMaxLocals();
+    }
+
+    MethodGen getMethodGen(Method m) {
+	MethodTableEntry e = findMethod(m);
+	if (e == null) return null;
+	return e.mg;
+    }
+
+    void replace(Method orig, Method newm) {
+	MethodTableEntry e = findMethod(orig);
+	e.m = newm;
+    }
+
+    void setMethod(MethodGen mg, Method m) {
+	MethodTableEntry e = findMethod(mg);
+	e.m = m;
+    }
 }

@@ -106,7 +106,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		out.writeInt(parentStamp);
 	}
 
-	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+	private void readObject(java.io.ObjectInputStream in) throws IOException {
 		System.err.print("r");
 		owner = (IbisIdentifier) in.readObject();
 		parentOwner = (IbisIdentifier) in.readObject();

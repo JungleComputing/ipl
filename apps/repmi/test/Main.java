@@ -1,4 +1,4 @@
-import manta.repmi.*;
+import ibis.repmi.*;
 
 class Main { 
 

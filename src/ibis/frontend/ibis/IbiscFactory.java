@@ -1,43 +1,30 @@
 package ibis.frontend.ibis;
 
-import com.ibm.jikesbt.*;
 import java.util.*;
 
-class IbiscFactory extends BT_Factory {
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
 
-	Vector loadList = new Vector();
+final class IbiscFactory implements RepositoryObserver {
 
-	IbiscFactory() {
-	}
+    Vector loadList = new Vector();
 
-	// override method in BT_Factory to avoid debug prints...
-	public void noteClassLoaded(BT_Class bt_class, String s) {}
+    IbiscFactory() {
+    }
 
-	public boolean isProjectClass(String className, Object file) { 
-//		if(className.startsWith("Satin_")) return true;
+    public void notify(String className) { 
+	if (className.startsWith("ibis.")) return;
+	if (className.startsWith("java.")) return;
+	if (className.startsWith("sun.")) return;
+	if (className.startsWith("ibm.")) return;
+	if (className.startsWith("org.apache.bcel.")) return;
 
-//		return className.equals(target);
+	// System.out.println("notify " + className);
 
-//		return false;
+	loadList.add(className);
+    }
 
-//		if(className.equals("ibis.satin.SatinObject")) return true;
-//		if(className.equals("ibis.satin.Spawnable")) return true;
-
-//		if(className.equals("ibis.satin.SpawnCounter")) return true;
-//		if(className.equals("ibis.satin.ReturnRecord")) return true;
-//		if(className.equals("ibis.satin.InvocationRecord")) return true;
-
-
-
-		if (className.startsWith("ibis.")) return false;
-		if (className.startsWith("java.")) return false;
-		if (className.startsWith("sun.")) return false;
-		if (className.startsWith("ibm.")) return false;
-		if (className.startsWith("com.ibm.jikesbt.")) return false;
-		//		System.out.println("Loading " + className);
-
-		loadList.add(className);
-
-		return true;
-	}
+    public Vector getList() {
+	return loadList;
+    }
 }

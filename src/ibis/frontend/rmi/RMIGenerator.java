@@ -2,105 +2,45 @@ package ibis.frontend.rmi;
 
 import java.util.Vector;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
-import com.ibm.jikesbt.*;   
+
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.util.*;
+
 import ibis.util.BT_Analyzer;
 
 class RMIGenerator {
  
-	public static BT_Class getReturnType(BT_Method m) { 
-		return m.getSignature().returnType;
+	public static Type getReturnType(Method m) { 
+		return Type.getReturnType(m.getSignature());
 	}
 	
-	public static BT_ClassVector getParameterTypes(BT_Method m) { 
-		return m.getSignature().types;
+	public static Type[] getParameterTypes(Method m) { 
+		return Type.getArgumentTypes(m.getSignature());
 	}
 
-	public static String containerType(BT_Class c) { 
+	public static String printType(Type c) { 
 
-		if (!c.equals( BT_Class.getVoid())) { 
+		if (!c.equals( Type.VOID)) { 
 			
-			if (c.isPrimitive()) {
+			if (c instanceof BasicType) {
 				
-				if (c.equals( BT_Class.getByte())) { 
+				if (c.equals( Type.BYTE)) { 
 					return "Byte";
-				} else if (c.equals( BT_Class.getChar())) { 
-					return "Character";
-				} else if (c.equals( BT_Class.getShort())) {
-					return "Short";
-				} else if (c.equals( BT_Class.getInt())) {
-					return "Integer";
-				} else if (c.equals( BT_Class.getLong())) {
-					return "Long";
-				} else if (c.equals( BT_Class.getFloat())) {
-					return "Float";
-				} else if (c.equals( BT_Class.getDouble())) {
-					return "Double";
-				} else if (c.equals( BT_Class.getBoolean())) {
-					return "Boolean";
-				} 					       
-			}
-			return "Object";
-		} else { 
-			return "Object";
-		}
-	} 
-
-	public static String getType(BT_Class c) { 
-
-		if (c.isArray()) {
-			return getType(c.arrayType) + "[]";
-		} else { 
-			if (!c.equals( BT_Class.getVoid())) { 
-				
-				if (c.isPrimitive()) {
-					
-					if (c.equals( BT_Class.getByte())) { 
-						return "byte";
-					} else if (c.equals( BT_Class.getChar())) { 
-						return "char";
-					} else if (c.equals( BT_Class.getShort())) {
-						return "short";
-					} else if (c.equals( BT_Class.getInt())) {
-						return "int";
-					} else if (c.equals( BT_Class.getLong())) {
-						return "long";
-					} else if (c.equals( BT_Class.getFloat())) {
-						return "float";
-					} else if (c.equals( BT_Class.getDouble())) {
-						return "double";
-					} else if (c.equals( BT_Class.getBoolean())) {
-						return "boolean";
-					} 					       
-				}
-				return c.getName();
-			} else { 
-				return "void";
-			}
-		}
-	} 
-	
-	public static String printType(BT_Class c) { 
-
-		if (!c.equals( BT_Class.getVoid())) { 
-			
-			if (c.isPrimitive()) {
-				
-				if (c.equals( BT_Class.getByte())) { 
-					return "Byte";
-				} else if (c.equals( BT_Class.getChar())) { 
+				} else if (c.equals( Type.CHAR)) { 
 					return "Char";
-				} else if (c.equals( BT_Class.getShort())) {
+				} else if (c.equals( Type.SHORT)) {
 					return "Short";
-				} else if (c.equals( BT_Class.getInt())) {
+				} else if (c.equals( Type.INT)) {
 					return "Int";
-				} else if (c.equals( BT_Class.getLong())) {
+				} else if (c.equals( Type.LONG)) {
 					return "Long";
-				} else if (c.equals( BT_Class.getFloat())) {
+				} else if (c.equals( Type.FLOAT)) {
 					return "Float";
-				} else if (c.equals( BT_Class.getDouble())) {
+				} else if (c.equals( Type.DOUBLE)) {
 					return "Double";
-				} else if (c.equals( BT_Class.getBoolean())) {
+				} else if (c.equals( Type.BOOLEAN)) {
 					return "Boolean";
 				} 					       
 			} else { 
@@ -110,46 +50,46 @@ class RMIGenerator {
 		return null;
 	} 
 
-       public static String getInitedLocal(BT_Class c, String name) { 
+       public static String getInitedLocal(Type c, String name) { 
 
 		String result = null;
 
-		if (!c.equals(BT_Class.getVoid())) { 			
-			if (c.isPrimitive()) {				
-				if (c.equals(BT_Class.getByte())) { 
+		if (!c.equals(Type.VOID)) { 			
+			if (c instanceof BasicType) {				
+				if (c.equals(Type.BYTE)) { 
 					result = "byte " + name + " = 0";
-				} else if (c.equals(BT_Class.getChar())) { 
+				} else if (c.equals(Type.CHAR)) { 
 					result = "char " + name + " = 0";
-				} else if (c.equals(BT_Class.getShort())) {
+				} else if (c.equals(Type.SHORT)) {
 					result = "short " + name + " = 0";
-				} else if (c.equals(BT_Class.getInt())) {
+				} else if (c.equals(Type.INT)) {
 					result = "int " + name + " = 0";
-				} else if (c.equals(BT_Class.getLong())) {
+				} else if (c.equals(Type.LONG)) {
 					result = "long " + name + " = 0";
-				} else if (c.equals(BT_Class.getFloat())) {
+				} else if (c.equals(Type.FLOAT)) {
 					result = "float " + name + " = 0.0";
-				} else if (c.equals(BT_Class.getDouble())) {
+				} else if (c.equals(Type.DOUBLE)) {
 					result = "double " + name + " = 0.0";
-				} else if (c.equals(BT_Class.getBoolean())) {
+				} else if (c.equals(Type.BOOLEAN)) {
 					result = "boolean " + name + " = false";
 				} 					       
 			} else { 
-				result = c.getName() + " " + name + " = null";
+				result = c + " " + name + " = null";
 			}
 		}
 
 		return result;
 	}
 
-	public static String writeMessageType(String pre, String message, BT_Class c, String param) { 
+	public static String writeMessageType(String pre, String message, Type c, String param) { 
 		return (pre + message + ".write" + printType(c) + "(" + param + ");");
 	} 
    
-        public static String readMessageType(String pre, String dest, String message, BT_Class c) { 
+        public static String readMessageType(String pre, String dest, String message, Type c) { 
 		String temp = pre + dest + " = ";
 
-		if (!c.isPrimitive()) {
-			temp += "(" + getType(c) + ") ";
+		if (!(c instanceof BasicType)) {
+			temp += "(" + c + ") ";
 		}
 
 		temp += message + ".read" + printType(c) + "();";

@@ -7,9 +7,12 @@ import java.io.FileOutputStream;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import ibis.util.BT_Analyzer;
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.util.*;
 
-import com.ibm.jikesbt.*;   
+import ibis.util.BT_Analyzer;
 
 class Main { 
 	
@@ -35,7 +38,7 @@ class Main {
 	       
 		Vector classes = new Vector();
 		boolean verbose = false;
-		BT_Class rmiInterface = null;
+		JavaClass rmiInterface = null;
 	
 		if (args.length == 0) { 
 			System.err.println("Usage : java Main [-v] classname");
@@ -55,33 +58,29 @@ class Main {
 			}
 		} 
 
-		BT_Factory.factory = new MyFactory(args, num, verbose);
-
-		try { 
-			rmiInterface = BT_Class.forName("java.rmi.Remote");
-		} catch (RuntimeException e) { 
+		rmiInterface = Repository.lookupClass("java.rmi.Remote");
+		if (rmiInterface == null) {
 			System.err.println("Class java.rmi.Remote not found");
 			System.exit(1);
 		}
 
 		for (i=0;i<num;i++) { 
-			try { 
-				BT_Class c = BT_Class.forName(args[i]);
-				classes.addElement(c);
-			} catch (Exception e) { 
+			JavaClass c = Repository.lookupClass(args[i]);
+			if (c == null) {
 				System.err.println("Class " + args[i] + " not found");
 				System.exit(1);
 			}
+			classes.addElement(c);
 		} 
 				
 		for (i=0;i<classes.size();i++) { 
 			
 			try { 
 				PrintWriter output;
-				BT_Class subject = (BT_Class) classes.get(i);
+				JavaClass subject = (JavaClass) classes.get(i);
 				
 				if (verbose) { 
-					System.out.println("Handling " + subject.getName());
+					System.out.println("Handling " + subject.getClassName());
 				}
 				
 				BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);

@@ -1,4 +1,4 @@
-import manta.repmi.ReplicatedObject;
+import ibis.repmi.ReplicatedObject;
 
 public class Test extends ReplicatedObject implements myRep { 
 

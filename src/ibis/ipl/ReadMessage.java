@@ -19,7 +19,7 @@ public interface ReadMessage {
 	public float readFloat() throws IbisIOException;
 	public double readDouble() throws IbisIOException;
 	public String readString() throws IbisIOException;
-	public Object readObject() throws IbisIOException, ClassNotFoundException;
+	public Object readObject() throws IbisIOException;
 
 	public void readArrayBoolean(boolean [] destination) throws IbisIOException;
 	public void readArrayByte(byte [] destination) throws IbisIOException;

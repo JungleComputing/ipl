@@ -45,7 +45,7 @@ public final class Tree
     }
 
     public Tree(MantaInputStream mantainputstream)
-        throws IbisIOException, ClassNotFoundException
+        throws IbisIOException
     {
         mantainputstream.addObjectToCycleCheck(this);
         i3 = mantainputstream.readInt();

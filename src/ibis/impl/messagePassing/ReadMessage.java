@@ -189,7 +189,7 @@ public class ReadMessage
 	throw new IbisIOException("Read String not supported");
     }
 
-    public Object readObject() throws IbisIOException, ClassNotFoundException {
+    public Object readObject() throws IbisIOException {
 	throw new IbisIOException("Read Object not supported");
     }
 
