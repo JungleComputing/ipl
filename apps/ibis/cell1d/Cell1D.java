@@ -208,6 +208,8 @@ class Cell1D implements Config {
                     next = board[i+1];
                     for( int j=1; j<=boardsize; j++ ){
                         updatecol[j] = Life.computeNextState(
+                            iter,
+                            i, j,
                             prev[j-1],
                             prev[j],
                             prev[j+1],

@@ -8,7 +8,7 @@ class Ecology {
 
     // Compute the next state of a cell.
     // l=left, u=up, r=right, d=down, c=center
-    static public byte newcomputeNextState( byte lu, byte l, byte ld, byte u, byte c, byte d, byte ru, byte r, byte rd )
+    static public byte computeNextState( int iteration, int row, int col, byte lu, byte l, byte ld, byte u, byte c, byte d, byte ru, byte r, byte rd )
     {
         // Value   State
         // 0       Wasteland
