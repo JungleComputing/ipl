@@ -165,37 +165,6 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
     }
 
     /**
-     * Flushes everything collected sofar.
-     * @exception IOException on an IO error.
-     */
-    private void Flush() throws IOException {
-/*
-	if (array_index == 0 &&
-	    byte_index == 0 &&
-	    char_index == 0 &&
-	    short_index == 0 &&
-	    int_index == 0 &&
-	    long_index == 0 &&
-	    float_index == 0 &&
-	    double_index == 0) {
-
-	    return;
-	}
-*/
-
-	flushBuffers();
-
-	/* Retain the order in which the arrays were pushed. This 
-	 * costs a cast at send/receive.
-	 */
-	for (int i = 0; i < array_index; i++) {
-	    doWriteArray(array[i].array, array[i].offset, array[i].len, array[i].type);
-	}
-
-	array_index = 0;
-    }
-
-    /**
      * Flush the primitive arrays.
      *
      * @exception IOException is thrown when any <code>writeArray</code>
@@ -278,7 +247,17 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public final void flush() throws IOException {
-	Flush();
+	flushBuffers();
+
+	/* Retain the order in which the arrays were pushed. This 
+	 * costs a cast at send/receive.
+	 */
+	for (int i = 0; i < array_index; i++) {
+	    doWriteArray(array[i].array, array[i].offset, array[i].len, array[i].type);
+	}
+
+	array_index = 0;
+
 	doFlush();
 	if (! finished()) {
 	    indices_short = new short[PRIMITIVE_TYPES];
