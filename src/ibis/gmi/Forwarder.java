@@ -1,8 +1,8 @@
 package ibis.gmi;
 
-import java.io.IOException;
-
 import ibis.ipl.ReadMessage;
+
+import java.io.IOException;
 
 /**
  * The {@link Forwarder} class serves as a base class for user-defined forwarders.

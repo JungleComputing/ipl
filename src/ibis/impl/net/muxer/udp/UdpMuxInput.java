@@ -1,25 +1,21 @@
 package ibis.impl.net.muxer.udp;
 
-import java.net.DatagramSocket;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-/* Only for java >= 1.4
- * import java.net.SocketTimeoutException;
- */
-import java.io.InterruptedIOException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
-import ibis.ipl.ReceiveTimedOutException;
-
-import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
-import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.muxer.MuxerInput;
 import ibis.impl.net.muxer.MuxerQueue;
+import ibis.ipl.ReceiveTimedOutException;
+
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 
 public final class UdpMuxInput extends MuxerInput {

@@ -1,7 +1,9 @@
 package ibis.frontend.io;
 
-import org.apache.bcel.*;
-import org.apache.bcel.classfile.*;
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Method;
 
 public class CheckNativeMethods {
 

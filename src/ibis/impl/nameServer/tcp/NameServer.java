@@ -1,22 +1,21 @@
 package ibis.impl.nameServer.tcp;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import ibis.ipl.IbisIdentifier;
+import ibis.util.DummyInputStream;
+import ibis.util.DummyOutputStream;
+import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
-import java.util.Hashtable;
-
-import ibis.ipl.*;
-import ibis.util.*;
 
 public class NameServer implements Protocol {
 

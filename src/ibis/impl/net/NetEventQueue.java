@@ -1,8 +1,8 @@
 package ibis.impl.net;
 
-import java.util.Vector;
-
 import ibis.ipl.InterruptedIOException;
+
+import java.util.Vector;
 
 /**
  * Provide a general purpose {@linkplain NetEvent event} FIFO.

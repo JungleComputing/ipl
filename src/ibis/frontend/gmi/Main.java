@@ -2,14 +2,13 @@ package ibis.frontend.gmi;
 
 import ibis.util.BT_Analyzer;
 
-import java.util.Vector;
-
-import java.io.PrintWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.util.Vector;
 
-import org.apache.bcel.*;
-import org.apache.bcel.classfile.*;
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.JavaClass;
 
 
 class Main { 

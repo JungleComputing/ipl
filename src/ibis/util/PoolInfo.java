@@ -1,12 +1,11 @@
 package ibis.util;
 
-import java.util.Properties;
-import java.util.StringTokenizer;
-import java.net.InetAddress;
+import ibis.ipl.IbisException;
 
 import java.io.IOException;
-
-import ibis.ipl.IbisException;
+import java.net.InetAddress;
+import java.util.Properties;
+import java.util.StringTokenizer;
 
 public class PoolInfo {
 

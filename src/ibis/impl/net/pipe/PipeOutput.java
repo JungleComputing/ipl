@@ -1,13 +1,18 @@
 package ibis.impl.net.pipe;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetBank;
+import ibis.impl.net.NetBufferedOutput;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetSendBuffer;
 
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
 import java.util.Hashtable;
 
 public final class PipeOutput extends NetBufferedOutput {

@@ -1,8 +1,8 @@
 package ibis.impl.net;
 
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeMap;
-import java.util.Hashtable;
 
 public abstract class NetStat {
         private static String dummy = Runtime.getRuntime().toString();

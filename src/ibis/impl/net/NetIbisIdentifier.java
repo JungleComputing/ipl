@@ -1,12 +1,11 @@
 package ibis.impl.net;
 
+import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
+import ibis.util.IbisIdentifierTable;
+
 import java.io.IOException;
 import java.net.InetAddress;
-
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisError;
-
-import ibis.util.IbisIdentifierTable;
 
 public final class NetIbisIdentifier extends IbisIdentifier implements java.io.Serializable {
 

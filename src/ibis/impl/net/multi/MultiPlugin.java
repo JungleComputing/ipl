@@ -1,10 +1,10 @@
 package ibis.impl.net.multi;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetIbisIdentifier;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
 
 public interface MultiPlugin {
 

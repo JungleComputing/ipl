@@ -1,6 +1,8 @@
 package ibis.impl.net.gen;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetPoller;
+import ibis.impl.net.NetPortType;
 
 import java.io.IOException;
 

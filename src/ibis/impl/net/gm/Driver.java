@@ -1,6 +1,13 @@
 package ibis.impl.net.gm;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbis;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetLockArray;
+import ibis.impl.net.NetMutex;
+import ibis.impl.net.NetOutput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetPriorityMutex;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;

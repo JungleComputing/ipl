@@ -1,10 +1,17 @@
 package ibis.impl.tcp;
 
-import ibis.ipl.*;
+import ibis.ipl.DynamicProperties;
+import ibis.ipl.IbisError;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.Upcall;
+import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.io.InputStream;
-import ibis.util.*;
 import java.util.ArrayList;
 
 // why was shouldLeave here?

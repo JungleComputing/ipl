@@ -1,13 +1,15 @@
 package ibis.impl.net.multi;
 
-import ibis.impl.net.*;
-
-import java.util.Hashtable;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbis;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetOutput;
+import ibis.impl.net.NetPortType;
+import ibis.ipl.IbisIOException;
 
 import java.io.IOException;
-
 import java.lang.reflect.Constructor;
-import ibis.ipl.IbisIOException;
+import java.util.Hashtable;
 
 /**
  * The multieric splitter/poller virtual driver.

@@ -1,8 +1,8 @@
 package ibis.impl.net.muxer.udp;
 
-import java.net.InetAddress;
-
 import ibis.impl.net.muxer.MuxerKey;
+
+import java.net.InetAddress;
 
 class UdpMuxerKey extends MuxerKey {
 

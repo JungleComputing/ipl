@@ -1,10 +1,9 @@
 package ibis.impl.net;
 
-import ibis.util.Monitor;
-import ibis.util.ConditionVariable;
-
-import ibis.ipl.InterruptedIOException;
 import ibis.ipl.IllegalLockStateException;
+import ibis.ipl.InterruptedIOException;
+import ibis.util.ConditionVariable;
+import ibis.util.Monitor;
 
 /**
  * Provide a set of lock that can be changed and tested atomically.

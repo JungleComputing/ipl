@@ -1,16 +1,19 @@
 package ibis.impl.net.tcp;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetOutput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetSendBuffer;
 
-import java.net.Socket;
-import java.net.InetAddress;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.Hashtable;
 
 /**

@@ -2,17 +2,16 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
+import ibis.util.DummyInputStream;
+import ibis.util.DummyOutputStream;
+import ibis.util.IbisSocketFactory;
 
-import ibis.util.*;
-
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.BufferedInputStream;
-
 import java.util.Hashtable;
 
 class PortTypeNameServer extends Thread implements Protocol {

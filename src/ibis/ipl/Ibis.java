@@ -16,11 +16,12 @@ package ibis.ipl;
 
 **/
 
-import java.util.ArrayList;
-import java.util.Properties;
 import ibis.util.Input;
+
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Properties;
 
 public abstract class Ibis { 
 

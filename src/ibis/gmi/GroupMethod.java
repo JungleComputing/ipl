@@ -1,6 +1,6 @@
 package ibis.gmi;
 
-import  ibis.ipl.SendPort;
+import ibis.ipl.SendPort;
 
 /**
  * A {@link GroupMethod} object represents a method of a specific group

@@ -6,15 +6,16 @@
 
 package ibis.impl.tcp;
 
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.SerializationInputStream;
+import ibis.io.SunSerializationInputStream;
 import ibis.ipl.IbisError;
+import ibis.util.DummyInputStream;
 
-import ibis.io.*;
-
-import ibis.util.*;
-
-import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 	private static boolean DEBUG = false;

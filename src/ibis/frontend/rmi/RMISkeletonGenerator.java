@@ -1,11 +1,19 @@
 package ibis.frontend.rmi;
 
-import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.*;
-
-import java.util.Vector;
-import java.io.PrintWriter;
 import ibis.util.BT_Analyzer;
+
+import java.io.PrintWriter;
+import java.util.Vector;
+
+import org.apache.bcel.classfile.Code;
+import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.BranchInstruction;
+import org.apache.bcel.generic.Instruction;
+import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.MONITORENTER;
+import org.apache.bcel.generic.Type;
 
 class RMISkeletonGenerator extends RMIGenerator {
 

@@ -1,11 +1,11 @@
 package ibis.gmi;
 
-import java.io.IOException;
-
-import ibis.ipl.ReadMessage;
-import ibis.ipl.WriteMessage;
 import ibis.ipl.IbisException;
+import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 /**
  * The {@link GroupSkeleton} class serves as a base class for generated

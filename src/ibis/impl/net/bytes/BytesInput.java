@@ -1,9 +1,17 @@
 package ibis.impl.net.bytes;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetAllocator;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+import ibis.ipl.InterruptedIOException;
 
 import java.io.IOException;
-import ibis.ipl.InterruptedIOException;
 
 /**
  * The ID input implementation.

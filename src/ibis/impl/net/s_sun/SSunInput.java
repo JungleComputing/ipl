@@ -1,12 +1,13 @@
 package ibis.impl.net.s_sun;
 
-import ibis.io.SunSerializationInputStream;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetSerializedInput;
 import ibis.io.SerializationInputStream;
+import ibis.io.SunSerializationInputStream;
 
-import ibis.impl.net.*;
-
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * The ID input implementation.

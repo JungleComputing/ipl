@@ -1,22 +1,22 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.ReceivePort;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.util.DummyInputStream;
+import ibis.util.DummyOutputStream;
+import ibis.util.IbisSocketFactory;
 
-import ibis.util.*;
-
-import java.net.Socket;
-import java.net.InetAddress;
-
-import java.io.IOException;
-import java.io.StreamCorruptedException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
+import java.net.InetAddress;
+import java.net.Socket;
 
 class ReceivePortNameServerClient implements Protocol {
 

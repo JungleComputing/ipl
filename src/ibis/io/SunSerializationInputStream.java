@@ -1,7 +1,7 @@
 package ibis.io;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * The <code>SunSerializationInputStream</code> class is the "glue" between

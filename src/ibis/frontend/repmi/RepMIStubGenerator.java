@@ -1,12 +1,17 @@
 package ibis.frontend.repmi;
 
-import org.apache.bcel.*;
-import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.*;
-
-import java.util.Vector;
-import java.io.PrintWriter;
 import ibis.util.BT_Analyzer;
+
+import java.io.PrintWriter;
+import java.util.Vector;
+
+import org.apache.bcel.Constants;
+import org.apache.bcel.classfile.Code;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.Instruction;
+import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.Type;
 
 class RepMIStubGenerator extends RepMIGenerator { 
 

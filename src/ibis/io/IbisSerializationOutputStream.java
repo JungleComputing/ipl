@@ -1,10 +1,10 @@
 package ibis.io;
 
+import java.io.IOException;
+import java.io.NotActiveException;
+import java.io.NotSerializableException;
 import java.io.ObjectOutput;
 import java.io.ObjectStreamClass;
-import java.io.NotActiveException;
-import java.io.IOException;
-import java.io.NotSerializableException;
 
 
 /**

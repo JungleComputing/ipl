@@ -1,6 +1,8 @@
 package ibis.frontend.gmi;
 
-import org.apache.bcel.generic.*;
+import org.apache.bcel.generic.ArrayType;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.Type;
 
 class GMIGenerator { 
 

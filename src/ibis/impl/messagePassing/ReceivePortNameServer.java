@@ -1,7 +1,6 @@
 package ibis.impl.messagePassing;
 
 import java.io.IOException;
-
 import java.util.Hashtable;
 
 final class ReceivePortNameServer implements

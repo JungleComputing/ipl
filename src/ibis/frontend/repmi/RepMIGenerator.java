@@ -1,6 +1,7 @@
 package ibis.frontend.repmi;
 
-import org.apache.bcel.generic.*;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.Type;
 
 class RepMIGenerator {
  

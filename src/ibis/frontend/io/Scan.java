@@ -1,8 +1,13 @@
 package ibis.frontend.io;
 
-import java.util.*;
-import java.util.jar.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.StringTokenizer;
+import java.util.Vector;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 class Failed { 
     String [] class_names;

@@ -1,9 +1,8 @@
 package ibis.impl.net;
 
 import java.io.IOException;
-
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Provides a generic multiple network output poller.

@@ -1,7 +1,8 @@
 package ibis.frontend.rmi;
 
-import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.*;
+import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.Type;
 
 class RMIGenerator {
  

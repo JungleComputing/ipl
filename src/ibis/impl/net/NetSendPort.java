@@ -1,20 +1,19 @@
 package ibis.impl.net;
 
+import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.Replacer;
 
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import java.util.Iterator;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
 
 /**

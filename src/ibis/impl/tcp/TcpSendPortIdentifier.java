@@ -1,7 +1,7 @@
 package ibis.impl.tcp;
 
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.SendPortIdentifier;
 
 public final class TcpSendPortIdentifier implements SendPortIdentifier, java.io.Serializable { 
 	private static final long serialVersionUID = 5L;

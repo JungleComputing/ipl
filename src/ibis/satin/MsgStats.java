@@ -1,6 +1,7 @@
 package ibis.satin;
 
 import ibis.ipl.SendPortIdentifier;
+
 import java.util.Vector;
 
 class MsgStats {

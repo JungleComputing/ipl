@@ -1,16 +1,16 @@
 package ibis.io;
 
-import java.lang.reflect.Modifier;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamField;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.HashMap;
 import java.util.Comparator;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamField;
-import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 
 /**
  * The <code>AlternativeTypeInfo</code> class maintains information about

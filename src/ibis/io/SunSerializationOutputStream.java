@@ -1,7 +1,7 @@
 package ibis.io;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * The <code>SunSerializationOutputStream</code> class is the "glue" between

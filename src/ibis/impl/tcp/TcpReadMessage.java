@@ -1,11 +1,11 @@
 package ibis.impl.tcp;
 
+import ibis.io.SerializationInputStream;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
-import ibis.io.SerializationInputStream;
 
 final class TcpReadMessage implements ReadMessage { 
 	private SerializationInputStream in;

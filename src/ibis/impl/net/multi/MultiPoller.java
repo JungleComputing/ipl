@@ -1,13 +1,19 @@
 package ibis.impl.net.multi;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbisIdentifier;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetPoller;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetServiceLink;
+import ibis.ipl.ConnectionClosedException;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Hashtable;
-import ibis.ipl.ConnectionClosedException;
 
 /**
  * Provides a generic multiple network input poller.

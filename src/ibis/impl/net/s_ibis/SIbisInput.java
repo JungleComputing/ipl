@@ -1,10 +1,11 @@
 package ibis.impl.net.s_ibis;
 
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetSerializedInput;
 import ibis.io.IbisDissipator;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.SerializationInputStream;
-
-import ibis.impl.net.*;
 
 import java.io.IOException;
 

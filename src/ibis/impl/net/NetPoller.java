@@ -1,13 +1,12 @@
 package ibis.impl.net;
 
-import java.io.IOException;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.HashMap;
-
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.InterruptedIOException;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Provides a generic multiple network input poller.

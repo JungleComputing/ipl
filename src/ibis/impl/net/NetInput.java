@@ -1,13 +1,13 @@
 package ibis.impl.net;
 
-import ibis.ipl.ReadMessage;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.InterruptedIOException;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.SendPortIdentifier;
 
-import java.io.InputStream;
-import java.io.IOException;
 import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 
 /**

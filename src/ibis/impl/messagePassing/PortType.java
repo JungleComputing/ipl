@@ -1,10 +1,10 @@
 package ibis.impl.messagePassing;
 
-import java.io.IOException;
-
 import ibis.ipl.IbisException;
-import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.Replacer;
+import ibis.ipl.SendPortConnectUpcall;
+
+import java.io.IOException;
 
 public class PortType implements ibis.ipl.PortType {
 

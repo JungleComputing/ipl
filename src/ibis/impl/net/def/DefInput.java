@@ -1,6 +1,13 @@
 package ibis.impl.net.def;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetBufferedInput;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,8 +1,9 @@
 package ibis.impl.messagePassing;
 
+import ibis.util.IbisIdentifierTable;
+
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-import ibis.util.IbisIdentifierTable;
 
 // Make this final, make inlining possible
 final class IbisIdentifier

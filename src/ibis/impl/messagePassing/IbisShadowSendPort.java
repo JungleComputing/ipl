@@ -1,8 +1,8 @@
 package ibis.impl.messagePassing;
 
-import java.io.IOException;
-
 import ibis.io.IbisSerializationInputStream;
+
+import java.io.IOException;
 
 final class IbisShadowSendPort extends ShadowSendPort {
 

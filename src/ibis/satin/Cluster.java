@@ -1,6 +1,6 @@
 package ibis.satin;
 
-import java.util.*;
+import java.util.Vector;
 
 final class Cluster {
 	String name; //all references to a cluster's name are the same

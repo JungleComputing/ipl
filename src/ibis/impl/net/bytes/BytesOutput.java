@@ -1,6 +1,14 @@
 package ibis.impl.net.bytes;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetAllocator;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetOutput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetSendBuffer;
+import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
 
 import java.io.IOException;
 

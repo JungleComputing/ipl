@@ -1,9 +1,9 @@
 package ibis.impl.messagePassing;
 
+import ibis.ipl.PortMismatchException;
+
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-
-import ibis.ipl.PortMismatchException;
 
 class ShadowSendPort extends SendPort {
 

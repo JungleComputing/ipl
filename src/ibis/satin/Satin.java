@@ -1,14 +1,28 @@
 package ibis.satin;
 
-import ibis.ipl.*;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisError;
+import ibis.ipl.IbisException;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Registry;
+import ibis.ipl.ResizeHandler;
+import ibis.ipl.SendPort;
+import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.StaticProperties;
 import ibis.ipl.Timer;
-import java.util.Random;
-import java.util.Properties;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Vector;
+import ibis.ipl.WriteMessage;
+
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Vector;
 
 //@@@ because a method has an outstandingSpawns list, the spawn counter is no longer needed! --Rob
 

@@ -1,11 +1,12 @@
 package ibis.impl.net.muxer.udp;
 
-import java.io.IOException;
-import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
-import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetOutput;
+import ibis.impl.net.NetPortType;
+
+import java.io.IOException;
 
 /**
  * The NetIbis Muxer/UDP driver.

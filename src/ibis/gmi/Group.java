@@ -1,28 +1,26 @@
 package ibis.gmi;
 
-import java.io.IOException;
-
-import java.net.InetAddress;
-
-import java.util.Properties;
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.StringTokenizer;
-import ibis.util.Ticket;
-import ibis.util.PoolInfo;
-
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
+import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPort;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.WriteMessage;
 import ibis.ipl.Registry;
-import ibis.ipl.Upcall;
+import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
+import ibis.ipl.Upcall;
+import ibis.ipl.WriteMessage;
+import ibis.util.PoolInfo;
+import ibis.util.Ticket;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 /**
  * The {@link Group} class takes care of the startup, and has methods

@@ -1,19 +1,19 @@
 package ibis.impl.tcp;
 
-import java.io.IOException;
-
-import ibis.ipl.PortType;
-import ibis.ipl.StaticProperties;
-import ibis.ipl.SendPort;
-import ibis.ipl.ReceivePort;
-import ibis.ipl.Upcall;
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisError;
-import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.SendPortConnectUpcall;
-import ibis.ipl.Replacer;
-import java.util.ArrayList;
+import ibis.ipl.IbisException;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.Replacer;
+import ibis.ipl.SendPort;
+import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.StaticProperties;
+import ibis.ipl.Upcall;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 class TcpPortType implements PortType, Config { 
 

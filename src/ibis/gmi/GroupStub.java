@@ -1,12 +1,11 @@
 package ibis.gmi;
 
-import java.io.IOException;
-
-import ibis.ipl.WriteMessage;
-import ibis.ipl.ReadMessage;
 import ibis.ipl.IbisException;
-
+import ibis.ipl.ReadMessage;
+import ibis.ipl.WriteMessage;
 import ibis.util.Ticket;
+
+import java.io.IOException;
 
 /**
  * The {@link GroupStub} class provides a base class for generated stubs. A GroupStub

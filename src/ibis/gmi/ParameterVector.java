@@ -1,9 +1,9 @@
 package ibis.gmi;
 
-import java.io.IOException;
-
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 /**
  * The {@link ParameterVector} class provides a base class for generated

@@ -1,7 +1,7 @@
 package ibis.impl.net;
 
-import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.IbisConfigurationException;
 
 import java.io.IOException;
 

@@ -1,12 +1,19 @@
 package ibis.repmi;
 
-import java.net.InetAddress;
-import java.util.Vector;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPort;
+import ibis.ipl.StaticProperties;
+import ibis.ipl.WriteMessage;
+import ibis.util.PoolInfo;
 
 import java.io.IOException;
-
-import ibis.ipl.*;
-import ibis.util.PoolInfo;
+import java.net.InetAddress;
+import java.util.Vector;
 
 public final class RTS { 
 

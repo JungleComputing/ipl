@@ -1,12 +1,18 @@
 package ibis.impl.net.gm;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetBufferFactoryImpl;
+import ibis.impl.net.NetBufferedOutput;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetSendBuffer;
+import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Hashtable;
 
 /**

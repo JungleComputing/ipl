@@ -1,6 +1,10 @@
 package ibis.impl.net.gm;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetOutput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetSplitter;
 
 import java.io.IOException;
 

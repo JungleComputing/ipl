@@ -1,7 +1,7 @@
 package ibis.io;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * This is an implementation of <code>ArrayOutputStream</code> (and thus also

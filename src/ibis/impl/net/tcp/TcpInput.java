@@ -1,24 +1,25 @@
 package ibis.impl.net.tcp;
 
-import ibis.impl.net.*;
-
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
+import ibis.impl.net.NetPollInterruptible;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetReceiveBuffer;
 import ibis.ipl.ConnectionClosedException;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-
-/* Only for java >= 1.4
-import java.net.SocketTimeoutException;
-*/
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.Hashtable;
 
 

@@ -1,7 +1,8 @@
 package ibis.util;
 
+import ibis.ipl.IbisIdentifier;
+
 import java.util.HashMap;
-import ibis.ipl.*;
 
 final class SendNode {
 	Object outStream;

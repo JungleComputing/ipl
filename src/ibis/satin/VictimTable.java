@@ -1,7 +1,11 @@
 package ibis.satin;
 
-import ibis.ipl.*;
-import java.util.*;
+import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.SendPort;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 final class VictimTable implements Config {
 	private Vector victims = new Vector();

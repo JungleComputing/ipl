@@ -1,8 +1,9 @@
 package ibis.repmi;
 
-import java.io.IOException;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.Upcall;
 
-import ibis.ipl.*;
+import java.io.IOException;
 
 final class CallHandler implements Protocol, Upcall { 
 	

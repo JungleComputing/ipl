@@ -1,7 +1,6 @@
 package ibis.impl.net;
 
 import ibis.io.SerializationOutputStream;
-
 import ibis.ipl.Replacer;
 
 import java.io.IOException;

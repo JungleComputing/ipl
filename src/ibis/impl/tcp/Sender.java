@@ -1,7 +1,7 @@
 package ibis.impl.tcp;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 abstract class Sender {
 	abstract ibis.ipl.WriteMessage newMessage() throws IOException;

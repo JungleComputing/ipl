@@ -1,21 +1,19 @@
 package ibis.impl.net;
 
 import ibis.ipl.PortType;
-import ibis.ipl.StaticProperties;
-import ibis.ipl.SendPort;
-import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.Upcall;
 import ibis.ipl.Replacer;
-
+import ibis.ipl.SendPort;
+import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.StaticProperties;
+import ibis.ipl.Upcall;
 import ibis.util.Input;
 
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
-
-import java.io.IOException;
 
 /**
  * Provide a NetIbis'specific implementation of the {@link PortType} interface.

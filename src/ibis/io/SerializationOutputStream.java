@@ -2,9 +2,9 @@ package ibis.io;
 
 import ibis.ipl.Replacer;
 
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.IOException;
 
 /**
  * This abstract class is the interface provided by Ibis Serialization.

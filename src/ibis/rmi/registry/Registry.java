@@ -1,9 +1,9 @@
 package ibis.rmi.registry;
 
+import ibis.rmi.AlreadyBoundException;
+import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
-import ibis.rmi.NotBoundException;
-import ibis.rmi.AlreadyBoundException;
 
 public interface Registry extends Remote
 {

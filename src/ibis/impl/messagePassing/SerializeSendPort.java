@@ -1,11 +1,11 @@
 package ibis.impl.messagePassing;
 
+import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.Replacer;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-
-import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.Replacer;
 
 final public class SerializeSendPort extends SendPort {
 

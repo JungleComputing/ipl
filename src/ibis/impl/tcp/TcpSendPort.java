@@ -1,26 +1,26 @@
 package ibis.impl.tcp;
 
-import ibis.ipl.SendPort;
-import ibis.ipl.DynamicProperties;
-import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.PortMismatchException;
-import ibis.ipl.SendPortConnectUpcall;
-import ibis.ipl.IbisError;
-import ibis.ipl.Replacer;
-
-import java.util.ArrayList;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.BufferedOutputStream;
-
+import ibis.io.BufferedArrayOutputStream;
+import ibis.io.IbisSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 import ibis.io.SunSerializationOutputStream;
-import ibis.io.IbisSerializationOutputStream;
-import ibis.io.BufferedArrayOutputStream;
+import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.DynamicProperties;
+import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
-import ibis.util.*;
+import ibis.ipl.PortMismatchException;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Replacer;
+import ibis.ipl.SendPort;
+import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.SendPortIdentifier;
+import ibis.util.DummyOutputStream;
+import ibis.util.OutputStreamSplitter;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
 
 final class TcpSendPort implements SendPort, Config, TcpProtocol {
 

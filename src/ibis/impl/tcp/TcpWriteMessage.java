@@ -1,11 +1,11 @@
 package ibis.impl.tcp;
 
-import ibis.ipl.WriteMessage;
-
-import java.io.IOException;
-import ibis.util.*;
 import ibis.io.SerializationOutputStream;
 import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
+import ibis.util.SplitterException;
+
+import java.io.IOException;
 
 final class TcpWriteMessage implements WriteMessage {
 	private TcpSendPort sport;

@@ -1,12 +1,10 @@
 package ibis.rmi.server;
 
-import ibis.rmi.RemoteException;
 import ibis.rmi.Remote;
+import ibis.rmi.RemoteException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.ClassNotFoundException;
-import java.lang.CloneNotSupportedException;
 
 public class UnicastRemoteObject extends RemoteServer
 {

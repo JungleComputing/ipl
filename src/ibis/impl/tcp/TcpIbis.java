@@ -1,22 +1,20 @@
 package ibis.impl.tcp;
 
-import ibis.ipl.Ibis;
-import ibis.ipl.PortType;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.StaticProperties;
-import ibis.ipl.IbisException;
-import ibis.ipl.Registry;
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.ReadMessage;
-
 import ibis.impl.nameServer.NameServer;
-
-import java.net.InetAddress;
-import java.util.Properties;
-import java.util.ArrayList;
-import java.util.Hashtable;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisException;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Registry;
+import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Properties;
 
 public final class TcpIbis extends Ibis implements Config {
 

@@ -1,10 +1,9 @@
 package ibis.impl.messagePassing;
 
-import java.util.Hashtable;
+import ibis.ipl.IbisException;
 
 import java.io.IOException;
-
-import ibis.ipl.IbisException;
+import java.util.Hashtable;
 
 class ElectionServer
 	implements Runnable, ibis.ipl.Upcall {

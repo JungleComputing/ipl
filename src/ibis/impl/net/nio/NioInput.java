@@ -1,36 +1,33 @@
 package ibis.impl.net.nio;
 
-import ibis.impl.net.*;
-
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetReceiveBuffer;
 import ibis.ipl.ConnectionClosedException;
-
-
-import java.net.ServerSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.Hashtable;
-import java.util.Enumeration;
-
-import java.lang.Math;
-
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.CharBuffer;
-import java.nio.ShortBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-import java.nio.FloatBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.ByteOrder;
-import java.nio.BufferUnderflowException;
-
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.ShortBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
 /**
  * The NIO/TCP input implementation.

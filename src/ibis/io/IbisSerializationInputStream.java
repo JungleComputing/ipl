@@ -1,13 +1,13 @@
 package ibis.io;
 
-import java.io.ObjectStreamClass;
+import java.io.Externalizable;
 import java.io.IOException;
 import java.io.NotActiveException;
-import java.io.Serializable;
-import java.io.Externalizable;
-import java.io.UTFDataFormatException;
-import java.io.StreamCorruptedException;
 import java.io.NotSerializableException;
+import java.io.ObjectStreamClass;
+import java.io.Serializable;
+import java.io.StreamCorruptedException;
+import java.io.UTFDataFormatException;
 
 /**
  * This is the <code>SerializationInputStream</code> version that is used

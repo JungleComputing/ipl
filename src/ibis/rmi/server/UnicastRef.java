@@ -1,10 +1,10 @@
 package ibis.rmi.server;
 
+import ibis.rmi.RemoteException;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import ibis.rmi.RemoteException;
 import java.lang.reflect.Method;
 
 public class UnicastRef implements RemoteRef, java.io.Serializable

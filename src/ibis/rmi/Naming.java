@@ -2,8 +2,9 @@ package ibis.rmi;
 
 import ibis.rmi.registry.LocateRegistry;
 import ibis.rmi.registry.Registry;
-import java.net.URL;
+
 import java.net.MalformedURLException;
+import java.net.URL;
 
 public final class Naming
 {

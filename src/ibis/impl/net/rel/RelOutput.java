@@ -1,14 +1,23 @@
 package ibis.impl.net.rel;
 
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetBufferedOutput;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetOutput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetSendBuffer;
+import ibis.impl.net.NetServiceLink;
+import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.IbisIdentifier;
+
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
 import java.io.StreamCorruptedException;
-
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.ConnectionRefusedException;
-
-import ibis.impl.net.*;
 
 /**
 * The REL output implementation.

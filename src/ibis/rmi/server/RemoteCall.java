@@ -1,9 +1,9 @@
 package ibis.rmi.server;
 
-import java.io.ObjectOutput;
-import java.io.ObjectInput;
-import java.io.StreamCorruptedException;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.StreamCorruptedException;
 
 public interface RemoteCall
 {

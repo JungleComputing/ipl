@@ -1,19 +1,22 @@
 package ibis.impl.net.udp;
 
-import ibis.impl.net.*;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetBufferedInput;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetMessageStat;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 
-import java.net.DatagramSocket;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-
-/* Only for java >= 1.4
- * import java.net.SocketTimeoutException;
- */
-import java.io.InterruptedIOException;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.Hashtable;
 
 

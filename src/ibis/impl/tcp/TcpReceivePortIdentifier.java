@@ -1,7 +1,7 @@
 package ibis.impl.tcp;
 
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ReceivePortIdentifier;
 
 public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, java.io.Serializable { 
 	private static final long serialVersionUID = 4L;

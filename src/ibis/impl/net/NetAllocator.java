@@ -1,6 +1,5 @@
 package ibis.impl.net;
 
-import ibis.impl.net.__;
 import java.util.HashMap;
 import java.util.Iterator;
 

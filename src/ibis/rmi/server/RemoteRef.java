@@ -1,7 +1,8 @@
 package ibis.rmi.server;
 
-import java.io.Externalizable;
 import ibis.rmi.RemoteException;
+
+import java.io.Externalizable;
 
 public interface RemoteRef extends Externalizable
 {

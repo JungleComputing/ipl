@@ -1,18 +1,14 @@
 package ibis.impl.net.muxer;
 
-import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
-import ibis.impl.net.NetPortType;
-import ibis.impl.net.NetIO;
-import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIO;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-
-/* Only for java >= 1.4
-* import java.net.SocketTimeoutException;
-*/
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;

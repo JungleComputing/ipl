@@ -1,19 +1,17 @@
 package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.StaticProperties;
+import ibis.util.DummyInputStream;
+import ibis.util.DummyOutputStream;
+import ibis.util.IbisSocketFactory;
 
-import ibis.util.*;
-
-import java.net.Socket;
-import java.net.InetAddress;
-
+import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.StreamCorruptedException;
-
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
-import java.io.BufferedOutputStream;
-
+import java.io.StreamCorruptedException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.Enumeration;
 
 class PortTypeNameServerClient implements Protocol {

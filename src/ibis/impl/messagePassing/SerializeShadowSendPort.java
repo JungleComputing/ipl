@@ -1,10 +1,10 @@
 package ibis.impl.messagePassing;
 
-import java.io.ObjectInputStream;
+import ibis.util.ConditionVariable;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
-
-import ibis.util.ConditionVariable;
+import java.io.ObjectInputStream;
 
 final class SerializeShadowSendPort extends ShadowSendPort {
 

@@ -1,8 +1,8 @@
 package ibis.repmi;
 
-import java.io.IOException;
-
 import ibis.ipl.ReadMessage;
+
+import java.io.IOException;
 
 // This is a base class for generated group stubs
 

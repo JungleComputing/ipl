@@ -1,7 +1,7 @@
 package ibis.impl.net;
 
-import java.io.IOException;
 import java.io.FileInputStream;
+import java.io.IOException;
 
 
 public class NetFile {

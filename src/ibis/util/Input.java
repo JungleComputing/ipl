@@ -1,6 +1,10 @@
 package ibis.util;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * An Input object which enables input like in Pascal. 

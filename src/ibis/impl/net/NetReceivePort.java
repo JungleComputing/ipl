@@ -1,23 +1,23 @@
 package ibis.impl.net;
 
+import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.DynamicProperties;
+import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.InterruptedIOException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
-import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.InterruptedIOException;
 
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Iterator;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
 
 

@@ -2,9 +2,9 @@ package ibis.impl.net;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
 
 /**
  * Provide a set of methods to convert native Java types to and from bytes.

@@ -1,8 +1,8 @@
 package ibis.impl.messagePassing;
 
-import java.io.IOException;
-
 import ibis.ipl.IbisException;
+
+import java.io.IOException;
 
 public class MPIIbis extends Ibis {
 

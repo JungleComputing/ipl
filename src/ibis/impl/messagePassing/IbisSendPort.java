@@ -1,9 +1,9 @@
 package ibis.impl.messagePassing;
 
-import java.io.IOException;
-
-import ibis.ipl.Replacer;
 import ibis.io.IbisSerializationOutputStream;
+import ibis.ipl.Replacer;
+
+import java.io.IOException;
 
 final public class IbisSendPort extends SendPort {
 

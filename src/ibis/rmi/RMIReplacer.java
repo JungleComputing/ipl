@@ -1,9 +1,7 @@
 package ibis.rmi;
 
 import ibis.ipl.Replacer;
-
 import ibis.rmi.server.RemoteStub;
-import ibis.rmi.Remote;
 
 public final class RMIReplacer implements Replacer {
 

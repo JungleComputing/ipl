@@ -1,8 +1,10 @@
 package ibis.util;
 
-import org.apache.bcel.*;
-import org.apache.bcel.classfile.*;
-import java.util.*;
+import java.util.Vector;
+
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Method;
 
 public class BT_Analyzer { 
         boolean verbose;

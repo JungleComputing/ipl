@@ -1,11 +1,14 @@
 package ibis.frontend.gmi;
 
-import java.util.Vector;
-import java.io.PrintWriter;
 import ibis.util.BT_Analyzer;
 
-import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.*;
+import java.io.PrintWriter;
+import java.util.Vector;
+
+import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.ArrayType;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.Type;
 
 class GMISkeletonGenerator extends GMIGenerator {
 

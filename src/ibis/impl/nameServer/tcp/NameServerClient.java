@@ -1,29 +1,25 @@
 package ibis.impl.nameServer.tcp;
 
+import ibis.impl.nameServer.NameServer;
+import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.StaticProperties;
-
-import ibis.impl.nameServer.NameServer;
-
-import ibis.util.*;
-
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-
-import java.io.IOException;
-import java.io.StreamCorruptedException;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import ibis.util.DummyInputStream;
+import ibis.util.DummyOutputStream;
+import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Properties;
 
 public class NameServerClient extends NameServer implements Runnable, Protocol {

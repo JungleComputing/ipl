@@ -1,16 +1,16 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.util.*;
+import ibis.util.DummyInputStream;
+import ibis.util.DummyOutputStream;
+import ibis.util.IbisSocketFactory;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Hashtable;
 
 class ElectionServer extends Thread implements Protocol {

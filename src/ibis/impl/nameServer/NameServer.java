@@ -1,9 +1,10 @@
 package ibis.impl.nameServer;
 
-import java.io.IOException;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.StaticProperties;
+
+import java.io.IOException;
 import java.util.Properties;
 
 /** 

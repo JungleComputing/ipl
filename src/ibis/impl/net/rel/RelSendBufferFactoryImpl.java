@@ -1,7 +1,7 @@
 package ibis.impl.net.rel;
 
-import ibis.impl.net.NetBuffer;
 import ibis.impl.net.NetAllocator;
+import ibis.impl.net.NetBuffer;
 
 class RelSendBufferFactoryImpl
 	implements ibis.impl.net.NetBufferFactoryImpl {

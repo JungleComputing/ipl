@@ -1,11 +1,11 @@
 package ibis.frontend.ibis;
 
-import org.apache.bcel.*;
-import org.apache.bcel.classfile.*;
-
-import java.util.Vector;
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
+
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.JavaClass;
 
 class Ibisc {
     JavaClass c;
