@@ -21,9 +21,9 @@ public final class ThreadPool {
     // index of next available pool thread
     private static int		poolPtr = 0;
     private static final int	minPoolSize = 4;
-    private static final int	poolSize;
+    private static int		poolSize;
 
-    // dequeue from 0 upwards
+    // dequeue from N - 1 downwards
     // Do lazy creation of pool threads, but bound fixed at poolSize.
     private static PoolThread[]	pool;
 
@@ -43,7 +43,31 @@ public final class ThreadPool {
 	}
 	poolSize = size;
 	pool = new PoolThread[poolSize];
-	poolPtr = poolSize - 1;
+	poolPtr = 0;
+    }
+
+    /**
+     * Double the pool size. Currently unused, but if we ever want to make a
+     * flexy-size pool..
+     */
+    private static void grow() {
+	synchronized (lock) {
+	    int newPoolSize = 2 * poolSize;
+	    PoolThread[] newPool = new PoolThread[newPoolSize];
+	    System.arraycopy(pool, 0, newPool, 0, poolSize);
+	    poolSize = newPoolSize;
+	    pool = newPool;
+	}
+    }
+
+    /**
+     * Halve the pool size. Currently unused, but if we ever want to make a
+     * flexy-size pool..
+     */
+    private static void shrink() {
+	synchronized (lock) {
+	    poolSize = poolSize / 2;
+	}
     }
 
     private static class PoolThread extends Thread {
@@ -92,7 +116,7 @@ public final class ThreadPool {
 			    // This is Rob's heuristics. I am afraid I don't
 			    // understand. What if ready=1 and numthreads=1?
 			    // q.size() == 0 && 2 * ready > numthreads
-			poolPtr == 0) {
+			poolPtr == poolSize - 1) {
 			    // ready--;
 			    // numthreads--;
 			if (DEBUG) {
@@ -104,8 +128,8 @@ public final class ThreadPool {
 		    }
 
 		    /* Enqueue us in the pool for the next spawn */
-		    --poolPtr;
 		    pool[poolPtr] = this;
+		    poolPtr++;
 		    setName("Sleeping pool thread");
 		}
 	    }
@@ -153,13 +177,13 @@ public final class ThreadPool {
     public static void createNew(Runnable r, String name) {
 	PoolThread t;
 	synchronized (lock) {
-	    if (poolPtr == poolSize - 1 || pool[poolPtr] == null) {
+	    if (poolPtr == 0 || pool[poolPtr] == null) {
 		t = new PoolThread();
 		t.setDaemon(true);
 		t.start();
 	    } else {
+		--poolPtr;
 		t = pool[poolPtr];
-		poolPtr++;
 	    }
 	}
 	t.spawn(r, name);
