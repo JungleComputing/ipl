@@ -33,7 +33,7 @@ public final class NetPortType implements PortType {
 		}
 
 		StringBuffer s = new StringBuffer();
-		while (!in.eof() && !in.eoln() && in.nextChar() != '=') {
+		while (!in.eof() && !in.eoln() && in.nextChar() != '=' && !Character.isWhitespace(in.nextChar())) {
 			s.append(in.readChar());
 		}
 
@@ -50,13 +50,14 @@ public final class NetPortType implements PortType {
 	}
 	private void readProperties(Input in, StaticProperties sp) {
 		while(!in.eof()) {
+                        in.skipWhiteSpace();
 			String key = readKey(in);
 
 			if (key == null) {
 				in.readln();
 				continue;
 			}
-			
+                        in.skipWhiteSpace();			
 			in.readChar();
 			in.skipWhiteSpace();
 			String val = readVal(in);
@@ -64,7 +65,7 @@ public final class NetPortType implements PortType {
 
 			try {
                                 if (sp.find(key) == null) {
-                                        System.err.println("NetPortType: default setting "+key+" = "+val);
+                                        System.err.println("NetPortType: default setting ["+key+"] = ["+val+"]");
                                         sp.add(key, val);
                                 }
 			} catch (Exception e) {
@@ -93,7 +94,7 @@ public final class NetPortType implements PortType {
                 this.propertyCache    = new HashMap();
 		this.staticProperties = sp;
                 
-                /* Completes the static properties with default value */
+                /* Completes the static properties with default values from configuration file*/
                 {        
                         Input  in = null;
                         String filename = "";
@@ -109,6 +110,31 @@ public final class NetPortType implements PortType {
                                 }
                         }
                 }
+
+                /* Completes the static properties with default values */
+                {
+                        if (sp.find("/:Driver") == null) {
+                                System.err.println("NetPortType: internal default setting /:Driver = gen");
+                                try {
+                                        sp.add("/:Driver", "gen");
+                                } catch (Exception e) {
+                                        System.err.println("error adding property (/:Driver, gen)");
+                                        System.exit(1);
+                                }
+
+                                if (sp.find("/gen:Driver") == null) {
+                                        System.err.println("NetPortType: internal default setting /gen:Driver = def");
+                                        try {
+                                                        
+                                                sp.add("/gen:Driver", "def");
+                                        } catch (Exception e) {
+                                                System.err.println("error adding property (/gen:Driver, def)");
+                                                System.exit(1);
+                                        }
+                                }
+                        }
+                }
+                
                 
                 /* Builds the property tree */
                 {

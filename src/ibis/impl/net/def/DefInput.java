@@ -107,7 +107,7 @@ public final class DefInput extends NetInput {
                 try {
                         lock();
                         for (int i = 0; i < expectedLength; i++) {
-			        b.data[i] = readByte();
+			        b.data[i] = defIs.readByte();
                                 b.length++;
                         }
 		} catch (IOException e) {
@@ -118,13 +118,12 @@ public final class DefInput extends NetInput {
 
                 return b;
         }
-        
 
         public void readByteBuffer(NetReceiveBuffer b) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < b.data.length; i++) {
-			        b.data[i] = readByte();
+			        b.data[i] = defIs.readByte();
                                 b.length++;
                         }
 		} catch (IOException e) {
@@ -133,8 +132,6 @@ public final class DefInput extends NetInput {
                         unlock();
                 }
         }
-        
-
 
 	public boolean readBoolean() throws IbisIOException {
                 boolean result = false;
@@ -151,8 +148,6 @@ public final class DefInput extends NetInput {
                 return result;
         }
         
-
-        
 	public byte readByte() throws IbisIOException {
                 byte result = 0;
                 
@@ -166,8 +161,7 @@ public final class DefInput extends NetInput {
                 }
    
                 return result;
-        }
-        
+        }        
         
 	public char readChar() throws IbisIOException {
                 char result = 0;
@@ -276,6 +270,7 @@ public final class DefInput extends NetInput {
 
         public Object readObject() throws IbisIOException {
                 Object o = null;
+
                 try {
                         lock();
                         o = defIs.readObject();
@@ -286,14 +281,13 @@ public final class DefInput extends NetInput {
                 }
                 
                 return o;
-        }
-        
+        }        
         
 	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = readBoolean();
+			        b[o+i] = defIs.readBoolean();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -301,13 +295,12 @@ public final class DefInput extends NetInput {
                         unlock();
                 }
         }
-
 
 	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = readByte();
+			        b[o+i] = defIs.readByte();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -315,13 +308,12 @@ public final class DefInput extends NetInput {
                         unlock();
                 }
         }
-
 
 	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = readChar();
+			        b[o+i] = defIs.readChar();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -329,13 +321,12 @@ public final class DefInput extends NetInput {
                         unlock();
                 }
         }
-
 
 	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = readShort();
+			        b[o+i] = defIs.readShort();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -343,13 +334,12 @@ public final class DefInput extends NetInput {
                         unlock();
                 }
         }
-
 
 	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = readInt();
+			        b[o+i] = defIs.readInt();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -357,13 +347,12 @@ public final class DefInput extends NetInput {
                         unlock();
                 }
         }
-
 
 	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = readLong();
+			        b[o+i] = defIs.readLong();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -371,13 +360,12 @@ public final class DefInput extends NetInput {
                         unlock();
                 }
         }
-
 
 	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = readFloat();
+			        b[o+i] = defIs.readFloat();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -385,7 +373,6 @@ public final class DefInput extends NetInput {
                         unlock();
                 }
         }
-
 
 	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
                 try {

@@ -614,6 +614,15 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 		}
 		
 		acceptThread.start();
+
+                //System.err.println("NetReceivePort settings");
+                //System.err.println("useUpcallThreadPool = " + useUpcallThreadPool);
+                //System.err.println("usePollingThread    = " + usePollingThread   );
+                //System.err.println("useUpcallThread     = " + useUpcallThread    );
+                //System.err.println("useUpcall           = " + useUpcall          );
+                //System.err.println("useYield            = " + useYield           );
+                //System.err.println("_______________________");
+
                 //System.err.println("NetReceivePort: <init><--");
 	}
 

@@ -70,7 +70,6 @@ public final class DefOutput extends NetOutput {
                 super.initSend();
         }
 
-
         public void finish() throws IbisIOException{
                 super.finish();
         }
@@ -236,7 +235,7 @@ public final class DefOutput extends NetOutput {
                         try {
                                 defOs.writeInt(nlsId);
                                 for (int i = 0; i < l; i++) {
-                                        writeByte(b[o+i]);
+                                        defOs.writeByte(b[o+i]);
                                 }
                                 defOs.flush();
                         } catch (IOException e) {
@@ -249,7 +248,7 @@ public final class DefOutput extends NetOutput {
                         try {
                                 defOs.writeInt(nlsId);
                                 for (int i = 0; i < l; i++) {
-                                        writeChar(b[o+i]);
+                                        defOs.writeChar(b[o+i]);
                                 }
                                 defOs.flush();
                         } catch (IOException e) {
@@ -263,7 +262,7 @@ public final class DefOutput extends NetOutput {
                         try {
                                 defOs.writeInt(nlsId);
                                 for (int i = 0; i < l; i++) {
-                                        writeShort(b[o+i]);
+                                        defOs.writeShort(b[o+i]);
                                 }
                                 defOs.flush();
                         } catch (IOException e) {
@@ -277,7 +276,7 @@ public final class DefOutput extends NetOutput {
                         try {
                                 defOs.writeInt(nlsId);
                                 for (int i = 0; i < l; i++) {
-                                        writeInt(b[o+i]);
+                                        defOs.writeInt(b[o+i]);
                                 }
                                 defOs.flush();
                         } catch (IOException e) {
@@ -291,7 +290,7 @@ public final class DefOutput extends NetOutput {
                         try {
                                 defOs.writeInt(nlsId);
                                 for (int i = 0; i < l; i++) {
-                                        writeLong(b[o+i]);
+                                        defOs.writeLong(b[o+i]);
                                 }
                                 defOs.flush();
                         } catch (IOException e) {
@@ -305,7 +304,7 @@ public final class DefOutput extends NetOutput {
                         try {
                                 defOs.writeInt(nlsId);
                                 for (int i = 0; i < l; i++) {
-                                        writeFloat(b[o+i]);
+                                        defOs.writeFloat(b[o+i]);
                                 }
                                 defOs.flush();
                         } catch (IOException e) {
@@ -319,7 +318,7 @@ public final class DefOutput extends NetOutput {
                         try {
                                 defOs.writeInt(nlsId);
                                 for (int i = 0; i < l; i++) {
-                                        writeDouble(b[o+i]);
+                                        defOs.writeDouble(b[o+i]);
                                 }
                                 defOs.flush();
                         } catch (IOException e) {
@@ -333,7 +332,7 @@ public final class DefOutput extends NetOutput {
                         try {
                                 defOs.writeInt(nlsId);
                                 for (int i = 0; i < l; i++) {
-                                        writeObject(b[o+i]);
+                                        defOs.writeObject(b[o+i]);
                                 }
                                 defOs.flush();
                         } catch (IOException e) {
