@@ -41,6 +41,7 @@ public class Timer implements java.io.Serializable {
      */
     public void reset() {
 	time = 0;
+	count = 0;
     }
 
     /**

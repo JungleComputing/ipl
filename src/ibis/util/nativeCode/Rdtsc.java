@@ -43,6 +43,7 @@ public final class Rdtsc extends ibis.util.Timer {
 
 	public void reset() {
 		time = 0;
+		count = 0;
 	}
 
 	public void start() {
