@@ -459,21 +459,6 @@ to the command line.
 	</concat>
 	<chmod file="${ibis}/bin/run_ibis_wide_area" perm="+x"/>
 
-	<concat destfile="${ibis}/bin/grun">
-	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/grun" />
-	</concat>
-	<chmod file="${ibis}/bin/grun" perm="+x"/>
-
-	<concat destfile="${ibis}/bin/pprun">
-	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/pprun" />
-	</concat>
-	<chmod file="${ibis}/bin/pprun" perm="+x"/>
-
-	<concat destfile="${ibis}/bin/frun">
-	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/frun" />
-	</concat>
-	<chmod file="${ibis}/bin/frun" perm="+x"/>
-
 	<!--
 	    Right for now, this is used only by me = RFHH so I choose values
 	    for ibis NS port and host that are sensible to *me*. This might

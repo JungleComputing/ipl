@@ -1,6 +1,0 @@
-HOSTNAME=fs2.das2.nikhef.nl
-JAVA_HOME=/usr/local/sun-java/j2sdk1.4.1_01
-RSH=ssh
-RCP=scp
-JOBMGR=jobmanager-pbs
-SPLIT=false
