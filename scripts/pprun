@@ -28,7 +28,7 @@ USAGE="usage: $0 [-d] [-t <time>] [-icp <extra ibisclasspath> ] [-Xhprof=<jit pr
 
 DEBUG=off
 TIME_OPT=
-IBISCLASSPATH=ibis/classlibs:.
+IBISCLASSPATH=ibis/build
 PROFILING=
 
 #read any options
@@ -143,11 +143,10 @@ fi
 #create $IBIS_ROOT/ibis.tgz
 (
 	cd $IBIS_ROOT
-	FILES=`find ibis -name *.class -or -name *properties -or -name *.jar`
-	#also include subdirs in $APP_DIR
-	FILES="$FILES $(find $APP_DIR -path "$APP_DIR/*/*")"
-	#and the libraries
-	FILES="$FILES $(find ibis/lib -path "ibis/lib/*" -and -name *.so -or -name *.a)"
+	#include properties files
+	FILES=`find ibis -name '*properties'` # -or -name *.jar`
+	#include the entire build dir and $APP_DIR
+	FILES="$FILES ibis/build $APP_DIR" 
 
 	rm -f ibis$$.tgz
 	tar cfz ibis$$.tgz $FILES
@@ -196,11 +195,11 @@ for s in $SITES; do
 	echo "cd ~/tmp$$/$APP_DIR" >> pprun_remote$$$s
 	echo -n "prun ${!PRUN_OPTS_VAR} -o ~/tmp$$/pprun$$$s " >> pprun_remote$$$s
 	echo -n "-subst LD_ASSUME_KERNEL=2.2.5 " >> pprun_remote$$$s
-	#echo -n "LD_LIBRARY_PATH="'$HOME'"/tmp$$/ibis/lib:. " >> pprun_remote$$$s
+	#echo -n 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME'"/tmp$$/ibis/build/lib " >> pprun_remote$$$s
 	echo -n '$HOME'"/tmp$$/run_java " >> pprun_remote$$$s
 	echo -n "${!COUNT_VAR} " >> pprun_remote$$$s
 	echo -n "-Dsun.boot.library.path=" >> pprun_remote$$$s
-	echo -n '$HOME'"/tmp$$/ibis/lib:" >> pprun_remote$$$s
+	echo -n '$HOME'"/tmp$$/ibis/build/lib:" >> pprun_remote$$$s
     echo -n "${!JAVA_ROOT_VAR}/jre/bin:" >> pprun_remote$$$s
 	echo -n "${!JAVA_ROOT_VAR}/jre/lib/i386 " >> pprun_remote$$$s
 	echo -n "-Dibis.property.file=" >> pprun_remote$$$s
