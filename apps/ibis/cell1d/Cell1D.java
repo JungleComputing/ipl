@@ -368,9 +368,6 @@ class Cell1D implements Config {
                 System.out.println( "Done" );
             }
 
-            /* free the send ports first */
-            sport.close();
-            rport.close();
             ibis.end();
         }
         catch( Exception e ) {
