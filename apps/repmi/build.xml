@@ -1,0 +1,14 @@
+<project
+    name="RepMI applications"
+    default="build"
+    basedir=".">
+
+    <description>
+	RepMI applications build.
+    </description>
+
+    <property name="ibis"        location="../.."/>
+
+    <import file="${ibis}/apps/build-apps.xml"/>
+
+</project>

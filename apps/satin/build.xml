@@ -1,0 +1,14 @@
+<project
+    name="satin applications"
+    default="build"
+    basedir=".">
+
+    <description>
+	Satin applications build.
+    </description>
+
+    <property name="ibis"        location="../.."/>
+
+    <import file="${ibis}/apps/build-apps.xml"/>
+
+</project>

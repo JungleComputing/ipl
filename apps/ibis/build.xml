@@ -1,0 +1,14 @@
+<project
+    name="ibis applications"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis applications build.
+    </description>
+
+    <property name="ibis"        location="../.."/>
+
+    <import file="${ibis}/apps/build-apps.xml"/>
+
+</project>

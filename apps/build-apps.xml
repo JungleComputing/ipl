@@ -1,0 +1,95 @@
+<project
+    name="Ibis applications build"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis applications build.
+    </description>
+
+    <target name="usage"
+	    description="Print this message">
+	<exec	executable="ant">
+	    <arg line="-projecthelp"/>
+	</exec>
+	<echo message="os.name ${os.name} os.arch ${os.arch}"/>
+    </target>
+
+    <property name="ibis"        location="../.."/>
+
+    <import file="${ibis}/build-properties.xml"/>
+
+    <target name="-list-build-files">
+	<if>
+	    <isset property="build.files"/>
+	    <then>
+	    </then>
+	    <else>
+		<path id="buildfiles">
+		    <fileset dir=".">
+			<include name="*/**/build.xml"/>
+		    </fileset>
+		</path>
+		<property name="build.files" refid="buildfiles"/>
+	    </else>
+	</if>
+    </target>
+
+    <!--
+	Compile only
+    -->
+    <target name="compile"
+	    depends="-list-build-files"
+	    description="Compile without Ibis-serialization rewriting, or for sequential runs">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-compile-one"
+		param="build.file"/>
+    </target>
+
+    <target name="-compile-one">
+	<dirname file="${build.file}" property="build.dir"/>
+	<echo message="Running 'ant compile' in ${build.dir}"/>
+	<ant dir="${build.dir}" target="compile" inheritAll="false"/>
+    </target>
+
+    <!--
+	Build
+    -->
+    <target name="build"
+	    depends="-list-build-files"
+	    description="Build Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-build-one"
+		param="build.file"/>
+    </target>
+
+    <target name="-build-one">
+	<dirname file="${build.file}" property="build.dir"/>
+	<echo message="Running 'ant build' in ${build.dir}"/>
+	<ant dir="${build.dir}" target="build" inheritAll="false"/>
+    </target>
+
+    <!--
+	Clean
+    -->
+    <target name="clean"
+	    depends="-list-build-files"
+	    description="Clean in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-clean-one"
+		param="build.file"/>
+    </target>
+
+    <target name="-clean-one">
+	<dirname file="${build.file}" property="build.dir"/>
+	<echo message="Running 'ant clean' in ${build.dir}"/>
+	<ant dir="${build.dir}" target="clean" inheritAll="false"/>
+    </target>
+
+</project>
