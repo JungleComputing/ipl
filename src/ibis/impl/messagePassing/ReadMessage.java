@@ -12,7 +12,7 @@ public class ReadMessage
     private long sequenceNr = -1;
     private ReceivePort port;
 
-    private ByteInputStream in;
+    ByteInputStream in;
 
     int msgSeqno;
 
@@ -24,6 +24,8 @@ public class ReadMessage
     ReadFragment fragmentTail;
 
     private int		 sleepers = 0;
+
+    long before;
 
     ReadMessage(ibis.ipl.SendPort s,
 		ReceivePort port) {
@@ -153,19 +155,21 @@ public class ReadMessage
     }
 
 
-    void finishLocked() {
+    long finishLocked() {
+	long after = in.getCount();
 	clear();
+	port.count += after - before;
 	port.finishMessage();
+	return after - before;
     }
 
 
     public long finish() {
 	Ibis.myIbis.lock();
-	finishLocked();
+	long retval = finishLocked();
 	Ibis.myIbis.unlock();
 
-	// TODO: return size of message
-	return 0;
+	return retval;
     }
 
 

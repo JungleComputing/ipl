@@ -82,6 +82,7 @@ class ReceivePort
     private int enqueued_msgs;
     private int upcall_msgs;
     private int dequeued_msgs;
+    long count;
 
     static {
 	if (DEBUG) {
@@ -120,15 +121,14 @@ class ReceivePort
      * {@inheritDoc}
      **/
     public long getCount() {
-	// TODO
-	return 0;
+	return count;
     }
 
     /**
      * {@inheritDoc}
      **/
     public void resetCount() {
-	// TODO
+	count = 0;
     }
 
     private boolean firstCall = true;
@@ -327,6 +327,7 @@ class ReceivePort
 	    if (Ibis.STATISTICS) {
 		dequeued_msgs++;
 	    }
+	    msg.before = msg.in.getCount();
 	}
 
 	return msg;

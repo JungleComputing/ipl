@@ -9,6 +9,7 @@ final class ByteInputStream
     private int msgHandle;
     private int msgSize;
     private ReadMessage msg;
+    private int msgCount;
 
 
     void setMsgHandle(ReadMessage msg) {
@@ -43,6 +44,7 @@ final class ByteInputStream
 	    }
 	    x = lockedRead();
 	    msgSize -= SIZEOF_BYTE;
+	    msgCount += SIZEOF_BYTE;
 	} finally {
 	    Ibis.myIbis.unlock();
 	}
@@ -89,6 +91,7 @@ final class ByteInputStream
 	    }
 	    int rd = readBooleanArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_BOOLEAN;
+	    msgCount += rd * SIZEOF_BOOLEAN;
 	    if (Ibis.DEBUG && msgSize < 0) {
 		throw new ArrayIndexOutOfBoundsException("read(boolean[]): insufficient data");
 	    }
@@ -115,6 +118,7 @@ final class ByteInputStream
 	    }
 	    int rd = readByteArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_BYTE;
+	    msgCount += rd * SIZEOF_BYTE;
 	    if (Ibis.DEBUG) {
 		System.err.println("Now msgSize := " + msgSize);
 	    }
@@ -136,6 +140,7 @@ final class ByteInputStream
 	    }
 	    int rd = readCharArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_CHAR;
+	    msgCount += rd * SIZEOF_CHAR;
 	    if (Ibis.DEBUG && msgSize < 0) {
 		throw new ArrayIndexOutOfBoundsException("read(char[]): insufficient data");
 	    }
@@ -154,6 +159,7 @@ final class ByteInputStream
 	    }
 	    int rd = readShortArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_SHORT;
+	    msgCount += rd * SIZEOF_SHORT;
 	    if (Ibis.DEBUG && msgSize < 0) {
 		throw new ArrayIndexOutOfBoundsException("read(short[]): insufficient data");
 	    }
@@ -172,6 +178,7 @@ final class ByteInputStream
 	    }
 	    int rd = readIntArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_INT;
+	    msgCount += rd * SIZEOF_INT;
 	    if (Ibis.DEBUG && msgSize < 0) {
 		throw new ArrayIndexOutOfBoundsException("read(int[]): insufficient data");
 	    }
@@ -190,6 +197,7 @@ final class ByteInputStream
 	    }
 	    int rd = readLongArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_LONG;
+	    msgCount += rd * SIZEOF_LONG;
 	    if (Ibis.DEBUG && msgSize < 0) {
 		throw new ArrayIndexOutOfBoundsException("read(long[]): insufficient data");
 	    }
@@ -208,6 +216,7 @@ final class ByteInputStream
 	    }
 	    int rd = readFloatArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_FLOAT;
+	    msgCount += rd * SIZEOF_FLOAT;
 	    if (Ibis.DEBUG && msgSize < 0) {
 		throw new ArrayIndexOutOfBoundsException("read(float[]): insufficient data");
 	    }
@@ -226,6 +235,7 @@ final class ByteInputStream
 	    }
 	    int rd = readDoubleArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_DOUBLE;
+	    msgCount += rd * SIZEOF_DOUBLE;
 	    if (Ibis.DEBUG && msgSize < 0) {
 		throw new ArrayIndexOutOfBoundsException("read(double[]): insufficient data");
 	    }
@@ -255,4 +265,11 @@ final class ByteInputStream
 	return false;
     }
 
+    public int getCount() {
+	return msgCount;
+    }
+
+    public void resetCount() {
+	msgCount = 0;
+    }
 }
