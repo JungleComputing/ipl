@@ -118,7 +118,19 @@ public abstract class Conversion {
 
 	String conversion = systemProperties.getProperty("ibis.conversion");
 
-	if(conversion != null && conversion.equalsIgnoreCase("nio")) {
+	if(conversion != null && conversion.equalsIgnoreCase("nio/wrap")) {
+	    try {
+		if(bigEndian) {
+		    return loadConversion(
+			    "ibis.io.nio.NioWrapBigConversion");
+		} else {
+		    return loadConversion(
+			    "ibis.io.nio.NioWrapLittleConversion");
+		}
+	    } catch (Exception e) {
+		//nio conversion loading failed
+	    }
+	} else if(conversion != null && conversion.equalsIgnoreCase("nio")) {
 	    try {
 		if(bigEndian) {
 		    return loadConversion(
