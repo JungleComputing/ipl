@@ -346,40 +346,40 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	return true;
     }
 
-    private void writeArray(Object ref, Class arrayClass) throws IOException {
+    private void writeArray(Object ref, Class arrayClass, boolean unshared) throws IOException {
 	if (false) {
 	} else if (arrayClass == classByteArray) {
 	    byte[] a = (byte[])ref;
 	    int len = a.length;
-	    writeArray(ref, 0, len, arrayClass, TYPE_BYTE, true);
+	    writeArray(ref, 0, len, arrayClass, TYPE_BYTE, ! unshared);
 	} else if (arrayClass == classIntArray) {
 	    int[] a = (int[])ref;
 	    int len = a.length;
-	    writeArray(a, 0, len, arrayClass, TYPE_INT, true);
+	    writeArray(a, 0, len, arrayClass, TYPE_INT, ! unshared);
 	} else if (arrayClass == classBooleanArray) {
 	    boolean[] a = (boolean[])ref;
 	    int len = a.length;
-	    writeArray(a, 0, len, arrayClass, TYPE_BOOLEAN, true);
+	    writeArray(a, 0, len, arrayClass, TYPE_BOOLEAN, ! unshared);
 	} else if (arrayClass == classDoubleArray) {
 	    double[] a = (double[])ref;
 	    int len = a.length;
-	    writeArray(a, 0, len, arrayClass, TYPE_DOUBLE, true);
+	    writeArray(a, 0, len, arrayClass, TYPE_DOUBLE, ! unshared);
 	} else if (arrayClass == classCharArray) {
 	    char[] a = (char[])ref;
 	    int len = a.length;
-	    writeArray(a, 0, len, arrayClass, TYPE_CHAR, true);
+	    writeArray(a, 0, len, arrayClass, TYPE_CHAR, ! unshared);
 	} else if (arrayClass == classShortArray) {
 	    short[] a = (short[])ref;
 	    int len = a.length;
-	    writeArray(a, 0, len, arrayClass, TYPE_SHORT, true);
+	    writeArray(a, 0, len, arrayClass, TYPE_SHORT, ! unshared);
 	} else if (arrayClass == classLongArray) {
 	    long[] a = (long[])ref;
 	    int len = a.length;
-	    writeArray(a, 0, len, arrayClass, TYPE_LONG, true);
+	    writeArray(a, 0, len, arrayClass, TYPE_LONG, ! unshared);
 	} else if (arrayClass == classFloatArray) {
 	    float[] a = (float[])ref;
 	    int len = a.length;
-	    writeArray(a, 0, len, arrayClass, TYPE_FLOAT, true);
+	    writeArray(a, 0, len, arrayClass, TYPE_FLOAT, ! unshared);
 	} else {
 	    if(ASSERTS) {
 		if (! (ref instanceof Object[])) {
@@ -391,7 +391,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    }
 	    Object[] a = (Object[])ref;
 	    int len = a.length;
-	    if(writeArrayHeader(a, arrayClass, len, true)) {
+	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
 		for (int i = 0; i < len; i++) {
 		    writeObject(a[i]);
 		}
@@ -615,7 +615,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    }
 
 	    if (type.isArray()) {
-		writeArray(ref, type);
+		writeArray(ref, type, false);
 	    } else {
 		handle = next_handle++;
 		references.put(ref, handle);
@@ -646,6 +646,47 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		System.err.println("Write duplicate handle " + handle + " class = " + ref.getClass());
 	    }
 	    writeHandle(handle);
+	}
+    }
+
+    public void writeUnshared(Object ref) throws IOException {
+	if (ref == null) {
+	    writeHandle(NUL_HANDLE);
+	    return;
+	}
+	/* TODO: deal with writeReplace! This should be done before
+	   looking up the handle. If we don't want to do runtime
+	   inspection, this should probably be handled somehow in
+	   IOGenerator.
+	   Note that the needed info is available in AlternativeTypeInfo,
+	   but we don't want to use that when we have ibis.io.Serializable.
+	*/
+	Class type = ref.getClass();
+	if(DEBUG) {
+	    System.err.println("Write object " + ref + " of class " + type + " handle = " + next_handle);
+	}
+
+	if (type.isArray()) {
+	    writeArray(ref, type, true);
+	} else {
+	    writeType(type);
+	    if (type == java.lang.String.class) {
+		/* EEK this is not nice !! */
+		writeUTF((String)ref);
+	    } else if (type == java.lang.Class.class) {
+		/* EEK this is not nice !! */
+		writeUTF(((Class)ref).getName());
+	    } else if (ref instanceof java.io.Externalizable) {
+		push_current_object(ref, 0);
+		((java.io.Externalizable) ref).writeExternal(this);
+		pop_current_object();
+	    } else if (IbisSerializationInputStream.isIbisSerializable(type)) {
+		((ibis.io.Serializable)ref).generated_WriteObject(this);
+	    } else if (ref instanceof java.io.Serializable) {
+		writeSerializableObject(ref, type);
+	    } else { 
+		throw new RuntimeException("Not Serializable : " + type.toString());
+	    }
 	}
     }
 

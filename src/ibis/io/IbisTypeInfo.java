@@ -53,4 +53,16 @@ class IbisTypeInfo implements IbisStreamFlags {
 	    altInfo = new AlternativeTypeInfo(clazz);
 	}	   
     } 
+
+    static Class getClass(String n) {
+	Class c = null;
+	try {
+	    c = Class.forName(n);
+	} catch(ClassNotFoundException e) {
+	    System.err.println("Could not load primitive array type " + n);
+	    e.printStackTrace();
+	    System.exit(1);
+	}
+	return c;
+    }
 } 

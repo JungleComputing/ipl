@@ -15,29 +15,20 @@ interface IbisStreamFlags extends TypeSize {
     public static final int RESET_HANDLE = 1;
     public static final int CONTROL_HANDLES = 2;
 
-    static final Class classBooleanArray = IbisStreamTypes.getClass("[Z");
-    static final Class classByteArray    = IbisStreamTypes.getClass("[B");
-    static final Class classShortArray   = IbisStreamTypes.getClass("[S");
-    static final Class classCharArray    = IbisStreamTypes.getClass("[C");
-    static final Class classIntArray     = IbisStreamTypes.getClass("[I");
-    static final Class classLongArray    = IbisStreamTypes.getClass("[J");
-    static final Class classFloatArray   = IbisStreamTypes.getClass("[F");
-    static final Class classDoubleArray  = IbisStreamTypes.getClass("[D");
+    static final Class classBooleanArray = IbisTypeInfo.getClass("[Z");
+    static final Class classByteArray    = IbisTypeInfo.getClass("[B");
+    static final Class classShortArray   = IbisTypeInfo.getClass("[S");
+    static final Class classCharArray    = IbisTypeInfo.getClass("[C");
+    static final Class classIntArray     = IbisTypeInfo.getClass("[I");
+    static final Class classLongArray    = IbisTypeInfo.getClass("[J");
+    static final Class classFloatArray   = IbisTypeInfo.getClass("[F");
+    static final Class classDoubleArray  = IbisTypeInfo.getClass("[D");
 
     /* This array can be indexed using a TYPE_XXX variable */
     static final Class[] arrayClasses = {null, classBooleanArray, classByteArray, 
 					 classCharArray, classShortArray, classIntArray, 
 					 classLongArray, classFloatArray, classDoubleArray, 
 					 null, null};
-
-    static final Class classBoolean      = classBooleanArray.getComponentType();
-    static final Class classByte         = classByteArray.getComponentType();
-    static final Class classShort        = classShortArray.getComponentType();
-    static final Class classChar         = classCharArray.getComponentType();
-    static final Class classInt          = classIntArray.getComponentType();
-    static final Class classLong         = classLongArray.getComponentType();
-    static final Class classFloat        = classFloatArray.getComponentType();
-    static final Class classDouble       = classDoubleArray.getComponentType();
 
     public static final int BOOLEAN_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BOOLEAN;
     public static final int BYTE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BYTE;
@@ -47,8 +38,6 @@ interface IbisStreamFlags extends TypeSize {
     public static final int LONG_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_LONG;
     public static final int FLOAT_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_FLOAT;
     public static final int DOUBLE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_DOUBLE;
-    public static final int REF_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_INT;
 
     public static final int HANDLE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_INT;
 } 
-
