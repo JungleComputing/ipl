@@ -33,13 +33,9 @@ public class ConnectionProperties {
 
     public static final String sizes = PROPERTY_PREFIX + "default.sizes";
 
-    public static final String isize = PROPERTY_PREFIX + "InputBufferSize";
-
-    public static final String osize = PROPERTY_PREFIX + "OutputBufferSize";
-
     private static final String[] sysprops = { hub_port, hub_host, enable,
             port_range, splice_port, hub_stats, datalinks, controllinks,
-            par_numways, par_blocksize, sizes, isize, osize };
+            par_numways, par_blocksize, sizes };
 
     public static void checkProps() {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
