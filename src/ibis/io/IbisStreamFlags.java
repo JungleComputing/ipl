@@ -1,7 +1,7 @@
 package ibis.io;
 
 interface IbisStreamFlags extends TypeSize { 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final boolean ASSERTS = true;
 
     public static final int BUFFER_SIZE = 2*1024;
@@ -23,11 +23,6 @@ interface IbisStreamFlags extends TypeSize {
     static final Class classLongArray    = IbisStreamTypes.getClass("[J");
     static final Class classFloatArray   = IbisStreamTypes.getClass("[F");
     static final Class classDoubleArray  = IbisStreamTypes.getClass("[D");
-
-    static final Class classIbisSerializable = IbisStreamTypes.getClass("ibis.io.Serializable");
-    static final Class classJavaSerializable = IbisStreamTypes.getClass("java.io.Serializable");
-    static final Class classString	 = IbisStreamTypes.getClass("java.lang.String");
-    static final Class classClass	 = IbisStreamTypes.getClass("java.lang.Class");
 
     /* This array can be indexed using a TYPE_XXX variable */
     static final Class[] arrayClasses = {null, classBooleanArray, classByteArray, 

@@ -15,8 +15,8 @@ class IbisTypeInfo implements IbisStreamFlags {
     IbisTypeInfo(Class clzz) {
 	clazz = clzz;
 	isArray = clazz.isArray();
-	isString = (clazz == classString);
-	isClass = (clazz == classClass);
+	isString = (clazz == java.lang.String.class);
+	isClass = (clazz == java.lang.Class.class);
 	if (isArray || isString || isClass) {
 	    gen = null;
 	}

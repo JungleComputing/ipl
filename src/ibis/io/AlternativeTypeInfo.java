@@ -15,7 +15,6 @@ import java.io.IOException;
 final class AlternativeTypeInfo {
 
     private static HashMap alternativeTypes = new HashMap();
-    private static Class javaSerializableClass;
 
     Class clazz;
     Field [] serializable_fields;
@@ -60,15 +59,6 @@ final class AlternativeTypeInfo {
     private Field temporary_field;
     private Method temporary_method;
 
-    static { 
-	try { 
-	    javaSerializableClass = Class.forName("java.io.Serializable");
-	} catch (Exception e) { 
-	    System.err.println("OOPS: cannot load class java.io.Serializable : " + e);
-	    e.printStackTrace();
-	    System.exit(1);
-	} 
-    } 
 
     public String toString() {
 	return clazz.getName();
@@ -91,9 +81,13 @@ final class AlternativeTypeInfo {
 	try {
 	    type = Class.forName(classname);
 	} catch(Exception e) {
-	    System.err.println("OOPS: cannot load class " + classname + ": "  + e);
-	    e.printStackTrace();
-	    System.exit(1);
+	    try {
+		type = Thread.currentThread().getContextClassLoader().loadClass(classname);
+	    } catch(Exception e2) {
+		System.err.println("OOPS: cannot load class " + classname + ": "  + e2);
+		e2.printStackTrace();
+		System.exit(1);
+	    }
 	}
 	AlternativeTypeInfo t = (AlternativeTypeInfo) alternativeTypes.get(type);
 
@@ -242,7 +236,7 @@ final class AlternativeTypeInfo {
 	    Class superClass = clazz.getSuperclass();
 
 	    if (superClass != null) { 
-		if (javaSerializableClass.isAssignableFrom(superClass)) { 
+		if (java.io.Serializable.class.isAssignableFrom(superClass)) { 
 		    superSerializable = true;
 		    alternativeSuperInfo = getAlternativeTypeInfo(superClass);
 		    level = alternativeSuperInfo.level + 1;

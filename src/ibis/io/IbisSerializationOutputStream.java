@@ -25,9 +25,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
     private int		array_index;
 
-    private Class stringClass;
-    private Class classClass;
-
     /* Type id management */
     private int next_type = 1;
     private IbisHash types = new IbisHash();
@@ -58,18 +55,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	array_index = 0;
 	references.clear();
 	next_handle = CONTROL_HANDLES;
-	try {
-	    stringClass = Class.forName("java.lang.String");
-	} catch (Exception e) {
-	    System.err.println("Failed to find java.lang.String " + e);
-	    System.exit(1);
-	}
-	try {
-	    classClass = Class.forName("java.lang.Class");
-	} catch (Exception e) {
-	    System.err.println("Failed to find java.lang.Class " + e);
-	    System.exit(1);
-	}
     }
 
     private void types_clear() {
@@ -181,7 +166,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	if (handle == 0) {
 	    handle = next_handle++;
 	    references.put(ref, handle);
-	    writeType(classClass);
+	    writeType(java.lang.Class.class);
 	    writeUTF(ref.getName());
 	} else {
 	    writeHandle(handle);
@@ -590,7 +575,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	if (handle == 0) {
 	    handle = next_handle++;
 	    references.put(ref, handle);
-	    writeType(stringClass);
+	    writeType(java.lang.String.class);
 	    if (DEBUG) {
 		System.out.println("writeString: " + ref);
 	    }
@@ -638,10 +623,10 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		    System.out.println("doWriteObject: references[" + handle + "] = " + (ref == null ? "null" : ref));
 		}
 		writeType(type);
-		if (type == stringClass) {
+		if (type == java.lang.String.class) {
 		    /* EEK this is not nice !! */
 		    writeUTF((String)ref);
-		} else if (type == classClass) {
+		} else if (type == java.lang.Class.class) {
 		    /* EEK this is not nice !! */
 		    writeUTF(((Class)ref).getName());
 		} else if (ref instanceof java.io.Externalizable) {

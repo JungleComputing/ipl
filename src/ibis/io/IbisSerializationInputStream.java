@@ -552,6 +552,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    if (DEBUG) {
 		System.err.println("New type " + typeName);
 	    }
+
+
 	    Class clazz = null;
 	    try {
 		clazz = Class.forName(typeName);
@@ -562,7 +564,31 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 			System.out.println("Default class loader is " + this.getClass().getClassLoader());
 			System.out.println("now trying " + Thread.currentThread().getContextClassLoader());
 		    }
+		    int dim = 0;
+
+		    if (typeName.length() > 0 && typeName.charAt(0) == '[') {
+			char[] s = typeName.toCharArray();
+			while (dim < s.length && s[dim] == '[') {
+			    dim++;
+			}
+			int begin = dim;
+			int end = s.length;
+			if (dim < s.length && s[dim] == 'L') {
+			    begin++;
+			}
+			if (s[end-1] == ';') {
+			    end--;
+			}
+			typeName = typeName.substring(begin, end);
+		    }
 		    clazz = Thread.currentThread().getContextClassLoader().loadClass(typeName);
+		    if (dim > 0) {
+			int dims[] = new int[dim];
+			for (int i = 0; i < dim; i++) dims[i] = 0;
+			Object o = java.lang.reflect.Array.newInstance(clazz, dims);
+			clazz = o.getClass();
+		    }
+
 		} catch (ClassNotFoundException e2) {
 		    throw new IOException("class " + typeName + " not found");
 		}
@@ -1090,7 +1116,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	Class[] intfs = clazz.getInterfaces();
 
 	for (int i = 0; i < intfs.length; i++) {
-	    if (intfs[i].equals(classIbisSerializable)) return true;
+	    if (intfs[i].equals(ibis.io.Serializable.class)) return true;
 	}
 	return false;
     }
