@@ -129,6 +129,8 @@ public final class SDataOutput extends NetSerializedOutput {
                        
                 public void writeArray(double[] a, int off, int len) 
 						    throws IOException {
+// System.err.println(this + ": write subOutput " + subOutput + " double[" + off + ":" + len + "]");
+// for (int i = off; i < len + off; i++) { System.err.print(a[i] + " "); } System.err.println();
                         subOutput.writeArray(a, off, len);
                 }
 

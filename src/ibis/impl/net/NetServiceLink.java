@@ -1004,7 +1004,6 @@ public final class NetServiceLink {
                                         exit = true;
                                         continue;
                                 } catch (InterruptedIOException e) {
-System.err.println(this + ": NetServiceLink catches " + e);
                                         continue;
                                 } catch (Exception e) {
                                         throw new Error(e);
@@ -1042,6 +1041,7 @@ System.err.println(this + ": NetServiceLink catches " + e);
                  */
                 ServiceThread(String name) {
                         super("ServiceThread: "+name);
+			setDaemon(true);
                 }
 
                 /**

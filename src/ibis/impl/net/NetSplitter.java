@@ -266,15 +266,13 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	}
 
 	if (singleton != null) {
-	    NetBufferedOutputSupport bo =
-		(NetBufferedOutputSupport)singleton;
+	    NetBufferedOutputSupport bo = (NetBufferedOutputSupport)singleton;
 	    bo.flushBuffer();
 	} else {
 	    Iterator i = outputMap.values().iterator();
 	    do {
 		NetOutput no = (NetOutput)i.next();
-		NetBufferedOutputSupport bo =
-		    (NetBufferedOutputSupport)no;
+		NetBufferedOutputSupport bo = (NetBufferedOutputSupport)no;
 		bo.flushBuffer();
 	    } while (i.hasNext());
 	}

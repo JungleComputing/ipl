@@ -353,7 +353,7 @@ public final class NetAllocator {
                                 __.abort__("invalid block");
                         }
 
-                        if (stack.stackPtr >= defaultMaxBlock)  {
+                        if (stack.stackPtr >= stack.stack.length)  {
                                 stat.incUncachedFree();
                                 return;
                         }

@@ -96,6 +96,14 @@ public final class NetIbis extends Ibis {
 
 
 	/**
+	 * Maintain linked lists of our send and receive ports so they can
+	 * be forced-close at Ibis end.
+	 */
+	private NetSendPort	sendPortList	= null;
+	private NetReceivePort	receivePortList	= null;
+
+
+	/**
 	 * The {@link NetIbis} {@linkplain NetBank bank}.
          *
          * This {@linkplain NetBank bank} can be used as general
@@ -482,9 +490,64 @@ public final class NetIbis extends Ibis {
 		return (PortType) portTypeTable.get(name);
 	}
 
+	synchronized void register(NetSendPort p) {
+	    p.next = sendPortList;
+	    sendPortList = p;
+	}
+
+	synchronized void register(NetReceivePort p) {
+	    p.next = receivePortList;
+	    receivePortList = p;
+	}
+
+	synchronized void unregister(NetSendPort p) {
+	    NetSendPort prev = null;
+	    NetSendPort scan = sendPortList;
+	    while (scan != null && scan != p) {
+		prev = scan;
+		scan = scan.next;
+	    }
+	    if (scan == null) {
+		throw new Error("Unregister a NetSendPort that is not registered");
+	    }
+	    if (prev == null) {
+		sendPortList = p.next;
+	    } else {
+		prev.next = p.next;
+	    }
+	}
+
+	synchronized void unregister(NetReceivePort p) {
+	    NetReceivePort prev = null;
+	    NetReceivePort scan = receivePortList;
+	    while (scan != null && scan != p) {
+		prev = scan;
+		scan = scan.next;
+	    }
+	    if (scan == null) {
+		throw new Error("Unregister a NetReceivePort that is not registered");
+	    }
+	    if (prev == null) {
+		receivePortList = p.next;
+	    } else {
+		prev.next = p.next;
+	    }
+	}
+
 	/** Requests the NetIbis instance to leave the Name Server pool.
 	 */
 	public void end() throws IOException {
+		synchronized (this) {
+		    while (sendPortList != null) {
+			// System.err.println("Ibis.end(): Invoke forcedClose() of " + sendPortList);
+			sendPortList.close();
+		    }
+		    while (receivePortList != null) {
+			// System.err.println("Ibis.end(): Invoke forcedClose() of " + receivePortList);
+			receivePortList.forcedClose();
+		    }
+		}
+
 		nameServer.leave();
 		socketFactory.shutdown();
 	}

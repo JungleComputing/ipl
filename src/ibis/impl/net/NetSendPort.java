@@ -87,6 +87,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          */
         protected NetMessageStat   stat                   = null;
 
+	/**
+	 * Maintain a linked list for cleanup
+	 */
+	NetSendPort		next = null;
 
 
 
@@ -331,6 +335,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                 initPassiveState();
                 initActiveState();
+
+		ibis.register(this);
 	}
 
 
@@ -784,6 +790,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                 __.fwdAbort__(e);
                         }
                 }
+
+		ibis.unregister(this);
 
                 trace.disp(sendPortTracePrefix, "send port shutdown<--");
                 log.out();

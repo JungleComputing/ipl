@@ -94,6 +94,9 @@ public final class BytesInput extends NetInput implements Settings {
 		}
 
 		subInput.setupConnection(cnx);
+		if (maxMtu == 0) {
+		    System.err.println("You know that Bytes.maxMtu is " + maxMtu + "?");
+		}
                 log.out();
 	}
 
@@ -102,6 +105,7 @@ public final class BytesInput extends NetInput implements Settings {
 		if (activeNum != null) throw new Error("Revise your initReceive calls");
 		activeNum = num;
 		mtu          = Math.min(maxMtu, subInput.getMaximumTransfertUnit());
+// System.err.println(this + ": initReceive: subInput " + subInput + " getMTU() " + subInput.getMaximumTransfertUnit());
 		/*
 		if (mtu == 0) {
 			mtu = maxMtu;
@@ -187,6 +191,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.in();
 		buffer       = subInput.readByteBuffer(mtu);
 		bufferOffset = dataOffset;
+// System.err.println("pumpBuffer: bufferOffset := " + bufferOffset);
                 log.out();
 	}
 
@@ -320,6 +325,7 @@ public final class BytesInput extends NetInput implements Settings {
                         }
 
                         v = Conversion.defaultConversion.byte2boolean(buffer.data[bufferOffset++]);
+// System.err.println("readBoolean -> bufferOffset " + bufferOffset);
                         freeBufferIfNeeded();
                 } else {
                         v = Conversion.defaultConversion.byte2boolean(subInput.readByte());
@@ -340,6 +346,7 @@ public final class BytesInput extends NetInput implements Settings {
                         }
 
                         v = buffer.data[bufferOffset++];
+// System.err.println("readByte -> bufferOffset " + bufferOffset);
                         freeBufferIfNeeded();
                 } else {
                         v = subInput.readByte();
@@ -376,6 +383,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 v = Conversion.defaultConversion.byte2char(b, 0);
                                 a2.free(b);
                         }
+// System.err.println("readChar -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a2.allocate();
@@ -415,6 +423,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 v = Conversion.defaultConversion.byte2short(b, 0);
                                 a2.free(b);
                         }
+// System.err.println("readShort -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a2.allocate();
@@ -452,6 +461,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 v = Conversion.defaultConversion.byte2int(b, 0);
                                 a4.free(b);
                         }
+// System.err.println("readInt -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a4.allocate();
@@ -489,6 +499,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 v = Conversion.defaultConversion.byte2long(b, 0);
                                 a8.free(b);
                         }
+// System.err.println("readLong -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a8.allocate();
@@ -526,6 +537,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 v = Conversion.defaultConversion.byte2float(b, 0);
                                 a4.free(b);
                         }
+// System.err.println("readFloat -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a4.allocate();
@@ -563,6 +575,7 @@ public final class BytesInput extends NetInput implements Settings {
                                 v = Conversion.defaultConversion.byte2double(b, 0);
                                 a8.free(b);
                         }
+// System.err.println("readDouble -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a8.allocate();
@@ -617,6 +630,7 @@ public final class BytesInput extends NetInput implements Settings {
                                         freeBufferIfNeeded();
                                 }
                         }
+// System.err.println("readBoolean[] -> bufferOffset " + bufferOffset);
                 } else {
                         if (l <= anThreshold) {
                                 byte [] b = an.allocate();
@@ -654,6 +668,7 @@ public final class BytesInput extends NetInput implements Settings {
                                         freeBufferIfNeeded();
                                 }
                         }
+// System.err.println("readByte[] -> bufferOffset " + bufferOffset);
 
                 } else {
                         subInput.readArray(ub, o, l);
@@ -664,15 +679,14 @@ public final class BytesInput extends NetInput implements Settings {
 
 	public void readArray(char [] ub, int o, int l) throws IOException {
                 log.in();
-                final int f = 2;
 
                 if (mtu > 0) {
-                        if (ensureLength(f*(l+1) - 1)) {
+                        if (ensureLength(Conversion.CHAR_SIZE*(l+1) - 1)) {
                                 Conversion.defaultConversion.byte2char(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += f*l;
+                                bufferOffset += Conversion.CHAR_SIZE*l;
                                 freeBufferIfNeeded();
                         } else {
-                                if (mtu < f) {
+                                if (mtu < Conversion.CHAR_SIZE) {
                                         for (int i = 0; i < l; i++) {
                                                 ub[o+i] = readChar();
                                         }
@@ -682,7 +696,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         pumpBuffer();
                                                 }
 
-                                                int copyLength = Math.min(f*l, buffer.length - bufferOffset) / f;
+                                                int copyLength = Math.min(Conversion.CHAR_SIZE*l, buffer.length - bufferOffset) / Conversion.CHAR_SIZE;
 
                                                 if (copyLength == 0) {
                                                         freeBuffer();
@@ -692,20 +706,21 @@ public final class BytesInput extends NetInput implements Settings {
                                                 Conversion.defaultConversion.byte2char(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
-                                                bufferOffset += f*copyLength;
+                                                bufferOffset += Conversion.CHAR_SIZE*copyLength;
                                                 freeBufferIfNeeded();
                                         }
                                 }
                         }
+// System.err.println("readChar[] -> bufferOffset " + bufferOffset);
 
                 } else {
-                        if (l*f <= anThreshold) {
+                        if (l*Conversion.CHAR_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArray(b, 0, l*f);
+                                subInput.readArray(b, 0, l*Conversion.CHAR_SIZE);
                                 Conversion.defaultConversion.byte2char(b, 0, ub, o, l);
                                 an.free(b);
                         } else {
-                                byte [] b = new byte[f*l];
+                                byte [] b = new byte[Conversion.CHAR_SIZE*l];
                                 subInput.readArray(b);
                                 Conversion.defaultConversion.byte2char(b, 0, ub, o, l);
                         }
@@ -716,15 +731,14 @@ public final class BytesInput extends NetInput implements Settings {
 
 	public void readArray(short [] ub, int o, int l) throws IOException {
                 log.in();
-                final int f = 2;
 
                 if (mtu > 0) {
-                        if (ensureLength(f*(l+1) - 1)) {
+                        if (ensureLength(Conversion.SHORT_SIZE*(l+1) - 1)) {
                                 Conversion.defaultConversion.byte2short(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += f*l;
+                                bufferOffset += Conversion.SHORT_SIZE*l;
                                 freeBufferIfNeeded();
                         } else {
-                                if (mtu < f) {
+                                if (mtu < Conversion.SHORT_SIZE) {
                                         for (int i = 0; i < l; i++) {
                                                 ub[o+i] = readShort();
                                         }
@@ -734,7 +748,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         pumpBuffer();
                                                 }
 
-                                                int copyLength = Math.min(f*l, buffer.length - bufferOffset) / f;
+                                                int copyLength = Math.min(Conversion.SHORT_SIZE*l, buffer.length - bufferOffset) / Conversion.SHORT_SIZE;
                                                 log.disp("copyLength = "+copyLength);
 
                                                 if (copyLength == 0) {
@@ -745,20 +759,21 @@ public final class BytesInput extends NetInput implements Settings {
                                                 Conversion.defaultConversion.byte2short(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
-                                                bufferOffset += f*copyLength;
+                                                bufferOffset += Conversion.SHORT_SIZE*copyLength;
                                                 freeBufferIfNeeded();
                                         }
                                 }
                         }
+// System.err.println("readShort[] -> bufferOffset " + bufferOffset);
 
                 } else {
-                        if (l*f <= anThreshold) {
+                        if (l*Conversion.SHORT_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArray(b, 0, l*f);
+                                subInput.readArray(b, 0, l*Conversion.SHORT_SIZE);
                                 Conversion.defaultConversion.byte2short(b, 0, ub, o, l);
                                 an.free(b);
                         } else {
-                                byte [] b = new byte[f*l];
+                                byte [] b = new byte[Conversion.SHORT_SIZE*l];
                                 subInput.readArray(b);
                                 Conversion.defaultConversion.byte2short(b, 0, ub, o, l);
                         }
@@ -769,15 +784,14 @@ public final class BytesInput extends NetInput implements Settings {
 
 	public void readArray(int [] ub, int o, int l) throws IOException {
                 log.in();
-                final int f = 4;
 
                 if (mtu > 0) {
-                        if (ensureLength(f*(l+1) - 1)) {
+                        if (ensureLength(Conversion.INT_SIZE*(l+1) - 1)) {
                                 Conversion.defaultConversion.byte2int(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += f*l;
+                                bufferOffset += Conversion.INT_SIZE*l;
                                 freeBufferIfNeeded();
                         } else {
-                                if (mtu < f) {
+                                if (mtu < Conversion.INT_SIZE) {
                                         for (int i = 0; i < l; i++) {
                                                 ub[o+i] = readInt();
                                         }
@@ -787,7 +801,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         pumpBuffer();
                                                 }
 
-                                                int copyLength = Math.min(f*l, buffer.length - bufferOffset) / f;
+                                                int copyLength = Math.min(Conversion.INT_SIZE*l, buffer.length - bufferOffset) / Conversion.INT_SIZE;
                                                 log.disp("copyLength = "+copyLength);
 
                                                 if (copyLength == 0) {
@@ -798,20 +812,21 @@ public final class BytesInput extends NetInput implements Settings {
                                                 Conversion.defaultConversion.byte2int(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
-                                                bufferOffset += f*copyLength;
+                                                bufferOffset += Conversion.INT_SIZE*copyLength;
                                                 freeBufferIfNeeded();
                                         }
                                 }
                         }
+// System.err.println("readInt[] -> bufferOffset " + bufferOffset);
 
                 } else {
-                        if (l*f <= anThreshold) {
+                        if (l*Conversion.INT_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArray(b, 0, l*f);
+                                subInput.readArray(b, 0, l*Conversion.INT_SIZE);
                                 Conversion.defaultConversion.byte2int(b, 0, ub, o, l);
                                 an.free(b);
                         } else {
-                                byte [] b = new byte[f*l];
+                                byte [] b = new byte[Conversion.INT_SIZE*l];
                                 subInput.readArray(b);
                                 Conversion.defaultConversion.byte2int(b, 0, ub, o, l);
                         }
@@ -823,15 +838,14 @@ public final class BytesInput extends NetInput implements Settings {
 
 	public void readArray(long [] ub, int o, int l) throws IOException {
                 log.in();
-                final int f = 8;
 
                 if (mtu > 0) {
-                        if (ensureLength(f*(l+1) - 1)) {
+                        if (ensureLength(Conversion.LONG_SIZE*(l+1) - 1)) {
                                 Conversion.defaultConversion.byte2long(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += f*l;
+                                bufferOffset += Conversion.LONG_SIZE*l;
                                 freeBufferIfNeeded();
                         } else {
-                                if (mtu < f) {
+                                if (mtu < Conversion.LONG_SIZE) {
                                         for (int i = 0; i < l; i++) {
                                                 ub[o+i] = readLong();
                                         }
@@ -841,7 +855,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         pumpBuffer();
                                                 }
 
-                                                int copyLength = Math.min(f*l, buffer.length - bufferOffset) / f;
+                                                int copyLength = Math.min(Conversion.LONG_SIZE*l, buffer.length - bufferOffset) / Conversion.LONG_SIZE;
 
                                                 if (copyLength == 0) {
                                                         freeBuffer();
@@ -851,20 +865,21 @@ public final class BytesInput extends NetInput implements Settings {
                                                 Conversion.defaultConversion.byte2long(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
-                                                bufferOffset += f*copyLength;
+                                                bufferOffset += Conversion.LONG_SIZE*copyLength;
                                                 freeBufferIfNeeded();
                                         }
                                 }
                         }
+// System.err.println("readLong[] -> bufferOffset " + bufferOffset);
 
                 } else {
-                        if (l*f <= anThreshold) {
+                        if (l*Conversion.LONG_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArray(b, 0, l*f);
+                                subInput.readArray(b, 0, l*Conversion.LONG_SIZE);
                                 Conversion.defaultConversion.byte2long(b, 0, ub, o, l);
                                 an.free(b);
                         } else {
-                                byte [] b = new byte[f*l];
+                                byte [] b = new byte[Conversion.LONG_SIZE*l];
                                 subInput.readArray(b);
                                 Conversion.defaultConversion.byte2long(b, 0, ub, o, l);
                         }
@@ -875,15 +890,14 @@ public final class BytesInput extends NetInput implements Settings {
 
 	public void readArray(float [] ub, int o, int l) throws IOException {
                 log.in();
-                final int f = 4;
 
                 if (mtu > 0) {
-                        if (ensureLength(f*(l+1) - 1)) {
+                        if (ensureLength(Conversion.FLOAT_SIZE*(l+1) - 1)) {
                                 Conversion.defaultConversion.byte2float(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += f*l;
+                                bufferOffset += Conversion.FLOAT_SIZE*l;
                                 freeBufferIfNeeded();
                         } else {
-                                if (mtu < f) {
+                                if (mtu < Conversion.FLOAT_SIZE) {
                                         for (int i = 0; i < l; i++) {
                                                 ub[o+i] = readFloat();
                                         }
@@ -893,7 +907,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         pumpBuffer();
                                                 }
 
-                                                int copyLength = Math.min(f*l, buffer.length - bufferOffset) / f;
+                                                int copyLength = Math.min(Conversion.FLOAT_SIZE*l, buffer.length - bufferOffset) / Conversion.FLOAT_SIZE;
 
                                                 if (copyLength == 0) {
                                                         freeBuffer();
@@ -903,20 +917,21 @@ public final class BytesInput extends NetInput implements Settings {
                                                 Conversion.defaultConversion.byte2float(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
-                                                bufferOffset += f*copyLength;
+                                                bufferOffset += Conversion.FLOAT_SIZE*copyLength;
                                                 freeBufferIfNeeded();
                                         }
                                 }
                         }
+// System.err.println("readFloat[] -> bufferOffset " + bufferOffset);
 
                 } else {
-                        if (l*f <= anThreshold) {
+                        if (l*Conversion.FLOAT_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArray(b, 0, l*f);
+                                subInput.readArray(b, 0, l*Conversion.FLOAT_SIZE);
                                 Conversion.defaultConversion.byte2float(b, 0, ub, o, l);
                                 an.free(b);
                         } else {
-                                byte [] b = new byte[f*l];
+                                byte [] b = new byte[Conversion.FLOAT_SIZE*l];
                                 subInput.readArray(b);
                                 Conversion.defaultConversion.byte2float(b, 0, ub, o, l);
                         }
@@ -926,15 +941,16 @@ public final class BytesInput extends NetInput implements Settings {
 
 	public void readArray(double [] ub, int o, int l) throws IOException {
                 log.in();
-                final int f = 8;
+// System.err.println(this + ".readArray[" + o + ":" + l + "]: mtu " + mtu + " ensureLength() " + ensureLength(Conversion.DOUBLE_SIZE * (l + 1) - 1) + " bufferOffset " + bufferOffset + " anThreshold " + ((l * Conversion.DOUBLE_SIZE) <= anThreshold));
 
                 if (mtu > 0) {
-                        if (ensureLength(f*(l+1) - 1)) {
+			bufferOffset = Conversion.align(bufferOffset, Conversion.DOUBLE_SIZE);
+                        if (ensureLength(Conversion.DOUBLE_SIZE*(l+1) - 1)) {
                                 Conversion.defaultConversion.byte2double(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += f*l;
+                                bufferOffset += Conversion.DOUBLE_SIZE*l;
                                 freeBufferIfNeeded();
                         } else {
-                                if (mtu < f) {
+                                if (mtu < Conversion.DOUBLE_SIZE) {
                                         for (int i = 0; i < l; i++) {
                                                 ub[o+i] = readDouble();
                                         }
@@ -944,7 +960,7 @@ public final class BytesInput extends NetInput implements Settings {
                                                         pumpBuffer();
                                                 }
 
-                                                int copyLength = Math.min(f*l, buffer.length - bufferOffset) / f;
+                                                int copyLength = Math.min(Conversion.DOUBLE_SIZE*l, buffer.length - bufferOffset) / Conversion.DOUBLE_SIZE;
 
                                                 if (copyLength == 0) {
                                                         freeBuffer();
@@ -954,21 +970,24 @@ public final class BytesInput extends NetInput implements Settings {
                                                 Conversion.defaultConversion.byte2double(buffer.data, bufferOffset, ub, o, copyLength);
                                                 o += copyLength;
                                                 l -= copyLength;
-                                                bufferOffset += f*copyLength;
+                                                bufferOffset += Conversion.DOUBLE_SIZE*copyLength;
                                                 freeBufferIfNeeded();
                                         }
                                 }
                         }
+// System.err.println("readDouble[] -> bufferOffset " + bufferOffset);
 
                 } else {
-                        if (l*f <= anThreshold) {
+                        if (l*Conversion.DOUBLE_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
-                                subInput.readArray(b, 0, l*f);
+                                subInput.readArray(b, 0, l*Conversion.DOUBLE_SIZE);
+// System.err.println(this + ": read byte array below anThreshold"); for (int i = 0; i < l * Conversion.DOUBLE_SIZE; i++) { System.err.print("0x" + Integer.toHexString(b[i]) + " "); } System.err.println();
                                 Conversion.defaultConversion.byte2double(b, 0, ub, o, l);
                                 an.free(b);
                         } else {
-                                byte [] b = new byte[f*l];
+                                byte [] b = new byte[Conversion.DOUBLE_SIZE*l];
                                 subInput.readArray(b);
+// System.err.println(this + ": read byte array past anThreshold"); for (int i = 0; i < l * Conversion.DOUBLE_SIZE; i++) { System.err.print("0x" + Integer.toHexString(b[i]) + " "); } System.err.println();
                                 Conversion.defaultConversion.byte2double(b, 0, ub, o, l);
                         }
                 }

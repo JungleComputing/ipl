@@ -128,7 +128,7 @@ public final class SIbisOutput extends NetSerializedOutput {
                 public void writeArray(double[] a, int off, int len) 
 						    throws IOException {
                         subOutput.writeArray(a, off, len);
-                }
+		}
 
 	}
 }

@@ -133,6 +133,5 @@ public final class SIbisInput extends NetSerializedInput {
                         subInput.readArray(a, off, len);
                 }
 
-
         }
 }

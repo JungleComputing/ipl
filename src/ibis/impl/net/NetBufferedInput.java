@@ -276,7 +276,8 @@ public abstract class NetBufferedInput extends NetInput
 			      int     length)
 		throws IOException {
                 log.in();
-// System.err.println("Read byte array[" + offset + ":" + length + "]");
+// System.err.println("Read byte array[" + offset + ":" + length + "] dataOffset " + dataOffset + " length " + length + " arrayThreshold " + arrayThreshold);
+// Thread.dumpStack();
 		if (length == 0)
 			return;
 

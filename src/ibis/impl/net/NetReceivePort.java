@@ -11,6 +11,8 @@ import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -229,6 +231,11 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
         /* ___ LESS-IMPORTANT OBJECTS ______________________________________ */
 
         /**
+         * The {@link NetIbis} instance.
+         */
+        private NetIbis               ibis                   = null;
+
+        /**
          * The name of the port.
          */
         private String                   name                =  null;
@@ -289,6 +296,11 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
          * This logging object should only be used temporarily for debugging purpose.
          */
         protected NetLog           disp                   = null;
+
+	/**
+	 * Maintain a linked list for cleanup
+	 */
+	NetReceivePort		next = null;
 
 
 
@@ -551,6 +563,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                 this.name              = name;
                 this.upcall            = upcall;
                 this.rpcu              = rpcu;
+                this.ibis              = type.getIbis();
 
                 initDebugStreams();
                 initPassiveObjects();
@@ -559,6 +572,9 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                 initServerSocket();
                 initIdentifier();
                 initActiveObjects();
+
+		ibis.register(this);
+
                 start();
         }
 
@@ -571,7 +587,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
                 boolean log    = type.getBooleanStringProperty(null, "Log",   false);
                 boolean trace  = type.getBooleanStringProperty(null, "Trace", false);
-                boolean disp   = type.getBooleanStringProperty(null, "Disp",  ibis.util.TypedProperties.booleanProperty("net.disp"));
+                boolean disp   = type.getBooleanStringProperty(null, "Disp",  TypedProperties.booleanProperty("net.disp"));
 
                 this.log       = new NetLog(log,   s, "LOG");
                 this.trace     = new NetLog(trace, s, "TRACE");
@@ -594,7 +610,6 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         private void initMainInput() throws IOException {
                 log.in();
-                NetIbis ibis           = type.getIbis();
                 String  mainDriverName = type.getStringProperty("/", "Driver");
 
                 if (mainDriverName == null) {
@@ -643,7 +658,6 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
                 info.put("accept_address", addr);
                 info.put("accept_port",    new Integer(port));
-                NetIbis           ibis   = type.getIbis();
                 NetIbisIdentifier ibisId = (NetIbisIdentifier)ibis.identifier();
                 identifier = new NetReceivePortIdentifier(name, type.name(), ibisId, info);
                 log.out();
@@ -1004,6 +1018,8 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 			}
 			trace.disp(receivePortTracePrefix, "receive port shutdown: input lock released");
                 }
+
+		ibis.unregister(this);
 
                 trace.disp(receivePortTracePrefix, "receive port shutdown<--");
                 log.out();
