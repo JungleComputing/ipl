@@ -171,6 +171,10 @@ final class VictimTable implements Config {
 			Satin.assertLocked(satin);
 		}
 
+		if(victims.size() == 0) { // can happen with open world, no others have joined yet.
+			return null;
+		}
+
 		try {
 			index = Math.abs(satin.random.nextInt()) % victims.size();
 			v = ((Victim)victims.get(index));
@@ -179,7 +183,7 @@ final class VictimTable implements Config {
 		}
 
 		if(ASSERTS && v == null) {
-			System.err.println("EEK, v is null");
+			System.err.println("EEK, v is null in getRandomVictim");
 			System.exit(1);
 		}
 

@@ -23,6 +23,7 @@ final class RandomWorkStealing implements Algorithm {
 		synchronized(satin) {
 			v = satin.victims.getRandomVictim();
 		}
+		if(v == null) return; //can happen with open world if nobody joined.
 		satin.stealJob(v);
 //	}
     }
