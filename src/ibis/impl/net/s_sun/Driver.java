@@ -2,11 +2,6 @@ package ibis.ipl.impl.net.s_sun;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 public final class Driver extends NetDriver {
 
 	/**
@@ -34,14 +29,14 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context) throws IbisIOException {
-		return new SIbisInput(pt, this, up, context);
+	public NetInput newInput(NetPortType pt, NetIO up, String context) throws NetIbisException {
+		return new SSunInput(pt, this, up, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws IbisIOException {
-		return new SIbisOutput(pt, this, up, context);
+	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws NetIbisException {
+		return new SSunOutput(pt, this, up, context);
 	}
 }

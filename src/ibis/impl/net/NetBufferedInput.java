@@ -1,6 +1,5 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
 
 /**
@@ -53,12 +52,12 @@ public abstract class NetBufferedInput extends NetInput {
          * Optional method for zero-copy reception.
          * Note: at least one 'receiveByteBuffer' method must be implemented.
          */
-        protected void receiveByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+        protected void receiveByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 int offset = dataOffset;
                 int length = buffer.length - offset;
 
                 if (circularCheck)
-                        throw new IbisIOException("circular reference");
+                        throw new NetIbisException("circular reference");
 
                 circularCheck = true;
                 while (length > 0) {
@@ -76,17 +75,17 @@ public abstract class NetBufferedInput extends NetInput {
          * Optional method for static buffer reception.
          * Note: at least one 'receiveByteBuffer' method must be implemented.
          */
-        protected NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IbisIOException {
+        protected NetReceiveBuffer receiveByteBuffer(int expectedLength) throws NetIbisException {
                 NetReceiveBuffer b = null;
 
                 if (circularCheck)
-                        throw new IbisIOException("circular reference");
+                        throw new NetIbisException("circular reference");
 
                 circularCheck = true;
                 if (mtu != 0) {
-                        b = createReceiveBuffer(mtu);
+                        b = createReceiveBuffer(mtu, 0);
                 } else {
-                        b = createReceiveBuffer(dataOffset + expectedLength);
+                        b = createReceiveBuffer(dataOffset + expectedLength, 0);
                 }
 
                 receiveByteBuffer(b);
@@ -108,17 +107,17 @@ public abstract class NetBufferedInput extends NetInput {
                 //System.err.println("initReceive <--");
         }
 
-        private void pumpBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+        private void pumpBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 receiveByteBuffer(buffer);
                 buffer.free();
         }
 
-	private void pumpBuffer(int length) throws IbisIOException {
+	private void pumpBuffer(int length) throws NetIbisException {
 		buffer       = receiveByteBuffer(dataOffset+length);
 		bufferOffset = dataOffset;
 	}
 
-	protected void freeBuffer() throws IbisIOException {
+	protected void freeBuffer() throws NetIbisException {
 		if (buffer != null) {
 			buffer.free();
 			buffer       = null;
@@ -126,24 +125,24 @@ public abstract class NetBufferedInput extends NetInput {
 		}
 	}
 
-	public void finish() throws IbisIOException {
+	public void finish() throws NetIbisException {
                 super.finish();
  		freeBuffer();
 	}
 
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 freeBuffer();
                 return receiveByteBuffer(expectedLength);
         }
 
 
-        public void readByteBuffer(NetReceiveBuffer b) throws IbisIOException {
+        public void readByteBuffer(NetReceiveBuffer b) throws NetIbisException {
                 freeBuffer();
                 receiveByteBuffer(b);
         }
 
 
-	public byte readByte() throws IbisIOException {
+	public byte readByte() throws NetIbisException {
                 //System.err.println("readbyte -->");
 		byte value = 0;
 
@@ -165,7 +164,7 @@ public abstract class NetBufferedInput extends NetInput {
 	public void readArraySliceByte(byte [] userBuffer,
 				       int     offset,
 				       int     length)
-		throws IbisIOException {
+		throws NetIbisException {
 		//System.err.println("read: "+offset+", "+length);
 		if (length == 0)
 			return;

@@ -2,11 +2,10 @@ package ibis.ipl.impl.net.pipe;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
@@ -17,7 +16,7 @@ public final class PipeOutput extends NetBufferedOutput {
 	private PipedOutputStream pipeOs     = null;
         private boolean           upcallMode = false;
 
-	PipeOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+	PipeOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
 		headerLength = 4;
 	}
@@ -25,15 +24,17 @@ public final class PipeOutput extends NetBufferedOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
                 
-		this.rpn = rpn;
+		this.rpn = cnx.getNum();
 	
 		try {
-			Hashtable info = receiveInfoTable(is);
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("pipe"));
+
+			Hashtable info = (Hashtable)is.readObject();
 			mtu  	       = ((Integer)info.get("pipe_mtu")).intValue();
                         upcallMode     = ((Boolean)info.get("pipe_upcall_mode")).booleanValue();
 
@@ -43,14 +44,20 @@ public final class PipeOutput extends NetBufferedOutput {
 			PipedInputStream pipeIs = (PipedInputStream)bank.discardKey(key);
 
 			pipeOs = new PipedOutputStream(pipeIs);
-			os.write(1); // Connection ack
-			os.flush();			
-		} catch (Exception e) {
-			throw new IbisIOException(e);
+                        OutputStream os = cnx.getServiceLink().getOutputSubStream("pipe");
+                                
+                        os.write(1); // Connection ack
+                        os.flush();
+                        is.close();
+                        os.close();
+		} catch (IOException e) {
+			throw new NetIbisException(e);
+		} catch (ClassNotFoundException e) {
+			throw new Error(e);
 		}
 	}
 
-	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
+	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
 		try {
 			NetConvert.writeInt(b.length, b.data, 0);
 			pipeOs.write(b.data, 0, b.length);
@@ -59,27 +66,41 @@ public final class PipeOutput extends NetBufferedOutput {
                         }
                         
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		} 
 		if (! b.ownershipClaimed) {
 			b.free();
 		}
 	}
 
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (rpn == num) {
+                        try {
+                                if (pipeOs != null) {
+                                        pipeOs.close();
+                                }
+		
+                                rpn = null;
+                        } catch (Exception e) {
+                                throw new NetIbisException(e);
+                        }
+                }        
+        }
+        
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		try {
 			if (pipeOs != null) {
 				pipeOs.close();
-				pipeOs = null;
 			}
 		
 			rpn = null;
 		}
 		catch (Exception e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
 		super.free();

@@ -2,8 +2,6 @@ package ibis.ipl.impl.net.tcp_plain;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
 import java.net.Socket;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -44,7 +42,9 @@ public final class TcpOutput extends NetOutput {
 	 * The communication output stream.
 	 */
 	private OutputStream 	         tcpOs	   = null;
-
+        private InetAddress              raddr     = null;
+        private int                      rport     = 0;
+        
 	/**
 	 * Constructor.
 	 *
@@ -54,7 +54,7 @@ public final class TcpOutput extends NetOutput {
 	 * @param output the controlling output.
 	 */
 	TcpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		super(pt, driver, up, context);
 		headerLength = 0;
 	}
@@ -66,63 +66,89 @@ public final class TcpOutput extends NetOutput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os,
-                                    NetServiceListener nls)
-		throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx)
+		throws NetIbisException {
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
                 
-		this.rpn = rpn;
-	
-		Hashtable   rInfo = receiveInfoTable(is);
-		InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
-		int         rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
-		
-		try {
+		this.rpn = cnx.getNum();
+
+                try {
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("tcp_plain"));
+                        Hashtable rInfo = (Hashtable)is.readObject();
+                        is.close();
+
+                        raddr =  (InetAddress)rInfo.get("tcp_address");
+                        rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
+
 			tcpSocket = new Socket(raddr, rport);
 
 			tcpSocket.setSendBufferSize(0x8000);
 			tcpSocket.setReceiveBufferSize(0x8000);
 			tcpSocket.setTcpNoDelay(true);
 			
-			tcpOs 	  = tcpSocket.getOutputStream();
-			tcpIs 	  = tcpSocket.getInputStream();
+			tcpOs = tcpSocket.getOutputStream();
+			tcpIs = tcpSocket.getInputStream();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
-		}
+			throw new NetIbisException(e);
+		} catch (ClassNotFoundException e) {
+                        throw new Error(e);
+                }
 
 		mtu = 0;
 	}
 
-        public void finish() throws IbisIOException {
+        public void finish() throws NetIbisException {
                 super.finish();
  		try {
  			tcpOs.flush();
  		} catch (IOException e) {
- 			throw new IbisIOException(e.getMessage());
+ 			throw new NetIbisException(e.getMessage());
  		} 
 	}
                 
 
+
 	/*
 	 * {@inheritDoc}
          */
-	public void writeByte(byte b) throws IbisIOException {
-                //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]writing byte "+b);
+	public void writeByte(byte b) throws NetIbisException {
+                //System.err.println("TcpOutput: "+raddr+"["+rport+"]writing byte "+b);
  		try {
  			tcpOs.write(b);
  		} catch (IOException e) {
- 			throw new IbisIOException(e.getMessage());
+ 			throw new NetIbisException(e.getMessage());
  		} 
 	}
+
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (rpn == num) {
+                        try {
+                                if (tcpOs != null) {
+                                        tcpOs.close();
+                                }
+		
+                                if (tcpIs != null) {
+                                        tcpIs.close();
+                                }
+
+                                if (tcpSocket != null) {
+                                        tcpSocket.close();
+                                }
+                        } catch (Exception e) {
+                                throw new NetIbisException(e);
+                        }
+
+                        rpn = null;
+                }
+        }
+        
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		try {
 			if (tcpOs != null) {
 				tcpOs.close();
@@ -135,16 +161,11 @@ public final class TcpOutput extends NetOutput {
 			if (tcpSocket != null) {
                                 tcpSocket.close();
 			}
-
-			tcpSocket = null;
-			rpn       = null;
-			tcpIs     = null;
-			tcpOs     = null;
-
+		} catch (Exception e) {
+			throw new NetIbisException(e);
 		}
-		catch (Exception e) {
-			throw new IbisIOException(e);
-		}
+
+                rpn = null;
 
 		super.free();
 	}

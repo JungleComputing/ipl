@@ -2,9 +2,6 @@ package ibis.ipl.impl.net.udp;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -50,6 +47,7 @@ public final class UdpInput extends NetBufferedInput {
 	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
 	 */
 	private int                   receiveTimeout = defaultReceiveTimeout; // milliseconds
+        private UpcallThread     upcallThread = null;
 
 	private DatagramSocket 	      socket 	     = null;
 	private DatagramPacket 	      packet 	     = null;
@@ -72,7 +70,7 @@ public final class UdpInput extends NetBufferedInput {
 
 
 	UdpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		super(pt, driver, up, context);
 
 		if (factory == null) {
@@ -86,18 +84,25 @@ public final class UdpInput extends NetBufferedInput {
 
         private final class UpcallThread extends Thread {
 
+                private volatile boolean end = false;
+
                 public UpcallThread(String name) {
                         super("UdpInput.UpcallThread: "+name);
                 }
+
+                public void end() {
+                        end = true;
+                        this.interrupt();
+                }
                 
                 public void run() {
-                        while (true) {
+                        while (!end) {
                                 if (buffer != null) {
                                         throw new Error("invalid state");
                                 }
                                         
                                 try {
-					buffer = createReceiveBuffer();
+					buffer = createReceiveBuffer(0);
 					packet.setData(buffer.data, 0, buffer.data.length);
 
                                         setReceiveTimeout(0);
@@ -117,11 +122,8 @@ public final class UdpInput extends NetBufferedInput {
                 }
         }
 
-	public void setupConnection(Integer            spn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os,
-                                    NetServiceListener nls)
-		throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx)
+		throws NetIbisException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
@@ -134,18 +136,31 @@ public final class UdpInput extends NetBufferedInput {
 			laddr = socket.getLocalAddress();
 			lport = socket.getLocalPort();
 		} catch (SocketException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
-		Hashtable lInfo = new Hashtable();
-		lInfo.put("udp_address", laddr);
-		lInfo.put("udp_port", 	 new Integer(lport));
-		lInfo.put("udp_mtu",  	 new Integer(lmtu));
-		sendInfoTable(os, lInfo);
+                Hashtable lInfo = new Hashtable();
+                lInfo.put("udp_address", laddr);
+                lInfo.put("udp_port", 	 new Integer(lport));
+                lInfo.put("udp_mtu",  	 new Integer(lmtu));
+                Hashtable rInfo = null;
+                
+                try {
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("udp"));
+                        os.writeObject(lInfo);
+                        os.close();
 
-		Hashtable rInfo = receiveInfoTable(is);
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("udp"));
+                        rInfo = (Hashtable)is.readObject();
+                        is.close();
+                } catch (IOException e) {
+			throw new NetIbisException(e);
+		} catch (ClassNotFoundException e) {
+			throw new Error(e);
+		}
+                
 		raddr =  (InetAddress)rInfo.get("udp_address");
 		rport = ((Integer)    rInfo.get("udp_port")  ).intValue();
 		rmtu  = ((Integer)    rInfo.get("udp_mtu")   ).intValue();
@@ -165,7 +180,8 @@ public final class UdpInput extends NetBufferedInput {
 
 		setReceiveTimeout(receiveTimeout);
                 if (upcallFunc != null) {
-                        (new UpcallThread(raddr+"["+rport+"]")).start();
+                        upcallThread = new UpcallThread(raddr+"["+rport+"]");
+                        upcallThread.start();
                 }
 	}
 
@@ -203,7 +219,7 @@ public final class UdpInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
 		if (spn == null) {
 			return null;
 		}
@@ -216,7 +232,7 @@ public final class UdpInput extends NetBufferedInput {
 		} else {
 			activeNum = null;
 
-			buffer = createReceiveBuffer();
+			buffer = createReceiveBuffer(0);
 // System.err.println("UdpInput.poll creates buffer " + buffer);
 // Thread.dumpStack();
 			packet.setData(buffer.data, 0, buffer.data.length);
@@ -239,7 +255,7 @@ public final class UdpInput extends NetBufferedInput {
 			} catch (IOException e) {
 				buffer.free();
 				buffer = null;
-				throw new IbisIOException(e);
+				throw new NetIbisException(e);
 			}
 		}
 
@@ -256,10 +272,10 @@ public final class UdpInput extends NetBufferedInput {
 	 * @return {@inheritDoc}
 	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-		throws IbisIOException {
+		throws NetIbisException {
 		if (buffer == null) {
 // System.err.print("Z");
-			buffer = createReceiveBuffer();
+			buffer = createReceiveBuffer(0);
 // System.err.println("UdpInput.downcall receive(expectedlength) creates buffer " + buffer);
 			packet.setData(buffer.data, 0, buffer.data.length);
 
@@ -275,7 +291,7 @@ public final class UdpInput extends NetBufferedInput {
 			} catch (IOException e) {
 				buffer.free();
 				buffer = null;
-				throw new IbisIOException(e);
+				throw new NetIbisException(e);
 			}
 		} else {
 // System.err.print("_");
@@ -290,7 +306,7 @@ public final class UdpInput extends NetBufferedInput {
 	}
 
 	public void receiveByteBuffer(NetReceiveBuffer userBuffer)
-		throws IbisIOException {
+		throws NetIbisException {
 		if (buffer == null) {
                         //
 			packet.setData(userBuffer.data, userBuffer.base, userBuffer.length - userBuffer.base);
@@ -304,7 +320,7 @@ public final class UdpInput extends NetBufferedInput {
 				checkReceiveSeqno(buffer);
 // System.err.println("Receive downcall UDP packet len " + packet.getLength());
 			} catch (IOException e) {
-				throw new IbisIOException(e);
+				throw new NetIbisException(e);
 			}
 		} else {
 // System.err.print("-");
@@ -320,7 +336,7 @@ public final class UdpInput extends NetBufferedInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws IbisIOException {
+	public void finish() throws NetIbisException {
 		buffer = null;
 		super.finish();
 	}
@@ -329,50 +345,59 @@ public final class UdpInput extends NetBufferedInput {
 	 * We need a way to set timeout through properties 
 	 */
 	// timeout should be expressed in milliseconds
-	void setReceiveTimeout(int timeout) throws IbisIOException {
+	void setReceiveTimeout(int timeout) throws NetIbisException {
 		if (timeout != socketTimeout) {
 			try {
 				socket.setSoTimeout(timeout);
 				socketTimeout = timeout;
 			} catch (SocketException e) {
-				throw new IbisIOException(e);
+				throw new NetIbisException(e);
 			}
 		}		
 	}
 	
 	// returns the current reception timeout in milliseconds
 	// 0 means an infinite timeout
-	int getReceiveTimeout() throws IbisIOException {
+	int getReceiveTimeout() throws NetIbisException {
 		int t = 0;
 
 		try {
 			t = socket.getSoTimeout();
 		} catch (SocketException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
 		return t;
 	}
 
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (spn == num) {
+                        if (socket != null) {
+                                socket.close();
+                        }
+
+                        if (upcallThread != null) {
+                                upcallThread.end();
+                        }
+                    
+                        spn = null;    
+		}
+        }
+        
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		if (socket != null) {
 			socket.close();
 		}
-		
-		socket = null;
-		packet = null;
-		driver = null;
-		laddr  = null;
-		lport  =    0;
-		lmtu   =    0;
-		raddr  = null;
-		rport  =    0;
-		rmtu   =    0;
-		buffer = null;
-		spn    = null;
+                
+                if (upcallThread != null) {
+                        upcallThread.end();
+                }
+                    
+		spn = null;
 
 		super.free();
 

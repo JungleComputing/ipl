@@ -2,11 +2,6 @@ package ibis.ipl.impl.net.bytes;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 /**
  * The byte conversion output implementation.
  */
@@ -42,7 +37,7 @@ public final class BytesOutput extends NetOutput {
 	 * @param driver the ID driver instance.
 	 * @param output the controlling output.
 	 */
-	BytesOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+	BytesOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
                 an = new NetAllocator(anThreshold);
 	}
@@ -50,7 +45,7 @@ public final class BytesOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
 		NetOutput subOutput = this.subOutput;
 		
 		if (subOutput == null) {
@@ -63,7 +58,7 @@ public final class BytesOutput extends NetOutput {
 			this.subOutput = subOutput;
 		}
 
-		subOutput.setupConnection(rpn, is, os, nls);
+		subOutput.setupConnection(cnx);
 
 		int _mtu = subOutput.getMaximumTransfertUnit();
 		if (mtu == 0  ||  mtu > _mtu) {
@@ -80,7 +75,7 @@ public final class BytesOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void initSend() throws IbisIOException {
+	public void initSend() throws NetIbisException {
 		subOutput.initSend();
                 super.initSend();
 	}
@@ -90,26 +85,29 @@ public final class BytesOutput extends NetOutput {
 	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
 	   When a message is alive and a new messages is requested, the requester is blocked until the
 	   live message is finished. **/
-        public void finish() throws IbisIOException{
+        public void finish() throws NetIbisException{
                 super.finish();
                 subOutput.finish();
+        }
+
+        public synchronized void close(Integer num) throws NetIbisException {
+		if (subOutput != null) {
+                        subOutput.close(num);
+                }
         }
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		if (subOutput != null) {
 			subOutput.free();
-			subOutput = null;
 		}
-		
-		subDriver = null;
 
 		super.free();
 	}        
 
-        public void writeByteBuffer(NetSendBuffer buffer) throws IbisIOException {
+        public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
                 subOutput.writeByteBuffer(buffer);
         }
 
@@ -117,7 +115,7 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a boolean v to the message.
 	 * @param     v             The boolean v to write.
 	 */
-        public void writeBoolean(boolean v) throws IbisIOException {
+        public void writeBoolean(boolean v) throws NetIbisException {
                 subOutput.writeByte(NetConvert.boolean2byte(v));
         }
 
@@ -125,7 +123,7 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a byte v to the message.
 	 * @param     v             The byte v to write.
 	 */
-        public void writeByte(byte v) throws IbisIOException {
+        public void writeByte(byte v) throws NetIbisException {
                 subOutput.writeByte(v);                
         }
         
@@ -133,7 +131,7 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a char v to the message.
 	 * @param     v             The char v to write.
 	 */
-        public void writeChar(char v) throws IbisIOException {
+        public void writeChar(char v) throws NetIbisException {
                 byte [] b = a2.allocate();
                 NetConvert.writeChar(v, b);
                 subOutput.writeArrayByte(b);
@@ -144,7 +142,7 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a short v to the message.
 	 * @param     v             The short v to write.
 	 */
-        public void writeShort(short v) throws IbisIOException {
+        public void writeShort(short v) throws NetIbisException {
                 byte [] b = a2.allocate();
                 NetConvert.writeShort(v, b);
                 subOutput.writeArrayByte(b);
@@ -155,7 +153,7 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a int v to the message.
 	 * @param     v             The int v to write.
 	 */
-        public void writeInt(int v) throws IbisIOException {
+        public void writeInt(int v) throws NetIbisException {
                 byte [] b = a4.allocate();
                 NetConvert.writeInt(v, b);
                 subOutput.writeArrayByte(b);
@@ -167,7 +165,7 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a long v to the message.
 	 * @param     v             The long v to write.
 	 */
-        public void writeLong(long v) throws IbisIOException {
+        public void writeLong(long v) throws NetIbisException {
                 byte [] b = a8.allocate();
                 NetConvert.writeLong(v, b);
                 subOutput.writeArrayByte(b);
@@ -178,7 +176,7 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a float v to the message.
 	 * @param     v             The float v to write.
 	 */
-        public void writeFloat(float v) throws IbisIOException {
+        public void writeFloat(float v) throws NetIbisException {
                 byte [] b = a4.allocate();
                 NetConvert.writeFloat(v, b);
                 subOutput.writeArrayByte(b);
@@ -189,7 +187,7 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a double v to the message.
 	 * @param     v             The double v to write.
 	 */
-        public void writeDouble(double v) throws IbisIOException {
+        public void writeDouble(double v) throws NetIbisException {
                 byte [] b = a8.allocate();
                 NetConvert.writeDouble(v, b);
                 subOutput.writeArrayByte(b);
@@ -201,7 +199,7 @@ public final class BytesOutput extends NetOutput {
          * Note: uses writeObject to send the string.
 	 * @param     v             The string v to write.
 	 */
-        public void writeString(String v) throws IbisIOException {
+        public void writeString(String v) throws NetIbisException {
                 subOutput.writeString(v);
         }
 
@@ -209,12 +207,12 @@ public final class BytesOutput extends NetOutput {
 	 * Writes a Serializable object to the message.
 	 * @param     v             The object v to write.
 	 */
-        public void writeObject(Object v) throws IbisIOException {
+        public void writeObject(Object v) throws NetIbisException {
                 subOutput.writeObject(v);                
         }
 
 
-        public void writeArraySliceBoolean(boolean [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceBoolean(boolean [] ub, int o, int l) throws NetIbisException {
                 if (l <= anThreshold) {
                         byte [] b = an.allocate();
                         NetConvert.writeArraySliceBoolean(ub, o, l, b);
@@ -225,11 +223,11 @@ public final class BytesOutput extends NetOutput {
                 }                
         }
 
-        public void writeArraySliceByte(byte [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceByte(byte [] ub, int o, int l) throws NetIbisException {
                 subOutput.writeArraySliceByte(ub, o, l);                
         }
 
-        public void writeArraySliceChar(char [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceChar(char [] ub, int o, int l) throws NetIbisException {
                 final int f = 2;
 
                 if ((l*f) <= anThreshold) {
@@ -242,7 +240,7 @@ public final class BytesOutput extends NetOutput {
                 }
         }
 
-        public void writeArraySliceShort(short [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceShort(short [] ub, int o, int l) throws NetIbisException {
                 final int f = 2;
 
                 if ((l*f) <= anThreshold) {
@@ -255,7 +253,7 @@ public final class BytesOutput extends NetOutput {
                 }
         }
 
-        public void writeArraySliceInt(int [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceInt(int [] ub, int o, int l) throws NetIbisException {
                 final int f = 4;
 
                 if ((l*f) <= anThreshold) {
@@ -268,7 +266,7 @@ public final class BytesOutput extends NetOutput {
                 }
         }
 
-        public void writeArraySliceLong(long [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceLong(long [] ub, int o, int l) throws NetIbisException {
                 final int f = 8;
 
                 if ((l*f) <= anThreshold) {
@@ -281,7 +279,7 @@ public final class BytesOutput extends NetOutput {
                 }
         }
 
-        public void writeArraySliceFloat(float [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceFloat(float [] ub, int o, int l) throws NetIbisException {
                 final int f = 4;
 
                 if ((l*f) <= anThreshold) {
@@ -294,7 +292,7 @@ public final class BytesOutput extends NetOutput {
                 }
         }
 
-        public void writeArraySliceDouble(double [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceDouble(double [] ub, int o, int l) throws NetIbisException {
                 final int f = 8;
 
                 if ((l*f) <= anThreshold) {
@@ -307,7 +305,7 @@ public final class BytesOutput extends NetOutput {
                 }
         }	
 
-        public void writeArraySliceObject(Object [] ub, int o, int l) throws IbisIOException {
+        public void writeArraySliceObject(Object [] ub, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         writeObject(ub[o+i]);
                 }

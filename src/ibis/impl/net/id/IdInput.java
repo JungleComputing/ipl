@@ -2,11 +2,6 @@ package ibis.ipl.impl.net.id;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 
 /**
  * The ID input implementation.
@@ -32,7 +27,7 @@ public final class IdInput extends NetInput {
 	 * @param input the controlling input.
 	 */
 	IdInput(NetPortType pt, NetDriver driver, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		super(pt, driver, up, context);
 	}
 
@@ -43,7 +38,7 @@ public final class IdInput extends NetInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
 			if (subDriver == null) {
@@ -56,13 +51,13 @@ public final class IdInput extends NetInput {
 		}
 		
                 if (upcallFunc != null) {
-                        subInput.setupConnection(spn, is, os, nls, this);
+                        subInput.setupConnection(cnx, this);
                 } else {
-                        subInput.setupConnection(spn, is, os, nls, null);
+                        subInput.setupConnection(cnx, null);
                 }
 	}
 
-        public synchronized void inputUpcall(NetInput input, Integer spn) {
+        public synchronized void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 activeNum = spn;
 
                 // Note: the IdInput instance is bypassed during upcall reception
@@ -81,7 +76,7 @@ public final class IdInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
                 if (subInput == null)
                         return null;
                 
@@ -97,7 +92,7 @@ public final class IdInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws IbisIOException {
+	public void finish() throws NetIbisException {
 		subInput.finish();
 		super.finish();
 	}
@@ -105,116 +100,121 @@ public final class IdInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		if (subInput != null) {
 			subInput.free();
-			subInput = null;
 		}
 
-		subDriver = null;
-		
 		super.free();
 	}
 	
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (subInput != null) {
+			subInput.close(num);
+			subInput = null;
+		}
+        }
+        
+
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 return subInput.readByteBuffer(expectedLength);
         }       
 
-        public void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+        public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 subInput.readByteBuffer(buffer);
         }
 
 
-	public boolean readBoolean() throws IbisIOException {
+	public boolean readBoolean() throws NetIbisException {
                 return subInput.readBoolean();
         }
         
 
-	public byte readByte() throws IbisIOException {
+	public byte readByte() throws NetIbisException {
                 return subInput.readByte();
         }
         
 
-	public char readChar() throws IbisIOException {
+	public char readChar() throws NetIbisException {
                 return subInput.readChar();
         }
 
 
-	public short readShort() throws IbisIOException {
+	public short readShort() throws NetIbisException {
                 return subInput.readShort();
         }
 
 
-	public int readInt() throws IbisIOException {
+	public int readInt() throws NetIbisException {
                 return subInput.readInt();
         }
 
 
-	public long readLong() throws IbisIOException {
+	public long readLong() throws NetIbisException {
                 return subInput.readLong();
         }
 
 	
-	public float readFloat() throws IbisIOException {
+	public float readFloat() throws NetIbisException {
                 return subInput.readFloat();
         }
 
 
-	public double readDouble() throws IbisIOException {
+	public double readDouble() throws NetIbisException {
                 return subInput.readDouble();
         }
 
 
-	public String readString() throws IbisIOException {
+	public String readString() throws NetIbisException {
                 return (String)subInput.readString();
         }
 
 
-	public Object readObject() throws IbisIOException {
+	public Object readObject() throws NetIbisException {
                 return subInput.readObject();
         }
 
 
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceBoolean(b, o, l);
         }
 
 
-	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceByte(b, o, l);
         }
 
 
-	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceChar(b, o, l);
         }
 
 
-	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceShort(b, o, l);
         }
 
 
-	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceInt(b, o, l);
         }
 
 
-	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceLong(b, o, l);
         }
 
 
-	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceFloat(b, o, l);
         }
 
 
-	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceDouble(b, o, l);
         }
 
-	public void readArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
                 subInput.readArraySliceObject(b, o, l);
         }
 

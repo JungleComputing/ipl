@@ -2,9 +2,6 @@ package ibis.ipl.impl.net.tcp_blk;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
@@ -71,7 +68,6 @@ public final class TcpInput extends NetBufferedInput {
         private byte []               hdr             = new byte[4];
         private NetReceiveBuffer      buf             = null;
         private UpcallThread          upcallThread    = null;
-        private NetMutex              upcallEnd       = new NetMutex(true);
 
 	/**
 	 * Constructor.
@@ -82,7 +78,7 @@ public final class TcpInput extends NetBufferedInput {
 	 * @param input the controlling input.
 	 */
 	TcpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		super(pt, driver, up, context);
 		headerLength = 4;
 		// Create the factory in the constructor. This allows
@@ -92,12 +88,19 @@ public final class TcpInput extends NetBufferedInput {
 
         private final class UpcallThread extends Thread {
                 
+                private volatile boolean end = true;
+
                 public UpcallThread(String name) {
                         super("Tcp(blk)Input.UpcallThread: "+name);
                 }
 
+                public void end() {
+                        end = true;
+                        this.interrupt();
+                }
+
                 public void run() {
-                        while (true) {
+                        while (!end) {
                                 try {
                                         buf = receiveByteBuffer(0);
                                         if (buf == null)
@@ -111,8 +114,6 @@ public final class TcpInput extends NetBufferedInput {
                                         throw new Error(e);
                                 }
                         }
-
-                        upcallEnd.unlock();
                 }
         }
 
@@ -123,27 +124,41 @@ public final class TcpInput extends NetBufferedInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer            spn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os,
-                                    NetServiceListener nls)
-		throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx)
+		throws NetIbisException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = spn;
+		this.spn = cnx.getNum();
 		 
 		try {
 			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
-			Hashtable lInfo    = new Hashtable();
+			Hashtable lInfo = new Hashtable();                        
 			lInfo.put("tcp_address", tcpServerSocket.getInetAddress());
 			lInfo.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
 			lInfo.put("tcp_mtu",     new Integer(lmtu));
-			sendInfoTable(os, lInfo);
+                        Hashtable rInfo = null;
 
-			Hashtable rInfo = receiveInfoTable(is);
-			rmtu  		= ((Integer) rInfo.get("tcp_mtu")).intValue();
+                        try {
+                                //System.err.println("TcpInput: writing info table -->");
+                                ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("tcp_blk"));
+                                os.writeObject(lInfo);
+                                os.close();
+                                //System.err.println("TcpInput: writing info table <--");
+
+                                //System.err.println("TcpInput: reading info table -->");
+                                ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("tcp_blk"));
+                                rInfo = (Hashtable)is.readObject();
+                                is.close();
+                                //System.err.println("TcpInput: reading info table <--");
+                        } catch (IOException e) {
+                                throw new NetIbisException(e);
+                        } catch (ClassNotFoundException e) {
+                                throw new Error(e);
+                        }
+                
+			rmtu = ((Integer) rInfo.get("tcp_mtu")).intValue();
 
 			tcpSocket  = tcpServerSocket.accept();
 
@@ -153,10 +168,10 @@ public final class TcpInput extends NetBufferedInput {
                         addr = tcpSocket.getInetAddress();
                         port = tcpSocket.getPort();
 
-			tcpIs 	   = tcpSocket.getInputStream();
-			tcpOs 	   = tcpSocket.getOutputStream();
+			tcpIs = tcpSocket.getInputStream();
+			tcpOs = tcpSocket.getOutputStream();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
 		mtu       = Math.min(lmtu, rmtu);
@@ -179,7 +194,7 @@ public final class TcpInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
 		activeNum = null;
 
 		if (spn == null) {
@@ -193,7 +208,7 @@ public final class TcpInput extends NetBufferedInput {
                                 initReceive();
 			}
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		} 
                 //System.err.println("tcp_blk: poll <-- : " + activeNum);
 
@@ -208,14 +223,14 @@ public final class TcpInput extends NetBufferedInput {
 	 * @return {@inheritDoc}
 	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-		throws IbisIOException {
+		throws NetIbisException {
                 if (buf != null) {
                         NetReceiveBuffer temp = buf;
                         buf = null;
                         return temp;
                 }
 
-		NetReceiveBuffer buf = createReceiveBuffer();
+		NetReceiveBuffer buf = createReceiveBuffer(0);
 		byte [] b = buf.data;
 		int     l = 0;
 
@@ -248,17 +263,46 @@ public final class TcpInput extends NetBufferedInput {
                 } catch (SocketException e) {
                         return null;
 		} catch (IOException e) {
-			throw new IbisIOException(e.getMessage());
+			throw new NetIbisException(e.getMessage());
 		} 
 
 		buf.length = l;
 		return buf;
 	}
 
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (spn == num) {
+                        try {
+                                if (tcpOs != null) {
+                                        tcpOs.close();
+                                }
+		
+                                if (tcpIs != null) {
+                                        tcpIs.close();
+                                }
+
+                                if (upcallThread != null) {
+                                        upcallThread.end();
+                                }
+
+                                if (tcpSocket != null) {
+                                        tcpSocket.close();
+                                }
+
+                                if (tcpServerSocket != null) {
+                                        tcpServerSocket.close();
+                                }
+                        } catch (Exception e) {
+                                throw new NetIbisException(e);
+                        }
+                }	
+        }
+
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		try {
 			if (tcpOs != null) {
 				tcpOs.close();
@@ -269,9 +313,7 @@ public final class TcpInput extends NetBufferedInput {
 			}
 
                         if (upcallThread != null) {
-                                upcallThread.interrupt();
-                                upcallEnd.lock();
-                                upcallThread = null;
+                                upcallThread.end();
                         }
 
 			if (tcpSocket != null) {
@@ -281,9 +323,8 @@ public final class TcpInput extends NetBufferedInput {
 			if (tcpServerSocket != null) {
                                 tcpServerSocket.close();
 			}
-		}
-		catch (Exception e) {
-			throw new IbisIOException(e);
+		} catch (Exception e) {
+			throw new NetIbisException(e);
 		}
 
 		super.free();

@@ -2,411 +2,220 @@ package ibis.ipl.impl.net.def;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InterruptedIOException;
+import java.io.InputStream;
 
-import java.util.Hashtable;
+public final class DefInput extends NetBufferedInput {
+	private Integer      spn       = null;
+	private InputStream  defIs     = null;
+	private NetAllocator allocator = null;
+        private NetReceiveBuffer      buf             = null;
+        private UpcallThread          upcallThread = null;
 
-
-/**
- * The DEF input implementation.
- */
-public final class DefInput extends NetInput {
-	private Integer            spn   = null;
-	private ObjectInputStream  defIs = null;
-        private NetServiceListener nls   = null;
-        private int                nlsId =    0;
-        
 	DefInput(NetPortType pt, NetDriver driver, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		super(pt, driver, up, context);
+		headerLength = 4;
 	}
 
         private final class UpcallThread extends Thread {
+                private volatile boolean end = false;
+
                 public UpcallThread(String name) {
                         super("DefInput.UpcallThread: "+name);
+                        setDaemon(true);
                 }
                 
+                public void end() {
+                        end = true;
+                        this.interrupt();
+                }
+                
+
                 public void run() {
-                        while (true) {
-                                lock();
+                        while (!end) {
+                                try {
+                                        buf = receiveByteBuffer(0);
+                                } catch (IOException e) {
+                                        throw new Error(e);
+                                }
+                                
+                                if (buf == null)
+                                        break;
+
                                 activeNum = spn;
-                                unlock();
-                                upcallFunc.inputUpcall(DefInput.this, activeNum);
+                                initReceive();
+                                try {
+                                        upcallFunc.inputUpcall(DefInput.this, activeNum);
+                                } catch (NetIbisInterruptedException e) {
+                                        activeNum = null;
+                                        break;
+                                } catch (NetIbisClosedException e) {
+                                        break;
+                                } catch (NetIbisException e) {
+                                        throw new Error(e.getMessage());
+                                }
+                                
                                 activeNum = null;
                         }
                 }
         }
         
-        private void lock() {
-                nls.acquire(nlsId);
-        }
-
-        private boolean trylock() {
-                return nls.tryAcquire(nlsId);
-        }
-
-        private void unlock() {
-                nls.release();
-        }
-        
 	/*
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer            spn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os,
-                                    NetServiceListener nls)
-		throws IbisIOException {
+	synchronized public void setupConnection(NetConnection cnx)
+		throws NetIbisException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }                
 
-		this.spn = spn;
-                this.nls = nls;
-                defIs    = is;
-                nlsId     = nls.getId();
+		this.spn = cnx.getNum();
+                defIs    = cnx.getServiceLink().getInputSubStream("def");
 
-                Hashtable info    = new Hashtable();
-                info.put("def_nls_id", new Integer(nlsId));
-                sendInfoTable(os, info);
+                mtu = 1024;
+		allocator = new NetAllocator(mtu);
+
                 if (upcallFunc != null) {
-                        (new UpcallThread("id = " + nlsId)).start();
+                        upcallThread = new UpcallThread("this = " + this);
+                        upcallThread.start();
                 }
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
 		activeNum = null;
 
 		if (spn == null) {
 			return null;
 		}
 
-                if (trylock()) {
-                        activeNum = spn;
-                        unlock();
-                }
+		try {
+			if (defIs.available() > 0) {
+				activeNum = spn;
+                                initReceive();
+			}
+		} catch (IOException e) {
+			throw new NetIbisException(e);
+		} 
 
 		return activeNum;
 	}
 
-       	public void finish() throws IbisIOException {
+       	public void finish() throws NetIbisException {
                 super.finish();
                 activeNum = null;
-        }
-
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
-                NetReceiveBuffer b = createReceiveBuffer(expectedLength);
-                
-                try {
-                        lock();
-                        for (int i = 0; i < expectedLength; i++) {
-			        b.data[i] = defIs.readByte();
-                                b.length++;
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-
-                return b;
-        }
-
-        public void readByteBuffer(NetReceiveBuffer b) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < b.data.length; i++) {
-			        b.data[i] = defIs.readByte();
-                                b.length++;
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public boolean readBoolean() throws IbisIOException {
-                boolean result = false;
-                
-		try {
-                        lock();
-                        result = defIs.readBoolean();
-                } catch (IOException e) {
-                        throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }
-        
-	public byte readByte() throws IbisIOException {
-                byte result = 0;
-                
-		try {
-                        lock();
-                        result = defIs.readByte();
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }        
-        
-	public char readChar() throws IbisIOException {
-                char result = 0;
-                
-		try {
-                        lock();
-                        result = defIs.readChar();
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }
-        
-	public short readShort() throws IbisIOException {
-                short result = 0;
-                
-		try {
-                        lock();
-                        result = defIs.readShort();
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }
-        
-	public int readInt() throws IbisIOException {
-                int result = 0;
-                
-		try {
-                        lock();
-                        result = defIs.readInt();
-                } catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }
-        
-	public long readLong() throws IbisIOException {
-                long result = 0;
-                
-		try {
-                        lock();
-                        result = defIs.readLong();
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }
-        
-	public float readFloat() throws IbisIOException {
-                float result = 0;
-                
-		try {
-                        lock();
-                        result = defIs.readFloat();
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }
-        
-	public double readDouble() throws IbisIOException {
-                double result = 0;
-                
-		try {
-                        lock();
-                        result = defIs.readDouble();
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }
-
-	public String readString() throws IbisIOException {
-                String result = "";
-                
-		try {
-                        lock();
-                        result = defIs.readUTF();
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-   
-                return result;
-        }
-
-        public Object readObject() throws IbisIOException {
-                Object o = null;
-
-                try {
-                        lock();
-                        o = defIs.readObject();
-                } catch (Exception e) {
-                        throw new IbisIOException(e.getMessage());
-                } finally {
-                        unlock();
-                }
-                
-                return o;
-        }        
-        
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readBoolean();
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readByte();
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readChar();
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readShort();
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readInt();
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readLong();
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readFloat();
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readDouble();
-                        }
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
-        }
-
-	public void readArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
-                try {
-                        lock();
-                        for (int i = 0; i < l; i++) {
-			        b[o+i] = defIs.readObject();
-                        }
-		} catch (Exception e) {
-			throw new IbisIOException(e);
-		} finally {
-                        unlock();
-                }
         }
 
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: this function may block if the expected data is not there.
+	 *
+	 * @return {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
-                nls = null;
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws NetIbisException {
+                if (buf != null) {
+                        NetReceiveBuffer temp = buf;
+                        buf = null;
+                        return temp;
+                }
+
+                // NetReceiveBuffer b = createReceiveBuffer(expectedLength);
+
+		byte [] b = allocator.allocate();
+		int     l = 0;
+
+		try {
+			int offset = 0;
+
+                        do {
+                                int result = defIs.read(b, offset, 4);
+                                if (result == -1) {
+                                        if (offset != 0) {
+                                                throw new Error("broken pipe");
+                                        }
+                                        
+                                        return null;
+                                }
+                                
+                                if (result == 0) {
+                                        return null;
+                                }
+
+                                offset += result;
+                        } while (offset < 4);
+
+                        l = NetConvert.readInt(b);
+                        
+			do {
+				int result = defIs.read(b, offset, l - offset);
+                                if (result == -1) {
+                                        throw new Error("broken pipe");
+                                }                                
+                                if (result == 0) {
+                                        return null;
+                                }
+                                offset += result;
+			} while (offset < l);
+                } catch (InterruptedIOException e) {
+                        return null;
+		} catch (IOException e) {
+			throw new NetIbisException(e.getMessage());
+		} 
+
+		return new NetReceiveBuffer(b, l, allocator);
+	}
+
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (spn == num) {
+                        try {
+                                defIs.close();
+                        } catch (IOException e) {
+                                throw new Error(e);
+                        }          
+              
+                        spn = null;
+
+                        if (upcallThread != null) {
+                                upcallThread.end();
+                        }
+                }
+        }
+        
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void free() throws NetIbisException {
+                if (defIs != null) {
+                        try {
+                                defIs.close();
+                        } catch (IOException e) {
+                                throw new Error(e);
+                        }                        
+                }
+
                 spn = null;
+
+                if (upcallThread != null) {
+                        upcallThread.end();
+                        //System.err.println("waiting for DEF upcall thread to join");
+                        while (true) {
+                                try {
+                                        upcallThread.join();
+                                        break;
+                                } catch (InterruptedException e) {
+                                        //
+                                }
+                        }
+                        //System.err.println("DEF upcall thread joined");
+                }
+                
 		super.free();
 	}
 }

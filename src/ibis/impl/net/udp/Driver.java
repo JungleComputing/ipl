@@ -1,8 +1,5 @@
 package ibis.ipl.impl.net.udp;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
@@ -49,8 +46,7 @@ public final class Driver extends NetDriver {
 	 * @param input the controlling input.
 	 * @return The new UDP input.
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+	public NetInput newInput(NetPortType pt, NetIO up, String context) throws NetIbisException {
 		return new UdpInput(pt, this, up, context);
 	}
 
@@ -62,8 +58,7 @@ public final class Driver extends NetDriver {
 	 * @param output the controlling output.
 	 * @return The new UDP output.
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws NetIbisException {
 		return new UdpOutput(pt, this, up, context);
 	}
 }

@@ -1,8 +1,5 @@
 package ibis.ipl.impl.net.def;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
@@ -42,7 +39,7 @@ public final class Driver extends NetDriver {
 	 * {@inheritDoc}
 	 */
 	public NetInput newInput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		return new DefInput(pt, this, up, context);
 	}
 
@@ -50,7 +47,7 @@ public final class Driver extends NetDriver {
 	 * {@inheritDoc}
 	 */
 	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		return new DefOutput(pt, this, up, context);
 	}
 }

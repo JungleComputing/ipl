@@ -6,30 +6,23 @@ import ibis.io.SerializationInputStream;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
-import java.util.Hashtable;
-
 
 /**
  * The ID input implementation.
  */
 public final class SSunInput extends NetSerializedInput {
-        public SSunInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+        public SSunInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
                 super(pt, driver, up, context);
         }
         
-        public SerializationInputStream newSerializationInputStream() throws IbisIOException {
+        public SerializationInputStream newSerializationInputStream() throws NetIbisException {
                 InputStream is = new DummyInputStream();
 		try {
 		    return new SunSerializationInputStream(is);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
@@ -39,7 +32,7 @@ public final class SSunInput extends NetSerializedInput {
                         
                         try {
                                 result = subInput.readByte();
-                        } catch (IbisIOException e) {
+                        } catch (NetIbisException e) {
                                 throw new IOException(e.getMessage());
                         }
 

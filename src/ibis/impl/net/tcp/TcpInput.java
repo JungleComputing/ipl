@@ -3,7 +3,6 @@ package ibis.ipl.impl.net.tcp;
 import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -38,18 +37,25 @@ public final class TcpInput extends NetInput {
         private UpcallThread       upcallThread       = null;
         private NetMutex           upcallEnd          = new NetMutex(true);
 
-	TcpInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+	TcpInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
 	}
 
         private final class UpcallThread extends Thread {
 
+                private volatile boolean end = false;
+
                 public UpcallThread(String name) {
                         super("TcpInput.UpcallThread: "+name);
                 }                
+
+                public void end() {
+                        end = true;
+                        this.interrupt();
+                }
                 
                 public void run() {
-                        while (true) {
+                        while (!end) {
                                 try {
                                         int i = tcpIs.read();
                                         if (i == -1) {
@@ -76,23 +82,21 @@ public final class TcpInput extends NetInput {
                 }
         }        
 
-	public void setupConnection(Integer                spn,
-				    ObjectInputStream 	   is,
-				    ObjectOutputStream	   os,
-                                    NetServiceListener     nls)
-		throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = spn;
+		this.spn = cnx.getNum();;
 		 
 		try {
 			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
 			Hashtable info    = new Hashtable();
 			info.put("tcp_address", tcpServerSocket.getInetAddress());
 			info.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
-			sendInfoTable(os, info);
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("tcp"));
+			os.writeObject(info);
+                        os.close();
 
 			tcpSocket  = tcpServerSocket.accept();
                         addr = tcpSocket.getInetAddress();
@@ -104,7 +108,7 @@ public final class TcpInput extends NetInput {
                                 (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                         }
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 	}
 
@@ -117,7 +121,7 @@ public final class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
 		activeNum = null;
 
 		if (spn == null) {
@@ -130,28 +134,28 @@ public final class TcpInput extends NetInput {
 				activeNum = spn;
 			}
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		} 
 
 		return activeNum;
 	}
 
-       	public void finish() throws IbisIOException {
+        public void finish() throws NetIbisException {
                 super.finish();
                 if (_inputConvertStream != null) {
                         try {
                                 _inputConvertStream.close();
                         } catch (IOException e) {
-                                throw new IbisIOException(e.getMessage());
+                                throw new NetIbisException(e.getMessage());
                         }
                         
                         _inputConvertStream = null;
                 }
 
                 activeNum = null;
-        }
-        
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+        }        
+
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 NetReceiveBuffer b = createReceiveBuffer(expectedLength);
 
                 try {
@@ -160,33 +164,33 @@ public final class TcpInput extends NetInput {
                                 b.length++;
                         }
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
                 return b;
         }
         
 
-        public void readByteBuffer(NetReceiveBuffer b) throws IbisIOException {
+        public void readByteBuffer(NetReceiveBuffer b) throws NetIbisException {
                 try {
                         for (int i = 0; i < b.data.length; i++) {
 			        b.data[i] = readByte();
                                 b.length++;
                         }
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
         }
         
 
 
-	public boolean readBoolean() throws IbisIOException {
+	public boolean readBoolean() throws NetIbisException {
                 boolean result = false;
                 
 		try {
                         result = tcpIs.readBoolean();
                 } catch (IOException e) {
-                        throw new IbisIOException(e);
+                        throw new NetIbisException(e);
 		}
    
                 return result;
@@ -194,104 +198,104 @@ public final class TcpInput extends NetInput {
         
 
         
-	public byte readByte() throws IbisIOException {
+	public byte readByte() throws NetIbisException {
                 byte result = 0;
                 
 		try {
                         result = tcpIs.readByte();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
    
                 return result;
         }
         
         
-	public char readChar() throws IbisIOException {
+	public char readChar() throws NetIbisException {
                 char result = 0;
                 
 		try {
                         result = tcpIs.readChar();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
    
                 return result;
         }
         
-	public short readShort() throws IbisIOException {
+	public short readShort() throws NetIbisException {
                 short result = 0;
                 
 		try {
                         result = tcpIs.readShort();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
    
                 return result;
         }
         
-	public int readInt() throws IbisIOException {
+	public int readInt() throws NetIbisException {
                 int result = 0;
                 
 		try {
                         result = tcpIs.readInt();
                 } catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
    
                 return result;
         }
         
-	public long readLong() throws IbisIOException {
+	public long readLong() throws NetIbisException {
                 long result = 0;
                 
 		try {
                         result = tcpIs.readLong();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
    
                 return result;
         }
         
-	public float readFloat() throws IbisIOException {
+	public float readFloat() throws NetIbisException {
                 float result = 0;
                 
 		try {
                         result = tcpIs.readFloat();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
    
                 return result;
         }
         
-	public double readDouble() throws IbisIOException {
+	public double readDouble() throws NetIbisException {
                 double result = 0;
                 
 		try {
                         result = tcpIs.readDouble();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
    
                 return result;
         }
 
-	public String readString() throws IbisIOException {
+	public String readString() throws NetIbisException {
                 String result = "";
                 
 		try {
                         result = tcpIs.readUTF();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
    
                 return result;
         }
 
-        public Object readObject() throws IbisIOException {
+        public Object readObject() throws NetIbisException {
                 Object o = null;
                 try {
                         if (_inputConvertStream == null) {
@@ -301,69 +305,69 @@ public final class TcpInput extends NetInput {
                 
                         o = _inputConvertStream.readObject();
                 } catch (Exception e) {
-                        throw new IbisIOException(e.getMessage());
+                        throw new NetIbisException(e.getMessage());
                 }
                 
                 return o;
         }
         
         
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readBoolean();
                 }
         }
 
 
-	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readByte();
                 }
         }
 
 
-	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readChar();
                 }
         }
 
 
-	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readShort();
                 }
         }
 
 
-	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readInt();
                 }
         }
 
 
-	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readLong();
                 }
         }
 
 
-	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readFloat();
                 }
         }
 
 
-	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readDouble();
                 }
         }
 
-	public void readArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readObject();
                 }
@@ -373,7 +377,8 @@ public final class TcpInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+
+	public void doFree() throws NetIbisException {
 		try {
 			if (tcpOs != null) {
                                 tcpOs.close();
@@ -384,9 +389,7 @@ public final class TcpInput extends NetInput {
 			}
 
                         if (upcallThread != null) {
-                                upcallThread.interrupt();
-                                upcallEnd.lock();
-                                upcallThread = null;
+                                upcallThread.end();
                         }
 
 			if (tcpSocket != null) {
@@ -398,12 +401,17 @@ public final class TcpInput extends NetInput {
 			}
 		}
 		catch (Exception e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
-		super.free();
+                spn = null;
 	}
 
+	public void free() throws NetIbisException {
+                doFree();
+		super.free();
+        }
+        
         private final class DummyInputStream extends InputStream {
                 private long seq = 0;
 
@@ -413,7 +421,7 @@ public final class TcpInput extends NetInput {
                         
                         try {
                                 result = readByte();
-                        } catch (IbisIOException e) {
+                        } catch (NetIbisException e) {
                                 throw new IOException(e.getMessage());
                         }
 
@@ -426,4 +434,11 @@ public final class TcpInput extends NetInput {
                  *       symmetrical transactions.
                  */
         }
+
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (spn == num) {
+                        doFree();
+                }
+        }
+        
 }

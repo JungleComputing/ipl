@@ -1,6 +1,5 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
 
 import java.io.ObjectInputStream;
@@ -86,35 +85,6 @@ public abstract class NetIO {
 	}
 
 	/**
-	 * Helper function for sending a set of connection data to the connection peer.
-	 */
-	protected final void sendInfoTable(ObjectOutputStream os,
-					   Hashtable          t)
-		throws IbisIOException {
-		try {
-			os.writeObject(t);
-		} catch (Exception e) {
-			throw new IbisIOException(e);
-		}
-	}
-
-	/**
-	 * Helper function for receiving a set of connection data to
-	 * the connection peer.
-	 */
-	protected final Hashtable receiveInfoTable(ObjectInputStream is)
-		throws IbisIOException {
-		Hashtable t = null;
-		try {
-			t = (Hashtable)is.readObject();
-		} catch (Exception e) {
-			throw new IbisIOException(e);
-		}
-
-		return t;
-	}
-
-	/**
 	 * Returns the output's driver.
 	 *
 	 * @return a reference to the output's driver.
@@ -140,19 +110,19 @@ public abstract class NetIO {
                 return sub;
         }
 
-        public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws IbisIOException {
+        public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws NetIbisException {
                 return subDriver.newInput(type, this, subContext(contextValue));
         }
 
-        public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws IbisIOException {
+        public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws NetIbisException {
                 return subDriver.newOutput(type, this, subContext(contextValue));
         }
 
-        public final NetInput newSubInput(NetDriver subDriver) throws IbisIOException {
+        public final NetInput newSubInput(NetDriver subDriver) throws NetIbisException {
                 return newSubInput(subDriver, null);
         }
 
-        public final NetOutput newSubOutput(NetDriver subDriver) throws IbisIOException {
+        public final NetOutput newSubOutput(NetDriver subDriver) throws NetIbisException {
                 return newSubOutput(subDriver, null);
         }
 
@@ -197,11 +167,11 @@ public abstract class NetIO {
 	 *
 	 * This is only valid for a Factory with MTU.
 	 *
-	 * @throws an {@link IbisIOException} if the factory has no default MTU
+	 * @throws an {@link NetIbisException} if the factory has no default MTU
 	 */
-	public NetBuffer createBuffer() throws IbisIOException {
+	public NetBuffer createBuffer() throws NetIbisException {
 	    if (factory == null) {
-		throw new IbisIOException("Need a factory with MTU");
+		throw new NetIbisException("Need a factory with MTU");
 	    }
 	    return factory.createBuffer();
 	}
@@ -212,13 +182,12 @@ public abstract class NetIO {
 	 * @param length the length of the data to be stored in the buffer.
 	 *        The buffer is a new byte array
 	 */
-	public NetBuffer createBuffer(int length) throws IbisIOException {
+	public NetBuffer createBuffer(int length) throws NetIbisException {
 	    if (factory == null) {
 		factory = new NetBufferFactory();
 	    }
 	    return factory.createBuffer(length);
 	}
-
 
 	/**
 	 * Returns the maximum transfert unit for this input.
@@ -268,32 +237,22 @@ public abstract class NetIO {
 	/**
 	 * Actually establish a connection with a remote port.
 	 *
-	 * @param rpn the integer locally associated to the remote port.
-	 * @param is  a TCP input from the peer node.
-	 * @param os  a TCP output to the peer node.
-	 * @exception IbisIOException if the connection setup fails.
+	 * @param cnx the connection data.
+	 * @exception NetIbisException if the connection setup fails.
 	 */
-	public abstract void setupConnection(Integer            rpn,
-					     ObjectInputStream  is,
-					     ObjectOutputStream os,
-                                             NetServiceListener nsl)
-		throws IbisIOException;
+	public abstract void setupConnection(NetConnection cnx) throws NetIbisException;
 
+
+        public abstract void close(Integer num) throws NetIbisException;
 
 	/**
 	 * Closes the I/O.
 	 *
-	 * Note: methods redefining this one should also call it.
+	 * Note: methods redefining this one should also call it, just in case
+         *       we need to add something here
 	 */
-	public void free()
-		throws IbisIOException {
-		up                  =  null;
-		mtu                 =     0;
-		headerOffset        =     0;
-		headerLength        =     0;
-		driver              =  null;
-                type                =  null;
-                context             =  null;
+	public void free() throws NetIbisException {
+                // nothing
 	}
 
 	/**

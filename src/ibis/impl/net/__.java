@@ -1,8 +1,5 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 /**
  * Simple class for helper functions.
  */
@@ -30,6 +27,8 @@ public final class __ {
 	 * @param Throwable The throwable providing the error message.
 	 */
 	public static final void fwdAbort__(Throwable e) {
+                e.printStackTrace();
+
 		throw new Error(e.getMessage());
 		// Java >= 1.4 only: throw new Error(e);
 	}

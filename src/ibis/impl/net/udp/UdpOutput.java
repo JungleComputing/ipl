@@ -2,9 +2,6 @@ package ibis.ipl.impl.net.udp;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -81,7 +78,7 @@ public final class UdpOutput extends NetBufferedOutput {
 	 * @param output the controlling output.
 	 */
 	UdpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		super(pt, driver, up, context);
 
 		if (Driver.DEBUG) {
@@ -99,11 +96,8 @@ public final class UdpOutput extends NetBufferedOutput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os,
-                                    NetServiceListener nls)
-		throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx)
+		throws NetIbisException {
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }                
@@ -116,21 +110,34 @@ public final class UdpOutput extends NetBufferedOutput {
 			laddr  = socket.getLocalAddress();
 			lport  = socket.getLocalPort();
 		} catch (SocketException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
-		Hashtable rInfo = receiveInfoTable(is);
-		raddr 		=  (InetAddress)rInfo.get("udp_address");
-		rport 		= ((Integer)	rInfo.get("udp_port")   ).intValue();
-		rmtu  		= ((Integer)	rInfo.get("udp_mtu")    ).intValue();
+                Hashtable lInfo = new Hashtable();
+                lInfo.put("udp_address", laddr);
+                lInfo.put("udp_port", 	 new Integer(lport));
+                lInfo.put("udp_mtu",  	 new Integer(lmtu));
+                Hashtable rInfo = null;
 
-		Hashtable lInfo = new Hashtable();
-		lInfo.put("udp_address", laddr);
-		lInfo.put("udp_port",    new Integer(lport));
-		lInfo.put("udp_mtu",     new Integer(lmtu));
-		sendInfoTable(os, lInfo);
+                try {
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("udp"));
+                        rInfo = (Hashtable)is.readObject();
+                        is.close();
+
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("udp"));
+                        os.writeObject(lInfo);
+                        os.close();
+                } catch (IOException e) {
+			throw new NetIbisException(e);
+		} catch (ClassNotFoundException e) {
+			throw new Error(e);
+		}
+
+		raddr =  (InetAddress)rInfo.get("udp_address");
+		rport = ((Integer)    rInfo.get("udp_port")   ).intValue();
+		rmtu  = ((Integer)    rInfo.get("udp_mtu")    ).intValue();
 
 		mtu    = Math.min(lmtu, rmtu);
 		packet = new DatagramPacket(new byte[0], 0, raddr, rport);
@@ -139,7 +146,7 @@ public final class UdpOutput extends NetBufferedOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
+	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
 		if (Driver.DEBUG) {
 		    NetConvert.writeLong(seqno++, b.data, 0);
 		}
@@ -148,7 +155,7 @@ public final class UdpOutput extends NetBufferedOutput {
 		try {
 			socket.send(packet);
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 		if (! b.ownershipClaimed) {
 		    b.free();
@@ -167,23 +174,23 @@ public final class UdpOutput extends NetBufferedOutput {
 	public void reset() {
 	}
 
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (rpn == num) {
+                        if (socket != null) {
+                                socket.close();
+                        }
+                        rpn = null;
+                }
+        }
+        
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		if (socket != null) {
 			socket.close();
 		}
-		
-		socket = null;
-		packet = null;
-		laddr  = null;
-		lport  =    0;
-		lmtu   =    0;
-		raddr  = null;
-		rport  =    0;
-		rmtu   =    0;
-		rpn    = null;
 
 		super.free();
 	}

@@ -5,11 +5,6 @@ import ibis.io.SerializationInputStream;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import java.util.Hashtable;
 
 
@@ -21,16 +16,16 @@ public abstract class NetSerializedInput extends NetInput {
 	/**
 	 * The driver used for the 'real' input.
 	 */
-	protected NetDriver        subDriver        = null;
+	protected NetDriver                subDriver   = null;
        
 	/**       
 	 * The 'real' input.       
 	 */       
-	protected NetInput         subInput         = null;
-        private SerializationInputStream inputSerializationStream = null;
-	private Hashtable        streamTable = null;
+	protected NetInput                 subInput    = null;
+        private   SerializationInputStream iss         = null;
+	private   Hashtable                streamTable = null;
 
-	public NetSerializedInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+	public NetSerializedInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
                 streamTable = new Hashtable();
 	}
@@ -38,7 +33,7 @@ public abstract class NetSerializedInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
 			if (subDriver == null) {
@@ -52,41 +47,37 @@ public abstract class NetSerializedInput extends NetInput {
 		
 		
                 if (upcallFunc != null) {
-                        subInput.setupConnection(spn, is, os, nls, this);
+                        subInput.setupConnection(cnx, this);
                 } else {
-                        subInput.setupConnection(spn, is, os, nls, null);
+                        subInput.setupConnection(cnx, null);
                 }
 	}
 
-        public abstract SerializationInputStream newSerializationInputStream() throws IbisIOException;
+        public abstract SerializationInputStream newSerializationInputStream() throws NetIbisException;
         
 
-	public void initReceive() throws IbisIOException {
+	public void initReceive() throws NetIbisException {
                 byte b = subInput.readByte();
 
                 if (b != 0) {
-                        inputSerializationStream = newSerializationInputStream();
-                        streamTable.put(activeNum, inputSerializationStream);
+                        iss = newSerializationInputStream();
+                        streamTable.put(activeNum, iss);
                 } else {
-                        inputSerializationStream = (SerializationInputStream)streamTable.get(activeNum);
+                        iss = (SerializationInputStream)streamTable.get(activeNum);
                 }
                 
 	}
 
-        public void inputUpcall(NetInput input, Integer spn) {
+        public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 activeNum = spn;
                 mtu          = subInput.getMaximumTransfertUnit();
                 headerOffset = subInput.getHeadersLength();
-                try {
-                        initReceive();
-                } catch (Exception e) {
-                        throw new Error(e);
-                }
+                initReceive();
                 upcallFunc.inputUpcall(this, spn);
                 activeNum = null;
         }
 
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
                 if (subInput == null)
                         return null;
                 
@@ -104,210 +95,214 @@ public abstract class NetSerializedInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws IbisIOException {
+	public void finish() throws NetIbisException {
 		//System.err.println("SSerializationInput: finish-->");
-                //inputSerializationStream.close();
-                inputSerializationStream = null;
+                //iss.close();
+                iss = null;
 		super.finish();
 		subInput.finish();
                 activeNum = null;
 		//System.err.println("SSerializationInput: finish<--");
 	}
 
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (subInput != null) {
+                        subInput.close(num);
+                }
+        }
+        
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		if (subInput != null) {
 			subInput.free();
-			subInput = null;
 		}
 
-		subDriver = null;
-		
 		super.free();
 	}
 	
 
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 return subInput.readByteBuffer(expectedLength);
         }       
 
-        public void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+        public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 subInput.readByteBuffer(buffer);
         }
 
-	public boolean readBoolean() throws IbisIOException {
+	public boolean readBoolean() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readBoolean();
+		    return iss.readBoolean();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
         
 
-	public byte readByte() throws IbisIOException {
+	public byte readByte() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readByte();
+		    return iss.readByte();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
         
 
-	public char readChar() throws IbisIOException {
+	public char readChar() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readChar();
+		    return iss.readChar();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public short readShort() throws IbisIOException {
+	public short readShort() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readShort();
+		    return iss.readShort();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public int readInt() throws IbisIOException {
+	public int readInt() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readInt();
+		    return iss.readInt();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public long readLong() throws IbisIOException {
+	public long readLong() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readLong();
+		    return iss.readLong();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 	
-	public float readFloat() throws IbisIOException {
+	public float readFloat() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readFloat();
+		    return iss.readFloat();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public double readDouble() throws IbisIOException {
+	public double readDouble() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readDouble();
+		    return iss.readDouble();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public String readString() throws IbisIOException {
+	public String readString() throws NetIbisException {
 		try {
-		    return (String)inputSerializationStream.readObject();
+		    return (String)iss.readObject();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		} catch(ClassNotFoundException e2) {
-		    throw new IbisIOException("got exception", e2);
+		    throw new NetIbisException("got exception", e2);
 		}
         }
 
 
-	public Object readObject() throws IbisIOException {
+	public Object readObject() throws NetIbisException {
 		try {
-		    return inputSerializationStream.readObject();
+		    return iss.readObject();
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		} catch(ClassNotFoundException e2) {
-		    throw new IbisIOException("got exception", e2);
+		    throw new NetIbisException("got exception", e2);
 		}
         }
 
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
 		try {
-		    inputSerializationStream.readArraySliceBoolean(b, o, l);
+		    iss.readArraySliceBoolean(b, o, l);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
-		}
-        }
-
-
-	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
-		try {
-		    inputSerializationStream.readArraySliceByte(b, o, l);
-		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
 		try {
-		    inputSerializationStream.readArraySliceChar(b, o, l);
+		    iss.readArraySliceByte(b, o, l);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
 		try {
-		    inputSerializationStream.readArraySliceShort(b, o, l);
+		    iss.readArraySliceChar(b, o, l);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
 		try {
-		    inputSerializationStream.readArraySliceInt(b, o, l);
+		    iss.readArraySliceShort(b, o, l);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
 		try {
-		    inputSerializationStream.readArraySliceLong(b, o, l);
+		    iss.readArraySliceInt(b, o, l);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
 		try {
-		    inputSerializationStream.readArraySliceFloat(b, o, l);
+		    iss.readArraySliceLong(b, o, l);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
 
-	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
 		try {
-		    inputSerializationStream.readArraySliceDouble(b, o, l);
+		    iss.readArraySliceFloat(b, o, l);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
 
-	public void readArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+
+	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
 		try {
-		    inputSerializationStream.readArraySliceObject(b, o, l);
+		    iss.readArraySliceDouble(b, o, l);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
+		}
+        }
+
+	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+		try {
+		    iss.readArraySliceObject(b, o, l);
+		} catch(java.io.IOException e) {
+		    throw new NetIbisException("got exception", e);
 		} catch(ClassNotFoundException e2) {
-		    throw new IbisIOException("got exception", e2);
+		    throw new NetIbisException("got exception", e2);
 		}
         }
 }

@@ -1,7 +1,5 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisIOException;
-
 
 /**
  * Provides a simple wrapper class for a byte array.
@@ -144,7 +142,7 @@ public class NetBuffer implements Cloneable {
 	 * Otherwise this method is a no-op, and the GC will reclaim the buffer.
 	 *
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		if (factory != null) {
 		    factory.free(this);
 		} else {

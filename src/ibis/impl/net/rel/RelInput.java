@@ -3,7 +3,6 @@ package ibis.ipl.impl.net.rel;
 import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisIOException;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -111,7 +110,7 @@ public final class RelInput
      * @param driver the REL driver instance.
      * @param input the controlling input.
      */
-    RelInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+    RelInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 	super(pt, driver, up, context);
 
 	relDriver = (Driver)driver;
@@ -125,13 +124,10 @@ public final class RelInput
     /*
      * {@inheritDoc}
      */
-    public void setupConnection(Integer rpn,
-				ObjectInputStream is,
-				ObjectOutputStream os,
-				NetServiceListener nls)
-	    throws IbisIOException {
+    public synchronized void setupConnection(NetConnection cnx)
+	    throws NetIbisException {
 
-	spn = rpn;
+	spn = cnx.getNum();
 
 	/* Main connection */
 	NetInput dataInput = this.dataInput;
@@ -145,7 +141,7 @@ public final class RelInput
 	    this.dataInput = dataInput;
 	}
 
-	dataInput.setupConnection(rpn, is, os, nls);
+	dataInput.setupConnection(cnx);
 
 	headerStart = dataInput.getHeadersLength();
 System.err.println("RelInput: headerStart " + headerStart);
@@ -165,16 +161,22 @@ System.err.println("RelInput: headerStart " + headerStart);
 	}
 
 	try {
-	    os.writeObject(relDriver.getIbis().identifier());
+             NetServiceLink link = cnx.getServiceLink();
+            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("rel"));
+	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream ("rel"));
+            os.writeObject(relDriver.getIbis().identifier());
+            os.close();
+
 	    IbisIdentifier partnerId = (IbisIdentifier)is.readObject();
 	    partnerIndex = is.readInt();
 	    windowSize = is.readInt();
-
+            is.close();
+            
 	    relDriver.registerInputConnection(this, partnerId);
 	} catch (java.io.IOException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	} catch (java.lang.ClassNotFoundException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	}
 
 	/* Reverse connection */
@@ -184,7 +186,7 @@ System.err.println("RelInput: headerStart " + headerStart);
 		this.controlOutput = controlOutput;
 	}
 
-	controlOutput.setupConnection(new Integer(-1), is, os, nls);
+	controlOutput.setupConnection(new NetConnection(cnx, new Integer(-1)));
 	controlHeaderStart = controlOutput.getHeadersLength();
     }
 
@@ -196,7 +198,7 @@ System.err.println("RelInput: headerStart " + headerStart);
 
     // Call this non-synchronized
     private void handlePiggy(byte[] data, int offset)
-	    throws IbisIOException {
+	    throws NetIbisException {
 	int		partnerNo = NetConvert.readInt(data, offset);
 	offset += NetConvert.INT_SIZE;
 
@@ -332,7 +334,7 @@ System.err.println("RelInput: headerStart " + headerStart);
      * irrespective of our position in the window.
      */
     // Call this synchronized
-    private void sendExplicitAck(boolean always) throws IbisIOException {
+    private void sendExplicitAck(boolean always) throws NetIbisException {
 	if (! USE_EXPLICIT_ACKS) {
 	    // System.err.println("Do it with piggy-backed acks only");
 	    return;
@@ -361,7 +363,7 @@ System.err.println("RelInput: headerStart " + headerStart);
 
 
     private void handleDuplicate(RelReceiveBuffer packet)
-	    throws IbisIOException {
+	    throws NetIbisException {
 	if (DEBUG_REXMIT) {
 	    System.err.println(this + ": !!!!!!!!!!!!!!!!! Receive duplicate packet " + packet.fragCount + "; what should I do?");
 	}
@@ -375,7 +377,7 @@ System.err.println("RelInput: headerStart " + headerStart);
 
     // Call this synchronized
     private void enqueueReceiveBuffer(RelReceiveBuffer packet)
-	    throws IbisIOException {
+	    throws NetIbisException {
 	int fragCount = NetConvert.readInt(packet.data, headerStart);
 	packet.isLastFrag = ((fragCount & LAST_FRAG_BIT) != 0);
 	if (packet.isLastFrag) {
@@ -441,7 +443,7 @@ System.err.println("RelInput: headerStart " + headerStart);
 
     /* Call this if you know there is a packet, and are willing to wait until
      * it is really there */
-    private void pollBlocking() throws IbisIOException {
+    private void pollBlocking() throws NetIbisException {
 	RelReceiveBuffer packet = (RelReceiveBuffer)dataInput.readByteBuffer(mtu);
 	if (DEBUG || (DEBUG_REXMIT && DEBUG_ACK)) {
 	    int first_int = RelOutput.reportPacket(System.err,
@@ -467,7 +469,7 @@ System.err.println("RelInput: headerStart " + headerStart);
      * {@inheritDoc}
      */
     // Call this non-synchronized
-    public Integer poll() throws IbisIOException {
+    public Integer poll() throws NetIbisException {
 	if (dataInput == null) {
 	    return null;
 	}
@@ -513,7 +515,7 @@ System.err.println("RelInput: headerStart " + headerStart);
 
     /* Wait here until the next packet has arrived. */
     // Call this synchronized
-    private RelReceiveBuffer dequeueReceiveBuffer() throws IbisIOException {
+    private RelReceiveBuffer dequeueReceiveBuffer() throws NetIbisException {
 	while (front == null || front.fragCount != nextDeliver) {
 	    pollBlocking();
 	    // poll();
@@ -554,7 +556,7 @@ System.err.println("RelInput: headerStart " + headerStart);
      */
     synchronized
     public NetReceiveBuffer receiveByteBuffer(int length)
-	    throws IbisIOException {
+	    throws NetIbisException {
 	if (DEBUG) {
 	    System.err.println("Receive deliver request size " + length);
 	    Thread.dumpStack();
@@ -598,7 +600,7 @@ System.err.println("RelInput: headerStart " + headerStart);
     /**
      * {@inheritDoc}
      */
-    public void finish() throws IbisIOException {
+    public void finish() throws NetIbisException {
 	    super.finish();
 	    dataInput.finish();
     }
@@ -607,7 +609,7 @@ System.err.println("RelInput: headerStart " + headerStart);
     /**
      * {@inheritDoc}
      */
-    public void free() throws IbisIOException {
+    public void free() throws NetIbisException {
 	Thread.dumpStack();
 
 	for (int i = 0; i < SHUTDOWN_DELAY / sweepInterval; i++) {
@@ -624,15 +626,30 @@ System.err.println("RelInput: headerStart " + headerStart);
 	report();
 	if (dataInput != null) {
 	    dataInput.free();
-	    dataInput = null;
 	}
 	if (controlOutput != null) {
 	    controlOutput.free();
-	    controlOutput = null;
 	}
 
-	subDriver = null;
 	super.free();
+    }
+
+
+    synchronized public void close(Integer num) throws NetIbisException {
+            // to implement
+            //
+            // - 'num' is the is the Integer identifier of the connection to close
+            // - close should not complain is the connection is already closed
+            // - close must be synchronized with its counterpart 'setupconnection'
+            // - close should not block if possible (except for sync with 
+            //   setupconnection)
+            // - close should not free the input/output objects which can be used
+            //   for subsequent new connections
+            // - close is supposed to be called by the NetIbis port layer 
+            //   when the peer port is closed
+            // - close is also supposed to be called by the user once the IPL
+            //   provide the feature, to remove a connection from the connection set
+            //   of the port.
     }
 
 }

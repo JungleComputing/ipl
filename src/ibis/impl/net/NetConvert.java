@@ -1,12 +1,9 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisIOException;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
 
 public final class NetConvert {
 

@@ -3,7 +3,6 @@ package ibis.ipl.impl.net;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
@@ -166,9 +165,9 @@ public final class NetIbis extends Ibis {
 	 *
 	 * @param name the driver's name.
 	 * @return The driver instance.
-	 * @exception IbisIOException if the requested driver class could not be loaded or the requested driver instance could not be initialized.
+	 * @exception NetIbisException if the requested driver class could not be loaded or the requested driver instance could not be initialized.
 	 */
-	public NetDriver getDriver(String name) throws IbisIOException{
+	public NetDriver getDriver(String name) throws NetIbisException{
 		NetDriver driver = (NetDriver)driverTable.get(name);
 
 		if (driver == null) {
@@ -185,7 +184,7 @@ public final class NetIbis extends Ibis {
 
 				driver = (NetDriver)cons.newInstance(objArray);
 			} catch (Exception e) {
-				throw new IbisIOException(e);
+				throw new NetIbisException(e);
 			}
 
 			driverTable.put(name, driver);
@@ -200,18 +199,22 @@ public final class NetIbis extends Ibis {
 	 * @param name the name of the type.
 	 * @param sp   the properties of the type.
 	 * @return The port type.
-	 * @exception IbisIOException if the name server refused to register the new type.
+	 * @exception NetIbisException if the name server refused to register the new type.
 	 */
 	public PortType createPortType(String name, StaticProperties sp)
-		throws IbisIOException {
+		throws NetIbisException {
 		NetPortType newPortType = new NetPortType(this, name, sp);
 		sp = newPortType.properties();
 
 		PortTypeNameServerClient client = nameServerClient.tcpPortTypeNameServerClient;
-		if (client.newPortType(name, sp)) { 
-			portTypeTable.put(name, newPortType);
-		}
-
+                try {
+                        if (client.newPortType(name, sp)) { 
+                                portTypeTable.put(name, newPortType);
+                        }
+                } catch (ibis.ipl.IbisIOException e) {
+                        throw new NetIbisException(e);
+                }
+                
 		return newPortType;	
 	}
 
@@ -249,14 +252,14 @@ public final class NetIbis extends Ibis {
 	 * This function is not automatically called by the constructor.
 	 *
 	 * @exception IbisException if the system-wide Ibis properties where not correctly set.
-	 * @exception IbisIOException if the local host name cannot be found or if the Name Server cannot be reached.
+	 * @exception NetIbisException if the local host name cannot be found or if the Name Server cannot be reached.
 	 */
-	protected void init() throws IbisException, IbisIOException { 
+	protected void init() throws IbisException, NetIbisException { 
 		try {
 			InetAddress addr = InetAddress.getLocalHost();
 			identifier = new NetIbisIdentifier(name, addr);
 		} catch (UnknownHostException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 		
 
@@ -290,14 +293,18 @@ public final class NetIbis extends Ibis {
 		try {
 			nameServerInet = InetAddress.getByName(nameServerName);
 		} catch (UnknownHostException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
-		nameServerClient = new NameServerClient(this,
-							identifier,
-							nameServerPool,
-							nameServerInet, 
-							nameServerPort);
+                try {
+                        nameServerClient = new NameServerClient(this,
+                                                                identifier,
+                                                                nameServerPool,
+                                                                nameServerInet, 
+                                                                nameServerPort);
+                } catch (ibis.ipl.IbisIOException e) {
+                        throw new NetIbisException(e);
+                }
 	}
 
 	/**
@@ -315,11 +322,11 @@ public final class NetIbis extends Ibis {
 	 * @param joinIdent the identifier of the joining Ibis instance.
 	 */
 	public void join(IbisIdentifier joinIdent) { 
-                System.err.println(this + ": join--> " + joinIdent);
+                //System.err.println(this + ": join--> " + joinIdent);
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				joinedIbises.add(joinIdent);
-// System.err.println(this + ": join<XX");
+                                // System.err.println(this + ": join<XX");
 				return;
 			}
 			
@@ -329,7 +336,7 @@ public final class NetIbis extends Ibis {
 		if(resizeHandler != null) {
 			resizeHandler.join(joinIdent);
 		}
-                System.err.println(this + ": join<--");
+                //System.err.println(this + ": join<--");
 	}
 
 	/**
@@ -338,7 +345,7 @@ public final class NetIbis extends Ibis {
 	 * @param leaveIdent the identifier of the leaving Ibis instance.
 	 */
 	public void leave(IbisIdentifier leaveIdent) { 
-                System.err.println(this + ": leave-->");
+                //System.err.println(this + ": leave-->");
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				leftIbises.add(leaveIdent);
@@ -351,11 +358,11 @@ public final class NetIbis extends Ibis {
 		if(resizeHandler != null) {
 			resizeHandler.leave(leaveIdent);
 		}
-                System.err.println(this + ": leave<--");
+                //System.err.println(this + ": leave<--");
 	}
 
 	public void openWorld() {
-                System.err.println(this + ": openWorld-->");
+                //System.err.println(this + ": openWorld-->");
 		if(resizeHandler != null) {
 			while(joinedIbises.size() > 0) {
 // System.err.println(this+ ": join/later " + (NetIbisIdentifier)joinedIbises.elementAt(0));
@@ -372,7 +379,7 @@ public final class NetIbis extends Ibis {
 		synchronized (this) {
 			open = true;
 		}
-                System.err.println(this + ": openWorld<--");
+                //System.err.println(this + ": openWorld<--");
 	}
 
 	public synchronized void closeWorld() {

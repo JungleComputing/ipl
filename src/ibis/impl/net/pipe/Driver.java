@@ -1,15 +1,6 @@
 package ibis.ipl.impl.net.pipe;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import ibis.ipl.impl.net.*;
-
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.net.DatagramSocket;
 
 /**
  * The NetIbis pipe-based loopback driver.
@@ -49,7 +40,7 @@ public final class Driver extends NetDriver {
 	 * @return The new PIPE input.
 	 */
 	public NetInput newInput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		return new PipeInput(pt, this, up, context);
 	}
 
@@ -62,7 +53,7 @@ public final class Driver extends NetDriver {
 	 * @return The new PIPE output.
 	 */
 	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		return new PipeOutput(pt, this, up, context);
 	}
 }

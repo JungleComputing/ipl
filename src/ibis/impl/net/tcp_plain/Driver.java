@@ -1,5 +1,5 @@
 package ibis.ipl.impl.net.tcp_plain;
-import ibis.ipl.IbisIOException;
+
 import ibis.ipl.impl.net.*;
 
 /**
@@ -32,14 +32,14 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context) throws IbisIOException {
+	public NetInput newInput(NetPortType pt, NetIO up, String context) throws NetIbisException {
 		return new TcpInput(pt, this, up, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws IbisIOException {
+	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws NetIbisException {
 		return new TcpOutput(pt, this, up, context);
 	}
 }

@@ -23,7 +23,7 @@
 #endif
 
 /* Debugging macros */
-#if 0
+#if 1
 #define __trace__(s, p...) fprintf(stderr, "[%Ld]:%s:%d: "s"\n", __RDTSC__, __FUNCTION__, __LINE__ , ## p)
 #else
 #define __trace__(s, p...)
@@ -56,8 +56,8 @@
 #define CACHE_SIZE 10
 #define CACHE_GRANULARITY 0x1000
 
-/* The name of the Ibis exception for I/O related failures. */
-#define NI_IBIS_EXCEPTION  "ibis.ipl.IbisIOException"
+/* The name of the NetIbis exception. */
+#define NI_IBIS_EXCEPTION  "ibis.ipl.impl.net.NetIbisException"
 
 /* The minimal valid GM port ID.*/
 #define NI_GM_MIN_PORT_NUM 2
@@ -1911,11 +1911,18 @@ static
 void
 ni_gm_throw_exception(JNIEnv *env,
                       char   *msg) {
+        __in__();
+        __trace__("ni_gm_throw_exception-->");
         jclass cls = 0;
-        
+        assert(env);
+        __trace__("ni_gm_throw_exception - 1");
         cls = (*env)->FindClass(env, NI_IBIS_EXCEPTION);
+        __trace__("ni_gm_throw_exception - 2");
         assert(cls);
+        __trace__("ni_gm_throw_exception - 3");
         (*env)->ThrowNew(env, cls, msg);
+        __trace__("ni_gm_throw_exception<--");
+        __out__();
 }
 
 

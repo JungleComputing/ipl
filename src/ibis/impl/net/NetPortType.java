@@ -2,7 +2,6 @@ package ibis.ipl.impl.net;
 
 import ibis.ipl.ConnectUpcall;
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.PortType;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.SendPort;
@@ -87,7 +86,7 @@ public final class NetPortType implements PortType {
         
 
 	public NetPortType (NetIbis ibis, String name, StaticProperties sp)
-		throws IbisIOException {
+		throws NetIbisException {
 		this.ibis             = ibis;
 		this.name             = name;
                 this.propertyTree     = new NetPropertyTree();
@@ -174,34 +173,39 @@ public final class NetPortType implements PortType {
 	/**
 	 * {@inheritDoc}
 	 */
-	public SendPort createSendPort(String name) throws IbisIOException {
+	public SendPort createSendPort(String name) throws NetIbisException {
 		return new NetSendPort(this, null, name);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public SendPort createSendPort(Replacer r) throws IbisIOException {
+	public SendPort createSendPort(Replacer r) throws NetIbisException {
 		return new NetSendPort(this, r);
 	}
 
-	public SendPort createSendPort(String name, Replacer r) throws IbisIOException {
+	public SendPort createSendPort(String name, Replacer r) throws NetIbisException {
 		return new NetSendPort(this, r, name);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public SendPort createSendPort() throws IbisIOException {
+	public SendPort createSendPort() throws NetIbisException {
 		return new NetSendPort(this);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public ReceivePort createReceivePort(String name) throws IbisIOException {
+	public ReceivePort createReceivePort(String name) throws NetIbisException {
 		NetReceivePort nrp = new NetReceivePort(this, name);
-		ibis.receivePortNameServerClient().bind(name, nrp);
+
+                try {
+                        ibis.receivePortNameServerClient().bind(name, nrp);
+                } catch (ibis.ipl.IbisIOException e) {
+                        throw new NetIbisException(e);
+                }
 
 		return nrp;
 	}
@@ -210,9 +214,14 @@ public final class NetPortType implements PortType {
 	 * {@inheritDoc}
 	 */
 	public ReceivePort createReceivePort(String name, Upcall u)
-		throws IbisIOException {
+		throws NetIbisException {
 		NetReceivePort nrp = new NetReceivePort(this, name, u);
-		ibis.receivePortNameServerClient().bind(name, nrp);
+                
+                try {
+                        ibis.receivePortNameServerClient().bind(name, nrp);
+                } catch (ibis.ipl.IbisIOException e) {
+                        throw new NetIbisException(e);
+                }
 
 		return nrp;
 	}
@@ -222,7 +231,7 @@ public final class NetPortType implements PortType {
 	 */
 	public ReceivePort createReceivePort(String        name,
 					     ConnectUpcall cU)
-		throws IbisIOException {
+		throws NetIbisException {
 		__.unimplemented__("createReceivePort(..., ConnectUpcall)");
 		return null;
 	}
@@ -233,7 +242,7 @@ public final class NetPortType implements PortType {
 	public ReceivePort createReceivePort(String    	   name,
 					     Upcall    	   u,
 					     ConnectUpcall cU)
-		throws IbisIOException {
+		throws NetIbisException {
 		__.unimplemented__("createReceivePort(..., ConnectUpcall)");
 		return null;
 	}

@@ -2,11 +2,6 @@ package ibis.ipl.impl.net.bytes;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 /**
  * The ID input implementation.
  */
@@ -36,7 +31,7 @@ public final class BytesInput extends NetInput {
         private int          anThreshold = 8 * 256;
         private NetAllocator an = null;
 
-	BytesInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+	BytesInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
                 an = new NetAllocator(anThreshold);
 	}
@@ -44,7 +39,7 @@ public final class BytesInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
 			if (subDriver == null) {
@@ -57,13 +52,13 @@ public final class BytesInput extends NetInput {
 		}
 		
                 if (upcallFunc != null) {
-                        subInput.setupConnection(spn, is, os, nls, this);
+                        subInput.setupConnection(cnx, this);
                 } else {
-                        subInput.setupConnection(spn, is, os, nls, null);
+                        subInput.setupConnection(cnx, null);
                 }
 	}
 
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
                 if (subInput == null)
                         return null;
                 
@@ -75,7 +70,7 @@ public final class BytesInput extends NetInput {
 		return result;
 	}
 	
-        public void inputUpcall(NetInput input, Integer spn) {
+        public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 activeNum = spn;
                 mtu          = subInput.getMaximumTransfertUnit();
                 headerOffset = subInput.getHeadersLength();
@@ -86,45 +81,48 @@ public final class BytesInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws IbisIOException {
+	public void finish() throws NetIbisException {
 		super.finish();
 		subInput.finish();
 	}
 
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (subInput != null) {
+                        subInput.close(num);
+                }
+        }
+        
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		if (subInput != null) {
 			subInput.free();
-			subInput = null;
 		}
 
-		subDriver = null;
-		
 		super.free();
 	}
 	
 
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
                 return subInput.readByteBuffer(expectedLength);
         }       
 
-        public void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+        public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
                 subInput.readByteBuffer(buffer);
         }
 
-	public boolean readBoolean() throws IbisIOException {
+	public boolean readBoolean() throws NetIbisException {
                 return NetConvert.byte2boolean(subInput.readByte());
         }
         
 
-	public byte readByte() throws IbisIOException {
+	public byte readByte() throws NetIbisException {
                 return subInput.readByte();
         }
         
 
-	public char readChar() throws IbisIOException {
+	public char readChar() throws NetIbisException {
                 char value = 0;
 
                 byte [] b = a2.allocate();
@@ -136,7 +134,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public short readShort() throws IbisIOException {
+	public short readShort() throws NetIbisException {
                 short value = 0;
 
                 byte [] b = a2.allocate();
@@ -148,7 +146,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public int readInt() throws IbisIOException {
+	public int readInt() throws NetIbisException {
                 int value = 0;
 
                 byte [] b = a4.allocate();
@@ -160,7 +158,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public long readLong() throws IbisIOException {
+	public long readLong() throws NetIbisException {
                 long value = 0;
 
                 byte [] b = a8.allocate();
@@ -172,7 +170,7 @@ public final class BytesInput extends NetInput {
         }
 
 	
-	public float readFloat() throws IbisIOException {
+	public float readFloat() throws NetIbisException {
                 float value = 0;
 
                 byte [] b = a4.allocate();
@@ -184,7 +182,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public double readDouble() throws IbisIOException {
+	public double readDouble() throws NetIbisException {
                 double value = 0;
 
                 byte [] b = a8.allocate();
@@ -196,16 +194,16 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public String readString() throws IbisIOException {
+	public String readString() throws NetIbisException {
                 return subInput.readString();
         }
 
 
-	public Object readObject() throws IbisIOException {
+	public Object readObject() throws NetIbisException {
                 return subInput.readObject();
         }
 
-	public void readArraySliceBoolean(boolean [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceBoolean(boolean [] ub, int o, int l) throws NetIbisException {
                 if (l <= anThreshold) {
                         byte [] b = an.allocate();
                         subInput.readArraySliceByte(b, 0, l);
@@ -219,12 +217,12 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public void readArraySliceByte(byte [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceByte(byte [] ub, int o, int l) throws NetIbisException {
                 subInput.readArraySliceByte(ub, o, l);
         }
 
 
-	public void readArraySliceChar(char [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceChar(char [] ub, int o, int l) throws NetIbisException {
                 final int f = 2;
 
                 if (l*f <= anThreshold) {
@@ -240,7 +238,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public void readArraySliceShort(short [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceShort(short [] ub, int o, int l) throws NetIbisException {
                 final int f = 2;
 
                 if (l*f <= anThreshold) {
@@ -256,7 +254,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public void readArraySliceInt(int [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceInt(int [] ub, int o, int l) throws NetIbisException {
                 final int f = 4;
 
                 if (l*f <= anThreshold) {
@@ -272,7 +270,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public void readArraySliceLong(long [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceLong(long [] ub, int o, int l) throws NetIbisException {
                 final int f = 8;
 
                 if (l*f <= anThreshold) {
@@ -288,7 +286,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public void readArraySliceFloat(float [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceFloat(float [] ub, int o, int l) throws NetIbisException {
                 final int f = 4;
 
                 if (l*f <= anThreshold) {
@@ -304,7 +302,7 @@ public final class BytesInput extends NetInput {
         }
 
 
-	public void readArraySliceDouble(double [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceDouble(double [] ub, int o, int l) throws NetIbisException {
                 final int f = 8;
 
                 if (l*f <= anThreshold) {
@@ -319,7 +317,7 @@ public final class BytesInput extends NetInput {
                 }
         }
 
-	public void readArraySliceObject(Object [] ub, int o, int l) throws IbisIOException {
+	public void readArraySliceObject(Object [] ub, int o, int l) throws NetIbisException {
                 for (int i = 0; i < l; i++) {
                         ub[o+i] = readObject();
                 }

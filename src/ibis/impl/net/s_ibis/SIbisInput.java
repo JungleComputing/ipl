@@ -6,11 +6,6 @@ import ibis.io.SerializationInputStream;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import java.util.Hashtable;
 
 
@@ -18,52 +13,52 @@ import java.util.Hashtable;
  * The ID input implementation.
  */
 public final class SIbisInput extends NetSerializedInput {
-        public SIbisInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+        public SIbisInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
                 super(pt, driver, up, context);
         }
         
-        public SerializationInputStream newSerializationInputStream() throws IbisIOException {
+        public SerializationInputStream newSerializationInputStream() throws NetIbisException {
                 ArrayInputStream ais = new DummyInputStream();
 		try {
 		    return new IbisSerializationInputStream(ais);
 		} catch(java.io.IOException e) {
-		    throw new IbisIOException("got exception", e);
+		    throw new NetIbisException("got exception", e);
 		}
         }
                 private final class DummyInputStream extends ArrayInputStream {
-                public void readArray(boolean[] a, int off, int len) throws IbisIOException {
+                public void readArray(boolean[] a, int off, int len) throws NetIbisException {
                         subInput.readArraySliceBoolean(a, off, len);
                 }
                        
-                public void readArray(byte[] a, int off, int len) throws IbisIOException {
+                public void readArray(byte[] a, int off, int len) throws NetIbisException {
                         subInput.readArraySliceByte(a, off, len);
                 }
                        
-                public void readArray(short[] a, int off, int len) throws IbisIOException {
+                public void readArray(short[] a, int off, int len) throws NetIbisException {
                         subInput.readArraySliceShort(a, off, len);
                 }
                        
-                public void readArray(char[] a, int off, int len) throws IbisIOException {
+                public void readArray(char[] a, int off, int len) throws NetIbisException {
                         subInput.readArraySliceChar(a, off, len);
                 }
                        
-                public void readArray(int[] a, int off, int len) throws IbisIOException {
+                public void readArray(int[] a, int off, int len) throws NetIbisException {
                         subInput.readArraySliceInt(a, off, len);
                 }
                        
-                public void readArray(long[] a, int off, int len) throws IbisIOException {
+                public void readArray(long[] a, int off, int len) throws NetIbisException {
                         subInput.readArraySliceLong(a, off, len);
                 }
                        
-                public void readArray(float[] a, int off, int len) throws IbisIOException {
+                public void readArray(float[] a, int off, int len) throws NetIbisException {
                         subInput.readArraySliceFloat(a, off, len);
                 }
                        
-                public void readArray(double[] a, int off, int len) throws IbisIOException {
+                public void readArray(double[] a, int off, int len) throws NetIbisException {
                         subInput.readArraySliceDouble(a, off, len);
                 }
                 
-                public int available() throws IbisIOException {
+                public int available() throws NetIbisException {
                         return 0;
                 }
                 

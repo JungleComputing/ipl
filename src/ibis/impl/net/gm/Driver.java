@@ -1,15 +1,6 @@
 package ibis.ipl.impl.net.gm;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import ibis.ipl.impl.net.*;
-
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.net.DatagramSocket;
 
 /**
  * The NetIbis GM driver with pipelined block transmission.
@@ -24,14 +15,15 @@ public final class Driver extends NetDriver {
         static NetPriorityMutex gmAccessLock  = null;
         static NetLockArray     gmLockArray   = null;
 
+        private static final int speculativePolls = 16;
 
 	/**
 	 * The driver name.
 	 */
 	private final String name = "gm";
 
-	static native long nInitDevice(int deviceNum) throws IbisIOException;
-	static native void nCloseDevice(long deviceHandler) throws IbisIOException;
+	static native long nInitDevice(int deviceNum) throws NetIbisException;
+	static native void nCloseDevice(long deviceHandler) throws NetIbisException;
         static native void nGmThread();
 
 	static {
@@ -70,7 +62,7 @@ public final class Driver extends NetDriver {
 	 * @return The new GM input.
 	 */
 	public NetInput newInput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
                 
 		return new GmInput(pt, this, up, context);
 	}
@@ -84,7 +76,73 @@ public final class Driver extends NetDriver {
 	 * @return The new GM output.
 	 */
 	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		return new GmOutput(pt, this, up, context);
 	}
+
+
+        protected void pump(int lockId, int []lockIds) throws NetIbisException {
+                int result = gmLockArray.lockFirst(lockIds);
+                if (result == 1) {
+                        /* got GM main lock, let's pump */
+                        gmAccessLock.lock(false);
+                        nGmThread();
+                        gmAccessLock.unlock(false);
+                        if (!gmLockArray.trylock(lockId)) {
+                                int i = speculativePolls;
+
+                                do { 
+                                        // WARNING: yield 
+                                        if (--i == 0) {
+                                                (Thread.currentThread()).yield();
+                                                i = speculativePolls;
+                                        }
+                                        
+                                        gmAccessLock.lock(false);
+                                        nGmThread();
+                                        gmAccessLock.unlock(false);
+                                } while (!gmLockArray.trylock(lockId));
+                        }
+                        
+                        /* request completed, release GM main lock */
+                        gmLockArray.unlock(0);
+
+                } /* else: request already completed */
+                else if (result != 0) {
+                        throw new Error("invalid state");
+                }
+        }
+        
+        protected boolean tryPump(int lockId, int []lockIds) throws NetIbisException {
+                int result = gmLockArray.trylockFirst(lockIds);
+                if (result == -1) {
+                        return false;
+                } else if (result == 0) {
+                        return true;
+                } else if (result == 1) {
+                        boolean value = false;
+                        
+                        /* got GM main lock, let's pump */
+                        if (gmAccessLock.trylock(false)) {
+                                int i = speculativePolls;
+                                do {
+                                        nGmThread();
+                                        value = gmLockArray.trylock(lockId);
+                                } while (!value && --i > 0);
+                                
+                                gmAccessLock.unlock(false);
+                        } else {
+                                value = gmLockArray.trylock(lockId);
+                        }
+                        
+                        /* request completed, release GM main lock */
+                        gmLockArray.unlock(0);
+
+                        return value;
+                } else {
+                        throw new Error("invalid state");
+                }
+        }
+        
+
 }

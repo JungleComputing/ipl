@@ -2,8 +2,7 @@ package ibis.ipl.impl.net.pipe;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
+import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -19,9 +18,8 @@ public final class PipeInput extends NetBufferedInput {
         private NetReceiveBuffer buf          = null;
         private boolean          upcallMode   = false;
         private UpcallThread     upcallThread = null;
-        private NetMutex         upcallEnd    = new NetMutex(true);
 
-	PipeInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+	PipeInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
 		headerLength = 4;
 		// Create the factory in the constructor. This allows
@@ -31,12 +29,19 @@ public final class PipeInput extends NetBufferedInput {
 
         private final class UpcallThread extends Thread {
                 
+                private volatile boolean end = false;
+
                 public UpcallThread(String name) {
                         super("PipeInput.UpcallThread: "+name);
                 }
+
+                public void end() {
+                        end = true;
+                        this.interrupt();
+                }
                 
                 public void run() {
-                        while (true) {
+                        while (!end) {
                                 try {
                                         buf = receiveByteBuffer(0);
                                         if (buf == null)
@@ -50,12 +55,10 @@ public final class PipeInput extends NetBufferedInput {
                                         throw new Error(e);
                                 }
                         }
-
-                        upcallEnd.unlock();
                 }
         }
 
-	public void setupConnection(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
@@ -77,10 +80,16 @@ public final class PipeInput extends NetBufferedInput {
 			info.put("pipe_mtu",         new Integer(mtu));
 			info.put("pipe_istream_key", key);
 			info.put("pipe_upcall_mode", new Boolean(upcallMode));
-			sendInfoTable(os, info);
+
+                        
+			ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("pipe"));
+			os.writeObject(info);
+                        InputStream is = cnx.getServiceLink().getInputSubStream("pipe");
 			int ack = is.read();
+                        os.close();
+                        is.close();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
 		// Don't create a new factory here, just specify the mtu.
@@ -93,7 +102,7 @@ public final class PipeInput extends NetBufferedInput {
                 }
 	}
 
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
 		activeNum = null;
 
 		if (spn == null) {
@@ -106,14 +115,14 @@ public final class PipeInput extends NetBufferedInput {
                                 initReceive();
 			}
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		} 
 
 		return activeNum;
 	}	
 
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-		throws IbisIOException {
+		throws NetIbisException {
                 if (buf != null) {
                         NetReceiveBuffer temp = buf;
                         buf = null;
@@ -121,7 +130,7 @@ public final class PipeInput extends NetBufferedInput {
                 }
                 
                 final boolean upcallMode = this.upcallMode;
-		NetReceiveBuffer buf = createReceiveBuffer();
+		NetReceiveBuffer buf = createReceiveBuffer(0);
 		byte [] b = buf.data;
 		int     l = 0;
 		
@@ -163,28 +172,46 @@ public final class PipeInput extends NetBufferedInput {
                                 offset += result;
 			} while (offset < l);
 		} catch (Exception e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 		
 		buf.length = l;
 		return buf;
 	}
 
-	public void free() throws IbisIOException {
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (spn == num) {
+                        try {
+                                if (pipeIs != null) {
+                                        pipeIs.close();
+                                }
+
+                                if (upcallThread != null) {
+                                        upcallThread.end();
+                                }
+                        }
+                        catch (Exception e) {
+                                throw new NetIbisException(e);
+                        }
+
+                        spn = null;                        
+                }
+        }
+        
+	public synchronized void free() throws NetIbisException {
 		try {
 			if (pipeIs != null) {
 				pipeIs.close();
 			}
                         if (upcallThread != null) {
-                                upcallThread.interrupt();
-                                upcallEnd.lock();
-                                upcallThread = null;
+                                upcallThread.end();
                         }
 		}
 		catch (Exception e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
 		super.free();
+                spn = null;
 	}
 }

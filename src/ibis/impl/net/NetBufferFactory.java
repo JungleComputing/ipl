@@ -1,17 +1,15 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisIOException;
-
 /**
  * Interface to specify a NetBufferFactory.
  * Instantiate this to create custom NetBuffers.
  */
 public class NetBufferFactory {
 
-    private int mtu;
-    private NetBuffer freeList;
-    private NetBufferFactoryImpl impl;
-    private NetAllocator allocator;
+    private int                  mtu       =    0;
+    private NetBuffer            freeList  = null;
+    private NetBufferFactoryImpl impl      = null;
+    private NetAllocator         allocator = null;
 
     /**
      * Constructor
@@ -108,14 +106,14 @@ public class NetBufferFactory {
     }
 
 
-    private NetBuffer createNewBuffer(int length) throws IbisIOException {
+    private NetBuffer createNewBuffer(int length) throws NetIbisException {
 	byte[] data;
 	if (allocator == null) {
 	    data = new byte[length];
 	} else {
 	    data = allocator.allocate();
 	    if (data.length < length) {
-		throw new IbisIOException("allocator blockSize misfit with requested packet length");
+		throw new NetIbisException("allocator blockSize misfit with requested packet length");
 	    }
 	}
 	NetBuffer b = impl.createBuffer(data, length, allocator);
@@ -127,9 +125,9 @@ public class NetBufferFactory {
     /**
      * Create a NetBuffer of length <CODE>mtu</CODE>.
      */
-    synchronized public NetBuffer createBuffer() throws IbisIOException {
+    synchronized public NetBuffer createBuffer() throws NetIbisException {
 	if (mtu == 0) {
-	    throw new IbisIOException("Need an mtu to create NetBuffer without explicit length");
+	    throw new NetIbisException("Need an mtu to create NetBuffer without explicit length");
 	}
 
 	NetBuffer b = freeList;
@@ -149,9 +147,9 @@ public class NetBufferFactory {
      *
      * @param buffer the {@link NetBuffer} to be released
      */
-    synchronized public void free(NetBuffer buffer) throws IbisIOException {
+    synchronized public void free(NetBuffer buffer) throws NetIbisException {
 	if (buffer.factory != this) {
-	    throw new IbisIOException("Cannot recycle NetBuffer that is not manufactured by me");
+	    throw new NetIbisException("Cannot recycle NetBuffer that is not manufactured by me");
 	}
 
 	if (mtu == 0) {
@@ -173,7 +171,7 @@ public class NetBufferFactory {
      *
      * @param length the length of the data stored in the buffer
      */
-    public NetBuffer createBuffer(int length) throws IbisIOException {
+    public NetBuffer createBuffer(int length) throws NetIbisException {
 	if (mtu != 0 && length <= mtu) {
 	    NetBuffer b = createBuffer();
 	    b.length = length;

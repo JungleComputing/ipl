@@ -1,14 +1,9 @@
 package ibis.ipl.impl.net.gen;
 
-import ibis.ipl.IbisIOException;
-
 import ibis.ipl.impl.net.*;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.HashMap;
 
 /**
  * Provides a generic multiple network output poller.
@@ -21,22 +16,12 @@ public final class GenSplitter extends NetOutput {
 	/**
 	 * The set of outputs.
 	 */
-	protected Vector    outputVector = null;
-
-	/**
-	 * The set of incoming TCP service connections
-	 */
-	protected Vector    isVector     = null;
-
-	/**
-	 * The set of outgoing TCP service connections
-	 */
-	protected Vector    osVector     = null;
+	protected HashMap   outputMap = null;
 
 	/**
 	 * The driver used for the outputs.
 	 */
-	protected NetDriver subDriver    = null;
+	protected NetDriver subDriver = null;
 
 
 	/**
@@ -46,11 +31,9 @@ public final class GenSplitter extends NetOutput {
 	 * @param driver the driver of this poller.
 	 * @param output  the controlling output.
 	 */
-	public GenSplitter(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
+	public GenSplitter(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
-		outputVector = new Vector();
-		isVector     = new Vector();
-		osVector     = new Vector();
+		outputMap = new HashMap();
 	}
 
 	/**
@@ -74,30 +57,30 @@ public final class GenSplitter extends NetOutput {
 			headerOffset = _headersLength;
 		}
 
-		outputVector.add(output);
+		outputMap.put(rpn, output);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
 		if (subDriver == null) {
 			String subDriverName = getProperty("Driver");
                         subDriver = driver.getIbis().getDriver(subDriverName);
 		}
                 
 		NetOutput no = newSubOutput(subDriver);
-		no.setupConnection(rpn, is, os, nls);
-		addOutput(rpn, no);
+		no.setupConnection(cnx);
+		addOutput(cnx.getNum(), no);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void initSend() throws IbisIOException {
+	public void initSend() throws NetIbisException {
                 super.initSend();
                 
-		Iterator i = outputVector.listIterator();
+		Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.initSend();
@@ -107,9 +90,9 @@ public final class GenSplitter extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws IbisIOException {
+	public void finish() throws NetIbisException {
                 super.finish();
-		Iterator i = outputVector.listIterator();
+		Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.finish();
@@ -120,25 +103,32 @@ public final class GenSplitter extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void free()
-		throws IbisIOException {
-		if (outputVector != null) {
-			Iterator i = outputVector.listIterator();
+		throws NetIbisException {
+		if (outputMap != null) {
+			Iterator i = outputMap.values().iterator();
 
 			while (i.hasNext()) {
 				NetOutput no = (NetOutput)i.next();
 				no.free();
+                                i.remove();
 			}
-			outputVector = null;
 		}
 		
-		isVector     = null;
-		osVector     = null;
-
 		super.free();
 	}		
 
-        public void writeByteBuffer(NetSendBuffer buffer) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (outputMap != null) {
+                        NetOutput no = (NetOutput)outputMap.get(num);
+                        no.close(num);
+                        outputMap.remove(num);
+                }
+        }
+        
+
+
+        public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeByteBuffer(buffer);
@@ -149,8 +139,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a boolean v to the message.
 	 * @param     v             The boolean v to write.
 	 */
-        public void writeBoolean(boolean v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeBoolean(boolean v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeBoolean(v);
@@ -161,8 +151,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a byte v to the message.
 	 * @param     v             The byte v to write.
 	 */
-        public void writeByte(byte v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeByte(byte v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeByte(v);
@@ -173,8 +163,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a char v to the message.
 	 * @param     v             The char v to write.
 	 */
-        public void writeChar(char v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeChar(char v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeChar(v);
@@ -185,8 +175,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a short v to the message.
 	 * @param     v             The short v to write.
 	 */
-        public void writeShort(short v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeShort(short v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeShort(v);
@@ -197,8 +187,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a int v to the message.
 	 * @param     v             The int v to write.
 	 */
-        public void writeInt(int v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeInt(int v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeInt(v);
@@ -210,8 +200,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a long v to the message.
 	 * @param     v             The long v to write.
 	 */
-        public void writeLong(long v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeLong(long v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeLong(v);
@@ -222,8 +212,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a float v to the message.
 	 * @param     v             The float v to write.
 	 */
-        public void writeFloat(float v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeFloat(float v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeFloat(v);
@@ -234,8 +224,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a double v to the message.
 	 * @param     v             The double v to write.
 	 */
-        public void writeDouble(double v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeDouble(double v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeDouble(v);
@@ -246,8 +236,8 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a Serializable object to the message.
 	 * @param     v             The object v to write.
 	 */
-        public void writeString(String v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeString(String v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeString(v);
@@ -258,79 +248,79 @@ public final class GenSplitter extends NetOutput {
 	 * Writes a Serializable object to the message.
 	 * @param     v             The object v to write.
 	 */
-        public void writeObject(Object v) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeObject(Object v) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeObject(v);
 		} while (i.hasNext());
         }
 
-        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceBoolean(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceByte(b, o, l);
 		} while (i.hasNext());
         }
-        public void writeArraySliceChar(char [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceChar(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArraySliceShort(short [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceShort(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArraySliceInt(int [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceInt(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArraySliceLong(long [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceLong(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceFloat(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceDouble(b, o, l);
 		} while (i.hasNext());
         }	
 
-        public void writeArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
+        public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArraySliceObject(b, o, l);

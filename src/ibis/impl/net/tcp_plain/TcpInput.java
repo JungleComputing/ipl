@@ -2,9 +2,6 @@ package ibis.ipl.impl.net.tcp_plain;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
@@ -64,7 +61,6 @@ public final class TcpInput extends NetInput {
         private boolean               first          = false;
         private byte                  firstbyte      = 0;
         private UpcallThread          upcallThread   = null;
-        private NetMutex              upcallEnd      = new NetMutex(true);
         private InetAddress           addr           = null;
         private int                   port           =    0;
 
@@ -77,22 +73,29 @@ public final class TcpInput extends NetInput {
 	 * @param input the controlling input.
 	 */
 	TcpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		super(pt, driver, up, context);
 		headerLength = 0;
 	}
 
         private final class UpcallThread extends Thread {
-                
+
+                private volatile boolean end = false;
+
                 public UpcallThread(String name) {
                         super("Tcp(plain)Input.UpcallThread: "+name);
                 }                
                 
+                public void end() {
+                        end = true;
+                        this.interrupt();
+                }
+
                 public void run() {
-                        while (true) {
+                        while (!end) {
                                 try {
                                         int i = tcpIs.read();
-                                        //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]read success");
+                                        //System.err.println("TcpInput: "+addr+"["+port+"]read success: "+i);
                                         
                                         if (i < 0)
                                                 break;
@@ -101,7 +104,9 @@ public final class TcpInput extends NetInput {
                                         firstbyte = (byte)(i & 0xFF);
 
                                         activeNum = spn;
+                                        //System.err.println("TcpInput: "+addr+"["+port+"] upcall: -->");
                                         upcallFunc.inputUpcall(TcpInput.this, activeNum);
+                                        //System.err.println("TcpInput: "+addr+"["+port+"] upcall: <--");
                                         activeNum = null;
                                 } catch (java.io.InterruptedIOException e) {
                                         break;
@@ -111,8 +116,6 @@ public final class TcpInput extends NetInput {
                                         throw new Error(e);
                                 }
                         }
-
-                        upcallEnd.unlock();
                 }
         }
 
@@ -123,23 +126,23 @@ public final class TcpInput extends NetInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer            spn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os,
-                                    NetServiceListener nls)
-		throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx)
+		throws NetIbisException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = spn;
+		this.spn = cnx.getNum();
 		 
 		try {
 			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
 			Hashtable lInfo    = new Hashtable();
 			lInfo.put("tcp_address", tcpServerSocket.getInetAddress());
 			lInfo.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
-                        sendInfoTable(os, lInfo);
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("tcp_plain"));
+			os.writeObject(lInfo);
+                        os.close();
+
 			tcpSocket  = tcpServerSocket.accept();
 
 			tcpSocket.setSendBufferSize(0x8000);
@@ -151,7 +154,7 @@ public final class TcpInput extends NetInput {
 			tcpIs 	   = tcpSocket.getInputStream();
 			tcpOs 	   = tcpSocket.getOutputStream();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
 		mtu = 0;
@@ -170,22 +173,22 @@ public final class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws IbisIOException {
+	public Integer poll() throws NetIbisException {
 		activeNum = null;
 
 		if (spn == null) {
 			return null;
 		}
 
-                //System.err.println("tcp_blk: poll -->");
+                //System.err.println("TcpInput: "+addr+"["+port+"] poll -->");
 		try {
 			if (tcpIs.available() > 0) {
 				activeNum = spn;
 			}
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		} 
-                //System.err.println("tcp_blk: poll <-- : " + activeNum);
+                //System.err.println("TcpInput: "+addr+"["+port+"] poll <--: " + activeNum);
 
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]poll");
 		return activeNum;
@@ -198,7 +201,7 @@ public final class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public byte readByte() throws IbisIOException {
+	public byte readByte() throws NetIbisException {
                 byte b = 0;
                         
                 if (first) {
@@ -210,10 +213,10 @@ public final class TcpInput extends NetInput {
                                 if (i >= 0) {
                                         b = (byte)(i & 0xFF);
                                 } else {
-                                        throw new IbisIOException("unexpected EOF");
+                                        throw new NetIbisException("unexpected EOF");
                                 }
                         } catch (IOException e) {
-                                throw new IbisIOException(e.getMessage());
+                                throw new NetIbisException(e.getMessage());
                         } 
 
                 }
@@ -223,10 +226,40 @@ public final class TcpInput extends NetInput {
                 return b;
 	}
 
-	/**
+        public synchronized void close(Integer num) throws NetIbisException {
+                if (spn == num) {
+                        try {
+                                if (tcpOs != null) {
+                                        tcpOs.close();
+                                }
+		
+                                if (tcpIs != null) {
+                                        tcpIs.close();
+                                }
+
+                                if (upcallThread != null) {
+                                        upcallThread.end();
+                                }
+
+                                if (tcpSocket != null) {
+                                        tcpSocket.close();
+                                }
+
+                                if (tcpServerSocket != null) {
+                                        tcpServerSocket.close();
+                                }
+                        } catch (Exception e) {
+                                throw new NetIbisException(e);
+                        }
+
+                        spn = null;
+                }
+        }
+
+                /**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		try {
 			if (tcpOs != null) {
 				tcpOs.close();
@@ -237,9 +270,17 @@ public final class TcpInput extends NetInput {
 			}
 
                         if (upcallThread != null) {
-                                upcallThread.interrupt();
-                                upcallEnd.lock();
-                                upcallThread = null;
+                                upcallThread.end();
+                                //System.err.println("waiting for TCP upcall thread to join");
+                                while (true) {
+                                        try {
+                                                upcallThread.join();
+                                                break;
+                                        } catch (InterruptedException e) {
+                                                //
+                                        }
+                                }
+                                //System.err.println("TCP upcall thread joined");
                         }
 
 			if (tcpSocket != null) {
@@ -251,8 +292,10 @@ public final class TcpInput extends NetInput {
 			}
 		}
 		catch (Exception e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
+
+                spn = null;
 
 		super.free();
 	}

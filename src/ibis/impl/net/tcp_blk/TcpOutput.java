@@ -2,8 +2,6 @@ package ibis.ipl.impl.net.tcp_blk;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisIOException;
-
 import java.net.Socket;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -64,7 +62,7 @@ public final class TcpOutput extends NetBufferedOutput {
 	 * @param output the controlling output.
 	 */
 	TcpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		super(pt, driver, up, context);
 		headerLength = 4;
 	}
@@ -76,25 +74,38 @@ public final class TcpOutput extends NetBufferedOutput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os,
-                                    NetServiceListener nls)
-		throws IbisIOException {
+	public synchronized void setupConnection(NetConnection cnx)
+		throws NetIbisException {
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
                 
-		this.rpn = rpn;
+		this.rpn = cnx.getNum();
 	
-		Hashtable   rInfo = receiveInfoTable(is);
+		Hashtable lInfo = new Hashtable();
+		lInfo.put("tcp_mtu",     new Integer(lmtu));
+		Hashtable   rInfo = null;
+                        try {
+                                //System.err.println("TcpOutput: reading info table -->");
+                                ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("tcp_blk"));
+                                rInfo = (Hashtable)is.readObject();
+                                is.close();
+                                //System.err.println("TcpOutput: reading info table <--");
+
+                                //System.err.println("TcpOutput: writing info table -->");
+                                ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("tcp_blk"));
+                                os.writeObject(lInfo);
+                                os.close();
+                                //System.err.println("TcpOutput: writing info table <--");
+                        } catch (IOException e) {
+                                throw new NetIbisException(e);
+                        } catch (ClassNotFoundException e) {
+                                throw new Error(e);
+                        }
+
 		InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
 		int         rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
 		rmtu              = ((Integer)    rInfo.get("tcp_mtu")    ).intValue();
-		
-		Hashtable lInfo = new Hashtable();
-		lInfo.put("tcp_mtu",     new Integer(lmtu));
-		sendInfoTable(os, lInfo);
 
 		try {
 			tcpSocket = new Socket(raddr, rport);
@@ -106,18 +117,20 @@ public final class TcpOutput extends NetBufferedOutput {
 			tcpOs 	  = tcpSocket.getOutputStream();
 			tcpIs 	  = tcpSocket.getInputStream();
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
 		mtu = Math.min(lmtu, rmtu);
 	}
 
-        public void finish() throws IbisIOException {
+        public void finish() throws NetIbisException {
                 super.finish();
  		try {
+                        //System.err.println("flushing: -->");
  			tcpOs.flush();
+                        //System.err.println("flushing: <--");
  		} catch (IOException e) {
- 			throw new IbisIOException(e.getMessage());
+ 			throw new NetIbisException(e.getMessage());
  		} 
 	}
                 
@@ -125,23 +138,47 @@ public final class TcpOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
          */
-	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
+	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
  		try {
                         //System.err.println("sending "+b.length+" bytes");    
  			NetConvert.writeInt(b.length, b.data, 0);
  			tcpOs.write(b.data, 0, b.length);
+                        //System.err.println("sending "+b.length+" bytes ok");    
  		} catch (IOException e) {
- 			throw new IbisIOException(e.getMessage());
+ 			throw new NetIbisException(e.getMessage());
  		} 
 		if (! b.ownershipClaimed) {
 		    b.free();
 		}
 	}
 
+	public synchronized void close(Integer num) throws NetIbisException {
+                if (rpn == num) {
+                        try {
+                                if (tcpOs != null) {
+                                        tcpOs.close();
+                                }
+		
+                                if (tcpIs != null) {
+                                        tcpIs.close();
+                                }
+
+                                if (tcpSocket != null) {
+                                        tcpSocket.close();
+                                }
+
+                                rpn = null;
+                        }
+                        catch (Exception e) {
+                                throw new NetIbisException(e);
+                        }
+                }
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws IbisIOException {
+	public void free() throws NetIbisException {
 		try {
 			if (tcpOs != null) {
 				tcpOs.close();
@@ -155,14 +192,10 @@ public final class TcpOutput extends NetBufferedOutput {
                                 tcpSocket.close();
 			}
 
-			tcpSocket = null;
-			rpn       = null;
-			tcpIs     = null;
-			tcpOs     = null;
-
+			rpn = null;
 		}
 		catch (Exception e) {
-			throw new IbisIOException(e);
+			throw new NetIbisException(e);
 		}
 
 		super.free();

@@ -48,7 +48,7 @@ public final class Driver extends NetDriver implements RelConstants {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context) throws IbisIOException {
+	public NetInput newInput(NetPortType pt, NetIO up, String context) throws NetIbisException {
 		RelInput input = new RelInput(pt, this, up, context);
 		return input;
 	}
@@ -56,7 +56,7 @@ public final class Driver extends NetDriver implements RelConstants {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws IbisIOException {
+	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws NetIbisException {
 		return new RelOutput(pt, this, up, context);
 	}
 

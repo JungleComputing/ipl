@@ -1,10 +1,5 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisIOException;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 /**
  * Provides a generic interface for the low level network drivers.
  *
@@ -75,10 +70,10 @@ public abstract class NetDriver {
 	 *              or <CODE>null</CODE> if the new input is directly 
 	 *              controlled by the {@linkplain NetReceivePort receive port}.
 	 *
-	 * @exception IbisIOException if the input creation fail.
+	 * @exception NetIbisException if the input creation fail.
 	 */
 	public abstract NetInput newInput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException;
+		throws NetIbisException;
 
 	/**
 	 * Creates a new {@link NetOutput} according to the
@@ -89,8 +84,8 @@ public abstract class NetDriver {
 	 *              or <CODE>null</CODE> if the new output is directly 
 	 *              controlled by the {@linkplain NetSendPort send port}.
 	 *
-	 * @exception IbisIOException if the output creation fail.
+	 * @exception NetIbisException if the output creation fail.
 	 */
 	public abstract NetOutput newOutput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException;
+		throws NetIbisException;
 }
