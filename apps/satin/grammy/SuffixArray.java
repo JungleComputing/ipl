@@ -86,8 +86,6 @@ public class SuffixArray implements Configuration, Magic {
 	return (text[i0+n]<text[i1+n]);
     }
 
-    private final int incs[] = { 1391376, 463792, 198768, 86961, 33936, 13776, 4592, 1968, 861, 336, 112, 48, 21, 7, 3, 1 };
-
     /** Sorts the administration arrays to implement ordering. */
     private void sort()
     {
@@ -263,15 +261,18 @@ public class SuffixArray implements Configuration, Magic {
         // First, move the grammar text aside.
         int len = s.len;
         short t[] = new short[len];
-        System.arraycopy( text, s.i, t, 0, len );
+        System.arraycopy( text, s.occurences[0], t, 0, len );
 
         boolean deleted[] = new boolean[length];
 
         // Now assign a new variable and replace all occurences.
         short variable = nextcode++;
 
-        replace( s.i, len, variable, deleted );
-        replace( s.j, len, variable, deleted );
+        int a[] = s.occurences;
+
+        for( int i=0; i<a.length; i++ ){
+            replace( a[i], len, variable, deleted );
+        }
 
         int j = 0;
         for( int i=0; i<length; i++ ){
@@ -399,7 +400,7 @@ public class SuffixArray implements Configuration, Magic {
         if( mv != null ){
             // It is worthwile to do this compression.
             if( traceCompressionCosts ){
-                System.out.println( "Best step: string [" + buildString( mv.i, mv.len ) + "]" );
+                System.out.println( "Best step: string [" + buildString( mv.occurences[0], mv.len ) + "]" );
             }
             applyCompression( mv );
             if( doVerification ){

@@ -1,20 +1,26 @@
 // File: $Id$
 
-// A replacement step, represented as two text positions and a length.
+// A replacement step, represented as a list of text positions and a length.
 class Step {
-    int i;
-    int j;
+    int occurences[];
     int len;
 
     public Step( int a, int b, int l )
     {
-        i = a;
-        j = b;
+        occurences = new int[] { a, b };
         len = l;
     }
 
     public String toString()
     {
-        return "(" + i + "," + j + ",len=" + len + ")";
+        String res = "([";
+
+        for( int i=0; i<occurences.length; i++ ){
+            if( i != 0 ){
+                res += ",";
+            }
+            res += occurences[i];
+        }
+        return res + "],len=" + len + ")";
     }
 }
