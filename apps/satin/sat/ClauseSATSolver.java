@@ -32,12 +32,11 @@ public class ClauseSATSolver {
      */
     static void propagateTrueValue( Context ctx, final int var )
     {
-	final IntVector poscls = ctx.problem.getPosClauses( var );
-	final int sz = poscls.size();
+	final int poscls[] = ctx.problem.getPosClauses( var );
 	boolean satisfied[] = ctx.satisfied;
 
-	for( int ix=0; ix<sz; ix++ ){
-	    int cno = poscls.get( ix );
+	for( int ix=0; ix<poscls.length; ix++ ){
+	    int cno = poscls[ix];
 
 	    satisfied[cno] = true;
 	    if( traceSolver ){
@@ -45,11 +44,10 @@ public class ClauseSATSolver {
 	    }
 	}
 	int terms[] = ctx.terms;
-	final IntVector neg = ctx.problem.getNegClauses( var );
-	final int szt = neg.size();
+	final int neg[] = ctx.problem.getNegClauses( var );
 
-	for( int ix=0; ix<szt; ix++ ){
-	    int cno = neg.get( ix );
+	for( int ix=0; ix<neg.length; ix++ ){
+	    int cno = neg[ix];
 
 	    terms[cno]--;
 	}
@@ -60,12 +58,11 @@ public class ClauseSATSolver {
      */
     static void propagateFalseValue( Context ctx, final int var )
     {
-	final IntVector neg = ctx.problem.getNegClauses( var );
-	final int sz = neg.size();
+	final int neg[] = ctx.problem.getNegClauses( var );
 	boolean satisfied[] = ctx.satisfied;
 
-	for( int ix=0; ix<sz; ix++ ){
-	    int cno = neg.get( ix );
+	for( int ix=0; ix<neg.length; ix++ ){
+	    int cno = neg[ix];
 
 	    satisfied[cno] = true;
 	    if( traceSolver ){
@@ -73,11 +70,10 @@ public class ClauseSATSolver {
 	    }
 	}
 	int terms[] = ctx.terms;
-	final IntVector pos = ctx.problem.getPosClauses( var );
-	final int szt = pos.size();
+	final int pos[] = ctx.problem.getPosClauses( var );
 
-	for( int ix=0; ix<szt; ix++ ){
-	    int cno = pos.get( ix );
+	for( int ix=0; ix<pos.length; ix++ ){
+	    int cno = pos[ix];
 
 	    terms[cno]--;
 	}

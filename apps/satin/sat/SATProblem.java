@@ -292,10 +292,10 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Given a variable number, returns a vector of clauses in which this
      * variable occurs positively.
      *
-     * @param var the variable to return the vector for
+     * @param var The variable to return the vector for.
      * @return a vector of clause indices
      */
-    public IntVector getPosClauses( int var )
+    public int[] getPosClauses( int var )
     {
 	return variables[var].getPosClauses();
     }
@@ -304,18 +304,18 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Given a variable number, returns a vector of clauses in which this
      * variable occurs negatively.
      *
-     * @param var the variable to return the vector for
+     * @param var The variable to return the vector for.
      * @return a vector of clause indices
      */
-    public IntVector getNegClauses( int var )
+    public int[] getNegClauses( int var )
     {
 	return variables[var].getNegClauses();
     }
 
     /**
      * Given a clause index, return the label of that clause.
-     * @param n the index of the clause
-     * @return the label of the clause
+     * @param n The index of the clause.
+     * @return The label of the clause.
      */
     public int getClauseLabel( int n ){
 	return clauses[n].label;
@@ -325,7 +325,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Given a list of assignments, returns the index of a clause that
      * is not satisfied, or -1 if they all are satisfied.
      * @param assignments the variable assignments
-     * @return the index of an unsatisfied clause, or -1 if there are none
+     * @return The index of an unsatisfied clause, or -1 if there are none.
      */
     public int getUnsatisfied( int assignments[] )
     {
@@ -394,9 +394,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param var the variable to propagate
      * @param val the value of the variable
      */
-    private boolean propagateAssignment( IntVector cl, int var, boolean val )
+    private boolean propagateAssignment( int l[], int var, boolean val )
     {
-	int l[] = cl.toArray();
 	boolean changed = false;
 
         for( int ix=0; ix<l.length; ix++ ){

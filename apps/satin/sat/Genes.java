@@ -17,9 +17,7 @@ class Genes implements java.io.Serializable {
     }
 
     /**
-     * Returns a clone of this vector. The copy will contain a reference to a
-     * clone of the internal data array, not a reference to the internal data
-     * array of this IntVector object.
+     * Returns a clone of these genes. 
      */
     public Object clone() {
 	float f[] = floats;

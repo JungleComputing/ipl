@@ -123,10 +123,10 @@ public final class DPLLContext implements java.io.Serializable {
 
 	    if( assignment[v] == 1 ){
 		System.err.println( "Error: positive variable " + v + " of clause " + c + " has positive assignment, but clause is not satisfied"  );
-		IntVector pos = p.getPosClauses( v );
+		int[] pos = p.getPosClauses( v );
 		String verdict;
 
-		if( pos.contains( cno ) ){
+		if( Helpers.contains( pos, cno ) ){
 		    verdict = "yes";
 		}
 		else {
@@ -147,10 +147,10 @@ public final class DPLLContext implements java.io.Serializable {
 
 	    if( assignment[v] == 0 ){
 		System.err.println( "Error: negative variable " + v + " of clause " + c + " has negative assignment, but clause is not satisfied"  );
-		IntVector neg = p.getNegClauses( v );
+		int neg[] = p.getNegClauses( v );
 		String verdict;
 
-		if( neg.contains( cno ) ){
+		if( Helpers.contains( neg, cno ) ){
 		    verdict = "yes";
 		}
 		else {
@@ -178,10 +178,9 @@ public final class DPLLContext implements java.io.Serializable {
 	int negcount = 0;
 
 	// Count the positive clauses
-	IntVector pos = p.getPosClauses( var );
-	int sz = pos.size();
-	for( int i=0; i<sz; i++ ){
-	    int cno = pos.get( i );
+	int pos[] = p.getPosClauses( var );
+	for( int i=0; i<pos.length; i++ ){
+	    int cno = pos[i];
 
 	    if( !satisfied[cno] ){
 	        poscount++;
@@ -189,10 +188,9 @@ public final class DPLLContext implements java.io.Serializable {
 	}
 
 	// Count the negative clauses
-	IntVector neg = p.getNegClauses( var );
-	sz = neg.size();
-	for( int i=0; i<sz; i++ ){
-	    int cno = neg.get( i );
+	int neg[] = p.getNegClauses( var );
+	for( int i=0; i<neg.length; i++ ){
+	    int cno = neg[i];
 
 	    if( !satisfied[cno] ){
 	        negcount++;
@@ -404,10 +402,9 @@ public final class DPLLContext implements java.io.Serializable {
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// negative term.
-	IntVector neg = p.getNegClauses( var );
-	int sz = neg.size();
-	for( int i=0; i<sz; i++ ){
-	    int cno = neg.get( i );
+	int neg[] = p.getNegClauses( var );
+	for( int i=0; i<neg.length; i++ ){
+	    int cno = neg[i];
 
             // Deduct the old info of this clause.
             posinfo[var] -= p.reviewer.info( terms[cno] );
@@ -429,10 +426,9 @@ public final class DPLLContext implements java.io.Serializable {
 
 	// Mark all clauses that contain this variable as a positive
 	// term as satisfied.
-	IntVector pos = p.getPosClauses( var );
-	sz = pos.size();
-	for( int i=0; i<sz; i++ ){
-	    int cno = pos.get( i );
+	int pos[] = p.getPosClauses( var );
+	for( int i=0; i<pos.length; i++ ){
+	    int cno = pos[i];
 
 	    if( !satisfied[cno] ){
                 posinfo[var] -= p.reviewer.info( terms[cno] );
@@ -446,9 +442,8 @@ public final class DPLLContext implements java.io.Serializable {
 
 	// Now propagate unit clauses if there are any.
 	if( hasUnitClauses ){
-	    sz = neg.size();
-	    for( int i=0; i<sz; i++ ){
-		int cno = neg.get( i );
+	    for( int i=0; i<neg.length; i++ ){
+		int cno = neg[i];
 
 		if( doVerification ){
 		    verifyTermCount( p, cno );
@@ -478,10 +473,9 @@ public final class DPLLContext implements java.io.Serializable {
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// Positive term.
-	IntVector pos = p.getPosClauses( var );
-	int sz = pos.size();
-	for( int i=0; i<sz; i++ ){
-	    int cno = pos.get( i );
+	int pos[] = p.getPosClauses( var );
+	for( int i=0; i<pos.length; i++ ){
+	    int cno = pos[i];
 
             // Deduct the old info of this clause.
             posinfo[var] -= p.reviewer.info( terms[cno] );
@@ -503,10 +497,9 @@ public final class DPLLContext implements java.io.Serializable {
 
 	// Mark all clauses that contain this variable as a negative
 	// term as satisfied.
-	IntVector neg = p.getNegClauses( var );
-	sz = neg.size();
-	for( int i=0; i<sz; i++ ){
-	    int cno = neg.get( i );
+	int neg[] = p.getNegClauses( var );
+	for( int i=0; i<neg.length; i++ ){
+	    int cno = neg[i];
 
 	    if( !satisfied[cno] ){
                 neginfo[var] -= p.reviewer.info( terms[cno] );
@@ -520,9 +513,8 @@ public final class DPLLContext implements java.io.Serializable {
 
 	// Now propagate unit clauses if there are any.
 	if( hasUnitClauses ){
-	    sz = pos.size();
-	    for( int i=0; i<sz; i++ ){
-		int cno = pos.get( i );
+	    for( int i=0; i<pos.length; i++ ){
+		int cno = pos[i];
 
 		if( doVerification ){
 		    verifyTermCount( p, cno );

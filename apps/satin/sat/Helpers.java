@@ -18,6 +18,26 @@ class Helpers {
 	return res;
     }
 
+    static int[] append( int a[], int v )
+    {
+        int sz = a.length;
+        int res[] = new int[sz+1];
+
+	System.arraycopy( a, 0, res, 0, sz );
+        res[sz] = v;
+        return res;
+    }
+
+    static boolean contains( int a[], int v )
+    {
+	for( int i = 0; i < a.length; i++ ){
+	    if( a[i] == v ){
+		return true;
+	    }
+	}
+	return false;
+    }
+
     /**
      * Given an array and an index range in that array, return the
      * index of the smallest element. If the range is empty,

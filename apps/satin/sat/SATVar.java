@@ -9,20 +9,20 @@
 
 final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     private int ix;		// The index in the the original var array.
-    private IntVector pos;	// Clauses in which this var occurs as a pos.
-    private IntVector neg;	// Clauses in which this var occurs as a neg.
+    private int pos[];	        // Clauses in which this var occurs as a pos.
+    private int neg[];	        // Clauses in which this var occurs as a neg.
     private int assignment = -1;	// 0 or 1 if it is a known variable.
 
     /** Constructs a new SATVar with the specified label and index. */
     public SATVar( int ix )
     {
 	this.ix = ix;
-        pos = new IntVector();
-	neg = new IntVector();
+        pos = new int[0];
+	neg = new int[0];
     }
 
     /** Constructs a new SATVar with the specified fields. */
-    private SATVar( int ix, IntVector pos, IntVector neg, int assignment )
+    private SATVar( int ix, int pos[], int neg[], int assignment )
     {
 	this.ix = ix;
 	this.pos = pos;
@@ -37,8 +37,8 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     {
 	return new SATVar(
 	    ix,
-	    (IntVector) pos.clone(),
-	    (IntVector) neg.clone(),
+	    (int []) pos.clone(),
+	    (int []) neg.clone(),
 	    assignment
 	);
     }
@@ -51,7 +51,7 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
 	if( assignment != -1 ){
 	    System.err.println( "Error: registering preassigned variable " + ix + " is pointless" );
 	}
-	pos.add( cno );
+        pos = Helpers.append( pos, cno );
     }
 
     /**
@@ -62,22 +62,25 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
 	if( assignment != -1 ){
 	    System.err.println( "Error: registering preassigned variable " + ix + " is pointless" );
 	}
-	neg.add( cno );
+        neg = Helpers.append( neg, cno );
     }
 
-    void clearClauseRegister() { neg.clear(); pos.clear(); }
+    void clearClauseRegister() {
+        pos = new int[0];
+        neg = new int[0];
+    }
 
-    IntVector getPosClauses() { return pos; }
-    IntVector getNegClauses() { return neg; }
+    int [] getPosClauses() { return pos; }
+    int [] getNegClauses() { return neg; }
 
     /** Returns true iff the variable is used. */
-    boolean isUsed() { return (pos != null && pos.size() != 0) || (neg != null && neg.size() != 0); }
+    boolean isUsed() { return (pos != null && pos.length != 0) || (neg != null && neg.length != 0); }
 
     /** Returns true iff the variable only occurs in positive terms */
-    boolean isPosOnly() { return assignment == -1 && (neg == null || neg.size() == 0); }
+    boolean isPosOnly() { return assignment == -1 && (neg == null || neg.length == 0); }
 
     /** Returns true iff the variable only occurs in negative terms */
-    boolean isNegOnly() { return assignment == -1 && (pos == null || pos.size() == 0); }
+    boolean isNegOnly() { return assignment == -1 && (pos == null || pos.length == 0); }
 
     /** Registers assignment 'v' for this variable. */
     void setAssignment( int v ) { assignment = v; }
@@ -92,32 +95,33 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     int getIndex() { return ix; }
 
     /** Returns the number of clauses that this variable is used in. */
-    int getUseCount() { return pos.size() + neg.size(); }
+    int getUseCount() { return pos.length + neg.length; }
 
     /**
      * Returns the number of clauses that this variable is used in
      * as a positive term.
      */
-    int getPosCount() { return pos.size(); }
+    int getPosCount() { return pos.length; }
 
     /**
      * Returns the number of clauses that this variable is used in
      * as a negative term.
      */
-    int getNegCount() { return neg.size(); }
+    int getNegCount() { return neg.length; }
 
     /**
      * Returns the amount of information in the given uses of a variable.
-     * @param clauses the clauses of the problem
-     * @return the amount of information in bit
+     * @param v The list of clauses this variable occurs in.
+     * @param clauses The clauses of the problem.
+     * @return The amount of information.
      */
-    static private float getInfo( IntVector v, Clause clauses[], ClauseReviewer r )
+    static private float getInfo( int v[], Clause clauses[], ClauseReviewer r )
     {
-        int sz = v.size();
-        float info = 0;
+        int sz = v.length;
+        float info = 0.0f;
 
         for( int i=0; i<sz; i++ ){
-            int cno = v.get( i );
+            int cno = v[i];
 
             info += r.info( clauses[cno] );
         }
@@ -154,8 +158,8 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     public int compareTo( Object other )
     {
 	SATVar co = (SATVar) other;
-	int nthis = pos.size() + neg.size();
-	int nother = co.pos.size() + co.neg.size();
+	int nthis = pos.length + neg.length;
+	int nother = co.pos.length + co.neg.length;
 
 	if( nthis>nother ){
 	    return -1;
