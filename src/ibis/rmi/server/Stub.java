@@ -26,15 +26,19 @@ public class Stub extends RemoteStub {
 
 	private void readObject(java.io.ObjectInputStream in) throws java.io.IOException { 
 		try { 
+// System.err.println("rmi.server.Stub: defaultReadObject ...");
 			in.defaultReadObject();
 
+// System.err.println("rmi.server.Stub: createSendPort ...");
 			send = RTS.createSendPort();
+// System.err.println("rmi.server.Stub: connect ...");
 			send.connect(skeletonPortId);
 			
+// System.err.println("rmi.server.Stub: createReceivePort ...");
 			reply = RTS.createReceivePort();
 			reply.enableConnections();
 // System.err.println("rmi.server.Stub: create receive port " + reply);
-			
+
 			WriteMessage wm = send.newMessage();
 			
 			wm.writeInt(-1);

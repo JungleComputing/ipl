@@ -94,7 +94,7 @@ class RMIStubGenerator extends RMIGenerator {
 
 		Vector interfaces = data.specialInterfaces;
 
-		if (data.packagename != null) { 
+		if (data.packagename != null && ! data.packagename.equals("")) { 
 			output.println("package " + data.packagename + ";");		
 			output.println();
 		}

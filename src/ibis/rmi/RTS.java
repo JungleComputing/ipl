@@ -115,6 +115,27 @@ public final class RTS {
 		/* End of 1.4-specific code */
         }
 
+	private static String get_skel_name(Class c) {
+	    String class_name = c.getName();
+	    Package pkg = c.getPackage();
+	    String package_name = pkg != null ? pkg.getName() : null;
+	    if (package_name == null || package_name.equals("")) {
+		return "rmi_skeleton_" + class_name;
+	    }
+	    return package_name + ".rmi_skeleton_" + 
+			class_name.substring(class_name.lastIndexOf('.') + 1);
+	}
+
+	private static String get_stub_name(Class c) {
+	    String class_name = c.getName();
+	    Package pkg = c.getPackage();
+	    String package_name = pkg != null ? pkg.getName() : null;
+	    if (package_name == null || package_name.equals("")) {
+		return "rmi_stub_" + class_name;
+	    }
+	    return package_name + ".rmi_stub_" + 
+			class_name.substring(class_name.lastIndexOf('.') + 1);
+	}
 
 	public static synchronized RemoteStub exportObject(Remote obj)
 	    throws Exception
@@ -124,16 +145,14 @@ public final class RTS {
 	    Class c = obj.getClass();
 	    ReceivePort rec;
 
-
+	    String class_name = c.getName().substring(c.getName().lastIndexOf('.') + 1);
 	    if ((skel = (Skeleton)skeletons.get(obj)) == null ) {
 
 		//create a skeleton
 
-	        if (DEBUG) {
-		    System.out.println(hostname + ": creating skeleton of type rmi_skeleton_" + c.getName());
-	        }
-
-	        Class skel_c = Class.forName("rmi_skeleton_" + c.getName());
+		String skel_name = get_skel_name(c);
+// System.out.println("skel_name = " + skel_name);
+	        Class skel_c = Class.forName(skel_name);
 		skel = (Skeleton) skel_c.newInstance();
 
 		String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
@@ -150,7 +169,7 @@ public final class RTS {
 	    }
 
 	    //create a stub
-	    Class stub_c = Class.forName("rmi_stub_" + c.getName());
+	    Class stub_c = Class.forName(get_stub_name(c));
 	    stub = (Stub) stub_c.newInstance();
 
 	    SendPort s = portType.createSendPort(new RMIReplacer());
@@ -230,11 +249,9 @@ public final class RTS {
 		    //or just export it???
 
 		    Class c = o.getClass();
-	    	    if (DEBUG) {
-			System.out.println(hostname + ": creating skeleton of type rmi_skeleton_" + c.getName());
-	    	    }
-
-	    	    Class skel_c = Class.forName("rmi_skeleton_" + c.getName());
+		    String skel_name = get_skel_name(c);
+// System.out.println("skel_name = " + skel_name);
+	    	    Class skel_c = Class.forName(skel_name);
 		    skel = (Skeleton) skel_c.newInstance();
 
 		    String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
@@ -271,11 +288,9 @@ public final class RTS {
 		    //or just export it???
 
 		    Class c = o.getClass();
-	    	    if (DEBUG) {
-			System.out.println(hostname + ": creating skeleton of type rmi_skeleton_" + c.getName());
-	    	    }
-
-	    	    Class skel_c = Class.forName("rmi_skeleton_" + c.getName());
+		    String skel_name = get_skel_name(c);
+// System.out.println("skel_name = " + skel_name);
+	    	    Class skel_c = Class.forName(skel_name);
 		    skel = (Skeleton) skel_c.newInstance();
 
 		    String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
@@ -390,7 +405,7 @@ public final class RTS {
 			result = (Stub) Class.forName(stubType).newInstance();
 		} catch (Exception e) {
 			s.free();
-			r.free();
+			// r.free();
 			throw new IbisException("stub class " + stubType + " not found" + e);
 		}
 
@@ -449,5 +464,4 @@ public final class RTS {
 	    java.net.InetAddress a = (java.net.InetAddress) o;
 	    return a.getHostAddress();
 	}
-
 }

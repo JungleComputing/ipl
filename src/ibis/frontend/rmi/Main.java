@@ -14,9 +14,13 @@ import org.apache.bcel.generic.*;
 import ibis.util.BT_Analyzer;
 
 class Main { 
+	static boolean local = true;
 	
-	public static String getFileName(String name, String pre) { 		
-		return (pre + name + ".java");
+	public static String getFileName(String pkg, String name, String pre) { 		
+		if (! local && pkg != null && ! pkg.equals("")) {
+		    return pkg.replace('.', '/') + '/' + pre + name + ".java";
+		}
+		return pre + name + ".java";
 	} 
 
 	public static PrintWriter createFile(String name) throws Exception {
@@ -40,7 +44,7 @@ class Main {
 		JavaClass rmiInterface = null;
 	
 		if (args.length == 0) { 
-			System.err.println("Usage : java Main [-v] classname");
+			System.err.println("Usage : java Main [-v] [-dir | -local] classname");
 			System.exit(1);
 		}
 
@@ -50,6 +54,14 @@ class Main {
 		while (i<num) { 
 			if (args[i].equals("-v")) { 
 				verbose = true;
+				args[i] = args[num-1];
+				num--;
+			} else if (args[i].equals("-dir")) { 
+				local = false;
+				args[i] = args[num-1];
+				num--;
+			} else if (args[i].equals("-local")) { 
+				local = true;
 				args[i] = args[num-1];
 				num--;
 			} else { 
@@ -85,11 +97,11 @@ class Main {
 				BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);
 				a.start();
 
-				output = createFile(getFileName(a.classname, "rmi_stub_"));			
+				output = createFile(getFileName(a.packagename, a.classname, "rmi_stub_"));			
 				new RMIStubGenerator(a, output, verbose).generate();
 				output.flush();
 
-				output = createFile(getFileName(a.classname, "rmi_skeleton_"));			
+				output = createFile(getFileName(a.packagename, a.classname, "rmi_skeleton_"));			
 				new RMISkeletonGenerator(a, output, verbose).generate();
 				output.flush();
 

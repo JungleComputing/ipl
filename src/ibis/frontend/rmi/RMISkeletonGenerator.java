@@ -24,7 +24,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 	} 
      
 	void header() { 
-		if (data.packagename != null) {
+		if (data.packagename != null && ! data.packagename.equals("")) {
 			output.println("package " + data.packagename + ";");		
 			output.println();
 		}
@@ -162,7 +162,12 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("\tpublic rmi_skeleton_" + data.classname + "() {");
 
 //		output.println("\t\tsuper();");
-		output.println("\t\tstubType = \"rmi_stub_" + data.classname + "\";");
+		if (data.packagename != null && ! data.packagename.equals("")) {
+		    output.println("\t\tstubType = \"" + data.packagename + ".rmi_stub_" + data.classname + "\";");
+		}
+		else {
+		    output.println("\t\tstubType = \"rmi_stub_" + data.classname + "\";");
+		}
 		output.println();
 		output.println("\t}\n");
 	} 

@@ -93,6 +93,7 @@ if (RTS.DEBUG)
 	try {
 	    RTS.rebind(url, obj);
 	} catch (Exception e) {
+	    e.printStackTrace();
 	    throw new RemoteException(e.getMessage());
 	}
     }
