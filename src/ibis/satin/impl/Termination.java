@@ -142,6 +142,9 @@ public abstract class Termination extends Initialization {
 
 		try {
 			receivePort.close();
+			if(SUPPORT_TUPLE_MULTICAST) {
+			    tupleReceivePort.close();
+			}
 
 			if (master) {
 				barrierReceivePort.close();

@@ -25,8 +25,6 @@ public abstract class Stats extends TupleSpace {
 			invocationRecordReadTimer = new Timer();
 		if (tupleOrderingWaitTimer == null)
 			tupleOrderingWaitTimer = new Timer();
-		if (tupleOrderingSeqTimer == null)
-			tupleOrderingSeqTimer = new Timer();
 		if (lookupTimer == null)
 			lookupTimer = new Timer();
 		if (updateTimer == null)
@@ -74,8 +72,6 @@ public abstract class Stats extends TupleSpace {
 		s.tupleTime = tupleTimer.totalTimeVal();
 		s.tupleWaitTime = tupleOrderingWaitTimer.totalTimeVal();
 		s.tupleWaitCount = tupleOrderingWaitTimer.nrTimes();
-		s.tupleSeqTime = tupleOrderingSeqTimer.totalTimeVal();
-		s.tupleSeqCount = tupleOrderingSeqTimer.nrTimes();
 
 		s.invocationRecordWriteTime = invocationRecordWriteTimer.totalTimeVal();
 		s.invocationRecordWriteCount = invocationRecordWriteTimer.nrTimes();
@@ -229,11 +225,6 @@ public abstract class Stats extends TupleSpace {
 					+ " time/bcast  "
 					+ Timer.format(totalStats.tupleWaitTime
 							/ totalStats.tupleWaitCount));
-			out.println("SATIN: TUPLE_SPACE_ORDER_TIME: total "
-					+ Timer.format(totalStats.tupleSeqTime)
-					+ " time/bcast  "
-					+ Timer.format(totalStats.tupleSeqTime
-							/ totalStats.tupleSeqCount));
 		}
 
 		if (POLL_FREQ != 0 && POLL_TIMING) {
@@ -296,8 +287,6 @@ public abstract class Stats extends TupleSpace {
 		double tupleWaitTime = totalStats.tupleWaitTime / size;
 		double tupleWaitPerc = tupleWaitTime / totalTimer.totalTimeVal()
 				* 100.0;
-		double tupleSeqTime = totalStats.tupleSeqTime / size;
-		double tupleSeqPerc = tupleSeqTime / totalTimer.totalTimeVal() * 100.0;
 		double pollTime = totalStats.pollTime / size;
 		double pollPerc = pollTime / totalTimer.totalTimeVal() * 100.0;
 
@@ -353,10 +342,6 @@ public abstract class Stats extends TupleSpace {
 					+ Timer.format(tupleWaitTime) + " ("
 					+ (tupleWaitPerc < 10 ? " " : "")
 					+ pf.format(tupleWaitPerc) + " %)");
-			out.println("SATIN: TUPLE_SPACE_ORDER_TIME:  avg. per machine "
-					+ Timer.format(tupleSeqTime) + " ("
-					+ (tupleSeqPerc < 10 ? " " : "") + pf.format(tupleSeqPerc)
-					+ " %)");
 		}
 
 		if (POLL_FREQ != 0 && POLL_TIMING) {
@@ -519,11 +504,6 @@ public abstract class Stats extends TupleSpace {
 						+ tupleOrderingWaitTimer.totalTime() + " avg time = "
 						+ tupleOrderingWaitTimer.averageTime());
 
-				out.println("SATIN '" + ident.name()
-						+ "': TUPLE_STATS 4: sequencer accesses = "
-						+ tupleOrderingSeqTimer.nrTimes() + " total time = "
-						+ tupleOrderingSeqTimer.totalTime() + " avg time = "
-						+ tupleOrderingSeqTimer.averageTime());
 			}
 			algorithm.printStats(out);
 		}

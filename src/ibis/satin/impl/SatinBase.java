@@ -4,8 +4,8 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPort;
-import ibis.util.Sequencer;
 import ibis.util.Timer;
 
 import java.util.ArrayList;
@@ -46,36 +46,37 @@ public abstract class SatinBase implements Config {
 	/* Am I the root (the one running main)? */
 	boolean master = false;
 
+	boolean tuple_message_sent = false;
+
 	protected String[] mainArgs;
 
 	protected String name;
 
 	protected IbisIdentifier masterIdent;
 
+	protected long stealReplySeqNr;
+
 	/* Am I the cluster coordinator? */
 	boolean clusterCoordinator = false;
 
 	IbisIdentifier clusterCoordinatorIdent;
-
-	protected Sequencer sequencer; // used in MessageHandler
-
-	protected int stealReplySeqNr;
 
 	/* My scheduling algorithm. */
 	protected Algorithm algorithm;
 
 	volatile int exitReplies = 0;
 
-	int expected_seqno = Sequencer.START_SEQNO;
+	long expected_seqno = ReadMessage.INITIAL_SEQNO;
 
 	// WARNING: dijkstra does not work in combination with aborts.
 	DEQueue q;
 
 	protected PortType portType;
-
+	PortType tuplePortType;
 	protected PortType barrierPortType;
 
 	protected ReceivePort receivePort;
+	ReceivePort tupleReceivePort;
 
 	protected ReceivePort barrierReceivePort; /* Only for the master. */
 
@@ -254,8 +255,6 @@ public abstract class SatinBase implements Config {
 			.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	Timer tupleOrderingWaitTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-
-	Timer tupleOrderingSeqTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	Timer lookupTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 

@@ -222,7 +222,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 							.println("UNHANDLED opcode in handleStealRequest");
 					System.exit(1);
 				}
-				m.send();
 				long cnt = m.finish();
 				if (STEAL_STATS) {
 					if (satin.inDifferentCluster(ident.ibis())) {
@@ -299,8 +298,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				System.exit(1);
 			}
 
-			if (satin.sequencer != null) { // ordered communication
-				m.writeInt(satin.expected_seqno);
+			if (Satin.use_seq) { // ordered communication
+				m.writeLong(satin.expected_seqno);
 			}
 
 			m.writeObject(result);
@@ -424,8 +423,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				if (STEAL_TIMING) {
 					satin.invocationRecordReadTimer.start();
 				}
-				if (satin.sequencer != null) { // ordered communication
-					satin.stealReplySeqNr = m.readInt();
+				if (Satin.use_seq) { // ordered communication
+					satin.stealReplySeqNr = m.readLong();
 				}
 				tmp = (InvocationRecord) m.readObject();
 				if (STEAL_TIMING) {
@@ -512,23 +511,28 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		String key;
 
 		Serializable data;
+		SendPortIdentifier sender;
 
-		tuple_command(byte c, String k, Serializable s) {
+		tuple_command(byte c, String k, Serializable s, SendPortIdentifier se) {
 			command = c;
 			key = k;
 			data = s;
+			sender = se;
 		}
 	}
 
 	private HashMap saved_tuple_commands = null;
 
-	private void add_to_queue(int seqno, String key, Serializable data,
-			byte command) {
+	private void add_to_queue(long seqno,
+				  String key,
+				  Serializable data,
+				  SendPortIdentifier s,
+				  byte command) {
 		if (saved_tuple_commands == null) {
 			saved_tuple_commands = new HashMap();
 		}
-		saved_tuple_commands.put(new Integer(seqno), new tuple_command(command,
-				key, data));
+		saved_tuple_commands.put(new Long(seqno), new tuple_command(command,
+				key, data, s));
 	}
 
 	private void scan_queue() {
@@ -537,7 +541,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			return;
 		}
 
-		Integer i = new Integer(satin.expected_seqno);
+		Long i = new Long(satin.expected_seqno);
 		tuple_command t = (tuple_command) saved_tuple_commands.remove(i);
 		while (t != null) {
 			switch (t.command) {
@@ -557,23 +561,30 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 			satin.expected_seqno++;
 
-			i = new Integer(satin.expected_seqno);
+			if (t.sender.equals(satin.tuplePort.identifier())) {
+			    synchronized(satin.tuplePort) {
+				satin.tuple_message_sent = false;
+				satin.tuplePort.notifyAll();
+			    }
+			}
+
+			i = new Long(satin.expected_seqno);
 			t = (tuple_command) saved_tuple_commands.remove(i);
 		}
 	}
 
 	private void handleTupleAdd(ReadMessage m) {
-		int seqno = 0;
+		long seqno = 0;
 		boolean done = false;
 		try {
 			if (Satin.use_seq) {
-				seqno = m.readInt();
+				seqno = m.sequenceNumber();
 			}
-			String key = (String) m.readObject();
+			String key = m.readString();
 			Serializable data = (Serializable) m.readObject();
 
 			if (Satin.use_seq && seqno > satin.expected_seqno) {
-				add_to_queue(seqno, key, data, TUPLE_ADD);
+				add_to_queue(seqno, key, data, m.origin(), TUPLE_ADD);
 			} else {
 				if (data instanceof ActiveTuple) {
 					synchronized (satin) {
@@ -588,13 +599,21 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					scan_queue();
 				}
 				done = true;
-
+				SendPortIdentifier s = m.origin();
+				if (s.equals(satin.tuplePort.identifier())) {
+				    synchronized(satin.tuplePort) {
+					satin.tuple_message_sent = false;
+					satin.tuplePort.notifyAll();
+				    }
+				}
 			}
 			m.finish();
+
 
 		} catch (Exception e) {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': Got Exception while reading tuple update: " + e);
+			e.printStackTrace();
 			if (!FAULT_TOLERANCE) {
 				System.exit(1);
 			}
@@ -612,15 +631,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	}
 
 	private void handleTupleDel(ReadMessage m) {
-		int seqno = 0;
+		long seqno = 0;
 		boolean done = false;
 		try {
 			if (Satin.use_seq) {
-				seqno = m.readInt();
+				seqno = m.sequenceNumber();
 			}
-			String key = (String) m.readObject();
+			String key = m.readString();
 			if (Satin.use_seq && seqno > satin.expected_seqno) {
-				add_to_queue(seqno, key, null, TUPLE_DEL);
+				add_to_queue(seqno, key, null, m.origin(), TUPLE_DEL);
 			} else {
 				Satin.remoteDel(key);
 				satin.expected_seqno++;
@@ -628,6 +647,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					scan_queue();
 				}
 				done = true;
+				SendPortIdentifier s = m.origin();
+				if (s.equals(satin.tuplePort.identifier())) {
+				    synchronized(satin.tuplePort) {
+					satin.tuple_message_sent = false;
+					satin.tuplePort.notifyAll();
+				    }
+				}
 			}
 			m.finish();
 		} catch (Exception e) {
@@ -689,7 +715,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			w.writeObject(owner); //leave it out if you make globally unique
 			// stamps
 			w.writeObject(value);
-			w.send();
 			w.finish();
 			if (GRT_TIMING) {
 				satin.handleLookupTimer.stop();

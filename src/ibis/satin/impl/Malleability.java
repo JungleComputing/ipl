@@ -28,6 +28,7 @@ public abstract class Malleability extends FaultTolerance {
 			}
 
 			if (SUPPORT_TUPLE_MULTICAST) {
+				r = lookup("satin tuple port on " + joiner.name());
 				connect(tuplePort, r);
 			}
 

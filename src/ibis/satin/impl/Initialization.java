@@ -251,24 +251,22 @@ public abstract class Initialization extends SatinBase {
 			ibisProperties.add("worldmodel", "open");
 		}
 
+		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+		if (Satin.use_seq) {
+		    commprops += ", Sequenced";
+		}
+		if (FAULT_TOLERANCE) {
+		    commprops += ", ConnectionUpcalls";
+		}
 		if (upcalls) {
 			if (upcallPolling) {
-				ibisProperties.add("communication", "OneToOne, "
-						+ "OneToMany, " + "ManyToOne, " + "Reliable, "
-						+ "PollUpcalls, " + "ExplicitReceipt, "
-						+ "ConnectionUpcalls");
+				commprops += ", PollUpcalls";
 			} else {
-				ibisProperties.add("communication", "OneToOne, "
-						+ "OneToMany, " + "ManyToOne, " + "Reliable, "
-						+ "AutoUpcalls, " + "ExplicitReceipt, "
-						+ "ConnectionUpcalls");
+				commprops += ", AutoUpcalls";
 			}
-		} else {
-			ibisProperties.add("communication", "OneToOne, " + "OneToMany, "
-					+ "ManyToOne, " + "Reliable, " + "ExplicitReceipt, "
-					+ "ConnectionUpcalls");
 		}
 
+		ibisProperties.add("communication", commprops);
 		return ibisProperties;
 	}
 
@@ -282,21 +280,18 @@ public abstract class Initialization extends SatinBase {
 			satinPortProperties.add("worldmodel", "open");
 		}
 
+		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+		if (FAULT_TOLERANCE) {
+		    commprops += ", ConnectionUpcalls";
+		}
 		if (upcalls) {
 			if (upcallPolling) {
-				satinPortProperties.add("communication", "OneToOne, "
-						+ "OneToMany, " + "ManyToOne, " + "Reliable, "
-						+ "PollUpcalls, " + "ConnectionUpcalls");
+				commprops += ", PollUpcalls";
 			} else {
-				satinPortProperties.add("communication", "OneToOne, "
-						+ "OneToMany, " + "ManyToOne, " + "Reliable, "
-						+ "AutoUpcalls, " + "ConnectionUpcalls");
+				commprops += ", AutoUpcalls";
 			}
-		} else {
-			satinPortProperties.add("communication", "OneToOne, "
-					+ "OneToMany, " + "ManyToOne, " + "Reliable, "
-					+ "ExplicitReceipt, " + "ConnectionUpcalls");
 		}
+		satinPortProperties.add("communication", commprops);
 
 		if (ibisSerialization) {
 			satinPortProperties.add("Serialization", "ibis");
@@ -308,6 +303,45 @@ public abstract class Initialization extends SatinBase {
 		}
 
 		return ibis.createPortType("satin porttype", satinPortProperties);
+	}
+
+	PortType createTuplePortType(StaticProperties reqprops) throws IOException,
+			IbisException {
+		StaticProperties satinPortProperties = new StaticProperties(reqprops);
+
+		if (closed) {
+			satinPortProperties.add("worldmodel", "closed");
+		} else {
+			satinPortProperties.add("worldmodel", "open");
+		}
+
+		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+		if (Satin.use_seq) {
+		    commprops += ", Sequenced";
+		}
+		if (FAULT_TOLERANCE) {
+		    commprops += ", ConnectionUpcalls";
+		}
+		if (upcalls) {
+			if (upcallPolling) {
+				commprops += ", PollUpcalls";
+			} else {
+				commprops += ", AutoUpcalls";
+			}
+		}
+
+		satinPortProperties.add("communication", commprops);
+
+		if (ibisSerialization) {
+			satinPortProperties.add("Serialization", "ibis");
+			if (master) {
+				System.err.println("SATIN: using Ibis serialization");
+			}
+		} else {
+			satinPortProperties.add("serialization", "object");
+		}
+
+		return ibis.createPortType("satin tuple porttype", satinPortProperties);
 	}
 
 	// The barrier port type is different from the satin port type.
@@ -324,7 +358,7 @@ public abstract class Initialization extends SatinBase {
 		}
 
 		s.add("communication", "OneToOne, " + "ManyToOne, " + "Reliable, "
-				+ "ExplicitReceipt, " + "ConnectionUpcalls");
+				+ "ExplicitReceipt");
 
 		return ibis.createPortType("satin barrier porttype", s);
 	}

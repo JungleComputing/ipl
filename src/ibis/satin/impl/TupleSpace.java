@@ -213,25 +213,17 @@ public abstract class TupleSpace extends Communication {
 
 		if (!SUPPORT_TUPLE_MULTICAST && size == 0)
 			return; // don't multicast when there is no-one.
-		if (size == 0 && sequencer == null)
-			return;
 
 		if (TUPLE_TIMING) {
 			tupleTimer.start();
 		}
 
 		if (SUPPORT_TUPLE_MULTICAST) {
-			int seqno = 0;
+			tuple_message_sent = true;
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();
 				writeMessage.writeByte(Protocol.TUPLE_ADD);
-				if (sequencer != null) {
-					tupleOrderingSeqTimer.start();
-					seqno = sequencer.getSeqno("TupleSpace");
-					tupleOrderingSeqTimer.stop();
-					writeMessage.writeInt(seqno);
-				}
-				writeMessage.writeObject(key);
+				writeMessage.writeString(key);
 				writeMessage.writeObject(data);
 
 				if (TUPLE_STATS) {
@@ -251,19 +243,9 @@ public abstract class TupleSpace extends Communication {
 				}
 				//always happens after crash
 			}
-			if (sequencer != null) {
+			if (use_seq) {
 				synchronized (tuplePort) {
-					while (expected_seqno <= seqno) {
-						try {
-							tuplePort.wait();
-						} catch (Exception e) {
-						}
-					}
-				}
-			}
-			if (sequencer != null) {
-				synchronized (tuplePort) {
-					while (expected_seqno <= seqno) {
+					while (tuple_message_sent) {
 						try {
 							tuplePort.wait();
 						} catch (Exception e) {
@@ -280,7 +262,7 @@ public abstract class TupleSpace extends Communication {
 					}
 					WriteMessage writeMessage = s.newMessage();
 					writeMessage.writeByte(Protocol.TUPLE_ADD);
-					writeMessage.writeObject(key);
+					writeMessage.writeString(key);
 					writeMessage.writeObject(data);
 
 					if (TUPLE_STATS && i == 0) {
@@ -321,25 +303,19 @@ public abstract class TupleSpace extends Communication {
 			size = victims.size();
 		}
 
-		if (size == 0)
+		if(! SUPPORT_TUPLE_MULTICAST && size == 0)
 			return; // don't multicast when there is no-one.
-		if (size == 0 && sequencer == null)
-			return;
 
 		if (TUPLE_TIMING) {
 			tupleTimer.start();
 		}
 
 		if (SUPPORT_TUPLE_MULTICAST) {
-			int seqno = 0;
+			tuple_message_sent = true;
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();
 				writeMessage.writeByte(Protocol.TUPLE_DEL);
-				if (sequencer != null) {
-					seqno = sequencer.getSeqno("TupleSpace");
-					writeMessage.writeInt(seqno);
-				}
-				writeMessage.writeObject(key);
+				writeMessage.writeString(key);
 
 				if (TUPLE_STATS) {
 					tupleMsgs++;
@@ -357,22 +333,12 @@ public abstract class TupleSpace extends Communication {
 				}
 				//always happen after crashes
 			}
-			if (sequencer != null) {
-				synchronized (tuplePort) {
-					while (expected_seqno <= seqno) {
-						try {
-							tuplePort.wait();
-						} catch (Exception e) {
-						}
-					}
-				}
-			}
-			if (sequencer != null) {
-				synchronized (tuplePort) {
-					while (expected_seqno <= seqno) {
-						try {
-							tuplePort.wait();
-						} catch (Exception e) {
+			if (use_seq) {
+				    synchronized(tuplePort) {
+					    while (tuple_message_sent) {
+						    try {
+							    tuplePort.wait();
+						     } catch(Exception e) {
 						}
 					}
 				}
@@ -383,7 +349,7 @@ public abstract class TupleSpace extends Communication {
 					SendPort s = victims.getPort(i);
 					WriteMessage writeMessage = s.newMessage();
 					writeMessage.writeByte(Protocol.TUPLE_DEL);
-					writeMessage.writeObject(key);
+					writeMessage.writeString(key);
 
 					if (TUPLE_STATS && i == 0) {
 						tupleMsgs++;
@@ -452,14 +418,7 @@ public abstract class TupleSpace extends Communication {
 		if (tuplePortLocalConnection)
 			return;
 
-		connect(tuplePort, receivePort.identifier());
-		try {
-			sequencer = Sequencer.getSequencer(ibis);
-		} catch (IOException e) {
-			System.err.println("SATIN '" + ident.name()
-					+ "': Got Exception while creating sequencer: " + e);
-			System.exit(1);
-		}
+		connect(tuplePort, tupleReceivePort.identifier());
 		tuplePortLocalConnection = true;
 	}
 }
