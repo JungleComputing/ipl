@@ -86,7 +86,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private long spawns = 0;
 	private long syncs = 0;
 	private long aborts = 0;
-	private long abortedJobs = 0;
+	public long abortedJobs = 0; // used in dequeue
 	private long stealAttempts = 0;
 	private long stealSuccess = 0;
 	long stolenJobs = 0; // used in messageHandler
