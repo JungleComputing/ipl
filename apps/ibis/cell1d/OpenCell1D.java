@@ -327,7 +327,7 @@ class OpenCell1D implements OpenConfig {
 
             // TODO: use a more subtle approach than this.
             while( me<0 ){
-                Thread.sleep( 10 );
+                Thread.sleep( 20 );
             }
 
             if( leftNeighbour != null ){
@@ -354,7 +354,7 @@ class OpenCell1D implements OpenConfig {
             // array size, plus two empty dummy border columns. (The top and
             // bottom *rows* are also empty dummies that are never updated).
             // The Life board.
-            byte board[][] = new byte[boardsize+4][];
+            byte board[][] = new byte[boardsize+2][];
 
             // We need two extra column arrays to temporarily store the update
             // of a column. These arrays will be circulated with our columns of
