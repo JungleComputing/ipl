@@ -45,7 +45,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     /**
      * Object used for conversion of primitive types to bytes
      */
-    private Conversion conversion = null;
+    private static Conversion conversion = Conversion.loadConversion(false);
 
     /**
      * {@inheritDoc}
@@ -67,7 +67,6 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
      */
     public BufferedArrayOutputStream(OutputStream out) {
 	this.out = out;
-	conversion = Conversion.loadConversion(false);
     }
 
     /**

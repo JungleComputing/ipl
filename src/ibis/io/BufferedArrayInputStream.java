@@ -33,13 +33,11 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 
     // Object used to convert primitive types to bytes.
     // No need to inistalize this more than once, so static.
-    private Conversion conversion;
+    private static Conversion conversion = Conversion.loadConversion(false);
 
     public BufferedArrayInputStream(InputStream in) {
 	this.in = in;
 	buffer = new byte[BUF_SIZE];
-
-	conversion = Conversion.loadConversion(false);
     }
 
     private void dump(byte[] buffer, int off, int len, String caller) {
