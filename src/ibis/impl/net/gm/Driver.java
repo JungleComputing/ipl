@@ -8,9 +8,9 @@ import ibis.impl.net.NetMutex;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetPriorityMutex;
+import ibis.impl.net.InterruptedIOException;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 
 /**
  * The NetIbis GM driver with pipelined block transmission.

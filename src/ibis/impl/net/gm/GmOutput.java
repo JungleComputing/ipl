@@ -8,9 +8,9 @@ import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
+import ibis.impl.net.InterruptedIOException;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;

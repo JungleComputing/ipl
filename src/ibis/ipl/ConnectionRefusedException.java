@@ -34,7 +34,6 @@ public class ConnectionRefusedException extends IbisIOException {
      */
     public ConnectionRefusedException(String s, Throwable cause) {
 	super(s, cause);
-	initCause(cause);
     }
 
     /**
@@ -44,7 +43,6 @@ public class ConnectionRefusedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionRefusedException(Throwable cause) {
-	super("", cause);
-	initCause(cause);
+	super(cause);
     }
 }

@@ -1,7 +1,5 @@
 package ibis.util;
 
-import ibis.ipl.IllegalLockStateException;
-
 public class Monitor {
 
     final static boolean DEBUG = false;

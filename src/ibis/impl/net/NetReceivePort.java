@@ -1,9 +1,9 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.DynamicProperties;
+import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.InterruptedIOException;
+import ibis.ipl.DynamicProperties;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -732,6 +732,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                  &&
                                  (System.currentTimeMillis() - top) < millis);
 
+			if (rm == null) {
+				throw new ReceiveTimedOutException("timeout expired in receive");
+			}
                         return rm;
                 }
         }

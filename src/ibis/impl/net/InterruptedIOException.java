@@ -1,6 +1,6 @@
-package ibis.ipl;
+package ibis.impl.net;
 
-public class InterruptedIOException extends IbisIOException {
+public class InterruptedIOException extends ibis.ipl.IbisIOException {
     public InterruptedIOException() {
 	super();
     }
@@ -11,11 +11,9 @@ public class InterruptedIOException extends IbisIOException {
 
     public InterruptedIOException(String name, Throwable cause) {
 	super(name, cause);
-	initCause(cause);
     }
 
     public InterruptedIOException(Throwable cause) {
-	super("", cause);
-	initCause(cause);
+	super(cause);
     }
 }

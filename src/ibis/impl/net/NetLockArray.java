@@ -1,7 +1,6 @@
 package ibis.impl.net;
 
-import ibis.ipl.IllegalLockStateException;
-import ibis.ipl.InterruptedIOException;
+import ibis.util.IllegalLockStateException;
 import ibis.util.ConditionVariable;
 import ibis.util.Monitor;
 
@@ -69,7 +68,7 @@ public final class NetLockArray {
 	    }
 
 	    if (lock[id].m) {
-		throw new Error("lock already initialized");
+		throw new IllegalLockStateException("lock already initialized");
 	    }
 
 	    lock[id].v = locked?0:1;

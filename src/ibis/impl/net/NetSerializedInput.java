@@ -1,7 +1,6 @@
 package ibis.impl.net;
 
 import ibis.io.SerializationInputStream;
-import ibis.ipl.InterruptedIOException;
 
 import java.io.IOException;
 import java.util.Hashtable;

@@ -3,7 +3,7 @@ package ibis.ipl;
 import java.io.IOException;
 
 /** 
- * A <code>WriteMessage</code> is the Ibis abstraction for data to be written.
+ * The Ibis abstraction for data to be written.
  * A <code>WriteMessage</code> is obtained from a {@link SendPort} through
  * the {@link SendPort#newMessage SendPort.newMessage} method.
  * At most one <code>WriteMessage</code> is alive at one time for a given

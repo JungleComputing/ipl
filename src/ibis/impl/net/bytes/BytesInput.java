@@ -8,7 +8,7 @@ import ibis.impl.net.NetInput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-import ibis.ipl.InterruptedIOException;
+import ibis.impl.net.InterruptedIOException;
 
 import ibis.io.Conversion;
 

@@ -34,8 +34,7 @@ public class ConnectionClosedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionClosedException(String s, Throwable cause) {
-	super(s);
-	initCause(cause);
+	super(s, cause);
     }
 
     /**
@@ -45,7 +44,6 @@ public class ConnectionClosedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionClosedException(Throwable cause) {
-	super();
-	initCause(cause);
+	super(cause);
     }
 }

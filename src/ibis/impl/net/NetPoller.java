@@ -1,7 +1,6 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionClosedException;
-import ibis.ipl.InterruptedIOException;
 
 import java.io.IOException;
 import java.util.Collection;

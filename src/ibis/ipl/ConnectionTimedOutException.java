@@ -43,7 +43,6 @@ public class ConnectionTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionTimedOutException(Throwable cause) {
-	super("", cause);
-	initCause(cause);
+	super(cause);
     }
 }

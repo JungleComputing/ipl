@@ -1,7 +1,5 @@
 package ibis.impl.net;
 
-import ibis.ipl.InterruptedIOException;
-
 /**
  * Provide a thread dedicated to extract and dispatch {@linkplain
  * NetEvent events} from an {@linkplain NetEventQueue event queue} to

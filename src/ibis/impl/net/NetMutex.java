@@ -1,7 +1,5 @@
 package ibis.impl.net;
 
-import ibis.ipl.InterruptedIOException;
-
 /**
  * Provide a synchronization mutex.
  */

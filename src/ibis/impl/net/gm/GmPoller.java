@@ -4,9 +4,9 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetPortType;
+import ibis.impl.net.InterruptedIOException;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 
 /**
  * Provides a GM-specific multiple network input poller.

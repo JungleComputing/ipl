@@ -7,10 +7,10 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.muxer.MuxerInput;
 import ibis.impl.net.muxer.MuxerQueue;
+import ibis.impl.net.InterruptedIOException;
 import ibis.ipl.ReceiveTimedOutException;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;

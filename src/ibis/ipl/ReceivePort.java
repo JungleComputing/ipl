@@ -53,9 +53,10 @@ public interface ReceivePort {
 	/** 
 	    Explicit receive with timeout. When an receiveport is
 	    configured to generate upcalls, this is NOT allowed The receive blocks
-	    at most timeoutMillis, but it might be shorter!  The method returns
-	    null when no message has been received.  A timeoutMillis <= 0 means
-	    just do a blocking receive.
+	    at most timeoutMillis, but it might be shorter!
+	    A timeoutMillis <= 0 means just do a blocking receive.
+	    @exception ReceiveTimedOutException is thrown when the timeout
+	    expires and no message arrives.
 	 **/
 	public ReadMessage receive(long timeoutMillis) throws IOException;
 
@@ -68,6 +69,8 @@ public interface ReceivePort {
 	 *  <p>
 	 *  Rationale is the possibility to save on locking overhead by
 	 *  combining an oft-recurring sequence.
+	 * @exception ReceiveTimedOutException is thrown when the timeout
+	 * expires and no message arrives.
 	 **/
 	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IOException;
 

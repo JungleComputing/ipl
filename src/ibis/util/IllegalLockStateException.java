@@ -1,6 +1,6 @@
-package ibis.ipl;
+package ibis.util;
 
-public class IllegalLockStateException extends java.lang.RuntimeException {
+public class IllegalLockStateException extends ibis.ipl.IbisRuntimeException {
 
     /**
      * Thrown to indicate that a thread has attempted to lock, unlcok, wait,
@@ -17,13 +17,12 @@ public class IllegalLockStateException extends java.lang.RuntimeException {
     }
 
     public IllegalLockStateException(String name, Throwable cause) {
-	super(name + cause);
-//	initCause(cause);
+	super(name);
+	initCause(cause);
     }
 
     public IllegalLockStateException(Throwable cause) {
-	super("" + cause);
-//	initCause(cause);
+	super();
+	initCause(cause);
     }
-
 }

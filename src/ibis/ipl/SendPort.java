@@ -73,7 +73,7 @@ public interface SendPort {
 	   if the receiver denies the connection, or if the port was already
 	   connected to the receiver.
 	   Multiple connections to the same receiver are NOT allowed.
-	   @exception PortConfigurationException is thrown if this receive
+	   @exception PortMismatchException is thrown if this receive
 	   port and the send port are of different types.
 	   @param receiver identifies the <code>ReceivePort</code> to connect to
 	*/
@@ -88,7 +88,7 @@ public interface SendPort {
 	   @exception ConnectionRefusedException is thrown
 	   if the receiver denies the connection.
 	   Multiple connections to the same receiver are NOT allowed.
-	   @exception PortConfigurationException is thrown if this receive
+	   @exception PortMismatchException is thrown if this receive
 	   port and the send port are of different types.
 	   @param receiver identifies the <code>ReceivePort</code> to connect to
 	   @param timeoutMillis timeout in milliseconds

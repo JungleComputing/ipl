@@ -3,7 +3,7 @@ package ibis.ipl;
 import java.io.IOException;
 
 /** 
- * A <code>ReadMessage</code> is the Ibis abstraction for data to be read.
+ * The Ibis abstraction for data to be read.
  * A <code>ReadMessage</code> is obtained from a {@link ibis.ipl.ReceivePort receiveport}, either
  * by means of an upcall, or by means of an explicit receive, which is
  * accomplished by call to {@link ibis.ipl.ReceivePort#receive() receive}.

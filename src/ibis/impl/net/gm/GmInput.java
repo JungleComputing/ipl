@@ -9,9 +9,9 @@ import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferFactoryImpl;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+import ibis.impl.net.InterruptedIOException;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;

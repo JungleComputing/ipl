@@ -1,7 +1,6 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.InterruptedIOException;
 
 import ibis.io.Conversion;
 

@@ -6,6 +6,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
@@ -190,7 +191,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		count = 0;
 	}
 
-	private synchronized TcpReadMessage getMessage(long timeout) {
+	private synchronized TcpReadMessage getMessage(long timeout) throws ReceiveTimedOutException {
 		while((m == null || delivered)/* && ! shouldLeave*/) {
 			try {
 				if(timeout > 0) {
@@ -199,7 +200,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 					wait();
 				}
 			} catch (Exception e) {
-				// Ignore.
+				throw new ReceiveTimedOutException("timeout expired in receive()");
 			}
 		}
 		delivered = true;
