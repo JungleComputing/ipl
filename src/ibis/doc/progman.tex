@@ -224,10 +224,10 @@ They are summarized in an object of the
 \ref{StaticProperties}
 
 The second parameter of \texttt{createIbis()} specifies an upcall handler
-with \texttt{join} and \texttt{leave} upcalls that get called when an Ibis
+with \texttt{join()} and \texttt{leave()} upcalls that get called when an Ibis
 joins or leaves the run.  In our RPC example, we will not use this, so we
 specify \texttt{null} instead.  However, when such a \texttt{ResizeHandler}
-is used, its \texttt{join} upcall is called for every Ibis that joins the
+is used, its \texttt{join()} upcall is called for every Ibis that joins the
 run, including the Ibis being created itself.
 Upcalls to the \texttt{ResizeHandler} must be explicitly enabled by
 invoking the \texttt{openWorld()} method of the Ibis
@@ -235,7 +235,7 @@ just created. This ensures that the \texttt{ResizeHandler} has been
 able to do the necessary initializations.
 
 The \texttt{openWorld()} method blocks until the
-\texttt{join} upcall for this Ibis has been invoked.  Knowing which Ibises
+\texttt{join()} upcall for this Ibis has been invoked.  Knowing which Ibises
 have joined the run, and how many there are, is often useful in dividing
 the work. See also section \ref{Which Instance Does What?}.
 
@@ -254,7 +254,7 @@ try {
 \end{verbatim}
 \end{quote}
 Note that the properties can be so specific that no matching Ibis
-can be found, and therefore \texttt{createIbis} may throw an exception
+can be found, and therefore \texttt{createIbis()} may throw an exception
 indicating this.
 
 \mysubsection{StaticProperties}
@@ -280,7 +280,7 @@ In addition, the selected Ibis must support some form of object
 serialization (a string must be sent),
 and must support the ``closed'' worldmodel, which means
 that all participating Ibises join at the start of the run, and a
-synchronization takes place before \texttt{createIbis} returns.
+synchronization takes place before \texttt{createIbis()} returns.
 (in the example we have a client and a server).
 
 A complete list of property values is given below.
@@ -345,9 +345,10 @@ serialization, and not care if it is Ibis or Sun serialization.
 Ibis serialization is supported.
 This is the fastest object serialization supported in Ibis. Its drawback
 is that it requires identical Java implementations on sender and
-receiver side, and does not support
-non-symmetrical \texttt{writeObject()}/\texttt{readObject()} methods (where readObject does not
-read everything that writeObject writes).
+receiver side; it also requires user-defined
+\texttt{writeObject()}/\texttt{readObject()} methods to be symmetrical, t.i., 
+each write in \texttt{writeObject()} must have a corresponding read
+in \texttt{readObject()} (and vice versa).
 \item[Sun]
 Sun serialization (through java.io.ObjectOutputStream/InputStream) is
 supported.
@@ -359,7 +360,8 @@ The possible ``worldmodel'' properties are:
 \item[Open]
 Ibises can join the run at any time during the run.
 \item[Closed]
-Ibises can only join the run at the start.
+The number of nodes involved in the run is known in advance and
+available from \texttt{ibis.util.PoolInfo} (see Section \ref{PoolInfo}).
 \end{description}
 
 \noindent
@@ -395,7 +397,7 @@ line option.  For instance, JVMs support options of the form
 -D\emph{property}=\emph{value}.  The system property name is that
 of the Ibis static property, prefixed with ``\texttt{ibis.}''.  So,
 adding \texttt{-Dibis.serialization=ibis} to the command line will cause
-\texttt{createIbis} to look for an Ibis that supports Ibis serialization
+\texttt{createIbis()} to look for an Ibis that supports Ibis serialization
 instead of any object serialization.
 
 \subsection{Setting up Communication}
@@ -498,7 +500,7 @@ In general, the port properties should be a subset of the properties
 specified when creating the Ibis instance. If a property is specified
 that was not specified when creating the Ibis instance, this could
 result in an \texttt{IbisException}.
-An \texttt{IbisException} could also result when the same name is
+An \texttt{IbisException} will also result when the same name is
 already used for a port type with different properties.
 Port types are registered with a name server
 (this will be discussed in Section \ref{Compiling and Running an Ibis Application}).
@@ -594,7 +596,7 @@ void connect (ReceivePortIdentifier r) throws IOException;
 \noindent
 This version blocks until an accept or deny is received, and throws
 an \texttt{IOException} when the connection could not be established.
-There also is a \texttt{connect} version with a time-out.
+There also is a \texttt{connect()} version with a time-out.
 
 So, we need a \texttt{ibis.ipl.ReceivePortIdentifier} to set up the
 connection.
@@ -685,11 +687,12 @@ void lostConnection(SendPort me,
 \end{quote}
 \noindent 
 This method is called when an existing connection from the send port at
-hand gets lost for some reason. Note that there is no \texttt{gotConnection}
+hand gets lost for some reason. Note that there is no \texttt{gotConnection()}
 counterpart, because it is always the send port that initiates a connection.
 
 When a port type is configured for using connection downcalls, receive ports
-and send ports of this type maintain connection information.
+and send ports of this type maintain connection information, and support
+methods that allow the user to obtain this information.
 A receive port has the following methods:
 
 \begin{quote}
@@ -700,11 +703,11 @@ SendPortIdentifier[] connectedTo();
 \end{verbatim}
 \end{quote}
 
-\texttt{newConnections} returns the send port identifiers of the connections
+\texttt{newConnections()} returns the send port identifiers of the connections
 that are new since the last call or the start of the program.
-\texttt{lostConnections} returns the send port identifiers of the connections
+\texttt{lostConnections()} returns the send port identifiers of the connections
 that were lost since the last call or the start of the program.
-\texttt{connectedTo} returns the send port identifiers of all connections
+\texttt{connectedTo()} returns the send port identifiers of all connections
 to this receive port.
 A send port has the following methods:
 
@@ -716,11 +719,11 @@ ReceivePortIdentifier[] connectedTo();
 \end{verbatim}
 \end{quote}
 \noindent
-\texttt{newConnections} returns the receive port identifiers of the connections
+\texttt{newConnections()} returns the receive port identifiers of the connections
 that are new since the last call or the start of the program.
-\texttt{lostConnections} returns the receive port identifiers of the connections
+\texttt{lostConnections()} returns the receive port identifiers of the connections
 that were lost since the last call or the start of the program.
-\texttt{connectedTo} returns the receive port identifiers of all connections
+\texttt{connectedTo()} returns the receive port identifiers of all connections
 from this send port.
 
 \mysubsection{Communicating}
@@ -784,7 +787,7 @@ upcall, or by means of an explicit receive. For each write method
 in a write message, there is a corresponding read method in
 a read message. For a given receive port, only one message can
 be alive at any time. A read message is alive until it is
-finished (by a \texttt{finish} call), or the upcall returns.
+finished (by a \texttt{finish()} call), or the upcall returns.
 
 Now, let us present some more code of our RPC example, this time
 from the server:
@@ -805,10 +808,10 @@ void upcall(ReadMessage m) throws IOException {
 \noindent
 Note that the read message is finished before replying to the
 request. To prevent deadlocks, upcalls are not allowed to block
-(call \texttt{Thread.wait}) or access the network (write a message or
+(call \texttt{Thread.wait()}) or access the network (write a message or
 read another message) as long as a read message is active.
 
-Now, we can also finish the \texttt{obtainLength} method of the client:
+Now, we can also finish the \texttt{obtainLength()} method of the client:
 \begin{quote}
 \begin{verbatim}
     ...
@@ -896,7 +899,7 @@ It indicates the total number of hosts involved in the run.
 \item[ibis.pool.host\_names]
 If present, this system property contains the list of host names
 involved in the run.
-If not present, \texttt{createPoolInfo} will a \texttt{PoolInfoClient}
+If not present, \texttt{createPoolInfo()} will a \texttt{PoolInfoClient}
 that will collect this information during startup.
 A \texttt{PoolInfoClient} uses a \texttt{PoolInfoServer} to collect the
 required information.
