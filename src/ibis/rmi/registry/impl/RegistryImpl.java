@@ -34,6 +34,18 @@ if(RTS.DEBUG)
     public RegistryImpl(String host, int port) 
     {
 	if (host != null && ! host.equals("")) {
+	    try {
+		InetAddress adres = InetAddress.getByName(host);
+		if (adres.getHostAddress().equals("127.0.0.1")) {
+		    adres = InetAddress.getByName(InetAddress.getLocalHost().getHostName());
+		}
+		adres = InetAddress.getByName(adres.getHostAddress());
+		host = adres.getHostName();
+	    } catch(java.net.UnknownHostException e) {
+		if (RTS.DEBUG) {
+		    System.err.println("Hostname " + host + " is unknown?");
+		}
+	    }
 	    this.host = host;
 	} else {
 	    this.host = localhostName();
