@@ -79,3 +79,5 @@ ant docs
 This will build a "docs" directory with an "api" sub-directory.
 Point your favorite HTML viewer to docs/api/index.html to view
 the API documentation.
+Note that the javadoc of the 1.4.1 version of Java may hang. In that
+case, please use a newer version.
