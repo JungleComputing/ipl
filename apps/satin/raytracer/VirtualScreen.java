@@ -10,6 +10,7 @@ class VirtualScreen implements java.io.Serializable
 	VirtualScreen(GfxColor c)
 	{
 		pixel = c.GetRGB();
+		w = h = 1;
 	}
 
 
@@ -67,17 +68,47 @@ class VirtualScreen implements java.io.Serializable
 	void Set(int x, int y, int w, int h, VirtualScreen s)
 	{
 		int sx, sy;
-	
-		if (s.bitmap == null)
-			{
-				 
-				bitmap[x][y] = s.pixel;
-				return;
+		
+		if (w != s.w || h != s.h) {
+			System.out.println("RAY:AAARGG: w = " + w + ", h = " + h + ", s.w = " + s.w + ", s.h = " + s.h);
+
+			if(s.bitmap != null) {
+				System.out.println("s.bitmaplen = " + s.bitmap.length);
+				if(s.bitmap.length > 0) {
+					System.out.println("s.bitmap.w = " + s.bitmap[0].length);
+				}
 			}
+		}
+
+		if (s.bitmap == null) {
+			if(w != 1 || h != 1) {
+				System.out.println("RAY: EEEEEK");
+			}
+
+			bitmap[x][y] = s.pixel;
+			if(s.pixel == 0) {
+				System.out.println("RAY 0 pixel!");
+			}
+			return;
+		}
+
+		if(w == 1 || h == 1) {
+			System.out.println("RAY: EEEEEK2");
+		}
 
 		sx = 0;
 		for (int px = x; px<x+w; px++) {
 			System.arraycopy(s.bitmap[sx], 0, bitmap[px], y, h);
+
+			int sum = 0;
+			for(int i=0; i<h; i++) {  
+				sum += bitmap[px][y+i];
+			}
+			
+			if(sum == 0) {
+				System.out.println("RAY: 0 array!");
+			}
+
 			sx++;
 		}
 	}

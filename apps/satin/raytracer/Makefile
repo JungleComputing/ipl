@@ -31,7 +31,13 @@ SERIALIZABLE	+= Sphere3D.java
 SERIALIZABLE	+= Surface.java
 SERIALIZABLE	+= Vector3D.java
 SERIALIZABLE	+= VirtualScreen.java
+SERIALIZABLE	+= Plane3D.java
 SERIALIZABLE	+= World.java
+SERIALIZABLE	+= Cone3D.java
+SERIALIZABLE	+= Triangle3D.java
+SERIALIZABLE	+= WhiteSurface.java
+SERIALIZABLE	+= Polygon3D.java
+SERIALIZABLE	+= TrianglePatch3D.java
 
 include ../../../config.mk
 include ../config.mk
@@ -41,6 +47,7 @@ java: $(CLASS_FILES) $(MAIN_CLASS)
 satin: java
 	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
 	$(SATINC_COMMAND) -no-aborts World $(MAIN_CLASS_NAME)
+	$(IOC_COMMAND) Satin_*.class
 
 manta: $(MAIN) $(O_FILES)
 	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) ../../../../ibis/$(IBIS_LIB)

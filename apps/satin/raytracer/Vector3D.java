@@ -2,7 +2,7 @@
 class Vector3D implements java.io.Serializable 
 {
   double x, y, z;
-  double len;
+//  double len;
 
   Vector3D(double r, 
 	  double g, 

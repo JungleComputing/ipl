@@ -78,6 +78,17 @@ public class GfxColor implements java.io.Serializable
       return (ir << 16) | (ig << 8) | ib;
     }
 
+  void checkRGB()
+    {
+      int ir = (int) (r * 254.0);
+      int ig = (int) (g * 254.0);
+      int ib = (int) (b * 254.0);
+//      if(ir == 19 && ig == 5 && ib == 5) {
+//	      System.out.println("COLOR is WRONG");
+//      }
+
+    }
+
 
 	static int getR(int color) {
 		return (color >> 16) & 0xff;

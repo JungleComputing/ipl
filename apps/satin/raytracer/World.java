@@ -24,7 +24,7 @@ final class World extends ibis.satin.SatinObject implements WorldInterface, java
 
 	double view_angle, hither;
 
-	GfxColor background = new GfxColor(0, 0, 0.2f);
+	GfxColor background = new GfxColor(0.9f, 0.9f, 0.2f);
   
 	int objects, lights;
 	Object3D HeadObjectList;
@@ -33,54 +33,28 @@ final class World extends ibis.satin.SatinObject implements WorldInterface, java
 	int mx, my, width, height;
 
 	double cz;
-      
-	 
 
-	World() {
-	}
 
-	World(int width, int height, World dummy) {
-		this.height = height;
-		this.width = width;
+	void init() {
 		mx = width / 2;
 		my = height / 2;
 		cz = - mx / 2;
-
-		hither = dummy.hither;
-		view_angle  = dummy.view_angle;
-
-		camera_pos    = dummy.camera_pos;
-		camera_target = dummy.camera_target;
-		camera_up     = dummy.camera_up;
 
 		look_vec = new Vector3D(camera_target.x - camera_pos.x,
 					camera_target.y - camera_pos.y,
 					camera_target.z - camera_pos.z);
     
 		look_vec.normalize();
-
-		background = dummy.background;
-
-		objects = dummy.objects;
-		HeadObjectList = dummy.HeadObjectList;
-    
-		lights = dummy.lights;
-		HeadLight = dummy.HeadLight;
 	}
 
-	 
-
-
-	void AddObject(Object3D o)
-	{
+	void AddObject(Object3D o) {
 		objects++;
 
 		o.Next = HeadObjectList;
 		HeadObjectList = o;
 	}
 
-	void AddLight(Light3D l)
-	{
+	void AddLight(Light3D l) {
 		lights++;
 
 		l.NextLight = HeadLight;
@@ -254,14 +228,24 @@ final class World extends ibis.satin.SatinObject implements WorldInterface, java
 				      background);
 		Trace(ray, 0);
 
+		ray.color.checkRGB();
 		return ray.color;
 	}
 
   
 	public VirtualScreen DivideAndConquer(int x, int y, int w, int h) {
+
+		if(HeadLight == null) {
+			System.out.println("AAAA");
+		}
+
+		if(HeadObjectList == null) {
+			System.out.println("BBBBBB");
+		}
+
+//		System.out.println("DIV: objlist = " + HeadObjectList.getString());
+
 		if (w == 1 && h == 1) {
-			 
-			 
 			GfxColor c = GetPixelGfxColor(x - mx, y - my);
 
 			if (c == null) {
@@ -283,7 +267,7 @@ final class World extends ibis.satin.SatinObject implements WorldInterface, java
 
 			VirtualScreen result = new VirtualScreen(w,h);
 	      
-			VirtualScreen sub1, sub2, sub3, sub4;
+			VirtualScreen sub1=null, sub2=null, sub3=null, sub4=null;
 
 			sub1 = /*SPAWN*/  DivideAndConquer(x, y, nw, nh);
 			sub2 = /*SPAWN*/  DivideAndConquer(x + nw, y, nw, nh);

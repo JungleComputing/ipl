@@ -32,6 +32,20 @@ class Object3D implements java.io.Serializable
 
   public String toString()
     {
-      return "Object3D";
+      String res = "Object3D";
+      if(Next != null) { 
+	      res += " "  + Next.toString();
+      }
+      return res;
     }
+
+  public String getString()
+    {
+	    String res = this.toString();
+	    if(Next != null) { 
+		    res += " "  + Next.getString();
+	    }
+	    return res;
+    }
+
 }
