@@ -87,6 +87,8 @@ struct s_dev {
 /* A NIC port. */
 struct s_port {
 
+        struct s_cache *cache_head;
+
 	/* GM's port structure. */
 	struct gm_port *p_gm_port;
 
@@ -317,7 +319,7 @@ static JavaVM *_p_vm = NULL;
 
 #define CACHE_SIZE 10
 #define CACHE_GRANULARITY 0x1000
-static struct s_cache *cache_head = NULL;
+//static struct s_cache *cache_head = NULL;
 
 
 /*
@@ -507,11 +509,14 @@ ni_gm_control(gm_status_t gm_status, int line)
 
 static
 int
-ni_gm_register_block(struct gm_port *p_gm_port, void *ptr, int len,
+ni_gm_register_block(struct s_port   *p_port,
+                     void            *ptr,
+                     int              len,
                      struct s_cache **_pp_cache) {
-	gm_status_t     gms       = GM_SUCCESS;
+	struct gm_port *p_gm_port = p_port->p_gm_port;
+        gm_status_t     gms       = GM_SUCCESS;
         struct s_cache  *p_cache  = NULL;
-        struct s_cache **pp_cache = &cache_head;
+        struct s_cache **pp_cache = &p_port->cache_head;
 
         {
                 unsigned long mask    = (CACHE_GRANULARITY - 1);
@@ -534,11 +539,11 @@ ni_gm_register_block(struct gm_port *p_gm_port, void *ptr, int len,
                     ptr+len <= p_cache->ptr+p_cache->len) {
                         p_cache->ref_count++;
 
-                        if (pp_cache != &cache_head) {
+                        if (pp_cache != &p_port->cache_head) {
                                 /* Move the cache entry at the head */
                                 *pp_cache = p_cache->next;
-                                p_cache->next = cache_head;
-                                cache_head = p_cache;
+                                p_cache->next = p_port->cache_head;
+                                p_port->cache_head = p_cache;
                         }
 
                         goto success;
@@ -575,8 +580,8 @@ ni_gm_register_block(struct gm_port *p_gm_port, void *ptr, int len,
         p_cache->ptr = ptr;
         p_cache->len = len;
         p_cache->ref_count = 1;
-        p_cache->next = cache_head;
-        cache_head = p_cache;
+        p_cache->next = p_port->cache_head;
+        p_port->cache_head = p_cache;
                 
  success:
         *_pp_cache = p_cache;
@@ -589,11 +594,13 @@ ni_gm_register_block(struct gm_port *p_gm_port, void *ptr, int len,
 
 static
 int
-ni_gm_deregister_block(struct gm_port *p_gm_port,
+ni_gm_deregister_block(struct s_port  *p_port, 
                        struct s_cache *p_cache) {
+	struct gm_port *p_gm_port = p_port->p_gm_port;
+
         if (!--p_cache->ref_count) {
                 gm_status_t     gms       = GM_SUCCESS;
-                struct s_cache **pp_cache = &cache_head;
+                struct s_cache **pp_cache = &p_port->cache_head;
                 int             i         = 0;
 
                 while (*pp_cache != p_cache) {
@@ -639,11 +646,11 @@ ni_gm_open_port(struct s_dev *p_dev) {
 
 	__in__();
         port_id = 2;
-        fprintf(stderr, "opening GM port %d on device %d\n", port_id, p_dev->id);
+        __disp__("opening GM port %d on device %d", port_id, p_dev->id);
         
 	gms     = gm_open(&p_gm_port, p_dev->id, port_id,
 			  "net_ibis_gm", GM_API_VERSION_1_1);
-        fprintf(stderr, "status %d\n", gms);
+        __disp__("status %d", gms);
 	if (gms != GM_SUCCESS) {
 		ni_gm_control(gms, __LINE__);
                 goto error;
@@ -660,6 +667,7 @@ ni_gm_open_port(struct s_dev *p_dev) {
                 goto error;
 	}
 
+        p_port->cache_head       = NULL;
 	p_port->p_gm_port        = p_gm_port;
 	p_port->port_id          = port_id;
 	p_port->node_id          = node_id;
@@ -686,6 +694,11 @@ ni_gm_close_port(struct s_port *p_port) {
 	if (p_port->ref_count)
 		goto error;
 
+        while (p_port->cache_head) {
+                if (ni_gm_deregister_block(p_port, p_port->cache_head))
+                        goto error;
+        }
+        
 	gm_close(p_port->p_gm_port);
 
 	p_port->p_gm_port = NULL;
@@ -812,7 +825,7 @@ ni_gm_output_send_post(JNIEnv *env, struct s_output *p_out, void *b, int len) {
 
         __trace__("registering %p[%d]", b, len);
 
-        if (ni_gm_register_block(p_port->p_gm_port, b, len, &p_out->p_cache))
+        if (ni_gm_register_block(p_port, b, len, &p_out->p_cache))
                 goto error;
 
         __disp__("sending %d bytes with callback", len);
@@ -841,7 +854,7 @@ ni_gm_output_send_complete(JNIEnv *env, struct s_output *p_out, void *b, int len
         p_port = p_out->p_port;
                 
         __trace__("deregistering %p[%d]", b, len);
-        if (ni_gm_deregister_block(p_port->p_gm_port, p_out->p_cache)) {
+        if (ni_gm_deregister_block(p_port, p_out->p_cache)) {
                 goto error;
         }
         
@@ -920,7 +933,7 @@ ni_gm_post_buffer(JNIEnv *env, struct s_input *p_in, void *b, int length) {
         
         p_port = p_in->p_port;
         __trace__("registering %p[%d]", b, length);
-        if (ni_gm_register_block(p_port->p_gm_port, b, length, &p_in->p_cache))
+        if (ni_gm_register_block(p_port, b, length, &p_in->p_cache))
                 goto error;
 
         p_in->data_available = 0;
@@ -948,7 +961,7 @@ ni_gm_receive(struct s_input *p_in) {
         
         p_port = p_in->p_port;
         __trace__("deregistering %p[%d]", p_in->buffer, NI_GM_MAX_BLOCK_LEN);
-        if (ni_gm_deregister_block(p_port->p_gm_port, p_in->p_cache)) {
+        if (ni_gm_deregister_block(p_port, p_in->p_cache)) {
                 goto error;
         }
         
@@ -1186,6 +1199,7 @@ ni_gm_init(struct s_drv **pp_drv) {
         p_drv->pp_dev    = NULL;
 
 	*pp_drv = p_drv;
+	initialized = 1;
 
         __out__();
 	return 0;
@@ -1549,7 +1563,7 @@ Java_ibis_ipl_impl_net_gm_GmInput_nGetInputNodeId (JNIEnv  *env,
         int             result = 0;
 
         __in__();
-        fprintf(stderr, "nGetInputNodeId: input handle %qd\n", input_handle);
+        __disp__("nGetInputNodeId: input handle %qd", input_handle);
         p_in = ni_gm_handle2ptr(input_handle);
         if (ni_gm_get_input_node_id(p_in, &result)) {
                 ni_gm_throw_exception(env, "could not get input node id");
@@ -1753,6 +1767,17 @@ Java_ibis_ipl_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint d
         jlong         result =    0;
 
         __in__();
+        if (!_p_drv) {
+                struct s_drv *p_drv = NULL;
+
+                if (ni_gm_init(&p_drv))
+                        goto error;
+
+                successfully_initialized = 1;
+                _p_drv = p_drv;
+        }
+        
+
         if (ni_gm_dev_init(env, _p_drv, (int)device_num, &p_dev)) {
                 ni_gm_throw_exception(env, "GM device initialization failed");
                 goto error;
@@ -1783,6 +1808,11 @@ Java_ibis_ipl_impl_net_gm_Driver_nCloseDevice (JNIEnv *env, jobject driver, jlon
         if (ni_gm_dev_exit(env, p_dev)) {
                 ni_gm_throw_exception(env, "GM device closing failed");
         }
+        if (!_p_drv->ref_count) {
+                ni_gm_exit(_p_drv);
+                _p_drv = NULL;
+                initialized = 0;
+        }        
         __out__();
 }
 /*
@@ -1853,15 +1883,8 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread (JNIEnv *env, jclass driver_class) {
 
 jint 
 JNI_OnLoad(JavaVM *vm, void *reserved) {
-        static struct s_drv *p_drv = NULL;
         __in__();
         _p_vm = vm;
-        
-	if (!ni_gm_init(&p_drv)) {
-		successfully_initialized = 1;
-                _p_drv = p_drv;
-	}
-	initialized = 1;
 
 	/* JNI 1.2 should be enough for now */
         __out__();
@@ -1871,8 +1894,6 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
 void
 JNI_OnUnload(JavaVM *vm, void *reserved) {
         __in__();
-	ni_gm_exit(_p_drv);
-        initialized = 0;
         _p_vm = NULL;
         __out__();
 } 

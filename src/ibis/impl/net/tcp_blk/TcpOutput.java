@@ -153,9 +153,11 @@ public class TcpOutput extends NetOutput {
 			}
 
 			if (tcpSocket != null) {
-				tcpSocket.shutdownOutput();
-				tcpSocket.shutdownInput();
-				tcpSocket.close();
+                                synchronized(tcpSocket) {
+                                        if (!tcpSocket.isClosed()) {
+                                                tcpSocket.close();
+                                        }
+                                }
 			}
 
 			tcpSocket = null;

@@ -282,7 +282,8 @@ public final class NetSendPort implements SendPort, WriteMessage {
 					Object             key   = e.nextElement();
 					Object             value = receivePortOs.remove(key);
 					ObjectOutputStream os    = (ObjectOutputStream)value;
-					os.close();
+
+                                        os.close();
 				}	
 			}
 		
@@ -293,7 +294,8 @@ public final class NetSendPort implements SendPort, WriteMessage {
 					Object            key   = e.nextElement();
 					Object            value = receivePortIs.remove(key);
 					ObjectInputStream is    = (ObjectInputStream)value;
-					is.close();
+
+                                        is.close();                                        
 				}	
 			}
 		
@@ -304,9 +306,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 					Object key   = e.nextElement();
 					Object value = receivePortSockets.remove(key);
 					Socket s     = (Socket)value;
-					s.shutdownOutput();
-					s.shutdownInput();
-					s.close();
+                                        
+                                        if (!s.isClosed()) {
+                                                s.close();
+                                        }
 				}	
 			}
 		
@@ -326,7 +329,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 			receivePortIs          = null;
 			receivePortOs          = null;
 		} catch (Exception e) {
-			__.fwdAbort__(e);
+                        __.fwdAbort__(e);
 		}
 	}
 	
@@ -459,11 +462,11 @@ public final class NetSendPort implements SendPort, WriteMessage {
 			allocateBuffer(1);
 		}
 
-		buffer.data[bufferOffset++] = value;
+		buffer.data[bufferOffset] = value;
 		buffer.length++;
 		bufferOffset++;
 
-		if (bufferOffset == buffer.data.length) {
+		if (bufferOffset >= buffer.data.length) {
 			flush();
 		}
 	}

@@ -188,7 +188,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		/**
 		 * Flag indicating whether thread termination was requested.
 		 */
-		private boolean stop = false;
+		private volatile boolean stop = false;
 
 		/**
 		 * The incoming connection management function.
@@ -196,6 +196,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		 * during the network input locking.
 		 */
 		public void run() {
+                        
 		accept_loop:
 			while (!stop) {
 				Socket                s   = null;
@@ -218,8 +219,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 					 * the AcceptThread correctly
 					 */
 					continue accept_loop;
-				}
-				catch (Exception e) {
+                                } catch (Exception e) {
 					// TODO: pass the exception to
 					//       the application
 					__.fwdAbort__(e);
@@ -255,6 +255,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 						inputLock.unlock();
 						connectionLock.unlock();
 					} catch (InterruptedException e) {
+                                                System.err.println("Accept thread interrupted");
+                                                
 						continue connect_loop;
 					} catch (Exception e) {
 						System.err.println(e.getMessage());
@@ -272,7 +274,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		protected void terminate() {
 			stop = true;
 			this.interrupt();
-			try {
+                        try {
+                                serverSocket.close();
 				this.join();
 			} catch (Exception e) {
 				__.fwdAbort__(e);
@@ -284,7 +287,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 * The optional asynchronous polling thread class.
 	 */
 	private final class PollingThread extends Thread {
-		private boolean stop = false;
+		private volatile boolean stop = false;
 
 		/**
 		 * The asynchronous polling function.
@@ -571,6 +574,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 */
 	public synchronized void free() {
 		try {
+                        int i = 0;
+
 			disableConnections();
 
 			if (usePollingThread) {
@@ -646,9 +651,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 					Object key   = e.nextElement();
 					Object value = sendPortSockets.remove(key);
 					Socket s     = (Socket)value;
-					s.shutdownOutput();
-					s.shutdownInput();
-					s.close();
+
+                                        synchronized (s) {
+                                                if (!s.isClosed()) {
+                                                        s.close();
+                                                }
+                                        }
 				}	
 			}
 
