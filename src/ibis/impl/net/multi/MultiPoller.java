@@ -35,13 +35,14 @@ public class MultiPoller extends NetPoller {
         }
 
         private final class ServiceThread
-			extends Thread
 			implements NetServicePopupThread {
+
                 private Lane    lane =  null;
                 private boolean exit = false;
+		private String  name;
 
-                public ServiceThread(String name, Lane lane) throws IOException {
-                        super("ServiceThread: "+name);
+                public ServiceThread(String name, Lane lane) {
+			this.name = "ServiceThread: " + name;
                         this.lane = lane;
                 }
 
@@ -58,31 +59,15 @@ public class MultiPoller extends NetPoller {
 			lane.os.flush();
 		}
 
-                public void run() {
-                        log.in();
-                        while (!exit) {
-                                try {
-					callBack();
-                                } catch (InterruptedIOException e) {
-                                        break;
-                                } catch (ConnectionClosedException e) {
-                                        break;
-                                } catch (java.io.EOFException e) {
-                                        break;
-                                } catch (Exception e) {
-                                        e.printStackTrace();
-                                        throw new Error(e);
-                                }
-                        }
-                        log.out();
-                }
+		public String getName() {
+		    return name;
+		}
 
                 public void end() {
                         log.in();
 			synchronized (lane) {
 				exit = true;
 			}
-                        this.interrupt();
                         log.out();
                 }
         }
@@ -193,11 +178,7 @@ public class MultiPoller extends NetPoller {
 
 		laneTable.put(num, lane);
 
-		if (false) {
-		    lane.thread.start();
-		} else {
-		    sis.registerPopup(lane.thread);
-		}
+		sis.registerPopup(lane.thread);
 
                 log.out();
         }

@@ -307,11 +307,7 @@ public final class NetServiceLink {
 
                 serviceThread = new ServiceThread("anonymous-" + (threadCount++));
 
-		if (true) {
-		    sis.registerPopup(serviceThread);
-		} else {
-		    serviceThread.start();
-		}
+		sis.registerPopup(serviceThread);
         }
 
         /**
@@ -684,15 +680,14 @@ public final class NetServiceLink {
          * Provide a thread processing commands received over the {@linkplain #main_ois main input sub-stream}.
          */
         private final class ServiceThread
-			/* if Thread */
-			extends Thread
-			/* if Thread */
 			implements NetServicePopupThread {
 
                 /**
                  * If set to true, the end of the thread has been requested.
                  */
                 volatile boolean exit = false;
+
+		private String name;
 
                 /**
                  * Constructor.
@@ -701,12 +696,13 @@ public final class NetServiceLink {
                  * debugging purpose.
                  */
                 ServiceThread(String name) {
-			/* if Thread */
-                        super("ServiceThread: "+name);
-			setDaemon(true);
-			/* if Thread */
+			this.name = "ServiceThread: " + name;
 			// System.err.println(this + ": create ServiceThread");
                 }
+
+		public String getName() {
+		    return name;
+		}
 
                 /**
                  * Set the {@link #exit} flag to true and close the
@@ -719,17 +715,6 @@ public final class NetServiceLink {
                         exit = true;
 			main_oos.close();
 			main_ois.close();
-
-			/* if Thread */
-                        while (true) {
-                                try {
-                                        join();
-                                        break;
-                                } catch (InterruptedException e) {
-                                        //
-                                }
-                        }
-			/* if Thread */
                 }
 
                 /**

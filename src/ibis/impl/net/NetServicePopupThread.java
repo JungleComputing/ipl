@@ -4,6 +4,8 @@ import java.io.IOException;
 
 public interface NetServicePopupThread {
 
-    void callBack() throws IOException;
+    public void callBack() throws IOException;
+
+    public String getName();
 
 }

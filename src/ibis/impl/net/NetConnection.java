@@ -103,13 +103,7 @@ public final class NetConnection {
 		NetServiceInputStream sis = serviceLink.getInputSubStream("disconnect");
 		disconnect_is = new DataInputStream(sis);
 		disconnectThread = new DisconnectThread();
-		if (false) {
-		    disconnectThread.setName(this + " disconnect watcher");
-		    disconnectThread.setDaemon(true);
-		    disconnectThread.start();
-		} else {
-		    sis.registerPopup(disconnectThread);
-		}
+		sis.registerPopup(disconnectThread);
 	    } catch (IOException e) {
 		throw new Error("Cannot establish disconnection streams");
 	    }
@@ -218,8 +212,9 @@ public final class NetConnection {
 
 
 	private class DisconnectThread
-		extends Thread
 		implements NetServicePopupThread {
+
+	    private String name = this + "-disconnect thread";
 
 	    public void callBack() throws IOException {
 		NetConnection.this.closeSeqno = disconnect_is.readLong();
@@ -231,16 +226,8 @@ public final class NetConnection {
 		port.closeFromRemote(NetConnection.this);
 	    }
 
-	    public void run() {
-		try {
-		    callBack();
-		} catch (IOException e) {
-		    /* If the service connection breaks, give up all. */
-		    if (port instanceof NetReceivePort) {
-			NetConnection.this.closeSeqno = 0;
-			port.closeFromRemote(NetConnection.this);
-		    }
-		}
+	    public String getName() {
+		return name;
 	    }
 
 	}

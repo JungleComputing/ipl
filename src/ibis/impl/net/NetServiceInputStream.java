@@ -152,7 +152,7 @@ public class NetServiceInputStream extends InputStream {
 		}
 	    };
 
-	    ThreadPool.createNew(r);
+	    ThreadPool.createNew(r, popUp.getName());
 	    // new Thread(r, "popup-" + this).start();
 	}
 
