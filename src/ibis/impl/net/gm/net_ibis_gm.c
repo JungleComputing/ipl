@@ -85,6 +85,8 @@ __disp__(const char *s, ...)
 
 #ifndef NDEBUG
 #define VERBOSE		1
+#else
+#define VERBOSE		0
 #endif
 
 #if VERBOSE
