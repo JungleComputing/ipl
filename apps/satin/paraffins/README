@@ -1,0 +1,16 @@
+Salishan Paraffins Problem:
+Given an integer n, output the chemical structure of all
+paraffin molecules for i<=n, without repetition and in 
+order of increasing size. Include all isomers, but no 
+dupicates. The chemical formula for paraffin molecules is
+C(i)H(2i+2). Any representation for the molecules could 
+be chosen, as long as it clearly distinguishes among
+isomers.
+ 
+Solution is based on theory of free and oriented trees
+(see Knuth, D. The Art of Computer Programming, Vol. 1)
+
+The correct numbers are:
+1, 1, 1, 2, 3, 5, 9, 18, 35, 75, 159, 335, 802, 1858, 4347, ...
+
+The program takes one parameter: the integer n.
