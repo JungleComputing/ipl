@@ -70,6 +70,7 @@ import org.apache.bcel.generic.POP;
 import org.apache.bcel.generic.POP2;
 import org.apache.bcel.generic.PUSH;
 import org.apache.bcel.generic.PUTFIELD;
+import org.apache.bcel.generic.PUTSTATIC;
 import org.apache.bcel.generic.RETURN;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.ReturnInstruction;
@@ -1136,8 +1137,11 @@ public final class Satinc {
 	    else if (store instanceof PUTFIELD) {
 		// no need to init.
 	    }
+	    else if (store instanceof PUTSTATIC) {
+		// no need to init.
+	    }
 	    else {
-		System.err.println("Unhandled store instruction in initSpawnTargets, opcode = " + store.getOpcode());
+		System.err.println("WARNING: Unhandled store instruction in initSpawnTargets, opcode = " + store.getOpcode());
 		//				System.exit(1);
 	    }
 	}

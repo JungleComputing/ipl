@@ -1705,8 +1705,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				try {
 					String key = (String) activeTupleKeyList.remove(0);
 					ActiveTuple data = (ActiveTuple) activeTupleDataList.remove(0);
-					System.err.println("calling active tuple key = " + 
-							   key + "data = " + data);
+					if(TUPLE_DEBUG) {
+						System.err.println("calling active tuple key = " + 
+								   key + " data = " + data);
+					}
 					data.handleTuple(key);
 				} catch (Throwable t) {
 					System.err.println("WARNING: active tuple threw exception: " + t);

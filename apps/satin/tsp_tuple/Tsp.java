@@ -9,15 +9,10 @@ final class MinimumUpdater implements ActiveTuple {
 	}
 
 	public void handleTuple(String key) {
-		System.err.println("trying update of min to " + min);
 		if(min < Tsp.minimum) {
-			System.err.println("updating min to " + min);
+//			System.err.println("updating min to " + min);
 			Tsp.minimum = min;
 		}
-	}
-
-	public String toString() {
-		return ("MinimumUpdater: min = " + min);
 	}
 }
 
@@ -45,19 +40,28 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 		return false;
 	}
 
-	public void spawn_tsp(int hops, byte[] path, int length) {
+        /** Satin version of tsp.
+	 * We have to return the minimum, even though we use a tuple space.
+	 * There is no consistency guarantee, so the root process might have missed
+	 * some updates when the calculation is ready.
+	 * The sequential version does not return the minimum, it uses the static variable
+	 * instead.
+	 */
+	public int spawn_tsp(int hops, byte[] path, int length) {
 		DistanceTable distance = (DistanceTable) SatinTupleSpace.get("distanceTable");
 		tsp(hops, path, length, distance);
+		return minimum;
 	}
 
-	/*
-	 * Search a TSP subtree that starts with initial route "path"
+	/** Search a TSP subtree that starts with initial route "path".
 	 * If partial route is longer than current best full route
 	 * then forget about this partial route.
 	 */
 	public void tsp(int hops, byte[] path, int length, DistanceTable distance) {
 		int city, dist, me;
 		int NTowns = distance.dist.length;
+		int[] mins = null;
+		int spawned_counter = 0;
 		
 		if (length + distance.lowerBound[NTowns-hops] >= minimum) {
 			// stop searching, this path is too long...
@@ -82,6 +86,10 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 			return;
 		}
 
+		if(hops < THRESHOLD) {
+			mins = new int[NTowns];
+		}
+
 		/* "path" really is a partial route.
 		 * Call tsp recursively for each subtree. */
 		me = path[hops - 1];	/* Last city of path */
@@ -97,9 +105,9 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 				if(hops < THRESHOLD) {
 					byte[] newpath = (byte[]) path.clone();
 					newpath[hops] = (byte) city;
-					spawn_tsp(hops + 1, newpath, length+dist);
+					mins[spawned_counter] = spawn_tsp(hops + 1, newpath, length+dist);
+					spawned_counter++;
 				} else {
-					int min;
 					path[hops] = (byte) city;
 					tsp(hops + 1, path, length+dist, distance);
 				}
@@ -108,6 +116,10 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 
 		if(hops < THRESHOLD) {
 			sync();
+
+			for (int i = 0; i <spawned_counter; i++) {
+				minimum = minimum < mins[i] ? minimum : mins[i];
+			}
 		}
 	}
 
@@ -138,7 +150,7 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 		}
 
 		if(option > 1) {
-			System.err.println("To many options, usage tsp [nr cities]");
+			System.err.println("Too many options, usage tsp [nr cities]");
 			System.exit(1);
 		}
 
@@ -161,7 +173,7 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 		SatinTupleSpace.add("distanceTable", distance);
 		SatinTupleSpace.add("min", new MinimumUpdater(global_minimum));
 		start = System.currentTimeMillis();
-		tsp.spawn_tsp(1, path, length);
+		minimum = tsp.spawn_tsp(1, path, length);
 		tsp.sync();
 		end = System.currentTimeMillis();
 
