@@ -2,8 +2,12 @@ package ibis.frontend.io;
 
 import ibis.util.RunProcess;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Vector;
@@ -146,7 +150,7 @@ public class IOGenerator {
 	     * we sort the fields alphabetically, and the serialization code in ibis.io
 	     * should do the same.
 	     */
-	    java.util.Arrays.sort(fields, fieldComparator);
+	    Arrays.sort(fields, fieldComparator);
 
 	    super_is_serializable = isSerializable(super_class);
 	    is_externalizable = isExternalizable(cl);
@@ -154,6 +158,148 @@ public class IOGenerator {
 	    super_has_ibis_constructor = hasIbisConstructor(super_class);
 	    has_serial_persistent_fields = hasSerialPersistentFields();
 	    final_fields = hasFinalFields();
+	}
+
+	/**
+	 * Computes the serial version UID value for the given class.
+	 */
+	private long computeSUID() {
+	    if (! isSerializable(clazz)) {
+		return 0L;
+	    }
+
+	    try {
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		DataOutputStream dout = new DataOutputStream(bout);
+
+		// 1. The class name written using UTF encoding.
+		dout.writeUTF(clazz.getClassName());
+		
+		// 2. The class modifiers written as a 32-bit integer.
+		int classModifiers = clazz.getModifiers() & (Constants.ACC_PUBLIC |
+							  Constants.ACC_FINAL |
+							  Constants.ACC_INTERFACE |
+							  Constants.ACC_ABSTRACT);
+
+		// Only set ABSTRACT for an interface when it has methods.
+		Method[] methods = clazz.getMethods();
+		if ((classModifiers & Constants.ACC_INTERFACE) != 0) {
+		    if (methods.length > 0) {
+			classModifiers |= Constants.ACC_ABSTRACT;
+		    }
+		    else {
+			classModifiers &= ~Constants.ACC_ABSTRACT;
+		    }
+		}
+		dout.writeInt(classModifiers);
+		
+		// 3. The name of each interface sorted by name written using UTF encoding.
+		String [] interfaceNames = clazz.getInterfaceNames();
+		Arrays.sort(interfaceNames);
+		for (int i = 0; i < interfaceNames.length; i++) {
+		    dout.writeUTF(interfaceNames[i]);
+		}
+		
+		// 4. For each field of the class sorted by field name (except private
+		//    static and private transient fields):
+		Field[] fields = clazz.getFields();
+		Arrays.sort(fields, new Comparator() {
+		    public int compare(Object o1, Object o2) {
+			String name1 = ((Field) o1).getName();
+			String name2 = ((Field) o2).getName();
+			return name1.compareTo(name2);
+		    }
+		});
+		for (int i = 0; i < fields.length; i++) {
+		    int mods = fields[i].getModifiers();
+		    if (((mods & Constants.ACC_PRIVATE) == 0) ||
+			((mods & (Constants.ACC_STATIC | Constants.ACC_TRANSIENT)) == 0))
+		    {
+			// 4.1. The name of the field in UTF encoding.
+			dout.writeUTF(fields[i].getName());
+			// 4.2. The modifiers of the field written as a 32-bit integer.
+			dout.writeInt(mods);
+			// 4.3. The descriptor of the field in UTF encoding
+			dout.writeUTF(fields[i].getSignature());
+		    }
+		}
+		
+		// This is where the trouble starts for serialver.
+
+		// 5. If a class initializer exists, write out the following:
+		for (int i = 0; i < methods.length; i++) {
+		    if (methods[i].getName().equals("<clinit>")) {
+			// 5.1. The name of the method, <clinit>, in UTF encoding.
+			dout.writeUTF("<clinit>");
+			// 5.2. The modifier of the method, java.lang.reflect.Modifier.STATIC, written as a 32-bit integer.
+			dout.writeInt(Constants.ACC_STATIC);
+			// 5.3. The descriptor of the method, ()V, in UTF encoding.
+			dout.writeUTF("()V");
+			break;
+		    }
+		}
+
+		Arrays.sort(methods, new Comparator() {
+		    public int compare(Object o1, Object o2) {
+			String name1 = ((Method) o1).getName();
+			String name2 = ((Method) o2).getName();
+			if (name1.equals(name2)) {
+			    String sig1 = ((Method) o1).getSignature();
+			    String sig2 = ((Method) o2).getSignature();
+			    return sig1.compareTo(sig2);
+			}
+			return name1.compareTo(name2);
+		    }
+		});
+
+		// 6. For each non-private constructor sorted by method name and signature:
+		for (int i = 0; i < methods.length; i++) {
+		    if (methods[i].getName().equals("<init>")) {
+			int mods = methods[i].getModifiers();
+			if ((mods & Constants.ACC_PRIVATE) == 0) {
+			    // 6.1. The name of the method, <init>, in UTF encoding.
+			    dout.writeUTF("<init>");
+			    // 6.2. The modifiers of the method written as a 32-bit integer.
+			    dout.writeInt(mods);
+			    // 6.3. The descriptor of the method in UTF encoding.
+			    dout.writeUTF(methods[i].getSignature().replace('/', '.'));
+			}
+		    }
+		}
+		
+		// 7. For each non-private method sorted by method name and signature:
+		for (int i = 0; i < methods.length; i++) {
+		    if (! methods[i].getName().equals("<init>") &&
+			! methods[i].getName().equals("<clinit>")) {
+			int mods = methods[i].getModifiers();
+			if ((mods & Constants.ACC_PRIVATE) == 0) {
+			    // 7.1. The name of the method in UTF encoding.
+			    dout.writeUTF(methods[i].getName());
+			    // 7.2. The modifiers of the method written as a 32-bit integer.
+			    dout.writeInt(mods);
+			    // 7.3. The descriptor of the method in UTF encoding.
+			    dout.writeUTF(methods[i].getSignature().replace('/', '.'));
+			}
+		    }
+		}
+	
+		dout.flush();
+
+		// 8. The SHA-1 algorithm is executed on the stream of bytes produced
+		//    by DataOutputStream and produces five 32-bit values sha[0..4].
+		MessageDigest md = MessageDigest.getInstance("SHA");
+		byte[] hashBytes = md.digest(bout.toByteArray());
+
+		long hash = 0;
+		// Use the first 8 bytes.
+		for (int i = Math.min(hashBytes.length, 8) - 1; i >= 0; i--) {
+		    hash = (hash << 8) | (hashBytes[i] & 0xFF);
+		}
+		return hash;
+	    } catch (Exception ex) {
+		System.err.println("Warning: could not get serialVersionUID for class " + classname);
+		return 0L;
+	    }
 	}
 
 	/**
@@ -174,25 +320,10 @@ public class IOGenerator {
 	    long uid = 0;
 	    Long ui = (Long) serialversionids.get(classname);
 	    if (ui == null) {
-		String command = serialver + " " + classname;
-		RunProcess p = new RunProcess(command);
-		int res = p.getExitStatus();
-		if (res != 0) {
-		    System.err.println("Warning: could not get serialVersionUID for class " + classname);
-		    serialversionids.put(classname, new Long(0L));
-		    return;
-		}
-		String output = new String(p.getStdout());
-		// Format is: java.lang.Class:    static final long serialVersionUID = 3206093459760846163L;
-		int startindex = output.lastIndexOf(" = ") + 3;
-		int endindex = output.lastIndexOf("L;");
-		try {
-		    uid = Long.parseLong(output.substring(startindex, endindex));
-		    serialversionids.put(classname, new Long(uid));
-		} catch(NumberFormatException e) {
-		    System.err.println("Warning: could not find serialVersionUID for class " + classname);
-		}
+		uid = computeSUID();
+		serialversionids.put(classname, new Long(uid));
 	    }
+	    else uid = ui.longValue();
 
 	    if (uid != 0) {
 		FieldGen f = new FieldGen(Constants.ACC_PRIVATE|Constants.ACC_FINAL|Constants.ACC_STATIC, 
