@@ -1,3 +1,9 @@
+IBIS:
+
+- reverse connection setup if one of the two sites has a firewall, but the other doesn't  -> much better performance than going through a central point]
+
+- autodetect connection setup mechanism (splicing, reverse, direct, central)
+
 satin:
 	- add semantic analysis to the compiler
 	  - forgotten sync statements
