@@ -1,8 +1,9 @@
 import ibis.rmi.*;
 
-public class Test extends ibis.rmi.server.UnicastRemoteObject implements myServer { 
+public class Test extends ibis.rmi.server.UnicastRemoteObject implements myServer, Runnable { 
 
 	int i;
+	boolean finished = false;
 
 	public Test() throws RemoteException { 
 		super();
@@ -12,9 +13,23 @@ public class Test extends ibis.rmi.server.UnicastRemoteObject implements myServe
 //		System.out.println("foo");
 //		i++;
 	} 
-	
-	public int bar() { 
-		System.out.println("bar");
-		return 42;
+
+	public synchronized void quit() {
+	    finished = true;
+	    notifyAll();
+	}
+
+	private synchronized void waitForQuit() {
+	    while (! finished) {
+		try {
+		    wait();
+		} catch(Exception e) {
+		}
+	    }
+	}
+
+	public void run() {
+	    waitForQuit();
+	    System.exit(0);
 	}
 } 
