@@ -185,34 +185,48 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
      */
     public static void main( String args[] ) throws java.io.IOException
     {
-	if( args.length != 2 ){
-	    System.err.println( "An input and an output directory are required, but I have " + args.length + ":" );
-            for( int i=0; i<args.length; i++ ){
-                System.err.println( " [" + i + "] "  + args[i] );
-            }
+	if( args.length < 2 ){
+	    System.err.println( "Usage: <indexfile> <directory> ... <directory?" );
 	    System.exit( 1 );
 	}
-	File dir = new File( args[0] );
-	File ixfile = new File( args[1] );
-	if( !dir.exists() ){
-	    System.err.println( "The directory to index does not exist: " + dir );
-	    System.exit( 1 );
-	}
-        if( !dir.isDirectory() ){
-	    System.err.println( "The directory to index is not a directory: " + dir );
+	File ixfile = new File( args[0] );
+        if( ixfile.exists() && !ixfile.isFile() ){
+	    System.err.println( "The index file exists, but is not a plain file: " + ixfile );
 	    System.exit( 1 );
         }
-
-        System.out.println( "Indexing " + dir + " to " + ixfile );
-
 	long startTime = System.currentTimeMillis();
         TextIndex ix = new TextIndex();
-        String fl[] = buildFileList( dir );
-        if( fl == null ){
-	    System.err.println( "Cannot create a file list for " + dir );
-	    System.exit( 1 );
+        String files[] = new String[0];
+
+        for( int i=1; i<args.length; i++ ){
+            File dir = new File( args[i] );
+            if( !dir.exists() ){
+                System.err.println( "The directory to index does not exist: " + dir );
+                System.exit( 1 );
+            }
+            if( dir.isDirectory() ){
+                String fl1[] = buildFileList( dir );
+                if( fl1 == null ){
+                    System.err.println( "Cannot create a file list for " + dir );
+                    System.exit( 1 );
+                }
+                String nwfiles[] = new String[files.length+fl1.length];
+                System.arraycopy( files, 0, nwfiles, 0, files.length );
+                System.arraycopy( fl1, 0, nwfiles, files.length, fl1.length );
+                files = nwfiles;
+            }
+            else if( dir.isFile() ){
+                String nwfiles[] = new String[files.length+1];
+                System.arraycopy( files, 0, nwfiles, 0, files.length );
+                nwfiles[files.length] = args[i];
+                files = nwfiles;
+            }
+            else {
+                System.err.println( "Cannot index weird file " + dir );
+                System.exit( 1 );
+            }
         }
-        Index res = ix.indexFileList( fl );
+        Index res = ix.indexFileList( files );
         ix.sync();
         res.write( new FileWriter( ixfile ) );
 
