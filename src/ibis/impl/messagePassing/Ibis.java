@@ -76,20 +76,6 @@ public class Ibis extends ibis.ipl.Ibis {
 	    System.err.println("Turn on Ibis.DEBUG");
 	}
 
-	/*
-	 * This is an 1.3 feature; cannot we use it please?
-	 */
-	Runtime.getRuntime().addShutdownHook(
-	    new Thread("MP Ibis ShutdownHook") {
-		public void run() {
-		    try {
-			end();
-		    } catch (IOException e) {
-			System.err.println("Ibis ShutdownHook catches " + e);
-		    }
-		}
-	    });
-	/* */
     }
 
 
@@ -244,6 +230,21 @@ public class Ibis extends ibis.ipl.Ibis {
 	}
 
 	world = new IbisWorld();
+
+	/*
+	 * This is an 1.3 feature; cannot we use it please?
+	 */
+	Runtime.getRuntime().addShutdownHook(
+	    new Thread("MP Ibis ShutdownHook") {
+		public void run() {
+		    try {
+			end();
+		    } catch (IOException e) {
+			System.err.println("Ibis ShutdownHook catches " + e);
+		    }
+		}
+	    });
+	/* */
 
 	ident = new IbisIdentifier(name + "@" + myCpu, myCpu);
 
@@ -739,6 +740,4 @@ public class Ibis extends ibis.ipl.Ibis {
 	    }
 	}
     }
-
-
 }

@@ -126,7 +126,6 @@ ibmp_error_printf(JNIEnv *env, const char *fmt, ...)
 #if EXIT_ON_ERROR
 	exit(33);
 #endif
-	fprintf(stderr, "ThrowNew returned %d\n", v);
     }
 }
 
