@@ -159,9 +159,10 @@ public class GenPoller extends NetInput {
 				NetInput ni = (NetInput)i.next();
 				ni.free();
 			}
+
+			inputVector = null;
 		}
 		
-		inputVector = null;
 		isVector    = null;
 		osVector    = null;
 		subDriver   = null;

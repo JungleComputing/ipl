@@ -99,6 +99,11 @@ public class TcpOutput extends NetOutput {
 
 		try {
 			tcpSocket = new Socket(raddr, rport);
+
+			tcpSocket.setSendBufferSize(0x8000);
+			tcpSocket.setReceiveBufferSize(0x8000);
+			tcpSocket.setTcpNoDelay(true);
+			
 			tcpOs 	  = tcpSocket.getOutputStream();
 			tcpIs 	  = tcpSocket.getInputStream();
 		} catch (IOException e) {

@@ -120,6 +120,11 @@ public class TcpInput extends NetInput {
 			rmtu  		= ((Integer) rInfo.get("tcp_mtu")).intValue();
 
 			tcpSocket  = tcpServerSocket.accept();
+
+			tcpSocket.setSendBufferSize(0x8000);
+			tcpSocket.setReceiveBufferSize(0x8000);
+			tcpSocket.setTcpNoDelay(true);
+
 			tcpIs 	   = tcpSocket.getInputStream();
 			tcpOs 	   = tcpSocket.getOutputStream();
 		} catch (IOException e) {

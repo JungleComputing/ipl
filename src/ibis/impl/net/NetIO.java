@@ -98,10 +98,10 @@ public abstract class NetIO {
 
 		keys.addFirst(key);
 
-		while (up != null) {
-			key = up.getDriverName() + "/" + key;
+		while (_up != null) {
+			key = _up.getDriverName() + "/" + key;
 			keys.addFirst(key);
-			up = up.getUp();
+			_up = _up.getUp();
 		}
 
 		keys.addFirst("/" + key);
@@ -167,6 +167,7 @@ public abstract class NetIO {
 		while (i.hasNext()) {
 			String key = (String)i.next();
 			result = staticProperties.find(key + ":" + name);
+
 			if (result != null) {
 				break;
 			}

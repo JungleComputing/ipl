@@ -25,6 +25,9 @@ import java.util.Vector;
  */
 public class GenSplitter extends NetOutput {
 
+	// These fields are 'protected' instead of 'private' to allow the
+	// class to be used as a base class for other splitters.
+
 	/**
 	 * The set of outputs.
 	 */
@@ -115,10 +118,10 @@ public class GenSplitter extends NetOutput {
 	 */
 	public void release() {
 		Iterator i = outputVector.listIterator();
-		while (i.hasNext()) {
+		do {
 			NetOutput no = (NetOutput)i.next();
 			no.release();
-		}		
+		} while (i.hasNext());
 	}
 
 	/**
@@ -126,10 +129,10 @@ public class GenSplitter extends NetOutput {
 	 */
 	public void reset() {
 		Iterator i = outputVector.listIterator();
-		while (i.hasNext()) {
+		do {
 			NetOutput no = (NetOutput)i.next();
 			no.reset();
-		}		
+		} while (i.hasNext());
 	}
 
 	/**
@@ -140,10 +143,10 @@ public class GenSplitter extends NetOutput {
 		
 		Iterator i = outputVector.listIterator();
 
-		while (i.hasNext()) {
+		do {
 			NetOutput no = (NetOutput)i.next();
 			no.sendBuffer(b);
-		}
+		} while (i.hasNext());
 	}
 	
 	/**
@@ -158,9 +161,9 @@ public class GenSplitter extends NetOutput {
 				NetOutput no = (NetOutput)i.next();
 				no.free();
 			}
+			outputVector = null;
 		}
 		
-		outputVector = null;
 		isVector     = null;
 		osVector     = null;
 

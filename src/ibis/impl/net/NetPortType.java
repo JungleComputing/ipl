@@ -139,12 +139,12 @@ class NetPortType implements PortType {
 		String  value  = staticProperties.find(name);
 
 		if (value != null) {
-			if (value == String.valueOf(true)) {
+			if (value.equals(String.valueOf(true))) {
 				result = true;
-			} else if (value == String.valueOf(false)) {
+			} else if (value.equals(String.valueOf(false))) {
 				result = false;
 			} else {
-				__.abort__("invalid property value");
+				__.abort__("invalid property value '"+value+"', should be "+String.valueOf(true)+" or "+String.valueOf(false));
 			}
 		}
 
