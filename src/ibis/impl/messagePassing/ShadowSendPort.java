@@ -11,7 +11,6 @@ class ShadowSendPort extends SendPort {
 
     ReadMessage cachedMessage = null;
 
-    private boolean	connected;
     private boolean	connect_allowed;
     private ReadFragment cachedFragment = null;
 
@@ -80,7 +79,6 @@ class ShadowSendPort extends SendPort {
 	    throw new PortMismatchException("************************** Want to connect send port and receive port of different types: " + type + " <-> " + receivePort.identifier().type());
 	}
 	this.type = receivePort.type();
-	connected = false;
 
 	connect_allowed = receivePort.connect(this);
 	if (! connect_allowed) {

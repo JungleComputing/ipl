@@ -2,7 +2,7 @@ package ibis.impl.messagePassing;
 
 final class PortHash {
 
-    private final int	PORT_DATABASE_CHUNK = 32;
+    private final static int	PORT_DATABASE_CHUNK = 32;
     private int		maxPortDataBase = 0;
     private int		allocPortDataBase = 0;
     private Object[]	portDataBase;

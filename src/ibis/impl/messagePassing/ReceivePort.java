@@ -84,6 +84,7 @@ class ReceivePort
     private Vector connections = new Vector();
     private ConditionVariable disconnected = Ibis.myIbis.createCV();
 
+    // DEBUG
     private long upcall_poll;
 
     // STATISTICS
@@ -890,19 +891,8 @@ class ReceivePort
 	    }
 
 	} catch (IOException e) {
-	    if (e == null) {
-		System.err.println("A NULL Exception?????");
-		System.err.println("My stack: ");
-		Thread.dumpStack();
-		// manta.runtime.RuntimeSystem.DebugMe(e, e);
-	    } else {
-		System.err.println(e);
-		e.printStackTrace();
-	    }
-
-	    // System.err.println("My stack: ");
-	    // Thread.dumpStack();
-	    // System.exit(44);
+	    System.err.println(e);
+	    e.printStackTrace();
 
 	} finally {
 	    Ibis.myIbis.unlock();
