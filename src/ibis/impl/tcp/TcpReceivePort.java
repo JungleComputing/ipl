@@ -64,14 +64,14 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	// returns:  was the message already finised?
 	boolean doUpcall(SerializationStreamReadMessage m) {
 	        synchronized (this) {
-			// Wait until the previous message was finished.
-			while(this.m != null) {
-				try {
-					wait();
-				} catch (Exception e) {
-				// Ignore.
+				// Wait until the previous message was finished.
+				while(this.m != null) {
+					try {
+						wait();
+					} catch (Exception e) {
+						// Ignore.
+					}
 				}
-			}
 
 			this.m = m;
 		}
