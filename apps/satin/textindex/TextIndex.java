@@ -18,14 +18,15 @@ import java.util.regex.Pattern;
 import java.util.TreeSet;
 
 public final class TextIndex extends ibis.satin.SatinObject implements IndexerInterface, java.io.Serializable {
-    private static final boolean traceTreeWalk = true;
+    private static final boolean traceTreeWalk = false;
     private static final Pattern nonWord = Pattern.compile( "\\W+" );
 
     /**
+     * Given the name of a file to index, returns an Index entry for just
+     * that file.
      * @param f The file to index.
-     * @param ixF The to write the index to.
      */
-    public void indexFile( File f, File ixF ) throws IOException
+    public Index indexFile( String f ) throws IOException
     {
         BufferedReader r = new BufferedReader( new FileReader( f ) );
         TreeSet set = new TreeSet();
@@ -35,7 +36,6 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
             if( s == null ){
                 break;
             }
-            //String words[] = s.split( "\\s+" );
             String words[] = nonWord.split( s );
             for( int i=0; i<words.length; i++ ){
                 String w = words[i];
@@ -46,49 +46,34 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
             }
         }
         r.close();
-        java.util.Iterator it = set.iterator();
-        FileWriter iw = new FileWriter( ixF );
-        while( it.hasNext() ){
-            String w = (String) it.next();
-            iw.write( w );
-            iw.write( '\n' );
-        }
-        iw.close();
+        return new Index( f, set );
     }
 
-    public void indexDirectory( File dir, File ixDir ) throws IOException
+    public Index indexDirectory( String dirnm ) throws IOException
     {
-        // First make sure the target index directory exists.
-        if( ixDir.exists() ){
-            // Paranoia
-            if( !ixDir.isDirectory() ){
-                System.err.println( "Index directory " + ixDir + " already exists, but is not a directory" );
-                System.exit( 1 );
-            }
-        }
-        else {
-            ixDir.mkdir();
-        }
+        File dir = new File( dirnm );
+
         String files[] = dir.list();
-        for( int ix=0; ix<files.length; ix++ ){
-            String fnm = files[ix];
+        Index ix[] = new Index[files.length];
+
+        for( int i=0; i<files.length; i++ ){
+            String fnm = files[i];
 
             if( fnm.charAt( 0 ) != '.' ){
                 // Skip '.', '..', and all hidden files per Unix convention.
                 File f = new File( dir, fnm );
-                File ixf = new File( ixDir, fnm );
 
                 if( f.isDirectory() ){
                     if( traceTreeWalk ){
                         System.err.println( "Visiting directory " + f );
                     }
-                    indexDirectory( f, ixf );
+                    ix[i] = indexDirectory( f.toString() );
                 }
                 else if( f.isFile() ){
                     if( traceTreeWalk ){
                         System.err.println( "Indexing plain file " + f );
                     }
-                    indexFile( f, ixf );
+                    ix[i] = indexFile( f.toString() );
                 }
                 else {
                     System.err.println( "Skipping weird file " + f );
@@ -96,6 +81,11 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
             }
         }
         sync();
+        Index res = new Index();
+        for( int i=0; i<ix.length; i++ ){
+            res.add( ix[i] );
+        }
+        return res;
     }
 
     /**
@@ -149,7 +139,7 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
 	    System.exit( 1 );
 	}
 	File dir = new File( args[0] );
-	File ixdir = new File( args[1] );
+	File ixfile = new File( args[1] );
 	if( !dir.exists() ){
 	    System.err.println( "The directory to index does not exist: " + dir );
 	    System.exit( 1 );
@@ -159,12 +149,13 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
 	    System.exit( 1 );
         }
 
-        delTree( ixdir );
+        System.out.println( "Indexing " + dir + " to " + ixfile );
 
 	long startTime = System.currentTimeMillis();
         TextIndex ix = new TextIndex();
-        ix.indexDirectory( dir, ixdir );
+        Index res = ix.indexDirectory( dir.toString() );
         ix.sync();
+        res.write( new FileWriter( ixfile ) );
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;

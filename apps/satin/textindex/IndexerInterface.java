@@ -10,6 +10,6 @@ import java.io.IOException;
 
 interface IndexerInterface extends ibis.satin.Spawnable
 {
-    public void indexFile( File f, File ixF ) throws IOException;
-    public void indexDirectory( File dir, File IxDir ) throws IOException;
+    public Index indexFile( String f ) throws IOException;
+    public Index indexDirectory( String dirnm ) throws IOException;
 }
