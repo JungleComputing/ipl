@@ -179,6 +179,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(abortTimer == null) abortTimer = Ibis.newTimer("ibis.util.Timer");
 		if(idleTimer == null) idleTimer = Ibis.newTimer("ibis.util.Timer");
 		if(pollTimer == null) pollTimer = Ibis.newTimer("ibis.util.Timer");
+		if(tupleTimer == null) tupleTimer = Ibis.newTimer("ibis.util.Timer");
 
 		Properties p = System.getProperties();
 		String hostName = null;

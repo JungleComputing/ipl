@@ -11,7 +11,7 @@ public class PandaIbis extends Ibis {
     }
 
     protected void init() throws IbisException, IOException {
-	System.loadLibrary("ibis_mp_panda");
+	ibis.ipl.Ibis.loadLibrary("ibis_mp_panda");
 	super.init();
 	// new InterruptCatcher().start();
     }
@@ -25,7 +25,7 @@ public class PandaIbis extends Ibis {
      * So, we don't call init() but do the Panda stuff ourselves.
      */
     public static void main(String[] arg) {
-	System.loadLibrary("ibis_mp_panda");
+	ibis.ipl.Ibis.loadLibrary("ibis_mp_panda");
 	// System.loadLibrary("ibis_mp");
 	try {
 	    Ibis i = new PandaIbis();

@@ -11,7 +11,7 @@ public class MPIIbis extends Ibis {
     }
 
     protected void init() throws IbisException, IOException {
-	System.loadLibrary("ibis_mp_mpi");
+	ibis.ipl.Ibis.loadLibrary("ibis_mp_mpi");
 	super.init();
     }
 

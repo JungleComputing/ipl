@@ -371,6 +371,7 @@ class Latency implements Config {
 		Computer c = null;
 		boolean earlyFinish = false;
 		boolean delayedFinish = false;
+		boolean noneSer = false;
 
 		/* Parse commandline parameters. */
 		for(int i=0; i<args.length; i++) {
@@ -386,6 +387,8 @@ class Latency implements Config {
 				repeat = Integer.parseInt(args[i]);
 			} else if(args[i].equals("-ibis")) {
 				ibisSer = true;
+			} else if(args[i].equals("-none")) {
+				noneSer = true;
 			} else if(args[i].equals("-comp-rec")) {
 				compRec = true;
 			} else if(args[i].equals("-comp-snd")) {
@@ -419,6 +422,9 @@ class Latency implements Config {
 			StaticProperties s = new StaticProperties();
 			if (ibisSer) { 
 			    s.add("Serialization", "ibis");
+			}
+			if (noneSer) { 
+			    s.add("Serialization", "none");
 			}
 			PortType t = ibis.createPortType("test type", s);
 

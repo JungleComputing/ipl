@@ -10,6 +10,7 @@ import ibis.io.BufferedArrayInputStream;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.SerializationInputStream;
 import ibis.io.SunSerializationInputStream;
+import ibis.io.NoSerializationInputStream;
 import ibis.ipl.IbisError;
 import ibis.util.DummyInputStream;
 
@@ -46,6 +47,12 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 				dummy_sun = new DummyInputStream(new BufferedInputStream(input, 60*1024));
 				dummy_ibis = null;
 			break;
+		case TcpPortType.SERIALIZATION_NONE:
+				// always make a new BufferedInputStream: the one in JVM1.4 
+				// has side-effect in close()
+				dummy_sun = new DummyInputStream(new BufferedInputStream(input, 60*1024));
+				dummy_ibis = null;
+			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 				// maybe the dummy should be on the outside ??? Jason
 				dummy_ibis = new BufferedArrayInputStream(new DummyInputStream(input));
@@ -62,6 +69,9 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 		switch(port.type.serializationType) {
 		case TcpPortType.SERIALIZATION_SUN:
 			in = new SunSerializationInputStream(dummy_sun);
+			break;
+		case TcpPortType.SERIALIZATION_NONE:
+			in = new NoSerializationInputStream(dummy_sun);
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 			in = new IbisSerializationInputStream(dummy_ibis);

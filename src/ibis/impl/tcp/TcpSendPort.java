@@ -4,6 +4,7 @@ import ibis.io.BufferedArrayOutputStream;
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 import ibis.io.SunSerializationOutputStream;
+import ibis.io.NoSerializationOutputStream;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
@@ -70,6 +71,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		case TcpPortType.SERIALIZATION_SUN:
 			dummy = new DummyOutputStream(new BufferedOutputStream(splitter, 60*1024));
 			break;
+		case TcpPortType.SERIALIZATION_NONE:
+			dummy = new DummyOutputStream(new BufferedOutputStream(splitter, 60*1024));
+			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 			dummy = new DummyOutputStream(splitter);
 			break;
@@ -128,6 +132,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		switch(type.serializationType) {
 		case TcpPortType.SERIALIZATION_SUN:
 			out = new SunSerializationOutputStream(dummy);
+			break;
+		case TcpPortType.SERIALIZATION_NONE:
+			out = new NoSerializationOutputStream(dummy);
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 			out = new IbisSerializationOutputStream(new BufferedArrayOutputStream(dummy));

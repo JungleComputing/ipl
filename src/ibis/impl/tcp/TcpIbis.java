@@ -3,6 +3,7 @@ package ibis.impl.tcp;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -33,7 +34,7 @@ public final class TcpIbis extends Ibis implements Config {
 	private final StaticProperties systemProperties = new StaticProperties();	
 
 	TcpPortHandler tcpPortHandler;
-	private volatile boolean ended = false;
+	private boolean ended = false;
 
 	public TcpIbis() throws IbisException {
 		// Set my properties.
@@ -196,13 +197,19 @@ public final class TcpIbis extends Ibis implements Config {
 	}
 
 	public void end() {
-		if(ended) return;
-		ended = true;
+		synchronized(this) {
+			if(ended) return;
+			ended = true;
+		}
 		try { 
-			nameServer.leave();
-			tcpPortHandler.quit();			
+			if(nameServer != null) {
+				nameServer.leave();
+			}
+			if(tcpPortHandler != null) {
+				tcpPortHandler.quit();
+			}
 		} catch (Exception e) { 
-			throw new RuntimeException("TcpIbisNameServerClient: leave failed " + e);
+			throw new IbisRuntimeException("TcpIbisNameServerClient: leave failed ", e);
 		} 
 	}
 

@@ -18,7 +18,7 @@ public final class Rdtsc extends ibis.ipl.Timer {
 	static {
 		boolean loaded = false;
 		try {
-			System.loadLibrary("Rdtsc");
+			ibis.ipl.Ibis.loadLibrary("Rdtsc");
 			loaded = true;
 		} catch (RuntimeException e) {
 			System.err.println("Could not load Rdtsc library");

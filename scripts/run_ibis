@@ -1,8 +1,21 @@
-JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
 
+#start of script template
+
+if [ -z "$1" ]
+then
+	echo "Usage:"
+	echo "  run_ibis <PROC_NR> <TOTAL_NR_PROCS> <POOL_ID> <NAMESERVER_PORT> <NAMESERVER_HOSTNAME> <CLASS NAME> <APPLICATION PARAMS>"
+	echo "or, when using prun:"
+	echo "  prun -1 -v run_ibis <TOTAL_NR_PROCS> <NAMESERVER_PORT> <NAMESERVER_HOSTNAME> <CLASS NAME> <APPLICATION PARAMS>"
+	exit 1
+fi
+
+JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:.
+
+#needed for ibm 1.3 JITs and SMPs
 export LD_ASSUME_KERNEL=2.2.5
 
-#disable panda interrupte
+#disable panda interrupts
 #export IBP_NO_INTR=1
 
 # fix panda/lfc flow control
@@ -14,9 +27,17 @@ export IBP_SEND_SYNC=10000
 export MANTA_NO_PANDA=1
 export PAN_COMM_NO_IDLE_POLL=1
 
-Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/build/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
+#not needed any more, and not portable --Rob
+#Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/build/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
+
+Dlibpath="-Djava.library.path=$IBIS_ROOT/build/lib:.::"
+
+# This is the location where all ibis native libs must go.
+# It must be *one* dir.
+Dibislibs="-Dibis.library.path=$IBIS_ROOT/build/lib"
 
 Dpool_host_num="-Dibis.pool.host_number=$1"
+
 #PROFILING=-Xhprof:cpu=samples,file=profile.$1,depth=3
 PROFILING=
 shift
@@ -49,5 +70,4 @@ shift
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-$wrapper_name $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
-
+$wrapper_name $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath/p:$IBIS_ROOT/classlibs:$IBIS_ROOT/build: $PROFILING -classpath $JAVACLASSPATH "$@"

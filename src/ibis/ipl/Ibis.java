@@ -32,8 +32,37 @@ public abstract class Ibis {
 	private static ArrayList implProperties; /* StaticProperties list */
 	private static ArrayList loadedIbises = new ArrayList();
 
+
 	static {
 		readGlobalProperties();
+	}
+
+
+	/** 
+	    This method is used to load native libraries with ibis.
+	    It might not be possible to load libraries the normal way,
+	    because Ibis applications might override the bootclasspath
+	    when the classlibraries have been rewritten.
+	    In that case, the classloader will use the sun.boot.library.path 
+	    which is not portable.
+	**/
+	public static void loadLibrary(String name) throws SecurityException, UnsatisfiedLinkError {
+		Properties p = System.getProperties();
+		String libPath = p.getProperty("ibis.library.path");
+
+		if(libPath != null) {
+			String s = System.mapLibraryName(name);
+
+//			System.err.println("LOADING IBIS LIB: " + libPath + "/" + s);
+
+			System.load(libPath + "/" + s);
+			return;
+		} 
+
+		// Fall back to regular loading.
+		// This might not work, or it might not :-)
+//		System.err.println("LOADING NON IBIS LIB: " + name);
+		System.loadLibrary(name);
 	}
 
 	/** 
@@ -52,6 +81,14 @@ public abstract class Ibis {
 	 */
 	public static Ibis createIbis(String name, String implName, ResizeHandler resizeHandler) throws IbisException {
 		Ibis impl;
+
+		try {
+			loadLibrary("conversion");
+		} catch (Throwable t) {
+			System.err.println("WARNING: Could not load conversion library");
+			System.err.println("This might be a problem if you did not rewrite the class libraries");
+			System.err.println("If you did, or if you don't use Ibis serialization, you can safely ignore this warning");
+		}
 
 		if (implName == null) { 
 			throw new IllegalArgumentException("Implementation name is null");
