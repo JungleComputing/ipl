@@ -151,16 +151,21 @@ public abstract class Ibis {
 	}
 
 
-	/** Create a new Ibis instance, based on the property ibis.name.
-	    The currently recognized Ibis names are:
-	    panda	Ibis built on top of Panda.
-	    tcp		Ibis built on top of TCP (the current default).
-	    mpi		Ibis built on top of MPI.
-	    net.*	The future version, for tcp, udp, GM, ...
-
-	    @exception ConnectionRefusedException is thrown when the name turns out to
-	     be not unique.
-	**/
+	/**
+	 * Creates a new Ibis instance, based on the property ibis.name.
+	 * The currently recognized Ibis names are:
+	 *  panda	Ibis built on top of Panda.
+	 *  tcp		Ibis built on top of TCP (the current default).
+	 *  mpi		Ibis built on top of MPI.
+	 *  net.*	The future version, for tcp, udp, GM, ...
+	 *
+	 * @param  r a {@link ibis.ipl.ResizeHandler ResizeHandler} instance if upcalls
+	 *   for joining or leaving ibis instances are required, or <code>null</code>.
+	 * @return the new Ibis instance.
+	 *
+	 * @exception ConnectionRefusedException is thrown when the name turns out to
+	 *  be not unique.
+	 */
 	public static Ibis createIbis(ResizeHandler r)
 	    throws IbisException, ConnectionRefusedException
 	{

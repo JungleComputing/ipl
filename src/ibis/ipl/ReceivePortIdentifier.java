@@ -1,7 +1,7 @@
 package ibis.ipl;
 
 /**
- * Identifies s {@link ibis.ipl.ReceivePort ReceivePort} on the sending side.
+ * Identifies a {@link ibis.ipl.ReceivePort ReceivePort} on the sending side.
  */
 public interface ReceivePortIdentifier { 
     /**
