@@ -1,6 +1,6 @@
 // $Id$
-//
-// A single clause in a symbolic Boolean expression
+
+/** A single clause in a symbolic Boolean expression. */
 
 import java.io.PrintStream;
 
@@ -9,6 +9,11 @@ class Clause implements java.io.Serializable, Comparable {
     int pos[];		// The positive terms
     int neg[];		// The negative terms
 
+    /**
+     * @param p the positive terms of the clause
+     * @param n the negative terms of the clause
+     * @param l the labels of the clause
+     */
     public Clause( int p[], int n[], int l )
     {
         pos = p;
@@ -16,8 +21,10 @@ class Clause implements java.io.Serializable, Comparable {
 	label = l;
     }
 
-    // Note: this comparator imposes orderings that are inconsistent
-    // with equals.
+    /**
+     * Note: this comparator imposes orderings that are inconsistent
+     * with equals.
+     */
     public int compareTo( Object other )
     {
 	Clause co = (Clause) other;
@@ -33,7 +40,9 @@ class Clause implements java.io.Serializable, Comparable {
 	return 0;
     }
 
-    // Return true iff 'l' contains 'n'.
+    /**
+     * Return true iff 'l' contains 'n'.
+     */
     static boolean memberIntList( int l[], int n )
     {
         for( int ix=0; ix<l.length; ix++ ){
@@ -44,7 +53,9 @@ class Clause implements java.io.Serializable, Comparable {
 	return false;
     }
 
-    // Return true iff lb contains all symbols in la.
+    /**
+     * Return true iff lb contains all symbols in la.
+     */
     static boolean isSubsetIntList( int la[], int lb[] )
     {
 	for( int ix=0; ix<la.length; ix++ ){
@@ -55,7 +66,9 @@ class Clause implements java.io.Serializable, Comparable {
 	return true;
     }
 
-    // Return true iff clause 'cy' is subsumed by this clause.
+    /**
+     * Return true iff clause 'cy' is subsumed by this clause.
+     */
     boolean isSubsumedClause( Clause cy )
     {
 	return isSubsetIntList( this.pos, cy.pos ) &&
@@ -81,6 +94,8 @@ class Clause implements java.io.Serializable, Comparable {
     /**
      * Given a variable var, register the fact that this variable is
      * known to be true. Return true iff the clause is now satisfied.
+     * @param var the variable that is known to be true
+     * @return wether the clause is now satisfied
      */
     boolean propagatePosAssignment( int var )
     {
@@ -105,6 +120,8 @@ class Clause implements java.io.Serializable, Comparable {
     /**
      * Given a variable var, register the fact that this variable is
      * known to be true. Return true iff the clause is now satisfied.
+     * @param var the variable that is known to be false
+     * @return wether the clause is now satisfied
      */
     boolean propagateNegAssignment( int var )
     {
@@ -129,6 +146,8 @@ class Clause implements java.io.Serializable, Comparable {
     /**
      * Given an array of assignments, return true iff this clause is
      * satisfied by these assignments.
+     * @param assignments the assignments
+     * @return wether the clause is now satisfied
      */
     public boolean isSatisfied( int assignments[] )
     {
@@ -152,6 +171,7 @@ class Clause implements java.io.Serializable, Comparable {
     /**
      * If this clause is not a positive unit clause, return -1,
      * else return the variable that constitutes this clause.
+     * @return The variable if this is a positive unit clause, or else -1.
      */
     public int getPosUnitVar()
     {
@@ -167,6 +187,7 @@ class Clause implements java.io.Serializable, Comparable {
     /**
      * If this clause is not a negative unit clause, return -1,
      * else return the variable that constitutes this clause.
+     * @return The variable if this is a negative unit clause, or else -1.
      */
     public int getNegUnitVar()
     {
@@ -182,6 +203,8 @@ class Clause implements java.io.Serializable, Comparable {
     /**
      * Given an array of assignments, return true iff this clause conflicts
      * with these assignments.
+     * @param assignments the assignments
+     * @return wether the assignments conflict with this clause
      */
     public boolean isConflicting( int assignments[] )
     {
@@ -204,7 +227,10 @@ class Clause implements java.io.Serializable, Comparable {
 	return true;
     }
 
-    // Given an output stream, print the clause to it in DIMACS format.
+    /**
+     * Given an output stream, print the clause to it in DIMACS format.
+     * @param s the stream to print to
+     */
     public void printDIMACS( PrintStream s )
     {
 	for( int ix=0; ix<pos.length; ix++ ){
@@ -216,6 +242,7 @@ class Clause implements java.io.Serializable, Comparable {
 	s.println( "0" );
     }
 
+    /** Returns a string representation of this clause. */
     public String toString()
     {
         String res = "";

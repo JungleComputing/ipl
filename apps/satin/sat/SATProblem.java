@@ -9,15 +9,36 @@ import java.io.PrintStream;
 import java.io.File;
 import java.io.StreamTokenizer;
 
-class SATProblem implements java.io.Serializable {
-    private int vars;		// Number of variables in the problem.
-    Clause clauses[];		// The clauses of the problem.
-    private SATVar variables[];	// The variables of the problem.
-    private int clauseCount;	// The number of valid entries in `clauses'.
-    private int deletedClauseCount;	// The number of deleted clauses.
+/**
+ * A <code>SATProblem</code> object represents a SAT problem in
+ * Conjunctive Normal Form (CNF).
+ *
+ * @author Kees van Reeuwijk
+ * @version $Revision$
+ */
+
+public class SATProblem implements java.io.Serializable {
+    /** The number of variables in the problem. */
+    private int vars;
+
+    /** The number of clauses of the problem. */
+    private int clauseCount;
+
+    /** The clauses of the problem. */
+    Clause clauses[];
+
+    /** The variables of the problem. */
+    private SATVar variables[];
+
+    /** The number of deleted clauses. */
+    private int deletedClauseCount;
+
     static final boolean trace_simplification = true;
     private int label = 0;
 
+    /**
+     * Constructs an empty SAT Problem.
+     */
     private SATProblem()
     {
         vars = 0;
@@ -25,6 +46,13 @@ class SATProblem implements java.io.Serializable {
 	clauses = new Clause[0];
     }
 
+    /**
+     * Constructs a SAT problem with a given number of variables and
+     * a given list of clauses.
+     *
+     * @param v the number of variables in the problem
+     * @param cl the clauses of the problem
+     */
     public SATProblem( int v, Clause cl[] ){
 	vars = v;
         createVarArray( v );
@@ -32,14 +60,26 @@ class SATProblem implements java.io.Serializable {
 	clauseCount = cl.length;
     }
 
-    public SATProblem( int v, int n ){
+    /**
+     * Constructs a SAT problem with a given number of variables and
+     * a given number of clauses.
+     *
+     * @param v the number of variables in the problem
+     * @param n the number of clauses of the problem
+     */
+    private SATProblem( int v, int n ){
 	vars = v;
 	clauses = new Clause[n];
         createVarArray( v );
 	clauseCount = 0;
     }
 
-
+    /**
+     * Sets {@link variables} to an array of variables with the given
+     * length.
+     *
+     * @param n The number of variables.
+     */
     private void createVarArray( int n )
     {
 	variables = new SATVar[n];
@@ -49,18 +89,22 @@ class SATProblem implements java.io.Serializable {
 	}
     }
 
-    // Return the number of variables used in the problem.
+    /** Returns the number of variables used in the problem.  */
     public int getVariableCount()
     {
         return vars;
     }
 
+    /** Returns the number of clauses of the problem.  */
     public int getClauseCount()
     {
 	return clauseCount;
     }
 
-    // Given a clause 'i', delete it from the list.
+    /**
+     * Given a clause 'i', deletes it from the list.
+     * @param i the index of the clause to delete
+     */
     void deleteClause( int i )
     {
 	clauseCount--;
@@ -68,6 +112,13 @@ class SATProblem implements java.io.Serializable {
 	deletedClauseCount++;
     }
 
+    /**
+     * @param pos the array of positive variables
+     * @param possz the number of elements in <code>pos</code> to use
+     * @param neg the array of negative variables
+     * @param negsz the number of elements in <code>neg</code> to use
+     * @return the label of the added clause
+     */
     public int addClause( int pos[], int possz, int neg[], int negsz )
     {
 	int apos[] = Helpers.cloneIntArray( pos, possz );
@@ -111,13 +162,22 @@ class SATProblem implements java.io.Serializable {
 	return cl.label;
     }
 
+    /**
+     * @param pos the array of positive variables
+     * @param neg the array of negative variables
+     * @return the label of the added clause
+     */
     public int addClause( int pos[], int neg[] )
     {
 	return addClause( pos, pos.length, neg, neg.length );
     }
 
-    // Given a list of variables and a clause, register all uses
-    // of the variables in the clause.
+    /**
+     * Given a list of variables and a clause, registers all uses
+     * of the variables in the clause.
+     * @param cl the clause to register
+     * @param clauseno the index of the clause to register
+     */
     private void registerClauseVariables( Clause cl, int clauseno )
     {
         int arr[] = cl.pos;
@@ -135,22 +195,45 @@ class SATProblem implements java.io.Serializable {
 	}
     }
 
+    /**
+     * Given a variable number, returns a vector of clauses in which this
+     * variable occurs positively.
+     *
+     * @param var the variable to return the vector for
+     * @return a vector of clause indices
+     */
     public IntVector getPosClauses( int var )
     {
 	return variables[var].getPosClauses();
     }
 
+    /**
+     * Given a variable number, returns a vector of clauses in which this
+     * variable occurs negatively.
+     *
+     * @param var the variable to return the vector for
+     * @return a vector of clause indices
+     */
     public IntVector getNegClauses( int var )
     {
 	return variables[var].getNegClauses();
     }
 
+    /**
+     * Given a clause index, return the label of that clause.
+     * @param n the index of the clause
+     * @return the label of the clause
+     */
     public int getClauseLabel( int n ){
 	return clauses[n].label;
     }
 
-    // Given a list of assignments, return the index of a clause that
-    // is not satisfied, or -1 if they all are satisfied.
+    /**
+     * Given a list of assignments, returns the index of a clause that
+     * is not satisfied, or -1 if they all are satisfied.
+     * @param assignments the variable assignments
+     * @return the index of an unsatisfied clause, or -1 if there are none
+     */
     public int getUnsatisfied( int assignments[] )
     {
 	for( int ix=0; ix<clauseCount; ix++ ){
@@ -161,6 +244,12 @@ class SATProblem implements java.io.Serializable {
 	return -1;
     }
 
+    /**
+     * Given a list of assignments, returns true iff the assignments
+     * satisfy this problem.
+     * @param assignments the variable assignments
+     * @return <code>true</code> iff the assignments satisfy the problem
+     */
     public boolean isSatisfied( int assignments[] )
     {
 	for( int ix=0; ix<clauseCount; ix++ ){
@@ -171,6 +260,13 @@ class SATProblem implements java.io.Serializable {
 	return true;
     }
 
+    /**
+     * Given a list of assignments, returns true iff the assignments
+     * conflict with this problem. That is, if any further assignments
+     * to unassigned variables * cannot possibly satisfy the problem.
+     * @param assignments The variable assignments.
+     * @return <code>true</code> iff the assignments conflict with the problem.
+     */
     public boolean isConflicting( int assignments[] )
     {
 	for( int ix=0; ix<clauseCount; ix++ ){
@@ -181,8 +277,12 @@ class SATProblem implements java.io.Serializable {
 	return false;
     }
 
-    // Given a variable 'var' that we know is true, propagate this
-    // assignment.
+    /**
+     * Given a variable that is know to be true, propagates this
+     * assignment.
+     * @param var The variable that is known to be true.
+     * @return <code>true</code> iff the propagation deleted any clauses.
+     */
     boolean propagatePosAssignment( int var )
     {
 	boolean changed = false;
@@ -207,8 +307,12 @@ class SATProblem implements java.io.Serializable {
 	return changed;
     }
 
-    // Given a variable 'var' that we know is false, propagate this
-    // assignment.
+    /**
+     * Given a variable that is know to be false, propagates this
+     * assignment.
+     * @param var The variable that is known to be true.
+     * @return <code>true</code> iff the propagation deleted any clauses.
+     */
     boolean propagateNegAssignment( int var )
     {
 	boolean changed = false;
@@ -233,8 +337,8 @@ class SATProblem implements java.io.Serializable {
 	return changed;
     }
 
-    // Remove null clauses from the clauses array.
-    void compactClauses()
+    /** Removes null clauses from the clauses array. */
+    private void compactClauses()
     {
 	int ix = clauseCount;
 
@@ -247,7 +351,7 @@ class SATProblem implements java.io.Serializable {
 	}
     }
 
-    // Optimize the problem for solving.
+    /** Optimizes the problem for solving. */
     void optimize()
     {
 	boolean changed;
@@ -312,7 +416,10 @@ class SATProblem implements java.io.Serializable {
 	} while( changed );
     }
 
-    // Return the initial assignment array for this problem.
+    /**
+     * Returns the initial assignment array for this problem.
+     * @return An array of assignments for the variables of this problem.
+     */
     int [] getInitialAssignments()
     {
         int res[] = new int[vars];
@@ -323,8 +430,11 @@ class SATProblem implements java.io.Serializable {
 	return res;
     }
 
-    // Return a list of variables for this problem, ordered to be
-    // most effective in solving the problem as fast as possible.
+    /**
+     * Returns a list of variables for this problem, ordered to be
+     * most effective in solving the problem as fast as possible.
+     * @return An ordered list of variables.
+     */
     int [] buildOrderedVarList()
     {
 	int varix = 0;
@@ -349,12 +459,15 @@ class SATProblem implements java.io.Serializable {
 	return res;
     }
 
-    // A CNF problem parser. Given a problem in DIMACS format,
-    // return a SATProblem instance for it.
-    //
-    // See
-    // www.intellektik.informatik.tu-darmstadt.de/SATLIB/Benchmarks/SAT/satformat.ps
-    // for a description of the format.
+    /**
+     * Reads a CNF problem in DIMACS format from the given reader, and
+     * returns a new SATProblem instance for that problem. 
+     * See
+     * www.intellektik.informatik.tu-darmstadt.de/SATLIB/Benchmarks/SAT/satformat.ps
+     * for a description of the format.
+     * @param in The reader that provides the stream to parse.
+     * @return The parsed problem.
+     */
     public static SATProblem parseDIMACSStream( Reader in ) throws java.io.IOException
     {
 	int varcount = 0;
@@ -488,14 +601,21 @@ class SATProblem implements java.io.Serializable {
 	return res;
     }
 
-    // A CNF problem parser. Given a problem in DIMACS format,
-    // return a SATProblem instance for it.
+    /**
+     * A CNF problem parser. Given a problem in DIMACS format, returns
+     * a SATProblem instance for it.
+     * @param f The file to parse.
+     * @return The parsed problem.
+     */
     public static SATProblem parseDIMACSStream( File f ) throws java.io.IOException
     {
 	return parseDIMACSStream( new BufferedReader( new FileReader( f ) ) );
     }
 
-    // Given an output stream, print the problem to it in DIMACS format.
+    /**
+     * Given an output stream, prints the problem to it in DIMACS format.
+     * @param s The stream to print to.
+     */
     public void printDIMACS( PrintStream s )
     {
 	s.println( "p cnf " + vars + " " + clauses.length );
@@ -504,7 +624,7 @@ class SATProblem implements java.io.Serializable {
 	}
     }
 
-    // Return a string representation of the problem.
+    /** Returns a string representation of the SAT problem. */
     public String toString()
     {
 	String res = "";
