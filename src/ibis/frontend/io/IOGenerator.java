@@ -60,6 +60,7 @@ public class IOGenerator {
 
 	boolean verbose = false;
 	boolean local = true;
+	boolean file = false;
 	String pack;
 
 	Hashtable primitiveSerialization;
@@ -75,13 +76,14 @@ public class IOGenerator {
 
 	Vector classes_to_rewrite, target_classes, classes_to_save;
 
-	public IOGenerator(boolean verbose, boolean local, String[] args, int num, String pack) { 
+	public IOGenerator(boolean verbose, boolean local, boolean file, String[] args, int num, String pack) { 
 		BT_Class clazz;
 		BT_Method writeMethod;
 		BT_Method readMethod;
 		SerializationInfo info;
 		this.verbose = verbose;
 		this.local = local;
+		this.file = file;
 		this.pack = pack;
 
 		if(args != null) { // from Ibisc, we have our own factory
@@ -584,7 +586,20 @@ public class IOGenerator {
 			if (verbose) System.out.println("  Loading class : " + classnames[i]);
 
 			BT_Class clazz = null;
-			clazz = (BT_Class)BT_Class.forName(classnames[i]);
+			if(!file) {
+				clazz = BT_Class.forName(classnames[i]);
+			} else {
+				String className = BT_Class.classFileNameToClassName(classnames[i] + ".class");
+				System.err.println("class name = " + className);
+				try {
+					BT_Repository.empty(); // must empty repository to avoid loading classes twice.
+					File f = new File(classnames[i] + ".class");
+					clazz = BT_Class.loadFromFile(f);
+				} catch (Exception e) {
+					System.err.println("got exception while loading class: " + e);
+					System.exit(1);
+				}
+			}
 
 			if (clazz.getParents().findClass("ibis.io.Serializable") == null) { 
 				addClass(clazz, true);
@@ -617,6 +632,7 @@ public class IOGenerator {
 			String classfile = clazz.getName().substring(index+1) + ".class";
 
 			if (verbose) System.out.println("  Saving class : " + classfile);
+			clazz.inProject = true; // needed for system classes (i.e., when rewriting the classlibs)
 			if(local) {
 				clazz.write(classfile);
 			} else {
@@ -634,6 +650,7 @@ public class IOGenerator {
 	public static void main(String[] args) throws IOException {
 		boolean verbose = false;
 		boolean local = true;
+		boolean file = false;
 		Vector files = new Vector();
 		String pack = null;
 
@@ -648,6 +665,8 @@ public class IOGenerator {
 				files.add(args[i]);
 			} else if (args[i].equals("-dir")) {
 				local = false;
+			} else if (args[i].equals("-file")) {
+				file = true;
 			} else if (args[i].equals("-package")) {
 				pack = args[i+1];
 				i++; // skip arg
@@ -673,12 +692,8 @@ public class IOGenerator {
 					newArgs[i] = pack + "." + ((String)files.elementAt(i));
 				}
 			}
-
-			System.out.println("arg " + i + " = " + newArgs[i]);
 		}
 
-		System.out.println("pack = " + pack + ", size = " + newArgs.length);
-
-		new IOGenerator(verbose, local, newArgs, newArgs.length, pack).scanClass(newArgs, newArgs.length);
+		new IOGenerator(verbose, local, file, newArgs, newArgs.length, pack).scanClass(newArgs, newArgs.length);
 	}
 }

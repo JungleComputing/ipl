@@ -162,7 +162,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.out.println("SATIN '" + hostName + "': init ibis" );
 		}
 
-		for(int i=0; (i<1 && ibis == null); i++) {
+		for(int i=0; (i<10 && ibis == null); i++) {
 			try {
 				name = "ibis@" + hostName + "_" + Math.abs(random.nextInt());
 				if(panda) {
