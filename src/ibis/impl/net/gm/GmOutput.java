@@ -324,7 +324,7 @@ public final class GmOutput extends NetBufferedOutput {
 	if (Driver.TIMINGS) Driver.t_native_send.stop();
 
 // System.err.println("Wait for request sent completion");
-	pump();		// Wait for 'request' send completion
+	// Nonono unneccessary pump();		// Wait for 'request' send completion
 
 // System.err.println("Wait for rendez-vous ack");
 	pump();		// Wait for 'ack' completion
@@ -348,19 +348,25 @@ public final class GmOutput extends NetBufferedOutput {
 
 	try {
 
+	    if (b.length > mtu) {
+		throw new Error("Buffer size exteeds mtu");
+	    }
+
 	    if (b.length > Driver.packetMTU) {
 		/* Post the 'request' */
 // System.err.print("[");
 // System.err.println("Post a request");
 		sendRequest(b.base, b.length);
+// System.err.println(this + ": sent RNDVZ req size " + b.length + " offset " + b.base);
 
 		/* Post the 'buffer' */
 		if (Driver.TIMINGS) Driver.t_native_send.start();
 		nSendBuffer(outputHandle, b.data, b.base, b.length);
 		if (Driver.TIMINGS) Driver.t_native_send.stop();
+// System.err.println(this + ": sent RNDVZ data size " + b.length + " offset " + b.base);
 
-		/* Wait for 'buffer' send completion */
-		Driver.blockingPump(lockId, lockIds);
+		pump();		// Wait for 'buffer' send completion
+// System.err.println(this + ": received RNDVZ ack size " + b.length + " offset " + b.base);
 // System.err.print("]");
 
 	    } else {

@@ -308,6 +308,7 @@ plld++;
 	    log.in();
 
 	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+// System.err.println(this + ": post ByteBuffer length <= " + b.length);
 	    try {
 		firstBlock();
 
@@ -320,8 +321,7 @@ plld++;
 // Thread.dumpStack();
                 if (result == RENDEZ_VOUS_REQUEST) {
 			// A rendez-vous message. Receive the data part.
-			pump();	// Ack completion
-			pump();	// Communication transmission
+			pump();	// Await receive of the rendez-vous data
 
                         if (b.length == 0) {
                                 b.length = blockLen;
@@ -341,9 +341,6 @@ plld++;
 // Thread.dumpStack();
 
 rcvd++;
-		if (b.length == 0) {
-		    System.err.println("%%%%%%%%%%%%%%%%%% Receive a buffer of 0 bytes. This cannot be!");
-		}
 	    } finally {
 		Driver.gmAccessLock.unlock();
                 log.out();
@@ -418,8 +415,7 @@ rcvd++;
 			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Ack completion
-			    pump();	// Communication transmission
+			    pump();	// Await receive of the rendez-vous data
                         }
 
                         l -= _l;
@@ -462,8 +458,7 @@ rcvd++;
 // System.err.println(this + ": in readArray(byte[]..); result " + result + " chunk " + _l + " currently l " + l);
 
                         if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Ack completion
-			    pump();	// Communication transmission
+			    pump();	// Await receive of the rendez-vous data
                         }
 
                         l -= _l;
@@ -496,8 +491,7 @@ rcvd++;
 			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Ack completion
-			    pump();	// Communication transmission
+			    pump();	// Await receive of the rendez-vous data
                         }
 
                         l -= _l;
@@ -534,9 +528,7 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 // System.err.println(Thread.currentThread() + ": receive chunk of short, result " + result);
 
                         if (result == RENDEZ_VOUS_REQUEST) {
-// System.err.println(Thread.currentThread() + ": ack completion, this would be a rendez-vous msg");
-			    pump();	// Ack completion
-			    pump();	// Communication transmission
+			    pump();	// Await receive of the rendez-vous data
                         }
 
                         l -= _l;
@@ -572,8 +564,7 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Ack completion
-			    pump();	// Communication transmission
+			    pump();	// Await receive of the rendez-vous data
                         }
 
                         l -= _l;
@@ -608,8 +599,7 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Ack completion
-			    pump();	// Communication transmission
+			    pump();	// Await receive of the rendez-vous data
                         }
 
                         l -= _l;
@@ -643,8 +633,7 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Ack completion
-			    pump();	// Communication transmission
+			    pump();	// Await receive of the rendez-vous data
                         }
 
                         l -= _l;
@@ -678,8 +667,7 @@ if (b == null) throw new Error("Cannot read into a null buffer");
 			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Ack completion
-			    pump();	// Communication transmission
+			    pump();	// Await receive of the rendez-vous data
                         }
 
                         l -= _l;

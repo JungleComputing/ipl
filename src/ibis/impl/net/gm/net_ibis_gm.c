@@ -411,6 +411,8 @@ struct s_port {
         struct s_packet  *send_packet_cache;
 
 	int		ni_gm_send_tokens;
+
+	int		rendez_vous_posted;
 };
 
 union u_j_array {
@@ -431,7 +433,7 @@ typedef enum NI_GM_SEND_STATE {
     NI_GM_SENDER_SENDING_EAGER,
     NI_GM_SENDER_SENDING_RNDZVS_REQ,
     NI_GM_SENDER_SENDING_RNDZVS_DATA,
-    NI_GM_SENDER_SENDING_RNDZVS_ACK,
+    NI_GM_SENDER_SENDING_RNDZVS_GRANTED,
     NI_GM_SENDER_STATES
 } ni_gm_send_state_t;
 
@@ -448,12 +450,38 @@ ni_gm_sender_state(ni_gm_send_state_t state)
 	    return "NI_GM_SENDER_SENDING_RNDZVS_REQ";
 	case NI_GM_SENDER_SENDING_RNDZVS_DATA:
 	    return "NI_GM_SENDER_SENDING_RNDZVS_DATA";
-	case NI_GM_SENDER_SENDING_RNDZVS_ACK:
-	    return "NI_GM_SENDER_SENDING_RNDZVS_ACK";
+	case NI_GM_SENDER_SENDING_RNDZVS_GRANTED:
+	    return "NI_GM_SENDER_SENDING_RNDZVS_GRANTED";
 	case NI_GM_SENDER_STATES:
 	    return "NI_GM_SENDER_STATES";
 	default:
 	    return "*** NO SUCH SENDER STATE ***";
+    }
+}
+
+
+typedef enum NI_GM_RECEIVE_STATE {
+    NI_GM_RECEIVER_IDLE,
+    NI_GM_RECEIVER_SENDING_RNDZVS_ACK,
+    NI_GM_RECEIVER_AWAITING_RNDZVS_DATA,
+    NI_GM_RECEIVER_STATES
+} ni_gm_receive_state_t;
+
+
+static char *
+ni_gm_receiver_state(ni_gm_receive_state_t state)
+{
+    switch (state) {
+    	case NI_GM_RECEIVER_IDLE:
+	    return "NI_GM_RECEIVER_IDLE";
+    	case NI_GM_RECEIVER_SENDING_RNDZVS_ACK:
+	    return "NI_GM_RECEIVER_SENDING_RNDZVS_ACK";
+    	case NI_GM_RECEIVER_AWAITING_RNDZVS_DATA:
+	    return "NI_GM_RECEIVER_AWAITING_RNDZVS_DATA";
+    	case NI_GM_RECEIVER_STATES:
+	    return "NI_GM_RECEIVER_STATES";
+	default:
+	    return "*** NO SUCH RECEIVER STATE ***";
     }
 }
 
@@ -479,6 +507,7 @@ struct s_output {
         ni_gm_send_state_t	state;
 	int               ack_arrived;	/* This should fold into a state update */
 	long long unsigned seqno;
+	long long unsigned rendez_vous_seqno;
         struct s_request  request;
 };
 
@@ -506,8 +535,10 @@ struct s_input {
         int               remote_mux_id;
         unsigned char    *ack_packet;
         unsigned int      packet_size;
+	ni_gm_receive_state_t	state;
         struct s_packet  *packet_head;
 	long long unsigned seqno;
+	long long unsigned rendez_vous_seqno;
         struct s_request  request;
 };
 
@@ -1591,6 +1622,7 @@ ni_gm_open_port(struct s_dev *p_dev) {
         }
 
 	p_port->ni_gm_send_tokens = gm_num_send_tokens(p_gm_port);
+	p_port->rendez_vous_posted = 0;
 
         p_dev->p_port     = p_port;
 	p_dev->ref_count++;
@@ -1818,18 +1850,20 @@ ni_gm_callback(struct gm_port *port,
 
                 assert(!p_rq->p_in);
 
-                assert(p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ
-			|| p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA
-			|| p_out->state == NI_GM_SENDER_SENDING_EAGER);
-
                 if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ) {
-                        p_out->state = NI_GM_SENDER_SENDING_RNDZVS_ACK;
-                        __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
-                        ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
+			/* The Rendez-Vous ack from the receiver will unlock
+			 * the sender so it can proceed with its data */
+
+		} else if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_GRANTED) {
+			/* The Rendez-Vous ack from the receiver has unlocked
+			 * the sender so it can proceed with its data; that
+			 * ack has overtaken our ni_gm_callback */
+
                 } else if (p_out->state == NI_GM_SENDER_SENDING_EAGER) {
                         p_out->state = NI_GM_SENDER_IDLE;
                         __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
                         ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
+
                 } else if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA) {
                         ni_gm_deregister_block(p_port, p_out->p_cache);
                         ni_gm_release_output_array(ni_gm_env(), p_out);
@@ -1839,18 +1873,27 @@ ni_gm_callback(struct gm_port *port,
                         p_out->state   = NI_GM_SENDER_IDLE;
                         __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
                         ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
+
                 } else {
                         abort();
                 }
 		VPRINTF(90, ("Received a ni_gm_callback; p_out %p state := %s\n", p_out, ni_gm_sender_state(p_out->state)));
+
         } else if (p_rq->p_in) {
                 struct s_input *p_in = NULL;
 
                 assert(!p_rq->p_out);
                 p_in = p_rq->p_in;
-		VPRINTF(90, ("Receive a ni_gm_callback; p_in %p tokens := %d\n", p_in, p_port->ni_gm_send_tokens));
-                __disp__("ni_gm_callback: unlock(%d)\n", p_in->p_lock->id);
-                ni_gm_lock_unlock(ni_gm_env(), p_in->p_lock);
+		VPRINTF(90, ("Receive a ni_gm_callback; p_in %p state %s tokens := %d\n", p_in, ni_gm_receiver_state(p_in->state), p_port->ni_gm_send_tokens));
+		if (p_in->state == NI_GM_RECEIVER_SENDING_RNDZVS_ACK) {
+		    p_in->state = NI_GM_RECEIVER_AWAITING_RNDZVS_DATA;
+
+		} else if (p_in->state == NI_GM_RECEIVER_IDLE) {
+		    /* Rendez-vous data has overtaken our ack callback. */
+
+		} else {
+		    abort();
+		}
         } else {
                 abort();
         }
@@ -1878,6 +1921,7 @@ ni_gm_init_output(struct s_dev     *p_dev,
         p_out->local_mux_id   = p_port->local_output_array_size;
 #ifndef NDEBUG
 	p_out->seqno          = 0;
+	p_out->rendez_vous_seqno  = 0;
 #endif
         __disp__("%p: mux_id = %d\n", p_out, p_out->local_mux_id);
 
@@ -1935,6 +1979,7 @@ ni_gm_init_input(struct s_dev    *p_dev,
         p_in->remote_mux_id  = 0;
 #ifndef NDEBUG
 	p_in->seqno          = 0;
+	p_in->rendez_vous_seqno  = 0;
 #endif
         __disp__("%p: mux_id = %d\n", p_in, p_in->local_mux_id);
 
@@ -1946,6 +1991,8 @@ ni_gm_init_input(struct s_dev    *p_dev,
         p_in->ack_packet = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
         assert(p_in->ack_packet);
         p_in->packet_size   = gm_min_size_for_length(NI_GM_PACKET_LEN);
+
+	p_in->state          = NI_GM_RECEIVER_IDLE;
 
         p_in->request.p_port = p_port;
         p_in->request.p_out  = NULL;
@@ -2107,7 +2154,7 @@ ni_gm_output_send_request(JNIEnv *env, struct s_output *p_out) {
         if (ni_gm_check_send_tokens(p_port)) {
                 goto error;
         }
-	VPRINTF(90, ("Send to %s HIGH rendez-vous request p_out %p for size %d tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_out, p_out->length, p_port->ni_gm_send_tokens));
+	VPRINTF(90, ("Send to %s HIGH rendez-vous request seqno %ull p_port %p p_out %p for size %d tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), hdr->seqno, p_port, p_out, p_out->length, p_port->ni_gm_send_tokens));
 	assert(--p_port->ni_gm_send_tokens >= 0);
 	/* Protect ni_gm_callback */
 	ni_gm_current_env = env;
@@ -2122,7 +2169,7 @@ ni_gm_output_send_request(JNIEnv *env, struct s_output *p_out) {
 	ni_gm_current_env = NULL;
 	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ) {
 	    /* Poll just once; maybe save an interrupt for the sent callback */
-	    ni_gm_poll(env, 0);
+	    ni_gm_poll(env, JNI_FALSE);
 	}
 	STATINC(sent_rndvz_req);
         __out__();
@@ -2199,7 +2246,7 @@ ni_gm_output_flush(JNIEnv *env, struct s_output *p_out)
     ni_gm_current_env = NULL;
     while (p_out->state == NI_GM_SENDER_SENDING_EAGER) {
 	/* Poll just once; maybe save an interrupt for the sent callback */
-	ni_gm_poll(env, 0);
+	ni_gm_poll(env, JNI_FALSE);
     }
     p_out->packet = ni_gm_packet_get(p_out);
     pend(GM_SEND);
@@ -2227,17 +2274,12 @@ int
 ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) {
         struct s_port    *p_port = NULL;
         struct s_request *p_rq   = NULL;
-	ni_gm_hdr_p hdr;
 
         __in__();
         assert(b);
         assert(len);
-        assert(p_out->state == NI_GM_SENDER_SENDING_RNDZVS_ACK);
+        assert(p_out->state == NI_GM_SENDER_SENDING_RNDZVS_GRANTED);
         p_out->state = NI_GM_SENDER_SENDING_RNDZVS_DATA;
-
-	hdr = (ni_gm_hdr_p)p_out->packet->data;
-	hdr->type = NI_GM_MSG_TYPE_RENDEZ_VOUS_DATA;
-	//???????? hdr->length = len;
 
         p_port = p_out->p_port;
         ni_gm_register_block(p_port, b, len, &p_out->p_cache);
@@ -2249,7 +2291,7 @@ ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) 
                 goto error;
         }
 
-	VPRINTF(90, ("Send to %s LOW rendez-vous data p_out %p size %d tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_out, len, p_port->ni_gm_send_tokens));
+	VPRINTF(90, ("Send to %s LOW rendez-vous data p_port %p p_out %p size %d tokens %d local count %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_port, p_out, len, p_port->ni_gm_send_tokens, p_out->rendez_vous_seqno++));
 	assert(--p_port->ni_gm_send_tokens >= 0);
 	/* Protect ni_gm_callback */
 	ni_gm_current_env = env;
@@ -2264,7 +2306,7 @@ ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) 
 	ni_gm_current_env = NULL;
 	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA) {
 	    /* Poll just once; maybe save an interrupt for the sent callback */
-	    ni_gm_poll(env, 0);
+	    ni_gm_poll(env, JNI_FALSE);
 	}
 	STATINC(sent_rndvz_data);
 	STATINCN(bytes, len);
@@ -2381,6 +2423,18 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
 	goto error; \
     } \
     \
+    /* Because all LOW packets in this port are shared, we do not support \
+     * concurrent rendez-vous receives in one port. It appears safe to do \
+     * busy-waiting here because the receive of the data is performed from \
+     * the upcall, without interference from other threads, and also we \
+     * KNOW that the sender of the currently pending rendez-vous is ready \
+     * to send -- this is rendez-vous, after all. */ \
+    while (p_port->rendez_vous_posted > 0) { \
+	ni_gm_poll(env, JNI_FALSE); \
+    } \
+    \
+    p_port->rendez_vous_posted++; \
+    assert(p_port->rendez_vous_posted == 1); \
     gm_provide_receive_buffer_with_tag(p_port->p_gm_port, \
 				       (unsigned char *)buffer + offset, \
 				       NI_GM_BLOCK_SIZE, \
@@ -2401,7 +2455,10 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     \
     assert(--p_port->ni_gm_send_tokens >= 0); \
     /* Protect ni_gm_callback */ \
+    VPRINTF(90, ("Send to %s rendez-vous ack %s p_port %p p_in %p buffer size %d bytes\n", gm_node_id_to_host_name(p_port->p_gm_port, p_in->src_node_id), #Jtype, p_port, p_in, data_size)); \
     ni_gm_current_env = env; \
+    assert(p_in->state == NI_GM_RECEIVER_IDLE); \
+    p_in->state = NI_GM_RECEIVER_SENDING_RNDZVS_ACK; \
     gm_send_with_callback(p_port->p_gm_port, \
 			  p_in->ack_packet, \
 			  p_in->packet_size, \
@@ -2413,7 +2470,7 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     ni_gm_current_env = NULL; \
     if (1) { \
 	/* Poll just once; maybe save an interrupt for the sent callback */ \
-	ni_gm_poll(env, 0); \
+	ni_gm_poll(env, JNI_FALSE); \
     } \
     \
     __out__(); \
@@ -2483,6 +2540,7 @@ ni_gm_input_post_ ## Jtype ## _buffer(JNIEnv *env, \
 	} \
     } else { \
 	/* There is pending data. Signal this for the next post. */ \
+	VPRINTF(90, ("Signal p_in %p pending data for the next post", p_in)); \
 	ni_gm_lock_unlock(env, p_in->p_lock); \
     } \
     \
@@ -2586,6 +2644,7 @@ ni_gm_input_post_byte_buffer(JNIEnv *env,
 	}
     } else {
 	/* There is pending data. Signal this for the next post. */
+	VPRINTF(90, ("Signal p_in %p pending data for the next post", p_in));
 	ni_gm_lock_unlock(env, p_in->p_lock);
     }
 
@@ -2642,7 +2701,14 @@ ni_gm_output_flow_control(JNIEnv *env,
                                            GM_HIGH_PRIORITY,
 					   1);
 
-        ni_gm_lock_unlock(env, p_out->p_lock);
+	VPRINTF(90, ("Receive FAST/HIGH packet type %s p_out %p\n",
+		    ni_gm_msg_type(hdr->type), p_out));
+	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ) {
+		p_out->state = NI_GM_SENDER_SENDING_RNDZVS_GRANTED;
+		ni_gm_lock_unlock(env, p_out->p_lock);
+	} else {
+	    fprintf(stderr, "************* Receive output pkt %s\n", ni_gm_msg_type(hdr->type));
+	}
 
         __out__();
         return 0;
@@ -2765,10 +2831,13 @@ ni_gm_process_fast_high_recv_event(JNIEnv *env,
 	    }
 	    break;
 
-	default:
-	    if (ni_gm_output_flow_control(env, p_port, msg, packet)) {
+	case NI_GM_MSG_TYPE_RENDEZ_VOUS_ACK:
+	    if (ni_gm_output_flow_control(env, p_port, NULL, packet)) {
 		goto error;
 	    }
+
+	default:
+	    goto error;
         }
 
         __out__();
@@ -2795,8 +2864,8 @@ ni_gm_process_high_recv_event(JNIEnv *env,
         packet = gm_ntohp(p_event->recv.buffer);
 	hdr    = (ni_gm_hdr_p)packet;
 	packet_length = (int)gm_ntohl(p_event->recv.length);
-	VPRINTF(150, ("Receive HIGH packet type %s length %d seqno %llu\n",
-		    ni_gm_msg_type(hdr->type), packet_length, hdr->seqno));
+	VPRINTF(90, ("Receive port %p HIGH packet type %s length %d seqno %llu\n",
+		    p_port, ni_gm_msg_type(hdr->type), packet_length, hdr->seqno));
 
 	switch (hdr->type) {
 
@@ -2808,10 +2877,14 @@ ni_gm_process_high_recv_event(JNIEnv *env,
 	    }
 	    break;
 
-	default:
+	case NI_GM_MSG_TYPE_RENDEZ_VOUS_ACK:
 	    if (ni_gm_output_flow_control(env, p_port, NULL, packet)) {
 		goto error;
 	    }
+	    break;
+
+	default:
+	    goto error;
         }
 
         __out__();
@@ -2839,9 +2912,15 @@ ni_gm_process_recv_event(JNIEnv *env,
         p_in = p_port->active_input;
 
         assert(gm_ntohs(p_event->recv.sender_node_id) == (int)p_in->src_node_id);
+	VPRINTF(90, ("Receive from %s p_port %p p_in %p data packet size %d seqno %d\n", gm_node_id_to_host_name(p_port->p_gm_port, gm_ntohs(p_event->recv.sender_node_id)), p_port, p_in, gm_ntohl(p_event->recv.length), p_in->rendez_vous_seqno++));
 
+	p_port->rendez_vous_posted--;
+	assert(p_port->rendez_vous_posted == 0);
         ni_gm_deregister_block(p_port, p_in->p_cache);
         ni_gm_release_input_array(env, p_in, length);
+	assert(p_in->state == NI_GM_RECEIVER_AWAITING_RNDZVS_DATA ||
+		p_in->state == NI_GM_RECEIVER_SENDING_RNDZVS_ACK);
+	p_in->state = NI_GM_RECEIVER_IDLE;
         ni_gm_input_unlock(env, p_in, length);
         __out__();
 
@@ -3434,7 +3513,7 @@ Java_ibis_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
         p_out = ni_gm_handle2ptr(output_handle);
 	assert(p_out->offset == NI_GM_PACKET_HDR_LEN);
 	p_out->length = length;
-	VPRINTF(90, ("Send a rndvz req; p_out->offset %d\n", p_out->offset));
+	VPRINTF(90, ("Send a rndvz req; p_out %p ->offset %d\n", p_out, p_out->offset));
         if (ni_gm_output_send_request(env, p_out)) {
                 ni_gm_throw_exception(env,
 			NI_IBIS_EXCEPTION,
@@ -4390,23 +4469,25 @@ dump_monitors(env);
 	    case GM_FAST_HIGH_PEER_RECV_EVENT:
 	    case GM_FAST_HIGH_RECV_EVENT:
 		VPRINTF(150, ("Receive FAST/HIGH packet size %d\n", gm_ntohl(p_event->recv.length)));
-		if (ni_gm_process_fast_high_recv_event(env, p_port, p_event))
+		if (ni_gm_process_fast_high_recv_event(env, p_port, p_event)) {
 			goto error;
+		}
 		break;
 #endif
 
 	    case GM_HIGH_PEER_RECV_EVENT:
 	    case GM_HIGH_RECV_EVENT:
 		VPRINTF(90, ("Receive from %s HIGH packet size %d\n", gm_node_id_to_host_name(p_port->p_gm_port, gm_ntohs(p_event->recv.sender_node_id)), gm_ntohl(p_event->recv.length)));
-		if (ni_gm_process_high_recv_event(env, p_port, p_event))
+		if (ni_gm_process_high_recv_event(env, p_port, p_event)) {
 			goto error;
+		}
 		break;
 
 	    case GM_PEER_RECV_EVENT:
 	    case GM_RECV_EVENT:
-		VPRINTF(90, ("Receive from %s data packet size %d\n", gm_node_id_to_host_name(p_port->p_gm_port, gm_ntohs(p_event->recv.sender_node_id)), gm_ntohl(p_event->recv.length)));
-		if (ni_gm_process_recv_event(env, p_port, p_event))
+		if (ni_gm_process_recv_event(env, p_port, p_event)) {
 			goto error;
+		}
 		break;
 
 	    case GM_NO_RECV_EVENT:
