@@ -22,7 +22,7 @@ public class Main {
 	public static void main(String args[]) {
 		
 		try {
-			List temp = null;
+			List [] temp = null;
 			long start, end;
 			int bytes;
 		
@@ -42,9 +42,13 @@ public class Main {
 			MantaInputStream min = new MantaInputStream(bais);
 				
 			// Create list
-			temp = new List(LEN);
+			temp = new List[LEN];
+
+			for (int i=0;i<LEN;i++) { 
+				temp[i] = new List();
+			} 
 			
-			System.err.println("Writing list of " + LEN + " objects");
+			System.err.println("Writing array of " + LEN + " objects");
 
 			mout.writeObject(temp);
 			mout.flush();
@@ -52,12 +56,12 @@ public class Main {
 
 			System.err.println("Wrote " + out.getAndReset() + " bytes");
 			
-			System.err.println("Reading list of " + LEN + " objects");
+			System.err.println("Reading array of " + LEN + " objects");
 			min.readObject();
 			in.reset();
 			buf.clear();
 
-			System.err.println("Rewriting list of " + LEN + " objects");
+			System.err.println("Rewriting array of " + LEN + " objects");
 
 			mout.writeObject(temp);
 			mout.flush();

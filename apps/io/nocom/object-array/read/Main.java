@@ -22,7 +22,7 @@ public class Main {
 	public static void main(String args[]) {
 		
 		try {
-			List temp = null;
+			List [] temp = null;
 			long start, end;
 			int bytes;
 		
@@ -32,18 +32,19 @@ public class Main {
 			System.err.println("Main starting");
 			
 			StoreBuffer buf = new StoreBuffer();
-			StoreOutputStream out = new StoreOutputStream(buf);
-			StoreInputStream in = new StoreInputStream(buf);
-
-			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(out);
-			BufferedArrayInputStream bais = new BufferedArrayInputStream(in);
-
-			MantaOutputStream mout = new MantaOutputStream(baos);
-			MantaInputStream min = new MantaInputStream(bais);
+			StoreArrayOutputStream out = new StoreArrayOutputStream(buf);
+			StoreArrayInputStream in = new StoreArrayInputStream(buf);
+			
+			MantaOutputStream mout = new MantaOutputStream(out);
+			MantaInputStream min = new MantaInputStream(in);
 				
 			// Create list
-			temp = new List(LEN);
+			temp = new List[LEN];
 			
+			for (int i=0;i<LEN;i++) { 
+				temp[i] = new List();
+			} 
+
 			System.err.println("Writing list of " + LEN + " objects");
 
 			mout.writeObject(temp);
@@ -86,9 +87,8 @@ public class Main {
 
 				double rtp = ((1000.0*rb)/(1024*1024))/time;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
-				
-				System.out.println();
-				//System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
+
+				System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
 				System.out.println("Karmi bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 				System.out.println("Real bytes read " + rb + " throughput = " + rtp + " MBytes/s");
 

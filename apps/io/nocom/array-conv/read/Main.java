@@ -49,7 +49,7 @@ public class Main {
 			mout.flush();
 			mout.reset();
 
-//			System.out.println("Wrote " + out.getAndReset() + " bytes");
+			System.out.println("Wrote " + out.getAndReset() + " bytes");
 			
 //			System.out.println("Reading int[" + (LEN/4) + "]");
 			min.readObject();
@@ -64,7 +64,7 @@ public class Main {
 
 			bytes = out.getAndReset();
 
-//			System.out.println("Wrote " + bytes + " bytes");
+			System.out.println("Wrote " + bytes + " bytes");
 			
 //			System.out.println("Starting test");
 
@@ -109,7 +109,7 @@ public class Main {
 			mout.flush();
 			mout.reset();
 
-//			System.out.println("Wrote " + out.getAndReset() + " bytes");
+			System.out.println("Wrote " + out.getAndReset() + " bytes");
 			
 //			System.out.println("Reading long[" + (LEN/8) + "]");
 			min.readObject();
@@ -124,7 +124,7 @@ public class Main {
 
 			bytes = out.getAndReset();
 
-//			System.out.println("Wrote " + bytes + " bytes");
+			System.out.println("Wrote " + bytes + " bytes");
 			
 //			System.out.println("Starting test");
 
@@ -169,7 +169,7 @@ public class Main {
 			mout.flush();
 			mout.reset();
 
-//			System.out.println("Wrote " + out.getAndReset() + " bytes");
+			System.out.println("Wrote " + out.getAndReset() + " bytes");
 			
 //			System.out.println("Reading double[" + (LEN/8) + "]");
 			min.readObject();
@@ -184,7 +184,7 @@ public class Main {
 
 			bytes = out.getAndReset();
 
-//			System.out.println("Wrote " + bytes + " bytes");
+			System.out.println("Wrote " + bytes + " bytes");
 			
 //			System.out.println("Starting test");
 

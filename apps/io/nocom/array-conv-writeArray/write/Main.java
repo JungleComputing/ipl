@@ -12,8 +12,8 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 16*1024;
-	public static final int COUNT = 10000;
+	public static final int LEN   = 1024*1024;
+	public static final int COUNT = 100;
 	public static final int TESTS = 10;
 
 
