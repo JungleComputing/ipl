@@ -656,21 +656,21 @@ public final class Satin implements Config, ResizeHandler {
 
 		out.println("-------------------------------SATIN STATISTICS--------------------------------");
 		if(SPAWN_STATS) {
-			out.println("SATIN: SPAWN:       spawns " + nf.format(totalStats.spawns) +
-				    " executed " + nf.format(totalStats.jobsExecuted) + 
-				    " syncs " + nf.format(totalStats.syncs));
+			out.println("SATIN: SPAWN:       " + nf.format(totalStats.spawns) +
+				    " spawns, " + nf.format(totalStats.jobsExecuted) + 
+				    " executed, " + nf.format(totalStats.syncs) + " syncs");
 			if(ABORTS) {
-				out.println("SATIN: ABORT:       aborts " +
+				out.println("SATIN: ABORT:       " +
 					    nf.format(totalStats.aborts) +
-					    " abort msgs " + nf.format(totalStats.abortMessages) +
-					    " aborted jobs " + nf.format(totalStats.abortedJobs));
+					    " aborts, " + nf.format(totalStats.abortMessages) +
+					    " abort msgs, " + nf.format(totalStats.abortedJobs) + " aborted jobs");
 			}
 		}
 
 		if(TUPLE_STATS) {
-			out.println("SATIN: TUPLE_SPACE: bcasts " + 
+			out.println("SATIN: TUPLE_SPACE: " + 
 				    nf.format(totalStats.tupleMsgs) +
-				    ", bytes " + nf.format(totalStats.tupleBytes));
+				    " bcasts, " + nf.format(totalStats.tupleBytes) + " bytes");
 		}
 
 		if(POLL_FREQ != 0 && POLL_TIMING) {
@@ -678,17 +678,17 @@ public final class Satin implements Config, ResizeHandler {
 		}
 
 		if(STEAL_STATS) {
-			out.println("SATIN: STEAL:       attempts " + 
+			out.println("SATIN: STEAL:       " + 
 				    nf.format(totalStats.stealAttempts) +
-				    " success " + nf.format(totalStats.stealSuccess) + " (" +
+				    " attempts, " + nf.format(totalStats.stealSuccess) + " successes (" +
 				    pf.format(((double) totalStats.stealSuccess / totalStats.stealAttempts) * 100.0) +
 				    " %)");
 
 			out.println("SATIN: MESSAGES:    intra " + 
 				    nf.format(totalStats.intraClusterMessages) +
-				    ", bytes " + nf.format(totalStats.intraClusterBytes) +
-				    " inter " + nf.format(totalStats.interClusterMessages) +
-				    ", bytes " + nf.format(totalStats.interClusterBytes));
+				    " msgs, " + nf.format(totalStats.intraClusterBytes) +
+				    " bytes; inter " + nf.format(totalStats.interClusterMessages) +
+				    " msgs, " + nf.format(totalStats.interClusterBytes) + " bytes");
 
 			out.println("-------------------------------SATIN TOTAL TIMES-------------------------------");
 			if(STEAL_TIMING) {
