@@ -36,7 +36,7 @@ public class MultiSplitter extends NetOutput {
 	 */
 	protected Vector    osVector     = null;
 
-        protected Hashtable driverTable = null;
+        protected Hashtable outputTable = null;
 
 	/**
 	 * Constructor.
@@ -50,7 +50,7 @@ public class MultiSplitter extends NetOutput {
 		outputVector = new Vector();
 		isVector     = new Vector();
 		osVector     = new Vector();
-                driverTable  = new Hashtable();
+                outputTable  = new Hashtable();
 	}
 
 	/**
@@ -135,17 +135,17 @@ public class MultiSplitter extends NetOutput {
                         }
                 
 
-                        NetDriver subDriver = (NetDriver)driverTable.get(subContext);
+                        NetOutput no = (NetOutput)outputTable.get(subContext);
+
                         if (subDriver == null) {
                                 String    subDriverName = getProperty(subContext, "Driver");
-                                subDriver = driver.getIbis().getDriver(subDriverName);
-                                driverTable.put(subContext, subDriver);
+                                NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
+                                no                      = newSubOutput(subDriver, subContext);
+                                outputTable.put(subContext, no);
+                                addOutput(rpn, no);
                         }
                         
-                        NetOutput no            = newSubOutput(subDriver, subContext);
-		
                         no.setupConnection(rpn, is, os, nls);
-                        addOutput(rpn, no);
                 } catch (Exception e) {
                         e.printStackTrace();
                         throw new IbisIOException(e);

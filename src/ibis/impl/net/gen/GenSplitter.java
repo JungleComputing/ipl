@@ -85,6 +85,7 @@ public class GenSplitter extends NetOutput {
 			String subDriverName = getProperty("Driver");
                         subDriver = driver.getIbis().getDriver(subDriverName);
 		}
+		System.err.println("setupConnection: "+this+", subDriver = "+subDriver.getName());
                 
 		NetOutput no = newSubOutput(subDriver);
 		

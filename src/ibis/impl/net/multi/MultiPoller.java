@@ -38,7 +38,7 @@ public class MultiPoller extends NetInput {
 	 */
 	protected NetInput  activeInput = null;
 
-        protected Hashtable driverTable = null;
+        protected Hashtable inputTable = null;
 
 	/**
 	 * Constructor.
@@ -53,7 +53,7 @@ public class MultiPoller extends NetInput {
 		inputVector = new Vector();
 		isVector    = new Vector();
 		osVector    = new Vector();
-                driverTable = new Hashtable();
+                inputTable = new Hashtable();
 	}
 
 	/**
@@ -123,17 +123,17 @@ public class MultiPoller extends NetInput {
                         }
                 
                         
-                        NetDriver subDriver = (NetDriver)driverTable.get(subContext);
+                        NetInput  ni = (NetInput)inputTable.get(subContext);
+
                         if (subDriver == null) {
                                 String    subDriverName = getProperty(subContext, "Driver");
-                                subDriver = driver.getIbis().getDriver(subDriverName);
-                                driverTable.put(subContext, subDriver);
+                                NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
+                                ni                      = newSubInput(subDriver, subContext);
+                                inputTable.put(subContext, ni);
+                                addInput(ni);
                         }
-                        
-                        NetInput  ni            = newSubInput(subDriver, subContext);
 
                         ni.setupConnection(rpn, is, os, nls);
-                        addInput(ni);
                 } catch (Exception e) {
                         e.printStackTrace();
                         throw new IbisIOException(e);
