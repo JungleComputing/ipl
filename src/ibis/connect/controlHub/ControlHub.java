@@ -101,6 +101,10 @@ class NodeManager extends Thread
 		throw new Error(e);
 	    }
 	}
+	try {
+	    wire.close();
+	} catch(IOException e) {
+	}
 	hub.unregisterNode(hostname, hostport);
     }
 }
