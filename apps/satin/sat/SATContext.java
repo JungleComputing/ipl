@@ -734,10 +734,6 @@ public final class SATContext implements java.io.Serializable {
 		foundIt = true;
 	    }
 	}
-	//if( !satisfied[i] && !foundIt ){
-	if( !foundIt ){
-	    System.err.println( "Error: unit clause " + c + " does not contain unassigned variables" );
-	}
 	return SATProblem.UNDETERMINED;
     }
 
