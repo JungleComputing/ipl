@@ -167,6 +167,7 @@ MANTAC_COMMAND = $(MANTA)/mantac $(MANTACFLAGS)
 
 REMOTE_STUBS		:= $(REMOTE:%.java=rmi_stub_%.java)
 REMOTE_SKELETONS	:= $(REMOTE:%.java=rmi_skeleton_%.java)
+.PRECIOUS:	$(REMOTE_STUBS) $(REMOTE_SKELETONS)
 
 SRC		+= $(REMOTE)
 SRC		+= $(REMOTE_STUBS)
@@ -297,9 +298,8 @@ rmi_skeleton_%.java:	%.class
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
 
-ifneq (, $(strip $(SERIALIZABLE)))
+ifneq (, $(strip $(SERIALIZABLE) $(REMOTE)))
 .PHONY: serializers
-.PRECIOUS:	$(REMOTE_STUBS) $(REMOTE_SKELETONS)
 serializers:	$(SERIALIZABLE_GENERATED)
 serializers:	$(REMOTE_STUBS)
 serializers:	$(REMOTE_SKELETONS)
@@ -310,7 +310,7 @@ java:	class_files
 
 .PHONY:	class_files
 class_files:
-ifneq (, $(strip $(SERIALIZABLE)))
+ifneq (, $(strip $(SERIALIZABLE) $(REMOTE)))
 	$(MAKE) $(MFLAGS) serializers
 endif
 ifneq (, $(strip $(CLASS_FILES) $(MAIN_CLASS)))
@@ -408,4 +408,9 @@ run:
 #
 .PHONY:	prun
 prun:
-	@echo "prun IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. CLASSPATH=$(CLASSPATH) -no-panda -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"
+ifeq (1, $(BUILD_MANTA))
+	@echo "prun IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) $(OUT) 2 -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger -Dibis.name=panda $(JAVACFLAGS) 'args ...'"
+else
+	@echo "prun -v -1 -subst IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) -no-panda $(IBIS_ROOT)/ibis/bin/java_wrapper 2 $(JPATH)/bin/java -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger -Dpool_host_number=%d -Dpool_total_hosts=%n -Dpool_host_names=\"%h\" -Dhosts=\"%h\" -Dibis.name=panda $(MAIN:%.java=%) args..."
+endif
+	@echo $(IBIS_ROOT)/ibis/bin/java_wrapper $(JPATH)/bin/java -Dpool_total_hosts=2 -Dpool_host_number=$$PRUN_CPU_RANK -Dpool_host_names=\"$$HOSTS\" -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger -Dhosts=\"$$HOSTS\" -Dibis.name=panda
