@@ -24,8 +24,21 @@ public class HubLinkFactory {
 	    Properties p = System.getProperties();
 	    String host       = p.getProperty("ibis.connect.hub_host");
 	    String portString = p.getProperty("ibis.connect.hub_port");
-	    if(host != null && portString != null){
-		int port = Integer.parseInt(portString);
+
+	    int port;
+
+	    if (host == null) {
+		host = p.getProperty("ibis.name_server.host");
+	    }
+
+	    if (portString == null) {
+		port = ibis.connect.controlHub.ControlHub.defaultPort;
+	    }
+	    else {
+		port = Integer.parseInt(portString);
+	    }
+
+	    if(host != null) {
 		if(MyDebug.VERBOSE())
 		    System.err.println("# Creating link to hub- host="+host+"; port="+port);
 		hub = new HubLink(host, port);
@@ -34,7 +47,7 @@ public class HubLinkFactory {
 		enabled = true;
 	    } else if(MyDebug.VERBOSE()) {
 		System.err.println("# HubLinkFactory: 'hub' properties not set");
-		System.err.println("# (ibis.connect.hub_host, ibis.connect.hub_port).");
+		System.err.println("# (ibis.connect.hub_host or ibis.name_server.host).");
 		System.err.println("# Not creating wire to hub.");
 	    }
 	} catch(Exception e) {

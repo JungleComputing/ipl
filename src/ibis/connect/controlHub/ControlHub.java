@@ -74,11 +74,11 @@ class NodeManager extends Thread
     }
 }
 
-public class ControlHub
+public class ControlHub extends Thread
 {
     private static Map nodes = new Hashtable(); // Hashtable of Ibisnodes; hash key is canonical hostname of node
     private static int nodesNum = 0;
-    static final int defaultPort = 9827;
+    public static final int defaultPort = 9827;
 
     private static void showCount() {
 	System.err.println("# ControlHub: "+nodesNum+" nodes currently connected");
@@ -90,16 +90,18 @@ public class ControlHub
 	nodesNum++;
 	showCount();
     }
+
     public static void unregisterNode(String nodename) {
 	nodes.remove(nodename.toLowerCase());
 	nodesNum--;
 	showCount();
     }
+
     public static Object resolveNode(String nodename) {
 	return nodes.get(nodename.toLowerCase());
     }
 
-    public static void main(String[] arg) {
+    public void run() {
 	int port = defaultPort;
 	try {
 	    Properties p = System.getProperties();
@@ -121,5 +123,9 @@ public class ControlHub
 	} catch(Exception e) {
 	    throw new Error(e);
 	}
+    }
+
+    public static void main(String[] arg) {
+	new ControlHub().run();
     }
 }
