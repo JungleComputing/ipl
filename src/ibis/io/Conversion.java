@@ -103,10 +103,11 @@ public abstract class Conversion {
     /*
      * Return a conversion, given the class name of it.
      */
-    private static final Conversion loadConversion(String className)
+    public static final Conversion loadConversion(String className)
 	throws Exception {
 
-System.err.println("Create Conversion " + className);
+	    System.err.println("Create Conversion " + className);
+
 	return (Conversion)Class.forName(className).newInstance();
 
     }
@@ -114,18 +115,45 @@ System.err.println("Create Conversion " + className);
     /**
      * Load a conversion
      */
-    public static final Conversion loadConversion(boolean bigEndian, boolean useNio) {
-	if (useNio) {
+    public static final Conversion loadConversion(boolean bigEndian) {
+	System.err.println("loading conversion...");
+
+	Properties systemProperties = System.getProperties();
+
+	String conversion = systemProperties.getProperty("ibis.conversion");
+
+	if(conversion != null && conversion.equalsIgnoreCase("nio")) {
 	    try {
 		if(bigEndian) {
-		    return loadConversion("ibis.io.nio.NioBigConversion");
+		    return loadConversion(
+			    "ibis.io.nio.NioChunkBigConversion");
 		} else {
-		    return loadConversion("ibis.io.nio.NioLittleConversion");
+		    return loadConversion(
+			    "ibis.io.nio.NioChunkLittleConversion");
 		}
 	    } catch (Exception e) {
 		//nio conversion loading failed
 	    }
+	} else if (conversion == null 
+				|| conversion.equalsIgnoreCase("hybrid")) {
+	    //default conversion
+
+	    try {
+		if(bigEndian) {
+		    return loadConversion(
+				"ibis.io.nio.HybridChunkBigConversion");
+		} else {
+		    return loadConversion(
+			    "ibis.io.nio.HybridChunkLittleConversion");
+		}
+	    } catch (Exception e) {
+		//hybrid conversion loading failed
+	    }
 	}
+
+	//loading of nio type conversions failed, return simple conversion
+	
+	System.err.println("Using simple conversion");
 
 	if(bigEndian) {
 	    return new SimpleBigConversion();
@@ -133,18 +161,6 @@ System.err.println("Create Conversion " + className);
 	    return new SimpleLittleConversion();
 	}
     }
-
-    /**
-     * Load a conversion
-     */
-    public static final Conversion loadConversion(boolean bigEndian) {
-	Properties systemProperties = System.getProperties();
-
-	String conversion = systemProperties.getProperty("ibis.conversion");
-
-	return loadConversion(bigEndian, (conversion == null || conversion.equalsIgnoreCase("nio")));
-    }
-
 
     /**
      * Returns if this conversion iconverts to big-endian or not

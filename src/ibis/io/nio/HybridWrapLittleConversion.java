@@ -1,7 +1,5 @@
 package ibis.io.nio;
 
-import ibis.io.SimpleBigConversion;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -11,33 +9,32 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-//import java.nio.BufferUnderflowException;
+import ibis.io.SimpleLittleConversion;
 
-public final class NioBigConversion extends SimpleBigConversion { 
+public final class HybridWrapLittleConversion extends SimpleLittleConversion { 
 
-    public final int BUFFER_SIZE = 10 * 1024;
+    public static final int BUFFER_SIZE = 10 * 1024;
 
-    public final int CHAR_THRESHOLD = 600 / CHAR_SIZE;
-    public final int SHORT_THRESHOLD = 600 / SHORT_SIZE;
-    public final int INT_THRESHOLD = 600 / INT_SIZE;
-    public final int LONG_THRESHOLD = 600 / LONG_SIZE;
-    public final int FLOAT_THRESHOLD = 60 / FLOAT_SIZE;
-    public final int DOUBLE_THRESHOLD = 96 / DOUBLE_SIZE;
+    public static final int CHAR_THRESHOLD = 600 / CHAR_SIZE;
+    public static final int SHORT_THRESHOLD = 600 / SHORT_SIZE;
+    public static final int INT_THRESHOLD = 600 / INT_SIZE;
+    public static final int LONG_THRESHOLD = 600 / LONG_SIZE;
+    public static final int FLOAT_THRESHOLD = 60 / FLOAT_SIZE;
+    public static final int DOUBLE_THRESHOLD = 96 / DOUBLE_SIZE;
 
-    private ByteOrder order;
+    private final ByteOrder order;
 
-    private ByteBuffer byteBuffer;
-    private CharBuffer charBuffer;
-    private ShortBuffer shortBuffer;
-    private IntBuffer intBuffer;
-    private LongBuffer longBuffer;
-    private FloatBuffer floatBuffer;
-    private DoubleBuffer doubleBuffer;
+    private final ByteBuffer byteBuffer;
+    private final CharBuffer charBuffer;
+    private final ShortBuffer shortBuffer;
+    private final IntBuffer intBuffer;
+    private final LongBuffer longBuffer;
+    private final FloatBuffer floatBuffer;
+    private final DoubleBuffer doubleBuffer;
 
-    public NioBigConversion() {
-
+    public HybridWrapLittleConversion() {
 	// big/little endian difference one liner
-	order = ByteOrder.BIG_ENDIAN;
+	order = ByteOrder.LITTLE_ENDIAN;
 
 	byteBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE).order(order);
 
