@@ -1,6 +1,7 @@
 import java.rmi.*;
+import java.rmi.server.*;
 
-public class Test extends java.rmi.server.UnicastRemoteObject implements myServer, Runnable { 
+public class Test extends UnicastRemoteObject implements MyServer, Runnable { 
 
 	int i;
 	boolean finished = false;
