@@ -359,7 +359,9 @@ public /*synchronized*/ void register() throws RemoteException {
 
   public void setExchangeBodies( int source, Body Bodies[] ) throws RemoteException {
 
+    // System.err.println(myProc + ": start  receive[" + (Bodies == null ? -1 : Bodies.length) + "] of exchange from " + source);
     ReceivedBodies[ source ] = Bodies;
+    // System.err.println(myProc + ": finish receive[" + (Bodies == null ? -1 : Bodies.length) + "] of exchange from " + source);
   }
 
   public void setExchangeDestination( int index, int dest ) {
@@ -402,26 +404,37 @@ public /*synchronized*/ void register() throws RemoteException {
 
     for ( i=0; i<ProcessorCount; i++ ) {
 
-      if (ExchangeNumBodies[i]==0) {
+	/* Try to not have all processors send at the same time to the same
+	 * recipient.
+	 * This has the additional advantage that the well-known multiplexing
+	 * bug in PandaIbis (caused by the fact that panda has only static
+	 * multiplexing) is not triggered for #bodies >= 100000.
+	 *							RFHH
+	 */
+	int target = (myProc + i) % ProcessorCount;
+
+      if (ExchangeNumBodies[target]==0) {
 
         MovingBodies = null;
 
       } else {
 
-	MovingBodies = new Body[ ExchangeNumBodies[i] ];
+	MovingBodies = new Body[ ExchangeNumBodies[target] ];
 
 	for ( j=0, count=0; j<g.gdNumBodies; j++ ) {
 
-  	  if (index[j]==i)
+  	  if (index[j]==target)
 	    MovingBodies[ count++ ] = g.gdBodies[j];
         
         }
      
       }
-      if (i==myProc) {     
+      if (target==myProc) {     
         setExchangeBodies( myProc, MovingBodies );
       } else {
-        Processors[i].setExchangeBodies( myProc, MovingBodies );
+    // System.err.println(myProc + ": start  exchange[" + (MovingBodies == null ? -1 : MovingBodies.length) + "] with " + target);
+        Processors[target].setExchangeBodies( myProc, MovingBodies );
+    // System.err.println(myProc + ": finish exchange[" + (MovingBodies == null ? -1 : MovingBodies.length) + "] with " + target);
       }
     }
 
