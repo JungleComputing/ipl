@@ -86,8 +86,10 @@ public final class SeqSolver {
             leafSolve( level+1, p, subctx, nextvar, firstvar );
         }
         catch( SATRestartException x ){
-            // Restart the search here, since we have an untried
-            // value.
+	    if( x.level<level ){
+		//System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+		throw x;
+	    }
         }
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
@@ -115,6 +117,7 @@ public final class SeqSolver {
 	if( p.isSatisfied() ){
 	    return new SATSolution( p.buildInitialAssignments() );
 	}
+	int oldClauseCount = p.getClauseCount();
 
         // Now recursively try to find a solution.
 	try {
@@ -169,6 +172,8 @@ public final class SeqSolver {
             res = null;
         }
 
+	int newClauseCount = p.getClauseCount();
+	System.err.println( "Learned " + (newClauseCount-oldClauseCount) + " clauses." );
 	return res;
     }
 
@@ -198,6 +203,7 @@ public final class SeqSolver {
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
+	p.report( System.out );
 	System.out.println( "ExecutionTime: " + time );
         System.out.println( "Decisions: " + s.decisions );
 	if( res == null ){
