@@ -6,8 +6,7 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.util.Vector;
 
-class ReceivePort
-    implements ibis.ipl.ReceivePort, Runnable, PollClient {
+class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     /** A connection between a send port and a receive port within the
      * same Ibis should not lead to polling for the reply, but to quick
@@ -29,7 +28,7 @@ class ReceivePort
 	}
     }
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = Ibis.DEBUG;
 
     private static final boolean STATISTICS = true;
     private static int threadsCreated;
@@ -38,7 +37,7 @@ class ReceivePort
     private static long implicitFinish;
 
     private static int livingPorts = 0;
-    private static Syncer portCounter = new Syncer();
+    private static PortCounter  portCounter = new PortCounter ();
 
     private PortType type;
     private ReceivePortIdentifier ident;
@@ -46,7 +45,7 @@ class ReceivePort
 
     private ReadMessage queueFront;
     private ReadMessage queueTail;
-    private ConditionVariable messageArrived = Ibis.myIbis.createCV();
+    private MessageArrived messageArrived = new MessageArrived();
     private int arrivedWaiters = 0;
 
     private boolean aMessageIsAlive = false;
@@ -77,7 +76,9 @@ class ReceivePort
     private boolean homeConnection = true;
 
     private Vector connections = new Vector();
-    private ConditionVariable disconnected = Ibis.myIbis.createCV();
+
+    private Shutdown shutdown = new Shutdown();
+
 
     private static final boolean DISABLE_INTR_MULTIFRAGMENT =
 	TypedProperties.booleanProperty("ibis.mp.intr.disable.multifragment", false);
@@ -226,7 +227,7 @@ class ReceivePort
 	Ibis.myIbis.checkLockOwned();
 	connections.remove(sp);
 	if (connections.size() == 0) {
-	    disconnected.cv_signal();
+	    shutdown.wakeup();
 	}
 	if (connectUpcall != null) {
 	    Ibis.myIbis.unlock();
@@ -312,12 +313,12 @@ class ReceivePort
 
 	if (arrivedWaiters > 0 && ! mePolling) {
 // System.err.println("Receiveport signalled");
-	    messageArrived.cv_signal();
+	    messageArrived.wakeup();
 	}
 
 	if (upcall != null) {
 //	    This wakeup() call is not needed. It is already done above. (wakeup does a
-//	    messageArrived.cv_signal()).
+//	    messageArrived.wakeup()).
 //	    wakeup();
 
 	    if (Ibis.STATISTICS) {
@@ -382,7 +383,7 @@ class ReceivePort
 
 	if (queueFront != null) {
 	    if (arrivedWaiters > 0) {
-		messageArrived.cv_signal();
+		messageArrived.wakeup();
 	    }
 	    else if (upcall != null && availableUpcallThread == 0) {
 // System.err.println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
@@ -394,53 +395,12 @@ class ReceivePort
     }
 
 
-    private PollClient next;
-    private PollClient prev;
+    private class MessageArrived extends Syncer {
 
-    public boolean satisfied() {
-	return queueFront != null || stop;
-    }
-
-    public void wakeup() {
-	messageArrived.cv_signal();
-    }
-
-    public void poll_wait(long timeout) {
-	arrivedWaiters++;
-// System.err.println("ReceivePort poll_wait, arrivedWaiters = " + arrivedWaiters);
-	try {
-	    messageArrived.cv_wait(timeout);
-	} catch (InterruptedException e) {
-	    // ignore
+	public boolean satisfied() {
+	    return queueFront != null || stop;
 	}
-	arrivedWaiters--;
-// System.err.println("ReceivePort woke up, arrivedWaiters = " + arrivedWaiters);
-    }
 
-    public PollClient next() {
-	return next;
-    }
-
-    public PollClient prev() {
-	return prev;
-    }
-
-    public void setNext(PollClient c) {
-	next = c;
-    }
-
-    public void setPrev(PollClient c) {
-	prev = c;
-    }
-
-    private Thread me;
-
-    public Thread thread() {
-	return me;
-    }
-
-    public void setThread(Thread thread) {
-	me = thread;
     }
 
 
@@ -552,7 +512,9 @@ class ReceivePort
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + ", port " + this + ". Hit wait in ReceivePort.receive()" + ident + " queue " + queueFront + " " + messageArrived);
 	    }
-	    Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.PREEMPTIVE : Poll.NON_POLLING);
+	    arrivedWaiters++;
+	    Ibis.myIbis.waitPolling(messageArrived, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.PREEMPTIVE : Poll.NON_POLLING);
+	    arrivedWaiters--;
 
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + ident);
@@ -644,51 +606,19 @@ class ReceivePort
     }
 
 
-    private class Shutdown implements PollClient {
-
-	PollClient next;
-	PollClient prev;
+    private class Shutdown extends Syncer {
 
 	public boolean satisfied() {
 	    return connections.size() == 0;
 	}
 
-	public void wakeup() {
-	    disconnected.cv_signal();
-	}
+    }
 
-	public void poll_wait(long timeout) {
-	    try {
-		disconnected.cv_wait(timeout);
-	    } catch (InterruptedException e) {
-		// ignore
-	    }
-	}
 
-	public PollClient next() {
-	    return next;
-	}
+    private static class PortCounter extends Syncer {
 
-	public PollClient prev() {
-	    return prev;
-	}
-
-	public void setNext(PollClient c) {
-	    next = c;
-	}
-
-	public void setPrev(PollClient c) {
-	    prev = c;
-	}
-
-	Thread me;
-
-	public Thread thread() {
-	    return me;
-	}
-
-	public void setThread(Thread thread) {
-	    me = thread;
+	public boolean satisfied() {
+	    return livingPorts == 0;
 	}
 
     }
@@ -700,8 +630,6 @@ class ReceivePort
 	    System.out.println(Thread.currentThread() + name + ":Starting receiveport.free upcall = " + upcall);
 	}
 
-	Shutdown shutdown = new Shutdown();
-
 	Ibis.myIbis.lock();
 
 	if (DEBUG) {
@@ -711,51 +639,20 @@ class ReceivePort
 	stop = true;
 
 	messageHandled.cv_bcast();
-	messageArrived.cv_bcast();
+	messageArrived.wakeupAll();
 
 	if (DEBUG) {
 	    System.out.println(Thread.currentThread() + name + ": Enter shutdown.waitPolling; connections = " + connectionToString());
 	}
 	try {
-	    while (connections.size() > 0) {
 // System.out.println(connectionToString());
-		Ibis.myIbis.waitPolling(shutdown, 0, Poll.NON_PREEMPTIVE);
-	    }
+	    shutdown.s_wait(0);
 	} catch (IOException e) {
 	    /* well, if it throws an exception, let's quit.. */
 	}
 	if (DEBUG) {
 	    System.out.println(Thread.currentThread() + name + ": Past shutdown.waitPolling");
 	}
-	/*
-	while (connections.size() > 0) {
-	    try {
-		disconnected.cv_wait();
-	    } catch (InterruptedException e) {
-		// ignore
-	    }
-
-	    if (upcall != null) {
-		if (DEBUG) {
-		    System.out.println(name +
-				       " waiting for all connections to close ("
-				       + connections.size() + ")");
-		}
-		try {
-		    wait();
-		} catch (InterruptedException e) {
-		    // Ignore.
-		}
-	    } else {
-		if (DEBUG) {
-		    System.out.println(name +
-				       " trying to close all connections (" +
-				       connections.size() + ")");
-		}
-
-	    }
-	}
-	*/
 
 	if (connectUpcall != null) {
 	    acceptThread.free();
@@ -780,7 +677,7 @@ class ReceivePort
 	Ibis.myIbis.lock();
 	    livingPorts--;
 	    if (livingPorts == 0) {
-		portCounter.s_signal(true);
+		portCounter.wakeup();
 	    }
 	Ibis.myIbis.unlock();
     }
@@ -849,7 +746,9 @@ class ReceivePort
 		while (queueFront == null && ! stop) {
 		    // // // Ibis.myIbis.waitPolling(this, 0, Poll.NON_PREEMPTIVE);
 		    // Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.NON_PREEMPTIVE : Poll.NON_POLLING);
-		    Ibis.myIbis.waitPolling(this, 0, Poll.NON_POLLING);
+		    arrivedWaiters++;
+		    Ibis.myIbis.waitPolling(messageArrived, 0, Poll.NON_POLLING);
+		    arrivedWaiters--;
 		}
 		if (DEBUG) {
 		    upcall_poll++;

@@ -39,22 +39,6 @@ final public class SerializeSendPort extends SendPort {
     }
 
 
-    private class ConnectAcker extends Syncer {
-
-	private int acks;
-
-	public boolean satisfied() {
-	    return (acks == 0);
-	}
-
-	void s_signal(boolean accepted) {
-	    acks--;
-	    super.s_signal(accepted && acks == 0);
-	}
-
-    }
-
-
     public void connect(ibis.ipl.ReceivePortIdentifier receiver,
 			long timeout)
 	    throws IOException {
@@ -91,7 +75,7 @@ final public class SerializeSendPort extends SendPort {
 		// }
 		Ibis.myIbis.lock();
 
-		connectAcker.acks = splitter.length;
+		connectAcker.setAcks(splitter.length);
 
 		byte[] sf = ident.getSerialForm();
 		for (int i = 0; i < splitter.length; i++) {
@@ -115,7 +99,7 @@ final public class SerializeSendPort extends SendPort {
 		System.err.println(this + ": have bcast group " + group);
 	    }
 
-	    connectAcker.acks = splitter.length;
+	    connectAcker.setAcks(splitter.length);
 
 	    for (int i = 0; i < splitter.length; i++) {
 		ReceivePortIdentifier r = splitter[i];
@@ -135,15 +119,6 @@ final public class SerializeSendPort extends SendPort {
 		}
 	    }
 
-	    if (false) {
-		if (! syncer[my_split].s_wait(timeout)) {
-		    throw new ConnectionTimedOutException("No connection to " + receiver);
-		}
-		if (! syncer[my_split].accepted()) {
-		    throw new ConnectionRefusedException("No connection to " + receiver);
-		}
-	    }
-
 	    if (ident.ibis().equals(receiver.ibis())) {
 		homeConnection = true;
 	    }
@@ -159,6 +134,7 @@ final public class SerializeSendPort extends SendPort {
 	    ((SerializeWriteMessage)message).obj_out = obj_out;
 	}
 	obj_out.flush();
+
 	Ibis.myIbis.lock();
 	try {
 	    out.send(true);
@@ -172,6 +148,7 @@ final public class SerializeSendPort extends SendPort {
 	    connecting = false;
 	    Ibis.myIbis.unlock();
 	}
+
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + ">>>>>>>>>>>> Created ObjectOutputStream " + obj_out + " on top of " + out);
 	}

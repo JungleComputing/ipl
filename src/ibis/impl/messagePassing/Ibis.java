@@ -14,7 +14,7 @@ import java.util.Vector;
 
 public class Ibis extends ibis.ipl.Ibis {
 
-    static final boolean DEBUG = TypedProperties.booleanProperty("ibis.mp.debug"); // false;
+    static final boolean DEBUG = false; // TypedProperties.booleanProperty("ibis.mp.debug"); // false;
     static final boolean CHECK_LOCKS = DEBUG;
     static final boolean STATISTICS = true;
     static final boolean BCAST_VERBOSE = false;
@@ -36,7 +36,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private Hashtable portTypeList = new Hashtable();
 
-    private boolean started = false;
     private Vector ibisNameService = new Vector();
 
     private Poll rcve_poll;

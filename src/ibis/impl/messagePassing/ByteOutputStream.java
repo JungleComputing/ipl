@@ -8,8 +8,7 @@ import java.io.IOException;
 
 
 final class ByteOutputStream
-	extends ibis.io.ArrayOutputStream
-	implements PollClient {
+	extends ibis.io.ArrayOutputStream {
 
     static final int FIRST_FRAG_BIT  = (1 << 30);
     static final int LAST_FRAG_BIT   = (1 << 31);
@@ -17,7 +16,7 @@ final class ByteOutputStream
 
     private SendPort sport;
 
-    private ConditionVariable sendComplete = Ibis.myIbis.createCV();
+    private SendComplete sendComplete = new SendComplete();
     private ConditionVariable fragCv = Ibis.myIbis.createCV();
 
     /**
@@ -178,62 +177,19 @@ final class ByteOutputStream
     private void finished_upcall() {
 	Ibis.myIbis.checkLockOwned();
 	outstandingFrags--;
-	sendComplete.cv_signal();
+	sendComplete.wakeup();
 	if (fragWaiting) {
 	    fragCv.cv_signal();
 	}
 // System.err.println(Thread.currentThread() + "Signal finish msg for stream " + this + "; outstandingFrags " + outstandingFrags);
     }
 
-    PollClient next;
-    PollClient prev;
+    private class SendComplete extends Syncer {
 
-    public PollClient next() {
-	return next;
-    }
-
-    public PollClient prev() {
-	return prev;
-    }
-
-    public void setNext(PollClient c) {
-	next = c;
-    }
-
-    public void setPrev(PollClient c) {
-	prev = c;
-    }
-
-    public boolean satisfied() {
-	return outstandingFrags == 0;
-    }
-
-    public void wakeup() {
-//	if (outstandingFrags == 0) {
-//	No, we may also be woken up because we are scheduled to poll.
-// System.err.println("ByteOutputStream wakeup");
-		sendComplete.cv_signal();
-//	}
-    }
-
-    public void poll_wait(long timeout) {
-// System.err.println("ByteOutputStream poll_wait");
-	try {
-	    sendComplete.cv_wait(timeout);
-	} catch (InterruptedException e) {
-	    // ignore
+	public boolean satisfied() {
+	    return outstandingFrags == 0;
 	}
-// System.err.println("ByteOutputStream woke up");
-    }
 
-    private Thread me;
-
-    public Thread thread() {
-	return me;
-    }
-
-    public void setThread(Thread thread) {
-	me = thread;
     }
 
     void reset(boolean finish) throws IOException {
@@ -244,7 +200,7 @@ final class ByteOutputStream
 	    if (outstandingFrags > 0) {
 // System.err.println(Thread.currentThread() + "Start wait to finish msg for stream " + this);
 		waitingInPoll = true;
-		Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
+		Ibis.myIbis.waitPolling(sendComplete, 0, Poll.PREEMPTIVE);
 		waitingInPoll = false;
 	    }
 	}

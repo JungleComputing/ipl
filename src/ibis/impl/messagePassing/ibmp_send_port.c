@@ -26,7 +26,7 @@ static jfieldID		fld_connect_allowed;
 static int		global_group_count = 0;
 
 static jclass		cls_Syncer;
-static jmethodID	md_s_signal;
+static jmethodID	md_wakeup;
 
 static jclass		cls_SendPort;
 static jfieldID		fld_group;
@@ -86,7 +86,7 @@ ibmp_group_id_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 
     IBP_VPRINTF(10, env, ("%2d: receive group id %d for sendport %p\n", ibmp_me, hdr->group_id, hdr->port));
     (*env)->SetIntField(env, hdr->port, fld_group, hdr->group_id);
-    (*env)->CallVoidMethod(env, hdr->syncer, md_s_signal, JNI_TRUE);
+    (*env)->CallVoidMethod(env, hdr->syncer, md_wakeup);
     (*env)->DeleteGlobalRef(env, hdr->port);
     (*env)->DeleteGlobalRef(env, hdr->syncer);
 
@@ -303,12 +303,12 @@ ibmp_send_port_init(JNIEnv *env)
     }
     cls_Syncer = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Syncer);
 
-    md_s_signal = (*env)->GetMethodID(env,
+    md_wakeup = (*env)->GetMethodID(env,
 				      cls_Syncer,
-				      "s_signal",
-				      "(Z)V");
-    if (md_s_signal == NULL) {
-	ibmp_error(env, "Cannot find method s_signal(Z)V\n");
+				      "wakeup",
+				      "()V");
+    if (md_wakeup == NULL) {
+	ibmp_error(env, "Cannot find method wakeup()V\n");
     }
 
     ibmp_bind_group_port = ibp_mp_port_register(ibmp_bind_group_handle);

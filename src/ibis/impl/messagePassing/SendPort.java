@@ -17,7 +17,7 @@ public class SendPort implements ibis.ipl.SendPort {
 
     private final static boolean USE_BCAST =
 	TypedProperties.stringProperty("ibis.mp.broadcast", "native") ||
-	TypedProperties.booleanProperty("ibis.mp.broadcast.native", false);
+	TypedProperties.booleanProperty("ibis.mp.broadcast.native", true);
     private final static boolean USE_BCAST_ALL =
 		TypedProperties.booleanProperty("ibis.mp.broadcast.all");
     private final static boolean USE_BCAST_AT_TWO =
@@ -46,7 +46,7 @@ public class SendPort implements ibis.ipl.SendPort {
     protected static final int NO_BCAST_GROUP = -1;
     protected int group = NO_BCAST_GROUP;
 
-    protected Syncer[] syncer;
+    protected ConnectAcker[] syncer;
 
     private String name;
 
@@ -72,8 +72,8 @@ public class SendPort implements ibis.ipl.SendPort {
     protected native void ibmp_connect(int dest,
 	    			       byte[] rcvePortId,
 				       byte[] sendPortId,
-				       Syncer syncer,
-				       Syncer delayed_syncer,
+				       ConnectAcker syncer,
+				       ConnectAcker delayed_syncer,
 				       int messageCount,
 				       int group,
 				       int startSeqno);
@@ -81,7 +81,7 @@ public class SendPort implements ibis.ipl.SendPort {
     protected native void ibmp_disconnect(int remoteCPU,
 					  byte[] receiverPortId,
 					  byte[] sendPortId,
-					  Syncer syncer,
+					  ConnectAcker syncer,
 					  int count);
 
     SendPort() {
@@ -106,6 +106,38 @@ public class SendPort implements ibis.ipl.SendPort {
     public SendPort(PortType type, String name)
 	    throws IOException {
 	this(type, name, true, false);
+    }
+
+
+    protected class ConnectAcker extends Syncer {
+
+	private boolean accepted;
+	private int	acks = 1;
+
+	public void setAcks(int acks) {
+	    this.acks = acks;
+	}
+
+	public boolean satisfied() {
+	    return acks == 0;
+	}
+
+	public boolean accepted() {
+	    return accepted;
+	}
+
+	public void s_signal(boolean accepted) {
+	    this.accepted = accepted;
+	    --acks;
+	    wakeup();
+	}
+
+	public void s_bcast(boolean accepted) {
+	    this.accepted = accepted;
+	    --acks;
+	    wakeupAll();
+	}
+
     }
 
 
@@ -150,11 +182,11 @@ public class SendPort implements ibis.ipl.SendPort {
 	v[n] = rid;
 	splitter = v;
 
-	Syncer[] s = new Syncer[n + 1];
+	ConnectAcker[] s = new ConnectAcker[n + 1];
 	for (int i = 0; i < n; i++) {
 	    s[i] = syncer[i];
 	}
-	s[n] = new Syncer();
+	s[n] = new ConnectAcker();
 	syncer = s;
 
 	if (connectedCpu == null) {
@@ -182,7 +214,7 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
 
-    private native void requestGroupID(Syncer syncer);
+    private native void requestGroupID(ConnectAcker syncer);
 
     /**
      * {@inheritDoc}
@@ -307,17 +339,16 @@ System.err.println(this + ": switch on fast bcast. Consider disableng ordering")
 	if (group == NO_BCAST_GROUP) {
 
 	    // Apply for a bcast group id with the group id server
-	    Syncer s = new Syncer();
+	    ConnectAcker s = new ConnectAcker();
 	    requestGroupID(s);
+
 	    if (! s.s_wait(0)) {
-		throw new ConnectionRefusedException("No connection to group ID server");
-	    }
-	    if (! s.accepted()) {
 		throw new ConnectionRefusedException("No connection to group ID server");
 	    }
 	    if (group == NO_BCAST_GROUP) {
 		throw new IOException("Retrieval of group ID failed");
 	    }
+
 	    if (Ibis.BCAST_VERBOSE) {
 		System.err.println(ident + ": have broadcast group " + group + " receiver(s) ");
 		for (int i = 0, n = splitter.length; i < n; i++) {
@@ -497,11 +528,12 @@ System.err.println(this + ": switch on fast bcast. Consider disableng ordering")
 
 
     public void disconnect(ibis.ipl.ReceivePortIdentifier r)
-	    throws IOException
-    {
+	    throws IOException {
+
 	if (splitter == null) {
 	    throw new IOException("disconnect: no connections");
 	}
+
 	Ibis.myIbis.lock();
 	try {
 	    int n = splitter.length;

@@ -4,11 +4,11 @@ import ibis.util.ConditionVariable;
 
 import java.io.IOException;
 
-public class Syncer implements PollClient {
+public abstract class Syncer implements PollClient {
 
-    private boolean	signalled;
-    private boolean	accepted;
     private ConditionVariable cv = Ibis.myIbis.createCV();
+
+    private int		waiters;
 
     private PollClient	next;
     private PollClient	prev;
@@ -30,17 +30,25 @@ public class Syncer implements PollClient {
 	prev = c;
     }
 
-    public boolean satisfied() {
-	return signalled;
-    }
+    public abstract boolean satisfied();
 
     public void wakeup() {
-	cv.cv_signal();
+	if (waiters > 0) {
+	    cv.cv_signal();
+	}
+    }
+
+    public void wakeupAll() {
+	if (waiters > 0) {
+	    cv.cv_bcast();
+	}
     }
 
     public void poll_wait(long timeout) {
 	try {
+	    waiters++;
 	    cv.cv_wait(timeout);
+	    waiters--;
 	} catch (InterruptedException e) {
 	    // ignore
 	}
@@ -56,10 +64,6 @@ public class Syncer implements PollClient {
 	me = thread;
     }
 
-    boolean accepted() {
-	return accepted;
-    }
-
     boolean s_wait(long timeout) throws IOException {
 	Ibis.myIbis.checkLockOwned();
 
@@ -69,7 +73,9 @@ public class Syncer implements PollClient {
 	    t_start = System.currentTimeMillis();
 	}
 	while (! satisfied()) {
+	    waiters++;
 	    Ibis.myIbis.waitPolling(this, timeout, Poll.PREEMPTIVE);
+	    waiters--;
 	    if (timeout > 0) {
 		if (System.currentTimeMillis() >= t_start + timeout) {
 		    return false;
@@ -77,27 +83,7 @@ public class Syncer implements PollClient {
 	    }
 	}
 
-	signalled = false;
-
 	return true;
-    }
-
-    void s_signal(boolean accepted) {
-	Ibis.myIbis.checkLockOwned();
-	this.accepted = accepted;
-	signalled = true;
-	if (satisfied()) {
-	    wakeup();
-	}
-    }
-
-    void s_bcast(boolean accepted) {
-	Ibis.myIbis.checkLockOwned();
-	this.accepted = accepted;
-	signalled = true;
-	if (satisfied()) {
-	    cv.cv_bcast();
-	}
     }
 
 }

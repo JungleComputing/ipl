@@ -15,10 +15,8 @@
 #include "ibmp_send_port.h"
 
 
-static jclass		cls_Syncer;
 static jmethodID	md_s_signal;
 
-static jclass		cls_ShadowSendPort;
 static jfieldID		fld_connect_allowed;
 
 
@@ -230,6 +228,9 @@ ibmp_connect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 void
 ibmp_connect_init(JNIEnv *env)
 {
+    jclass	cls_Syncer;
+    jclass	cls_ShadowSendPort;
+
     ibmp_connect_port = ibp_mp_port_register(ibmp_connect_handle);
     ibmp_connect_proto_start = align_to(ibp_mp_proto_offset(), ibmp_connect_hdr_t);
     ibmp_connect_proto_size  = ibmp_connect_proto_start + sizeof(ibmp_connect_hdr_t);
@@ -250,11 +251,10 @@ ibmp_connect_init(JNIEnv *env)
     fld_connect_allowed = (*env)->GetFieldID(env, cls_ShadowSendPort,
 					     "connect_allowed", "Z");
 
-    cls_Syncer = (*env)->FindClass(env, "ibis/impl/messagePassing/Syncer");
+    cls_Syncer = (*env)->FindClass(env, "ibis/impl/messagePassing/SendPort$ConnectAcker");
     if (cls_Syncer == NULL) {
-	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/Syncer\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/SendPort$ConnectAcker\n");
     }
-    cls_Syncer = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Syncer);
 
     md_s_signal = (*env)->GetMethodID(env,
 					  cls_Syncer,

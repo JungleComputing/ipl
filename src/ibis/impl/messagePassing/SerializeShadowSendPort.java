@@ -9,7 +9,6 @@ import java.io.IOException;
 final class SerializeShadowSendPort extends ShadowSendPort {
 
     private final static boolean DEBUG = Ibis.DEBUG || ShadowSendPort.DEBUG;
-    private final static boolean REQUIRE_SYNC_AT_CONNECT_TIME = false;
 
     java.io.ObjectInput obj_in;
 
@@ -39,6 +38,17 @@ final class SerializeShadowSendPort extends ShadowSendPort {
     }
 
 
+    private class ObjectStreamSyncer extends Syncer {
+
+	public boolean satisfied() {
+	    return cachedMessage == null;
+	}
+
+    }
+
+    private ObjectStreamSyncer objectStreamSyncer = new ObjectStreamSyncer();
+
+
     ReadMessage getMessage(int msgSeqno) throws IOException {
 	if (DEBUG) {
 	    if (obj_in == null || connectState != CONNECTED) {
@@ -46,8 +56,8 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	    }
 	}
 
-	while (false && connectState != CONNECTED) {
-	    objectStreamSyncer.s_wait(0);
+	if (connectState != CONNECTED) {
+	    System.err.println(this + ": OOOOPS getMessage() but we are not yet connected");
 	}
 
 	ReadMessage msg = cachedMessage;
@@ -75,43 +85,18 @@ final class SerializeShadowSendPort extends ShadowSendPort {
     }
 
 
-    private class ObjectStreamSyncer extends Syncer {
-
-	public boolean satisfied() {
-	    return obj_in != null;
-	}
-
-    }
-
-    private ObjectStreamSyncer objectStreamSyncer = new ObjectStreamSyncer();
-
-
     void disconnect() throws IOException {
 
 	connectState = CONNECTING;
-	while (cachedMessage != null) {
-	    // During our disconnect/connect, some thread is reading a message.
-	    // Wait until it is done.
-	    Ibis.myIbis.waitPolling(objectStreamSyncer, 0, Poll.PREEMPTIVE);
-	}
 
-	while (! objectStreamSyncer.satisfied()) {
-	    /* Right. We hit a race here. We disconnect before the connection
-	     * has actually established, and before the ObjectIOStream header
-	     * has been consumed. Await that. */
-	    if (DEBUG) {
-		System.err.println(this + ": OOOOPS obj_in not yet initialized. We should poll for connection establishment...");
-		Thread.dumpStack();
-	    }
-	    Ibis.myIbis.waitPolling(objectStreamSyncer, 0, Poll.PREEMPTIVE);
-	}
-	if (DEBUG) {
-	    System.err.println(this + ": received a disconnect message; currently group " + group);
-	}
-
+	// During our disconnect/connect, some thread may be reading a
+	// message. Wait until it is done.
+	// TODO: signal objectStreamSyncer when the message is finished
 	if (cachedMessage != null) {
-	    System.err.println(this + ": OOOOPS disconnect but cachedMessage " + cachedMessage);
+	    System.err.println(this + ": Uh oh -- live message during disconnect");
 	}
+	objectStreamSyncer.s_wait(0);
+
 	connectState = UNCONNECTED;
 	obj_in = null;
     }
@@ -125,36 +110,11 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 				+ " obj_in " + obj_in);
 	}
 
-	if (REQUIRE_SYNC_AT_CONNECT_TIME) {
-	    if (connectState == CONNECTING) {
-		if (DEBUG) {
-		    System.err.println(Thread.currentThread() + ": Negotiate the ObjectStream init race " + this + " -- BINGO BINGO");
-		    Thread.dumpStack();
-		}
-		/* Right. We hit a race here. Some thread is reading the
-		 * initial message, and has to unlock for that.
-		 * We must wait until it's finished. */
-		while (connectState != CONNECTED) {
-		    Ibis.myIbis.waitPolling(objectStreamSyncer, 0, Poll.PREEMPTIVE);
-		}
-		SerializeReadMessage smsg = (SerializeReadMessage)msg;
-		if (smsg.obj_in != null && smsg.obj_in != obj_in) {
-		    System.err.println("NNNNNNNNNNNNNNNNNNNOOOOOOOOOOOOOO this cannot be");
-		}
-		smsg.obj_in = obj_in;
-	    }
-	}
-
 	if (connectState == CONNECTED) {
 	    return true;
 	}
 
 	connectState = CONNECTING;
-	while (cachedMessage != null) {
-	    // During our disconnect/connect, some thread is reading a message.
-	    // Wait until it is done.
-	    Ibis.myIbis.waitPolling(objectStreamSyncer, 0, Poll.PREEMPTIVE);
-	}
 
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + ": Lock ShadowSendPort " + this + " to avoid ObjectStream init race");
@@ -192,9 +152,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	connectState = CONNECTED;
 
 	sendConnectAck(ident.cpu, syncer, true);
-	if (REQUIRE_SYNC_AT_CONNECT_TIME) {
-	    objectStreamSyncer.s_bcast(true);
-	}
+
 	if (DEBUG) {
 	    System.err.println(this +": handled connect, msg " + msg
 		    + " syncer " + Integer.toHexString(syncer)

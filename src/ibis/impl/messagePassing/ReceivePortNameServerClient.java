@@ -17,57 +17,15 @@ final class ReceivePortNameServerClient
     }
 
 
-    private class Bind implements PollClient {
-
-	private PollClient next;
-	private PollClient prev;
-
-	public PollClient next() {
-	    return next;
-	}
-
-	public PollClient prev() {
-	    return prev;
-	}
-
-	public void setNext(PollClient c) {
-	    next = c;
-	}
-
-	public void setPrev(PollClient c) {
-	    prev = c;
-	}
+    private class Bind extends Syncer {
 
 	public boolean satisfied() {
 	    return bound;
 	}
 
-	public void wakeup() {
-	    ns_done.cv_signal();
-	}
-
-	public void poll_wait(long timeout) {
-	    try {
-		ns_done.cv_wait(timeout);
-	    } catch (InterruptedException e) {
-		// ignore
-	    }
-	}
-
-	private Thread me;
-
-	public Thread thread() {
-	    return me;
-	}
-
-	public void setThread(Thread thread) {
-	    me = thread;
-	}
-
 	private boolean	ns_busy = false;
 	private ConditionVariable	ns_free = Ibis.myIbis.createCV();
 
-	private ConditionVariable	ns_done = Ibis.myIbis.createCV();
 	private boolean bound;
 
 	void bind(String name, ReceivePortIdentifier id)
@@ -133,7 +91,7 @@ final class ReceivePortNameServerClient
 	    System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
 	}
 	bind.bound = true;
-	bind.ns_done.cv_signal();
+	bind.wakeup();
     }
 
     private native void ns_bind(String name, byte[] recvPortId);
@@ -146,58 +104,15 @@ final class ReceivePortNameServerClient
     }
 
 
-    private class Lookup implements PollClient {
-
-	private PollClient next;
-	private PollClient prev;
-
-	public PollClient next() {
-	    return next;
-	}
-
-	public PollClient prev() {
-	    return prev;
-	}
-
-	public void setNext(PollClient c) {
-	    next = c;
-	}
-
-	public void setPrev(PollClient c) {
-	    prev = c;
-	}
+    private class Lookup extends Syncer {
 
 	public boolean satisfied() {
 	    return ri != null;
 	}
 
-	public void wakeup() {
-	    ns_done.cv_signal();
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: signal waiter" + this);
-	}
-
-	public void poll_wait(long timeout) {
-	    try {
-		ns_done.cv_wait(timeout);
-	    } catch (InterruptedException e) {
-		// ignore
-	    }
-	}
-
-	private Thread me;
-
-	public Thread thread() {
-	    return me;
-	}
-
-	public void setThread(Thread thread) {
-	    me = thread;
-	}
-
 	private boolean	ns_busy = false;
 	private ConditionVariable	ns_free = Ibis.myIbis.createCV();
 
-	private ConditionVariable	ns_done = Ibis.myIbis.createCV();
 	private ReceivePortIdentifier ri;
 
 	private static final int BACKOFF_MILLIS = 1000;
@@ -241,9 +156,9 @@ final class ReceivePortNameServerClient
 			ri = null;
 			ns_lookup(name);
 
-			if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + ns_done);
+			if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + this);
 			Ibis.myIbis.waitPolling(this, BACKOFF_MILLIS, Poll.PREEMPTIVE);
-			if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri = " + ri + " ns_done = " + ns_done);
+			if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri = " + ri + " this = " + this);
 
 			if (ri != null && ri.cpu != -1) {
 			    if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: clear lookup.ns_busy" + this);
@@ -279,12 +194,12 @@ final class ReceivePortNameServerClient
     /* Called from native */
     private void lookup_reply(byte[] rcvePortId) {
 	Ibis.myIbis.checkLockOwned();
-	if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: lookup reply " + rcvePortId + " " + lookup.ns_done);
+	if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: lookup reply " + rcvePortId + " " + lookup);
 	lookup.ri = null;
 	if (rcvePortId != null) {
 	    try {
 		lookup.ri = (ReceivePortIdentifier)Conversion.byte2object(rcvePortId);
-		lookup.ns_done.cv_signal();
+		lookup.wakeup();
 	    } catch (ClassNotFoundException e) {
 		System.err.println("Cannot deserialize ReceivePortId");
 		Thread.dumpStack();

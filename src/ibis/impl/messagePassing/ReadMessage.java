@@ -4,8 +4,7 @@ import ibis.util.ConditionVariable;
 
 import java.io.IOException;
 
-public class ReadMessage
-	implements ibis.ipl.ReadMessage, PollClient {
+public class ReadMessage implements ibis.ipl.ReadMessage {
 
     ShadowSendPort	shadowSendPort;
 
@@ -55,6 +54,18 @@ public class ReadMessage
 	return port;
     }
 
+
+    private FragmentArrived fragmentArrived = new FragmentArrived();
+
+    private class FragmentArrived extends Syncer {
+
+	public boolean satisfied() {
+	    return fragmentFront.next != null;
+	}
+
+    }
+
+
     void enqueue(ReadFragment f) {
 	if (fragmentFront == null) {
 	    fragmentFront = f;
@@ -62,7 +73,7 @@ public class ReadMessage
 	    fragmentTail.next = f;
 	}
 	fragmentTail = f;
-	wakeup();
+	fragmentArrived.wakeup();
     }
 
 
@@ -90,69 +101,10 @@ public class ReadMessage
     }
 
 
-    /* The PollClient interface */
-
-    private ConditionVariable cv = Ibis.myIbis.createCV();
-
-    private PollClient	poll_next;
-    private PollClient	poll_prev;
-
-    public PollClient next() {
-	return poll_next;
-    }
-
-    public PollClient prev() {
-	return poll_prev;
-    }
-
-    public void setNext(PollClient c) {
-	poll_next = c;
-    }
-
-    public void setPrev(PollClient c) {
-	poll_prev = c;
-    }
-
-    public boolean satisfied() {
-	return fragmentFront.next != null;
-    }
-
-    public void wakeup() {
-	if (sleepers != 0) {
-// System.err.println("Readmessage signalled");
-	    cv.cv_signal();
-	}
-    }
-
-    public void poll_wait(long timeout) {
-// System.err.println("ReadMessage poll_wait");
-	sleepers++;
-	try {
-	    cv.cv_wait(timeout);
-	} catch (InterruptedException e) {
-	    // ignore
-	}
-	sleepers--;
-// System.err.println("ReadMessage woke up");
-    }
-
-    private Thread me;
-
-    public Thread thread() {
-	return me;
-    }
-
-    public void setThread(Thread thread) {
-	me = thread;
-    }
-
-    /* End of the PollClient interface */
-
-
     public void nextFragment() throws IOException {
 	Ibis.myIbis.checkLockOwned();
-	while (fragmentFront.next == null) {
-	    Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
+	while (! fragmentArrived.satisfied()) {
+	    Ibis.myIbis.waitPolling(fragmentArrived, 0, Poll.PREEMPTIVE);
 	}
 	ReadFragment prev = fragmentFront;
 	fragmentFront = fragmentFront.next;
