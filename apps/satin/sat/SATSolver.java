@@ -16,9 +16,17 @@ import java.io.File;
 
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
     private static final boolean traceSolver = false;
+    private static final boolean traceLearning = true;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static int label = 0;
+
+    private static void analyzeConflict( SATContext ctx, SATProblem p )
+    {
+        if( traceLearning ){
+            System.err.println( "Conflict" );
+        }
+    }
 
     /**
      * Solve the leaf part of a SAT problem.
@@ -50,10 +58,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    res = ctx.propagateNegAssignment( p, var );
 	}
 	if( res == -1 ){
-	    // Propagation reveals a conflict.
 	    if( traceSolver ){
 		System.err.println( "ls" + level + ": propagation found a conflict" );
 	    }
+            analyzeConflict( ctx, p );
 	    return;
 	}
 	if( res == 1 ){
@@ -125,6 +133,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    if( traceSolver ){
 		System.err.println( "s" + level + ": propagation found a conflict" );
 	    }
+            analyzeConflict( ctx, p );
 	    return;
 	}
 	if( res == 1 ){
