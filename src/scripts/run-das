@@ -77,6 +77,33 @@ do
 		shift
 		cpumask="$1"
                 ;;
+	-karmi)
+		Xbootclasspath=""
+		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
+		;;
+	-karmi-gm)
+		Xbootclasspath=""
+		Dlibpath="$Dlibpath$KARMI/lib:"
+		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
+		;;
+	-key)
+		shift
+		Dns_pool="-Dibis.name_server.key=$1"
+		;;
+	-ip-map)
+		shift
+		ip_map="$1"
+		ip_addr=`$IBIS_ROOT/bin/ip_map.perl $ip_map \`hostname\``
+		JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
+		# This is required if Sun's RMI is used
+		JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
+		export HOSTS="`$IBIS_ROOT/bin/ip_map.perl $ip_map $HOSTS`"
+		# echo HOSTS $HOSTS
+		# echo PRUN_HOSTNAMES $PRUN_HOSTNAMES
+		export PRUN_HOSTNAMES="`$IBIS_ROOT/bin/ip_map.perl $ip_map $PRUN_HOSTNAMES`"
+
+		# echo PRUN_HOSTNAMES $PRUN_HOSTNAMES
+		;;
 	-jdb)
 		JAVA_EXEC=jdb
 		;;
@@ -93,14 +120,6 @@ do
 		shift
 		Dns_server="-Dibis.name_server.host=$1"
 		;;
-	-pg)
-		shift
-		gprof="$1"
-		;;
-	-p)
-		shift
-		prof="$1"
-		;;
 	-ns-port)
 		shift
 		Dns_port="-Dibis.name_server.port=$1"
@@ -108,32 +127,13 @@ do
 	-ns-d)
 		dedicated_nameserver=1
 		;;
-	-karmi)
-		Xbootclasspath=""
-		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
-		;;
-	-karmi-gm)
-		Xbootclasspath=""
-		Dlibpath="$Dlibpath$KARMI/lib:"
-		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
-		;;
-	-ip-map)
+	-pg)
 		shift
-		ip_map="$1"
-		ip_addr=`$IBIS_ROOT/bin/ip_map.perl $ip_map \`hostname\``
-		JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
-		# This is required if Sun's RMI is used
-		JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
-		export HOSTS="`$IBIS_ROOT/bin/ip_map.perl $ip_map $HOSTS`"
-		# echo HOSTS $HOSTS
-		# echo PRUN_HOSTNAMES $PRUN_HOSTNAMES
-		export PRUN_HOSTNAMES="`$IBIS_ROOT/bin/ip_map.perl $ip_map $PRUN_HOSTNAMES`"
-
-		# echo PRUN_HOSTNAMES $PRUN_HOSTNAMES
+		gprof="$1"
 		;;
-	-key)
+	-p)
 		shift
-		Dns_pool="-Dibis.name_server.key=$1"
+		prof="$1"
 		;;
         *)      java_args="$java_args $qarg"
                 ;;
