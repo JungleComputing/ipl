@@ -1,7 +1,11 @@
 #!/usr/bin/perl
 
 $ip_map = $ARGV[0];
-$name = $ARGV[1];
+
+# printf "arguments @ARGV\n";
+
+shift @ARGV;
+# printf "shifted arguments @ARGV\n";
 
 # printf "Now try to open file \"$ip_map\" to lookup $names\n";
 
@@ -14,5 +18,15 @@ while ( <IP_FILE> ) {
     # printf "Add mapping [ $node, $ip ]\n";
 }
 
-# printf "Now lookup $name\n";
-print "$mapping{ $name }\n";
+foreach ( @ARGV ) {
+    $name = $_;
+    # printf "Now lookup $name\n";
+    ( $name, $cpu ) = split(/\//, $name);
+    # print "name \"$name\" cpu \"$cpu\"\n";
+    print "$mapping{ $name }";
+    if ( $cpu ne "" ) {
+	    print "/$cpu";
+    }
+    print " ";
+}
+print "\n";
