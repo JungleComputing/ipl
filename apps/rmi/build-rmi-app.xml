@@ -29,10 +29,18 @@
     </target>
 
     <target name="build"
-	    depends="init">
+	    depends="init"
+	    description="Compile RMI application for Ibis RMI">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic"/>
 	<antcall inheritRefs="true" target="iogen"/>
+    </target>
+
+    <target name="build-sun"
+	    depends="init"
+	    description="Compile RMI application for Sun RMI">
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="rmic-sun"/>
     </target>
 
     <target name="clean">
