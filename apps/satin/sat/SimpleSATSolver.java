@@ -22,6 +22,12 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
      */
     static final int leafVariables = 50;
 
+    /** For all combinations of the first `firstVariables' variables we
+     * apply simplification. This essentially creates 2^firstVariables
+     * sub-problems that are solved in their own context.
+     */
+    static final int firstVariables = 4;
+
     /**
      * A simple solver that is used when the remaining problem is too
      * small to justify expensive solvers.
@@ -144,21 +150,51 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	int assignments[] = p.getInitialAssignments();
 	int varlist[] = p.buildOrderedVarList();
 	SATSolution res = null;
+	int n = firstVariables;
 
         SimpleSATSolver s = new SimpleSATSolver();
 
+	if( varlist.length<n ){
+	    n = varlist.length;
+	}
         // Now recursively try to find a solution.
 	try {
-	    if( traceSolver ){
-		System.err.println( "Starting recursive solver" );
-	    }
-	    Context ctx = new Context();
+	    boolean busy = true;
 
-	    ctx.p = p;
-	    ctx.varlist = varlist;
-	    s.solve( ctx, assignments, 0 );
-	    //System.err.println( "Solve finished??" );
-	    // res = null;
+	    // Start with the null vector for the first variables.
+	    for( int i=0; i<n; i++ ){
+	        assignments[i] = 0;
+	    }
+
+	    // Now keep spawning solvers until we have tried all permutations
+	    // of the first `firstVariables' variables.
+	    do {
+		if( traceSolver ){
+		    System.err.println( "Starting recursive solver" );
+		}
+		Context ctx = new Context();
+
+		ctx.p = p;
+		ctx.varlist = varlist;
+		s.solve( ctx, assignments, 0 );
+		//System.err.println( "Solve finished??" );
+		// res = null;
+
+		// Calculate the next permutation to try.
+		boolean carry = false;
+		for( int i=0; i<n; i++ ){
+		    if( assignments[i] == 0 ){
+		        assignments[i] = 1;
+			carry = false;
+			break;
+		    }
+		    assignments[i] = 0;
+		    carry = true;
+		}
+		if( carry ){
+		    busy = false;
+		}
+	    } while( busy );
 	    s.sync();
 	}
 	catch( SATResultException r ){
