@@ -7,8 +7,11 @@ import java.io.EOFException;
 import java.net.InetAddress;
 import ibis.ipl.IbisIdentifier;
 import ibis.io.Serializable;
+import ibis.ipl.IbisIOException;
 import ibis.io.MantaOutputStream;
 import ibis.io.MantaInputStream;
+
+
 
 public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializable, ibis.io.Serializable {
 	public static final int serialversionID = 1;
@@ -58,7 +61,7 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 		return name.hashCode();
 	}
 
-	public final void generated_WriteObject(MantaOutputStream stream) throws IOException {
+	public final void generated_WriteObject(MantaOutputStream stream) throws IbisIOException {
 		int handle = TcpIbis.globalIbis.identTable.getHandle(stream, this);
 		stream.writeInt(handle);
 		if(handle < 0) { // First time, send it.
