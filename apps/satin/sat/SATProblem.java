@@ -44,6 +44,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     private static final boolean tracePropagation = false;
     private static final boolean traceNewCode = true;
     private static final boolean traceStats = true;
+    private static final boolean traceClauses = true;
+
     private int label = 0;
 
     public ClauseReviewer reviewer = null;
@@ -260,6 +262,9 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
         int cno = clauseCount;
         addClause( cl );
         registerClauseVariables( cl, cno );
+	if (traceClauses) {
+	    System.err.println("Adding clause " + cno + ": " + cl.toString());
+	}
     }
 
     /**

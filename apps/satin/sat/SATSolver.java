@@ -316,7 +316,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             System.err.println( "Uncaught " + x + "???" );
         }
 
-	int newClauseCount = p.getClauseCount();
+	int newClauseCount = SATSolver.p.getClauseCount();
 	System.err.println( "Learned " + (newClauseCount-oldClauseCount) + " clauses." );
 	return res;
     }
@@ -352,7 +352,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	ibis.satin.SatinObject.resume();
 
 	long startTime = System.currentTimeMillis();
-	SATSolution res = solveSystem( p, false );
+	SATSolution res = solveSystem( p, true );
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
