@@ -24,7 +24,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static void analyzeConflict( SATContext ctx, SATProblem p )
     {
         if( traceLearning ){
-            System.err.println( "Conflict" );
+            Helpers.dumpAssignments( "Conflicting assignments", ctx.assignment );
         }
     }
 

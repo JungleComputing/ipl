@@ -21,8 +21,8 @@ class Helpers {
     /**
      * Given a number of choices in a clause, returns the information
      * content of this choice.
-     * @param n the number of choices
-     * @return the information contents of this choice.
+     * @param n The number of choices.
+     * @return The information contents of this choice.
      */
     static public float information( int n )
     {
@@ -31,4 +31,22 @@ class Helpers {
 	}
         return 1.0f/(n*n*n);
     }
+
+    /**
+     * Prints the specified array of assignments to the error stream.
+     * @param assignment The array of assignments.
+     */
+    public static void dumpAssignments( String label, int assignment[] )
+    {
+	System.err.print( label + ": " );
+	for( int j=0; j<assignment.length; j++ ){
+	    int v = assignment[j];
+	    
+	    if( v != -1 ){
+		System.err.print( " v[" + j + "]=" + v );
+	    }
+	}
+	System.err.println();
+    }
+
 }

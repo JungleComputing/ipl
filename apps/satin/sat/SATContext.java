@@ -382,15 +382,7 @@ public class SATContext implements java.io.Serializable {
 
     private void dumpAssignments()
     {
-	System.err.print( "Assignments:" );
-	for( int j=0; j<assignment.length; j++ ){
-	    int v = assignment[j];
-	    
-	    if( v != UNASSIGNED ){
-		System.err.print( " v[" + j + "]=" + v );
-	    }
-	}
-	System.err.println();
+        Helpers.dumpAssignments( "Assignments", assignment );
     }
 
     /**
