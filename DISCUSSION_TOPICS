@@ -5,15 +5,26 @@ Feel free to add.
 
 Topic		Short explanation
 ----------------------------------------------------------------------------
-Distribution	Bug reports and comments on the upcoming monolithic distibution.
+IbisC		progress/poblems/opinions
 
-Binary distro	In what form? Timeframe?
+Jars		sane split of ibis.jar in multiple jars (possibly no split)
 
-IbisC		The Ibis Compiler. Alternative for building apps to ANT?
-		Default build system for binary distro?
+Ibis coordinator
+		expand and formalize the nameserver interface. give it a
+		better name (coordinator?) and use it in all (most?) Ibis
+		implementations. Functionality includes:
+		- registry
+		- selection of ibis implementation.
+		- run management (tell an Ibis to leave)
+		- ibis group membership management
+		- out of band ibis communication support
 
-Multicast	Mathijs's multicast work should be integrated in the Ibis IPL.
-
+Streams		currently 2/3 of all ibis.io classes are streams. Moreover they
+		all look the same :( Could we somehow "merge" these streams
+		into a smaller number of classes? 
+		Also: IbisSerializationOutputStream should not depend on
+		java.io.ObjectOutputStream, as none is available in J2ME
+		
 Abstract IPL	Most classes in the IPL should be abstract and include
 		generic implementations whenever possible.
 		- Connection management
@@ -23,30 +34,14 @@ Abstract IPL	Most classes in the IPL should be abstract and include
 		- Coordinator/Nameserver client code
 		- Multicast
 		- ?
+		
+Multicast	Mathijs's multicast work should be integrated in the Ibis IPL.
 
 rmi helper class
 		Would it be possible to write a small "helper" class to get
 		people started with RMI. It could handle registry creation,
 		initialize ibis, offer a nice interface for binding and such.
 
-Ibis coordinator
-		expand and formalize the nameserver interface. give it a
-		better name (coordinator?) and use it in every Ibis
-		implementation. New functionality includes:
-		- selection of ibis implementation.
-		- management (tell an Ibis to leave)
-		- ibis group membership management (join/leave/delete?)
-		- tcp connection negotiation
-
-Tcp connect	NioIbis should have support for the tcp connect stuff
-		need connect support for channels.
-
 *ibis		(pronounced multi Ibis). An Ibis designed to use other,
 		possibly multiple, ibisses to actually communicate. Needs to
 		be able to dynamicly add/remove ibis implementations.
-
-p2p coordinator	
-		alternative coordinator implementation which has support for
-		using Ibis in an p2p envoronment. Has some sort of scheduler,
-		file transfer support, and such. Forks new virtual machines
-		to run an app in.
