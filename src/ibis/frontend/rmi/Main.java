@@ -13,38 +13,38 @@ import org.apache.bcel.generic.*;
 
 import ibis.util.BT_Analyzer;
 
-class Main { 
+class Main {
 	static boolean local = true;
-	
-	public static String getFileName(String pkg, String name, String pre) { 		
+
+	public static String getFileName(String pkg, String name, String pre) {
 		if (! local && pkg != null && ! pkg.equals("")) {
 		    return pkg.replace('.', File.separatorChar) +
 			    File.separator + pre + name + ".java";
 		}
 		return pre + name + ".java";
-	} 
+	}
 
 	public static PrintWriter createFile(String name) throws Exception {
 
 		File f = new File(name);
-				
-		if (!f.createNewFile()) { 
+
+		if (!f.createNewFile()) {
 			System.err.println("File " + name + " already exists!");
 			System.exit(1);
 		}
-		
-		FileOutputStream fileOut = new FileOutputStream(f);
-		
-		return new PrintWriter(fileOut);
-	} 
 
-	public static void main(String [] args) { 
-	       
+		FileOutputStream fileOut = new FileOutputStream(f);
+
+		return new PrintWriter(fileOut);
+	}
+
+	public static void main(String [] args) {
+
 		Vector classes = new Vector();
 		boolean verbose = false;
 		JavaClass rmiInterface = null;
-	
-		if (args.length == 0) { 
+
+		if (args.length == 0) {
 			System.err.println("Usage : java Main [-v] [-dir | -local] classname");
 			System.exit(1);
 		}
@@ -52,23 +52,23 @@ class Main {
 		int num = args.length;
 		int i = 0;
 
-		while (i<num) { 
-			if (args[i].equals("-v")) { 
+		while (i<num) {
+			if (args[i].equals("-v")) {
 				verbose = true;
 				args[i] = args[num-1];
 				num--;
-			} else if (args[i].equals("-dir")) { 
+			} else if (args[i].equals("-dir")) {
 				local = false;
 				args[i] = args[num-1];
 				num--;
-			} else if (args[i].equals("-local")) { 
+			} else if (args[i].equals("-local")) {
 				local = true;
 				args[i] = args[num-1];
 				num--;
-			} else { 
+			} else {
 				i++;
 			}
-		} 
+		}
 
 		rmiInterface = Repository.lookupClass("ibis.rmi.Remote");
 
@@ -77,21 +77,21 @@ class Main {
 			System.exit(1);
 		}
 
-		for (i=0;i<num;i++) { 
+		for (i=0;i<num;i++) {
 			JavaClass c = Repository.lookupClass(args[i]);
 			if (c == null) {
 				System.err.println("Class " + args[i] + " not found");
 				System.exit(1);
 			}
 			classes.addElement(c);
-		} 
-				
-		for (i=0;i<classes.size();i++) { 
-			
-			try { 
+		}
+
+		for (i=0;i<classes.size();i++) {
+
+			try {
 				PrintWriter output;
 				JavaClass subject = (JavaClass) classes.get(i);
-				
+
 				BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);
 				a.start();
 
@@ -99,26 +99,24 @@ class Main {
 				    continue;
 				}
 
-				if (verbose) { 
+				if (verbose) {
 					System.out.println("Handling " + subject.getClassName());
 				}
 
-				output = createFile(getFileName(a.packagename, a.classname, "rmi_stub_"));			
+				output = createFile(getFileName(a.packagename, a.classname, "rmi_stub_"));
 				new RMIStubGenerator(a, output, verbose).generate();
 				output.flush();
 
-				output = createFile(getFileName(a.packagename, a.classname, "rmi_skeleton_"));			
+				output = createFile(getFileName(a.packagename, a.classname, "rmi_skeleton_"));
 				new RMISkeletonGenerator(a, output, verbose).generate();
 				output.flush();
 
-			} catch (Exception e) { 
+			} catch (Exception e) {
 				System.err.println("Main got exception " + e);
 				e.printStackTrace();
 				System.exit(1);
 			}
 
-		} 
-	} 
-} 
-
-
+		}
+	}
+}
