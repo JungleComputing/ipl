@@ -181,7 +181,7 @@ System.err.println("This IS a home-only connection");
 
     private void createNewUpcallThread() {
 	if (sleeping_receivers > 0) {
-	    System.err.println(Thread.currentThread() + "(actually woke up a sleeping one)");
+System.err.println(Thread.currentThread() + "(actually woke up a sleeping one)");
 	    sleepers.cv_signal();
 	}
 	else {
@@ -222,6 +222,9 @@ System.err.println("This IS a home-only connection");
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "Enqueue message " + msg + " in port " + this + " msgHandle " + Integer.toHexString(msg.fragmentFront.msgHandle) + " current queueFront " + queueFront);
 	}
+
+// new Throwable().printStackTrace();
+
 	if (queueFront == null) {
 	    queueFront = msg;
 	} else {
@@ -239,13 +242,14 @@ System.err.println("This IS a home-only connection");
 	}
 
 	if (upcall != null) {
-	    wakeup();
+//	    wakeup();
 
 	    if (ibis.ipl.impl.messagePassing.Ibis.STATISTICS) {
 		upcall_msgs++;
 	    }
 	    if (handlingReceive == 0 && ! aMessageIsAlive) {
 System.err.println("enqueue: Create another UpcallThread because the previous one didn't terminate");
+// (new Throwable()).printStackTrace();
 		createNewUpcallThread();
 	    }
 	}
@@ -314,7 +318,9 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
     }
 
     public void poll_wait(long timeout) {
+	arrivedWaiters++;
 	messageArrived.cv_wait(timeout);
+	arrivedWaiters--;
     }
 
     public PollClient next() {
@@ -422,9 +428,7 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " queue " + queueFront + " " + messageArrived);
 	    }
-	    arrivedWaiters++;
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.PREEMPTIVE : Poll.NON_POLLING);
-	    arrivedWaiters--;
 
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + this.ident);
