@@ -25,8 +25,12 @@ ibis.impl.tcp.TcpIbis \
 ibis.impl.net.NetIbis \
     ibis/impl/net/properties
 
+ibis.impl.nio.NioIbis \
+    ibis/impl/nio/properties
+
 order \
     ibis.impl.messagePassing.PandaIbis \
     ibis.impl.messagePassing.MPIIbis \
     ibis.impl.tcp.TcpIbis \
-    ibis.impl.net.NetIbis
+    ibis.impl.net.NetIbis \
+    ibis.impl.nio.NioIbis

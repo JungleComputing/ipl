@@ -130,8 +130,8 @@ public final class RTS {
 
 	    StaticProperties reqprops = new StaticProperties();
 	    reqprops.add("serialization", "sun, ibis");
-	    reqprops.add("world", "open");
-	    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, NoPollForUpcalls, Upcalls, ExplicitReceive");
+	    reqprops.add("worldmodel", "open");
+	    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceive");
 
 	    // @@@ start of horrible code
 	    //			System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");

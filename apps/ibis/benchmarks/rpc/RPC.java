@@ -346,6 +346,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 System.err.println("services " + services + " first_warmup " + first_warmup + " count " + count + " clients " + clients);
 		synchronized(this) {
 		    first_warmup = 0;
+		    notify();
 		}
 	    }
 
@@ -374,7 +375,7 @@ System.err.println("services " + services + " first_warmup " + first_warmup + " 
 
     private void client() throws IOException, ClassNotFoundException {
 	if (warmup > 0) {
-	    System.err.println("Do warmup:      " + count + " calls");
+	    System.err.println("Do warmup:      " + warmup + " calls");
 	    // warmup
 	}
 	send(servers, warmup);
@@ -856,7 +857,7 @@ System.err.println("Poor-man's barrier send finished");
 	    }
 	});
 
-	portType = myIbis.createPortType("test type", myIbis.properties());
+	portType = myIbis.createPortType("test type", StaticProperties.userProperties());
 // manta.runtime.RuntimeSystem.DebugMe(2, 0);
     }
 

@@ -349,8 +349,8 @@ public final class Group implements GroupProtocol {
 	
 	    StaticProperties reqprops = new StaticProperties();
 	    reqprops.add("serialization", "sun, ibis");
-	    reqprops.add("world", "closed");
-	    reqprops.add("communication", "OneToOne, ManyToOne, OneToMany, Reliable, NoPollForUpcalls, Upcalls");
+	    reqprops.add("worldmodel", "closed");
+	    reqprops.add("communication", "OneToOne, ManyToOne, OneToMany, Reliable, AutoUpcalls");
 	    try {
 		ibis         = Ibis.createIbis(reqprops, null);
 	    } catch(NoMatchingIbisException e) {

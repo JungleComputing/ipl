@@ -1,0 +1,107 @@
+#
+# This file describes the properties that can be associated with
+# an Ibis implementation. The format of this file is described
+# in the java.util.Properties.load() API.
+#
+# Properties must be formulated in such a way that a suitable Ibis
+# implementation can be selected by specifying the required properties,
+# which must then be a subset of the properties of this Ibis
+# implementation.
+#
+# Note that an Ibis application may later on only create port types
+# with properties that are a subset of the properties supplied by
+# the Ibis implementation.
+#
+# All properties fall in one of the following property categories:
+#
+
+PropertyCategories:	communication worldmodel serialization
+
+#
+# The possible "communication" properties are:
+#   OneToOne
+#	one-to-one communication is supported (if an Ibis does not support
+#	this, you may wonder what it DOES support ...)
+#   OneToMany
+#	one-to-many communication is supported (in Ibis terms: a sendport
+#	may connect to multiple receiveports).
+#   ManyToOne
+#	many-to-one communication is supported (in Ibis terms: multiple
+#	sendports may connect to a single receiveport).
+#   FifoOrdered
+#   	messages from a sendport are delivered to its receiveports in the
+#   	order in which they were sent.
+#   TotallyOrdered
+#	receiveports receive all messages in the same order. This is stronger
+#	than FifoOrdered, because not all messages have to come from the same
+#	sendport.
+#   Reliable
+#	reliable communication is supported.
+#   Unreliable
+#	unreliable communication is explicitly supported.
+#   AutoUpcalls
+#	upcalls are supported and polling for them is not required.
+#   PollUpcalls
+#	upcalls are supported but polling for them is required. When an
+#	Ibis implementation claims that it has this, it may also do
+#	AutoUpcalls but polling does no harm. When an application asks for
+#	this (and not AutoUpcalls), it must poll.
+#   ExplicitReceipt
+#	explicit receive is supported.
+#   ConnectionAdministration
+#	connection administration is supported.
+#   ConnectionUpcalls
+#	connection upcalls are supported.
+#
+
+communication:	OneToOne, OneToMany, ManyToOne, \
+		FifoOrdered, TotallyOrdered, \
+		Reliable, Unreliable, \
+		AutoUpcalls, PollUpcalls, ExplicitReceipt, \
+		ConnectionAdministration, ConnectionUpcalls
+
+#
+# There are some implied properties, for instance OneToMany implies OneToOne.
+#
+
+OneToMany:	OneToOne
+ManyToOne:	OneToOne
+TotallyOrdered:	FifoOrdered
+
+#
+# The possible "worldmodel" properties are:
+#    Open
+#	this means that Ibises can join the run at any time.
+#    Closed
+#	this means that the Ibises that can join the run are determined
+#	at the start of the run.
+#
+
+worldmodel:	Open, Closed
+
+#
+# The possible "serialization" properties are:
+#    Byte
+#	readByte/writeByte and readArray/writeArray(byte[]) are supported.
+#    Data
+#	read/write and readArray/writeArray of primitive types are supported.
+#    Ibis
+#	Ibis serialization is supported.
+#    Sun
+#	Sun serialization (through java.io.ObjectOutputStream/InputStream) is
+#	supported.
+#
+# Note: Ibis serialization does not support versioning, and does not support
+# non-symmetrical writeObject/readObject methods (where readObject does not
+# read everything that writeObject writes).
+#
+
+serialization:	Byte, Data, Ibis, Sun
+
+#
+# Implied properties:
+#
+
+Data:		Byte
+Ibis:		Data
+Sun:		Data

@@ -4,8 +4,8 @@
 # determined at port type creation time.
 #
 serialization = bytes, data, ibis, sun
-world = open, closed
+worldmodel = open, closed
 communication = OneToOne, OneToMany, ManyToOne, \
-		Fifo, Reliable, Unreliable, NoPollForUpcalls, \
-		Upcalls, ExplicitReceipt, ConnectionAdministration, \
+		FifoOrdered, Reliable, Unreliable, PollUpcalls, \
+		AutoUpcalls, ExplicitReceipt, ConnectionAdministration, \
 		ConnectionUpcalls

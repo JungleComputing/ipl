@@ -246,18 +246,18 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		if (closed) {
-		    reqprops.add("world", "closed");
+		    reqprops.add("worldmodel", "closed");
 		}
 		else {
-		    reqprops.add("world", "open");
+		    reqprops.add("worldmodel", "open");
 		}
 
 		if (doUpcalls) {
 		    if (upcallPolling) {
-			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, Upcalls, ExplicitReceive");
+			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, PollUpcalls, ExplicitReceive");
 		    }
 		    else {
-			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, Upcalls, NoPollForUpcalls, ExplicitReceive");
+			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceive");
 		    }
 		}
 		else {

@@ -249,11 +249,10 @@ public abstract class Ibis {
 
 	if (ibisname == null) {
 	    String[] impls = list();
-	    PropertyMatcher pm = new PropertyMatcher(reqprop);
 	    for (int i = 0; i < impls.length; i++) {
 		StaticProperties ibissp = staticProperties(impls[i]);
 //		    System.out.println("try " + impls[i]);
-		if (pm.matchProperties(ibissp)) {
+		if (reqprop.matchProperties(ibissp)) {
 //			System.out.println("match!");
 		    implementationname = impls[i];
 		    break;
@@ -297,9 +296,10 @@ public abstract class Ibis {
      * Reads the properties of an ibis implementation.
      */
     private static void addIbis(String name, Properties p) throws IOException {
-	StaticProperties sp = new StaticProperties();
 	String propertyFiles = p.getProperty(name);
+
 	if (propertyFiles != null) {
+	    StaticProperties sp = new StaticProperties();
 	    StringTokenizer st = new StringTokenizer(propertyFiles,
 						     " ,\t\n\r\f");
 	    while (st.hasMoreTokens()) {
@@ -313,11 +313,11 @@ public abstract class Ibis {
 		sp.load(in);
 		in.close();
 	    }
-	}
 
-	synchronized(Ibis.class) {
-	    implList.add(name);
-	    implProperties.add(sp);
+	    synchronized(Ibis.class) {
+		implList.add(name);
+		implProperties.add(sp);
+	    }
 	}
     }
 
@@ -535,6 +535,14 @@ public abstract class Ibis {
     public String name() { 
 	return name;
     } 
+
+    /**
+     * Returns the implementation name of this Ibis instance.
+     * @return the implementation name of this Ibis instance.
+     */
+    public String implementationName() {
+	return implName;
+    }
 
     /**
      * Returns an Ibis {@linkplain ibis.ipl.IbisIdentifier identifier} for
