@@ -18,8 +18,8 @@ public final class AccumulatorOutputStream extends OutputStream {
      * @param out	the underlying <code>Accumulator</code>
      */
     public AccumulatorOutputStream(Accumulator out) {
-	super();
-	this.out = out;
+        super();
+        this.out = out;
     }
 
     /**
@@ -29,7 +29,7 @@ public final class AccumulatorOutputStream extends OutputStream {
      * @exception IOException when an IO error occurs.
      */
     public void close() throws IOException {
-	out.close();
+        out.close();
     }
 
     /**
@@ -39,7 +39,7 @@ public final class AccumulatorOutputStream extends OutputStream {
      * @exception IOException when an IO error occurs.
      */
     public void flush() throws IOException {
-	out.flush();
+        out.flush();
     }
 
     /**
@@ -49,7 +49,7 @@ public final class AccumulatorOutputStream extends OutputStream {
      * @exception IOException when an IO error occurs.
      */
     public void write(int b) throws IOException {
-	out.writeByte((byte) (0xff & b));
+        out.writeByte((byte) (0xff & b));
     }
 
     /**
@@ -59,7 +59,7 @@ public final class AccumulatorOutputStream extends OutputStream {
      * @exception IOException when an IO error occurs.
      */
     public void write(byte[] b) throws IOException {
-	out.writeArray(b, 0, b.length);
+        out.writeArray(b, 0, b.length);
     }
 
     /**
@@ -69,6 +69,6 @@ public final class AccumulatorOutputStream extends OutputStream {
      * @exception IOException when an IO error occurs.
      */
     public void write(byte[] b, int off, int len) throws IOException {
-	out.writeArray(b, off, len);
+        out.writeArray(b, off, len);
     }
 }

@@ -12,7 +12,7 @@ public class IllegalLockStateException extends ibis.ipl.IbisRuntimeException {
      * <code>null</code> as its error detail message.
      */
     public IllegalLockStateException() {
-	super();
+        super();
     }
 
     /**
@@ -21,7 +21,7 @@ public class IllegalLockStateException extends ibis.ipl.IbisRuntimeException {
      * @param s         the detail message
      */
     public IllegalLockStateException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -31,7 +31,7 @@ public class IllegalLockStateException extends ibis.ipl.IbisRuntimeException {
      * @param cause     the cause
      */
     public IllegalLockStateException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -40,6 +40,6 @@ public class IllegalLockStateException extends ibis.ipl.IbisRuntimeException {
      * @param cause     the cause
      */
     public IllegalLockStateException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

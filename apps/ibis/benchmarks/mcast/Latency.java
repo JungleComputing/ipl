@@ -1,3 +1,4 @@
+
 import ibis.ipl.*;
 import ibis.util.PoolInfo;
 
@@ -7,125 +8,128 @@ import java.io.IOException;
 class Latency {
 
     static Ibis ibis;
+
     static Registry registry;
 
     public static ReceivePortIdentifier lookup(String name) throws IOException {
 
-	ReceivePortIdentifier temp = null;
+        ReceivePortIdentifier temp = null;
 
-	do {
-	    temp = registry.lookupReceivePort(name);
+        do {
+            temp = registry.lookupReceivePort(name);
 
-	    if (temp == null) {
-		try {
-		    Thread.sleep(1000);
-		} catch (Exception e) {
-		    // ignore
-		}
-	    }
+            if (temp == null) {
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
 
-	} while (temp == null);
+        } while (temp == null);
 
-	return temp;
+        return temp;
     }
 
-    public static void main(String [] args) {
-	/* Parse commandline. */
+    public static void main(String[] args) {
+        /* Parse commandline. */
 
-	boolean upcall = false;
+        boolean upcall = false;
 
-	if (args.length > 1) {
-	    upcall = args[1].equals("-u");
-	}
+        if (args.length > 1) {
+            upcall = args[1].equals("-u");
+        }
 
-	try {
-	    PoolInfo info = PoolInfo.createPoolInfo();
+        try {
+            PoolInfo info = PoolInfo.createPoolInfo();
 
-	    int rank = info.rank();
-	    int size = info.size();
-	    int remoteRank = (rank == 0 ? 1 : 0);
+            int rank = info.rank();
+            int size = info.size();
+            int remoteRank = (rank == 0 ? 1 : 0);
 
-	    StaticProperties sp = new StaticProperties();
-	    sp.add("serialization", "object");
-	    sp.add("communication", "OneToOne, ManyToOne, OneToMany, Reliable, ExplicitReceipt, AutoUpcalls");
-	    sp.add("worldmodel", "closed");
+            StaticProperties sp = new StaticProperties();
+            sp.add("serialization", "object");
+            sp
+                    .add("communication",
+                            "OneToOne, ManyToOne, OneToMany, Reliable, ExplicitReceipt, AutoUpcalls");
+            sp.add("worldmodel", "closed");
 
-	    ibis     = Ibis.createIbis(sp, null);
-	    registry = ibis.registry();
+            ibis = Ibis.createIbis(sp, null);
+            registry = ibis.registry();
 
-	    PortType t = ibis.createPortType("test type", sp);
+            PortType t = ibis.createPortType("test type", sp);
 
-	    ReceivePort rport = t.createReceivePort("receive port " + rank);
-	    SendPort sport = t.createSendPort("send port " + rank);
+            ReceivePort rport = t.createReceivePort("receive port " + rank);
+            SendPort sport = t.createSendPort("send port " + rank);
 
-	    rport.enableConnections();
+            rport.enableConnections();
 
-	    Latency lat = null;
+            Latency lat = null;
 
-	    if (rank == 0) {
-		sport.connect(rport.identifier());
+            if (rank == 0) {
+                sport.connect(rport.identifier());
 
-		System.err.println(rank + "*******  connect to myself");
+                System.err.println(rank + "*******  connect to myself");
 
-		for (int i=1;i<size;i++) {
+                for (int i = 1; i < size; i++) {
 
-		    System.err.println(rank + "******* receive");
+                    System.err.println(rank + "******* receive");
 
-		    ReadMessage r = rport.receive();
-		    ReceivePortIdentifier id = (ReceivePortIdentifier) r.readObject();
-		    r.finish();
+                    ReadMessage r = rport.receive();
+                    ReceivePortIdentifier id = (ReceivePortIdentifier) r
+                            .readObject();
+                    r.finish();
 
-		    System.err.println(rank + "*******  connect to " + id);
+                    System.err.println(rank + "*******  connect to " + id);
 
-		    sport.connect(id);
-		}
+                    sport.connect(id);
+                }
 
-		System.err.println(rank + "*******  connect done ");
+                System.err.println(rank + "*******  connect done ");
 
-		WriteMessage w = sport.newMessage();
-		w.writeInt(42);
-		w.finish();
+                WriteMessage w = sport.newMessage();
+                w.writeInt(42);
+                w.finish();
 
-		sport.close();
+                sport.close();
 
-	    } else {
-		ReceivePortIdentifier id = lookup("receive port 0");
+            } else {
+                ReceivePortIdentifier id = lookup("receive port 0");
 
+                System.err.println(rank + "*******  connect to 0");
 
-		System.err.println(rank + "*******  connect to 0");
+                sport.connect(id);
 
-		sport.connect(id);
+                System.err.println(rank + "*******  connect done");
 
-		System.err.println(rank + "*******  connect done");
+                WriteMessage w = sport.newMessage();
+                w.writeObject(rport.identifier());
+                w.finish();
 
-		WriteMessage w = sport.newMessage();
-		w.writeObject(rport.identifier());
-		w.finish();
+                sport.close();
+            }
 
-		sport.close();
-	    }
+            ReadMessage r = rport.receive();
+            int result = r.readInt();
+            r.finish();
 
-	    ReadMessage r = rport.receive();
-	    int result = r.readInt();
-	    r.finish();
+            System.out.println(rank + " got " + result);
 
-	    System.out.println(rank + " got " + result);
+            rport.close();
+            ibis.end();
 
-	    rport.close();
-	    ibis.end();
-
-	} catch (IOException e) {
-	    System.out.println("Got exception " + e);
-	    System.out.println("StackTrace:");
-	    e.printStackTrace();
-	} catch (ClassNotFoundException e) {
-	    System.out.println("Got exception " + e);
-	    System.out.println("StackTrace:");
-	    e.printStackTrace();
-	} catch (IbisException e) {
-	    System.out.println("Got exception " + e);
-	    System.out.println("StackTrace:");
-	    e.printStackTrace();
-	}
+        } catch (IOException e) {
+            System.out.println("Got exception " + e);
+            System.out.println("StackTrace:");
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            System.out.println("Got exception " + e);
+            System.out.println("StackTrace:");
+            e.printStackTrace();
+        } catch (IbisException e) {
+            System.out.println("Got exception " + e);
+            System.out.println("StackTrace:");
+            e.printStackTrace();
+        }
     }
 }

@@ -7,7 +7,7 @@ package org.apache.bcel;
  */
 
 public interface RepositoryObserver {
-  /** Notify that a class is added to the Repository.
-   */
-  public void notify(String class_name);
+    /** Notify that a class is added to the Repository.
+     */
+    public void notify(String class_name);
 }

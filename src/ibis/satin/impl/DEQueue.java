@@ -14,7 +14,7 @@ abstract class DEQueue implements Config {
 
     // Dijkstra
     abstract void killChildrenOf(int targetStamp,
-	    ibis.ipl.IbisIdentifier targetOwner);
+            ibis.ipl.IbisIdentifier targetOwner);
 
     abstract void killSubtreeOf(ibis.ipl.IbisIdentifier targetOwner);
 

@@ -3,8 +3,8 @@ package ibis.impl.net;
 /**
  * Default implementation for {@link ibis.impl.net.NetBufferFactoryImpl}.
  */
-public class NetBufferFactoryDefaultImpl
-    implements ibis.impl.net.NetBufferFactoryImpl {
+public class NetBufferFactoryDefaultImpl implements
+        ibis.impl.net.NetBufferFactoryImpl {
 
     /**
      * Create a buffer around a specified byte array and
@@ -17,10 +17,9 @@ public class NetBufferFactoryDefaultImpl
      * 		data array
      * @return the buffer
      */
-    public NetBuffer createBuffer(byte[] data,
-				  int length,
-				  NetAllocator allocator) {
-	return new NetBuffer(data, length, allocator);
+    public NetBuffer createBuffer(byte[] data, int length,
+            NetAllocator allocator) {
+        return new NetBuffer(data, length, allocator);
     }
 
     /**
@@ -30,7 +29,7 @@ public class NetBufferFactoryDefaultImpl
      * @return true because all buffers are compatible with this buffer factory
      */
     public boolean isSuitableClass(NetBuffer buffer) {
-	return true;
+        return true;
     }
 
 }

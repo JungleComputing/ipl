@@ -15,7 +15,7 @@ public class IbisIOException extends IOException {
      * <code>null</code> as its error detail message.
      */
     public IbisIOException() {
-	super();
+        super();
     }
 
     /**
@@ -25,7 +25,7 @@ public class IbisIOException extends IOException {
      * @param s		the detail message
      */
     public IbisIOException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -36,8 +36,8 @@ public class IbisIOException extends IOException {
      * @param cause	the cause
      */
     public IbisIOException(String s, Throwable cause) {
-	super(s);
-	initCause(cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -47,8 +47,8 @@ public class IbisIOException extends IOException {
      * @param cause	the cause
      */
     public IbisIOException(Throwable cause) {
-	super();
-	initCause(cause);
+        super();
+        initCause(cause);
     }
 
     /**
@@ -57,7 +57,7 @@ public class IbisIOException extends IOException {
      * @return the cause.
      */
     public Throwable initCause(Throwable t) {
-	return cause = t;
+        return cause = t;
     }
 
     /**
@@ -66,7 +66,7 @@ public class IbisIOException extends IOException {
      * @return the cause.
      */
     public Throwable getCause() {
-	return cause;
+        return cause;
     }
 
     /**
@@ -76,12 +76,12 @@ public class IbisIOException extends IOException {
      * @return the detail message.
      */
     public String getMessage() {
-	String res = super.getMessage();
-	if(cause != null) {
-	    res += ": " + cause.getMessage();
-	}
+        String res = super.getMessage();
+        if (cause != null) {
+            res += ": " + cause.getMessage();
+        }
 
-	return res;
+        return res;
     }
 
     /**
@@ -89,10 +89,10 @@ public class IbisIOException extends IOException {
      * <code>this</code>.
      */
     public void printStackTrace() {
-	if(cause != null) {
-	    cause.printStackTrace();
-	}
+        if (cause != null) {
+            cause.printStackTrace();
+        }
 
-	super.printStackTrace();
+        super.printStackTrace();
     }
 }

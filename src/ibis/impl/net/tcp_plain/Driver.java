@@ -14,30 +14,31 @@ import java.io.IOException;
  */
 public final class Driver extends NetDriver {
 
-	/**
-	 * The driver name.
-	 */
-	private final String name = "tcp_plain";
+    /**
+     * The driver name.
+     */
+    private final String name = "tcp_plain";
 
+    /**
+     * Constructor.
+     *
+     * @param ibis the {@link ibis.impl.net.NetIbis} instance.
+     */
+    public Driver(NetIbis ibis) {
+        super(ibis);
+    }
 
-	/**
-	 * Constructor.
-	 *
-	 * @param ibis the {@link ibis.impl.net.NetIbis} instance.
-	 */
-	public Driver(NetIbis ibis) {
-		super(ibis);
-	}	
+    public String getName() {
+        return name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public NetInput newInput(NetPortType pt, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        return new TcpInput(pt, this, context, inputUpcall);
+    }
 
-	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
-		return new TcpInput(pt, this, context, inputUpcall);
-	}
-
-	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
-		return new TcpOutput(pt, this, context);
-	}
+    public NetOutput newOutput(NetPortType pt, String context)
+            throws IOException {
+        return new TcpOutput(pt, this, context);
+    }
 }

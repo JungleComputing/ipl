@@ -13,7 +13,7 @@ public class IbisRuntimeException extends RuntimeException {
      * <code>null</code> as its error detail message.
      */
     public IbisRuntimeException() {
-	super();
+        super();
     }
 
     /**
@@ -23,7 +23,7 @@ public class IbisRuntimeException extends RuntimeException {
      * @param s		the detail message
      */
     public IbisRuntimeException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -34,8 +34,8 @@ public class IbisRuntimeException extends RuntimeException {
      * @param cause	the cause
      */
     public IbisRuntimeException(String s, Throwable cause) {
-	super(s);
-	initCause(cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -45,8 +45,8 @@ public class IbisRuntimeException extends RuntimeException {
      * @param cause	the cause
      */
     public IbisRuntimeException(Throwable cause) {
-	super();
-	initCause(cause);
+        super();
+        initCause(cause);
     }
 
     /**
@@ -55,7 +55,7 @@ public class IbisRuntimeException extends RuntimeException {
      * @return the cause.
      */
     public Throwable initCause(Throwable t) {
-	return cause = t;
+        return cause = t;
     }
 
     /**
@@ -64,7 +64,7 @@ public class IbisRuntimeException extends RuntimeException {
      * @return the cause.
      */
     public Throwable getCause() {
-	return cause;
+        return cause;
     }
 
     /**
@@ -74,12 +74,12 @@ public class IbisRuntimeException extends RuntimeException {
      * @return the detail message.
      */
     public String getMessage() {
-	String res = super.getMessage();
-	if(cause != null) {
-	    res += ": " + cause.getMessage();
-	}
+        String res = super.getMessage();
+        if (cause != null) {
+            res += ": " + cause.getMessage();
+        }
 
-	return res;
+        return res;
     }
 
     /**
@@ -87,10 +87,10 @@ public class IbisRuntimeException extends RuntimeException {
      * <code>this</code>.
      */
     public void printStackTrace() {
-	if(cause != null) {
-	    cause.printStackTrace();
-	}
+        if (cause != null) {
+            cause.printStackTrace();
+        }
 
-	super.printStackTrace();
+        super.printStackTrace();
     }
 }

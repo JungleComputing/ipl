@@ -17,29 +17,29 @@ public final class DissipatorInputStream extends InputStream {
      * @param in	the underlying dissipator.
      */
     public DissipatorInputStream(Dissipator in) {
-	super();
-	this.in = in;
+        super();
+        this.in = in;
     }
 
     public int available() throws IOException {
-	return in.available();
+        return in.available();
     }
 
     public int read() throws IOException {
-	return in.readByte();
+        return in.readByte();
     }
 
     public int read(byte[] b) throws IOException {
-	in.readArray(b, 0, b.length);
-	return b.length;
+        in.readArray(b, 0, b.length);
+        return b.length;
     }
 
     public int read(byte[] b, int off, int len) throws IOException {
-	in.readArray(b, off, len);
-	return len;
+        in.readArray(b, off, len);
+        return len;
     }
 
     public void close() throws IOException {
-	in.close();
+        in.close();
     }
 }

@@ -25,24 +25,25 @@ package ibis.util;
 final public class ConditionVariable {
 
     private Monitor lock;
+
     private final boolean INTERRUPTIBLE;
 
     static long waits;
+
     static long timed_waits;
+
     static long signals;
+
     static long bcasts;
 
-
     ConditionVariable(Monitor lock, boolean interruptible) {
-	this.lock = lock;
-	INTERRUPTIBLE = interruptible;
+        this.lock = lock;
+        INTERRUPTIBLE = interruptible;
     }
-
 
     ConditionVariable(Monitor lock) {
-	this(lock, false);
+        this(lock, false);
     }
-
 
     /**
      * Waits until the thread is signalled (by means of {@link #cv_signal()}
@@ -52,29 +53,28 @@ final public class ConditionVariable {
      * was invoked on the current thread.
      */
     final public void cv_wait() throws InterruptedException {
-	lock.checkImOwner();
-	if (Monitor.STATISTICS) {
-	    waits++;
-	}
+        lock.checkImOwner();
+        if (Monitor.STATISTICS) {
+            waits++;
+        }
 
-	try {
-	    synchronized (this) {
-		lock.unlock();
-		if (INTERRUPTIBLE) {
-		    wait();
-		} else {
-		    try {
-			wait();
-		    } catch (InterruptedException e) {
-			// Ignore
-		    }
-		}
-	    }
-	} finally {
-	    lock.lock();
-	}
+        try {
+            synchronized (this) {
+                lock.unlock();
+                if (INTERRUPTIBLE) {
+                    wait();
+                } else {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        // Ignore
+                    }
+                }
+            }
+        } finally {
+            lock.lock();
+        }
     }
-
 
     /**
      * Waits until the thread is signalled (by means of {@link #cv_signal()}
@@ -86,63 +86,61 @@ final public class ConditionVariable {
      * @return <code>true</code> when this method returns because the timeout expired.
      */
     final public boolean cv_wait(long timeout) throws InterruptedException {
-	lock.checkImOwner();
-	if (Monitor.STATISTICS) {
-	    timed_waits++;
-	}
+        lock.checkImOwner();
+        if (Monitor.STATISTICS) {
+            timed_waits++;
+        }
 
-	boolean timedOut = false;
+        boolean timedOut = false;
 
-	try {
-	    synchronized (this) {
-		long now = System.currentTimeMillis();
-		lock.unlock();
-		if (INTERRUPTIBLE) {
-		    wait(timeout);
-		} else {
-		    try {
-			wait(timeout);
-		    } catch (InterruptedException e) {
-			// Ignore
-		    }
-		}
-		timedOut = (System.currentTimeMillis() - now >= timeout);
-	    }
-	} finally {
-	    lock.lock();
-	}
+        try {
+            synchronized (this) {
+                long now = System.currentTimeMillis();
+                lock.unlock();
+                if (INTERRUPTIBLE) {
+                    wait(timeout);
+                } else {
+                    try {
+                        wait(timeout);
+                    } catch (InterruptedException e) {
+                        // Ignore
+                    }
+                }
+                timedOut = (System.currentTimeMillis() - now >= timeout);
+            }
+        } finally {
+            lock.lock();
+        }
 
-	return timedOut;
+        return timedOut;
     }
-
 
     /**
      * Signals a single thread that is waiting on this condition variable.
      */
     final public void cv_signal() {
-	lock.checkImOwner();
-	if (Monitor.STATISTICS) {
-	    signals++;
-	}
+        lock.checkImOwner();
+        if (Monitor.STATISTICS) {
+            signals++;
+        }
 
-	synchronized (this) {
-	    notify();
-	}
+        synchronized (this) {
+            notify();
+        }
     }
-
 
     /**
      * Signals all threads that are waiting on this condition variable.
      */
     final public void cv_bcast() {
-	lock.checkImOwner();
-	if (Monitor.STATISTICS) {
-	    bcasts++;
-	}
+        lock.checkImOwner();
+        if (Monitor.STATISTICS) {
+            bcasts++;
+        }
 
-	synchronized (this) {
-	    notifyAll();
-	}
+        synchronized (this) {
+            notifyAll();
+        }
     }
 
     /**
@@ -150,11 +148,9 @@ final public class ConditionVariable {
      * @param out the stream to print on.
      */
     static public void report(java.io.PrintStream out) {
-	if (Monitor.STATISTICS) {
-	    out.println("Condition variables: wait " + waits +
-			" timed wait " + timed_waits +
-			" signal " + signals +
-			" bcast " + bcasts);
-	}
+        if (Monitor.STATISTICS) {
+            out.println("Condition variables: wait " + waits + " timed wait "
+                    + timed_waits + " signal " + signals + " bcast " + bcasts);
+        }
     }
 }

@@ -10,17 +10,17 @@ import java.io.IOException;
 public class PandaIbis extends Ibis {
 
     public PandaIbis() throws IbisException {
-	super();
+        super();
     }
 
     boolean broadcastSupported() {
-	return true;
+        return true;
     }
 
     protected void init() throws IbisException, IOException {
-	ibis.ipl.Ibis.loadLibrary("ibis_mp_panda");
-	super.init();
-	// new InterruptCatcher().start();
+        ibis.ipl.Ibis.loadLibrary("ibis_mp_panda");
+        super.init();
+        // new InterruptCatcher().start();
     }
 
     /**
@@ -32,26 +32,28 @@ public class PandaIbis extends Ibis {
      * So, we don't call init() but do the Panda stuff ourselves.
      */
     public static void main(String[] arg) {
-	ibis.ipl.Ibis.loadLibrary("ibis_mp_panda");
-	// System.loadLibrary("ibis_mp");
-	try {
-	    Ibis i = new PandaIbis();
+        ibis.ipl.Ibis.loadLibrary("ibis_mp_panda");
+        // System.loadLibrary("ibis_mp");
+        try {
+            Ibis i = new PandaIbis();
 
-	    System.err.println("Cluster gateway: run a stripped " + i.getClass().getName());
+            System.err.println("Cluster gateway: run a stripped "
+                    + i.getClass().getName());
 
-	    Ibis.myIbis = i;
-	    i.ibmp_init(arg);
-	    if (i.myCpu < i.nrCpus) {
-		throw new IbisException("Use Ibis.main() only for cluster gateways");
-	    }
-	    i.ibmp_start();
-	    /* The gateway will block in end() until all other participants have
-	     * left */
-	    i.ibmp_end();
-	    System.exit(0);
-	} catch (IbisException e) {
-	    System.err.println("Ibis.main: " + e);
-	}
+            Ibis.myIbis = i;
+            i.ibmp_init(arg);
+            if (i.myCpu < i.nrCpus) {
+                throw new IbisException(
+                        "Use Ibis.main() only for cluster gateways");
+            }
+            i.ibmp_start();
+            /* The gateway will block in end() until all other participants have
+             * left */
+            i.ibmp_end();
+            System.exit(0);
+        } catch (IbisException e) {
+            System.err.println("Ibis.main: " + e);
+        }
     }
 
 }

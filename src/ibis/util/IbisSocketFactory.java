@@ -17,68 +17,78 @@ import java.net.Socket;
  */
 public abstract class IbisSocketFactory {
     private static final String prefix = "ibis.util.socketfactory.";
+
     private static final String sf = prefix + "class";
+
     private static final String rng = prefix + "port.range";
+
     private static final String debug = prefix + "debug";
+
     private static final String inbufsize = prefix + "InputBufferSize";
+
     private static final String outbufsize = prefix + "OutputBufferSize";
-    private static final String[] sysprops = {
-	sf,
-	debug,
-	inbufsize,
-	outbufsize,
-	rng
-    };
+
+    private static final String[] sysprops = { sf, debug, inbufsize,
+            outbufsize, rng };
 
     private static String DEFAULT_SOCKET_FACTORY = "ibis.impl.util.IbisConnectSocketFactory";
+
     private static String socketFactoryName;
 
-    protected static final boolean DEBUG = TypedProperties.booleanProperty(debug, false);
+    protected static final boolean DEBUG = TypedProperties.booleanProperty(
+            debug, false);
 
     static boolean firewall = false;
+
     static int portNr = 0;
+
     static int startRange = 0;
+
     static int endRange = 0;
+
     static int inputBufferSize = 0;
+
     static int outputBufferSize = 0;
 
     static {
-	TypedProperties.checkProperties(prefix, sysprops, null);
-	String sfClass = System.getProperty(sf);
-	String range = System.getProperty(rng);
+        TypedProperties.checkProperties(prefix, sysprops, null);
+        String sfClass = System.getProperty(sf);
+        String range = System.getProperty(rng);
         if (sfClass != null) {
-	    socketFactoryName = sfClass;
+            socketFactoryName = sfClass;
         } else {
-	    socketFactoryName = DEFAULT_SOCKET_FACTORY;
+            socketFactoryName = DEFAULT_SOCKET_FACTORY;
         }
-	if(range != null) {
-	    int pos = range.indexOf('-');
-	    if(pos < 0) {
-		System.err.println("Specify a port range in this format: 3000-4000.");
-		System.exit(1);
-	    } else {
-		String from = range.substring(0, pos);
-		String to = range.substring(pos+1, range.length());
+        if (range != null) {
+            int pos = range.indexOf('-');
+            if (pos < 0) {
+                System.err
+                        .println("Specify a port range in this format: 3000-4000.");
+                System.exit(1);
+            } else {
+                String from = range.substring(0, pos);
+                String to = range.substring(pos + 1, range.length());
 
-		try {
-		    startRange = Integer.parseInt(from);
-		    endRange = Integer.parseInt(to);
-		    firewall = true;
-		    portNr = startRange;
-		} catch (Exception e) {
-		    System.err.println("Specify a port range in this format: 3000-4000.");
-		    System.exit(1);
-		}
-	    }
-	}
-	inputBufferSize = TypedProperties.intProperty(inbufsize, 0);
-	outputBufferSize = TypedProperties.intProperty(outbufsize, 0);
+                try {
+                    startRange = Integer.parseInt(from);
+                    endRange = Integer.parseInt(to);
+                    firewall = true;
+                    portNr = startRange;
+                } catch (Exception e) {
+                    System.err
+                            .println("Specify a port range in this format: 3000-4000.");
+                    System.exit(1);
+                }
+            }
+        }
+        inputBufferSize = TypedProperties.intProperty(inbufsize, 0);
+        outputBufferSize = TypedProperties.intProperty(outbufsize, 0);
     }
-    
+
     protected IbisSocketFactory() {
-    	/* do nothing */
+        /* do nothing */
     }
-    
+
     /** 
      * Simple ServerSocket creator method.
      * Creates a server socket that will accept connections on the specified port,
@@ -89,10 +99,8 @@ public abstract class IbisSocketFactory {
      * @return the server socket created.
      * @exception IOException when the socket could not be created for some reason.
      */
-    public abstract ServerSocket createServerSocket(int port,
-						    int backlog,
-						    InetAddress addr) 
-	throws IOException;
+    public abstract ServerSocket createServerSocket(int port, int backlog,
+            InetAddress addr) throws IOException;
 
     /**
      * Simple client Socket creator method.
@@ -102,9 +110,8 @@ public abstract class IbisSocketFactory {
      * @param rPort the port
      * @exception IOException when the socket could not be created for some reason.
      */
-    public abstract Socket createSocket(InetAddress rAddr, int rPort) 
-	throws IOException;
-
+    public abstract Socket createSocket(InetAddress rAddr, int rPort)
+            throws IOException;
 
     /**
      * Returns a port number.
@@ -115,15 +122,16 @@ public abstract class IbisSocketFactory {
      * @return a port number, or 0, which means that any free port will do.
      */
     public synchronized int allocLocalPort() {
-	if(firewall) {
-	    int res = portNr++;
-	    if(portNr >= endRange) {
-		portNr = startRange;
-		System.err.println("WARNING, used more ports than available within specified range. Wrapping around");
-	    }
-	    return res;
-	}
-	return 0; /* any free port */
+        if (firewall) {
+            int res = portNr++;
+            if (portNr >= endRange) {
+                portNr = startRange;
+                System.err
+                        .println("WARNING, used more ports than available within specified range. Wrapping around");
+            }
+            return res;
+        }
+        return 0; /* any free port */
     }
 
     /**
@@ -142,12 +150,8 @@ public abstract class IbisSocketFactory {
      * within this time.
      * @return the socket created.
      */
-    public abstract Socket createSocket(InetAddress dest,
-					int port,
-					InetAddress localIP,
-					long timeoutMillis)
-	    throws IOException;
-
+    public abstract Socket createSocket(InetAddress dest, int port,
+            InetAddress localIP, long timeoutMillis) throws IOException;
 
     /** 
      * Simple ServerSocket creator method.
@@ -162,9 +166,7 @@ public abstract class IbisSocketFactory {
      * @exception IOException when the socket could not be created for some reason.
      */
     public abstract ServerSocket createServerSocket(int port,
-						    InetAddress localAddress,
-						    boolean retry)
-	    throws IOException;
+            InetAddress localAddress, boolean retry) throws IOException;
 
     /**
      * Accepts a connection to the specified server socket, and returns
@@ -174,14 +176,16 @@ public abstract class IbisSocketFactory {
      * @exception IOException is thrown when the accept fails for some reason.
      */
     public Socket accept(ServerSocket a) throws IOException {
-	Socket s;
-	s = a.accept();
-	tuneSocket(s);
-	if(DEBUG) {
-	    System.out.println("accepted new connection from " + s.getInetAddress() + ":" + s.getPort() + ", local = " + s.getLocalAddress() + ":" + s.getLocalPort());
-	}
-	
-	return s;
+        Socket s;
+        s = a.accept();
+        tuneSocket(s);
+        if (DEBUG) {
+            System.out.println("accepted new connection from "
+                    + s.getInetAddress() + ":" + s.getPort() + ", local = "
+                    + s.getLocalAddress() + ":" + s.getLocalPort());
+        }
+
+        return s;
     }
 
     /**
@@ -195,8 +199,9 @@ public abstract class IbisSocketFactory {
      * @exception IOException is thrown when the socket could not
      *   be created for some reason.
      */
-    public Socket createBrokeredSocket(Socket s, boolean isServer, ConnectProperties p) throws IOException {
-	return s;
+    public Socket createBrokeredSocket(Socket s, boolean isServer,
+            ConnectProperties p) throws IOException {
+        return s;
     }
 
     /**
@@ -212,8 +217,9 @@ public abstract class IbisSocketFactory {
      * @exception IOException is thrown when the socket could not
      *   be created for some reason.
      */
-    public Socket createBrokeredSocket(InputStream in, OutputStream out, boolean isServer, ConnectProperties p) throws IOException {
-	return null;
+    public Socket createBrokeredSocket(InputStream in, OutputStream out,
+            boolean isServer, ConnectProperties p) throws IOException {
+        return null;
     }
 
     /**
@@ -225,34 +231,34 @@ public abstract class IbisSocketFactory {
      * @param s the socket to be closed
      */
     public void close(InputStream in, OutputStream out, Socket s) {
-	if(out != null) {
-	    try {
-		out.flush();
-	    } catch (Exception e) {
-		// ignore
-	    }
-	    try {
-		out.close();
-	    } catch (Exception e) {
-		// ignore
-	    }
-	}
+        if (out != null) {
+            try {
+                out.flush();
+            } catch (Exception e) {
+                // ignore
+            }
+            try {
+                out.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
 
-	if(in != null) {
-	    try {
-		in.close();
-	    } catch (Exception e) {
-		// ignore
-	    }
-	}
+        if (in != null) {
+            try {
+                in.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
 
-	if(s != null) {
-	    try {
-		s.close();
-	    } catch (Exception e) {
-		// ignore
-	    }
-	}
+        if (s != null) {
+            try {
+                s.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
     }
 
     /**
@@ -260,7 +266,7 @@ public abstract class IbisSocketFactory {
      * nothing.
      */
     public void shutdown() {
-    	/* do nothing */
+        /* do nothing */
     }
 
     /**
@@ -272,14 +278,15 @@ public abstract class IbisSocketFactory {
      * could not be found.
      */
     public static IbisSocketFactory createFactory() {
-	try {
-	    Class classDefinition = Class.forName(socketFactoryName);
-	    return (IbisSocketFactory) classDefinition.newInstance();
-	} catch (Exception e) {
-	    System.err.println("Could not create an instance of " + socketFactoryName);
-	    e.printStackTrace();
-	}
-	return null;
+        try {
+            Class classDefinition = Class.forName(socketFactoryName);
+            return (IbisSocketFactory) classDefinition.newInstance();
+        } catch (Exception e) {
+            System.err.println("Could not create an instance of "
+                    + socketFactoryName);
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -292,12 +299,12 @@ public abstract class IbisSocketFactory {
      * @exception IOException when configuring fails for some reason.
      */
     public static void tuneSocket(Socket s) throws IOException {
-	if (inputBufferSize != 0) {
-	    s.setReceiveBufferSize(inputBufferSize);
-	}
-	if (outputBufferSize != 0) {
-	    s.setSendBufferSize(outputBufferSize);
-	}
-	s.setTcpNoDelay(true);
+        if (inputBufferSize != 0) {
+            s.setReceiveBufferSize(inputBufferSize);
+        }
+        if (outputBufferSize != 0) {
+            s.setSendBufferSize(outputBufferSize);
+        }
+        s.setTcpNoDelay(true);
     }
 }

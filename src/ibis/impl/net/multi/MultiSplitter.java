@@ -21,210 +21,218 @@ import java.util.Iterator;
  */
 public final class MultiSplitter extends NetSplitter {
 
-	private static final boolean IS_GEN = TypedProperties.booleanProperty(NetIbis.multi_gen, false);
+    private static final boolean IS_GEN = TypedProperties.booleanProperty(
+            NetIbis.multi_gen, false);
 
-        private final static class Lane {
-                NetOutput     output       = null;
-                int           headerLength =    0;
-                int           mtu          =    0;
-                ObjectInputStream  is      = null;
-                ObjectOutputStream os      = null;
-                String             subContext = null;
+    private final static class Lane {
+        NetOutput output = null;
+
+        int headerLength = 0;
+
+        int mtu = 0;
+
+        ObjectInputStream is = null;
+
+        ObjectOutputStream os = null;
+
+        String subContext = null;
+    }
+
+    private Hashtable laneTable = null;
+
+    private MultiPlugin plugin = null;
+
+    protected Lane singleLane;
+
+    /**
+     * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
+     * @param driver the driver of this poller.
+     * @param context the context.
+     */
+    public MultiSplitter(NetPortType pt, NetDriver driver, String context)
+            throws IOException {
+        super(pt, driver, context);
+        laneTable = new Hashtable();
+
+        String pluginName = getProperty("Plugin");
+        //System.err.println("multi-protocol plugin: "+pluginName);
+
+        if (pluginName != null) {
+            plugin = ((Driver) driver).loadPlugin(pluginName);
+        }
+        //System.err.println("multi-protocol plugin loaded");
+    }
+
+    private void updateSizes() throws IOException {
+        log.in();
+        Iterator i = null;
+        i = laneTable.values().iterator();
+
+        // Pass 1
+        while (i.hasNext()) {
+            Lane _lane = (Lane) i.next();
+
+            _lane.os.writeInt(mtu);
+            _lane.os.writeInt(headerOffset);
+            _lane.os.flush();
         }
 
-        private Hashtable	laneTable        = null;
+        i = laneTable.values().iterator();
+        // Pass 2
+        while (i.hasNext()) {
+            Lane _lane = (Lane) i.next();
 
-        private MultiPlugin	plugin         = null;
+            int v = _lane.is.readInt();
+            if (v != 3) {
+                throw new Error("invalid value");
+            }
+        }
+        log.out();
+    }
 
-	protected Lane		singleLane;
+    public synchronized void setupConnection(NetConnection cnx)
+            throws IOException {
+        log.in();
+        Integer num = cnx.getNum();
+        NetServiceLink link = cnx.getServiceLink();
 
-	/**
-	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
-	 * @param driver the driver of this poller.
-	 * @param context the context.
-	 */
-	public MultiSplitter(NetPortType pt, NetDriver driver, String context) throws IOException {
-		super(pt, driver, context);
-		laneTable   = new Hashtable();
+        ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(
+                this, "multi"));
+        os.flush();
 
-                String pluginName = getProperty("Plugin");
-                //System.err.println("multi-protocol plugin: "+pluginName);
+        ObjectInputStream is = new ObjectInputStream(link.getInputSubStream(
+                this, "multi"));
 
-                if (pluginName != null) {
-                        plugin = ((Driver)driver).loadPlugin(pluginName);
-                }
-                //System.err.println("multi-protocol plugin loaded");
-	}
+        NetIbisIdentifier localId = (NetIbisIdentifier) driver.getIbis()
+                .identifier();
+        os.writeObject(localId);
+        os.flush();
 
-        private void updateSizes() throws IOException {
-                log.in();
-		Iterator i = null;
-                i = laneTable.values().iterator();
-
-                // Pass 1
-                while (i.hasNext()) {
-                        Lane _lane = (Lane)i.next();
-
-			_lane.os.writeInt(mtu);
-			_lane.os.writeInt(headerOffset);
-			_lane.os.flush();
-                }
-
-                i = laneTable.values().iterator();
-                // Pass 2
-                while (i.hasNext()) {
-                        Lane _lane = (Lane)i.next();
-
-			int v = _lane.is.readInt();
-			if (v != 3) {
-				throw new Error("invalid value");
-			}
-                }
-                log.out();
+        NetIbisIdentifier remoteId;
+        try {
+            remoteId = (NetIbisIdentifier) is.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new Error("Cannot find class NetIbisIdentifier", e);
         }
 
-
-	public synchronized void setupConnection(NetConnection cnx) throws IOException {
-                log.in();
-		Integer num  = cnx.getNum();
-		NetServiceLink link = cnx.getServiceLink();
-
-
-		ObjectOutputStream 	os 	= new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
-		os.flush();
-
-		ObjectInputStream  	is 	= new ObjectInputStream (link.getInputSubStream (this, "multi"));
-
-
-		NetIbisIdentifier localId = (NetIbisIdentifier)driver.getIbis().identifier();
-		os.writeObject(localId);
-		os.flush();
-
-		NetIbisIdentifier remoteId;
-		try {
-			remoteId = (NetIbisIdentifier)is.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new Error("Cannot find class NetIbisIdentifier", e);
-		}
-
-
-		String subContext = null;
-		if (plugin != null) {
-		    subContext      = plugin.getSubContext(true, localId, remoteId, os, is);
-		} else {
-		    subContext = Driver.defaultSubContext();
-		}
-
-		NetOutput 	no 		= (NetOutput)outputMap.get(subContext);
-
-		if (IS_GEN || no == null) {
-			String    subDriverName = getProperty(subContext, "Driver");
-			trace.disp("subContext = ["+subContext+"], driver = ["+subDriverName+"]");
-			NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
-			no                      = newSubOutput(subDriver, subContext);
-		}
-
-		super.setupConnection(cnx, subContext, no);
-
-		Lane lane = new Lane();
-		lane.os           = os;
-		lane.is           = is;
-		lane.output       = no;
-		lane.headerLength = no.getHeadersLength();
-		lane.mtu          = no.getMaximumTransfertUnit();
-		lane.subContext   = subContext;
-
-		boolean update = false;
-
-		if (mtu == 0  ||  mtu > lane.mtu) {
-			update = true;
-			mtu    = lane.mtu;
-			if (factory != null) {
-			    factory.setMaximumTransferUnit(mtu);
-			}
-		}
-
-		if (headerOffset < lane.headerLength) {
-			update       = true;
-			headerOffset = lane.headerLength;
-		}
-
-		os.writeInt(mtu);
-		os.writeInt(headerOffset);
-		os.flush();
-
-		if (update) {
-			updateSizes();
-		}
-
-		if (laneTable.values().size() == 1) {
-		    singleLane = lane;
-		} else {
-		    singleLane = null;
-		}
-
-		laneTable.put(cnx.getNum(), lane);
-                log.out();
-	}
-
-        protected Object getKey(Integer num) {
-                log.in();
-                Lane lane = singleLane;
-		if (singleLane == null) {
-		    lane = (Lane)laneTable.get(num);
-		}
-                Object key = lane.subContext;
-                log.out();
-
-                return key;
+        String subContext = null;
+        if (plugin != null) {
+            subContext = plugin.getSubContext(true, localId, remoteId, os, is);
+        } else {
+            subContext = Driver.defaultSubContext();
         }
 
-        public synchronized void closeConnection(Integer num) throws IOException {
-                log.in();
-                if (laneTable != null) {
-                        Lane lane = (Lane)laneTable.get(num);
+        NetOutput no = (NetOutput) outputMap.get(subContext);
 
-                        if (lane != null) {
-                                NetOutput output = lane.output;
-                                if (output != null) {
-                                        output.close(num);
-                                }
-
-                                laneTable.remove(num);
-                        }
-                }
-                log.out();
+        if (IS_GEN || no == null) {
+            String subDriverName = getProperty(subContext, "Driver");
+            trace.disp("subContext = [" + subContext + "], driver = ["
+                    + subDriverName + "]");
+            NetDriver subDriver = driver.getIbis().getDriver(subDriverName);
+            no = newSubOutput(subDriver, subContext);
         }
 
-        /*
-        public synchronized void close(Integer num) throws IOException {
-                log.in();
-                if (laneTable != null) {
-                        Lane lane = (Lane)laneTable.get(num);
+        super.setupConnection(cnx, subContext, no);
 
-                        if (lane != null) {
-                                if (lane.output != null) {
-                                        lane.output.close(num);
-                                }
-                        }
+        Lane lane = new Lane();
+        lane.os = os;
+        lane.is = is;
+        lane.output = no;
+        lane.headerLength = no.getHeadersLength();
+        lane.mtu = no.getMaximumTransfertUnit();
+        lane.subContext = subContext;
 
-                        laneTable.remove(num);
-                }
-                log.out();
+        boolean update = false;
+
+        if (mtu == 0 || mtu > lane.mtu) {
+            update = true;
+            mtu = lane.mtu;
+            if (factory != null) {
+                factory.setMaximumTransferUnit(mtu);
+            }
         }
-        */
 
-	/*
-	public void free() throws IOException {
-                log.in();
-                if (laneTable != null) {
-                        Iterator i = laneTable.values().iterator();
-                        while (i.hasNext()) {
-                                i.next();
-                                i.remove();
-                        }
+        if (headerOffset < lane.headerLength) {
+            update = true;
+            headerOffset = lane.headerLength;
+        }
+
+        os.writeInt(mtu);
+        os.writeInt(headerOffset);
+        os.flush();
+
+        if (update) {
+            updateSizes();
+        }
+
+        if (laneTable.values().size() == 1) {
+            singleLane = lane;
+        } else {
+            singleLane = null;
+        }
+
+        laneTable.put(cnx.getNum(), lane);
+        log.out();
+    }
+
+    protected Object getKey(Integer num) {
+        log.in();
+        Lane lane = singleLane;
+        if (singleLane == null) {
+            lane = (Lane) laneTable.get(num);
+        }
+        Object key = lane.subContext;
+        log.out();
+
+        return key;
+    }
+
+    public synchronized void closeConnection(Integer num) throws IOException {
+        log.in();
+        if (laneTable != null) {
+            Lane lane = (Lane) laneTable.get(num);
+
+            if (lane != null) {
+                NetOutput output = lane.output;
+                if (output != null) {
+                    output.close(num);
                 }
-                log.out();
-	}
-        */
+
+                laneTable.remove(num);
+            }
+        }
+        log.out();
+    }
+
+    /*
+     public synchronized void close(Integer num) throws IOException {
+     log.in();
+     if (laneTable != null) {
+     Lane lane = (Lane)laneTable.get(num);
+
+     if (lane != null) {
+     if (lane.output != null) {
+     lane.output.close(num);
+     }
+     }
+
+     laneTable.remove(num);
+     }
+     log.out();
+     }
+     */
+
+    /*
+     public void free() throws IOException {
+     log.in();
+     if (laneTable != null) {
+     Iterator i = laneTable.values().iterator();
+     while (i.hasNext()) {
+     i.next();
+     i.remove();
+     }
+     }
+     log.out();
+     }
+     */
 }

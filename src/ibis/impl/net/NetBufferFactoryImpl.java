@@ -15,9 +15,8 @@ public interface NetBufferFactoryImpl {
      *        <CODE>null</CODE> if no allocator has been used to allocate
      *        <CODE>data</CODE>
      */
-    public NetBuffer createBuffer(byte[] data,
-				  int length,
-				  NetAllocator allocator);
+    public NetBuffer createBuffer(byte[] data, int length,
+            NetAllocator allocator);
 
     /**
      * Test type compatibility of a buffer with this factory

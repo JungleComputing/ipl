@@ -25,7 +25,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * Parameter-less constructor should not happen, therefore private.
      */
     private IbisIdentifier() {
-	throw new IbisError("No args constructor of IbisIdentifier");
+        throw new IbisError("No args constructor of IbisIdentifier");
     }
 
     /**
@@ -33,8 +33,8 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * @param name the name of this ibis.
      */
     protected IbisIdentifier(String name) { //, java.net.InetAddress address) { 
-	this.name = name;
-	init_cluster();
+        this.name = name;
+        init_cluster();
     }
 
     /**
@@ -44,7 +44,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * by the ibis implementation.
      */
     public boolean equals(Object o) {
-	throw new IbisError("IbisIdentifier subclass must override equals");
+        throw new IbisError("IbisIdentifier subclass must override equals");
     }
 
     /**
@@ -55,17 +55,17 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * by the ibis implementation.
      */
     public int hashCode() {
-	throw new IbisError("IbisIdentifier subclass must override hashCode");
+        throw new IbisError("IbisIdentifier subclass must override hashCode");
     }
 
     /**
      * Initializes the <code>cluster</code> field.
      */
     protected void init_cluster() {
-	cluster = System.getProperty("cluster");
-	if (cluster == null) {
-	    cluster = "unknown";
-	}
+        cluster = System.getProperty("cluster");
+        if (cluster == null) {
+            cluster = "unknown";
+        }
     }
 
     /**
@@ -73,7 +73,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * @return the Ibis name.
      */
     public String name() {
-	return name;
+        return name;
     }
 
     /**
@@ -82,7 +82,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * @return the cluster name.
      */
     public String cluster() {
-	return cluster;
+        return cluster;
     }
 
     /**
@@ -90,6 +90,6 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * The default does nothing.
      */
     public void free() {
-    	/* do nothing */
+        /* do nothing */
     }
 }

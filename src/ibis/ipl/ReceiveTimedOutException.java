@@ -12,7 +12,7 @@ public class ReceiveTimedOutException extends IbisIOException {
      * <code>null</code> as its error detail message.
      */
     public ReceiveTimedOutException() {
-	super();
+        super();
     }
 
     /**
@@ -22,7 +22,7 @@ public class ReceiveTimedOutException extends IbisIOException {
      * @param s		the detail message
      */
     public ReceiveTimedOutException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -33,7 +33,7 @@ public class ReceiveTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ReceiveTimedOutException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -43,6 +43,6 @@ public class ReceiveTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ReceiveTimedOutException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

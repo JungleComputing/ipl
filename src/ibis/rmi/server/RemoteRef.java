@@ -7,8 +7,7 @@ import java.io.Externalizable;
  * A {@link ibis.rmi.server.RemoteStub RemoteStub} uses a remote reference
  * for remote method invocation.
  */
-public interface RemoteRef extends Externalizable
-{
+public interface RemoteRef extends Externalizable {
     /**
      * Returns the class name of the reference type to be serialized
      * to the specified stream.
@@ -17,7 +16,7 @@ public interface RemoteRef extends Externalizable
      * @return the class name of the reference type
      */
     public String getRefClass(java.io.ObjectOutput out);
-    
+
     /**
      * Returns a hashcode for a remote object. Two stubs that refer to
      * the same remote object will have the same hash code.

@@ -28,154 +28,163 @@ class PortTypeNameServer extends Thread implements Protocol {
      * associate different sequences with different names.
      */
     private static class Sequencer {
-	private HashMap counters;
+        private HashMap counters;
 
-	private static class LongObject {
-	    long val;
-	    LongObject(long v) {
-		val = v;
-	    }
+        private static class LongObject {
+            long val;
 
-	    public String toString() {
-		return "" + val;
-	    }
-	}
+            LongObject(long v) {
+                val = v;
+            }
 
-	Sequencer() {
-	    counters = new HashMap();
-	}
+            public String toString() {
+                return "" + val;
+            }
+        }
 
-	/**
-	 * Returns the next sequence number associated with the specified name.
-	 * @param name the name of the sequence.
-	 * @return the next sequence number
-	 */
-	public synchronized long getSeqno(String name) {
-	    LongObject i = (LongObject) counters.get(name);
-	    if (i == null) {
-		i = new LongObject(ibis.ipl.ReadMessage.INITIAL_SEQNO);
-		counters.put(name, i);
-	    }
-	    return i.val++;
-	}
+        Sequencer() {
+            counters = new HashMap();
+        }
 
-	public String toString() {
-	    return "" + counters;
-	}
+        /**
+         * Returns the next sequence number associated with the specified name.
+         * @param name the name of the sequence.
+         * @return the next sequence number
+         */
+        public synchronized long getSeqno(String name) {
+            LongObject i = (LongObject) counters.get(name);
+            if (i == null) {
+                i = new LongObject(ibis.ipl.ReadMessage.INITIAL_SEQNO);
+                counters.put(name, i);
+            }
+            return i.val++;
+        }
+
+        public String toString() {
+            return "" + counters;
+        }
     }
 
     private Hashtable portTypes;
+
     private ServerSocket serverSocket;
 
-    private	DataInputStream in;
-    private	DataOutputStream out;
+    private DataInputStream in;
+
+    private DataOutputStream out;
+
     private Sequencer seq;
 
-    PortTypeNameServer() throws IOException { 
-	portTypes = new Hashtable();
+    PortTypeNameServer() throws IOException {
+        portTypes = new Hashtable();
 
-	serverSocket = NameServerClient.socketFactory.createServerSocket(0, null, true);
-	setName("PortType Name Server");
-	seq = new Sequencer();
-	start();
-    } 
-
-    int getPort() { 
-	return serverSocket.getLocalPort();
+        serverSocket = NameServerClient.socketFactory.createServerSocket(0,
+                null, true);
+        setName("PortType Name Server");
+        seq = new Sequencer();
+        start();
     }
 
-    private void handlePortTypeNew() throws IOException { 
+    int getPort() {
+        return serverSocket.getLocalPort();
+    }
 
-	StaticProperties p = new StaticProperties();
+    private void handlePortTypeNew() throws IOException {
 
-	String name = in.readUTF();
-	int size    = in.readInt();
+        StaticProperties p = new StaticProperties();
 
-	for (int i=0;i<size;i++) { 
-	    String key = in.readUTF();
-	    String value = in.readUTF();
+        String name = in.readUTF();
+        int size = in.readInt();
 
-	    p.add(key, value);
-	}
+        for (int i = 0; i < size; i++) {
+            String key = in.readUTF();
+            String value = in.readUTF();
 
-	StaticProperties temp = (StaticProperties) portTypes.get(name);
+            p.add(key, value);
+        }
 
-	if (temp == null) { 
-	    portTypes.put(name, p);
-	    out.writeByte(PORTTYPE_ACCEPTED);
-	} else { 			
-	    if (temp.equals(p)) {
-		out.writeByte(PORTTYPE_ACCEPTED);
-	    } else { 
-		out.writeByte(PORTTYPE_REFUSED);
-		// System.err.println("PortTypeNameServer: PortType " + name + " refused because of incompatible properties\n" + 
-		//		   temp + "----\n" + p);				
-	    }
-	}
-    } 
+        StaticProperties temp = (StaticProperties) portTypes.get(name);
 
+        if (temp == null) {
+            portTypes.put(name, p);
+            out.writeByte(PORTTYPE_ACCEPTED);
+        } else {
+            if (temp.equals(p)) {
+                out.writeByte(PORTTYPE_ACCEPTED);
+            } else {
+                out.writeByte(PORTTYPE_REFUSED);
+                // System.err.println("PortTypeNameServer: PortType " + name + " refused because of incompatible properties\n" + 
+                //		   temp + "----\n" + p);				
+            }
+        }
+    }
 
     private void handleSeqno() throws IOException {
-	String name = in.readUTF();
+        String name = in.readUTF();
 
-	long l = seq.getSeqno(name);
-	out.writeLong(l);
-	out.flush();
+        long l = seq.getSeqno(name);
+        out.writeLong(l);
+        out.flush();
     }
-
 
     public void run() {
 
-	Socket s;
-	int opcode;
+        Socket s;
+        int opcode;
 
-	while (true) {
+        while (true) {
 
-	    try {
-		s = NameServerClient.socketFactory.accept(serverSocket);
-	    } catch (Exception e) {
-		throw new IbisRuntimeException("PortTypeNameServer: got an error ", e);
-	    }
+            try {
+                s = NameServerClient.socketFactory.accept(serverSocket);
+            } catch (Exception e) {
+                throw new IbisRuntimeException(
+                        "PortTypeNameServer: got an error ", e);
+            }
 
-	    try {
-		DummyInputStream di = new DummyInputStream(s.getInputStream());
-		in  = new DataInputStream(new BufferedInputStream(di));
-		DummyOutputStream dout = new DummyOutputStream(s.getOutputStream());
+            try {
+                DummyInputStream di = new DummyInputStream(s.getInputStream());
+                in = new DataInputStream(new BufferedInputStream(di));
+                DummyOutputStream dout = new DummyOutputStream(s
+                        .getOutputStream());
 
-		out = new DataOutputStream(new BufferedOutputStream(dout));
+                out = new DataOutputStream(new BufferedOutputStream(dout));
 
-		opcode = in.readByte();
+                opcode = in.readByte();
 
-		switch (opcode) { 
-		case (PORTTYPE_NEW): 
-		    handlePortTypeNew();
-		    break;
-		case (PORTTYPE_EXIT):
-		    NameServerClient.socketFactory.close(in, out, s);
-		    serverSocket.close();
-		    return;
-		case (SEQNO):
-		    handleSeqno();
-		    break;
-		default: 
-		    System.err.println("PortTypeNameServer: got an illegal opcode " + opcode);					
-		}
-		NameServerClient.socketFactory.close(in, out, s);
-	    } catch (Exception e1) {
-		System.err.println("Got an exception in PortTypeNameServer.run " + e1);
-		e1.printStackTrace();
-		if (s != null) { 
-		    try { 
-			s.close();
-		    } catch (IOException e2) { 
-			// don't care.
-		    } 
-		}
-	    }
-	}
+                switch (opcode) {
+                case (PORTTYPE_NEW):
+                    handlePortTypeNew();
+                    break;
+                case (PORTTYPE_EXIT):
+                    NameServerClient.socketFactory.close(in, out, s);
+                    serverSocket.close();
+                    return;
+                case (SEQNO):
+                    handleSeqno();
+                    break;
+                default:
+                    System.err
+                            .println("PortTypeNameServer: got an illegal opcode "
+                                    + opcode);
+                }
+                NameServerClient.socketFactory.close(in, out, s);
+            } catch (Exception e1) {
+                System.err
+                        .println("Got an exception in PortTypeNameServer.run "
+                                + e1);
+                e1.printStackTrace();
+                if (s != null) {
+                    try {
+                        s.close();
+                    } catch (IOException e2) {
+                        // don't care.
+                    }
+                }
+            }
+        }
     }
 
     public String toString() {
-	return "portypeserver(porttypes=" + portTypes + ",seq=" + seq + ")"; 
+        return "portypeserver(porttypes=" + portTypes + ",seq=" + seq + ")";
     }
 }

@@ -20,8 +20,9 @@
  *************************************************************************/
 
 public class Complex implements java.io.Serializable {
-    private final double re;   // the real part
-    private final double im;   // the imaginary part
+    private final double re; // the real part
+
+    private final double im; // the imaginary part
 
     // create a new object with the given real and imaginary parts
     public Complex(double real, double imag) {
@@ -30,14 +31,18 @@ public class Complex implements java.io.Serializable {
     }
 
     // return a string representation of the invoking object
-    public String toString()  { return re + " + " + im + "i"; }
+    public String toString() {
+        return re + " + " + im + "i";
+    }
 
     // return |this|
-    public double abs() { return Math.sqrt(re*re + im*im);  }
+    public double abs() {
+        return Math.sqrt(re * re + im * im);
+    }
 
     // return a new object whose value is (this + b)
-    public Complex plus(Complex b) { 
-        Complex a = this;             // invoking object
+    public Complex plus(Complex b) {
+        Complex a = this; // invoking object
         double real = a.re + b.re;
         double imag = a.im + b.im;
         Complex sum = new Complex(real, imag);
@@ -45,8 +50,8 @@ public class Complex implements java.io.Serializable {
     }
 
     // return a new object whose value is (this - b)
-    public Complex minus(Complex b) { 
-        Complex a = this;   
+    public Complex minus(Complex b) {
+        Complex a = this;
         double real = a.re - b.re;
         double imag = a.im - b.im;
         Complex diff = new Complex(real, imag);
@@ -68,21 +73,21 @@ public class Complex implements java.io.Serializable {
     }
 
     // return a new object whose value is the conjugate of this
-    public Complex conjugate() {  return new Complex(re, -im); }
+    public Complex conjugate() {
+        return new Complex(re, -im);
+    }
 
     // a static version of plus
-    public static Complex plus(Complex a, Complex b) { 
+    public static Complex plus(Complex a, Complex b) {
         double real = a.re + b.re;
         double imag = a.im + b.im;
         Complex sum = new Complex(real, imag);
         return sum;
     }
 
-
-
     // sample client for testing
     public static void main(String[] args) {
-        Complex a = new Complex( 5.0, 6.0);
+        Complex a = new Complex(5.0, 6.0);
         System.out.println("a = " + a);
 
         Complex b = new Complex(-3.0, 4.0);

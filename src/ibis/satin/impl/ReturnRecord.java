@@ -9,6 +9,7 @@ package ibis.satin.impl;
  */
 public abstract class ReturnRecord implements java.io.Serializable {
     protected int stamp;
+
     /**
      * The exception or error thrown by the spawned invocation. May (of course)
      * be <code>null</code>.
@@ -16,7 +17,7 @@ public abstract class ReturnRecord implements java.io.Serializable {
     public Throwable eek = null;
 
     protected ReturnRecord(Throwable eek) {
-	this.eek = eek;
+        this.eek = eek;
     }
 
     /**

@@ -11,65 +11,67 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public final class DefOutput extends NetBufferedOutput {
-	private Integer      rpn   = null;
-	private OutputStream defOs = null;
+    private Integer rpn = null;
 
-	static {
-	    System.err.println("WARNING: Class netDefOutput (still) uses Conversion.defaultConversion");
-	}
+    private OutputStream defOs = null;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param pt the properties of the output's 
-	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the DEF driver instance.
-	 */
-	DefOutput(NetPortType pt, NetDriver driver, String context)
-		throws IOException {
-		super(pt, driver, context);
-		headerLength = 4;
-	}
+    static {
+        System.err
+                .println("WARNING: Class netDefOutput (still) uses Conversion.defaultConversion");
+    }
 
-	public synchronized void setupConnection(NetConnection cnx) throws IOException {
-                if (this.rpn != null) {
-                        throw new Error("connection already established");
-                }                
+    /**
+     * Constructor.
+     *
+     * @param pt the properties of the output's 
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
+     * @param driver the DEF driver instance.
+     */
+    DefOutput(NetPortType pt, NetDriver driver, String context)
+            throws IOException {
+        super(pt, driver, context);
+        headerLength = 4;
+    }
 
-		this.rpn = cnx.getNum();
-	
-                defOs = cnx.getServiceLink().getOutputSubStream(this, "def");
-		mtu = 1024;
-	}
-
-        public long finish() throws IOException{
-                super.finish();
-		defOs.flush();
-		// TODO: return byte count of message
-		return 0;
+    public synchronized void setupConnection(NetConnection cnx)
+            throws IOException {
+        if (this.rpn != null) {
+            throw new Error("connection already established");
         }
 
-	public void sendByteBuffer(NetSendBuffer b) throws IOException {
-		Conversion.defaultConversion.int2byte(b.length, b.data, 0);
-		//System.err.println("writing "+b.length+" bytes");
-		defOs.write(b.data, 0, b.length);
-		//System.err.println("writing "+b.length+" bytes - ok");
-	}
+        this.rpn = cnx.getNum();
 
-        public synchronized void close(Integer num) throws IOException {
-                if (rpn == num) {
-			defOs.close();
-                        rpn = null;
-                }
+        defOs = cnx.getServiceLink().getOutputSubStream(this, "def");
+        mtu = 1024;
+    }
+
+    public long finish() throws IOException {
+        super.finish();
+        defOs.flush();
+        // TODO: return byte count of message
+        return 0;
+    }
+
+    public void sendByteBuffer(NetSendBuffer b) throws IOException {
+        Conversion.defaultConversion.int2byte(b.length, b.data, 0);
+        //System.err.println("writing "+b.length+" bytes");
+        defOs.write(b.data, 0, b.length);
+        //System.err.println("writing "+b.length+" bytes - ok");
+    }
+
+    public synchronized void close(Integer num) throws IOException {
+        if (rpn == num) {
+            defOs.close();
+            rpn = null;
         }
-        
+    }
 
-	public void free() throws IOException {
-                if (defOs != null) {
-			defOs.close();
-                }
-                
-                rpn = null;
-		super.free();
-	}
+    public void free() throws IOException {
+        if (defOs != null) {
+            defOs.close();
+        }
+
+        rpn = null;
+        super.free();
+    }
 }

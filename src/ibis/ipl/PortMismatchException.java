@@ -10,7 +10,7 @@ public class PortMismatchException extends IbisIOException {
      * <code>null</code> as its error detail message.
      */
     public PortMismatchException() {
-	super();
+        super();
     }
 
     /**
@@ -20,7 +20,7 @@ public class PortMismatchException extends IbisIOException {
      * @param s		the detail message
      */
     public PortMismatchException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -31,7 +31,7 @@ public class PortMismatchException extends IbisIOException {
      * @param cause	the cause
      */
     public PortMismatchException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -41,6 +41,6 @@ public class PortMismatchException extends IbisIOException {
      * @param cause	the cause
      */
     public PortMismatchException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

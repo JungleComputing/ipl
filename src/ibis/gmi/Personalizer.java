@@ -5,7 +5,7 @@ package ibis.gmi;
  * personalizers. A parameter personalizer is used to split the parameter set
  * of a method invocation into several, personalized, sets of parameters.
  */
-public abstract class Personalizer { 
+public abstract class Personalizer {
 
     /**
      * Splits the specified list of parameters, and writes them into
@@ -14,5 +14,5 @@ public abstract class Personalizer {
      * @param in the input parameter list
      * @param out the resulting personalized parameter lists
      */
-    public abstract void personalize(ParameterVector in, ParameterVector [] out);
-} 
+    public abstract void personalize(ParameterVector in, ParameterVector[] out);
+}

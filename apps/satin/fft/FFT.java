@@ -13,7 +13,8 @@
  *  
  *************************************************************************/
 
-public final class FFT extends ibis.satin.SatinObject implements FFTInterface, java.io.Serializable  {
+public final class FFT extends ibis.satin.SatinObject implements FFTInterface,
+        java.io.Serializable {
 
     // compute the FFT of x[], assuming its length is a power of 2
     public Complex[] fft(Complex[] x) {
@@ -27,25 +28,27 @@ public final class FFT extends ibis.satin.SatinObject implements FFTInterface, j
         }
 
         // radix 2 Cooley-Tukey FFT
-        if (N % 2 != 0) throw new RuntimeException("N is not a power of 2");
-        Complex[] even = new Complex[N/2];
-        Complex[] odd  = new Complex[N/2];
-        for (int k = 0; k < N/2; k++) even[k] = x[2*k];
-        for (int k = 0; k < N/2; k++) odd[k]  = x[2*k + 1];
+        if (N % 2 != 0)
+            throw new RuntimeException("N is not a power of 2");
+        Complex[] even = new Complex[N / 2];
+        Complex[] odd = new Complex[N / 2];
+        for (int k = 0; k < N / 2; k++)
+            even[k] = x[2 * k];
+        for (int k = 0; k < N / 2; k++)
+            odd[k] = x[2 * k + 1];
 
         Complex[] q = fft(even);
         Complex[] r = fft(odd);
-	sync();
+        sync();
 
-        for (int k = 0; k < N/2; k++) {
+        for (int k = 0; k < N / 2; k++) {
             double kth = -2 * k * Math.PI / N;
             Complex wk = new Complex(Math.cos(kth), Math.sin(kth));
-            y[k]       = q[k].plus(wk.times(r[k]));
-            y[k + N/2] = q[k].minus(wk.times(r[k]));
+            y[k] = q[k].plus(wk.times(r[k]));
+            y[k + N / 2] = q[k].minus(wk.times(r[k]));
         }
         return y;
     }
-
 
     // compute the inverse FFT of x[], assuming its length is a power of 2
     public Complex[] ifft(Complex[] x) {
@@ -72,7 +75,8 @@ public final class FFT extends ibis.satin.SatinObject implements FFTInterface, j
 
     // compute the convolution of x and y
     public Complex[] convolve(Complex[] x, Complex[] y) {
-        if (x.length != y.length) throw new RuntimeException("Dimensions don't agree");
+        if (x.length != y.length)
+            throw new RuntimeException("Dimensions don't agree");
         int N = x.length;
 
         // compute FFT of each sequence
@@ -88,13 +92,11 @@ public final class FFT extends ibis.satin.SatinObject implements FFTInterface, j
         return ifft(c);
     }
 
-
-
     // test client
-    public static void main(String[] args) { 
+    public static void main(String[] args) {
         int N = Integer.parseInt(args[0]);
 
-	System.err.println("FFT start");
+        System.err.println("FFT start");
 
         Complex[] x = new Complex[N];
 
@@ -103,37 +105,37 @@ public final class FFT extends ibis.satin.SatinObject implements FFTInterface, j
             x[i] = new Complex(i, 0);
         }
 
-	FFT fft = new FFT();
+        FFT fft = new FFT();
 
-/*
-        for (int i = 0; i < N; i++)
-            System.out.println(x[i]);
-        System.out.println();
-*/
+        /*
+         for (int i = 0; i < N; i++)
+         System.out.println(x[i]);
+         System.out.println();
+         */
         // FFT of original data
         Complex[] y = fft.fft(x);
-	fft.sync();
+        fft.sync();
 
-	System.err.println("FFT done");
+        System.err.println("FFT done");
 
-/*
-        for (int i = 0; i < N; i++)
-            System.out.println(y[i]);
-        System.out.println();
-*/
+        /*
+         for (int i = 0; i < N; i++)
+         System.out.println(y[i]);
+         System.out.println();
+         */
         // take inverse FFT
-//        Complex[] z = ifft(y);
-/*
-        for (int i = 0; i < N; i++)
-            System.out.println(z[i]);
-        System.out.println();
-*/
+        //        Complex[] z = ifft(y);
+        /*
+         for (int i = 0; i < N; i++)
+         System.out.println(z[i]);
+         System.out.println();
+         */
         // convolution of x with itself
-//        Complex[] c = convolve(x, x);
-/*
-        for (int i = 0; i < N; i++)
-            System.out.println(c[i]);
-*/
+        //        Complex[] c = convolve(x, x);
+        /*
+         for (int i = 0; i < N; i++)
+         System.out.println(c[i]);
+         */
     }
 
 }

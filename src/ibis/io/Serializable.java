@@ -7,7 +7,7 @@ import java.io.IOException;
  * IOGenerator. In addition, IOGenerator usually also generates a constructor
  * which reads the object from a <code>IbisSerializationInputStream</code>.
  */
-public interface Serializable { 
+public interface Serializable {
     /**
      * Takes care of writing the object, including parent objects, to the
      * <code>IbisSerializationOutputStream</code> parameter.
@@ -16,7 +16,7 @@ public interface Serializable {
      * @exception IOException is thrown when an IO error occurs. 	
      */
     public void generated_WriteObject(IbisSerializationOutputStream out)
-	throws IOException;
+            throws IOException;
 
     /**
      * Writes the serializable fields at level <code>lvl</code> of this object.
@@ -30,8 +30,8 @@ public interface Serializable {
      * @param lvl the "level" of the fields written
      * @exception IOException is thrown when an IO error occurs. 	
      */
-    public void generated_DefaultWriteObject(IbisSerializationOutputStream out, int lvl)
-	throws IOException;
+    public void generated_DefaultWriteObject(IbisSerializationOutputStream out,
+            int lvl) throws IOException;
 
     /**
      * Reads the serializable fields at level <code>lvl</code> of this object.
@@ -46,6 +46,5 @@ public interface Serializable {
      * @exception IOException is thrown when an IO error occurs. 	
      */
     public void generated_DefaultReadObject(IbisSerializationInputStream in,
-					    int lvl)
-	throws IOException, ClassNotFoundException;
-} 
+            int lvl) throws IOException, ClassNotFoundException;
+}

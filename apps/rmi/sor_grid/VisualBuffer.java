@@ -1,3 +1,4 @@
+
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -12,22 +13,28 @@ import ibis.util.PoolInfo;
 class VisualBuffer extends UnicastRemoteObject implements i_VisualBuffer {
 
     private int total_num;
+
     private int num_nodes;
 
     // for visualization
     private int width, height;
+
     private float[][] rawData;
+
     private boolean newDataAvailable = false;
+
     private boolean dataWritten = false;
+
     private boolean synchronous = false;
+
     private boolean doScaling = true;
 
     VisualBuffer(PoolInfo info, boolean synchronous) throws RemoteException {
-	total_num = info.size();
-	num_nodes = 0;
-	this.synchronous = synchronous;
-	System.err.println(this + ": in ctor");
-	// Thread.dumpStack();
+        total_num = info.size();
+        num_nodes = 0;
+        this.synchronous = synchronous;
+        System.err.println(this + ": in ctor");
+        // Thread.dumpStack();
     }
 
     /**
@@ -38,12 +45,12 @@ class VisualBuffer extends UnicastRemoteObject implements i_VisualBuffer {
      * @param height canvas height in pixels
      */
     public synchronized void setRawDataSize(int width, int height)
-	throws RemoteException {
-	System.err.println(this + ": setRawDataSize " + width + " x " + height);
-	this.width = width;
-	this.height = height;
-	rawData = new float[height][width];
-	notifyAll();
+            throws RemoteException {
+        System.err.println(this + ": setRawDataSize " + width + " x " + height);
+        this.width = width;
+        this.height = height;
+        rawData = new float[height][width];
+        notifyAll();
     }
 
     /**
@@ -53,14 +60,14 @@ class VisualBuffer extends UnicastRemoteObject implements i_VisualBuffer {
      * @return width of the canvas in pixels
      */
     public synchronized int getRawDataWidth() {
-	while (rawData == null) {
-	    try {
-		wait();
-	    } catch (InterruptedException e) {
-		// Go ahead waiting
-	    }
-	}
-	return width;
+        while (rawData == null) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // Go ahead waiting
+            }
+        }
+        return width;
     }
 
     /**
@@ -70,14 +77,14 @@ class VisualBuffer extends UnicastRemoteObject implements i_VisualBuffer {
      * @return height of the canvas in pixels
      */
     public synchronized int getRawDataHeight() {
-	while (rawData == null) {
-	    try {
-		wait();
-	    } catch (InterruptedException e) {
-		// Go ahead waiting
-	    }
-	}
-	return height;
+        while (rawData == null) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // Go ahead waiting
+            }
+        }
+        return height;
     }
 
     /**
@@ -87,22 +94,22 @@ class VisualBuffer extends UnicastRemoteObject implements i_VisualBuffer {
      * @return our slice of the downsized canvas
      */
     public synchronized float[][] getRawData() throws RemoteException {
-	// never send the same data twice...
-	System.err.println(this + ": attempt to collect RawData");
-	while(synchronous && ! dataWritten) {
-	    try {
-		wait();
-	    } catch (InterruptedException e) {
-		System.err.println("eek: " + e);
-	    }
-	}
+        // never send the same data twice...
+        System.err.println(this + ": attempt to collect RawData");
+        while (synchronous && !dataWritten) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                System.err.println("eek: " + e);
+            }
+        }
 
-	newDataAvailable = false;
-	dataWritten = false;
-	notifyAll();
-	System.err.println(this + ": collected RawData");
+        newDataAvailable = false;
+        dataWritten = false;
+        notifyAll();
+        System.err.println(this + ": collected RawData");
 
-	return rawData;
+        return rawData;
     }
 
     /**
@@ -114,21 +121,20 @@ class VisualBuffer extends UnicastRemoteObject implements i_VisualBuffer {
      * @param height canvas height in pixels
      * @return downsized canvas
      */
-    public static float[][] createDownsampledCanves(double[][] m,
-	    int width,
-	    int height) {
-	// create the result matrix, downsample m.
-	float[][] canvas = new float[height][];
+    public static float[][] createDownsampledCanves(double[][] m, int width,
+            int height) {
+        // create the result matrix, downsample m.
+        float[][] canvas = new float[height][];
 
-	for (int i=0; i<height; i++) {
-	    int ypos = i * m.length / height;
-	    if (m[ypos] != null && m[ypos].length > 0) {
-		// System.err.println("Create canvas[" + i + "]");
-		canvas[i] = new float[width];
-	    }
-	}
+        for (int i = 0; i < height; i++) {
+            int ypos = i * m.length / height;
+            if (m[ypos] != null && m[ypos].length > 0) {
+                // System.err.println("Create canvas[" + i + "]");
+                canvas[i] = new float[width];
+            }
+        }
 
-	return canvas;
+        return canvas;
     }
 
     /**
@@ -141,23 +147,21 @@ class VisualBuffer extends UnicastRemoteObject implements i_VisualBuffer {
      * @param width canvas width in pixels
      * @param height canvas height in pixels
      */
-    public static void downsample(double[][] m,
-	    float[][] canvas,
-	    int width,
-	    int height) {
-	for (int i=0; i<height; i++) {
-	    int ypos = i * m.length / height;
-	    if (m[ypos] != null && m[ypos].length > 0) {
-		// System.err.println("Downsample to canvas[" + i + "] from m[" + ypos + "]");
-		for (int j=0; j<width; j++) {
-		    int xpos = j * m[ypos].length / width;
+    public static void downsample(double[][] m, float[][] canvas, int width,
+            int height) {
+        for (int i = 0; i < height; i++) {
+            int ypos = i * m.length / height;
+            if (m[ypos] != null && m[ypos].length > 0) {
+                // System.err.println("Downsample to canvas[" + i + "] from m[" + ypos + "]");
+                for (int j = 0; j < width; j++) {
+                    int xpos = j * m[ypos].length / width;
 
-		    double[] row = m[ypos];
-		    float val = (float)row[xpos];
-		    canvas[i][j] = val;
-		}
-	    }
-	}
+                    double[] row = m[ypos];
+                    float val = (float) row[xpos];
+                    canvas[i][j] = val;
+                }
+            }
+        }
     }
 
     /**
@@ -166,30 +170,31 @@ class VisualBuffer extends UnicastRemoteObject implements i_VisualBuffer {
      * @param m our canvas slice, that has been filled with {@link
      * 		downsample}
      */
-    public synchronized void putMatrix(float[][] m)  throws RemoteException{
+    public synchronized void putMatrix(float[][] m) throws RemoteException {
 
-	if(synchronous) {
-	    while(newDataAvailable) {
-		try {
-		    wait();
-		} catch (InterruptedException e) {
-		    System.err.println("eek: " + e);
-		}
-	    }
-	} else {
-	    if(newDataAvailable) return;
-	}
+        if (synchronous) {
+            while (newDataAvailable) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    System.err.println("eek: " + e);
+                }
+            }
+        } else {
+            if (newDataAvailable)
+                return;
+        }
 
-	System.arraycopy(m, 0, rawData, 0, m.length);
-	for (int i = 0; i < height; i++) {
-	    if (m[i] != null) {
-		System.arraycopy(m[i], 0, rawData[i], 0, m[i].length);
-	    }
-	}
+        System.arraycopy(m, 0, rawData, 0, m.length);
+        for (int i = 0; i < height; i++) {
+            if (m[i] != null) {
+                System.arraycopy(m[i], 0, rawData[i], 0, m[i].length);
+            }
+        }
 
-	dataWritten = true;
-	notifyAll();
-	// System.err.println(this + ": deposited matrix[" + height + "][" + width + "]");
+        dataWritten = true;
+        notifyAll();
+        // System.err.println(this + ": deposited matrix[" + height + "][" + width + "]");
     }
 
 }

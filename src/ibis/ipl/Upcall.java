@@ -25,7 +25,7 @@ import java.io.IOException;
  * However, upcalls <strong>are</strong> allowed to enter/exit
  * synchronized methods for critical section operation.
  */
-public interface Upcall { 
+public interface Upcall {
     /**
      * This is the upcall announcing the receipt of a {@link ReadMessage}.
      *
@@ -34,4 +34,4 @@ public interface Upcall {
      * invoked on the message.
      */
     public void upcall(ReadMessage m) throws IOException;
-} 
+}

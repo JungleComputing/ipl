@@ -12,64 +12,65 @@ package ibis.impl.net;
  */
 final class NetEventQueueListener extends Thread {
 
-        /**
-         * Reference the associated {@linkplain ibis.impl.net.NetEventQueueConsumer
-         * event consumer}.
-         */
-        private NetEventQueueConsumer cons  = null;
+    /**
+     * Reference the associated {@linkplain ibis.impl.net.NetEventQueueConsumer
+     * event consumer}.
+     */
+    private NetEventQueueConsumer cons = null;
 
-        /**
-         * Set to true to indicated that the end of the listener has
-         * been requested.
-         */
-        private boolean               end   = false;
+    /**
+     * Set to true to indicated that the end of the listener has
+     * been requested.
+     */
+    private boolean end = false;
 
-        /**
-         * Reference the {@linkplain ibis.impl.net.NetEventQueue event queue} the
-         * thread is listening to.
-         */
-        private NetEventQueue         queue = null;
+    /**
+     * Reference the {@linkplain ibis.impl.net.NetEventQueue event queue} the
+     * thread is listening to.
+     */
+    private NetEventQueue queue = null;
 
-        private String               _name  = null;
+    private String _name = null;
 
-        /**
-         * Construct the listener.
-         *
-         * @param cons the consumer.
-         * @param name the name of the thread (mainly for debugging purpose).
-         * @param queue the queue to listen to.
-         */
-        public NetEventQueueListener(NetEventQueueConsumer cons, String name, NetEventQueue queue) {
-                super("Event queue listener: "+name);
+    /**
+     * Construct the listener.
+     *
+     * @param cons the consumer.
+     * @param name the name of the thread (mainly for debugging purpose).
+     * @param queue the queue to listen to.
+     */
+    public NetEventQueueListener(NetEventQueueConsumer cons, String name,
+            NetEventQueue queue) {
+        super("Event queue listener: " + name);
 
-                this.cons  = cons;
-                this.queue = queue;
+        this.cons = cons;
+        this.queue = queue;
 
-                _name = "Event queue listener: "+name;
+        _name = "Event queue listener: " + name;
+    }
+
+    /**
+     * Provide the main thread body.
+     */
+    public void run() {
+        while (!end) {
+            try {
+                NetEvent event = queue.get();
+                cons.event(event);
+            } catch (InterruptedIOException e) {
+                // end = true;
+                // continue;
+            }
         }
 
-        /**
-         * Provide the main thread body.
-         */
-        public void run () {
-                while (!end) {
-                        try {
-                                NetEvent event = queue.get();
-                                cons.event(event);
-                        } catch (InterruptedIOException e) {
-                                // end = true;
-                                // continue;
-                        }
-                }
+    }
 
-        }
-
-        /**
-         * Terminate the listening thread.
-         */
-        public void end() {
-                end = true;
-		queue.end();
-        }
+    /**
+     * Terminate the listening thread.
+     */
+    public void end() {
+        end = true;
+        queue.end();
+    }
 }
 

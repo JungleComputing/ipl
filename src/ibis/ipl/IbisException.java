@@ -4,7 +4,7 @@ package ibis.ipl;
  * Like java.lang.Exception, but with a cause.
  */
 public class IbisException extends Exception {
-    
+
     /** A nested throwable. */
     Throwable cause = null;
 
@@ -13,7 +13,7 @@ public class IbisException extends Exception {
      * <code>null</code> as its error detail message.
      */
     public IbisException() {
-	super();
+        super();
     }
 
     /**
@@ -23,7 +23,7 @@ public class IbisException extends Exception {
      * @param s		the detail message
      */
     public IbisException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -34,8 +34,8 @@ public class IbisException extends Exception {
      * @param cause	the cause
      */
     public IbisException(String s, Throwable cause) {
-	super(s);
-	initCause(cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -45,8 +45,8 @@ public class IbisException extends Exception {
      * @param cause	the cause
      */
     public IbisException(Throwable cause) {
-	super();
-	initCause(cause);
+        super();
+        initCause(cause);
     }
 
     /**
@@ -55,7 +55,7 @@ public class IbisException extends Exception {
      * @return the cause.
      */
     public Throwable initCause(Throwable t) {
-	return cause = t;
+        return cause = t;
     }
 
     /**
@@ -64,7 +64,7 @@ public class IbisException extends Exception {
      * @return the cause.
      */
     public Throwable getCause() {
-	return cause;
+        return cause;
     }
 
     /**
@@ -74,12 +74,12 @@ public class IbisException extends Exception {
      * @return the detail message.
      */
     public String getMessage() {
-	String res = super.getMessage();
-	if(cause != null) {
-	    res += ": " + cause.getMessage();
-	}
+        String res = super.getMessage();
+        if (cause != null) {
+            res += ": " + cause.getMessage();
+        }
 
-	return res;
+        return res;
     }
 
     /**
@@ -87,10 +87,10 @@ public class IbisException extends Exception {
      * <code>this</code>.
      */
     public void printStackTrace() {
-	if(cause != null) {
-	    cause.printStackTrace();
-	}
+        if (cause != null) {
+            cause.printStackTrace();
+        }
 
-	super.printStackTrace();
+        super.printStackTrace();
     }
 }

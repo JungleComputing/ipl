@@ -50,6 +50,6 @@ public interface ResizeHandler {
      * explicitly killed.
      * @param ibisses the ibisses which are told to leave. Multiple ibisses
      * may be ordered to leave when, for instance, an entire cluster is killed.
-     */    
+     */
     public void mustLeave(IbisIdentifier[] ibisses);
 }

@@ -12,7 +12,7 @@ public class StubNotFoundException extends RemoteException {
      * @param s the detail message
      */
     public StubNotFoundException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -22,6 +22,6 @@ public class StubNotFoundException extends RemoteException {
      * @param ex the nested exception
      */
     public StubNotFoundException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

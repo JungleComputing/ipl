@@ -14,35 +14,37 @@ import java.io.IOException;
  */
 public final class Driver extends NetDriver {
 
-	/**
-	 * The driver name.
-	 */
-	private final String name = "gen";
-	
-	/**
-	 * Constructor.
-	 *
-	 * @param ibis the {@link ibis.impl.net.NetIbis} instance.
-	 */
-	public Driver(NetIbis ibis) {
-		super(ibis);
-	}
+    /**
+     * The driver name.
+     */
+    private final String name = "gen";
 
-	public String getName() {
-		return name;
-	}
+    /**
+     * Constructor.
+     *
+     * @param ibis the {@link ibis.impl.net.NetIbis} instance.
+     */
+    public Driver(NetIbis ibis) {
+        super(ibis);
+    }
 
-	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
-	    if (inputUpcall == null && pt.inputSingletonOnly()) {
-// System.err.println(this + ": PortType " + pt + ": SingletonPoller, inputUpcall " + inputUpcall);
-		return new SingletonPoller(pt, this, context, inputUpcall);
-	    } else {
-// System.err.println(this + ": PortType " + pt + ": no SingletonPoller, inputUpcall " + inputUpcall);
-		return new GenPoller(pt, this, context, inputUpcall);
-	    }
-	}
+    public String getName() {
+        return name;
+    }
 
-	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
-	    return new GenSplitter(pt, this, context);
-	}
+    public NetInput newInput(NetPortType pt, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        if (inputUpcall == null && pt.inputSingletonOnly()) {
+            // System.err.println(this + ": PortType " + pt + ": SingletonPoller, inputUpcall " + inputUpcall);
+            return new SingletonPoller(pt, this, context, inputUpcall);
+        } else {
+            // System.err.println(this + ": PortType " + pt + ": no SingletonPoller, inputUpcall " + inputUpcall);
+            return new GenPoller(pt, this, context, inputUpcall);
+        }
+    }
+
+    public NetOutput newOutput(NetPortType pt, String context)
+            throws IOException {
+        return new GenSplitter(pt, this, context);
+    }
 }

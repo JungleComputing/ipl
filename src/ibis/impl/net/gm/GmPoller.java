@@ -28,18 +28,20 @@ import java.io.IOException;
  */
 public final class GmPoller extends NetPoller {
 
-    private Driver	gmDriver;
+    private Driver gmDriver;
 
     /*
      * These fields are protected by synchronized (this).
      */
-    int[]		lockIds;
-    Integer[]		spn;
-    ReceiveQueue[]	rq;
+    int[] lockIds;
 
-    int			blockers;
+    Integer[] spn;
 
-    private boolean	ended = false;
+    ReceiveQueue[] rq;
+
+    int blockers;
+
+    private boolean ended = false;
 
     /**
      * Constructor.
@@ -50,239 +52,228 @@ public final class GmPoller extends NetPoller {
      * @param inputUpcall the input upcall for upcall receives, or
      *        <code>null</code> for downcall receives
      */
-    public GmPoller(NetPortType pt,
-		    NetDriver driver,
-		    String context,
-		    NetInputUpcall inputUpcall)
-	    throws IOException {
-	super(pt, driver, context, false, inputUpcall);
-	gmDriver = (Driver)driver;
-	lockIds = new int[1];
-	lockIds[0] = 0; // main lock
-// System.err.println("************ Create a new GmPoller " + this + " upcallFunc " + upcallFunc);
+    public GmPoller(NetPortType pt, NetDriver driver, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        super(pt, driver, context, false, inputUpcall);
+        gmDriver = (Driver) driver;
+        lockIds = new int[1];
+        lockIds[0] = 0; // main lock
+        // System.err.println("************ Create a new GmPoller " + this + " upcallFunc " + upcallFunc);
     }
-
 
     protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
-	    throws IOException {
-	return new GmInput(type, driver, null, null);
+            throws IOException {
+        return new GmInput(type, driver, null, null);
     }
 
-    public void setupConnection(NetConnection cnx)
-		throws IOException {
-	log.in();
+    public void setupConnection(NetConnection cnx) throws IOException {
+        log.in();
 
-	Integer num = cnx.getNum();
-	setupConnection(cnx, num);
-	ReceiveQueue q = (ReceiveQueue)inputMap.get(num);
-	GmInput ni = (GmInput)q.getInput();
+        Integer num = cnx.getNum();
+        setupConnection(cnx, num);
+        ReceiveQueue q = (ReceiveQueue) inputMap.get(num);
+        GmInput ni = (GmInput) q.getInput();
 
-	synchronized (this) {
+        synchronized (this) {
 
-	    int[] oldLockIds = lockIds;
-	    int[] _lockIds = new int[lockIds.length + 1];
-	    System.arraycopy(lockIds, 0, _lockIds, 0, lockIds.length - 1);
-	    lockIds = _lockIds;
-	    lockIds[lockIds.length - 1] = lockIds[lockIds.length - 2];
-	    lockIds[lockIds.length - 2] = ni.getLockId();
+            int[] oldLockIds = lockIds;
+            int[] _lockIds = new int[lockIds.length + 1];
+            System.arraycopy(lockIds, 0, _lockIds, 0, lockIds.length - 1);
+            lockIds = _lockIds;
+            lockIds[lockIds.length - 1] = lockIds[lockIds.length - 2];
+            lockIds[lockIds.length - 2] = ni.getLockId();
 
-	    Driver.verifyUnique(ni.getLockId());
+            Driver.verifyUnique(ni.getLockId());
 
-// System.err.println(this + ": setup new connection; subInput " + ni + " lockId " + ni.getLockId());
-	    if (false) {
-		System.err.print(NetIbis.hostName() + " "
-			// + this
-			+ ": Now lockIds " + lockIds + " := [");
-		for (int i = 0; i < lockIds.length; i++) {
-		    System.err.print(lockIds[i] + ",");
-		}
-		System.err.println("]");
-	    }
+            // System.err.println(this + ": setup new connection; subInput " + ni + " lockId " + ni.getLockId());
+            if (false) {
+                System.err.print(NetIbis.hostName() + " "
+                // + this
+                        + ": Now lockIds " + lockIds + " := [");
+                for (int i = 0; i < lockIds.length; i++) {
+                    System.err.print(lockIds[i] + ",");
+                }
+                System.err.println("]");
+            }
 
-	    if (spn == null) {
-		spn = new Integer[1];
-		rq  = new ReceiveQueue[1];
-	    } else {
-		Integer[] _spn = new Integer[spn.length + 1];
-		System.arraycopy(spn, 0, _spn, 0, spn.length);
-		spn = _spn;
-		ReceiveQueue[] _rq = new ReceiveQueue[spn.length + 1];
-		System.arraycopy(rq, 0, _rq, 0, rq.length);
-		rq = _rq;
-	    }
-	    spn[spn.length - 1] = num;
-	    rq[spn.length - 1]  = (ReceiveQueue)inputMap.get(num);
+            if (spn == null) {
+                spn = new Integer[1];
+                rq = new ReceiveQueue[1];
+            } else {
+                Integer[] _spn = new Integer[spn.length + 1];
+                System.arraycopy(spn, 0, _spn, 0, spn.length);
+                spn = _spn;
+                ReceiveQueue[] _rq = new ReceiveQueue[spn.length + 1];
+                System.arraycopy(rq, 0, _rq, 0, rq.length);
+                rq = _rq;
+            }
+            spn[spn.length - 1] = num;
+            rq[spn.length - 1] = (ReceiveQueue) inputMap.get(num);
 
-	    Driver.gmAccessLock.lock();
-	    try {
-		Driver.interruptPump(oldLockIds);
-	    } finally {
-		Driver.gmAccessLock.unlock();
-	    }
+            Driver.gmAccessLock.lock();
+            try {
+                Driver.interruptPump(oldLockIds);
+            } finally {
+                Driver.gmAccessLock.unlock();
+            }
 
-	    readBufferedSupported = true;
+            readBufferedSupported = true;
 
-	    int _mtu = ni.getMaximumTransfertUnit();
+            int _mtu = ni.getMaximumTransfertUnit();
 
-	    if (mtu == 0  ||  mtu > _mtu) {
-		mtu = _mtu;
-	    }
+            if (mtu == 0 || mtu > _mtu) {
+                mtu = _mtu;
+            }
 
-	    log.out();
+            log.out();
 
-// System.err.println(this + ": " + cnx.getServiceLink() + ": established connection");
-	}
+            // System.err.println(this + ": " + cnx.getServiceLink() + ": established connection");
+        }
     }
-
 
     public void startReceive() throws IOException {
-	startUpcallThread();
+        startUpcallThread();
     }
-
 
     public boolean pollIsInterruptible() throws IOException {
-	return true;
+        return true;
     }
-
 
     public void setInterruptible(boolean interruptible) throws IOException {
-	// No-op because GmPoller is always interruptible
+        // No-op because GmPoller is always interruptible
     }
-
 
     public void interruptPoll() throws IOException {
-	Driver.gmAccessLock.lock();
-	try {
-	    Driver.interruptPump(lockIds);
-	} finally {
-	    Driver.gmAccessLock.unlock();
-	}
+        Driver.gmAccessLock.lock();
+        try {
+            Driver.interruptPump(lockIds);
+        } finally {
+            Driver.gmAccessLock.unlock();
+        }
     }
-
 
     /*
-    protected void switchToDowncallMode() throws IOException {
-	installUpcallFunc(null);
-    }
-    */
-
+     protected void switchToDowncallMode() throws IOException {
+     installUpcallFunc(null);
+     }
+     */
 
     public void switchToUpcallMode(NetInputUpcall inputUpcall)
-	    throws IOException {
-	installUpcallFunc(inputUpcall);
+            throws IOException {
+        installUpcallFunc(inputUpcall);
     }
-
 
     public void initReceive(Integer num) throws IOException {
-	super.initReceive(num);
-	((GmInput)activeInput()).initReceive(num);
+        super.initReceive(num);
+        ((GmInput) activeInput()).initReceive(num);
     }
 
-
     public Integer doPoll(boolean block) throws IOException {
-	/* Find something to resemble this:
-	if (spn == nul) {
-		return null;
-	}
-	*/
-	log.in();
+        /* Find something to resemble this:
+         if (spn == nul) {
+         return null;
+         }
+         */
+        log.in();
 
-	int result = -1;
+        int result = -1;
 
-	Driver.gmAccessLock.lock();
-	try {
+        Driver.gmAccessLock.lock();
+        try {
 
-	    boolean interrupted;
-	    do {
+            boolean interrupted;
+            do {
 
-		if (ended) {
-		    throw new InterruptedIOException("Poller channel closed");
-		}
-		interrupted = false;
-		if (block) {
-// System.err.print("[B");
-// for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
-// synchronized (this) {
-// blockers++;
-// if (blockers > 1)
-// System.err.println("Somebody polling concurrently with me!!!");
-// }
-		    try {
-			result = Driver.blockingPump(lockIds);
-// System.err.print("B");
-// for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
-// System.err.print("]=" + result);
-		    } catch (InterruptedIOException e) {
-			if (ended) {
-			    return null;
-			    // throw e;
-			}
+                if (ended) {
+                    throw new InterruptedIOException("Poller channel closed");
+                }
+                interrupted = false;
+                if (block) {
+                    // System.err.print("[B");
+                    // for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
+                    // synchronized (this) {
+                    // blockers++;
+                    // if (blockers > 1)
+                    // System.err.println("Somebody polling concurrently with me!!!");
+                    // }
+                    try {
+                        result = Driver.blockingPump(lockIds);
+                        // System.err.print("B");
+                        // for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
+                        // System.err.print("]=" + result);
+                    } catch (InterruptedIOException e) {
+                        if (ended) {
+                            return null;
+                            // throw e;
+                        }
 
-			// try once more
-			interrupted = true;
-			if (Driver.VERBOSE_INTPT) {
-			    System.err.print(NetIbis.hostName() + " "
-				    // + Thread.currentThread()
-				    // + ": " + this
-				    + ": ********** Catch InterruptedIOException");
-			    System.err.print("; lockIds " + lockIds + " = {");
-			    for (int i = 0; i < lockIds.length; i++) {
-				System.err.print(lockIds[i] + ",");
-			    }
-			    System.err.println("}");
-			}
-// System.err.print("X");
-// for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
-// System.err.print("]");
-		    }
-// synchronized (this) {
-// blockers--;
-// }
-		} else {
-// System.err.print("[?");
-		    result = Driver.tryPump(lockIds);
-// System.err.print("?]");
-		} 
+                        // try once more
+                        interrupted = true;
+                        if (Driver.VERBOSE_INTPT) {
+                            System.err
+                                    .print(NetIbis.hostName()
+                                            + " "
+                                            // + Thread.currentThread()
+                                            // + ": " + this
+                                            + ": ********** Catch InterruptedIOException");
+                            System.err.print("; lockIds " + lockIds + " = {");
+                            for (int i = 0; i < lockIds.length; i++) {
+                                System.err.print(lockIds[i] + ",");
+                            }
+                            System.err.println("}");
+                        }
+                        // System.err.print("X");
+                        // for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
+                        // System.err.print("]");
+                    }
+                    // synchronized (this) {
+                    // blockers--;
+                    // }
+                } else {
+                    // System.err.print("[?");
+                    result = Driver.tryPump(lockIds);
+                    // System.err.print("?]");
+                }
 
-	    } while (interrupted);
+            } while (interrupted);
 
-	    if (result == -1) {
-		System.err.println("poll failed");
-		return null;
-	    }
+            if (result == -1) {
+                System.err.println("poll failed");
+                return null;
+            }
 
-	    if (Driver.TIMINGS) {
-		Driver.t_wait_reply.stop();
-		Driver.t_wait_service.start();
-	    }
+            if (Driver.TIMINGS) {
+                Driver.t_wait_reply.stop();
+                Driver.t_wait_service.start();
+            }
 
-	} finally {
-	    Driver.gmAccessLock.unlock();
-	    log.out();
-	}
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
+        }
 
-	/* In fact, doing this 'synchronized' is not necessary because the
-	 * caller of doPoll ensures single-threaded access to doPoll.
-	 * But for consistency across pollers we do it anyway... */
-	synchronized (this) {
-	    activeQueue = rq[result];
-	    selectConnection(activeQueue);
-// System.err.println(Thread.currentThread() + ": " + this + ": return " + spn[result] + " = spn[" + result +"]");
+        /* In fact, doing this 'synchronized' is not necessary because the
+         * caller of doPoll ensures single-threaded access to doPoll.
+         * But for consistency across pollers we do it anyway... */
+        synchronized (this) {
+            activeQueue = rq[result];
+            selectConnection(activeQueue);
+            // System.err.println(Thread.currentThread() + ": " + this + ": return " + spn[result] + " = spn[" + result +"]");
 
-	    return spn[result];
-	}
+            return spn[result];
+        }
     }
 
     protected void doClose(Integer num) throws IOException {
-	super.doClose(num);
-	ended = true;
+        super.doClose(num);
+        ended = true;
 
-	Driver.gmAccessLock.lock();
-	try {
-	    Driver.interruptPump(lockIds);
-	} finally {
-	    Driver.gmAccessLock.unlock();
-	}
+        Driver.gmAccessLock.lock();
+        try {
+            Driver.interruptPump(lockIds);
+        } finally {
+            Driver.gmAccessLock.unlock();
+        }
     }
 
 }

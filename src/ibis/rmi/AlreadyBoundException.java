@@ -5,14 +5,13 @@ package ibis.rmi;
  * is made to bind an object in the registry to a name that is
  * already in use.
  */
-public class AlreadyBoundException extends ibis.ipl.IbisException
-{
+public class AlreadyBoundException extends ibis.ipl.IbisException {
     /**
      * Constructs an <code>AlreadyBoundException</code> with no specified
      * detail message.
      */
     public AlreadyBoundException() {
-	super();
+        super();
     }
 
     /**
@@ -21,7 +20,7 @@ public class AlreadyBoundException extends ibis.ipl.IbisException
      * @param s the detail message
      */
     public AlreadyBoundException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -31,6 +30,6 @@ public class AlreadyBoundException extends ibis.ipl.IbisException
      * @param e the cause
      */
     public AlreadyBoundException(String s, Throwable e) {
-	super(s, e);
+        super(s, e);
     }
 }

@@ -3,15 +3,14 @@ package ibis.rmi;
 /**
  * The <code>AccessException</code> is never actually thrown in Ibis RMI.
  */
-public class AccessException extends RemoteException
-{
+public class AccessException extends RemoteException {
     /**
      * Constructs an <code>AccessException</code> with the specified
      * detail message.
      * @param s the detail message
      */
     public AccessException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -21,6 +20,6 @@ public class AccessException extends RemoteException
      * @param e the nested exception
      */
     public AccessException(String s, Exception e) {
-	super(s, e);
+        super(s, e);
     }
 }

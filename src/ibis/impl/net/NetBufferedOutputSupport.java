@@ -31,7 +31,7 @@ public interface NetBufferedOutputSupport {
      * @throws IOException on error or if buffered writing is not supported
      */
     public void writeBuffered(byte[] data, int offset, int length)
-	    throws IOException;
+            throws IOException;
 
 }
 

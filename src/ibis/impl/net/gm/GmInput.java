@@ -17,7 +17,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
 
-
 /**
  * The GM input implementation (block version).
  *
@@ -29,636 +28,678 @@ import java.util.Hashtable;
  */
 public final class GmInput extends NetBufferedInput {
 
-        // protected NetMessageStat newMessageStat(boolean on, String moduleName) {
-// System.err.println(" ********** GM Message stats always on");
-                // return new NetMessageStat(true, moduleName);
-        // }
+    // protected NetMessageStat newMessageStat(boolean on, String moduleName) {
+    // System.err.println(" ********** GM Message stats always on");
+    // return new NetMessageStat(true, moduleName);
+    // }
 
+    /**
+     * A negative value to signify a Rendez-vous request has
+     * arrived
+     */
+    final static int RENDEZ_VOUS_REQUEST = -1;
 
-	/**
-	 * A negative value to signify a Rendez-vous request has
-	 * arrived
-	 */
-	final static int RENDEZ_VOUS_REQUEST = -1;
+    /**
+     * The peer {@link ibis.impl.net.NetSendPort NetSendPort}
+     * local number.
+     */
+    private Integer spn = null;
 
-	/**
-	 * The peer {@link ibis.impl.net.NetSendPort NetSendPort}
-	 * local number.
-	 */
-	private Integer         spn  	      = null;
+    /**
+     * The buffer block allocator.
+     */
+    private NetAllocator allocator = null;
 
-	/**
-	 * The buffer block allocator.
-	 */
-	private NetAllocator    allocator       = null;
+    private long deviceHandle = 0;
 
-        private long            deviceHandle   =    0;
-	private long            inputHandle    =    0;
-        private int             lnodeId        =   -1;
-        private int             lportId        =   -1;
-        private int             lmuxId         =   -1;
-        private int             lockId         =   -1;
-        private int []          lockIds        = null;
-        private int             rnodeId        =   -1;
-        private int             rportId        =   -1;
-        private int             rmuxId         =   -1;
-        private int             blockLen       =    0;
-        private boolean         firstBlock     = true;
-	private int		receivedMessages;
-	private int		pendingMessage;
+    private long inputHandle = 0;
 
-        private Driver          gmDriver     = null;
+    private int lnodeId = -1;
 
+    private int lportId = -1;
 
-	native long nInitInput(long deviceHandle) throws IOException;
-        native int  nGetInputNodeId(long inputHandle) throws IOException;
-        native int  nGetInputPortId(long inputHandle) throws IOException;
-        native int  nGetInputMuxId(long inputHandle) throws IOException;
-        native void nConnectInput(long inputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IOException;
+    private int lmuxId = -1;
 
-        native int nPostBuffer(long inputHandle, byte []b, int base, int length) throws IOException;
+    private int lockId = -1;
 
-        native int nPostBooleanBuffer(long inputHandle, boolean []b, int base, int length) throws IOException;
+    private int[] lockIds = null;
 
-        native int nPostByteBuffer(long inputHandle, byte []b, int base, int length) throws IOException;
+    private int rnodeId = -1;
 
-        native int nPostShortBuffer(long inputHandle, short []b, int base, int length) throws IOException;
+    private int rportId = -1;
 
-        native int nPostCharBuffer(long inputHandle, char []b, int base, int length) throws IOException;
+    private int rmuxId = -1;
 
-        native int nPostIntBuffer(long inputHandle, int []b, int base, int length) throws IOException;
+    private int blockLen = 0;
 
-        native int nPostLongBuffer(long inputHandle, long []b, int base, int length) throws IOException;
+    private boolean firstBlock = true;
 
-        native int nPostFloatBuffer(long inputHandle, float []b, int base, int length) throws IOException;
+    private int receivedMessages;
 
-        native int nPostDoubleBuffer(long inputHandle, double []b, int base, int length) throws IOException;
+    private int pendingMessage;
 
-	native void nCloseInput(long inputHandle) throws IOException;
+    private Driver gmDriver = null;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param pt the properties of the input's
-	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the GM driver instance.
-	 */
-	GmInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
-		throws IOException {
-                super(pt, driver, context, inputUpcall);
+    native long nInitInput(long deviceHandle) throws IOException;
 
-                gmDriver = (Driver)driver;
+    native int nGetInputNodeId(long inputHandle) throws IOException;
 
-                Driver.gmAccessLock.lock();
+    native int nGetInputPortId(long inputHandle) throws IOException;
 
-                deviceHandle = Driver.nInitDevice(0);
-                inputHandle = nInitInput(deviceHandle);
+    native int nGetInputMuxId(long inputHandle) throws IOException;
 
-                Driver.gmAccessLock.unlock();
+    native void nConnectInput(long inputHandle, int remoteNodeId,
+            int remotePortId, int remoteMuxId) throws IOException;
 
-		NetBufferFactoryImpl impl = new NetReceiveBufferFactoryDefaultImpl();
-		factory = new NetBufferFactory(Driver.byteBufferSize, impl);
-	}
+    native int nPostBuffer(long inputHandle, byte[] b, int base, int length)
+            throws IOException;
 
-	int getLockId() {
-	    return lockId;
-	}
+    native int nPostBooleanBuffer(long inputHandle, boolean[] b, int base,
+            int length) throws IOException;
 
-	/**
-	 * Sets up an incoming GM connection.
-	 */
-	public synchronized void setupConnection(NetConnection cnx) throws IOException {
-                log.in();
-                // System.err.println("setupConnection--> upcallFunc " + upcallFunc);
+    native int nPostByteBuffer(long inputHandle, byte[] b, int base, int length)
+            throws IOException;
 
-                Driver.gmAccessLock.lock();
+    native int nPostShortBuffer(long inputHandle, short[] b, int base,
+            int length) throws IOException;
 
-                if (this.spn != null) {
-                        throw new Error("connection already established");
-                }
+    native int nPostCharBuffer(long inputHandle, char[] b, int base, int length)
+            throws IOException;
 
-                lnodeId = nGetInputNodeId(inputHandle);
-                lportId = nGetInputPortId(inputHandle);
-                lmuxId  = nGetInputMuxId(inputHandle);
-                lockId  = lmuxId*2 + 2;
+    native int nPostIntBuffer(long inputHandle, int[] b, int base, int length)
+            throws IOException;
 
-// System.err.println(this + ": initializing lockIds, my lockId " + lockId);
-// Thread.dumpStack();
-                lockIds = new int[2];
-                lockIds[0] = lockId; // input lock
-                lockIds[1] = 0;      // main  lock
-                Driver.gmLockArray.initLock(lockId, true);
+    native int nPostLongBuffer(long inputHandle, long[] b, int base, int length)
+            throws IOException;
 
-                Driver.gmAccessLock.unlock();
+    native int nPostFloatBuffer(long inputHandle, float[] b, int base,
+            int length) throws IOException;
 
-                Hashtable lInfo = new Hashtable();
-                lInfo.put("gm_node_id", new Integer(lnodeId));
-                lInfo.put("gm_port_id", new Integer(lportId));
-                lInfo.put("gm_mux_id", new Integer(lmuxId));
-                Hashtable rInfo = null;
+    native int nPostDoubleBuffer(long inputHandle, double[] b, int base,
+            int length) throws IOException;
 
-		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
+    native void nCloseInput(long inputHandle) throws IOException;
 
-		os.writeObject(lInfo);
-		os.flush();
+    /**
+     * Constructor.
+     *
+     * @param pt the properties of the input's
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
+     * @param driver the GM driver instance.
+     */
+    GmInput(NetPortType pt, NetDriver driver, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        super(pt, driver, context, inputUpcall);
 
-		ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
+        gmDriver = (Driver) driver;
 
-		try {
-                        rInfo = (Hashtable)is.readObject();
-		} catch (ClassNotFoundException e) {
-                        throw new Error(e);
-                }
+        Driver.gmAccessLock.lock();
 
-		rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
-		rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
-		rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
+        deviceHandle = Driver.nInitDevice(0);
+        inputHandle = nInitInput(deviceHandle);
 
-                Driver.gmAccessLock.lock();
-		nConnectInput(inputHandle, rnodeId, rportId, rmuxId);
-                Driver.gmAccessLock.unlock();
+        Driver.gmAccessLock.unlock();
 
-		os.write(1);
-		os.flush();
-		is.read();
+        NetBufferFactoryImpl impl = new NetReceiveBufferFactoryDefaultImpl();
+        factory = new NetBufferFactory(Driver.byteBufferSize, impl);
+    }
 
-		os.close();
-		is.close();
+    int getLockId() {
+        return lockId;
+    }
 
-                mtu = Driver.mtu;
+    /**
+     * Sets up an incoming GM connection.
+     */
+    public synchronized void setupConnection(NetConnection cnx)
+            throws IOException {
+        log.in();
+        // System.err.println("setupConnection--> upcallFunc " + upcallFunc);
 
-		allocator = new NetAllocator(mtu);
-		this.spn = cnx.getNum();
-                log.out();
-	}
+        Driver.gmAccessLock.lock();
 
-
-	/**
-	 * Pump in the face of InterruptedIOExceptions
-	 */
-	/* Must hold gmAccessLock on entry/exit */
-	/*
-	private void pump(int[] lockIds) throws IOException {
-	    boolean interrupted;
-	    do {
-		try {
-		    Driver.blockingPump(lockIds);
-		    interrupted = false;
-		} catch (InterruptedIOException e) {
-		    // try once more
-		    interrupted = true;
-		    if (Driver.VERBOSE_INTPT) {
-			System.err.println(this + ": ********** Catch InterruptedIOException " + e);
-		    }
-		}
-	    } while (interrupted);
-	}
-	*/
-
-
-	/**
-	 * Pump in the face of InterruptedIOExceptions
-	 */
-	/* Must hold gmAccessLock on entry/exit */
-	private void pump() throws IOException {
-	    boolean interrupted;
-	    do {
-		try {
-		    int[] lockIds = this.lockIds;
-		    Driver.blockingPump(lockId, lockIds);
-		    interrupted = false;
-		} catch (InterruptedIOException e) {
-		    // try once more
-		    interrupted = true;
-		    if (Driver.VERBOSE_INTPT) {
-			System.err.println(this + ": ********** Catch InterruptedIOException " + e);
-		    }
-		}
-	    } while (interrupted);
-	}
-
-
-int rcvd;
-int plld;
-
-        /**
-	 * This method is in fact deprecated. All polls should come through
-	 * a GmPoller.
-         */
-	public Integer doPoll(boolean block) throws IOException {
-	    log.in();
-	    System.err.println(this + ": WARNING: nowadays, you should use GmPoller i.s.o. GmInput");
-	    if (true) {
-		throw new Error("nowadays, you should use GmPoller i.s.o. GmInput");
-	    }
-
-	    if (spn == null) {
-		return null;
-	    }
-
-	    Driver.gmAccessLock.lock(false);
-	    try {
-		if (block) {
-		    pump();
-		} else {
-		    if (!Driver.tryPump(lockId, lockIds)) {
-			System.err.println("poll failed");
-			return null;
-		    }
-		}
-
-		if (spn == null) {
-		    throw new Error("unexpected connection closed");
-		}
-plld++;
-
-		return spn;
-
-	    } finally {
-		Driver.gmAccessLock.unlock();
-		log.out();
-	    }
-	}
-
-        public void initReceive(Integer num) throws IOException {
-                firstBlock = true;
-                super.initReceive(num);
-		pendingMessage++;
-		receivedMessages++;
+        if (this.spn != null) {
+            throw new Error("connection already established");
         }
 
+        lnodeId = nGetInputNodeId(inputHandle);
+        lportId = nGetInputPortId(inputHandle);
+        lmuxId = nGetInputMuxId(inputHandle);
+        lockId = lmuxId * 2 + 2;
 
-	/* Must hold gmAccessLock on entry/exit */
-	private void firstBlock() throws IOException {
-	    if (firstBlock) {
-		firstBlock = false;
-	    } else {
-		/* Request reception */
-		pump();
-	    }
-	}
+        // System.err.println(this + ": initializing lockIds, my lockId " + lockId);
+        // Thread.dumpStack();
+        lockIds = new int[2];
+        lockIds[0] = lockId; // input lock
+        lockIds[1] = 0; // main  lock
+        Driver.gmLockArray.initLock(lockId, true);
 
-	public void receiveByteBuffer(NetReceiveBuffer b) throws IOException {
-	    log.in();
+        Driver.gmAccessLock.unlock();
 
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-// System.err.println(this + ": post ByteBuffer length <= " + b.length);
-	    try {
-		firstBlock();
+        Hashtable lInfo = new Hashtable();
+        lInfo.put("gm_node_id", new Integer(lnodeId));
+        lInfo.put("gm_port_id", new Integer(lportId));
+        lInfo.put("gm_mux_id", new Integer(lmuxId));
+        Hashtable rInfo = null;
 
-		if (Driver.TIMINGS) Driver.t_native_post.start();
-                int result = nPostBuffer(inputHandle, b.data, 0, b.data.length);
-		if (Driver.TIMINGS) Driver.t_native_post.stop();
+        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink()
+                .getOutputSubStream(this, "gm"));
 
-// System.err.print("<_");
-// System.err.println("[" + lockId + "] Post byte buffer request length " + b.length + " data.length " + b.data.length + " result " + result);
-// Thread.dumpStack();
+        os.writeObject(lInfo);
+        os.flush();
+
+        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink()
+                .getInputSubStream(this, "gm"));
+
+        try {
+            rInfo = (Hashtable) is.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new Error(e);
+        }
+
+        rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
+        rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
+        rmuxId = ((Integer) rInfo.get("gm_mux_id")).intValue();
+
+        Driver.gmAccessLock.lock();
+        nConnectInput(inputHandle, rnodeId, rportId, rmuxId);
+        Driver.gmAccessLock.unlock();
+
+        os.write(1);
+        os.flush();
+        is.read();
+
+        os.close();
+        is.close();
+
+        mtu = Driver.mtu;
+
+        allocator = new NetAllocator(mtu);
+        this.spn = cnx.getNum();
+        log.out();
+    }
+
+    /**
+     * Pump in the face of InterruptedIOExceptions
+     */
+    /* Must hold gmAccessLock on entry/exit */
+    /*
+     private void pump(int[] lockIds) throws IOException {
+     boolean interrupted;
+     do {
+     try {
+     Driver.blockingPump(lockIds);
+     interrupted = false;
+     } catch (InterruptedIOException e) {
+     // try once more
+     interrupted = true;
+     if (Driver.VERBOSE_INTPT) {
+     System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+     }
+     }
+     } while (interrupted);
+     }
+     */
+
+    /**
+     * Pump in the face of InterruptedIOExceptions
+     */
+    /* Must hold gmAccessLock on entry/exit */
+    private void pump() throws IOException {
+        boolean interrupted;
+        do {
+            try {
+                int[] lockIds = this.lockIds;
+                Driver.blockingPump(lockId, lockIds);
+                interrupted = false;
+            } catch (InterruptedIOException e) {
+                // try once more
+                interrupted = true;
+                if (Driver.VERBOSE_INTPT) {
+                    System.err.println(this
+                            + ": ********** Catch InterruptedIOException " + e);
+                }
+            }
+        } while (interrupted);
+    }
+
+    int rcvd;
+
+    int plld;
+
+    /**
+     * This method is in fact deprecated. All polls should come through
+     * a GmPoller.
+     */
+    public Integer doPoll(boolean block) throws IOException {
+        log.in();
+        System.err
+                .println(this
+                        + ": WARNING: nowadays, you should use GmPoller i.s.o. GmInput");
+        if (true) {
+            throw new Error("nowadays, you should use GmPoller i.s.o. GmInput");
+        }
+
+        if (spn == null) {
+            return null;
+        }
+
+        Driver.gmAccessLock.lock(false);
+        try {
+            if (block) {
+                pump();
+            } else {
+                if (!Driver.tryPump(lockId, lockIds)) {
+                    System.err.println("poll failed");
+                    return null;
+                }
+            }
+
+            if (spn == null) {
+                throw new Error("unexpected connection closed");
+            }
+            plld++;
+
+            return spn;
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
+        }
+    }
+
+    public void initReceive(Integer num) throws IOException {
+        firstBlock = true;
+        super.initReceive(num);
+        pendingMessage++;
+        receivedMessages++;
+    }
+
+    /* Must hold gmAccessLock on entry/exit */
+    private void firstBlock() throws IOException {
+        if (firstBlock) {
+            firstBlock = false;
+        } else {
+            /* Request reception */
+            pump();
+        }
+    }
+
+    public void receiveByteBuffer(NetReceiveBuffer b) throws IOException {
+        log.in();
+
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        // System.err.println(this + ": post ByteBuffer length <= " + b.length);
+        try {
+            firstBlock();
+
+            if (Driver.TIMINGS)
+                Driver.t_native_post.start();
+            int result = nPostBuffer(inputHandle, b.data, 0, b.data.length);
+            if (Driver.TIMINGS)
+                Driver.t_native_post.stop();
+
+            // System.err.print("<_");
+            // System.err.println("[" + lockId + "] Post byte buffer request length " + b.length + " data.length " + b.data.length + " result " + result);
+            // Thread.dumpStack();
+            if (result == RENDEZ_VOUS_REQUEST) {
+                // A rendez-vous message. Receive the data part.
+                pump(); // Await receive of the rendez-vous data
+
+                if (b.length == 0) {
+                    b.length = blockLen;
+                } else if (b.length != blockLen) {
+                    throw new Error("length mismatch: got " + blockLen
+                            + " bytes, " + b.length + " bytes were required");
+                }
+
+            } else {
+                if (b.length == 0) {
+                    b.length = result;
+                } else if (b.length != result) {
+                    throw new Error("length mismatch: got " + result
+                            + " bytes, " + b.length + " bytes were required");
+                }
+            }
+            // System.err.print(rcvd + ">_[" + lockId + "]");
+            // System.err.println("Received byte buffer " + b + " offset " + b.base + " size " + b.length);
+            // Thread.dumpStack();
+
+            rcvd++;
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
+        }
+    }
+
+    public void doFinish() throws IOException {
+        log.in();
+        // System.err.println(this + ": [" + lockId + "] in doFinish");
+        //
+        pendingMessage--;
+        log.out();
+    }
+
+    public synchronized void doClose(Integer num) throws IOException {
+        log.in();
+        if (spn == num) {
+            doFree();
+        }
+        log.out();
+    }
+
+    public void doFree() throws IOException {
+        log.in();
+        spn = null;
+
+        Driver.gmAccessLock.lock();
+        try {
+            if (pendingMessage > 0) {
+                throw new Error(this + ": want to close but pending message");
+            }
+            Driver.gmLockArray.deleteLock(lockId);
+            Driver.interruptPump(lockId);
+
+            if (inputHandle != 0) {
+                // System.err.println(this + ".doFree(): delete lock[ " + lockId + "]; call nCloseInput");
+                // Thread.dumpStack();
+                nCloseInput(inputHandle);
+                inputHandle = 0;
+            }
+
+            if (deviceHandle != 0) {
+                Driver.nCloseDevice(deviceHandle);
+                deviceHandle = 0;
+            }
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
+        }
+    }
+
+    public void readArray(boolean[] b, int o, int l) throws IOException {
+        log.in();
+
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        try {
+            freeBuffer();
+
+            while (l > 0) {
+                firstBlock();
+
+                int _l = Math.min(l, mtu);
+
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.start();
+                int result = nPostBooleanBuffer(inputHandle, b, o, _l);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.stop();
+
                 if (result == RENDEZ_VOUS_REQUEST) {
-			// A rendez-vous message. Receive the data part.
-			pump();	// Await receive of the rendez-vous data
-
-                        if (b.length == 0) {
-                                b.length = blockLen;
-                        } else if (b.length != blockLen) {
-				throw new Error("length mismatch: got "+blockLen+" bytes, "+b.length+" bytes were required");
-                        }
-
-                } else {
-                        if (b.length == 0) {
-                                b.length = result;
-                        } else if (b.length != result) {
-				throw new Error("length mismatch: got "+result+" bytes, "+b.length+" bytes were required");
-                        }
+                    pump(); // Await receive of the rendez-vous data
                 }
-// System.err.print(rcvd + ">_[" + lockId + "]");
-// System.err.println("Received byte buffer " + b + " offset " + b.base + " size " + b.length);
-// Thread.dumpStack();
 
-rcvd++;
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
+                l -= _l;
+                o += _l;
+            }
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
         }
+    }
 
+    public void readArray(byte[] b, int o, int l) throws IOException {
+        log.in();
 
-        public void doFinish() throws IOException {
-                log.in();
-// System.err.println(this + ": [" + lockId + "] in doFinish");
-                //
-		pendingMessage--;
-                log.out();
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        try {
+            freeBuffer();
+            // System.err.println(this + ": read Byte array, off " + o + " len " + l);
+            // Thread.dumpStack();
+
+            while (l > 0) {
+                firstBlock();
+
+                int _l = Math.min(l, mtu);
+
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.start();
+                int result = nPostByteBuffer(inputHandle, b, o, _l);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.stop();
+                // System.err.println(this + ": in readArray(byte[]..); result " + result + " chunk " + _l + " currently l " + l);
+
+                if (result == RENDEZ_VOUS_REQUEST) {
+                    pump(); // Await receive of the rendez-vous data
+                }
+
+                l -= _l;
+                o += _l;
+            }
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
         }
+    }
 
-        public synchronized void doClose(Integer num) throws IOException {
-                log.in();
-                if (spn == num) {
-		    doFree();
+    public void readArray(char[] b, int o, int l) throws IOException {
+        log.in();
+
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        try {
+            freeBuffer();
+
+            l <<= 1;
+            o <<= 1;
+
+            while (l > 0) {
+                firstBlock();
+
+                int _l = Math.min(l, mtu);
+
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.start();
+                int result = nPostCharBuffer(inputHandle, b, o, _l);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.stop();
+
+                if (result == RENDEZ_VOUS_REQUEST) {
+                    pump(); // Await receive of the rendez-vous data
                 }
-                log.out();
+
+                l -= _l;
+                o += _l;
+            }
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
         }
+    }
 
+    public void readArray(short[] b, int o, int l) throws IOException {
+        log.in();
 
-	public void doFree() throws IOException {
-	    log.in();
-	    spn = null;
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        try {
+            freeBuffer();
 
-	    Driver.gmAccessLock.lock();
-	    try {
-		if (pendingMessage > 0) {
-		    throw new Error(this + ": want to close but pending message");
-		}
-                Driver.gmLockArray.deleteLock(lockId);
-		Driver.interruptPump(lockId);
+            l <<= 1;
+            o <<= 1;
 
-                if (inputHandle != 0) {
-// System.err.println(this + ".doFree(): delete lock[ " + lockId + "]; call nCloseInput");
-// Thread.dumpStack();
-                        nCloseInput(inputHandle);
-                        inputHandle = 0;
+            while (l > 0) {
+                firstBlock();
+
+                int _l = Math.min(l, mtu);
+
+                int result;
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.start();
+                if (b == null)
+                    throw new Error("Cannot read into a null buffer");
+                result = nPostShortBuffer(inputHandle, b, o, _l);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.stop();
+                // System.err.println(Thread.currentThread() + ": receive chunk of short, result " + result);
+
+                if (result == RENDEZ_VOUS_REQUEST) {
+                    pump(); // Await receive of the rendez-vous data
                 }
 
-                if (deviceHandle != 0) {
-                        Driver.nCloseDevice(deviceHandle);
-                        deviceHandle = 0;
-                }
+                l -= _l;
+                o += _l;
+            }
+            // System.err.println(Thread.currentThread() + ": Done rcve short array; left " + l + " size " + b.length);
+            // for (int i = 0; i < b.length; i++) { System.err.print(b[i] + ","); } System.err.println();
 
-	    } finally {
-                Driver.gmAccessLock.unlock();
-                log.out();
-	    }
-	}
-
-	public void readArray(boolean [] b, int o, int l) throws IOException {
-	    log.in();
-
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-	    try {
-                freeBuffer();
-
-                while (l > 0) {
-			firstBlock();
-
-                        int _l = Math.min(l, mtu);
-
-			if (Driver.TIMINGS) Driver.t_native_post.start();
-                        int result = nPostBooleanBuffer(inputHandle, b, o, _l);
-			if (Driver.TIMINGS) Driver.t_native_post.stop();
-
-                        if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Await receive of the rendez-vous data
-                        }
-
-                        l -= _l;
-                        o += _l;
-                }
-
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
         }
+    }
 
-	public void readArray(byte [] b, int o, int l) throws IOException {
-	    log.in();
+    public void readArray(int[] b, int o, int l) throws IOException {
+        log.in();
 
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-	    try {
-                freeBuffer();
-// System.err.println(this + ": read Byte array, off " + o + " len " + l);
-// Thread.dumpStack();
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        try {
+            freeBuffer();
 
-                while (l > 0) {
-			firstBlock();
+            l <<= 2;
+            o <<= 2;
 
-                        int _l = Math.min(l, mtu);
+            while (l > 0) {
+                firstBlock();
 
-			if (Driver.TIMINGS) Driver.t_native_post.start();
-                        int result = nPostByteBuffer(inputHandle, b, o, _l);
-			if (Driver.TIMINGS) Driver.t_native_post.stop();
-// System.err.println(this + ": in readArray(byte[]..); result " + result + " chunk " + _l + " currently l " + l);
+                int _l = Math.min(l, mtu);
 
-                        if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Await receive of the rendez-vous data
-                        }
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.start();
+                int result = nPostIntBuffer(inputHandle, b, o, _l);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.stop();
 
-                        l -= _l;
-                        o += _l;
+                if (result == RENDEZ_VOUS_REQUEST) {
+                    pump(); // Await receive of the rendez-vous data
                 }
 
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
+                l -= _l;
+                o += _l;
+            }
+            // System.err.print("Rcvd int array: "); for (int i = 0; i < Math.min(b.length, 32); i++) System.err.print(b[i] + " "); System.err.println();
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
         }
+    }
 
-	public void readArray(char [] b, int o, int l) throws IOException {
-	    log.in();
+    public void readArray(long[] b, int o, int l) throws IOException {
+        log.in();
 
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-	    try {
-                freeBuffer();
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        try {
+            freeBuffer();
 
-                l <<= 1;
-                o <<= 1;
+            l <<= 3;
+            o <<= 3;
 
-                while (l > 0) {
-			firstBlock();
+            while (l > 0) {
+                firstBlock();
 
-                        int _l = Math.min(l, mtu);
+                int _l = Math.min(l, mtu);
 
-			if (Driver.TIMINGS) Driver.t_native_post.start();
-                        int result = nPostCharBuffer(inputHandle, b, o, _l);
-			if (Driver.TIMINGS) Driver.t_native_post.stop();
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.start();
+                int result = nPostLongBuffer(inputHandle, b, o, _l);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.stop();
 
-                        if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Await receive of the rendez-vous data
-                        }
-
-                        l -= _l;
-                        o += _l;
+                if (result == RENDEZ_VOUS_REQUEST) {
+                    pump(); // Await receive of the rendez-vous data
                 }
 
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
+                l -= _l;
+                o += _l;
+            }
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
         }
+    }
 
+    public void readArray(float[] b, int o, int l) throws IOException {
+        log.in();
 
-	public void readArray(short [] b, int o, int l) throws IOException {
-	    log.in();
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        try {
+            freeBuffer();
 
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-	    try {
-                freeBuffer();
+            l <<= 2;
+            o <<= 2;
 
-                l <<= 1;
-                o <<= 1;
+            while (l > 0) {
+                firstBlock();
 
-                while (l > 0) {
-			firstBlock();
+                int _l = Math.min(l, mtu);
 
-                        int _l = Math.min(l, mtu);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.start();
+                int result = nPostFloatBuffer(inputHandle, b, o, _l);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.stop();
 
-			int result;
-			if (Driver.TIMINGS) Driver.t_native_post.start();
-if (b == null) throw new Error("Cannot read into a null buffer");
-                        result = nPostShortBuffer(inputHandle, b, o, _l);
-			if (Driver.TIMINGS) Driver.t_native_post.stop();
-// System.err.println(Thread.currentThread() + ": receive chunk of short, result " + result);
-
-                        if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Await receive of the rendez-vous data
-                        }
-
-                        l -= _l;
-                        o += _l;
-                }
-// System.err.println(Thread.currentThread() + ": Done rcve short array; left " + l + " size " + b.length);
-// for (int i = 0; i < b.length; i++) { System.err.print(b[i] + ","); } System.err.println();
-
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
-        }
-
-
-	public void readArray(int [] b, int o, int l) throws IOException {
-	    log.in();
-
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-	    try {
-		freeBuffer();
-
-                l <<= 2;
-                o <<= 2;
-
-                while (l > 0) {
-			firstBlock();
-
-                        int _l = Math.min(l, mtu);
-
-			if (Driver.TIMINGS) Driver.t_native_post.start();
-                        int result = nPostIntBuffer(inputHandle, b, o, _l);
-			if (Driver.TIMINGS) Driver.t_native_post.stop();
-
-                        if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Await receive of the rendez-vous data
-                        }
-
-                        l -= _l;
-                        o += _l;
-                }
-// System.err.print("Rcvd int array: "); for (int i = 0; i < Math.min(b.length, 32); i++) System.err.print(b[i] + " "); System.err.println();
-
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
-        }
-
-
-	public void readArray(long [] b, int o, int l) throws IOException {
-	    log.in();
-
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-	    try {
-                freeBuffer();
-
-                l <<= 3;
-                o <<= 3;
-
-                while (l > 0) {
-			firstBlock();
-
-                        int _l = Math.min(l, mtu);
-
-			if (Driver.TIMINGS) Driver.t_native_post.start();
-                        int result = nPostLongBuffer(inputHandle, b, o, _l);
-			if (Driver.TIMINGS) Driver.t_native_post.stop();
-
-                        if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Await receive of the rendez-vous data
-                        }
-
-                        l -= _l;
-                        o += _l;
+                if (result == RENDEZ_VOUS_REQUEST) {
+                    pump(); // Await receive of the rendez-vous data
                 }
 
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
+                l -= _l;
+                o += _l;
+            }
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
         }
+    }
 
+    public void readArray(double[] b, int o, int l) throws IOException {
+        log.in();
 
-	public void readArray(float [] b, int o, int l) throws IOException {
-	    log.in();
+        Driver.gmAccessLock.lock(Driver.PRIORITY);
+        try {
+            freeBuffer();
 
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-	    try {
-                freeBuffer();
+            l <<= 3;
+            o <<= 3;
 
-                l <<= 2;
-                o <<= 2;
+            while (l > 0) {
+                firstBlock();
 
-                while (l > 0) {
-			firstBlock();
+                int _l = Math.min(l, mtu);
 
-                        int _l = Math.min(l, mtu);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.start();
+                int result = nPostDoubleBuffer(inputHandle, b, o, _l);
+                if (Driver.TIMINGS)
+                    Driver.t_native_post.stop();
 
-			if (Driver.TIMINGS) Driver.t_native_post.start();
-                        int result = nPostFloatBuffer(inputHandle, b, o, _l);
-			if (Driver.TIMINGS) Driver.t_native_post.stop();
-
-                        if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Await receive of the rendez-vous data
-                        }
-
-                        l -= _l;
-                        o += _l;
+                if (result == RENDEZ_VOUS_REQUEST) {
+                    pump(); // Await receive of the rendez-vous data
                 }
 
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
+                l -= _l;
+                o += _l;
+            }
+
+        } finally {
+            Driver.gmAccessLock.unlock();
+            log.out();
         }
-
-
-	public void readArray(double [] b, int o, int l) throws IOException {
-	    log.in();
-
-	    Driver.gmAccessLock.lock(Driver.PRIORITY);
-	    try {
-                freeBuffer();
-
-                l <<= 3;
-                o <<= 3;
-
-                while (l > 0) {
-			firstBlock();
-
-                        int _l = Math.min(l, mtu);
-
-			if (Driver.TIMINGS) Driver.t_native_post.start();
-                        int result = nPostDoubleBuffer(inputHandle, b, o, _l);
-			if (Driver.TIMINGS) Driver.t_native_post.stop();
-
-                        if (result == RENDEZ_VOUS_REQUEST) {
-			    pump();	// Await receive of the rendez-vous data
-                        }
-
-                        l -= _l;
-                        o += _l;
-                }
-
-	    } finally {
-		Driver.gmAccessLock.unlock();
-                log.out();
-	    }
-        }
+    }
 
 }

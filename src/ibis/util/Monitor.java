@@ -14,49 +14,54 @@ package ibis.util;
 public final class Monitor {
 
     final private static String PROPERTY_PREFIX = "ibis.util.monitor.";
+
     final private static String dbg = PROPERTY_PREFIX + "debug";
+
     final private static String stats = PROPERTY_PREFIX + "stats";
 
-    final private static String[] props = {
-	dbg,
-	stats
-    };
+    final private static String[] props = { dbg, stats };
 
     final static boolean DEBUG = TypedProperties.booleanProperty(dbg, false);
-    final static boolean STATISTICS = TypedProperties.booleanProperty(stats, false);
 
-    final boolean	PRIORITY;
+    final static boolean STATISTICS = TypedProperties.booleanProperty(stats,
+            false);
 
-    private boolean	locked = false;
-    private int		waiters = 0;
+    final boolean PRIORITY;
+
+    private boolean locked = false;
+
+    private int waiters = 0;
 
     // if (PRIORITY)
-    private int		prio_waiters;
+    private int prio_waiters;
 
     // if (DEBUG)
-    private Thread	owner;
+    private Thread owner;
 
     // if (STATISTICS)
-    private static int	lock_occupied;
-    private static int	unlock_waiting;
-    private static int	unlock_waiters;
-    private static int	unlock_bcast;
+    private static int lock_occupied;
+
+    private static int unlock_waiting;
+
+    private static int unlock_waiters;
+
+    private static int unlock_bcast;
 
     static {
-	TypedProperties.checkProperties(PROPERTY_PREFIX, props, null);
-	if (DEBUG) {
-	    System.err.println("Turn on Monitor.DEBUG");
-	}
-	if (STATISTICS) {
-	    Runtime.getRuntime().addShutdownHook(new Thread("Ibis Monitor ShutdownHook") {
-		public void run() {
-		    Monitor.report(System.err);
-		    ConditionVariable.report(System.err);
-		}
-	    });
-	}
+        TypedProperties.checkProperties(PROPERTY_PREFIX, props, null);
+        if (DEBUG) {
+            System.err.println("Turn on Monitor.DEBUG");
+        }
+        if (STATISTICS) {
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread("Ibis Monitor ShutdownHook") {
+                        public void run() {
+                            Monitor.report(System.err);
+                            ConditionVariable.report(System.err);
+                        }
+                    });
+        }
     }
-
 
     /**
      * Constructs a <code>Monitor</code>. The parameter indicates wether
@@ -65,25 +70,22 @@ public final class Monitor {
      * supported.
      */
     public Monitor(boolean priority) {
-	PRIORITY = priority;
+        PRIORITY = priority;
     }
-
 
     /**
      * Constructs a <code>Monitor</code>, without support for priority locking.
      */
     public Monitor() {
-	this(false);
+        this(false);
     }
-
 
     /**
      * Enters the Monitor, without priority over other threads.
      */
     public synchronized void lock() {
-	lock(false);
+        lock(false);
     }
-
 
     /**
      * Enters the Monitor. The parameter indicates wether this thread has
@@ -93,105 +95,100 @@ public final class Monitor {
      * nonpriority lockers.
      */
     public synchronized void lock(boolean priority) {
-	if (! PRIORITY && priority) {
-	    throw new Error("Lock with priority=true for non-PRIORITY Monitor");
-	}
+        if (!PRIORITY && priority) {
+            throw new Error("Lock with priority=true for non-PRIORITY Monitor");
+        }
 
-	if (DEBUG && owner == Thread.currentThread()) {
-	    throw new IllegalLockStateException("Already own monitor");
-	}
+        if (DEBUG && owner == Thread.currentThread()) {
+            throw new IllegalLockStateException("Already own monitor");
+        }
 
-	while (locked
-		|| (PRIORITY && ! priority && prio_waiters > 0)) {
-	    if (STATISTICS) {
-		lock_occupied++;
-	    }
-	    if (PRIORITY && priority) {
-		prio_waiters++;
-	    }
-	    waiters++;
-	    try {
-		wait();
-	    } catch (InterruptedException e) {
-		// Ignore
-	    }
-	    waiters--;
-	    if (PRIORITY) {
-	       	if (priority) {
-		    prio_waiters--;
-		} else if (prio_waiters > 0) {
-		    // If I am not priority and there is some prio waiter, this
-		    // is not for me, so wake up all and go back to wait
-		    notifyAll();
-		}
-	    }
-	}
-	locked = true;
+        while (locked || (PRIORITY && !priority && prio_waiters > 0)) {
+            if (STATISTICS) {
+                lock_occupied++;
+            }
+            if (PRIORITY && priority) {
+                prio_waiters++;
+            }
+            waiters++;
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // Ignore
+            }
+            waiters--;
+            if (PRIORITY) {
+                if (priority) {
+                    prio_waiters--;
+                } else if (prio_waiters > 0) {
+                    // If I am not priority and there is some prio waiter, this
+                    // is not for me, so wake up all and go back to wait
+                    notifyAll();
+                }
+            }
+        }
+        locked = true;
 
-	if (DEBUG) {
-	    owner = Thread.currentThread();
-	}
+        if (DEBUG) {
+            owner = Thread.currentThread();
+        }
     }
-
 
     public synchronized boolean tryLock() {
-	if (locked || (PRIORITY && prio_waiters > 0)) {
-	    return false;
-	}
+        if (locked || (PRIORITY && prio_waiters > 0)) {
+            return false;
+        }
 
-	lock();
+        lock();
 
-	return true;
+        return true;
     }
-
 
     /**
      * Leaves the Monitor, making it available for other threads.
      */
     public synchronized void unlock() {
-	if (DEBUG && owner != Thread.currentThread()) {
-	    Thread.dumpStack();
-	    throw new IllegalLockStateException("Don't own monitor");
-	}
+        if (DEBUG && owner != Thread.currentThread()) {
+            Thread.dumpStack();
+            throw new IllegalLockStateException("Don't own monitor");
+        }
 
-	locked = false;
-	if (waiters > 0) {
-	    if (STATISTICS) {
-		unlock_waiting++;
-		unlock_waiters += waiters;
-	    }
+        locked = false;
+        if (waiters > 0) {
+            if (STATISTICS) {
+                unlock_waiting++;
+                unlock_waiters += waiters;
+            }
 
-	    if (! PRIORITY || prio_waiters == waiters) {
-		if (STATISTICS) {
-		    unlock_waiting++;
-		}
-		// either no prio -> wake up anybody
-		// or prio and only prio waiters -> wake up a prio waiter
-		notify();
-	    } else {
-		// Sorry, there are prio and nonprio waiters. To be sure a
-		// prio waiter comes alive, we have no choice but to wake all.
-		if (STATISTICS) {
-		    unlock_bcast++;
-		}
-		notifyAll();
-	    }
-	}
+            if (!PRIORITY || prio_waiters == waiters) {
+                if (STATISTICS) {
+                    unlock_waiting++;
+                }
+                // either no prio -> wake up anybody
+                // or prio and only prio waiters -> wake up a prio waiter
+                notify();
+            } else {
+                // Sorry, there are prio and nonprio waiters. To be sure a
+                // prio waiter comes alive, we have no choice but to wake all.
+                if (STATISTICS) {
+                    unlock_bcast++;
+                }
+                notifyAll();
+            }
+        }
 
-	if (DEBUG) {
-	    owner = null;
-	}
+        if (DEBUG) {
+            owner = null;
+        }
     }
-
 
     /**
      * Creates a {@link ConditionVariable} associated with this Monitor.
      * @return the ConditionVariable created.
      */
     public ConditionVariable createCV() {
-	return new ConditionVariable(this);
+        return new ConditionVariable(this);
     }
-
 
     /**
      * Creates a {@link ConditionVariable} associated with this Monitor.
@@ -201,9 +198,8 @@ public final class Monitor {
      * Non-interruptible Condition Variables ignore {@link Thread#interrupt()}.
      */
     public ConditionVariable createCV(boolean interruptible) {
-	return new ConditionVariable(this, interruptible);
+        return new ConditionVariable(this, interruptible);
     }
-
 
     /**
      * When debugging is enabled, throws an exception when the current thread
@@ -212,15 +208,14 @@ public final class Monitor {
      *     does not own the Monitor.
      */
     final public void checkImOwner() {
-	if (DEBUG) {
-	    synchronized (this) {
-		if (owner != Thread.currentThread()) {
-		    throw new IllegalLockStateException("Don't own monitor");
-		}
-	    }
-	}
+        if (DEBUG) {
+            synchronized (this) {
+                if (owner != Thread.currentThread()) {
+                    throw new IllegalLockStateException("Don't own monitor");
+                }
+            }
+        }
     }
-
 
     /**
      * When debugging is enabled, throws an exception when the current thread
@@ -229,29 +224,30 @@ public final class Monitor {
      *     the Monitor.
      */
     final public void checkImNotOwner() {
-	if (DEBUG) {
-	    synchronized (this) {
-		if (owner == Thread.currentThread()) {
-		    throw new IllegalLockStateException("Already own monitor");
-		}
-	    }
-	}
+        if (DEBUG) {
+            synchronized (this) {
+                if (owner == Thread.currentThread()) {
+                    throw new IllegalLockStateException("Already own monitor");
+                }
+            }
+        }
     }
-
 
     /**
      * When statistics are enabled, this method prints some on the stream given.
      * @param out the stream to print on.
      */
     static public void report(java.io.PrintStream out) {
-	if (Monitor.STATISTICS) {
-	    out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " prio-bcast " + unlock_bcast + " <waiters> " + ((double)unlock_waiters) / unlock_waiting);
-	}
+        if (Monitor.STATISTICS) {
+            out.println("Monitor: lock occupied " + lock_occupied
+                    + " unlock for waiter " + unlock_waiting + " prio-bcast "
+                    + unlock_bcast + " <waiters> " + ((double) unlock_waiters)
+                    / unlock_waiting);
+        }
     }
 
-
     public Thread getOwner() {
-	return owner;
+        return owner;
     }
 
 }

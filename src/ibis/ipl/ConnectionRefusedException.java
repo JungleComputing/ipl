@@ -12,7 +12,7 @@ public class ConnectionRefusedException extends IbisIOException {
      * <code>null</code> as its error detail message.
      */
     public ConnectionRefusedException() {
-	super();
+        super();
     }
 
     /**
@@ -22,7 +22,7 @@ public class ConnectionRefusedException extends IbisIOException {
      * @param s		the detail message
      */
     public ConnectionRefusedException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -33,7 +33,7 @@ public class ConnectionRefusedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionRefusedException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -43,6 +43,6 @@ public class ConnectionRefusedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionRefusedException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

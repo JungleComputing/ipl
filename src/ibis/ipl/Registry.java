@@ -7,7 +7,7 @@ import java.io.IOException;
  * {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifier}s or
  * {@link ibis.ipl.IbisIdentifier}s with arbitrary names.
  */
-public interface Registry {	
+public interface Registry {
 
     /**
      * Locates the {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifier}
@@ -19,7 +19,7 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public ReceivePortIdentifier lookupReceivePort(String name)
-	throws IOException;
+            throws IOException;
 
     /**
      * Locates the {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifier}
@@ -36,7 +36,7 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public ReceivePortIdentifier lookupReceivePort(String name, long timeout)
-	throws IOException;
+            throws IOException;
 
     /**
      * Locates the {@link ibis.ipl.IbisIdentifier IbisIdentifier}
@@ -50,8 +50,8 @@ public interface Registry {
      * 	is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier lookupIbis(String name)
-	throws IOException, ClassNotFoundException;
+    public IbisIdentifier lookupIbis(String name) throws IOException,
+            ClassNotFoundException;
 
     /**
      * Locates the {@link ibis.ipl.IbisIdentifier IbisIdentifier}
@@ -70,7 +70,7 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public IbisIdentifier lookupIbis(String name, long timeout)
-	throws IOException, ClassNotFoundException;
+            throws IOException, ClassNotFoundException;
 
     /**
      * Returns the list of receiveport identifiers that are registered
@@ -81,7 +81,7 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public ReceivePortIdentifier[] listReceivePorts(IbisIdentifier ident)
-	throws IOException, ClassNotFoundException;
+            throws IOException, ClassNotFoundException;
 
     /**
      * Elects a single candidate from a number of candidates calling this
@@ -99,8 +99,8 @@ public interface Registry {
      * 	is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier elect(String election)
-	throws IOException, ClassNotFoundException;
+    public IbisIdentifier elect(String election) throws IOException,
+            ClassNotFoundException;
 
     /**
      * Gets the result of an election, without being a candidate.
@@ -112,7 +112,7 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public IbisIdentifier getElectionResult(String election)
-	throws IOException, ClassNotFoundException;
+            throws IOException, ClassNotFoundException;
 
     /**
      * Binds the specified name to the specified identifier.
@@ -125,7 +125,7 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public void bind(String name, ReceivePortIdentifier port)
-	throws IOException;
+            throws IOException;
 
     /**
      * Rebinds the specified name to the specified identifier.
@@ -136,7 +136,7 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public void rebind(String name, ReceivePortIdentifier port)
-	throws IOException;
+            throws IOException;
 
     /**
      * Removes any binding for the specified name.
@@ -145,8 +145,7 @@ public interface Registry {
      * bound
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public void unbind(String name)
-	throws IOException;
+    public void unbind(String name) throws IOException;
 
     /**
      * Returns an array of strings representing names that have a

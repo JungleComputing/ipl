@@ -12,7 +12,7 @@ public class ConnectException extends RemoteException {
      * @param s the detail message
      */
     public ConnectException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -22,6 +22,6 @@ public class ConnectException extends RemoteException {
      * @param ex the nested exception
      */
     public ConnectException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

@@ -12,9 +12,8 @@ import java.io.OutputStream;
  * However, the only data that can be sent are bytes and byte arrays.
  * All other methods throw an exception.
  */
-public final class NoSerializationOutputStream
-	extends SerializationOutputStream
-{
+public final class NoSerializationOutputStream extends
+        SerializationOutputStream {
 
     private OutputStream out;
 
@@ -25,8 +24,8 @@ public final class NoSerializationOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public NoSerializationOutputStream(OutputStream s) throws IOException {
-	super();
-	out = s;
+        super();
+        out = s;
     }
 
     /**
@@ -37,10 +36,9 @@ public final class NoSerializationOutputStream
      * @param a the <code>Accumulator</code>
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
-    public NoSerializationOutputStream(Accumulator a) 
-	    throws IOException {
-	super();
-	out = new AccumulatorOutputStream(a);
+    public NoSerializationOutputStream(Accumulator a) throws IOException {
+        super();
+        out = new AccumulatorOutputStream(a);
     }
 
     /**
@@ -49,28 +47,28 @@ public final class NoSerializationOutputStream
      * @return the name of the current serialization implementation.
      */
     public String serializationImplName() {
-	return "byte";
+        return "byte";
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeUTF(String str) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeClass(Class ref) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeBoolean(boolean value) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
@@ -79,105 +77,105 @@ public final class NoSerializationOutputStream
      * @exception java.io.IOException is thrown on an IO error.
      */
     public void writeByte(int value) throws IOException {
-	    out.write(value);
+        out.write(value);
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeChar(char value) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeShort(int value) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeInt(int value) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeLong(long value) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeFloat(float value) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeDouble(double value) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeBytes(String s) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeChars(String s) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeObjectOverride(Object ref) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeUnshared(Object ref) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeFields() throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public PutField putFields() throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void defaultWriteObject() throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
@@ -186,64 +184,64 @@ public final class NoSerializationOutputStream
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 
-	/*
-	 * Call write() and read() here. It is supported.
-	 * RFHH
-	 */
-	if (off == 0 && len == ref.length) {
-	    out.write(ref);
-	} else {
-	    throw new IOException("Illegal data type written");
-	}
+        /*
+         * Call write() and read() here. It is supported.
+         * RFHH
+         */
+        if (off == 0 && len == ref.length) {
+            out.write(ref);
+        } else {
+            throw new IOException("Illegal data type written");
+        }
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
      * @exception java.io.IOException is thrown, as this is not allowed.
      */
     public void writeArray(Object[] ref, int off, int len) throws IOException {
-	    throw new IOException("Illegal data type written");
+        throw new IOException("Illegal data type written");
     }
 
     /**
@@ -254,15 +252,15 @@ public final class NoSerializationOutputStream
     }
 
     public void write(int v) throws IOException {
-	writeByte((byte)(0xff & v));
+        writeByte((byte) (0xff & v));
     }
 
     public void write(byte[] b) throws IOException {
-	write(b, 0, b.length);
+        write(b, 0, b.length);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-	writeArray(b, off, len);
+        writeArray(b, off, len);
     }
 
     public void reset() {
@@ -270,11 +268,11 @@ public final class NoSerializationOutputStream
     }
 
     public void flush() throws IOException {
-	out.flush();
+        out.flush();
     }
 
     public void close() throws IOException {
-	out.flush();
-	out.close();
+        out.flush();
+        out.close();
     }
 }

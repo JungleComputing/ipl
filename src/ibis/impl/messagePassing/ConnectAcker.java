@@ -6,7 +6,8 @@ package ibis.impl.messagePassing;
 class ConnectAcker extends Syncer {
 
     private boolean accepted;
-    private int	acks = 1;
+
+    private int acks = 1;
 
     /**
      * Set initial value before synchronization and clear accepted condition
@@ -14,8 +15,8 @@ class ConnectAcker extends Syncer {
      * @param acks initial value for <code>acks</code>.
      */
     public void setAcks(int acks) {
-	this.acks = acks;
-	this.accepted = false;
+        this.acks = acks;
+        this.accepted = false;
     }
 
     /**
@@ -24,7 +25,7 @@ class ConnectAcker extends Syncer {
      * @return true if <code>acks</code> equals 0.
      */
     public boolean satisfied() {
-	return acks == 0;
+        return acks == 0;
     }
 
     /**
@@ -33,7 +34,7 @@ class ConnectAcker extends Syncer {
      * @return true if the accepted condition has been set
      */
     public boolean accepted() {
-	return accepted;
+        return accepted;
     }
 
     /**
@@ -41,11 +42,11 @@ class ConnectAcker extends Syncer {
      * Doesn't touch the accepted field.
      */
     public void signal() {
-	if (acks <= 0) {
-	    throw new Error(this + ": wakeup but acks " + acks); 
-	}
-	--acks;
-	wakeup();
+        if (acks <= 0) {
+            throw new Error(this + ": wakeup but acks " + acks);
+        }
+        --acks;
+        wakeup();
     }
 
     /**
@@ -53,10 +54,9 @@ class ConnectAcker extends Syncer {
      * Doesn't touch the <code>acks</code> field.
      */
     public void signal(boolean accept) {
-	this.accepted = accept;
-	signal();
+        this.accepted = accept;
+        signal();
     }
 
 }
-
 

@@ -7,31 +7,28 @@ import ibis.rmi.server.ServerRef;
 
 // TODO: implement getClientHost
 
-public class UnicastServerRef extends UnicastRef implements ServerRef, java.io.Serializable
-{
-    public UnicastServerRef() 
-    {
-	GUID = "//" + RTS.getHostname() + "/" + (new java.rmi.server.UID()).toString();    
+public class UnicastServerRef extends UnicastRef implements ServerRef,
+        java.io.Serializable {
+    public UnicastServerRef() {
+        GUID = "//" + RTS.getHostname() + "/"
+                + (new java.rmi.server.UID()).toString();
     }
-    
+
     public RemoteStub exportObject(Remote impl, Object portData)
-	throws RemoteException
-    {
-	try {
-	    RemoteStub stub = RTS.exportObject(impl, new UnicastRef(GUID));
-	    return stub;
-	} catch (Exception e) {
-		if (RTS.DEBUG) {
-			e.printStackTrace();	
-		}
-		throw new RemoteException(e.getMessage(), e);
-	}
+            throws RemoteException {
+        try {
+            RemoteStub stub = RTS.exportObject(impl, new UnicastRef(GUID));
+            return stub;
+        } catch (Exception e) {
+            if (RTS.DEBUG) {
+                e.printStackTrace();
+            }
+            throw new RemoteException(e.getMessage(), e);
+        }
     }
 
-
-    public String getClientHost()
-    {
-	// TODO:
-	return null;
+    public String getClientHost() {
+        // TODO:
+        return null;
     }
 }

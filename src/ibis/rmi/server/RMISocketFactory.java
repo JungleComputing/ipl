@@ -24,7 +24,7 @@ public abstract class RMISocketFactory {
      * @exception IOException if an I/O error occurs during socket creation.
      */
     public abstract Socket createSocket(String host, int port)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Creates a server socket on the specified port.
@@ -34,7 +34,7 @@ public abstract class RMISocketFactory {
      * creation
      */
     public abstract ServerSocket createServerSocket(int port)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Set the global socket factory from which RMI gets sockets (not supported
@@ -42,8 +42,9 @@ public abstract class RMISocketFactory {
      * @param fac the socket factory.
      */
     public static void setSocketFactory(RMISocketFactory fac) {
-	throw new IllegalArgumentException("Ibis RMI does not support socket factories. "
-		+ "Use the mechanisms of ibis.util.IbisSocketFactory");
+        throw new IllegalArgumentException(
+                "Ibis RMI does not support socket factories. "
+                        + "Use the mechanisms of ibis.util.IbisSocketFactory");
     }
 
     /**
@@ -52,8 +53,9 @@ public abstract class RMISocketFactory {
      * @return the socket factory.
      */
     public static RMISocketFactory getSocketFactory() {
-	throw new IllegalArgumentException("Ibis RMI does not support socket factories. "
-		+ "Use the mechanisms of ibis.util.IbisSocketFactory");
+        throw new IllegalArgumentException(
+                "Ibis RMI does not support socket factories. "
+                        + "Use the mechanisms of ibis.util.IbisSocketFactory");
     }
 
     /**
@@ -62,8 +64,9 @@ public abstract class RMISocketFactory {
      * @return the default RMI socket factory.
      */
     public static RMISocketFactory getDefaultSocketFactory() {
-	throw new IllegalArgumentException("Ibis RMI does not support socket factories. "
-		+ "Use the mechanisms of ibis.util.IbisSocketFactory");
+        throw new IllegalArgumentException(
+                "Ibis RMI does not support socket factories. "
+                        + "Use the mechanisms of ibis.util.IbisSocketFactory");
     }
 
     /**
@@ -81,6 +84,6 @@ public abstract class RMISocketFactory {
      * @return the failure handler.
      */
     public static RMIFailureHandler getFailureHandler() {
-	return null;
+        return null;
     }
 }

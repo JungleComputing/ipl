@@ -6,8 +6,10 @@
  * execution framework.
  */
 
-interface CompressorInterface extends ibis.satin.Spawnable
-{
-    public Backref selectBestMoveJob( byte text[], int backrefs[], int pos, int bestpos, int max_shortening, int depth, int max_depth );
-    public Backref shallowEvaluateBackrefJob( final byte text[], int backpos, int pos );
+interface CompressorInterface extends ibis.satin.Spawnable {
+    public Backref selectBestMoveJob(byte text[], int backrefs[], int pos,
+            int bestpos, int max_shortening, int depth, int max_depth);
+
+    public Backref shallowEvaluateBackrefJob(final byte text[], int backpos,
+            int pos);
 }

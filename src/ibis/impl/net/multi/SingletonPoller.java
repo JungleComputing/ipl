@@ -14,16 +14,15 @@ import java.io.IOException;
  */
 public class SingletonPoller extends MultiPoller {
 
-
     /**
      * The driver used for the inputs.
      */
-    protected NetDriver		subDriver   = null;
+    protected NetDriver subDriver = null;
 
     /**
      * The subInput
      */
-    protected NetInput		subInput;
+    protected NetInput subInput;
 
     /**
      * Constructor.
@@ -34,12 +33,9 @@ public class SingletonPoller extends MultiPoller {
      * @param inputUpcall the input upcall for upcall receives, or
      *        <code>null</code> for downcall receives
      */
-    public SingletonPoller(NetPortType pt,
-			   NetDriver driver,
-			   String context,
-			   NetInputUpcall inputUpcall)
-	    throws IOException {
-	this(pt, driver, context, true, inputUpcall);
+    public SingletonPoller(NetPortType pt, NetDriver driver, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        this(pt, driver, context, true, inputUpcall);
     }
 
     /**
@@ -52,39 +48,32 @@ public class SingletonPoller extends MultiPoller {
      * @param inputUpcall the input upcall for upcall receives, or
      *        <code>null</code> for downcall receives
      */
-    public SingletonPoller(NetPortType pt,
-			   NetDriver driver,
-			   String context,
-			   boolean decouplePoller,
-			   NetInputUpcall inputUpcall)
-	    throws IOException {
-	super(pt, driver, context, decouplePoller, inputUpcall);
+    public SingletonPoller(NetPortType pt, NetDriver driver, String context,
+            boolean decouplePoller, NetInputUpcall inputUpcall)
+            throws IOException {
+        super(pt, driver, context, decouplePoller, inputUpcall);
     }
-
 
     public boolean readBufferedSupported() {
-	return subInput.readBufferedSupported();
+        return subInput.readBufferedSupported();
     }
 
+    protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
+            throws IOException {
+        NetInput ni = q.getInput();
 
-	protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
-	    	throws IOException {
-	    NetInput ni = q.getInput();
+        if (ni != null) {
+            return ni;
+        }
 
-	    if (ni != null) {
-		return ni;
-	    }
+        // Lane      lane          = (Lane)key;
+        Lane lane = connectingLane;
+        String subContext = lane.subContext;
+        String subDriverName = getProperty(subContext, "Driver");
+        NetDriver subDriver = driver.getIbis().getDriver(subDriverName);
 
-	    // Lane      lane          = (Lane)key;
-	    Lane      lane          = connectingLane;
-	    String    subContext    = lane.subContext;
-	    String    subDriverName = getProperty(subContext, "Driver");
-	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
-
-	    return newSubInput(subDriver, subContext, null);
-	}
-
-
+        return newSubInput(subDriver, subContext, null);
+    }
 
     /**
      * Actually establish a connection with a remote port.
@@ -93,82 +82,75 @@ public class SingletonPoller extends MultiPoller {
      * @exception IOException if the connection setup fails.
      */
     public synchronized void setupConnection(NetConnection cnx)
-	    throws IOException {
+            throws IOException {
 
-	super.setupConnection(cnx);
+        super.setupConnection(cnx);
 
-	singleLane   = (Lane)laneTable.get(cnx.getNum());
-	mtu          = singleLane.mtu;
-	headerOffset = singleLane.headerLength;
-	subInput     = singleLane.queue.getInput();
+        singleLane = (Lane) laneTable.get(cnx.getNum());
+        mtu = singleLane.mtu;
+        headerOffset = singleLane.headerLength;
+        subInput = singleLane.queue.getInput();
 
-	log.out();
+        log.out();
     }
 
-
     public void startReceive() throws IOException {
-	subInput.startReceive();
+        subInput.startReceive();
     }
 
     public void switchToUpcallMode(NetInputUpcall inputUpcall)
-	    throws IOException {
-	installUpcallFunc(inputUpcall);
-	subInput.switchToUpcallMode(this);
+            throws IOException {
+        installUpcallFunc(inputUpcall);
+        subInput.switchToUpcallMode(this);
     }
 
     public boolean pollIsInterruptible() throws IOException {
-	return subInput.pollIsInterruptible();
+        return subInput.pollIsInterruptible();
     }
 
-    public void setInterruptible(boolean interruptible)
-	    throws IOException {
-	subInput.setInterruptible(interruptible);
+    public void setInterruptible(boolean interruptible) throws IOException {
+        subInput.setInterruptible(interruptible);
     }
-
 
     public Integer doPoll(boolean block) throws IOException {
-	log.in();
-	if (subInput == null) {
-	    return null;
-	}
+        log.in();
+        if (subInput == null) {
+            return null;
+        }
 
-	Integer spn = subInput.poll(block);
+        Integer spn = subInput.poll(block);
 
-	log.out();
+        log.out();
 
-	return spn;
+        return spn;
     }
-
 
     public void doFinish() throws IOException {
-	log.in();
-// rcveTimer.stop();
-	subInput.finish();
-	log.out();
+        log.in();
+        // rcveTimer.stop();
+        subInput.finish();
+        log.out();
     }
-
 
     public void doFree() throws IOException {
-	log.in();
-	if (subInput != null) {
-	    subInput.free();
-	}
-	log.out();
+        log.in();
+        if (subInput != null) {
+            subInput.free();
+        }
+        log.out();
     }
-
 
     protected synchronized void doClose(Integer num) throws IOException {
-	log.in();
-	if (subInput != null) {
-	    subInput.close(num);
-	    subInput = null;
-	}
-	log.out();
+        log.in();
+        if (subInput != null) {
+            subInput.close(num);
+            subInput = null;
+        }
+        log.out();
     }
 
-
     protected NetInput activeInput() throws IOException {
-	return subInput;
+        return subInput;
     }
 
 }

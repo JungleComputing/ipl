@@ -35,7 +35,7 @@ import java.io.IOException;
  * is always destroyed when the upcall is finished; it is thus 
  * not correct to put it in a global variable / queue.
  */
-public interface ReceivePort { 
+public interface ReceivePort {
 
     /**
      * Explicit blocking receive.
@@ -216,4 +216,4 @@ public interface ReceivePort {
      * @return the new connections.
      */
     public SendPortIdentifier[] newConnections();
-} 
+}

@@ -11,238 +11,250 @@ class ConnectionCache implements Config {
 
     private static class Peer {
 
-	private static class Connection {
-	    Socket s;
-	    InputStream in;
-	    OutputStream out;
+        private static class Connection {
+            Socket s;
 
-	    Connection(Socket s, InputStream in, OutputStream out) {
-		this.s   = s;
-		this.in  = in;
-		this.out = out;		
-	    }
+            InputStream in;
 
-	    void kill() {
-		in = null;
-		out = null;
+            OutputStream out;
 
-		try {
-		    // What is the use of this??? (Ceriel)
-		    s.shutdownOutput();
-		} catch (IOException e) { 
-		    // ignore
-		} 
+            Connection(Socket s, InputStream in, OutputStream out) {
+                this.s = s;
+                this.in = in;
+                this.out = out;
+            }
 
-		try {
-		    // What is the use of this??? (Ceriel)
-		    // and don't combine this with the next try-catch
-		    // clause, or your sockets may never be closed! (Ceriel)
-		    s.shutdownInput();
-		} catch (IOException e) { 
-		    // ignore
-		} 
+            void kill() {
+                in = null;
+                out = null;
 
-		try { 
-		    s.close();
-		} catch (IOException e) { 
-		    // ignore
-		}
+                try {
+                    // What is the use of this??? (Ceriel)
+                    s.shutdownOutput();
+                } catch (IOException e) {
+                    // ignore
+                }
 
-		s = null;
-	    }
+                try {
+                    // What is the use of this??? (Ceriel)
+                    // and don't combine this with the next try-catch
+                    // clause, or your sockets may never be closed! (Ceriel)
+                    s.shutdownInput();
+                } catch (IOException e) {
+                    // ignore
+                }
 
-	    public String toString() { 
-		return "Connection(in = " + in + ", out = " + out + " s = " + s + ")";
-	    }
-	} // end of inner class connection
+                try {
+                    s.close();
+                } catch (IOException e) {
+                    // ignore
+                }
 
-	private ArrayList connections = new ArrayList();
+                s = null;
+            }
 
-	Peer(TcpIbisIdentifier peer) {
+            public String toString() {
+                return "Connection(in = " + in + ", out = " + out + " s = " + s
+                        + ")";
+            }
+        } // end of inner class connection
 
-	    if (DEBUG) { 
-		System.err.println("ADDED PEER: " + peer);
-	    }
-	} 	
+        private ArrayList connections = new ArrayList();
 
-	synchronized boolean releaseOutput(OutputStream out) {
-	    for(int i=0; i<connections.size(); i++) {
-		Connection temp = (Connection) connections.get(i);
-		if(temp.out == out) { // found it
-		    if (DEBUG) { 
-			System.err.println("CONNECTION(" + out + ") REMOVED");
-		    }
-		    if(temp.in != null) {
-			temp.out = null;
-			notifyAll();
-		    } else {
-			connections.remove(i);
-			temp.kill();
-		    }
-		    return true;
-		}
-	    }
+        Peer(TcpIbisIdentifier peer) {
 
-	    if (DEBUG) { 
-		System.err.println("CONNECTION (" + out + ", ?) NOT FOUND (IN RELEASE OUTPUT)!");
-	    }
+            if (DEBUG) {
+                System.err.println("ADDED PEER: " + peer);
+            }
+        }
 
-	    return false;
-	} 
+        synchronized boolean releaseOutput(OutputStream out) {
+            for (int i = 0; i < connections.size(); i++) {
+                Connection temp = (Connection) connections.get(i);
+                if (temp.out == out) { // found it
+                    if (DEBUG) {
+                        System.err.println("CONNECTION(" + out + ") REMOVED");
+                    }
+                    if (temp.in != null) {
+                        temp.out = null;
+                        notifyAll();
+                    } else {
+                        connections.remove(i);
+                        temp.kill();
+                    }
+                    return true;
+                }
+            }
 
-	synchronized boolean releaseInput(InputStream in) { 
-	    for(int i=0; i<connections.size(); i++) {
-		Connection temp = (Connection) connections.get(i);
-		if(temp.in == in) { // found it
-		    if (DEBUG) { 
-			System.err.println("CONNECTION(" + in + ") REMOVED");
-		    }
-		    if(temp.out != null) {
-			temp.in = null;
-		    } else {
-			connections.remove(i);
-			temp.kill();
-		    }
-		    return true;
-		}
-	    }
+            if (DEBUG) {
+                System.err.println("CONNECTION (" + out
+                        + ", ?) NOT FOUND (IN RELEASE OUTPUT)!");
+            }
 
-	    if (DEBUG) { 
-		System.err.println("CONNECTION (" + in + ", ?) NOT FOUND (IN RELEASE INPUT)!");
-	    }
+            return false;
+        }
 
-	    return false;
-	} 
+        synchronized boolean releaseInput(InputStream in) {
+            for (int i = 0; i < connections.size(); i++) {
+                Connection temp = (Connection) connections.get(i);
+                if (temp.in == in) { // found it
+                    if (DEBUG) {
+                        System.err.println("CONNECTION(" + in + ") REMOVED");
+                    }
+                    if (temp.out != null) {
+                        temp.in = null;
+                    } else {
+                        connections.remove(i);
+                        temp.kill();
+                    }
+                    return true;
+                }
+            }
 
-	synchronized void addFreeInput(Socket s, InputStream in, OutputStream out) { 
-	    Connection c = new Connection(s, in, out);
-	    c.in = null;
-	    connections.add(c);
-	    if (DEBUG) {
-		System.err.println("CONNECTION(" + c + ") ADDED TO FREEINPUT");
-	    }
-	} 
+            if (DEBUG) {
+                System.err.println("CONNECTION (" + in
+                        + ", ?) NOT FOUND (IN RELEASE INPUT)!");
+            }
 
-	synchronized void addFreeOutput(Socket s, InputStream in, OutputStream out) { 
-	    Connection c = new Connection(s, in, out);
-	    c.out = null;
-	    connections.add(c);
-	    notifyAll();
-	    if (DEBUG) { 
-		System.err.println("CONNECTION(" + c + ") ADDED TO  FREEOUTPUT");
-	    }
-	} 
+            return false;
+        }
 
-	synchronized void addUsed(Connection c) { 
-	    connections.add(c);
-	    if (DEBUG) { 
-		System.err.println("CONNECTION(" + c + ") ADDED TO USED");
-	    }
-	}
+        synchronized void addFreeInput(Socket s, InputStream in,
+                OutputStream out) {
+            Connection c = new Connection(s, in, out);
+            c.in = null;
+            connections.add(c);
+            if (DEBUG) {
+                System.err.println("CONNECTION(" + c + ") ADDED TO FREEINPUT");
+            }
+        }
 
-	synchronized InputStream getFreeInput() { 
-	    for (int i=0; i<connections.size(); i++) {
-		Connection temp = (Connection) connections.get(i);
-		if(temp.in == null) {
-		    if (DEBUG) { 
-			System.err.println("FOUND FREE INPUT CONNECTION(" + temp + ")");
-		    }
-		    try {
-			temp.in = temp.s.getInputStream();
-		    } catch (Exception e) {
-			System.err.println("EEK1");
-		    }
-		    Connection res = (Connection) connections.remove(i);
-		    addUsed(res);
-		    return res.in;
-		}
-	    }
-	    if (DEBUG) { 
-		System.err.println("COULD NOT FIND FREE INPUT CONNECTION");
-	    }
-	    return null;
-	}
+        synchronized void addFreeOutput(Socket s, InputStream in,
+                OutputStream out) {
+            Connection c = new Connection(s, in, out);
+            c.out = null;
+            connections.add(c);
+            notifyAll();
+            if (DEBUG) {
+                System.err
+                        .println("CONNECTION(" + c + ") ADDED TO  FREEOUTPUT");
+            }
+        }
 
-	synchronized OutputStream getFreeOutput() { 
-	    while (true) { 
-		for(int i=0; i<connections.size(); i++) {
-		    Connection temp = (Connection) connections.get(i);
-		    if (temp.out == null) { 
-			if (DEBUG) { 
-			    System.err.println("FOUND FREE OUTPUT CONNECTION(" + temp + ")");
-			}
-			try {
-			    temp.out = temp.s.getOutputStream();
-			} catch (Exception e) {
-			    System.err.println("EEK2");
-			}
+        synchronized void addUsed(Connection c) {
+            connections.add(c);
+            if (DEBUG) {
+                System.err.println("CONNECTION(" + c + ") ADDED TO USED");
+            }
+        }
 
-			Connection res = (Connection) connections.remove(i);
-			addUsed(res);
-			return res.out;
-		    }
-		}
+        synchronized InputStream getFreeInput() {
+            for (int i = 0; i < connections.size(); i++) {
+                Connection temp = (Connection) connections.get(i);
+                if (temp.in == null) {
+                    if (DEBUG) {
+                        System.err.println("FOUND FREE INPUT CONNECTION("
+                                + temp + ")");
+                    }
+                    try {
+                        temp.in = temp.s.getInputStream();
+                    } catch (Exception e) {
+                        System.err.println("EEK1");
+                    }
+                    Connection res = (Connection) connections.remove(i);
+                    addUsed(res);
+                    return res.in;
+                }
+            }
+            if (DEBUG) {
+                System.err.println("COULD NOT FIND FREE INPUT CONNECTION");
+            }
+            return null;
+        }
 
-		// not found. Wait until it is added
-		try { 
-		    if (DEBUG) { 
-			System.err.println("WAITING FOR CONNECTION TO BE ADDED");
-		    }
-		    wait();
-		} catch (InterruptedException e) { 
-		    // ignore
-		}
-	    }
-	}
-    } 
+        synchronized OutputStream getFreeOutput() {
+            while (true) {
+                for (int i = 0; i < connections.size(); i++) {
+                    Connection temp = (Connection) connections.get(i);
+                    if (temp.out == null) {
+                        if (DEBUG) {
+                            System.err.println("FOUND FREE OUTPUT CONNECTION("
+                                    + temp + ")");
+                        }
+                        try {
+                            temp.out = temp.s.getOutputStream();
+                        } catch (Exception e) {
+                            System.err.println("EEK2");
+                        }
+
+                        Connection res = (Connection) connections.remove(i);
+                        addUsed(res);
+                        return res.out;
+                    }
+                }
+
+                // not found. Wait until it is added
+                try {
+                    if (DEBUG) {
+                        System.err
+                                .println("WAITING FOR CONNECTION TO BE ADDED");
+                    }
+                    wait();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
+    }
 
     // end of innner class Peer
-
 
     // start of ConnectionCache class.
     private HashMap peers = new HashMap();
 
     private synchronized Peer getPeer(TcpIbisIdentifier ibis) {
-	Peer p = (Peer) peers.get(ibis);
+        Peer p = (Peer) peers.get(ibis);
 
-	if (p == null) {
-	    p = new Peer(ibis);
-	    peers.put(ibis, p);
-	}
+        if (p == null) {
+            p = new Peer(ibis);
+            peers.put(ibis, p);
+        }
 
-	return p;
+        return p;
     }
 
     OutputStream getFreeOutput(TcpIbisIdentifier ibis) {
-	Peer p = getPeer(ibis);
-	return p.getFreeOutput();
+        Peer p = getPeer(ibis);
+        return p.getFreeOutput();
     }
 
     InputStream getFreeInput(TcpIbisIdentifier ibis) {
-	if (CONNECTION_CACHE) {
-	    Peer p = getPeer(ibis);
-	    return p.getFreeInput();
-	}
-	return null;
+        if (CONNECTION_CACHE) {
+            Peer p = getPeer(ibis);
+            return p.getFreeInput();
+        }
+        return null;
     }
 
     void releaseOutput(TcpIbisIdentifier ibis, OutputStream out) {
-	Peer p = getPeer(ibis);
-	p.releaseOutput(out);
+        Peer p = getPeer(ibis);
+        p.releaseOutput(out);
     }
 
     void releaseInput(TcpIbisIdentifier ibis, InputStream in) {
-	Peer p = getPeer(ibis);
-	p.releaseInput(in);
+        Peer p = getPeer(ibis);
+        p.releaseInput(in);
     }
 
-    void addFreeInput(TcpIbisIdentifier ibis, Socket s, InputStream in, OutputStream out) {
-	Peer p = getPeer(ibis);
-	p.addFreeInput(s, in, out);
+    void addFreeInput(TcpIbisIdentifier ibis, Socket s, InputStream in,
+            OutputStream out) {
+        Peer p = getPeer(ibis);
+        p.addFreeInput(s, in, out);
     }
 
-    void addFreeOutput(TcpIbisIdentifier ibis, Socket s, InputStream in, OutputStream out) {
-	Peer p = getPeer(ibis);
-	p.addFreeOutput(s, in, out);
+    void addFreeOutput(TcpIbisIdentifier ibis, Socket s, InputStream in,
+            OutputStream out) {
+        Peer p = getPeer(ibis);
+        p.addFreeOutput(s, in, out);
     }
 }

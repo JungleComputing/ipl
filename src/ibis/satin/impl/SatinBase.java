@@ -29,6 +29,7 @@ public abstract class SatinBase implements Config {
     protected boolean detailedStats = false;
 
     protected boolean ibisSerialization = false;
+
     protected boolean sunSerialization = false;
 
     protected boolean upcallPolling = false;
@@ -46,6 +47,7 @@ public abstract class SatinBase implements Config {
     int branchingFactor = 0; //if > 0, it is used for generating globally unique stamps
 
     protected boolean dump = false; //true if the node should dump its datastructures during shutdown
+
     //done by registering DumpThread as a shutdown hook
 
     boolean getTable = true; //true if the node needs to download the contents of the global result table
@@ -81,11 +83,15 @@ public abstract class SatinBase implements Config {
     DEQueue q;
 
     protected PortType portType;
+
     PortType tuplePortType;
+
     protected PortType barrierPortType;
+
     PortType globalResultTablePortType;
 
     protected ReceivePort receivePort;
+
     ReceivePort tupleReceivePort;
 
     protected ReceivePort barrierReceivePort; /* Only for the master. */
@@ -95,11 +101,11 @@ public abstract class SatinBase implements Config {
     SendPort tuplePort; /* used to bcast tuples */
 
     //ft
-    protected long connectTimeout =  1500000; /*
-					       * Timeout for connecting to other
-					       * nodes (in joined()) who might be
-					       * crashed
-					       */
+    protected long connectTimeout = 1500000; /*
+     * Timeout for connecting to other
+     * nodes (in joined()) who might be
+     * crashed
+     */
 
     volatile boolean exiting = false; // used in messageHandler
 
@@ -232,11 +238,12 @@ public abstract class SatinBase implements Config {
     //no node can execute the root job twice, so this counter does not have to
     // be set to 0 after root crash
     int rootNumSpawned = 0;
+
     //list of finished children of the root node (which doesn't have and invocation record)
     InvocationRecord rootFinishedChild = null;
+
     //list of children of the root node which need to be restarted
     InvocationRecord rootToBeRestartedChild = null;
-
 
     //for debugging ft
     boolean del = false;
@@ -314,38 +321,38 @@ public abstract class SatinBase implements Config {
     Vector deadIbises = new Vector();
 
     static {
-	TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+        TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
     }
 
     static boolean trylock(Object o) {
-	try {
-	    o.notifyAll();
-	} catch (IllegalMonitorStateException e) {
-	    return false;
-	}
+        try {
+            o.notifyAll();
+        } catch (IllegalMonitorStateException e) {
+            return false;
+        }
 
-	return true;
+        return true;
     }
 
     static void assertLocked(Object o) {
-	if (!trylock(o)) {
-	    System.err.println("AssertLocked failed!: ");
-	    new Exception().printStackTrace();
-	    System.exit(1);
-	}
+        if (!trylock(o)) {
+            System.err.println("AssertLocked failed!: ");
+            new Exception().printStackTrace();
+            System.exit(1);
+        }
     }
 
     boolean inDifferentCluster(IbisIdentifier other) {
-	if (ASSERTS) {
-	    if (ident.cluster() == null || other.cluster() == null) {
-		System.err.println("WARNING: Found NULL cluster!");
+        if (ASSERTS) {
+            if (ident.cluster() == null || other.cluster() == null) {
+                System.err.println("WARNING: Found NULL cluster!");
 
-		/* this isn't severe enough to exit, so return something */
-		return true;
-	    }
-	}
+                /* this isn't severe enough to exit, so return something */
+                return true;
+            }
+        }
 
-	return !ident.cluster().equals(other.cluster());
+        return !ident.cluster().equals(other.cluster());
     }
 
     abstract boolean satinPoll();
@@ -395,6 +402,6 @@ public abstract class SatinBase implements Config {
     abstract void attachToParentToBeRestarted(InvocationRecord r);
 
     Timer createTimer() {
-	return Timer.createTimer();
+        return Timer.createTimer();
     }
 }

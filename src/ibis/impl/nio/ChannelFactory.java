@@ -19,8 +19,8 @@ public interface ChannelFactory extends Runnable, Config {
      * @return a new Channel connected to "rpi".
      */
     public Channel connect(NioSendPortIdentifier spi,
-	    NioReceivePortIdentifier rpi,
-	    long timeoutMillis) throws IOException;
+            NioReceivePortIdentifier rpi, long timeoutMillis)
+            throws IOException;
 
     /**
      * Register a receiveport with this factory, so it will listen for

@@ -15,32 +15,37 @@ import java.util.Map;
 public abstract class TupleSpace extends Communication {
 
     static final boolean use_seq;
+
     private static HashMap space;
+
     private static boolean initialized = false;
+
     private static boolean tuple_connected = false;
+
     private static boolean tuple_connecting = false;
 
     static {
-	space = new HashMap();
-	use_seq = SUPPORT_TUPLE_MULTICAST && TUPLE_ORDERED;
+        space = new HashMap();
+        use_seq = SUPPORT_TUPLE_MULTICAST && TUPLE_ORDERED;
     }
 
     public static void initTupleSpace() {
-	synchronized(TupleSpace.class) {
-	    if (initialized) return;
-	    initialized = true;
-	    if (this_satin != null && !this_satin.closed) {
-		System.err
-		    .println("The tuple space currently only works with a closed world. Try running with -satin-closed");
-		System.exit(1);
-		//			throw new IbisError("The tuple space currently only works with a
-		// closed world. Try running with -satin-closed");
-	    }
-	}
+        synchronized (TupleSpace.class) {
+            if (initialized)
+                return;
+            initialized = true;
+            if (this_satin != null && !this_satin.closed) {
+                System.err
+                        .println("The tuple space currently only works with a closed world. Try running with -satin-closed");
+                System.exit(1);
+                //			throw new IbisError("The tuple space currently only works with a
+                // closed world. Try running with -satin-closed");
+            }
+        }
 
-	if (use_seq && this_satin != null) {
-	    enableActiveTupleOrdening();
-	}
+        if (use_seq && this_satin != null) {
+            enableActiveTupleOrdening();
+        }
     }
 
     /**
@@ -59,35 +64,36 @@ public abstract class TupleSpace extends Communication {
      *            The data associated with the key.
      */
     public static void addTuple(String key, Serializable data) {
-	if (! initialized) initTupleSpace();
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + this_satin.ident.name()
-		    + ": added key " + key);
-	}
+        if (!initialized)
+            initTupleSpace();
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + this_satin.ident.name()
+                    + ": added key " + key);
+        }
 
-	//		System.err.println("use seq = " + use_seq + ", this_satin = " +
-	// this_satin);
+        //		System.err.println("use seq = " + use_seq + ", this_satin = " +
+        // this_satin);
 
-	if (this_satin != null) { // can happen with sequential versions of
-	    // Satin
-	    // programs
-	    this_satin.broadcastTuple(key, data);
-	}
+        if (this_satin != null) { // can happen with sequential versions of
+            // Satin
+            // programs
+            this_satin.broadcastTuple(key, data);
+        }
 
-	if (!use_seq || this_satin == null) {
-	    if (data instanceof ActiveTuple) {
-		((ActiveTuple) data).handleTuple(key);
-	    } else {
-		synchronized (space) {
-		    space.put(key, data);
-		}
-	    }
-	}
+        if (!use_seq || this_satin == null) {
+            if (data instanceof ActiveTuple) {
+                ((ActiveTuple) data).handleTuple(key);
+            } else {
+                synchronized (space) {
+                    space.put(key, data);
+                }
+            }
+        }
 
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + this_satin.ident.name()
-		    + ": adding of key " + key + " done");
-	}
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + this_satin.ident.name()
+                    + ": adding of key " + key + " done");
+        }
     }
 
     /**
@@ -99,19 +105,21 @@ public abstract class TupleSpace extends Communication {
      * @return the data associated with the key.
      */
     public static Serializable peekTuple(String key) {
-	Serializable data = null;
+        Serializable data = null;
 
-	if (! initialized) initTupleSpace();
+        if (!initialized)
+            initTupleSpace();
 
-	if(TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + this_satin.ident.name() + ": peek key " + key);
-	}
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + this_satin.ident.name()
+                    + ": peek key " + key);
+        }
 
-	synchronized (space) {
-	    data = (Serializable) space.get(key);
-	}
+        synchronized (space) {
+            data = (Serializable) space.get(key);
+        }
 
-	return data;
+        return data;
     }
 
     /**
@@ -123,45 +131,48 @@ public abstract class TupleSpace extends Communication {
      * @return the data associated with the key.
      */
     public static Serializable getTuple(String key) {
-	Serializable data = null;
+        Serializable data = null;
 
-	if (! initialized) initTupleSpace();
+        if (!initialized)
+            initTupleSpace();
 
-	if(TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + this_satin.ident.name() + ": get key " + key);
-	}
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + this_satin.ident.name()
+                    + ": get key " + key);
+        }
 
-	synchronized (space) {
-	    while (data == null) {
-		data = (Serializable) space.get(key);
-		if (data == null) {
-		    try {
-			if (TUPLE_DEBUG) {
-			    System.err.println("SATIN '"
-				    + this_satin.ident.name() + ": get key "
-				    + key + " waiting");
-			}
+        synchronized (space) {
+            while (data == null) {
+                data = (Serializable) space.get(key);
+                if (data == null) {
+                    try {
+                        if (TUPLE_DEBUG) {
+                            System.err.println("SATIN '"
+                                    + this_satin.ident.name() + ": get key "
+                                    + key + " waiting");
+                        }
 
-			space.wait();
+                        space.wait();
 
-			if (TUPLE_DEBUG) {
-			    System.err.println("SATIN '"
-				    + this_satin.ident.name() + ": get key "
-				    + key + " waiting DONE");
-			}
+                        if (TUPLE_DEBUG) {
+                            System.err.println("SATIN '"
+                                    + this_satin.ident.name() + ": get key "
+                                    + key + " waiting DONE");
+                        }
 
-		    } catch (Exception e) {
-			// Ignore.
-		    }
-		}
-	    }
+                    } catch (Exception e) {
+                        // Ignore.
+                    }
+                }
+            }
 
-	    if(TUPLE_DEBUG) {
-		System.err.println("SATIN '" + this_satin.ident.name() + ": get key " + key + " DONE");
-	    }
+            if (TUPLE_DEBUG) {
+                System.err.println("SATIN '" + this_satin.ident.name()
+                        + ": get key " + key + " DONE");
+            }
 
-	    return data;
-	}
+            return data;
+        }
     }
 
     /**
@@ -172,389 +183,394 @@ public abstract class TupleSpace extends Communication {
      */
     public static void removeTuple(String key) {
 
-	if (! initialized) initTupleSpace();
+        if (!initialized)
+            initTupleSpace();
 
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + this_satin.ident.name()
-		    + ": removed key " + key);
-	}
-	if (this_satin != null) {
-	    this_satin.broadcastRemoveTuple(key);
-	    if (TUPLE_DEBUG) {
-		System.err.println("SATIN '" + this_satin.ident.name()
-			+ ": bcast remove key " + key + " done");
-	    }
-	}
-	if (!use_seq || this_satin == null) {
-	    synchronized (space) {
-		if (ASSERTS && !space.containsKey(key)) {
-		    throw new IbisError("Key " + key
-			    + " is not in the tuple space");
-		}
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + this_satin.ident.name()
+                    + ": removed key " + key);
+        }
+        if (this_satin != null) {
+            this_satin.broadcastRemoveTuple(key);
+            if (TUPLE_DEBUG) {
+                System.err.println("SATIN '" + this_satin.ident.name()
+                        + ": bcast remove key " + key + " done");
+            }
+        }
+        if (!use_seq || this_satin == null) {
+            synchronized (space) {
+                if (ASSERTS && !space.containsKey(key)) {
+                    throw new IbisError("Key " + key
+                            + " is not in the tuple space");
+                }
 
-		space.remove(key);
+                space.remove(key);
 
-		// also remove it from the new lists (if there)
-		//			int index = newKeys.indexOf(key);
-		//			if(index != -1) {
-		//				newData.remove(index);
-		//			}
-	    }
-	}
+                // also remove it from the new lists (if there)
+                //			int index = newKeys.indexOf(key);
+                //			if(index != -1) {
+                //				newData.remove(index);
+                //			}
+            }
+        }
     }
 
     public static void remoteAdd(String key, Serializable data) {
-	if (! initialized) initTupleSpace();
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + this_satin.ident.name()
-		    + ": remote add of key " + key);
-	    if (data == null) {
-		System.err.println("data = null!");
-	    }
-	}
+        if (!initialized)
+            initTupleSpace();
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + this_satin.ident.name()
+                    + ": remote add of key " + key);
+            if (data == null) {
+                System.err.println("data = null!");
+            }
+        }
 
-	synchronized (space) {
-	    space.put(key, data);
-	    //			newKeys.add(key);
-	    //			newData.add(data);
-	    space.notifyAll();
-	}
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + this_satin.ident.name()
-		    + ": remote add of key " + key + " DONE");
-	}
+        synchronized (space) {
+            space.put(key, data);
+            //			newKeys.add(key);
+            //			newData.add(data);
+            space.notifyAll();
+        }
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + this_satin.ident.name()
+                    + ": remote add of key " + key + " DONE");
+        }
     }
 
     public static void remoteDel(String key) {
-	if (! initialized) initTupleSpace();
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + this_satin.ident.name()
-		    + ": remote del of key " + key);
-	}
-	synchronized (space) {
-	    space.remove(key);
+        if (!initialized)
+            initTupleSpace();
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + this_satin.ident.name()
+                    + ": remote del of key " + key);
+        }
+        synchronized (space) {
+            space.remove(key);
 
-	    // also remove it from the new lists (if there)
-	    //			int index = newKeys.indexOf(key);
-	    //			if(index != -1) {
-	    //				newData.remove(index);
-	    //			}
-	}
+            // also remove it from the new lists (if there)
+            //			int index = newKeys.indexOf(key);
+            //			if(index != -1) {
+            //				newData.remove(index);
+            //			}
+        }
     }
 
     /* ------------------- tuple space stuff ---------------------- */
 
     private void tupleConnect() {
-	boolean must_connect = false;
+        boolean must_connect = false;
 
-	synchronized(this) {
-	    if (! tuple_connected && ! tuple_connecting) {
-		tuple_connecting = true;
-		must_connect = true;
-	    }
-	}
-	if (must_connect) {
-	    // You cannot hold the satin lock while connecting ...
-	    connectTuplePort();
-	    synchronized(this) {
-		tuple_connected = true;
-		this.notifyAll();
-	    }
-	} else {
-	    synchronized(this) {
-		while (! tuple_connected) {
-		    try {
-			this.wait();
-		    } catch(Exception e) {
-			// ignored
-		    }
-		}
-	    }
-	}
+        synchronized (this) {
+            if (!tuple_connected && !tuple_connecting) {
+                tuple_connecting = true;
+                must_connect = true;
+            }
+        }
+        if (must_connect) {
+            // You cannot hold the satin lock while connecting ...
+            connectTuplePort();
+            synchronized (this) {
+                tuple_connected = true;
+                this.notifyAll();
+            }
+        } else {
+            synchronized (this) {
+                while (!tuple_connected) {
+                    try {
+                        this.wait();
+                    } catch (Exception e) {
+                        // ignored
+                    }
+                }
+            }
+        }
     }
 
     protected void broadcastTuple(String key, Serializable data) {
-	long count = 0;
-	int size = 0;
+        long count = 0;
+        int size = 0;
 
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + ident.name() + "': bcasting tuple "
-		    + key);
-	}
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + ident.name() + "': bcasting tuple "
+                    + key);
+        }
 
-	synchronized (this) {
-	    size = victims.size();
-	}
+        synchronized (this) {
+            size = victims.size();
+        }
 
-	if (size == 0 && (! use_seq || this_satin == null)) {
-	    return; // don't multicast when there is no-one.
-	}
+        if (size == 0 && (!use_seq || this_satin == null)) {
+            return; // don't multicast when there is no-one.
+        }
 
-	if (TUPLE_TIMING) {
-	    tupleTimer.start();
-	}
+        if (TUPLE_TIMING) {
+            tupleTimer.start();
+        }
 
-	if (SUPPORT_TUPLE_MULTICAST) {
-	    tupleConnect();
-	    synchronized(this) {
-		tuple_message_sent = true;
-	    }
+        if (SUPPORT_TUPLE_MULTICAST) {
+            tupleConnect();
+            synchronized (this) {
+                tuple_message_sent = true;
+            }
 
-	    try {
-		WriteMessage writeMessage = tuplePort.newMessage();
-		writeMessage.writeByte(Protocol.TUPLE_ADD);
-		writeMessage.writeString(key);
-		writeMessage.writeObject(data);
+            try {
+                WriteMessage writeMessage = tuplePort.newMessage();
+                writeMessage.writeByte(Protocol.TUPLE_ADD);
+                writeMessage.writeString(key);
+                writeMessage.writeObject(data);
 
-		if (TUPLE_STATS) {
-		    tupleMsgs++;
-		    count = writeMessage.finish();
-		} else {
-		    writeMessage.finish();
-		}
+                if (TUPLE_STATS) {
+                    tupleMsgs++;
+                    count = writeMessage.finish();
+                } else {
+                    writeMessage.finish();
+                }
 
-	    } catch (IOException e) {
-		if (!FAULT_TOLERANCE) {
-		    System.err.println("SATIN '" + ident.name()
-			    + "': Got Exception while sending tuple update: "
-			    + e);
-		    e.printStackTrace();
-		    System.exit(1);
-		}
-		//always happens after crash
-	    }
+            } catch (IOException e) {
+                if (!FAULT_TOLERANCE) {
+                    System.err.println("SATIN '" + ident.name()
+                            + "': Got Exception while sending tuple update: "
+                            + e);
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+                //always happens after crash
+            }
 
-	    // Wait until the message is delivered locally.
-	    if (use_seq) {
-		synchronized (this) {
-		    while (tuple_message_sent) {
-			try {
-			    wait();
-			} catch (Exception e) {
-			    // Ignore
-			}
-		    }
-		}
-	    }
-	} else {
-	    for (int i = 0; i < size; i++) {
-		try {
-		    SendPort s = null;
-		    synchronized (this) {
-			s = victims.getPort(i);
-		    }
-		    WriteMessage writeMessage = s.newMessage();
-		    writeMessage.writeByte(Protocol.TUPLE_ADD);
-		    writeMessage.writeString(key);
-		    writeMessage.writeObject(data);
+            // Wait until the message is delivered locally.
+            if (use_seq) {
+                synchronized (this) {
+                    while (tuple_message_sent) {
+                        try {
+                            wait();
+                        } catch (Exception e) {
+                            // Ignore
+                        }
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < size; i++) {
+                try {
+                    SendPort s = null;
+                    synchronized (this) {
+                        s = victims.getPort(i);
+                    }
+                    WriteMessage writeMessage = s.newMessage();
+                    writeMessage.writeByte(Protocol.TUPLE_ADD);
+                    writeMessage.writeString(key);
+                    writeMessage.writeObject(data);
 
-		    if (TUPLE_STATS && i == 0) {
-			tupleMsgs++;
-			count = writeMessage.finish();
-		    } else {
-			writeMessage.finish();
-		    }
+                    if (TUPLE_STATS && i == 0) {
+                        tupleMsgs++;
+                        count = writeMessage.finish();
+                    } else {
+                        writeMessage.finish();
+                    }
 
-		} catch (IOException e) {
-		    System.err.println("SATIN '" + ident.name()
-			    + "': Got Exception while sending tuple update: "
-			    + e);
-		    System.exit(1);
-		}
-	    }
-	}
+                } catch (IOException e) {
+                    System.err.println("SATIN '" + ident.name()
+                            + "': Got Exception while sending tuple update: "
+                            + e);
+                    System.exit(1);
+                }
+            }
+        }
 
-	tupleBytes += count;
+        tupleBytes += count;
 
-	if (TUPLE_TIMING) {
-	    tupleTimer.stop();
-	    //			System.err.println("SATIN '" + ident.name() + ": bcast of " +
-	    // count + " bytes took: " + tupleTimer.lastTime());
-	}
+        if (TUPLE_TIMING) {
+            tupleTimer.stop();
+            //			System.err.println("SATIN '" + ident.name() + ": bcast of " +
+            // count + " bytes took: " + tupleTimer.lastTime());
+        }
 
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + ident.name() + "': bcasting tuple "
-		    + key + " DONE");
-	}
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + ident.name() + "': bcasting tuple "
+                    + key + " DONE");
+        }
     }
 
     private void connectTuplePort() {
-	for (int i = 0; i < allIbises.size(); i++) {
-	    IbisIdentifier id = (IbisIdentifier) allIbises.get(i);
-	    if (! id.equals(ident)) {
-		ReceivePortIdentifier r;
-		try {
-		    r = lookup("satin tuple port on " + id.name());
-		    connect(tuplePort, r);
-		} catch(IOException e) {
-		    if (!FAULT_TOLERANCE) {
-			System.err.println("SATIN '" + ident.name()
-				+ "': Got Exception while connecting tuple port: "
-				+ e);
-			System.exit(1);
-		    }
-		}
-	    }
-	}
+        for (int i = 0; i < allIbises.size(); i++) {
+            IbisIdentifier id = (IbisIdentifier) allIbises.get(i);
+            if (!id.equals(ident)) {
+                ReceivePortIdentifier r;
+                try {
+                    r = lookup("satin tuple port on " + id.name());
+                    connect(tuplePort, r);
+                } catch (IOException e) {
+                    if (!FAULT_TOLERANCE) {
+                        System.err
+                                .println("SATIN '"
+                                        + ident.name()
+                                        + "': Got Exception while connecting tuple port: "
+                                        + e);
+                        System.exit(1);
+                    }
+                }
+            }
+        }
     }
 
     protected void broadcastRemoveTuple(String key) {
-	long count = 0;
-	int size = 0;
+        long count = 0;
+        int size = 0;
 
-	if (TUPLE_DEBUG) {
-	    System.err.println("SATIN '" + ident.name()
-		    + "': bcasting remove tuple" + key);
-	}
+        if (TUPLE_DEBUG) {
+            System.err.println("SATIN '" + ident.name()
+                    + "': bcasting remove tuple" + key);
+        }
 
-	synchronized (this) {
-	    size = victims.size();
-	}
+        synchronized (this) {
+            size = victims.size();
+        }
 
-	if(size == 0 && (! use_seq || this_satin == null))
-	    return; // don't multicast when there is no-one.
+        if (size == 0 && (!use_seq || this_satin == null))
+            return; // don't multicast when there is no-one.
 
-	if (TUPLE_TIMING) {
-	    tupleTimer.start();
-	}
+        if (TUPLE_TIMING) {
+            tupleTimer.start();
+        }
 
-	if (SUPPORT_TUPLE_MULTICAST) {
-	    synchronized(this) {
-		tupleConnect();
-		tuple_message_sent = true;
-	    }
+        if (SUPPORT_TUPLE_MULTICAST) {
+            synchronized (this) {
+                tupleConnect();
+                tuple_message_sent = true;
+            }
 
-	    try {
-		WriteMessage writeMessage = tuplePort.newMessage();
-		writeMessage.writeByte(Protocol.TUPLE_DEL);
-		writeMessage.writeString(key);
+            try {
+                WriteMessage writeMessage = tuplePort.newMessage();
+                writeMessage.writeByte(Protocol.TUPLE_DEL);
+                writeMessage.writeString(key);
 
-		if (TUPLE_STATS) {
-		    tupleMsgs++;
-		    count += writeMessage.finish();
-		} else {
-		    writeMessage.finish();
-		}
+                if (TUPLE_STATS) {
+                    tupleMsgs++;
+                    count += writeMessage.finish();
+                } else {
+                    writeMessage.finish();
+                }
 
-	    } catch (IOException e) {
-		if (!FAULT_TOLERANCE) {
-		    System.err.println("SATIN '" + ident.name()
-			    + "': Got Exception while sending tuple update: "
-			    + e);
-		    System.exit(1);
-		}
-		//always happen after crashes
-	    }
-	    if (use_seq) {
-		synchronized(this) {
-		    while (tuple_message_sent) {
-			try {
-			    wait();
-			} catch(Exception e) {
-			    /* ignore */
-			}
-		    }
-		}
-	    }
-	} else {
-	    for (int i = 0; i < size; i++) {
-		try {
-		    SendPort s = null;
-		    synchronized (this) {
-			s = victims.getPort(i);
-		    }
-		    WriteMessage writeMessage = s.newMessage();
-		    writeMessage.writeByte(Protocol.TUPLE_DEL);
-		    writeMessage.writeString(key);
+            } catch (IOException e) {
+                if (!FAULT_TOLERANCE) {
+                    System.err.println("SATIN '" + ident.name()
+                            + "': Got Exception while sending tuple update: "
+                            + e);
+                    System.exit(1);
+                }
+                //always happen after crashes
+            }
+            if (use_seq) {
+                synchronized (this) {
+                    while (tuple_message_sent) {
+                        try {
+                            wait();
+                        } catch (Exception e) {
+                            /* ignore */
+                        }
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < size; i++) {
+                try {
+                    SendPort s = null;
+                    synchronized (this) {
+                        s = victims.getPort(i);
+                    }
+                    WriteMessage writeMessage = s.newMessage();
+                    writeMessage.writeByte(Protocol.TUPLE_DEL);
+                    writeMessage.writeString(key);
 
-		    if (TUPLE_STATS && i == 0) {
-			tupleMsgs++;
-			count += writeMessage.finish();
-		    } else {
-			writeMessage.finish();
-		    }
+                    if (TUPLE_STATS && i == 0) {
+                        tupleMsgs++;
+                        count += writeMessage.finish();
+                    } else {
+                        writeMessage.finish();
+                    }
 
-		} catch (IOException e) {
-		    System.err.println("SATIN '" + ident.name()
-			    + "': Got Exception while sending tuple update: "
-			    + e);
-		    System.exit(1);
-		}
-	    }
-	}
+                } catch (IOException e) {
+                    System.err.println("SATIN '" + ident.name()
+                            + "': Got Exception while sending tuple update: "
+                            + e);
+                    System.exit(1);
+                }
+            }
+        }
 
-	tupleBytes += count;
+        tupleBytes += count;
 
-	if (TUPLE_TIMING) {
-	    tupleTimer.stop();
-	    //			System.err.println("SATIN '" + ident.name() + ": bcast of " +
-	    // count + " bytes took: " + tupleTimer.lastTime());
-	}
+        if (TUPLE_TIMING) {
+            tupleTimer.stop();
+            //			System.err.println("SATIN '" + ident.name() + ": bcast of " +
+            // count + " bytes took: " + tupleTimer.lastTime());
+        }
     }
 
     // hold the lock when calling this
     protected void addToActiveTupleList(String key, Serializable data) {
-	if (ASSERTS) {
-	    assertLocked(this);
-	}
-	activeTupleKeyList.add(key);
-	activeTupleDataList.add(data);
+        if (ASSERTS) {
+            assertLocked(this);
+        }
+        activeTupleKeyList.add(key);
+        activeTupleDataList.add(data);
     }
 
     void handleActiveTuples() {
-	String key = null;
-	ActiveTuple data = null;
+        String key = null;
+        ActiveTuple data = null;
 
-	while (true) {
-	    synchronized (this) {
-		if (activeTupleKeyList.size() == 0) {
-		    gotActiveTuples = false;
-		    return;
-		}
+        while (true) {
+            synchronized (this) {
+                if (activeTupleKeyList.size() == 0) {
+                    gotActiveTuples = false;
+                    return;
+                }
 
-		// do upcall
-		key = (String) activeTupleKeyList.remove(0);
-		data = (ActiveTuple) activeTupleDataList.remove(0);
-		if (TUPLE_DEBUG) {
-		    System.err.println("calling active tuple key = " + key
-			    + " data = " + data);
-		}
-	    }
+                // do upcall
+                key = (String) activeTupleKeyList.remove(0);
+                data = (ActiveTuple) activeTupleDataList.remove(0);
+                if (TUPLE_DEBUG) {
+                    System.err.println("calling active tuple key = " + key
+                            + " data = " + data);
+                }
+            }
 
-	    try {
-		data.handleTuple(key);
-	    } catch (Throwable t) {
-		System.err.println("WARNING: active tuple threw exception: "
-			+ t);
-	    }
-	}
+            try {
+                data.handleTuple(key);
+            } catch (Throwable t) {
+                System.err.println("WARNING: active tuple threw exception: "
+                        + t);
+            }
+        }
     }
 
     private static void enableActiveTupleOrdening() {
-	if (this_satin == null) return;
-	connect(this_satin.tuplePort, this_satin.tupleReceivePort.identifier());
+        if (this_satin == null)
+            return;
+        connect(this_satin.tuplePort, this_satin.tupleReceivePort.identifier());
     }
-
 
     /* ------------------- for fault tolerance ---------------------- */
 
     //returns ready to send contents of the table
     Map getContents() {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(this_satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(this_satin);
+        }
 
-	return space;
+        return space;
     }
 
     void addContents(Map contents) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(this_satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(this_satin);
+        }
 
-	synchronized(space) {
-	    space.putAll(contents);
-	    space.notifyAll();
-	}
+        synchronized (space) {
+            space.putAll(contents);
+            space.notifyAll();
+        }
     }
 }

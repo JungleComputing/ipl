@@ -13,15 +13,13 @@ import java.io.ObjectInputStream;
  * A remote object should extend <code>RemoteObject</code>, usually by
  * extending <code>UnicastRemoteObject</code>.
  */
-public class UnicastRemoteObject extends RemoteServer
-{
+public class UnicastRemoteObject extends RemoteServer {
     /**
      * Creates and exports a new UnicastRemoteObject object.
      * @throws RemoteException if it failed to export the object
      */
-    protected UnicastRemoteObject() throws RemoteException
-    {
-	exportObject(this);
+    protected UnicastRemoteObject() throws RemoteException {
+        exportObject(this);
     }
 
     /**
@@ -30,15 +28,15 @@ public class UnicastRemoteObject extends RemoteServer
      * @exception CloneNotSupportedException if clone failed due to
      *  a RemoteException
      */
-    public Object clone() throws CloneNotSupportedException
-    {
-	try {
-	    UnicastRemoteObject r = (UnicastRemoteObject)(super.clone());
-	    r.reexport();
-	    return r;
-	} catch (RemoteException e) {
-	    throw new CloneNotSupportedException("Clone failed: " + e.toString());
-	}
+    public Object clone() throws CloneNotSupportedException {
+        try {
+            UnicastRemoteObject r = (UnicastRemoteObject) (super.clone());
+            r.reexport();
+            return r;
+        } catch (RemoteException e) {
+            throw new CloneNotSupportedException("Clone failed: "
+                    + e.toString());
+        }
     }
 
     /**
@@ -47,32 +45,29 @@ public class UnicastRemoteObject extends RemoteServer
      * @return the remote object stub
      * @exception RemoteException if the export fails
      */
-    public static RemoteStub exportObject(Remote obj) throws RemoteException
-    {
-	// Use exportObject from the "current" UnicastServerRef".
-	ServerRef ref = new UnicastServerRef();
-	if (obj instanceof RemoteObject) {
-	    if (((RemoteObject)obj).ref != null) {
-		throw new ExportException("object already exported");
-	    }
-	    ((RemoteObject)obj).ref = ref;
-	}
-	return ref.exportObject(obj, null);
+    public static RemoteStub exportObject(Remote obj) throws RemoteException {
+        // Use exportObject from the "current" UnicastServerRef".
+        ServerRef ref = new UnicastServerRef();
+        if (obj instanceof RemoteObject) {
+            if (((RemoteObject) obj).ref != null) {
+                throw new ExportException("object already exported");
+            }
+            ((RemoteObject) obj).ref = ref;
+        }
+        return ref.exportObject(obj, null);
     }
 
-    private void readObject(ObjectInputStream in)
-	    throws IOException, ClassNotFoundException
-    {
-	in.defaultReadObject();
-	reexport();
+    private void readObject(ObjectInputStream in) throws IOException,
+            ClassNotFoundException {
+        in.defaultReadObject();
+        reexport();
     }
-    
-    private void reexport()  throws RemoteException
-    {
-	if (ref != null) {
-	    ((UnicastServerRef)ref).exportObject(this, null);
-	} else {
-	    exportObject(this);
-	}
+
+    private void reexport() throws RemoteException {
+        if (ref != null) {
+            ((UnicastServerRef) ref).exportObject(this, null);
+        } else {
+            exportObject(this);
+        }
     }
 }

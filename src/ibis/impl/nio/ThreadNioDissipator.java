@@ -14,9 +14,11 @@ import java.nio.channels.SelectionKey;
 final class ThreadNioDissipator extends NioDissipator implements Config {
 
     final ThreadNioReceivePort port;
+
     final SendReceiveThread sendReceiveThread;
 
     SelectionKey key;
+
     boolean reading = false;
 
     int minimum = 0;
@@ -24,40 +26,38 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
     IOException error = null; // used to notify user of exceptions
 
     ThreadNioDissipator(SendReceiveThread sendReceiveThread,
-			ThreadNioReceivePort port, 
-			NioSendPortIdentifier peer,
-			NioReceivePortIdentifier rpi,
-			ReadableByteChannel channel,
-			NioPortType type) throws IOException {
-	super(peer, rpi, channel, type);
+            ThreadNioReceivePort port, NioSendPortIdentifier peer,
+            NioReceivePortIdentifier rpi, ReadableByteChannel channel,
+            NioPortType type) throws IOException {
+        super(peer, rpi, channel, type);
 
-	this.sendReceiveThread = sendReceiveThread;
-	this.port = port;
+        this.sendReceiveThread = sendReceiveThread;
+        this.port = port;
 
-	if(!(channel instanceof SelectableChannel)) {
-	    throw new IbisError("wrong type of channel given on creation of"
-		    + " ThreadNioDissipator");
-	}
-	key = sendReceiveThread.register((SelectableChannel) channel, this);
-	sendReceiveThread.enableReading(key);
-	reading = true;
+        if (!(channel instanceof SelectableChannel)) {
+            throw new IbisError("wrong type of channel given on creation of"
+                    + " ThreadNioDissipator");
+        }
+        key = sendReceiveThread.register((SelectableChannel) channel, this);
+        sendReceiveThread.enableReading(key);
+        reading = true;
     }
 
     synchronized void receive() throws IOException {
-	super.receive();
+        super.receive();
 
-	if (!reading) {
-	    sendReceiveThread.enableReading(key);
-	    reading = true;
-	}
+        if (!reading) {
+            sendReceiveThread.enableReading(key);
+            reading = true;
+        }
     }
 
     synchronized boolean messageWaiting() throws IOException {
-	if (key == null) {
-	    //this dissipator is already closed
-	    return false;
-	}
-	return super.messageWaiting();
+        if (key == null) {
+            //this dissipator is already closed
+            return false;
+        }
+        return super.messageWaiting();
     }
 
     /**
@@ -65,44 +65,43 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
      * channel now.
      */
     synchronized void read() {
-	boolean bufferWasEmpty;
+        boolean bufferWasEmpty;
 
-	synchronized(this) {
-	    try {
-		if(!reading) {
-		    return;
-		}
+        synchronized (this) {
+            try {
+                if (!reading) {
+                    return;
+                }
 
-		bufferWasEmpty = (unUsedLength() == 0);
+                bufferWasEmpty = (unUsedLength() == 0);
 
-		readFromChannel();
+                readFromChannel();
 
-		//no use reading anymore, it's already full
-		if (!buffer.hasRemaining()) {
-		    key.interestOps(0);
-		    reading = false;
-		}
+                //no use reading anymore, it's already full
+                if (!buffer.hasRemaining()) {
+                    key.interestOps(0);
+                    reading = false;
+                }
 
-
-		if(minimum != 0 && unUsedLength() >= minimum) {
-		    notifyAll();
-		}
-	    } catch (IOException e) {
-		error = e;
-		key.interestOps(0);
-		reading = false;
-		try {
-		    channel.close();
-		} catch (IOException e2) {
-		    //IGNORE
-		}
-		return;
-	    }
-	}
-	//signal the port data is available in this dissipator now
-	if (bufferWasEmpty) {
-	    port.addToReadyList(this);
-	}
+                if (minimum != 0 && unUsedLength() >= minimum) {
+                    notifyAll();
+                }
+            } catch (IOException e) {
+                error = e;
+                key.interestOps(0);
+                reading = false;
+                try {
+                    channel.close();
+                } catch (IOException e2) {
+                    //IGNORE
+                }
+                return;
+            }
+        }
+        //signal the port data is available in this dissipator now
+        if (bufferWasEmpty) {
+            port.addToReadyList(this);
+        }
     }
 
     /*
@@ -110,43 +109,43 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
      *
      */
     synchronized protected void fillBuffer(int minimum) throws IOException {
-	//since the send/receive thread actually receives,
-	//we can only wait for it to put the data in the buffer
-	
-	if(!reading) {
-	    sendReceiveThread.enableReading(key);
-	    reading = true;
-	}
+        //since the send/receive thread actually receives,
+        //we can only wait for it to put the data in the buffer
 
-	while(unUsedLength() < minimum) {
-	    if(!reading) {
-		sendReceiveThread.enableReading(key);
-		reading = true;
-	    }
-	    if (error != null) {
-		//an exception occured while receiving, throw exception now
-		throw error;
-	    }
-	    try {
-		this.minimum = minimum;
-		wait();
-	    } catch (InterruptedException e) {
-		//IGNORE
-	    }
-	    this.minimum = 0;
-	}
+        if (!reading) {
+            sendReceiveThread.enableReading(key);
+            reading = true;
+        }
+
+        while (unUsedLength() < minimum) {
+            if (!reading) {
+                sendReceiveThread.enableReading(key);
+                reading = true;
+            }
+            if (error != null) {
+                //an exception occured while receiving, throw exception now
+                throw error;
+            }
+            try {
+                this.minimum = minimum;
+                wait();
+            } catch (InterruptedException e) {
+                //IGNORE
+            }
+            this.minimum = 0;
+        }
     }
 
     synchronized public long byteRead() {
-	return super.bytesRead();
+        return super.bytesRead();
     }
 
     synchronized public void resetBytesRead() {
-	super.resetBytesRead();
+        super.resetBytesRead();
     }
 
     public void reallyClose() throws IOException {
-	reading = false;
-	channel.close();
+        reading = false;
+        channel.close();
     }
 }

@@ -4,15 +4,14 @@ package ibis.rmi;
  * An <code>UnknownHostException</code> is thrown when the <code>java.net</code>
  * version of same occurs while creating a connection to a remote host.
  */
-public class UnknownHostException extends RemoteException
-{
+public class UnknownHostException extends RemoteException {
     /**
      * Constructs an <code>UnknownHostException</code> with the specified
      * detail message.
      * @param s the detail message
      */
     public UnknownHostException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -22,6 +21,6 @@ public class UnknownHostException extends RemoteException
      * @param e the nested exception
      */
     public UnknownHostException(String s, Exception e) {
-	super(s, e);
+        super(s, e);
     }
 }

@@ -4,17 +4,16 @@ import java.io.IOException;
 
 public class MuxerKey {
 
-    int		seqno;
-    int		remoteKey;
+    int seqno;
 
+    int remoteKey;
 
     public MuxerKey(int remoteKey) {
-	this.remoteKey = remoteKey;
+        this.remoteKey = remoteKey;
     }
 
-
     public void free() throws IOException {
-	// No-op, reserve for subclasses
+        // No-op, reserve for subclasses
     }
 
 }

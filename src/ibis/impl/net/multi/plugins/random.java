@@ -8,46 +8,43 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Random;
 
-
 /**
  * Provide an example of multiprotocol's driver plugin.
  */
 public final class random implements MultiPlugin {
 
-        static Random r = new Random();
+    static Random r = new Random();
 
-        public String getSubContext(boolean 		isOutgoing,
-                                    NetIbisIdentifier  	localId,
-                                    NetIbisIdentifier  	remoteId,
-                                    ObjectOutputStream	os,
-                                    ObjectInputStream 	is) throws IOException {
-                String  subContext = null;
-                boolean value      = false;
+    public String getSubContext(boolean isOutgoing, NetIbisIdentifier localId,
+            NetIbisIdentifier remoteId, ObjectOutputStream os,
+            ObjectInputStream is) throws IOException {
+        String subContext = null;
+        boolean value = false;
 
-		if (isOutgoing) {
-			synchronized(r) {
-				value = r.nextBoolean();
-			}
+        if (isOutgoing) {
+            synchronized (r) {
+                value = r.nextBoolean();
+            }
 
-			os.writeObject(Boolean.valueOf(value));
-			os.flush();
-		} else {
-			Boolean b;
-			try {
-				b = (Boolean)is.readObject();
-			} catch (ClassNotFoundException e) {
-				throw new Error("Cannot find class Boolean", e);
-			}
-			value = b.booleanValue();
-		}
-
-                if (value) {
-                        subContext = "a";
-                } else {
-                        subContext = "b";
-                }
-
-                return subContext;
+            os.writeObject(Boolean.valueOf(value));
+            os.flush();
+        } else {
+            Boolean b;
+            try {
+                b = (Boolean) is.readObject();
+            } catch (ClassNotFoundException e) {
+                throw new Error("Cannot find class Boolean", e);
+            }
+            value = b.booleanValue();
         }
+
+        if (value) {
+            subContext = "a";
+        } else {
+            subContext = "b";
+        }
+
+        return subContext;
+    }
 }
 

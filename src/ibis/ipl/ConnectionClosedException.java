@@ -13,7 +13,7 @@ public class ConnectionClosedException extends IbisIOException {
      * <code>null</code> as its error detail message.
      */
     public ConnectionClosedException() {
-	super();
+        super();
     }
 
     /**
@@ -23,7 +23,7 @@ public class ConnectionClosedException extends IbisIOException {
      * @param s		the detail message
      */
     public ConnectionClosedException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -34,7 +34,7 @@ public class ConnectionClosedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionClosedException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -44,6 +44,6 @@ public class ConnectionClosedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionClosedException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

@@ -9,214 +9,197 @@ import ibis.impl.net.NetReceiveBuffer;
 
 import java.io.IOException;
 
-
 /**
  * The ID input implementation.
  */
 public final class IdInput extends NetInput {
 
-	/**
-	 * The driver used for the 'real' input.
-	 */
-	private NetDriver subDriver = null;
+    /**
+     * The driver used for the 'real' input.
+     */
+    private NetDriver subDriver = null;
 
-	/**
-	 * The 'real' input.
-	 */
-	private NetInput  subInput  = null;
+    /**
+     * The 'real' input.
+     */
+    private NetInput subInput = null;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param pt the properties of the input's
-	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the ID driver instance.
-	 */
-	IdInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
-		throws IOException {
-		super(pt, driver, context, inputUpcall);
-	}
+    /**
+     * Constructor.
+     *
+     * @param pt the properties of the input's
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
+     * @param driver the ID driver instance.
+     */
+    IdInput(NetPortType pt, NetDriver driver, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        super(pt, driver, context, inputUpcall);
+    }
 
-	public synchronized void setupConnection(NetConnection cnx) throws IOException {
-		NetInput subInput = this.subInput;
-		if (subInput == null) {
-			if (subDriver == null) {
-                                String subDriverName = getMandatoryProperty("Driver");
-				subDriver = driver.getIbis().getDriver(subDriverName);
-			}
+    public synchronized void setupConnection(NetConnection cnx)
+            throws IOException {
+        NetInput subInput = this.subInput;
+        if (subInput == null) {
+            if (subDriver == null) {
+                String subDriverName = getMandatoryProperty("Driver");
+                subDriver = driver.getIbis().getDriver(subDriverName);
+            }
 
-			subInput = newSubInput(subDriver, upcallFunc == null ? null : this);
-			this.subInput = subInput;
-		}
-
-		subInput.setupConnection(cnx);
-	}
-
-	public void startReceive() throws IOException {
-		subInput.startReceive();
-	}
-
-	public void switchToUpcallMode(NetInputUpcall inputUpcall)
-		throws IOException {
-	    installUpcallFunc(inputUpcall);
-	    subInput.switchToUpcallMode(this);
-	}
-
-	public boolean pollIsInterruptible() throws IOException {
-	    return subInput.pollIsInterruptible();
-	}
-
-	public void setInterruptible(boolean interruptible)
-		throws IOException {
-	    subInput.setInterruptible(interruptible);
-	}
-
-        public synchronized void inputUpcall(NetInput input, Integer spn) throws IOException {
-                // Note: the IdInput instance is bypassed during upcall reception
-                upcallFunc.inputUpcall(input, spn);
+            subInput = newSubInput(subDriver, upcallFunc == null ? null : this);
+            this.subInput = subInput;
         }
 
-        public void initReceive(Integer num) throws IOException {
-                mtu          = subInput.getMaximumTransfertUnit();
-                headerOffset = subInput.getHeadersLength();
-		subInput.initReceive(num);
+        subInput.setupConnection(cnx);
+    }
+
+    public void startReceive() throws IOException {
+        subInput.startReceive();
+    }
+
+    public void switchToUpcallMode(NetInputUpcall inputUpcall)
+            throws IOException {
+        installUpcallFunc(inputUpcall);
+        subInput.switchToUpcallMode(this);
+    }
+
+    public boolean pollIsInterruptible() throws IOException {
+        return subInput.pollIsInterruptible();
+    }
+
+    public void setInterruptible(boolean interruptible) throws IOException {
+        subInput.setInterruptible(interruptible);
+    }
+
+    public synchronized void inputUpcall(NetInput input, Integer spn)
+            throws IOException {
+        // Note: the IdInput instance is bypassed during upcall reception
+        upcallFunc.inputUpcall(input, spn);
+    }
+
+    public void initReceive(Integer num) throws IOException {
+        mtu = subInput.getMaximumTransfertUnit();
+        headerOffset = subInput.getHeadersLength();
+        subInput.initReceive(num);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <BR><B>Note</B>: This ID polling implementation uses the
+     * {@link java.io.InputStream#available()} function to test whether at least one
+     * data byte may be extracted without blocking.
+     */
+    public Integer doPoll(boolean block) throws IOException {
+        if (subInput == null) {
+            return null;
         }
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: This ID polling implementation uses the
-	 * {@link java.io.InputStream#available()} function to test whether at least one
-	 * data byte may be extracted without blocking.
-	 */
-	public Integer doPoll(boolean block) throws IOException {
-                if (subInput == null) {
-                        return null;
-		}
+        Integer result = subInput.poll(block);
 
-                Integer result = subInput.poll(block);
+        return result;
+    }
 
-		return result;
-	}
+    public void doFinish() throws IOException {
+        subInput.finish();
+    }
 
-	public void doFinish() throws IOException {
-		subInput.finish();
-	}
-
-	public void doFree() throws IOException {
-		if (subInput != null) {
-			subInput.free();
-		}
-	}
-
-        public synchronized void doClose(Integer num) throws IOException {
-                if (subInput != null) {
-			subInput.close(num);
-			subInput = null;
-		}
+    public void doFree() throws IOException {
+        if (subInput != null) {
+            subInput.free();
         }
+    }
 
-
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IOException {
-                return subInput.readByteBuffer(expectedLength);
+    public synchronized void doClose(Integer num) throws IOException {
+        if (subInput != null) {
+            subInput.close(num);
+            subInput = null;
         }
+    }
 
-        public void readByteBuffer(NetReceiveBuffer buffer) throws IOException {
-                subInput.readByteBuffer(buffer);
-        }
+    public NetReceiveBuffer readByteBuffer(int expectedLength)
+            throws IOException {
+        return subInput.readByteBuffer(expectedLength);
+    }
 
+    public void readByteBuffer(NetReceiveBuffer buffer) throws IOException {
+        subInput.readByteBuffer(buffer);
+    }
 
-	public boolean readBoolean() throws IOException {
-                return subInput.readBoolean();
-        }
+    public boolean readBoolean() throws IOException {
+        return subInput.readBoolean();
+    }
 
+    public byte readByte() throws IOException {
+        return subInput.readByte();
+    }
 
-	public byte readByte() throws IOException {
-                return subInput.readByte();
-        }
+    public char readChar() throws IOException {
+        return subInput.readChar();
+    }
 
+    public short readShort() throws IOException {
+        return subInput.readShort();
+    }
 
-	public char readChar() throws IOException {
-                return subInput.readChar();
-        }
+    public int readInt() throws IOException {
+        return subInput.readInt();
+    }
 
+    public long readLong() throws IOException {
+        return subInput.readLong();
+    }
 
-	public short readShort() throws IOException {
-                return subInput.readShort();
-        }
+    public float readFloat() throws IOException {
+        return subInput.readFloat();
+    }
 
+    public double readDouble() throws IOException {
+        return subInput.readDouble();
+    }
 
-	public int readInt() throws IOException {
-                return subInput.readInt();
-        }
+    public String readString() throws IOException {
+        return (String) subInput.readString();
+    }
 
+    public Object readObject() throws IOException, ClassNotFoundException {
+        return subInput.readObject();
+    }
 
-	public long readLong() throws IOException {
-                return subInput.readLong();
-        }
+    public void readArray(boolean[] b, int o, int l) throws IOException {
+        subInput.readArray(b, o, l);
+    }
 
+    public void readArray(byte[] b, int o, int l) throws IOException {
+        subInput.readArray(b, o, l);
+    }
 
-	public float readFloat() throws IOException {
-                return subInput.readFloat();
-        }
+    public void readArray(char[] b, int o, int l) throws IOException {
+        subInput.readArray(b, o, l);
+    }
 
+    public void readArray(short[] b, int o, int l) throws IOException {
+        subInput.readArray(b, o, l);
+    }
 
-	public double readDouble() throws IOException {
-                return subInput.readDouble();
-        }
+    public void readArray(int[] b, int o, int l) throws IOException {
+        subInput.readArray(b, o, l);
+    }
 
+    public void readArray(long[] b, int o, int l) throws IOException {
+        subInput.readArray(b, o, l);
+    }
 
-	public String readString() throws IOException {
-                return (String)subInput.readString();
-        }
+    public void readArray(float[] b, int o, int l) throws IOException {
+        subInput.readArray(b, o, l);
+    }
 
+    public void readArray(double[] b, int o, int l) throws IOException {
+        subInput.readArray(b, o, l);
+    }
 
-	public Object readObject() throws IOException, ClassNotFoundException {
-                return subInput.readObject();
-        }
-
-
-	public void readArray(boolean [] b, int o, int l) throws IOException {
-                subInput.readArray(b, o, l);
-        }
-
-
-	public void readArray(byte [] b, int o, int l) throws IOException {
-                subInput.readArray(b, o, l);
-        }
-
-
-	public void readArray(char [] b, int o, int l) throws IOException {
-                subInput.readArray(b, o, l);
-        }
-
-
-	public void readArray(short [] b, int o, int l) throws IOException {
-                subInput.readArray(b, o, l);
-        }
-
-
-	public void readArray(int [] b, int o, int l) throws IOException {
-                subInput.readArray(b, o, l);
-        }
-
-
-	public void readArray(long [] b, int o, int l) throws IOException {
-                subInput.readArray(b, o, l);
-        }
-
-
-	public void readArray(float [] b, int o, int l) throws IOException {
-                subInput.readArray(b, o, l);
-        }
-
-
-	public void readArray(double [] b, int o, int l) throws IOException {
-                subInput.readArray(b, o, l);
-        }
-
-	public void readArray(Object [] b, int o, int l) throws IOException, ClassNotFoundException {
-                subInput.readArray(b, o, l);
-        }
+    public void readArray(Object[] b, int o, int l) throws IOException,
+            ClassNotFoundException {
+        subInput.readArray(b, o, l);
+    }
 
 }

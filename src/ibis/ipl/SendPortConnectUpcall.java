@@ -20,7 +20,6 @@ public interface SendPortConnectUpcall {
      *  connection is lost.
      * @param reason the reason for this upcall.
      */
-    public void lostConnection(SendPort me,
-			       ReceivePortIdentifier johnDoe,
-			       Exception reason);
+    public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe,
+            Exception reason);
 }

@@ -10,9 +10,9 @@ public abstract class APIMethods extends Malleability {
      * during sequential code.
      */
     public static void pause() {
-	if (this_satin == null || !this_satin.upcalls)
-	    return;
-	this_satin.receivePort.disableUpcalls();
+        if (this_satin == null || !this_satin.upcalls)
+            return;
+        this_satin.receivePort.disableUpcalls();
     }
 
     /**
@@ -20,9 +20,9 @@ public abstract class APIMethods extends Malleability {
      * large sequential part in a program.
      */
     public static void resume() {
-	if (this_satin == null || !this_satin.upcalls)
-	    return;
-	this_satin.receivePort.enableUpcalls();
+        if (this_satin == null || !this_satin.upcalls)
+            return;
+        this_satin.receivePort.enableUpcalls();
     }
 
     /**
@@ -31,26 +31,26 @@ public abstract class APIMethods extends Malleability {
      * returns false.
      */
     public static boolean needMoreJobs() {
-	// This can happen in sequential programs.
-	if (this_satin == null) {
-	    return false;
-	}
-	synchronized (this_satin) {
-	    int size = this_satin.victims.size();
-	    // if(size == 1 && this_satin.closed) return false; // No need to
-	    // spawn work on one machine.
-	    // No no, size == 1 means that there is one OTHER
-	    // machine ... (Ceriel)
-	    if (size == 0 && this_satin.closed)
-		return false; // No need to
-	    // spawn work on
-	    // one machine.
+        // This can happen in sequential programs.
+        if (this_satin == null) {
+            return false;
+        }
+        synchronized (this_satin) {
+            int size = this_satin.victims.size();
+            // if(size == 1 && this_satin.closed) return false; // No need to
+            // spawn work on one machine.
+            // No no, size == 1 means that there is one OTHER
+            // machine ... (Ceriel)
+            if (size == 0 && this_satin.closed)
+                return false; // No need to
+            // spawn work on
+            // one machine.
 
-	    if (this_satin.q.size() / (size + 1) > this_satin.suggestedQueueSize)
-		return false;
-	}
+            if (this_satin.q.size() / (size + 1) > this_satin.suggestedQueueSize)
+                return false;
+        }
 
-	return true;
+        return true;
     }
 
     /**
@@ -59,12 +59,12 @@ public abstract class APIMethods extends Malleability {
      * runtime system, in which case this method returns false.
      */
     public static boolean localJob() {
-	if (this_satin == null)
-	    return true; // sequential run
+        if (this_satin == null)
+            return true; // sequential run
 
-	if (this_satin.parentOwner == null)
-	    return true; // root job
+        if (this_satin.parentOwner == null)
+            return true; // root job
 
-	return this_satin.parentOwner.equals(this_satin.ident);
+        return this_satin.parentOwner.equals(this_satin.ident);
     }
 }

@@ -6,11 +6,11 @@ import ibis.impl.net.NetReceiveBuffer;
 class RelReceiveBuffer extends NetReceiveBuffer {
 
     RelReceiveBuffer(byte[] data, int length) {
-	super(data, length);
+        super(data, length);
     }
 
     RelReceiveBuffer(byte[] data, int length, NetAllocator allocator) {
-	super(data, length, allocator);
+        super(data, length, allocator);
     }
 
     /**
@@ -21,11 +21,11 @@ class RelReceiveBuffer extends NetReceiveBuffer {
     /**
      * Sequence number of this packet
      */
-    int		fragCount;
+    int fragCount;
 
     /**
      * Is this the last fragment of a message?
      */
-    boolean	isLastFrag;
+    boolean isLastFrag;
 
 }

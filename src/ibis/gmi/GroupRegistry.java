@@ -4,7 +4,6 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
-import java.io.StreamCorruptedException;
 import java.util.Hashtable;
 
 /**
@@ -31,102 +30,101 @@ final class GroupRegistry implements GroupProtocol {
      */
     static private final class BarrierInfo {
 
-	/** The barrier is full when present == size. */
-	int size;
+        /** The barrier is full when present == size. */
+        int size;
 
-	/** The number of invocations up until now. */
-	int present;
+        /** The number of invocations up until now. */
+        int present;
 
-	BarrierInfo(int sz) {
-	    size = sz;
-	}
+        BarrierInfo(int sz) {
+            size = sz;
+        }
 
-	synchronized void addAndWaitUntilFull() {
-	    present++;
-	    if (present == size) {
-		notifyAll();
-	    }
-	    else {
-		while (present < size) {
-		    try {
-			wait();
-		    } catch (Exception e) {
-			// ignore
-		    }
-		}
-	    }
-	}
+        synchronized void addAndWaitUntilFull() {
+            present++;
+            if (present == size) {
+                notifyAll();
+            } else {
+                while (present < size) {
+                    try {
+                        wait();
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+            }
+        }
     }
 
     /**
      * Container class for the group information that the registry maintains.
      */
-    static private final class GroupRegistryData { 
-	/**
-	 * The group interface through which this group is accessed.
-	 */
-	String type;
+    static private final class GroupRegistryData {
+        /**
+         * The group interface through which this group is accessed.
+         */
+        String type;
 
-	/**
-	 * The group identification.
-	 */
-	int groupNumber;
+        /**
+         * The group identification.
+         */
+        int groupNumber;
 
-	/**
-	 * The number of members in this group.
-	 */
-	int groupSize;
+        /**
+         * The number of members in this group.
+         */
+        int groupSize;
 
-	/**
-	 * Skeleton identifications of each group member.
-	 */
-	int [] memberSkels;
+        /**
+         * Skeleton identifications of each group member.
+         */
+        int[] memberSkels;
 
-	/**
-	 * Node identifications of each group member.
-	 */
-	int [] memberRanks;
+        /**
+         * Node identifications of each group member.
+         */
+        int[] memberRanks;
 
-	/**
-	 * Tickets for the join-replies once the group is complete.
-	 */
-	int [] tickets;
+        /**
+         * Tickets for the join-replies once the group is complete.
+         */
+        int[] tickets;
 
-	/**
-	 * The number of group members that have joined this group so far.
-	 */
-	int joined;
+        /**
+         * The number of group members that have joined this group so far.
+         */
+        int joined;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param groupNumber the number this group
-	 * @param groupSize   the number of group members
-	 * @param type        the group interface for this group
-	 */
-	GroupRegistryData(int groupNumber, int groupSize, String type) { 
-	    this.groupNumber = groupNumber;
-	    this.groupSize   = groupSize;
-	    this.type        = type;
+        /**
+         * Constructor.
+         *
+         * @param groupNumber the number this group
+         * @param groupSize   the number of group members
+         * @param type        the group interface for this group
+         */
+        GroupRegistryData(int groupNumber, int groupSize, String type) {
+            this.groupNumber = groupNumber;
+            this.groupSize = groupSize;
+            this.type = type;
 
-	    memberSkels = new int[groupSize];
-	    memberRanks = new int[groupSize];
-	    tickets   = new int[groupSize];
+            memberSkels = new int[groupSize];
+            memberRanks = new int[groupSize];
+            tickets = new int[groupSize];
 
-	    joined = 0;
-	} 
-    } 
-    
+            joined = 0;
+        }
+    }
+
     /**
      * Constructor.
      *
      * Allocates hash tables for groups and combined invocations.
      */
     public GroupRegistry() {
-	combinedInvocations = new Hashtable();
-	groups = new Hashtable();
-	barriers = new Hashtable();
-	groupNumber = 0;
+        combinedInvocations = new Hashtable();
+        groups = new Hashtable();
+        barriers = new Hashtable();
+        groupNumber = 0;
     }
 
     /**
@@ -140,23 +138,25 @@ final class GroupRegistry implements GroupProtocol {
      * @param type the group interface for this new group
      * @exception java.io.IOException on an IO error.
      */
-    private synchronized void newGroup(String groupName, int groupSize, int rank, int ticket, String type) throws IOException {
-           
-	WriteMessage w;
+    private synchronized void newGroup(String groupName, int groupSize,
+            int rank, int ticket, String type) throws IOException {
 
-	w = Group.unicast[rank].newMessage();
-	w.writeByte(REGISTRY_REPLY);
-	w.writeInt(ticket);
+        WriteMessage w;
 
-	if (groups.contains(groupName)) { 
-	    w.writeObject(new RegistryReply(CREATE_FAILED));
-	} else { 
-	    groups.put(groupName, new GroupRegistryData(groupNumber++, groupSize, type));
-	    w.writeObject(new RegistryReply(CREATE_OK));
-	}
+        w = Group.unicast[rank].newMessage();
+        w.writeByte(REGISTRY_REPLY);
+        w.writeInt(ticket);
 
-	w.finish();		
-    } 
+        if (groups.contains(groupName)) {
+            w.writeObject(new RegistryReply(CREATE_FAILED));
+        } else {
+            groups.put(groupName, new GroupRegistryData(groupNumber++,
+                    groupSize, type));
+            w.writeObject(new RegistryReply(CREATE_OK));
+        }
+
+        w.finish();
+    }
 
     /**
      * A joinGroup request was received from node "rank".
@@ -169,68 +169,67 @@ final class GroupRegistry implements GroupProtocol {
      * @param interfaces the group interfaces that this requester implements
      * @exception java.io.IOException on an IO error.
      */
-    private synchronized void joinGroup(String groupName, int memberSkel, int rank, int ticket, String [] interfaces) throws IOException { 	
+    private synchronized void joinGroup(String groupName, int memberSkel,
+            int rank, int ticket, String[] interfaces) throws IOException {
 
-	WriteMessage w;
+        WriteMessage w;
 
-	GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
+        GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
 
-	if (e == null) { 
-	    w = Group.unicast[rank].newMessage();
-	    w.writeByte(REGISTRY_REPLY);
-	    w.writeInt(ticket);
-	    w.writeObject(new RegistryReply(JOIN_UNKNOWN));
-	    w.finish();		
+        if (e == null) {
+            w = Group.unicast[rank].newMessage();
+            w.writeByte(REGISTRY_REPLY);
+            w.writeInt(ticket);
+            w.writeObject(new RegistryReply(JOIN_UNKNOWN));
+            w.finish();
 
-	} else if (e.joined == e.groupSize) {
+        } else if (e.joined == e.groupSize) {
 
-	    w = Group.unicast[rank].newMessage();
-	    w.writeByte(REGISTRY_REPLY);
-	    w.writeInt(ticket);
-	    w.writeObject(new RegistryReply(JOIN_FULL));
-	    w.finish();		
+            w = Group.unicast[rank].newMessage();
+            w.writeByte(REGISTRY_REPLY);
+            w.writeInt(ticket);
+            w.writeObject(new RegistryReply(JOIN_FULL));
+            w.finish();
 
-	} else {
+        } else {
 
-	    boolean found = false;
+            boolean found = false;
 
-	    for (int i=0;i<interfaces.length;i++) { 
-		if (e.type.equals(interfaces[i])) { 
-		    found = true;
-		    break;
-		}
-	    }
-	    
-	    if (!found) {
-		w = Group.unicast[rank].newMessage();
-		w.writeByte(REGISTRY_REPLY);
-		w.writeInt(ticket);
-		w.writeObject(new RegistryReply(JOIN_WRONG_TYPE));
-		w.finish();	
-	    }
-	    
-	    e.memberSkels[e.joined] = memberSkel;
-	    e.memberRanks[e.joined] = rank;
-	    e.tickets[e.joined]   = ticket;
-	    e.joined++;
+            for (int i = 0; i < interfaces.length; i++) {
+                if (e.type.equals(interfaces[i])) {
+                    found = true;
+                    break;
+                }
+            }
 
-	    if (e.joined == e.groupSize) { 
-		for (int i=0;i<e.groupSize;i++) { 
-		    
-		    w = Group.unicast[e.memberRanks[i]].newMessage();
-		    w.writeByte(REGISTRY_REPLY);
-		    w.writeInt(e.tickets[i]);
-		    w.writeObject(new RegistryReply(JOIN_OK,
-						    e.groupNumber,
-						    e.memberRanks,
-						    e.memberSkels));
-		    w.finish();		
+            if (!found) {
+                w = Group.unicast[rank].newMessage();
+                w.writeByte(REGISTRY_REPLY);
+                w.writeInt(ticket);
+                w.writeObject(new RegistryReply(JOIN_WRONG_TYPE));
+                w.finish();
+            }
 
-		    e.tickets[i] = 0;
-		} 
-		e.tickets = null;
-	    }			
-	}
+            e.memberSkels[e.joined] = memberSkel;
+            e.memberRanks[e.joined] = rank;
+            e.tickets[e.joined] = ticket;
+            e.joined++;
+
+            if (e.joined == e.groupSize) {
+                for (int i = 0; i < e.groupSize; i++) {
+
+                    w = Group.unicast[e.memberRanks[i]].newMessage();
+                    w.writeByte(REGISTRY_REPLY);
+                    w.writeInt(e.tickets[i]);
+                    w.writeObject(new RegistryReply(JOIN_OK, e.groupNumber,
+                            e.memberRanks, e.memberSkels));
+                    w.finish();
+
+                    e.tickets[i] = 0;
+                }
+                e.tickets = null;
+            }
+        }
     }
 
     /**
@@ -242,27 +241,25 @@ final class GroupRegistry implements GroupProtocol {
      * @param ticket ticket number for the reply
      * @exception java.io.IOException on an IO error.
      */
-    private synchronized void findGroup(String groupName, int rank, int ticket) throws IOException { 	
+    private synchronized void findGroup(String groupName, int rank, int ticket)
+            throws IOException {
 
-	WriteMessage w;
+        WriteMessage w;
 
-	GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
-	w = Group.unicast[rank].newMessage();
-	w.writeByte(REGISTRY_REPLY);
-	w.writeInt(ticket);
+        GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
+        w = Group.unicast[rank].newMessage();
+        w.writeByte(REGISTRY_REPLY);
+        w.writeInt(ticket);
 
-	if (e == null) { 
-	    w.writeObject(new RegistryReply(GROUP_UNKNOWN));
-	} else if (e.joined != e.groupSize) { 
-	    w.writeObject(new RegistryReply(GROUP_NOT_READY));
-	} else { 
-	    w.writeObject(new RegistryReply(GROUP_OK,
-					    e.type,
-					    e.groupNumber,
-					    e.memberRanks,
-					    e.memberSkels));
-	}
-	w.finish();		
+        if (e == null) {
+            w.writeObject(new RegistryReply(GROUP_UNKNOWN));
+        } else if (e.joined != e.groupSize) {
+            w.writeObject(new RegistryReply(GROUP_NOT_READY));
+        } else {
+            w.writeObject(new RegistryReply(GROUP_OK, e.type, e.groupNumber,
+                    e.memberRanks, e.memberSkels));
+        }
+        w.finish();
     }
 
     /**
@@ -274,56 +271,56 @@ final class GroupRegistry implements GroupProtocol {
      * @exception java.io.IOException on an IO error.
      */
     private void defineCombinedInvocation(ReadMessage r) throws IOException {
-	String name;
-	String method;
-	int rank;
-	int cpu;
-	int ticket;
-	int size;
-	int mode;
-	int groupID;
-        
-	groupID = r.readInt();
-	cpu = r.readInt();
-	ticket = r.readInt();
-	name = r.readString();
-	method = r.readString();
-	rank = r.readInt();
-	size = r.readInt();
-	mode = r.readInt();
-	r.finish();
+        String name;
+        String method;
+        int rank;
+        int cpu;
+        int ticket;
+        int size;
+        int mode;
+        int groupID;
 
-	String id = name + "?" + method + "?" + groupID;
-	CombinedInvocationInfo inf;
+        groupID = r.readInt();
+        cpu = r.readInt();
+        ticket = r.readInt();
+        name = r.readString();
+        method = r.readString();
+        rank = r.readInt();
+        size = r.readInt();
+        mode = r.readInt();
+        r.finish();
 
-	synchronized(this) {
-	    inf = (CombinedInvocationInfo) combinedInvocations.get(id);
-	    if (inf == null) {
-		inf = new CombinedInvocationInfo(groupID, method, name, mode, size);
-		combinedInvocations.put(id, inf);
-	    }
+        String id = name + "?" + method + "?" + groupID;
+        CombinedInvocationInfo inf;
 
-	    if (inf.mode != mode ||
-		    inf.numInvokers != size || inf.present == size) {
-		WriteMessage w = Group.unicast[cpu].newMessage();
-		w.writeByte(REGISTRY_REPLY);
-		w.writeInt(ticket);
-		w.writeObject(new RegistryReply(COMBINED_FAILED,
-				    inf.present == size ?
-					"Combined invocation full" :
-					"Inconsistent combined invocation"));
-		w.finish();
-		return;
-	    }
-	}
+        synchronized (this) {
+            inf = (CombinedInvocationInfo) combinedInvocations.get(id);
+            if (inf == null) {
+                inf = new CombinedInvocationInfo(groupID, method, name, mode,
+                        size);
+                combinedInvocations.put(id, inf);
+            }
 
-	inf.addAndWaitUntilFull(rank, cpu);
+            if (inf.mode != mode || inf.numInvokers != size
+                    || inf.present == size) {
+                WriteMessage w = Group.unicast[cpu].newMessage();
+                w.writeByte(REGISTRY_REPLY);
+                w.writeInt(ticket);
+                w.writeObject(new RegistryReply(COMBINED_FAILED,
+                        inf.present == size ? "Combined invocation full"
+                                : "Inconsistent combined invocation"));
+                w.finish();
+                return;
+            }
+        }
 
-	WriteMessage w = Group.unicast[cpu].newMessage();
-	w.writeByte(REGISTRY_REPLY);
-	w.writeInt(ticket);
-	w.writeObject(new RegistryReply(COMBINED_OK, inf));
-	w.finish();
+        inf.addAndWaitUntilFull(rank, cpu);
+
+        WriteMessage w = Group.unicast[cpu].newMessage();
+        w.writeByte(REGISTRY_REPLY);
+        w.writeInt(ticket);
+        w.writeObject(new RegistryReply(COMBINED_OK, inf));
+        w.finish();
     }
 
     /**
@@ -335,48 +332,48 @@ final class GroupRegistry implements GroupProtocol {
      * @exception java.io.IOException on an IO error.
      */
     private void doBarrier(ReadMessage r) throws IOException {
-        
-	int ticket = r.readInt();
-	String id = r.readString();
-	int size = r.readInt();
-	int cpu = r.readInt();
-	r.finish();
 
-	BarrierInfo inf;
+        int ticket = r.readInt();
+        String id = r.readString();
+        int size = r.readInt();
+        int cpu = r.readInt();
+        r.finish();
 
-	synchronized(this) {
-	    inf = (BarrierInfo) barriers.get(id);
-	    if (inf == null) {
-		inf = new BarrierInfo(size);
-		barriers.put(id, inf);
-	    }
+        BarrierInfo inf;
 
-	    if (inf.size != size) {
-		WriteMessage w = Group.unicast[cpu].newMessage();
-		w.writeByte(REGISTRY_REPLY);
-		w.writeInt(ticket);
+        synchronized (this) {
+            inf = (BarrierInfo) barriers.get(id);
+            if (inf == null) {
+                inf = new BarrierInfo(size);
+                barriers.put(id, inf);
+            }
 
-		w.writeObject(new RegistryReply(BARRIER_FAILED,
-						"Inconsistent barrier size"));
-		w.finish();
-		return;
-	    }
-	}
+            if (inf.size != size) {
+                WriteMessage w = Group.unicast[cpu].newMessage();
+                w.writeByte(REGISTRY_REPLY);
+                w.writeInt(ticket);
 
-	inf.addAndWaitUntilFull();
+                w.writeObject(new RegistryReply(BARRIER_FAILED,
+                        "Inconsistent barrier size"));
+                w.finish();
+                return;
+            }
+        }
 
-	synchronized(this) {
-	    inf = (BarrierInfo) barriers.get(id);
-	    if (inf != null) {
-		barriers.remove(id);
-	    }
-	}
+        inf.addAndWaitUntilFull();
 
-	WriteMessage w = Group.unicast[cpu].newMessage();
-	w.writeByte(REGISTRY_REPLY);
-	w.writeInt(ticket);
-	w.writeObject(new RegistryReply(BARRIER_OK));
-	w.finish();
+        synchronized (this) {
+            inf = (BarrierInfo) barriers.get(id);
+            if (inf != null) {
+                barriers.remove(id);
+            }
+        }
+
+        WriteMessage w = Group.unicast[cpu].newMessage();
+        w.writeByte(REGISTRY_REPLY);
+        w.writeInt(ticket);
+        w.writeObject(new RegistryReply(BARRIER_OK));
+        w.finish();
     }
 
     /**
@@ -384,83 +381,89 @@ final class GroupRegistry implements GroupProtocol {
      *
      * @param r the message
      */
-    public void handleMessage(ReadMessage r) { 
-	try { 
+    public void handleMessage(ReadMessage r) {
+        try {
 
-	    byte opcode;
-	    
-	    int rank;
-	    String name;
-	    String type;
-	    String [] interfaces;
-	    int size;
-	    int ticket;
-	    int memberSkel;
-	    
-	    opcode = r.readByte();
-	    
-	    switch (opcode) { 
-	    case CREATE_GROUP:
-		rank = r.readInt();		
-		ticket = r.readInt();
-		name = r.readString();
-		type = r.readString();
-		size = r.readInt();
-		r.finish();
-		
-		if (Group.DEBUG) { 
-		    System.out.println(Group._rank + ": Got a CREATE_GROUP(" + name + ", " + type + ", " + size + ") from " + rank + " ticket(" + ticket +")");
-		}
-		
-		newGroup(name, size, rank, ticket, type);				
+            byte opcode;
 
-		if (Group.DEBUG) { 
-		    System.out.println(Group._rank + ": CREATE_GROUP(" + name + ", "  + type + ", " + size + ") from " + rank + " HANDLED");
-		}
-		break;
-		
-	    case JOIN_GROUP:
-		rank = r.readInt();
-		ticket = r.readInt();
-		name = r.readString();
-		interfaces = (String []) r.readObject();
-		memberSkel = r.readInt();
-		r.finish();
-		
-		if (Group.DEBUG) { 
-		    System.out.println(Group._rank + ": Got a JOIN_GROUP(" + name + ", " + interfaces + ") from " + rank);
-		}
-		
-		joinGroup(name, memberSkel, rank, ticket, interfaces);
-		break;		
-		
-	    case FIND_GROUP:
-		rank = r.readInt();
-		ticket = r.readInt();
-		name = r.readString();
-		r.finish();
+            int rank;
+            String name;
+            String type;
+            String[] interfaces;
+            int size;
+            int ticket;
+            int memberSkel;
 
-		if (Group.DEBUG) { 
-		    System.out.println(Group._rank + ": Got a FIND_GROUP(" + name + ")");
-		}
-		
-		findGroup(name, rank, ticket);
-		break;		
+            opcode = r.readByte();
 
-	    case DEFINE_COMBINED:
-		defineCombinedInvocation(r);
-		break;
+            switch (opcode) {
+            case CREATE_GROUP:
+                rank = r.readInt();
+                ticket = r.readInt();
+                name = r.readString();
+                type = r.readString();
+                size = r.readInt();
+                r.finish();
 
-	    case BARRIER:
-		doBarrier(r);
-		break;
-	    }	       
-		
-	} catch (Exception e) {
-	    /* TODO: is this a good way to deal with an exception? */
-	    System.out.println(Group._rank + ": Error in GroupRegistry " + e);
-	    e.printStackTrace();
-	    System.exit(1);
-	}
-    }        
+                if (Group.DEBUG) {
+                    System.out.println(Group._rank + ": Got a CREATE_GROUP("
+                            + name + ", " + type + ", " + size + ") from "
+                            + rank + " ticket(" + ticket + ")");
+                }
+
+                newGroup(name, size, rank, ticket, type);
+
+                if (Group.DEBUG) {
+                    System.out.println(Group._rank + ": CREATE_GROUP(" + name
+                            + ", " + type + ", " + size + ") from " + rank
+                            + " HANDLED");
+                }
+                break;
+
+            case JOIN_GROUP:
+                rank = r.readInt();
+                ticket = r.readInt();
+                name = r.readString();
+                interfaces = (String[]) r.readObject();
+                memberSkel = r.readInt();
+                r.finish();
+
+                if (Group.DEBUG) {
+                    System.out.println(Group._rank + ": Got a JOIN_GROUP("
+                            + name + ", " + interfaces + ") from " + rank);
+                }
+
+                joinGroup(name, memberSkel, rank, ticket, interfaces);
+                break;
+
+            case FIND_GROUP:
+                rank = r.readInt();
+                ticket = r.readInt();
+                name = r.readString();
+                r.finish();
+
+                if (Group.DEBUG) {
+                    System.out.println(Group._rank + ": Got a FIND_GROUP("
+                            + name + ")");
+                }
+
+                findGroup(name, rank, ticket);
+                break;
+
+            case DEFINE_COMBINED:
+                defineCombinedInvocation(r);
+                break;
+
+            case BARRIER:
+                doBarrier(r);
+                break;
+            }
+
+        } catch (Exception e) {
+            /* TODO: is this a good way to deal with an exception? */
+            System.out.println(Group._rank + ": Error in GroupRegistry " + e);
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
 }

@@ -18,40 +18,48 @@ import java.net.InetSocketAddress;
 import java.nio.channels.Channel;
 import java.util.ArrayList;
 
-abstract class NioReceivePort implements ReceivePort, Runnable, 
-					 Config, Protocol {
+abstract class NioReceivePort implements ReceivePort, Runnable, Config,
+        Protocol {
 
     //static list of all (thread-local) timers
     private static ArrayList timers = new ArrayList();
 
     //threadlocal object which holds a timer object for the current thread
     private static ThreadLocal timer = new ThreadLocal() {
-	protected synchronized Object initialValue() {
-	    Timer t = Timer.createTimer();
-	    timers.add(t);
-	    return t;
-	}
+        protected synchronized Object initialValue() {
+            Timer t = Timer.createTimer();
+            timers.add(t);
+            return t;
+        }
     };
-    
+
     //function to get thread-local timer
     static Timer timer() {
-	return (Timer) timer.get();
+        return (Timer) timer.get();
     }
 
     protected NioPortType type;
+
     protected NioIbis ibis;
+
     private String name;
+
     NioReceivePortIdentifier ident;
+
     private Upcall upcall;
+
     private ReceivePortConnectUpcall connUpcall;
 
     private boolean connectionAdministration = false;
+
     private long count = 0;
 
     private boolean upcallsEnabled = false;
+
     private boolean connectionsEnabled = false;
 
     private ArrayList lostConnections = new ArrayList();
+
     private ArrayList newConnections = new ArrayList();
 
     private boolean upcallThreadRunning = false;
@@ -65,30 +73,30 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      */
     private final NioReadMessage dummy;
 
-    NioReceivePort(NioIbis ibis, NioPortType type, String name, Upcall upcall, 
-	    boolean connectionAdministration, 
-	    ReceivePortConnectUpcall connUpcall) throws IOException {
+    NioReceivePort(NioIbis ibis, NioPortType type, String name, Upcall upcall,
+            boolean connectionAdministration,
+            ReceivePortConnectUpcall connUpcall) throws IOException {
 
-	this.type   = type;
-	this.upcall = upcall;
-	this.connUpcall = connUpcall;
-	this.ibis = ibis;
-	this.connectionAdministration = connectionAdministration;
+        this.type = type;
+        this.upcall = upcall;
+        this.connUpcall = connUpcall;
+        this.ibis = ibis;
+        this.connectionAdministration = connectionAdministration;
 
-	this.name = name;
+        this.name = name;
 
-	InetSocketAddress address = ibis.factory.register(this);
+        InetSocketAddress address = ibis.factory.register(this);
 
-	ident = new NioReceivePortIdentifier(name, type.name(), 
-			(NioIbisIdentifier) type.ibis.identifier(), address);
+        ident = new NioReceivePortIdentifier(name, type.name(),
+                (NioIbisIdentifier) type.ibis.identifier(), address);
 
-	ibis.nameServer.bind(name, ident);
+        ibis.nameServer.bind(name, ident);
 
-	dummy = new NioReadMessage(null, null, -1);
+        dummy = new NioReadMessage(null, null, -1);
 
-	if(upcall != null) {
-	    ThreadPool.createNew(this);
-	}
+        if (upcall != null) {
+            ThreadPool.createNew(this);
+        }
 
     }
 
@@ -98,64 +106,63 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      *
      * @return the reply for the send port
      */
-    byte connectionRequested(NioSendPortIdentifier spi,
-					  Channel channel) {
-	if (DEBUG) {
-	    Debug.enter("connections", this, "handling connection request");
-	}
+    byte connectionRequested(NioSendPortIdentifier spi, Channel channel) {
+        if (DEBUG) {
+            Debug.enter("connections", this, "handling connection request");
+        }
 
-	synchronized(this) {
-	    if(!connectionsEnabled) {
-		if (DEBUG) {
-		    Debug.exit("connections", this, "!connections disabled");
-		}
-		return CONNECTIONS_DISABLED;
-	    }
-	}
+        synchronized (this) {
+            if (!connectionsEnabled) {
+                if (DEBUG) {
+                    Debug.exit("connections", this, "!connections disabled");
+                }
+                return CONNECTIONS_DISABLED;
+            }
+        }
 
-	if(!type.manyToOne && (connectedTo().length > 0)) {
-	    //many2one not supported...
-	    if (DEBUG) {
-		Debug.exit("connections", this, "!many2one not supported");
-	    }
-	    return CONNECTION_DENIED;
-	}
+        if (!type.manyToOne && (connectedTo().length > 0)) {
+            //many2one not supported...
+            if (DEBUG) {
+                Debug.exit("connections", this, "!many2one not supported");
+            }
+            return CONNECTION_DENIED;
+        }
 
-	if(connUpcall != null) {
-	    if (DEBUG) {
-		Debug.message("connections", this, 
-			      "passing connection request to user");
-	    }
-	    if(!connUpcall.gotConnection(this, spi)) {
-		if (DEBUG) {
-		    Debug.exit("connections", this, "!user denied connection");
-		}
-		return CONNECTION_DENIED;
-	    }
-	}
+        if (connUpcall != null) {
+            if (DEBUG) {
+                Debug.message("connections", this,
+                        "passing connection request to user");
+            }
+            if (!connUpcall.gotConnection(this, spi)) {
+                if (DEBUG) {
+                    Debug.exit("connections", this, "!user denied connection");
+                }
+                return CONNECTION_DENIED;
+            }
+        }
 
-	try {
-	    newConnection(spi, channel);
-	} catch (IOException e) {
-	    if(connUpcall != null) {
-		connUpcall.lostConnection(this, spi, e);
-	    }
-	    if (DEBUG) {
-		Debug.exit("connections", this, "!newConnection() failed");
-	    }
-	    return CONNECTION_DENIED;
-	}
+        try {
+            newConnection(spi, channel);
+        } catch (IOException e) {
+            if (connUpcall != null) {
+                connUpcall.lostConnection(this, spi, e);
+            }
+            if (DEBUG) {
+                Debug.exit("connections", this, "!newConnection() failed");
+            }
+            return CONNECTION_DENIED;
+        }
 
-	synchronized(this) {
-	    if(connectionAdministration) {
-		newConnections.add(spi);
-	    }
-	}
+        synchronized (this) {
+            if (connectionAdministration) {
+                newConnections.add(spi);
+            }
+        }
 
-	if (DEBUG) {
-	    Debug.exit("connections", this, "connection allowed");
-	}
-	return CONNECTION_ACCEPTED;
+        if (DEBUG) {
+            Debug.exit("connections", this, "connection allowed");
+        }
+        return CONNECTION_ACCEPTED;
     }
 
     /**
@@ -168,45 +175,45 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      * deadline passed
      */
     private boolean waitForNotify(long deadline) {
-	if(deadline == 0) {
-	    try {
-		wait();
-	    } catch (InterruptedException e) {
-		//IGNORE
-	    }
-	    return true;
-	} else if (deadline == -1) {
-	    return false; //deadline always passed
-	}
+        if (deadline == 0) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                //IGNORE
+            }
+            return true;
+        } else if (deadline == -1) {
+            return false; //deadline always passed
+        }
 
-	long time = System.currentTimeMillis();
+        long time = System.currentTimeMillis();
 
-	if(time >= deadline) {
-	    return false;
-	}
+        if (time >= deadline) {
+            return false;
+        }
 
-	try {
-	    wait(deadline - time);
-	} catch (InterruptedException e) {
-	    //IGNORE
-	}
-	return true; //don't know if we have been notified, but could be...
+        try {
+            wait(deadline - time);
+        } catch (InterruptedException e) {
+            //IGNORE
+        }
+        return true; //don't know if we have been notified, but could be...
     }
 
     /**
      * Called by the subclass to let us know a connection failed,
      * and we should report this to the user somehow
      */
-    void connectionLost(NioDissipator dissipator, Exception cause)  {
-	synchronized(this) {
-	    if(connectionAdministration) {
-		lostConnections.add(dissipator.peer);
-	    }
-	}
+    void connectionLost(NioDissipator dissipator, Exception cause) {
+        synchronized (this) {
+            if (connectionAdministration) {
+                lostConnections.add(dissipator.peer);
+            }
+        }
 
-	if(connUpcall != null) {
-	    connUpcall.lostConnection(this, dissipator.peer, cause);
-	}
+        if (connUpcall != null) {
+            connUpcall.lostConnection(this, dissipator.peer, cause);
+        }
     }
 
     /**
@@ -217,111 +224,111 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      *
      */
     private NioReadMessage getMessage(long deadline) throws IOException {
-	NioDissipator dissipator;
-	long time;
-	NioReadMessage message;
-	long sequencenr = -1;
+        NioDissipator dissipator;
+        long time;
+        NioReadMessage message;
+        long sequencenr = -1;
 
-	if (DEBUG) {
-	    Debug.enter("messages", this, "trying to fetch message");
-	}
+        if (DEBUG) {
+            Debug.enter("messages", this, "trying to fetch message");
+        }
 
-	synchronized(this) {
-	    while(m != null) {
-		if(!waitForNotify(deadline)) {
-		    if (DEBUG) {
-			Debug.exit("messages", this, 
-				"!timeout while waiting on previous message");
-		    }
-		    throw new ReceiveTimedOutException("previous message"
-			    + " not finished yet");
-		}
-	    }
-	    m = dummy;  // reserve the global message so no-one will
-	    // try to receive a message while we are too.
-	}
+        synchronized (this) {
+            while (m != null) {
+                if (!waitForNotify(deadline)) {
+                    if (DEBUG) {
+                        Debug.exit("messages", this,
+                                "!timeout while waiting on previous message");
+                    }
+                    throw new ReceiveTimedOutException("previous message"
+                            + " not finished yet");
+                }
+            }
+            m = dummy; // reserve the global message so no-one will
+            // try to receive a message while we are too.
+        }
 
-	try {
-	    dissipator  = getReadyDissipator(deadline);
-	} catch (ReceiveTimedOutException e) {
-	    synchronized(this) {
-		m = null; //give up the lock
-	    }
-	    if (DEBUG) {
-		Debug.exit("messages", this, 
-			"!timeout while waiting on dissipator with message");
-	    }
-	    throw e;
-	} catch (ConnectionClosedException e) {
-	    synchronized(this) {
-		m = null; //give up the lock
-	    }
-	    if (DEBUG) {
-		Debug.exit("messages", this, 
-			"!receiveport closed while waiting on message");
-	    }
-	    throw e;
-	}
+        try {
+            dissipator = getReadyDissipator(deadline);
+        } catch (ReceiveTimedOutException e) {
+            synchronized (this) {
+                m = null; //give up the lock
+            }
+            if (DEBUG) {
+                Debug.exit("messages", this,
+                        "!timeout while waiting on dissipator with message");
+            }
+            throw e;
+        } catch (ConnectionClosedException e) {
+            synchronized (this) {
+                m = null; //give up the lock
+            }
+            if (DEBUG) {
+                Debug.exit("messages", this,
+                        "!receiveport closed while waiting on message");
+            }
+            throw e;
+        }
 
-	try {
-	    if(type.numbered) {
-		sequencenr = dissipator.sis.readLong();
-	    }
+        try {
+            if (type.numbered) {
+                sequencenr = dissipator.sis.readLong();
+            }
 
-	    message = new NioReadMessage(this, dissipator, sequencenr);
-	} catch (IOException e) {
-	    errorOnRead(dissipator, e);
-	    //do recursive call
-	    return getMessage(deadline);
-	}
+            message = new NioReadMessage(this, dissipator, sequencenr);
+        } catch (IOException e) {
+            errorOnRead(dissipator, e);
+            //do recursive call
+            return getMessage(deadline);
+        }
 
-	synchronized(this) {
-	    m = message;
-	}
+        synchronized (this) {
+            m = message;
+        }
 
-	if (DEBUG) {
-	    Debug.exit("messages", this, "new message received (#"
-			  + sequencenr + ")");
-	}
+        if (DEBUG) {
+            Debug.exit("messages", this, "new message received (#" + sequencenr
+                    + ")");
+        }
 
-	return message;
+        return message;
     }
-    
+
     /**
      * called by the readMessage. Finishes message. Also wakes up everyone who 
      * was waiting for it
      */
-    void finish(NioReadMessage m, long messageCount) 
-	    throws IOException {
+    void finish(NioReadMessage m, long messageCount) throws IOException {
 
-	if (DEBUG) {
-	    Debug.message("messages", this, "finishing read message");
-	}
+        if (DEBUG) {
+            Debug.message("messages", this, "finishing read message");
+        }
 
-	synchronized(this) {
-	    if(upcall == null) {
-		if(this.m != m) {
-		  throw new IOException("finish called on non-current message");
-		}
+        synchronized (this) {
+            if (upcall == null) {
+                if (this.m != m) {
+                    throw new IOException(
+                            "finish called on non-current message");
+                }
 
-		//no (global)message alive
-		this.m = null;
-		//wake up everybody who was waiting for this message to finish
-		notifyAll();
-	    }
-	    count += messageCount;
-	}
+                //no (global)message alive
+                this.m = null;
+                //wake up everybody who was waiting for this message to finish
+                notifyAll();
+            }
+            count += messageCount;
+        }
 
-	if(upcall != null) {
-	    //this finish was called from an upcall! Create a new thread to
-	    //fetch the next message (this upcall might not exit for a while)
-	    ThreadPool.createNew(this);
-	}
+        if (upcall != null) {
+            //this finish was called from an upcall! Create a new thread to
+            //fetch the next message (this upcall might not exit for a while)
+            ThreadPool.createNew(this);
+        }
 
-	if (DEBUG) {
-	    Debug.exit("messages", this, "finished read message, received "
-		       + messageCount + " bytes");
-	}
+        if (DEBUG) {
+            Debug.exit("messages", this, "finished read message, received "
+                    + messageCount + " bytes");
+        }
     }
 
     /**
@@ -329,120 +336,119 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      * lost. Close it.
      */
     synchronized void finish(NioReadMessage m, Exception e) {
-	if (DEBUG) {
-	    Debug.message("messages", this, 
-			  "!finishing read message with error");
-	}
-	m.isFinished = true;
+        if (DEBUG) {
+            Debug.message("messages", this,
+                    "!finishing read message with error");
+        }
+        m.isFinished = true;
 
-	//inform the subclass an error occured 
-	errorOnRead(m.dissipator, e);
+        //inform the subclass an error occured 
+        errorOnRead(m.dissipator, e);
 
-	if(upcall == null) {
-	    if(this.m == m) {
-		this.m = null;
-	    }
+        if (upcall == null) {
+            if (this.m == m) {
+                this.m = null;
+            }
 
-	    //wake up everybody who was waiting for this message to finish
-	    notifyAll();
-	} else {
-	    //this finish was called from an upcall! Create a new thread to
-	    //fetch the next message (this upcall might not exit for a while)
-	    ThreadPool.createNew(this);
-	}
+            //wake up everybody who was waiting for this message to finish
+            notifyAll();
+        } else {
+            //this finish was called from an upcall! Create a new thread to
+            //fetch the next message (this upcall might not exit for a while)
+            ThreadPool.createNew(this);
+        }
 
-	if (DEBUG) {
-	    Debug.exit("messages", this, "!finished read message with error");
-	}
+        if (DEBUG) {
+            Debug.exit("messages", this, "!finished read message with error");
+        }
     }
 
-    public ReadMessage receive() throws IOException { 
-	return receive(0);
+    public ReadMessage receive() throws IOException {
+        return receive(0);
     }
 
-    public ReadMessage receive(long timeoutMillis) 
-							throws IOException {
+    public ReadMessage receive(long timeoutMillis) throws IOException {
 
-	long deadline, time;
-	ReadMessage m = null;
+        long deadline, time;
+        ReadMessage m = null;
 
-	if(upcall != null) {
-	    throw new IOException("explicit receive not allowed with upcalls");
-	}
+        if (upcall != null) {
+            throw new IOException("explicit receive not allowed with upcalls");
+        }
 
-	if(timeoutMillis < 0) {
-	    throw new IOException("timeout must be a non-negative number");
-	} else if (timeoutMillis > 0) {
-	    deadline = System.currentTimeMillis() + timeoutMillis;
-	} else { // timeoutMillis == 0
-	    deadline = 0;
-	}
+        if (timeoutMillis < 0) {
+            throw new IOException("timeout must be a non-negative number");
+        } else if (timeoutMillis > 0) {
+            deadline = System.currentTimeMillis() + timeoutMillis;
+        } else { // timeoutMillis == 0
+            deadline = 0;
+        }
 
-	return getMessage(deadline);
+        return getMessage(deadline);
     }
 
     public ReadMessage poll() throws IOException {
-	try {
-	    return getMessage(-1);
-	} catch (ReceiveTimedOutException e) {
-	    //IGNORE
-	}
-	return null;
+        try {
+            return getMessage(-1);
+        } catch (ReceiveTimedOutException e) {
+            //IGNORE
+        }
+        return null;
     }
 
     public synchronized long getCount() {
-	return count;
+        return count;
     }
 
     public synchronized void resetCount() {
-	count = 0;
+        count = 0;
     }
 
     public DynamicProperties properties() {
-	return null;
+        return null;
     }
 
     public ReceivePortIdentifier identifier() {
-	return ident;
-    }
-    
-    public String name() {
-	return name;
+        return ident;
     }
 
-    public synchronized void enableConnections() {		
-	connectionsEnabled = true;
+    public String name() {
+        return name;
+    }
+
+    public synchronized void enableConnections() {
+        connectionsEnabled = true;
     }
 
     public synchronized void disableConnections() {
-	connectionsEnabled = false;
+        connectionsEnabled = false;
     }
 
     public synchronized void enableUpcalls() {
-	upcallsEnabled = true;
-	notifyAll();
+        upcallsEnabled = true;
+        notifyAll();
     }
 
     public synchronized void disableUpcalls() {
-	upcallsEnabled = false;
+        upcallsEnabled = false;
     }
 
     public synchronized SendPortIdentifier[] lostConnections() {
-	SendPortIdentifier[] result;
-	result = (SendPortIdentifier[]) lostConnections.toArray();
+        SendPortIdentifier[] result;
+        result = (SendPortIdentifier[]) lostConnections.toArray();
 
-	lostConnections.clear();
+        lostConnections.clear();
 
-	return result;
+        return result;
     }
 
     public synchronized SendPortIdentifier[] newConnections() {
-	SendPortIdentifier[] result;
-	result = (SendPortIdentifier[]) newConnections.toArray();
+        SendPortIdentifier[] result;
+        result = (SendPortIdentifier[]) newConnections.toArray();
 
-	newConnections.clear();
+        newConnections.clear();
 
-	return result;
+        return result;
     }
 
     /**
@@ -450,7 +456,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      * to close down
      */
     public void close() throws IOException {
-	doClose(0);
+        doClose(0);
     }
 
     /**
@@ -458,181 +464,178 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
      * to close down, or the timeout to pass.
      */
     public void close(long timeout) throws IOException {
-	if (timeout > 0L) {
-	    doClose(System.currentTimeMillis() + timeout);
-	} else {
-	    //-1 or 0
-	    doClose(timeout);
-	}
+        if (timeout > 0L) {
+            doClose(System.currentTimeMillis() + timeout);
+        } else {
+            //-1 or 0
+            doClose(timeout);
+        }
     }
-
 
     /**
      * closes all connections after waiting for the deadline to pass.
      */
     void doClose(long deadline) throws IOException {
-	ReadMessage m;
-	long time;
+        ReadMessage m;
+        long time;
 
-	disableConnections();
-	ibis.nameServer.unbind(ident.name);
-	ibis.factory.deRegister(this);
+        disableConnections();
+        ibis.nameServer.unbind(ident.name);
+        ibis.factory.deRegister(this);
 
-	closing(); //signal the subclass we are closing down
+        closing(); //signal the subclass we are closing down
 
-	if(upcall == null) {
-	    synchronized(this) {
-		if (this.m != null) {
-		    throw new IOException("Message alive while doing close");
-		}
-	    }
-	    try {
-		m = getMessage(deadline);
-		throw new IOException(
-			"message received while closing receiveport");
-	    } catch (ConnectionClosedException e) {
-		//this is _excactly_ wat we want
-	    } catch (ReceiveTimedOutException e2) {
-		//there are some connections left, kill them
-		closeAllConnections();
-	    }
-	} else {
-	    if (deadline != -1) {
-		synchronized(this) {
-		    if(deadline == 0L) {
-			while(connectedTo().length > 0) {
-			    try {
-				wait();
-			    } catch (Exception e) {
-				//IGNORE
-			    }
-			}
-		    } else if (deadline > 0L) {
-			time = System.currentTimeMillis();
-			while(time < deadline && connectedTo().length > 0) {
-			    try {
-				wait(deadline - time);
-			    } catch (Exception e) {
-				//
-			    }
-			    time = System.currentTimeMillis();
-			}
-		    }
-		}
-	    } 
-	    closeAllConnections();
-	}
-	if(STATS) {
-	    synchronized(this) {
-		System.err.println("stats for receiveport: " + ident);
-		for(int i = 0; i < timers.size(); i++) {
-		    System.err.println((Timer) timers.get(i));
-		}
-	    }
-	}
+        if (upcall == null) {
+            synchronized (this) {
+                if (this.m != null) {
+                    throw new IOException("Message alive while doing close");
+                }
+            }
+            try {
+                m = getMessage(deadline);
+                throw new IOException(
+                        "message received while closing receiveport");
+            } catch (ConnectionClosedException e) {
+                //this is _excactly_ wat we want
+            } catch (ReceiveTimedOutException e2) {
+                //there are some connections left, kill them
+                closeAllConnections();
+            }
+        } else {
+            if (deadline != -1) {
+                synchronized (this) {
+                    if (deadline == 0L) {
+                        while (connectedTo().length > 0) {
+                            try {
+                                wait();
+                            } catch (Exception e) {
+                                //IGNORE
+                            }
+                        }
+                    } else if (deadline > 0L) {
+                        time = System.currentTimeMillis();
+                        while (time < deadline && connectedTo().length > 0) {
+                            try {
+                                wait(deadline - time);
+                            } catch (Exception e) {
+                                //
+                            }
+                            time = System.currentTimeMillis();
+                        }
+                    }
+                }
+            }
+            closeAllConnections();
+        }
+        if (STATS) {
+            synchronized (this) {
+                System.err.println("stats for receiveport: " + ident);
+                for (int i = 0; i < timers.size(); i++) {
+                    System.err.println((Timer) timers.get(i));
+                }
+            }
+        }
     }
 
     public int hashCode() {
-	return name.hashCode();
+        return name.hashCode();
     }
 
     public boolean equals(Object obj) {
-	if(obj instanceof NioReceivePort) {
-	    NioReceivePort other = (NioReceivePort) obj;
-	    return name.equals(other.name);
-	} else if (obj instanceof String) {
-	    String s = (String) obj;
-	    return s.equals(name);
-	} else {
-	    return false;
-	}
+        if (obj instanceof NioReceivePort) {
+            NioReceivePort other = (NioReceivePort) obj;
+            return name.equals(other.name);
+        } else if (obj instanceof String) {
+            String s = (String) obj;
+            return s.equals(name);
+        } else {
+            return false;
+        }
     }
 
     public String toString() {
-	return name;
+        return name;
     }
 
     public void run() {
-	NioReadMessage m;
-	NioDissipator dissipator;
-	long sequencenr;
+        NioReadMessage m;
+        NioDissipator dissipator;
+        long sequencenr;
 
+        Thread.currentThread().setName(this + " upcall thread");
 
-	Thread.currentThread().setName(this + " upcall thread");
+        while (true) {
+            try {
+                if (STATS) {
+                    timer().start();
+                }
+                dissipator = getReadyDissipator(0);
+                if (STATS) {
+                    timer().stop();
+                }
+            } catch (ReceiveTimedOutException e) {
+                throw new IbisError("ReceiveTimedOutException caught while"
+                        + " doing a getMessage(0)! : " + e);
+            } catch (ConnectionClosedException e2) {
+                synchronized (this) {
+                    //the receiveport was closed, exit
+                    notifyAll();
+                    return;
+                }
+            } catch (IOException e) {
+                // FIXME: this is not very nice
+                continue;
+            }
 
-	while(true) {
-	    try {
-		if(STATS) {
-		    timer().start();
-		}
-		dissipator = getReadyDissipator(0);
-		if(STATS) {
-		    timer().stop();
-		}
-	    } catch (ReceiveTimedOutException e) {
-		throw new IbisError("ReceiveTimedOutException caught while"
-			+ " doing a getMessage(0)! : " + e);
-	    } catch (ConnectionClosedException e2) {
-		synchronized(this) {
-		    //the receiveport was closed, exit
-		    notifyAll();
-		    return;
-		}
-	    } catch (IOException e) {
-		// FIXME: this is not very nice
-		continue;
-	    }
+            try {
+                if (type.numbered) {
+                    sequencenr = dissipator.sis.readLong();
+                } else {
+                    sequencenr = 0;
+                }
 
-	    try {
-		if(type.numbered) {
-		    sequencenr = dissipator.sis.readLong();
-		} else {
-		    sequencenr = 0;
-		}
+                m = new NioReadMessage(this, dissipator, sequencenr);
+            } catch (IOException e) {
+                errorOnRead(dissipator, e);
+                continue;
+            }
 
-		m = new NioReadMessage(this, dissipator, sequencenr);
-	    } catch (IOException e) {
-		errorOnRead(dissipator, e);
-		continue;
-	    }
+            synchronized (this) {
+                while (!upcallsEnabled) {
+                    try {
+                        System.err.println("waiting for upcall to be enabled");
+                        wait();
+                    } catch (InterruptedException e) {
+                        //IGNORE
+                    }
+                }
+            }
 
-	    synchronized(this) {
-		while(!upcallsEnabled) {
-		    try {
-			System.err.println("waiting for upcall to be enabled");
-			wait();
-		    } catch (InterruptedException e) {
-			//IGNORE
-		    }
-		}
-	    }
+            try {
+                upcall.upcall(m);
+            } catch (IOException e) {
+                errorOnRead(m.dissipator, e);
+            }
 
-	    try {
-		upcall.upcall(m);
-	    } catch (IOException e) {
-		errorOnRead(m.dissipator, e);
-	    }
+            if (m.isFinished) {
+                // a new thread was started to handle the next message,
+                // exit
+                return;
+            }
 
+            //implicitly finish message
 
-	    if(m.isFinished) {
-		// a new thread was started to handle the next message,
-		// exit
-		return;
-	    }
-
-	    //implicitly finish message
-
-	    long messageCount = m.dissipator.bytesRead();
-	    m.dissipator.resetBytesRead();
-	    m.isFinished = true;
-	}
+            long messageCount = m.dissipator.bytesRead();
+            m.dissipator.resetBytesRead();
+            m.isFinished = true;
+        }
     }
 
     /**
      * A new connection has been established.
      */
-    abstract void newConnection(NioSendPortIdentifier spi, 
-				Channel channel) throws IOException;
+    abstract void newConnection(NioSendPortIdentifier spi, Channel channel)
+            throws IOException;
 
     abstract void errorOnRead(NioDissipator dissipator, Exception cause);
 
@@ -655,7 +658,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
     /**
      * Generate an array of all connections to this receiveport.
      */
-    public abstract SendPortIdentifier[] connectedTo(); 
+    public abstract SendPortIdentifier[] connectedTo();
 
     /**
      * this receiveport is closing down.

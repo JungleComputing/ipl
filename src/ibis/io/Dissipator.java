@@ -32,7 +32,7 @@ public abstract class Dissipator {
     /**
      * Resets the bytes read counter
      */
-    public abstract void resetBytesRead();	
+    public abstract void resetBytesRead();
 
     /**
      * Reads a Boolean from the dissipator
@@ -82,6 +82,14 @@ public abstract class Dissipator {
      */
     public abstract double readDouble() throws IOException;
 
+    /**
+     * Reads a (slice of) an array of Booleans out of the dissipator
+     * @param	destination	The array to write to.
+     * @param	offset		The first element to write
+     * @param	length		The number of elements to write
+     */
+    public abstract void readArray(boolean[] destination, int offset, int length)
+            throws IOException;
 
     /**
      * Reads a (slice of) an array of Booleans out of the dissipator
@@ -89,19 +97,8 @@ public abstract class Dissipator {
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
      */
-    public abstract void readArray(boolean [] destination, 
-	    int offset, 
-	    int length) throws IOException;
-
-    /**
-     * Reads a (slice of) an array of Booleans out of the dissipator
-     * @param	destination	The array to write to.
-     * @param	offset		The first element to write
-     * @param	length		The number of elements to write
-     */
-    public abstract void readArray(byte [] destination, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void readArray(byte[] destination, int offset, int length)
+            throws IOException;
 
     /**
      * Reads a (slice of) an array of Chacacters out of the dissipator
@@ -109,9 +106,8 @@ public abstract class Dissipator {
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
      */
-    public abstract void readArray(char [] destination, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void readArray(char[] destination, int offset, int length)
+            throws IOException;
 
     /**
      * Reads a (slice of) an array of Short Integers out of the dissipator
@@ -119,9 +115,8 @@ public abstract class Dissipator {
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
      */
-    public abstract void readArray(short [] destination, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void readArray(short[] destination, int offset, int length)
+            throws IOException;
 
     /**
      * Reads a (slice of) an array of Integers out of the dissipator
@@ -129,9 +124,8 @@ public abstract class Dissipator {
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
      */
-    public abstract void readArray(int [] destination, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void readArray(int[] destination, int offset, int length)
+            throws IOException;
 
     /**
      * Reads a (slice of) an array of Long Integers  out of the dissipator
@@ -139,9 +133,8 @@ public abstract class Dissipator {
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
      */
-    public abstract void readArray(long [] destination, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void readArray(long[] destination, int offset, int length)
+            throws IOException;
 
     /**
      * Reads a (slice of) an array of Floats out of the dissipator
@@ -149,9 +142,8 @@ public abstract class Dissipator {
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
      */
-    public abstract void readArray(float [] destination, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void readArray(float[] destination, int offset, int length)
+            throws IOException;
 
     /**
      * Reads a (slice of) an array of Doubles out of the dissipator
@@ -159,8 +151,7 @@ public abstract class Dissipator {
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
      */
-    public abstract void readArray(double [] destination, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void readArray(double[] destination, int offset, int length)
+            throws IOException;
 
 }

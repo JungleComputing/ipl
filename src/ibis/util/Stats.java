@@ -9,7 +9,7 @@ public final class Stats {
      * Prevent anyone from creating a <code>Stats</code> object.
      */
     private Stats() {
-    	/* do nothing */
+        /* do nothing */
     }
 
     /**
@@ -18,7 +18,7 @@ public final class Stats {
      * @return the mean.
      */
     public static double mean(double[] data) {
-	return mean(data, 0, data.length);
+        return mean(data, 0, data.length);
     }
 
     /**
@@ -30,12 +30,13 @@ public final class Stats {
      * @return the mean.
      */
     public static double mean(double[] data, int off, int len) {
-	double total = 0;
-	for (int i = off; i < (off+len); i++) {
-	    total += data[i];
-	}
-	if (len == 0) return 0.0;
-	return total / len;
+        double total = 0;
+        for (int i = off; i < (off + len); i++) {
+            total += data[i];
+        }
+        if (len == 0)
+            return 0.0;
+        return total / len;
     }
 
     /**
@@ -45,7 +46,7 @@ public final class Stats {
      * @return the standard deviation.
      */
     public static double stdDev(double[] data) {
-	return stdDev(data, 0, data.length);
+        return stdDev(data, 0, data.length);
     }
 
     /**
@@ -58,45 +59,46 @@ public final class Stats {
      * @return the standard deviation.
      */
     public static double stdDev(double[] data, int off, int len) {
-	double mean = mean(data, off, len);
-	double sum = 0;
+        double mean = mean(data, off, len);
+        double sum = 0;
 
-	for (int i = off; i < (off+len); i++) {
-	    double v = data[i] - mean;
-	    sum += v * v;
-	}
+        for (int i = off; i < (off + len); i++) {
+            double v = data[i] - mean;
+            sum += v * v;
+        }
 
-	if (len <= 1) return 0.0;
+        if (len <= 1)
+            return 0.0;
 
-	return Math.sqrt(sum / (len - 1));
+        return Math.sqrt(sum / (len - 1));
     }
 
     /**
      * Calculates a speed in Mb/s given the size in bytes and the time
      * in milliseconds. The result is rounded to one hundreth of an integer
-      * @param bytes size of the data in bytes
-      * @param millis the time of the measurement in milliseconds
-      * @return the speed.
+     * @param bytes size of the data in bytes
+     * @param millis the time of the measurement in milliseconds
+     * @return the speed.
      */
     public static double mbs(double bytes, double millis) {
-	return round(((bytes / millis) * 1000.0) / (1024.0 * 1024.0));
+        return round(((bytes / millis) * 1000.0) / (1024.0 * 1024.0));
     }
 
     /**
-      * Calculates a speed in Mb/s given the size in bytes and a number of
-      * times in milliseconds. The result is rounded to one hundreth of an 
-      * integer.
-      *
-      * @param bytes size of the data in bytes
-      * @param millis a number of time measurements in milliseconds
-      * @param off the first measurement used in the calculation
-      * @param len the number of measurements used in the calculation
-      * @return the speed.
-      */
+     * Calculates a speed in Mb/s given the size in bytes and a number of
+     * times in milliseconds. The result is rounded to one hundreth of an 
+     * integer.
+     *
+     * @param bytes size of the data in bytes
+     * @param millis a number of time measurements in milliseconds
+     * @param off the first measurement used in the calculation
+     * @param len the number of measurements used in the calculation
+     * @return the speed.
+     */
     public static double mbs(double bytes, double[] millis, int off, int len) {
-	double mean = mean(millis, off, len);
+        double mean = mean(millis, off, len);
 
-	return mbs(bytes, mean);
+        return mbs(bytes, mean);
     }
 
     /**
@@ -105,7 +107,7 @@ public final class Stats {
      * @return the rounded value.
      */
     public static double round(double v) {
-	return (Math.ceil(v*100.0)/100.0);
+        return (Math.ceil(v * 100.0) / 100.0);
     }
 
     /**
@@ -118,9 +120,9 @@ public final class Stats {
      * @return the standard deviation as a percentage.
      */
     public static double stdDevError(double[] data, int off, int len) {
-	double mean = mean(data, off, len);
-	double stdDev = stdDev(data, off, len);
+        double mean = mean(data, off, len);
+        double stdDev = stdDev(data, off, len);
 
-	return round((stdDev / mean) * 100.0);
+        return round((stdDev / mean) * 100.0);
     }
 }

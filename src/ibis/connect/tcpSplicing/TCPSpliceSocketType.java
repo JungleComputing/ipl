@@ -15,43 +15,42 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-
 // SocketType descriptor for TCP Splicing
 // --------------------------------------
-public class TCPSpliceSocketType extends SocketType 
-    implements BrokeredSocketFactory
-{
-    public TCPSpliceSocketType() { super("TCPSplice"); }
+public class TCPSpliceSocketType extends SocketType implements
+        BrokeredSocketFactory {
+    public TCPSpliceSocketType() {
+        super("TCPSplice");
+    }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-				       boolean hint,
-				       ConnectProperties p)
-	throws IOException
-    {
-	Splice  theSplice = new Splice();
-	int    splicePort = theSplice.findPort();
-	String spliceHost = theSplice.getLocalHost();
+            boolean hint, ConnectProperties p) throws IOException {
+        Splice theSplice = new Splice();
+        int splicePort = theSplice.findPort();
+        String spliceHost = theSplice.getLocalHost();
 
-	DataOutputStream os = new DataOutputStream(new BufferedOutputStream(out));
-	os.writeInt(splicePort);
-	os.writeUTF(spliceHost);
-	os.flush();
-	
-	DataInputStream is = new DataInputStream(new BufferedInputStream(in));
-	int splice_port = is.readInt();
-	String splice_host = is.readUTF();
+        DataOutputStream os = new DataOutputStream(
+                new BufferedOutputStream(out));
+        os.writeInt(splicePort);
+        os.writeUTF(spliceHost);
+        os.flush();
 
-	if (splice_host.equals(spliceHost)) {
-	    // Same hostname. TcpSplice does not seem to work in that case,
-	    // but surely, plain TCP should work in this case.
-	    MyDebug.trace("TCPSplice requested on same node, plain Socket used");
-	    theSplice.close();
-	    PlainTCPSocketType tp = new PlainTCPSocketType();
-	    return tp.createBrokeredSocket(in, out, hint, p);
-	}
+        DataInputStream is = new DataInputStream(new BufferedInputStream(in));
+        int splice_port = is.readInt();
+        String splice_host = is.readUTF();
 
-	Socket s = theSplice.connectSplice(splice_host, splice_port);
-	s.setTcpNoDelay(true);
-	return s;
+        if (splice_host.equals(spliceHost)) {
+            // Same hostname. TcpSplice does not seem to work in that case,
+            // but surely, plain TCP should work in this case.
+            MyDebug
+                    .trace("TCPSplice requested on same node, plain Socket used");
+            theSplice.close();
+            PlainTCPSocketType tp = new PlainTCPSocketType();
+            return tp.createBrokeredSocket(in, out, hint, p);
+        }
+
+        Socket s = theSplice.connectSplice(splice_host, splice_port);
+        s.setTcpNoDelay(true);
+        return s;
     }
 }

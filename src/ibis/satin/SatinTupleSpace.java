@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class SatinTupleSpace implements Config {
 
     static {
-	TupleSpace.initTupleSpace();
+        TupleSpace.initTupleSpace();
     }
 
     /**
@@ -34,7 +34,7 @@ public class SatinTupleSpace implements Config {
      *            The data associated with the key.
      */
     public static void add(String key, Serializable data) {
-	TupleSpace.addTuple(key, data);
+        TupleSpace.addTuple(key, data);
     }
 
     /**
@@ -46,7 +46,7 @@ public class SatinTupleSpace implements Config {
      * @return the data associated with the key.
      */
     public static Serializable get(String key) {
-	return TupleSpace.getTuple(key);
+        return TupleSpace.getTuple(key);
     }
 
     /**
@@ -58,7 +58,7 @@ public class SatinTupleSpace implements Config {
      * @return the data associated with the key.
      */
     public static Serializable peek(String key) {
-	return TupleSpace.peekTuple(key);
+        return TupleSpace.peekTuple(key);
     }
 
     /**
@@ -68,6 +68,6 @@ public class SatinTupleSpace implements Config {
      *            the key of the tuple to be removed.
      */
     public static void remove(String key) {
-	TupleSpace.removeTuple(key);
+        TupleSpace.removeTuple(key);
     }
 }

@@ -11,7 +11,7 @@ public class IbisConfigurationException extends IbisRuntimeException {
      * <code>null</code> as its error detail message.
      */
     public IbisConfigurationException() {
-	super();
+        super();
     }
 
     /**
@@ -21,7 +21,7 @@ public class IbisConfigurationException extends IbisRuntimeException {
      * @param s		the detail message
      */
     public IbisConfigurationException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -32,7 +32,7 @@ public class IbisConfigurationException extends IbisRuntimeException {
      * @param cause	the cause
      */
     public IbisConfigurationException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -42,6 +42,6 @@ public class IbisConfigurationException extends IbisRuntimeException {
      * @param cause	the cause
      */
     public IbisConfigurationException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

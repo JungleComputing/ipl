@@ -10,19 +10,18 @@ import java.nio.channels.SelectableChannel;
  * Dissipator which reads from a single channel, with the channel normally
  * in blocking mode.
  */
-final class BlockingChannelNioDissipator extends NioDissipator 
-							    implements Config {
+final class BlockingChannelNioDissipator extends NioDissipator implements
+        Config {
 
     BlockingChannelNioDissipator(NioSendPortIdentifier peer,
-				    NioReceivePortIdentifier rpi,
-				    ReadableByteChannel channel,
-				    NioPortType type) throws IOException {
-            super(peer, rpi, channel, type);
+            NioReceivePortIdentifier rpi, ReadableByteChannel channel,
+            NioPortType type) throws IOException {
+        super(peer, rpi, channel, type);
 
-	if(!(channel instanceof SelectableChannel)) {
-	    throw new IbisError("wrong type of channel given on creation of"
-		    + " ChannelNioDissipator");
-	}
+        if (!(channel instanceof SelectableChannel)) {
+            throw new IbisError("wrong type of channel given on creation of"
+                    + " ChannelNioDissipator");
+        }
     }
 
     /**
@@ -30,12 +29,12 @@ final class BlockingChannelNioDissipator extends NioDissipator
      *
      */
     protected void fillBuffer(int minimum) throws IOException {
-	while (unUsedLength() < minimum) {
-	    readFromChannel();
-	}
+        while (unUsedLength() < minimum) {
+            readFromChannel();
+        }
     }
 
     public void reallyClose() throws IOException {
-	channel.close();
+        channel.close();
     }
 }

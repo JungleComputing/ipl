@@ -3,111 +3,109 @@ package ibis.impl.net;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-
 public class NetFile {
-        String          filename = null;
-        FileInputStream f        = null;
-        int             line     = 0;
+    String filename = null;
 
-        public NetFile(String filename) throws IOException {
-                this.filename = filename;
+    FileInputStream f = null;
 
-                f = new FileInputStream(filename);
+    int line = 0;
+
+    public NetFile(String filename) throws IOException {
+        this.filename = filename;
+
+        f = new FileInputStream(filename);
+    }
+
+    public String readline() throws IOException {
+        String s = "";
+        int i = 0;
+        char c = 0;
+
+        do {
+            i = f.read();
+            if (i < 0) {
+                if (s.equals("")) {
+                    return null;
+                } else {
+                    break;
+                }
+            }
+
+            c = (char) i;
+            s += c;
+        } while (c != '\n');
+
+        return s;
+    }
+
+    public int lineNumber() {
+        return line;
+    }
+
+    /*
+     * May need some tuning on Windows systems.
+     */
+    public String chomp(String s) {
+        int l = s.length();
+        if (l > 0 && s.charAt(l - 1) == '\n') {
+            if (l > 1) {
+                return s.substring(0, l - 2);
+            } else {
+                return "";
+            }
         }
 
-        public String readline() throws IOException {
-                String s = "";
-                int    i = 0;
-                char   c = 0;
+        return s;
+    }
 
-                do {
-                        i = f.read();
-                        if (i < 0) {
-                                if (s.equals("")) {
-                                        return null;
-                                } else {
-                                        break;
-                                }
-                        }
+    public String cleanSpaces(String s) {
+        String ns = "";
+        int l = s.length();
+        int i = 0;
 
-                        c  = (char)i;
-                        s += c;
-                } while (c != '\n');
+        for (i = 0; i < l; i++) {
+            char c = s.charAt(i);
 
-                return s;
+            if (!Character.isWhitespace(c)) {
+                break;
+            }
         }
 
-        public int lineNumber() {
-                return line;
-        }
+        out: while (true) {
 
-        /*
-         * May need some tuning on Windows systems.
-         */
-        public String chomp(String s) {
-                int l = s.length();
-                if (l > 0 && s.charAt(l - 1) == '\n') {
-                        if (l > 1) {
-                                return s.substring(0, l - 2);
-                        } else {
-                                return "";
-                        }
+            in1: while (true) {
+
+                if (i >= l) {
+                    break out;
                 }
 
-                return s;
-        }
-
-        public String cleanSpaces(String s) {
-                String ns = "";
-                int    l  = s.length();
-                int    i  = 0;
-
-                for (i = 0; i < l; i++) {
-                        char c = s.charAt(i);
-
-                        if (!Character.isWhitespace(c)) {
-                                break;
-                        }
+                char c = s.charAt(i);
+                if (Character.isWhitespace(c)) {
+                    i++;
+                    break in1;
                 }
 
-                out:
-                while (true) {
+                ns += c;
+                i++;
+            }
 
-                        in1:
-                        while (true) {
+            in2: while (true) {
+                if (i >= l) {
+                    break out;
+                }
+                char c = s.charAt(i);
 
-                                if (i >= l) {
-                                        break out;
-                                }
-
-                                char c = s.charAt(i);
-                                if (Character.isWhitespace(c)) {
-                                        i++;
-                                        break in1;
-                                }
-
-                                ns += c;
-                                i++;
-                        }
-
-                        in2:
-                        while (true) {
-                                if (i >= l) {
-                                        break out;
-                                }
-                                char c = s.charAt(i);
-
-                                if (!Character.isWhitespace(c)) {
-                                        ns += " "+c;
-                                        i++;
-                                        break in2;
-                                }
-
-                                i++;
-                        }
+                if (!Character.isWhitespace(c)) {
+                    ns += " " + c;
+                    i++;
+                    break in2;
                 }
 
-                return ns;
+                i++;
+            }
         }
+
+        return ns;
+    }
 }
 

@@ -22,7 +22,7 @@ import java.io.IOException;
  * </strong>
  **/
 
-public interface WriteMessage { 
+public interface WriteMessage {
 
     /**
      * Starts sending the message to all {@link ibis.ipl.ReceivePort
@@ -39,7 +39,7 @@ public interface WriteMessage {
      * @return a ticket.
      * @exception java.io.IOException	an error occurred 
      **/
-    public int send() throws IOException; 
+    public int send() throws IOException;
 
     /**
      * Blocks until the data of the <code>send</code> which returned
@@ -192,8 +192,7 @@ public interface WriteMessage {
      * Writes an array of bytes to the message.
      * See {@link #writeArray(boolean[])} for a description.
      */
-    public void writeArray(byte []val) throws IOException;
-
+    public void writeArray(byte[] val) throws IOException;
 
     /**
      * Writes an array of chars to the message.
@@ -297,4 +296,4 @@ public interface WriteMessage {
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(Object[] val, int off, int len) throws IOException;
-} 
+}

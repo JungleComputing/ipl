@@ -8,5 +8,6 @@ import ibis.util.TypedProperties;
 interface ElectionProtocol {
     static final byte ELECTION = 99;
 
-    static final boolean NEED_ELECTION = TypedProperties.booleanProperty(MPProps.s_election, true);
+    static final boolean NEED_ELECTION = TypedProperties.booleanProperty(
+            MPProps.s_election, true);
 }

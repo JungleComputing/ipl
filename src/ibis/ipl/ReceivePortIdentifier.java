@@ -3,20 +3,20 @@ package ibis.ipl;
 /**
  * Identifies a {@link ibis.ipl.ReceivePort ReceivePort} on the sending side.
  */
-public interface ReceivePortIdentifier extends java.io.Serializable { 
+public interface ReceivePortIdentifier extends java.io.Serializable {
     /**
      * Returns the name of the {@link ibis.ipl.PortType PortType} of this
      * identifier.
      * @return the name of the porttype.
      */
-    public String type();	
+    public String type();
 
     /**
      * Returns the name of the {@link ibis.ipl.ReceivePort ReceivePort}
      * corresponding to this identifier.
      * @return the name of the receiveport.
      */
-    public String name();	
+    public String name();
 
     /**
      * Returns the {@link ibis.ipl.IbisIdentifier IbisIdentifier} of the
@@ -45,4 +45,4 @@ public interface ReceivePortIdentifier extends java.io.Serializable {
      * java.lang.Object already implements it, but, anyway, here it is.
      */
     public boolean equals(Object other);
-} 
+}

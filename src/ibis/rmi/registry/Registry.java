@@ -10,11 +10,10 @@ import ibis.rmi.RemoteException;
  * It provides methods for binding and looking-up remote object references
  * bound to names.
  */
-public interface Registry extends Remote
-{
+public interface Registry extends Remote {
     /** Well known port for RMI registry. */
     public static final int REGISTRY_PORT = 1099;
-    
+
     /**
      * Returns the remote reference bound to the specified name.
      *
@@ -23,8 +22,7 @@ public interface Registry extends Remote
      * @exception NotBoundException if the name is not bound
      * @exception RemoteException if communication with the registry failed.
      */
-    public Remote lookup(String name)
-	throws RemoteException, NotBoundException;
+    public Remote lookup(String name) throws RemoteException, NotBoundException;
 
     /**
      * Binds the specified remote reference to the specified name.
@@ -34,9 +32,9 @@ public interface Registry extends Remote
      * @exception AlreadyBoundException is the name is already bound
      * @exception RemoteException if communication with the registry failed.
      */
-    public void bind(String name, Remote obj)
-	throws RemoteException, AlreadyBoundException;
-    
+    public void bind(String name, Remote obj) throws RemoteException,
+            AlreadyBoundException;
+
     /**
      * Removes the binding for the specified name.
      *
@@ -44,8 +42,7 @@ public interface Registry extends Remote
      * @exception NotBoundException if the name is not bound
      * @exception RemoteException if communication with the registry failed.
      */
-    public void unbind(String name)
-	throws RemoteException, NotBoundException;
+    public void unbind(String name) throws RemoteException, NotBoundException;
 
     /**
      * Rebinds the specified remote reference to the specified name. Any

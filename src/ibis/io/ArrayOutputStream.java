@@ -8,9 +8,8 @@ import java.io.IOException;
  * This way the whole thing becomes backwards
  * compatible with older implementations.
  */
-public abstract class ArrayOutputStream extends Accumulator
-	implements IbisStreamFlags
-{
+public abstract class ArrayOutputStream extends Accumulator implements
+        IbisStreamFlags {
     /**
      * Constructor.
      */
@@ -62,9 +61,8 @@ public abstract class ArrayOutputStream extends Accumulator
      * @exception IOException on IO error.
      */
     public void writeBoolean(boolean value) throws IOException {
-	throw new IOException("Not implemented");
+        throw new IOException("Not implemented");
     }
-
 
     /**
      * Writes a byte value to the accumulator.
@@ -72,7 +70,7 @@ public abstract class ArrayOutputStream extends Accumulator
      * @exception IOException on IO error.
      */
     public void writeByte(byte value) throws IOException {
-	throw new IOException("Not implemented");
+        throw new IOException("Not implemented");
     }
 
     /**
@@ -81,7 +79,7 @@ public abstract class ArrayOutputStream extends Accumulator
      * @exception IOException on IO error.
      */
     public void writeChar(char value) throws IOException {
-	throw new IOException("Not implemented");
+        throw new IOException("Not implemented");
     }
 
     /**
@@ -90,7 +88,7 @@ public abstract class ArrayOutputStream extends Accumulator
      * @exception IOException on IO error.
      */
     public void writeShort(short value) throws IOException {
-	throw new IOException("Not implemented");
+        throw new IOException("Not implemented");
     }
 
     /**
@@ -99,7 +97,7 @@ public abstract class ArrayOutputStream extends Accumulator
      * @exception IOException on IO error.
      */
     public void writeInt(int value) throws IOException {
-	throw new IOException("Not implemented");
+        throw new IOException("Not implemented");
     }
 
     /**
@@ -108,7 +106,7 @@ public abstract class ArrayOutputStream extends Accumulator
      * @exception IOException on IO error.
      */
     public void writeLong(long value) throws IOException {
-	throw new IOException("Not implemented");
+        throw new IOException("Not implemented");
     }
 
     /**
@@ -117,7 +115,7 @@ public abstract class ArrayOutputStream extends Accumulator
      * @exception IOException on IO error.
      */
     public void writeFloat(float value) throws IOException {
-	throw new IOException("Not implemented");
+        throw new IOException("Not implemented");
     }
 
     /**
@@ -126,7 +124,7 @@ public abstract class ArrayOutputStream extends Accumulator
      * @exception IOException on IO error.
      */
     public void writeDouble(double value) throws IOException {
-	throw new IOException("Not implemented");
+        throw new IOException("Not implemented");
     }
 
     /**
@@ -136,8 +134,8 @@ public abstract class ArrayOutputStream extends Accumulator
      * @param	size		The number of elements to be copied.
      * @exception IOException on IO error.
      */
-    public abstract void writeArray(boolean [] source, int offset, int size)
-	    throws IOException;
+    public abstract void writeArray(boolean[] source, int offset, int size)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Bytes into the accumulator.
@@ -146,8 +144,8 @@ public abstract class ArrayOutputStream extends Accumulator
      * @param	size		The number of elements to be copied.
      * @exception IOException on IO error.
      */
-    public abstract void writeArray(byte [] source, int offset, int size)
-	    throws IOException;
+    public abstract void writeArray(byte[] source, int offset, int size)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Characters into the accumulator.
@@ -156,8 +154,8 @@ public abstract class ArrayOutputStream extends Accumulator
      * @param	size		The number of elements to be copied.
      * @exception IOException on IO error.
      */
-    public abstract void writeArray(char [] source, int offset, int size)
-	    throws IOException;
+    public abstract void writeArray(char[] source, int offset, int size)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Short Integers into the accumulator.
@@ -166,8 +164,8 @@ public abstract class ArrayOutputStream extends Accumulator
      * @param	size		The number of elements to be copied.
      * @exception IOException on IO error.
      */
-    public abstract void writeArray(short [] source, int offset, int size)
-	    throws IOException;
+    public abstract void writeArray(short[] source, int offset, int size)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Integers into the accumulator.
@@ -176,8 +174,8 @@ public abstract class ArrayOutputStream extends Accumulator
      * @param	size		The number of elements to be copied.
      * @exception IOException on IO error.
      */
-    public abstract void writeArray(int [] source, int offset, int size)
-	    throws IOException;
+    public abstract void writeArray(int[] source, int offset, int size)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Long Integers into the accumulator.
@@ -186,8 +184,8 @@ public abstract class ArrayOutputStream extends Accumulator
      * @param	size		The number of elements to be copied.
      * @exception IOException on IO error.
      */
-    public abstract void writeArray(long [] source, int offset, int size)
-	    throws IOException;
+    public abstract void writeArray(long[] source, int offset, int size)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Floats into the accumulator.
@@ -196,8 +194,8 @@ public abstract class ArrayOutputStream extends Accumulator
      * @param	size		The number of elements to be copied.
      * @exception IOException on IO error.
      */
-    public abstract void writeArray(float [] source, int offset, int size)
-	    throws IOException;
+    public abstract void writeArray(float[] source, int offset, int size)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Doubles into the accumulator.
@@ -206,6 +204,6 @@ public abstract class ArrayOutputStream extends Accumulator
      * @param	size		The number of elements to be copied.
      * @exception IOException on IO error.
      */
-    public abstract void writeArray(double [] source, int offset, int size)
-	    throws IOException;
+    public abstract void writeArray(double[] source, int offset, int size)
+            throws IOException;
 }

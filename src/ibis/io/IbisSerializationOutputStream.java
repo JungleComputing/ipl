@@ -9,7 +9,6 @@ import java.io.NotSerializableException;
 import java.io.ObjectOutput;
 import java.io.ObjectStreamClass;
 
-
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
  * for Ibis serialization.
@@ -17,414 +16,427 @@ import java.io.ObjectStreamClass;
  * <code>java.io.ObjectOutputStream</code>.
  * However, versioning is not supported, like it is in Sun serialization.
  */
-public class IbisSerializationOutputStream
-	extends DataSerializationOutputStream
-	implements IbisStreamFlags
-{
+public class IbisSerializationOutputStream extends
+        DataSerializationOutputStream implements IbisStreamFlags {
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_IBIS_SERIALIZATION = true;
 
     /**
      * Record how many objects of any class are sent.
      */
-    private static final boolean STATS_OBJECTS =
-	TypedProperties.booleanProperty(IOProps.s_stats_written);
+    private static final boolean STATS_OBJECTS = TypedProperties
+            .booleanProperty(IOProps.s_stats_written);
 
     // if STATS_OBJECTS
     static java.util.Hashtable statSendObjects;
+
     static final int[] statArrayCount;
+
     static int statObjectHandle;
+
     static final int[] statArrayHandle;
+
     static final long[] statArrayLength;
 
     /**
      * A hash table that aims for speed for pairs (Object, int).
      * This one is specially made for (object, handle) pairs.
      */
-    static final class HandleHash { 
+    static final class HandleHash {
 
-	private static final boolean STATS =
-	    TypedProperties.booleanProperty(IOProps.s_hash_stats);
-	private static final boolean TIMINGS =
-	    TypedProperties.booleanProperty(IOProps.s_hash_timings);
+        private static final boolean STATS = TypedProperties
+                .booleanProperty(IOProps.s_hash_stats);
 
-	private static final int MIN_BUCKETS = 32;
+        private static final boolean TIMINGS = TypedProperties
+                .booleanProperty(IOProps.s_hash_timings);
 
-	/* Choose this value between 0.5 and 5. It determines the amount
-	 * of chaining before the hashmap is resized. Lower value means less
-	 * chaining, but larger hashtable.
-	 */
-	private static final float RESIZE_FACTOR = 1;
+        private static final int MIN_BUCKETS = 32;
 
-	/** Maps handle to object. */
-	private Object[]	dataBucket;
-	/** Maps handle to next with same hash value. */
-	private int[]	nextBucket;
-	/** Maps hash value to handle. */
-	private int[]	map;
+        /* Choose this value between 0.5 and 5. It determines the amount
+         * of chaining before the hashmap is resized. Lower value means less
+         * chaining, but larger hashtable.
+         */
+        private static final float RESIZE_FACTOR = 1;
 
-	// if (STATS)
-	private long finds;
-	private long rebuilds;
-	private long collisions;
-	private long rebuild_collisions;
-	private int  maxsize;
-	private int  mapsize;
+        /** Maps handle to object. */
+        private Object[] dataBucket;
 
-	// if (TIMINGS)
-	private ibis.util.Timer t_insert;
-	private ibis.util.Timer t_find;
-	private ibis.util.Timer t_rebuild;
+        /** Maps handle to next with same hash value. */
+        private int[] nextBucket;
 
-	/** Initial size of buckets. */
-	private int initSize;
+        /** Maps hash value to handle. */
+        private int[] map;
 
-	/** When to grow ... */
-	private int sizeThreshold;
+        // if (STATS)
+        private long finds;
 
-	/** maximum handle+1 */
-	private int size;
+        private long rebuilds;
 
-	/** Number of entries. */
-	private int present;
+        private long collisions;
 
-	public HandleHash() {
-	    this(MIN_BUCKETS);
-	}
+        private long rebuild_collisions;
 
-	public HandleHash(int sz) {
+        private int maxsize;
 
-	    int x = 1;
-	    while (x < sz) {
-		x <<= 1;
-	    }
-	    if (x != sz) {
-		System.err.println("Warning: Hash table size (" + sz +
-			") must be a power of two. Increment to " + x);
-		sz = x;
-	    }
+        private int mapsize;
 
-	    initSize = sz;
-	    maxsize = initSize;
-	    mapsize = initSize;
+        // if (TIMINGS)
+        private ibis.util.Timer t_insert;
 
-	    init(sz);
+        private ibis.util.Timer t_find;
 
-	    if (TIMINGS) {
-		t_insert = Timer.createTimer();
-		t_find = Timer.createTimer();
-		t_rebuild = Timer.createTimer();
-	    }
-	    if (STATS || TIMINGS) {
-		Runtime.getRuntime().addShutdownHook(new Thread("HandleHash ShutdownHook") {
-		    public void run() {
-			statistics();
-		    }
-		    });
-	    }
-	}
+        private ibis.util.Timer t_rebuild;
 
-	private void init(int sz) {
-	    sizeThreshold = (int) (sz * RESIZE_FACTOR);
-	    
-	    map = new int[sz];
-	    nextBucket = new int[sz];
-	    dataBucket = new Object[sz];
-	    size = 1;
-	    present = 0;
-	}
+        /** Initial size of buckets. */
+        private int initSize;
 
-	/**
-	 * We know size is a power of two. Make mod cheap.
-	 */
-	private static final int mod(int x, int size) {
-	    return (x & (size - 1));
-	}
+        /** When to grow ... */
+        private int sizeThreshold;
 
-	public final int getHashCode(Object ref) {
-	    int h = System.identityHashCode(ref);
-	    return ((h >>> 16) ^ (h & ((1 << 16) - 1)));
-	}
+        /** maximum handle+1 */
+        private int size;
 
-	public final int find(Object ref) {
-	    return find(ref, getHashCode(ref));
-	}
-	
-	public final int find(Object ref, int hashcode) {
-	    if (TIMINGS) {
-		t_find.start();
-	    }
+        /** Number of entries. */
+        private int present;
 
-	    if (STATS) {
-		finds++;
-	    }
+        public HandleHash() {
+            this(MIN_BUCKETS);
+        }
 
-	    int h = mod(hashcode, map.length);
-	    for (int i = map[h]; i > 0; i = nextBucket[i]) {
-		if (dataBucket[i] == ref) {
-		    if (TIMINGS) {
-			t_find.stop();
-		    }
-		    return i;
-		}
-	    }
+        public HandleHash(int sz) {
 
-	    if (TIMINGS) {
-		t_find.stop();
-	    }
-	    return 0;
-	}
+            int x = 1;
+            while (x < sz) {
+                x <<= 1;
+            }
+            if (x != sz) {
+                System.err.println("Warning: Hash table size (" + sz
+                        + ") must be a power of two. Increment to " + x);
+                sz = x;
+            }
 
+            initSize = sz;
+            maxsize = initSize;
+            mapsize = initSize;
 
-	/**
-	 * Rebuild if fill factor is too high.
-	 */
-	private final void growMap() {
+            init(sz);
 
-	    long saved_collisions = collisions;
+            if (TIMINGS) {
+                t_insert = Timer.createTimer();
+                t_find = Timer.createTimer();
+                t_rebuild = Timer.createTimer();
+            }
+            if (STATS || TIMINGS) {
+                Runtime.getRuntime().addShutdownHook(
+                        new Thread("HandleHash ShutdownHook") {
+                            public void run() {
+                                statistics();
+                            }
+                        });
+            }
+        }
 
-	    if (TIMINGS) {
-		t_rebuild.start();
-	    }
-	    map = new int[(map.length << 1)];
-	    if (map.length > mapsize) mapsize = map.length;
-	    sizeThreshold = (int) (map.length * RESIZE_FACTOR);
+        private void init(int sz) {
+            sizeThreshold = (int) (sz * RESIZE_FACTOR);
 
-	    for (int i = 0; i < size; i++) {
-		if (dataBucket[i] != null) {
-		    int hashcode = getHashCode(dataBucket[i]);
-		    int h = mod(hashcode, map.length);
-		    nextBucket[i] = map[h];
-		    map[h] = i;
-		}
-	    }
+            map = new int[sz];
+            nextBucket = new int[sz];
+            dataBucket = new Object[sz];
+            size = 1;
+            present = 0;
+        }
 
-	    if (TIMINGS) {
-		t_rebuild.stop();
-	    }
+        /**
+         * We know size is a power of two. Make mod cheap.
+         */
+        private static final int mod(int x, int size) {
+            return (x & (size - 1));
+        }
 
-	    if (STATS) {
-		rebuild_collisions += collisions - saved_collisions;
-		rebuilds++;
-	    }
-	}
+        public final int getHashCode(Object ref) {
+            int h = System.identityHashCode(ref);
+            return ((h >>> 16) ^ (h & ((1 << 16) - 1)));
+        }
 
-	private void growBuckets(int sz) {
-	    int newsize = (sz << 1) + 1;
-	    if (newsize > maxsize) maxsize = newsize;
-	    Object[] newDataBucket = new Object[newsize];
-	    int[] newNextBucket = new int[newsize];
-	    System.arraycopy(nextBucket, 0, newNextBucket, 0, sz);
-	    System.arraycopy(dataBucket, 0, newDataBucket, 0, sz);
-	    nextBucket = newNextBucket;
-	    dataBucket = newDataBucket;
-	}
+        public final int find(Object ref) {
+            return find(ref, getHashCode(ref));
+        }
 
-	/**
-	 * Insert (ref, handle) into the hash table.
-	 *
-	 * @param  ref the object that is inserted
-	 * @param  handle the (int valued) key
-	 * @param  hashcode the hashcode of ref that may be kept over calls to the
-	 * 		hash table
-	 * @return the handle.
-	 */
-	public int put(Object ref, int handle, int hashcode) {
+        public final int find(Object ref, int hashcode) {
+            if (TIMINGS) {
+                t_find.start();
+            }
 
-	    if (present >= sizeThreshold) {
-		growMap();
-	    }
+            if (STATS) {
+                finds++;
+            }
 
-	    if (TIMINGS) {
-		t_insert.start();
-	    }
+            int h = mod(hashcode, map.length);
+            for (int i = map[h]; i > 0; i = nextBucket[i]) {
+                if (dataBucket[i] == ref) {
+                    if (TIMINGS) {
+                        t_find.stop();
+                    }
+                    return i;
+                }
+            }
 
-	    if (handle >= dataBucket.length) {
-		growBuckets(handle);
-	    }
+            if (TIMINGS) {
+                t_find.stop();
+            }
+            return 0;
+        }
 
-	    int h = mod(hashcode, map.length);
-	    dataBucket[handle] = ref;
-	    if (STATS) {
-		if (map[h] != 0) {
-		    collisions++;
-		}
-	    }
-	    nextBucket[handle] = map[h];
-	    map[h] = handle;
-	    if (TIMINGS) {
-		t_insert.stop();
-	    }
-	    present++;
-	    if (handle >= size) {
-		size = handle + 1;
-	    }
-	    return handle;
-	}
+        /**
+         * Rebuild if fill factor is too high.
+         */
+        private final void growMap() {
 
-	/**
-	 * Insert (ref, handle) into the hash table lazily.
-	 * If already present, the present handle is returned instead.
-	 *
-	 * @param  ref the object that is inserted
-	 * @param  handle the (int valued) key
-	 * @param  hashcode the hashcode of ref that may be kept over calls to the
-	 * 		hash table
-	 * @return the handle found.
-	 */
-	public final int lazyPut(Object ref, int handle, int hashcode) {
-	    int f = find(ref, hashcode);
-	    if (f != 0) return f;
+            long saved_collisions = collisions;
 
-	    return put(ref, handle, hashcode);
-	}
+            if (TIMINGS) {
+                t_rebuild.start();
+            }
+            map = new int[(map.length << 1)];
+            if (map.length > mapsize)
+                mapsize = map.length;
+            sizeThreshold = (int) (map.length * RESIZE_FACTOR);
 
+            for (int i = 0; i < size; i++) {
+                if (dataBucket[i] != null) {
+                    int hashcode = getHashCode(dataBucket[i]);
+                    int h = mod(hashcode, map.length);
+                    nextBucket[i] = map[h];
+                    map[h] = i;
+                }
+            }
 
-	public final int put(Object ref, int handle) {
-	    return put(ref, handle, getHashCode(ref));
-	}
+            if (TIMINGS) {
+                t_rebuild.stop();
+            }
 
+            if (STATS) {
+                rebuild_collisions += collisions - saved_collisions;
+                rebuilds++;
+            }
+        }
 
-	public final int lazyPut(Object ref, int handle) {
-	    return lazyPut(ref, handle, getHashCode(ref));
-	}
+        private void growBuckets(int sz) {
+            int newsize = (sz << 1) + 1;
+            if (newsize > maxsize)
+                maxsize = newsize;
+            Object[] newDataBucket = new Object[newsize];
+            int[] newNextBucket = new int[newsize];
+            System.arraycopy(nextBucket, 0, newNextBucket, 0, sz);
+            System.arraycopy(dataBucket, 0, newDataBucket, 0, sz);
+            nextBucket = newNextBucket;
+            dataBucket = newDataBucket;
+        }
 
-	public final void clear() {
-	    init(initSize);
-	    if (STATS) {
-		// finds = 0;
-	    }
-	}
+        /**
+         * Insert (ref, handle) into the hash table.
+         *
+         * @param  ref the object that is inserted
+         * @param  handle the (int valued) key
+         * @param  hashcode the hashcode of ref that may be kept over calls to the
+         * 		hash table
+         * @return the handle.
+         */
+        public int put(Object ref, int handle, int hashcode) {
 
-	public final void finalize() {
-	    statistics();
-	}
+            if (present >= sizeThreshold) {
+                growMap();
+            }
 
-	final void statistics() {
-	    if (STATS) {
-		System.err.println(this + ": " +
-			//  "buckets     = " + size +
-			" mapsize " + mapsize +
-			" maxsize " + maxsize +
-			" finds " + finds +
-			" rebuilds " + rebuilds +
-			" collisions " + collisions +
-			" (rebuild " + rebuild_collisions +
-			")");
-	    }
-	    if (TIMINGS) {
-		System.err.println(this +
-		    " insert(" + t_insert.nrTimes() + ") " +
-		    Timer.format(t_insert.totalTimeVal()) +
-		    " find(" + t_find.nrTimes() + ") " +
-		    Timer.format(t_find.totalTimeVal()) +
-		    " rebuild(" + t_rebuild.nrTimes() + ") " +
-		    Timer.format(t_rebuild.totalTimeVal()));
-	    }
-	}
+            if (TIMINGS) {
+                t_insert.start();
+            }
+
+            if (handle >= dataBucket.length) {
+                growBuckets(handle);
+            }
+
+            int h = mod(hashcode, map.length);
+            dataBucket[handle] = ref;
+            if (STATS) {
+                if (map[h] != 0) {
+                    collisions++;
+                }
+            }
+            nextBucket[handle] = map[h];
+            map[h] = handle;
+            if (TIMINGS) {
+                t_insert.stop();
+            }
+            present++;
+            if (handle >= size) {
+                size = handle + 1;
+            }
+            return handle;
+        }
+
+        /**
+         * Insert (ref, handle) into the hash table lazily.
+         * If already present, the present handle is returned instead.
+         *
+         * @param  ref the object that is inserted
+         * @param  handle the (int valued) key
+         * @param  hashcode the hashcode of ref that may be kept over calls to the
+         * 		hash table
+         * @return the handle found.
+         */
+        public final int lazyPut(Object ref, int handle, int hashcode) {
+            int f = find(ref, hashcode);
+            if (f != 0)
+                return f;
+
+            return put(ref, handle, hashcode);
+        }
+
+        public final int put(Object ref, int handle) {
+            return put(ref, handle, getHashCode(ref));
+        }
+
+        public final int lazyPut(Object ref, int handle) {
+            return lazyPut(ref, handle, getHashCode(ref));
+        }
+
+        public final void clear() {
+            init(initSize);
+            if (STATS) {
+                // finds = 0;
+            }
+        }
+
+        public final void finalize() {
+            statistics();
+        }
+
+        final void statistics() {
+            if (STATS) {
+                System.err.println(this + ": " +
+                //  "buckets     = " + size +
+                        " mapsize " + mapsize + " maxsize " + maxsize
+                        + " finds " + finds + " rebuilds " + rebuilds
+                        + " collisions " + collisions + " (rebuild "
+                        + rebuild_collisions + ")");
+            }
+            if (TIMINGS) {
+                System.err.println(this + " insert(" + t_insert.nrTimes()
+                        + ") " + Timer.format(t_insert.totalTimeVal())
+                        + " find(" + t_find.nrTimes() + ") "
+                        + Timer.format(t_find.totalTimeVal()) + " rebuild("
+                        + t_rebuild.nrTimes() + ") "
+                        + Timer.format(t_rebuild.totalTimeVal()));
+            }
+        }
     }
 
     static String primitiveName(int i) {
-	switch (i) {
-	case TYPE_BOOLEAN:
-	    return "boolean";
-	case TYPE_BYTE:
-	    return "byte";
-	case TYPE_CHAR:
-	    return "char";
-	case TYPE_SHORT:
-	    return "short";
-	case TYPE_INT:
-	    return "int";
-	case TYPE_LONG:
-	    return "long";
-	case TYPE_FLOAT:
-	    return "float";
-	case TYPE_DOUBLE:
-	    return "double";
-	}
+        switch (i) {
+        case TYPE_BOOLEAN:
+            return "boolean";
+        case TYPE_BYTE:
+            return "byte";
+        case TYPE_CHAR:
+            return "char";
+        case TYPE_SHORT:
+            return "short";
+        case TYPE_INT:
+            return "int";
+        case TYPE_LONG:
+            return "long";
+        case TYPE_FLOAT:
+            return "float";
+        case TYPE_DOUBLE:
+            return "double";
+        }
 
-	return null;
+        return null;
     }
 
     static int primitiveBytes(int i) {
-	switch (i) {
-	case TYPE_BOOLEAN:
-	    return SIZEOF_BOOLEAN;
-	case TYPE_BYTE:
-	    return SIZEOF_BYTE;
-	case TYPE_CHAR:
-	    return SIZEOF_CHAR;
-	case TYPE_SHORT:
-	    return SIZEOF_SHORT;
-	case TYPE_INT:
-	    return SIZEOF_INT;
-	case TYPE_LONG:
-	    return SIZEOF_LONG;
-	case TYPE_FLOAT:
-	    return SIZEOF_FLOAT;
-	case TYPE_DOUBLE:
-	    return SIZEOF_DOUBLE;
-	}
+        switch (i) {
+        case TYPE_BOOLEAN:
+            return SIZEOF_BOOLEAN;
+        case TYPE_BYTE:
+            return SIZEOF_BYTE;
+        case TYPE_CHAR:
+            return SIZEOF_CHAR;
+        case TYPE_SHORT:
+            return SIZEOF_SHORT;
+        case TYPE_INT:
+            return SIZEOF_INT;
+        case TYPE_LONG:
+            return SIZEOF_LONG;
+        case TYPE_FLOAT:
+            return SIZEOF_FLOAT;
+        case TYPE_DOUBLE:
+            return SIZEOF_DOUBLE;
+        }
 
-	return 0;
+        return 0;
     }
-
 
     private static int arrayClassType(Class arrayClass) {
-	if (false) {
-	    // nothing
-	} else if (arrayClass == classByteArray) {
-	    return TYPE_BYTE;
-	} else if (arrayClass == classIntArray) {
-	    return TYPE_INT;
-	} else if (arrayClass == classBooleanArray) {
-	    return TYPE_BOOLEAN;
-	} else if (arrayClass == classDoubleArray) {
-	    return TYPE_DOUBLE;
-	} else if (arrayClass == classCharArray) {
-	    return TYPE_CHAR;
-	} else if (arrayClass == classShortArray) {
-	    return TYPE_SHORT;
-	} else if (arrayClass == classLongArray) {
-	    return TYPE_LONG;
-	} else if (arrayClass == classFloatArray) {
-	    return TYPE_FLOAT;
-	}
-	return -1;
+        if (false) {
+            // nothing
+        } else if (arrayClass == classByteArray) {
+            return TYPE_BYTE;
+        } else if (arrayClass == classIntArray) {
+            return TYPE_INT;
+        } else if (arrayClass == classBooleanArray) {
+            return TYPE_BOOLEAN;
+        } else if (arrayClass == classDoubleArray) {
+            return TYPE_DOUBLE;
+        } else if (arrayClass == classCharArray) {
+            return TYPE_CHAR;
+        } else if (arrayClass == classShortArray) {
+            return TYPE_SHORT;
+        } else if (arrayClass == classLongArray) {
+            return TYPE_LONG;
+        } else if (arrayClass == classFloatArray) {
+            return TYPE_FLOAT;
+        }
+        return -1;
     }
 
-
     static {
-	if (STATS_OBJECTS) {
-	    Runtime.getRuntime().addShutdownHook(new Thread("IbisSerializationOutputStream ShutdownHook") {
-		public void run() {
-		    System.out.print("Serializable objects sent: ");
-		    System.out.println(statSendObjects);
-		    System.out.println("Non-array handles sent "
-		       	+ statObjectHandle);
-		    for (int i = BEGIN_TYPES; i < PRIMITIVE_TYPES; i++) {
-			if (statArrayCount[i] + statArrayHandle[i] > 0) {
-			    System.out.println("       "
-				+ primitiveName(i) + " arrays "
-				+ statArrayCount[i] + " total bytes "
-				+ (statArrayLength[i] * primitiveBytes(i))
-				+ " handles " + statArrayHandle[i]);
-			}
-		    }
-		}
-	    });
-	    System.out.println("IbisSerializationOutputStream.STATS_OBJECTS enabled");
-	    statSendObjects = new java.util.Hashtable();
-	    statArrayCount = new int[PRIMITIVE_TYPES];
-	    statArrayHandle = new int[PRIMITIVE_TYPES];
-	    statArrayLength = new long[PRIMITIVE_TYPES];
-	} else {
-	    statSendObjects = null;
-	    statArrayCount = null;
-	    statArrayLength = null;
-	    statArrayHandle = null;
-	}
+        if (STATS_OBJECTS) {
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread("IbisSerializationOutputStream ShutdownHook") {
+                        public void run() {
+                            System.out.print("Serializable objects sent: ");
+                            System.out.println(statSendObjects);
+                            System.out.println("Non-array handles sent "
+                                    + statObjectHandle);
+                            for (int i = BEGIN_TYPES; i < PRIMITIVE_TYPES; i++) {
+                                if (statArrayCount[i] + statArrayHandle[i] > 0) {
+                                    System.out
+                                            .println("       "
+                                                    + primitiveName(i)
+                                                    + " arrays "
+                                                    + statArrayCount[i]
+                                                    + " total bytes "
+                                                    + (statArrayLength[i] * primitiveBytes(i))
+                                                    + " handles "
+                                                    + statArrayHandle[i]);
+                                }
+                            }
+                        }
+                    });
+            System.out
+                    .println("IbisSerializationOutputStream.STATS_OBJECTS enabled");
+            statSendObjects = new java.util.Hashtable();
+            statArrayCount = new int[PRIMITIVE_TYPES];
+            statArrayHandle = new int[PRIMITIVE_TYPES];
+            statArrayLength = new long[PRIMITIVE_TYPES];
+        } else {
+            statSendObjects = null;
+            statArrayCount = null;
+            statArrayLength = null;
+            statArrayHandle = null;
+        }
     }
 
     /**
@@ -435,7 +447,8 @@ public class IbisSerializationOutputStream
     /**
      * Hash table for keeping references to objects already written.
      */
-    private HandleHash references  = new HandleHash(2048);
+    private HandleHash references = new HandleHash(2048);
+
     // private IbisHash references  = new IbisHash(2048);
 
     /**
@@ -484,9 +497,13 @@ public class IbisSerializationOutputStream
      * they can be managed by IOGenerator-generated code.
      */
     private Object[] object_stack;
+
     private int[] level_stack;
+
     private ImplPutField[] putfield_stack;
+
     private int max_stack_size = 0;
+
     private int stack_size = 0;
 
     /**
@@ -494,15 +511,14 @@ public class IbisSerializationOutputStream
      * @param out		the underlying <code>Accumulator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public IbisSerializationOutputStream(Accumulator out)
-							 throws IOException {
-	super(out);
+    public IbisSerializationOutputStream(Accumulator out) throws IOException {
+        super(out);
 
-	types_clear();
+        types_clear();
 
-	next_type = PRIMITIVE_TYPES;
-	references.clear();
-	next_handle = CONTROL_HANDLES;
+        next_type = PRIMITIVE_TYPES;
+        references.clear();
+        next_handle = CONTROL_HANDLES;
     }
 
     /**
@@ -510,108 +526,108 @@ public class IbisSerializationOutputStream
      */
     protected IbisSerializationOutputStream() throws IOException {
 
-	super();
+        super();
 
-	types_clear();
+        types_clear();
 
-	next_type = PRIMITIVE_TYPES;
-	references.clear();
-	next_handle = CONTROL_HANDLES;
+        next_type = PRIMITIVE_TYPES;
+        references.clear();
+        next_handle = CONTROL_HANDLES;
     }
 
     public String serializationImplName() {
-	return "ibis";
+        return "ibis";
     }
 
     public void statistics() {
-	if (false) {
-	    System.err.print("IbisOutput: references -> ");
-	    references.statistics();
-	    System.err.print("IbisOutput: types      -> ");
-	    types.statistics();
-	}
+        if (false) {
+            System.err.print("IbisOutput: references -> ");
+            references.statistics();
+            System.err.print("IbisOutput: types      -> ");
+            types.statistics();
+        }
     }
 
     /**
      * Initializes the type hash by adding arrays of primitive types.
      */
     private void types_clear() {
-	types.clear();
-	types.put(classBooleanArray, TYPE_BOOLEAN | TYPE_BIT);
-	types.put(classByteArray,    TYPE_BYTE | TYPE_BIT);
-	types.put(classCharArray,    TYPE_CHAR | TYPE_BIT);
-	types.put(classShortArray,   TYPE_SHORT | TYPE_BIT);
-	types.put(classIntArray,     TYPE_INT | TYPE_BIT);
-	types.put(classLongArray,    TYPE_LONG | TYPE_BIT);
-	types.put(classFloatArray,   TYPE_FLOAT | TYPE_BIT);
-	types.put(classDoubleArray,  TYPE_DOUBLE | TYPE_BIT);
-	next_type = PRIMITIVE_TYPES;
+        types.clear();
+        types.put(classBooleanArray, TYPE_BOOLEAN | TYPE_BIT);
+        types.put(classByteArray, TYPE_BYTE | TYPE_BIT);
+        types.put(classCharArray, TYPE_CHAR | TYPE_BIT);
+        types.put(classShortArray, TYPE_SHORT | TYPE_BIT);
+        types.put(classIntArray, TYPE_INT | TYPE_BIT);
+        types.put(classLongArray, TYPE_LONG | TYPE_BIT);
+        types.put(classFloatArray, TYPE_FLOAT | TYPE_BIT);
+        types.put(classDoubleArray, TYPE_DOUBLE | TYPE_BIT);
+        next_type = PRIMITIVE_TYPES;
     }
 
     public void reset() {
-	if (next_handle > CONTROL_HANDLES) {
-	    if(DEBUG) {
-		dbPrint("reset: next handle = " + next_handle + ".");
-	    }
-	    references.clear();
-	    /* We cannot send out the reset immediately, because the
-	     * reader side only accepts a reset when it is expecting a
-	     * handle. So, instead, we remember that we need to send
-	     * out a reset, and send before sending the next handle.
-	     */
-	    resetPending = true;
-	    next_handle = CONTROL_HANDLES;
-	}
-	// types_clear();
-	// There is no need to clear the type table.
-	// It can be reused after a reset.
+        if (next_handle > CONTROL_HANDLES) {
+            if (DEBUG) {
+                dbPrint("reset: next handle = " + next_handle + ".");
+            }
+            references.clear();
+            /* We cannot send out the reset immediately, because the
+             * reader side only accepts a reset when it is expecting a
+             * handle. So, instead, we remember that we need to send
+             * out a reset, and send before sending the next handle.
+             */
+            resetPending = true;
+            next_handle = CONTROL_HANDLES;
+        }
+        // types_clear();
+        // There is no need to clear the type table.
+        // It can be reused after a reset.
     }
 
     /* This is the data output / object output part */
 
     public void writeUTF(String str) throws IOException {
-	// dbPrint("writeUTF: " + str);
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(str == null) {
-	    writeInt(-1);
-	    if (TIME_IBIS_SERIALIZATION) {
-		stopTimer();
-	    }
-	    return;
-	}
+        // dbPrint("writeUTF: " + str);
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (str == null) {
+            writeInt(-1);
+            if (TIME_IBIS_SERIALIZATION) {
+                stopTimer();
+            }
+            return;
+        }
 
-	if(DEBUG) {
-	    dbPrint("write UTF " + str);
-	}
-	int len = str.length();
+        if (DEBUG) {
+            dbPrint("write UTF " + str);
+        }
+        int len = str.length();
 
-	//	writeInt(len);
-	//	writeArray(str.toCharArray(), 0, len);
+        //	writeInt(len);
+        //	writeArray(str.toCharArray(), 0, len);
 
-	byte[] b = new byte[3 * len];
-	int bn = 0;
+        byte[] b = new byte[3 * len];
+        int bn = 0;
 
-	for (int i = 0; i < len; i++) {
-	    char c = str.charAt(i);
-	    if (c > 0x0000 && c <= 0x007f) {
-		b[bn++] = (byte)c;
-	    } else if (c <= 0x07ff) {
-		b[bn++] = (byte)(0xc0 | (0x1f & (c >> 6)));
-		b[bn++] = (byte)(0x80 | (0x3f & c));
-	    } else {
-		b[bn++] = (byte)(0xe0 | (0x0f & (c >> 12)));
-		b[bn++] = (byte)(0x80 | (0x3f & (c >>  6)));
-		b[bn++] = (byte)(0x80 | (0x3f & c));
-	    }
-	}
+        for (int i = 0; i < len; i++) {
+            char c = str.charAt(i);
+            if (c > 0x0000 && c <= 0x007f) {
+                b[bn++] = (byte) c;
+            } else if (c <= 0x07ff) {
+                b[bn++] = (byte) (0xc0 | (0x1f & (c >> 6)));
+                b[bn++] = (byte) (0x80 | (0x3f & c));
+            } else {
+                b[bn++] = (byte) (0xe0 | (0x0f & (c >> 12)));
+                b[bn++] = (byte) (0x80 | (0x3f & (c >> 6)));
+                b[bn++] = (byte) (0x80 | (0x3f & c));
+            }
+        }
 
-	writeInt(bn);
-	writeArray(b, 0, bn);
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        writeInt(bn);
+        writeArray(b, 0, bn);
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     /**
@@ -621,29 +637,29 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public void writeClass(Class ref) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if (ref == null) {
-	    writeHandle(NUL_HANDLE);
-	    if (TIME_IBIS_SERIALIZATION) {
-		stopTimer();
-	    }
-	    return;
-	}
-	int hashCode = references.getHashCode(ref);
-	int handle = references.find(ref, hashCode);
-	if (handle == 0) {
-	    handle = next_handle++;
-	    references.put(ref, handle, hashCode);
-	    writeType(java.lang.Class.class);
-	    writeUTF(ref.getName());
-	} else {
-	    writeHandle(handle);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (ref == null) {
+            writeHandle(NUL_HANDLE);
+            if (TIME_IBIS_SERIALIZATION) {
+                stopTimer();
+            }
+            return;
+        }
+        int hashCode = references.getHashCode(ref);
+        int handle = references.find(ref, hashCode);
+        if (handle == 0) {
+            handle = next_handle++;
+            references.put(ref, handle, hashCode);
+            writeType(java.lang.Class.class);
+            writeUTF(ref.getName());
+        } else {
+            writeHandle(handle);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     /**
@@ -654,164 +670,164 @@ public class IbisSerializationOutputStream
      */
     private void writeHandle(int v) throws IOException {
         if (resetPending) {
-                writeInt(RESET_HANDLE);
-		if (DEBUG) {
-		    dbPrint("wrote a RESET");
-		}
-                resetPending = false;
+            writeInt(RESET_HANDLE);
+            if (DEBUG) {
+                dbPrint("wrote a RESET");
+            }
+            resetPending = false;
         }
 
         // treating handles as normal int's --N
         writeInt(v);
-	if (DEBUG) {
-	    dbPrint("wrote handle " + v);
-	}
+        if (DEBUG) {
+            dbPrint("wrote handle " + v);
+        }
     }
 
     public void writeBytes(String s) throws IOException {
 
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if (s != null) {
-	    byte[] bytes = s.getBytes();
-	    int len = bytes.length;
-	    writeInt(len);
-	    for (int i = 0; i < len; i++) {
-		writeByte(bytes[i]);
-	    }
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (s != null) {
+            byte[] bytes = s.getBytes();
+            int len = bytes.length;
+            writeInt(len);
+            for (int i = 0; i < len; i++) {
+                writeByte(bytes[i]);
+            }
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeChars(String s) throws IOException {
 
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if (s != null) {
-	    int len = s.length();
-	    writeInt(len);
-	    for (int i = 0; i < len; i++) {
-		writeChar(s.charAt(i));
-	    }
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (s != null) {
+            int len = s.length();
+            writeInt(len);
+            for (int i = 0; i < len; i++) {
+                writeChar(s.charAt(i));
+            }
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(writeArrayHeader(ref, classBooleanArray, len, false)) {
-	    writeArrayBoolean(ref, off, len);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (writeArrayHeader(ref, classBooleanArray, len, false)) {
+            writeArrayBoolean(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(byte[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(writeArrayHeader(ref, classByteArray, len, false)) {
-	    writeArrayByte(ref, off, len);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (writeArrayHeader(ref, classByteArray, len, false)) {
+            writeArrayByte(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(short[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(writeArrayHeader(ref, classShortArray, len, false)) {
-	    writeArrayShort(ref, off, len);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (writeArrayHeader(ref, classShortArray, len, false)) {
+            writeArrayShort(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(char[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(writeArrayHeader(ref, classCharArray, len, false)) {
-	    writeArrayChar(ref, off, len);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (writeArrayHeader(ref, classCharArray, len, false)) {
+            writeArrayChar(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(int[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(writeArrayHeader(ref, classIntArray, len, false)) {
-	    writeArrayInt(ref, off, len);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (writeArrayHeader(ref, classIntArray, len, false)) {
+            writeArrayInt(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(long[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(writeArrayHeader(ref, classLongArray, len, false)) {
-	    writeArrayLong(ref, off, len);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (writeArrayHeader(ref, classLongArray, len, false)) {
+            writeArrayLong(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(float[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(writeArrayHeader(ref, classFloatArray, len, false)) {
-	    writeArrayFloat(ref, off, len);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (writeArrayHeader(ref, classFloatArray, len, false)) {
+            writeArrayFloat(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(double[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if(writeArrayHeader(ref, classDoubleArray, len, false)) {
-	    writeArrayDouble(ref, off, len);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (writeArrayHeader(ref, classDoubleArray, len, false)) {
+            writeArrayDouble(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeArray(Object[] ref, int off, int len) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	Class clazz = ref.getClass();
-	if (writeArrayHeader(ref, clazz, len, false)) {
-	    for (int i = off; i < off + len; i++) {
-		writeObjectOverride(ref[i]);
-	    }
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        Class clazz = ref.getClass();
+        if (writeArrayHeader(ref, clazz, len, false)) {
+            for (int i = off; i < off + len; i++) {
+                writeObjectOverride(ref[i]);
+            }
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     /**
@@ -825,25 +841,23 @@ public class IbisSerializationOutputStream
      * 			of <code>ref</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    private boolean writeTypeHandle(Object ref, Class clazz)
-	    throws IOException
-    {
-	int handle = references.lazyPut(ref, next_handle);
+    private boolean writeTypeHandle(Object ref, Class clazz) throws IOException {
+        int handle = references.lazyPut(ref, next_handle);
 
-	if (handle != next_handle) {
-	    writeHandle(handle);
-	    return true;
-	}
+        if (handle != next_handle) {
+            writeHandle(handle);
+            return true;
+        }
 
-	writeType(clazz);
-	next_handle++;
+        writeType(clazz);
+        next_handle++;
 
-	if (DEBUG) {
-	    dbPrint("writeTypeHandle: references[" + handle + "] = " +
-			(ref == null ? "null" : ref));
-	}
+        if (DEBUG) {
+            dbPrint("writeTypeHandle: references[" + handle + "] = "
+                    + (ref == null ? "null" : ref));
+        }
 
-	return false;
+        return false;
     }
 
     /**
@@ -859,34 +873,30 @@ public class IbisSerializationOutputStream
      * @return <code>true</code> if no cycle was or should be detected
      *  (so that the array should be written).
      */
-    private boolean writeArrayHeader(Object ref,
-				     Class clazz,
-				     int len,
-				     boolean doCycleCheck)
-	    throws IOException
-    {
-	if (ref == null) {
-	    writeHandle(NUL_HANDLE);
-	    return false;
-	}
+    private boolean writeArrayHeader(Object ref, Class clazz, int len,
+            boolean doCycleCheck) throws IOException {
+        if (ref == null) {
+            writeHandle(NUL_HANDLE);
+            return false;
+        }
 
-	if (doCycleCheck) {
-	    /* A complete array. Do cycle/duplicate detection */
-	    if (writeTypeHandle(ref, clazz)) {
-		return false;
-	    }
-	} else {
-	    writeType(clazz);
-	}
+        if (doCycleCheck) {
+            /* A complete array. Do cycle/duplicate detection */
+            if (writeTypeHandle(ref, clazz)) {
+                return false;
+            }
+        } else {
+            writeType(clazz);
+        }
 
-	writeInt(len);
+        writeInt(len);
 
-	addStatSendArrayHandle(ref, len);
+        addStatSendArrayHandle(ref, len);
 
-	if (DEBUG) {
-	    dbPrint("writeArrayHeader " + clazz.getName() + " length = " + len);
-	}
-	return true;
+        if (DEBUG) {
+            dbPrint("writeArrayHeader " + clazz.getName() + " length = " + len);
+        }
+        return true;
     }
 
     /**
@@ -897,84 +907,83 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown when an IO error occurs.
      */
     private void writeArray(Object ref, Class arrayClass, boolean unshared)
-	    throws IOException
-    {
-	String s = arrayClass.getName();
-	switch (s.charAt(1)) {
-	    case 'B': {
-		byte[] a = (byte[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		    writeArrayByte(a, 0, len);
-		}
-		break;
-	    }
-	    case 'I': {
-		int[] a = (int[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, !unshared)) {
-		    writeArrayInt(a, 0, len);
-		}
-		break;
-	    }
-	    case 'Z': {
-		boolean[] a = (boolean[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		    writeArrayBoolean(a, 0, len);
-		}
-		break;
-	    }
-	    case 'D': {
-		double[] a = (double[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		    writeArrayDouble(a, 0, len);
-		}
-		break;
-	    }
-	    case 'C': {
-		char[] a = (char[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		    writeArrayChar(a, 0, len);
-		}
-		break;
-	    }
-	    case 'S': {
-		short[] a = (short[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		    writeArrayShort(a, 0, len);
-		}
-		break;
-	    }
-	    case 'J': {
-		long[] a = (long[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		    writeArrayLong(a, 0, len);
-		}
-		break;
-	    }
-	    case 'F': {
-		float[] a = (float[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		    writeArrayFloat(a, 0, len);
-		}
-		break;
-	    }
-	    default: {
-		Object[] a = (Object[])ref;
-		int len = a.length;
-		if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		    for (int i = 0; i < len; i++) {
-			writeObjectOverride(a[i]);
-		    }
-		}
-	    }
-	}
+            throws IOException {
+        String s = arrayClass.getName();
+        switch (s.charAt(1)) {
+        case 'B': {
+            byte[] a = (byte[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                writeArrayByte(a, 0, len);
+            }
+            break;
+        }
+        case 'I': {
+            int[] a = (int[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                writeArrayInt(a, 0, len);
+            }
+            break;
+        }
+        case 'Z': {
+            boolean[] a = (boolean[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                writeArrayBoolean(a, 0, len);
+            }
+            break;
+        }
+        case 'D': {
+            double[] a = (double[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                writeArrayDouble(a, 0, len);
+            }
+            break;
+        }
+        case 'C': {
+            char[] a = (char[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                writeArrayChar(a, 0, len);
+            }
+            break;
+        }
+        case 'S': {
+            short[] a = (short[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                writeArrayShort(a, 0, len);
+            }
+            break;
+        }
+        case 'J': {
+            long[] a = (long[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                writeArrayLong(a, 0, len);
+            }
+            break;
+        }
+        case 'F': {
+            float[] a = (float[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                writeArrayFloat(a, 0, len);
+            }
+            break;
+        }
+        default: {
+            Object[] a = (Object[]) ref;
+            int len = a.length;
+            if (writeArrayHeader(a, arrayClass, len, !unshared)) {
+                for (int i = 0; i < len; i++) {
+                    writeObjectOverride(a[i]);
+                }
+            }
+        }
+        }
     }
 
     /**
@@ -984,12 +993,12 @@ public class IbisSerializationOutputStream
      * @return		the type number.
      */
     private int newType(Class clazz) {
-	int type_number = next_type++;
+        int type_number = next_type++;
 
-	type_number = (type_number | TYPE_BIT);
-	types.put(clazz, type_number);
+        type_number = (type_number | TYPE_BIT);
+        types.put(clazz, type_number);
 
-	return type_number;
+        return type_number;
     }
 
     /**
@@ -998,26 +1007,26 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown when an IO error occurs.
      */
     private void writeType(Class clazz) throws IOException {
-	int type_number = types.find(clazz);
+        int type_number = types.find(clazz);
 
-	if (type_number != 0) {
-	    writeHandle(type_number);	// TYPE_BIT is set, receiver sees it
+        if (type_number != 0) {
+            writeHandle(type_number); // TYPE_BIT is set, receiver sees it
 
-	    if(DEBUG) {
-		dbPrint("wrote type number 0x" +
-			    Integer.toHexString(type_number));
-	    }
-	    return;
-	}
+            if (DEBUG) {
+                dbPrint("wrote type number 0x"
+                        + Integer.toHexString(type_number));
+            }
+            return;
+        }
 
-	type_number = newType(clazz);
-	writeHandle(type_number);	// TYPE_BIT is set, receiver sees it
-	if(DEBUG) {
-	    dbPrint("wrote NEW type number 0x"
-		    + Integer.toHexString(type_number) +
-		    " type " + clazz.getName());
-	}
-	writeUTF(clazz.getName());
+        type_number = newType(clazz);
+        writeHandle(type_number); // TYPE_BIT is set, receiver sees it
+        if (DEBUG) {
+            dbPrint("wrote NEW type number 0x"
+                    + Integer.toHexString(type_number) + " type "
+                    + clazz.getName());
+        }
+        writeUTF(clazz.getName());
     }
 
     /**
@@ -1029,30 +1038,30 @@ public class IbisSerializationOutputStream
      */
     public int writeKnownObjectHeader(Object ref) throws IOException {
 
-	if (ref == null) {
-	    writeHandle(NUL_HANDLE);
-	    return 0;
-	}
+        if (ref == null) {
+            writeHandle(NUL_HANDLE);
+            return 0;
+        }
 
-	int handle = references.lazyPut(ref, next_handle);
-	if (handle == next_handle) {
-// System.err.write("+");
-	    Class clazz = ref.getClass();
-	    next_handle++;
-	    if(DEBUG) {
-		dbPrint("writeKnownObjectHeader -> writing NEW object, class = "
-			    + clazz.getName());
-	    }
-	    writeType(clazz);
-	    return 1;
-	}
+        int handle = references.lazyPut(ref, next_handle);
+        if (handle == next_handle) {
+            // System.err.write("+");
+            Class clazz = ref.getClass();
+            next_handle++;
+            if (DEBUG) {
+                dbPrint("writeKnownObjectHeader -> writing NEW object, class = "
+                        + clazz.getName());
+            }
+            writeType(clazz);
+            return 1;
+        }
 
-	if(DEBUG) {
-	    dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
-	}
-	writeHandle(handle);
+        if (DEBUG) {
+            dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+        }
+        writeHandle(handle);
 
-	return -1;
+        return -1;
     }
 
     /**
@@ -1064,27 +1073,26 @@ public class IbisSerializationOutputStream
      * @return			1 if it is a new object, -1 if it is not.
      */
     public int writeKnownArrayHeader(Object ref, int typehandle)
-	    throws IOException
-    {
-	if (ref == null) {
-	    writeHandle(NUL_HANDLE);
-	    return 0;
-	}
+            throws IOException {
+        if (ref == null) {
+            writeHandle(NUL_HANDLE);
+            return 0;
+        }
 
-	int handle = references.lazyPut(ref, next_handle);
-	if (handle == next_handle) {
-// System.err.write("+");
-	    next_handle++;
-	    writeInt(typehandle | TYPE_BIT);
-	    return 1;
-	}
+        int handle = references.lazyPut(ref, next_handle);
+        if (handle == next_handle) {
+            // System.err.write("+");
+            next_handle++;
+            writeInt(typehandle | TYPE_BIT);
+            return 1;
+        }
 
-	if(DEBUG) {
-	    dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
-	}
-	writeHandle(handle);
+        if (DEBUG) {
+            dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+        }
+        writeHandle(handle);
 
-	return -1;
+        return -1;
     }
 
     /**
@@ -1097,46 +1105,43 @@ public class IbisSerializationOutputStream
      * @exception IOException		 when an IO error occurs
      * @exception IllegalAccessException when access to a field is denied.
      */
-    private void alternativeDefaultWriteObject(AlternativeTypeInfo t,
-					       Object ref)
-	    throws IOException, IllegalAccessException
-    {
-	int temp = 0;
-	int i;
+    private void alternativeDefaultWriteObject(AlternativeTypeInfo t, Object ref)
+            throws IOException, IllegalAccessException {
+        int temp = 0;
+        int i;
 
-	if (DEBUG) {
-	    dbPrint("alternativeDefaultWriteObject, class = " +
-			t.clazz.getName());
-	}
-	for (i=0;i<t.double_count;i++) {
-	    writeDouble(t.serializable_fields[temp++].getDouble(ref));
-	}
-	for (i=0;i<t.long_count;i++) {
-	    writeLong(t.serializable_fields[temp++].getLong(ref));
-	}
-	for (i=0;i<t.float_count;i++) {
-	    writeFloat(t.serializable_fields[temp++].getFloat(ref));
-	}
-	for (i=0;i<t.int_count;i++) {
-	    writeInt(t.serializable_fields[temp++].getInt(ref));
-	}
-	for (i=0;i<t.short_count;i++) {
-	    writeShort(t.serializable_fields[temp++].getShort(ref));
-	}
-	for (i=0;i<t.char_count;i++) {
-	    writeChar(t.serializable_fields[temp++].getChar(ref));
-	}
-	for (i=0;i<t.byte_count;i++) {
-	    writeByte(t.serializable_fields[temp++].getByte(ref));
-	}
-	for (i=0;i<t.boolean_count;i++) {
-	    writeBoolean(t.serializable_fields[temp++].getBoolean(ref));
-	}
-	for (i=0;i<t.reference_count;i++) {
-	    writeObjectOverride(t.serializable_fields[temp++].get(ref));
-	}
+        if (DEBUG) {
+            dbPrint("alternativeDefaultWriteObject, class = "
+                    + t.clazz.getName());
+        }
+        for (i = 0; i < t.double_count; i++) {
+            writeDouble(t.serializable_fields[temp++].getDouble(ref));
+        }
+        for (i = 0; i < t.long_count; i++) {
+            writeLong(t.serializable_fields[temp++].getLong(ref));
+        }
+        for (i = 0; i < t.float_count; i++) {
+            writeFloat(t.serializable_fields[temp++].getFloat(ref));
+        }
+        for (i = 0; i < t.int_count; i++) {
+            writeInt(t.serializable_fields[temp++].getInt(ref));
+        }
+        for (i = 0; i < t.short_count; i++) {
+            writeShort(t.serializable_fields[temp++].getShort(ref));
+        }
+        for (i = 0; i < t.char_count; i++) {
+            writeChar(t.serializable_fields[temp++].getChar(ref));
+        }
+        for (i = 0; i < t.byte_count; i++) {
+            writeByte(t.serializable_fields[temp++].getByte(ref));
+        }
+        for (i = 0; i < t.boolean_count; i++) {
+            writeBoolean(t.serializable_fields[temp++].getBoolean(ref));
+        }
+        for (i = 0; i < t.reference_count; i++) {
+            writeObjectOverride(t.serializable_fields[temp++].get(ref));
+        }
     }
-
 
     /**
      * Serializes an object <code>ref</code> using the type information
@@ -1150,46 +1155,45 @@ public class IbisSerializationOutputStream
      * 					 <code>writeObject</code> method is
      * 					 denied.
      */
-    private void alternativeWriteObject(AlternativeTypeInfo t, Object ref) 
-	    throws IOException, IllegalAccessException
-    {
-	if (t.superSerializable) {
-	    alternativeWriteObject(t.alternativeSuperInfo, ref);
-	}
+    private void alternativeWriteObject(AlternativeTypeInfo t, Object ref)
+            throws IOException, IllegalAccessException {
+        if (t.superSerializable) {
+            alternativeWriteObject(t.alternativeSuperInfo, ref);
+        }
 
-	if (t.hasWriteObject) {
-	    current_level = t.level;
-	    try {
-		if (DEBUG) {
-		    dbPrint("invoking writeObject() of class " +
-				t.clazz.getName());
-		}
-		t.invokeWriteObject(ref, this);
-		if (DEBUG) {
-		    dbPrint("done with writeObject() of class " +
-				t.clazz.getName());
-		}
-	    } catch (java.lang.reflect.InvocationTargetException e) {
-		if (DEBUG) {
-		    dbPrint("Caught exception: " + e);
-		    e.printStackTrace();
-		}
-		Throwable cause = e.getTargetException();
-		if (cause instanceof Error) {
-		    throw (Error) cause;
-		}
-		if (cause instanceof RuntimeException) {
-		    throw (RuntimeException) cause;
-		}
-		if (DEBUG) {
-		    dbPrint("now rethrow as IllegalAccessException ...");
-		}
-		throw new IllegalAccessException("writeObject method: " + e);
-	    }
-	    return;
-	}
+        if (t.hasWriteObject) {
+            current_level = t.level;
+            try {
+                if (DEBUG) {
+                    dbPrint("invoking writeObject() of class "
+                            + t.clazz.getName());
+                }
+                t.invokeWriteObject(ref, this);
+                if (DEBUG) {
+                    dbPrint("done with writeObject() of class "
+                            + t.clazz.getName());
+                }
+            } catch (java.lang.reflect.InvocationTargetException e) {
+                if (DEBUG) {
+                    dbPrint("Caught exception: " + e);
+                    e.printStackTrace();
+                }
+                Throwable cause = e.getTargetException();
+                if (cause instanceof Error) {
+                    throw (Error) cause;
+                }
+                if (cause instanceof RuntimeException) {
+                    throw (RuntimeException) cause;
+                }
+                if (DEBUG) {
+                    dbPrint("now rethrow as IllegalAccessException ...");
+                }
+                throw new IllegalAccessException("writeObject method: " + e);
+            }
+            return;
+        }
 
-	alternativeDefaultWriteObject(t, ref);
+        alternativeDefaultWriteObject(t, ref);
     }
 
     /**
@@ -1201,27 +1205,27 @@ public class IbisSerializationOutputStream
      * @param level	the new <code>current_level</code> notion
      */
     public void push_current_object(Object ref, int level) {
-	if (stack_size >= max_stack_size) {
-	    max_stack_size = 2 * max_stack_size + 10;
-	    Object[] new_o_stack = new Object[max_stack_size];
-	    int[] new_l_stack = new int[max_stack_size];
-	    ImplPutField[] new_p_stack = new ImplPutField[max_stack_size];
-	    for (int i = 0; i < stack_size; i++) {
-		new_o_stack[i] = object_stack[i];
-		new_l_stack[i] = level_stack[i];
-		new_p_stack[i] = putfield_stack[i];
-	    }
-	    object_stack = new_o_stack;
-	    level_stack = new_l_stack;
-	    putfield_stack = new_p_stack;
-	}
-	object_stack[stack_size] = current_object;
-	level_stack[stack_size] = current_level;
-	putfield_stack[stack_size] = current_putfield;
-	stack_size++;
-	current_object = ref;
-	current_level = level;
-	current_putfield = null;
+        if (stack_size >= max_stack_size) {
+            max_stack_size = 2 * max_stack_size + 10;
+            Object[] new_o_stack = new Object[max_stack_size];
+            int[] new_l_stack = new int[max_stack_size];
+            ImplPutField[] new_p_stack = new ImplPutField[max_stack_size];
+            for (int i = 0; i < stack_size; i++) {
+                new_o_stack[i] = object_stack[i];
+                new_l_stack[i] = level_stack[i];
+                new_p_stack[i] = putfield_stack[i];
+            }
+            object_stack = new_o_stack;
+            level_stack = new_l_stack;
+            putfield_stack = new_p_stack;
+        }
+        object_stack[stack_size] = current_object;
+        level_stack[stack_size] = current_level;
+        putfield_stack[stack_size] = current_putfield;
+        stack_size++;
+        current_object = ref;
+        current_level = level;
+        current_putfield = null;
     }
 
     /**
@@ -1230,10 +1234,10 @@ public class IbisSerializationOutputStream
      * their stacks.
      */
     public void pop_current_object() {
-	stack_size--;
-	current_object = object_stack[stack_size];
-	current_level = level_stack[stack_size];
-	current_putfield = putfield_stack[stack_size];
+        stack_size--;
+        current_object = object_stack[stack_size];
+        current_level = level_stack[stack_size];
+        current_putfield = putfield_stack[stack_size];
     }
 
     /**
@@ -1247,27 +1251,26 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown on IO error
      */
     public void writeSerializableObject(Object ref, String classname)
-	    throws IOException
-    {
-	AlternativeTypeInfo t;
-	try {
-	    t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
-	} catch(ClassNotFoundException e) {
-	    throw new SerializationError("Internal error", e);
-	}
-	try {
-	    push_current_object(ref, 0);
-	    alternativeWriteObject(t, ref);
-	    pop_current_object();
-	} catch (IllegalAccessException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as java.io.NotSerializableException ...");
-	    }
-	    throw new NotSerializableException("Serializable failed for : " +
-						classname);
-	}
+            throws IOException {
+        AlternativeTypeInfo t;
+        try {
+            t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+        } catch (ClassNotFoundException e) {
+            throw new SerializationError("Internal error", e);
+        }
+        try {
+            push_current_object(ref, 0);
+            alternativeWriteObject(t, ref);
+            pop_current_object();
+        } catch (IllegalAccessException e) {
+            if (DEBUG) {
+                dbPrint("Caught exception: " + e);
+                e.printStackTrace();
+                dbPrint("now rethrow as java.io.NotSerializableException ...");
+            }
+            throw new NotSerializableException("Serializable failed for : "
+                    + classname);
+        }
     }
 
     /**
@@ -1279,23 +1282,22 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown on IO error
      */
     private void writeSerializableObject(Object ref, Class clazz)
-	    throws IOException
-    {
-	AlternativeTypeInfo t = AlternativeTypeInfo.
-				    getAlternativeTypeInfo(clazz);
-	try {
-	    push_current_object(ref, 0);
-	    alternativeWriteObject(t, ref);
-	    pop_current_object();
-	} catch (IllegalAccessException e) {
-		if (DEBUG) {
-		    dbPrint("Caught exception: " + e);
-		    e.printStackTrace();
-		    dbPrint("now rethrow as java.io.NotSerializableException ...");
-		}
-	    throw new NotSerializableException("Serializable failed for : " +
-						clazz.getName());
-	}
+            throws IOException {
+        AlternativeTypeInfo t = AlternativeTypeInfo
+                .getAlternativeTypeInfo(clazz);
+        try {
+            push_current_object(ref, 0);
+            alternativeWriteObject(t, ref);
+            pop_current_object();
+        } catch (IllegalAccessException e) {
+            if (DEBUG) {
+                dbPrint("Caught exception: " + e);
+                e.printStackTrace();
+                dbPrint("now rethrow as java.io.NotSerializableException ...");
+            }
+            throw new NotSerializableException("Serializable failed for : "
+                    + clazz.getName());
+        }
     }
 
     /**
@@ -1306,83 +1308,78 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown on IO error
      */
     public void writeString(String ref) throws IOException {
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if (ref == null) {
-	    if (DEBUG) {
-		dbPrint("writeString: --> null");
-	    }
-	    writeHandle(NUL_HANDLE);
-	    if (TIME_IBIS_SERIALIZATION) {
-		stopTimer();
-	    }
-	    return;
-	}
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (ref == null) {
+            if (DEBUG) {
+                dbPrint("writeString: --> null");
+            }
+            writeHandle(NUL_HANDLE);
+            if (TIME_IBIS_SERIALIZATION) {
+                stopTimer();
+            }
+            return;
+        }
 
-	int handle = references.lazyPut(ref, next_handle);
-	if (handle == next_handle) {
-	    next_handle++;
-	    writeType(java.lang.String.class);
-	    if (DEBUG) {
-		dbPrint("writeString: " + ref);
-	    }
-	    writeUTF(ref);
-	} else {
-	    if (DEBUG) {
-		dbPrint("writeString: duplicate handle " + handle +
-			    " string = " + ref);
-	    }
-	    writeHandle(handle);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+        int handle = references.lazyPut(ref, next_handle);
+        if (handle == next_handle) {
+            next_handle++;
+            writeType(java.lang.String.class);
+            if (DEBUG) {
+                dbPrint("writeString: " + ref);
+            }
+            writeUTF(ref);
+        } else {
+            if (DEBUG) {
+                dbPrint("writeString: duplicate handle " + handle
+                        + " string = " + ref);
+            }
+            writeHandle(handle);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
-
 
     private static void addStatSendObject(Object ref) {
-	if (STATS_OBJECTS) {
-	    Class clazz = ref.getClass();
-	    Integer n = (Integer)statSendObjects.get(clazz);
-	    if (n == null) {
-		n = new Integer(1);
-	    } else {
-		n = new Integer(n.intValue() + 1);
-	    }
-	    statSendObjects.put(clazz, n);
-	}
+        if (STATS_OBJECTS) {
+            Class clazz = ref.getClass();
+            Integer n = (Integer) statSendObjects.get(clazz);
+            if (n == null) {
+                n = new Integer(1);
+            } else {
+                n = new Integer(n.intValue() + 1);
+            }
+            statSendObjects.put(clazz, n);
+        }
     }
-
 
     private static void addStatSendObjectHandle(Object ref) {
-	if (STATS_OBJECTS) {
-	    statObjectHandle++;
-	}
+        if (STATS_OBJECTS) {
+            statObjectHandle++;
+        }
     }
-
 
     void addStatSendArray(Object ref, int type, int len) {
-	if (STATS_OBJECTS) {
-	    addStatSendObject(ref);
-	    statArrayCount[type]++;
-	    statArrayLength[type] += len;
-	}
+        if (STATS_OBJECTS) {
+            addStatSendObject(ref);
+            statArrayCount[type]++;
+            statArrayLength[type] += len;
+        }
     }
-
 
     private static void addStatSendArrayHandle(Object ref, int len) {
-	if (STATS_OBJECTS) {
-	    Class arrayClass = ref.getClass();
-	    int type = arrayClassType(arrayClass);
-	    if (type == -1) {
-		statObjectHandle++;
-	    } else {
-		statArrayHandle[type]++;
-	    }
-	}
+        if (STATS_OBJECTS) {
+            Class arrayClass = ref.getClass();
+            int type = arrayClassType(arrayClass);
+            if (type == -1) {
+                statObjectHandle++;
+            } else {
+                statArrayHandle[type]++;
+            }
+        }
     }
-
 
     /**
      * Write objects and arrays.
@@ -1396,308 +1393,315 @@ public class IbisSerializationOutputStream
      *
      * @param ref the object to be written
      * @exception java.io.IOException is thrown when an IO error occurs.
-    */
+     */
     public void writeObjectOverride(Object ref) throws IOException {
-	/*
-	 * ref < 0:	type
-	 * ref = 0:	null ptr
-	 * ref > 0:	handle
-	 */
+        /*
+         * ref < 0:	type
+         * ref = 0:	null ptr
+         * ref > 0:	handle
+         */
 
-	if (TIME_IBIS_SERIALIZATION) {
-	    startTimer();
-	}
-	if (ref == null) {
-	    writeHandle(NUL_HANDLE);
-	    if (TIME_IBIS_SERIALIZATION) {
-		stopTimer();
-	    }
-	    return;
-	}
-	/* TODO: deal with writeReplace! This should be done before
-	   looking up the handle. If we don't want to do runtime
-	   inspection, this should probably be handled somehow in
-	   IOGenerator.
-	   Note that the needed info is available in AlternativeTypeInfo,
-	   but we don't want to use that when we have ibis.io.Serializable.
-	   */
+        if (TIME_IBIS_SERIALIZATION) {
+            startTimer();
+        }
+        if (ref == null) {
+            writeHandle(NUL_HANDLE);
+            if (TIME_IBIS_SERIALIZATION) {
+                stopTimer();
+            }
+            return;
+        }
+        /* TODO: deal with writeReplace! This should be done before
+         looking up the handle. If we don't want to do runtime
+         inspection, this should probably be handled somehow in
+         IOGenerator.
+         Note that the needed info is available in AlternativeTypeInfo,
+         but we don't want to use that when we have ibis.io.Serializable.
+         */
 
-	if (replacer != null) {
-	    ref = replacer.replace(ref);
-	}
-	int hashCode = references.getHashCode(ref);
-	int handle = references.find(ref, hashCode);
+        if (replacer != null) {
+            ref = replacer.replace(ref);
+        }
+        int hashCode = references.getHashCode(ref);
+        int handle = references.find(ref, hashCode);
 
-	if (handle == 0) {
-	    Class clazz = ref.getClass();
-	    if(DEBUG) {
-		dbPrint("start writeObject of class " + clazz.getName() +
-			    " handle = " + next_handle);
-	    }
+        if (handle == 0) {
+            Class clazz = ref.getClass();
+            if (DEBUG) {
+                dbPrint("start writeObject of class " + clazz.getName()
+                        + " handle = " + next_handle);
+            }
 
-	    if (clazz.isArray()) {
-		writeArray(ref, clazz, false);
-	    } else {
-		handle = next_handle++;
-		references.put(ref, handle, hashCode);
-		writeType(clazz);
-		if (clazz == java.lang.String.class) {
-		    /* EEK this is not nice !! */
-		    writeUTF((String)ref);
-		} else if (clazz == java.lang.Class.class) {
-		    /* EEK this is not nice !! */
-		    writeUTF(((Class)ref).getName());
-		} else if (ref instanceof ibis.io.Serializable) {
-//		} else if (IbisSerializationInputStream.
-//				    isIbisSerializable(clazz))
-//		{
-		    ((ibis.io.Serializable)ref).generated_WriteObject(this);
-		} else if (ref instanceof java.io.Externalizable) {
-		    push_current_object(ref, 0);
-		    ((java.io.Externalizable) ref).writeExternal(this);
-		    pop_current_object();
-		} else if (ref instanceof java.io.Serializable) {
-		    writeSerializableObject(ref, clazz);
-		} else { 
-		    throw new NotSerializableException("Not Serializable : " +
-							clazz.getName());
-		}
+            if (clazz.isArray()) {
+                writeArray(ref, clazz, false);
+            } else {
+                handle = next_handle++;
+                references.put(ref, handle, hashCode);
+                writeType(clazz);
+                if (clazz == java.lang.String.class) {
+                    /* EEK this is not nice !! */
+                    writeUTF((String) ref);
+                } else if (clazz == java.lang.Class.class) {
+                    /* EEK this is not nice !! */
+                    writeUTF(((Class) ref).getName());
+                } else if (ref instanceof ibis.io.Serializable) {
+                    //		} else if (IbisSerializationInputStream.
+                    //				    isIbisSerializable(clazz))
+                    //		{
+                    ((ibis.io.Serializable) ref).generated_WriteObject(this);
+                } else if (ref instanceof java.io.Externalizable) {
+                    push_current_object(ref, 0);
+                    ((java.io.Externalizable) ref).writeExternal(this);
+                    pop_current_object();
+                } else if (ref instanceof java.io.Serializable) {
+                    writeSerializableObject(ref, clazz);
+                } else {
+                    throw new NotSerializableException("Not Serializable : "
+                            + clazz.getName());
+                }
 
-		addStatSendObject(ref);
-	    }
-	    if (DEBUG) {
-		dbPrint("finished writeObject of class " + clazz.getName());
-	    }
-	} else {
-	    if(DEBUG) {
-		dbPrint("writeObject: duplicate handle " + handle +
-			    " class = " + ref.getClass());
-	    }
-	    writeHandle(handle);
+                addStatSendObject(ref);
+            }
+            if (DEBUG) {
+                dbPrint("finished writeObject of class " + clazz.getName());
+            }
+        } else {
+            if (DEBUG) {
+                dbPrint("writeObject: duplicate handle " + handle + " class = "
+                        + ref.getClass());
+            }
+            writeHandle(handle);
 
-	    addStatSendObjectHandle(ref);
-	}
-	if (TIME_IBIS_SERIALIZATION) {
-	    stopTimer();
-	}
+            addStatSendObjectHandle(ref);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     public void writeUnshared(Object ref) throws IOException {
-	if (ref == null) {
-	    writeHandle(NUL_HANDLE);
-	    return;
-	}
-	/* TODO: deal with writeReplace! This should be done before
-	   looking up the handle. If we don't want to do runtime
-	   inspection, this should probably be handled somehow in
-	   IOGenerator.
-	   Note that the needed info is available in AlternativeTypeInfo,
-	   but we don't want to use that when we have ibis.io.Serializable.
-	*/
-	Class clazz = ref.getClass();
-	if(DEBUG) {
-	    dbPrint("start writeUnshared of class " + clazz.getName() +
-			" handle = " + next_handle);
-	}
+        if (ref == null) {
+            writeHandle(NUL_HANDLE);
+            return;
+        }
+        /* TODO: deal with writeReplace! This should be done before
+         looking up the handle. If we don't want to do runtime
+         inspection, this should probably be handled somehow in
+         IOGenerator.
+         Note that the needed info is available in AlternativeTypeInfo,
+         but we don't want to use that when we have ibis.io.Serializable.
+         */
+        Class clazz = ref.getClass();
+        if (DEBUG) {
+            dbPrint("start writeUnshared of class " + clazz.getName()
+                    + " handle = " + next_handle);
+        }
 
-	if (clazz.isArray()) {
-	    writeArray(ref, clazz, true);
-	} else {
-	    writeType(clazz);
-	    if (clazz == java.lang.String.class) {
-		/* EEK this is not nice !! */
-		writeUTF((String)ref);
-	    } else if (clazz == java.lang.Class.class) {
-		/* EEK this is not nice !! */
-		writeUTF(((Class)ref).getName());
-	    } else if (ref instanceof java.io.Externalizable) {
-		push_current_object(ref, 0);
-		((java.io.Externalizable) ref).writeExternal(this);
-		pop_current_object();
-	    } else if (ref instanceof ibis.io.Serializable) {
-//	    } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
-		((ibis.io.Serializable)ref).generated_WriteObject(this);
-	    } else if (ref instanceof java.io.Serializable) {
-		writeSerializableObject(ref, clazz);
-	    } else {
-		throw new RuntimeException("Not Serializable : " +
-					    clazz.getName());
-	    }
-	}
-	if(DEBUG) {
-	    dbPrint("finished writeUnshared of class " + clazz.getName() +
-			" handle = " + next_handle);
-	}
+        if (clazz.isArray()) {
+            writeArray(ref, clazz, true);
+        } else {
+            writeType(clazz);
+            if (clazz == java.lang.String.class) {
+                /* EEK this is not nice !! */
+                writeUTF((String) ref);
+            } else if (clazz == java.lang.Class.class) {
+                /* EEK this is not nice !! */
+                writeUTF(((Class) ref).getName());
+            } else if (ref instanceof java.io.Externalizable) {
+                push_current_object(ref, 0);
+                ((java.io.Externalizable) ref).writeExternal(this);
+                pop_current_object();
+            } else if (ref instanceof ibis.io.Serializable) {
+                //	    } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
+                ((ibis.io.Serializable) ref).generated_WriteObject(this);
+            } else if (ref instanceof java.io.Serializable) {
+                writeSerializableObject(ref, clazz);
+            } else {
+                throw new RuntimeException("Not Serializable : "
+                        + clazz.getName());
+            }
+        }
+        if (DEBUG) {
+            dbPrint("finished writeUnshared of class " + clazz.getName()
+                    + " handle = " + next_handle);
+        }
     }
 
     public void useProtocolVersion(int version) {
-	/* ignored. */
+        /* ignored. */
     }
 
     protected void writeStreamHeader() {
-	/* ignored. */
+        /* ignored. */
     }
 
     protected void writeClassDescriptor(ObjectStreamClass desc) {
-	/* ignored */
+        /* ignored */
     }
 
     /* annotateClass does not have to be redefined: it is empty in the
-       ObjectOutputStream implementation.
-    */
+     ObjectOutputStream implementation.
+     */
 
     public void writeFields() throws IOException {
-	if (current_putfield == null) {
-	    throw new NotActiveException("no PutField object");
-	}
-	current_putfield.writeFields();
+        if (current_putfield == null) {
+            throw new NotActiveException("no PutField object");
+        }
+        current_putfield.writeFields();
     }
 
     public PutField putFields() throws IOException {
-	if (current_putfield == null) {
-	    if (current_object == null) {
-		throw new NotActiveException("not in writeObject");
-	    }
-	    Class clazz = current_object.getClass();
-	    AlternativeTypeInfo t = AlternativeTypeInfo.
-					getAlternativeTypeInfo(clazz);
-	    current_putfield = new ImplPutField(t);
-	}
-	return current_putfield;
+        if (current_putfield == null) {
+            if (current_object == null) {
+                throw new NotActiveException("not in writeObject");
+            }
+            Class clazz = current_object.getClass();
+            AlternativeTypeInfo t = AlternativeTypeInfo
+                    .getAlternativeTypeInfo(clazz);
+            current_putfield = new ImplPutField(t);
+        }
+        return current_putfield;
     }
 
     /**
      * The Ibis serialization implementation of <code>PutField</code>.
      */
     private class ImplPutField extends PutField {
-	private double[]  doubles;
-	private long[]	  longs;
-	private int[]	  ints;
-	private float[]   floats;
-	private short[]   shorts;
-	private char[]    chars;
-	private byte[]	  bytes;
-	private boolean[] booleans;
-	private Object[]  refs;
-	private AlternativeTypeInfo t;
+        private double[] doubles;
 
-	ImplPutField(AlternativeTypeInfo t) {
-	    doubles = new double[t.double_count];
-	    longs = new long[t.long_count];
-	    ints = new int[t.int_count];
-	    shorts = new short[t.short_count];
-	    floats = new float[t.float_count];
-	    chars = new char[t.char_count];
-	    bytes = new byte[t.byte_count];
-	    booleans = new boolean[t.boolean_count];
-	    refs = new Object[t.reference_count];
-	    this.t = t;
-	}
+        private long[] longs;
 
-	public void put(String name, boolean value)
-	    throws IllegalArgumentException {
-	    booleans[t.getOffset(name, Boolean.TYPE)] = value;
-	}
+        private int[] ints;
 
-	public void put(String name, char value)
-	    throws IllegalArgumentException {
-	    chars[t.getOffset(name, Character.TYPE)] = value;
-	}
+        private float[] floats;
 
-	public void put(String name, byte value)
-	    throws IllegalArgumentException {
-	    bytes[t.getOffset(name, Byte.TYPE)] = value;
-	}
+        private short[] shorts;
 
-	public void put(String name, short value)
-	    throws IllegalArgumentException {
-	    shorts[t.getOffset(name, Short.TYPE)] = value;
-	}
+        private char[] chars;
 
-	public void put(String name, int value)
-	    throws IllegalArgumentException {
-	    ints[t.getOffset(name, Integer.TYPE)] = value;
-	}
+        private byte[] bytes;
 
-	public void put(String name, long value)
-	    throws IllegalArgumentException {
-	    longs[t.getOffset(name, Long.TYPE)] = value;
-	}
+        private boolean[] booleans;
 
-	public void put(String name, float value)
-	    throws IllegalArgumentException {
-	    floats[t.getOffset(name, Float.TYPE)] = value;
-	}
+        private Object[] refs;
 
-	public void put(String name, double value)
-	    throws IllegalArgumentException {
-	    doubles[t.getOffset(name, Double.TYPE)] = value;
-	}
+        private AlternativeTypeInfo t;
 
-	public void put(String name, Object value) {
-	    refs[t.getOffset(name, Object.class)] = value;
-	}
+        ImplPutField(AlternativeTypeInfo t) {
+            doubles = new double[t.double_count];
+            longs = new long[t.long_count];
+            ints = new int[t.int_count];
+            shorts = new short[t.short_count];
+            floats = new float[t.float_count];
+            chars = new char[t.char_count];
+            bytes = new byte[t.byte_count];
+            booleans = new boolean[t.boolean_count];
+            refs = new Object[t.reference_count];
+            this.t = t;
+        }
 
-	public void write(ObjectOutput o) throws IOException {
-	    for (int i = 0; i < t.double_count; i++) {
-		o.writeDouble(doubles[i]);
-	    }
-	    for (int i = 0; i < t.float_count; i++) {
-		o.writeFloat(floats[i]);
-	    }
-	    for (int i = 0; i < t.long_count; i++) {
-		o.writeLong(longs[i]);
-	    }
-	    for (int i = 0; i < t.int_count; i++) {
-		o.writeInt(ints[i]);
-	    }
-	    for (int i = 0; i < t.short_count; i++) {
-		o.writeShort(shorts[i]);
-	    }
-	    for (int i = 0; i < t.char_count; i++) {
-		o.writeChar(chars[i]);
-	    }
-	    for (int i = 0; i < t.byte_count; i++) {
-		o.writeByte(bytes[i]);
-	    }
-	    for (int i = 0; i < t.boolean_count; i++) {
-		o.writeBoolean(booleans[i]);
-	    }
-	    for (int i = 0; i < t.reference_count; i++) {
-		o.writeObject(refs[i]);
-	    }
-	}
+        public void put(String name, boolean value)
+                throws IllegalArgumentException {
+            booleans[t.getOffset(name, Boolean.TYPE)] = value;
+        }
 
+        public void put(String name, char value)
+                throws IllegalArgumentException {
+            chars[t.getOffset(name, Character.TYPE)] = value;
+        }
 
-	void writeFields() throws IOException {
-	    for (int i = 0; i < t.double_count; i++) {
-		writeDouble(doubles[i]);
-	    }
-	    for (int i = 0; i < t.float_count; i++) {
-		writeFloat(floats[i]);
-	    }
-	    for (int i = 0; i < t.long_count; i++) {
-		writeLong(longs[i]);
-	    }
-	    for (int i = 0; i < t.int_count; i++) {
-		writeInt(ints[i]);
-	    }
-	    for (int i = 0; i < t.short_count; i++) {
-		writeShort(shorts[i]);
-	    }
-	    for (int i = 0; i < t.char_count; i++) {
-		writeChar(chars[i]);
-	    }
-	    for (int i = 0; i < t.byte_count; i++) {
-		writeByte(bytes[i]);
-	    }
-	    for (int i = 0; i < t.boolean_count; i++) {
-		writeBoolean(booleans[i]);
-	    }
-	    for (int i = 0; i < t.reference_count; i++) {
-		writeObjectOverride(refs[i]);
-	    }
-	}
+        public void put(String name, byte value)
+                throws IllegalArgumentException {
+            bytes[t.getOffset(name, Byte.TYPE)] = value;
+        }
+
+        public void put(String name, short value)
+                throws IllegalArgumentException {
+            shorts[t.getOffset(name, Short.TYPE)] = value;
+        }
+
+        public void put(String name, int value) throws IllegalArgumentException {
+            ints[t.getOffset(name, Integer.TYPE)] = value;
+        }
+
+        public void put(String name, long value)
+                throws IllegalArgumentException {
+            longs[t.getOffset(name, Long.TYPE)] = value;
+        }
+
+        public void put(String name, float value)
+                throws IllegalArgumentException {
+            floats[t.getOffset(name, Float.TYPE)] = value;
+        }
+
+        public void put(String name, double value)
+                throws IllegalArgumentException {
+            doubles[t.getOffset(name, Double.TYPE)] = value;
+        }
+
+        public void put(String name, Object value) {
+            refs[t.getOffset(name, Object.class)] = value;
+        }
+
+        public void write(ObjectOutput o) throws IOException {
+            for (int i = 0; i < t.double_count; i++) {
+                o.writeDouble(doubles[i]);
+            }
+            for (int i = 0; i < t.float_count; i++) {
+                o.writeFloat(floats[i]);
+            }
+            for (int i = 0; i < t.long_count; i++) {
+                o.writeLong(longs[i]);
+            }
+            for (int i = 0; i < t.int_count; i++) {
+                o.writeInt(ints[i]);
+            }
+            for (int i = 0; i < t.short_count; i++) {
+                o.writeShort(shorts[i]);
+            }
+            for (int i = 0; i < t.char_count; i++) {
+                o.writeChar(chars[i]);
+            }
+            for (int i = 0; i < t.byte_count; i++) {
+                o.writeByte(bytes[i]);
+            }
+            for (int i = 0; i < t.boolean_count; i++) {
+                o.writeBoolean(booleans[i]);
+            }
+            for (int i = 0; i < t.reference_count; i++) {
+                o.writeObject(refs[i]);
+            }
+        }
+
+        void writeFields() throws IOException {
+            for (int i = 0; i < t.double_count; i++) {
+                writeDouble(doubles[i]);
+            }
+            for (int i = 0; i < t.float_count; i++) {
+                writeFloat(floats[i]);
+            }
+            for (int i = 0; i < t.long_count; i++) {
+                writeLong(longs[i]);
+            }
+            for (int i = 0; i < t.int_count; i++) {
+                writeInt(ints[i]);
+            }
+            for (int i = 0; i < t.short_count; i++) {
+                writeShort(shorts[i]);
+            }
+            for (int i = 0; i < t.char_count; i++) {
+                writeChar(chars[i]);
+            }
+            for (int i = 0; i < t.byte_count; i++) {
+                writeByte(bytes[i]);
+            }
+            for (int i = 0; i < t.boolean_count; i++) {
+                writeBoolean(booleans[i]);
+            }
+            for (int i = 0; i < t.reference_count; i++) {
+                writeObjectOverride(refs[i]);
+            }
+        }
     }
 
     /**
@@ -1713,74 +1717,73 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public void defaultWriteSerializableObject(Object ref, int depth)
-	    throws IOException
-    {
-	Class clazz = ref.getClass();
-	AlternativeTypeInfo t = AlternativeTypeInfo.
-				    getAlternativeTypeInfo(clazz);
+            throws IOException {
+        Class clazz = ref.getClass();
+        AlternativeTypeInfo t = AlternativeTypeInfo
+                .getAlternativeTypeInfo(clazz);
 
-	/*  Find the type info corresponding to the current invocation.
-	    See the invokeWriteObject invocation in alternativeWriteObject.
-	    */
-	while (t.level > depth) {
-	    t = t.alternativeSuperInfo;
-	}
-	try {
-	    alternativeDefaultWriteObject(t, ref);
-	} catch(IllegalAccessException e) {
-		if (DEBUG) {
-		    dbPrint("Caught exception: " + e);
-		    e.printStackTrace();
-		    dbPrint("now rethrow as NotSerializableException ...");
-		}
-	    throw new NotSerializableException("illegal access" + e);
-	}
+        /*  Find the type info corresponding to the current invocation.
+         See the invokeWriteObject invocation in alternativeWriteObject.
+         */
+        while (t.level > depth) {
+            t = t.alternativeSuperInfo;
+        }
+        try {
+            alternativeDefaultWriteObject(t, ref);
+        } catch (IllegalAccessException e) {
+            if (DEBUG) {
+                dbPrint("Caught exception: " + e);
+                e.printStackTrace();
+                dbPrint("now rethrow as NotSerializableException ...");
+            }
+            throw new NotSerializableException("illegal access" + e);
+        }
     }
 
     public void defaultWriteObject() throws IOException, NotActiveException {
-	if (current_object == null) {
-	    throw new NotActiveException("defaultWriteObject: no object");
-	}
+        if (current_object == null) {
+            throw new NotActiveException("defaultWriteObject: no object");
+        }
 
-	Object ref = current_object;
-	Class clazz = ref.getClass();
+        Object ref = current_object;
+        Class clazz = ref.getClass();
 
-	if (ref instanceof ibis.io.Serializable) {
-//	if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
-	    /* Note that this will take the generated_DefaultWriteObject of the
-	       dynamic type of ref. The current_level variable actually
-	       indicates which instance of generated_DefaultWriteObject 
-	       should do some work.
-	    */
-	    if (DEBUG) {
-		dbPrint("generated_DefaultWriteObject, class = " +
-			    clazz.getName() + ", level = " + current_level);
-	    }
-	    ((ibis.io.Serializable)ref).
-		    generated_DefaultWriteObject(this, current_level);
-	} else if (ref instanceof java.io.Serializable) {
-	    AlternativeTypeInfo t = AlternativeTypeInfo.
-					getAlternativeTypeInfo(clazz);
+        if (ref instanceof ibis.io.Serializable) {
+            //	if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
+            /* Note that this will take the generated_DefaultWriteObject of the
+             dynamic type of ref. The current_level variable actually
+             indicates which instance of generated_DefaultWriteObject 
+             should do some work.
+             */
+            if (DEBUG) {
+                dbPrint("generated_DefaultWriteObject, class = "
+                        + clazz.getName() + ", level = " + current_level);
+            }
+            ((ibis.io.Serializable) ref).generated_DefaultWriteObject(this,
+                    current_level);
+        } else if (ref instanceof java.io.Serializable) {
+            AlternativeTypeInfo t = AlternativeTypeInfo
+                    .getAlternativeTypeInfo(clazz);
 
-	    /*	Find the type info corresponding to the current invocation.
-		See the invokeWriteObject invocation in alternativeWriteObject.
-		*/
-	    while (t.level > current_level) {
-		t = t.alternativeSuperInfo;
-	    }
-	    try {
-		alternativeDefaultWriteObject(t, ref);
-	    } catch(IllegalAccessException e) {
-		if (DEBUG) {
-		    dbPrint("Caught exception: " + e);
-		    e.printStackTrace();
-		    dbPrint("now rethrow as NotSerializableException ...");
-		}
-		throw new NotSerializableException("illegal access" + e);
-	    }
-	} else { 
-	    throw new NotSerializableException("Not Serializable : " +
-						    clazz.getName());
-	}
+            /*	Find the type info corresponding to the current invocation.
+             See the invokeWriteObject invocation in alternativeWriteObject.
+             */
+            while (t.level > current_level) {
+                t = t.alternativeSuperInfo;
+            }
+            try {
+                alternativeDefaultWriteObject(t, ref);
+            } catch (IllegalAccessException e) {
+                if (DEBUG) {
+                    dbPrint("Caught exception: " + e);
+                    e.printStackTrace();
+                    dbPrint("now rethrow as NotSerializableException ...");
+                }
+                throw new NotSerializableException("illegal access" + e);
+            }
+        } else {
+            throw new NotSerializableException("Not Serializable : "
+                    + clazz.getName());
+        }
     }
 }

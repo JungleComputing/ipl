@@ -3,11 +3,11 @@ class WithInner implements java.io.Serializable {
     static int count;
 
     class Inner implements java.io.Serializable {
-	int x;
+        int x;
 
-	Inner() {
-	    x = WithInner.this.x + 333;
-	}
+        Inner() {
+            x = WithInner.this.x + 333;
+        }
     }
 
     int x;
@@ -15,10 +15,10 @@ class WithInner implements java.io.Serializable {
     Inner inner = new Inner();
 
     WithInner() {
-	x = count++;
+        x = count++;
     }
 
     public String toString() {
-	return "x=" + x + "-inner.x=" + inner.x;
+        return "x=" + x + "-inner.x=" + inner.x;
     }
 }

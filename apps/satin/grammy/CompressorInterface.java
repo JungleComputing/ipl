@@ -6,7 +6,6 @@
  * execution framework.
  */
 
-interface CompressorInterface extends ibis.satin.Spawnable
-{
-    public SuffixArray applyFoldingStep( SuffixArray a, Step s, int levels );
+interface CompressorInterface extends ibis.satin.Spawnable {
+    public SuffixArray applyFoldingStep(SuffixArray a, Step s, int levels);
 }

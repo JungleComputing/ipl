@@ -1,5 +1,5 @@
 package ibis.repmi;
 
-public class ReplicatedObject { 
+public class ReplicatedObject {
     // nothing to do here ??
-} 
+}

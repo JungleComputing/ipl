@@ -10,9 +10,8 @@ import java.io.OutputStream;
  * <code>SerializationOutputStream</code>, build on methods in
  * <code>ObjectOutputStream</code>.
  */
-public final class SunSerializationOutputStream
-	extends SerializationOutputStream
-{
+public final class SunSerializationOutputStream extends
+        SerializationOutputStream {
     /**
      * Constructor. Calls constructor of superclass and flushes.
      *
@@ -20,8 +19,8 @@ public final class SunSerializationOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public SunSerializationOutputStream(OutputStream s) throws IOException {
-	super(s);
-	flush();
+        super(s);
+        flush();
     }
 
     /**
@@ -32,10 +31,9 @@ public final class SunSerializationOutputStream
      * @param out the <code>Accumulator</code>
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
-    public SunSerializationOutputStream(Accumulator out) 
-							throws IOException {
-	super(new AccumulatorOutputStream(out));
-	flush();
+    public SunSerializationOutputStream(Accumulator out) throws IOException {
+        super(new AccumulatorOutputStream(out));
+        flush();
     }
 
     /**
@@ -44,7 +42,7 @@ public final class SunSerializationOutputStream
      * @return the name of the current serialization implementation.
      */
     public String serializationImplName() {
-	return "sun";
+        return "sun";
     }
 
     /**
@@ -63,18 +61,18 @@ public final class SunSerializationOutputStream
      * @exception java.io.IOException is thrown on an IO error.
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
-/*
-	if (off == 0 && len == ref.length) {
-		// So no cycle detection is used ...
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    boolean[] temp = new boolean[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         // So no cycle detection is used ...
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            boolean[] temp = new boolean[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -83,26 +81,26 @@ public final class SunSerializationOutputStream
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 
-	/*
-	 * Calling write() and read() here turns out to be much, much faster.
-	 * So, we go ahead and implement a fast path just for byte[].
-	 * RFHH
-	 */
-	if (off == 0 && len == ref.length) {
-	    write(ref);
-	} else
+        /*
+         * Calling write() and read() here turns out to be much, much faster.
+         * So, we go ahead and implement a fast path just for byte[].
+         * RFHH
+         */
+        if (off == 0 && len == ref.length) {
+            write(ref);
+        } else
 
-/*
-	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    byte[] temp = new byte[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            byte[] temp = new byte[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -110,17 +108,17 @@ public final class SunSerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
-/*
-	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    short[] temp = new short[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            short[] temp = new short[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -128,17 +126,17 @@ public final class SunSerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
-/*
-	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    char[] temp = new char[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            char[] temp = new char[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -146,17 +144,17 @@ public final class SunSerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
-/*
-	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    int[] temp = new int[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            int[] temp = new int[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -164,17 +162,17 @@ public final class SunSerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
-/*
-	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    long[] temp = new long[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            long[] temp = new long[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -182,17 +180,17 @@ public final class SunSerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
-/*
-	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    float[] temp = new float[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            float[] temp = new float[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -200,17 +198,17 @@ public final class SunSerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
-/*
-	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    double[] temp = new double[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            double[] temp = new double[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -218,17 +216,17 @@ public final class SunSerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(Object[] ref, int off, int len) throws IOException {
-/*
-	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
-	}
-	else
-*/
-	{
-	    Object[] temp = new Object[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-	}
+        /*
+         if (off == 0 && len == ref.length) {
+         writeUnshared(ref);
+         }
+         else
+         */
+        {
+            Object[] temp = new Object[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**

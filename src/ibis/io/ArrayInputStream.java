@@ -6,9 +6,8 @@ import java.io.IOException;
  * An inputstream for reading arrays of primitive types.
  */
 
-public abstract class ArrayInputStream extends Dissipator
-	implements IbisStreamFlags
-{
+public abstract class ArrayInputStream extends Dissipator implements
+        IbisStreamFlags {
     /**
      * Reads (a slice of) an array of booleans in place.
      *
@@ -19,7 +18,7 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException on IO error.
      */
     public abstract void readArray(boolean[] a, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Reads (a slice of) an array of bytes in place.
@@ -27,7 +26,7 @@ public abstract class ArrayInputStream extends Dissipator
      * the parameters and exceptions.
      */
     public abstract void readArray(byte[] a, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Reads (a slice of) an array of shorts in place.
@@ -35,7 +34,7 @@ public abstract class ArrayInputStream extends Dissipator
      * the parameters and exceptions.
      */
     public abstract void readArray(short[] a, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Reads (a slice of) an array of chars in place.
@@ -43,7 +42,7 @@ public abstract class ArrayInputStream extends Dissipator
      * the parameters and exceptions.
      */
     public abstract void readArray(char[] a, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Reads (a slice of) an array of ints in place.
@@ -51,7 +50,7 @@ public abstract class ArrayInputStream extends Dissipator
      * the parameters and exceptions.
      */
     public abstract void readArray(int[] a, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Reads (a slice of) an array of longs in place.
@@ -59,7 +58,7 @@ public abstract class ArrayInputStream extends Dissipator
      * the parameters and exceptions.
      */
     public abstract void readArray(long[] a, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Reads (a slice of) an array of floats in place.
@@ -67,7 +66,7 @@ public abstract class ArrayInputStream extends Dissipator
      * the parameters and exceptions.
      */
     public abstract void readArray(float[] a, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Reads (a slice of) an array of doubles in place.
@@ -75,7 +74,7 @@ public abstract class ArrayInputStream extends Dissipator
      * the parameters and exceptions.
      */
     public abstract void readArray(double[] a, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     /**
      * Returns the number of bytes that can safely be read without
@@ -92,15 +91,15 @@ public abstract class ArrayInputStream extends Dissipator
      * @return The number of bytes read.
      */
     public long bytesRead() {
-	System.err.println("ArrayInputStream: bytesRead() unimplemented");
-	return 0;
+        System.err.println("ArrayInputStream: bytesRead() unimplemented");
+        return 0;
     }
 
     /**
      * Resets the bytes read counter
      */
     public void resetBytesRead() {
-	System.err.println("ArrayInputStream: resetBytesRead() unimplemented");
+        System.err.println("ArrayInputStream: resetBytesRead() unimplemented");
     }
 
     /**
@@ -117,7 +116,7 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException when an IO error occurs.
      */
     public boolean readBoolean() throws IOException {
-	throw new IOException("not implemented");
+        throw new IOException("not implemented");
     }
 
     /**
@@ -126,7 +125,7 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException when an IO error occurs.
      */
     public byte readByte() throws IOException {
-	throw new IOException("not implemented");
+        throw new IOException("not implemented");
     }
 
     /**
@@ -135,7 +134,7 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException when an IO error occurs.
      */
     public char readChar() throws IOException {
-	throw new IOException("not implemented");
+        throw new IOException("not implemented");
     }
 
     /**
@@ -144,7 +143,7 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException when an IO error occurs.
      */
     public short readShort() throws IOException {
-	throw new IOException("not implemented");
+        throw new IOException("not implemented");
     }
 
     /**
@@ -153,7 +152,7 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException when an IO error occurs.
      */
     public int readInt() throws IOException {
-	throw new IOException("not implemented");
+        throw new IOException("not implemented");
     }
 
     /**
@@ -162,7 +161,7 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException when an IO error occurs.
      */
     public long readLong() throws IOException {
-	throw new IOException("not implemented");
+        throw new IOException("not implemented");
     }
 
     /**
@@ -171,7 +170,7 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException when an IO error occurs.
      */
     public float readFloat() throws IOException {
-	throw new IOException("not implemented");
+        throw new IOException("not implemented");
     }
 
     /**
@@ -180,6 +179,6 @@ public abstract class ArrayInputStream extends Dissipator
      * @exception IOException when an IO error occurs.
      */
     public double readDouble() throws IOException {
-	throw new IOException("not implemented");
+        throw new IOException("not implemented");
     }
 }

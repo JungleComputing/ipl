@@ -5,27 +5,27 @@ package ibis.satin.impl;
 final class RandomWorkStealing extends Algorithm implements Config {
 
     RandomWorkStealing(Satin s) {
-	super(s);
+        super(s);
     }
 
     public InvocationRecord clientIteration() {
-	Victim v;
+        Victim v;
 
-	synchronized (satin) {
-	    v = satin.victims.getRandomVictim();
-	    /*
-	     * Used for fault tolerance we must know who the current victim is
-	     * in case it crashes..
-	     */
-	    if (FAULT_TOLERANCE) {
-		if (v != null) {
-		    satin.currentVictim = v.ident;
-		}
-	    }
-	}
-	if (v == null)
-	    return null; //can happen with open world if nobody joined.
+        synchronized (satin) {
+            v = satin.victims.getRandomVictim();
+            /*
+             * Used for fault tolerance we must know who the current victim is
+             * in case it crashes..
+             */
+            if (FAULT_TOLERANCE) {
+                if (v != null) {
+                    satin.currentVictim = v.ident;
+                }
+            }
+        }
+        if (v == null)
+            return null; //can happen with open world if nobody joined.
 
-	return satin.stealJob(v, false);
+        return satin.stealJob(v, false);
     }
 }

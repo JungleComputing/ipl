@@ -1,4 +1,5 @@
 package ibis.impl.net.nio;
+
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
@@ -13,32 +14,31 @@ import java.io.IOException;
  */
 public final class Driver extends NetDriver {
 
-	/**
-	 * The driver name.
-	 */
-	private final String name = "nio";
+    /**
+     * The driver name.
+     */
+    private final String name = "nio";
 
+    /**
+     * Constructor.
+     *
+     * @param ibis the {@link ibis.impl.net.NetIbis} instance.
+     */
+    public Driver(NetIbis ibis) {
+        super(ibis);
+    }
 
-	/**
-	 * Constructor.
-	 *
-	 * @param ibis the {@link ibis.impl.net.NetIbis} instance.
-	 */
-	public Driver(NetIbis ibis) {
-		super(ibis);
-	}	
+    public String getName() {
+        return name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public NetInput newInput(NetPortType pt, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        return new NioInput(pt, this, context, inputUpcall);
+    }
 
-	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) 
-						throws IOException {
-		return new NioInput(pt, this, context, inputUpcall);
-	}
-
-	public NetOutput newOutput(NetPortType pt, String context) 
-						throws IOException {
-		return new NioOutput(pt, this, context);
-	}
+    public NetOutput newOutput(NetPortType pt, String context)
+            throws IOException {
+        return new NioOutput(pt, this, context);
+    }
 }

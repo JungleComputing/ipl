@@ -17,10 +17,15 @@ import java.io.File;
 
 public final class BreederSolver {
     private static final boolean traceSolver = false;
+
     private static final boolean printSatSolutions = false;
+
     private static final boolean traceNewCode = true;
+
     private static final boolean traceLearning = false;
+
     private static final boolean traceJumps = false;
+
     private static int label = 0;
 
     /** Total number of decisions in all solves. */
@@ -40,103 +45,102 @@ public final class BreederSolver {
      * @param var The next variable to assign.
      * @param val The value to assign.
      */
-    public void leafSolve(
-	int level,
-	SATProblem p,
-	SATContext ctx,
-	int var,
-	boolean val
-    ) throws SATResultException, SATJumpException, SATCutoffException
-    {
-	int res = ctx.update( p, level );
-	if( res == SATProblem.CONFLICTING ){
-	    if( traceSolver ){
-		System.err.println( "ls" + level + ": update found a conflict" );
-	    }
-	    return;
-	}
-	if( res == SATProblem.SATISFIED ){
-	    // Propagation reveals problem is satisfied.
-	    SATSolution s = new SATSolution( ctx.assignment );
+    public void leafSolve(int level, SATProblem p, SATContext ctx, int var,
+            boolean val) throws SATResultException, SATJumpException,
+            SATCutoffException {
+        int res = ctx.update(p, level);
+        if (res == SATProblem.CONFLICTING) {
+            if (traceSolver) {
+                System.err.println("ls" + level + ": update found a conflict");
+            }
+            return;
+        }
+        if (res == SATProblem.SATISFIED) {
+            // Propagation reveals problem is satisfied.
+            SATSolution s = new SATSolution(ctx.assignment);
 
-	    if( traceSolver | printSatSolutions ){
-		System.err.println( "ls" + level + ": update found a solution: " + s );
-	    }
-	    if( !p.isSatisfied( ctx.assignment ) ){
-		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
-	    }
-	    throw new SATResultException( s );
-	}
-	if( traceSolver ){
-	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
-	}
-        if( ctx.assignment[var] != -1 ){
-            int a = val?1:0;
+            if (traceSolver | printSatSolutions) {
+                System.err.println("ls" + level + ": update found a solution: "
+                        + s);
+            }
+            if (!p.isSatisfied(ctx.assignment)) {
+                System.err.println("Error: " + level
+                        + ": solution does not satisfy problem.");
+            }
+            throw new SATResultException(s);
+        }
+        if (traceSolver) {
+            System.err.println("ls" + level + ": trying assignment var[" + var
+                    + "]=" + val);
+        }
+        if (ctx.assignment[var] != -1) {
+            int a = val ? 1 : 0;
 
-            if( ctx.assignment[var] != a ){
+            if (ctx.assignment[var] != a) {
                 // Learned clauses imply an assignment that conflicts
                 // with our assignment. Give up.
                 return;
             }
-        }
-        else {
-            if( val ){
-                res = ctx.propagatePosAssignment( p, var, level, false, true );
+        } else {
+            if (val) {
+                res = ctx.propagatePosAssignment(p, var, level, false, true);
+            } else {
+                res = ctx.propagateNegAssignment(p, var, level, false, true);
             }
-            else {
-                res = ctx.propagateNegAssignment( p, var, level, false, true );
-            }
-            if( res == SATProblem.CONFLICTING ){
-                if( traceSolver ){
-                    System.err.println( "ls" + level + ": propagation found a conflict" );
+            if (res == SATProblem.CONFLICTING) {
+                if (traceSolver) {
+                    System.err.println("ls" + level
+                            + ": propagation found a conflict");
                 }
                 return;
             }
-            if( res == SATProblem.SATISFIED ){
+            if (res == SATProblem.SATISFIED) {
                 // Propagation reveals problem is satisfied.
-                SATSolution s = new SATSolution( ctx.assignment );
+                SATSolution s = new SATSolution(ctx.assignment);
 
-                if( traceSolver | printSatSolutions ){
-                    System.err.println( "ls" + level + ": propagation found a solution: " + s );
+                if (traceSolver | printSatSolutions) {
+                    System.err.println("ls" + level
+                            + ": propagation found a solution: " + s);
                 }
-                if( !p.isSatisfied( ctx.assignment ) ){
-                    System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+                if (!p.isSatisfied(ctx.assignment)) {
+                    System.err.println("Error: " + level
+                            + ": solution does not satisfy problem.");
                 }
-                throw new SATResultException( s );
+                throw new SATResultException(s);
             }
         }
-	int nextvar = ctx.getDecisionVariable();
-	if( nextvar<0 ){
-	    // There are no variables left to assign, clearly there
-	    // is no solution.
-	    if( traceSolver ){
-		System.err.println( "ls" + level + ": nothing to branch on" );
-	    }
-	    return;
-	}
+        int nextvar = ctx.getDecisionVariable();
+        if (nextvar < 0) {
+            // There are no variables left to assign, clearly there
+            // is no solution.
+            if (traceSolver) {
+                System.err.println("ls" + level + ": nothing to branch on");
+            }
+            return;
+        }
         decisions++;
-	if( decisions>cutoff ){
-	    throw new SATCutoffException();
-	}
+        if (decisions > cutoff) {
+            throw new SATCutoffException();
+        }
 
-	boolean firstvar = ctx.posDominant( nextvar );
-	SATContext subctx = (SATContext) ctx.clone();
+        boolean firstvar = ctx.posDominant(nextvar);
+        SATContext subctx = (SATContext) ctx.clone();
         try {
-            leafSolve( level+1, p, subctx, nextvar, firstvar );
-        }
-        catch( SATJumpException x ){
-	    if( x.level<level ){
-                if( traceJumps ){
-                    System.err.println( "JumpException passes level " + level + " heading for level " + x.level );
+            leafSolve(level + 1, p, subctx, nextvar, firstvar);
+        } catch (SATJumpException x) {
+            if (x.level < level) {
+                if (traceJumps) {
+                    System.err.println("JumpException passes level " + level
+                            + " heading for level " + x.level);
                 }
-		throw x;
-	    }
+                throw x;
+            }
         }
-	// Since we won't be using our context again, we may as well
-	// give it to the recursion.
+        // Since we won't be using our context again, we may as well
+        // give it to the recursion.
         // However, we must update the administration with any
         // new clauses that we've learned recently.
-	leafSolve( level+1, p, ctx, nextvar, !firstvar );
+        leafSolve(level + 1, p, ctx, nextvar, !firstvar);
     }
 
     /**
@@ -145,112 +149,109 @@ public final class BreederSolver {
      * @param p The problem to solve.
      * @return A solution of the problem, or <code>null</code> if there is no solution.
      */
-    protected SATSolution solveSystem( final SATProblem p )
-	throws SATCutoffException
-    {
-	SATSolution res = null;
+    protected SATSolution solveSystem(final SATProblem p)
+            throws SATCutoffException {
+        SATSolution res = null;
 
-	if( p.isConflicting() ){
-	    return null;
-	}
-	if( p.isSatisfied() ){
-	    return new SATSolution( p.buildInitialAssignments() );
-	}
-	int oldClauseCount = p.getClauseCount();
+        if (p.isConflicting()) {
+            return null;
+        }
+        if (p.isSatisfied()) {
+            return new SATSolution(p.buildInitialAssignments());
+        }
+        int oldClauseCount = p.getClauseCount();
 
         // Now recursively try to find a solution.
-	try {
-	    SATContext ctx = SATContext.buildSATContext( p );
+        try {
+            SATContext ctx = SATContext.buildSATContext(p);
 
-	    ctx.assignment = p.buildInitialAssignments();
+            ctx.assignment = p.buildInitialAssignments();
 
-	    int r = ctx.optimize( p );
-	    if( r == SATProblem.SATISFIED ){
-		if( !p.isSatisfied( ctx.assignment ) ){
-		    System.err.println( "Error: solution does not satisfy problem." );
-		}
-		return new SATSolution( ctx.assignment );
-	    }
-	    if( r == SATProblem.CONFLICTING ){
-		return null;
-	    }
+            int r = ctx.optimize(p);
+            if (r == SATProblem.SATISFIED) {
+                if (!p.isSatisfied(ctx.assignment)) {
+                    System.err
+                            .println("Error: solution does not satisfy problem.");
+                }
+                return new SATSolution(ctx.assignment);
+            }
+            if (r == SATProblem.CONFLICTING) {
+                return null;
+            }
 
-	    int nextvar = ctx.getDecisionVariable();
-	    if( nextvar<0 ){
-		// There are no variables left to assign, clearly there
-		// is no solution.
-		if( traceSolver | traceNewCode ){
-		    System.err.println( "top: nothing to branch on" );
-		}
-		return null;
-	    }
-	    if( traceSolver ){
-		System.err.println( "Top level: branching on variable " + nextvar );
-	    }
+            int nextvar = ctx.getDecisionVariable();
+            if (nextvar < 0) {
+                // There are no variables left to assign, clearly there
+                // is no solution.
+                if (traceSolver | traceNewCode) {
+                    System.err.println("top: nothing to branch on");
+                }
+                return null;
+            }
+            if (traceSolver) {
+                System.err.println("Top level: branching on variable "
+                        + nextvar);
+            }
             decisions++;
 
-	    SATContext negctx = (SATContext) ctx.clone();
-	    boolean firstvar = ctx.posDominant( nextvar );
+            SATContext negctx = (SATContext) ctx.clone();
+            boolean firstvar = ctx.posDominant(nextvar);
             try {
-                leafSolve( 0, p, negctx, nextvar, firstvar );
-            }
-            catch( SATJumpException x ){
-                if( x.level<0 ){
-                    if( traceJumps ){
-                        System.err.println( "JumpException reaches top level, no solutions" );
+                leafSolve(0, p, negctx, nextvar, firstvar);
+            } catch (SATJumpException x) {
+                if (x.level < 0) {
+                    if (traceJumps) {
+                        System.err
+                                .println("JumpException reaches top level, no solutions");
                     }
                     return null;
                 }
             }
-            leafSolve( 0, p, ctx, nextvar, !firstvar );
-	}
-	catch( SATResultException r ){
-	    res = r.s;
-	    if( res == null ){
-		System.err.println( "A null result thrown???" );
-	    }
+            leafSolve(0, p, ctx, nextvar, !firstvar);
+        } catch (SATResultException r) {
+            res = r.s;
+            if (res == null) {
+                System.err.println("A null result thrown???");
+            }
             return res;
-	}
-        catch( SATJumpException x ){
-	    if( traceJumps ){
-		System.err.println( "JumpException reaches top level, no solutions" );
-	    }
-	    // No solution found.
+        } catch (SATJumpException x) {
+            if (traceJumps) {
+                System.err
+                        .println("JumpException reaches top level, no solutions");
+            }
+            // No solution found.
             res = null;
         }
 
-	int newClauseCount = p.getClauseCount();
-	return res;
+        int newClauseCount = p.getClauseCount();
+        return res;
     }
 
-    static Genes getInitialGenes()
-    {
-	float g[] = new float[GENECOUNT];
+    static Genes getInitialGenes() {
+        float g[] = new float[GENECOUNT];
 
-	for( int i=0; i<g.length; i++ ){
-	    g[i] = 1.0f;
-	}
-	return new Genes( g, null, null );
+        for (int i = 0; i < g.length; i++) {
+            g[i] = 1.0f;
+        }
+        return new Genes(g, null, null);
     }
 
-    static Genes getMaxGenes()
-    {
-	float g[] = new float[GENECOUNT];
+    static Genes getMaxGenes() {
+        float g[] = new float[GENECOUNT];
 
-	for( int i=0; i<g.length; i++ ){
-	    g[i] = 100.0f;
-	}
-	return new Genes( g, null, null );
+        for (int i = 0; i < g.length; i++) {
+            g[i] = 100.0f;
+        }
+        return new Genes(g, null, null);
     }
 
-    static Genes getMinGenes()
-    {
-	float g[] = new float[GENECOUNT];
+    static Genes getMinGenes() {
+        float g[] = new float[GENECOUNT];
 
-	for( int i=0; i<g.length; i++ ){
-	    g[i] = 1e-6f;
-	}
-	return new Genes( g, null, null );
+        for (int i = 0; i < g.length; i++) {
+            g[i] = 1e-6f;
+        }
+        return new Genes(g, null, null);
     }
 
     /**
@@ -263,16 +264,15 @@ public final class BreederSolver {
      * @return The number of decisions needed, or -1 if we're over
      * the cutoff limit.
      */
-    static int run( final SATProblem p_in, Genes genes, int cutoff )
-       throws SATCutoffException
-    {
+    static int run(final SATProblem p_in, Genes genes, int cutoff)
+            throws SATCutoffException {
         BreederSolver s = new BreederSolver();
         s.cutoff = cutoff;
 
-	SATProblem p = (SATProblem) p_in.clone();
-	p.reviewer = new GeneticClauseReviewer( genes.floats );
-        s.solveSystem( p );
-	return s.decisions;
+        SATProblem p = (SATProblem) p_in.clone();
+        p.reviewer = new GeneticClauseReviewer(genes.floats);
+        s.solveSystem(p);
+        return s.decisions;
     }
 
 }

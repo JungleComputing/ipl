@@ -14,40 +14,31 @@ import java.io.IOException;
  */
 public class SingletonPoller extends GenPoller {
 
-
     /**
      * The driver used for the inputs.
      */
-    protected NetDriver		subDriver   = null;
+    protected NetDriver subDriver = null;
 
     /**
      * The subInput
      */
-    protected NetInput		subInput;
+    protected NetInput subInput;
 
-    public SingletonPoller(NetPortType pt,
-			   NetDriver driver,
-			   String context,
-			   NetInputUpcall inputUpcall)
-	    throws IOException {
-	this(pt, driver, context, true, inputUpcall);
+    public SingletonPoller(NetPortType pt, NetDriver driver, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        this(pt, driver, context, true, inputUpcall);
     }
 
-    public SingletonPoller(NetPortType pt,
-			   NetDriver driver,
-			   String context,
-			   boolean decouplePoller,
-			   NetInputUpcall inputUpcall)
-	    throws IOException {
-	super(pt, driver, context, decouplePoller, inputUpcall);
-// System.err.println(this + ": hah, I live");
+    public SingletonPoller(NetPortType pt, NetDriver driver, String context,
+            boolean decouplePoller, NetInputUpcall inputUpcall)
+            throws IOException {
+        super(pt, driver, context, decouplePoller, inputUpcall);
+        // System.err.println(this + ": hah, I live");
     }
-
 
     public boolean readBufferedSupported() {
-	return subInput.readBufferedSupported();
+        return subInput.readBufferedSupported();
     }
-
 
     /**
      * Actually establish a connection with a remote port.
@@ -56,89 +47,82 @@ public class SingletonPoller extends GenPoller {
      * @exception IOException if the connection setup fails.
      */
     public synchronized void setupConnection(NetConnection cnx)
-	    throws IOException {
-	log.in();
+            throws IOException {
+        log.in();
 
-	if (subDriver == null) {
-	    String subDriverName = getMandatoryProperty("Driver");
-	    subDriver = driver.getIbis().getDriver(subDriverName);
-	}
+        if (subDriver == null) {
+            String subDriverName = getMandatoryProperty("Driver");
+            subDriver = driver.getIbis().getDriver(subDriverName);
+        }
 
-	subInput = newSubInput(subDriver, null);
+        subInput = newSubInput(subDriver, null);
 
-	subInput.setupConnection(cnx);
+        subInput.setupConnection(cnx);
 
-	mtu = subInput.getMaximumTransfertUnit();
-	headerOffset = subInput.getHeadersLength();
-// System.err.println(this + ": my subInput " + subInput + " mtu " + mtu);
+        mtu = subInput.getMaximumTransfertUnit();
+        headerOffset = subInput.getHeadersLength();
+        // System.err.println(this + ": my subInput " + subInput + " mtu " + mtu);
 
-	log.out();
+        log.out();
     }
 
-
     public void startReceive() throws IOException {
-	subInput.startReceive();
+        subInput.startReceive();
     }
 
     public void switchToUpcallMode(NetInputUpcall inputUpcall)
-	    throws IOException {
-	installUpcallFunc(inputUpcall);
-	subInput.switchToUpcallMode(this);
+            throws IOException {
+        installUpcallFunc(inputUpcall);
+        subInput.switchToUpcallMode(this);
     }
 
     public boolean pollIsInterruptible() throws IOException {
-	return subInput.pollIsInterruptible();
+        return subInput.pollIsInterruptible();
     }
 
-    public void setInterruptible(boolean interruptible)
-	    throws IOException {
-	subInput.setInterruptible(interruptible);
+    public void setInterruptible(boolean interruptible) throws IOException {
+        subInput.setInterruptible(interruptible);
     }
-
 
     public Integer doPoll(boolean block) throws IOException {
-	log.in();
-	if (subInput == null) {
-	    return null;
-	}
+        log.in();
+        if (subInput == null) {
+            return null;
+        }
 
-	Integer spn = subInput.poll(block);
+        Integer spn = subInput.poll(block);
 
-	log.out();
+        log.out();
 
-	return spn;
+        return spn;
     }
-
 
     public void doFinish() throws IOException {
-	log.in();
-// rcveTimer.stop();
-	subInput.finish();
-	log.out();
+        log.in();
+        // rcveTimer.stop();
+        subInput.finish();
+        log.out();
     }
-
 
     public void doFree() throws IOException {
-	log.in();
-	if (subInput != null) {
-	    subInput.free();
-	}
-	log.out();
+        log.in();
+        if (subInput != null) {
+            subInput.free();
+        }
+        log.out();
     }
-
 
     protected synchronized void doClose(Integer num) throws IOException {
-	log.in();
-	if (subInput != null) {
-	    subInput.close(num);
-	    subInput = null;
-	}
-	log.out();
+        log.in();
+        if (subInput != null) {
+            subInput.close(num);
+            subInput = null;
+        }
+        log.out();
     }
 
-
     protected NetInput activeInput() throws IOException {
-	return subInput;
+        return subInput;
     }
 
 }

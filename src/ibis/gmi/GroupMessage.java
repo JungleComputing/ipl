@@ -4,7 +4,7 @@ package ibis.gmi;
  * The {@link GroupMessage} class is a container class for keeping replies
  * around until they can be processed.
  */
-public final class GroupMessage { 
+public final class GroupMessage {
     /** So that they can be kept in a linked list. */
     protected GroupMessage next;
 
@@ -40,4 +40,4 @@ public final class GroupMessage {
 
     /** The reply, in case the invocation resulted in an exception. */
     public Exception exceptionResult;
-} 
+}

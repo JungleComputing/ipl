@@ -13,11 +13,17 @@ import java.nio.channels.WritableByteChannel;
  */
 public final class ChannelAccumulator extends Accumulator {
     public static final int SIZEOF_BYTE = 1;
+
     public static final int SIZEOF_CHAR = 2;
+
     public static final int SIZEOF_SHORT = 2;
+
     public static final int SIZEOF_INT = 4;
+
     public static final int SIZEOF_LONG = 8;
+
     public static final int SIZEOF_FLOAT = 4;
+
     public static final int SIZEOF_DOUBLE = 8;
 
     public static final int BUFFER_SIZE = 1024;
@@ -29,172 +35,163 @@ public final class ChannelAccumulator extends Accumulator {
     WritableByteChannel channel;
 
     public ChannelAccumulator(WritableByteChannel channel) {
-	buffer = ByteBuffer.allocate(BUFFER_SIZE).order(ByteOrder.BIG_ENDIAN);
-	this.channel = channel;
+        buffer = ByteBuffer.allocate(BUFFER_SIZE).order(ByteOrder.BIG_ENDIAN);
+        this.channel = channel;
     }
 
     private ChannelAccumulator() {
-	//DONT USE THIS
+        //DONT USE THIS
     }
 
     public void flush() throws IOException {
-	buffer.flip();
-	while(buffer.hasRemaining()) {
-	    count += channel.write(buffer);
-	}
-	buffer.clear();
+        buffer.flip();
+        while (buffer.hasRemaining()) {
+            count += channel.write(buffer);
+        }
+        buffer.clear();
     }
 
     public void close() throws IOException {
-	flush();
+        flush();
     }
 
     public void reallyClose() throws IOException {
-	flush();
-	channel.close();
+        flush();
+        channel.close();
     }
 
     public long bytesWritten() {
-	return count;
+        return count;
     }
 
     public void resetBytesWritten() {
-	count = 0;
+        count = 0;
     }
 
     public void writeBoolean(boolean value) throws IOException {
-	if(value == true) {
-	    writeByte((byte) 1);
-	} else {
-	    writeByte((byte) 0);
-	}
+        if (value == true) {
+            writeByte((byte) 1);
+        } else {
+            writeByte((byte) 0);
+        }
     }
 
     public void writeByte(byte value) throws IOException {
-	try {
-	    buffer.put(value);
-	} catch (BufferOverflowException e) {
-	    flush();
-	    buffer.put(value);
-	}
+        try {
+            buffer.put(value);
+        } catch (BufferOverflowException e) {
+            flush();
+            buffer.put(value);
+        }
     }
-	    
 
     public void writeChar(char value) throws IOException {
-	try {
-	    buffer.putChar(value);
-	} catch (BufferOverflowException e) {
-	    flush();
-	    buffer.putChar(value);
-	}
+        try {
+            buffer.putChar(value);
+        } catch (BufferOverflowException e) {
+            flush();
+            buffer.putChar(value);
+        }
     }
 
     public void writeShort(short value) throws IOException {
-	try {
-	    buffer.putShort(value);
-	} catch (BufferOverflowException e) {
-	    flush();
-	    buffer.putShort(value);
-	}
+        try {
+            buffer.putShort(value);
+        } catch (BufferOverflowException e) {
+            flush();
+            buffer.putShort(value);
+        }
     }
 
     public void writeInt(int value) throws IOException {
-	try {
-	    buffer.putInt(value);
-	} catch (BufferOverflowException e) {
-	    flush();
-	    buffer.putInt(value);
-	}
+        try {
+            buffer.putInt(value);
+        } catch (BufferOverflowException e) {
+            flush();
+            buffer.putInt(value);
+        }
     }
 
     public void writeLong(long value) throws IOException {
-	try {
-	    buffer.putLong(value);
-	} catch (BufferOverflowException e) {
-	    flush();
-	    buffer.putLong(value);
-	}
+        try {
+            buffer.putLong(value);
+        } catch (BufferOverflowException e) {
+            flush();
+            buffer.putLong(value);
+        }
     }
 
     public void writeFloat(float value) throws IOException {
-	try {
-	    buffer.putFloat(value);
-	} catch (BufferOverflowException e) {
-	    flush();
-	    buffer.putFloat(value);
-	}
+        try {
+            buffer.putFloat(value);
+        } catch (BufferOverflowException e) {
+            flush();
+            buffer.putFloat(value);
+        }
     }
 
     public void writeDouble(double value) throws IOException {
-	try {
-	    buffer.putDouble(value);
-	} catch (BufferOverflowException e) {
-	    flush();
-	    buffer.putDouble(value);
-	}
+        try {
+            buffer.putDouble(value);
+        } catch (BufferOverflowException e) {
+            flush();
+            buffer.putDouble(value);
+        }
     }
 
-    public void writeArray(boolean [] source, 
-	    int offset,
-	    int length) throws IOException {
-	for(int i = offset; i < (offset + length); i++) {
-		writeBoolean(source[i]);
-	}
+    public void writeArray(boolean[] source, int offset, int length)
+            throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+            writeBoolean(source[i]);
+        }
     }
 
-    public void writeArray(byte [] source, 
-	    int offset, 
-	    int length) throws IOException {
-	for(int i = offset; i < (offset + length); i++) {
-		writeByte(source[i]);
-	}
+    public void writeArray(byte[] source, int offset, int length)
+            throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+            writeByte(source[i]);
+        }
     }
 
-    public void writeArray(char [] source, 
-	    int offset, 
-	    int length) throws IOException {
-	for(int i = offset; i < (offset + length); i++) {
-		writeChar(source[i]);
-	}
+    public void writeArray(char[] source, int offset, int length)
+            throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+            writeChar(source[i]);
+        }
     }
 
-    public void writeArray(short [] source, 
-	    int offset, 
-	    int length) throws IOException {
-	for(int i = offset; i < (offset + length); i++) {
-		writeShort(source[i]);
-	}
+    public void writeArray(short[] source, int offset, int length)
+            throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+            writeShort(source[i]);
+        }
     }
 
-    public void writeArray(int [] source, 
-	    int offset, 
-	    int length) throws IOException {
-	for(int i = offset; i < (offset + length); i++) {
-		writeInt(source[i]);
-	}
+    public void writeArray(int[] source, int offset, int length)
+            throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+            writeInt(source[i]);
+        }
     }
 
-    public void writeArray(long [] source, 
-	    int offset, 
-	    int length) throws IOException {
-	for(int i = offset; i < (offset + length); i++) {
-		writeLong(source[i]);
-	}
+    public void writeArray(long[] source, int offset, int length)
+            throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+            writeLong(source[i]);
+        }
     }
 
-    public void writeArray(float [] source, 
-	    int offset, 
-	    int length) throws IOException {
-	for(int i = offset; i < (offset + length); i++) {
-		writeFloat(source[i]);
-	}
+    public void writeArray(float[] source, int offset, int length)
+            throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+            writeFloat(source[i]);
+        }
     }
 
-    public void writeArray(double [] source, 
-	    int offset, 
-	    int length) throws IOException {
-	for(int i = offset; i < (offset + length); i++) {
-		writeDouble(source[i]);
-	}
+    public void writeArray(double[] source, int offset, int length)
+            throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+            writeDouble(source[i]);
+        }
     }
 }

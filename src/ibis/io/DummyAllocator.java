@@ -1,6 +1,5 @@
 package ibis.io;
 
-
 /**
  * Allocator for arrays of primitives that is tailored towards the
  * IbisSerializationOutputStream.
@@ -8,7 +7,7 @@ package ibis.io;
 public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
 
     public DummyAllocator() {
-	super(0);
+        super(0);
     }
 
     /**
@@ -18,7 +17,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @return an index descriptor buffer
      */
     public short[] getIndexArray() {
-	return new short[PRIMITIVE_TYPES];
+        return new short[PRIMITIVE_TYPES];
     }
 
     /**
@@ -29,7 +28,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @return a byte buffer
      */
     public byte[] getByteArray() {
-	return new byte[BYTE_BUFFER_SIZE];
+        return new byte[BYTE_BUFFER_SIZE];
     }
 
     /**
@@ -40,7 +39,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @return a char buffer
      */
     public char[] getCharArray() {
-	return new char[CHAR_BUFFER_SIZE];
+        return new char[CHAR_BUFFER_SIZE];
     }
 
     /**
@@ -51,7 +50,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @return a short buffer
      */
     public short[] getShortArray() {
-	return new short[SHORT_BUFFER_SIZE];
+        return new short[SHORT_BUFFER_SIZE];
     }
 
     /**
@@ -62,7 +61,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @return a int buffer
      */
     public int[] getIntArray() {
-	return new int[INT_BUFFER_SIZE];
+        return new int[INT_BUFFER_SIZE];
     }
 
     /**
@@ -73,7 +72,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @return a long buffer
      */
     public long[] getLongArray() {
-	return new long[LONG_BUFFER_SIZE];
+        return new long[LONG_BUFFER_SIZE];
     }
 
     /**
@@ -84,7 +83,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @return a float buffer
      */
     public float[] getFloatArray() {
-	return new float[FLOAT_BUFFER_SIZE];
+        return new float[FLOAT_BUFFER_SIZE];
     }
 
     /**
@@ -95,7 +94,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @return a double buffer
      */
     public double[] getDoubleArray() {
-	return new double[DOUBLE_BUFFER_SIZE];
+        return new double[DOUBLE_BUFFER_SIZE];
     }
 
     /**

@@ -8,29 +8,32 @@ class NioAccumulatorConnection implements Config {
     static final int MAX_SEND_BUFFERS = 32;
 
     GatheringByteChannel channel;
+
     NioReceivePortIdentifier peer;
 
     //placeholder for the accumulator to put a selection key in
     SelectionKey key;
 
     SendBuffer[] pendingBuffers;
-    int bufferPosition = 0; 
+
+    int bufferPosition = 0;
+
     int bufferLimit = 0;
 
     NioAccumulatorConnection(GatheringByteChannel channel,
-			     NioReceivePortIdentifier peer) {
-	this.channel = channel;
-	this.peer = peer;
+            NioReceivePortIdentifier peer) {
+        this.channel = channel;
+        this.peer = peer;
 
-	pendingBuffers = new SendBuffer[MAX_SEND_BUFFERS];
+        pendingBuffers = new SendBuffer[MAX_SEND_BUFFERS];
     }
 
     boolean full() {
-	return ((bufferLimit + 1) % MAX_SEND_BUFFERS) == bufferPosition;
+        return ((bufferLimit + 1) % MAX_SEND_BUFFERS) == bufferPosition;
     }
 
     boolean empty() {
-	return bufferLimit == bufferPosition;
+        return bufferLimit == bufferPosition;
     }
 
     /**
@@ -40,19 +43,19 @@ class NioAccumulatorConnection implements Config {
      *	       full
      */
     boolean addToSendList(SendBuffer buffer) {
-	if(full()) {
-	    return false;
-	}
+        if (full()) {
+            return false;
+        }
 
-	pendingBuffers[bufferLimit] = buffer;
+        pendingBuffers[bufferLimit] = buffer;
 
-	if (DEBUG) {
-	    Debug.message("channels", this, "adding new buffer to send list"
-		    + " at position " + bufferLimit);
-	}
-	bufferLimit = (bufferLimit + 1) % MAX_SEND_BUFFERS;
+        if (DEBUG) {
+            Debug.message("channels", this, "adding new buffer to send list"
+                    + " at position " + bufferLimit);
+        }
+        bufferLimit = (bufferLimit + 1) % MAX_SEND_BUFFERS;
 
-	return true;
+        return true;
     }
 
     /**
@@ -63,41 +66,41 @@ class NioAccumulatorConnection implements Config {
      * data in the buffer.
      */
     boolean send() throws IOException {
-	long count;
+        long count;
 
-	if (DEBUG) {
-	    Debug.enter("channels", this, "sending");
-	}
-	while(!empty()) {
-	    count = channel.write(pendingBuffers[bufferPosition].byteBuffers);
+        if (DEBUG) {
+            Debug.enter("channels", this, "sending");
+        }
+        while (!empty()) {
+            count = channel.write(pendingBuffers[bufferPosition].byteBuffers);
 
-	    if (DEBUG) {
-		Debug.message("channels", this, "send " + count + " bytes");
-	    }
+            if (DEBUG) {
+                Debug.message("channels", this, "send " + count + " bytes");
+            }
 
-	    if(pendingBuffers[bufferPosition].hasRemaining()) {
-		if (DEBUG) {
-		    Debug.exit("channels", this, "buffer has some bytes"
-			    + " remaining");
-		}
-		return false;
-	    } else {
-		SendBuffer.recycle(pendingBuffers[bufferPosition]);
+            if (pendingBuffers[bufferPosition].hasRemaining()) {
+                if (DEBUG) {
+                    Debug.exit("channels", this, "buffer has some bytes"
+                            + " remaining");
+                }
+                return false;
+            } else {
+                SendBuffer.recycle(pendingBuffers[bufferPosition]);
 
-		bufferPosition = (bufferPosition + 1) % MAX_SEND_BUFFERS;
-		if (DEBUG) {
-		    Debug.message("channels", this, "completely send buffer,"
-			    + " trying next one too");
-		}
-	    }
-	}
-	if (DEBUG) {
-	    Debug.exit("channels", this, "done sending");
-	}
-	return true;
+                bufferPosition = (bufferPosition + 1) % MAX_SEND_BUFFERS;
+                if (DEBUG) {
+                    Debug.message("channels", this, "completely send buffer,"
+                            + " trying next one too");
+                }
+            }
+        }
+        if (DEBUG) {
+            Debug.exit("channels", this, "done sending");
+        }
+        return true;
     }
 
     void close() throws IOException {
-	channel.close();
+        channel.close();
     }
 }

@@ -11,7 +11,7 @@ package ibis.util;
  * the consumer calls <code>collect(ticket)</code>, which will block until
  * an object has been connected to the ticket, and then return that object.
  */
-public class Ticket { 
+public class Ticket {
     /**
      * Enables/disables debugging prints.
      */
@@ -28,163 +28,163 @@ public class Ticket {
      * stuff. It also has methods to access those data.
      */
     private static class Bucket {
-	/**
-	 * Room for the object associated with a ticket.
-	 */
-	private Object	data;
+        /**
+         * Room for the object associated with a ticket.
+         */
+        private Object data;
 
-	/**
-	 * The number of threads waiting for something to happen on this bucket.
-	 */
-	private int		waiters;
+        /**
+         * The number of threads waiting for something to happen on this bucket.
+         */
+        private int waiters;
 
-	/**
-	 * Flag indicating whether this bucket may currently be used (i.e., the
-	 * corresponding ticket number has been given out).
-	 */
-	private boolean	valid;
+        /**
+         * Flag indicating whether this bucket may currently be used (i.e., the
+         * corresponding ticket number has been given out).
+         */
+        private boolean valid;
 
-	/**
-	 * Flag indicating whether this bucket is currently initialized
-	 * (i.e., a value has been put in it). A separate flag allows for
-	 * null values as well.
-	 */
-	private boolean	initialized;
+        /**
+         * Flag indicating whether this bucket is currently initialized
+         * (i.e., a value has been put in it). A separate flag allows for
+         * null values as well.
+         */
+        private boolean initialized;
 
-	/**
-	 * Constructor.
-	 */
-	Bucket() {
-	    data    = null;
-	    waiters = 0;
-	    valid	= false;
-	    initialized = false;
-	}
+        /**
+         * Constructor.
+         */
+        Bucket() {
+            data = null;
+            waiters = 0;
+            valid = false;
+            initialized = false;
+        }
 
-	/**
-	 * Makes this bucket valid: its associated ticket number has been given out.
-	 */
-	synchronized void setValid() {
-	    valid = true;
-	}
+        /**
+         * Makes this bucket valid: its associated ticket number has been given out.
+         */
+        synchronized void setValid() {
+            valid = true;
+        }
 
-	/**
-	 * Gets and resets the object. It first blocks until a value is
-	 * put(), and then grabs and destroys it.
-	 * @return the object put into this bucket.
-	 */
-	synchronized Object get() {
-	    Object result;
+        /**
+         * Gets and resets the object. It first blocks until a value is
+         * put(), and then grabs and destroys it.
+         * @return the object put into this bucket.
+         */
+        synchronized Object get() {
+            Object result;
 
-	    if (! valid) {
-		throw new RuntimeException("Invalid ticket");
-	    }
-	    while (! initialized) {
-		waiters++;
-		try {
-		    wait();
-		} catch(InterruptedException e) {
-		    // ignore
-		}
-		waiters--;
-	    }
+            if (!valid) {
+                throw new RuntimeException("Invalid ticket");
+            }
+            while (!initialized) {
+                waiters++;
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+                waiters--;
+            }
 
-	    result = data;
-	    initialized = false;
+            result = data;
+            initialized = false;
 
-	    if (waiters != 0) {
-		notifyAll();
-	    }
-	    return result;
-	}
+            if (waiters != 0) {
+                notifyAll();
+            }
+            return result;
+        }
 
-	/**
-	 * Gets and resets the object. It first blocks until a value is
-	 * put(), and then grabs and destroys it. The difference with
-	 * <code>get</code> is that <code>collect</code> also makes the
-	 * bucket invalid, so that a new ticket is required.
-	 * @return the object put into this bucket.
-	 */
-	synchronized Object collect() {
-	    Object result;
+        /**
+         * Gets and resets the object. It first blocks until a value is
+         * put(), and then grabs and destroys it. The difference with
+         * <code>get</code> is that <code>collect</code> also makes the
+         * bucket invalid, so that a new ticket is required.
+         * @return the object put into this bucket.
+         */
+        synchronized Object collect() {
+            Object result;
 
-	    if (! valid) {
-		throw new RuntimeException("Invalid ticket");
-	    }
-	    while (! initialized) {
-		waiters++;
-		try {
-		    wait();
-		} catch(InterruptedException e) {
-		    // ignore
-		}
-		waiters--;
-	    }
+            if (!valid) {
+                throw new RuntimeException("Invalid ticket");
+            }
+            while (!initialized) {
+                waiters++;
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+                waiters--;
+            }
 
-	    result = data;
-	    initialized = false;
-	    valid = false;
-	    return result;
-	}
+            result = data;
+            initialized = false;
+            valid = false;
+            return result;
+        }
 
-	/**
-	 * Releases this bucket. After this call, a new ticket is required.
-	 */
-	synchronized void release() {
-	    if (! valid) {
-		throw new RuntimeException("Invalid ticket");
-	    }
-	    initialized = false;
-	    valid = false;
-	}
+        /**
+         * Releases this bucket. After this call, a new ticket is required.
+         */
+        synchronized void release() {
+            if (!valid) {
+                throw new RuntimeException("Invalid ticket");
+            }
+            initialized = false;
+            valid = false;
+        }
 
-	/**
-	 * Gets the object. It first blocks until a value is put(), 
-	 * and then returns it.
-	 * @return the object put into this bucket.
-	 */
-	synchronized Object peek() {
-	    if (! valid) {
-		throw new RuntimeException("Invalid ticket");
-	    }
-	    while (! initialized) {
-		waiters++;
-		try {
-		    wait();
-		} catch(InterruptedException e) {
-		    // ignore
-		}
-		waiters--;
-	    }
+        /**
+         * Gets the object. It first blocks until a value is put(), 
+         * and then returns it.
+         * @return the object put into this bucket.
+         */
+        synchronized Object peek() {
+            if (!valid) {
+                throw new RuntimeException("Invalid ticket");
+            }
+            while (!initialized) {
+                waiters++;
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+                waiters--;
+            }
 
-	    return data;
-	}
+            return data;
+        }
 
-	/**
-	 * Puts an object in the bucket. It first waits until the
-	 * bucket is free, then puts the data in it, and notifies
-	 * waiters.
-	 * @param o the object to be placed in the bucket.
-	 */
-	synchronized void put(Object o) {
-	    if (! valid) {
-		throw new RuntimeException("Invalid ticket");
-	    }
-	    while (initialized) {
-		waiters++;
-		try {
-		    wait();
-		} catch(InterruptedException e) {
-		    // ignore
-		}
-		waiters--;
-	    }
-	    data = o;
-	    initialized = true;
-	    if (waiters != 0) {
-		notifyAll();
-	    }
-	}
+        /**
+         * Puts an object in the bucket. It first waits until the
+         * bucket is free, then puts the data in it, and notifies
+         * waiters.
+         * @param o the object to be placed in the bucket.
+         */
+        synchronized void put(Object o) {
+            if (!valid) {
+                throw new RuntimeException("Invalid ticket");
+            }
+            while (initialized) {
+                waiters++;
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+                waiters--;
+            }
+            data = o;
+            initialized = true;
+            if (waiters != 0) {
+                notifyAll();
+            }
+        }
     }
 
     /**
@@ -195,7 +195,7 @@ public class Ticket {
     /**
      * A stack of free ticket numbers.
      */
-    private int [] tickets;
+    private int[] tickets;
 
     /**
      * Top of the free ticket number stack. Ticket numbers are popped from this stack,
@@ -203,13 +203,13 @@ public class Ticket {
      */
     private int top;
 
-    private Bucket [] buckets;
+    private Bucket[] buckets;
 
     /**
      * Creates the initial data structure for <code>INIT_SIZE</code> tickets.
      */
-    public Ticket() { 
-	this(INIT_SIZE);
+    public Ticket() {
+        this(INIT_SIZE);
     }
 
     /**
@@ -217,65 +217,70 @@ public class Ticket {
      *
      * @param initialSize the initial number of tickets.
      */
-    public Ticket(int initialSize) { 
-	buckets = new Bucket[initialSize];
-	tickets = new int[initialSize];
+    public Ticket(int initialSize) {
+        buckets = new Bucket[initialSize];
+        tickets = new int[initialSize];
 
-	for (int i=0;i<initialSize;i++) { 
-	    buckets[i] = new Bucket();
-	    tickets[i] = i;
-	}
+        for (int i = 0; i < initialSize; i++) {
+            buckets[i] = new Bucket();
+            tickets[i] = i;
+        }
 
-	top  = initialSize;
-	size = initialSize;
+        top = initialSize;
+        size = initialSize;
 
-	if (DEBUG) { 
-	    System.out.println("Ticket(" + initialSize + ") done");
-	} 
-    } 
+        if (DEBUG) {
+            System.out.println("Ticket(" + initialSize + ") done");
+        }
+    }
 
     /**
      * Returns a new ticket. If not available, the data structure is doubled in size,
      * @return a new ticket number.
      */
-    public synchronized int get() { 
+    public synchronized int get() {
 
-	if (DEBUG) System.out.println("Ticket.get() starting");
+        if (DEBUG)
+            System.out.println("Ticket.get() starting");
 
-	if (top == 0) { 
+        if (top == 0) {
 
-	    if (DEBUG) System.out.println("Ticket.get() resizing from " + size + " to " + (size*2));
+            if (DEBUG)
+                System.out.println("Ticket.get() resizing from " + size
+                        + " to " + (size * 2));
 
-	    // resize the lot.
-	    int new_size = size*2;
+            // resize the lot.
+            int new_size = size * 2;
 
-	    // "tickets" is empty, so we can realloc it directly			
-	    tickets = new int[new_size];
+            // "tickets" is empty, so we can realloc it directly			
+            tickets = new int[new_size];
 
-	    // buckets contains data, so copy it.
-	    Bucket [] new_buckets = new Bucket[new_size];
+            // buckets contains data, so copy it.
+            Bucket[] new_buckets = new Bucket[new_size];
 
-	    System.arraycopy(buckets, 0, new_buckets, 0, size);
+            System.arraycopy(buckets, 0, new_buckets, 0, size);
 
-	    for (int i=0;i<size;i++) { 
-		tickets[i] = size+i;
-		new_buckets[size+i] = new Bucket();
-	    }
+            for (int i = 0; i < size; i++) {
+                tickets[i] = size + i;
+                new_buckets[size + i] = new Bucket();
+            }
 
-	    top = size;
-	    size = new_size;
-	    buckets = new_buckets;
-	} 
+            top = size;
+            size = new_size;
+            buckets = new_buckets;
+        }
 
-	top--;
+        top--;
 
-	int ticket = tickets[top];
+        int ticket = tickets[top];
 
-	buckets[ticket].setValid();
+        buckets[ticket].setValid();
 
-	if (DEBUG) System.out.println("Ticket.get() returning tickets[" + top + "] = " + ticket);
+        if (DEBUG)
+            System.out.println("Ticket.get() returning tickets[" + top + "] = "
+                    + ticket);
 
-	return ticket;
+        return ticket;
     }
 
     /**
@@ -287,21 +292,24 @@ public class Ticket {
      * @param ticket the ticket number that gets an object associated with it
      * @param object the object that gets associated
      */
-    public void put(int ticket, Object object) { 
-	Bucket bucket;
+    public void put(int ticket, Object object) {
+        Bucket bucket;
 
-	if (DEBUG) System.out.println("Ticket.put(" + ticket + ") starting");
+        if (DEBUG)
+            System.out.println("Ticket.put(" + ticket + ") starting");
 
-	synchronized(this) {
-	    bucket = buckets[ticket];
-	}
+        synchronized (this) {
+            bucket = buckets[ticket];
+        }
 
-	if (DEBUG) System.out.println("Ticket.put() got a bucket");
+        if (DEBUG)
+            System.out.println("Ticket.put() got a bucket");
 
-	bucket.put(object);
+        bucket.put(object);
 
-	if (DEBUG) System.out.println("Ticket.put() done");
-    } 
+        if (DEBUG)
+            System.out.println("Ticket.put() done");
+    }
 
     /**
      * Returns the object that gets associated with <code>ticket</code>. The
@@ -311,28 +319,32 @@ public class Ticket {
      * @return the object that got associated with <code>ticket</code>.
      */
     public Object collect(int ticket) {
-	Bucket bucket;
-	Object result;
+        Bucket bucket;
+        Object result;
 
-	if (DEBUG) System.out.println("Ticket.collect(" + ticket + ") starting");
+        if (DEBUG)
+            System.out.println("Ticket.collect(" + ticket + ") starting");
 
-	synchronized(this) {
-	    bucket = buckets[ticket];
-	}
+        synchronized (this) {
+            bucket = buckets[ticket];
+        }
 
-	if (DEBUG) System.out.println("Ticket.collect() got a bucket");
+        if (DEBUG)
+            System.out.println("Ticket.collect() got a bucket");
 
-	result = bucket.collect();
+        result = bucket.collect();
 
-	if (DEBUG) System.out.println("Ticket.collect() got a result");
+        if (DEBUG)
+            System.out.println("Ticket.collect() got a result");
 
-	synchronized(this) {
-	    tickets[top++] = ticket;
-	}
+        synchronized (this) {
+            tickets[top++] = ticket;
+        }
 
-	if (DEBUG) System.out.println("Ticket.collect() done");
+        if (DEBUG)
+            System.out.println("Ticket.collect() done");
 
-	return result;
+        return result;
     }
 
     /**
@@ -343,22 +355,25 @@ public class Ticket {
      * @return the object that got associated with <code>ticket</code>.
      */
     public Object peek(int ticket) {
-	Object result;
-	Bucket bucket;
+        Object result;
+        Bucket bucket;
 
-	if (DEBUG) System.out.println("Ticket.peek(" + ticket + ") starting");
+        if (DEBUG)
+            System.out.println("Ticket.peek(" + ticket + ") starting");
 
-	synchronized(this) {
-	    bucket = buckets[ticket];
-	}
+        synchronized (this) {
+            bucket = buckets[ticket];
+        }
 
-	if (DEBUG) System.out.println("Ticket.peek() got a bucket");
+        if (DEBUG)
+            System.out.println("Ticket.peek() got a bucket");
 
-	result = bucket.peek();
+        result = bucket.peek();
 
-	if (DEBUG) System.out.println("Ticket.peek() done");
+        if (DEBUG)
+            System.out.println("Ticket.peek() done");
 
-	return result;		
+        return result;
     }
 
     /**
@@ -371,22 +386,25 @@ public class Ticket {
      * @return the object that got associated with <code>ticket</code>.
      */
     public Object get(int ticket) {
-	Object result;
-	Bucket bucket;
+        Object result;
+        Bucket bucket;
 
-	if (DEBUG) System.out.println("Ticket.get(" + ticket + ") starting");
+        if (DEBUG)
+            System.out.println("Ticket.get(" + ticket + ") starting");
 
-	synchronized(this) {
-	    bucket = buckets[ticket];
-	}
+        synchronized (this) {
+            bucket = buckets[ticket];
+        }
 
-	if (DEBUG) System.out.println("Ticket.get() got a bucket");
+        if (DEBUG)
+            System.out.println("Ticket.get() got a bucket");
 
-	result = bucket.get();
+        result = bucket.get();
 
-	if (DEBUG) System.out.println("Ticket.get() done");
+        if (DEBUG)
+            System.out.println("Ticket.get() done");
 
-	return result;		
+        return result;
     }
 
     /**
@@ -395,14 +413,14 @@ public class Ticket {
      * @param ticket the ticket number to be released.
      */
     public void freeTicket(int ticket) {
-	Bucket bucket;
+        Bucket bucket;
 
-	synchronized(this) {
-	    bucket = buckets[ticket];
-	}
-	bucket.release();
-	synchronized(this) {
-	    tickets[top++] = ticket;
-	}
+        synchronized (this) {
+            bucket = buckets[ticket];
+        }
+        bucket.release();
+        synchronized (this) {
+            tickets[top++] = ticket;
+        }
     }
-} 
+}

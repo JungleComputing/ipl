@@ -1,1 +1,2 @@
-class Done extends Exception {}
+class Done extends Exception {
+}

@@ -71,7 +71,7 @@ import org.apache.bcel.classfile.JavaClass;
  * It is designed to be used as a singleton, however it
  * can also be used with custom classpaths.
  *
-/**
+ /**
  * Abstract definition of a class repository. Instances may be used
  * to load classes from different sources and may be used in the
  * Repository.setRepository method.
@@ -83,128 +83,130 @@ import org.apache.bcel.classfile.JavaClass;
  * @author David Dixon-Peugh
  */
 public class SyntheticRepository implements Repository {
-  private static final String DEFAULT_PATH = ClassPath.getClassPath();
+    private static final String DEFAULT_PATH = ClassPath.getClassPath();
 
-  private static HashMap _instances = new HashMap(); // CLASSPATH X REPOSITORY
+    private static HashMap _instances = new HashMap(); // CLASSPATH X REPOSITORY
 
-  private ClassPath _path = null;
-  private HashMap   _loadedClasses = new HashMap(); // CLASSNAME X JAVACLASS
+    private ClassPath _path = null;
 
-  private SyntheticRepository(ClassPath path) {
-    _path = path;
-  }
+    private HashMap _loadedClasses = new HashMap(); // CLASSNAME X JAVACLASS
 
-  public static SyntheticRepository getInstance() {
-    return getInstance(ClassPath.SYSTEM_CLASS_PATH);
-  }
-
-  public static SyntheticRepository getInstance(ClassPath classPath) {
-    SyntheticRepository rep = (SyntheticRepository)_instances.get(classPath);
-
-    if(rep == null) {
-      rep = new SyntheticRepository(classPath);
-      _instances.put(classPath, rep);
+    private SyntheticRepository(ClassPath path) {
+        _path = path;
     }
 
-    return rep;
-  }
-
-  /**
-   * Store a new JavaClass instance into this Repository.
-   */
-  public void storeClass(JavaClass clazz) {
-    _loadedClasses.put(clazz.getClassName(), clazz);
-    clazz.setRepository(this);
- }
-
-  /**
-   * Remove class from repository
-   */
-  public void removeClass(JavaClass clazz) {
-    _loadedClasses.remove(clazz.getClassName());
-  }
-
-  /**
-   * Find an already defined (cached) JavaClass object by name.
-   */
-  public JavaClass findClass(String className) {
-    return (JavaClass)_loadedClasses.get(className);
-  }
-
-  /**
-   * Load a JavaClass object for the given class name using
-   * the CLASSPATH environment variable.
-   */
-  public JavaClass loadClass(String className) 
-    throws ClassNotFoundException
-  {
-    if(className == null || className.equals("")) {
-      throw new IllegalArgumentException("Invalid class name " + className);
+    public static SyntheticRepository getInstance() {
+        return getInstance(ClassPath.SYSTEM_CLASS_PATH);
     }
 
-    className = className.replace('/', '.'); // Just in case, canonical form
+    public static SyntheticRepository getInstance(ClassPath classPath) {
+        SyntheticRepository rep = (SyntheticRepository) _instances
+                .get(classPath);
 
-    try {
-      return loadClass(_path.getInputStream(className), className);
-    } catch(IOException e) {
-      throw new ClassNotFoundException("Exception while looking for class " + 
-				       className + ": " + e.toString());
-    }
-  }
+        if (rep == null) {
+            rep = new SyntheticRepository(classPath);
+            _instances.put(classPath, rep);
+        }
 
-  /**
-   * Try to find class source via getResourceAsStream().
-   * @see Class
-   * @return JavaClass object for given runtime class
-   */
-  public JavaClass loadClass(Class clazz) throws ClassNotFoundException {
-    String className = clazz.getName();
-    String name      = className;
-    int    i         = name.lastIndexOf('.');
-
-    if(i > 0) {
-      name = name.substring(i + 1);
+        return rep;
     }
 
-    return loadClass(clazz.getResourceAsStream(name + ".class"), className);
-  }
-
-  private JavaClass loadClass(InputStream is, String className)
-    throws ClassNotFoundException
-  {
-    JavaClass clazz = findClass(className);
-
-    if(clazz != null) { 
-      if (is != null) {
-	try {
-	    is.close();
-	} catch(IOException e) {
-	}
-      }
-      return clazz;
+    /**
+     * Store a new JavaClass instance into this Repository.
+     */
+    public void storeClass(JavaClass clazz) {
+        _loadedClasses.put(clazz.getClassName(), clazz);
+        clazz.setRepository(this);
     }
 
-    try {
-      if(is != null) {
-	ClassParser parser = new ClassParser(is, className);
-	clazz = parser.parse();
-	
-	storeClass(clazz);
-	is.close();
-	return clazz;
-      }
-    } catch(IOException e) {
-      throw new ClassNotFoundException("Exception while looking for class " + 
-				       className + ": " + e.toString());
+    /**
+     * Remove class from repository
+     */
+    public void removeClass(JavaClass clazz) {
+        _loadedClasses.remove(clazz.getClassName());
     }
 
-    throw new ClassNotFoundException("SyntheticRepository could not load " +
-				     className);    
-  }
+    /**
+     * Find an already defined (cached) JavaClass object by name.
+     */
+    public JavaClass findClass(String className) {
+        return (JavaClass) _loadedClasses.get(className);
+    }
 
-  /** Clear all entries from cache.
-   */
-  public void clear() {
-    _loadedClasses.clear();
-  }
+    /**
+     * Load a JavaClass object for the given class name using
+     * the CLASSPATH environment variable.
+     */
+    public JavaClass loadClass(String className) throws ClassNotFoundException {
+        if (className == null || className.equals("")) {
+            throw new IllegalArgumentException("Invalid class name "
+                    + className);
+        }
+
+        className = className.replace('/', '.'); // Just in case, canonical form
+
+        try {
+            return loadClass(_path.getInputStream(className), className);
+        } catch (IOException e) {
+            throw new ClassNotFoundException(
+                    "Exception while looking for class " + className + ": "
+                            + e.toString());
+        }
+    }
+
+    /**
+     * Try to find class source via getResourceAsStream().
+     * @see Class
+     * @return JavaClass object for given runtime class
+     */
+    public JavaClass loadClass(Class clazz) throws ClassNotFoundException {
+        String className = clazz.getName();
+        String name = className;
+        int i = name.lastIndexOf('.');
+
+        if (i > 0) {
+            name = name.substring(i + 1);
+        }
+
+        return loadClass(clazz.getResourceAsStream(name + ".class"), className);
+    }
+
+    private JavaClass loadClass(InputStream is, String className)
+            throws ClassNotFoundException {
+        JavaClass clazz = findClass(className);
+
+        if (clazz != null) {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                }
+            }
+            return clazz;
+        }
+
+        try {
+            if (is != null) {
+                ClassParser parser = new ClassParser(is, className);
+                clazz = parser.parse();
+
+                storeClass(clazz);
+                is.close();
+                return clazz;
+            }
+        } catch (IOException e) {
+            throw new ClassNotFoundException(
+                    "Exception while looking for class " + className + ": "
+                            + e.toString());
+        }
+
+        throw new ClassNotFoundException("SyntheticRepository could not load "
+                + className);
+    }
+
+    /** Clear all entries from cache.
+     */
+    public void clear() {
+        _loadedClasses.clear();
+    }
 }

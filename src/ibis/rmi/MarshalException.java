@@ -13,7 +13,7 @@ public class MarshalException extends RemoteException {
      * @param s the detail message
      */
     public MarshalException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -23,6 +23,6 @@ public class MarshalException extends RemoteException {
      * @param ex the nested exception
      */
     public MarshalException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

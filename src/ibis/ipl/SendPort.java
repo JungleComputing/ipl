@@ -30,8 +30,7 @@ import java.io.IOException;
  * message is alive, and a new message is requested, the request is
  * blocked until the live message is finished.
  */
-public interface SendPort
-{
+public interface SendPort {
     /**
      * Requests a new message from this sendport.
      * It is allowed to get a message for a sendport that is not connected.
@@ -40,7 +39,7 @@ public interface SendPort
      * @return a <code>WriteMessage</code>.
      * @exception IOException may be thrown when something goes wrong.
      */
-    public WriteMessage newMessage () throws IOException;
+    public WriteMessage newMessage() throws IOException;
 
     /**
      * Installs an object replacer on the underlying object stream.
@@ -59,13 +58,13 @@ public interface SendPort
      * {@link ibis.ipl.DynamicProperties#set(String, Object)
      * DynamicProperties.set} method.
      */
-    public DynamicProperties properties ();
+    public DynamicProperties properties();
 
     /**
      * Obtains an identification for this sendport.
      * @return the identification.
      */
-    public SendPortIdentifier identifier ();
+    public SendPortIdentifier identifier();
 
     /**
      * Returns the name of the sendport.
@@ -74,20 +73,20 @@ public interface SendPort
      *
      * @return the name.
      */
-    public String name ();
+    public String name();
 
     /**
      * Returns the sum of the {@link ibis.ipl.WriteMessage#finish()} 
      * results for all write messages created with this port.
      * @return the number of bytes written.
      */
-    public long getCount ();
+    public long getCount();
 
     /**
      * Sets the counter for the number of bytes that have been written to this
      * sendport to zero.
      */
-    public void resetCount ();
+    public void resetCount();
 
     /**
      * Attempts to set up a connection with a receiver.
@@ -113,7 +112,7 @@ public interface SendPort
      * @exception IOException is thrown if there was no connection to
      * the receiveport specified or in case of other trouble.
      */
-    public void disconnect (ReceivePortIdentifier receiver) throws IOException;
+    public void disconnect(ReceivePortIdentifier receiver) throws IOException;
 
     /**
      * Attempts to set up a connection with receiver.
@@ -132,8 +131,8 @@ public interface SendPort
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
      */
-    public void connect (ReceivePortIdentifier receiver,
-			 long timeoutMillis) throws IOException;
+    public void connect(ReceivePortIdentifier receiver, long timeoutMillis)
+            throws IOException;
 
     /**
      * Frees the resources held by the sendport.
@@ -142,14 +141,14 @@ public interface SendPort
      * cannot be used anymore.
      * @exception IOException is thrown in case of trouble.
      */
-    public void close () throws IOException;
+    public void close() throws IOException;
 
     /** 
      * Returns the set of receiveports this sendport is connected to.
      * 
      * @return a set of receiveport identifiers.
      */
-    public ReceivePortIdentifier[] connectedTo ();
+    public ReceivePortIdentifier[] connectedTo();
 
     /** 
      * Polls to find out whether any connections are lost or closed.
@@ -161,5 +160,5 @@ public interface SendPort
      * @return A set of receiveport identifiers to which the connection
      * is lost.
      */
-    public ReceivePortIdentifier[] lostConnections ();
+    public ReceivePortIdentifier[] lostConnections();
 }

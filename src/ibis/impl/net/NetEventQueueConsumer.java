@@ -5,6 +5,6 @@ package ibis.impl.net;
  */
 public interface NetEventQueueConsumer {
 
-        public void event(NetEvent event);
+    public void event(NetEvent event);
 }
 

@@ -5,5 +5,8 @@
  */
 class SATJumpException extends SATException {
     int level;
-    SATJumpException( int level ){ this.level = level; }
+
+    SATJumpException(int level) {
+        this.level = level;
+    }
 }

@@ -103,9 +103,8 @@ public abstract class Accumulator {
      * @param	length		the number of elements to be copied
      * @exception IOException	on an IO error
      */
-    public abstract void writeArray(boolean [] source, 
-	    int offset,
-	    int length) throws IOException;
+    public abstract void writeArray(boolean[] source, int offset, int length)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Bytes into the accumulator.
@@ -114,9 +113,8 @@ public abstract class Accumulator {
      * @param	length		the number of elements to be copied
      * @exception IOException	on an IO error
      */
-    public abstract void writeArray(byte [] source, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void writeArray(byte[] source, int offset, int length)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Characters into the accumulator.
@@ -125,9 +123,8 @@ public abstract class Accumulator {
      * @param	length		the number of elements to be copied
      * @exception IOException	on an IO error
      */
-    public abstract void writeArray(char [] source, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void writeArray(char[] source, int offset, int length)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Short Integers into the accumulator.
@@ -136,9 +133,8 @@ public abstract class Accumulator {
      * @param	length		the number of elements to be copied
      * @exception IOException	on an IO error
      */
-    public abstract void writeArray(short [] source, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void writeArray(short[] source, int offset, int length)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Integers into the accumulator.
@@ -147,9 +143,8 @@ public abstract class Accumulator {
      * @param	length		the number of elements to be copied
      * @exception IOException	on an IO error
      */
-    public abstract void writeArray(int [] source, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void writeArray(int[] source, int offset, int length)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Long Integers into the accumulator.
@@ -158,9 +153,8 @@ public abstract class Accumulator {
      * @param	length		the number of elements to be copied
      * @exception IOException	on an IO error
      */
-    public abstract void writeArray(long [] source, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void writeArray(long[] source, int offset, int length)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Floats into the accumulator.
@@ -169,9 +163,8 @@ public abstract class Accumulator {
      * @param	length		the number of elements to be copied
      * @exception IOException	on an IO error
      */
-    public abstract void writeArray(float [] source, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void writeArray(float[] source, int offset, int length)
+            throws IOException;
 
     /**
      * Writes (a slice of) an array of Doubles into the accumulator.
@@ -180,7 +173,6 @@ public abstract class Accumulator {
      * @param	length		the number of elements to be copied
      * @exception IOException	on an IO error
      */
-    public abstract void writeArray(double [] source, 
-	    int offset, 
-	    int length) throws IOException;
+    public abstract void writeArray(double[] source, int offset, int length)
+            throws IOException;
 }

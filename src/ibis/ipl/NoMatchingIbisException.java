@@ -13,7 +13,7 @@ public class NoMatchingIbisException extends IbisException {
      * <code>null</code> as its error detail message.
      */
     public NoMatchingIbisException() {
-	super();
+        super();
     }
 
     /**
@@ -23,7 +23,7 @@ public class NoMatchingIbisException extends IbisException {
      * @param s		the detail message
      */
     public NoMatchingIbisException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -34,7 +34,7 @@ public class NoMatchingIbisException extends IbisException {
      * @param cause	the cause
      */
     public NoMatchingIbisException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -44,6 +44,6 @@ public class NoMatchingIbisException extends IbisException {
      * @param cause	the cause
      */
     public NoMatchingIbisException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

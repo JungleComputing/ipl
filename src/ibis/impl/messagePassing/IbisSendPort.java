@@ -10,36 +10,32 @@ import java.io.IOException;
  */
 final public class IbisSendPort extends SendPort {
 
-
     IbisSerializationOutputStream obj_out;
 
+    public IbisSendPort(PortType type, String name) throws IOException {
+        super(type, name, false, /* syncMode */
+        false /* makeCopy */);
+        // obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
+        obj_out = new IbisSerializationOutputStream(out);
+        out.setAllocator(obj_out.getAllocator());
 
-    public IbisSendPort(PortType type,
-			String name)
-	    throws IOException {
-	super(type,
-	      name,
-	      false,	/* syncMode */
-	      false	/* makeCopy */);
-	// obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
-	obj_out = new IbisSerializationOutputStream(out);
-	out.setAllocator(obj_out.getAllocator());
-
-	if (Ibis.DEBUG) {
-	    System.err.println(">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream " + obj_out + " for IbisWriteMessage " + this);
-	}
+        if (Ibis.DEBUG) {
+            System.err
+                    .println(">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream "
+                            + obj_out + " for IbisWriteMessage " + this);
+        }
     }
 
     public void setReplacer(Replacer r) throws IOException {
-	obj_out.setReplacer(r);
+        obj_out.setReplacer(r);
     }
 
     ibis.ipl.WriteMessage cachedMessage() throws IOException {
-	if (message == null) {
-	    message = new IbisWriteMessage(this);
-	}
+        if (message == null) {
+            message = new IbisWriteMessage(this);
+        }
 
-	return message;
+        return message;
     }
 
 }

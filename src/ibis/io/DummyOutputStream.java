@@ -8,54 +8,55 @@ public class DummyOutputStream extends OutputStream {
     static final boolean SUPPORT_STATS = true;
 
     OutputStream out;
+
     long count = 0;
 
     public DummyOutputStream(OutputStream out) {
-	this.out = out;
+        this.out = out;
     }
 
     public void write(int b) throws IOException {
-	out.write(b);
+        out.write(b);
 
-	if(SUPPORT_STATS) {
-	    count++;
-	}
+        if (SUPPORT_STATS) {
+            count++;
+        }
     }
 
     public void write(byte[] b) throws IOException {
-	out.write(b);
+        out.write(b);
 
-	if(SUPPORT_STATS) {
-	    count += b.length;
-	}
+        if (SUPPORT_STATS) {
+            count += b.length;
+        }
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-	out.write(b, off, len);
+        out.write(b, off, len);
 
-	if(SUPPORT_STATS) {
-	    count += len;
-	}
+        if (SUPPORT_STATS) {
+            count += len;
+        }
     }
 
     public void flush() throws IOException {
-	out.flush();
+        out.flush();
     }
 
     public void close() {
-	/* don't propagate the close, otherwise we close the underlying socket,
-	   and that is not what we want here. */
+        /* don't propagate the close, otherwise we close the underlying socket,
+         and that is not what we want here. */
     }
 
     public void realClose() throws IOException {
-	out.close();
+        out.close();
     }
 
     public void resetCount() {
-	count = 0;
+        count = 0;
     }
 
     public long getCount() {
-	return count;
+        return count;
     }
 }

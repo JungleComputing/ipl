@@ -7,8 +7,7 @@ import ibis.rmi.impl.RTS;
  * The <code>LocateRegistry</code> class is a container class for methods that
  * are used to obtain a reference to a remote registry or to create a registry.
  */
-public final class LocateRegistry
-{
+public final class LocateRegistry {
     /**
      * Private constructor prevents construction from outside.
      */
@@ -21,9 +20,8 @@ public final class LocateRegistry
      * host on the default port.
      * @return a stub for the remote registry.
      */
-    public static Registry getRegistry()
-    {
-	return getRegistry(null, Registry.REGISTRY_PORT);
+    public static Registry getRegistry() {
+        return getRegistry(null, Registry.REGISTRY_PORT);
     }
 
     /**
@@ -32,22 +30,20 @@ public final class LocateRegistry
      * @param port the port on which the registry accepts requests
      * @return a stub for the remote registry.
      */
-    public static Registry getRegistry(int port)
-    {
-	return getRegistry(null, port);
+    public static Registry getRegistry(int port) {
+        return getRegistry(null, port);
     }
-    
+
     /**
      * Returns a reference to the remote <code>Registry</code> for the
      * specified host on the default port.
      * @param host host for the remote registry
      * @return a stub for the remote registry.
      */
-    public static Registry getRegistry(String host)
-    {
-	return getRegistry(host, Registry.REGISTRY_PORT);
+    public static Registry getRegistry(String host) {
+        return getRegistry(host, Registry.REGISTRY_PORT);
     }
-    
+
     /**
      * Returns a reference to the remote <code>Registry</code> for the
      * specified host on the specified port.
@@ -55,9 +51,8 @@ public final class LocateRegistry
      * @param port the port on which the registry accepts requests
      * @return a stub for the remote registry.
      */
-    public static Registry getRegistry(String host, int port)
-    {
-	return new ibis.rmi.registry.impl.RegistryImpl(host, port);
+    public static Registry getRegistry(String host, int port) {
+        return new ibis.rmi.registry.impl.RegistryImpl(host, port);
     }
 
     /**
@@ -67,18 +62,17 @@ public final class LocateRegistry
      * @return the registry.
      * @exception RemoteException if the registry could not be created.
      */
-    public static Registry createRegistry(int port) throws RemoteException
-    {
-	return new ibis.rmi.registry.impl.RegistryImpl(port);
+    public static Registry createRegistry(int port) throws RemoteException {
+        return new ibis.rmi.registry.impl.RegistryImpl(port);
     }
 
     static {
-	try {
-	    RTS.getHostname();
-	    // Just to make sure that RTS is initialized and that there is
-	    // an Ibis.
-	} catch (Exception e) {
-	    // ignored
-	}
+        try {
+            RTS.getHostname();
+            // Just to make sure that RTS is initialized and that there is
+            // an Ibis.
+        } catch (Exception e) {
+            // ignored
+        }
     }
 }

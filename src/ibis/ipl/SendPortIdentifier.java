@@ -3,7 +3,7 @@ package ibis.ipl;
 /**
  * Identifies a {@link ibis.ipl.SendPort SendPort} on the receiver side.
  */
-public interface SendPortIdentifier { 
+public interface SendPortIdentifier {
     /**
      * Returns the name of the {@link ibis.ipl.PortType PortType} of this
      * identifier.
@@ -44,4 +44,4 @@ public interface SendPortIdentifier {
      * java.lang.Object already implements it, but, anyway, here it is.
      */
     public boolean equals(Object other);
-} 
+}

@@ -17,60 +17,60 @@ import java.io.InputStream;
  */
 public final class SSunInput extends NetSerializedInput {
 
-	private NetBufferedInputSupport bufferInput;
+    private NetBufferedInputSupport bufferInput;
 
-        public SSunInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) throws IOException {
-                super(pt, driver, context, inputUpcall);
+    public SSunInput(NetPortType pt, NetDriver driver, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        super(pt, driver, context, inputUpcall);
+    }
+
+    public SerializationInputStream newSerializationInputStream()
+            throws IOException {
+        InputStream is = new DummyInputStream();
+        return new SunSerializationInputStream(is);
+    }
+
+    public void setupConnection(NetConnection cnx) throws IOException {
+        super.setupConnection(cnx);
+        if (subInput instanceof NetBufferedInputSupport) {
+            bufferInput = (NetBufferedInputSupport) subInput;
+            if (!bufferInput.readBufferedSupported()) {
+                bufferInput = null;
+            }
+        } else {
+            bufferInput = null;
         }
-        
-        public SerializationInputStream newSerializationInputStream() throws IOException {
-                InputStream is = new DummyInputStream();
-		return new SunSerializationInputStream(is);
+    }
+
+    private final class DummyInputStream extends InputStream {
+
+        public int read() throws IOException {
+            int result = subInput.readByte();
+            return (result & 255);
         }
 
-	public void setupConnection(NetConnection cnx) throws IOException {
-	    super.setupConnection(cnx);
-	    if (subInput instanceof NetBufferedInputSupport) {
-		bufferInput = (NetBufferedInputSupport)subInput;
-		if (! bufferInput.readBufferedSupported()) {
-		    bufferInput = null;
-		}
-	    } else {
-		bufferInput = null;
-	    }
-	}
+        public int read(byte[] data, int offset, int length) throws IOException {
 
+            if (bufferInput != null) {
+                // System.err.println("YES!!!");
+                return bufferInput.readBuffered(data, offset, length);
+            }
+            // System.err.println("no..... :-(( subInput " + subInput);
 
-        private final class DummyInputStream extends InputStream {
+            return super.read(data, offset, length);
+        }
 
-	    public int read() throws IOException {
-		int result = subInput.readByte();
-		return (result & 255);
-	    }
+        public int read(byte[] data) throws IOException {
 
-	    public int read(byte[] data, int offset, int length)
-		    throws IOException {
+            if (bufferInput != null) {
+                // System.err.println("YES!!!");
+                return bufferInput.readBuffered(data, 0, data.length);
+            }
+            // System.err.println("no..... :-(( subInput " + subInput);
 
-		if (bufferInput != null) {
-// System.err.println("YES!!!");
-		    return bufferInput.readBuffered(data, offset, length);
-		}
-// System.err.println("no..... :-(( subInput " + subInput);
+            return super.read(data);
+        }
 
-		return super.read(data, offset, length);
-	    }
-
-	    public int read(byte[] data) throws IOException {
-
-		if (bufferInput != null) {
-// System.err.println("YES!!!");
-		    return bufferInput.readBuffered(data, 0, data.length);
-		}
-// System.err.println("no..... :-(( subInput " + subInput);
-
-		return super.read(data);
-	    }
-
-        }        
+    }
 
 }

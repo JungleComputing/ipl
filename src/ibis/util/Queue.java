@@ -6,18 +6,20 @@ package ibis.util;
  */
 public class Queue {
     static class QueueNode {
-	QueueNode next;
-	Object data;
+        QueueNode next;
+
+        Object data;
     }
 
     QueueNode head, tail;
+
     int size;
 
     /**
      * Constructs a new queue.
      */
     public Queue() {
-	/* do nothing */
+        /* do nothing */
     }
 
     /**
@@ -26,18 +28,18 @@ public class Queue {
      * @param o the object to be enqueued.
      */
     public synchronized void enqueue(Object o) {
-	QueueNode node = new QueueNode();
-	node.data = o;
-	if(tail == null) {
-	    head = node;
-	} else {
-	    tail.next = node;
-	}
+        QueueNode node = new QueueNode();
+        node.data = o;
+        if (tail == null) {
+            head = node;
+        } else {
+            tail.next = node;
+        }
 
-	tail = node;
-	size++;
+        tail = node;
+        size++;
 
-	notify();
+        notify();
     }
 
     /**
@@ -47,7 +49,7 @@ public class Queue {
      * @return the dequeued object.
      */
     public synchronized Object dequeue() {
-	return dequeue(0L);
+        return dequeue(0L);
     }
 
     /**
@@ -63,35 +65,36 @@ public class Queue {
      * @return the dequeued object, or null if the deadline passed
      */
     public synchronized Object dequeue(long deadline) {
-	while(head == null) {
-	    if (deadline == -1) {
-		return null;
-	    } else if (deadline == 0) {
-		try {
-		    wait();
-		} catch (Exception e) {
-		    // Ignore.
-		}
-	    } else {
-		long time = System.currentTimeMillis();
+        while (head == null) {
+            if (deadline == -1) {
+                return null;
+            } else if (deadline == 0) {
+                try {
+                    wait();
+                } catch (Exception e) {
+                    // Ignore.
+                }
+            } else {
+                long time = System.currentTimeMillis();
 
-		if (time >= deadline) {
-		    return null;
-		}
-		try {
-		    wait(deadline - time);
-		} catch (Exception e) {
-		    //IGNORE
-		}
-	    }
-	}
+                if (time >= deadline) {
+                    return null;
+                }
+                try {
+                    wait(deadline - time);
+                } catch (Exception e) {
+                    //IGNORE
+                }
+            }
+        }
 
-	QueueNode result = head;
-	head = result.next;
-	if(head == null) tail = null;
-	size--;
+        QueueNode result = head;
+        head = result.next;
+        if (head == null)
+            tail = null;
+        size--;
 
-	return result.data;
+        return result.data;
     }
 
     /**
@@ -99,6 +102,6 @@ public class Queue {
      * @return the length of the queue.
      */
     public synchronized int size() {
-	return size;
+        return size;
     }
 }

@@ -26,96 +26,96 @@ final class VictimTable implements Config {
     private Satin satin;
 
     VictimTable(Satin s) {
-	this.satin = s;
-	thisCluster = new Cluster(s.ident.cluster());
-	clusters.add(thisCluster);
-	clustersHash.put(s.ident.cluster(), thisCluster);
+        this.satin = s;
+        thisCluster = new Cluster(s.ident.cluster());
+        clusters.add(thisCluster);
+        clustersHash.put(s.ident.cluster(), thisCluster);
     }
 
     void add(IbisIdentifier ident, SendPort port) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
-	Victim v = new Victim();
-	v.ident = ident;
-	v.s = port;
-	victims.add(v);
-	victimsHash.put(ident, port);
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
+        Victim v = new Victim();
+        v.ident = ident;
+        v.s = port;
+        victims.add(v);
+        victimsHash.put(ident, port);
 
-	Cluster c = (Cluster) clustersHash.get(ident.cluster());
-	if (c == null) { // new cluster
-	    c = new Cluster(v); //v is automagically added to this cluster
-	    clusters.add(c);
-	    clustersHash.put(ident.cluster(), c);
-	} else {
-	    c.add(v);
-	}
+        Cluster c = (Cluster) clustersHash.get(ident.cluster());
+        if (c == null) { // new cluster
+            c = new Cluster(v); //v is automagically added to this cluster
+            clusters.add(c);
+            clustersHash.put(ident.cluster(), c);
+        } else {
+            c.add(v);
+        }
     }
 
     Victim remove(IbisIdentifier ident) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
-	Victim v = new Victim();
-	v.ident = ident;
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
+        Victim v = new Victim();
+        v.ident = ident;
 
-	int i = victims.indexOf(v);
+        int i = victims.indexOf(v);
 
-	/*
-	 * this already happens below if(i < 0) { return null; }
-	 */
+        /*
+         * this already happens below if(i < 0) { return null; }
+         */
 
-	return remove(i);
+        return remove(i);
     }
 
     Victim remove(int i) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	// ??? hier een assert van maken??, let op bij 'this already happ...'
-	if (i < 0 || i >= victims.size()) {
-	    return null;
-	}
+        // ??? hier een assert van maken??, let op bij 'this already happ...'
+        if (i < 0 || i >= victims.size()) {
+            return null;
+        }
 
-	Victim v = (Victim) victims.remove(i);
-	victimsHash.remove(v.ident);
+        Victim v = (Victim) victims.remove(i);
+        victimsHash.remove(v.ident);
 
-	Cluster c = (Cluster) clustersHash.get(v.ident.cluster());
-	c.remove(v);
+        Cluster c = (Cluster) clustersHash.get(v.ident.cluster());
+        c.remove(v);
 
-	return v;
+        return v;
     }
 
     int size() {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
-	return victims.size();
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
+        return victims.size();
     }
 
     SendPort getPort(int i) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
-	if (i < 0 || i >= victims.size()) {
-	    return null;
-	}
-	return ((Victim) victims.get(i)).s;
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
+        if (i < 0 || i >= victims.size()) {
+            return null;
+        }
+        return ((Victim) victims.get(i)).s;
     }
 
     IbisIdentifier getIdent(int i) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
-	if (i < 0 || i >= victims.size()) {
-	    return null;
-	}
-	return ((Victim) victims.get(i)).ident;
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
+        if (i < 0 || i >= victims.size()) {
+            return null;
+        }
+        return ((Victim) victims.get(i)).ident;
     }
 
     SendPort getReplyPort(IbisIdentifier ident) {
-	return (SendPort) victimsHash.get(ident);
+        return (SendPort) victimsHash.get(ident);
     }
 
     /*
@@ -133,91 +133,91 @@ final class VictimTable implements Config {
      */
 
     Victim getVictim(IbisIdentifier ident) {
-	Victim v = null;
+        Victim v = null;
 
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	for (int i = 0; i < victims.size(); i++) {
-	    try {
-		v = ((Victim) victims.get(i));
-	    } catch (Exception e) {
-		System.err.println(e);
-	    }
+        for (int i = 0; i < victims.size(); i++) {
+            try {
+                v = ((Victim) victims.get(i));
+            } catch (Exception e) {
+                System.err.println(e);
+            }
 
-	    if (ASSERTS && v == null) {
-		System.err.println("EEK, v is null in getVictim");
-		System.exit(1);
-	    }
+            if (ASSERTS && v == null) {
+                System.err.println("EEK, v is null in getVictim");
+                System.exit(1);
+            }
 
-	    if (v.ident.equals(ident)) {
-		return v;
-	    }
-	}
+            if (v.ident.equals(ident)) {
+                return v;
+            }
+        }
 
-	throw new IbisError("EEK, victim not found in getVictim");
+        throw new IbisError("EEK, victim not found in getVictim");
     }
 
     Victim getRandomVictim() {
-	Victim v = null;
-	int index;
+        Victim v = null;
+        int index;
 
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	if (victims.size() == 0) { // can happen with open world, no others have
-	    // joined yet.
-	    return null;
-	}
+        if (victims.size() == 0) { // can happen with open world, no others have
+            // joined yet.
+            return null;
+        }
 
-	try {
-	    index = Math.abs(satin.random.nextInt()) % victims.size();
-	    v = ((Victim) victims.get(index));
-	} catch (Exception e) {
-	    System.err.println(e);
-	    e.printStackTrace();
-	    System.exit(1);
-	}
+        try {
+            index = Math.abs(satin.random.nextInt()) % victims.size();
+            v = ((Victim) victims.get(index));
+        } catch (Exception e) {
+            System.err.println(e);
+            e.printStackTrace();
+            System.exit(1);
+        }
 
-	if (ASSERTS && v == null) {
-	    System.err.println("EEK, v is null in getRandomVictim");
-	    System.exit(1);
-	}
+        if (ASSERTS && v == null) {
+            System.err.println("EEK, v is null in getRandomVictim");
+            System.exit(1);
+        }
 
-	return v;
+        return v;
     }
 
     /**
      * returns null if there are no other nodes in this cluster
      */
     Victim getRandomLocalVictim() {
-	Victim v = null;
-	int index;
-	int clusterSize = thisCluster.size();
+        Victim v = null;
+        int index;
+        int clusterSize = thisCluster.size();
 
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	if (clusterSize == 0)
-	    return null;
+        if (clusterSize == 0)
+            return null;
 
-	//try {
-	index = Math.abs(satin.random.nextInt()) % clusterSize;
-	v = thisCluster.get(index);
+        //try {
+        index = Math.abs(satin.random.nextInt()) % clusterSize;
+        v = thisCluster.get(index);
 
-	/*
-	 * } catch (Exception e) { System.err.println(e); }
-	 */
+        /*
+         * } catch (Exception e) { System.err.println(e); }
+         */
 
-	if (ASSERTS && v == null) {
-	    System.err.println("EEK, v is null");
-	    System.exit(1);
-	}
+        if (ASSERTS && v == null) {
+            System.err.println("EEK, v is null");
+            System.exit(1);
+        }
 
-	return v;
+        return v;
     }
 
     /**
@@ -225,65 +225,65 @@ final class VictimTable implements Config {
      * cluster
      */
     Victim getRandomRemoteVictim() {
-	Victim v = null;
-	int vIndex, cIndex;
-	int remoteVictims;
-	Cluster c;
+        Victim v = null;
+        int vIndex, cIndex;
+        int remoteVictims;
+        Cluster c;
 
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	if (ASSERTS && clusters.get(0) != thisCluster) {
-	    System.err.println("EEK I'm a bug in VictimTable,"
-		    + "firstCluster != me, please fix me!");
-	    System.exit(1);
-	}
+        if (ASSERTS && clusters.get(0) != thisCluster) {
+            System.err.println("EEK I'm a bug in VictimTable,"
+                    + "firstCluster != me, please fix me!");
+            System.exit(1);
+        }
 
-	remoteVictims = victims.size() - thisCluster.size();
+        remoteVictims = victims.size() - thisCluster.size();
 
-	if (remoteVictims == 0)
-	    return null;
+        if (remoteVictims == 0)
+            return null;
 
-	vIndex = Math.abs(satin.random.nextInt()) % remoteVictims;
+        vIndex = Math.abs(satin.random.nextInt()) % remoteVictims;
 
-	//find the cluster and index in the cluster for the victim
-	cIndex = 1;
-	c = (Cluster) clusters.get(cIndex);
-	while (vIndex >= c.size()) {
-	    vIndex -= c.size();
-	    cIndex += 1;
-	    c = (Cluster) clusters.get(cIndex);
-	}
+        //find the cluster and index in the cluster for the victim
+        cIndex = 1;
+        c = (Cluster) clusters.get(cIndex);
+        while (vIndex >= c.size()) {
+            vIndex -= c.size();
+            cIndex += 1;
+            c = (Cluster) clusters.get(cIndex);
+        }
 
-	v = c.get(vIndex);
+        v = c.get(vIndex);
 
-	if (ASSERTS && v == null) {
-	    System.err.println("EEK, v is null");
-	    System.exit(1);
-	}
+        if (ASSERTS && v == null) {
+            System.err.println("EEK, v is null");
+            System.exit(1);
+        }
 
-	return v;
+        return v;
     }
 
     void print(java.io.PrintStream out) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	out.println("victimtable on " + satin + ", size is " + victims.size());
+        out.println("victimtable on " + satin + ", size is " + victims.size());
 
-	for (int i = 0; i < victims.size(); i++) {
-	    out.println("   " + victims.get(i));
-	}
+        for (int i = 0; i < victims.size(); i++) {
+            out.println("   " + victims.get(i));
+        }
     }
 
     boolean contains(IbisIdentifier ident) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	return victims.contains(ident);
+        return victims.contains(ident);
     }
 
 }

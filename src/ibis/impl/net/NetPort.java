@@ -15,22 +15,22 @@ public abstract class NetPort {
     /**
      * The {@link ibis.impl.net.NetIbis} instance.
      */
-    protected NetIbis			ibis                   = null;
+    protected NetIbis ibis = null;
 
     /**
      * The dynamic properties of the port.
      */
-    protected NetDynamicProperties	props		     = null;
+    protected NetDynamicProperties props = null;
 
     /**
      * The name of the port.
      */
-    protected String			name                =  null;
+    protected String name = null;
 
     /**
      * The type of the port.
      */
-    protected NetPortType		type                =  null;
+    protected NetPortType type = null;
 
     /**
      * Optional (fine grained) logging object.
@@ -38,7 +38,7 @@ public abstract class NetPort {
      * This logging object should be used to display code-level information
      * like function calls, args and variable values.
      */
-    protected NetLog			log                    = null;
+    protected NetLog log = null;
 
     /**
      * Optional (coarse grained) logging object.
@@ -47,7 +47,7 @@ public abstract class NetPort {
      * about high-level algorithmic steps (e.g. message send, new connection
      * initialization.
      */
-    protected NetLog			trace                  = null;
+    protected NetLog trace = null;
 
     /**
      * Optional (general purpose) logging object.
@@ -55,23 +55,20 @@ public abstract class NetPort {
      * This logging object should only be used temporarily for debugging
      * purpose.
      */
-    protected NetLog			disp                   = null;
+    protected NetLog disp = null;
 
     /**
      * The topmost network driver.
      */
-    protected NetDriver			driver     	     = null;
-
-
+    protected NetDriver driver = null;
 
     /* ___ IMPORTANT OBJECTS ___________________________________________ */
-
 
     /**
      * The table of network {@linkplain ibis.impl.net.NetConnection connections}
      * indexed by connection identification numbers.
      */
-    protected Hashtable			connectionTable     =  null;
+    protected Hashtable connectionTable = null;
 
     /**
      * Return the {@linkplain ibis.impl.net.NetPortType port type}.
@@ -79,15 +76,15 @@ public abstract class NetPort {
      * @return the {@linkplain ibis.impl.net.NetPortType port type}.
      */
     public final NetPortType getPortType() {
-	return type;
+        return type;
     }
 
     public final String name() {
-	return name;
+        return name;
     }
 
     public final DynamicProperties properties() {
-	return props;
+        return props;
     }
 
     public abstract void closeFromRemote(NetConnection cnx);

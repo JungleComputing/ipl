@@ -4,14 +4,13 @@ package ibis.rmi;
  * A <code>NotBoundException</code> is thrown if an attempt is made
  * to lookup or unbind a name that has no binding.
  */
-public class NotBoundException extends ibis.ipl.IbisException
-{
+public class NotBoundException extends ibis.ipl.IbisException {
     /**
      * Constructs an <code>NotBoundException</code> with no specified
      * detail message.
      */
     public NotBoundException() {
-	super();
+        super();
     }
 
     /**
@@ -20,7 +19,7 @@ public class NotBoundException extends ibis.ipl.IbisException
      * @param s the detail message
      */
     public NotBoundException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -30,6 +29,6 @@ public class NotBoundException extends ibis.ipl.IbisException
      * @param e the cause
      */
     public NotBoundException(String s, Throwable e) {
-	super(s, e);
+        super(s, e);
     }
 }

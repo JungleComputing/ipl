@@ -50,39 +50,36 @@ public final class SATContext implements java.io.Serializable {
     /**
      * Constructs a Context with the specified elements.
      */
-    private SATContext(
-	int tl[],
-	byte al[],
-	int atc[],
-	int dl[],
-	int poscl[],
-	int negcl[],
-	float posinfo[],
-	float neginfo[],
-	boolean sat[],
-	int us
-    ){
-	terms = tl;
-	assignment = al;
-	antecedent = atc;
+    private SATContext(int tl[], byte al[], int atc[], int dl[], int poscl[],
+            int negcl[], float posinfo[], float neginfo[], boolean sat[], int us) {
+        terms = tl;
+        assignment = al;
+        antecedent = atc;
         this.dl = dl;
-	satisfied = sat;
-	unsatisfied = us;
-	posclauses = poscl;
-	negclauses = negcl;
+        satisfied = sat;
+        unsatisfied = us;
+        posclauses = poscl;
+        negclauses = negcl;
         this.posinfo = posinfo;
         this.neginfo = neginfo;
     }
 
     private static final boolean tracePropagation = false;
+
     private static final boolean traceLearning = false;
+
     private static final boolean traceResolutionChain = false;
+
     private static final boolean traceJumps = false;
+
     private static final boolean traceUpdates = false;
 
     private static final boolean doVerification = false;
+
     private static final boolean doLearning = true;
+
     private static final boolean doJumps = true;
+
     private static final boolean propagatePureVariables = true;
 
     /**
@@ -90,49 +87,31 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem to create the context for.
      * @return the constructed context
      */
-    public static SATContext buildSATContext( SATProblem p )
-    {
+    public static SATContext buildSATContext(SATProblem p) {
         int cno = p.getClauseCount();
         byte assignment[] = p.buildInitialAssignments();
         int antecedent[] = new int[assignment.length];
         int dl[] = new int[assignment.length];
 
-        for( int i=0; i<antecedent.length; i++ ){
+        for (int i = 0; i < antecedent.length; i++) {
             antecedent[i] = -1;
             dl[i] = -1;
         }
-        return new SATContext(
-            p.buildTermCounts(),
-            assignment,
-            antecedent,
-            dl,
-            p.buildPosClauses(),
-            p.buildNegClauses(),
-            p.buildPosInfo(),
-            p.buildNegInfo(),
-            new boolean[cno],
-            cno
-        );
+        return new SATContext(p.buildTermCounts(), assignment, antecedent, dl,
+                p.buildPosClauses(), p.buildNegClauses(), p.buildPosInfo(), p
+                        .buildNegInfo(), new boolean[cno], cno);
     }
 
     /**
      * Returns a clone of this Context.
      * @return The clone.
      */
-    public Object clone()
-    {
-        return new SATContext(
-	    (int []) terms.clone(),
-	    (byte []) assignment.clone(),
-	    (int []) antecedent.clone(),
-	    (int []) dl.clone(),
-	    (int []) posclauses.clone(),
-	    (int []) negclauses.clone(),
-	    (float []) posinfo.clone(),
-	    (float []) neginfo.clone(),
-	    (boolean []) satisfied.clone(),
-	    unsatisfied
-	);
+    public Object clone() {
+        return new SATContext((int[]) terms.clone(), (byte[]) assignment
+                .clone(), (int[]) antecedent.clone(), (int[]) dl.clone(),
+                (int[]) posclauses.clone(), (int[]) negclauses.clone(),
+                (float[]) posinfo.clone(), (float[]) neginfo.clone(),
+                (boolean[]) satisfied.clone(), unsatisfied);
     }
 
     /**
@@ -140,61 +119,75 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem.
      * @param cno The clause to verify.
      */
-    private void verifyTermCount( SATProblem p, int cno )
-    {
-	int termcount = 0;
+    private void verifyTermCount(SATProblem p, int cno) {
+        int termcount = 0;
 
         int newCount = p.getClauseCount();
-        if( newCount != satisfied.length ){
-            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + satisfied.length );
+        if (newCount != satisfied.length) {
+            System.err.println("Error: problem has " + newCount
+                    + " clauses, but context administers " + satisfied.length);
             return;
         }
-        if( satisfied[cno] ){
-	    // We don't care.
-	    return;
-	}
-	Clause c = p.clauses[cno];
+        if (satisfied[cno]) {
+            // We don't care.
+            return;
+        }
+        Clause c = p.clauses[cno];
 
-	int arr[] = c.pos;
+        int arr[] = c.pos;
 
-	// Now count the unsatisfied variables.
-	for( int j=0; j<arr.length; j++ ){
-	    int v = arr[j];
+        // Now count the unsatisfied variables.
+        for (int j = 0; j < arr.length; j++) {
+            int v = arr[j];
 
-	    if( assignment[v] == 1 ){
-		int pos[] = p.getPosClauses( v );
-		boolean verdict = Helpers.contains( pos, cno );
+            if (assignment[v] == 1) {
+                int pos[] = p.getPosClauses(v);
+                boolean verdict = Helpers.contains(pos, cno);
 
-		System.err.println( "Error: positive variable " + v + " of clause " + c + " has positive assignment, but clause is not satisfied"  );
-		System.err.println( "       Does variable " + v + " list clause " + cno + " as positive occurence? " + verdict );
-	    }
-	    else if( assignment[v] == UNASSIGNED ){
-		// Count this unassigned variable.
-		termcount++;
-	    }
-	}
+                System.err
+                        .println("Error: positive variable "
+                                + v
+                                + " of clause "
+                                + c
+                                + " has positive assignment, but clause is not satisfied");
+                System.err.println("       Does variable " + v
+                        + " list clause " + cno + " as positive occurence? "
+                        + verdict);
+            } else if (assignment[v] == UNASSIGNED) {
+                // Count this unassigned variable.
+                termcount++;
+            }
+        }
 
-	// Also count the negative variables.
-	arr = c.neg;
-	for( int j=0; j<arr.length; j++ ){
-	    int v = arr[j];
+        // Also count the negative variables.
+        arr = c.neg;
+        for (int j = 0; j < arr.length; j++) {
+            int v = arr[j];
 
-	    if( assignment[v] == 0 ){
-		int neg[] = p.getNegClauses( v );
-		boolean verdict = Helpers.contains( neg, cno );
+            if (assignment[v] == 0) {
+                int neg[] = p.getNegClauses(v);
+                boolean verdict = Helpers.contains(neg, cno);
 
-		System.err.println( "Error: negative variable " + v + " of clause " + c + " has negative assignment, but clause is not satisfied"  );
-		System.err.println( "       Does variable " + v + " list clause " + cno + " as negative occurence? " + verdict );
-	    }
-	    else if( assignment[v] == UNASSIGNED ){
-		termcount++;
-	    }
-	}
-	if( termcount != terms[cno] ){
-	    System.err.println( "Error: I count " + termcount + " unassigned variables in clause " + c + " but the administration says " + terms[cno] );
+                System.err
+                        .println("Error: negative variable "
+                                + v
+                                + " of clause "
+                                + c
+                                + " has negative assignment, but clause is not satisfied");
+                System.err.println("       Does variable " + v
+                        + " list clause " + cno + " as negative occurence? "
+                        + verdict);
+            } else if (assignment[v] == UNASSIGNED) {
+                termcount++;
+            }
+        }
+        if (termcount != terms[cno]) {
+            System.err.println("Error: I count " + termcount
+                    + " unassigned variables in clause " + c
+                    + " but the administration says " + terms[cno]);
             dumpAssignments();
             terms[cno] = termcount;
-	}
+        }
     }
 
     /**
@@ -202,80 +195,81 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem.
      * @param var The variable to verify.
      */
-    private void verifyClauseCount( SATProblem p, int var )
-    {
-	int poscount = 0;
-	int negcount = 0;
+    private void verifyClauseCount(SATProblem p, int var) {
+        int poscount = 0;
+        int negcount = 0;
 
         int newCount = p.getClauseCount();
-        if( newCount != satisfied.length ){
-            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + satisfied.length );
+        if (newCount != satisfied.length) {
+            System.err.println("Error: problem has " + newCount
+                    + " clauses, but context administers " + satisfied.length);
             return;
         }
-	// Count the positive clauses
-	int pos[] = p.getPosClauses( var );
-	for( int i=0; i<pos.length; i++ ){
-	    int cno = pos[i];
+        // Count the positive clauses
+        int pos[] = p.getPosClauses(var);
+        for (int i = 0; i < pos.length; i++) {
+            int cno = pos[i];
 
-	    if( !satisfied[cno] ){
-	        poscount++;
-	    }
-	}
+            if (!satisfied[cno]) {
+                poscount++;
+            }
+        }
 
-	// Count the negative clauses
-	int neg[] = p.getNegClauses( var );
-	for( int i=0; i<neg.length; i++ ){
-	    int cno = neg[i];
+        // Count the negative clauses
+        int neg[] = p.getNegClauses(var);
+        for (int i = 0; i < neg.length; i++) {
+            int cno = neg[i];
 
-	    if( !satisfied[cno] ){
-	        negcount++;
-	    }
-	}
-	if( posclauses[var] != poscount || negclauses[var] != negcount ){
-	    System.err.println( "Error: clause count of v" + var + " says (" + posclauses[var] + "," + negclauses[var] + "), but I count (" + poscount + "," + negcount + ")" );
-	    posclauses[var] = poscount;
-	    negclauses[var] = negcount;
-	}
+            if (!satisfied[cno]) {
+                negcount++;
+            }
+        }
+        if (posclauses[var] != poscount || negclauses[var] != negcount) {
+            System.err.println("Error: clause count of v" + var + " says ("
+                    + posclauses[var] + "," + negclauses[var]
+                    + "), but I count (" + poscount + "," + negcount + ")");
+            posclauses[var] = poscount;
+            negclauses[var] = negcount;
+        }
     }
 
-    private void dumpAntecedents( String indent, SATProblem p, int cno )
-    {
+    private void dumpAntecedents(String indent, SATProblem p, int cno) {
         Clause c = p.clauses[cno];
-        System.err.println( indent + c );
-	int arr[] = c.pos;
+        System.err.println(indent + c);
+        int arr[] = c.pos;
         String indent1 = indent + " ";
-        
-        for( int i=0; i<arr.length; i++ ){
+
+        for (int i = 0; i < arr.length; i++) {
             int v = arr[i];
             int a = antecedent[v];
 
-            if( a>=0 ){
-                if( a == cno ){
-                    System.err.println( indent1 + "implication: v" + v + "=" + assignment[v] + "@" + dl[v] );
+            if (a >= 0) {
+                if (a == cno) {
+                    System.err.println(indent1 + "implication: v" + v + "="
+                            + assignment[v] + "@" + dl[v]);
+                } else {
+                    dumpAntecedents(indent1, p, a);
                 }
-                else {
-                    dumpAntecedents( indent1, p, a );
-                }
-            }
-            else {
-                System.err.println( indent1 + "decision variable v" + v + "=" + assignment[v] + "@" + dl[v] );
+            } else {
+                System.err.println(indent1 + "decision variable v" + v + "="
+                        + assignment[v] + "@" + dl[v]);
             }
         }
         arr = c.neg;
-        for( int i=0; i<arr.length; i++ ){
+        for (int i = 0; i < arr.length; i++) {
             int v = arr[i];
             int a = antecedent[v];
 
-            if( a>=0 ){
-                if( a == cno ){
-                    System.err.println( indent1 + "implication: v" + v + "=" + assignment[v] + "@" + dl[v] );
+            if (a >= 0) {
+                if (a == cno) {
+                    System.err.println(indent1 + "implication: v" + v + "="
+                            + assignment[v] + "@" + dl[v]);
+                } else {
+                    dumpAntecedents(indent1, p, a);
                 }
-                else {
-                    dumpAntecedents( indent1, p, a );
-                }
-            }
-            else {
-                System.err.println( indent1 + "decision variable v" + v + "=" + assignment[v] + "@" + dl[v] );
+            } else {
+                System.err.println(indent1 + "decision variable v" + v + "="
+                        + assignment[v] + "@" + dl[v]);
             }
         }
     }
@@ -285,17 +279,16 @@ public final class SATContext implements java.io.Serializable {
      * @param c The clause to examine.
      * @return The variable that is implied by this clause, or -1 if there is none (i.e. the clause is in conflict), or -2 if there is more than one.
      */
-    private int getImplication( Clause c, int cno )
-    {
-	int arr[] = c.pos;
+    private int getImplication(Clause c, int cno) {
+        int arr[] = c.pos;
         int res = -1;
-        
-        for( int i=0; i<arr.length; i++ ){
+
+        for (int i = 0; i < arr.length; i++) {
             int v = arr[i];
             int a = antecedent[v];
 
-            if( a == cno ){
-                if( res != -1 ){
+            if (a == cno) {
+                if (res != -1) {
                     // There already is an implication. This isn't right.
                     return -2;
                 }
@@ -303,12 +296,12 @@ public final class SATContext implements java.io.Serializable {
             }
         }
         arr = c.neg;
-        for( int i=0; i<arr.length; i++ ){
+        for (int i = 0; i < arr.length; i++) {
             int v = arr[i];
             int a = antecedent[v];
 
-            if( a == cno ){
-                if( res != -1 ){
+            if (a == cno) {
+                if (res != -1) {
                     // There already is an implication. This isn't right.
                     return -2;
                 }
@@ -325,43 +318,40 @@ public final class SATContext implements java.io.Serializable {
      * @param p The sat problem.
      * @param cno The clause to dump.
      */
-    private void dumpImplications( String indent, SATProblem p, int cno )
-    {
+    private void dumpImplications(String indent, SATProblem p, int cno) {
         Clause c = p.clauses[cno];
-        int impl = getImplication( c, cno );
+        int impl = getImplication(c, cno);
 
         String conclusion;
-        if( impl == -2 ){
+        if (impl == -2) {
             conclusion = "(nothing to conclude)";
-        }
-        else if( impl == -1 ){
+        } else if (impl == -1) {
             conclusion = "(conflict)";
-        }
-        else {
+        } else {
             conclusion = "==> v" + impl + "=" + assignment[impl];
         }
-        System.err.println( indent + c + " " + conclusion );
-	int arr[] = c.pos;
+        System.err.println(indent + c + " " + conclusion);
+        int arr[] = c.pos;
         String indent1 = indent + " ";
-        
-        for( int i=0; i<arr.length; i++ ){
+
+        for (int i = 0; i < arr.length; i++) {
             int v = arr[i];
             int a = antecedent[v];
 
-            if( a>=0 ){
-                if( a != cno ){
-                    dumpImplications( indent1, p, a );
+            if (a >= 0) {
+                if (a != cno) {
+                    dumpImplications(indent1, p, a);
                 }
             }
         }
         arr = c.neg;
-        for( int i=0; i<arr.length; i++ ){
+        for (int i = 0; i < arr.length; i++) {
             int v = arr[i];
             int a = antecedent[v];
 
-            if( a>=0 ){
-                if( a != cno ){
-                    dumpImplications( indent1, p, a );
+            if (a >= 0) {
+                if (a != cno) {
+                    dumpImplications(indent1, p, a);
                 }
             }
         }
@@ -378,35 +368,34 @@ public final class SATContext implements java.io.Serializable {
      * @param distFromConflict The distance of this clause to the conflict in antecedent steps.
      * @return The index of the nearest dominator clause, or -1 if there isn't one.
      */
-    private int calculateNearestDominator( SATProblem p, int arr[], int cno, int level, int dist[], int distFromConflict )
-    {
+    private int calculateNearestDominator(SATProblem p, int arr[], int cno,
+            int level, int dist[], int distFromConflict) {
         int bestDom = -1;
         int bestDist = satisfied.length;
         int bestVar = -1;
 
-        for( int i=0; i<arr.length; i++ ){
+        for (int i = 0; i < arr.length; i++) {
             int v = arr[i];
             int a = antecedent[v];
 
-            if( dl[v] == level ){
+            if (dl[v] == level) {
                 // The variable was deduced at our level, so it's
                 // interesting.
 
-                if( a<0 ){
+                if (a < 0) {
                     // A decision variable, not interesting.
-                }
-                else {
+                } else {
                     // The variable is not a decision variable.
-                    if( a == cno ){
+                    if (a == cno) {
                         // The implication variable of this clause,
                         // not interesting.
-                    }
-                    else {
+                    } else {
                         // Variable is not implied by this clause, we're
                         // still interested.
-                        int newDom = calculateNearestDominator( p, a, level, dist, distFromConflict+1 );
-                        if( newDom != -1 ){
-                            if( bestDom == -1 || (dist[newDom]<bestDist) ){
+                        int newDom = calculateNearestDominator(p, a, level,
+                                dist, distFromConflict + 1);
+                        if (newDom != -1) {
+                            if (bestDom == -1 || (dist[newDom] < bestDist)) {
                                 bestDom = newDom;
                                 bestDist = dist[newDom];
                                 bestVar = v;
@@ -430,45 +419,46 @@ public final class SATContext implements java.io.Serializable {
      * @return The index of the nearest dominator clause, or -1 if there
      * is no dominator.
      */
-    private int calculateNearestDominator( SATProblem p, int cno, int level, int dist[], int distFromConflict )
-    {
+    private int calculateNearestDominator(SATProblem p, int cno, int level,
+            int dist[], int distFromConflict) {
         Clause c = p.clauses[cno];
-        if( traceResolutionChain ){
-            System.err.println( "Calculating nearest dominator of clause " + c );
+        if (traceResolutionChain) {
+            System.err.println("Calculating nearest dominator of clause " + c);
         }
-        if( dist[cno] != 0 ){
+        if (dist[cno] != 0) {
             // We've been here before, so this is a dominator.
-            if( dist[cno]>distFromConflict ){
+            if (dist[cno] > distFromConflict) {
                 dist[cno] = distFromConflict;
             }
-            if( traceResolutionChain ){
-                System.err.println( "We cross an earlier path with clause " + c + " in it: dominator" );
+            if (traceResolutionChain) {
+                System.err.println("We cross an earlier path with clause " + c
+                        + " in it: dominator");
             }
             return cno;
         }
         dist[cno] = distFromConflict;
         int bestDom;
 
-        int bestPosDom = calculateNearestDominator( p, c.pos, cno, level, dist, distFromConflict );
-        int bestNegDom = calculateNearestDominator( p, c.neg, cno, level, dist, distFromConflict );
-        if( bestPosDom == -1 ){
+        int bestPosDom = calculateNearestDominator(p, c.pos, cno, level, dist,
+                distFromConflict);
+        int bestNegDom = calculateNearestDominator(p, c.neg, cno, level, dist,
+                distFromConflict);
+        if (bestPosDom == -1) {
             bestDom = bestNegDom;
+        } else {
+            if (bestNegDom == -1) {
+                bestDom = bestPosDom;
+            } else {
+                if (dist[bestNegDom] < dist[bestPosDom]) {
+                    bestDom = bestNegDom;
+                } else {
+                    bestDom = bestPosDom;
+                }
+            }
         }
-        else {
-           if( bestNegDom == -1 ){
-               bestDom = bestPosDom;
-           }
-           else {
-               if( dist[bestNegDom]<dist[bestPosDom] ){
-                   bestDom = bestNegDom;
-               }
-               else {
-                   bestDom = bestPosDom;
-               }
-           }
-        }
-        if( traceResolutionChain ){
-            System.err.println( "Nearest dominator of clause " + c + " is " + bestDom );
+        if (traceResolutionChain) {
+            System.err.println("Nearest dominator of clause " + c + " is "
+                    + bestDom);
         }
         return bestDom;
     }
@@ -481,14 +471,13 @@ public final class SATContext implements java.io.Serializable {
      * @param level The current recursion level of the search process.
      * @return The index of the nearest dominator clause, or -1 if there isn't one.
      */
-    private int calculateNearestDominator( SATProblem p, int cno, int level )
-    {
+    private int calculateNearestDominator(SATProblem p, int cno, int level) {
         // The distance of each clause to the conflicting clause. The 
         // conflicting clause itself gets distance 1, so that we can use
         // the default value 0 as indication that we haven't considered
-	// this clause yet.
+        // this clause yet.
         int dist[] = new int[satisfied.length];
-        return calculateNearestDominator( p, cno, level, dist, 1 );
+        return calculateNearestDominator(p, cno, level, dist, 1);
     }
 
     /**
@@ -500,35 +489,34 @@ public final class SATContext implements java.io.Serializable {
      * @param level The decision level of the conflict.
      * @return A new clause that should improve the efficiency of the search process, or <code>null</code> if no helpful clause can be constructed.
      */
-    private Clause buildConflictClause( SATProblem p, int cno, int var, int level )
-    {
+    private Clause buildConflictClause(SATProblem p, int cno, int var, int level) {
         boolean changed = false;
         boolean anyChange = false;
         Clause res = p.clauses[cno];
         boolean resolvedDominator = false;
         boolean usedAntecedent[] = new boolean[satisfied.length];
 
-        int bestDom = calculateNearestDominator( p, cno, level );
+        int bestDom = calculateNearestDominator(p, cno, level);
         do {
             int arr[] = res.pos;
 
             changed = false;
-            for( int i=0; i<arr.length; i++ ){
+            for (int i = 0; i < arr.length; i++) {
                 int v = arr[i];
 
-                if( dl[v] == level ){
+                if (dl[v] == level) {
                     int a = antecedent[v];
 
-                    if( a>=0 && !usedAntecedent[a] ){
+                    if (a >= 0 && !usedAntecedent[a]) {
                         usedAntecedent[a] = true;
-                        Clause newres = Clause.resolve( res, p.clauses[a], v );
-                        if( traceLearning ){
-                            System.err.println( "Resolving on v" + v + ":" );
-                            System.err.println( "  " + res );
-                            System.err.println( "  " + p.clauses[a] + " =>" );
-                            System.err.println( "  " + newres );
+                        Clause newres = Clause.resolve(res, p.clauses[a], v);
+                        if (traceLearning) {
+                            System.err.println("Resolving on v" + v + ":");
+                            System.err.println("  " + res);
+                            System.err.println("  " + p.clauses[a] + " =>");
+                            System.err.println("  " + newres);
                         }
-                        if( a == bestDom ){
+                        if (a == bestDom) {
                             resolvedDominator = true;
                         }
                         changed = true;
@@ -538,24 +526,25 @@ public final class SATContext implements java.io.Serializable {
                     }
                 }
             }
-            if( !resolvedDominator ){
+            if (!resolvedDominator) {
                 arr = res.neg;
-                for( int i=0; i<arr.length; i++ ){
+                for (int i = 0; i < arr.length; i++) {
                     int v = arr[i];
 
-                    if( dl[v] == level ){
+                    if (dl[v] == level) {
                         int a = antecedent[v];
 
-                        if( a>=0 && !usedAntecedent[a] ){
+                        if (a >= 0 && !usedAntecedent[a]) {
                             usedAntecedent[a] = true;
-                            Clause newres = Clause.resolve( res, p.clauses[a], v );
-                            if( traceLearning ){
-                                System.err.println( "Resolving on v" + v + ":" );
-                                System.err.println( "  " + res );
-                                System.err.println( "  " + p.clauses[a] + " =>" );
-                                System.err.println( "  " + newres );
+                            Clause newres = Clause
+                                    .resolve(res, p.clauses[a], v);
+                            if (traceLearning) {
+                                System.err.println("Resolving on v" + v + ":");
+                                System.err.println("  " + res);
+                                System.err.println("  " + p.clauses[a] + " =>");
+                                System.err.println("  " + newres);
                             }
-                            if( a == bestDom ){
+                            if (a == bestDom) {
                                 resolvedDominator = true;
                             }
                             changed = true;
@@ -566,13 +555,13 @@ public final class SATContext implements java.io.Serializable {
                     }
                 }
             }
-        } while( changed && !resolvedDominator );
-        if( false ){
-            if( !resolvedDominator ){
+        } while (changed && !resolvedDominator);
+        if (false) {
+            if (!resolvedDominator) {
                 return null;
             }
         }
-        if( true ){
+        if (true) {
             // Now greedily resolve clauses as long as they are smaller.
             do {
                 changed = false;
@@ -580,45 +569,45 @@ public final class SATContext implements java.io.Serializable {
                 Clause bestclause = null;
                 int bestlength = res.getTermCount();
 
-                for( int i=0; i<arr.length; i++ ){
+                for (int i = 0; i < arr.length; i++) {
                     int v = arr[i];
                     int a = antecedent[v];
 
-                    if( a>=0 && !usedAntecedent[a] ){
+                    if (a >= 0 && !usedAntecedent[a]) {
                         usedAntecedent[a] = true;
-                        Clause newres = Clause.resolve( res, p.clauses[a], v );
+                        Clause newres = Clause.resolve(res, p.clauses[a], v);
                         int l = newres.getTermCount();
 
-                        if( bestlength>l ){
+                        if (bestlength > l) {
                             bestclause = newres;
                             bestlength = l;
                         }
                     }
                 }
                 arr = res.neg;
-                for( int i=0; i<arr.length; i++ ){
+                for (int i = 0; i < arr.length; i++) {
                     int v = arr[i];
                     int a = antecedent[v];
 
-                    if( a>=0 && !usedAntecedent[a] ){
+                    if (a >= 0 && !usedAntecedent[a]) {
                         usedAntecedent[a] = true;
-                        Clause newres = Clause.resolve( res, p.clauses[a], v );
+                        Clause newres = Clause.resolve(res, p.clauses[a], v);
                         int l = newres.getTermCount();
 
-                        if( bestlength>l ){
+                        if (bestlength > l) {
                             bestclause = newres;
                             bestlength = l;
                         }
                     }
                 }
-                if( bestclause != null ){
+                if (bestclause != null) {
                     res = bestclause;
                     changed = true;
                     anyChange = true;
                 }
-            } while( changed );
+            } while (changed);
         }
-        if( !anyChange ){
+        if (!anyChange) {
             return null;
         }
         return res;
@@ -633,21 +622,22 @@ public final class SATContext implements java.io.Serializable {
      * @param highLevel The current highest level.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictLevel( SATProblem p, int arr[], int cno, int highLevel )
-    {
+    private int calculateConflictLevel(SATProblem p, int arr[], int cno,
+            int highLevel) {
         int level = highLevel;
 
-        for( int i=0; i<arr.length; i++ ){
+        for (int i = 0; i < arr.length; i++) {
             int v = arr[i];
             int l = dl[v];
 
-            if( l>level  ){
+            if (l > level) {
                 int a = antecedent[v];
 
                 level = l;
-                if( a>=0 ){
-                    if( a != cno ){
-                        level = calculateConflictLevel( p, p.clauses[a], a, level );
+                if (a >= 0) {
+                    if (a != cno) {
+                        level = calculateConflictLevel(p, p.clauses[a], a,
+                                level);
                     }
                 }
             }
@@ -664,11 +654,11 @@ public final class SATContext implements java.io.Serializable {
      * @param highLevel The current highest level.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictLevel( SATProblem p, Clause c, int cno, int highLevel )
-    {
-        int level = calculateConflictLevel( p, c.pos, cno, highLevel );
-        int neglevel = calculateConflictLevel( p, c.neg, cno, level );
-	return neglevel;
+    private int calculateConflictLevel(SATProblem p, Clause c, int cno,
+            int highLevel) {
+        int level = calculateConflictLevel(p, c.pos, cno, highLevel);
+        int neglevel = calculateConflictLevel(p, c.neg, cno, level);
+        return neglevel;
     }
 
     /**
@@ -684,75 +674,79 @@ public final class SATContext implements java.io.Serializable {
      * @param level The recursion level of the solution process.
      * @param learnAsTuple Register learned clauses as active tuples?
      */
-    private void analyzeConflict( SATProblem p, int cno, int var, int level, boolean learnAsTuple, boolean learn )
-        throws SATJumpException
-    {
-        if( satisfied[cno] ){
+    private void analyzeConflict(SATProblem p, int cno, int var, int level,
+            boolean learnAsTuple, boolean learn) throws SATJumpException {
+        if (satisfied[cno]) {
             return;
         }
-        if( tracePropagation | traceLearning | traceResolutionChain ){
-            System.err.println( "S" + level + ": clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
+        if (tracePropagation | traceLearning | traceResolutionChain) {
+            System.err.println("S" + level + ": clause " + p.clauses[cno]
+                    + " conflicts with v" + var + "=" + assignment[var]);
             dumpAssignments();
-            if( traceResolutionChain ){
-                dumpImplications( "", p, cno );
+            if (traceResolutionChain) {
+                dumpImplications("", p, cno);
             }
         }
-        if( doVerification ){
-            verifyTermCount( p, cno );
+        if (doVerification) {
+            verifyTermCount(p, cno);
             Clause c = p.clauses[cno];
-            if( !c.isConflicting( assignment ) ){
-                if( c.isSatisfied( assignment ) ){
-                    System.err.println( "Error: conflicting clause " + c + " is satisfied" );
+            if (!c.isConflicting(assignment)) {
+                if (c.isSatisfied(assignment)) {
+                    System.err.println("Error: conflicting clause " + c
+                            + " is satisfied");
+                } else {
+                    System.err.println("Error: conflicting clause " + c
+                            + " is not in conflict");
                 }
-                else {
-                    System.err.println( "Error: conflicting clause " + c + " is not in conflict" );
-                }
-                Helpers.dumpAssignments( "Assignments", assignment );
+                Helpers.dumpAssignments("Assignments", assignment);
             }
         }
-	Clause cc = null;
-	if( (doLearning && learn) || doJumps ){
-	    cc = buildConflictClause( p, cno, var, level );
-	    if( cc == null ){
-		if( traceLearning ){
-		    System.err.println( "No interesting conflict clause could be constructed" );
-		}
-	    }
-	}
-	if( cc != null ){
-	    if( doVerification ){
-		if( !cc.isConflicting( assignment ) ){
-		    if( cc.isSatisfied( assignment ) ){
-			System.err.println( "Error: learned clause " + cc + " is satisfied" );
-		    }
-		    else {
-			System.err.println( "Error: learned clause " + cc + " is not in conflict" );
-		    }
-		    Helpers.dumpAssignments( "Assignments", assignment );
-		}
-	    }
-	    if( doLearning && learn ){
-		if( learnAsTuple ){
-		    ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
-		}
-		else {
-		    p.addConflictClause( cc );
-		}
-	    }
+        Clause cc = null;
+        if ((doLearning && learn) || doJumps) {
+            cc = buildConflictClause(p, cno, var, level);
+            if (cc == null) {
+                if (traceLearning) {
+                    System.err
+                            .println("No interesting conflict clause could be constructed");
+                }
+            }
+        }
+        if (cc != null) {
+            if (doVerification) {
+                if (!cc.isConflicting(assignment)) {
+                    if (cc.isSatisfied(assignment)) {
+                        System.err.println("Error: learned clause " + cc
+                                + " is satisfied");
+                    } else {
+                        System.err.println("Error: learned clause " + cc
+                                + " is not in conflict");
+                    }
+                    Helpers.dumpAssignments("Assignments", assignment);
+                }
+            }
+            if (doLearning && learn) {
+                if (learnAsTuple) {
+                    ibis.satin.SatinTupleSpace.add("learned",
+                            new SATSolver.ProblemUpdater(cc));
+                } else {
+                    p.addConflictClause(cc);
+                }
+            }
 
-	    if( doJumps ){
-		int cl = calculateConflictLevel( p, cc, -1, -1 );
+            if (doJumps) {
+                int cl = calculateConflictLevel(p, cc, -1, -1);
 
-		if( cl>=0 && cl<level ){
-		    if( traceLearning | traceJumps ){
-			System.err.println( "Jumping at level " + (cl-1) + " (now at " + level + ")" );
-		    }
-		    if( cl<level ){
-			throw new SATJumpException( cl-1 );
-		    }
-		}
-	    }
-	}
+                if (cl >= 0 && cl < level) {
+                    if (traceLearning | traceJumps) {
+                        System.err.println("Jumping at level " + (cl - 1)
+                                + " (now at " + level + ")");
+                    }
+                    if (cl < level) {
+                        throw new SATJumpException(cl - 1);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -764,63 +758,67 @@ public final class SATContext implements java.io.Serializable {
      * @param learn Do any learning?
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise.
      */
-    private int propagateUnitClause( SATProblem p, int i, int level, boolean learnAsTuple, boolean learn )
-        throws SATJumpException
-    {
-	if( satisfied[i] ){
-	    // Not interesting.
-	    return SATProblem.UNDETERMINED;
-	}
-	Clause c = p.clauses[i];
-        if( doVerification ){
-            if( terms[i] != 1 ){
-                System.err.println( "Error: cannot propagate clause " + c + " since it's not a unit clause" );
+    private int propagateUnitClause(SATProblem p, int i, int level,
+            boolean learnAsTuple, boolean learn) throws SATJumpException {
+        if (satisfied[i]) {
+            // Not interesting.
+            return SATProblem.UNDETERMINED;
+        }
+        Clause c = p.clauses[i];
+        if (doVerification) {
+            if (terms[i] != 1) {
+                System.err.println("Error: cannot propagate clause " + c
+                        + " since it's not a unit clause");
                 return SATProblem.UNDETERMINED;
             }
         }
-	int arr[] = c.pos;
-	if( tracePropagation ){
-	    System.err.println( "S" + level + ": propagating unit clause " + c );
-	}
+        int arr[] = c.pos;
+        if (tracePropagation) {
+            System.err.println("S" + level + ": propagating unit clause " + c);
+        }
 
-	// Now search for the variable that isn't satisfied.
-	for( int j=0; j<arr.length; j++ ){
-	    int v = arr[j];
+        // Now search for the variable that isn't satisfied.
+        for (int j = 0; j < arr.length; j++) {
+            int v = arr[j];
 
-	    if( assignment[v] == UNASSIGNED ){
-		// We have found the unassigned one, propagate it.
-		if( tracePropagation ){
-		    System.err.println( "S" + level + ": propagating positive unit variable " + v + " from clause " + c );
-		}
-                if( antecedent[v]<0 ){
+            if (assignment[v] == UNASSIGNED) {
+                // We have found the unassigned one, propagate it.
+                if (tracePropagation) {
+                    System.err.println("S" + level
+                            + ": propagating positive unit variable " + v
+                            + " from clause " + c);
+                }
+                if (antecedent[v] < 0) {
                     antecedent[v] = i;
+                } else {
+                    System.err.println("v" + v
+                            + " has more than one antecedent");
                 }
-                else {
-                    System.err.println( "v" + v + " has more than one antecedent" );
-                }
-		return propagatePosAssignment( p, v, level, learnAsTuple, learn );
-	    }
-	}
+                return propagatePosAssignment(p, v, level, learnAsTuple, learn);
+            }
+        }
 
-	// Keep searching for the unassigned variable 
-	arr = c.neg;
-	for( int j=0; j<arr.length; j++ ){
-	    int v = arr[j];
-	    if( assignment[v] == UNASSIGNED ){
-		// We have found the unassigned one, propagate it.
-		if( tracePropagation ){
-		    System.err.println( "S" + level + ": propagating negative unit variable " + v + " from clause " + c );
-		}
-                if( antecedent[v]<0 ){
+        // Keep searching for the unassigned variable 
+        arr = c.neg;
+        for (int j = 0; j < arr.length; j++) {
+            int v = arr[j];
+            if (assignment[v] == UNASSIGNED) {
+                // We have found the unassigned one, propagate it.
+                if (tracePropagation) {
+                    System.err.println("S" + level
+                            + ": propagating negative unit variable " + v
+                            + " from clause " + c);
+                }
+                if (antecedent[v] < 0) {
                     antecedent[v] = i;
+                } else {
+                    System.err.println("v" + v
+                            + " has more than one antecedent");
                 }
-                else {
-                    System.err.println( "v" + v + " has more than one antecedent" );
-                }
-		return propagateNegAssignment( p, v, level, learnAsTuple, learn );
-	    }
-	}
-	return SATProblem.UNDETERMINED;
+                return propagateNegAssignment(p, v, level, learnAsTuple, learn);
+            }
+        }
+        return SATProblem.UNDETERMINED;
     }
 
     /**
@@ -829,59 +827,60 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    public int update( SATProblem p, int level ) throws SATJumpException
-    {
+    public int update(SATProblem p, int level) throws SATJumpException {
         int newCount = p.getClauseCount();
         boolean haveUnitClauses = false;
 
-        if( newCount>satisfied.length ){
-            if( traceUpdates ){
-                System.err.println( "S" + level + ": updating context with " + (newCount-satisfied.length) + " new clauses" );
+        if (newCount > satisfied.length) {
+            if (traceUpdates) {
+                System.err.println("S" + level + ": updating context with "
+                        + (newCount - satisfied.length) + " new clauses");
             }
             int oldCount = satisfied.length;
             // New clauses have been added. Enlarge the arrays related
             // to the clauses, and fill them with the correct values.
 
             int newterms[] = new int[newCount];
-            System.arraycopy( terms, 0, newterms, 0, terms.length );
+            System.arraycopy(terms, 0, newterms, 0, terms.length);
             terms = newterms;
 
             boolean newsatisfied[] = new boolean[newCount];
-            System.arraycopy( satisfied, 0, newsatisfied, 0, satisfied.length );
+            System.arraycopy(satisfied, 0, newsatisfied, 0, satisfied.length);
             satisfied = newsatisfied;
 
-            for( int i=oldCount; i<newCount; i++ ){
+            for (int i = oldCount; i < newCount; i++) {
                 Clause cl = p.clauses[i];
 
-                if( cl.isConflicting( assignment ) ){
+                if (cl.isConflicting(assignment)) {
                     return SATProblem.CONFLICTING;
                 }
-                boolean issat = cl.isSatisfied( assignment );
+                boolean issat = cl.isSatisfied(assignment);
                 satisfied[i] = issat;
-                if( !issat ){
+                if (!issat) {
                     unsatisfied++;
-                    int nterm = cl.getTermCount( assignment );
+                    int nterm = cl.getTermCount(assignment);
                     terms[i] = nterm;
-                    if( nterm == 1 ){
+                    if (nterm == 1) {
                         haveUnitClauses = true;
                     }
-                    float info = p.reviewer.info( nterm );
-                    cl.registerInfo( posinfo, neginfo, info );
-                    cl.registerVariableCounts( posclauses, negclauses );
+                    float info = p.reviewer.info(nterm);
+                    cl.registerInfo(posinfo, neginfo, info);
+                    cl.registerVariableCounts(posclauses, negclauses);
                 }
             }
-            if( doVerification ){
-                for( int i=oldCount; i<newCount; i++ ){
-                    verifyTermCount( p, i );
+            if (doVerification) {
+                for (int i = oldCount; i < newCount; i++) {
+                    verifyTermCount(p, i);
                 }
             }
-            if( true ){
+            if (true) {
                 // Now propagate unit clauses if there are any.
-                if( haveUnitClauses ){
-                    for( int cno=oldCount; cno<newCount; cno++ ){
-                        if( !satisfied[cno] && terms[cno] == 1 ){
-                            int res = propagateUnitClause( p, cno, level, false, false );
-                            if( res != 0 ){
+                if (haveUnitClauses) {
+                    for (int cno = oldCount; cno < newCount; cno++) {
+                        if (!satisfied[cno] && terms[cno] == 1) {
+                            int res = propagateUnitClause(p, cno, level, false,
+                                    false);
+                            if (res != 0) {
                                 return res;
                             }
                         }
@@ -889,7 +888,7 @@ public final class SATContext implements java.io.Serializable {
                 }
             }
         }
-	return SATProblem.UNDETERMINED;
+        return SATProblem.UNDETERMINED;
     }
 
     /**
@@ -900,303 +899,319 @@ public final class SATContext implements java.io.Serializable {
      * @param learnAsTuple Register learned clauses as active tuples?
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    private int markClauseSatisfied( SATProblem p, int cno, int level, boolean learnAsTuple, boolean learn )
-        throws SATJumpException
-    {
-	boolean hasPure = false;
+    private int markClauseSatisfied(SATProblem p, int cno, int level,
+            boolean learnAsTuple, boolean learn) throws SATJumpException {
+        boolean hasPure = false;
 
-	satisfied[cno] = true;
-	unsatisfied--;
-	if( unsatisfied == 0 ){
-	    return SATProblem.SATISFIED;
-	}
-	Clause c = p.clauses[cno];
-	if( tracePropagation ){
-	    System.err.println( "S" + level + ": clause " + c + " is now satisfied, " + unsatisfied + " to go" );
-	}
+        satisfied[cno] = true;
+        unsatisfied--;
+        if (unsatisfied == 0) {
+            return SATProblem.SATISFIED;
+        }
+        Clause c = p.clauses[cno];
+        if (tracePropagation) {
+            System.err.println("S" + level + ": clause " + c
+                    + " is now satisfied, " + unsatisfied + " to go");
+        }
 
-	int pos[] = c.pos;
-	for( int i=0; i<pos.length; i++ ){
-	    int var = pos[i];
+        int pos[] = c.pos;
+        for (int i = 0; i < pos.length; i++) {
+            int var = pos[i];
 
-	    int pc = --posclauses[var];
-	    if( doVerification ){
-	        verifyClauseCount( p, var );
-	    }
-	    if( propagatePureVariables && pc == 0 ){
-		if( assignment[var] == UNASSIGNED ){
-                    if( negclauses[var] != 0 ){
-                        if( tracePropagation ){
-                            System.err.println( "v" + var + " only occurs negatively (0," + negclauses[var] + ")"  );
+            int pc = --posclauses[var];
+            if (doVerification) {
+                verifyClauseCount(p, var);
+            }
+            if (propagatePureVariables && pc == 0) {
+                if (assignment[var] == UNASSIGNED) {
+                    if (negclauses[var] != 0) {
+                        if (tracePropagation) {
+                            System.err.println("v" + var
+                                    + " only occurs negatively (0,"
+                                    + negclauses[var] + ")");
                         }
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
                         // adminstration is inconsistent at the moment.
                         hasPure = true;
                     }
-		}
-	    }
-	}
-	int neg[] = c.neg;
-	for( int i=0; i<neg.length; i++ ){
-	    int var = neg[i];
+                }
+            }
+        }
+        int neg[] = c.neg;
+        for (int i = 0; i < neg.length; i++) {
+            int var = neg[i];
 
-	    int nc = --negclauses[var];
-	    if( doVerification ){
-	        verifyClauseCount( p, var );
-	    }
-	    if( propagatePureVariables && nc == 0 ){
-		if( assignment[var] == UNASSIGNED ){
-                    if( posclauses[var] != 0 ){
-                        if( tracePropagation ){
-                            System.err.println( "v" + var + " only occurs positively (" + posclauses[var] + ",0)"  );
+            int nc = --negclauses[var];
+            if (doVerification) {
+                verifyClauseCount(p, var);
+            }
+            if (propagatePureVariables && nc == 0) {
+                if (assignment[var] == UNASSIGNED) {
+                    if (posclauses[var] != 0) {
+                        if (tracePropagation) {
+                            System.err.println("v" + var
+                                    + " only occurs positively ("
+                                    + posclauses[var] + ",0)");
                         }
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
                         // adminstration is inconsistent at the moment.
                         hasPure = true;
                     }
-		}
-	    }
-	}
-	if( propagatePureVariables && hasPure ){
-	    // Now propagate the pure variables.
-	    for( int i=0; i<pos.length; i++ ){
-		int var = pos[i];
+                }
+            }
+        }
+        if (propagatePureVariables && hasPure) {
+            // Now propagate the pure variables.
+            for (int i = 0; i < pos.length; i++) {
+                int var = pos[i];
 
-		if( assignment[var] == UNASSIGNED && posclauses[var] == 0 && negclauses[var] != 0 ){
-                    if( antecedent[var]<0 ){
+                if (assignment[var] == UNASSIGNED && posclauses[var] == 0
+                        && negclauses[var] != 0) {
+                    if (antecedent[var] < 0) {
                         antecedent[var] = cno;
+                    } else {
+                        System.err.println("v" + var
+                                + " has more than one antecedent");
                     }
-                    else {
-                        System.err.println( "v" + var + " has more than one antecedent" );
+                    int res = propagateNegAssignment(p, var, level,
+                            learnAsTuple, learn);
+                    if (res != SATProblem.UNDETERMINED) {
+                        return res;
                     }
-		    int res = propagateNegAssignment( p, var, level, learnAsTuple, learn );
-		    if( res != SATProblem.UNDETERMINED ){
-			return res;
-		    }
-		}
-	    }
-	    for( int i=0; i<neg.length; i++ ){
-		int var = neg[i];
+                }
+            }
+            for (int i = 0; i < neg.length; i++) {
+                int var = neg[i];
 
-		if( assignment[var] == UNASSIGNED && negclauses[var] == 0 && posclauses[var] != 0 ){
-                    if( antecedent[var]<0 ){
+                if (assignment[var] == UNASSIGNED && negclauses[var] == 0
+                        && posclauses[var] != 0) {
+                    if (antecedent[var] < 0) {
                         antecedent[var] = cno;
+                    } else {
+                        System.err.println("v" + var
+                                + " has more than one antecedent");
                     }
-                    else {
-                        System.err.println( "v" + var + " has more than one antecedent" );
+                    int res = propagatePosAssignment(p, var, level,
+                            learnAsTuple, learn);
+                    if (res != SATProblem.UNDETERMINED) {
+                        return res;
                     }
-		    int res = propagatePosAssignment( p, var, level, learnAsTuple, learn );
-		    if( res != SATProblem.UNDETERMINED ){
-			return res;
-		    }
-		}
-	    }
-	}
-	return SATProblem.UNDETERMINED;
+                }
+            }
+        }
+        return SATProblem.UNDETERMINED;
     }
 
-    private void dumpAssignments()
-    {
-        Helpers.dumpAssignments( "Assignments", assignment );
+    private void dumpAssignments() {
+        Helpers.dumpAssignments("Assignments", assignment);
     }
 
     /**
      * Propagates the fact that variable 'var' is true.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    public int propagatePosAssignment( SATProblem p, int var, int level, boolean learnAsTuple, boolean learn )
-        throws SATJumpException
-    {
-        if( doVerification ){
-            if( assignment[var] == 1 ){
-                System.err.println( "Error: S" + level + ": new assignment v" + var + "=1 is already in place (dl" + dl[var] + ")"  );
+    public int propagatePosAssignment(SATProblem p, int var, int level,
+            boolean learnAsTuple, boolean learn) throws SATJumpException {
+        if (doVerification) {
+            if (assignment[var] == 1) {
+                System.err.println("Error: S" + level + ": new assignment v"
+                        + var + "=1 is already in place (dl" + dl[var] + ")");
                 dumpAssignments();
                 return SATProblem.UNDETERMINED;
             }
-            if( assignment[var] == 0 ){
-                System.err.println( "Error: S" + level + ": new assignment v" + var + "=1 conflicts with current assignment (dl" + dl[var] + ")" );
+            if (assignment[var] == 0) {
+                System.err.println("Error: S" + level + ": new assignment v"
+                        + var + "=1 conflicts with current assignment (dl"
+                        + dl[var] + ")");
                 dumpAssignments();
                 return SATProblem.UNDETERMINED;
             }
         }
         assignment[var] = 1;
         dl[var] = level;
-	boolean hasUnitClauses = false;
+        boolean hasUnitClauses = false;
 
-	if( tracePropagation ){
-	    System.err.println( "S" + level + ": propagating assignment v" + var + "=1" );
-	}
-	// Deduct this variable from all clauses that contain this as a
-	// negative term.
-	int neg[] = p.getNegClauses( var );
-	for( int i=0; i<neg.length; i++ ){
-	    int cno = neg[i];
+        if (tracePropagation) {
+            System.err.println("S" + level + ": propagating assignment v" + var
+                    + "=1");
+        }
+        // Deduct this variable from all clauses that contain this as a
+        // negative term.
+        int neg[] = p.getNegClauses(var);
+        for (int i = 0; i < neg.length; i++) {
+            int cno = neg[i];
 
             // Deduct the old info of this clause.
-            neginfo[var] -= p.reviewer.info( terms[cno] );
-	    terms[cno]--;
-	    if( terms[cno] == 0 ){
-                analyzeConflict( p, cno, var, level, learnAsTuple, learn );
-	        return SATProblem.CONFLICTING;
-	    }
-	    if( terms[cno] == 1 ){
-		// Remember that we saw a unit clause, but don't propagate
-                // it yet, since the administration is currently inconsistent.
-		hasUnitClauses = true;
-	    }
-            else {
-                // Add the new information of this clause.
-                neginfo[var] += p.reviewer.info( terms[cno] );
+            neginfo[var] -= p.reviewer.info(terms[cno]);
+            terms[cno]--;
+            if (terms[cno] == 0) {
+                analyzeConflict(p, cno, var, level, learnAsTuple, learn);
+                return SATProblem.CONFLICTING;
             }
-	}
+            if (terms[cno] == 1) {
+                // Remember that we saw a unit clause, but don't propagate
+                // it yet, since the administration is currently inconsistent.
+                hasUnitClauses = true;
+            } else {
+                // Add the new information of this clause.
+                neginfo[var] += p.reviewer.info(terms[cno]);
+            }
+        }
 
-	// Mark all clauses that contain this variable as a positive
-	// term as satisfied.
-	int pos[] = p.getPosClauses( var );
-	for( int i=0; i<pos.length; i++ ){
-	    int cno = pos[i];
+        // Mark all clauses that contain this variable as a positive
+        // term as satisfied.
+        int pos[] = p.getPosClauses(var);
+        for (int i = 0; i < pos.length; i++) {
+            int cno = pos[i];
 
-	    if( !satisfied[cno] ){
-                posinfo[var] -= p.reviewer.info( terms[cno] );
-		int res = markClauseSatisfied( p, cno, level, learnAsTuple, learn );
+            if (!satisfied[cno]) {
+                posinfo[var] -= p.reviewer.info(terms[cno]);
+                int res = markClauseSatisfied(p, cno, level, learnAsTuple,
+                        learn);
 
-		if( res != 0 ){
-		    return res;
-		}
-	    }
-	}
+                if (res != 0) {
+                    return res;
+                }
+            }
+        }
 
-	// Now propagate unit clauses if there are any.
-	if( hasUnitClauses ){
-	    for( int i=0; i<neg.length; i++ ){
-		int cno = neg[i];
+        // Now propagate unit clauses if there are any.
+        if (hasUnitClauses) {
+            for (int i = 0; i < neg.length; i++) {
+                int cno = neg[i];
 
-		if( doVerification ){
-		    verifyTermCount( p, cno );
-		}
-		if( terms[cno] == 1 ){
-		    int res = propagateUnitClause( p, cno, level, learnAsTuple, learn );
-		    if( res != 0 ){
-			return res;
-		    }
-		}
-	    }
-	}
-	return SATProblem.UNDETERMINED;
+                if (doVerification) {
+                    verifyTermCount(p, cno);
+                }
+                if (terms[cno] == 1) {
+                    int res = propagateUnitClause(p, cno, level, learnAsTuple,
+                            learn);
+                    if (res != 0) {
+                        return res;
+                    }
+                }
+            }
+        }
+        return SATProblem.UNDETERMINED;
     }
 
     /**
      * Propagates the fact that variable 'var' is false.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    public int propagateNegAssignment( SATProblem p, int var, int level, boolean learnAsTuple, boolean learn )
-        throws SATJumpException
-    {
-        if( doVerification ){
-            if( assignment[var] == 0 ){
-                System.err.println( "Error: S" + level + ": new assignment v" + var + "=0 is already in place (dl" + dl[var] + ")"  );
+    public int propagateNegAssignment(SATProblem p, int var, int level,
+            boolean learnAsTuple, boolean learn) throws SATJumpException {
+        if (doVerification) {
+            if (assignment[var] == 0) {
+                System.err.println("Error: S" + level + ": new assignment v"
+                        + var + "=0 is already in place (dl" + dl[var] + ")");
                 dumpAssignments();
                 return SATProblem.UNDETERMINED;
             }
-            if( assignment[var] == 1 ){
-                System.err.println( "Error: S" + level + ": new assignment v" + var + "=0 conflicts with current assignment (dl" + dl[var] + ")" );
+            if (assignment[var] == 1) {
+                System.err.println("Error: S" + level + ": new assignment v"
+                        + var + "=0 conflicts with current assignment (dl"
+                        + dl[var] + ")");
                 dumpAssignments();
                 return SATProblem.UNDETERMINED;
             }
         }
         assignment[var] = 0;
         dl[var] = level;
-	boolean hasUnitClauses = false;
+        boolean hasUnitClauses = false;
 
-	if( tracePropagation ){
-	    System.err.println( "S" + level + ": propagating assignment v" + var + "=0" );
-	}
-	// Deduct this variable from all clauses that contain this as a
-	// Positive term.
-	int pos[] = p.getPosClauses( var );
-	for( int i=0; i<pos.length; i++ ){
-	    int cno = pos[i];
+        if (tracePropagation) {
+            System.err.println("S" + level + ": propagating assignment v" + var
+                    + "=0");
+        }
+        // Deduct this variable from all clauses that contain this as a
+        // Positive term.
+        int pos[] = p.getPosClauses(var);
+        for (int i = 0; i < pos.length; i++) {
+            int cno = pos[i];
 
             // Deduct the old info of this clause.
-            posinfo[var] -= p.reviewer.info( terms[cno] );
-	    terms[cno]--;
-	    if( terms[cno] == 0 ){
-                analyzeConflict( p, cno, var, level, learnAsTuple, learn );
-	        return SATProblem.CONFLICTING;
-	    }
-	    if( terms[cno] == 1 ){
-		// Remember that we saw a unit clause, but don't propagate
-                // it yet, since the administration is currently inconsistent.
-		hasUnitClauses = true;
-	    }
-            else {
-                // Add the new information of this clause.
-                posinfo[var] += p.reviewer.info( terms[cno] );
+            posinfo[var] -= p.reviewer.info(terms[cno]);
+            terms[cno]--;
+            if (terms[cno] == 0) {
+                analyzeConflict(p, cno, var, level, learnAsTuple, learn);
+                return SATProblem.CONFLICTING;
             }
-	}
+            if (terms[cno] == 1) {
+                // Remember that we saw a unit clause, but don't propagate
+                // it yet, since the administration is currently inconsistent.
+                hasUnitClauses = true;
+            } else {
+                // Add the new information of this clause.
+                posinfo[var] += p.reviewer.info(terms[cno]);
+            }
+        }
 
-	// Mark all clauses that contain this variable as a negative
-	// term as satisfied.
-	int neg[] = p.getNegClauses( var );
-	for( int i=0; i<neg.length; i++ ){
-	    int cno = neg[i];
+        // Mark all clauses that contain this variable as a negative
+        // term as satisfied.
+        int neg[] = p.getNegClauses(var);
+        for (int i = 0; i < neg.length; i++) {
+            int cno = neg[i];
 
-	    if( !satisfied[cno] ){
-                neginfo[var] -= p.reviewer.info( terms[cno] );
-		int res = markClauseSatisfied( p, cno, level, learnAsTuple, learn );
+            if (!satisfied[cno]) {
+                neginfo[var] -= p.reviewer.info(terms[cno]);
+                int res = markClauseSatisfied(p, cno, level, learnAsTuple,
+                        learn);
 
-		if( res != 0 ){
-		    return res;
-		}
-	    }
-	}
+                if (res != 0) {
+                    return res;
+                }
+            }
+        }
 
-	// Now propagate unit clauses if there are any.
-	if( hasUnitClauses ){
-	    for( int i=0; i<pos.length; i++ ){
-		int cno = pos[i];
+        // Now propagate unit clauses if there are any.
+        if (hasUnitClauses) {
+            for (int i = 0; i < pos.length; i++) {
+                int cno = pos[i];
 
-		if( doVerification ){
-		    verifyTermCount( p, cno );
-		}
-		if( terms[cno] == 1 ){
-		    int res = propagateUnitClause( p, cno, level, learnAsTuple, learn );
-		    if( res != 0 ){
-			return res;
-		    }
-		}
-	    }
-	}
-	return SATProblem.UNDETERMINED;
+                if (doVerification) {
+                    verifyTermCount(p, cno);
+                }
+                if (terms[cno] == 1) {
+                    int res = propagateUnitClause(p, cno, level, learnAsTuple,
+                            learn);
+                    if (res != 0) {
+                        return res;
+                    }
+                }
+            }
+        }
+        return SATProblem.UNDETERMINED;
     }
 
     /**
      * Returns the best decision variable to branch on, or -1 if there is none.
      * @return The decision variable.
      */
-    public int getDecisionVariable()
-    {
+    public int getDecisionVariable() {
         int bestvar = -1;
         float bestinfo = -1;
         int bestmaxcount = 0;
 
-        for( int i=0; i<assignment.length; i++ ){
-            if( assignment[i] != UNASSIGNED ){
+        for (int i = 0; i < assignment.length; i++) {
+            if (assignment[i] != UNASSIGNED) {
                 // Already assigned, so not interesting.
                 continue;
             }
-            if( doVerification ){
-                if( posinfo[i]<-0.01 || neginfo[i]<-0.01 ){
-                    System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
+            if (doVerification) {
+                if (posinfo[i] < -0.01 || neginfo[i] < -0.01) {
+                    System.err.println("Weird info for variable " + i
+                            + ": posinfo=" + posinfo[i] + ", neginfo="
+                            + neginfo[i]);
                 }
             }
-            float info = Math.max( posinfo[i], neginfo[i] );
-            if( info>=bestinfo ){
-                int maxcount = Math.max( posclauses[i], negclauses[i] );
+            float info = Math.max(posinfo[i], neginfo[i]);
+            if (info >= bestinfo) {
+                int maxcount = Math.max(posclauses[i], negclauses[i]);
 
-                if( (info>bestinfo) || (maxcount<bestmaxcount) ){
+                if ((info > bestinfo) || (maxcount < bestmaxcount)) {
                     // This is a better one.
                     bestvar = i;
                     bestinfo = info;
@@ -1212,9 +1227,8 @@ public final class SATContext implements java.io.Serializable {
      * positive variable than as negative variable.
      * @param var the variable
      */
-    public boolean posDominant( int var )
-    {
-        return (posinfo[var]>neginfo[var]);
+    public boolean posDominant(int var) {
+        return (posinfo[var] > neginfo[var]);
     }
 
     /**
@@ -1222,14 +1236,12 @@ public final class SATContext implements java.io.Serializable {
      * @param var the variable
      * @return the solve count
      */
-    public int getSolveCount( int var )
-    {
-	if( posclauses[var]>negclauses[var] ){
-	    return posclauses[var];
-	}
-	else {
-	    return negclauses[var];
-	}
+    public int getSolveCount(int var) {
+        if (posclauses[var] > negclauses[var]) {
+            return posclauses[var];
+        } else {
+            return negclauses[var];
+        }
     }
 
     /**
@@ -1238,37 +1250,35 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem this is the context for.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    public int optimize( SATProblem p )
-        throws SATJumpException
-    {
-	// Search for and propagate unit clauses.
-	for( int i=0; i<satisfied.length; i++ ){
-	    if( terms[i] == 1 ){
-		int res = propagateUnitClause( p, i, 0, false, false );
-		if( res != 0 ){
-		    return res;
-		}
-	    }
-	}
-	// Search for and propagate pure variables.
-	for( int i=0; i<assignment.length; i++ ){
-	    if( assignment[i] != UNASSIGNED || (posclauses[i] == 0 && negclauses[i] == 0) ){
-		// Unused variable, not interesting.
-		continue;
-	    }
-	    if( posclauses[i] == 0 ){
-		int res = propagateNegAssignment( p, i, 0, false, false );
-		if( res != 0 ){
-		    return res;
-		}
-	    }
-	    else if( negclauses[i] == 0 ){
-		int res = propagatePosAssignment( p, i, 0, false, false );
-		if( res != 0 ){
-		    return res;
-		}
-	    }
-	}
-	return SATProblem.UNDETERMINED;
+    public int optimize(SATProblem p) throws SATJumpException {
+        // Search for and propagate unit clauses.
+        for (int i = 0; i < satisfied.length; i++) {
+            if (terms[i] == 1) {
+                int res = propagateUnitClause(p, i, 0, false, false);
+                if (res != 0) {
+                    return res;
+                }
+            }
+        }
+        // Search for and propagate pure variables.
+        for (int i = 0; i < assignment.length; i++) {
+            if (assignment[i] != UNASSIGNED
+                    || (posclauses[i] == 0 && negclauses[i] == 0)) {
+                // Unused variable, not interesting.
+                continue;
+            }
+            if (posclauses[i] == 0) {
+                int res = propagateNegAssignment(p, i, 0, false, false);
+                if (res != 0) {
+                    return res;
+                }
+            } else if (negclauses[i] == 0) {
+                int res = propagatePosAssignment(p, i, 0, false, false);
+                if (res != 0) {
+                    return res;
+                }
+            }
+        }
+        return SATProblem.UNDETERMINED;
     }
 }

@@ -38,24 +38,26 @@
 // package caiman.activejem3D.util;
 
 import java.io.Serializable;
+
 /**
  *  sert a transporter un champ local vers une VBF<br>
  * genere par une face virtuelle
  * @author ngama
  * 28 juil. 2003
  */
-final
-public class VBFField implements Serializable {
+final public class VBFField implements Serializable {
     /** index de la VBF jumelle */
     public int indexOfRemoteCopy;
+
     /** champ a transmettre */
     public double[] field;
+
     /** sous-domaine destinataire (sert uniquement au VBFFieldCollector local)*/
     transient public int indexOfSubDomain;
 
     // Require creation of the double[3].
     public VBFField() {
-	field = new double[3];
+        field = new double[3];
     }
 
     /**
@@ -63,10 +65,10 @@ public class VBFField implements Serializable {
      * @param field champ a transmettre
      * @param indexOfRemoteCopy VBF destinataire
      * @param subDomIndex Sous-domaine destinataire
-     */	
-    public VBFField(int subDomIndex,int indexOfRemoteCopy, double[] field) {
-	this.indexOfRemoteCopy = indexOfRemoteCopy;
-	this.field = field;
-	this.indexOfSubDomain=subDomIndex;
+     */
+    public VBFField(int subDomIndex, int indexOfRemoteCopy, double[] field) {
+        this.indexOfRemoteCopy = indexOfRemoteCopy;
+        this.field = field;
+        this.indexOfSubDomain = subDomIndex;
     }
 }

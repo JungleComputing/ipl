@@ -1,3 +1,4 @@
+
 import ibis.gmi.Group;
 import ibis.gmi.GroupMethod;
 import ibis.gmi.CombineReply;
@@ -6,67 +7,69 @@ import ibis.gmi.BinomialCombiner;
 
 class Adder extends BinomialCombiner {
     public int combine(int rank1, int result1, int rank2, int result2, int size) {
-	return result1 + result2;
+        return result1 + result2;
     }
 }
 
-class Main { 
+class Main {
 
-    public static void main(String [] args) { 
+    public static void main(String[] args) {
 
-	int size = Group.size();
-	int rank = Group.rank();
+        int size = Group.size();
+        int rank = Group.rank();
 
-	int count = 1000;
+        int count = 1000;
 
-	if (args.length != 0) { 
-	    try { 				
-		count = Integer.parseInt(args[0]);
-	    } catch (Exception e) { 
-		System.out.println("arg must be an int");
-		Group.exit();
-	    } 
-	}
+        if (args.length != 0) {
+            try {
+                count = Integer.parseInt(args[0]);
+            } catch (Exception e) {
+                System.out.println("arg must be an int");
+                Group.exit();
+            }
+        }
 
-	if (rank == 0) { 
-	    Group.create("TestGroup", myGroup.class, size);
-	}
+        if (rank == 0) {
+            Group.create("TestGroup", myGroup.class, size);
+        }
 
-	Test t = new Test();
-	Group.join("TestGroup", t);
+        Test t = new Test();
+        Group.join("TestGroup", t);
 
-	System.out.println("I am " + t.myGroupRank + " of " + size);
+        System.out.println("I am " + t.myGroupRank + " of " + size);
 
-	if (rank == 0) { 		
-	    myGroup g = (myGroup) Group.lookup("TestGroup");
-	    try {
-		GroupMethod m = Group.findMethod(g, "int get()");
-		m.configure(new GroupInvocation(), new CombineReply(new Adder()));
-	    } catch(Exception e) {
-		System.out.println("Caught exception: " + e);
-		System.exit(1);
-	    }
+        if (rank == 0) {
+            myGroup g = (myGroup) Group.lookup("TestGroup");
+            try {
+                GroupMethod m = Group.findMethod(g, "int get()");
+                m.configure(new GroupInvocation(),
+                        new CombineReply(new Adder()));
+            } catch (Exception e) {
+                System.out.println("Caught exception: " + e);
+                System.exit(1);
+            }
 
+            int result = 0;
 
-	    int result = 0;
+            for (int i = 0; i < count; i++) {
+                result = g.get();
+            }
 
-	    for (int i=0;i<count;i++) { 
-		result = g.get();
-	    }
+            long time = System.currentTimeMillis();
 
-	    long time = System.currentTimeMillis();
+            for (int i = 0; i < count; i++) {
+                result = g.get();
+            }
 
-	    for (int i=0;i<count;i++) { 
-		result = g.get();
-	    }
+            time = System.currentTimeMillis() - time;
 
-	    time = System.currentTimeMillis() - time;
+            System.out.println("Test took " + time + " ms. = "
+                    + ((1000.0 * time) / count) + " micros/call (result = "
+                    + result + ")");
+        }
 
-	    System.out.println("Test took " + time + " ms. = " + ((1000.0*time)/count) + " micros/call (result = "+ result +")");
-	}
+        System.out.println(rank + " doing exit");
 
-	System.out.println(rank + " doing exit");
-
-	Group.exit();
-    } 
-} 
+        Group.exit();
+    }
+}

@@ -9,35 +9,35 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
     private final NioSendPort port;
 
     public BlockingChannelNioAccumulator(NioSendPort port) {
-	super();
-	this.port = port;
+        super();
+        this.port = port;
     }
 
-    NioAccumulatorConnection newConnection(GatheringByteChannel channel,  
-	    NioReceivePortIdentifier peer) throws IOException {
-	NioAccumulatorConnection result;
+    NioAccumulatorConnection newConnection(GatheringByteChannel channel,
+            NioReceivePortIdentifier peer) throws IOException {
+        NioAccumulatorConnection result;
 
-	if (DEBUG) {
-	    Debug.enter("connections", this, "registering new connection");
-	}
+        if (DEBUG) {
+            Debug.enter("connections", this, "registering new connection");
+        }
 
-	if((nrOfConnections + 1) > 1) {
-	    System.err.println("warning! " + (nrOfConnections + 1)
-		    + " connections from a `" + port.type.name() 
-		    +  "` blocking send port");
-	}
+        if ((nrOfConnections + 1) > 1) {
+            System.err.println("warning! " + (nrOfConnections + 1)
+                    + " connections from a `" + port.type.name()
+                    + "` blocking send port");
+        }
 
-	SelectableChannel sChannel = (SelectableChannel) channel;
+        SelectableChannel sChannel = (SelectableChannel) channel;
 
-	sChannel.configureBlocking(true);
+        sChannel.configureBlocking(true);
 
-	result = new NioAccumulatorConnection(channel, peer);
+        result = new NioAccumulatorConnection(channel, peer);
 
-	if (DEBUG) {
-	    Debug.exit("connections", this, "registered new connection");
-	}
+        if (DEBUG) {
+            Debug.exit("connections", this, "registered new connection");
+        }
 
-	return result;
+        return result;
     }
 
     /**
@@ -45,38 +45,38 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
      * Doesn't buffer anything
      */
     boolean doSend(SendBuffer buffer) throws IOException {
-	if (DEBUG) {
-	    Debug.enter("buffers", this, "sending a buffer");
-	}
-	buffer.mark();
+        if (DEBUG) {
+            Debug.enter("buffers", this, "sending a buffer");
+        }
+        buffer.mark();
 
-	for(int i = 0; i < nrOfConnections; i++) {
-	    try {
-		buffer.reset();
-		while(buffer.hasRemaining()) {
-		    connections[i].channel.write(buffer.byteBuffers);
-		}
-	    } catch (IOException e) {
-		//someting went wrong, close connection 
-		connections[i].close();
+        for (int i = 0; i < nrOfConnections; i++) {
+            try {
+                buffer.reset();
+                while (buffer.hasRemaining()) {
+                    connections[i].channel.write(buffer.byteBuffers);
+                }
+            } catch (IOException e) {
+                //someting went wrong, close connection 
+                connections[i].close();
 
-		//inform the SendPort
-		port.lostConnection(connections[i].peer, e);
+                //inform the SendPort
+                port.lostConnection(connections[i].peer, e);
 
-		//remove connection
-		nrOfConnections--;
-		connections[i] = connections[nrOfConnections];
-		connections[nrOfConnections] = null;
-		i--;
-	    }
-	}
-	if (DEBUG) {
-	    Debug.exit("buffers", this, "done sending a buffer");
-	}
-	return true; //signal we are done with the buffer now
+                //remove connection
+                nrOfConnections--;
+                connections[i] = connections[nrOfConnections];
+                connections[nrOfConnections] = null;
+                i--;
+            }
+        }
+        if (DEBUG) {
+            Debug.exit("buffers", this, "done sending a buffer");
+        }
+        return true; //signal we are done with the buffer now
     }
 
     void doFlush() throws IOException {
-	//NOTHING
+        //NOTHING
     }
 }

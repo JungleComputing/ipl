@@ -8,50 +8,50 @@ final class Cluster {
     Vector victims;
 
     public Cluster(String name) {
-	this.name = name;
-	victims = new Vector();
+        this.name = name;
+        victims = new Vector();
     }
 
     public Cluster(Victim v) {
-	this(v.ident.cluster());
-	victims.add(v);
+        this(v.ident.cluster());
+        victims.add(v);
     }
 
     public boolean equals(Object o) {
-	if (o == this) {
-	    return true;
-	} else if (o instanceof Cluster) {
-	    Cluster other = (Cluster) o;
-	    return other.name.equals(name);
-	} else {
-	    return false;
-	}
+        if (o == this) {
+            return true;
+        } else if (o instanceof Cluster) {
+            Cluster other = (Cluster) o;
+            return other.name.equals(name);
+        } else {
+            return false;
+        }
     }
 
     public boolean equals(Cluster other) {
-	if (other == this) {
-	    return true;
-	}
-	return other.name.equals(name);
+        if (other == this) {
+            return true;
+        }
+        return other.name.equals(name);
     }
 
     public int hashCode() {
-	return name.hashCode();
+        return name.hashCode();
     }
 
     public void add(Victim v) {
-	victims.add(v);
+        victims.add(v);
     }
 
     public boolean remove(Victim v) {
-	return victims.remove(v);
+        return victims.remove(v);
     }
 
     public Victim get(int index) {
-	return (Victim) victims.get(index);
+        return (Victim) victims.get(index);
     }
 
     public int size() {
-	return victims.size();
+        return victims.size();
     }
 }

@@ -34,147 +34,159 @@ public final class Sequencer {
     public static final int START_SEQNO = 1;
 
     private IbisIdentifier ident;
+
     private boolean master;
+
     private ReceivePort rcv;
+
     PortType tp;
-    private SendPort snd;	// Only for client
+
+    private SendPort snd; // Only for client
+
     private int idno;
+
     private HashMap counters;
 
     private static HashMap sequencers = new HashMap();
 
     private static class ServerThread extends Thread {
 
-	private ArrayList sendports;
-	private Sequencer seq;
-	private ArrayList clients;
-	private ReceivePort rcv;
+        private ArrayList sendports;
 
-	ServerThread(ReceivePort r, Sequencer s) {
-	    seq = s;
-	    rcv = r;
-	    sendports = new ArrayList();
-	    clients = new ArrayList();
-	}
+        private Sequencer seq;
 
-	public void handleMessage(ReadMessage m) throws IOException {
-	    ReceivePortIdentifier rid = null;
-	    String name = null;
-	    SendPort s;
-	    WriteMessage w = null;
-	    int index = m.readInt();
+        private ArrayList clients;
 
-	    if (index == -1) {
-		try {
-		    rid = (ReceivePortIdentifier) m.readObject();
-		} catch(ClassNotFoundException e) {
-		    System.err.println("Got ClassNotFoundException!");
-		    e.printStackTrace();
-		}
-		m.finish();
-		clients.add(rid);
-		s = seq.tp.createSendPort();
-		s.connect(rid);
-		sendports.add(s);
-		w = s.newMessage();
-		w.writeInt(clients.size() - 1);
-	    }
-	    else {
-		rid = (ReceivePortIdentifier) clients.get(index);
-		name = m.readString();
-		m.finish();
-		s = (SendPort) sendports.get(index);
-		w = s.newMessage();
-		w.writeInt(seq.getNo(name));
-	    }
-	    w.finish();
-	}
+        private ReceivePort rcv;
 
-	public void run() {
+        ServerThread(ReceivePort r, Sequencer s) {
+            seq = s;
+            rcv = r;
+            sendports = new ArrayList();
+            clients = new ArrayList();
+        }
 
-	    while (true) {
-		try {
-		    ReadMessage m = rcv.receive();
-		    handleMessage(m);
-		} catch(IOException e) {
-		    System.err.println("Got IOException!");
-		    e.printStackTrace();
-		    break;
-		}
-	    }
-	}
+        public void handleMessage(ReadMessage m) throws IOException {
+            ReceivePortIdentifier rid = null;
+            String name = null;
+            SendPort s;
+            WriteMessage w = null;
+            int index = m.readInt();
 
-	protected void finalize() {
-	    for (int i = 0; i < sendports.size(); i++) {
-		SendPort s = (SendPort) sendports.get(i);
-		try {
-		    s.close();
-		} catch(IOException e) {
-			// ignore
-		}
-	    }
-	}
+            if (index == -1) {
+                try {
+                    rid = (ReceivePortIdentifier) m.readObject();
+                } catch (ClassNotFoundException e) {
+                    System.err.println("Got ClassNotFoundException!");
+                    e.printStackTrace();
+                }
+                m.finish();
+                clients.add(rid);
+                s = seq.tp.createSendPort();
+                s.connect(rid);
+                sendports.add(s);
+                w = s.newMessage();
+                w.writeInt(clients.size() - 1);
+            } else {
+                rid = (ReceivePortIdentifier) clients.get(index);
+                name = m.readString();
+                m.finish();
+                s = (SendPort) sendports.get(index);
+                w = s.newMessage();
+                w.writeInt(seq.getNo(name));
+            }
+            w.finish();
+        }
+
+        public void run() {
+
+            while (true) {
+                try {
+                    ReadMessage m = rcv.receive();
+                    handleMessage(m);
+                } catch (IOException e) {
+                    System.err.println("Got IOException!");
+                    e.printStackTrace();
+                    break;
+                }
+            }
+        }
+
+        protected void finalize() {
+            for (int i = 0; i < sendports.size(); i++) {
+                SendPort s = (SendPort) sendports.get(i);
+                try {
+                    s.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
     }
 
     private static class IntObject {
-	int val;
-	IntObject(int v) {
-	    val = v;
-	}
+        int val;
+
+        IntObject(int v) {
+            val = v;
+        }
     }
 
     private Sequencer(Ibis ibis) throws IOException {
-	ident = ibis.identifier();
-	idno = -1;
-	try {
-	    IbisIdentifier boss = ibis.registry().elect("sequencer");
-	    master = boss.equals(ident);
-	} catch(ClassNotFoundException e) {
-	    throw new IOException("Got ClassNotFoundException " + e);
-	}
+        ident = ibis.identifier();
+        idno = -1;
+        try {
+            IbisIdentifier boss = ibis.registry().elect("sequencer");
+            master = boss.equals(ident);
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Got ClassNotFoundException " + e);
+        }
 
-	StaticProperties p = new StaticProperties();
-	p.add("serialization", "object");
-	p.add("communication", "OneToOne, ManyToOne, ExplicitReceipt, Reliable");
-	try {
-	    tp = ibis.createPortType("sequencer", p);
-	} catch(IbisException e) {
-	    throw new IOException("Got IbisException " + e);
-	}
+        StaticProperties p = new StaticProperties();
+        p.add("serialization", "object");
+        p
+                .add("communication",
+                        "OneToOne, ManyToOne, ExplicitReceipt, Reliable");
+        try {
+            tp = ibis.createPortType("sequencer", p);
+        } catch (IbisException e) {
+            throw new IOException("Got IbisException " + e);
+        }
 
-	if (master) {
-	    counters = new HashMap();
-	    rcv = tp.createReceivePort("seq recvr");
-	    rcv.enableConnections();
-	    ServerThread server = new ServerThread(rcv, this);
-	    server.setDaemon(true);
-	    server.start();
-	}
-	else {
-	    snd = tp.createSendPort();
-	    rcv = tp.createReceivePort("sequencer port on " + ibis.identifier().name());
-	    rcv.enableConnections();
-	    ReceivePortIdentifier master_id = ibis.registry().lookupReceivePort("seq recvr");
-	    snd.connect(master_id);
-	    ReceivePortIdentifier rid = rcv.identifier();
-	    WriteMessage w = snd.newMessage();
-	    w.writeInt(-1);
-	    w.writeObject(rid);
-	    w.finish();
-	    ReadMessage r = rcv.receive();
-	    idno = r.readInt();
-	    r.finish();
-	}
+        if (master) {
+            counters = new HashMap();
+            rcv = tp.createReceivePort("seq recvr");
+            rcv.enableConnections();
+            ServerThread server = new ServerThread(rcv, this);
+            server.setDaemon(true);
+            server.start();
+        } else {
+            snd = tp.createSendPort();
+            rcv = tp.createReceivePort("sequencer port on "
+                    + ibis.identifier().name());
+            rcv.enableConnections();
+            ReceivePortIdentifier master_id = ibis.registry()
+                    .lookupReceivePort("seq recvr");
+            snd.connect(master_id);
+            ReceivePortIdentifier rid = rcv.identifier();
+            WriteMessage w = snd.newMessage();
+            w.writeInt(-1);
+            w.writeObject(rid);
+            w.finish();
+            ReadMessage r = rcv.receive();
+            idno = r.readInt();
+            r.finish();
+        }
     }
 
     protected void finalize() {
-	if (snd != null) {
-	    try {
-		snd.close();
-	    } catch(IOException e) {
-	    	// ignore
-	    }
-	}
+        if (snd != null) {
+            try {
+                snd.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
 
     /**
@@ -185,24 +197,24 @@ public final class Sequencer {
      * @exception IOException gets thrown in case of trouble
      */
     public static synchronized Sequencer getSequencer(Ibis ibis)
-	    throws IOException {
-	IbisIdentifier ident = ibis.identifier();
-	Sequencer seq = (Sequencer) sequencers.get(ident);
-	if (seq != null) {
-	    return seq;
-	}
-	seq = new Sequencer(ibis);
-	sequencers.put(ident, seq);
-	return seq;
+            throws IOException {
+        IbisIdentifier ident = ibis.identifier();
+        Sequencer seq = (Sequencer) sequencers.get(ident);
+        if (seq != null) {
+            return seq;
+        }
+        seq = new Sequencer(ibis);
+        sequencers.put(ident, seq);
+        return seq;
     }
 
     synchronized int getNo(String name) {
-	IntObject i = (IntObject) counters.get(name);
-	if (i == null) {
-	    i = new IntObject(START_SEQNO);
-	    counters.put(name, i);
-	}
-	return i.val++;
+        IntObject i = (IntObject) counters.get(name);
+        if (i == null) {
+            i = new IntObject(START_SEQNO);
+            counters.put(name, i);
+        }
+        return i.val++;
     }
 
     /**
@@ -212,17 +224,17 @@ public final class Sequencer {
      * @exception IOException gets thrown in case of trouble
      */
     public int getSeqno(String name) throws IOException {
-	if (master) {
-	    return getNo(name);
-	}
-	WriteMessage w = snd.newMessage();
-	w.writeInt(idno);
-	w.writeString(name);
-	w.finish();
-	ReadMessage r = rcv.receive();
-	int retval = r.readInt();
-	r.finish();
-	return retval;
+        if (master) {
+            return getNo(name);
+        }
+        WriteMessage w = snd.newMessage();
+        w.writeInt(idno);
+        w.writeString(name);
+        w.finish();
+        ReadMessage r = rcv.receive();
+        int retval = r.readInt();
+        r.finish();
+        return retval;
     }
 
 }

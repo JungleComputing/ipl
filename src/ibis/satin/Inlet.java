@@ -11,7 +11,7 @@ public class Inlet extends Throwable {
      * Constructs an <code>Inlet</code>.
      */
     public Inlet() {
-	/* do nothing */
+        /* do nothing */
     }
 
     /**
@@ -21,6 +21,6 @@ public class Inlet extends Throwable {
      * @return this inlet.
      */
     public Throwable fillInStackTrace() {
-	return this;
+        return this;
     }
 }

@@ -9,15 +9,14 @@ import ibis.rmi.RemoteException;
  * Any <code>Remote</code> object can be exported by using the
  * {@link ibis.rmi.server.UnicastRemoteObject#exportObject} method.
  */
-public class ExportException extends RemoteException
-{
+public class ExportException extends RemoteException {
     /**
      * Constructs an <code>ExportException</code> with the specified
      * detail message.
      * @param s the detail message
      */
     public ExportException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -27,6 +26,6 @@ public class ExportException extends RemoteException
      * @param e the nested exception
      */
     public ExportException(String s, Exception e) {
-	super(s, e);
+        super(s, e);
     }
 }

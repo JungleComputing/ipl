@@ -10,9 +10,7 @@ import java.io.InputStream;
  * <code>SerializationInputStream</code>, built on methods in
  * <code>ObjectInputStream</code>.
  */
-public final class SunSerializationInputStream
-	extends SerializationInputStream
-{
+public final class SunSerializationInputStream extends SerializationInputStream {
     /**
      * Constructor. Calls constructor of superclass and flushes.
      *
@@ -20,7 +18,7 @@ public final class SunSerializationInputStream
      * @exception IOException when an IO error occurs.
      */
     public SunSerializationInputStream(InputStream s) throws IOException {
-	super(s);
+        super(s);
     }
 
     /**
@@ -32,7 +30,7 @@ public final class SunSerializationInputStream
      */
 
     public SunSerializationInputStream(Dissipator in) throws IOException {
-	super(new DissipatorInputStream(in));
+        super(new DissipatorInputStream(in));
     }
 
     /**
@@ -41,7 +39,7 @@ public final class SunSerializationInputStream
      * @return the name of the current serialization implementation.
      */
     public String serializationImplName() {
-	return "sun";
+        return "sun";
     }
 
     /**
@@ -75,16 +73,16 @@ public final class SunSerializationInputStream
      * @exception IOException when something is wrong.
      */
     public void readArray(boolean[] ref, int off, int len) throws IOException {
-	try {
-	    boolean[] temp = (boolean[]) readObject();
-	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException(
-				"Received sub array has wrong len");
-	    }
-	    System.arraycopy(temp, 0, ref, off, len);
-	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'boolean[]' not found", f);
-	}
+        try {
+            boolean[] temp = (boolean[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'boolean[]' not found", f);
+        }
     }
 
     /**
@@ -92,29 +90,29 @@ public final class SunSerializationInputStream
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public void readArray(byte[] ref, int off, int len) throws IOException {
-	/*
-	 * Calling write() and read() here turns out to be much, much faster.
-	 * So, we go ahead and implement a fast path just for byte[].
-	 * RFHH
-	 */
-	if (off == 0 && ref.length == len) {
-	    int rd = 0;
-	    do {
-		rd += read(ref, rd, len - rd);
-	    } while (rd < len);
-	    return;
-	}
+        /*
+         * Calling write() and read() here turns out to be much, much faster.
+         * So, we go ahead and implement a fast path just for byte[].
+         * RFHH
+         */
+        if (off == 0 && ref.length == len) {
+            int rd = 0;
+            do {
+                rd += read(ref, rd, len - rd);
+            } while (rd < len);
+            return;
+        }
 
-	try {
-	    byte[] temp = (byte[]) readObject();
-	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException(
-				"Received sub array has wrong len");
-	    }
-	    System.arraycopy(temp, 0, ref, off, len);
-	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'byte[]' not found", f);
-	}
+        try {
+            byte[] temp = (byte[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'byte[]' not found", f);
+        }
     }
 
     /**
@@ -122,16 +120,16 @@ public final class SunSerializationInputStream
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public void readArray(char[] ref, int off, int len) throws IOException {
-	try {
-	    char[] temp = (char[]) readObject();
-	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException(
-				"Received sub array has wrong len");
-	    }
-	    System.arraycopy(temp, 0, ref, off, len);
-	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'char[]' not found", f);
-	}
+        try {
+            char[] temp = (char[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'char[]' not found", f);
+        }
     }
 
     /**
@@ -139,16 +137,16 @@ public final class SunSerializationInputStream
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public void readArray(short[] ref, int off, int len) throws IOException {
-	try {
-	    short[] temp = (short[]) readObject();
-	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException(
-				"Received sub array has wrong len");
-	    }
-	    System.arraycopy(temp, 0, ref, off, len);
-	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'short[]' not found", f);
-	}
+        try {
+            short[] temp = (short[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'short[]' not found", f);
+        }
     }
 
     /**
@@ -156,16 +154,16 @@ public final class SunSerializationInputStream
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public void readArray(int[] ref, int off, int len) throws IOException {
-	try {
-	    int[] temp = (int[]) readObject();
-	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException(
-				"Received sub array has wrong len");
-	    }
-	    System.arraycopy(temp, 0, ref, off, len);
-	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'int[]' not found", f);
-	}
+        try {
+            int[] temp = (int[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'int[]' not found", f);
+        }
     }
 
     /**
@@ -173,16 +171,16 @@ public final class SunSerializationInputStream
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public void readArray(long[] ref, int off, int len) throws IOException {
-	try {
-	    long[] temp = (long[]) readObject();
-	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException(
-				"Received sub array has wrong len");
-	    }
-	    System.arraycopy(temp, 0, ref, off, len);
-	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'long[]' not found", f);
-	}
+        try {
+            long[] temp = (long[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'long[]' not found", f);
+        }
     }
 
     /**
@@ -190,16 +188,16 @@ public final class SunSerializationInputStream
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public void readArray(float[] ref, int off, int len) throws IOException {
-	try {
-	    float[] temp = (float[]) readObject();
-	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException(
-				"Received sub array has wrong len");
-	    }
-	    System.arraycopy(temp, 0, ref, off, len);
-	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'float[]' not found", f);
-	}
+        try {
+            float[] temp = (float[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'float[]' not found", f);
+        }
     }
 
     /**
@@ -207,30 +205,29 @@ public final class SunSerializationInputStream
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public void readArray(double[] ref, int off, int len) throws IOException {
-	try {
-	    double[] temp = (double[]) readObject();
-	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException(
-				"Received sub array has wrong len");
-	    }
-	    System.arraycopy(temp, 0, ref, off, len);
-	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'double[]' not found", f);
-	}
+        try {
+            double[] temp = (double[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'double[]' not found", f);
+        }
     }
 
     /**
      * Read a slice of an array of Objects.
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(Object[] ref, int off, int len)
-	    throws IOException, ClassNotFoundException
-    {
-	Object[] temp = (Object[]) readObject();
-	if(temp.length != len) {
-	    throw new ArrayIndexOutOfBoundsException(
-			    "Received sub array has wrong len");
-	}
-	System.arraycopy(temp, 0, ref, off, len);
+    public void readArray(Object[] ref, int off, int len) throws IOException,
+            ClassNotFoundException {
+        Object[] temp = (Object[]) readObject();
+        if (temp.length != len) {
+            throw new ArrayIndexOutOfBoundsException(
+                    "Received sub array has wrong len");
+        }
+        System.arraycopy(temp, 0, ref, off, len);
     }
 }

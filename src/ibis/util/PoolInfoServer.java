@@ -35,100 +35,106 @@ public class PoolInfoServer extends Thread {
     static final boolean DEBUG = false;
 
     static class RunInfo {
-	int total_hosts;
-	int removed_hosts;
-	int connected_hosts;
-	String [] host_clusters;
-	InetAddress [] host_addresses;
-	Socket [] host_sockets;
-	DataInputStream [] host_inputs;
-	String key;
+        int total_hosts;
 
-	RunInfo(int nhosts, String key) {
-	    total_hosts = nhosts;
-	    connected_hosts = 0;
-	    removed_hosts = 0;
-	    host_clusters = new String[nhosts];
-	    host_addresses = new InetAddress[nhosts];
-	    host_sockets = new Socket[nhosts];
-	    host_inputs = new DataInputStream[nhosts];
-	    this.key = key;
-	}
+        int removed_hosts;
 
-	boolean add(int nhosts,
-		    int remove_doubles,
-		    String cluster,
-		    Socket socket,
-		    DataInputStream in) throws IOException 
-	{
-	    if (nhosts != total_hosts) {
-		System.err.println("PoolInfoServer: EEK, different total_hosts in PoolInfoServer, ignoring this connection...");
-		in.close();
-		socket.close();
-		return false;
-	    }
+        int connected_hosts;
 
-	    InetAddress addr = socket.getInetAddress();
+        String[] host_clusters;
 
-	    if (remove_doubles != 0) {
-		for (int i = 0; i < connected_hosts; i++) {
-		    if (host_addresses[i].equals(addr)) {
-			ObjectOutputStream out
-			    = new ObjectOutputStream(socket.getOutputStream());
-			out.writeInt(-1);
-			out.close();
-			in.close();
-			socket.close();
-			removed_hosts++;
-			return connected_hosts + removed_hosts == total_hosts;
-		    }
-		}
-	    }
-	    if (DEBUG) {
-		System.err.println("PoolInfoServer: Key " + key +
-				   " Host " + connected_hosts +
-				   " (" + socket.getInetAddress().getHostName() + ")" +
-				   " has connected");
-	    }
-	    host_clusters[connected_hosts] = cluster;
-	    host_addresses[connected_hosts] = addr;
-	    host_sockets[connected_hosts] = socket;
-	    host_inputs[connected_hosts] = in;
-	    connected_hosts++;
-	    return connected_hosts + removed_hosts == total_hosts;
-	}
+        InetAddress[] host_addresses;
 
-	void broadcast() throws IOException {
-	    if (DEBUG) {
-		System.err.println("PoolInfoServer: Key " + key +
-				   ": All hosts have connected, " +
-				   "now broadcasting host info...");
-	    }
+        Socket[] host_sockets;
 
-	    total_hosts -= removed_hosts;
+        DataInputStream[] host_inputs;
 
-	    for (int i = 0; i < total_hosts; i++) {
-		ObjectOutputStream out
-		    = new ObjectOutputStream(host_sockets[i].getOutputStream());
-		out.writeInt(i); //give the node a rank
-		out.writeInt(total_hosts);
-		out.writeObject(host_clusters);
-		out.writeObject(host_addresses);
+        String key;
 
-		host_inputs[i].close();
-		out.close();
-		host_sockets[i].close();
-	    }
+        RunInfo(int nhosts, String key) {
+            total_hosts = nhosts;
+            connected_hosts = 0;
+            removed_hosts = 0;
+            host_clusters = new String[nhosts];
+            host_addresses = new InetAddress[nhosts];
+            host_sockets = new Socket[nhosts];
+            host_inputs = new DataInputStream[nhosts];
+            this.key = key;
+        }
 
-	    if (DEBUG) {
-		System.err.println("PoolInfoServer: Key " + key +
-				   ": Broadcast done");
-	    }
-	}
+        boolean add(int nhosts, int remove_doubles, String cluster,
+                Socket socket, DataInputStream in) throws IOException {
+            if (nhosts != total_hosts) {
+                System.err
+                        .println("PoolInfoServer: EEK, different total_hosts in PoolInfoServer, ignoring this connection...");
+                in.close();
+                socket.close();
+                return false;
+            }
+
+            InetAddress addr = socket.getInetAddress();
+
+            if (remove_doubles != 0) {
+                for (int i = 0; i < connected_hosts; i++) {
+                    if (host_addresses[i].equals(addr)) {
+                        ObjectOutputStream out = new ObjectOutputStream(socket
+                                .getOutputStream());
+                        out.writeInt(-1);
+                        out.close();
+                        in.close();
+                        socket.close();
+                        removed_hosts++;
+                        return connected_hosts + removed_hosts == total_hosts;
+                    }
+                }
+            }
+            if (DEBUG) {
+                System.err.println("PoolInfoServer: Key " + key + " Host "
+                        + connected_hosts + " ("
+                        + socket.getInetAddress().getHostName() + ")"
+                        + " has connected");
+            }
+            host_clusters[connected_hosts] = cluster;
+            host_addresses[connected_hosts] = addr;
+            host_sockets[connected_hosts] = socket;
+            host_inputs[connected_hosts] = in;
+            connected_hosts++;
+            return connected_hosts + removed_hosts == total_hosts;
+        }
+
+        void broadcast() throws IOException {
+            if (DEBUG) {
+                System.err.println("PoolInfoServer: Key " + key
+                        + ": All hosts have connected, "
+                        + "now broadcasting host info...");
+            }
+
+            total_hosts -= removed_hosts;
+
+            for (int i = 0; i < total_hosts; i++) {
+                ObjectOutputStream out = new ObjectOutputStream(host_sockets[i]
+                        .getOutputStream());
+                out.writeInt(i); //give the node a rank
+                out.writeInt(total_hosts);
+                out.writeObject(host_clusters);
+                out.writeObject(host_addresses);
+
+                host_inputs[i].close();
+                out.close();
+                host_sockets[i].close();
+            }
+
+            if (DEBUG) {
+                System.err.println("PoolInfoServer: Key " + key
+                        + ": Broadcast done");
+            }
+        }
     }
 
-    private HashMap map = new HashMap(); 
+    private HashMap map = new HashMap();
+
     private ServerSocket serverSocket;
+
     private boolean singleRun;
 
     /**
@@ -141,28 +147,27 @@ public class PoolInfoServer extends Thread {
      * <code>-port</code> <i>portnum</i>&nbsp&nbsp&nbsp
      * accept connections on port <i>portnum</i> instead of on the default port.
      */
-    public static void main(String [] argv) {
-	boolean single = false;
-	int serverPort = POOL_INFO_PORT;
-	for (int i = 0; i < argv.length; i++) {
-	    if (false) { /* do nothing */
-	    } else if (argv[i].equals("-single")) {
-		single = true;
-	    } else if (argv[i].equals("-port")) {
-		i++;
-		try {
-		    serverPort = Integer.parseInt(argv[i]);
-		} catch(Exception e) {
-		    System.err.println("invalid port");
-		    System.exit(1);
-		}
-	    }
-	    else {
-		System.err.println("No such option: " + argv[i]);
-		System.exit(1);
-	    }
-	}
-	new PoolInfoServer(serverPort, single).run();
+    public static void main(String[] argv) {
+        boolean single = false;
+        int serverPort = POOL_INFO_PORT;
+        for (int i = 0; i < argv.length; i++) {
+            if (false) { /* do nothing */
+            } else if (argv[i].equals("-single")) {
+                single = true;
+            } else if (argv[i].equals("-port")) {
+                i++;
+                try {
+                    serverPort = Integer.parseInt(argv[i]);
+                } catch (Exception e) {
+                    System.err.println("invalid port");
+                    System.exit(1);
+                }
+            } else {
+                System.err.println("No such option: " + argv[i]);
+                System.exit(1);
+            }
+        }
+        new PoolInfoServer(serverPort, single).run();
     }
 
     /**
@@ -173,12 +178,12 @@ public class PoolInfoServer extends Thread {
      *               as no keys are being processed anymore.
      */
     public PoolInfoServer(int port, boolean single) {
-	singleRun = single;
-	try {
-	    serverSocket = new ServerSocket(port);
-	} catch (IOException e) {
-	    throw new RuntimeException("Could not create server socket");
-	}
+        singleRun = single;
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create server socket");
+        }
     }
 
     /**
@@ -188,9 +193,8 @@ public class PoolInfoServer extends Thread {
      *               as no keys are being processed anymore.
      */
     public PoolInfoServer(boolean single) {
-	this(TypedProperties.intProperty(PoolInfo.s_port,
-					 POOL_INFO_PORT),
-	     single);
+        this(TypedProperties.intProperty(PoolInfo.s_port, POOL_INFO_PORT),
+                single);
     }
 
     /**
@@ -201,43 +205,43 @@ public class PoolInfoServer extends Thread {
      * made available for future runs.
      */
     public void run() {
-	/* we have to keep references to the input streams otherwise they can
-	 * be closed by the garbage collector, and the socket will also be
-	 * closed then */
+        /* we have to keep references to the input streams otherwise they can
+         * be closed by the garbage collector, and the socket will also be
+         * closed then */
 
-	Socket socket;
-	DataInputStream in;
-	boolean stop = false;
+        Socket socket;
+        DataInputStream in;
+        boolean stop = false;
 
-	try {
-	    while (! stop) {
-		if (DEBUG) {
-		    System.err.println("PoolInfoServer: starting run, " + 
-			    "waiting for a host to connect...");
-		}
-		socket = serverSocket.accept();
-		in = new DataInputStream(socket.getInputStream());
-		String key = in.readUTF();
-		int total_hosts = in.readInt();
-		int remove_doubles = in.readInt();
-		String cluster = in.readUTF();
-		RunInfo r = (RunInfo) map.get(key);
-		if (r == null) {
-		    r = new RunInfo(total_hosts, key);
-		    map.put(key, r);
-		}
+        try {
+            while (!stop) {
+                if (DEBUG) {
+                    System.err.println("PoolInfoServer: starting run, "
+                            + "waiting for a host to connect...");
+                }
+                socket = serverSocket.accept();
+                in = new DataInputStream(socket.getInputStream());
+                String key = in.readUTF();
+                int total_hosts = in.readInt();
+                int remove_doubles = in.readInt();
+                String cluster = in.readUTF();
+                RunInfo r = (RunInfo) map.get(key);
+                if (r == null) {
+                    r = new RunInfo(total_hosts, key);
+                    map.put(key, r);
+                }
 
-		if (r.add(total_hosts, remove_doubles, cluster, socket, in)) {
-		    map.remove(key);
-		    r.broadcast();
-		    if (singleRun) {
-			stop = map.isEmpty();
-		    }
-		}
-	    }
-	    serverSocket.close();
-	} catch (IOException e) {
-	    throw new RuntimeException("Got IO exception");
-	}
+                if (r.add(total_hosts, remove_doubles, cluster, socket, in)) {
+                    map.remove(key);
+                    r.broadcast();
+                    if (singleRun) {
+                        stop = map.isEmpty();
+                    }
+                }
+            }
+            serverSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Got IO exception");
+        }
     }
 }

@@ -8,7 +8,7 @@ package ibis.gmi;
  * This is really only useful when there is more than one invoker, so with
  * a combined invocation scheme.
  */
-public class PersonalizeReply extends ReplyScheme { 
+public class PersonalizeReply extends ReplyScheme {
 
     /** The reply personalizer. */
     public ReplyPersonalizer rp;
@@ -32,17 +32,18 @@ public class PersonalizeReply extends ReplyScheme {
      * personalizing.
      */
     public PersonalizeReply(ReplyPersonalizer rp, ReplyScheme rs)
-	    throws ConfigurationException { 
-	super(ReplyScheme.R_PERSONALIZED);
-	this.rp = rp;
-	this.rs = rs;
-	if (rp == null) { 
-	    throw new ConfigurationException("Invalid result personalizer " + rp);
-	}
-	if (rs == null ||
-	    (rs.mode == ReplyScheme.R_DISCARD) ||
-	    (rs.mode >= ReplyScheme.R_PERSONALIZED)) { 
-	    throw new ConfigurationException("Invalid nested reply scheme " + rs);
-	}
-    } 
+            throws ConfigurationException {
+        super(ReplyScheme.R_PERSONALIZED);
+        this.rp = rp;
+        this.rs = rs;
+        if (rp == null) {
+            throw new ConfigurationException("Invalid result personalizer "
+                    + rp);
+        }
+        if (rs == null || (rs.mode == ReplyScheme.R_DISCARD)
+                || (rs.mode >= ReplyScheme.R_PERSONALIZED)) {
+            throw new ConfigurationException("Invalid nested reply scheme "
+                    + rs);
+        }
+    }
 }

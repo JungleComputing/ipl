@@ -13,7 +13,7 @@ import java.io.IOException;
  * and a separate class that contains a method invoking this constructor
  * and returning its result.
  */
-public abstract class Generator { 
+public abstract class Generator {
     public abstract Object generated_newInstance(IbisSerializationInputStream in)
-	throws IOException;
+            throws IOException;
 }

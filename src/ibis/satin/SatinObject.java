@@ -16,7 +16,7 @@ public class SatinObject implements java.io.Serializable {
      * Waits until all spawned methods in the current method are finished.
      */
     public void sync() {
-	/* do nothing, bytecode is rewritten to handle this */
+        /* do nothing, bytecode is rewritten to handle this */
     }
 
     /**
@@ -24,7 +24,7 @@ public class SatinObject implements java.io.Serializable {
      * and all methods spawned by the aborted methods.
      */
     public void abort() {
-	/* do nothing, bytecode is rewritten to handle this */
+        /* do nothing, bytecode is rewritten to handle this */
     }
 
     /**
@@ -34,7 +34,7 @@ public class SatinObject implements java.io.Serializable {
      * during sequential code.
      */
     public static void pause() {
-	APIMethods.pause();
+        APIMethods.pause();
     }
 
     /**
@@ -42,7 +42,7 @@ public class SatinObject implements java.io.Serializable {
      * large sequential part in a program.
      */
     public static void resume() {
-	APIMethods.resume();
+        APIMethods.resume();
     }
 
     /**
@@ -54,7 +54,7 @@ public class SatinObject implements java.io.Serializable {
      *         invocations, false if there is enough work in the system.
      */
     public static boolean needMoreJobs() {
-	return APIMethods.needMoreJobs();
+        return APIMethods.needMoreJobs();
     }
 
     /**
@@ -66,6 +66,6 @@ public class SatinObject implements java.io.Serializable {
      *         another processor.
      */
     public static boolean localJob() {
-	return APIMethods.localJob();
+        return APIMethods.localJob();
     }
 }

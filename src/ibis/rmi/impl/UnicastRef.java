@@ -8,53 +8,47 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.Method;
 
-public class UnicastRef implements RemoteRef, java.io.Serializable
-{
+public class UnicastRef implements RemoteRef, java.io.Serializable {
     public String GUID = null;
-
 
     public UnicastRef() {
         // nothing here
     }
-    
+
     public UnicastRef(String GUID) {
-	this.GUID = GUID;
-    }
-    
-
-    public String getRefClass(ObjectOutput out)
-    {
-	return "UnicastRef";
+        this.GUID = GUID;
     }
 
-    public void writeExternal(ObjectOutput out) throws IOException 
-    {
-	out.writeUTF(GUID);
+    public String getRefClass(ObjectOutput out) {
+        return "UnicastRef";
     }
 
-    public void readExternal(ObjectInput in)
-	throws IOException
-    {
-	GUID = in.readUTF();
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeUTF(GUID);
     }
-    
+
+    public void readExternal(ObjectInput in) throws IOException {
+        GUID = in.readUTF();
+    }
+
     public String remoteToString() {
-	return "RemoteReference" + "@" + Integer.toHexString(System.identityHashCode(this));
+        return "RemoteReference" + "@"
+                + Integer.toHexString(System.identityHashCode(this));
     }
 
-    Object invoke(RemoteStub stub , Method m, Object []param , long c) {
-	return null;
+    Object invoke(RemoteStub stub, Method m, Object[] param, long c) {
+        return null;
     }
 
     public int remoteHashCode() {
-	//return skeletonPortId.hashCode();
-	return GUID.hashCode();
+        //return skeletonPortId.hashCode();
+        return GUID.hashCode();
     }
 
     public boolean remoteEquals(RemoteRef sub) {
-	if (sub instanceof UnicastRef) {
-	    return GUID.equals(((UnicastRef)sub).GUID);
-	}
-	return false;
+        if (sub instanceof UnicastRef) {
+            return GUID.equals(((UnicastRef) sub).GUID);
+        }
+        return false;
     }
 }

@@ -20,125 +20,125 @@ final class DEQueueDijkstra extends DEQueue implements Config {
     private Satin satin;
 
     DEQueueDijkstra(Satin satin) {
-	this.satin = satin;
+        this.satin = satin;
     }
 
     int size() {
-	synchronized (satin) {
-	    return head - tail;
-	}
+        synchronized (satin) {
+            return head - tail;
+        }
     }
 
     void addToHead(InvocationRecord r) {
-	if (head == size) {
-	    //			System.err.println("doubling DEq, new size = " + (size*2));
+        if (head == size) {
+            //			System.err.println("doubling DEq, new size = " + (size*2));
 
-	    synchronized (satin) {
-		size *= 2;
-		InvocationRecord[] nl = new InvocationRecord[size];
-		System.arraycopy(l, 0, nl, 0, l.length);
-		l = nl;
-	    }
-	}
+            synchronized (satin) {
+                size *= 2;
+                InvocationRecord[] nl = new InvocationRecord[size];
+                System.arraycopy(l, 0, nl, 0, l.length);
+                l = nl;
+            }
+        }
 
-	l[head] = r;
-	head++;
+        l[head] = r;
+        head++;
     }
 
     void addToTail(InvocationRecord r) {
-	throw new Error("Not implemented");
+        throw new Error("Not implemented");
     }
 
     InvocationRecord getFromHead() {
-	head--;
-	if (head < tail) {
-	    head++;
-	    synchronized (satin) {
-		head--;
-		if (head < tail) {
-		    head++;
-		    return null;
-		}
-	    }
-	}
+        head--;
+        if (head < tail) {
+            head++;
+            synchronized (satin) {
+                head--;
+                if (head < tail) {
+                    head++;
+                    return null;
+                }
+            }
+        }
 
-	InvocationRecord rval = l[head];
-	l[head] = null;
+        InvocationRecord rval = l[head];
+        l[head] = null;
 
-	// success
-	return rval;
+        // success
+        return rval;
     }
 
     synchronized InvocationRecord getFromTail() {
-	tail++;
-	if (head < tail) {
-	    tail--;
-	    return null;
-	}
+        tail++;
+        if (head < tail) {
+            tail--;
+            return null;
+        }
 
-	InvocationRecord rval = l[tail - 1];
-	l[tail - 1] = null;
-	return rval;
+        InvocationRecord rval = l[tail - 1];
+        l[tail - 1] = null;
+        return rval;
     }
 
     boolean contains(InvocationRecord r) {
-	for (int i = tail; i < head; i++) {
-	    InvocationRecord curr = l[i];
-	    if (curr.equals(r))
-		return true;
-	}
+        for (int i = tail; i < head; i++) {
+            InvocationRecord curr = l[i];
+            if (curr.equals(r))
+                return true;
+        }
 
-	return false;
+        return false;
     }
 
     void removeJob(int index) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	for (int i = index + 1; i < head; i++) {
-	    l[i - 1] = l[i];
-	}
+        for (int i = index + 1; i < head; i++) {
+            l[i - 1] = l[i];
+        }
 
-	l[head] = null;
+        l[head] = null;
 
-	head--;
+        head--;
     }
 
     /* hold the satin lock here! */
     void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	for (int i = tail; i < head; i++) {
-	    InvocationRecord curr = l[i];
-	    if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
-		if (ABORT_DEBUG) {
-		    System.err.println("found local child: " + curr.stamp
-			    + ", it depends on " + targetStamp);
-		}
+        for (int i = tail; i < head; i++) {
+            InvocationRecord curr = l[i];
+            if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+                if (ABORT_DEBUG) {
+                    System.err.println("found local child: " + curr.stamp
+                            + ", it depends on " + targetStamp);
+                }
 
-		curr.aborted = true;
-		if (ABORT_STATS) {
-		    satin.abortedJobs++;
-		}
-		if (SPAWN_DEBUG) {
-		    curr.spawnCounter.decr(curr);
-		}
-		else	curr.spawnCounter.value--;
-		if (ASSERTS && curr.spawnCounter.value < 0) {
-		    System.err.println("Just made spawncounter < 0");
-		    new Exception().printStackTrace();
-		    System.exit(1);
-		}
-		removeJob(i);
-		i--;
-		//				head--;
-		//				l[i] = l[head];
-		//				i--;
-	    }
-	}
+                curr.aborted = true;
+                if (ABORT_STATS) {
+                    satin.abortedJobs++;
+                }
+                if (SPAWN_DEBUG) {
+                    curr.spawnCounter.decr(curr);
+                } else
+                    curr.spawnCounter.value--;
+                if (ASSERTS && curr.spawnCounter.value < 0) {
+                    System.err.println("Just made spawncounter < 0");
+                    new Exception().printStackTrace();
+                    System.exit(1);
+                }
+                removeJob(i);
+                i--;
+                //				head--;
+                //				l[i] = l[head];
+                //				i--;
+            }
+        }
     }
 
     /**
@@ -152,34 +152,34 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 
     //never used -- dijkstra queue doesnt work with fault tolerance
     void killSubtreeOf(ibis.ipl.IbisIdentifier owner) {
-	if (ASSERTS) {
-	    SatinBase.assertLocked(satin);
-	}
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
 
-	for (int i = tail; i < head; i++) {
-	    InvocationRecord curr = l[i];
-	    if (Aborts.isDescendentOf1(curr, owner) || curr.owner.equals(owner)) //shouldn
-		// happen
-	    {
+        for (int i = tail; i < head; i++) {
+            InvocationRecord curr = l[i];
+            if (Aborts.isDescendentOf1(curr, owner) || curr.owner.equals(owner)) //shouldn
+            // happen
+            {
 
-		curr.aborted = true;
-		if (SPAWN_DEBUG) {
-		    curr.spawnCounter.decr(curr);
-		}
-		else	curr.spawnCounter.value--;
-		if (ASSERTS && curr.spawnCounter.value < 0) {
-		    System.out.println("Just made spawncounter < 0");
-		    new Exception().printStackTrace();
-		    System.exit(1);
-		}
-		removeJob(i);
-		i--;
-	    }
-	}
+                curr.aborted = true;
+                if (SPAWN_DEBUG) {
+                    curr.spawnCounter.decr(curr);
+                } else
+                    curr.spawnCounter.value--;
+                if (ASSERTS && curr.spawnCounter.value < 0) {
+                    System.out.println("Just made spawncounter < 0");
+                    new Exception().printStackTrace();
+                    System.exit(1);
+                }
+                removeJob(i);
+                i--;
+            }
+        }
     }
 
     void print(java.io.PrintStream out) {
-	// TODO
+        // TODO
     }
 
 }

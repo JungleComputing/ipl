@@ -6,10 +6,10 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public interface ClientServerSocketFactory
-{
+public interface ClientServerSocketFactory {
     public Socket createClientSocket(InetAddress addr, int port)
-	throws IOException;
+            throws IOException;
+
     public ServerSocket createServerSocket(InetSocketAddress addr, int backlog)
-	throws IOException;
+            throws IOException;
 }

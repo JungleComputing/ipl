@@ -36,7 +36,7 @@ final class MethodTable {
         boolean[] isLocalUsed;
 
         SpawnTableEntry() {
-    		// do nothing
+            // do nothing
         }
 
         boolean[] analyseUsedLocals(MethodGen mg, CodeExceptionGen catchBlock,
@@ -92,9 +92,9 @@ final class MethodTable {
                             .getPosition()
                             || // backjump out of handler
                             dest.getPosition() > end.getPosition()) { // forward
-                                                                      // jump
-                                                                      // beyond
-                                                                      // catch
+                        // jump
+                        // beyond
+                        // catch
                         if (verbose) {
                             System.out
                                     .println("inlet contains a jump to exit, assuming all locals are used");
@@ -180,7 +180,7 @@ final class MethodTable {
         int startLocalAlloc;
 
         MethodTableEntry() {
-        	/* do nothing */
+            /* do nothing */
         }
 
         MethodTableEntry(MethodTableEntry orig, MethodGen mg) {
@@ -238,98 +238,95 @@ final class MethodTable {
     private static HashMap analyzers = new HashMap();
 
     private boolean available_slot(Type[] types, int ind, Type t) {
-	Type tp = types[ind];
-	if (tp != null) {
-	    if (t.equals(tp)) {
-		return true;
-	    }
-	    return false;
-	}
-	if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
-	    if (types[ind+1] != null) return false;
-	    types[ind+1] = Type.VOID;
-	}
-	types[ind] = t;
-	return true;
+        Type tp = types[ind];
+        if (tp != null) {
+            if (t.equals(tp)) {
+                return true;
+            }
+            return false;
+        }
+        if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
+            if (types[ind + 1] != null)
+                return false;
+            types[ind + 1] = Type.VOID;
+        }
+        types[ind] = t;
+        return true;
     }
 
     // Make each stack position indicate a single type of variable.
     void rewriteLocals(MethodGen m) {
-	// First, analyze how many stack positions are for parameters.
-	// We won't touch those.
-	int parameterpos = m.isStatic() ? 0 : 1;
+        // First, analyze how many stack positions are for parameters.
+        // We won't touch those.
+        int parameterpos = m.isStatic() ? 0 : 1;
 
-	Type[] parameters = m.getArgumentTypes();
+        Type[] parameters = m.getArgumentTypes();
 
-	parameterpos += parameters.length;
-	for (int i = 0; i < parameters.length; i++) {
-	    if (parameters[i].equals(Type.LONG) ||
-		parameters[i].equals(Type.DOUBLE)) {
-		parameterpos++;
-	    }
-	}
+        parameterpos += parameters.length;
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i].equals(Type.LONG)
+                    || parameters[i].equals(Type.DOUBLE)) {
+                parameterpos++;
+            }
+        }
 
-	LocalVariableGen[] locals = m.getLocalVariables();
-	int maxpos = m.getMaxLocals();
+        LocalVariableGen[] locals = m.getLocalVariables();
+        int maxpos = m.getMaxLocals();
 
-	Type[] types = new Type[2 * locals.length + maxpos];
+        Type[] types = new Type[2 * locals.length + maxpos];
 
-	for (int i = 0; i < locals.length; i++) {
-	    int ind = locals[i].getIndex();
-	    if (ind < parameterpos) {
-		continue;
-	    }
-	    Type t = locals[i].getType();
-	    if (! available_slot(types, ind, t)) {
-		// Give this local a new stack position.
-		locals[i].setIndex(maxpos);
-		types[maxpos] = t;
-		rewriteLocal(locals[i].getStart(), locals[i].getEnd(), ind, maxpos);
-		// And give all other locals that have the same old stack
-		// position and the same type this new stack position.
-		for (int j = i+1; j < locals.length; j++) {
-		    if (locals[j].getIndex() == ind &&
-			locals[j].getType().equals(t)) {
-			locals[j].setIndex(maxpos);
-			rewriteLocal(locals[j].getStart(),
-				     locals[j].getEnd(),
-				     ind,
-				     maxpos);
-		    }
-		}
-		maxpos++;
-		if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
-		    // longs and doubles need two stack positions.
-		    types[maxpos] = Type.VOID;
-		    maxpos++;
-		}
-	    }
-	}
+        for (int i = 0; i < locals.length; i++) {
+            int ind = locals[i].getIndex();
+            if (ind < parameterpos) {
+                continue;
+            }
+            Type t = locals[i].getType();
+            if (!available_slot(types, ind, t)) {
+                // Give this local a new stack position.
+                locals[i].setIndex(maxpos);
+                types[maxpos] = t;
+                rewriteLocal(locals[i].getStart(), locals[i].getEnd(), ind,
+                        maxpos);
+                // And give all other locals that have the same old stack
+                // position and the same type this new stack position.
+                for (int j = i + 1; j < locals.length; j++) {
+                    if (locals[j].getIndex() == ind
+                            && locals[j].getType().equals(t)) {
+                        locals[j].setIndex(maxpos);
+                        rewriteLocal(locals[j].getStart(), locals[j].getEnd(),
+                                ind, maxpos);
+                    }
+                }
+                maxpos++;
+                if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
+                    // longs and doubles need two stack positions.
+                    types[maxpos] = Type.VOID;
+                    maxpos++;
+                }
+            }
+        }
     }
 
     // Rewrite instructions where local is used.
-    void rewriteLocal(InstructionHandle fromH,
-		      InstructionHandle toH,
-		      int oldindex,
-		      int newindex) {
+    void rewriteLocal(InstructionHandle fromH, InstructionHandle toH,
+            int oldindex, int newindex) {
 
-	InstructionHandle h = fromH;
-	if (h.getPrev() != null) {
-	    h = h.getPrev();
-	    // This instruction should contain the store.
-	}
-	while (h != null && h != toH) {
-	    Instruction ins = h.getInstruction();
-	    if (ins instanceof LocalVariableInstruction) {
-		LocalVariableInstruction lins = (LocalVariableInstruction) ins;
-		if (lins.getIndex() == oldindex) {
-		    lins.setIndex(newindex);
-		}
-	    }
-	    h = h.getNext();
-	}
+        InstructionHandle h = fromH;
+        if (h.getPrev() != null) {
+            h = h.getPrev();
+            // This instruction should contain the store.
+        }
+        while (h != null && h != toH) {
+            Instruction ins = h.getInstruction();
+            if (ins instanceof LocalVariableInstruction) {
+                LocalVariableInstruction lins = (LocalVariableInstruction) ins;
+                if (lins.getIndex() == oldindex) {
+                    lins.setIndex(newindex);
+                }
+            }
+            h = h.getNext();
+        }
     }
-
 
     MethodTable(JavaClass c, ClassGen gen_c, Satinc self, boolean verbose) {
         this.verbose = verbose;
@@ -345,13 +342,13 @@ final class MethodTable {
             Method m = methods[i];
             MethodGen mg = new MethodGen(m, c.getClassName(), gen_c
                     .getConstantPool());
-	    rewriteLocals(mg);
-	    mg.setMaxLocals();
-	    mg.setMaxStack();
-	    gen_c.removeMethod(m);
-	    m = mg.getMethod();
-	    gen_c.addMethod(m);
-	    mg = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
+            rewriteLocals(mg);
+            mg.setMaxLocals();
+            mg.setMaxStack();
+            gen_c.removeMethod(m);
+            m = mg.getMethod();
+            gen_c.addMethod(m);
+            mg = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
             MethodTableEntry e = new MethodTableEntry();
 
             e.nrSpawns = calcNrSpawns(mg);
@@ -403,7 +400,8 @@ final class MethodTable {
         }
     }
 
-    private void analyzeSpawn(MethodTableEntry me, InstructionHandle spawnIns, int spawnId) {
+    private void analyzeSpawn(MethodTableEntry me, InstructionHandle spawnIns,
+            int spawnId) {
         SpawnTableEntry se = me.spawnTable[spawnId] = new SpawnTableEntry();
         se.isLocalUsed = new boolean[me.mg.getMaxLocals()];
 
@@ -458,7 +456,8 @@ final class MethodTable {
     private Type[] getParamTypesThis(Method m) {
         Type[] params = getParamTypesNoThis(m);
 
-        if (m.isStatic()) return params;
+        if (m.isStatic())
+            return params;
 
         Type[] newparams = new Type[1 + params.length];
         newparams[0] = new ObjectType(c.getClassName());
@@ -470,7 +469,8 @@ final class MethodTable {
 
     private int calcNrSpawns(MethodGen mg) {
         InstructionList il = mg.getInstructionList();
-        if (il == null) return 0;
+        if (il == null)
+            return 0;
 
         InstructionHandle[] ins = il.getInstructionHandles();
         int count = 0;
@@ -481,7 +481,8 @@ final class MethodTable {
                         .getInstruction()));
                 JavaClass cl = self.findMethodClass((INVOKEVIRTUAL) (ins[i]
                         .getInstruction()));
-                if (isSpawnable(target, cl)) count++;
+                if (isSpawnable(target, cl))
+                    count++;
             }
         }
 
@@ -528,7 +529,9 @@ final class MethodTable {
     private MethodTableEntry findMethod(MethodGen mg) {
         for (int i = 0; i < methodTable.size(); i++) {
             MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
-            if (e.mg == mg) { return e; }
+            if (e.mg == mg) {
+                return e;
+            }
         }
 
         System.err.println("Unable to find method " + mg);
@@ -541,7 +544,9 @@ final class MethodTable {
     private MethodTableEntry findMethod(Method m) {
         for (int i = 0; i < methodTable.size(); i++) {
             MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
-            if (e.m == m) { return e; }
+            if (e.m == m) {
+                return e;
+            }
         }
 
         System.err.println("Unable to find method " + m);
@@ -565,7 +570,9 @@ final class MethodTable {
         }
 
         for (int i = 0; i < e.spawnTable.length; i++) {
-            if (e.spawnTable[i].isLocalUsed[localNr]) { return true; }
+            if (e.spawnTable[i].isLocalUsed[localNr]) {
+                return true;
+            }
         }
 
         return false;
@@ -623,8 +630,9 @@ final class MethodTable {
             CodeExceptionGen catchBlock) {
 
         if (catchBlock.getCatchType() == null) {
-        // finally clause, no local variable!
-        return null; }
+            // finally clause, no local variable!
+            return null;
+        }
 
         LocalVariableGen[] lt = m.getLocalVariables();
 
@@ -638,9 +646,10 @@ final class MethodTable {
             if ((start == handler || start == handler.getNext() || start == handler
                     .getNext().getNext())
                     && lt[i].getType().equals(catchBlock.getCatchType())) {
-            // System.out.println("found range of catch block: " + handler + " -
-            // " + end);
-            return end.getPrev(); }
+                // System.out.println("found range of catch block: " + handler + " -
+                // " + end);
+                return end.getPrev();
+            }
         }
 
         System.err
@@ -691,7 +700,9 @@ final class MethodTable {
             }
         }
 
-        if (res != null) { return res; }
+        if (res != null) {
+            return res;
+        }
 
         System.err.println("getParamName: could not find name of param "
                 + paramNr);
@@ -701,7 +712,8 @@ final class MethodTable {
     }
 
     static String getParamNameNoThis(Method m, int paramNr) {
-        if (!m.isStatic()) paramNr++;
+        if (!m.isStatic())
+            paramNr++;
         return getParamName(m, paramNr);
     }
 
@@ -721,13 +733,13 @@ final class MethodTable {
             if (localNr == lt[i].getIndex()
                     && pos >= lt[i].getStart().getPrev().getPosition()
                     && pos < (lt[i].getEnd().getPosition())) {
-		return lt[i];
-	    }
+                return lt[i];
+            }
 
-//	    if (localNr == lt[i].getIndex()) {
-//		    System.err.println("Looking for local " + localNr + " on position " + pos);
-//		    System.err.println("found one with range " + lt[i].getStart().getPrev().getPosition() + ", " + lt[i].getEnd().getPosition());
-//	    }
+            //	    if (localNr == lt[i].getIndex()) {
+            //		    System.err.println("Looking for local " + localNr + " on position " + pos);
+            //		    System.err.println("found one with range " + lt[i].getStart().getPrev().getPosition() + ", " + lt[i].getEnd().getPosition());
+            //	    }
         }
 
         new Exception().printStackTrace();
@@ -819,7 +831,8 @@ final class MethodTable {
     boolean containsSpawnedCall(MethodGen m) {
         InstructionList code = m.getInstructionList();
 
-        if (code == null) return false;
+        if (code == null)
+            return false;
 
         InstructionHandle ih[] = code.getInstructionHandles();
 
@@ -828,7 +841,8 @@ final class MethodTable {
             if (ins instanceof INVOKEVIRTUAL) {
                 Method target = self.findMethod((INVOKEVIRTUAL) (ins));
                 JavaClass cl = self.findMethodClass((INVOKEVIRTUAL) (ins));
-                if (isSpawnable(target, cl)) return true;
+                if (isSpawnable(target, cl))
+                    return true;
             }
         }
 
@@ -848,7 +862,8 @@ final class MethodTable {
 
     MethodGen getMethodGen(Method m) {
         MethodTableEntry e = findMethod(m);
-        if (e == null) return null;
+        if (e == null)
+            return null;
         return e.mg;
     }
 

@@ -8,10 +8,8 @@ import java.io.ObjectOutputStream;
 
 public interface MultiPlugin {
 
-        public String getSubContext(boolean		isOutgoing,
-                                    NetIbisIdentifier  	localId,
-                                    NetIbisIdentifier  	remoteId,
-                                    ObjectOutputStream	oos,
-                                    ObjectInputStream 	ois) throws IOException;
+    public String getSubContext(boolean isOutgoing, NetIbisIdentifier localId,
+            NetIbisIdentifier remoteId, ObjectOutputStream oos,
+            ObjectInputStream ois) throws IOException;
 }
 

@@ -17,107 +17,112 @@ import java.util.Iterator;
 class ElectionServer extends Thread implements Protocol {
 
     private HashMap elections;
+
     private ServerSocket serverSocket;
 
-    private	ObjectInputStream in;
-    private	ObjectOutputStream out;
+    private ObjectInputStream in;
 
-    ElectionServer() throws IOException { 
-	elections = new HashMap();
+    private ObjectOutputStream out;
 
-	serverSocket = NameServerClient.socketFactory.createServerSocket(0, null, true /* retry */);
-	setName("NameServer ElectionServer");
-	start();
-    } 
+    ElectionServer() throws IOException {
+        elections = new HashMap();
 
-    int getPort() { 
-	return serverSocket.getLocalPort();
+        serverSocket = NameServerClient.socketFactory.createServerSocket(0,
+                null, true /* retry */);
+        setName("NameServer ElectionServer");
+        start();
     }
 
-    private void handleElection() throws IOException, ClassNotFoundException { 
-
-	String election = in.readUTF();
-	Object candidate = in.readObject();
-
-	Object temp = elections.get(election);
-
-	if (temp == null) { 
-	    if (candidate != null) {
-		elections.put(election, candidate);
-	    }
-	    out.writeObject(candidate);
-	} else { 			
-	    out.writeObject(temp);
-	}
-    } 
-
-    private void handleKill() throws IOException, ClassNotFoundException { 
-
-	Object ids[] = (Object[]) in.readObject();
-	for (Iterator key = elections.keySet().iterator();
-		key.hasNext();) {
-	    String election = (String) key.next();
-	    Object o = elections.get(election);
-	    for (int i = 0; i < ids.length; i++) {
-		if (o.equals(ids[i])) {
-		    // result of election is dead. Make new election
-		    // possible.
-		    key.remove();
-		    break;
-		}
-	    }
-		}
+    int getPort() {
+        return serverSocket.getLocalPort();
     }
 
+    private void handleElection() throws IOException, ClassNotFoundException {
+
+        String election = in.readUTF();
+        Object candidate = in.readObject();
+
+        Object temp = elections.get(election);
+
+        if (temp == null) {
+            if (candidate != null) {
+                elections.put(election, candidate);
+            }
+            out.writeObject(candidate);
+        } else {
+            out.writeObject(temp);
+        }
+    }
+
+    private void handleKill() throws IOException, ClassNotFoundException {
+
+        Object ids[] = (Object[]) in.readObject();
+        for (Iterator key = elections.keySet().iterator(); key.hasNext();) {
+            String election = (String) key.next();
+            Object o = elections.get(election);
+            for (int i = 0; i < ids.length; i++) {
+                if (o.equals(ids[i])) {
+                    // result of election is dead. Make new election
+                    // possible.
+                    key.remove();
+                    break;
+                }
+            }
+        }
+    }
 
     public void run() {
-	Socket s;
-	int opcode;
-	boolean stop = false;
+        Socket s;
+        int opcode;
+        boolean stop = false;
 
-	while (!stop) {
+        while (!stop) {
 
-	    try {
-		s = NameServerClient.socketFactory.accept(serverSocket);
-	    } catch (Exception e) {
-		throw new IbisRuntimeException("ElectionServer: got an error", e);
-	    }
+            try {
+                s = NameServerClient.socketFactory.accept(serverSocket);
+            } catch (Exception e) {
+                throw new IbisRuntimeException("ElectionServer: got an error",
+                        e);
+            }
 
-	    try {
-		DummyInputStream di = new DummyInputStream(s.getInputStream());
-		in  = new ObjectInputStream(new BufferedInputStream(di));
-		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-		out = new ObjectOutputStream(new BufferedOutputStream(dos));
+            try {
+                DummyInputStream di = new DummyInputStream(s.getInputStream());
+                in = new ObjectInputStream(new BufferedInputStream(di));
+                DummyOutputStream dos = new DummyOutputStream(s
+                        .getOutputStream());
+                out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
-		opcode = in.readByte();
+                opcode = in.readByte();
 
-		switch (opcode) { 
-		case (ELECTION): 
-		    handleElection();
-		    break;
-		case (ELECTION_KILL) :
-		    handleKill();
-		    break;
-		case (ELECTION_EXIT):
-		    NameServerClient.socketFactory.close(in, out, s);
-		    serverSocket.close();
-		    return;
-		default: 
-		    System.err.println("ElectionServer: got an illegal opcode " + opcode);					
-		}
+                switch (opcode) {
+                case (ELECTION):
+                    handleElection();
+                    break;
+                case (ELECTION_KILL):
+                    handleKill();
+                    break;
+                case (ELECTION_EXIT):
+                    NameServerClient.socketFactory.close(in, out, s);
+                    serverSocket.close();
+                    return;
+                default:
+                    System.err.println("ElectionServer: got an illegal opcode "
+                            + opcode);
+                }
 
-		NameServerClient.socketFactory.close(in, out, s);
-	    } catch (Exception e1) {
-		System.err.println("Got an exception in ElectionServer.run " + e1);
-		e1.printStackTrace();
-		if (s != null) { 
-		    try { 
-			s.close();
-		    } catch (IOException e2) { 
-			// don't care.
-		    } 
-		}
-	    }
-	}
+                NameServerClient.socketFactory.close(in, out, s);
+            } catch (Exception e1) {
+                System.err.println("Got an exception in ElectionServer.run "
+                        + e1);
+                e1.printStackTrace();
+                if (s != null) {
+                    try {
+                        s.close();
+                    } catch (IOException e2) {
+                        // don't care.
+                    }
+                }
+            }
+        }
     }
 }

@@ -2,18 +2,18 @@ package ibis.impl.net;
 
 public class InterruptedIOException extends ibis.ipl.IbisIOException {
     public InterruptedIOException() {
-	super();
+        super();
     }
 
     public InterruptedIOException(String name) {
-	super(name);
+        super(name);
     }
 
     public InterruptedIOException(String name, Throwable cause) {
-	super(name, cause);
+        super(name, cause);
     }
 
     public InterruptedIOException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

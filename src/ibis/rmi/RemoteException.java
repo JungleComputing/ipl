@@ -4,14 +4,13 @@ package ibis.rmi;
  * A <code>RemoteException</code> is the common superclass for several
  * exceptions that may occur during a remove method invocation.
  */
-public class RemoteException extends ibis.ipl.IbisIOException
-{
+public class RemoteException extends ibis.ipl.IbisIOException {
     /**
      * Constructs an <code>RemoteException</code> with no specified
      * detail message.
      */
     public RemoteException() {
-	super();
+        super();
     }
 
     /**
@@ -20,7 +19,7 @@ public class RemoteException extends ibis.ipl.IbisIOException
      * @param s the detail message
      */
     public RemoteException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -30,8 +29,8 @@ public class RemoteException extends ibis.ipl.IbisIOException
      * @param e the cause
      */
     public RemoteException(String s, Throwable e) {
-	super(s);
-	initCause(e);
+        super(s);
+        initCause(e);
     }
 
     /**
@@ -40,7 +39,7 @@ public class RemoteException extends ibis.ipl.IbisIOException
      * @param e the cause
      */
     public RemoteException(Throwable e) {
-	super();
-	initCause(e);
+        super();
+        initCause(e);
     }
 }

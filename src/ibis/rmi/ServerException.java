@@ -13,7 +13,7 @@ public class ServerException extends RemoteException {
      * @param s the detail message
      */
     public ServerException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -23,6 +23,6 @@ public class ServerException extends RemoteException {
      * @param ex the nested exception
      */
     public ServerException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

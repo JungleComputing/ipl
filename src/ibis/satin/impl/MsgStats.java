@@ -29,38 +29,38 @@ class MsgStats {
     int[] received;
 
     private int[] realloc(int[] a, int n) {
-	int[] b = new int[n];
-	if (a != null) {
-	    System.arraycopy(a, 0, b, 0, a.length);
-	}
-	return b;
+        int[] b = new int[n];
+        if (a != null) {
+            System.arraycopy(a, 0, b, 0, a.length);
+        }
+        return b;
     }
 
     void addRemotePort(SendPortIdentifier id) {
-	if (remotePortHash.contains(id)) {
-	    return;
-	}
+        if (remotePortHash.contains(id)) {
+            return;
+        }
 
-	remotePortHash.add(id);
+        remotePortHash.add(id);
 
-	upcall = realloc(upcall, remotePortHash.size());
-	upcallRequest = realloc(upcallRequest, remotePortHash.size());
-	upcallReply = realloc(upcallReply, remotePortHash.size());
-	upcallResult = realloc(upcallResult, remotePortHash.size());
-	received = realloc(received, remotePortHash.size());
+        upcall = realloc(upcall, remotePortHash.size());
+        upcallRequest = realloc(upcallRequest, remotePortHash.size());
+        upcallReply = realloc(upcallReply, remotePortHash.size());
+        upcallResult = realloc(upcallResult, remotePortHash.size());
+        received = realloc(received, remotePortHash.size());
     }
 
     void addLocalPort(SendPortIdentifier id) {
-	if (localPortHash.contains(id)) {
-	    return;
-	}
+        if (localPortHash.contains(id)) {
+            return;
+        }
 
-	localPortHash.add(id);
+        localPortHash.add(id);
 
-	sendRequest = realloc(sendRequest, localPortHash.size());
-	sendReply = realloc(sendReply, localPortHash.size());
-	sendResult = realloc(sendResult, localPortHash.size());
-	sent = realloc(sent, localPortHash.size());
+        sendRequest = realloc(sendRequest, localPortHash.size());
+        sendReply = realloc(sendReply, localPortHash.size());
+        sendResult = realloc(sendResult, localPortHash.size());
+        sent = realloc(sent, localPortHash.size());
     }
 
 }

@@ -29,8 +29,8 @@ public abstract class SerializationInputStream extends ObjectInputStream {
      * @exception IOException is thrown on an IO error.
      */
     protected SerializationInputStream() throws IOException {
-	super();
-	initTimer();
+        super();
+        initTimer();
     }
 
     /**
@@ -40,98 +40,91 @@ public abstract class SerializationInputStream extends ObjectInputStream {
      * @exception IOException is thrown on an IO error.
      */
     SerializationInputStream(InputStream s) throws IOException {
-	super(s);
-	initTimer();
+        super(s);
+        initTimer();
     }
-
 
     /** 
      * Enable this to measure the time spent in serialization.
      * Each serialization entry/exit point must start/stop the timer.
      */
-    protected final static boolean TIME_SERIALIZATION =
-	TypedProperties.booleanProperty(IOProps.s_timer, false) ||
-       	TypedProperties.booleanProperty(IOProps.s_timer_in, false);
+    protected final static boolean TIME_SERIALIZATION = TypedProperties
+            .booleanProperty(IOProps.s_timer, false)
+            || TypedProperties.booleanProperty(IOProps.s_timer_in, false);
 
     /**
      * The serialization timer
      */
-    protected final SerializationTimer timer =
-	TIME_SERIALIZATION ? new SerializationTimer(toString()) : null;
-
+    protected final SerializationTimer timer = TIME_SERIALIZATION ? new SerializationTimer(
+            toString())
+            : null;
 
     private static java.util.Vector timerList = new java.util.Vector();
 
     static {
-	if (TIME_SERIALIZATION) {
-	    System.out.println("SerializationInputStream.TIME_SERIALIZATION enabled");
-	    Runtime.getRuntime().addShutdownHook(new Thread("SerializationInputStream ShutdownHook") {
-		public void run() {
-		    printAllTimers();
-		}
-	    });
-	}
+        if (TIME_SERIALIZATION) {
+            System.out
+                    .println("SerializationInputStream.TIME_SERIALIZATION enabled");
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread("SerializationInputStream ShutdownHook") {
+                        public void run() {
+                            printAllTimers();
+                        }
+                    });
+        }
     }
-
 
     public static void resetAllTimers() {
-	synchronized (SerializationInputStream.class) {
-	    java.util.Enumeration e = timerList.elements();
-	    while (e.hasMoreElements()) {
-		SerializationTimer t = (SerializationTimer)e.nextElement();
-		t.reset();
-	    }
-	}
+        synchronized (SerializationInputStream.class) {
+            java.util.Enumeration e = timerList.elements();
+            while (e.hasMoreElements()) {
+                SerializationTimer t = (SerializationTimer) e.nextElement();
+                t.reset();
+            }
+        }
     }
-
 
     public static void printAllTimers() {
-	synchronized (SerializationInputStream.class) {
-	    java.util.Enumeration e = timerList.elements();
-	    while (e.hasMoreElements()) {
-		SerializationTimer t = (SerializationTimer)e.nextElement();
-		t.report();
-	    }
-	}
+        synchronized (SerializationInputStream.class) {
+            java.util.Enumeration e = timerList.elements();
+            while (e.hasMoreElements()) {
+                SerializationTimer t = (SerializationTimer) e.nextElement();
+                t.report();
+            }
+        }
     }
-
 
     private void initTimer() {
-	if (TIME_SERIALIZATION) {
-	    synchronized (SerializationInputStream.class) {
-		timerList.add(timer);
-	    }
-	}
+        if (TIME_SERIALIZATION) {
+            synchronized (SerializationInputStream.class) {
+                timerList.add(timer);
+            }
+        }
     }
-
 
     protected final void startTimer() {
-	if (TIME_SERIALIZATION) {
-	    timer.start();
-	}
+        if (TIME_SERIALIZATION) {
+            timer.start();
+        }
     }
-
 
     protected final void stopTimer() {
-	if (TIME_SERIALIZATION) {
-	    timer.stop();
-	}
+        if (TIME_SERIALIZATION) {
+            timer.stop();
+        }
     }
-
 
     protected final void suspendTimer() {
-	if (TIME_SERIALIZATION) {
-	    timer.suspend();
-	}
+        if (TIME_SERIALIZATION) {
+            timer.suspend();
+        }
     }
-
 
     protected final void resumeTimer() {
-	if (TIME_SERIALIZATION) {
-	    timer.resume();
-	}
+        if (TIME_SERIALIZATION) {
+            timer.resume();
+        }
     }
-
 
     /**
      * Returns the actual implementation used by the stream.
@@ -161,65 +154,64 @@ public abstract class SerializationInputStream extends ObjectInputStream {
      * @exception IOException is thrown on an IO error.
      */
     public void readArray(boolean[] dest) throws IOException {
-	readArray(dest, 0, dest.length);
+        readArray(dest, 0, dest.length);
     }
 
     /**
      * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(byte[] dest) throws IOException {
-	readArray(dest, 0, dest.length);
+        readArray(dest, 0, dest.length);
     }
 
     /**
      * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(short[] dest) throws IOException {
-	readArray(dest, 0, dest.length);
+        readArray(dest, 0, dest.length);
     }
 
     /**
      * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(char[] dest) throws IOException {
-	readArray(dest, 0, dest.length);
+        readArray(dest, 0, dest.length);
     }
 
     /**
      * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(int[] dest) throws IOException {
-	readArray(dest, 0, dest.length);
+        readArray(dest, 0, dest.length);
     }
 
     /**
      * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(long[] dest) throws IOException {
-	readArray(dest, 0, dest.length);
+        readArray(dest, 0, dest.length);
     }
 
     /**
      * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(float[] dest) throws IOException {
-	readArray(dest, 0, dest.length);
+        readArray(dest, 0, dest.length);
     }
 
     /**
      * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(double[] dest) throws IOException {
-	readArray(dest, 0, dest.length);
+        readArray(dest, 0, dest.length);
     }
 
     /**
      * See {@link #readArray(boolean[])} for a description.
      */
-    public void readArray(Object[] dest)
-	    throws IOException, ClassNotFoundException
-    {
-	readArray(dest, 0, dest.length);
+    public void readArray(Object[] dest) throws IOException,
+            ClassNotFoundException {
+        readArray(dest, 0, dest.length);
     }
 
     /**
@@ -231,49 +223,49 @@ public abstract class SerializationInputStream extends ObjectInputStream {
      * @exception IOException is thrown on an IO error.
      */
     public abstract void readArray(boolean[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(byte[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(char[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(short[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(int[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(long[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(float[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(double[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
@@ -283,5 +275,5 @@ public abstract class SerializationInputStream extends ObjectInputStream {
      * serialized object is not found.
      */
     public abstract void readArray(Object[] ref, int off, int len)
-	throws IOException, ClassNotFoundException;
+            throws IOException, ClassNotFoundException;
 }

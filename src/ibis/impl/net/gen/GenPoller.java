@@ -12,21 +12,15 @@ import java.io.IOException;
  */
 public class GenPoller extends NetPoller {
 
-    public GenPoller(NetPortType pt,
-	   	     NetDriver driver,
-		     String context,
-		     NetInputUpcall inputUpcall)
-	    throws IOException {
-	super(pt, driver, context, inputUpcall);
+    public GenPoller(NetPortType pt, NetDriver driver, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        super(pt, driver, context, inputUpcall);
     }
 
-    public GenPoller(NetPortType pt,
-			   NetDriver driver,
-			   String context,
-			   boolean decouplePoller,
-			   NetInputUpcall inputUpcall)
-	    throws IOException {
-	super(pt, driver, context, decouplePoller, inputUpcall);
+    public GenPoller(NetPortType pt, NetDriver driver, String context,
+            boolean decouplePoller, NetInputUpcall inputUpcall)
+            throws IOException {
+        super(pt, driver, context, decouplePoller, inputUpcall);
     }
 
 }

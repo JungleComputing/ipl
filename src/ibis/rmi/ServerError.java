@@ -13,6 +13,6 @@ public class ServerError extends RemoteException {
      * @param ex the nested exception
      */
     public ServerError(String s, Error ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

@@ -9,7 +9,7 @@ package ibis.gmi;
  *
  * @see GroupMethod#configure
  */
-public class CombineReply extends ReplyScheme { 
+public class CombineReply extends ReplyScheme {
 
     /** The gather style combiner. */
     public FlatCombiner flatCombiner;
@@ -24,14 +24,16 @@ public class CombineReply extends ReplyScheme {
      * 
      * @exception ConfigurationException when the parameter is null.
      */
-    public CombineReply(FlatCombiner flatCombiner) throws ConfigurationException { 
-	super(ReplyScheme.R_COMBINE_FLAT);
+    public CombineReply(FlatCombiner flatCombiner)
+            throws ConfigurationException {
+        super(ReplyScheme.R_COMBINE_FLAT);
 
-	this.flatCombiner = flatCombiner;
-	if (flatCombiner == null) { 
-	    throw new ConfigurationException("Invalid result combiner " + flatCombiner);
-	}
-    } 
+        this.flatCombiner = flatCombiner;
+        if (flatCombiner == null) {
+            throw new ConfigurationException("Invalid result combiner "
+                    + flatCombiner);
+        }
+    }
 
     /**
      * Constructor with a {@link BinomialCombiner}.
@@ -40,12 +42,14 @@ public class CombineReply extends ReplyScheme {
      *
      * @exception ConfigurationException when the parameter is null.
      */
-    public CombineReply(BinomialCombiner binCombiner) throws ConfigurationException { 
-	super(ReplyScheme.R_COMBINE_BINOMIAL);
+    public CombineReply(BinomialCombiner binCombiner)
+            throws ConfigurationException {
+        super(ReplyScheme.R_COMBINE_BINOMIAL);
 
-	binomialCombiner = binCombiner;
-	if (binomialCombiner == null) { 
-	    throw new ConfigurationException("Invalid result combiner " + binomialCombiner);
-	}
-    } 
+        binomialCombiner = binCombiner;
+        if (binomialCombiner == null) {
+            throw new ConfigurationException("Invalid result combiner "
+                    + binomialCombiner);
+        }
+    }
 }

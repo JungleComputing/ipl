@@ -109,63 +109,63 @@ class StatsMessage implements java.io.Serializable {
     double addReplicaTime;
 
     void add(StatsMessage s) {
-	spawns += s.spawns;
-	jobsExecuted += s.jobsExecuted;
-	syncs += s.syncs;
-	aborts += s.aborts;
-	abortMessages += s.abortMessages;
-	abortedJobs += s.abortedJobs;
+        spawns += s.spawns;
+        jobsExecuted += s.jobsExecuted;
+        syncs += s.syncs;
+        aborts += s.aborts;
+        abortMessages += s.abortMessages;
+        abortedJobs += s.abortedJobs;
 
-	stealAttempts += s.stealAttempts;
-	stealSuccess += s.stealSuccess;
-	tupleMsgs += s.tupleMsgs;
-	tupleBytes += s.tupleBytes;
-	stolenJobs += s.stolenJobs;
-	stealRequests += s.stealRequests;
-	interClusterMessages += s.interClusterMessages;
-	intraClusterMessages += s.intraClusterMessages;
-	interClusterBytes += s.interClusterBytes;
-	intraClusterBytes += s.intraClusterBytes;
+        stealAttempts += s.stealAttempts;
+        stealSuccess += s.stealSuccess;
+        tupleMsgs += s.tupleMsgs;
+        tupleBytes += s.tupleBytes;
+        stolenJobs += s.stolenJobs;
+        stealRequests += s.stealRequests;
+        interClusterMessages += s.interClusterMessages;
+        intraClusterMessages += s.intraClusterMessages;
+        interClusterBytes += s.interClusterBytes;
+        intraClusterBytes += s.intraClusterBytes;
 
-	stealTime += s.stealTime;
-	handleStealTime += s.handleStealTime;
-	abortTime += s.abortTime;
-	idleTime += s.idleTime;
-	idleCount += s.idleCount;
-	pollTime += s.pollTime;
-	pollCount += s.pollCount;
-	tupleTime += s.tupleTime;
-	invocationRecordWriteTime += s.invocationRecordWriteTime;
-	invocationRecordWriteCount += s.invocationRecordWriteCount;
-	invocationRecordReadTime += s.invocationRecordReadTime;
-	invocationRecordReadCount += s.invocationRecordReadCount;
-	returnRecordWriteTime += s.returnRecordWriteTime;
-	returnRecordWriteCount += s.returnRecordWriteCount;
-	returnRecordReadTime += s.returnRecordReadTime;
-	returnRecordReadCount += s.returnRecordReadCount;
-	tupleWaitTime += s.tupleWaitTime;
-	tupleWaitCount += s.tupleWaitCount;
-	tupleSeqTime += s.tupleSeqTime;
-	tupleSeqCount += s.tupleSeqCount;
+        stealTime += s.stealTime;
+        handleStealTime += s.handleStealTime;
+        abortTime += s.abortTime;
+        idleTime += s.idleTime;
+        idleCount += s.idleCount;
+        pollTime += s.pollTime;
+        pollCount += s.pollCount;
+        tupleTime += s.tupleTime;
+        invocationRecordWriteTime += s.invocationRecordWriteTime;
+        invocationRecordWriteCount += s.invocationRecordWriteCount;
+        invocationRecordReadTime += s.invocationRecordReadTime;
+        invocationRecordReadCount += s.invocationRecordReadCount;
+        returnRecordWriteTime += s.returnRecordWriteTime;
+        returnRecordWriteCount += s.returnRecordWriteCount;
+        returnRecordReadTime += s.returnRecordReadTime;
+        returnRecordReadCount += s.returnRecordReadCount;
+        tupleWaitTime += s.tupleWaitTime;
+        tupleWaitCount += s.tupleWaitCount;
+        tupleSeqTime += s.tupleSeqTime;
+        tupleSeqCount += s.tupleSeqCount;
 
-	//fault tolerance
-	tableResultUpdates += s.tableResultUpdates;
-	tableLockUpdates += s.tableLockUpdates;
-	tableUpdateMessages += s.tableUpdateMessages;
-	tableLookups += s.tableLookups;
-	tableSuccessfulLookups += s.tableSuccessfulLookups;
-	tableRemoteLookups += s.tableRemoteLookups;
-	killedOrphans += s.killedOrphans;
-	restartedJobs += s.restartedJobs;
+        //fault tolerance
+        tableResultUpdates += s.tableResultUpdates;
+        tableLockUpdates += s.tableLockUpdates;
+        tableUpdateMessages += s.tableUpdateMessages;
+        tableLookups += s.tableLookups;
+        tableSuccessfulLookups += s.tableSuccessfulLookups;
+        tableRemoteLookups += s.tableRemoteLookups;
+        killedOrphans += s.killedOrphans;
+        restartedJobs += s.restartedJobs;
 
-	tableLookupTime += s.tableLookupTime;
-	tableUpdateTime += s.tableUpdateTime;
-	tableHandleUpdateTime += s.tableHandleUpdateTime;
-	tableHandleLookupTime += s.tableHandleLookupTime;
-	tableSerializationTime += s.tableSerializationTime;
-	tableDeserializationTime += s.tableDeserializationTime;
-	tableCheckTime += s.tableCheckTime;
-	crashHandlingTime += s.crashHandlingTime;
-	addReplicaTime += s.addReplicaTime;
+        tableLookupTime += s.tableLookupTime;
+        tableUpdateTime += s.tableUpdateTime;
+        tableHandleUpdateTime += s.tableHandleUpdateTime;
+        tableHandleLookupTime += s.tableHandleLookupTime;
+        tableSerializationTime += s.tableSerializationTime;
+        tableDeserializationTime += s.tableDeserializationTime;
+        tableCheckTime += s.tableCheckTime;
+        crashHandlingTime += s.crashHandlingTime;
+        addReplicaTime += s.addReplicaTime;
     }
 }

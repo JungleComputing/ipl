@@ -5,18 +5,18 @@ class DeleteClusterThread extends Thread {
     int milis;
 
     DeleteClusterThread(int time) {
-	super("SatinDeleteClusterThread");
-	this.milis = 1000 * time;
+        super("SatinDeleteClusterThread");
+        this.milis = 1000 * time;
     }
 
     public void run() {
-	try {
-	    sleep(milis);
-	} catch (InterruptedException e) {
-	    //ignore
-	}
-	Satin satin = SatinBase.this_satin;
-	satin.deleteCluster(satin.ident.cluster());
+        try {
+            sleep(milis);
+        } catch (InterruptedException e) {
+            //ignore
+        }
+        Satin satin = SatinBase.this_satin;
+        satin.deleteCluster(satin.ident.cluster());
     }
 
 }

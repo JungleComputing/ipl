@@ -14,54 +14,56 @@ import java.io.IOException;
  */
 public final class Driver extends NetDriver {
 
-	final static boolean DEBUG = false; // true;
-	final static boolean DEBUG_HUGE = false; // DEBUG;
-	final static boolean STATISTICS = false;
+    final static boolean DEBUG = false; // true;
 
-	/**
-	 * The driver name.
-	 */
-	private final String name = "muxer.udp";
+    final static boolean DEBUG_HUGE = false; // DEBUG;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param ibis the {@link ibis.impl.net.NetIbis} instance.
-	 */
-	public Driver(NetIbis ibis) {
-		super(ibis);
-	}	
+    final static boolean STATISTICS = false;
 
-	/**
-	 * Returns the name of the driver.
-	 *
-	 * @return The driver name.
-	 */
-	public String getName() {
-		return name;
-	}
+    /**
+     * The driver name.
+     */
+    private final String name = "muxer.udp";
 
-	/**
-	 * Creates a new UDP input.
-	 *
-	 * @param pt the input's {@link ibis.impl.net.NetReceivePort NetReceivePort}.
-	 * @param context the context.
-	 * @return The new UDP input.
-	 */
-	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall)
-		throws IOException {
-		return new UdpMuxInput(pt, this, context, inputUpcall);
-	}
+    /**
+     * Constructor.
+     *
+     * @param ibis the {@link ibis.impl.net.NetIbis} instance.
+     */
+    public Driver(NetIbis ibis) {
+        super(ibis);
+    }
 
-	/**
-	 * Creates a new UDP output.
-	 *
-	 * @param pt the output's {@link ibis.impl.net.NetSendPort NetSendPort}.
-	 * @param context the context.
-	 * @return The new UDP output.
-	 */
-	public NetOutput newOutput(NetPortType pt, String context)
-		throws IOException {
-		return new UdpMuxOutput(pt, this, context);
-	}
+    /**
+     * Returns the name of the driver.
+     *
+     * @return The driver name.
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Creates a new UDP input.
+     *
+     * @param pt the input's {@link ibis.impl.net.NetReceivePort NetReceivePort}.
+     * @param context the context.
+     * @return The new UDP input.
+     */
+    public NetInput newInput(NetPortType pt, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        return new UdpMuxInput(pt, this, context, inputUpcall);
+    }
+
+    /**
+     * Creates a new UDP output.
+     *
+     * @param pt the output's {@link ibis.impl.net.NetSendPort NetSendPort}.
+     * @param context the context.
+     * @return The new UDP output.
+     */
+    public NetOutput newOutput(NetPortType pt, String context)
+            throws IOException {
+        return new UdpMuxOutput(pt, this, context);
+    }
 }

@@ -10,7 +10,7 @@ public class BindingException extends IbisIOException {
      * <code>null</code> as its error detail message.
      */
     public BindingException() {
-	super();
+        super();
     }
 
     /**
@@ -20,7 +20,7 @@ public class BindingException extends IbisIOException {
      * @param s		the detail message
      */
     public BindingException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -31,7 +31,7 @@ public class BindingException extends IbisIOException {
      * @param cause	the cause
      */
     public BindingException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -41,6 +41,6 @@ public class BindingException extends IbisIOException {
      * @param cause	the cause
      */
     public BindingException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

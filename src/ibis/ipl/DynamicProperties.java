@@ -18,8 +18,7 @@ public class DynamicProperties {
      * or {@link ibis.ipl.SendPort#properties() SendPort.properties()}
      * when these ports don't implement specific dynamic properties.
      */
-    public static final DynamicProperties NoDynamicProperties = 
-	new DynamicProperties();
+    public static final DynamicProperties NoDynamicProperties = new DynamicProperties();
 
     /**
      * Sets the property associated with the specified key to the
@@ -32,7 +31,7 @@ public class DynamicProperties {
      */
 
     public void set(String key, Object value) throws IbisException {
-    	/* do nothing */
+        /* do nothing */
     }
 
     /**
@@ -43,7 +42,7 @@ public class DynamicProperties {
      * <code>null</code> if not present.
      */
     public Object find(String key) {
-	return null;
+        return null;
     }
 
     /**
@@ -52,14 +51,14 @@ public class DynamicProperties {
      * @return an enumeration for all current keys.
      */
     public Enumeration keys() {
-	return new Enumeration() {
-	    public boolean hasMoreElements() {
-		return false;
-	    }
+        return new Enumeration() {
+            public boolean hasMoreElements() {
+                return false;
+            }
 
-	    public Object nextElement() {
-		throw new NoSuchElementException("DynamicProperties keys()");
-	    }
-	};
+            public Object nextElement() {
+                throw new NoSuchElementException("DynamicProperties keys()");
+            }
+        };
     }
-} 
+}

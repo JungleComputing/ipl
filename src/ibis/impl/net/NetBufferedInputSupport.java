@@ -30,6 +30,6 @@ public interface NetBufferedInputSupport {
      * @throws IOException on error or if buffered reading is not supported
      */
     public int readBuffered(byte[] data, int offset, int length)
-	    throws IOException;
+            throws IOException;
 
 }

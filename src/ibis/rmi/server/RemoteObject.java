@@ -9,14 +9,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-
 /**
  * The <code>RemoteObject</code> class implements the <code>Object</code>
  * behaviour for remote objects, by implementing methods for
  * <code>hashCode</code>, <code>equals</code>, and <code>toString</code>.
  */
-public abstract class RemoteObject implements Remote, Serializable
-{
+public abstract class RemoteObject implements Remote, Serializable {
     /** The remote reference. */
     transient protected RemoteRef ref;
 
@@ -24,14 +22,14 @@ public abstract class RemoteObject implements Remote, Serializable
      * Creates a <code>RemoteObject</code>.
      */
     protected RemoteObject() {
-	this(null);
+        this(null);
     }
-    
+
     /**
      * Creates a <code>RemoteObject</code> with the specified reference.
      */
     protected RemoteObject(RemoteRef newref) {
-	ref = newref;
+        ref = newref;
     }
 
     /**
@@ -39,9 +37,7 @@ public abstract class RemoteObject implements Remote, Serializable
      * @return the hashcode.
      */
     public int hashCode() {
-	return (ref == null) 
-		    ? super.hashCode() 
-		    : ref.remoteHashCode();
+        return (ref == null) ? super.hashCode() : ref.remoteHashCode();
     }
 
     /**
@@ -50,53 +46,50 @@ public abstract class RemoteObject implements Remote, Serializable
      * @param obj the object to compare with
      */
     public boolean equals(Object obj) {
-	if (obj instanceof RemoteObject) {
-	    if (ref == null) {
-		return obj == this;
-	    }
-	    return ref.remoteEquals(((RemoteObject)obj).ref);
-	} 
-	if (obj != null) {
-	    return obj.equals(this);
-	}
-	return false;
+        if (obj instanceof RemoteObject) {
+            if (ref == null) {
+                return obj == this;
+            }
+            return ref.remoteEquals(((RemoteObject) obj).ref);
+        }
+        if (obj != null) {
+            return obj.equals(this);
+        }
+        return false;
     }
 
     /**
      * Returns a string representation of the value of this remote object.
      * @return the string representation for this remote object.
      */
-    public String toString()
-    {
-	String classname = this.getClass().getName();
-	String hc = "@" + Integer.toHexString(System.identityHashCode(this));
-	return (ref == null) ? classname + hc :
-	    classname + hc + "[" +ref.remoteToString() + "]";
+    public String toString() {
+        String classname = this.getClass().getName();
+        String hc = "@" + Integer.toHexString(System.identityHashCode(this));
+        return (ref == null) ? classname + hc : classname + hc + "["
+                + ref.remoteToString() + "]";
     }
 
-
-    private void writeObject(ObjectOutputStream out) throws IOException
-    {
-	if (ref == null) {
-	    throw new MarshalException("no ref to serialize");
-	}
-	out.writeUTF(ref.getRefClass(out));
-	ref.writeExternal(out);
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        if (ref == null) {
+            throw new MarshalException("no ref to serialize");
+        }
+        out.writeUTF(ref.getRefClass(out));
+        ref.writeExternal(out);
 
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
-    {
-	String name = "ibis.rmi.impl." + in.readUTF();
-	try {
-	    Class cls = Class.forName(name);
-	    ref = (RemoteRef)cls.newInstance();
-	    ref.readExternal(in);
-	} catch (InstantiationException e) {
-	    throw new UnmarshalException("failed to instantiate ref");
-	} catch (IllegalAccessException e) {
-	    throw new UnmarshalException("failed to create ref");
-	}
+    private void readObject(ObjectInputStream in) throws IOException,
+            ClassNotFoundException {
+        String name = "ibis.rmi.impl." + in.readUTF();
+        try {
+            Class cls = Class.forName(name);
+            ref = (RemoteRef) cls.newInstance();
+            ref.readExternal(in);
+        } catch (InstantiationException e) {
+            throw new UnmarshalException("failed to instantiate ref");
+        } catch (IllegalAccessException e) {
+            throw new UnmarshalException("failed to create ref");
+        }
     }
 
 }

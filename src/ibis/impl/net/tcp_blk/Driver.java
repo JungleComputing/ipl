@@ -17,94 +17,95 @@ import java.net.Socket;
  */
 public final class Driver extends NetDriver {
 
-	static final int DEFAULT_MTU	= 32 * 1024;
+    static final int DEFAULT_MTU = 32 * 1024;
 
-	private static final String prefix = "ibis.net.tcp_blk.";
+    private static final String prefix = "ibis.net.tcp_blk.";
 
-	static final String tcpblk_rdah = prefix + "read_ahead";
-	static final String tcpblk_timeout = prefix + "timeout";
-	static final String tcpblk_cache_v = prefix + "cache.verbose";
-	static final String tcpblk_cache_enable = prefix + "cache";
-	static final String tcpblk_mtu = prefix + "mtu";
+    static final String tcpblk_rdah = prefix + "read_ahead";
 
-	private static final String[] properties = {
-		tcpblk_rdah,
-		tcpblk_timeout,
-		tcpblk_cache_v,
-		tcpblk_cache_enable,
-		tcpblk_mtu
-	};
+    static final String tcpblk_timeout = prefix + "timeout";
 
-	static {
-		TypedProperties.checkProperties(prefix, properties, null);
-	}
+    static final String tcpblk_cache_v = prefix + "cache.verbose";
 
-	/**
-	 * The driver name.
-	 */
-	private final String name = "tcp_blk";
+    static final String tcpblk_cache_enable = prefix + "cache";
 
-	private TcpConnectionCache connectionCache = new TcpConnectionCache();
-	private int		connectWaiters = 0;
+    static final String tcpblk_mtu = prefix + "mtu";
 
-	boolean cacheInput(IbisIdentifier ibis, Socket socket) {
-	    synchronized (connectionCache) {
-		boolean ok = connectionCache.cacheInput(ibis, socket);
-		if (connectWaiters > 0) {
-		    connectionCache.notifyAll();
-		}
-		return ok;
-	    }
-	}
+    private static final String[] properties = { tcpblk_rdah, tcpblk_timeout,
+            tcpblk_cache_v, tcpblk_cache_enable, tcpblk_mtu };
 
-	boolean cacheOutput(IbisIdentifier ibis, Socket socket) {
-	    return connectionCache.cacheOutput(ibis, socket);
-	}
+    static {
+        TypedProperties.checkProperties(prefix, properties, null);
+    }
 
-	Socket getCachedInput(IbisIdentifier ibis, int port) {
-	    synchronized (connectionCache) {
-		while (true) {
-		    Socket s = connectionCache.getCachedInput(ibis, port);
-		    if (s != null) {
-			return s;
-		    }
-		    connectWaiters++;
-		    // System.err.println(this + ": hit the connectionCache race");
-		    try {
-			connectionCache.wait();
-		    } catch (InterruptedException e) {
-			// ignore
-		    }
-		    connectWaiters--;
-		}
-	    }
-	}
+    /**
+     * The driver name.
+     */
+    private final String name = "tcp_blk";
 
-	Socket getCachedOutput(IbisIdentifier ibis) {
-	    return connectionCache.getCachedOutput(ibis);
-	}
+    private TcpConnectionCache connectionCache = new TcpConnectionCache();
 
+    private int connectWaiters = 0;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param ibis the {@link ibis.impl.net.NetIbis} instance.
-	 */
-	public Driver(NetIbis ibis) {
-		super(ibis);
-	}
+    boolean cacheInput(IbisIdentifier ibis, Socket socket) {
+        synchronized (connectionCache) {
+            boolean ok = connectionCache.cacheInput(ibis, socket);
+            if (connectWaiters > 0) {
+                connectionCache.notifyAll();
+            }
+            return ok;
+        }
+    }
 
-	public String getName() {
-		return name;
-	}
+    boolean cacheOutput(IbisIdentifier ibis, Socket socket) {
+        return connectionCache.cacheOutput(ibis, socket);
+    }
 
-	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
-                //System.err.println("new tcp input");
-		return new TcpInput(pt, this, context, inputUpcall);
-	}
+    Socket getCachedInput(IbisIdentifier ibis, int port) {
+        synchronized (connectionCache) {
+            while (true) {
+                Socket s = connectionCache.getCachedInput(ibis, port);
+                if (s != null) {
+                    return s;
+                }
+                connectWaiters++;
+                // System.err.println(this + ": hit the connectionCache race");
+                try {
+                    connectionCache.wait();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+                connectWaiters--;
+            }
+        }
+    }
 
-	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
-                //System.err.println("new tcp output");
-		return new TcpOutput(pt, this, context);
-	}
+    Socket getCachedOutput(IbisIdentifier ibis) {
+        return connectionCache.getCachedOutput(ibis);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param ibis the {@link ibis.impl.net.NetIbis} instance.
+     */
+    public Driver(NetIbis ibis) {
+        super(ibis);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public NetInput newInput(NetPortType pt, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        //System.err.println("new tcp input");
+        return new TcpInput(pt, this, context, inputUpcall);
+    }
+
+    public NetOutput newOutput(NetPortType pt, String context)
+            throws IOException {
+        //System.err.println("new tcp output");
+        return new TcpOutput(pt, this, context);
+    }
 }

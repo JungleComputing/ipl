@@ -16,73 +16,72 @@ import java.util.Hashtable;
  */
 public final class Driver extends NetDriver {
 
-	/**
-	 * The driver name.
-	 */
-	private final String name = "multi";
+    /**
+     * The driver name.
+     */
+    private final String name = "multi";
 
-        private Hashtable    pluginTable = new Hashtable();
+    private Hashtable pluginTable = new Hashtable();
 
-	/**
-	 * Constructor.
-	 *
-	 * @param ibis the {@link ibis.impl.net.NetIbis} instance.
-	 */
-	public Driver(NetIbis ibis) {
-		super(ibis);
-	}
+    /**
+     * Constructor.
+     *
+     * @param ibis the {@link ibis.impl.net.NetIbis} instance.
+     */
+    public Driver(NetIbis ibis) {
+        super(ibis);
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
-	    String subContext = context + "/" + name;
-// System.err.println(this + ": property\"Plugin\" subContext " + subContext + "  StringProperty " + pt.getStringProperty(subContext, "Plugin"));
-	    String pluginName = pt.getStringProperty(subContext, "Plugin");
+    public NetInput newInput(NetPortType pt, String context,
+            NetInputUpcall inputUpcall) throws IOException {
+        String subContext = context + "/" + name;
+        // System.err.println(this + ": property\"Plugin\" subContext " + subContext + "  StringProperty " + pt.getStringProperty(subContext, "Plugin"));
+        String pluginName = pt.getStringProperty(subContext, "Plugin");
 
-	    if (inputUpcall == null
-		    && (pt.inputSingletonOnly() || pluginName == null)) {
-		return new SingletonPoller(pt, this, context, inputUpcall);
-	    } else {
-		return new MultiPoller(pt, this, context, inputUpcall);
-	    }
-	}
+        if (inputUpcall == null
+                && (pt.inputSingletonOnly() || pluginName == null)) {
+            return new SingletonPoller(pt, this, context, inputUpcall);
+        } else {
+            return new MultiPoller(pt, this, context, inputUpcall);
+        }
+    }
 
-	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
-	    return new MultiSplitter(pt, this, context);
-	}
+    public NetOutput newOutput(NetPortType pt, String context)
+            throws IOException {
+        return new MultiSplitter(pt, this, context);
+    }
 
-	synchronized
-        protected MultiPlugin loadPlugin(String name) throws IOException {
-		MultiPlugin plugin = (MultiPlugin)pluginTable.get(name);
+    synchronized protected MultiPlugin loadPlugin(String name)
+            throws IOException {
+        MultiPlugin plugin = (MultiPlugin) pluginTable.get(name);
 
-                if (plugin == null) {
-                        //System.err.println("Loading multi-protocol plugin ["+name+"]...");
+        if (plugin == null) {
+            //System.err.println("Loading multi-protocol plugin ["+name+"]...");
 
-			try {
-                                String      clsName  =
-                                        getClass().getPackage().getName()
-                                        + ".plugins"
-                                        + "."
-                                        + name;
+            try {
+                String clsName = getClass().getPackage().getName() + ".plugins"
+                        + "." + name;
 
-                                Class       cls      = Class.forName(clsName);
-                                plugin = (MultiPlugin)cls.newInstance();
-			} catch (Exception e) {
-				throw new IbisIOException(e);
-			}
+                Class cls = Class.forName(clsName);
+                plugin = (MultiPlugin) cls.newInstance();
+            } catch (Exception e) {
+                throw new IbisIOException(e);
+            }
 
-			pluginTable.put(name, plugin);
+            pluginTable.put(name, plugin);
 
-                        //System.err.println("Loading multi-protocol plugin ["+name+"] done");
-                }
-
-                return plugin;
+            //System.err.println("Loading multi-protocol plugin ["+name+"] done");
         }
 
-	static String defaultSubContext() {
-	    return "default";
-	}
+        return plugin;
+    }
+
+    static String defaultSubContext() {
+        return "default";
+    }
 
 }

@@ -10,7 +10,7 @@ public class AlreadyConnectedException extends IbisIOException {
      * <code>null</code> as its error detail message.
      */
     public AlreadyConnectedException() {
-	super();
+        super();
     }
 
     /**
@@ -20,7 +20,7 @@ public class AlreadyConnectedException extends IbisIOException {
      * @param s		the detail message
      */
     public AlreadyConnectedException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -31,7 +31,7 @@ public class AlreadyConnectedException extends IbisIOException {
      * @param cause	the cause
      */
     public AlreadyConnectedException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -41,6 +41,6 @@ public class AlreadyConnectedException extends IbisIOException {
      * @param cause	the cause
      */
     public AlreadyConnectedException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

@@ -31,154 +31,161 @@ import ibis.util.TypedProperties;
 
 public class TreeReducer extends Reducer {
 
-    private final static boolean TIMINGS = TypedProperties.booleanProperty("timing.reduce", false);
+    private final static boolean TIMINGS = TypedProperties.booleanProperty(
+            "timing.reduce", false);
 
-    protected ReceivePort[]	reduceRreduce;
-    protected SendPort		reduceSreduce;
+    protected ReceivePort[] reduceRreduce;
 
-    protected ReceivePort	reduceRbcast;
-    protected SendPort		reduceSbcast;
+    protected SendPort reduceSreduce;
 
-    protected static final int	LEAF_NODE = -1;
+    protected ReceivePort reduceRbcast;
 
-    protected int		parent;
-    protected int[]		child = new int[2];
+    protected SendPort reduceSbcast;
+
+    protected static final int LEAF_NODE = -1;
+
+    protected int parent;
+
+    protected int[] child = new int[2];
 
     protected TreeReducer() {
-	// Java needs this. Someday, I will certify as a Java programmer, and
-	// then I will know *why*.
+        // Java needs this. Someday, I will certify as a Java programmer, and
+        // then I will know *why*.
     }
 
+    public TreeReducer(Ibis ibis, PoolInfo info) throws IOException,
+            IbisException {
 
-    public TreeReducer(Ibis ibis, PoolInfo info)
-	    throws IOException, IbisException {
+        int rank = info.rank();
+        int size = info.size();
 
-	int rank = info.rank();
-	int size = info.size();
+        StaticProperties reqprops = new StaticProperties();
+        reqprops.add("serialization", "data");
+        reqprops.add("communication", "OneToOne, Reliable, ExplicitReceipt");
 
-	StaticProperties reqprops = new StaticProperties();
-	reqprops.add("serialization", "data");
-	reqprops.add("communication", "OneToOne, Reliable, ExplicitReceipt");
+        PortType portTypeReduce = ibis.createPortType("SOR Reduce", reqprops);
 
-	PortType portTypeReduce = ibis.createPortType("SOR Reduce", reqprops);
+        reqprops = new StaticProperties();
+        reqprops.add("serialization", "data");
+        reqprops.add("communication",
+                "OneToMany, OneToOne, Reliable, ExplicitReceipt");
 
+        PortType portTypeBroadcast = ibis.createPortType("SOR Broadcast",
+                reqprops);
+        if (rank == 0) {
+            parent = LEAF_NODE;
+        } else {
+            parent = (rank - 1) / 2;
+        }
 
-	reqprops = new StaticProperties();
-	reqprops.add("serialization", "data");
-	reqprops.add("communication",
-		"OneToMany, OneToOne, Reliable, ExplicitReceipt");
+        int children = 0;
+        for (int c = 0; c < 2; c++) {
+            child[c] = 2 * rank + c + 1;
+            if (child[c] >= size) {
+                child[c] = LEAF_NODE;
+            } else {
+                children++;
+            }
+        }
 
-	PortType portTypeBroadcast = ibis.createPortType("SOR Broadcast", reqprops);
-	if (rank == 0) {
-	    parent = LEAF_NODE;
-	} else {
-	    parent = (rank - 1) / 2;
-	}
+        Registry registry = ibis.registry();
 
-	int children = 0;
-	for (int c = 0; c < 2; c++) {
-	    child[c] = 2 * rank + c + 1;
-	    if (child[c] >= size) {
-		child[c] = LEAF_NODE;
-	    } else {
-		children++;
-	    }
-	}
+        /* Create and connect ports for the reduce phase */
+        if (children > 0) {
+            reduceRreduce = new ReceivePort[2];
+            for (int c = 0; c < 2; c++) {
+                if (child[c] != LEAF_NODE) {
+                    reduceRreduce[c] = portTypeReduce.createReceivePort("SOR"
+                            + rank + "_" + c + "_reduceR");
+                    reduceRreduce[c].enableConnections();
+                }
+            }
+        }
 
-	Registry registry = ibis.registry();
+        if (parent != LEAF_NODE) {
+            int childrank = rank - 2 * parent - 1;
+            reduceSreduce = portTypeReduce.createSendPort("SOR" + rank
+                    + "reduceS");
+            ReceivePortIdentifier id;
+            id = registry.lookupReceivePort("SOR" + parent + "_" + childrank
+                    + "_reduceR");
+            reduceSreduce.connect(id);
+        }
 
-	/* Create and connect ports for the reduce phase */
-	if (children > 0) {
-	    reduceRreduce = new ReceivePort[2];
-	    for (int c = 0; c < 2; c++) {
-		if (child[c] != LEAF_NODE) {
-		    reduceRreduce[c] = portTypeReduce.createReceivePort("SOR" + rank + "_" + c + "_reduceR");
-		    reduceRreduce[c].enableConnections();
-		}
-	    }
-	}
+        /* Create and connect ports for the bcast phase */
+        if (parent != LEAF_NODE) {
+            reduceRbcast = portTypeBroadcast.createReceivePort("SOR" + rank
+                    + "reduceR");
+            reduceRbcast.enableConnections();
+        }
 
-	if (parent != LEAF_NODE) {
-	    int childrank = rank - 2 * parent - 1;
-	    reduceSreduce = portTypeReduce.createSendPort("SOR" + rank + "reduceS");
-	    ReceivePortIdentifier id;
-	    id = registry.lookupReceivePort("SOR" + parent + "_" + childrank + "_reduceR");
-	    reduceSreduce.connect(id);
-	}
-
-	/* Create and connect ports for the bcast phase */
-	if (parent != LEAF_NODE) {
-	    reduceRbcast = portTypeBroadcast.createReceivePort("SOR" + rank + "reduceR");
-	    reduceRbcast.enableConnections();
-	}
-
-	if (children > 0) {
-	    reduceSbcast = portTypeBroadcast.createSendPort("SOR" + rank + "reduceS");
-	    for (int c = 0; c < 2; c++) {
-		if (child[c] != LEAF_NODE) {
-		    ReceivePortIdentifier id;
-		    id = registry.lookupReceivePort("SOR" + child[c] + "reduceR");
-		    reduceSbcast.connect(id);
-		}
-	    }
-	}
+        if (children > 0) {
+            reduceSbcast = portTypeBroadcast.createSendPort("SOR" + rank
+                    + "reduceS");
+            for (int c = 0; c < 2; c++) {
+                if (child[c] != LEAF_NODE) {
+                    ReceivePortIdentifier id;
+                    id = registry.lookupReceivePort("SOR" + child[c]
+                            + "reduceR");
+                    reduceSbcast.connect(id);
+                }
+            }
+        }
 
     }
-
 
     public double reduce(double value) throws IOException {
 
-	for (int c = 0; c < 2; c++) {
-	    if (child[c] != LEAF_NODE) {
-		ReadMessage rm = reduceRreduce[c].receive();
-		value = Math.max(value, rm.readDouble());
-		rm.finish();
-	    }
-	}
+        for (int c = 0; c < 2; c++) {
+            if (child[c] != LEAF_NODE) {
+                ReadMessage rm = reduceRreduce[c].receive();
+                value = Math.max(value, rm.readDouble());
+                rm.finish();
+            }
+        }
 
-	if (parent != LEAF_NODE) {
-	    WriteMessage wm = reduceSreduce.newMessage();
-	    wm.writeDouble(value);
-	    wm.finish();
+        if (parent != LEAF_NODE) {
+            WriteMessage wm = reduceSreduce.newMessage();
+            wm.writeDouble(value);
+            wm.finish();
 
-	    ReadMessage rm = reduceRbcast.receive();
-	    value = rm.readDouble();
-	    rm.finish();
-	}
+            ReadMessage rm = reduceRbcast.receive();
+            value = rm.readDouble();
+            rm.finish();
+        }
 
-	if (reduceSbcast != null) {
-	    WriteMessage wm = reduceSbcast.newMessage();
-	    wm.writeDouble(value);
-	    wm.finish();
-	}
+        if (reduceSbcast != null) {
+            WriteMessage wm = reduceSbcast.newMessage();
+            wm.writeDouble(value);
+            wm.finish();
+        }
 
-	return value;
+        return value;
     }
-
 
     public void end() throws IOException {
 
-	if (reduceSreduce != null) {
-	    reduceSreduce.close();
-	    reduceSreduce = null;
-	}
-	if (reduceRreduce != null) {
-	    for (int c = 0; c < reduceRreduce.length; c++) {
-		if (reduceRreduce[c] != null) {
-		    reduceRreduce[c].close();
-		    reduceRreduce[c] = null;
-		}
-	    }
-	}
+        if (reduceSreduce != null) {
+            reduceSreduce.close();
+            reduceSreduce = null;
+        }
+        if (reduceRreduce != null) {
+            for (int c = 0; c < reduceRreduce.length; c++) {
+                if (reduceRreduce[c] != null) {
+                    reduceRreduce[c].close();
+                    reduceRreduce[c] = null;
+                }
+            }
+        }
 
-	if (reduceSbcast != null) {
-	    reduceSbcast.close();
-	    reduceSbcast = null;
-	}
-	if (reduceRbcast != null) {
-	    reduceRbcast.close();
-	    reduceRbcast = null;
-	}
+        if (reduceSbcast != null) {
+            reduceSbcast.close();
+            reduceSbcast = null;
+        }
+        if (reduceRbcast != null) {
+            reduceRbcast.close();
+            reduceRbcast = null;
+        }
     }
 
 }

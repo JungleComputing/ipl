@@ -17,7 +17,7 @@ public interface ServerRef extends RemoteRef {
      * @exception RemoteException if the export fails
      */
     public RemoteStub exportObject(Remote obj, Object data)
-	throws RemoteException;
+            throws RemoteException;
 
     /**
      * Returns the hostname of the current client, but only when called

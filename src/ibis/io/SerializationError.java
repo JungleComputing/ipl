@@ -4,47 +4,45 @@ public class SerializationError extends Error {
     Throwable cause = null;
 
     public SerializationError() {
-	super();
+        super();
     }
 
     public SerializationError(String message) {
-	super(message);
+        super(message);
     }
 
-
     public SerializationError(String message, Throwable cause) {
-	super(message);
-	this.cause = cause;
+        super(message);
+        this.cause = cause;
     }
 
     public SerializationError(Throwable cause) {
-	super();
-	this.cause = cause;
+        super();
+        this.cause = cause;
     }
 
-
     public Throwable initCause(Throwable t) {
-	return cause = t;
+        return cause = t;
     }
 
     public Throwable getCause() {
-	return cause;
+        return cause;
     }
 
     public String getMessage() {
-	String res = super.getMessage();
-	if(cause != null) {
-	    res += ": " + cause.getMessage();
-	}
+        String res = super.getMessage();
+        if (cause != null) {
+            res += ": " + cause.getMessage();
+        }
 
-	return res;
+        return res;
     }
 
     public void printStackTrace() {
-	if(cause != null) {
-	    cause.printStackTrace();
-	}
+        if (cause != null) {
+            cause.printStackTrace();
+        }
 
-	super.printStackTrace();
+        super.printStackTrace();
     }
 }

@@ -22,7 +22,7 @@ public class UnmarshalException extends RemoteException {
      * @param s the detail message
      */
     public UnmarshalException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -32,6 +32,6 @@ public class UnmarshalException extends RemoteException {
      * @param ex the nested exception
      */
     public UnmarshalException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

@@ -16,64 +16,64 @@ import java.io.OutputStream;
  */
 public final class SSunOutput extends NetSerializedOutput {
 
-	private NetBufferedOutputSupport bufferOutput;
+    private NetBufferedOutputSupport bufferOutput;
 
-        public SSunOutput(NetPortType pt, NetDriver driver, String context) throws IOException {
-		super(pt, driver, context);
-	}
+    public SSunOutput(NetPortType pt, NetDriver driver, String context)
+            throws IOException {
+        super(pt, driver, context);
+    }
 
-        public SerializationOutputStream newSerializationOutputStream() throws IOException {
-                OutputStream os = new DummyOutputStream();
-		return new SunSerializationOutputStream(os);
+    public SerializationOutputStream newSerializationOutputStream()
+            throws IOException {
+        OutputStream os = new DummyOutputStream();
+        return new SunSerializationOutputStream(os);
+    }
+
+    public void setupConnection(NetConnection cnx) throws IOException {
+        super.setupConnection(cnx);
+        if (subOutput instanceof NetBufferedOutputSupport) {
+            bufferOutput = (NetBufferedOutputSupport) subOutput;
+            if (!bufferOutput.writeBufferedSupported()) {
+                bufferOutput = null;
+            }
+        } else {
+            bufferOutput = null;
+        }
+    }
+
+    private final class DummyOutputStream extends OutputStream {
+
+        public void write(int b) throws IOException {
+            subOutput.writeByte((byte) b);
         }
 
-	public void setupConnection(NetConnection cnx) throws IOException {
-	    super.setupConnection(cnx);
-	    if (subOutput instanceof NetBufferedOutputSupport) {
-		bufferOutput = (NetBufferedOutputSupport)subOutput;
-		if (! bufferOutput.writeBufferedSupported()) {
-		    bufferOutput = null;
-		}
-	    } else {
-		bufferOutput = null;
-	    }
-	}
+        public void write(byte[] data, int offset, int length)
+                throws IOException {
 
+            if (bufferOutput != null) {
+                bufferOutput.writeBuffered(data, offset, length);
+                return;
+            }
 
-        private final class DummyOutputStream extends OutputStream {
-
-	    public void write(int b) throws IOException {
-		subOutput.writeByte((byte)b);
-	    }
-
-	    public void write(byte[] data, int offset, int length)
-		    throws IOException {
-
-		if (bufferOutput != null) {
-		    bufferOutput.writeBuffered(data, offset, length);
-		    return;
-		}
-
-		super.write(data, offset, length);
-	    }
-
-	    public void write(byte[] data)
-		    throws IOException {
-
-		if (bufferOutput != null) {
-		    bufferOutput.writeBuffered(data, 0, data.length);
-		    return;
-		}
-
-		super.write(data);
-	    }
-
-	    public void flush() throws IOException {
-		if (bufferOutput != null) {
-		    bufferOutput.flushBuffer();
-		}
-	    }
-
+            super.write(data, offset, length);
         }
+
+        public void write(byte[] data) throws IOException {
+
+            if (bufferOutput != null) {
+                bufferOutput.writeBuffered(data, 0, data.length);
+                return;
+            }
+
+            super.write(data);
+        }
+
+        public void flush() throws IOException {
+            if (bufferOutput != null) {
+                bufferOutput.flushBuffer();
+            }
+        }
+
+    }
 
 }

@@ -1,3 +1,4 @@
+
 import java.io.Serializable;
 
 final class Data1 implements java.io.Serializable {
@@ -5,8 +6,11 @@ final class Data1 implements java.io.Serializable {
     static int fill;
 
     int i0;
+
     int i1;
+
     int i2;
+
     int i3;
 
     Data1() {

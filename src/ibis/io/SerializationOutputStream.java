@@ -21,7 +21,7 @@ import java.io.OutputStream;
  * </ul>
  */
 public abstract class SerializationOutputStream extends ObjectOutputStream
-	implements IbisStreamFlags {
+        implements IbisStreamFlags {
     protected Replacer replacer;
 
     /**
@@ -32,8 +32,8 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception ibis.io.IOException is thrown on an IO error.
      */
     protected SerializationOutputStream() throws IOException {
-	super();
-	initTimer();
+        super();
+        initTimer();
     }
 
     /**
@@ -43,95 +43,91 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception ibis.io.IOException is thrown on an IO error.
      */
     protected SerializationOutputStream(OutputStream s) throws IOException {
-	super(s);
-	initTimer();
+        super(s);
+        initTimer();
     }
-
 
     /** 
      * Enable this to measure the time spent in serialization.
      * Each serialization entry/exit point must start/stop the timer.
      */
-    protected final static boolean TIME_SERIALIZATION =
-	TypedProperties.booleanProperty(IOProps.s_timer, false) ||
-       	TypedProperties.booleanProperty(IOProps.s_timer_out, false);
+    protected final static boolean TIME_SERIALIZATION = TypedProperties
+            .booleanProperty(IOProps.s_timer, false)
+            || TypedProperties.booleanProperty(IOProps.s_timer_out, false);
 
     /**
      * The serialization timer
      */
-    protected final SerializationTimer timer =
-	TIME_SERIALIZATION ? new SerializationTimer(toString()) : null;
+    protected final SerializationTimer timer = TIME_SERIALIZATION ? new SerializationTimer(
+            toString())
+            : null;
 
     private static java.util.Vector timerList = new java.util.Vector();
 
     static {
-	if (TIME_SERIALIZATION) {
-	    System.out.println("SerializationOutputStream.TIME_SERIALIZATION enabled");
-	    Runtime.getRuntime().addShutdownHook(new Thread("SerializationOutputStream ShutdownHook") {
-		public void run() {
-		    printAllTimers();
-		}
-	    });
-	}
+        if (TIME_SERIALIZATION) {
+            System.out
+                    .println("SerializationOutputStream.TIME_SERIALIZATION enabled");
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread("SerializationOutputStream ShutdownHook") {
+                        public void run() {
+                            printAllTimers();
+                        }
+                    });
+        }
     }
 
     public static void resetAllTimers() {
-	synchronized (SerializationOutputStream.class) {
-	    java.util.Enumeration e = timerList.elements();
-	    while (e.hasMoreElements()) {
-		SerializationTimer t = (SerializationTimer)e.nextElement();
-		t.reset();
-	    }
-	}
+        synchronized (SerializationOutputStream.class) {
+            java.util.Enumeration e = timerList.elements();
+            while (e.hasMoreElements()) {
+                SerializationTimer t = (SerializationTimer) e.nextElement();
+                t.reset();
+            }
+        }
     }
 
     public static void printAllTimers() {
-	synchronized (SerializationOutputStream.class) {
-	    java.util.Enumeration e = timerList.elements();
-	    while (e.hasMoreElements()) {
-		SerializationTimer t = (SerializationTimer)e.nextElement();
-		t.report();
-	    }
-	}
+        synchronized (SerializationOutputStream.class) {
+            java.util.Enumeration e = timerList.elements();
+            while (e.hasMoreElements()) {
+                SerializationTimer t = (SerializationTimer) e.nextElement();
+                t.report();
+            }
+        }
     }
-
 
     private void initTimer() {
-	if (TIME_SERIALIZATION) {
-	    synchronized (SerializationOutputStream.class) {
-		timerList.add(timer);
-	    }
-	}
+        if (TIME_SERIALIZATION) {
+            synchronized (SerializationOutputStream.class) {
+                timerList.add(timer);
+            }
+        }
     }
-
 
     protected final void startTimer() {
-	if (TIME_SERIALIZATION) {
-	    timer.start();
-	}
+        if (TIME_SERIALIZATION) {
+            timer.start();
+        }
     }
-
 
     protected final void stopTimer() {
-	if (TIME_SERIALIZATION) {
-	    timer.stop();
-	}
+        if (TIME_SERIALIZATION) {
+            timer.stop();
+        }
     }
-
 
     protected final void suspendTimer() {
-	if (TIME_SERIALIZATION) {
-	    timer.suspend();
-	}
+        if (TIME_SERIALIZATION) {
+            timer.suspend();
+        }
     }
-
 
     protected final void resumeTimer() {
-	if (TIME_SERIALIZATION) {
-	    timer.resume();
-	}
+        if (TIME_SERIALIZATION) {
+            timer.resume();
+        }
     }
-
 
     /**
      * Set a replacer. The replacement mechanism can be used to replace
@@ -148,14 +144,14 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      *  throws an exception.
      */
     public void setReplacer(Replacer replacer) throws IOException {
-	try {
-	    enableReplaceObject(true);
-	} catch (Exception e) {
-	    // May throw a SecurityException.
-	    // Don't know how to deal with that.
-	    throw new IOException("enableReplaceObject threw exception: " + e);
-	}
-	this.replacer = replacer;
+        try {
+            enableReplaceObject(true);
+        } catch (Exception e) {
+            // May throw a SecurityException.
+            // Don't know how to deal with that.
+            throw new IOException("enableReplaceObject threw exception: " + e);
+        }
+        this.replacer = replacer;
     }
 
     /**
@@ -166,10 +162,10 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @return the result of the object replacement
      */
     protected Object replaceObject(Object obj) {
-	if (obj != null && replacer != null) {
-	    obj = replacer.replace(obj);
-	}
-	return obj;
+        if (obj != null && replacer != null) {
+            obj = replacer.replace(obj);
+        }
+        return obj;
     }
 
     /**
@@ -190,63 +186,63 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown on an IO error.
      */
     abstract public void writeArray(boolean[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write a slice of an array of bytes.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     abstract public void writeArray(byte[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write a slice of an array of shorts.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     abstract public void writeArray(short[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write a slice of an array of chars.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     abstract public void writeArray(char[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write a slice of an array of ints.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     abstract public void writeArray(int[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write a slice of an array of longs.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     abstract public void writeArray(long[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write a slice of an array of floats.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     abstract public void writeArray(float[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write a slice of an array of doubles.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     abstract public void writeArray(double[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write a slice of an array of objects.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     abstract public void writeArray(Object[] ref, int off, int len)
-	throws IOException;
+            throws IOException;
 
     /**
      * Write an array of booleans.
@@ -255,7 +251,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(boolean[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**
@@ -265,7 +261,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(byte[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**
@@ -275,7 +271,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(short[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**
@@ -285,7 +281,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(char[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**
@@ -295,7 +291,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(int[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**
@@ -305,7 +301,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(long[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**
@@ -315,7 +311,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(float[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**
@@ -325,7 +321,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(double[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**
@@ -335,7 +331,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeArray(Object[] ref) throws IOException {
-	writeArray(ref, 0, ref.length);
+        writeArray(ref, 0, ref.length);
     }
 
     /**

@@ -7,7 +7,6 @@ import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Vector;
 
-
 /**
  * A cache for TCP sockets to attempt to reuse the back link for connections
  * the other way around. This saves explicit TCP acknowledgement traffic and
@@ -15,14 +14,15 @@ import java.util.Vector;
  */
 class TcpConnectionCache {
 
-    final static boolean VERBOSE =
-	TypedProperties.booleanProperty(Driver.tcpblk_cache_v, false);
-    private final static boolean DISABLED =
-	! TypedProperties.booleanProperty(Driver.tcpblk_cache_enable, true);
+    final static boolean VERBOSE = TypedProperties.booleanProperty(
+            Driver.tcpblk_cache_v, false);
 
-    private Hashtable	inputCache = new Hashtable();
-    private Hashtable	outputCache = new Hashtable();
+    private final static boolean DISABLED = !TypedProperties.booleanProperty(
+            Driver.tcpblk_cache_enable, true);
 
+    private Hashtable inputCache = new Hashtable();
+
+    private Hashtable outputCache = new Hashtable();
 
     /**
      * Store unused input link in the cache.
@@ -32,39 +32,36 @@ class TcpConnectionCache {
      * 		link is also present in the cache, both are removed and the
      * 		socket should be closed.
      */
-    synchronized
-    boolean cacheInput(IbisIdentifier ibis, Socket socket) {
-	if (DISABLED) {
-	    return false;
-	}
+    synchronized boolean cacheInput(IbisIdentifier ibis, Socket socket) {
+        if (DISABLED) {
+            return false;
+        }
 
-	Vector oCache = (Vector)outputCache.get(ibis);
-	if (oCache != null && oCache.remove(socket)) {
-	    if (VERBOSE) {
-		System.err.println("Remove/i " + socket
-			+ " port " + socket.getPort() 
-			+ " from caches because no used connections");
-	    }
-	    return false;
-	}
+        Vector oCache = (Vector) outputCache.get(ibis);
+        if (oCache != null && oCache.remove(socket)) {
+            if (VERBOSE) {
+                System.err.println("Remove/i " + socket + " port "
+                        + socket.getPort()
+                        + " from caches because no used connections");
+            }
+            return false;
+        }
 
-	Hashtable iCache = (Hashtable)inputCache.get(ibis);
+        Hashtable iCache = (Hashtable) inputCache.get(ibis);
 
-	if (iCache == null) {
-	    iCache = new Hashtable();
-	    inputCache.put(ibis, iCache);
-	}
+        if (iCache == null) {
+            iCache = new Hashtable();
+            inputCache.put(ibis, iCache);
+        }
 
-	iCache.put(new Integer(socket.getPort()), socket);
-	if (VERBOSE) {
-	    System.err.println("Added input " + socket
-		    + " port " + socket.getPort() 
-		    + " to cache " + iCache);
-	}
+        iCache.put(new Integer(socket.getPort()), socket);
+        if (VERBOSE) {
+            System.err.println("Added input " + socket + " port "
+                    + socket.getPort() + " to cache " + iCache);
+        }
 
-	return true;
+        return true;
     }
-
 
     /**
      * Store unused output link in the cache.
@@ -74,39 +71,37 @@ class TcpConnectionCache {
      * 		is also present in the cache, both are removed and the socket
      * 		should be closed.
      */
-    synchronized
-    boolean cacheOutput(IbisIdentifier ibis, Socket socket) {
-	if (DISABLED) {
-	    return false;
-	}
+    synchronized boolean cacheOutput(IbisIdentifier ibis, Socket socket) {
+        if (DISABLED) {
+            return false;
+        }
 
-	Hashtable iCache = (Hashtable)inputCache.get(ibis);
-	if (iCache != null && iCache.contains(socket)) {
-	    int port = socket.getPort();
-	    iCache.remove(new Integer(port));
-	    if (VERBOSE) {
-		System.err.println("Remove/o " + socket
-			+ " from caches because no used connections");
-	    }
-	    return false;
-	}
+        Hashtable iCache = (Hashtable) inputCache.get(ibis);
+        if (iCache != null && iCache.contains(socket)) {
+            int port = socket.getPort();
+            iCache.remove(new Integer(port));
+            if (VERBOSE) {
+                System.err.println("Remove/o " + socket
+                        + " from caches because no used connections");
+            }
+            return false;
+        }
 
-	Vector oCache = (Vector)outputCache.get(ibis);
+        Vector oCache = (Vector) outputCache.get(ibis);
 
-	if (oCache == null) {
-	    oCache = new Vector();
-	    outputCache.put(ibis, oCache);
-	}
+        if (oCache == null) {
+            oCache = new Vector();
+            outputCache.put(ibis, oCache);
+        }
 
-	oCache.add(socket);
-	if (VERBOSE) {
-	    System.err.println("Added output " + socket
-		    + " to cache " + oCache);
-	}
+        oCache.add(socket);
+        if (VERBOSE) {
+            System.err
+                    .println("Added output " + socket + " to cache " + oCache);
+        }
 
-	return true;
+        return true;
     }
-
 
     /**
      * Get the unused input link with a specified remote port from the cache.
@@ -117,39 +112,38 @@ class TcpConnectionCache {
      * @return the socket with remote port <code>port</code> whose input link
      * 		was cached.
      */
-    synchronized
-    Socket getCachedInput(IbisIdentifier ibis, int port) {
-	if (DISABLED) {
-	    return null;
-	}
+    synchronized Socket getCachedInput(IbisIdentifier ibis, int port) {
+        if (DISABLED) {
+            return null;
+        }
 
-	Hashtable cache = (Hashtable)inputCache.get(ibis);
+        Hashtable cache = (Hashtable) inputCache.get(ibis);
 
-	if (cache == null) {
-	    if (VERBOSE) {
-		System.err.println("Must locate (" + ibis + "," + port
-			    + ") but there are no cached connections there");
-	    }
+        if (cache == null) {
+            if (VERBOSE) {
+                System.err.println("Must locate (" + ibis + "," + port
+                        + ") but there are no cached connections there");
+            }
 
-	    return null;
-	}
+            return null;
+        }
 
-	Integer key = new Integer(port);
-	Socket socket = (Socket)cache.remove(key);
+        Integer key = new Integer(port);
+        Socket socket = (Socket) cache.remove(key);
 
-	if (socket == null) {
-	    if (VERBOSE) {
-		System.err.println("Must locate (" + ibis + "," + port
-				    + ") but it is not there");
-	    }
-	}
+        if (socket == null) {
+            if (VERBOSE) {
+                System.err.println("Must locate (" + ibis + "," + port
+                        + ") but it is not there");
+            }
+        }
 
-	if (VERBOSE) {
-	    System.err.println("Return output " + socket + " from cache " + cache);
-	}
-	return socket;
+        if (VERBOSE) {
+            System.err.println("Return output " + socket + " from cache "
+                    + cache);
+        }
+        return socket;
     }
-
 
     /**
      * Try to get an unused output link from the cache.
@@ -157,25 +151,24 @@ class TcpConnectionCache {
      * @return a socket whose output link was cached, or <code>null</code> if
      * 		there are no matching links in the cache
      */
-    synchronized
-    Socket getCachedOutput(IbisIdentifier ibis) {
-	if (DISABLED) {
-	    return null;
-	}
+    synchronized Socket getCachedOutput(IbisIdentifier ibis) {
+        if (DISABLED) {
+            return null;
+        }
 
-	Vector cache = (Vector)outputCache.get(ibis);
+        Vector cache = (Vector) outputCache.get(ibis);
 
-	if (cache == null || cache.size() == 0) {
-	    return null;
-	}
+        if (cache == null || cache.size() == 0) {
+            return null;
+        }
 
-	if (VERBOSE) {
-	    System.err.println("Return output "
-		    + cache.elementAt(cache.size() - 1) + " from cache "
-		    + cache);
-	}
+        if (VERBOSE) {
+            System.err.println("Return output "
+                    + cache.elementAt(cache.size() - 1) + " from cache "
+                    + cache);
+        }
 
-	return (Socket)cache.remove(cache.size() - 1);
+        return (Socket) cache.remove(cache.size() - 1);
     }
 
 }

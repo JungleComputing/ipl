@@ -5,20 +5,21 @@ import ibis.util.ConditionVariable;
 
 import java.io.IOException;
 
-
 /**
  * Stream to manage native code for ArrayOutputStreams
  */
-final class ByteOutputStream
-	extends ibis.io.ArrayOutputStream {
+final class ByteOutputStream extends ibis.io.ArrayOutputStream {
 
-    static final int FIRST_FRAG_BIT  = (1 << 30);
-    static final int LAST_FRAG_BIT   = (1 << 31);
+    static final int FIRST_FRAG_BIT = (1 << 30);
+
+    static final int LAST_FRAG_BIT = (1 << 31);
+
     static final int SEQNO_FRAG_BITS = (FIRST_FRAG_BIT | LAST_FRAG_BIT);
 
     private SendPort sport;
 
     private SendComplete sendComplete = new SendComplete();
+
     private ConditionVariable fragCv = Ibis.myIbis.createCV();
 
     /**
@@ -58,7 +59,6 @@ final class ByteOutputStream
      */
     private long msgCount;
 
-
     /**
      * This field is read and <strong>written</strong> from native code
      *
@@ -66,8 +66,7 @@ final class ByteOutputStream
      * stream; it builds up the data vector for the current message and
      * keeps a GlobalRef to this.
      */
-    private int		nativeByteOS;
-
+    private int nativeByteOS;
 
     /**
      * The buffer allocator used by an IbisSerializationOutputStream on
@@ -75,325 +74,312 @@ final class ByteOutputStream
      */
     private ibis.io.DataAllocator allocator = null;
 
-
     static private boolean warningPrinted = false;
 
-
     ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
-	this.syncMode = syncMode;
-	this.makeCopy = makeCopy;
-	if (Ibis.DEBUG) {
-	    System.err.println("@@@@@@@@@@@@@@@@@@@@@ a ByteOutputStream makeCopy = " + makeCopy);
-	}
-	sport = (SendPort)p;
-	nativeByteOS = init();
+        this.syncMode = syncMode;
+        this.makeCopy = makeCopy;
+        if (Ibis.DEBUG) {
+            System.err
+                    .println("@@@@@@@@@@@@@@@@@@@@@ a ByteOutputStream makeCopy = "
+                            + makeCopy);
+        }
+        sport = (SendPort) p;
+        nativeByteOS = init();
     }
 
     int getSentFrags() {
-	return sentFrags;
+        return sentFrags;
     }
 
     int getMsgSeqno() {
-	return msgSeqno;
+        return msgSeqno;
     }
 
     void waitForFragno(int ticket) {
-	Ibis.myIbis.checkLockOwned();
-	while (sentFrags - outstandingFrags < ticket) {
-	    fragWaiting = true;
-	    try {
-		fragCv.cv_wait();
-	    } catch (InterruptedException e) {
-		// Ignore
-	    }
-	}
-	fragWaiting = false;
+        Ibis.myIbis.checkLockOwned();
+        while (sentFrags - outstandingFrags < ticket) {
+            fragWaiting = true;
+            try {
+                fragCv.cv_wait();
+            } catch (InterruptedException e) {
+                // Ignore
+            }
+        }
+        fragWaiting = false;
     }
 
     void wakeupFragWaiter() {
-	fragCv.cv_signal();
+        fragCv.cv_signal();
     }
 
     void setAllocator(DataAllocator allocator) {
-	if (Ibis.myIbis.myCpu == 0 && ! warningPrinted && allocator != null) {
-	    System.err.println(this + ": set allocator " + allocator);
-	    warningPrinted = true;
-	}
-	this.allocator = allocator;
+        if (Ibis.myIbis.myCpu == 0 && !warningPrinted && allocator != null) {
+            System.err.println(this + ": set allocator " + allocator);
+            warningPrinted = true;
+        }
+        this.allocator = allocator;
     }
-
 
     void send(boolean lastFrag) throws IOException {
-	Ibis.myIbis.checkLockOwned();
-	if (Ibis.DEBUG_RUTGER) {
-	    if (lastFrag) {
-		System.err.print("L");
-	    }
-	}
+        Ibis.myIbis.checkLockOwned();
+        if (Ibis.DEBUG_RUTGER) {
+            if (lastFrag) {
+                System.err.print("L");
+            }
+        }
 
-	int n = sport.splitter.length;
+        int n = sport.splitter.length;
 
-	boolean send_acked;
+        boolean send_acked;
 
-	outstandingFrags++;
-	sentFrags++;
+        outstandingFrags++;
+        sentFrags++;
 
-	if (sport.group != SendPort.NO_BCAST_GROUP) {
-	    send_acked = msg_bcast(sport.group,
-				   msgSeqno,
-				   lastFrag);
-	} else {
-	    send_acked = true;
-	    for (int i = 0; i < n; i++) {
-		ReceivePortIdentifier r = sport.splitter[i];
+        if (sport.group != SendPort.NO_BCAST_GROUP) {
+            send_acked = msg_bcast(sport.group, msgSeqno, lastFrag);
+        } else {
+            send_acked = true;
+            for (int i = 0; i < n; i++) {
+                ReceivePortIdentifier r = sport.splitter[i];
 
-		/* The call for the last connection knows whether the
-		 * send has been acked. Believe the last call. */
-		send_acked = msg_send(r.cpu,
-				      r.port,
-				      sport.ident.port,
-				      msgSeqno,
-				      i,
-				      n,
-				      lastFrag);
-	    }
-	}
+                /* The call for the last connection knows whether the
+                 * send has been acked. Believe the last call. */
+                send_acked = msg_send(r.cpu, r.port, sport.ident.port,
+                        msgSeqno, i, n, lastFrag);
+            }
+        }
 
-	if (send_acked) {
-	    outstandingFrags--;
-	} else {
-	    /* Decrement outstandingFrags from the sent upcall */
-	    if (Ibis.DEBUG) {
-		System.err.println(":::::::::::::::::::: Yeck -- message " + this + " is sent unacked");
-	    }
-	}
+        if (send_acked) {
+            outstandingFrags--;
+        } else {
+            /* Decrement outstandingFrags from the sent upcall */
+            if (Ibis.DEBUG) {
+                System.err.println(":::::::::::::::::::: Yeck -- message "
+                        + this + " is sent unacked");
+            }
+        }
     }
-
 
     void send() throws IOException {
-	Ibis.myIbis.lock();
-	send(true);
-	Ibis.myIbis.unlock();
+        Ibis.myIbis.lock();
+        send(true);
+        Ibis.myIbis.unlock();
     }
-
 
     /* Called from native */
     private void finished_upcall() {
-	Ibis.myIbis.checkLockOwned();
-	sendComplete.signal();
-	if (fragWaiting) {
-	    fragCv.cv_signal();
-	}
-	if (Ibis.DEBUG_RUTGER) {
-	    System.err.println(Thread.currentThread()
-		    + "Signal finish msg for stream " + this
-		    + "; outstandingFrags " + outstandingFrags);
-	}
+        Ibis.myIbis.checkLockOwned();
+        sendComplete.signal();
+        if (fragWaiting) {
+            fragCv.cv_signal();
+        }
+        if (Ibis.DEBUG_RUTGER) {
+            System.err.println(Thread.currentThread()
+                    + "Signal finish msg for stream " + this
+                    + "; outstandingFrags " + outstandingFrags);
+        }
     }
 
     private class SendComplete extends Syncer {
 
-	public boolean satisfied() {
-	    return outstandingFrags == 0;
-	}
+        public boolean satisfied() {
+            return outstandingFrags == 0;
+        }
 
-	public void signal() {
-	    Ibis.myIbis.checkLockOwned();
-	    outstandingFrags--;
-	    wakeup();
-	}
+        public void signal() {
+            Ibis.myIbis.checkLockOwned();
+            outstandingFrags--;
+            wakeup();
+        }
 
     }
 
     void reset(boolean finish) throws IOException {
-	Ibis.myIbis.checkLockOwned();
-	if (outstandingFrags > 0) {
-	    Ibis.myIbis.pollLocked();
+        Ibis.myIbis.checkLockOwned();
+        if (outstandingFrags > 0) {
+            Ibis.myIbis.pollLocked();
 
-	    if (outstandingFrags > 0) {
-		if (Ibis.DEBUG_RUTGER) {
-		    System.err.println(Thread.currentThread()
-			    + "Start wait to finish msg for stream " + this);
-		}
-		waitingInPoll = true;
-		Ibis.myIbis.waitPolling(sendComplete, 0, Poll.PREEMPTIVE);
-		waitingInPoll = false;
-	    }
-	}
+            if (outstandingFrags > 0) {
+                if (Ibis.DEBUG_RUTGER) {
+                    System.err.println(Thread.currentThread()
+                            + "Start wait to finish msg for stream " + this);
+                }
+                waitingInPoll = true;
+                Ibis.myIbis.waitPolling(sendComplete, 0, Poll.PREEMPTIVE);
+                waitingInPoll = false;
+            }
+        }
 
-	if (Ibis.DEBUG_RUTGER) {
-	    System.err.println(Thread.currentThread()
-		    + "Done  wait to finish msg for stream " + this);
-	}
+        if (Ibis.DEBUG_RUTGER) {
+            System.err.println(Thread.currentThread()
+                    + "Done  wait to finish msg for stream " + this);
+        }
 
-	msgSeqno++;
-	sentFrags = 0;
-	if (Ibis.DEBUG) {
-	    System.err.println("}}}}}}}}}}}}}}} ByteOutputStream: reset(finish=" + finish + ") increment msgSeqno to " + msgSeqno);
-	}
+        msgSeqno++;
+        sentFrags = 0;
+        if (Ibis.DEBUG) {
+            System.err
+                    .println("}}}}}}}}}}}}}}} ByteOutputStream: reset(finish="
+                            + finish + ") increment msgSeqno to " + msgSeqno);
+        }
 
-	if (finish) {
-	    sport.reset();
-	}
+        if (finish) {
+            sport.reset();
+        }
     }
-
 
     void reset() throws IOException {
-	Ibis.myIbis.lock();
-	try {
-	    reset(false);
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
+        Ibis.myIbis.lock();
+        try {
+            reset(false);
+        } finally {
+            Ibis.myIbis.unlock();
+        }
     }
-
 
     public void finish() throws IOException {
-	Ibis.myIbis.lock();
-	try {
-	    reset(true);
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
+        Ibis.myIbis.lock();
+        try {
+            reset(true);
+        } finally {
+            Ibis.myIbis.unlock();
+        }
     }
 
+    private native Object getCachedBuffer();
 
-    private native Object	getCachedBuffer();
-    private native void		clearGlobalRefs();
-
+    private native void clearGlobalRefs();
 
     private int releaseBuffers() {
-	Ibis.myIbis.checkLockOwned();
+        Ibis.myIbis.checkLockOwned();
 
-	int returned = 0;
+        int returned = 0;
 
-	// System.err.println("Try to release cached bufs.. nativeByteOs " + Integer.toHexString(nativeByteOS));
+        // System.err.println("Try to release cached bufs.. nativeByteOs " + Integer.toHexString(nativeByteOS));
 
-	Object buffer;
+        Object buffer;
 
-	while ((buffer = getCachedBuffer()) != null) {
-	    if (buffer instanceof byte[]) {
-		allocator.putByteArray((byte[]) buffer);
-	    } else if (buffer instanceof char[]) {
-		allocator.putCharArray((char[]) buffer);
-	    } else if (buffer instanceof short[]) {
-		allocator.putShortArray((short[]) buffer);
-	    } else if (buffer instanceof int[]) {
-		allocator.putIntArray((int[]) buffer);
-	    } else if (buffer instanceof long[]) {
-		allocator.putLongArray((long[]) buffer);
-	    } else if (buffer instanceof float[]) {
-		allocator.putFloatArray((float[]) buffer);
-	    } else if (buffer instanceof double[]) {
-		allocator.putDoubleArray((double[]) buffer);
-	    }
-	    returned++;
-	}
+        while ((buffer = getCachedBuffer()) != null) {
+            if (buffer instanceof byte[]) {
+                allocator.putByteArray((byte[]) buffer);
+            } else if (buffer instanceof char[]) {
+                allocator.putCharArray((char[]) buffer);
+            } else if (buffer instanceof short[]) {
+                allocator.putShortArray((short[]) buffer);
+            } else if (buffer instanceof int[]) {
+                allocator.putIntArray((int[]) buffer);
+            } else if (buffer instanceof long[]) {
+                allocator.putLongArray((long[]) buffer);
+            } else if (buffer instanceof float[]) {
+                allocator.putFloatArray((float[]) buffer);
+            } else if (buffer instanceof double[]) {
+                allocator.putDoubleArray((double[]) buffer);
+            }
+            returned++;
+        }
 
-	clearGlobalRefs();
+        clearGlobalRefs();
 
-	return returned;
+        return returned;
     }
-
 
     public boolean finished() throws IOException {
-	if (allocator == null) {
-	    return outstandingFrags == 0;
-	}
+        if (allocator == null) {
+            return outstandingFrags == 0;
+        }
 
-	int returned = 0;
-	if (Ibis.DEBUG_RUTGER) {
-	    System.err.println("finished -> outstandingFrags " + outstandingFrags);
-	}
-	Ibis.myIbis.lock();
-	try {
-	    if (outstandingFrags > 0) {
-		Ibis.myIbis.pollLocked();
-	    }
-	    boolean anyOutstandingFrags = (outstandingFrags > 0);
-	    returned = releaseBuffers();
-	    return ! anyOutstandingFrags
-		&& returned == 0
-		;
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
+        int returned = 0;
+        if (Ibis.DEBUG_RUTGER) {
+            System.err.println("finished -> outstandingFrags "
+                    + outstandingFrags);
+        }
+        Ibis.myIbis.lock();
+        try {
+            if (outstandingFrags > 0) {
+                Ibis.myIbis.pollLocked();
+            }
+            boolean anyOutstandingFrags = (outstandingFrags > 0);
+            returned = releaseBuffers();
+            return !anyOutstandingFrags && returned == 0;
+        } finally {
+            Ibis.myIbis.unlock();
+        }
     }
-
 
     public void flush() throws IOException {
-	flush(false);
+        flush(false);
     }
-
 
     private void flush(boolean lastFrag) throws IOException {
-	Ibis.myIbis.lock();
-	send(lastFrag);
-	Ibis.myIbis.unlock();
+        Ibis.myIbis.lock();
+        send(lastFrag);
+        Ibis.myIbis.unlock();
     }
-
 
     public void write(byte[] b) throws IOException {
-	write(b, 0, b.length);
+        write(b, 0, b.length);
     }
-
 
     private native int init();
 
-    private native boolean msg_send(int cpu,
-				    int port,
-				    int my_port,
-				    int seqno,
-				    int splitCount,
-				    int splitTotal,
-				    boolean lastFrag) throws IOException;
-    private native boolean msg_bcast(int group,
-				     int seqno,
-				     boolean lastFrag) throws IOException;
+    private native boolean msg_send(int cpu, int port, int my_port, int seqno,
+            int splitCount, int splitTotal, boolean lastFrag)
+            throws IOException;
+
+    private native boolean msg_bcast(int group, int seqno, boolean lastFrag)
+            throws IOException;
 
     public native void close();
 
     public native void write(int b) throws IOException;
 
     public void write(byte[] b, int off, int len) throws IOException {
-	writeArray(b, off, len);
-	if (syncMode) {
-	    flush();
-	}
+        writeArray(b, off, len);
+        if (syncMode) {
+            flush();
+        }
     }
 
     public long getCount() {
-	return msgCount;
+        return msgCount;
     }
 
     public void resetCount() {
-	msgCount = 0;
+        msgCount = 0;
     }
 
-    public final long bytesWritten() { 
-	return getCount();
+    public final long bytesWritten() {
+        return getCount();
     }
 
     public final void resetBytesWritten() {
-	resetCount();
+        resetCount();
     }
 
     public native void writeArray(boolean[] array, int off, int len)
-	    throws IOException;
+            throws IOException;
+
     public native void writeArray(byte[] array, int off, int len)
-	    throws IOException;
+            throws IOException;
+
     public native void writeArray(char[] array, int off, int len)
-	    throws IOException;
+            throws IOException;
+
     public native void writeArray(short[] array, int off, int len)
-	    throws IOException;
+            throws IOException;
+
     public native void writeArray(int[] array, int off, int len)
-	    throws IOException;
+            throws IOException;
+
     public native void writeArray(long[] array, int off, int len)
-	    throws IOException;
+            throws IOException;
+
     public native void writeArray(float[] array, int off, int len)
-	    throws IOException;
+            throws IOException;
+
     public native void writeArray(double[] array, int off, int len)
-	    throws IOException;
+            throws IOException;
 
     native void report();
 }

@@ -6,8 +6,7 @@ package ibis.rmi.server;
  * not come from a thread that is currently servicing a remote method
  * invocation.
  */
-public class ServerNotActiveException extends Exception
-{
+public class ServerNotActiveException extends Exception {
     /**
      * Constructs an <code>ServerNotActiveException</code> with no specified
      * detail message.
@@ -22,6 +21,6 @@ public class ServerNotActiveException extends Exception
      * @param s the detail message
      */
     public ServerNotActiveException(String s) {
-	super(s);
+        super(s);
     }
 }

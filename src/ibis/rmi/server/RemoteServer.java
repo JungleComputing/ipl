@@ -7,20 +7,19 @@ import ibis.rmi.impl.RTS;
  * implementations.
  */
 
-public abstract class RemoteServer extends RemoteObject
-{
+public abstract class RemoteServer extends RemoteObject {
     /**
      * Constructs a <code>RemoteServer</code>.
      */
     protected RemoteServer() {
-	super();
+        super();
     }
-    
+
     /**
      * Constructs a <code>RemoteServer</code> with the specified reference.
      */
     protected RemoteServer(RemoteRef ref) {
-	super(ref);
+        super(ref);
     }
 
     /**
@@ -32,24 +31,24 @@ public abstract class RemoteServer extends RemoteObject
      *  servicing a remote method invocation
      */
     public static String getClientHost() throws ServerNotActiveException {
-	String hostname = RTS.getClientHost();
-	if (hostname == null) {
-	    throw new ServerNotActiveException();
-	}
-	return hostname;
+        String hostname = RTS.getClientHost();
+        if (hostname == null) {
+            throw new ServerNotActiveException();
+        }
+        return hostname;
     }
 
-/*    public static void setLog(OutputStream out) 
-    {
-	if (out != null) {
-	    log = LogStream.log(log_name);
-	    log.setOutputStream(out);
-	}
-	else	log = null;
-    }
+    /*    public static void setLog(OutputStream out) 
+     {
+     if (out != null) {
+     log = LogStream.log(log_name);
+     log.setOutputStream(out);
+     }
+     else	log = null;
+     }
 
-    public static PrintStream getLog() 
-    {
-	return log;
-    }*/
+     public static PrintStream getLog() 
+     {
+     return log;
+     }*/
 }

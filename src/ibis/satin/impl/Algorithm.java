@@ -5,7 +5,7 @@ abstract class Algorithm {
     Satin satin;
 
     protected Algorithm(Satin s) {
-	satin = s;
+        satin = s;
     }
 
     /**
@@ -13,7 +13,7 @@ abstract class Algorithm {
      * implementation does nothing.
      */
     void jobAdded() {
-	// do nothing
+        // do nothing
     }
 
     /**
@@ -29,7 +29,7 @@ abstract class Algorithm {
      * communication)
      */
     public void stealReplyHandler(InvocationRecord ir, int opcode) {
-	satin.gotJobResult(ir);
+        satin.gotJobResult(ir);
     }
 
     /**
@@ -38,9 +38,9 @@ abstract class Algorithm {
      * nothing.
      */
     public void exit() {
-	synchronized (satin) {
-	    satin.notifyAll();
-	}
+        synchronized (satin) {
+            satin.notifyAll();
+        }
     }
 
     /**
@@ -48,6 +48,6 @@ abstract class Algorithm {
      * implementation does nothing.
      */
     public void printStats(java.io.PrintStream out) {
-	// do nothing
+        // do nothing
     }
 }

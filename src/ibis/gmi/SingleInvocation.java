@@ -5,7 +5,7 @@ package ibis.gmi;
  * method to a single invocation. This means that the invocation is forwarded
  * to a single object of the group.
  */
-public class SingleInvocation extends InvocationScheme { 
+public class SingleInvocation extends InvocationScheme {
     /**
      * Identifies the rank within the group of the object on which the method
      * is to be invoked.
@@ -21,12 +21,13 @@ public class SingleInvocation extends InvocationScheme {
      * @exception ConfigurationException is thrown when an illegal
      * parameter is supplied.
      */
-    public SingleInvocation(int destination) throws ConfigurationException { 
-	super(InvocationScheme.I_SINGLE); 
+    public SingleInvocation(int destination) throws ConfigurationException {
+        super(InvocationScheme.I_SINGLE);
 
-	this.destination = destination;
-	if (destination < 0) { 
-	    throw new ConfigurationException("Invocation destination must be >= 0 (" + destination + ")");
-	}
-    } 
+        this.destination = destination;
+        if (destination < 0) {
+            throw new ConfigurationException(
+                    "Invocation destination must be >= 0 (" + destination + ")");
+        }
+    }
 }

@@ -6,4 +6,4 @@ package ibis.gmi;
  */
 public interface GroupInterface {
     // magic interface, no methods.
-} 
+}

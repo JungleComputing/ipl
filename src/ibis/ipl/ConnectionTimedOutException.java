@@ -12,7 +12,7 @@ public class ConnectionTimedOutException extends IbisIOException {
      * <code>null</code> as its error detail message.
      */
     public ConnectionTimedOutException() {
-	super();
+        super();
     }
 
     /**
@@ -22,7 +22,7 @@ public class ConnectionTimedOutException extends IbisIOException {
      * @param s		the detail message
      */
     public ConnectionTimedOutException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -33,7 +33,7 @@ public class ConnectionTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionTimedOutException(String s, Throwable cause) {
-	super(s, cause);
+        super(s, cause);
     }
 
     /**
@@ -43,6 +43,6 @@ public class ConnectionTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionTimedOutException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

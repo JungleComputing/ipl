@@ -6,17 +6,16 @@ import java.net.InetAddress;
 
 class UdpMuxerKey extends MuxerKey {
 
-    InetAddress		remoteAddress;
-    int			remotePort;
+    InetAddress remoteAddress;
 
-    UdpMuxerKey(InetAddress remoteAddress,
-		int remotePort,
-		int remoteKey) {
+    int remotePort;
 
-	super(remoteKey);
+    UdpMuxerKey(InetAddress remoteAddress, int remotePort, int remoteKey) {
 
-	this.remoteAddress = remoteAddress;
-	this.remotePort = remotePort;
+        super(remoteKey);
+
+        this.remoteAddress = remoteAddress;
+        this.remotePort = remotePort;
     }
 
 }

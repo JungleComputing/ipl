@@ -1,4 +1,5 @@
-class Update { 
-    double [] update;
+class Update {
+    double[] update;
+
     boolean stop;
 }

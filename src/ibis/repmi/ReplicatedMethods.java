@@ -1,5 +1,5 @@
 package ibis.repmi;
 
-public interface ReplicatedMethods { 
+public interface ReplicatedMethods {
     // magic interface.
-} 
+}
