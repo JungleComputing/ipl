@@ -16,6 +16,7 @@ import ibis.util.TypedProperties;
  */
 public class SatinTupleSpace implements Config {
 
+        // The satin reference can be null if the run is completely sequential.
 	// space must be synchronized, adds and dels arrive asynchronously
 	private static Satin satin;
 	private static HashMap space;
@@ -41,6 +42,20 @@ public class SatinTupleSpace implements Config {
 //		newKeys = new ArrayList();
 //		newData = new ArrayList();
 	}
+
+    public static void enableActiveTupleOrdening() {
+	if(satin == null) return; // sequential run
+	if(!SUPPORT_TUPLE_MULTICAST) {
+	    System.err.println("Cannot enable active tuple ordening, SUPPORT_TUPLE_MULTICAST is set to false in Config.java");
+	    System.exit(1);
+	}
+
+	use_seq = true;
+
+	satin.enableActiveTupleOrdening();
+	System.out.println("use_seq = " + use_seq);
+    }
+
 
 	/** Adds an element with the specified key to the global tuple space. 
           * If a tuple with this key already exists, it is overwritten

@@ -196,6 +196,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				m.writeByte(ASYNC_STEAL_REPLY_SUCCESS);
 			}
 
+			if(satin.sequencer != null) { // ordered communication
+   			        m.writeInt(satin.expected_seqno);
+			}
+
 			m.writeObject(result);
 			m.send();
 			long cnt = m.finish();
@@ -267,9 +271,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 		case STEAL_REPLY_SUCCESS:
 		case ASYNC_STEAL_REPLY_SUCCESS:
+
 			try {
 				if(STEAL_TIMING) {
 				    satin.invocationRecordReadTimer.start();
+				}
+				if(satin.sequencer != null) { // ordered communication
+   			                satin.stealReplySeqNr = m.readInt();
 				}
 				tmp = (InvocationRecord) m.readObject();
 				if(STEAL_TIMING) {

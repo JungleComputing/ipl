@@ -77,7 +77,8 @@ public final class Satin implements Config, ResizeHandler {
 	private String[] mainArgs;
 	private String name;
 	protected IbisIdentifier masterIdent;
-	private Sequencer sequencer;
+        protected Sequencer sequencer; // used in MessageHandler
+        protected int stealReplySeqNr;
 
 	/* My scheduling algorithm. */
 	protected final Algorithm algorithm;
@@ -125,6 +126,7 @@ public final class Satin implements Config, ResizeHandler {
 	InvocationRecord stolenJob = null;
 
 	private int suggestedQueueSize = 1000;
+        boolean tuplePortLocalConnection = false;
 
 	/* Variables that contain statistics. */
 	private long spawns = 0;
@@ -377,7 +379,6 @@ public final class Satin implements Config, ResizeHandler {
 		    reqprops.add("worldmodel", "open");
 		}
 
-// @@@ need OneToMany if tuplespace is used
 		if (doUpcalls) {
 		    if (upcallPolling) {
 			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, PollUpcalls, ExplicitReceipt");
@@ -570,14 +571,7 @@ public final class Satin implements Config, ResizeHandler {
 			}
 
 			if (SatinTupleSpace.use_seq) {
-				connect(tuplePort, receivePort.identifier());
-				try {
-					sequencer = Sequencer.getSequencer(ibis);
-				} catch(IOException e) {
-					System.err.println("SATIN '" + ident.name() + 
-					       "': Got Exception while creating sequencer: " + e);
-					System.exit(1);
-				}
+				enableActiveTupleOrdening();
 			}
 
 			barrier();
@@ -588,6 +582,20 @@ public final class Satin implements Config, ResizeHandler {
 		}
 
 		totalTimer.start();
+	}
+
+        void enableActiveTupleOrdening() {
+	        if(tuplePortLocalConnection) return;
+
+	        connect(tuplePort, receivePort.identifier());
+		try {
+		        sequencer = Sequencer.getSequencer(ibis);
+		} catch(IOException e) {
+		        System.err.println("SATIN '" + ident.name() + 
+					   "': Got Exception while creating sequencer: " + e);
+			System.exit(1);
+		}
+		tuplePortLocalConnection = true;
 	}
 
 	/**
@@ -1394,6 +1402,16 @@ public final class Satin implements Config, ResizeHandler {
 		InvocationRecord myJob = stolenJob;
 		stolenJob = null;
 
+		// if we have ordered communication, we have to wait until
+		// our sequence number equals the one in the job
+		if(sequencer != null) {
+		    System.err.println("steal reply seq nr = " + stealReplySeqNr + ", my seq nr = " + expected_seqno);
+		    while(stealReplySeqNr > expected_seqno) {
+			System.err.println("W");
+			handleDelayedMessages();
+		    }
+		}
+
 		callSatinFunction(myJob);
 
 		return true;
@@ -1746,8 +1764,8 @@ public final class Satin implements Config, ResizeHandler {
 				System.err.println("parent = " + r.parent);
 			}
 			if(r.parent == null) {
-				System.err.println("EEEK, root job?" + t);
-				t.printStackTrace();
+				System.err.println("An inlet threw an exception, but there is no parent that handles it." + t);
+//				t.printStackTrace();
 				System.exit(1);
 			}
 
@@ -2447,6 +2465,7 @@ public final class Satin implements Config, ResizeHandler {
 		}
 
 		if(! SUPPORT_TUPLE_MULTICAST && size == 0) return; // don't multicast when there is no-one.
+		if(size == 0 && sequencer == null) return;
 
 		if(TUPLE_TIMING) {
 			tupleTimer.start();
@@ -2468,8 +2487,7 @@ public final class Satin implements Config, ResizeHandler {
 				if(TUPLE_STATS) {
 					tupleMsgs++;
 					count = writeMessage.finish();
-				}
-				else {
+				} else {
 					writeMessage.finish();
 				}
 
@@ -2536,6 +2554,7 @@ public final class Satin implements Config, ResizeHandler {
 		}
 
 		if(size == 0) return; // don't multicast when there is no-one.
+		if(size == 0 && sequencer == null) return;
 
 		if(TUPLE_TIMING) {
 			tupleTimer.start();
