@@ -162,6 +162,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 			    }
 			}
 			try {
+			    if (timeout < 100) timeout = 100;
 			    requestedPorts.wait(timeout);
 			} catch(InterruptedException e) {
 			}
@@ -230,7 +231,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 				DummyInputStream di = new DummyInputStream(s.getInputStream());
 				in  = new ObjectInputStream(new BufferedInputStream(di));
 				DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-				out = new ObjectOutputStream(new BufferedOutputStream(dos));
+				out = new ObjectOutputStream(new BufferedOutputStream(dos, 4096));
 				
 				opcode = in.readByte();
 

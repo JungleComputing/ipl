@@ -36,7 +36,7 @@ class PortTypeNameServerClient implements Protocol {
 
 		s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-		out = new DataOutputStream(new BufferedOutputStream(dos));
+		out = new DataOutputStream(new BufferedOutputStream(dos, 4096));
 
 		out.writeByte(PORTTYPE_NEW);
 		out.writeUTF(name);
