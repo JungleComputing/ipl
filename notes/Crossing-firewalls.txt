@@ -71,10 +71,17 @@ computing node, with the -controlhub flag, e.g.:
 
 fs0:~% ibis_nameserver -controlhub
 
+If you want a specific port number for the control hub, you can use
+the "-hubport <portnum>" flag.
+
 -- Step 4- run the application as usual, but add the following flags:
 -Dibis.connect.enable 
 -Dibis.connect.data_links=TCPSplice 
 -Dibis.connect.control_links=RoutedMessages
+
+In addition, if you want a specific port number for the control hub,
+you can use
+-Dibis.connect.hub_port=<portnum>
 
 * Reference
   ---------
@@ -92,7 +99,8 @@ Java properties:
    Optional. Default is: PlainTCP for both.
 
 -- ibis.connect.hub_host=<hostname where the hub is running>
--- ibis.connect.hub_port=<port the hub is listening>
+   Not needed anymore, as the controlhub now lives within the nameserver.
+-- ibis.connect.hub_port=<port the hub is listening on>
    Information on how to contact the hub control process.
    Required when RoutedMessages are used; useless else.
 
