@@ -134,6 +134,7 @@ __disp__(const char *s, ...)
 #define VERBOSE		0
 #endif
 
+
 #if VERBOSE
 
 #include <stdarg.h>
@@ -251,6 +252,9 @@ typedef struct NI_GM_HDR {
     int			length;
     int			mux_id;
     int			byte_buffer_offset;
+#ifndef NDEBUG
+    long long unsigned seqno;
+#endif
 } ni_gm_hdr_t, *ni_gm_hdr_p;
 
 #define NI_GM_PACKET_HDR_LEN	((int)sizeof(ni_gm_hdr_t))
@@ -356,6 +360,8 @@ struct s_port {
         struct s_packet  *packet_head;
         int               nb_packets;
         struct s_packet  *send_packet_cache;
+
+	int		ni_gm_send_tokens;
 };
 
 union u_j_array {
@@ -421,6 +427,7 @@ struct s_output {
         unsigned int      packet_size;
         ni_gm_send_state_t	state;
 	int               ack_arrived;	/* This should fold into a state update */
+	long long unsigned seqno;
         struct s_request  request;
 };
 
@@ -438,6 +445,7 @@ struct s_input {
 	int               offset;	// Used for packetized buffers
 	int               data_size;	// Used for packetized buffers
 	int               data_left;	// Used for packetized buffers
+	int               byte_buffer_consumed;	// Used for packetized buffers
         int               length;	// Used for rendez-vous data size
 	int               is_copy;
 	struct   s_port  *p_port;
@@ -448,6 +456,7 @@ struct s_input {
         unsigned char    *ack_packet;
         unsigned int      packet_size;
         struct s_packet  *packet_head;
+	long long unsigned seqno;
         struct s_request  request;
 };
 
@@ -470,25 +479,25 @@ union u_conv {
  */
 
 /* Flag indicating whether the driver has been initialized. */
-static int 	      initialized              =    0;
+static int		initialized              =    0;
 
 /* Flag indicating whether the initialization of GM was successful. */
-static int 	      successfully_initialized =    0;
+static int		successfully_initialized =    0;
 
-static volatile int   success_flag             =    0;
+static volatile int	success_flag             =    0;
 
 /* Driver's own data structure.  */
-static struct s_drv * volatile _p_drv = NULL;
+static struct s_drv    *volatile _p_drv = NULL;
 
-static JavaVM *_p_vm = NULL;
-static JNIEnv *_current_env = NULL;
+static JavaVM	       *_p_vm = NULL;
+static JNIEnv	       *_current_env = NULL;
 
-static const int pub_port_array[] = { 2, 4, 5, 6, 7 };
-static const int nb_pub_ports   = 5;
+static const int	pub_port_array[] = { 2, 4, 5, 6, 7 };
+static const int	nb_pub_ports   = 5;
 
-static int            mtu; /* Read this from Driver.mtu - should be immutable */
+static int		mtu; /* Read this from Driver.mtu - should be immutable */
 
-static jboolean       ni_gm_copy_get_elts;
+static jboolean		ni_gm_copy_get_elts;
 
 
 #define COPY_SMALL_LOG	6
@@ -902,7 +911,6 @@ ni_gm_lock_unlock(struct s_lock *p_lock) {
 
 	VPRINTF(1000, ("Here...\n"));
 	VPRINTF(1000, ("unlock(%d)\n", p_lock->id));
-fprintf(stderr, "U%d", p_lock->id);
 
         (*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
         __out__();
@@ -1002,7 +1010,6 @@ ni_gm_input_unlock(struct s_input *p_in, int len) {
         (*env)->SetIntField(env, p_in->ref, p_in->len_id, len);
         p_lock = p_in->p_lock;
 	VPRINTF(900, ("unlock(%d)\n", p_lock->id));
-fprintf(stderr, "u%d", p_lock->id);
         (*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
         __out__();
 
@@ -1450,8 +1457,11 @@ ni_gm_open_port(struct s_dev *p_dev) {
                 }
         }
 
+	p_port->ni_gm_send_tokens = gm_num_send_tokens(p_gm_port);
+
         p_dev->p_port     = p_port;
 	p_dev->ref_count++;
+
         __out__();
 	return 0;
 
@@ -1571,6 +1581,17 @@ ni_gm_remove_packet_from_list(struct s_packet **pp_packet) {
 }
 
 
+#ifndef NDEBUG
+#define hdr_set_seqno(hdr, p_out) \
+		((hdr)->seqno = (p_out)->seqno++)
+#define hdr_check_seqno(hdr, p_in) \
+		do { assert((hdr)->seqno == (p_in)->seqno++); } while (0)
+#else
+#define hdr_set_seqno(hdr, p_out)
+#define hdr_check_seqno(hdr, p_in)
+#endif
+
+
 static struct s_packet *
 ni_gm_packet_get(struct s_output *p_out)
 {
@@ -1628,12 +1649,13 @@ ni_gm_eager_callback(struct gm_port *port,
     assert(!p_rq->p_in);
 
     assert(p_out->state == NI_GM_SENDER_SENDING_EAGER);
+    assert(p_out->p_port->ni_gm_send_tokens++ >= 0);
 
     p_out->state = NI_GM_SENDER_IDLE;
     ni_gm_packet_put(p_out->p_port, packet);
-    __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
+    __disp__("ni_gm_eager_callback: unlock(%d)\n", p_out->p_lock->id);
     ni_gm_lock_unlock(p_out->p_lock);
-    VPRINTF(120, ("Received a ni_gm_callback; p_out %p state := %s\n", p_out, ni_gm_sender_state(p_out->state)));
+    VPRINTF(120, ("Received a ni_gm_eager_callback; p_out %p state := %s\n", p_out, ni_gm_sender_state(p_out->state)));
 
     __out__();
 }
@@ -1657,7 +1679,9 @@ ni_gm_callback(struct gm_port *port,
 
         if (p_rq->p_out) {
                 struct s_output *p_out = p_rq->p_out;
+
 		VPRINTF(100, ("Receive a ni_gm_callback; p_out %p current state %s\n", p_out, ni_gm_sender_state(p_out->state)));
+		assert(p_port->ni_gm_send_tokens++ >= 0);
 
                 assert(!p_rq->p_in);
 
@@ -1718,6 +1742,9 @@ ni_gm_init_output(struct s_dev     *p_dev,
         p_out->dst_port_id    = 0;
         p_out->dst_node_id    = 0;
         p_out->local_mux_id   = p_port->local_output_array_size;
+#ifndef NDEBUG
+	p_out->seqno          = 0;
+#endif
         __disp__("%p: mux_id = %d\n", p_out, p_out->local_mux_id);
 
         p_out->remote_mux_id  = 0;
@@ -1742,6 +1769,7 @@ ni_gm_init_output(struct s_dev     *p_dev,
         p_port->ref_count++;
 
         *pp_out = p_out;
+
         __out__();
 
         return 0;
@@ -1771,6 +1799,9 @@ ni_gm_init_input(struct s_dev    *p_dev,
         p_in->src_node_id    = 0;
         p_in->local_mux_id   = p_port->local_input_array_size;
         p_in->remote_mux_id  = 0;
+#ifndef NDEBUG
+	p_in->seqno          = 0;
+#endif
         __disp__("%p: mux_id = %d\n", p_in, p_in->local_mux_id);
 
         ni_gm_expand_array((unsigned char **)&p_port->local_input_array,
@@ -1932,6 +1963,7 @@ ni_gm_output_send_request(struct s_output *p_out) {
 	hdr = (ni_gm_hdr_p)packet_data;
 	hdr->type = NI_GM_MSG_TYPE_RENDEZ_VOUS_REQ;
 	hdr->length = p_out->length;
+	hdr_set_seqno(hdr, p_out);
 
         p_port = p_out->p_port;
 
@@ -1942,6 +1974,7 @@ ni_gm_output_send_request(struct s_output *p_out) {
                 goto error;
         }
 	VPRINTF(100, ("Send HIGH rendez-vous request p_out %p for size %d\n", p_out, p_out->length));
+	assert(--p_port->ni_gm_send_tokens >= 0);
         gm_send_with_callback(p_port->p_gm_port,
 			      packet_data,
                               p_out->packet_size,
@@ -1984,6 +2017,7 @@ ni_gm_output_flush(struct s_output *p_out)
     hdr = (ni_gm_hdr_p)packet_data;
     hdr->type = NI_GM_MSG_TYPE_EAGER;
     hdr->length = p_out->offset - NI_GM_PACKET_HDR_LEN;
+    hdr_set_seqno(hdr, p_out);
 
     VPRINTF(100, ("flush eager packet size %d type %s byte buffer at %d\n",
 		    p_out->offset, ni_gm_msg_type(hdr->type),
@@ -2008,7 +2042,8 @@ ni_gm_output_flush(struct s_output *p_out)
     pend(GM_CHECK_TOKEN);
 
     pstart(GM_SEND);
-    VPRINTF(100, ("Send to %d HIGH data message p_out %p packet %p size %d\n", p_out->dst_node_id, p_out, packet, p_out->offset));
+    VPRINTF(100, ("Send to %d HIGH data message p_out %p seqno %llu packet %p size %d mux_id %d\n", p_out->dst_node_id, p_out, hdr->seqno, packet, p_out->offset, hdr->mux_id));
+    assert(--p_port->ni_gm_send_tokens >= 0);
     gm_send_with_callback(p_port->p_gm_port,
 			  packet_data,
 			  p_out->packet_size,
@@ -2054,6 +2089,8 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
 	hdr = (ni_gm_hdr_p)p_out->packet->data;
 	hdr->type = NI_GM_MSG_TYPE_RENDEZ_VOUS_DATA;
 	//???????? hdr->length = len;
+	hdr_set_seqno(hdr, p_out);
+
         p_port = p_out->p_port;
         ni_gm_register_block(p_port, b, len, &p_out->p_cache);
         p_out->length = len;
@@ -2065,6 +2102,7 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
         }
 
 	VPRINTF(100, ("Send LOW rendez-vous data p_out %p size %d\n", p_out, len));
+	assert(--p_port->ni_gm_send_tokens >= 0);
         gm_send_with_callback(p_port->p_gm_port,
 			      b,
                               NI_GM_BLOCK_SIZE,
@@ -2131,11 +2169,14 @@ ni_gm_input_packet_get(struct s_input *p_in)
     hdr = (ni_gm_hdr_p)packet->data;
     is_rendez_vous = (hdr->type == NI_GM_MSG_TYPE_RENDEZ_VOUS_REQ);
     assert(is_rendez_vous || hdr->type == NI_GM_MSG_TYPE_EAGER);
-    p_in->data_size = hdr->length;
+    hdr_check_seqno(hdr, p_in);
+
+    p_in->data_size = hdr->length + NI_GM_PACKET_HDR_LEN;
     p_in->offset = NI_GM_PACKET_HDR_LEN;
-    p_in->data_left = p_in->data_size;
-    VPRINTF(100, ("At remove: Packet %p type %s data_size %d byte buffer at %d\n",
-		    packet, ni_gm_msg_type(hdr->type), p_in->data_size,
+    p_in->data_left = p_in->data_size - NI_GM_PACKET_HDR_LEN;
+    p_in->byte_buffer_consumed = 0;
+    VPRINTF(100, ("At remove: Packet %p type %s seqno %llu data_size %d byte buffer at %d\n",
+		    packet, ni_gm_msg_type(hdr->type), hdr->seqno, p_in->data_size,
 		    hdr->byte_buffer_offset));
     if (VERBOSE) {
 	int i;
@@ -2170,7 +2211,7 @@ ni_gm_input_post_byte(struct s_input *p_in)
     p_in->offset += sizeof(jbyte);
     VPRINTF(100, ("Remove one byte=%d\n", (char)result));
 
-    if (p_in->offset == p_in->data_size + NI_GM_PACKET_HDR_LEN) {
+    if (p_in->offset == p_in->data_size) {
 	if (! ni_gm_packet_clear(p_packet, p_port)) {
 	    goto error;
 	}
@@ -2240,6 +2281,8 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     \
     hdr = (ni_gm_hdr_p)p_in->ack_packet; \
     hdr->type = NI_GM_MSG_TYPE_RENDEZ_VOUS_ACK; \
+    \
+    assert(--p_port->ni_gm_send_tokens >= 0); \
     gm_send_with_callback(p_port->p_gm_port, \
 			  p_in->ack_packet, \
 			  p_in->packet_size, \
@@ -2274,16 +2317,15 @@ ni_gm_input_post_ ## Jtype ## _buffer(JNIEnv *env, \
     __in__(); \
     assert(b); \
     assert(len); \
-    VPRINTF(100, ("At post: pending data? (offset %d data_size %d); require %d bytes of type %s\n", p_in->offset, p_in->data_size, len, #Jtype)); \
-    \
     is_rendez_vous = ni_gm_input_packet_get(p_in); \
     p_packet = p_in->packet; \
     assert(p_packet != NULL); \
     \
+    VPRINTF(100, ("At post: %p pending data? (offset %d data_size %d); require %d bytes of type %s\n", p_packet, p_in->offset, p_in->data_size, len, #Jtype)); \
+    \
     if (! is_rendez_vous) { \
 	memcpy(&data_size, p_packet->data + p_in->offset, sizeof(data_size)); \
-	p_in->offset += sizeof(data_size); \
-	buffer = (jtype *)(p_packet->data + p_in->offset); \
+	buffer = (jtype *)(p_packet->data + p_in->offset + sizeof(data_size)); \
 	(*env)->Set ## Jtype ## ArrayRegion(env, \
 					    b, \
 					    offset / sizeof(jtype), \
@@ -2293,22 +2335,22 @@ ni_gm_input_post_ ## Jtype ## _buffer(JNIEnv *env, \
 		      #Jtype, offset, data_size)); \
 	if (VERBOSE) { \
 	    int i; \
-	    for (i = offset / sizeof(jtype); i < MIN((int)(data_size / sizeof(jtype)), 32); i ++) { \
+	    for (i = 0; i < MIN((int)(data_size / sizeof(jtype)), 32); i ++) { \
 		VPRINTSTR(750, ("0x%x ", buffer[i])); \
 	    } \
 	    VPRINTSTR(750, ("\n")); \
 	} \
-	VPRINTF(100, ("Copied in post: data_size %d p_in->data_size %d p_in->offset %d\n", \
-		      data_size, p_in->data_size, p_in->offset)); \
-	p_in->offset += data_size; \
+	p_in->offset += data_size + sizeof(data_size); \
 	p_in->data_left -= data_size + sizeof(data_size); \
-	assert(p_in->data_left >= 0); \
+	VPRINTF(100, ("Copied in post: data_size %d p_in->data_size %d p_in->offset %d p_in->data_left %d\n", \
+		      data_size, p_in->data_size, p_in->offset, p_in->data_left)); \
     } else { \
 	ni_gm_hdr_p hdr = (ni_gm_hdr_p)p_packet->data; \
 	data_size = hdr->length; \
 	p_in->data_left -= data_size; /* Trigger clear/refresh condition */ \
 	VPRINTF(100, ("Post gets rendez-vous req data size %d data_left %d\n", data_size, p_in->data_left)); \
     } \
+    assert(p_in->data_left >= 0); \
     \
     if (p_in->data_left == 0) { \
 	if (! ni_gm_packet_clear(p_packet, p_in->p_port)) { \
@@ -2372,12 +2414,13 @@ ni_gm_input_post_byte_buffer(JNIEnv *env,
     __in__();
     assert(b);
     assert(len);
-    VPRINTF(100, ("At post: pending data? (offset %d data_size %d data_left %d); require %d bytes of type %s\n", p_in->offset, p_in->data_size, p_in->data_left, len, "Byte"));
-
     is_rendez_vous = ni_gm_input_packet_get(p_in);
     VPRINTF(100, ("At post: Got packet (offset %d data_size %d data_left %d); require %d bytes of type %s\n", p_in->offset, p_in->data_size, p_in->data_left, len, "Byte"));
     p_packet = p_in->packet;
     assert(p_packet != NULL);
+    assert(! p_in->byte_buffer_consumed);
+
+    VPRINTF(100, ("At post: %p pending data? (offset %d data_size %d data_left %d); require %d bytes of type %s\n", p_packet, p_in->offset, p_in->data_size, p_in->data_left, len, "Byte"));
 
     hdr = (ni_gm_hdr_p)p_packet->data;
     if (! is_rendez_vous) {
@@ -2393,13 +2436,14 @@ ni_gm_input_post_byte_buffer(JNIEnv *env,
 		      "Byte", offset, data_size));
 	if (VERBOSE) {
 	    int i;
-	    for (i = offset; i < MIN((int)data_size, 32); i ++) {
+	    for (i = 0; i < MIN((int)data_size, 32); i ++) {
 		VPRINTSTR(750, ("0x%x ", buffer[i]));
 	    }
 	    VPRINTSTR(750, ("\n"));
 	}
 
 	p_in->data_left -= data_size + sizeof(data_size);
+	p_in->byte_buffer_consumed = 1;
 	VPRINTF(100, ("Copied in post: data_size %d p_in->data_size %d p_in->offset %d p_in->data_left %d\n",
 		      data_size, p_in->data_size, p_in->offset, p_in->data_left));
     } else {
@@ -2508,8 +2552,8 @@ ni_gm_input_flow_control(struct s_port  *p_port,
 		hdr = (ni_gm_hdr_p)packet;
         }
 	mux_id = hdr->mux_id;
-	VPRINTF(200, ("here... msg %p type %s len %d\n",
-			msg, ni_gm_msg_type(hdr->type), hdr->length));
+	VPRINTF(200, ("here... msg %p type %s len %d mux_id %d\n",
+			msg, ni_gm_msg_type(hdr->type), hdr->length, hdr->mux_id));
 
         __disp__("1");
         p_in = p_port->local_input_array[mux_id];
@@ -2623,8 +2667,8 @@ ni_gm_process_high_recv_event(struct s_port   *p_port,
         packet = gm_ntohp(p_event->recv.buffer);
 	hdr    = (ni_gm_hdr_p)packet;
 	packet_length = (int)gm_ntohl(p_event->recv.length);
-	VPRINTF(150, ("Receive HIGH packet type %s length %d\n",
-		    ni_gm_msg_type(hdr->type), packet_length));
+	VPRINTF(150, ("Receive HIGH packet type %s length %d seqno %llu\n",
+		    ni_gm_msg_type(hdr->type), packet_length, hdr->seqno));
 
 	switch (hdr->type) {
 
@@ -2687,7 +2731,9 @@ ni_gm_output_exit(struct s_output *p_out) {
         return 0;
 }
 
-static int ni_gm_input_exit(struct s_input *p_in) {
+static
+int
+ni_gm_input_exit(struct s_input *p_in) {
         __in__();
         if (p_in->packet_head) {
 	    fprintf(stderr, "Warning: GM has an unprocessed packet at exit\n");
@@ -4001,6 +4047,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
 		    fprintf(stderr, "NET_GM_VERBOSE should contain an int value\n");
 		}
 	    }
+	    fprintf(stderr, "net GM verbose is %d\n", verbose);
 	}
 #endif
 	return JNI_VERSION_1_2;

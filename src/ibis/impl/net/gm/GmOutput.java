@@ -261,26 +261,6 @@ public final class GmOutput extends NetBufferedOutput {
 	    return mustFlush;
 	}
 
-	/*
-	 * {@inheritDoc}
-	 *
-	 * The buffering in NetBuffererdOutput confuses Ibis serialization.
-	 * Provide a special implementation that bypasses that buffer.
-	 */
-	/*
-	 * Guess we will try to use NetBuffering after all...
-	public void writeByte(byte value) throws IOException {
-// System.err.println(this + ": write single byte=" + value);
-// Thread.dumpStack();
-	    Driver.gmAccessLock.lock(true);
-	    tryFlush(1);
-	    nSendByte(outputHandle, value);
-	    Driver.gmAccessLock.unlock();
-
-	    mustFlush = true;
-	}
-	*/
-
 	private void sendRequest(int offset, int length) throws IOException {
 	    if (flushing > 0) {
 		flushAllBuffers();

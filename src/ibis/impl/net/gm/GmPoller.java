@@ -28,6 +28,8 @@ public final class GmPoller extends NetPoller {
 	ReceiveQueue[]		rq;
 	int[]			pumpedIds;
 
+	int			blockers;
+
 	/**
 	 * Constructor.
 	 *
@@ -41,6 +43,7 @@ public final class GmPoller extends NetPoller {
                 gmDriver = (Driver)driver;
 		lockIds = new int[1];
 		lockIds[0] = 0; // main lock
+// System.err.println("************ Create a new GmPoller " + this + " upcallFunc " + upcallFunc);
 	}
 
 	/**
@@ -61,9 +64,8 @@ public final class GmPoller extends NetPoller {
 		lockIds[lockIds.length - 1] = lockIds[lockIds.length - 2];
 		lockIds[lockIds.length - 2] = ni.getLockId();
 // System.err.println(this + ": setup new connection; subInput " + ni + " lockId " + ni.getLockId());
-// Thread.dumpStack();
 if (false) {
-    System.err.print("Now lockIds := [");
+    System.err.print("Now lockIds " + lockIds + " := [");
     for (int i = 0; i < lockIds.length; i++) {
 	System.err.print(lockIds[i] + ",");
     }
@@ -84,6 +86,11 @@ if (false) {
 		spn[spn.length - 1] = num;
 		rq[spn.length - 1]  = (ReceiveQueue)inputMap.get(num);
 
+		/* This does a lazy allocation of an upcall thread.
+		 * Multiple connections into this port, i.e. into this GmPoller,
+		 * are serviced by one thread (unless the thread does a blocking
+		 * upcall of course).
+		 */
 		startUpcallThread();
 
 		gmDriver.interruptPump();
@@ -116,15 +123,38 @@ if (false) {
 
 		interrupted = false;
 		if (block) {
-// System.err.print("[B" + lockIds[0]);
+// System.err.print("[B");
+// for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
+// synchronized (this) {
+// blockers++;
+// if (blockers > 1)
+// System.err.println("Somebody polling concurrently with me!!!");
+// }
 		    try {
 			result = gmDriver.blockingPump(lockIds);
+// System.err.print("B");
+// for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
+// System.err.print("]=" + result);
 		    } catch (InterruptedIOException e) {
 			// try once more
+			synchronized (this) {
+			    // synchronized to ensure we get an up-to-date value
+			    // for lockIds
+			}
 			interrupted = true;
-			System.err.println("********** Catch InterruptedIOException");
+			System.err.println(Thread.currentThread() + ": " + this + ": ********** Catch InterruptedIOException");
+			System.err.print("lockIds " + lockIds + " = {");
+			for (int i = 0; i < lockIds.length; i++) {
+			    System.err.print(lockIds[i] + ",");
+			}
+			System.err.println("}");
+// System.err.print("X");
+// for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
+// System.err.print("]");
 		    }
-// System.err.print("B" + lockIds[0] + "]=" + result);
+// synchronized (this) {
+// blockers--;
+// }
 		} else {
 // System.err.print("[?");
 		    result = gmDriver.tryPump(lockIds);
