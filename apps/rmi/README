@@ -1,0 +1,74 @@
+This directory contains a collection of Ibis RMI example programs, organized
+into a number of sub-directories (some of which may not be present in your
+Ibis installation). See the README files in each sub-directory for more
+details on the application. The "shared" directory contains some common
+code for all these applications.
+
+Some low-level benchmarks and tests:
+
+rmi-bench
+    This program can perform various latency and throughput tests.
+throughput
+    Obsoleted by the rmi-bench program.
+latency
+    This is a very simple latency measurement program.
+
+Some applications:
+
+acp
+    ACP (the Arc Consistency program) can be used as a first step in solving
+    Constraint Satisfaction problems. It eliminates impossible values from
+    domains of variables, by repeatedly applying constraints defined on pairs
+    of variables.
+asp_toplass
+    All-pairs Shortest Path (ASP).  This program computes the shortest path
+    between any two nodes of a given graph.
+barnes
+    Barnes-Hut is an O(N log N) N-body simulation. This RMI version is based
+    on the implementation of Blackston and Suel.
+fft
+    FFT is a complex 1D Fast Fourier Transform based on code from the SPLASH-2
+    suite.
+leq
+    A linear equation solver. Each iteration refines a candidate solution
+    vector into a better solution. This is repeated until the difference
+    becomes smaller than a specific bound.
+qr
+    A parallel implementation of QR factorization. In each iteration, one
+    column, the Householder vector H, is broadcast to all machines, which
+    update their columns using H. The current upper row and H are then
+    deleted from the data set so that the size of H decreases by 1 in each
+    iteration. The vector with maximum norm becomes the householder vector
+    for the next iteration.
+radix
+    A histogram-based parallel sort program from the SPLASH-2 suite,
+    rewritten in Java+RMI. The program repeatedly performs a local sort phase,
+    followed by a histogram merge phase. After this merge phase, some of the
+    keys may be moved from one machine to another.
+sor_grid
+    Red/black Successive Over Relaxation (SOR) is an iterative method for
+    solving discretized Laplace equations on a grid. This implementation is
+    an RMI version. It distributes the grid row-wise among the CPUs. Each
+    CPU exchanges one row of the matrix with its neighbours at the beginning
+    of each iteration. 
+tsp
+    Tsp (travelling salesperson problem) computes the shortest path (roundtrip)
+    for a salesperson to visit all cities in a given set exactly once, starting
+    in one specific city, and ending up in the same city.
+water
+    Water is another N-body simulation from the SPLASH suite.
+    It simulates a collection of water molecules interacting upon each other.
+    It is parallelized by distributing the bodies (molecules) among the
+    processors. Communication is primarily required to compute interactions
+    with bodies assigned to remote machines.
+
+Other files in this directory are:
+
+build.xml
+    Ant build file for building Ibis RMI applications.
+    "ant build" (or simply: "ant") will build all applications that
+    are present in this directory. "ant clean" will remove
+    what "ant build" made.
+    
+build-rmi-app.xml
+    Ant build file used internally for building Ibis RMI applications.

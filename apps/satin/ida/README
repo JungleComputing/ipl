@@ -1,5 +1,5 @@
 Iterative Deepening A* (IDA) is a combinatorial seach algorithm, based on
-repeated depth-first searches. IDA* tries to find all shortest solition
+repeated depth-first searches. IDA* tries to find all shortest solution
 paths to a given problem by doing a depth-first search up to a certain
 maximum depth. If the search fails, it is repeated with a higher search
 depth, until a solution is found.

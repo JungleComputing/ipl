@@ -1,6 +1,6 @@
 All-pairs Shortest Path (ASP).
 
-This program computes the shortest path between ant two nodes of a given graph.
+This program computes the shortest path between any two nodes of a given graph.
 It uses a distance table that is distributed row-wise among the CPUs. At the
 beginning of each iteration, one machine needs to send a row of the matrix to
 all other machines. Since the Java RMI model lacks support for broadcasting,
