@@ -24,72 +24,45 @@ final class NioIbisSerializationOutputStream
 	this.accumulator = accumulator;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String serializationImplName() {
 	return "nio-ibis";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArrayBoolean(boolean[] ref, int offset, int len)
 							throws IOException {
 	accumulator.writeArray(ref, offset, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArrayByte(byte[] ref, int offset, int len)
 							throws IOException {
 	accumulator.writeArray(ref, offset, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArrayChar(char[] ref, int offset, int len)
 							throws IOException {
 	accumulator.writeArray(ref, offset, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArrayShort(short[] ref, int offset, int len)
 							throws IOException {
 	accumulator.writeArray(ref, offset, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArrayInt(int[] ref, int offset, int len)
 							throws IOException {
 	accumulator.writeArray(ref, offset, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArrayLong(long[] ref, int offset, int len)
 							throws IOException {
 	accumulator.writeArray(ref, offset, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArrayFloat(float[] ref, int offset, int len)
 							throws IOException {
 	accumulator.writeArray(ref, offset, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArrayDouble(double[] ref, int offset, int len)
 							throws IOException {
 	accumulator.writeArray(ref, offset, len);
@@ -139,9 +112,6 @@ final class NioIbisSerializationOutputStream
 	accumulator.writeDouble(value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void close() throws IOException {
 	accumulator.close();
     }

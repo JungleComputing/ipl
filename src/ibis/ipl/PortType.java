@@ -376,10 +376,10 @@ public abstract class PortType {
 
 
     /** 
-     * Creates a named {@link ReceivePort} of this <code>PortType</code>,
-     * with upcall based communication.
+     * Creates a named {@link ibis.ipl.ReceivePort} of this
+     * <code>PortType</code>, with upcall based communication.
      * New connections will not be accepted until
-     * {@link ReceivePort#enableConnections()} is invoked.
+     * {@link ibis.ipl.ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.

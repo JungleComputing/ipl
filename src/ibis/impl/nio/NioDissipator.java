@@ -451,16 +451,10 @@ public abstract class NioDissipator extends Dissipator
 	count = 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean readBoolean() throws IOException {
 	return (readByte() == ((byte) 1));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public byte readByte() throws IOException {
 	byte result;
 
@@ -478,9 +472,6 @@ public abstract class NioDissipator extends Dissipator
 	return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public char readChar() throws IOException {
 	try {
 	    return chars.get();
@@ -490,9 +481,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public short readShort() throws IOException {
 	try {
 	    return shorts.get();
@@ -502,9 +490,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int readInt() throws IOException {
 	try {
 	    return ints.get();
@@ -514,9 +499,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long readLong() throws IOException {
 	try {
 	    return longs.get();
@@ -526,9 +508,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public float readFloat() throws IOException {
 	try {
 	    return floats.get();
@@ -538,9 +517,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public double readDouble() throws IOException {
 	try {
 	    return doubles.get();
@@ -550,9 +526,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(boolean ref[], int off, int len) 
 	    throws IOException {
 	for(int i = off; i < (off + len); i++) {
@@ -561,9 +534,6 @@ public abstract class NioDissipator extends Dissipator
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(byte ref[], int off, int len) 
 		throws IOException {
 	try {
@@ -599,9 +569,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(char ref[], int off, int len) 
 		throws IOException {
 	try {
@@ -627,9 +594,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(short ref[], int off, int len) 
 		throws IOException {
 	try {
@@ -655,9 +619,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(int ref[], int off, int len) 
 		throws IOException {
 	try {
@@ -683,9 +644,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(long ref[], int off, int len) 
 		throws IOException {
 	try {
@@ -711,9 +669,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(float ref[], int off, int len) 
 		throws IOException {
 	try {
@@ -739,9 +694,6 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(double ref[], int off, int len) 
 		throws IOException {
 	try {

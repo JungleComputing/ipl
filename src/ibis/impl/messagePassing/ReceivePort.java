@@ -137,16 +137,10 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     **/
     public long getCount() {
 	return count;
     }
 
-    /**
-     * {@inheritDoc}
-     **/
     public void resetCount() {
 	count = 0;
     }

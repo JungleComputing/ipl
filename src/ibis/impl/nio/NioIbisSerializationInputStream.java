@@ -89,23 +89,14 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
 	dissipator.readArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     protected void readLongArray(long ref[], int off, int len) throws IOException {
 	dissipator.readArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     protected void readFloatArray(float ref[], int off, int len) throws IOException {
 	dissipator.readArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     protected void readDoubleArray(double ref[], int off, int len) throws IOException {
 	dissipator.readArray(ref, off, len);
     }

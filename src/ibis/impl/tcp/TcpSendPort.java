@@ -98,16 +98,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 **/
 	public long getCount() {
 		return count;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 **/
 	public void resetCount() {
 		count = 0;
 	}

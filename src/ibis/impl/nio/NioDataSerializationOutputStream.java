@@ -31,16 +31,10 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream 
 	this.accumulator = accumulator;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String serializationImplName() {
 	return "data";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void statistics() {
     }
 
@@ -133,38 +127,23 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream 
 	accumulator.writeDouble(value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void close() throws IOException {
 	accumulator.close();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void reset() throws IOException {
     }
 
     /* This is the data output / object output part */
 
-    /**
-     * {@inheritDoc}
-     */
     public void write(int v) throws IOException {
 	writeByte((byte)(0xff & v));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void write(byte[] b) throws IOException {
 	write(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void write(byte[] b, int off, int len) throws IOException {
 	writeArray(b, off, len);
     }
@@ -197,58 +176,34 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream 
 	throw new IOException("Illegal data type written");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
 	accumulator.writeArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 	accumulator.writeArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(short[] ref, int off, int len) throws IOException {
 	accumulator.writeArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(char[] ref, int off, int len) throws IOException {
 	accumulator.writeArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(int[] ref, int off, int len) throws IOException {
 	accumulator.writeArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(long[] ref, int off, int len) throws IOException {
 	accumulator.writeArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(float[] ref, int off, int len) throws IOException {
 	accumulator.writeArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeArray(double[] ref, int off, int len) throws IOException {
 	accumulator.writeArray(ref, off, len);
     }
@@ -274,9 +229,6 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream 
 	throw new IOException("Illegal data type written");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void useProtocolVersion(int version) {
 	/* ignored. */
     }

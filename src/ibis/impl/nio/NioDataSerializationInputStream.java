@@ -32,65 +32,38 @@ public class NioDataSerializationInputStream
 	this.dissipator = dissipator;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String serializationImplName() {
 	return "data";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean readBoolean() throws IOException {
 	return dissipator.readBoolean();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public byte readByte() throws IOException {
 	return dissipator.readByte();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public char readChar() throws IOException {
 	return dissipator.readChar();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public short readShort() throws IOException {
 	return dissipator.readShort();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int readInt() throws IOException {
 	return dissipator.readInt();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long readLong() throws IOException {
 	return dissipator.readLong();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public float readFloat() throws IOException {
 	return dissipator.readFloat();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public double readDouble() throws IOException {
 	return dissipator.readDouble();
     }
@@ -167,72 +140,42 @@ public class NioDataSerializationInputStream
 	dissipator.readArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int available() throws IOException {
         return dissipator.available();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void close() throws IOException {
 	dissipator.close();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(boolean[] ref, int off, int len) throws IOException {
 	readBooleanArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(byte[] ref, int off, int len) throws IOException {
 	readByteArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(char[] ref, int off, int len) throws IOException {
 	readCharArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(short[] ref, int off, int len) throws IOException {
 	readShortArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(int[] ref, int off, int len) throws IOException {
 	readIntArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(long[] ref, int off, int len) throws IOException {
 	readLongArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(float[] ref, int off, int len) throws IOException {
 	readFloatArray(ref, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readArray(double[] ref, int off, int len) throws IOException {
 	readDoubleArray(ref, off, len);
     }
@@ -244,74 +187,44 @@ public class NioDataSerializationInputStream
 	throw new IOException("Illegal data type read");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void clear() {
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void statistics() {
     }
 
     /* This is the data output / object output part */
 
-    /**
-     * {@inheritDoc}
-     */
     public int read() throws IOException {
 	return readByte();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read(byte[] b) throws IOException {
 	return read(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int read(byte[] b, int off, int len) throws IOException {
 	readArray(b, off, len);
 	return len;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long skip(long n) throws IOException {
 	throw new IOException("skip not meaningful in typed input stream");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int skipBytes(int n) throws IOException {
 	throw new IOException("skipBytes not meaningful in typed input stream");
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void readFully(byte[] b) throws IOException {
 	readFully(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void readFully(byte[] b, int off, int len) throws IOException {
 	readArray(b, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public final int readUnsignedByte() throws IOException {
 	int i = readByte();
 	if (i < 0) {
@@ -320,9 +233,6 @@ public class NioDataSerializationInputStream
 	return i;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public final int readUnsignedShort() throws IOException {
 	int i = readShort();
 	if (i < 0) {

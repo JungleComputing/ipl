@@ -213,17 +213,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 
-
-	/**
-	 * {@inheritDoc}
-	 **/
 	public long getCount() {
 		return count;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 **/
 	public void resetCount() {
 		count = 0;
 	}

@@ -186,16 +186,10 @@ public class SendPort implements ibis.ipl.SendPort {
 
     private native void requestGroupID(ConnectAcker syncer);
 
-    /**
-     * {@inheritDoc}
-     */
     public long getCount() {
 	return count;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void resetCount() {
 	count = 0;
     }

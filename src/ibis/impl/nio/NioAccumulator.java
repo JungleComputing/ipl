@@ -182,9 +182,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeBoolean(boolean value) throws IOException {
 	if(value) {
 	    writeByte((byte) 1);
@@ -193,9 +190,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeByte(byte value) throws IOException {
 	if(DEBUG) {
 	    Debug.message("data", this, "writeByte(" + value + ")");
@@ -210,9 +204,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeChar(char value) throws IOException {
 	try {
 	    chars.put(value);
@@ -222,9 +213,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeShort(short value) throws IOException {
 	try {
 	    shorts.put(value);
@@ -234,9 +222,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeInt(int value) throws IOException {
 	try {
 	    ints.put(value);
@@ -246,9 +231,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeLong(long value) throws IOException {
 	try {
 	    longs.put(value);
@@ -258,9 +240,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeFloat(float value) throws IOException {
 	try {
 	    floats.put(value);
@@ -270,9 +249,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeDouble(double value) throws IOException {
 	try {
 	    doubles.put(value);
