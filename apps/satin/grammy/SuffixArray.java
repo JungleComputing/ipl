@@ -123,6 +123,71 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	return isSmallerCharacter( i0+n, i1+n );
     }
 
+    /** Returns true iff the indices are correctly ordered. */
+    private boolean rightIndexOrder( int i0, int i1 )
+    {
+        if( i0>=length && i1>=length ){
+            return i0>i1;       // Provide a stable sort.
+        }
+        if( i0>=length ){
+            return true;
+        }
+        if( i1>=length ){
+            return false;
+        }
+        if( text[i0]==text[i1] ){
+            return i0>i1;
+        }
+        return text[i0]>text[i1];
+    }
+
+    private boolean rightIndexOrder1( int i0, int i1 )
+    {
+        boolean res = rightIndexOrder1( i0, i1 );
+        System.out.println( "i0=" + i0 + " i1=" + i1 + " text[" + i0 + "]=" + text[i0] + " text[" + i1 + "]=" + text[i1] + " res=" + res );
+        return res;
+    }
+
+    private void sort( int indices[], int start, int end, int offset )
+    {
+        // This implements Shell sort.
+        // Unfortunately we cannot use the sorting functions from the library
+        // (e.g. java.util.Arrays.sort), since the ones that work on int
+        // arrays do not accept a comparison function, but only allow
+        // sorting into natural order.
+	int length = end - start;
+        int jump = length;
+        boolean done;
+
+        while( jump>1 ){
+            jump /= 2;
+
+            do {
+                done = true;
+
+                for( int j = 0; j<(length-jump); j++ ){
+                    int i = j + jump;
+                    int ixi = indices[start+i]+offset;
+                    int ixj = indices[start+j]+offset;
+
+                    if( !rightIndexOrder( ixi, ixj ) ){
+                        // Things are in the wrong order, swap them and step back.
+                        indices[start+i] = ixj;
+                        indices[start+j] = ixi;
+                        done = false;
+                    }
+                }
+                System.out.println( "jump=" + jump );
+            } while( !done );
+        }
+        if( false ){
+            for( int i=start; i<end; i++ ){
+                System.out.println( "i=" + i + " indices[" + i + "]=" + indices[i] + " offset=" + offset + " text[" + (indices[i]+offset) + "]=" + text[indices[i]+offset] );
+            }
+        }
+    }
+
+
     /** Fills the given index and commonality arrays with groups
      * of elements sorted according to the character at the given offset.
      */
@@ -155,44 +220,72 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             comm[p+1] = true;
             return p+2;
         }
-        //System.out.println( "Elements: " + (end-start) );
-        int slot[] = new int[nextcode];
+        if( false ){
+            //System.out.println( "Elements: " + (end-start) );
+            int slot[] = new int[nextcode];
 
-        java.util.Arrays.fill( slot, -1 );
-        {
-            // Fill the hash buckets
-            // Walk from back to front to make sure the chains are in
-            // the right order.
-            int n = end;
-            while( n>start ){
-                n--;
-                int i = indices[n];
+            java.util.Arrays.fill( slot, -1 );
+            {
+                // Fill the hash buckets
+                // Walk from back to front to make sure the chains are in
+                // the right order.
+                int n = end;
+                while( n>start ){
+                    n--;
+                    int i = indices[n];
 
-                if( i+offset<length ){
-                    short ix = text[i+offset];
+                    if( i+offset<length ){
+                        short ix = text[i+offset];
 
-                    next[i] = slot[ix];
-                    slot[ix] = i;
+                        next[i] = slot[ix];
+                        slot[ix] = i;
+                    }
+                }
+            }
+
+            slot[STOP] = -1;
+
+            // Write out the indices and commonalities.
+            for( int n=0; n<nextcode; n++ ){
+                int i = slot[n];
+                boolean c = false;
+
+                if( i != -1 && next[i] != -1 ){
+                    // There is a repeat, write out this chain.
+                    while( i != -1 ){
+                        indices1[p] = i;
+                        i = next[i];
+                        comm[p] = c;
+                        c = true;
+                        p++;
+                    }
                 }
             }
         }
+        else {
+            // First, sort all indices in this range
+            sort( indices, start, end, offset );
 
-        slot[STOP] = -1;
+            System.out.println( "Sorted" );
+            // And then copy out all interesting spans.
+            int i = start;
+            short prev = -1;
+            int startp = p;
+            while( i<end ){
+                int ix = indices[i++];
+                short c = text[ix];
 
-        // Write out the indices and commonalities.
-        for( int n=0; n<nextcode; n++ ){
-            int i = slot[n];
-            boolean c = false;
-
-            if( i != -1 && next[i] != -1 ){
-                // There is a repeat, write out this chain.
-                while( i != -1 ){
-                    indices1[p] = i;
-                    i = next[i];
-                    comm[p] = c;
-                    c = true;
-                    p++;
+                if( c != prev ){
+                    if( startp>p && !comm[p-1] ){
+                        p--;
+                    }
+                    comm[p] = false;
                 }
+                else {
+                    comm[p] = true;
+                }
+                c = prev;
+                indices1[p++] = ix;
             }
         }
         return p;
