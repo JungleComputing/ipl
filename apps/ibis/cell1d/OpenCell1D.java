@@ -445,7 +445,7 @@ class OpenCell1D implements OpenConfig {
                     if( leftSendPort != null ){
                         if( aimFirstColumn>firstColumn ){
                             if( traceLoadBalancing ){
-                                System.out.println( "P" + me + ": I should send columns " + firstColumn + " to " + aimFirstColumn + " to my left neighbor" );
+                                System.out.println( "P" + me + ": I should send columns " + firstColumn + " to " + aimFirstColumn + " to my left neighbour" );
                             }
                         }
                         send( leftSendPort, board[firstColumn] );
@@ -453,7 +453,7 @@ class OpenCell1D implements OpenConfig {
                     if( rightSendPort != null ){
                         if( aimFirstNoColumn>=firstColumn && aimFirstNoColumn<firstNoColumn ){
                             if( traceLoadBalancing ){
-                                System.out.println( "P" + me + ": I should send columns " + aimFirstNoColumn + " to " + firstNoColumn + " to my right neighbor" );
+                                System.out.println( "P" + me + ": I should send columns " + aimFirstNoColumn + " to " + firstNoColumn + " to my right neighbour" );
                             }
                         }
                         send( rightSendPort, board[firstNoColumn-1] );
@@ -483,7 +483,7 @@ class OpenCell1D implements OpenConfig {
                     if( rightSendPort != null ){
                         if( aimFirstNoColumn>=firstColumn && aimFirstNoColumn<firstNoColumn ){
                             if( traceLoadBalancing ){
-                                System.out.println( "P" + me + ": I should send columns " + aimFirstNoColumn + " to " + firstNoColumn + " to my right neighbor" );
+                                System.out.println( "P" + me + ": I should send columns " + aimFirstNoColumn + " to " + firstNoColumn + " to my right neighbour" );
                             }
                         }
                         send( rightSendPort, board[firstNoColumn-1] );
@@ -491,7 +491,7 @@ class OpenCell1D implements OpenConfig {
                     if( leftSendPort != null ){
                         if( aimFirstColumn>firstColumn ){
                             if( traceLoadBalancing ){
-                                System.out.println( "P" + me + ": I should send columns " + firstColumn + " to " + aimFirstColumn + " to my left neighbor" );
+                                System.out.println( "P" + me + ": I should send columns " + firstColumn + " to " + aimFirstColumn + " to my left neighbour" );
                             }
                         }
                         send( leftSendPort, board[firstColumn] );
