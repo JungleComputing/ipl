@@ -57,6 +57,7 @@ public final class TcpInput extends NetInput {
                 public void run() {
                         while (!end) {
                                 try {
+                                        Integer num = spn;
                                         int i = tcpIs.read();
                                         if (i == -1) {
                                                 break;
@@ -66,9 +67,16 @@ public final class TcpInput extends NetInput {
                                                 throw new Error("invalid code "+i);
                                         }
                                         
-                                        activeNum = spn;
+                                        synchronized(this) {
+                                                activeNum = num;
+                                        }
                                         upcallFunc.inputUpcall(TcpInput.this, activeNum);
-                                        activeNum = null;
+                                        synchronized(this) {
+                                                if (activeNum == num) {
+                                                        finish();
+                                                }
+                                        }
+                                        
                                 } catch (java.io.InterruptedIOException e) {
                                         break;
                                 } catch (SocketException e) {

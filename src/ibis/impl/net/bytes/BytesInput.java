@@ -30,6 +30,7 @@ public final class BytesInput extends NetInput {
          */
         private int          anThreshold = 8 * 256;
         private NetAllocator an = null;
+        private volatile Thread activeUpcallThread = null;
 
 	BytesInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
@@ -58,7 +59,11 @@ public final class BytesInput extends NetInput {
                 }
 	}
 
-	public Integer poll() throws NetIbisException {
+	public synchronized Integer poll() throws NetIbisException {
+                if (activeNum != null) {
+                        throw new Error("invalid call");
+                }
+
                 if (subInput == null)
                         return null;
                 
@@ -71,11 +76,35 @@ public final class BytesInput extends NetInput {
 	}
 	
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
-                activeNum = spn;
+                synchronized(this) {
+                        while (activeNum != null) {
+                                try {
+                                        wait();
+                                } catch (InterruptedException e) {
+                                        throw new NetIbisInterruptedException(e);
+                                }
+                        }
+                        
+                        if (spn == null) {
+                                throw new Error("invalid connection num");
+                        }
+                        
+                        activeNum = spn;
+                        activeUpcallThread = Thread.currentThread();
+                }
+
                 mtu          = subInput.getMaximumTransfertUnit();
                 headerOffset = subInput.getHeadersLength();
+
                 upcallFunc.inputUpcall(this, spn);
-                activeNum = null;
+
+                synchronized(this) {
+                        if (activeNum == spn && activeUpcallThread == Thread.currentThread()) {
+                                activeNum = null;
+                                activeUpcallThread = null;
+                                notifyAll();
+                        }
+                }
         }
 
 	/**
@@ -84,6 +113,12 @@ public final class BytesInput extends NetInput {
 	public void finish() throws NetIbisException {
 		super.finish();
 		subInput.finish();
+                synchronized(this) {
+                        activeNum = null;
+                        activeUpcallThread = null;
+                        notifyAll();
+                }
+                
 	}
 
         public synchronized void close(Integer num) throws NetIbisException {

@@ -22,8 +22,9 @@ public abstract class NetSerializedInput extends NetInput {
 	 * The 'real' input.       
 	 */       
 	protected NetInput                 subInput    = null;
-        private   SerializationInputStream iss         = null;
+        private   volatile SerializationInputStream iss         = null;
 	private   Hashtable                streamTable = null;
+        protected volatile Thread    activeUpcallThread = null;
 
 	public NetSerializedInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
 		super(pt, driver, up, context);
@@ -35,6 +36,7 @@ public abstract class NetSerializedInput extends NetInput {
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
 		NetInput subInput = this.subInput;
+
 		if (subInput == null) {
 			if (subDriver == null) {
                                 String subDriverName = getMandatoryProperty("Driver");
@@ -44,7 +46,6 @@ public abstract class NetSerializedInput extends NetInput {
 			subInput = newSubInput(subDriver);
 			this.subInput = subInput;
 		}
-		
 		
                 if (upcallFunc != null) {
                         subInput.setupConnection(cnx, this);
@@ -61,23 +62,62 @@ public abstract class NetSerializedInput extends NetInput {
 
                 if (b != 0) {
                         iss = newSerializationInputStream();
+                        if (activeNum == null) {
+                                throw new Error("invalid state: activeNum is null");
+                        }
+                        
+                        if (iss == null) {
+                                throw new Error("invalid state: stream is null");
+                        }
+                        
                         streamTable.put(activeNum, iss);
                 } else {
                         iss = (SerializationInputStream)streamTable.get(activeNum);
                 }
-                
 	}
 
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
-                activeNum = spn;
+                // System.err.println("NetSerializedInput: inputUpcall-->");
+                synchronized(this) {
+                        while (activeNum != null) {
+                                try {
+                                        wait();
+                                } catch (InterruptedException e) {
+                                        throw new NetIbisInterruptedException(e);
+                                }
+                        }
+                        
+                        if (spn == null) {
+                                throw new Error("invalid connection num");
+                        }
+                        
+                        activeNum = spn;
+                        activeUpcallThread = Thread.currentThread();
+                        // System.err.println("NetSerializedInput["+this+"]: inputUpcall - activeNum = "+activeNum);
+                }
+
                 mtu          = subInput.getMaximumTransfertUnit();
                 headerOffset = subInput.getHeadersLength();
                 initReceive();
                 upcallFunc.inputUpcall(this, spn);
-                activeNum = null;
+                synchronized(this) {
+                        if (activeNum == spn && activeUpcallThread == Thread.currentThread()) {
+                                activeNum = null;
+                                activeUpcallThread = null;
+                                iss = null;
+                                notifyAll();
+                                // System.err.println("NetSerializedInput["+this+"]: inputUpcall - activeNum = "+activeNum);
+                        }
+                }
+                        
+                // System.err.println("NetSerializedInput: inputUpcall<--");
         }
 
-	public Integer poll() throws NetIbisException {
+	public synchronized Integer poll() throws NetIbisException {
+                if (activeNum != null) {
+                        throw new Error("invalid call");
+                }
+
                 if (subInput == null)
                         return null;
                 
@@ -96,13 +136,20 @@ public abstract class NetSerializedInput extends NetInput {
 	 * {@inheritDoc}
 	 */
 	public void finish() throws NetIbisException {
-		//System.err.println("SSerializationInput: finish-->");
+		// System.err.println("SSerializationInput: finish-->");
                 //iss.close();
-                iss = null;
 		super.finish();
 		subInput.finish();
-                activeNum = null;
-		//System.err.println("SSerializationInput: finish<--");
+                synchronized(this) {
+                        iss = null;
+                        activeNum = null;
+                        activeUpcallThread = null;
+                        notifyAll();
+                        // System.err.println("NetSerializedInput: finish - activeNum = "+activeNum);
+                }
+                
+
+		// System.err.println("SSerializationInput: finish<--");
 	}
 
         public synchronized void close(Integer num) throws NetIbisException {

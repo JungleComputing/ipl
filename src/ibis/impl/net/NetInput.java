@@ -154,8 +154,6 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 
                         _inputConvertStream = null;
                 }
-
-                activeNum = null;
                 //System.err.println("NetInput: finish <--");
         }
 
