@@ -181,7 +181,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         case IBIS_REFUSED:
             socketFactory.close(in, out, s);
             throw new ConnectionRefusedException("NameServerClient: "
-                    + id.name() + " is not unique!");
+                    + id + " is not unique!");
         case IBIS_ACCEPTED:
             // read the ports for the other name servers and start the
             // receiver thread...

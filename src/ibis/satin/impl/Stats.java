@@ -433,72 +433,72 @@ public abstract class Stats extends TupleSpace {
         java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
 
         if (SPAWN_STATS) {
-            out.println("SATIN '" + ident.name() + "': SPAWN_STATS: spawns = "
+            out.println("SATIN '" + ident + "': SPAWN_STATS: spawns = "
                     + spawns + " executed = " + jobsExecuted + " syncs = "
                     + syncs);
             if (ABORTS) {
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': ABORT_STATS 1: aborts = " + aborts
                         + " abort msgs = " + abortMessages + " aborted jobs = "
                         + abortedJobs);
             }
         }
         if (TUPLE_STATS) {
-            out.println("SATIN '" + ident.name()
+            out.println("SATIN '" + ident
                     + "': TUPLE_STATS 1: tuple bcast msgs: " + tupleMsgs
                     + ", bytes = " + nf.format(tupleBytes));
         }
         if (STEAL_STATS) {
-            out.println("SATIN '" + ident.name()
+            out.println("SATIN '" + ident
                     + "': INTRA_STATS: messages = " + intraClusterMessages
                     + ", bytes = " + nf.format(intraClusterBytes));
 
-            out.println("SATIN '" + ident.name()
+            out.println("SATIN '" + ident
                     + "': INTER_STATS: messages = " + interClusterMessages
                     + ", bytes = " + nf.format(interClusterBytes));
 
-            out.println("SATIN '" + ident.name()
+            out.println("SATIN '" + ident
                     + "': STEAL_STATS 1: attempts = " + stealAttempts
                     + " success = " + stealSuccess + " ("
                     + (((double) stealSuccess / stealAttempts) * 100.0)
                     + " %)");
 
-            out.println("SATIN '" + ident.name()
+            out.println("SATIN '" + ident
                     + "': STEAL_STATS 2: requests = " + stealRequests
                     + " jobs stolen = " + stolenJobs);
 
             if (STEAL_TIMING) {
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': STEAL_STATS 3: attempts = "
                         + stealTimer.nrTimes() + " total time = "
                         + stealTimer.totalTime() + " avg time = "
                         + stealTimer.averageTime());
 
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': STEAL_STATS 4: handleSteals = "
                         + handleStealTimer.nrTimes() + " total time = "
                         + handleStealTimer.totalTime() + " avg time = "
                         + handleStealTimer.averageTime());
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': STEAL_STATS 5: invocationRecordWrites = "
                         + invocationRecordWriteTimer.nrTimes()
                         + " total time = "
                         + invocationRecordWriteTimer.totalTime()
                         + " avg time = "
                         + invocationRecordWriteTimer.averageTime());
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': STEAL_STATS 6: invocationRecordReads = "
                         + invocationRecordReadTimer.nrTimes()
                         + " total time = "
                         + invocationRecordReadTimer.totalTime()
                         + " avg time = "
                         + invocationRecordReadTimer.averageTime());
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': STEAL_STATS 7: returnRecordWrites = "
                         + returnRecordWriteTimer.nrTimes() + " total time = "
                         + returnRecordWriteTimer.totalTime() + " avg time = "
                         + returnRecordWriteTimer.averageTime());
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': STEAL_STATS 8: returnRecordReads = "
                         + returnRecordReadTimer.nrTimes() + " total time = "
                         + returnRecordReadTimer.totalTime() + " avg time = "
@@ -506,21 +506,21 @@ public abstract class Stats extends TupleSpace {
             }
 
             if (ABORTS && ABORT_TIMING) {
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': ABORT_STATS 2: aborts = " + abortTimer.nrTimes()
                         + " total time = " + abortTimer.totalTime()
                         + " avg time = " + abortTimer.averageTime());
             }
 
             if (IDLE_TIMING) {
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': IDLE_STATS: idle count = " + idleTimer.nrTimes()
                         + " total time = " + idleTimer.totalTime()
                         + " avg time = " + idleTimer.averageTime());
             }
 
             if (POLL_FREQ != 0 && POLL_TIMING) {
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': POLL_STATS: poll count = " + pollTimer.nrTimes()
                         + " total time = " + pollTimer.totalTime()
                         + " avg time = " + pollTimer.averageTime());
@@ -528,7 +528,7 @@ public abstract class Stats extends TupleSpace {
 
             if (STEAL_TIMING && IDLE_TIMING) {
                 out.println("SATIN '"
-                        + ident.name()
+                        + ident
                         + "': COMM_STATS: software comm time = "
                         + Timer.format(stealTimer.totalTimeVal()
                                 + handleStealTimer.totalTimeVal()
@@ -536,12 +536,12 @@ public abstract class Stats extends TupleSpace {
             }
 
             if (TUPLE_TIMING) {
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': TUPLE_STATS 2: bcasts = " + tupleTimer.nrTimes()
                         + " total time = " + tupleTimer.totalTime()
                         + " avg time = " + tupleTimer.averageTime());
 
-                out.println("SATIN '" + ident.name()
+                out.println("SATIN '" + ident
                         + "': TUPLE_STATS 3: waits = "
                         + tupleOrderingWaitTimer.nrTimes() + " total time = "
                         + tupleOrderingWaitTimer.totalTime() + " avg time = "
@@ -553,63 +553,63 @@ public abstract class Stats extends TupleSpace {
 
         if (FAULT_TOLERANCE) {
             if (GRT_STATS) {
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + globalResultTable.numResultUpdates
                         + " result updates of the table.");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + globalResultTable.numLockUpdates
                         + " lock updates of the table.");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + globalResultTable.numUpdateMessages
                         + " update messages.");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + globalResultTable.numLookupsSucceded
                         + " lookups succeded, of which:");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + globalResultTable.numRemoteLookups
                         + " remote lookups.");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + globalResultTable.maxNumEntries
                         + " entries maximally.");
             }
             if (GRT_TIMING) {
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + lookupTimer.totalTime() + " spent in lookups");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + lookupTimer.averageTime() + " per lookup");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + updateTimer.totalTime() + " spent in updates");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + updateTimer.averageTime() + " per update");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + handleUpdateTimer.totalTime()
                         + " spent in handling updates");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + handleUpdateTimer.averageTime()
                         + " per update handle");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + handleLookupTimer.totalTime()
                         + " spent in handling lookups");
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + handleLookupTimer.averageTime()
                         + " per lookup handle");
 
             }
             if (CRASH_TIMING) {
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + crashTimer.totalTime()
                         + " spent in handling crashes");
             }
             if (TABLE_CHECK_TIMING) {
-                out.println("SATIN '" + ident.name() + "': "
+                out.println("SATIN '" + ident + "': "
                         + redoTimer.totalTime() + " spent in redoing");
 
             }
 
             if (FT_STATS) {
-                out.println("SATIN '" + ident.name() + "': " + killedOrphans
+                out.println("SATIN '" + ident + "': " + killedOrphans
                         + " orphans killed");
-                out.println("SATIN '" + ident.name() + "': " + restartedJobs
+                out.println("SATIN '" + ident + "': " + restartedJobs
                         + " jobs restarted");
             }
         }

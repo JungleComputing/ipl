@@ -128,7 +128,7 @@ public class PortType extends ibis.ipl.PortType {
         }
 
         if (Ibis.DEBUG) {
-            System.out.println(Ibis.myIbis.name() + ": Sendport " + portname
+            System.out.println(Ibis.myIbis.myCpu + ": Sendport " + portname
                     + " created of of type '" + this + "'" + " cpu "
                     + s.ident.cpu + " port " + s.ident.port);
         }
@@ -144,13 +144,13 @@ public class PortType extends ibis.ipl.PortType {
                 connectionAdministration);
 
         if (Ibis.DEBUG) {
-            System.out.println(Ibis.myIbis.name()
+            System.out.println(Ibis.myIbis.myCpu
                     + ": Receiveport created of type '" + this.name
                     + "', name = '" + nm + "'" + " id " + port.identifier());
         }
 
         if (Ibis.DEBUG) {
-            System.out.println(Ibis.myIbis.name()
+            System.out.println(Ibis.myIbis.myCpu
                     + ": Receiveport bound in registry, type = '" + this.name
                     + "', name = '" + nm + "'");
         }

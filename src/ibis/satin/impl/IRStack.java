@@ -266,10 +266,10 @@ final class IRStack implements Config {
                 m.writeByte(Protocol.RESULT_PUSH);
                 m.writeObject(toPush);
                 long numBytes = m.finish();
-                System.err.println("SATIN '" + s.ident.name() + "': "
+                System.err.println("SATIN '" + s.ident + "': "
                         + numBytes + " bytes pushed");
             } catch (IOException e) {
-                System.err.println("SATIN '" + s.ident.name()
+                System.err.println("SATIN '" + s.ident
                         + "': error pushing results " + e);
             }
         } else {
@@ -284,7 +284,7 @@ final class IRStack implements Config {
     }
 
     void print(java.io.PrintStream out) {
-        out.println("=IRStack " + s.ident.name() + ":=============");
+        out.println("=IRStack " + s.ident + ":=============");
         for (int i = 0; i < count; i++) {
             ParameterRecord pr = l[i].getParameterRecord();
             out.println("stack [" + i + "] = " + pr);

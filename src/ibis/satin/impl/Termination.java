@@ -41,7 +41,7 @@ public abstract class Termination extends Initialization {
                     WriteMessage writeMessage;
                     synchronized (this) {
                         if (commLogger.isDebugEnabled()) {
-                            commLogger.debug("SATIN '" + ident.name()
+                            commLogger.debug("SATIN '" + ident
                                     + "': sending exit message to "
                                     + victims.getIdent(i));
                         }
@@ -89,7 +89,7 @@ public abstract class Termination extends Initialization {
             try {
                 WriteMessage writeMessage;
                 if (commLogger.isDebugEnabled()) {
-                    commLogger.debug("SATIN '" + ident.name()
+                    commLogger.debug("SATIN '" + ident
                             + "': sending exit ACK message to " + masterIdent);
                 }
 
@@ -138,7 +138,7 @@ public abstract class Termination extends Initialization {
                     s = victims.getPort(0);
 
                     if (commLogger.isDebugEnabled()) {
-                        commLogger.debug("SATIN '" + ident.name()
+                        commLogger.debug("SATIN '" + ident
                                 + "': freeing sendport to "
                                 + victims.getIdent(0));
                     }
@@ -180,7 +180,7 @@ public abstract class Termination extends Initialization {
         }
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name() + "': exited");
+            commLogger.debug("SATIN '" + ident + "': exited");
         }
 
         // Do a gc, and run the finalizers. Useful for printing statistics in

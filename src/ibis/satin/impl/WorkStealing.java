@@ -18,14 +18,14 @@ public abstract class WorkStealing extends Stats {
         }
 
         if (ASSERTS && r.owner == null) {
-            stealLogger.fatal("SATIN '" + ident.name()
+            stealLogger.fatal("SATIN '" + ident
                     + "': owner is null in sendResult");
             System.exit(1);
         }
 
         if (stealLogger.isDebugEnabled()) {
-            stealLogger.debug("SATIN '" + ident.name()
-                    + "': sending job result to " + r.owner.name()
+            stealLogger.debug("SATIN '" + ident
+                    + "': sending job result to " + r.owner
                     + ", exception = "
                     + (r.eek == null ? "null" : ("" + r.eek)));
         }
@@ -41,13 +41,13 @@ public abstract class WorkStealing extends Stats {
                 GlobalResultTable.Value value = globalResultTable.lookup(r,
                         false);
                 if (ASSERTS && value == null) {
-                    grtLogger.fatal("SATIN '" + ident.name()
+                    grtLogger.fatal("SATIN '" + ident
                             + "': orphan not locked in the table");
                     System.exit(1);
                 }
                 r.owner = value.sendTo;
                 if (grtLogger.isInfoEnabled()) {
-                    grtLogger.info("SATIN '" + ident.name()
+                    grtLogger.info("SATIN '" + ident
                             + "': storing an orphan");
                 }
                 globalResultTable.storeResult(r);
@@ -60,7 +60,7 @@ public abstract class WorkStealing extends Stats {
             if (FAULT_TOLERANCE && !FT_NAIVE && !r.orphan) {
                 synchronized (this) {
                     if (grtLogger.isInfoEnabled()) {
-                        grtLogger.info("SATIN '" + ident.name()
+                        grtLogger.info("SATIN '" + ident
                                 + "': a job became an orphan??");
                     }
                     globalResultTable.storeResult(r);
@@ -102,7 +102,7 @@ public abstract class WorkStealing extends Stats {
                 }
             }
         } catch (IOException e) {
-            stealLogger.fatal("SATIN '" + ident.name()
+            stealLogger.fatal("SATIN '" + ident
                     + "': Got Exception while sending steal request: " + e, e);
             System.exit(1);
         }
@@ -139,12 +139,12 @@ public abstract class WorkStealing extends Stats {
 
         if (stealLogger.isDebugEnabled()) {
             if (synchronous) {
-                stealLogger.debug("SATIN '" + ident.name()
-                        + "': sending steal message to " + v.ident.name());
+                stealLogger.debug("SATIN '" + ident
+                        + "': sending steal message to " + v.ident);
             } else {
-                stealLogger.debug("SATIN '" + ident.name()
+                stealLogger.debug("SATIN '" + ident
                         + "': sending ASYNC steal message to "
-                        + v.ident.name());
+                        + v.ident);
             }
         }
 
@@ -176,7 +176,7 @@ public abstract class WorkStealing extends Stats {
                             opcode = Protocol.ASYNC_STEAL_AND_TABLE_REQUEST;
                         } else {
                             if (grtLogger.isInfoEnabled() && getTable) {
-                                grtLogger.info("SATIN '" + ident.name()
+                                grtLogger.info("SATIN '" + ident
                                         + ": EEEK sending async steal message "
                                         + "while waiting for table!!");
                             }
@@ -200,7 +200,7 @@ public abstract class WorkStealing extends Stats {
                 }
             }
         } catch (IOException e) {
-            stealLogger.fatal("SATIN '" + ident.name()
+            stealLogger.fatal("SATIN '" + ident
                     + "': Got Exception while sending "
                     + (synchronous ? "" : "a") + "synchronous"
                     + " steal request: " + e);
@@ -267,7 +267,7 @@ public abstract class WorkStealing extends Stats {
                             if (currentVictimCrashed) {
                                 currentVictimCrashed = false;
                                 if (ftLogger.isDebugEnabled()) {
-                                    ftLogger.debug("SATIN '" + ident.name()
+                                    ftLogger.debug("SATIN '" + ident
                                              + "': current victim crashed");
                                 }
                                 if (gotStealReply == false) {
@@ -329,7 +329,7 @@ public abstract class WorkStealing extends Stats {
         }
 
         /*
-         * stealLogger.debug("SATIN '" + ident.name()
+         * stealLogger.debug("SATIN '" + ident
          *         + "': got synchronous steal reply: "
          *         + (stolenJob == null ? "FAILED" : "SUCCESS"));
          */
@@ -357,7 +357,7 @@ public abstract class WorkStealing extends Stats {
                 tupleOrderingWaitTimer.start();
             }
             if (tupleLogger.isDebugEnabled()) {
-                tupleLogger.debug("SATIN '" + ident.name()
+                tupleLogger.debug("SATIN '" + ident
                             + "': steal reply seq nr = " + stealReplySeqNr
                             + ", my seq nr = " + expected_seqno);
             }
@@ -386,12 +386,12 @@ public abstract class WorkStealing extends Stats {
         if (ASSERTS) {
             assertLocked(this);
             if (owner == null) {
-                stealLogger.fatal("SATIN '" + ident.name()
+                stealLogger.fatal("SATIN '" + ident
                         + "': owner is null in getStolenInvocationRecord");
                 System.exit(1);
             }
             if (!owner.equals(ident)) {
-                stealLogger.fatal("SATIN '" + ident.name()
+                stealLogger.fatal("SATIN '" + ident
                         + "': Removing wrong stamp!");
                 System.exit(1);
             }
@@ -430,11 +430,11 @@ public abstract class WorkStealing extends Stats {
         } else {
             if (ABORTS || FAULT_TOLERANCE) {
                 if (abortLogger.isDebugEnabled()) {
-                    abortLogger.debug("SATIN '" + ident.name()
+                    abortLogger.debug("SATIN '" + ident
                             + "': got result for aborted job, ignoring.");
                 }
             } else {
-                stealLogger.fatal("SATIN '" + ident.name()
+                stealLogger.fatal("SATIN '" + ident
                         + "': got result for unknown job!");
                 System.exit(1);
             }

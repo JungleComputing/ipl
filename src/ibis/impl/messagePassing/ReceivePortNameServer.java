@@ -54,7 +54,7 @@ final class ReceivePortNameServer implements ReceivePortNameServerProtocol {
             if (ReceivePortNameServerProtocol.DEBUG) {
                 System.err.println(Thread.currentThread()
                         + "Bound new port name \"" + ri.name() + "\"" + "=\""
-                        + ri + "\" ibis " + ri.ibis().name());
+                        + ri + "\" ibis " + ri.ibis());
             }
             bind_reply(PORT_ACCEPTED, tag, client);
             ports.put(name, ri);

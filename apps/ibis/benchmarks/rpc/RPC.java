@@ -1111,12 +1111,12 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall,
             } else {
                 System.err.println("Going to find out my rank, my ID is "
                         + myIbis.identifier().toString() + " name = "
-                        + myIbis.identifier().name() + "; I am "
+                        + myIbis.identifier() + "; I am "
                         + (i_am_client ? "client" : "server"));
 
                 IbisIdentifier master = registry.elect("RPC");
-                // System.err.println("Election master id=" + master + " name=" + master.name());
-                // System.err.println("Election contender = " + myIbis + " id=" + myIbis.identifier() + " name=" + myIbis.identifier().name());
+                // System.err.println("Election master id=" + master + " name=" + master);
+                // System.err.println("Election contender = " + myIbis + " id=" + myIbis.identifier() + " name=" + myIbis.identifier());
                 if (master.equals(myIbis.identifier())) {
                     // System.err.println("YES--------- I'm the winner, master = " + master + "; me " + myIbis.identifier());
                     rank = 0;

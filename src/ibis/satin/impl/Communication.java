@@ -72,8 +72,8 @@ public abstract class Communication extends SpawnSync {
             s = victims.getReplyPort(id);
             if (s == null) {
                 if (commLogger.isDebugEnabled()) {
-                    commLogger.debug("SATIN '" + this.ident.name()
-                            + "': could not get reply port to " + id.name()
+                    commLogger.debug("SATIN '" + this.ident
+                            + "': could not get reply port to " + id
                             + ", retrying");
                 }
                 try {
@@ -135,7 +135,7 @@ public abstract class Communication extends SpawnSync {
             try {
                 m = receivePort.poll();
             } catch (IOException e) {
-                commLogger.warn("SATIN '" + ident.name()
+                commLogger.warn("SATIN '" + ident
                         + "': Got Exception while polling: " + e, e);
             }
 
@@ -209,7 +209,7 @@ public abstract class Communication extends SpawnSync {
     /* Only allowed when not stealing. */
     void barrier() {
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name() + "': barrier start");
+            commLogger.debug("SATIN '" + ident + "': barrier start");
         }
 
         // Close the world, no more join and leave upcalls will be received.
@@ -270,7 +270,7 @@ public abstract class Communication extends SpawnSync {
                 }
             }
         } catch (IOException e) {
-            commLogger.fatal("SATIN '" + ident.name() + "': error in barrier: "
+            commLogger.fatal("SATIN '" + ident + "': error in barrier: "
                     + e, e);
             System.exit(1);
         }
@@ -280,7 +280,7 @@ public abstract class Communication extends SpawnSync {
         }
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name() + "': barrier DONE");
+            commLogger.debug("SATIN '" + ident + "': barrier DONE");
         }
     }
 }

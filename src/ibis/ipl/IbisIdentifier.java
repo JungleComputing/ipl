@@ -71,8 +71,19 @@ public abstract class IbisIdentifier implements java.io.Serializable {
     }
 
     /**
-     * Returns the name of this Ibis.
-     * @return the Ibis name.
+     * Returns a name uniquely identifying the Ibis instance to which this
+     * <code>IbisIdentifier</code> refers.
+     * @return the name of the Ibis instance.
+     */
+    public String toString() {
+        return name;
+    }
+
+    /**
+     * Returns a name uniquely identifying the Ibis instance to which this
+     * <code>IbisIdentifier</code> refers.
+     * @return the name of the Ibis instance.
+     * @deprecated Use {@link #toString()} instead.
      */
     public String name() {
         return name;

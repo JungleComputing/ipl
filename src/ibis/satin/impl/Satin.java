@@ -168,30 +168,30 @@ public final class Satin extends APIMethods implements ResizeHandler,
             if (FAULT_TOLERANCE) {
                 if (upcalls) {
                     receivePort = portType.createReceivePort("satin port on "
-                            + ident.name(), messageHandler, this);
+                            + ident, messageHandler, this);
                 } else {
                     if (commLogger.isInfoEnabled() && master) {
                         commLogger.info("SATIN: using blocking receive");
                     }
                     receivePort = portType.createReceivePort("satin port on "
-                            + ident.name(), this);
+                            + ident, this);
                 }
             } else {
                 if (upcalls) {
                     receivePort = portType.createReceivePort("satin port on "
-                            + ident.name(), messageHandler);
+                            + ident, messageHandler);
                 } else {
                     if (commLogger.isInfoEnabled() && master) {
                         commLogger.info("SATIN: using blocking receive");
                     }
                     receivePort = portType.createReceivePort("satin port on "
-                            + ident.name());
+                            + ident);
                 }
             }
 
             if (SUPPORT_TUPLE_MULTICAST) {
                 tupleReceivePort = tuplePortType.createReceivePort(
-                        "satin tuple port on " + ident.name(),
+                        "satin tuple port on " + ident,
                         new MessageHandler(this));
             } else {
                 tupleReceivePort = receivePort;
@@ -199,13 +199,13 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
             if (master) {
                 barrierReceivePort = barrierPortType.createReceivePort(
-                        "satin barrier receive port on " + ident.name());
+                        "satin barrier receive port on " + ident);
                 barrierReceivePort.enableConnections();
             } else {
                 barrierSendPort = barrierPortType.createSendPort(
-                        "satin barrier send port on " + ident.name());
+                        "satin barrier send port on " + ident);
                 ReceivePortIdentifier barrierIdent = lookup(
-                        "satin barrier receive port on " + masterIdent.name());
+                        "satin barrier receive port on " + masterIdent);
                 connect(barrierSendPort, barrierIdent);
             }
 
@@ -213,7 +213,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
             // Connections are established in the join upcall.
             if (SUPPORT_TUPLE_MULTICAST) {
                 tuplePort = tuplePortType.createSendPort("satin tuple port on "
-                        + ident.name());
+                        + ident);
             }
         } catch (Exception e) {
             commLogger.fatal("SATIN '" + hostName
@@ -222,7 +222,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
         }
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name() + "': init ibis DONE2");
+            commLogger.debug("SATIN '" + ident + "': init ibis DONE2");
         }
 
         if (stats && master) {

@@ -35,7 +35,7 @@ public abstract class Inlets extends Aborts {
 
         try {
             if (inletLogger.isDebugEnabled()) {
-                inletLogger.debug("SATIN '" + ident.name()
+                inletLogger.debug("SATIN '" + ident
                         + ": calling inlet caused by remote exception");
             }
 
@@ -103,11 +103,11 @@ public abstract class Inlets extends Aborts {
 
             if (!r.parentOwner.equals(ident)) {
                 if (inletLogger.isDebugEnabled()) {
-                    inletLogger.debug("SATIN '" + ident.name()
+                    inletLogger.debug("SATIN '" + ident
                             + ": prematurely sending exception result");
                 }
                 if (stealLogger.isDebugEnabled()) {
-                    stealLogger.debug("SATIN '" + ident.name()
+                    stealLogger.debug("SATIN '" + ident
                             + ": prematurely sending exception result");
                 }
                 sendResult(r.parent, null);
@@ -147,7 +147,7 @@ public abstract class Inlets extends Aborts {
         }
 
         if (inletLogger.isDebugEnabled()) {
-            inletLogger.debug("SATIN '" + ident.name()
+            inletLogger.debug("SATIN '" + ident
                     + ": Got exception, empty inlet: " + r.eek, r.eek);
         }
 
@@ -163,11 +163,11 @@ public abstract class Inlets extends Aborts {
 
         if (!r.parentOwner.equals(ident)) {
             if (inletLogger.isDebugEnabled()) {
-                inletLogger.debug("SATIN '" + ident.name()
+                inletLogger.debug("SATIN '" + ident
                         + ": prematurely sending exception result");
             }
             if (stealLogger.isDebugEnabled()) {
-                stealLogger.debug("SATIN '" + ident.name()
+                stealLogger.debug("SATIN '" + ident
                         + ": prematurely sending exception result");
             }
             sendResult(r.parent, null);
@@ -189,7 +189,7 @@ public abstract class Inlets extends Aborts {
         exceptionList.add(r);
         gotExceptions = true;
         if (inletLogger.isDebugEnabled()) {
-            inletLogger.debug("SATIN '" + ident.name()
+            inletLogger.debug("SATIN '" + ident
                     + ": got remote exception!");
         }
     }
@@ -214,7 +214,7 @@ public abstract class Inlets extends Aborts {
             }
 
             if (inletLogger.isDebugEnabled()) {
-                inletLogger.debug("SATIN '" + ident.name()
+                inletLogger.debug("SATIN '" + ident
                         + ": handling remote exception: " + r.eek + ", inv = "
                         + r);
             }
@@ -233,7 +233,7 @@ public abstract class Inlets extends Aborts {
                 System.exit(1);
             }
             if (inletLogger.isDebugEnabled()) {
-                inletLogger.debug("SATIN '" + ident.name()
+                inletLogger.debug("SATIN '" + ident
                         + ": handling remote exception DONE");
             }
         }

@@ -43,7 +43,7 @@ public abstract class Ibis {
             "ibis.tcp.", "ibis.name_server.", "ibis.name", "ibis.verbose",
             "ibis.communication", "ibis.serialization", "ibis.worldmodel" };
 
-    /** A user-defined (or system-invented) name for this Ibis. */
+    /** A name for this Ibis. */
     protected String name;
 
     /** The implementation name, for instance ibis.impl.tcp.TcpIbis. */
@@ -143,6 +143,8 @@ public abstract class Ibis {
      *  do not correspond to an existing Ibis implementation
      * @exception ConnectionRefusedException is thrown when the name turns
      *  out to be not unique.
+     * @deprecated The prefered method for creating Ibis instances is
+     *   {@link #createIbis(ibis.ipl.StaticProperties, ibis.ipl.ResizeHandler)}.
      */
     public static Ibis createIbis(String name, String implName,
             ResizeHandler resizeHandler) throws IbisException,
@@ -305,7 +307,10 @@ public abstract class Ibis {
 
         ArrayList implementation_names = new ArrayList();
 
+
         if (ibisname == null) {
+            NestedException nested = new NestedException(
+                    "Could not find a matching Ibis");
             for (int i = 0; i < impls.length; i++) {
                 StaticProperties ibissp = staticProperties(impls[i]);
                 // System.out.println("try " + impls[i]);
@@ -313,12 +318,16 @@ public abstract class Ibis {
                     // System.out.println("match!");
                     implementation_names.add(impls[i]);
                 }
+                StaticProperties clashes
+                        = combinedprops.unmatchedProperties(ibissp);
+                nested.add(impls[i],
+                        new IbisException("Unmatched properties: "
+                            + clashes.toString()));
             }
             if (implementation_names.size() == 0) {
                 // System.err.println("Properties:");
                 // System.err.println(combinedprops.toString());
-                throw new NoMatchingIbisException(
-                        "Could not find a matching Ibis");
+                throw new NoMatchingIbisException(nested);
             }
         } else {
             String[] nicks = nicknames();
@@ -779,8 +788,10 @@ public abstract class Ibis {
     public abstract void poll() throws IOException;
 
     /**
-     * Returns the user-specified name of this Ibis instance.
+     * Returns the name of this Ibis instance.
      * @return the name of this Ibis instance.
+     * @deprecated If you need the name of an Ibis instance, you
+     *    can use {@link ibis.ipl.IbisIdentifier#toString()}.
      */
     public String name() {
         return name;

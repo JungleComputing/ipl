@@ -63,21 +63,21 @@ public abstract class SpawnSync extends Termination {
 
         if (ASSERTS) {
             if (r == null) {
-                spawnLogger.fatal("SATIN '" + ident.name()
+                spawnLogger.fatal("SATIN '" + ident
                         + ": EEK, r = null in callSatinFunc",
                         new Throwable());
                 System.exit(1);
             }
 
             if (r.aborted) {
-                spawnLogger.fatal("SATIN '" + ident.name()
+                spawnLogger.fatal("SATIN '" + ident
                         + ": spawning aborted job!",
                         new Throwable());
                 System.exit(1);
             }
 
             if (r.owner == null) {
-                spawnLogger.fatal("SATIN '" + ident.name()
+                spawnLogger.fatal("SATIN '" + ident
                         + ": EEK, r.owner = null in callSatinFunc, r = " + r,
                         new Throwable());
                 System.exit(1);
@@ -85,7 +85,7 @@ public abstract class SpawnSync extends Termination {
 
             if (r.owner.equals(ident)) {
                 if (r.spawnCounter == null) {
-                    spawnLogger.fatal("SATIN '" + ident.name()
+                    spawnLogger.fatal("SATIN '" + ident
                             + ": EEK, r.spawnCounter = null in callSatinFunc, "
                             + "r = " + r,
                             new Throwable());
@@ -93,7 +93,7 @@ public abstract class SpawnSync extends Termination {
                 }
 
                 if (r.spawnCounter.value < 0) {
-                    spawnLogger.fatal("SATIN '" + ident.name()
+                    spawnLogger.fatal("SATIN '" + ident
                             + ": spawncounter < 0 in callSatinFunc",
                             new Throwable());
                     System.exit(1);
@@ -101,7 +101,7 @@ public abstract class SpawnSync extends Termination {
 
                 if (ABORTS && r.parent == null && parentOwner.equals(ident)
                         && r.parentStamp != -1) {
-                    spawnLogger.fatal("SATIN '" + ident.name()
+                    spawnLogger.fatal("SATIN '" + ident
                             + ": parent is null for non-root, should not "
                             + "happen here! job = " + r,
                             new Throwable());
@@ -113,7 +113,7 @@ public abstract class SpawnSync extends Termination {
         if ((ABORTS || FAULT_TOLERANCE) && r.parent != null
                 && r.parent.aborted) {
             if (abortLogger.isDebugEnabled()) {
-                abortLogger.debug("SATIN '" + ident.name()
+                abortLogger.debug("SATIN '" + ident
                     + ": spawning job, parent was aborted! job = " + r
                     + ", parent = " + r.parent);
             }
@@ -124,7 +124,7 @@ public abstract class SpawnSync extends Termination {
             }
             if (ASSERTS) {
                 if (r.spawnCounter.value < 0) {
-                    spawnLogger.fatal("SATIN '" + ident.name()
+                    spawnLogger.fatal("SATIN '" + ident
                             + ": Just made spawncounter < 0",
                             new Throwable());
                     System.exit(1);
@@ -141,7 +141,7 @@ public abstract class SpawnSync extends Termination {
         }
 
         if (spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident.name()
+            spawnLogger.debug("SATIN '" + ident
                     + "': callSatinFunc: stamp = " + r.stamp + ", owner = "
                     + (r.owner.equals(ident) ? "me" : r.owner.toString())
                     + ", parentStamp = " + r.parentStamp + ", parentOwner = "
@@ -150,7 +150,7 @@ public abstract class SpawnSync extends Termination {
 
         if (r.owner.equals(ident)) {
             if (spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident.name()
+                spawnLogger.debug("SATIN '" + ident
                         + "': callSatinFunc: spawn counter = "
                         + r.spawnCounter.value);
             }
@@ -188,25 +188,25 @@ public abstract class SpawnSync extends Termination {
                 r.spawnCounter.value--;
             }
             if (ASSERTS && r.spawnCounter.value < 0) {
-                spawnLogger.fatal("SATIN '" + ident.name()
+                spawnLogger.fatal("SATIN '" + ident
                         + ": Just made spawncounter < 0",
                         new Throwable());
                 System.exit(1);
             }
 
             if (ASSERTS && !ABORTS && r.eek != null) {
-                spawnLogger.fatal("SATIN '" + ident.name()
+                spawnLogger.fatal("SATIN '" + ident
                         + ": Got exception: " + r.eek, r.eek);
                 System.exit(1);
             }
 
-            spawnLogger.debug("SATIN '" + ident.name()
+            spawnLogger.debug("SATIN '" + ident
                     + ": callSatinFunc: stamp = " + r.stamp
                     + ", parentStamp = " + r.parentStamp
                     + ", parentOwner = " + r.parentOwner
                     + " spawn counter = " + r.spawnCounter.value + " DONE");
             if (r.eek != null) {
-                spawnLogger.debug("SATIN '" + ident.name()
+                spawnLogger.debug("SATIN '" + ident
                         + ": exception was " + r.eek, r.eek);
             }
 
@@ -217,7 +217,7 @@ public abstract class SpawnSync extends Termination {
 
         } else {
             if (stealLogger.isDebugEnabled()) {
-                stealLogger.debug("SATIN '" + ident.name()
+                stealLogger.debug("SATIN '" + ident
                         + "': RUNNING REMOTE CODE!");
             }
             ReturnRecord rr = null;
@@ -231,7 +231,7 @@ public abstract class SpawnSync extends Termination {
                     // but its child did, and there is an empty inlet.
                     rr.eek = r.eek;
                 } catch (Throwable t) {
-                    spawnLogger.fatal("SATIN '" + ident.name()
+                    spawnLogger.fatal("SATIN '" + ident
                             + ": OOOhh dear, got exception in runremote: " + t,
                             t);
                     System.exit(1);
@@ -244,11 +244,11 @@ public abstract class SpawnSync extends Termination {
             }
             if (stealLogger.isDebugEnabled()) {
                 if (r.eek != null) {
-                    stealLogger.debug("SATIN '" + ident.name()
+                    stealLogger.debug("SATIN '" + ident
                             + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek,
                             r.eek);
                 } else {
-                    stealLogger.debug("SATIN '" + ident.name()
+                    stealLogger.debug("SATIN '" + ident
                             + "': RUNNING REMOTE CODE DONE!");
                 }
             }
@@ -259,7 +259,7 @@ public abstract class SpawnSync extends Termination {
             }
 
             if (stealLogger.isDebugEnabled()) {
-                stealLogger.debug("SATIN '" + ident.name()
+                stealLogger.debug("SATIN '" + ident
                         + "': REMOTE CODE SEND RESULT DONE!");
             }
         }
@@ -283,7 +283,7 @@ public abstract class SpawnSync extends Termination {
         }
 
         if (spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident.name()
+            spawnLogger.debug("SATIN '" + ident
                     + "': call satin func done!");
         }
     }
@@ -372,7 +372,7 @@ public abstract class SpawnSync extends Termination {
         algorithm.jobAdded();
 
         if (spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident.name() + "': Spawn, counter = "
+            spawnLogger.debug("SATIN '" + ident + "': Spawn, counter = "
                     + r.spawnCounter.value + ", stamp = " + r.stamp
                     + ", parentStamp = " + r.parentStamp + ", owner = "
                     + r.owner + ", parentOwner = " + r.parentOwner);
@@ -407,7 +407,7 @@ public abstract class SpawnSync extends Termination {
             // }
 
             if (spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident.name()
+                spawnLogger.debug("SATIN '" + ident
                         + "': Sync, counter = " + s.value);
             }
 
@@ -465,7 +465,7 @@ public abstract class SpawnSync extends Termination {
     public void client() {
 
         if (spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident.name() + "': starting client!");
+            spawnLogger.debug("SATIN '" + ident + "': starting client!");
         }
 
         while (!exiting) {

@@ -392,7 +392,7 @@ public final class Group implements GroupProtocol {
             groupCallHandler = new GroupCallHandler();
 
             receivePort = portType.createReceivePort("GMI port on "
-                    + localID.name(), groupCallHandler);
+                    + localID, groupCallHandler);
             receivePort.enableConnections();
 
             PoolInfo info = PoolInfo.createPoolInfo();
@@ -442,11 +442,11 @@ public final class Group implements GroupProtocol {
                 }
 
                 systemIn = portType.createReceivePort("GMI Client "
-                        + localID.name());
+                        + localID);
                 systemIn.enableConnections();
 
                 systemOut = portType.createSendPort("GMI Client "
-                        + localID.name());
+                        + localID);
 
                 ReceivePortIdentifier master = ibisRegistry.lookupReceivePort(
                         "GMI Master");

@@ -145,7 +145,7 @@ public final class TcpIbis extends Ibis implements Config {
             }
 
             if (DEBUG) {
-                System.out.println(name + ": Ibis '" + joinIdent.name()
+                System.out.println(name + ": Ibis '" + joinIdent
                         + "' joined");
             }
 
@@ -175,7 +175,7 @@ public final class TcpIbis extends Ibis implements Config {
             }
 
             if (DEBUG) {
-                System.out.println(name + ": Ibis '" + leaveIdent.name()
+                System.out.println(name + ": Ibis '" + leaveIdent
                         + "' left");
             }
             poolSize--;
@@ -201,7 +201,7 @@ public final class TcpIbis extends Ibis implements Config {
 
             if (DEBUG) {
                 for (int i = 0; i < corpses.length; i++) {
-                    System.out.println(name + ": Ibis '" + corpses[i].name()
+                    System.out.println(name + ": Ibis '" + corpses[i]
                             + "' died");
                 }
             }

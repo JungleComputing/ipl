@@ -42,7 +42,7 @@ final class ReceivePortNameServerClient implements
 
             if (ReceivePortNameServerProtocol.DEBUG) {
                 System.err.println("Try to bind ReceivePortId " + id + " ibis "
-                        + id.ibis().name());
+                        + id.ibis());
             }
 
             // request a new Port.

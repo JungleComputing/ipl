@@ -379,13 +379,13 @@ final class IRVector implements Config {
          * }
          */
 
-        out.println("=IRVector " + satin.ident.name() + ":=============");
+        out.println("=IRVector " + satin.ident + ":=============");
         for (int i = 0; i < count; i++) {
             ParameterRecord pr = l[i].getParameterRecord();
             out.println("outjobs [" + i + "] = " + pr + ","
-                    + l[i].stealer.name());
+                    + l[i].stealer);
         }
-        out.println("end of IRVector: " + satin.ident.name() + "=");
+        out.println("end of IRVector: " + satin.ident + "=");
     }
 
     InvocationRecord first() {

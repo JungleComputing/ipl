@@ -389,7 +389,7 @@ public class NameServer extends Thread implements Protocol {
 
             String date = Calendar.getInstance().getTime().toString();
 
-            System.out.println(date + " " + id.name() + " JOINS  pool " + key
+            System.out.println(date + " " + id + " JOINS  pool " + key
                     + " (" + p.pool.size() + " nodes)");
         }
     }
@@ -548,7 +548,7 @@ public class NameServer extends Thread implements Protocol {
 
             String date = Calendar.getInstance().getTime().toString();
 
-            System.out.println(date + " " + id.name() + " LEAVES pool " + key
+            System.out.println(date + " " + id + " LEAVES pool " + key
                     + " (" + p.pool.size() + " nodes)");
             id.free();
 

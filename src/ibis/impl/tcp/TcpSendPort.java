@@ -282,7 +282,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         }
 
         if (DEBUG) {
-            System.err.println(type.ibis.name() + ": SendPort.free start");
+            System.err.println(type.ibis.identifier()
+                    + ": SendPort.free start");
         }
 
         try {
@@ -308,7 +309,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         ident = null;
 
         if (DEBUG) {
-            System.err.println(type.ibis.name() + ": SendPort.free DONE");
+            System.err.println(type.ibis.identifier()
+                    + ": SendPort.free DONE");
         }
     }
 

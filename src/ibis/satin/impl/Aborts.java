@@ -32,7 +32,7 @@ public abstract class Aborts extends WorkStealing {
         }
         try {
             if (abortLogger.isDebugEnabled()) {
-                abortLogger.debug("SATIN '" + ident.name()
+                abortLogger.debug("SATIN '" + ident
                         + "': Abort, outstanding = " + outstandingSpawns
                         + ", thrower = " + exceptionThrower);
             }
@@ -67,7 +67,7 @@ public abstract class Aborts extends WorkStealing {
             }
 
             if (abortLogger.isDebugEnabled()) {
-                abortLogger.debug("SATIN '" + ident.name() + "': Abort DONE");
+                abortLogger.debug("SATIN '" + ident + "': Abort DONE");
             }
         } catch (Exception e) {
             abortLogger.warn("GOT EXCEPTION IN RTS!: " + e, e);
@@ -163,7 +163,7 @@ public abstract class Aborts extends WorkStealing {
      */
     void sendAbortMessage(InvocationRecord r) {
         if (abortLogger.isDebugEnabled()) {
-            abortLogger.debug("SATIN '" + ident.name()
+            abortLogger.debug("SATIN '" + ident
                     + ": sending abort message to: " + r.stealer + " for job "
                     + r.stamp);
         }
@@ -194,7 +194,7 @@ public abstract class Aborts extends WorkStealing {
                 }
             }
         } catch (IOException e) {
-            abortLogger.info("SATIN '" + ident.name()
+            abortLogger.info("SATIN '" + ident
                     + "': Got Exception while sending abort message: " + e, e);
             // This should not be a real problem, it is just inefficient.
             // Let's continue...
@@ -208,7 +208,7 @@ public abstract class Aborts extends WorkStealing {
             assertLocked(this);
         }
         if (abortLogger.isDebugEnabled()) {
-            abortLogger.debug("SATIN '" + ident.name() + ": got abort message");
+            abortLogger.debug("SATIN '" + ident + ": got abort message");
         }
         abortList.add(stamp, owner);
         gotAborts = true;
@@ -229,7 +229,7 @@ public abstract class Aborts extends WorkStealing {
             }
 
             if (abortLogger.isDebugEnabled()) {
-                abortLogger.debug("SATIN '" + ident.name()
+                abortLogger.debug("SATIN '" + ident
                         + ": handling abort message: stamp = " + stamp
                         + ", owner = " + owner);
             }
@@ -241,7 +241,7 @@ public abstract class Aborts extends WorkStealing {
             killChildrenOf(stamp, owner);
 
             if (abortLogger.isDebugEnabled()) {
-                abortLogger.debug("SATIN '" + ident.name()
+                abortLogger.debug("SATIN '" + ident
                         + ": handling abort message: stamp = " + stamp
                         + ", owner = " + owner + " DONE");
             }

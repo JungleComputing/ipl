@@ -102,10 +102,7 @@ public final class ReceivePortIdentifier implements
         return ("(RecPortIdent: name \"" + (name == null ? "null" : name)
                 + "\" type \"" + (type == null ? "null" : type)
                 + "\" cpu " + cpu
-                + " port " + port
-                + " ibis \""
-                + ((ibisIdentifier == null || ibisIdentifier.name() == null)
-                    ? "null" : ibisIdentifier.name()) + "\")");
+                + " port " + port);
     }
 
 }

@@ -100,7 +100,7 @@ public class GlobalResultTable implements Upcall, Config {
                 str += "(POINTER,owner:" + owner + ")";
                 break;
             default:
-                grtLogger.error("SATIN '" + Satin.this_satin.ident.name()
+                grtLogger.error("SATIN '" + Satin.this_satin.ident
                         + "': illegal type in value");
             }
             return str;
@@ -150,14 +150,14 @@ public class GlobalResultTable implements Upcall, Config {
         try {
             receive = satin.globalResultTablePortType.createReceivePort(
                     "satin global result table receive port on "
-                            + satin.ident.name(), this);
+                            + satin.ident, this);
             // send = portType.createSendPort("satin global result table send "
-            //                "port on " + satin.ident.name());
+            //                "port on " + satin.ident);
             receive.enableUpcalls();
             receive.enableConnections();
 
         } catch (IOException e) {
-            grtLogger.error("SATIN '" + satin.ident.name()
+            grtLogger.error("SATIN '" + satin.ident
                     + "': Global result table - unable to create ports - "
                     + e.getMessage(), e);
         }
@@ -181,7 +181,7 @@ public class GlobalResultTable implements Upcall, Config {
         Value value = (Value) entries.get(key);
 
         if (grtLogger.isDebugEnabled() && value != null) {
-            grtLogger.debug("SATIN '" + satin.ident.name()
+            grtLogger.debug("SATIN '" + satin.ident
                         + "': lookup successful " + key);
         }
         if (GRT_STATS && stats) {
@@ -249,7 +249,7 @@ public class GlobalResultTable implements Upcall, Config {
                 satin.updatesToSend = true;
             } else {
                 if (grtLogger.isInfoEnabled()) {
-                    grtLogger.info("SATIN '" + satin.ident.name()
+                    grtLogger.info("SATIN '" + satin.ident
                             + "': sending update: " + key + "," + value);
                 }
 
@@ -295,7 +295,7 @@ public class GlobalResultTable implements Upcall, Config {
                         size = m.finish();
 
                         if (grtLogger.isDebugEnabled()) {
-                            grtLogger.debug("SATIN '" + satin.ident.name()
+                            grtLogger.debug("SATIN '" + satin.ident
                                     + "': " + size + " sent in "
                                     + satin.tableSerializationTimer.lastTimeVal()
                                     + " to " + entry.getKey());
@@ -321,7 +321,7 @@ public class GlobalResultTable implements Upcall, Config {
                  * }
                  */
                 if (grtLogger.isInfoEnabled()) {
-                    grtLogger.info("SATIN '" + satin.ident.name()
+                    grtLogger.info("SATIN '" + satin.ident
                             + "': update sent: " + key + "," + value);
                 }
             }
@@ -336,7 +336,7 @@ public class GlobalResultTable implements Upcall, Config {
             }
         }
         if (grtLogger.isDebugEnabled()) {
-            grtLogger.debug("SATIN '" + satin.ident.name()
+            grtLogger.debug("SATIN '" + satin.ident
                 + "': update complete: " + key + "," + value);
         }
 
@@ -377,7 +377,7 @@ public class GlobalResultTable implements Upcall, Config {
         Timer tableSerializationTimer = null;
 
         if (ASSERTS && !GRT_MESSAGE_COMBINING) {
-            grtLogger.error("SATIN '" + satin.ident.name()
+            grtLogger.error("SATIN '" + satin.ident
                     + "': EEK send updates with GRT_MESSAGE_COMBINING off!");
             return;
         }
@@ -433,7 +433,7 @@ public class GlobalResultTable implements Upcall, Config {
                 long size = m.finish();
 
                 if (grtLogger.isDebugEnabled()) {
-                    grtLogger.debug("SATIN '" + satin.ident.name() + "': "
+                    grtLogger.debug("SATIN '" + satin.ident + "': "
                             + size + " sent in "
                             + satin.tableSerializationTimer.lastTimeVal()
                             + " to " + entry.getKey());
@@ -479,7 +479,7 @@ public class GlobalResultTable implements Upcall, Config {
                     newEntries.put(key, value);
                     break;
                 default:
-                    grtLogger.error("SATIN '" + satin.ident.name()
+                    grtLogger.error("SATIN '" + satin.ident
                             + "': EEK invalid value type in getContents()");
                 }
             }
@@ -514,19 +514,19 @@ public class GlobalResultTable implements Upcall, Config {
         try {
             SendPort send = satin.globalResultTablePortType.createSendPort(
                     "satin global result table send port on "
-                    + satin.ident.name() + System.currentTimeMillis());
+                    + satin.ident + System.currentTimeMillis());
             sends.put(ident, send);
             ReceivePortIdentifier r = null;
             r = satin.lookup("satin global result table receive port on "
-                    + ident.name());
+                    + ident);
             if (Satin.connect(send, r, satin.connectTimeout)) {
                 numReplicas++;
             } else {
-                grtLogger.error("SATN '" + satin.ident.name()
+                grtLogger.error("SATN '" + satin.ident
                         + "': Transpositon table - unable to add new replica");
             }
         } catch (IOException e) {
-            grtLogger.error("SATN '" + satin.ident.name()
+            grtLogger.error("SATN '" + satin.ident
                     + "': Transpositon table - unable to add new replica", e);
         }
 
@@ -557,7 +557,7 @@ public class GlobalResultTable implements Upcall, Config {
             }
             receive.close();
         } catch (IOException e) {
-            grtLogger.error("SATIN '" + satin.ident.name()
+            grtLogger.error("SATIN '" + satin.ident
                     + "': Unable to free global result table ports", e);
         }
     }
@@ -592,10 +592,10 @@ public class GlobalResultTable implements Upcall, Config {
             }
 
         } catch (IOException e) {
-            grtLogger.error("SATIN '" + satin.ident.name()
+            grtLogger.error("SATIN '" + satin.ident
                     + "': Global result table - error reading message", e);
         } catch (ClassNotFoundException e1) {
-            grtLogger.error("SATIN '" + satin.ident.name()
+            grtLogger.error("SATIN '" + satin.ident
                     + "': Global result table - error reading message", e1);
         }
 
@@ -629,10 +629,10 @@ public class GlobalResultTable implements Upcall, Config {
 
         if (grtLogger.isDebugEnabled()) {
             if (GRT_MESSAGE_COMBINING) {
-                grtLogger.debug("SATIN '" + satin.ident.name()
+                grtLogger.debug("SATIN '" + satin.ident
                         + "': upcall finished: " + entries.size());
             } else {
-                grtLogger.debug("SATIN '" + satin.ident.name()
+                grtLogger.debug("SATIN '" + satin.ident
                         + "': upcall finished:" + key + "," + value + ","
                         + entries.size());
             }
@@ -646,7 +646,7 @@ public class GlobalResultTable implements Upcall, Config {
 
     public void print(java.io.PrintStream out) {
         synchronized (satin) {
-            out.println("=GRT: " + satin.ident.name() + "=");
+            out.println("=GRT: " + satin.ident + "=");
             int i = 0;
             Iterator iter = entries.entrySet().iterator();
             while (iter.hasNext()) {
@@ -655,7 +655,7 @@ public class GlobalResultTable implements Upcall, Config {
                         + entry.getValue());
                 i++;
             }
-            out.println("=end of GRT " + satin.ident.name() + "=");
+            out.println("=end of GRT " + satin.ident + "=");
         }
     }
 }

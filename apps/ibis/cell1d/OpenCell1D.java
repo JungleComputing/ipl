@@ -78,7 +78,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     public synchronized void joined( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.out.println( "Machine " + id.name() + " joins the computation" );
+            System.out.println( "Machine " + id + " joins the computation" );
         }
         if( id.equals( OpenCell1D.ibis.identifier() ) ){
            // Hey! That's me. Now I know my member number and my left
@@ -88,7 +88,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
                String who = "no";
 
                if( OpenCell1D.leftNeighbour != null ){
-                   who = OpenCell1D.leftNeighbour.name() + " as";
+                   who = OpenCell1D.leftNeighbour + " as";
                }
                System.out.println( "P" + members + ": that's me! I have " + who + " left neighbour" );
            }
@@ -108,7 +108,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     public synchronized void left( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.out.println( "Machine " + id.name() + " leaves the computation" );
+            System.out.println( "Machine " + id + " leaves the computation" );
         }
         members--;
     }
@@ -116,7 +116,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     public synchronized void died( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.out.println( "Machine " + id.name() + " died" );
+            System.out.println( "Machine " + id + " died" );
         }
         members--;
     }
@@ -216,8 +216,8 @@ class OpenCell1D implements OpenConfig {
     private static SendPort createNeighbourSendPort( PortType updatePort, IbisIdentifier dest, String prefix )
         throws java.io.IOException
     {
-        String sendportname = prefix + "Send" + myName.name();
-        String receiveportname = prefix + "Receive" + dest.name();
+        String sendportname = prefix + "Send" + myName;
+        String receiveportname = prefix + "Receive" + dest;
 
         SendPort res = updatePort.createSendPort( sendportname );
         if( tracePortCreation ){
@@ -239,7 +239,7 @@ class OpenCell1D implements OpenConfig {
     private static ReceivePort createNeighbourReceivePort( PortType updatePort, String prefix, Upcall up )
         throws java.io.IOException
     {
-        String receiveportname = prefix + "Receive" + myName.name();
+        String receiveportname = prefix + "Receive" + myName;
 
         ReceivePort res;
         if( up == null ){

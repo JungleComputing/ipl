@@ -147,7 +147,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
     public void printStats(java.io.PrintStream out) {
 /*
 	if(asyncStealAttempts != null) {
-	    out.println("SATIN '" + satin.ident.name()
+	    out.println("SATIN '" + satin.ident
 			+ "': ASYNC STEAL_STATS: attempts = " + asyncStealAttempts
 			+ " success = " + asyncStealSuccess + " ("
 			+ (((double) asyncStealSuccess / asyncStealAttempts) * 100.0)

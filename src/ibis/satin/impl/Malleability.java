@@ -14,13 +14,13 @@ public abstract class Malleability extends FaultTolerance {
             ReceivePortIdentifier r = null;
             SendPort s = portType.createSendPort("satin sendport");
 
-            r = lookup("satin port on " + joiner.name());
+            r = lookup("satin port on " + joiner);
 
             if (FAULT_TOLERANCE) {
                 if (!connect(s, r, connectTimeout)) {
                     if (commLogger.isDebugEnabled()) {
-                        commLogger.debug("SATIN '" + ident.name()
-                                + "': unable to connect to " + joiner.name()
+                        commLogger.debug("SATIN '" + ident
+                                + "': unable to connect to " + joiner
                                 + ", might have crashed");
                     }
                     return;
@@ -38,8 +38,8 @@ public abstract class Malleability extends FaultTolerance {
             }
 
             if (commLogger.isDebugEnabled()) {
-                commLogger.debug("SATIN '" + ident.name() + "': "
-                        + joiner.name() + " JOINED");
+                commLogger.debug("SATIN '" + ident + "': "
+                        + joiner + " JOINED");
             }
         } catch (Exception e) {
             System.err.println("SATIN '" + ident
@@ -51,10 +51,10 @@ public abstract class Malleability extends FaultTolerance {
 
     public void joined(IbisIdentifier joiner) {
 
-        // System.err.println("SATIN '" + ident.name() + "': '" + joiner.name()
+        // System.err.println("SATIN '" + ident + "': '" + joiner
         //         + " is joining");
 
-        if (joiner.name().equals("ControlCentreIbis")) {
+        if (joiner.toString().equals("ControlCentreIbis")) {
             return;
         }
 
@@ -65,7 +65,7 @@ public abstract class Malleability extends FaultTolerance {
         }
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name() + "': '" + joiner.name()
+            commLogger.debug("SATIN '" + ident + "': '" + joiner
                     + "' from cluster '" + joiner.cluster()
                     + "' is trying to join");
         }
@@ -74,7 +74,7 @@ public abstract class Malleability extends FaultTolerance {
 
         /*
          * synchronized (this) {
-         *     System.err.println("SATIN '" + ident.name() + "': '"
+         *     System.err.println("SATIN '" + ident + "': '"
          *             + victims.size() + " hosts joined");
          * }
          */
@@ -90,7 +90,7 @@ public abstract class Malleability extends FaultTolerance {
         }
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name() + "': " + leaver.name()
+            commLogger.debug("SATIN '" + ident + "': " + leaver
                     + " left");
         }
 

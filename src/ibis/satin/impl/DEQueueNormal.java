@@ -223,7 +223,7 @@ final class DEQueueNormal extends DEQueue implements Config {
          * }
          */
 
-        out.println("=Q " + satin.ident.name() + ":=======================");
+        out.println("=Q " + satin.ident + ":=======================");
         InvocationRecord curr = head;
         while (curr != null) {
             out.println("    " + curr);

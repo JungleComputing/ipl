@@ -544,7 +544,7 @@ public class SendPort implements ibis.ipl.SendPort {
 
     void closeLocked() throws IOException {
         if (DEBUG) {
-            System.out.println(Ibis.myIbis.name()
+            System.out.println(Ibis.myIbis.myCpu
                     + ": ibis.ipl.SendPort.close " + this + " start");
             Thread.dumpStack();
         }
@@ -564,7 +564,7 @@ public class SendPort implements ibis.ipl.SendPort {
         }
 
         if (DEBUG) {
-            System.out.println(Ibis.myIbis.name()
+            System.out.println(Ibis.myIbis.myCpu
                     + ": ibis.ipl.SendPort.close " + this + " DONE");
         }
 

@@ -81,14 +81,14 @@ class TcpPortType extends PortType implements Config {
                 connectionAdministration, cU);
 
         if (DEBUG) {
-            System.out.println(ibis.name() + ": Receiveport created name = '"
-                    + name() + "'");
+            System.out.println(ibis.identifier()
+                    + ": Receiveport created name = '" + name() + "'");
         }
 
         ibis.bindReceivePort(nm, prt.identifier());
 
         if (DEBUG) {
-            System.out.println(ibis.name()
+            System.out.println(ibis.identifier()
                     + ": Receiveport bound in registry, name = '" + name()
                     + "'");
         }

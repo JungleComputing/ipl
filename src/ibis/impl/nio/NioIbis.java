@@ -119,7 +119,7 @@ public final class NioIbis extends Ibis implements Config {
             }
 
             if (logger.isInfoEnabled()) {
-                logger.info("ibis '" + joinIdent.name() + "' joined");
+                logger.info("ibis '" + joinIdent + "' joined");
             }
 
             poolSize++;
@@ -147,7 +147,7 @@ public final class NioIbis extends Ibis implements Config {
             }
 
             if (logger.isInfoEnabled()) {
-                logger.info("ibis '" + leaveIdent.name() + "' left");
+                logger.info("ibis '" + leaveIdent + "' left");
             }
 
             poolSize--;
@@ -172,7 +172,7 @@ public final class NioIbis extends Ibis implements Config {
 
             if (logger.isInfoEnabled()) {
                 for (int i = 0; i < corpses.length; i++) {
-                    logger.info("ibis '" + corpses[i].name() + "' died");
+                    logger.info("ibis '" + corpses[i] + "' died");
                 }
             }
 

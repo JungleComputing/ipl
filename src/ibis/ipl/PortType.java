@@ -191,7 +191,8 @@ public abstract class PortType {
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      *
-     * @param name the name of this receiveport.
+     * @param name the unique name of this receiveport (or <code>null</code>,
+     *    in which case a name is invented).
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -209,7 +210,8 @@ public abstract class PortType {
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      *
-     * @param name the name of this receiveport.
+     * @param name the unique name of this receiveport (or <code>null</code>,
+     *    in which case a name is invented).
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
@@ -231,7 +233,8 @@ public abstract class PortType {
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      *
-     * @param name the name of this receiveport.
+     * @param name the unique name of this receiveport (or <code>null</code>,
+     *    in which case a name is invented).
      * @param u the upcall handler.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
@@ -251,7 +254,8 @@ public abstract class PortType {
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      *
-     * @param name the name of this receiveport.
+     * @param name the unique name of this receiveport (or <code>null</code>,
+     *    in which case a name is invented).
      * @param u the upcall handler.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
@@ -276,7 +280,8 @@ public abstract class PortType {
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
      *
-     * @param name the name of this receiveport.
+     * @param name the unique name of this receiveport (or <code>null</code>,
+     *    in which case a name is invented).
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
      * @return the new receiveport.
@@ -299,7 +304,8 @@ public abstract class PortType {
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
      *
-     * @param name the name of this receiveport.
+     * @param name the unique name of this receiveport (or <code>null</code>,
+     *    in which case a name is invented).
      * @param u the upcall handler.
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
@@ -323,7 +329,8 @@ public abstract class PortType {
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
      *
-     * @param name the name of this receiveport.
+     * @param name the unique name of this receiveport (or <code>null</code>,
+     *    in which case a name is invented).
      * @param u the upcall handler.
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.

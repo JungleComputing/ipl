@@ -25,7 +25,7 @@ public abstract class FaultTolerance extends Inlets {
             crashTimer.start();
         }
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name() + ": handling crashes");
+            commLogger.debug("SATIN '" + ident + ": handling crashes");
         }
 
         gotCrashes = false;
@@ -40,16 +40,16 @@ public abstract class FaultTolerance extends Inlets {
             	    r.maybeDead(id);
         	} catch (IOException e) {
                     if (ftLogger.isInfoEnabled()) {
-                        ftLogger.info("SATIN '" + ident.name()
+                        ftLogger.info("SATIN '" + ident
                                 + "' :exception while notifying registry about "
-                                + "crash of " + id.name() + ": " + e, e);
+                                + "crash of " + id + ": " + e, e);
                     }
         	}
 	    }
 
             if (commLogger.isDebugEnabled()) {
-                commLogger.debug("SATIN '" + ident.name()
-                        + ": handling crash of " + id.name());
+                commLogger.debug("SATIN '" + ident
+                        + ": handling crash of " + id);
             }
 
             if (algorithm instanceof ClusterAwareRandomWorkStealing) {
@@ -64,14 +64,14 @@ public abstract class FaultTolerance extends Inlets {
             /*
              * if (killTime > 0) {
              *     if (ftLogger.isInfoEnabled()) {
-             *         ftLogger.info("SATIN '" + ident.name() + "': " + id
+             *         ftLogger.info("SATIN '" + ident + "': " + id
              *                 +  " HAS CRASHED!!!");
              *     }
              * }
              */
 
             if (ftLogger.isInfoEnabled() && master) {
-                ftLogger.info(id.name() + " has crashed");
+                ftLogger.info(id + " has crashed");
             }
 
             if (!FT_NAIVE) {
@@ -109,7 +109,7 @@ public abstract class FaultTolerance extends Inlets {
         }
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name() + ": numCrashes handled: "
+            commLogger.debug("SATIN '" + ident + ": numCrashes handled: "
                     + numCrashesHandled);
         }
 
@@ -122,7 +122,7 @@ public abstract class FaultTolerance extends Inlets {
         Registry r = ibis.registry();	    
         //master has crashed, let's elect a new one
         if (ftLogger.isInfoEnabled()) {
-            ftLogger.info("SATIN '" + ident.name() + "': MASTER ("
+            ftLogger.info("SATIN '" + ident + "': MASTER ("
                     + masterIdent + ") HAS CRASHED!!!");
         }
         try {
@@ -134,18 +134,18 @@ public abstract class FaultTolerance extends Inlets {
             if (master) {
                 barrierReceivePort = barrierPortType.createReceivePort(
                         "satin barrier receive port on "
-                        + ident.name());
+                        + ident);
                 barrierReceivePort.enableConnections();
             } else {
                 barrierSendPort.close();
                 barrierSendPort = barrierPortType.createSendPort(
-                        "satin barrier send port on " + ident.name());
+                        "satin barrier send port on " + ident);
                 ReceivePortIdentifier barrierIdent = lookup(
                         "satin barrier receive port on "
-                        + masterIdent.name());
+                        + masterIdent);
                 boolean success = connect(barrierSendPort, barrierIdent, 1000);
                 if (!success && ftLogger.isInfoEnabled()) {
-                    ftLogger.info("SATIN '" + ident.name()
+                    ftLogger.info("SATIN '" + ident
                             + "' :unable to connect to the master barrier port");
                 }                    
             }
@@ -155,11 +155,11 @@ public abstract class FaultTolerance extends Inlets {
                 totalStats = new StatsMessage();
             }
         } catch (IOException e) {
-    	    ftLogger.warn("SATIN '" + ident.name()
+    	    ftLogger.warn("SATIN '" + ident
             	    + "' :exception while electing a new master " + e,
                     e);
         } catch (ClassNotFoundException e) {
-    	    ftLogger.warn("SATIN '" + ident.name()
+    	    ftLogger.warn("SATIN '" + ident
             	    + "' :exception while electing a new master " + e,
                     e);
         }
@@ -177,11 +177,11 @@ public abstract class FaultTolerance extends Inlets {
                 clusterCoordinator = true;
             }
         } catch (IOException e) {
-    	    ftLogger.warn("SATIN '" + ident.name()
+    	    ftLogger.warn("SATIN '" + ident
             	    + "' :exception while electing a new cluster coordinator "
                     + e, e);
         } catch (ClassNotFoundException e) {
-    	    ftLogger.warn("SATIN '" + ident.name()
+    	    ftLogger.warn("SATIN '" + ident
             	    + "' :exception while electing a new cluster coordinator "
                     + e, e);
         }    
@@ -194,7 +194,7 @@ public abstract class FaultTolerance extends Inlets {
         }
 
         if (abortLogger.isDebugEnabled()) {
-            abortLogger.debug("SATIN '" + ident.name()
+            abortLogger.debug("SATIN '" + ident
                     + ": sending abort and store message to: " + r.stealer
                     + " for job " + r.stamp);
         }
@@ -225,7 +225,7 @@ public abstract class FaultTolerance extends Inlets {
                 }
             }
         } catch (IOException e) {
-            ftLogger.warn("SATIN '" + ident.name()
+            ftLogger.warn("SATIN '" + ident
                     + "': Got Exception while sending abort message: " + e);
             // This should not be a real problem, it is just inefficient.
             // Let's continue...
@@ -260,7 +260,7 @@ public abstract class FaultTolerance extends Inlets {
             r.parent.finishedChild = r;
         } else if (r.owner.equals(ident)) {
             if (ASSERTS && !r.owner.equals(ident)) {
-                ftLogger.fatal("SATIN '" + ident.name()
+                ftLogger.fatal("SATIN '" + ident
                         + "': parent of a restarted job on another machine!");
                 System.exit(1);
             }
@@ -281,7 +281,7 @@ public abstract class FaultTolerance extends Inlets {
             r.parent.toBeRestartedChild = r;
         } else if (r.owner.equals(ident)) {
             if (ASSERTS && !r.owner.equals(ident)) {
-                ftLogger.fatal("SATIN '" + ident.name()
+                ftLogger.fatal("SATIN '" + ident
                         + "': parent of a restarted job on another machine!");
                 System.exit(1);
             }
@@ -295,7 +295,7 @@ public abstract class FaultTolerance extends Inlets {
     //connect upcall functions
     public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
         // if (ftLogger.isDebugEnabled()) {
-        //     ftLogger.debug("SATIN '" + ident.name()
+        //     ftLogger.debug("SATIN '" + ident
         //             + "': got gotConnection upcall");
         // }
         return true;
@@ -328,7 +328,7 @@ public abstract class FaultTolerance extends Inlets {
     public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe,
             Exception reason) {
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name()
+            commLogger.debug("SATIN '" + ident
                     + "': got lostConnection upcall: " + johnDoe.ibis());
         }
         if (FAULT_TOLERANCE) {
@@ -342,7 +342,7 @@ public abstract class FaultTolerance extends Inlets {
     public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe,
             Exception reason) {
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident.name()
+            commLogger.debug("SATIN '" + ident
                     + "': got SENDPORT lostConnection upcall: "
                     + johnDoe.ibis());
         }
@@ -383,7 +383,7 @@ public abstract class FaultTolerance extends Inlets {
         if (GLOBAL_RESULT_TABLE_REPLICATED) {
 
             if (ASSERTS && value.type != GlobalResultTable.Value.TYPE_RESULT) {
-                grtLogger.fatal("SATIN '" + ident.name()
+                grtLogger.fatal("SATIN '" + ident
                         + "': EEK using replicated table, but got a non-result "
                         + "value!");
                 System.exit(1);
@@ -416,9 +416,9 @@ public abstract class FaultTolerance extends Inlets {
                     }
 
                     if (grtLogger.isDebugEnabled()) {
-                        grtLogger.debug("SATIN '" + ident.name()
+                        grtLogger.debug("SATIN '" + ident
                                  + "': sending a result request of " + key
-                                 + " to " + value.owner.name());
+                                 + " to " + value.owner);
                     }
                     s = getReplyPortNoWait(value.owner);
                 }
@@ -446,7 +446,7 @@ public abstract class FaultTolerance extends Inlets {
                     // complicated..
                     m.finish();
                 } catch (IOException e) {
-                    grtLogger.warn("SATIN '" + ident.name()
+                    grtLogger.warn("SATIN '" + ident
                             + "': trying to send RESULT_REQUEST but got "
                             + "exception: " + e, e);
                     synchronized (this) {
@@ -463,7 +463,7 @@ public abstract class FaultTolerance extends Inlets {
             if (FT_WITHOUT_ABORTS && ASSERTS) {
                 if (value.type == GlobalResultTable.Value.TYPE_LOCK) {
                     //i don't think that should happen
-                    grtLogger.fatal("SATIN '" + ident.name()
+                    grtLogger.fatal("SATIN '" + ident
                             + "': found local unfinished job in the table!! "
                             + key);
                     System.exit(1);
@@ -496,7 +496,7 @@ public abstract class FaultTolerance extends Inlets {
             assertLocked(this);
         }
         if (abortLogger.isDebugEnabled()) {
-            abortLogger.debug("SATIN '" + ident.name() + ": got abort message");
+            abortLogger.debug("SATIN '" + ident + ": got abort message");
         }
         abortAndStoreList.add(stamp, owner);
         gotAbortsAndStores = true;
@@ -534,7 +534,7 @@ public abstract class FaultTolerance extends Inlets {
     public void deleteCluster(String clusterName) {
 
         if (ftLogger.isInfoEnabled()) {
-            ftLogger.info("SATIN '" + ident.name() + "': delete cluster "
+            ftLogger.info("SATIN '" + ident + "': delete cluster "
                     + clusterName);
         }
 
@@ -564,7 +564,7 @@ public abstract class FaultTolerance extends Inlets {
     synchronized void handleDeleteCluster() {
 
         if (ftLogger.isInfoEnabled()) {
-            ftLogger.info("SATIN '" + ident.name()
+            ftLogger.info("SATIN '" + ident
                     + "': handle delete cluster");
         }
 
