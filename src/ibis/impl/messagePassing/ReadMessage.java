@@ -18,6 +18,7 @@ public class ReadMessage
     ibis.ipl.impl.messagePassing.ReadMessage next;
     ReadFragment fragmentFront;
     ReadFragment fragmentTail;
+    int		 sleepers = 0;
 
     ReadMessage(ibis.ipl.SendPort s,
 		ReceivePort port) {
@@ -86,11 +87,18 @@ public class ReadMessage
     }
 
     public void wakeup() {
-	cv.cv_signal();
+	if (sleepers != 0) {
+// System.err.println("Readmessage signalled");
+	    cv.cv_signal();
+	}
     }
 
     public void poll_wait(long timeout) {
+// System.err.println("ReadMessage poll_wait");
+	sleepers++;
 	cv.cv_wait(timeout);
+	sleepers--;
+// System.err.println("ReadMessage woke up");
     }
 
     Thread me;
