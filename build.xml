@@ -656,6 +656,11 @@
 	<delete file="config.mk.orig"/>
 	<delete file="configuration.sh"/>
 	<delete file="configuration.bat"/>
+	<delete includeEmptyDirs="true">
+	    <fileset dir="${ibis}/apps" followsymlinks="false">
+		<include name="**/build"/>
+	    </fileset>
+	</delete>
 	<delete dir="bin"/>
 	<delete dir="ant-tasks/tasks"/>
     </target>

@@ -1,16 +1,1 @@
-case X$ANT_HOME in
-X)
-    ;;
-X$IBIS_ROOT/3rdparty/apache-ant-1.6.1)
-    ;;
-*)
-    echo You have the ANT_HOME environment variable set.
-    echo I am resetting it to $IBIS_ROOT/3rdparty/apache-ant-1.6.1
-    ;;
-esac
-
-export IBIS_ROOT
-
-export ANT_HOME=$IBIS_ROOT/3rdparty/apache-ant-1.6.1
-
 $IBIS_ROOT/3rdparty/apache-ant-1.6.1/bin/ant "$@"

@@ -431,6 +431,12 @@ to the command line.
 	<concat destfile="${ibis}/bin/jp">
 	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/jp" />
 	</concat>
+	<if>
+	    <os family="mac"/>
+	    <then>
+		<replace file="${ibis}/bin/jp" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
+	    </then>
+	</if>
 	<chmod file="${ibis}/bin/jp" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/satinc">

@@ -9,11 +9,9 @@ The Ibis software requires `ant', a software building tool similar to
 `make', but written in Java, and well-suited for building Java software.
 The Ibis distribution requires you to use the `ant' that is supplied with
 Ibis. This version of ant lives in 3rdparty/apache-ant-1.6.1/bin.
+An 'ant' script is supplied in the Ibis toplevel directory which
+calls the required ant.
 Below, when `ant' is mentioned, this version is intended.
-Note that ant depends on an environment variable ANT_HOME, which, if not
-set, is set to a value that may be wrong for the ant supplied with this
-distribution. A `compile' script is supplied which invokes this `ant' with
-the arguments supplied and the correct ANT_HOME environment variable.
 
 -------------------------------------------------------------------------
 
@@ -30,7 +28,7 @@ If you do have a high-speed LAN for which you require an Ibis
 module (like GM (Myrinet), MPI, or Panda), you must configure
 Ibis by typing
 
-compile configure
+ant configure
 
 You will be asked for the path to a number of support libraries. If you
 don't have one or more of these libraries, just type <ENTER>.
@@ -58,7 +56,7 @@ II. Build
 
 Build by typing
 
-compile
+ant
 
 -----------------------------------------------------------------------
 
@@ -66,7 +64,7 @@ III. API
 
 The Ibis API documentation can be built by typing
 
-compile docs
+ant docs
 
 This will build a "docs" directory with an "api" sub-directory.
 Point your favorite HTML viewer to docs/api/index.html to view
