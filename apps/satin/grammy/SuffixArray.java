@@ -383,7 +383,7 @@ public class SuffixArray implements Configuration, Magic {
         if( maxlen == 0 ){
             return null;
         }
-        return new Step( ix0, ix1, maxlen );
+        return new Step( new int[] { ix0, ix1 }, maxlen );
     }
 
     /**

@@ -84,6 +84,5 @@ class Compress extends ibis.satin.SatinObject
         catch( Exception x ){
             x.printStackTrace();
         }
-
     }
 }

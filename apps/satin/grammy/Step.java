@@ -5,9 +5,9 @@ class Step {
     int occurences[];
     int len;
 
-    public Step( int a, int b, int l )
+    public Step( int occ[], int l )
     {
-        occurences = new int[] { a, b };
+        occurences = occ;
         len = l;
     }
 
