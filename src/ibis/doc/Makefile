@@ -23,4 +23,4 @@ clean:
 		rm -rf *.aux *.dvi *.log *.bbl *.blg */TMP
 
 allclean:	clean
-		rm -rf *.ps progman
+		rm -rf *.ps *.pdf progman
