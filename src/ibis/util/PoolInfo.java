@@ -1,7 +1,5 @@
 package ibis.util;
 
-import ibis.ipl.IbisException;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.NoSuchElementException;
@@ -76,9 +74,8 @@ public class PoolInfo {
 
 	/**
 	 * Constructs a <code>PoolInfo</code> object.
-	 * @exception IbisException is thrown when something is wrong.
 	 */
-	public PoolInfo() throws IbisException {
+	public PoolInfo() {
 		this(false);
 	}
 
@@ -87,9 +84,8 @@ public class PoolInfo {
 	 * @param forceSequential when set to <code>true</code>,
 	 * a sequential pool is created, with only the current node as
 	 * member. The system properties are ignored.
-	 * @exception IbisException is thrown when something is wrong.
 	 */
-	public PoolInfo(boolean forceSequential) throws IbisException {
+	public PoolInfo(boolean forceSequential) {
 		if (forceSequential) {
 			sequentialPool();
 		} else {
@@ -124,7 +120,7 @@ public class PoolInfo {
 	}
 
 
-	private void propertiesPool() throws IbisException {
+	private void propertiesPool() {
 		String ibisHostNames;
 		
 		Properties p = System.getProperties();
@@ -132,13 +128,13 @@ public class PoolInfo {
 		total_hosts = getIntProperty(p, s_total);
 		try {
 		    host_number = getIntProperty(p, s_hnum);
-		} catch (IbisException e) {
+		} catch (NumberFormatException e) {
 		    host_number = -1;
 		}
 		
 		ibisHostNames = p.getProperty(s_names);
 		if(ibisHostNames == null) {
-			throw new IbisException("Property " + s_names + " not set!");
+			throw new RuntimeException("Property " + s_names + " not set!");
 		}
 
 		host_names = new String[total_hosts];
@@ -161,7 +157,7 @@ public class PoolInfo {
 			try {
 			    t = tok.nextToken();       
 			} catch (NoSuchElementException e) {
-			    throw new IbisException("Not enough hostnames in ibis.pool.host_names!");
+			    throw new RuntimeException("Not enough hostnames in ibis.pool.host_names!");
 			}
 			
 			try {
@@ -188,7 +184,7 @@ public class PoolInfo {
 				}
 				
 			} catch (IOException e) {
-				throw new IbisException("Could not find host name " + t);
+				throw new RuntimeException("Could not find host name " + t);
 			}		       			
 		}
 
@@ -198,7 +194,7 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 		}
 
 		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
-			throw new IbisException("Sanity check on host numbers failed!");
+			throw new RuntimeException("Sanity check on host numbers failed!");
 		}
 	}
 
@@ -300,12 +296,12 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 		return (String[]) host_names.clone();
 	}
 
-	private static int getIntProperty(Properties p, String name) throws IbisException {
+	private static int getIntProperty(Properties p, String name) {
 
 		String temp = p.getProperty(name);
 		
 		if (temp == null) { 
-			throw new IbisException("Property " + name + " not found !");
+			throw new NumberFormatException("Property " + name + " not found !");
 		}
 		
 		return Integer.parseInt(temp);
@@ -331,11 +327,8 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	 * @param forceSeq indicates wether a pool for a sequential run must
 	 * be created.
 	 * @return the resulting <code>PoolInfo</code> object.
-	 * @exception IbisException is thrown when something is wrong.
 	 */
-	public static PoolInfo createPoolInfo(boolean forceSeq)
-			throws IbisException
-	{
+	public static PoolInfo createPoolInfo(boolean forceSeq) {
 		if (forceSeq) {
 			return new PoolInfo(true);
 		}
@@ -345,7 +338,7 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 		try {
 			return PoolInfoClient.create();
 		} catch(Throwable e) {
-			throw new IbisException("Got exception", e);
+			throw new RuntimeException("Got exception", e);
 		}
 	}
 
@@ -356,9 +349,8 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	 * If not, a {@link ibis.util.PoolInfoClient PoolInfoClient}
 	 * is created.
 	 * @return the resulting <code>PoolInfo</code> object.
-	 * @exception IbisException is thrown when something is wrong.
 	 */
-	public static PoolInfo createPoolInfo() throws IbisException {
+	public static PoolInfo createPoolInfo() {
 		return createPoolInfo(false);
 	}
 

@@ -1,7 +1,5 @@
 package ibis.util;
 
-import ibis.ipl.IbisException;
-
 import java.io.DataOutputStream;
 import java.io.ObjectInputStream;
 import java.net.InetAddress;
@@ -69,14 +67,14 @@ public class PoolInfoClient extends PoolInfo {
      * Creates a <code>PoolInfoClient</code> if not already present.
      * @return the <code>PoolInfoClient</code>.
      */
-    public static PoolInfoClient create() throws IbisException {
+    public static PoolInfoClient create() {
 	if (instance == null) {
 	    instance = new PoolInfoClient();
 	}
 	return instance;
     }
 
-    private PoolInfoClient() throws IbisException {
+    private PoolInfoClient() {
 	super(0);
 
 	InetAddress serverAddress;
@@ -123,7 +121,7 @@ public class PoolInfoClient extends PoolInfo {
 		in.close();
 		out.close();
 		socket.close();
-		throw new IbisException("This node is already registered");
+		throw new RuntimeException("This node is already registered");
 	    }
 	    total_hosts = in.readInt();
 	    host_clusters = (String []) in.readObject();

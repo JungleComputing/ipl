@@ -155,7 +155,7 @@ public final class NetIbis extends Ibis {
 	    ibis.util.PoolInfo p = null;
 	    try {
 		p = ibis.util.PoolInfo.createPoolInfo();
-	    } catch (ibis.ipl.IbisException e) {
+	    } catch (RuntimeException e) {
 		// OK, no pool, so this better not be closed world
 		try {
 		    InetAddress addr = InetAddress.getLocalHost();
