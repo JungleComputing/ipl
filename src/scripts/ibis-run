@@ -192,7 +192,7 @@ do
 	-hosts)
 		shift
 		HOSTS="$1"
-		Dpool_host_names="-Dibis.pool.host_names="
+		hostnames=1
 		;;
 	-jdb)
 		JAVA_EXEC=jdb
@@ -340,12 +340,25 @@ then
     BOOTPATH="$JAVACLASSPATH"
 fi
 
-$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+if [ $hostnames -eq 1 ]
+then
+    $action "$JAVA_ROOT/bin/$JAVA_EXEC" \
 	$JIT_OPTS \
 	-Djava.library.path="$libpath" \
 	-Dibis.library.path="$ibislib" \
-	$Dpool_host_num $Dpool_total $Dpool_host_names"$HOSTS" \
+	$Dpool_host_num $Dpool_total -Dibis.pool.host_names="$HOSTS" \
 	$Dns_key $Dns_port $Dns_server \
 	$Xbootclasspath"$BOOTPATH" \
 	-classpath "$JAVACLASSPATH" \
 	"$@"
+else
+    $action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	$JIT_OPTS \
+	-Djava.library.path="$libpath" \
+	-Dibis.library.path="$ibislib" \
+	$Dpool_host_num $Dpool_total \
+	$Dns_key $Dns_port $Dns_server \
+	$Xbootclasspath"$BOOTPATH" \
+	-classpath "$JAVACLASSPATH" \
+	"$@"
+fi
