@@ -167,6 +167,8 @@ public final class Satin implements Config, ResizeHandler {
 	Timer tupleTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer invocationRecordWriteTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer invocationRecordReadTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer tupleOrderingWaitTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer tupleOrderingSeqTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	private long prevPoll = 0;
 	//	float MHz = Timer.getMHz();
 
@@ -271,6 +273,8 @@ public final class Satin implements Config, ResizeHandler {
 		if(tupleTimer == null) tupleTimer = new Timer();
 		if(invocationRecordWriteTimer == null) invocationRecordWriteTimer = new Timer();
 		if(invocationRecordReadTimer == null) invocationRecordReadTimer = new Timer();
+		if(tupleOrderingWaitTimer == null) tupleOrderingWaitTimer = new Timer();
+		if(tupleOrderingSeqTimer == null) tupleOrderingSeqTimer = new Timer();
 		
 		Properties p = System.getProperties();
 		String hostName = null;
@@ -700,35 +704,41 @@ public final class Satin implements Config, ResizeHandler {
 
 			out.println("-------------------------------SATIN TOTAL TIMES-------------------------------");
 			if(STEAL_TIMING) {
-				out.println("SATIN: STEAL_TIME:           total " +
-					    Timer.format(totalStats.stealTime) + " time/req " +
+				out.println("SATIN: STEAL_TIME:             total " +
+					    Timer.format(totalStats.stealTime) + " time/req    " +
 					    Timer.format(totalStats.stealTime / totalStats.stealAttempts));
 
-				out.println("SATIN: HANDLE_STEAL_TIME:    total " + 
+				out.println("SATIN: HANDLE_STEAL_TIME:      total " + 
 					    Timer.format(totalStats.handleStealTime) +
 					    " time/handle " + 
 					    Timer.format((totalStats.handleStealTime)/totalStats.stealAttempts));
 
-				out.println("SATIN: SERIALIZATION_TIME:   total " + 
+				out.println("SATIN: SERIALIZATION_TIME:     total " + 
 					    Timer.format(totalStats.invocationRecordWriteTime) +
-					    " time/write " + 
+					    " time/write  " + 
 					    Timer.format(totalStats.invocationRecordWriteTime/totalStats.stealSuccess));
-				out.println("SATIN: DESERIALIZATION_TIME: total " + 
+				out.println("SATIN: DESERIALIZATION_TIME:   total " + 
 					    Timer.format(totalStats.invocationRecordReadTime) +
-					    " time/read " + 
+					    " time/read   " + 
 					    Timer.format(totalStats.invocationRecordReadTime/totalStats.stealSuccess));
 			}
 
 			if(ABORT_TIMING) {
-				out.println("SATIN: ABORT_TIME:           total " + 
+				out.println("SATIN: ABORT_TIME:             total " + 
 					    Timer.format(totalStats.abortTime) +
-					  " time/abort " + Timer.format(totalStats.abortTime / totalStats.aborts));
+					  " time/abort  " + Timer.format(totalStats.abortTime / totalStats.aborts));
 			}
 
 			if(TUPLE_TIMING) {
-				out.println("SATIN: TUPLE_SPACE_TIME:     total " +
-					    Timer.format(totalStats.tupleTime) + " time/bcast " +
+				out.println("SATIN: TUPLE_SPACE_BCAST_TIME: total " +
+					    Timer.format(totalStats.tupleTime) + " time/bcast  " +
 					    Timer.format(totalStats.tupleTime/totalStats.tupleMsgs));
+				out.println("SATIN: TUPLE_SPACE_WAIT_TIME:  total " +
+					    Timer.format(totalStats.tupleWaitTime) + " time/bcast  " +
+					    Timer.format(totalStats.tupleWaitTime/totalStats.tupleWaitCount));
+				out.println("SATIN: TUPLE_SPACE_ORDER_TIME: total " +
+					    Timer.format(totalStats.tupleSeqTime) + " time/bcast  " +
+					    Timer.format(totalStats.tupleSeqTime/totalStats.tupleSeqCount));
 			}
 
 			if(POLL_FREQ != 0 && POLL_TIMING) {
@@ -738,7 +748,7 @@ public final class Satin implements Config, ResizeHandler {
 			}
 
 			out.println("-------------------------------SATIN RUN TIME BREAKDOWN------------------------");
-			out.println("SATIN: TOTAL_RUN_TIME:                          " +
+			out.println("SATIN: TOTAL_RUN_TIME:                           " +
 				    Timer.format(totalTimer.totalTimeVal()));
 
 			double lbTime = (totalStats.stealTime - totalStats.invocationRecordReadTime -
@@ -752,49 +762,68 @@ public final class Satin implements Config, ResizeHandler {
 			double abortPerc = abortTime/totalTimer.totalTimeVal() * 100.0;
 			double tupleTime = totalStats.tupleTime / size;
 			double tuplePerc = tupleTime/totalTimer.totalTimeVal() * 100.0;
+			double tupleWaitTime = totalStats.tupleWaitTime / size;
+			double tupleWaitPerc = tupleWaitTime/totalTimer.totalTimeVal() * 100.0;
+			double tupleSeqTime = totalStats.tupleSeqTime / size;
+			double tupleSeqPerc = tupleSeqTime/totalTimer.totalTimeVal() * 100.0;
 			double pollTime = totalStats.pollTime / size;
 			double pollPerc = pollTime/totalTimer.totalTimeVal() * 100.0;
-			double totalOverhead = lbTime + serTime + abortTime + tupleTime + pollTime;
+			double totalOverhead = lbTime + serTime + abortTime + 
+			    tupleTime + tupleWaitTime + tupleSeqTime + pollTime;
 			double totalPerc = totalOverhead/totalTimer.totalTimeVal() * 100.0;
 			double appTime = totalTimer.totalTimeVal() - totalOverhead;
 			if(appTime < 0.0) appTime = 0.0;
 			double appPerc = appTime/totalTimer.totalTimeVal() * 100.0;
 
 			if(STEAL_TIMING) {
-
-				out.println("SATIN: LOAD_BALANCING_TIME:    avg. per machine " +
-					    Timer.format(lbTime) + " (" +
+				out.println("SATIN: LOAD_BALANCING_TIME:     avg. per machine " +
+					    Timer.format(lbTime) + " (" + 
+					    (lbPerc < 10 ? " ": "" ) +
 					    pf.format(lbPerc) + " %)");
 
-				out.println("SATIN: (DE)SERIALIZATION_TIME: avg. per machine " + 
+				out.println("SATIN: (DE)SERIALIZATION_TIME:  avg. per machine " + 
 					    Timer.format(serTime) + " (" +
+					    (serPerc < 10 ? " ": "" ) +
 					    pf.format(serPerc) + " %)");
 			}
 
 			if(ABORT_TIMING) {
-				out.println("SATIN: ABORT_TIME:             avg. per machine " + 
+				out.println("SATIN: ABORT_TIME:              avg. per machine " + 
 					    Timer.format(abortTime) + " (" +
+					    (abortPerc < 10 ? " ": "" ) +
 					    pf.format(abortPerc) + " %)");
 			}
 
 			if(TUPLE_TIMING) {
-				out.println("SATIN: TUPLE_SPACE_TIME:       avg. per machine " +
+				out.println("SATIN: TUPLE_SPACE_BCAST_TIME:  avg. per machine " +
 					    Timer.format(tupleTime) + " (" +
+					    (tuplePerc < 10 ? " ": "" ) +
 					    pf.format(tuplePerc) + " %)");
+				out.println("SATIN: TUPLE_SPACE_WAIT_TIME:   avg. per machine " +
+					    Timer.format(tupleWaitTime) + " (" +
+					    (tupleWaitPerc < 10 ? " ": "" ) +
+					    pf.format(tupleWaitPerc) + " %)");
+				out.println("SATIN: TUPLE_SPACE_ORDER_TIME:  avg. per machine " +
+					    Timer.format(tupleSeqTime) + " (" +
+					    (tupleSeqPerc < 10 ? " ": "" ) +
+					    pf.format(tupleSeqPerc) + " %)");
 			}
 
 			if(POLL_FREQ != 0 && POLL_TIMING) {
-				out.println("SATIN: POLL_TIME:              avg. per machine " +
+				out.println("SATIN: POLL_TIME:               avg. per machine " +
 					    Timer.format(pollTime) + " (" +
+					    (pollPerc < 10 ? " ": "" ) +
 					    pf.format(pollPerc) + " %)");
 			}
 
-			out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD:    avg. per machine " +
+			out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD: avg. per machine " +
 				    Timer.format(totalOverhead) + " (" +
+					    (totalPerc < 10 ? " ": "" ) +
 				    pf.format(totalPerc) + " %)");
 
-			out.println("SATIN: USEFUL_APP_TIME:        avg. per machine " +
+			out.println("SATIN: USEFUL_APP_TIME:         avg. per machine " +
 				    Timer.format(appTime) + " (" +
+					    (appPerc < 10 ? " ": "" ) +
 				    pf.format(appPerc) + " %)");
 
 		}
@@ -901,6 +930,18 @@ public final class Satin implements Config, ResizeHandler {
 					    tupleTimer.nrTimes() + " total time = " +
 					    tupleTimer.totalTime() + " avg time = " +
 					    tupleTimer.averageTime());
+
+				out.println("SATIN '" + ident.name() + 
+					    "': TUPLE_STATS 3: waits = " +
+					    tupleOrderingWaitTimer.nrTimes() + " total time = " +
+					    tupleOrderingWaitTimer.totalTime() + " avg time = " +
+					    tupleOrderingWaitTimer.averageTime());
+
+				out.println("SATIN '" + ident.name() + 
+					    "': TUPLE_STATS 4: sequencer accesses = " +
+					    tupleOrderingSeqTimer.nrTimes() + " total time = " +
+					    tupleOrderingSeqTimer.totalTime() + " avg time = " +
+					    tupleOrderingSeqTimer.averageTime());
 			}
 			algorithm.printStats(out);
 		}
@@ -1405,10 +1446,17 @@ public final class Satin implements Config, ResizeHandler {
 		// if we have ordered communication, we have to wait until
 		// our sequence number equals the one in the job
 		if(sequencer != null) {
-		    System.err.println("steal reply seq nr = " + stealReplySeqNr + ", my seq nr = " + expected_seqno);
+		    if(TUPLE_TIMING) {
+			tupleOrderingWaitTimer.start();
+		    }
+		    if(TUPLE_DEBUG) {
+			System.err.println("steal reply seq nr = " + stealReplySeqNr + ", my seq nr = " + expected_seqno);
+		    }
 		    while(stealReplySeqNr > expected_seqno) {
-			System.err.println("W");
 			handleDelayedMessages();
+		    }
+		    if(TUPLE_TIMING) {
+			tupleOrderingWaitTimer.stop();
 		    }
 		}
 
@@ -2479,7 +2527,9 @@ public final class Satin implements Config, ResizeHandler {
 				WriteMessage writeMessage = tuplePort.newMessage();
 				writeMessage.writeByte(Protocol.TUPLE_ADD);
 				if (sequencer != null) {
+				    tupleOrderingSeqTimer.start();
 				    seqno = sequencer.getSeqno("TupleSpace");
+				    tupleOrderingSeqTimer.stop();
 				    writeMessage.writeInt(seqno);
 				}
 				writeMessage.writeObject(key);
@@ -2667,6 +2717,11 @@ public final class Satin implements Config, ResizeHandler {
 		s.pollTime = pollTimer.totalTimeVal();
 		s.pollCount = pollTimer.nrTimes();
 		s.tupleTime = tupleTimer.totalTimeVal();
+		s.tupleWaitTime = tupleOrderingWaitTimer.totalTimeVal();
+		s.tupleWaitCount = tupleOrderingWaitTimer.nrTimes();
+		s.tupleSeqTime = tupleOrderingSeqTimer.totalTimeVal();
+		s.tupleSeqCount = tupleOrderingSeqTimer.nrTimes();
+
 		s.invocationRecordWriteTime = invocationRecordWriteTimer.totalTimeVal();
 		s.invocationRecordWriteCount = invocationRecordWriteTimer.nrTimes();
 		s.invocationRecordReadTime = invocationRecordReadTimer.totalTimeVal();

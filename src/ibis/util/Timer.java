@@ -139,14 +139,30 @@ public class Timer implements java.io.Serializable {
 //	nf.setMinimumIntegerDigits(3);
 	nf.setGroupingUsed(false);
 
+        // special case for 0
+	if(micros == 0) {
+	    return "  0.000  s";
+	}
+
 	if (micros < 1.0) {
-	    return nf.format(micros * 1000) + " ns";
+	    double nanos = micros * 1000;
+	    if(nanos < 10) return "  " + nf.format(nanos) + " ns";
+	    if(nanos < 100) return " " + nf.format(nanos) + " ns";
+	    return nf.format(nanos) + " ns";
 	} else if (micros < 1000.0) {
+	    if(micros < 10) return "  " + nf.format(micros) + " us";
+	    if(micros < 100) return " " + nf.format(micros) + " us";
 	    return nf.format(micros) + " us";
 	} else if (micros < 1000000.0) {
-	    return nf.format(micros / 1000) + " ms";
+	    double millis = micros / 1000;
+	    if(millis < 10) return "  " + nf.format(millis) + " ms";
+	    if(millis < 100) return " " + nf.format(millis) + " ms";
+	    return nf.format(millis) + " ms";
 	} else {
-	    return nf.format(micros / 1000000) + "  s";
+	    double secs = micros / 1000000;
+	    if(secs < 10) return "  " + nf.format(secs) + "  s";
+	    if(secs < 100) return " " + nf.format(secs) + "  s";
+	    return nf.format(secs) + "  s";
 	}
     }
 

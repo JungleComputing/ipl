@@ -30,6 +30,11 @@ class SatinStats implements java.io.Serializable {
 	long invocationRecordWriteCount;
 	double invocationRecordReadTime;
 	long invocationRecordReadCount;
+    double tupleWaitTime;
+    long tupleWaitCount;
+    double tupleSeqTime;
+    long tupleSeqCount;
+
 
 	void add(SatinStats s) {
 		spawns += s.spawns;
@@ -62,5 +67,9 @@ class SatinStats implements java.io.Serializable {
 		invocationRecordWriteCount += s.invocationRecordWriteCount;
 		invocationRecordReadTime += s.invocationRecordReadTime;
 		invocationRecordReadCount += s.invocationRecordReadCount;
+		tupleWaitTime += s.tupleWaitTime;
+		tupleWaitCount += s.tupleWaitCount;
+		tupleSeqTime += s.tupleSeqTime;
+		tupleSeqCount += s.tupleSeqCount;
 	}
 }
