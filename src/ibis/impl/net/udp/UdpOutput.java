@@ -21,18 +21,66 @@ import java.io.ObjectOutputStream;
 
 import java.util.Hashtable;
 
+/**
+ * The UDP output implementation.
+ *
+ * <BR><B>Note</B>: this first implementation does not use UDP broadcast capabilities.
+ */
 public class UdpOutput extends NetOutput {
-	private DatagramSocket 		 socket = null;
-	private DatagramPacket 		 packet = null;
-	private InetAddress    		 laddr  = null;
-	private int            		 lport  =    0;
-	private int            		 lmtu   =    0;
-	private InetAddress    		 raddr  = null;
-	private int            		 rport  =    0;
-	private int            		 rmtu   =    0;
-	private Integer                  rpn 	= null;
-	private NetReceivePortIdentifier rpi 	= null;
 
+	/**
+	 * The UDP socket.
+	 */
+	private DatagramSocket socket = null;
+
+	/**
+	 * The UDP message wrapper.
+	 */
+	private DatagramPacket packet = null;
+	/**
+	 * The local socket IP address.
+	 */
+	private InetAddress    laddr  = null;
+
+	/**
+	 * The local socket IP port.
+	 */
+	private int            lport  =    0;
+
+	/**
+	 * The local MTU.
+	 */
+	private int            lmtu   =   0;
+
+	/**
+	 * The remote socket IP address.
+	 */
+	private InetAddress    raddr  = null;
+
+	/**
+	 * The remote socket IP port.
+	 */
+	private int            rport  =   0;
+
+	/**
+	 * The remote MTU.
+	 */
+	private int            rmtu   =   0;
+
+	/**
+	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+	 * local number.
+	 */
+	private Integer        rpn    = null;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param sp the properties of the output's 
+	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
+	 * @param driver the TCP driver instance.
+	 * @param output the controlling output.
+	 */
 	UdpOutput(StaticProperties sp,
 		  NetDriver   	   driver,
 		  NetOutput   	   output)
@@ -40,9 +88,19 @@ public class UdpOutput extends NetOutput {
 		super(sp, driver, output);
 	}
 
-	public void setupConnection(Integer                  rpn,
-				    ObjectInputStream 	     is,
-				    ObjectOutputStream	     os)
+	/*
+	 * Sets up an outgoing UDP connection.
+	 *
+	 * <BR><B>Note</B>: this function also negociate the mtu.
+	 * <BR><B>Note</B>: the current UDP mtu is arbitrarily fixed at 32kB.
+	 *
+	 * @param rpn {@inheritDoc}
+	 * @param is {@inheritDoc}
+	 * @param os {@inheritDoc}
+	 */
+	public void setupConnection(Integer            rpn,
+				    ObjectInputStream  is,
+				    ObjectOutputStream os)
 		throws IbisIOException {
 		this.rpn = rpn;
 		this.rpi = rpi;
@@ -73,7 +131,11 @@ public class UdpOutput extends NetOutput {
 		packet = new DatagramPacket(new byte[0], 0, raddr, rport);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
+		//System.err.println("UDP send: "+b.length+" bytes");
 		packet.setData(b.data, 0, b.length);
 		try {
 			socket.send(packet);
@@ -82,14 +144,23 @@ public class UdpOutput extends NetOutput {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void release() {
 		// nothing
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void reset() {
 		// nothing
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void free() throws IbisIOException {
 		if (socket != null) {
 			socket.close();

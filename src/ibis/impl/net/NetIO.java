@@ -299,7 +299,7 @@ public abstract class NetIO {
 	/**
 	 * Closes the I/O.
 	 *
-	 * Node: methods redefining this one should also call it.
+	 * Note: methods redefining this one should also call it.
 	 */
 	public void free() 
 		throws IbisIOException {
@@ -315,7 +315,7 @@ public abstract class NetIO {
 	/**
 	 * Finalizes this IO object.
 	 *
-	 * Node: methods redefining this one should call it at the end.
+	 * Note: methods redefining this one should call it at the end.
 	 */
 	protected void finalize()
 		throws Throwable {

@@ -5,13 +5,35 @@ import ibis.ipl.SendPortIdentifier;
 
 import java.io.Serializable;
 
+/**
+ * Provides an identifier for a {@link NetSendPort}.
+ */
 public class NetSendPortIdentifier
 	implements SendPortIdentifier, Serializable {
+
+	/**
+	 * SendPort type name.
+	 */
 	private String 	    	  type = null;
+
+	/**
+	 * SendPort name.
+	 */
 	private String 	    	  name = null;
+
+	/**
+	 * Ibis instance identifier.
+	 */
 	private NetIbisIdentifier ibis = null;
 
 
+	/**
+	 * Constructor.
+	 *
+	 * @param name the name of the SendPort.
+	 * @param type the type name.
+	 * @param ibis the Ibis instance identifier.
+	 */
 	public NetSendPortIdentifier(String	       name,
 				     String	       type,
 				     NetIbisIdentifier ibis) {
@@ -21,6 +43,11 @@ public class NetSendPortIdentifier
 	}
 
 	
+	/**
+	 * Specific equality test.
+	 *
+	 * @return The equality result.
+	 */
 	public boolean equals(NetSendPortIdentifier other) {
 		
 		if (other == null) { 
@@ -34,6 +61,11 @@ public class NetSendPortIdentifier
 		}
 	}
 
+	/**
+	 * Generic equality test.
+	 *
+	 * @return The equality result.
+	 */
 	public boolean equals(SendPortIdentifier other) {
 		if (other instanceof NetSendPortIdentifier) {			
 			return equals((NetSendPortIdentifier) other);
@@ -42,10 +74,20 @@ public class NetSendPortIdentifier
 		}
 	}
 	
+	/**
+	 * Returns the SendPort type name.
+	 *
+	 * @return The type name.
+	 */
 	public String type() {
 		return type;
 	}
 	
+	/**
+	 * Returns the SendPort name.
+	 *
+	 * @return The name.
+	 */
 	public String name() {
 		if (name != null) {
 			return name;
@@ -54,6 +96,11 @@ public class NetSendPortIdentifier
 		return "anonymous";
 	}
 	
+	/**
+	 * Returns the Ibis instance identifier.
+	 *
+	 * @return The Ibis identifier.
+	 */
 	public IbisIdentifier ibis() {
 		return ibis;
 	}	

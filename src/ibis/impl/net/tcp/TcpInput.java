@@ -27,13 +27,49 @@ import java.io.OutputStream;
 
 import java.util.Hashtable;
 
+
+/**
+ * The TCP input implementation.
+ */
 public class TcpInput extends NetInput {
+
+	/**
+	 * The connection socket.
+	 */
 	private ServerSocket 	      tcpServerSocket = null;
+
+	/**
+	 * The communication socket.
+	 */
 	private Socket                tcpSocket       = null;
+
+	/**
+	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
+	 * local number.
+	 */
 	private Integer               rpn  	      = null;
+
+	/**
+	 * The communication input stream.
+	 */
 	private InputStream  	      tcpIs	      = null;
+
+	/**
+	 * The communication output stream.
+	 *
+	 * <BR><B>Note</B>: this stream is not really needed but may be used 
+	 * for debugging purpose.
+	 */
 	private OutputStream 	      tcpOs	      = null;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param sp the properties of the input's 
+	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * @param driver the TCP driver instance.
+	 * @param input the controlling input.
+	 */
 	TcpInput(StaticProperties sp,
 		 NetDriver        driver,
 		 NetInput         input)
@@ -41,6 +77,14 @@ public class TcpInput extends NetInput {
 		super(sp, driver, input);
 	}
 
+
+	/*
+	 * Sets up an incoming TCP connection.
+	 *
+	 * @param rpn {@inheritDoc}
+	 * @param is {@inheritDoc}
+	 * @param os {@inheritDoc}
+	 */
 	public void setupConnection(Integer                rpn,
 				    ObjectInputStream 	   is,
 				    ObjectOutputStream	   os)
@@ -62,6 +106,15 @@ public class TcpInput extends NetInput {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: This TCP polling implementation uses the
+	 * {@link java.io.InputStream#available()} function to test whether at least one
+	 * data byte may be extracted without blocking.
+	 *
+	 * @return {@inheritDoc}
+	 */
 	public Integer poll() throws IbisIOException {
 		activeNum = null;
 
@@ -80,6 +133,13 @@ public class TcpInput extends NetInput {
 		return activeNum;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: this function may block if the expected data is not there.
+	 *
+	 * @return {@inheritDoc}
+	 */
 	public NetReceiveBuffer receiveBuffer(int expectedLength)
 		throws IbisIOException {
 
@@ -94,7 +154,7 @@ public class TcpInput extends NetInput {
 	}
 
 	/*
-	 * We need a way to set timeout through properties 
+	 * TODO: We need a way to set timeout through properties 
 	 */
 	// timeout should be expressed in milliseconds
 	void setReceiveTimeout(int timeout) throws IbisIOException {
@@ -119,6 +179,9 @@ public class TcpInput extends NetInput {
 		return t;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void free() throws IbisIOException {
 		try {
 			if (tcpOs != null) {

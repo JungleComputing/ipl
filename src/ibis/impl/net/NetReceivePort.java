@@ -794,9 +794,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			int bufferLength = buffer.length - bufferOffset;
 			int copyLength   = Math.min(bufferLength, length);
 
-			System.arraycopy(buffer.data, bufferOffset,
-					 userBuffer, offset,
-					 length);
+			System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
 
 			bufferOffset += copyLength;
 			bufferLength -= copyLength;
@@ -809,14 +807,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		}
 
 		while (length > 0) {
-			receiveBuffer(buffer.length);
+			receiveBuffer(length);
 
 			int bufferLength = buffer.length - bufferOffset;
 			int copyLength   = Math.min(bufferLength, length);
 
-			System.arraycopy(buffer.data, bufferOffset,
-					 userBuffer, offset,
-					 length);
+			System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
 
 			bufferOffset += copyLength;
 			bufferLength -= copyLength;
@@ -864,11 +860,50 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		//
 	}
 
-	public void readSubArrayByte(byte [] destination,
+	public void readSubArrayByte(byte [] userBuffer,
 				     int     offset,
-				     int     size)
+				     int     length)
 		throws IbisIOException {
-		//
+		//System.err.println("read: "+offset+", "+length);
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+
+		if (buffer != null) {
+			int bufferLength = buffer.length - bufferOffset;
+			int copyLength   = Math.min(bufferLength, length);
+
+			System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
+
+			bufferOffset += copyLength;
+			bufferLength -= copyLength;
+			offset       += copyLength;
+			length       -= copyLength;
+
+			if (bufferLength == 0) {
+				freeBuffer();
+			}
+		}
+
+		while (length > 0) {
+			receiveBuffer(length);
+
+			int bufferLength = buffer.length - bufferOffset;
+			int copyLength   = Math.min(bufferLength, length);
+
+			System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
+
+			bufferOffset += copyLength;
+			bufferLength -= copyLength;
+			offset       += copyLength;
+			length       -= copyLength;
+
+			if (bufferLength == 0) {
+				freeBuffer();
+			}
+		}
+		//System.err.println("read: "+offset+", "+length+": ok");
 	}
 
 	public void readSubArrayChar(char [] destination,

@@ -20,13 +20,43 @@ import java.io.OutputStream;
 
 import java.util.Hashtable;
 
+/**
+ * The TCP output implementation.
+ */
 public class TcpOutput extends NetOutput {
 
-	private Socket                   tcpSocket = null;   
+	/**
+	 * The communication socket.
+	 */
+	private Socket                   tcpSocket = null;
+
+	/**
+	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+	 * local number.
+	 */
 	private Integer                  rpn 	   = null;
+
+	/**
+	 * The communication input stream.
+	 *
+	 * Note: this stream is not really needed but may be used for debugging
+	 *       purpose.
+	 */
 	private InputStream  	         tcpIs	   = null;
+
+	/**
+	 * The communication output stream.
+	 */
 	private OutputStream 	         tcpOs	   = null;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param sp the properties of the output's 
+	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * @param driver the TCP driver instance.
+	 * @param output the controlling output.
+	 */
 	TcpOutput(StaticProperties sp,
 		  NetDriver   	   driver,
 		  NetOutput   	   output)
@@ -34,6 +64,13 @@ public class TcpOutput extends NetOutput {
 		super(sp, driver, output);
 	}
 
+	/*
+	 * Sets up an outgoing TCP connection.
+	 *
+	 * @param rpn {@inheritDoc}
+	 * @param is {@inheritDoc}
+	 * @param os {@inheritDoc}
+	 */
 	public void setupConnection(Integer                  rpn,
 				    ObjectInputStream 	     is,
 				    ObjectOutputStream	     os)
@@ -55,6 +92,9 @@ public class TcpOutput extends NetOutput {
 		mtu = 0;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
 		try {
 			tcpOs.write(b.data, 0, b.length);
@@ -63,14 +103,23 @@ public class TcpOutput extends NetOutput {
 		} 
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void release() {
 		// nothing
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void reset() {
 		// nothing
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void free() throws IbisIOException {
 		try {
 			if (tcpOs != null) {

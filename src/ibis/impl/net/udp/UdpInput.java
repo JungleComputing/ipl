@@ -26,28 +26,109 @@ import java.io.ObjectOutputStream;
 
 import java.util.Hashtable;
 
-/*
- * Note: this first implementation allocate one receive socket per
+
+/**
+ * The UDP input implementation.
+ *
+ * <BR><B>Note</B>: this first implementation allocate one receive socket per
  * input. It could be interesting to experiment with an implementation
- * using one socket per poller instead. */
+ * using one socket per poller instead.
+ */
 public class UdpInput extends NetInput {
+
+	/**
+	 * The polling timeout in milliseconds.
+	 *
+	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
+	 */
 	private final int             pollTimeout    = 1; // milliseconds
-	private final int             receiveTimeout = 1; // milliseconds
+
+	/**
+	 * The reception timeout in milliseconds.
+	 *
+	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
+	 */
+	private final int             receiveTimeout = 1000; // milliseconds
+
+	/**
+	 * The UDP socket.
+	 */
 	private DatagramSocket 	      socket 	     = null;
+
+	/**
+	 * The UDP message wrapper.
+	 */
 	private DatagramPacket 	      packet 	     = null;
+
+	/**
+	 * The UDP driver instance.
+	 */
 	private Driver         	      driver 	     = null;
+
+	/**
+	 * The local socket IP address.
+	 */
 	private InetAddress    	      laddr  	     = null;
+
+	/**
+	 * The local socket IP port.
+	 */
 	private int            	      lport  	     =    0;
+
+	/**
+	 * The local MTU.
+	 */
 	private int            	      lmtu   	     =    0;
+
+	/**
+	 * The remote socket IP address.
+	 */
 	private InetAddress    	      raddr  	     = null;
+
+	/**
+	 * The remote socket IP port.
+	 */
 	private int            	      rport  	     =    0;
+
+	/**
+	 * The remote MTU.
+	 */
 	private int            	      rmtu   	     =    0;
+
+	/**
+	 * The current reception byte array.
+	 */
 	private byte []               data           = null;
+
+	/**
+	 * The current reception buffer.
+	 */
 	private NetReceiveBuffer      buffer 	     = null;
+
+	/**
+	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
+	 * local number.
+	 */
 	private Integer               rpn    	     = null;
+
+	/**
+	 * The buffer block allocator.
+	 */
 	private NetAllocator          allocator      = null;
+
+	/**
+	 * The current socket timeout.
+	 */
 	private int                   socketTimeout  =    0;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param sp the properties of the input's 
+	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * @param driver the TCP driver instance.
+	 * @param input the controlling input.
+	 */
 	UdpInput(StaticProperties sp,
 		 NetDriver        driver,
 		 NetInput         input)
@@ -55,6 +136,16 @@ public class UdpInput extends NetInput {
 		super(sp, driver, input);
 	}
 
+	/*
+	 * Sets up an incoming UDP connection.
+	 *
+	 * <BR><B>Note</B>: this function also negociate the mtu.
+	 * <BR><B>Note</B>: the current UDP mtu is arbitrarily fixed at 32kB.
+	 *
+	 * @param rpn {@inheritDoc}
+	 * @param is {@inheritDoc}
+	 * @param os {@inheritDoc}
+	 */
 	public void setupConnection(Integer            rpn,
 				    ObjectInputStream  is,
 				    ObjectOutputStream os)
@@ -63,7 +154,7 @@ public class UdpInput extends NetInput {
 		 
 		try {
 			socket = new DatagramSocket(0, InetAddress.getLocalHost());
-			lmtu  = Math.min(socket.getSendBufferSize(), 32768);//TOCHANGE
+			lmtu = Math.min(socket.getReceiveBufferSize(), 32768);
 			laddr = socket.getLocalAddress();
 			lport = socket.getLocalPort();
 		} catch (SocketException e) {
@@ -90,6 +181,15 @@ public class UdpInput extends NetInput {
 		setReceiveTimeout(receiveTimeout);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: This UDP polling implementation uses a timed out
+	 * {@link DatagramSocket#receive(DatagramPacket)}. As the minimum timeout value is one
+	 * millisecond, an unsuccessful polling operation is rather expensive.
+	 *
+	 * @return {@inheritDoc}
+	 */
 	public Integer poll() throws IbisIOException {
 		activeNum = null;
 
@@ -116,10 +216,15 @@ public class UdpInput extends NetInput {
 		return activeNum;
 	}
 	
-	//
-	// The expectedLength argument is simply ignored because the
-	// packet actually received might not be the one that is expected.
-	//
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: this function may block if the expected data is not there.
+	 * <BR><B>Note</B>: The expectedLength argument is simply ignored because the
+	 * packet actually received might not be the one that is expected.
+	 *
+	 * @return {@inheritDoc}
+	 */
 	public NetReceiveBuffer receiveBuffer(int expectedLength)
 		throws IbisIOException {
 
@@ -132,7 +237,7 @@ public class UdpInput extends NetInput {
 				socket.receive(packet);
 				buffer = new NetReceiveBuffer(b, packet.getLength(), allocator);
 			} catch (InterruptedIOException e) {
-				__.warning__("UDP packet lost");
+				__.abort__("UDP packet lost");
 				//return a dummy buffer
 				buffer = new NetReceiveBuffer(b, b.length, allocator);
 			} catch (IOException e) {
@@ -180,6 +285,9 @@ public class UdpInput extends NetInput {
 		return t;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void free() throws IbisIOException {
 		if (socket != null) {
 			socket.close();

@@ -347,6 +347,13 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	private void flush() throws IbisIOException{
 		if (buffer != null) {
 			output.sendBuffer(buffer);
+			/*
+			try {
+				Thread.sleep(500); // temporisation test for UDP
+			} catch (Exception e) {
+				// ignore
+			}
+			*/
 			buffer.free();
 			buffer = null;
 		}
@@ -373,7 +380,6 @@ public final class NetSendPort implements SendPort, WriteMessage {
 			} else {
 				length += dataOffset;
 			}		
-
 			buffer = new NetSendBuffer(new byte[length], dataOffset);
 		}
 		
@@ -456,7 +462,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		buffer.length++;
 		bufferOffset++;
 
-		if (bufferOffset == buffer.length) {
+		if (bufferOffset == buffer.data.length) {
 			flush();
 		}
 	}
@@ -514,11 +520,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		int offset = 0;
 
 		if (buffer != null) {
-			int availableLength = buffer.length - bufferOffset;
+			int availableLength = buffer.data.length - bufferOffset;
 			int copyLength      = Math.min(availableLength, length);
 
-			System.arraycopy(userBuffer, offset,
-					 buffer.data, bufferOffset, length);
+			System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
 
 			bufferOffset  	 += copyLength;
 			buffer.length 	 += copyLength;
@@ -534,11 +539,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		while (length > 0) {
 			allocateBuffer(length);
 
-			int availableLength = buffer.length - bufferOffset;
+			int availableLength = buffer.data.length - bufferOffset;
 			int copyLength   = Math.min(availableLength, length);
 
-			System.arraycopy(userBuffer, offset,
-					 buffer.data, bufferOffset, length);
+			System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
 
 			bufferOffset  	+= copyLength;
 			buffer.length 	+= copyLength;
@@ -581,8 +585,49 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		//
 	}
 	
-	public void writeSubArrayByte(byte [] destination, int offset, int size) throws IbisIOException {
-		//
+	public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
+		//System.err.println("write: "+offset+", "+length);
+		if (length == 0)
+			return;
+		
+		emptyMsg = false;
+
+		if (buffer != null) {
+			int availableLength = buffer.data.length - bufferOffset;
+			int copyLength      = Math.min(availableLength, length);
+
+			System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
+
+			bufferOffset  	 += copyLength;
+			buffer.length 	 += copyLength;
+			availableLength  -= copyLength;
+			offset        	 += copyLength;
+			length        	 -= copyLength;
+
+			if (availableLength == 0) {
+				flush();
+			}
+		}
+		
+		while (length > 0) {
+			allocateBuffer(length);
+
+			int availableLength = buffer.data.length - bufferOffset;
+			int copyLength   = Math.min(availableLength, length);
+
+			System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
+
+			bufferOffset  	+= copyLength;
+			buffer.length 	+= copyLength;
+			availableLength -= copyLength;
+			offset        	+= copyLength;
+			length        	-= copyLength;
+
+			if (availableLength == 0) {
+				flush();
+			}
+		}
+		//System.err.println("write: "+offset+", "+length+": ok");
 	}
 	
 	public void writeSubArrayChar(char [] destination, int offset, int size) throws IbisIOException {
