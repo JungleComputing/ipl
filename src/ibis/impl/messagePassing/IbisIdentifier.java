@@ -1,45 +1,81 @@
+// Decompiled by Jad v1.5.8c. Copyright 2001 Pavel Kouznetsov.
+// Jad home page: http://www.geocities.com/kpdus/jad.html
+// Decompiler options: fullnames 
+// Source File Name:   IbisIdentifier.java
+
 package ibis.ipl.impl.messagePassing;
 
+import ibis.io.MantaInputStream;
+import ibis.io.MantaOutputStream;
+import ibis.ipl.IbisIOException;
+import java.io.Serializable;
 
-// Make this final, make inlining possible
 final class IbisIdentifier
-	implements ibis.ipl.IbisIdentifier,
-		   java.io.Serializable
+    implements ibis.ipl.IbisIdentifier, java.io.Serializable, ibis.io.Serializable
 {
 
-    String name;
+    public final boolean equals(ibis.ipl.impl.messagePassing.IbisIdentifier other)
+    {
+        return cpu == other.cpu;
+    }
+
+    public final boolean equals(java.lang.Object o)
+    {
+        if(o == this)
+            return true;
+        if(o instanceof ibis.ipl.impl.messagePassing.IbisIdentifier)
+        {
+            ibis.ipl.impl.messagePassing.IbisIdentifier other = (ibis.ipl.impl.messagePassing.IbisIdentifier)o;
+            return cpu == other.cpu;
+        } else
+        {
+            return false;
+        }
+    }
+
+    public final java.lang.String toString()
+    {
+        return "(IbisIdent: name = " + name + ")";
+    }
+
+    public final java.lang.String name()
+    {
+        return name;
+    }
+
+    public final int hashCode()
+    {
+        return name.hashCode();
+    }
+
+    IbisIdentifier(java.lang.String name, int cpu)
+    {
+        this.name = name;
+        this.cpu = cpu;
+    }
+
+    public final void generated_WriteObject(ibis.io.MantaOutputStream mantaoutputstream)
+        throws ibis.ipl.IbisIOException
+    {
+        mantaoutputstream.writeInt(cpu);
+        mantaoutputstream.writeUTF(name);
+    }
+
+    public final void generated_ReadObject(ibis.io.MantaInputStream mantainputstream)
+        throws ibis.ipl.IbisIOException, java.lang.ClassNotFoundException
+    {
+        cpu = mantainputstream.readInt();
+        name = mantainputstream.readUTF();
+    }
+
+    public IbisIdentifier(ibis.io.MantaInputStream mantainputstream)
+        throws ibis.ipl.IbisIOException, java.lang.ClassNotFoundException
+    {
+        mantainputstream.addObjectToCycleCheck(this);
+        cpu = mantainputstream.readInt();
+        name = mantainputstream.readUTF();
+    }
+
+    java.lang.String name;
     int cpu;
-
-    IbisIdentifier(String name, int cpu) {
-	this.name = name;
-	this.cpu  = cpu;
-    }
-
-    // Compare ranks here, much faster. This is method critical for Satin. --Rob
-    public boolean equals(ibis.ipl.impl.messagePassing.IbisIdentifier other) {
-	return cpu == other.cpu;
-    }
-
-    public boolean equals(Object o) {
-	if(o == this) return true;
-
-	if (o instanceof ibis.ipl.impl.messagePassing.IbisIdentifier) {
-	    ibis.ipl.impl.messagePassing.IbisIdentifier other = (ibis.ipl.impl.messagePassing.IbisIdentifier)o;
-	    // there is only one messagePassing.Ibis per cpu, so this should be ok
-	    return cpu == other.cpu;
-	}
-	return false;
-    }
-
-    public String toString() {
-	return ("(IbisIdent: name = " + name + ")");
-    }
-
-    public String name() {
-	return name;
-    }
-
-    public int hashCode() {
-	return name.hashCode();
-    }
 }

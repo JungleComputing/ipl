@@ -49,8 +49,13 @@ public abstract class ByteOutputStream
 	int n = sport.splitter.length;
 
 	boolean send_acked = true;
+
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && this.msgHandle == 0) {
+	    System.err.println("%%%%%%:::::::%%%%%%% Yeck -- message handle is NULL in " + this);
+	}
 	int msgHandle = this.msgHandle;
 	this.msgHandle = 0;
+
 	outstandingFrags++;
 
 	for (int i = 0; i < n; i++) {
@@ -73,7 +78,7 @@ public abstract class ByteOutputStream
 		    System.err.println(">>>>>>>>>>>>>>>>>> After sync send set msgHandle to 0x" + Integer.toHexString(msgHandle));
 		}
 		this.msgHandle = msgHandle;
-		resetMsg(msgHandle);
+		resetMsg();
 	    }
 	} else {
 	    /* Do it from the sent upcall */
@@ -87,11 +92,6 @@ public abstract class ByteOutputStream
     public void send() throws IbisIOException {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		if (msgHandle == 0) {
-		    System.err.println("%%%%%%:::::::%%%%%%% Yeck -- message handle is NULL in " + this);
-		}
-	    }
 	    send(true);
 	}
     }
@@ -149,41 +149,46 @@ public abstract class ByteOutputStream
 
     /* Pass our current msgHandle field: we only want to reset
      * a fragment that has been sent-acked */
-    protected abstract void resetMsg(int msgHandle);
+    protected abstract void resetMsg();
 
-    private void reset(boolean finish) throws IbisIOException {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+    void reset(boolean finish) throws IbisIOException {
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	if (outstandingFrags > 0) {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
+
 	    if (outstandingFrags > 0) {
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
-
-		if (outstandingFrags > 0) {
 // System.err.println(Thread.currentThread() + "Start wait to finish msg for stream " + this);
-		    waitingInPoll = true;
-		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
-		    waitingInPoll = false;
-		}
+		waitingInPoll = true;
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
+		waitingInPoll = false;
 	    }
+	}
 
 // System.err.println(Thread.currentThread() + "Done  wait to finish msg for stream " + this);
 
-	    msgSeqno++;
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.err.println("}}}}}}}}}}}}}}} ByteOutputStream: reset(finish=" + finish + ") increment msgSeqno to " + msgSeqno);
-	    }
+	msgSeqno++;
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("}}}}}}}}}}}}}}} ByteOutputStream: reset(finish=" + finish + ") increment msgSeqno to " + msgSeqno);
+	}
 
-	    if (finish) {
-		sport.reset();
-	    }
+	if (finish) {
+	    sport.reset();
 	}
     }
 
+
     public void reset() throws IbisIOException {
-	reset(false);
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    reset(false);
+	}
     }
 
     public void finish() throws IbisIOException {
-	reset(true);
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    reset(true);
+	}
     }
 
     public boolean completed() {

@@ -8,7 +8,7 @@ import ibis.ipl.IbisIOException;
  */
 
 public abstract class ArrayOutputStream
-	implements TypeSize, MantaTypedBufferStreamFlags {
+	implements TypeSize, MantaStreamFlags {
 
     /* protected */ public byte[]   byte_buffer   = new byte[BYTE_BUFFER_SIZE];
     /* protected */ public char[]   char_buffer   = new char[CHAR_BUFFER_SIZE];

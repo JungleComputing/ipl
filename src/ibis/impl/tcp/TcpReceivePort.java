@@ -167,6 +167,25 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		return m;
 	}
 
+	public ReadMessage receive(ReadMessage finishMe) throws IbisIOException { 
+
+		if (finishMe != null) {
+			finishMe.finish();
+		}
+
+		ReadMessage m;
+
+		while (true) {
+			m = doPoll();				
+			if (m != null) {
+				break;
+			}
+			Thread.yield();
+		}
+		
+		return m;
+	}
+
 	public DynamicProperties properties() { 
 		return null;
 	}

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include <jni.h>
 
 #include "ibmp.h"

@@ -18,8 +18,9 @@ MANTACFLAGS	+= -S
 
 java: $(CLASS_FILES) $(MAIN_CLASS)
 
-manta: $(MAIN) $(O_FILES)
-	$(MANTAC_COMMAND) -v -o $(OUT) $(MAIN) $(O_FILES) $(MANTA_LIB)
+manta:
+	@echo Don't make a manta exec here\!
+	cd manta; $(MAKE) $(MFLAGS)
 
 clean:
 	rm -f $(TRASH_FILES)

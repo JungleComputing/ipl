@@ -18,42 +18,59 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 // System.err.println("**************************************************Creating new SerializeWriteMessage");
     }
 
-    public void send() throws IbisIOException {
+
+    private void send(boolean doSend, boolean isReset) throws IbisIOException {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%%% Send an Ibis SerializeWriteMessage");
 	}
+
 	try {
 	    obj_out.flush();
 	} catch (java.io.IOException e) {
 	    throw new IbisIOException(e);
 	}
+
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 // out.report();
-	out.send();
-	// For stream mode (as in Serialize) this is unnecessary: out.send();
-	sPort.registerSend();
+	    if (doSend) {
+		out.send(true);
+	    }
+	    if (isReset) {
+		out.reset(false);
+	    }
+	    sPort.registerSend();
+	}
+
+	if (isReset) {
+	    try {
+		obj_out.reset();
+	    } catch (java.io.IOException e) {
+		throw new IbisIOException(e);
+	    }
+	}
+    }
+
+
+    public void send() throws IbisIOException {
+	send(true, false);
     }
 
 
     public void finish() throws IbisIOException {
 // manta.runtime.RuntimeSystem.DebugMe(1, out);
 	out.finish();
-	/* Are you sure? No need to discard duplicate info here...
+
 	try {
 	    obj_out.reset();
 	} catch (java.io.IOException e) {
 	    throw new IbisIOException(e);
 	}
-	Are you sure? */
     }
 
 
-    public void reset() throws IbisIOException {
-	out.reset();
-	try {
-	    obj_out.reset();
-	} catch (java.io.IOException e) {
-	    throw new IbisIOException(e);
-	}
+    public void reset(boolean doSend) throws IbisIOException {
+	send(doSend, true);
     }
 
 

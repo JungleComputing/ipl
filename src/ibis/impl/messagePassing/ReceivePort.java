@@ -316,56 +316,71 @@ class ReceivePort
     }
 
 
-    public ibis.ipl.ReadMessage receive() throws IbisIOException {
+    ibis.ipl.ReadMessage doReceive() throws IbisIOException {
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-// manta.runtime.RuntimeSystem.DebugMe(this, this);
-
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println(Thread.currentThread() + "******** enter ReceivePort.receive()" + this.ident);
+	}
+	while (aMessageIsAlive && ! stop) {
+	    liveWaiters++;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.err.println(Thread.currentThread() + "******** enter ReceivePort.receive()" + this.ident);
+		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " aMessageIsAlive is true");
 	    }
-	    while (aMessageIsAlive && ! stop) {
-		liveWaiters++;
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		    System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " aMessageIsAlive is true");
-		}
-		messageHandled.cv_wait();
-		liveWaiters--;
-	    }
-	    aMessageIsAlive = true;
+	    messageHandled.cv_wait();
+	    liveWaiters--;
+	}
+	aMessageIsAlive = true;
 
-	    // long t = Ibis.currentTime();
+	// long t = Ibis.currentTime();
 
 // if (upcall != null) System.err.println("Hit receive() in an upcall()");
 for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
 ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 }
 
-	    if (queueFront == null) {
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		    System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " queue " + queueFront + " " + messageArrived);
-		}
-		arrivedWaiters++;
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
-		arrivedWaiters--;
-	    }
+	if (queueFront == null) {
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + this.ident);
+		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " queue " + queueFront + " " + messageArrived);
 	    }
-
-	    currentMessage = dequeue();
-	    if (currentMessage == null) {
-		System.err.println("Dequeue yields a null msg");
-		new Throwable().printStackTrace();
-	    }
-	    currentMessage.in.setMsgHandle(currentMessage);
-
-	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.tReceive += Ibis.currentTime() - t;
+	    arrivedWaiters++;
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
+	    arrivedWaiters--;
+	}
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + this.ident);
 	}
 
+	currentMessage = dequeue();
+	if (currentMessage == null) {
+	    System.err.println("Dequeue yields a null msg");
+	    new Throwable().printStackTrace();
+	}
+	currentMessage.in.setMsgHandle(currentMessage);
+
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.tReceive += Ibis.currentTime() - t;
+
 	return currentMessage;
+    }
+
+
+    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe)
+	    throws IbisIOException {
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+// manta.runtime.RuntimeSystem.DebugMe(this, this);
+	    if (finishMe != null) {
+		finishMe.finish();
+	    }
+	    return doReceive();
+	}
+    }
+
+
+    public ibis.ipl.ReadMessage receive() throws IbisIOException {
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+// manta.runtime.RuntimeSystem.DebugMe(this, this);
+	    return doReceive();
+	}
     }
 
 

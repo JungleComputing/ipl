@@ -25,7 +25,7 @@ static int	ibp_upcall_done;
 
 
 static int		ibp_n_upcall = 0;
-static void	     (**ibp_upcall)(JNIEnv *, pan_msg_p, void *) = NULL;
+static int	     (**ibp_upcall)(JNIEnv *, pan_msg_p, void *) = NULL;
 
 
 static void
@@ -94,7 +94,10 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
 		       pan_msg_consume_left(msg)));
 
     ibp_upcall_done = 1;	/* Keep polling */
-    ibp_upcall[hdr->port](ibmp_JNIEnv, msg, proto);
+    if (! ibp_upcall[hdr->port](ibmp_JNIEnv, msg, proto)) {
+	IBP_VPRINTF(50, ibmp_JNIEnv, ("clear panda msg %p\n", msg));
+	pan_msg_clear(msg);
+    }
 }
 
 
@@ -113,7 +116,7 @@ ibp_mp_poll(JNIEnv *env)
 
 
 int
-ibp_mp_port_register(void (*upcall)(JNIEnv *, pan_msg_p, void *))
+ibp_mp_port_register(int (*upcall)(JNIEnv *, pan_msg_p, void *))
 {
     int		port = ibp_n_upcall;
 
@@ -125,11 +128,11 @@ ibp_mp_port_register(void (*upcall)(JNIEnv *, pan_msg_p, void *))
 }
 
 
-static void
+static int
 no_such_upcall(JNIEnv *env, pan_msg_p msg, void *proto)
 {
     fprintf(stderr, "%2d: receive a IBIS/panda MP message for a port already cleared\n", pan_my_pid());
-    pan_msg_clear(msg);
+    return 0;
 }
 
 

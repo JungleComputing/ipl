@@ -22,13 +22,13 @@ public interface WriteMessage {
 	public void finish() throws IbisIOException;
 
 	/**
-	   Block until the entire message has been sent and clear data within the message. Only after finish() or reset(), the data that was written
+	   If doSend, invoke send(). Then block until the entire message has been sent and clear data within the message. Only after finish() or reset(), the data that was written
 	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
 	   When a message is alive and a new messages is requested, the requester is blocked until the
 	   live message is finished.
 	   The message stays alive for subsequent writes and sends.
-	   reset can be seen as a shorthand for finish(); sendPort.newMessage() **/
-	public void reset() throws IbisIOException;
+	   reset can be seen as a shorthand for (possibly send();) finish(); sendPort.newMessage() **/
+	public void reset(boolean doSend) throws IbisIOException;
 
 	/**
 	 * Writes a boolean value to the message.

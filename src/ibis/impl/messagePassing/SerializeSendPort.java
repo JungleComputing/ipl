@@ -48,7 +48,7 @@ public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 
 	    for (int i = 0; i < splitter.length; i++) {
 		ReceivePortIdentifier r = splitter[i];
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		if (true || ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 		    System.err.println(Thread.currentThread() + "Now do native connect call to " + r + "; me = " + ident);
 		    System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis " + ibis.ipl.impl.messagePassing.Ibis.myIbis);
 		    System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier() " + ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier());

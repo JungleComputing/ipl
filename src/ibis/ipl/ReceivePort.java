@@ -6,6 +6,15 @@ public interface ReceivePort {
 	    live message is finished. **/
 	public ReadMessage receive() throws IbisIOException;
 
+	/** Utility function that in essence performs:
+	    if (finishMe != null) finishMe.finish();
+	    return receive();
+
+	    Rationale is the possibility to save on locking overhead by
+	    combining an oft-recurring sequence.
+	 **/
+	public ReadMessage receive(ReadMessage finishMe) throws IbisIOException;
+
 	public DynamicProperties properties();
 
 	public ReceivePortIdentifier identifier();

@@ -7,8 +7,8 @@ import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.MantaInputStream;
 import ibis.io.MantaOutputStream;
-import ibis.io.MantaTypedBufferInputStream;
-import ibis.io.MantaTypedBufferOutputStream;
+import ibis.io.MantaInputStream;
+import ibis.io.MantaOutputStream;
 
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -44,8 +44,8 @@ public class Main {
 				ArrayInputStream   in = new BufferedArrayInputStream(s.getInputStream());
 				ArrayOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
 				
-				MantaInputStream   min = new MantaTypedBufferInputStream(in);
-				MantaOutputStream mout = new MantaTypedBufferOutputStream(out);
+				MantaInputStream   min = new MantaInputStream(in);
+				MantaOutputStream mout = new MantaOutputStream(out);
 				
 				// Create list
 				for (int i=0;i<len;i++) {
@@ -113,8 +113,8 @@ public class Main {
 				ArrayInputStream   in = new BufferedArrayInputStream(s.getInputStream());
 				ArrayOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
 				
-				MantaInputStream   min = new MantaTypedBufferInputStream(in);
-				MantaOutputStream mout = new MantaTypedBufferOutputStream(out);
+				MantaInputStream   min = new MantaInputStream(in);
+				MantaOutputStream mout = new MantaOutputStream(out);
 				
 				for (int i=0;i<count;i++) {
 					temp = (Data) min.readObject();

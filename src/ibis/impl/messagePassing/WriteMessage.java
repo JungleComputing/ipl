@@ -23,10 +23,6 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     public void send() throws IbisIOException {
 // out.report();
 	// long t = Ibis.currentTime();
-	/* This is not necessary -- indeed it's plain wrong:
-	out.flush();
-	-- plain wrong */
-	out.send();
 	sPort.registerSend();
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.tSend += Ibis.currentTime() - t;
     }
@@ -38,8 +34,14 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
-    public void reset() throws IbisIOException {
-	out.reset();
+    public void reset(boolean doSend) throws IbisIOException {
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    if (doSend) {
+		out.send(true);
+	    }
+	    out.reset(false);
+	}
     }
 
 

@@ -215,29 +215,27 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
     protected abstract long currentTime();
     protected abstract double t2d(long t);
 
-    void checkLockOwned() {
-	if (! DEBUG) {
-	    return;
-	}
-	try {
-	    notify();
-	} catch (IllegalMonitorStateException e) {
-	    System.err.println("Ibis.ibis not locked");
-	    Thread.dumpStack();
-	    System.exit(97);
+    final void checkLockOwned() {
+	if (DEBUG) {
+	    try {
+		notify();
+	    } catch (IllegalMonitorStateException e) {
+		System.err.println("Ibis.ibis not locked");
+		Thread.dumpStack();
+		System.exit(97);
+	    }
 	}
     }
 
-    void checkLockNotOwned() {
-	if (! DEBUG) {
-	    return;
-	}
-	try {
-	    notify();
-	    System.err.println("Ibis.ibis locked");
-	    Thread.dumpStack();
-	    System.exit(98);
-	} catch (IllegalMonitorStateException e) {
+    final void checkLockNotOwned() {
+	if (DEBUG) {
+	    try {
+		notify();
+		System.err.println("Ibis.ibis locked");
+		Thread.dumpStack();
+		System.exit(98);
+	    } catch (IllegalMonitorStateException e) {
+	    }
 	}
     }
 
