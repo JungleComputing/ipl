@@ -1,6 +1,8 @@
 SRC	+= Data1.java
 SRC	+= Data2.java
 
+INNER_CLASS	+= RszHandler.class
+
 MAIN = DowncallLatency.java
 OUT=latency
 
@@ -15,6 +17,8 @@ MPI_MODE	= gm
 # MPI_MODE	= panda
 
 include ../../../../config.mk
+
+RszHandler.class:	DowncallLatency.class
 
 ifeq ($(PROFILE), 1)
 OUT	:= $(OUT).gprof
