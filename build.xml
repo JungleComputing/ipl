@@ -668,7 +668,7 @@
     </target>
 
     <target name="developer-docs">
-	<ant dir="${docs}" target="developers-api"/>
+	<ant dir="${docs}" target="developer-api"/>
     </target>
 
     <target name="progman">
