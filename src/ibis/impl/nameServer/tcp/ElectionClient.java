@@ -48,7 +48,7 @@ class ElectionClient implements Protocol {
 		    result = in.readObject();
 		    NameServerClient.socketFactory.close(in, out, s);
 		    if (result == null) {
-			try {Thread.sleep(1000);} catch (Exception ee) {}
+			try {Thread.sleep(1000);} catch (Exception ee) { /* ignore */ }
 		    }
 		}
 

@@ -175,6 +175,7 @@ public abstract class Ibis {
 	try {
 	    loadLibrary("uninitialized_object");
 	} catch (Throwable t) {
+		/* handled elsewhere */
 	}
 
 	if (implName == null) { 
@@ -590,6 +591,7 @@ public abstract class Ibis {
 	    try {
 		return new FileInputStream(s);
 	    } catch(FileNotFoundException e) {
+	    	/* do nothing */
 	    }
 	}
 
@@ -600,6 +602,7 @@ public abstract class Ibis {
 	    try {
 		return new FileInputStream(s);
 	    } catch(FileNotFoundException e) {
+	    	/* do nothing */
 	    }
 	}
 

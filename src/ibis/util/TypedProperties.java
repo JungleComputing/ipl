@@ -23,6 +23,7 @@ public class TypedProperties {
      * Prevent construction ...
      */
     private TypedProperties() {
+    	/* do nothing */
     }
 
     /**

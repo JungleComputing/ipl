@@ -97,6 +97,7 @@ public class PoolInfo {
 	 * Constructor for subclasses.
 	 */
 	protected PoolInfo(int dummy) {
+		/* do nothing */
 	}
 
 	private void sequentialPool() {

@@ -9,6 +9,7 @@ public final class Stats {
      * Prevent anyone from creating a <code>Stats</code> object.
      */
     private Stats() {
+    	/* do nothing */
     }
 
     /**

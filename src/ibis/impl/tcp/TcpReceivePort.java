@@ -227,12 +227,14 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 				try {
 					wait();
 				} catch(Exception e) {
+					/* ignore */
 				}
 			}
 			while (m != null && ! m.isFinished) {
 				try {
 					wait();
 				} catch(Exception e) {
+					/* ignore */
 				}
 			}
 			connections[0].reader();

@@ -84,6 +84,7 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 				    try {
 					s.close();
 				    } catch(IOException e) {
+						/* ignore */
 				    }
 				}
 

@@ -427,6 +427,7 @@ public abstract class TupleSpace extends Communication {
 						    try {
 							    wait();
 						     } catch(Exception e) {
+						     	/* ignore */
 						}
 					}
 				}

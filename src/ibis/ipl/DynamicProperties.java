@@ -32,6 +32,7 @@ public class DynamicProperties {
      */
 
     public void set(String key, Object value) throws IbisException {
+    	/* do nothing */
     }
 
     /**

@@ -76,6 +76,7 @@ public abstract class IbisSocketFactory {
     }
     
     protected IbisSocketFactory() {
+    	/* do nothing */
     }
     
     /** 
@@ -260,6 +261,7 @@ public abstract class IbisSocketFactory {
      * nothing.
      */
     public void shutdown() {
+    	/* do nothing */
     }
 
     /**

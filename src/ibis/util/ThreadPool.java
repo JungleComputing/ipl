@@ -149,6 +149,7 @@ public final class ThreadPool {
      * Prevent creation of a threadpool object.
      */
     private ThreadPool() {
+    	/* do nothing */
     }
 
     /**

@@ -49,6 +49,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 	    IbisSocketFactory.createFactory();
 
 	public NameServerClient() {
+		/* do nothing */
 	}
 
 	protected void init(Ibis ibisImpl) throws IOException, IbisConfigurationException {
@@ -326,7 +327,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 					}
 					try { 
 						serverSocket.close();
-					} catch (IOException e1) { 						
+					} catch (IOException e1) {
+						/* do nothing */
 					}
 					return;
                                 }

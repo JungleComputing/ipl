@@ -17,6 +17,7 @@ public class Queue {
 	 * Constructs a new queue.
 	 */
 	public Queue() {
+		/* do nothing */
 	}
 
 	/**

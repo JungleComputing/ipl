@@ -198,6 +198,10 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 						return;
 					    }
 					} catch(ClassNotFoundException e)  {
+						if (DEBUG) {
+							System.out.println(port.name + ": disconnect from: " + origin + 
+							 " failed");
+						}
 					}
 					//someone else is closing down, just reset the stream
 					in.close();

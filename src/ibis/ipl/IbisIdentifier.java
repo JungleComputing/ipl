@@ -91,5 +91,6 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * The default does nothing.
      */
     public void free() {
+    	/* do nothing */
     }
 }

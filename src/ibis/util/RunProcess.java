@@ -132,6 +132,7 @@ public final class RunProcess {
 		try {
 		    p.wait();
 		} catch(InterruptedException e) {
+			// ignore
 		}
 	    }
 	}

@@ -8,6 +8,7 @@ package ibis.satin;
 public class Inlet extends Throwable {
 
 	public Inlet() {
+		/* do nothing */
 	}
 
 	public Throwable fillInStackTrace() {

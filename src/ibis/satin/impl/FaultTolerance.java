@@ -500,6 +500,7 @@ public abstract class FaultTolerance extends Inlets {
 	}
 
 	public void reconfigure() {
+		// TODO
 	}
 
 	synchronized void handleDelete() {

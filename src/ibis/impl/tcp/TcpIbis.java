@@ -260,6 +260,7 @@ public final class TcpIbis extends Ibis implements Config {
 				try {
 				    wait();
 				} catch(Exception e) {
+					/* ignore */
 				}
 			    }
 			}

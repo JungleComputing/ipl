@@ -145,7 +145,7 @@ public class PoolInfoServer extends Thread {
 	boolean single = false;
 	int serverPort = POOL_INFO_PORT;
 	for (int i = 0; i < argv.length; i++) {
-	    if (false) {
+	    if (false) { /* do nothing */
 	    } else if (argv[i].equals("-single")) {
 		single = true;
 	    } else if (argv[i].equals("-port")) {

@@ -50,7 +50,7 @@ public class CheckNativeMethods {
 	}
 
 	for (int i = 0; i < args.length; i++) {
-	    if (false) {
+	    if (false) { /* do nothing */
 	    } else if (args[i].equals("-v")) {
 		verbose = true;
 	    } else if (args[i].equals("-f")) {

@@ -11,5 +11,5 @@ package ibis.satin;
  */
 
 public interface Spawnable extends java.io.Serializable {
-
+	// just a marker interface
 }

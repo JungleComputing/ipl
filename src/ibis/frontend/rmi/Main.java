@@ -190,7 +190,7 @@ class Main {
 	int i = 0;
 
 	while (i<num) {
-	    if (false) {
+	    if (false) { /* do nothing */
 	    } else if (args[i].equals("-n")) {
 		printOnly = true;
 		args[i] = args[num-1];

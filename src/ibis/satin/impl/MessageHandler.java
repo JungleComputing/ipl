@@ -883,6 +883,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		try {
 		    m.finish();
 		} catch(Exception e) {
+			/* ignore */
 		}
 
 		synchronized(satin) {

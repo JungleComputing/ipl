@@ -46,6 +46,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	}
 
 	void addToTail(InvocationRecord r) {
+		throw new Error("Not implemented");
 	}
 
 	InvocationRecord getFromHead() {
@@ -176,6 +177,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	}
 	
 	void print(java.io.PrintStream out) {
+		// TODO
 	}
 
 }

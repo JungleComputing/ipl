@@ -98,6 +98,7 @@ final public class IbisIdentifierTable {
 			ReceiveNode n = (ReceiveNode) v.remove(0);
 			receiveTable.remove(n);
 		    } catch(ArrayIndexOutOfBoundsException e) {
+				/* ignore */
 		    }
 		    len--;
 		}
@@ -116,6 +117,7 @@ final public class IbisIdentifierTable {
 			SendNode n = (SendNode) v.remove(0);
 			sendTable.remove(n);
 		    } catch(ArrayIndexOutOfBoundsException e) {
+				/* ignore */
 		    }
 		    len--;
 		}

@@ -13,6 +13,7 @@ abstract class Algorithm {
 	 * implementation does nothing.
 	 */
 	void jobAdded() {
+		// do nothing
 	}
 
 	/**
@@ -47,5 +48,6 @@ abstract class Algorithm {
 	 * implementation does nothing.
 	 */
 	public void printStats(java.io.PrintStream out) {
+		// do nothing
 	}
 }

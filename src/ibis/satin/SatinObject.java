@@ -14,6 +14,7 @@ public class SatinObject implements java.io.Serializable {
 
 	/** Waits until all spawned methods in the current method are finished. */
 	public void sync() {
+		/* do nothing, bytecode is rewritten to handle this */
 	}
 
 	/**
@@ -21,6 +22,7 @@ public class SatinObject implements java.io.Serializable {
 	 * and all methods spawned by the aborted methods.
 	 */
 	public void abort() {
+		/* do nothing, bytecode is rewritten to handle this */
 	}
 
 	/**

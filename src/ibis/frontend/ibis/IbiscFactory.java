@@ -9,6 +9,7 @@ final class IbiscFactory implements RepositoryObserver {
     Vector loadList = new Vector();
 
     IbiscFactory() {
+		// do nothing
     }
 
     public void notify(String className) { 

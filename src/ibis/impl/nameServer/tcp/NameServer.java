@@ -307,7 +307,8 @@ public class NameServer extends Thread implements Protocol {
 		    String date = Calendar.getInstance().getTime().toString();
 		    System.out.println(date + " pool " + key + " seems to be dead.");
 		    killThreads(p);
-		} catch(Exception e) {
+		} catch(IOException e) {
+			// do nothing, killThreads failed.
 		}
 	}	
 
@@ -692,7 +693,7 @@ public class NameServer extends Thread implements Protocol {
 			} catch (Throwable e) { 
 				if (retry) {
 				    System.err.println("Nameserver: could not create server socket, retry in 1 second");
-				    try {Thread.sleep(1000);} catch (Exception ee) {}
+				    try {Thread.sleep(1000);} catch (Exception ee) { /* do nothing */ }
 				}
 				else {
 				    // System.err.println("Nameserver: could not create server socket");
@@ -711,7 +712,7 @@ public class NameServer extends Thread implements Protocol {
 		NameServer ns = null;
 
 		for (int i = 0; i < args.length; i++) {
-			if (false) {
+			if (false) { /* do nothing */
 			} else if (args[i].equals("-single")) {
 				single=true;
 			} else if (args[i].equals("-controlhub")) {

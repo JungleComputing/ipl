@@ -21,6 +21,7 @@ public class Timer implements java.io.Serializable {
 	 * Constructs a <code>Timer</code>.
 	 */
 	protected Timer() {
+		/* do nothing */
 	}
 
 	/**

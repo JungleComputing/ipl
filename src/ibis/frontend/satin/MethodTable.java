@@ -36,6 +36,7 @@ final class MethodTable {
         boolean[] isLocalUsed;
 
         SpawnTableEntry() {
+    		// do nothing
         }
 
         boolean[] analyseUsedLocals(MethodGen mg, CodeExceptionGen catchBlock,
@@ -179,6 +180,7 @@ final class MethodTable {
         int startLocalAlloc;
 
         MethodTableEntry() {
+        	/* do nothing */
         }
 
         MethodTableEntry(MethodTableEntry orig, MethodGen mg) {

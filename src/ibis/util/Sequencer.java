@@ -110,6 +110,7 @@ public final class Sequencer {
 		try {
 		    s.close();
 		} catch(IOException e) {
+			// ignore
 		}
 	    }
 	}
@@ -172,6 +173,7 @@ public final class Sequencer {
 	    try {
 		snd.close();
 	    } catch(IOException e) {
+	    	// ignore
 	    }
 	}
     }

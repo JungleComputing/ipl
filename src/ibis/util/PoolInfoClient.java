@@ -127,6 +127,7 @@ public class PoolInfoClient extends PoolInfo {
 		try {
 		    Thread.sleep(1000);
 		} catch(Exception ex) {
+			// ignore
 		}
 	    }
 	}

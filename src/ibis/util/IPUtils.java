@@ -28,6 +28,7 @@ public class IPUtils {
     private static InetAddress alt_localaddress = null;
 
     private IPUtils() {
+    	/* do nothing */
     }
 
     /**
