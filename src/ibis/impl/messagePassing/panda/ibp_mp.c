@@ -241,6 +241,7 @@ ibp_mp_end(JNIEnv *env)
 {
     ibp_mp_poll(env);
 
+    pan_comm_intr_disable();
     pan_mp_free_port(ibp_mp_port);
     pan_mp_end();
     pan_end();
