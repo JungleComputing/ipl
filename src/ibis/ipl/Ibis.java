@@ -1,5 +1,7 @@
 package ibis.ipl;
 
+import ibis.util.IPUtils;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -264,11 +266,7 @@ public abstract class Ibis {
 	String hostname;
 
 	try {
-	    hostname = InetAddress.getLocalHost().getHostName();
-	    InetAddress adres = InetAddress.getByName(hostname);
-
-	    adres = InetAddress.getByName(adres.getHostAddress());
-	    hostname = adres.getHostName();
+	    hostname = IPUtils.getLocalHostAddress().getHostName();
 	} catch(Exception e) {
 	    hostname = "unknown";
 	}
