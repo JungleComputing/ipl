@@ -136,7 +136,7 @@ public class MultiPoller extends NetPoller {
 		 * to our plugin), use that.
 		 * Else, go on and create a new subInput.
 		 */
-		System.err.println(this + ": recycle existing subInput " + ni);
+		// System.err.println(this + ": recycle existing subInput " + ni);
 		return ni;
 	    }
 

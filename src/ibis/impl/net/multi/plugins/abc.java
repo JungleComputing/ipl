@@ -84,7 +84,7 @@ public final class abc implements MultiPlugin {
 				}
 			}
 		}
-		if (false) {
+		if (true) {
 		    System.err.println(ibis.impl.net.NetIbis.hostName() + ": abc plugin context " + subContext);
 		}
 
