@@ -995,24 +995,27 @@ in Section \ref{PoolInfo}.
 
 \mysubsection{Running an Ibis Application}
 
-An Ibis instance is started with the \texttt{run\_ibis} script which
-lives in the Ibis \texttt{bin} directory.  This \texttt{run\_ibis}
+An Ibis instance is started with the \texttt{run-ibis} script which
+lives in the Ibis \texttt{bin} directory.  This \texttt{run-ibis}
 script is called as follows:
 \begin{center}
-\texttt{run\_ibis} \emph{procno nprocs id ns:port javaflags class ...}
+\texttt{run-ibis} \emph{run-ibis-flags java-flags class ...}
 \end{center}
-The parameters are explained below:
+The most important \emph{run-ibis-flags} are explained below:
 \begin{description}
-\item{\emph{procno}}
-specifies the rank number of this Ibis instance within this run,
-so its range is $0 ... \emph{nprocs}-1$.
-\item{\emph{nprocs}}
+\item{--nhosts \emph{nhosts}}
 specifies the total number of Ibis instances involved in this run.
-\item{\emph{id}}
+\item{--hostno \emph{hostno}}
+specifies the rank number of this Ibis instance within this run,
+so its range is $0 ... \emph{nhosts}-1$.
+\item{--key \emph{id}}
 specifies the identifier used to identify the run to the nameserver.
-\item{\emph{ns:port}}
-specifies the hostname of the machine where the Ibis nameserver runs,
-and the port on which it is listening.
+\item{--ns \emph{nameserverhost}}
+specifies the hostname of the machine where the Ibis nameserver runs.
+\item{--ns-port \emph{port}}
+specifies the port number on which the nameserver is listening.
+\item{--?}
+gives a description of all options.
 \item{\emph{javaflags}}
 any flags that need to be passed on to java.
 \item{\emph{class}}
@@ -1021,7 +1024,7 @@ specifies the application class name.
 specifies the application parameters.
 \end{description}
 
-The \texttt{run\_ibis} script uses these parameters to set the following
+The \texttt{run-ibis} script uses these parameters to set the following
 system properties (see also Section \ref{PoolInfo}):
 \begin{description}
 \item{ibis.pool.host\_number}
