@@ -11,6 +11,7 @@ import ibis.ipl.StaticProperties;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
 import ibis.util.IbisSocketFactory;
+import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -88,18 +89,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 		serverSocket = IbisSocketFactory.createServerSocket(0, myAddress, true);
 
-		boolean retry = false;
-
-		String retryStr = p.getProperty("ibis.name_server.retry");
-		if (retryStr != null) {
-			if(retryStr.equals("true")) {
-				retry = true;
-			} else if (retryStr.equals("false")) {
-				retry = false;
-			} else {
-				throw new IbisConfigurationException("property ibis.name_server.retry has non-boolean value");
-			}
-		}
+		boolean retry = TypedProperties.booleanProperty("ibis.name_server.retry");
 
 		Socket s = null;
 		boolean failed_once = false;
@@ -184,6 +174,9 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 					System.out.println("NameServerClient: join of " + newid + " DONE");
 				}
 			}
+
+			// Should we join ourselves?
+			ibisImpl.join(id);
 
 			IbisSocketFactory.close(in, out, s);
 			new Thread(this, "NameServerClient accept thread").start();
@@ -272,10 +265,16 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 				ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
 
 				opcode = in.readByte();
+				if (DEBUG) {
+				    System.out.println("NameServerClient: opcode " + opcode);
+				}
 	  
 				switch (opcode) {
 				case (IBIS_JOIN):
 					id = (IbisIdentifier) in.readObject();
+					if (DEBUG) {
+					    System.out.println("NameServerClient: receive join request " + id);
+					}
 					IbisSocketFactory.close(in, null, s);
 					ibisImpl.join(id);
 					break;
