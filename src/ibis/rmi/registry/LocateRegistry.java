@@ -9,11 +9,6 @@ import ibis.rmi.RemoteException;
  */
 public final class LocateRegistry
 {
-    private static String registryPkgPrefix =
-        System.getProperty("java.rmi.registry.packagePrefix", "ibis.rmi.registry.impl");
-			  
-    private static RegistryHandler handler = null;
-    
     private LocateRegistry() {}
 
     /**
@@ -61,11 +56,7 @@ public final class LocateRegistry
      */
     public static Registry getRegistry(String host, int port) throws RemoteException
     {
-	if (handler != null) {
-	    return handler.registryStub(host, port);
-	}
-
-	throw new RemoteException("Registry handler not present");
+	return (Registry) new ibis.rmi.registry.impl.RegistryImpl(host, port);
     }
 
     /**
@@ -76,20 +67,14 @@ public final class LocateRegistry
      */
     public static Registry createRegistry(int port) throws RemoteException
     {
-	if (handler != null) {
-	    return handler.registryImpl(port);
-	}
-
-	throw new RemoteException("Registry handler not present");
+	return (Registry) new ibis.rmi.registry.impl.RegistryImpl(port);
     }
 
     static {
-        String classname = registryPkgPrefix + ".RegistryHandler";
 	try {
 	    String hostname = RTS.getHostname();
-	    // Just to make sure that RTS is initialized and that there is an Ibis.
-	    Class cl = Class.forName(classname);
-	    handler = (RegistryHandler)(cl.newInstance());
+	    // Just to make sure that RTS is initialized and that there is
+	    // an Ibis.
 	} catch (Exception e) {
 	}
     }

@@ -10,38 +10,62 @@ import java.rmi.UnmarshalException;
 import java.io.IOException;
 
 
+/**
+ * The <code>RemoteObject</code> class implements the <code>Object</code>
+ * behaviour for remote objects, by implementing methods for
+ * <code>hashCode</code>, <code>equals</code>, and <code>toString</code>.
+ */
 public abstract class RemoteObject implements Remote, Serializable
 {
-    public static final long serialVersionUID = -3215090123894869218l;
-    transient public RemoteRef ref;
+    /** The remote reference. */
+    transient protected RemoteRef ref;
 
+    /**
+     * Creates a <code>RemoteObject</code>.
+     */
     protected RemoteObject() {
 	this(null);
     }
     
+    /**
+     * Creates a <code>RemoteObject</code> with the specified reference.
+     */
     protected RemoteObject(RemoteRef newref) {
 	ref = newref;
     }
 
+    /**
+     * Returns a hashcode for the remote object.
+     * @return the hashcode.
+     */
     public int hashCode() {
-	int hashcode = (ref == null) ? super.hashCode() : ref.remoteHashCode();
-	return hashcode;
+	return (ref == null) 
+		    ? super.hashCode() 
+		    : ref.remoteHashCode();
     }
 
+    /**
+     * Compares the specified object with the remote object.
+     * @return the result of the comparison
+     * @param obj the object to compare with
+     */
     public boolean equals(Object obj) {
 	if (obj instanceof RemoteObject) {
 	    if (ref == null) {
 		return obj == this;
-	    } else {
-		return ref.remoteEquals(((RemoteObject)obj).ref);
 	    }
-	} else if (obj != null) {
+	    return ref.remoteEquals(((RemoteObject)obj).ref);
+	} 
+	if (obj != null) {
 	    return obj.equals(this);
-	} else {
-	    return false;
 	}
+	return false;
     }
 
+    /**
+     * Returns a string representation of the value of this remote object.
+     * @return the string representation for this remote object.
+     */
     public String toString()
     {
 	String classname = this.getClass().getName();
@@ -53,7 +77,6 @@ public abstract class RemoteObject implements Remote, Serializable
 
     private void writeObject(ObjectOutputStream out) throws IOException, ClassNotFoundException
     {
-//	System.out.println("writeObject: " + this);
 	if (ref == null) {
 	    throw new MarshalException("no ref to serialize");
 	} else {
@@ -65,7 +88,7 @@ public abstract class RemoteObject implements Remote, Serializable
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
     {
-	String name = "ibis.rmi.server." + in.readUTF();
+	String name = "ibis.rmi.impl." + in.readUTF();
 	try {
 	    Class cls = Class.forName(name);
 	    ref = (RemoteRef)cls.newInstance();
@@ -75,7 +98,6 @@ public abstract class RemoteObject implements Remote, Serializable
 	} catch (IllegalAccessException e) {
 	    throw new UnmarshalException("failed to create ref");
 	}
-//	System.out.println("readObject: " + this);
     }
 
 }

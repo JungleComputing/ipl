@@ -1,12 +1,13 @@
-package ibis.rmi.server;
+package ibis.rmi.impl;
+
+import ibis.rmi.server.RemoteRef;
+import ibis.rmi.server.RemoteStub;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-
-import ibis.rmi.impl.RTS;
 
 import java.io.IOException;
 
@@ -23,7 +24,7 @@ public class Stub extends RemoteStub {
     public Stub() {
     }
 
-    public void init(SendPort s, ReceivePort r, int id, int skelId, ReceivePortIdentifier rpi, boolean initialized) throws IOException {
+    public void init(SendPort s, ReceivePort r, int id, int skelId, ReceivePortIdentifier rpi, boolean initialized, RemoteRef ref) throws IOException {
 
 	stubID = id;
 	skeletonPortId = rpi;
@@ -31,6 +32,8 @@ public class Stub extends RemoteStub {
 	send = s;
 	reply = r;
 	skeletonId = skelId;
+
+	this.ref = ref;
     }
 
     public final void initSend() throws IOException {

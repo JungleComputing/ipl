@@ -1,6 +1,9 @@
-package ibis.rmi.server;
+package ibis.rmi.impl;
 
 import ibis.rmi.RemoteException;
+
+import ibis.rmi.server.RemoteRef;
+import ibis.rmi.server.RemoteStub;
 
 import java.io.IOException;
 import java.io.ObjectInput;

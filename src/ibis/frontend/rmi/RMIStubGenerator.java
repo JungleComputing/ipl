@@ -181,7 +181,7 @@ class RMIStubGenerator extends RMIGenerator {
 		output.println("import ibis.ipl.*;");			
 		output.println();
 
-		output.print("public final class rmi_stub_" + data.classname + " extends ibis.rmi.server.Stub implements ");		
+		output.print("public final class rmi_stub_" + data.classname + " extends ibis.rmi.impl.Stub implements ");		
 
 		for (int i=0;i<interfaces.size();i++) { 
 			output.print(((JavaClass) interfaces.get(i)).getClassName());

@@ -41,7 +41,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 	output.println("import java.io.IOException;");
 	output.println();
 
-	output.println("public final class rmi_skeleton_" + dest_name + " extends ibis.rmi.server.Skeleton {");
+	output.println("public final class rmi_skeleton_" + dest_name + " extends ibis.rmi.impl.Skeleton {");
 	output.println();
     }
 

@@ -16,8 +16,7 @@ import ibis.ipl.WriteMessage;
 import ibis.rmi.server.ExportException;
 import ibis.rmi.server.SkeletonNotFoundException;
 import ibis.rmi.server.RemoteStub;
-import ibis.rmi.server.Skeleton;
-import ibis.rmi.server.Stub;
+import ibis.rmi.server.RemoteRef;
 
 import ibis.rmi.RemoteException;
 import ibis.rmi.NotBoundException;
@@ -257,7 +256,8 @@ public final class RTS {
 	}
     }
 
-    public static RemoteStub exportObject(Remote obj) throws RemoteException
+    public static RemoteStub exportObject(Remote obj, RemoteRef r)
+	    throws RemoteException
     {
 	Stub stub;
 	Class c = obj.getClass();
@@ -290,7 +290,7 @@ public final class RTS {
 	    }
 	    stub = (Stub) stub_c.newInstance();
 
-	    stub.init(null, null, 0, skel.skeletonId, skeletonReceivePort.identifier(), false);
+	    stub.init(null, null, 0, skel.skeletonId, skeletonReceivePort.identifier(), false, r);
 
 	} catch(ClassNotFoundException e) {
 	    throw new StubNotFoundException("class " + get_stub_name(c) + " not found", e);
@@ -473,7 +473,7 @@ public final class RTS {
 	}
 	rm.finish();
 
-	result.init(s, r, stubID, skelID, dest, true);
+	result.init(s, r, stubID, skelID, dest, true, null);
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Found object " + url);

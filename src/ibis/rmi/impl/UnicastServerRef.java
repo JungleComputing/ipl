@@ -1,9 +1,11 @@
-package ibis.rmi.server;
-
-import ibis.rmi.impl.RTS;
+package ibis.rmi.impl;
 
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
+
+import ibis.rmi.server.ServerRef;
+import ibis.rmi.server.RemoteStub;
+import ibis.rmi.server.ServerNotActiveException;
 
 // TODO: implement getClientHost
 
@@ -18,8 +20,7 @@ public class UnicastServerRef extends UnicastRef implements ServerRef, java.io.S
 	throws RemoteException
     {
 	try {
-	    RemoteStub stub = RTS.exportObject(impl);
-	    RemoteStub.setRef(stub, new UnicastRef(GUID));	    
+	    RemoteStub stub = RTS.exportObject(impl, new UnicastRef(GUID));
 	    return stub;
 	} catch (Exception e) {
 		if (RTS.DEBUG)

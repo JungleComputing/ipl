@@ -9,7 +9,7 @@ package ibis.rmi;
  * <code>java.lang.ClassNotFoundException</code> occurs while unmarshalling
  * parameters or unmarshalling the return value
  * <li> the method identification is wrong (server side)
- * <li> if a remote reference object for an unmarshalled stub cannot be
+ * <li> a remote reference object for an unmarshalled stub cannot be
  * created
  * </ul>
  */

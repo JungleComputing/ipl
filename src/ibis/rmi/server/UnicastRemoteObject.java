@@ -3,16 +3,34 @@ package ibis.rmi.server;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
 
+import ibis.rmi.impl.UnicastServerRef;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+/**
+ * The <code>UnicastRemoteObject</code> class defines a remote object
+ * that is only valid while its server process is alive.
+ * A remote object should extend <code>RemoteObject</code>, usually by
+ * extending <code>UnicastRemoteObject</code>.
+ */
 public class UnicastRemoteObject extends RemoteServer
 {
+    /**
+     * Creates and exports a new UnicastRemoteObject object.
+     * @throws RemoteException if it failed to export the object
+     */
     protected UnicastRemoteObject() throws RemoteException
     {
 	exportObject((Remote)this);
     }
 
+    /**
+     * Returns a clone of the remote object.
+     * @return the new remote object
+     * @exception CloneNotSupportedException if clone failed due to
+     *  a RemoteException
+     */
     public Object clone() throws CloneNotSupportedException
     {
 	try {
@@ -24,6 +42,12 @@ public class UnicastRemoteObject extends RemoteServer
 	}
     }
 
+    /**
+     * Exports the remote object to allow it to receive incoming calls.
+     * @param obj the remote object to be exported
+     * @return the remote object stub
+     * @exception RemoteException if the export fails
+     */
     public static RemoteStub exportObject(Remote obj) throws RemoteException
     {
 	// Use exportObject from the "current" UnicastServerRef".
@@ -37,7 +61,8 @@ public class UnicastRemoteObject extends RemoteServer
 	return ref.exportObject(obj, null);
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
+    private void readObject(ObjectInputStream in)
+	    throws IOException, ClassNotFoundException
     {
 	in.defaultReadObject();
 	reexport();

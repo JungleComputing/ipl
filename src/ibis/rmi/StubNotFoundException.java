@@ -1,7 +1,5 @@
 package ibis.rmi;
 
-import ibis.rmi.RemoteException;
-
 /**
  * A <code>StubNotFoundException</code> is thrown if no valid stub class
  * could be found while exporting a remote object.
