@@ -671,6 +671,30 @@
 	<ant dir="${docs}" inheritAll="false" target="progman"/>
     </target>
 
+    <target name="simple-test" depends="build">
+	<ant dir="ibis-example" inheritAll="false" target="test"/>
+    </target>
+
+    <target name="test" depends="test">
+	<ant dir="apps" inheritAll="false" target="test"/>
+    </target>
+
+    <target name="gmi-apps-test" depends="build">
+	<ant dir="apps/gmi" inheritAll="false" target="test"/>
+    </target>
+
+    <target name="rmi-apps-test" depends="build">
+	<ant dir="apps/rmi" inheritAll="false" target="test"/>
+    </target>
+
+    <target name="satin-apps-test" depends="build">
+	<ant dir="apps/satin" inheritAll="false" target="test"/>
+    </target>
+
+    <target name="ibis-apps-test" depends="build">
+	<ant dir="apps/ibis" inheritAll="false" target="test"/>
+    </target>
+
     <property name="distr"        location="${ibis}/ibis-src-distr"/>
 
     <target name="src-distr">
