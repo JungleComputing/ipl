@@ -295,6 +295,8 @@ public final class Satinc {
 	new_main.setMaxStack();
 	new_main.setMaxLocals();
 
+	new_main.addLocalVariable("argv", new ArrayType(Type.STRING, 1), 0, null, null);
+
 	Method main = new_main.getMethod();
 	gen_c.addMethod(main);
     }
@@ -1072,18 +1074,22 @@ System.out.println("findMethod: could not find method " + name + sig);
 				     Type.NO_ARGS,
 				     Constants.INVOKESTATIC));
 	il.insert(insertAllocPos, new ASTORE(maxLocals));
+	m.addLocalVariable("spawn_counter", spawnCounterType, maxLocals, null, null);
 
 	// Allocate and init outstandingSpawns at slot maxLocals+1 
 	il.insert(insertAllocPos, new ACONST_NULL());
 	il.insert(insertAllocPos, new ASTORE(maxLocals+1));
+	m.addLocalVariable("outstanding_spawns", irType, maxLocals+1, null, null);
 
 	// Allocate and init curr at slot maxLocals+2 
 	il.insert(insertAllocPos, new ACONST_NULL());
 	il.insert(insertAllocPos, new ASTORE(maxLocals+2));
+	m.addLocalVariable("current", irType, maxLocals+2, null, null);
 
 	// Allocate and init curr at slot maxLocals+3 
 	il.insert(insertAllocPos, new ACONST_NULL());
 	il.insert(insertAllocPos, new ASTORE(maxLocals+3));
+	m.addLocalVariable("local_record", new ObjectType("ibis.satin.LocalRecord"), maxLocals+3, null, null);
 
 	for (InstructionHandle i = insertAllocPos; i != null; i = i.getNext()) {
 	    if (i.getInstruction() instanceof ReturnInstruction) {
@@ -1188,6 +1194,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		l.setIndex(l.getIndex() + shift);
 	    }
 	}
+
     }
 
     InstructionHandle insertTypecheckCode(MethodGen m, InstructionList il, InstructionHandle pos, int spawnId, int exceptionPos) {
@@ -1272,6 +1279,16 @@ System.out.println("findMethod: could not find method " + name + sig);
 	shiftLocals(il, localsShift); // add localsShift to all locals 
 				      // (we have localsShift parameters...)
 
+	LocalVariableGen[] lv = m.getLocalVariables();
+	for (int i = 0; i < lv.length; i++) {
+	    lv[i].setIndex(lv[i].getIndex() + localsShift);
+	}
+
+	m.addLocalVariable("spawn_id", Type.INT, spawnIdPos, null, null);
+	m.addLocalVariable("local_record", new ObjectType(localRecordName(mOrig)), localRecordPos, null, null);
+	m.addLocalVariable("excpt", new ObjectType("java.lang.Throwable"), exceptionPos, null, null);
+	m.addLocalVariable("parent", irType, parentPos, null, null);
+
 	// At pos 'startPos', the new of the local record starts.
 	// Delete it, and replace with assignment from param
 
@@ -1341,6 +1358,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
 
 	String localClassName = localRecordName(m);
+	Type local_record_type = new ObjectType(localClassName);
 	InstructionList il = m.getInstructionList();
 	int maxLocals = m.getMaxLocals();
 
@@ -1354,11 +1372,13 @@ System.out.println("findMethod: could not find method " + name + sig);
 	Type[] paramtypes = mtab.typesOfParams(mOrig);
 	il.insert(pos, ins_f.createInvoke(localClassName,
 				     "getNew",
-				     new ObjectType(localRecordName(m)),
+				     local_record_type,
 				     paramtypes,
 				     Constants.INVOKESTATIC));
 
 	il.insert(pos, new ASTORE(maxLocals));
+
+	m.addLocalVariable("local_record", local_record_type, maxLocals, null, null);
 
 	for (InstructionHandle i=pos; i != null; i = i.getNext()) {
 
@@ -1528,7 +1548,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
     void compileGenerated(String className) {
 	try {
-	    String command = compiler + " " + className + ".java";
+	    String command = compiler + " -g " + className + ".java";
 	    if (verbose) {
 		System.out.println("Running: " + command);
 	    }
