@@ -39,6 +39,10 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     private final static int	defaultPollTimeout = 30;	// ms.
     private int			pollTimeout = defaultPollTimeout;
 
+    static {
+	System.err.println("WARNING: Class net.muxer.MuxerInput (still) uses Conversion.defaultConversion");
+    }
+
 
 
     /**
@@ -99,11 +103,9 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 	    }
 	}
 
-if (! block)
-System.err.println("Call doPoll(0)");
+if (! block) System.err.println("Call doPoll(0)");
 	Integer spn = doPoll(block ? 0 : pollTimeout);
-if (! block)
-System.err.println("Returned from doPoll(0)");
+if (! block) System.err.println("Returned from doPoll(0)");
 
 	if (! USE_POLLER_THREAD) {
 	    synchronized (this) {

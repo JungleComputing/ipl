@@ -161,7 +161,7 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 	 */
 	public void writeByte(byte value) throws IOException {
 		log.in();
-                // log.disp("IN value = "+value);
+                // log.disp("IN value = ", value);
                 log.disp("IN");
 // System.err.println(this + ": Write one byte=" + value + " = '" + (char)value + "'");
 // Thread.dumpStack();

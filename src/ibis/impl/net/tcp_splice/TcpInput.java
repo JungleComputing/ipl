@@ -85,6 +85,12 @@ public final class TcpInput extends NetBufferedInput
 	private static final int   INTERRUPT_TIMEOUT  = 1000; // 100; // ms
 	private boolean      interrupted = false;
 
+	static {
+	    if (false) {
+		System.err.println("WARNING: Class net.tcp_splice.TcpInput (still) uses Conversion.defaultConversion");
+	    }
+	}
+
 	/**
 	 * Constructor.
 	 *

@@ -104,6 +104,10 @@ public final class RelInput
 
 
     static {
+	System.err.println("WARNING: Class net.rel.RelInput (still) uses Conversion.defaultConversion");
+    }
+
+    static {
 	if (! USE_EXPLICIT_ACKS) {
 	    System.err.println("Ibis.net.rel: Do not use explicit acks");
 	}

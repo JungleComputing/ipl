@@ -62,6 +62,12 @@ public final class TcpOutput extends NetBufferedOutput {
 	 */
 	private int                      rmtu      =   0;
 
+	static {
+	    if (false) {
+		System.err.println("WARNING: Class net.tcp_splice.TcpOutput (still) uses Conversion.defaultConversion");
+	    }
+	}
+
 	/**
 	 * Constructor.
 	 *

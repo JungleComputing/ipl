@@ -33,6 +33,10 @@ public final class Demuxer extends NetBufferedInput {
     private static ibis.impl.net.NetDriver	subDriver;
     private static MuxerInput	demux;
 
+    static {
+	System.err.println("WARNING: Class net.muxer.Demuxer (still) uses Conversion.defaultConversion");
+    }
+
 
     /**
      * Constructor.

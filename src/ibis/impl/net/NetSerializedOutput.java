@@ -91,18 +91,15 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void initSend() throws IOException {
-// System.err.println(this + ": now in initSend() oss " + oss + " requiresStreamReinit " + requiresStreamReinit + " subOutput " + subOutput);
                 super.initSend();
                 subOutput.initSend();
                 if (oss == null) {
 		    if (requiresStreamReinit) {
-// System.err.println(this + ": Write reinit byte " + 255);
                         subOutput.writeByte((byte)255);
 		    }
 		    oss = newSerializationOutputStream();
 		    if (replacer != null) oss.setReplacer(replacer);
                 } else {
-// System.err.println(this + ": Write reinit byte " + 0);
 		    if (requiresStreamReinit) {
                         subOutput.writeByte((byte)0);
 		    }

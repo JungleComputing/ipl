@@ -98,6 +98,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	private int		msgSeqno;
 
+	private boolean		messageInUse = false;
+
 
 
 
@@ -616,6 +618,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		    throw new IOException("SendPort already closed");
 		}
                 stat.begin();
+		if (messageInUse) {
+		    throw new Error("Can have only one open message at a time");
+		}
+		messageInUse = true;
 		emptyMsg = true;
                 output.initSend();
                 if (trace.on()) {
@@ -850,6 +856,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		    stat.end();
 		    trace.disp(sendPortTracePrefix, "message send <--");
 		} finally {
+		    messageInUse = false;
 		    outputLock.unlock();
 		}
 		log.out();

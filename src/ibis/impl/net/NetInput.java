@@ -630,7 +630,7 @@ up.setDaemon(true);
 
                 threadStackLock.lock();
                 if (activeThread != null) {
-                        trace.disp("this = "+this+", active thread end ["+(activeThread.getName())+"]-->");
+                        trace.disp(this, ": active thread end --> ", activeThread.getName());
                         ((PooledUpcallThread)activeThread).end();
                         while (true) {
                                 try {
@@ -641,12 +641,12 @@ up.setDaemon(true);
                                         //
                                 }
                         }
-                        trace.disp("this = "+this+", active thread end<--");
+                        trace.disp(this, ": active thread end<--");
                 }
 
                 for (int i = 0; i < threadStackSize; i++) {
                         if (threadStack[i] != null) {
-                                trace.disp("this = "+this+", thread stack["+i+"] end-->");
+                                trace.disp(this, ": end--> thread stack@", i);
                                 threadStack[i].end();
                                 while (true) {
                                         try {
@@ -657,7 +657,7 @@ up.setDaemon(true);
                                                 //
                                         }
                                 }
-                                trace.disp("this = "+this+", thread stack["+i+"] end<--");
+                                trace.disp(this, ": <-- thread stack@", i);
                         }
                 }
                 threadStackLock.unlock();

@@ -51,14 +51,26 @@ public final class TcpOutput extends NetBufferedOutput {
 	/**
 	 * The local MTU.
 	 */
-	private int                      lmtu      = 32768;
+	// private int                      lmtu      = 16 * 1024;
+	private int                      lmtu      = 32 * 1024;
         //private int                      lmtu      = 5*1024;
         //private int                      lmtu      = 256;
+	{
+	    if (lmtu != 32 * 1024) {
+		System.err.println("net.tcp_blk.TcpOutput.lmtu " + lmtu);
+	    }
+	}
 
 	/**
 	 * The remote MTU.
 	 */
 	private int                      rmtu      =   0;
+
+	static {
+	    if (false) {
+		System.err.println("WARNING: Class net.tcp_blk.TcpOutput (still) uses Conversion.defaultConversion");
+	    }
+	}
 
 	/**
 	 * Constructor.

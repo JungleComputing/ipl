@@ -264,7 +264,6 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	if (q == null) {
 	    q = new ReceiveQueue(cnx);
 	    inputMap.put(key, q);
-// System.err.println(this + ": add subInput " + ni + "; key " + key + "; upcallFunc " + upcallFunc);
 	}
 
 	NetInput ni = newPollerSubInput(key, q);
@@ -516,6 +515,8 @@ nCurrent++;
 	    }
 	}
 	activeQueue = q;
+	mtu = activeQueue.input.getMaximumTransfertUnit();
+	headerOffset = activeQueue.input.getHeadersLength();
 
 	log.out();trace.out();
     }
@@ -588,6 +589,7 @@ nCurrent++;
 	mtu = input.getMaximumTransfertUnit();
 	log.disp("2");
 	headerOffset = input.getHeadersLength();
+// System.err.println(this + ": selectConnection, input " + input + " headerOffset " + headerOffset);
 // rcveTimer.start();
 	log.out();
     }
@@ -805,7 +807,7 @@ nCurrent++;
 	    if (inputMap.values().size() == 1) {
 		    log.disp("Pity, missed the chance of a blocking NetPoller without thread switch");
 	    } else {
-		    log.disp("No chance of a blocking NetPoller without thread switch; size " + inputMap.values().size());
+		    log.disp("No chance of a blocking NetPoller without thread switch; size ", inputMap.values().size());
 	    }
 
 	    trace.disp("2, ", this);

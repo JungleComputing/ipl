@@ -211,8 +211,8 @@ public class MuxerQueue {
 	    }
 	}
 if (false && ! block) {
-System.err.println(this + ": Nonblocking poll");
-Thread.dumpStack();
+    System.err.println(this + ": Nonblocking poll");
+    Thread.dumpStack();
 }
 
 	if (activeInput != null) {

@@ -531,7 +531,7 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
                 log.in();
                 NetPortEvent event = (NetPortEvent)e;
 
-                log.disp("IN: event.code() = " + event.code());
+                log.disp("IN: event.code() = ", event.code());
 
                 switch (event.code()) {
 		case NetPortEvent.CLOSE_EVENT:
@@ -655,7 +655,7 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
                 this.trace     = new NetLog(trace, s, "TRACE");
                 this.disp      = new NetLog(disp,  s, "DISP");
 
-                this.trace.disp(receivePortTracePrefix+" receive port created");
+                this.trace.disp(receivePortTracePrefix, " receive port created");
         }
 
         private void initPassiveObjects() {
@@ -698,9 +698,9 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
                 }
 
                 disp.disp("__ Configuration ____");
-                disp.disp("Upcall engine........" + __.state__(useUpcall));
-                disp.disp("Yield................" + __.state__(useYield));
-                disp.disp("Blocking poll........" + __.state__(useBlockingPoll));
+                disp.disp("Upcall engine........", __.state__(useUpcall));
+                disp.disp("Yield................", __.state__(useYield));
+                disp.disp("Blocking poll........", __.state__(useBlockingPoll));
                 disp.disp("_____________________");
                 log.out();
         }
@@ -780,7 +780,7 @@ pollerThread = null;
                 emptyMsg = true;
                 if (trace.on()) {
                         final String messageId = readString();
-                        trace.disp(receivePortTracePrefix+"message "+messageId+" receive -->");
+                        trace.disp(receivePortTracePrefix, "message receive --> ", messageId);
                 }
 
                 log.out();

@@ -106,6 +106,10 @@ public final class RelOutput
 
     private int sendWaiters;	/* count threads that block for credits */
 
+    static {
+	System.err.println("WARNING: Class net.rel.RelOutput (still) uses Conversion.defaultConversion");
+    }
+
 
     static {
 	if (! USE_PIGGYBACK_ACKS) {

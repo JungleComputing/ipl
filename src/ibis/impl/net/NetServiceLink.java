@@ -167,6 +167,11 @@ public final class NetServiceLink {
          */
         private Integer            num               = null;
 
+	static {
+	    if (false) {
+		System.err.println("WARNING: Class NetServiceLink (still) uses Conversion.defaultConversion");
+	    }
+	}
 
         /* ___ CONSTRUCTORS ________________________________________________ */
 

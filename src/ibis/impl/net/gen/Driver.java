@@ -42,6 +42,7 @@ public final class Driver extends NetDriver {
 	    if (inputUpcall == null && pt.inputSingletonOnly()) {
 		return new SingletonPoller(pt, this, context, inputUpcall);
 	    } else {
+// System.err.println(this + ": PortType " + pt + ": no SingletonPoller, inputUpcall " + inputUpcall);
 		return new GenPoller(pt, this, context, inputUpcall);
 	    }
 	}

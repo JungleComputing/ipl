@@ -93,8 +93,8 @@ public final class TcpOutput extends NetOutput {
 		
 		raddr =  (InetAddress)remoteInfo.get("tcp_address");
 		rport = ((Integer)    remoteInfo.get("tcp_port")   ).intValue();
-		log.disp("raddr = "+raddr);
-		log.disp("rport = "+rport);
+		log.disp("raddr = ", raddr);
+		log.disp("rport = ", rport);
 
 		tcpSocket = new Socket(raddr, rport);
 		tcpOs 	  = new DataOutputStream(tcpSocket.getOutputStream());

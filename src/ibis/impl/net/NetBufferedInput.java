@@ -229,7 +229,7 @@ public abstract class NetBufferedInput extends NetInput
 		}
 
 // System.err.println(this + ": Read one byte=" + value + " = '" + (char)value + "'");
-                // log.disp("OUT value = "+value);
+                // log.disp("OUT value = ", value);
                 log.disp("OUT");
                 log.out();
 

@@ -36,6 +36,10 @@ public final class Muxer extends NetBufferedOutput {
 
     private long		seqno;	/* For out-of-order debugging */
 
+    static {
+	System.err.println("WARNING: Class net.muxer.Muxer (still) uses Conversion.defaultConversion");
+    }
+
 
     /**
      * Constructor.

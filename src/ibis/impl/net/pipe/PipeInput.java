@@ -24,6 +24,10 @@ public final class PipeInput extends NetBufferedInput {
         private NetReceiveBuffer buf          = null;
         private boolean          upcallMode   = false;
 
+	static {
+	    System.err.println("WARNING: Class net.pipe.PipeInput (still) uses Conversion.defaultConversion");
+	}
+
 	PipeInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) throws IOException {
 		super(pt, driver, context, inputUpcall);
 		headerLength = 4;

@@ -10,7 +10,11 @@ import ibis.impl.net.NetPollInterruptible;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+
 import ibis.io.Conversion;
+
+import ibis.util.TypedProperties;
+
 import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
@@ -18,12 +22,14 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+
 import java.util.Hashtable;
 
 /**
@@ -69,9 +75,15 @@ public final class TcpInput extends NetBufferedInput
 	/**
 	 * The local MTU.
 	 */
-	private int                   lmtu            = 32768;
+	// private int                   lmtu            = 16 * 1024;
+	private int                   lmtu            = 32 * 1024;
 	//private int                   lmtu            = 5*1024;
 	//private int                   lmtu            = 256;
+	{
+	    if (lmtu != 32 * 1024) {
+		System.err.println("net.tcp_blk.TcpInput.lmtu " + lmtu);
+	    }
+	}
 
 	/**
 	 * The remote MTU.
@@ -89,6 +101,13 @@ public final class TcpInput extends NetBufferedInput
 	private static final int   INTERRUPT_TIMEOUT  = 1000; // 100; // ms
 	private boolean		interrupted = false;
 	private boolean		interruptible = false;
+	private final static boolean READ_AHEAD = TypedProperties.booleanProperty("ibis.net.tcp_blk.read_ahead", true);
+
+	static {
+	    if (false) {
+		System.err.println("WARNING: Class net.tcp_blk.TcpInput (still) uses Conversion.defaultConversion");
+	    }
+	}
 
 	/**
 	 * Constructor.
@@ -256,6 +275,15 @@ public final class TcpInput extends NetBufferedInput
 			    + " currentSize " + currentSize
 			    + " totalSize " + totalSize);
 		}
+		surplusEnqueue(b);
+		int sizeSize = totalSize - currentSize;
+		if (sizeSize < Conversion.INT_SIZE) {
+// System.err.println("Return neg value " + (- sizeSize));
+		    System.arraycopy(buf.data, currentSize,
+				     b.data, b.base,
+				     sizeSize);
+		    return -sizeSize;
+		}
 		int nextSize = Conversion.defaultConversion.byte2int(buf.data, currentSize);
 		copySize = Math.min(nextSize, totalSize - currentSize);
 		System.arraycopy(buf.data, currentSize,
@@ -267,9 +295,9 @@ public final class TcpInput extends NetBufferedInput
 					+ " size " + b.length
 					+ " missing " + (nextSize - copySize));
 		}
-		surplusEnqueue(b);
 		currentSize += copySize;
 	    } while (totalSize > currentSize);
+// System.err.println("Return pos value " + copySize);
 
 	    return copySize;
 	}
@@ -277,99 +305,117 @@ public final class TcpInput extends NetBufferedInput
 
 	/* Create a NetReceiveBuffer and do a blocking receive. */
 	private NetReceiveBuffer receive() throws IOException {
-		log.in();
+	    log.in();
 
-		NetReceiveBuffer buf = surplusDequeue();
-		if (buf != null) {
-		    return buf;
-		}
-
-		buf = createReceiveBuffer(0);
-		byte [] b = buf.data;
-		int     l = 0;
-
-		int offset = 0;
-
-		try {
-			do {
-				/*
-				 * Try to read ahead as far as we can.
-				 * If read() returns more than has been sent
-				 * in one message, we buffer the extra buffers
-				 * aside.
-				 */
-				int result = 0;
-				try {
-					result = tcpIs.read(b, offset, b.length - offset);
-				} catch (SocketTimeoutException e) {
-					if (interrupted) {
-						interrupted = false;
-						// throw Ibis.createInterruptedIOException(e);
-// System.err.println(this + ": we are interrupted. Return null (or throw an InterruptedException?)");
-						return null;
-					}
-				}
-				if (result == -1) {
-					if (true || offset != 0) {
-						throw new ConnectionClosedException("broken pipe");
-					}
-				}
-
-				offset += result;
-			} while (offset < 4);
-
-			l = Conversion.defaultConversion.byte2int(b, 0);
-
-			buf.length = l;
-
-			/*
-			 * Our read may have slurped in more than one buffer.
-			 * Create a queue of the extra buffers.
-			 */
-			offset = cacheSurplusBuffers(buf, offset, l);
-
-			/*
-			 * If the last buffer read was incomplete, read the
-			 * rest now.
-			 */
-			if (surplusHead != null) {
-			    NetBuffer tail = surplusTail;
-			    l = tail.length;
-			    b = tail.data;
-			}
-
-			while (offset < l) {
-				int result = 0;
-				try {
-					result = tcpIs.read(b, offset, l - offset);
-				} catch (SocketTimeoutException e) {
-					if (interrupted) {
-						interrupted = false;
-						System.err.println("Please store the data already read for the resume after the InterruptedIOException");
-						// throw Ibis.createInterruptedIOException(e);
-						return null;
-					}
-				}
-				if (result == -1) {
-					throw new ConnectionClosedException("broken pipe");
-				}
-				offset += result;
-			}
-
-		} catch (SocketException e) {
-			String msg = e.getMessage();
-			if (tcpSocket.isClosed() ||
-			    msg.equalsIgnoreCase("socket closed") ||
-			    msg.equalsIgnoreCase("null fd object")) {
-				throw new ConnectionClosedException(e);
-			} else {
-				throw e;
-			}
-		}
-
-		log.out();
-
+	    NetReceiveBuffer buf = surplusDequeue();
+	    if (buf != null) {
 		return buf;
+	    }
+
+	    buf = createReceiveBuffer(0);
+	    int    l = 0;
+	    int    offset = 0;
+	    byte[] b;
+
+	    try {
+		NetReceiveBuffer lastBuffer = buf;
+		while (true) {
+		    b = lastBuffer.data;
+		    while (offset < Conversion.INT_SIZE) {
+			/*
+			 * Try to read ahead as far as we can.
+			 * If read() returns more than has been sent
+			 * in one message, we buffer the extra buffers
+			 * aside.
+			 */
+			int result = 0;
+			try {
+			    int readLength = READ_AHEAD ?
+						b.length - offset :
+						Conversion.INT_SIZE;
+			    result = tcpIs.read(b, offset, b.length - offset);
+			} catch (SocketTimeoutException e) {
+			    if (interrupted) {
+				interrupted = false;
+				// throw Ibis.createInterruptedIOException(e);
+// System.err.println(this + ": we are interrupted. Return null (or throw an InterruptedException?)");
+				return null;
+			    }
+			}
+			if (result == -1) {
+			    if (true || offset != 0) {
+				throw new ConnectionClosedException("broken pipe");
+			    }
+			}
+
+			offset += result;
+		    }
+
+		    l = Conversion.defaultConversion.byte2int(b, 0);
+		    lastBuffer.length = l;
+// if (buf != lastBuffer) System.err.println("Now wanna read block " + l + " offset " + offset);
+
+		    /*
+		     * Our read may have slurped in more than one buffer.
+		     * Create a queue of the extra buffers.
+		     */
+		    offset = cacheSurplusBuffers(lastBuffer, offset, l);
+		    if (offset > 0) {
+			break;
+		    }
+		    // offset < 0. We read halfway a size. Go on looping to
+		    // read that size and the buffer that belongs to it.
+		    lastBuffer = (NetReceiveBuffer)surplusTail;
+		    offset = -offset;
+		}
+
+		/*
+		 * If the last buffer read was incomplete, read the
+		 * rest now.
+		 * If there is a queue, offset is the offset into the tail
+		 * buffer that we must read fully because that is our
+		 * invariant.
+		 * If there is no queue, offset is the offset into the
+		 * current buffer, buf. That must also be read fully.
+		 */
+		if (surplusHead != null) {
+		    NetBuffer tail = surplusTail;
+		    l = tail.length;
+		    b = tail.data;
+		}
+
+		while (offset < l) {
+		    int result = 0;
+		    try {
+			result = tcpIs.read(b, offset, l - offset);
+		    } catch (SocketTimeoutException e) {
+			if (interrupted) {
+			    interrupted = false;
+			    System.err.println("Please store the data already read for the resume after the InterruptedIOException");
+			    // throw Ibis.createInterruptedIOException(e);
+			    return null;
+			}
+		    }
+		    if (result == -1) {
+			throw new ConnectionClosedException("broken pipe");
+		    }
+		    offset += result;
+		}
+
+	    } catch (SocketException e) {
+		    String msg = e.getMessage();
+		    if (tcpSocket.isClosed() ||
+			msg.equalsIgnoreCase("socket closed") ||
+			msg.equalsIgnoreCase("null fd object")) {
+			    throw new ConnectionClosedException(e);
+		    } else {
+			    throw e;
+		    }
+	    }
+
+	    log.out();
+
+	    return buf;
 	}
 
 	/**

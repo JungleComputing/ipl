@@ -20,6 +20,10 @@ public final class PipeOutput extends NetBufferedOutput {
 	private PipedOutputStream pipeOs     = null;
         private boolean           upcallMode = false;
 
+	static {
+	    System.err.println("WARNING: Class net.pipe.PipeOutput (still) uses Conversion.defaultConversion");
+	}
+
 	PipeOutput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 		headerLength = 4;

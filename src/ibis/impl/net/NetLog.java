@@ -257,9 +257,63 @@ public final class NetLog {
         /**
          * General purpose method-prefixed message display.
          */
-        public void disp(String s, Object obj) {
+        public void disp(Object s, Object obj) {
                 if (on) {
                         System.err.println(id(1)+"- "+s + obj);
+                }
+        }
+
+        /**
+         * General purpose method-prefixed message display.
+         */
+        public void disp(Object s, Object obj, Object obj2) {
+                if (on) {
+                        System.err.println(id(1)+"- "+s + obj + obj2);
+                }
+        }
+
+        /**
+         * General purpose method-prefixed message display.
+         */
+        public void disp(Object s, int i) {
+                if (on) {
+                        System.err.println(id(1)+"- "+s + " " + i);
+                }
+        }
+
+        /**
+         * General purpose method-prefixed message display.
+         */
+        public void disp(Object s, Object obj, int i) {
+                if (on) {
+                        System.err.println(id(1)+"- "+s + obj + " " + i);
+                }
+        }
+
+        /**
+         * General purpose method-prefixed message display.
+         */
+        public void disp(Object s, int i, Object obj) {
+                if (on) {
+                        System.err.println(id(1)+"- "+s + " " + i + " " + obj);
+                }
+        }
+
+        /**
+         * General purpose method-prefixed message display.
+         */
+        public void disp(int j, Object s, int i) {
+                if (on) {
+                        System.err.println(id(1)+"- " + j + " " + s + " " + i);
+                }
+        }
+
+        /**
+         * General purpose method-prefixed message display.
+         */
+        public void disp(int j, Object s, int i, Object obj) {
+                if (on) {
+                        System.err.println(id(1)+"- " + j + " " + s + " " + i + " " + obj);
                 }
         }
 

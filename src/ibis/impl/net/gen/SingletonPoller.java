@@ -82,6 +82,10 @@ public class SingletonPoller extends GenPoller {
 
 	subInput.setupConnection(cnx);
 
+	mtu = subInput.getMaximumTransfertUnit();
+	headerOffset = subInput.getHeadersLength();
+// System.err.println(this + ": my subInput " + subInput + " mtu " + mtu);
+
 	log.out();
     }
 
