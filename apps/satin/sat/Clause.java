@@ -332,7 +332,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
      * is resolved on this variable.
      * @param c1 A clause.
      * @param c2 A clause.
-     * @param v The variable to resolve on.
+     * @param var The variable to resolve on.
      * @return The new, resolved clause.
      */
     public static Clause resolve( Clause c1, Clause c2, int var )
