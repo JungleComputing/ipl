@@ -85,8 +85,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
 	 *
 	 * @param from the node from which a message was received
 	 *
-	 * @return the group message that was enqueued, and that can now be initialized
-	 * further.
+	 * @return the group message that was enqueued, and that can now be
+	 * initialized further.
 	 */
 	public GroupMessage enqueue(int from) { 
 	    if (Group.DEBUG) System.out.println("Got message from cpu " + from);
@@ -149,12 +149,15 @@ public abstract class GroupSkeleton implements GroupProtocol {
     }
 
     /**
-     * Receives a {@link GroupProtocol#COMBINE} or a 
-     * {@link GroupProtocol#COMBINE_RESULT} message.
-     * It is placed in a group message and enqueued in the proper queue, and any waiters
-     * are notified.
+     * Receives a {@link GroupProtocol#COMBINE COMBINE} or a 
+     * {@link GroupProtocol#COMBINE_RESULT COMBINE_RESULT} message.
+     * It is placed in a group message and enqueued in the proper queue,
+     * and any waiters are notified.
      *
      * @param m the message received
+     * @exception IOException is thrown on IO error.
+     * @exception ClassNotFoundException is thrown when an object is read
+     * whose class could not be found.
      */
     public synchronized final void handleCombineMessage(ReadMessage m) throws IOException, ClassNotFoundException { 
 	int rank = m.readInt();
@@ -233,8 +236,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
      * is binomial. Note that it also combines exceptions, and throws an exception
      * when it should be propagated.
      * This version is for group methods with a float result.
-     * TODO: Have a special exception class that can contain nested exceptions?
-     * Or, rethrow exception?
      *
      * @param combiner the binomial combiner object
      * @param to_all indicates whether the result of the combine should be sent
@@ -247,6 +248,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
      * @exception when combiner throws an exception, or on IO error.
      */
     protected final synchronized float combine_float(BinomialCombiner combiner, boolean to_all, int lroot, float local_result, Exception ex) throws Exception {
+	// TODO: Have a special exception class that can contain nested exceptions?
+	// Or, rethrow exception?
 
 	int peer;
 	int mask = 1;
@@ -1148,12 +1151,15 @@ public abstract class GroupSkeleton implements GroupProtocol {
     }
 
     /**
-     * To be redefined by the skeletons. Deals with an {@link GroupProtocol#INVOCATION} message.
-     * TODO: Exception behavior
-     *
+     * To be redefined by the skeletons.
+     * Deals with an {@link GroupProtocol#INVOCATION INVOCATION} message.
      * @param invocationMode summary of the invocation scheme of this invocation
      * @param resultMode     summary of the result scheme of this invocation
      * @param r              the message
+     * @exception IbisException is thrown when the result is an exception; the
+     * nested exception is this result exception.
+     * @exception IOException is thrown on IO error.
      */
     public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IOException;	
+	// TODO: Exception behavior
 }

@@ -956,10 +956,9 @@ public final class Group implements GroupProtocol {
      * Exits from a group and cleans up resources. This method
      * must be called by all members of the group, making it a sort
      * of combined invocation.
-     *
-     * TODO: Remove the information that is registered in the registry???
      */
     public static void exit() { 
+	// TODO: Remove the information that is registered in the registry???
 	try { 
 
 	    if (_rank == 0) { 

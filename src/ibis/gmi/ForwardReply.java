@@ -16,7 +16,7 @@ public class ForwardReply extends ReplyScheme {
      *
      * @param f the {@link Forwarder} of this replyscheme
      *
-     * @exception {@link ConfigurationException} is thrown when the parameter is null.
+     * @exception ConfigurationException is thrown when the parameter is null.
      */
     public ForwardReply(Forwarder f) throws ConfigurationException { 
 

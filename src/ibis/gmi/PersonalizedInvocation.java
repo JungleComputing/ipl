@@ -1,13 +1,13 @@
 package ibis.gmi;
 
 /**
- * The {@link PersonalizedInvocation} class must be used to configure a group method
- * for personalized invocations.
+ * The {@link PersonalizedInvocation} class must be used to configure a
+ * group method for personalized invocations.
  */
 public class PersonalizedInvocation extends InvocationScheme { 
 
     /**
-     * The personalizer (see {@link Personalizer}).
+     * The personalizer.
      */
     public Personalizer p;
 
@@ -18,7 +18,8 @@ public class PersonalizedInvocation extends InvocationScheme {
      *
      * @exception ConfigurationException is thrown when the parameter is null.
      */
-    public PersonalizedInvocation(Personalizer p) throws ConfigurationException { 		
+    public PersonalizedInvocation(Personalizer p)
+	    throws ConfigurationException { 		
 	super(InvocationScheme.I_PERSONAL);
 
 	this.p = p;

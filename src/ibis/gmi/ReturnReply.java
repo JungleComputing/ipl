@@ -18,7 +18,7 @@ public class ReturnReply extends ReplyScheme {
      *
      * @param rank the group member that is to deliver the reply
      *
-     * @exception {@link ConfigurationException} is thrown when an invalid
+     * @exception ConfigurationException is thrown when an invalid
      * parameter is given.
      */
     public ReturnReply(int rank) throws ConfigurationException { 

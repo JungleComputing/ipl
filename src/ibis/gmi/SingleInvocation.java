@@ -15,9 +15,10 @@ public class SingleInvocation extends InvocationScheme {
     /**
      * Constructor.
      *
-     * @param destination the object within the group on which the method is to be invoked
+     * @param destination the rank within the group of the object object
+     * on which the method is to be invoked
      *
-     * @exception {@link ConfigurationException} is thrown when an illegal
+     * @exception ConfigurationException is thrown when an illegal
      * parameter is supplied.
      */
     public SingleInvocation(int destination) throws ConfigurationException { 

@@ -8,8 +8,8 @@ import ibis.util.Ticket;
 import java.io.IOException;
 
 /**
- * The {@link GroupStub} class provides a base class for generated stubs. A GroupStub
- * provides an interface through which group methods can be called.
+ * The {@link GroupStub} class provides a base class for generated stubs.
+ * A GroupStub provides an interface through which group methods can be called.
  */
 
 public class GroupStub implements GroupInterface, GroupProtocol { 
@@ -69,9 +69,10 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      */
     protected GroupMethod [] methods;
 
-    /** Invocation count for combined invocations. These are handled in the stubs,
-     * not in the skeletons, because invokers don't have to be members of the
-     * group.
+    /**
+     * Invocation count for combined invocations.
+     * These are handled in the stubs, not in the skeletons,
+     * because invokers don't have to be members of the group.
      */
     private int invocation_count = 0;
 
@@ -147,7 +148,8 @@ public class GroupStub implements GroupInterface, GroupProtocol {
     /**
      * Find the group method described by the parameter "desc".
      *
-     * @param desc the description of the group method. Format example: "void set(int)"
+     * @param desc the description of the group method.
+     * Format example: "void set(int)".
      * @return A {@link GroupMethod} object, or null when not found.
      */
     protected GroupMethod getMethod(String desc) {
@@ -289,7 +291,9 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	r.finish();
     } 
 
-    /* Fill a writeMessage and send it out. */
+    /**
+     * Fills a writeMessage and sends it out.
+     */
     private final void do_message(WriteMessage w, GroupMethod m, ReplyPersonalizer personalizer, int dest, ParameterVector v) throws IOException {
 	w.writeByte(INVOCATION);
 	w.writeInt(dest);
@@ -370,12 +374,9 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * @param m the group method to be invoked
      * @return The {@link GroupMessage} that holds the result of the combined
      * invocation, or null if the result is discarded or forwarded.
-     *
-     * TODO: Deal with exceptions.
-     *
      */
     protected final GroupMessage flatCombineInvoke(ParameterVector params, GroupMethod m) throws IOException {
-
+	// TODO: deal with exceptions.
 	CombinedInvocation inv = (CombinedInvocation) m.inv;
 	CombinedInvocationInfo info = m.info;
 	int ticket = 0;
@@ -470,11 +471,9 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * @param params the parameters for this invocation (yet to be combined)
      * @param m the group method to be invoked
      * @return The {@link GroupMessage} that holds the result of the combined invocation.
-     *
-     * TODO: Deal with exceptions.
-     *
      */
     protected final GroupMessage binCombineInvoke(ParameterVector params, GroupMethod m) throws IOException {
+	// TODO: Deal with exceptions.
 	CombinedInvocation inv = (CombinedInvocation) m.inv;
 	CombinedInvocationInfo info = m.info;
 	ReplyPersonalizer personalizer = null;

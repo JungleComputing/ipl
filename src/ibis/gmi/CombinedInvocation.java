@@ -55,7 +55,7 @@ public class CombinedInvocation extends InvocationScheme {
      * @param combiner indicates the parameter combiner itself
      * @param inv indicates the underlying invocation scheme
      *
-     * @exception {@link ConfigurationException} is thrown on an illegal combination of
+     * @exception ConfigurationException is thrown on an illegal combination of
      * arguments.
      */
     public CombinedInvocation(String identifier, 
@@ -99,7 +99,7 @@ public class CombinedInvocation extends InvocationScheme {
      * @param combiner indicates the parameter combiner itself
      * @param inv indicates the underlying invocation scheme
      *
-     * @exception {@link ConfigurationException} is thrown on an illegal combination of
+     * @exception ConfigurationException is thrown on an illegal combination of
      * arguments.
      */
     public CombinedInvocation(String identifier, 

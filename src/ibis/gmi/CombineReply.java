@@ -26,7 +26,7 @@ public class CombineReply extends ReplyScheme {
      *
      * @param flatCombiner the {@link FlatCombiner}
      * 
-     * @exception {@link ConfigurationException} when the parameter is null.
+     * @exception ConfigurationException when the parameter is null.
      */
     public CombineReply(FlatCombiner flatCombiner) throws ConfigurationException { 
 	super(ReplyScheme.R_COMBINE_FLAT);
@@ -42,7 +42,7 @@ public class CombineReply extends ReplyScheme {
      *
      * @param binCombiner the {@link BinomialCombiner}
      *
-     * @exception {@link ConfigurationException} when the parameter is null.
+     * @exception ConfigurationException when the parameter is null.
      */
     public CombineReply(BinomialCombiner binCombiner) throws ConfigurationException { 
 	super(ReplyScheme.R_COMBINE_BINOMIAL);

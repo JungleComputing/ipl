@@ -4,8 +4,9 @@ import ibis.ipl.SendPort;
 
 /**
  * A {@link GroupMethod} object represents a method of a specific group
- * reference. It contains a single method {@link #configure} that can be used
- * to set the invocation and reply handling schemes of the method it represents.
+ * reference. It contains a single method {@link #configure configure}
+ * that can be used to set the invocation and reply handling schemes of
+ * the method it represents.
  */
 public class GroupMethod { 	
     /** 
@@ -83,13 +84,13 @@ public class GroupMethod {
     } 
 
     /**
-     * Method configuration. This method just fills in the fields, and does some
-     * sanity checks.
+     * Method configuration.
+     * This method just fills in the fields, and does some sanity checks.
      *
      * @param inv the invocation scheme
      * @param rep the reply scheme
      *
-     * @exception {@link ConfigurationException} when some illegal configuration
+     * @exception ConfigurationException when some illegal configuration
      * is given.
      */
     public void configure(InvocationScheme inv, ReplyScheme rep) throws ConfigurationException { 
