@@ -157,8 +157,8 @@ public class NetServiceInputStream extends InputStream {
 	}
 
 	/**
-	 * Called by the {@link #listenThread} to add a block of bytes
-	 * to the incoming buffer list.
+	 * Called by the listenThread of {@link NetServiceLink}
+	 * to add a block of bytes to the incoming buffer list.
 	 *
 	 * @param b the byte block to add to the list.
 	 */

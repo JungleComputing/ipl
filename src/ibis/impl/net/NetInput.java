@@ -611,7 +611,7 @@ up.setDaemon(true);
 
 
 	/**
-	 * {@linkplain NetInput}s may be capable of switching between upcall
+	 * {@linkplain ibis.impl.net.NetInput NetInput}s may be capable of switching between upcall
 	 * mode and downcall mode on-the-fly by invoking {@link
 	 * #switchToUpcallMode} or {@link #switchToDowncallMode}.
 	 *
@@ -631,7 +631,7 @@ up.setDaemon(true);
 	 * @see	#switchToUpcallMode
 	 *
 	 * @return whether blocking poll is interruptible, which is equivalent
-	 * 		to whether this {@linkplain NetInput} supports
+	 * 		to whether this {@linkplain ibis.impl.net.NetInput NetInput} supports
 	 * 		switching between upcall mode and downcall mode.
 	 */
 	public boolean pollIsInterruptible() throws IOException {
@@ -642,7 +642,7 @@ up.setDaemon(true);
 	/**
 	 * Provide a hint that switching between upcall mode and downcall mode
 	 * is desired or not desired. The rationale for this method is that some
-	 * {@linkplain NetInput}s can provide interruptibility but only at
+	 * {@linkplain ibis.impl.net.NetInput NetInput}s can provide interruptibility but only at
 	 * an extra cost: <code>tcp_blk</code> is a case in point.
 	 *
 	 * @see	#pollIsInterruptible
@@ -671,7 +671,7 @@ up.setDaemon(true);
 	 *
 	 * <BR>
 	 * Method {@link #pollIsInterruptible} informs whether this
-	 * {@linkplain NetInput} supports poll interrupts and switching between
+	 * {@linkplain ibis.impl.net.NetInput NetInput} supports poll interrupts and switching between
 	 * upcall mode and downcall mode.
 	 *
 	 * <BR>
@@ -691,7 +691,7 @@ up.setDaemon(true);
 
 
 	/**
-	 * Switch this {@linkplain NetInput} to downcall mode.
+	 * Switch this {@linkplain ibis.impl.net.NetInput NetInput} to downcall mode.
 	 *
 	 * Threads that are blocked in a receive must be interrupted before this
 	 * switch by calling {@link #interruptPoll}. These threads will return
@@ -699,12 +699,12 @@ up.setDaemon(true);
 	 *
 	 * <BR>
 	 * Any previously registered {@link NetInputUpcall} is cleared and
-	 * forgotten. The {@linkplain NetInput} of which this is a subInput is
+	 * forgotten. The {@linkplain ibis.impl.net.NetInput NetInput} of which this is a subInput is
 	 * responsible for doing downcall receives from now on.
 	 *
 	 * <BR>
 	 * Method {@link #pollIsInterruptible} informs whether this
-	 * {@linkplain NetInput} supports poll interrupts and switching between
+	 * {@linkplain ibis.impl.net.NetInput NetInput} supports poll interrupts and switching between
 	 * upcall mode and downcall mode.
 	 *
 	 * <BR>
@@ -724,7 +724,7 @@ up.setDaemon(true);
 
 
 	/**
-	 * Switch this {@linkplain NetInput} to upcall mode.
+	 * Switch this {@linkplain ibis.impl.net.NetInput NetInput} to upcall mode.
 	 *
 	 * Threads that are blocked in a receive must be interrupted before this
 	 * switch by calling {@link #interruptPoll}. These threads will return
@@ -733,14 +733,14 @@ up.setDaemon(true);
 	 * <BR>
 	 * If the caller is certain that no downcall receive may have been
 	 * posted yet, this method may be called without first interrupting
-	 * the poll. In that case this {@linkplain NetInput} need not be
+	 * the poll. In that case this {@linkplain ibis.impl.net.NetInput NetInput} need not be
 	 * {@linkplain #pollIsInterruptible}. This occurs for instance when
 	 * the poll and the connect are protected by one lock, that is still
 	 * taken indivisibly with the connect when this method is invoked.
 	 *
 	 * <BR>
 	 * Method {@link #pollIsInterruptible} informs whether this
-	 * {@linkplain NetInput} supports poll interrupts and switching between
+	 * {@linkplain ibis.impl.net.NetInput NetInput} supports poll interrupts and switching between
 	 * upcall mode and downcall mode.
 	 *
 	 * <BR>
