@@ -4,31 +4,12 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 
 
-class OutputTypeEnum extends EnumeratedAttribute {
-
-    private final static String[] values = new String[] {
-	"shared",
-	"static"
-    };
-
-    public OutputTypeEnum() {
-	setValue("shared");
-    }
-
-    public String[] getValues() {
-	return (String[]) values.clone();
-    }
-
-}
-
-
 public class MapLibraryName extends Task {
 
     private String property;
     private String name;
 
-    private OutputTypeEnum outtype = new OutputTypeEnum();
-
+    private String outtype = "shared";
 
     public void execute() throws BuildException {
 	if (property == null) {
@@ -46,7 +27,7 @@ public class MapLibraryName extends Task {
 	    basename = name.substring(slash + 1);
 	}
 	String libName = basename;
-	if (outtype.getValue().equals("shared")) {
+	if (outtype.equals("shared")) {
 	    libName = System.mapLibraryName(basename);
 	}
 	if (dirname != null) {
@@ -72,6 +53,16 @@ public class MapLibraryName extends Task {
     }
 
     public void setOuttype(OutputTypeEnum outputType) {
-	this.outtype = outputType;
+	this.outtype = outputType.getValue();
     }
+
+
+    public static class OutputTypeEnum extends EnumeratedAttribute {
+
+	public String[] getValues() {
+	    return new String[] { "shared", "static" };
+	}
+
+    }
+
 }
