@@ -1,14 +1,15 @@
 import ibis.ipl.*;
 
 import java.io.IOException;
+import java.util.Random;
 
 public class Main {
 	static Ibis ibis;
 	static Registry registry;
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 1000;
-	public static final int COUNT = 1000;
+	public static final int LEN   = 1000000;
+	public static final int COUNT = 10;
 
 	public static ReceivePortIdentifier lookup(String name) throws IOException { 
 		
@@ -57,15 +58,26 @@ public class Main {
 			int count = COUNT;
 		
 			boolean manta = false;
+			boolean panda = false;
 			int rank = 0, remoteRank = 1;
 
 			for(int i=0; i<args.length; i++) {
 				if(args[i].equals("-manta")) {
 					manta = true;
-				} 
+				} else if(args[i].equals("-panda")) {
+					panda = true;
+				} else {
+					System.err.println("unknown option: " + args[i]);
+				}
 			}
-					
-			ibis = Ibis.createIbis("ibis", "ibis.impl.tcp.TcpIbis", null);
+			Random rand = new Random();
+
+			if(!panda) {
+				ibis = Ibis.createIbis("ibis:" + rand.nextInt(), "ibis.impl.tcp.TcpIbis", null);
+			} else {
+				ibis = Ibis.createIbis("ibis:" + rand.nextInt(), "ibis.impl.messagePassing.PandaIbis", null);
+			}
+
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();
@@ -98,7 +110,7 @@ public class Main {
 				// Create tree
 				temp = new DITree(len);
 
-				System.err.println("Writing list of " + len + " Data objects");
+				System.err.println("Writing tree of " + len + " Data objects");
 
 				// Warmup
 				for (int i=0;i<count;i++) {

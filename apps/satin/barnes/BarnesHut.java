@@ -187,16 +187,17 @@ class BarnesHut {
 		// they return a list with bodyNumbers and corresponding accs
 
 		//necessaryTree version
+/*
 		result = btRoot.barnes(btRoot, SPAWN_THRESHOLD);
 		btRoot.sync();
-
+*/
 		//satintuple version
-		/*BodyTreeNode dummyNode = new BodyTreeNode();
+		BodyTreeNode dummyNode = new BodyTreeNode();
 		String rootId = "root" + iteration;
 		ibis.satin.SatinTupleSpace.add(rootId, btRoot);
 		result = dummyNode.barnes(null, rootId, SPAWN_THRESHOLD);
 		dummyNode.sync();
-		*/
+		
 
 		it = result.iterator();
 

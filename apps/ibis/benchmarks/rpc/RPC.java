@@ -1051,12 +1051,12 @@ System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not
     /**
      * Interface ReceivePortConnectUpcall
      */
-    public boolean gotConnection(SendPortIdentifier sp) {
+    public boolean gotConnection(ReceivePort rp, SendPortIdentifier sp) {
 	System.err.println("Got connection with send port " + sp);
 	return true;
     }
 
-    public void lostConnection(SendPortIdentifier sp, Exception e) {
+    public void lostConnection(ReceivePort rp, SendPortIdentifier sp, Exception e) {
 	System.err.println("Lost connection with send port " + sp
 			    + " threw " + e);
     }
@@ -1065,7 +1065,7 @@ System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not
     /**
      * Interface SendPortConnectUpcall
      */
-    public void lostConnection(ReceivePortIdentifier rp, Exception e) {
+    public void lostConnection(SendPort sp, ReceivePortIdentifier rp, Exception e) {
 	System.err.println("Lost connection with receive port " + rp
 			    + " threw " + e);
     }
