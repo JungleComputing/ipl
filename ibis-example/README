@@ -1,3 +1,3 @@
 This program basically is the RPC example program from the Ibis programmers
 manual. The program takes no arguments, and can be used to try your Ibis
-installation. Use "ant run" to try it out.
+installation. Use "ant test" to try it out.
