@@ -2,7 +2,7 @@
 
 import java.io.File;
 
-class Compress extends ibis.satin.SatinObject implements CompressorInterface
+class Compress extends ibis.satin.SatinObject
 {
     static final boolean traceMatches = false;
 
@@ -75,18 +75,6 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return r;
     }
 
-    public Backref evaluateBackref( final byte text[], final int backrefs[], int backpos, int pos, int depth )
-    {
-        Backref r = swallowEvaluateBackref( text, backrefs, backpos, pos );
-
-        if( r.gain>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
-            Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
-            sync();
-            r.gain += m.gain;
-        }
-        return r;
-    }
-
     public Backref selectBestMove( byte text[], int backrefs[], int pos, int depth )
     {
         Backref mv;
@@ -107,7 +95,14 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             mv = new Backref();
         }
         for( int i=0; i<sites.length; i++ ){
-            results[i] = evaluateBackref( text, backrefs, sites[i], pos, depth );
+            Backref r = swallowEvaluateBackref( text, backrefs, sites[i], pos );
+
+            if( r.gain>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
+                Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
+                sync();
+                r.gain += m.gain;
+            }
+            results[i] = r;
         }
         sync();
 
