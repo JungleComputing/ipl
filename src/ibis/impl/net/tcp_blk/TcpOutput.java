@@ -9,14 +9,10 @@ import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
-import ibis.impl.net.NetReceivePort;
 import ibis.impl.net.NetReceivePortIdentifier;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
-import ibis.impl.net.NetSendPort;
-
 import ibis.io.Conversion;
-
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisIdentifier;

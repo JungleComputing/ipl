@@ -4,6 +4,7 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
+import ibis.ipl.IbisIOException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

@@ -1,7 +1,6 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.DynamicProperties;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;

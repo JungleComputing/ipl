@@ -13,16 +13,11 @@ import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-import ibis.impl.net.NetReceivePort;
-import ibis.impl.net.NetSendPort;
 import ibis.impl.net.NetSendPortIdentifier;
-
 import ibis.io.Conversion;
-
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisIdentifier;
-
 import ibis.util.TypedProperties;
 
 import java.io.DataInputStream;

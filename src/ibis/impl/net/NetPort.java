@@ -1,8 +1,8 @@
 package ibis.impl.net;
 
-import java.util.Hashtable;
-
 import ibis.ipl.DynamicProperties;
+
+import java.util.Hashtable;
 
 /**
  * Provide a common superclass to both {@link ibis.impl.net.NetSendPort} and

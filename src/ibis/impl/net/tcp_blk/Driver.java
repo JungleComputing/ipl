@@ -1,18 +1,16 @@
 package ibis.impl.net.tcp_blk;
 
-import java.net.Socket;
-
-import ibis.ipl.IbisIdentifier;
-
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
+import ibis.ipl.IbisIdentifier;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.net.Socket;
 
 /**
  * The NetIbis TCP driver with pipelined block transmission.

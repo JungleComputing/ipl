@@ -1,7 +1,6 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -18,8 +17,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 

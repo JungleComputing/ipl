@@ -1,13 +1,11 @@
 package ibis.impl.net.tcp_blk;
 
-import java.net.Socket;
+import ibis.ipl.IbisIdentifier;
+import ibis.util.TypedProperties;
 
+import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Vector;
-
-import ibis.ipl.IbisIdentifier;
-
-import ibis.util.TypedProperties;
 
 
 /**
