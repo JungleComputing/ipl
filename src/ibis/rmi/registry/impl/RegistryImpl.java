@@ -32,7 +32,8 @@ public class RegistryImpl implements Registry {
         if (host != null && !host.equals("")) {
             try {
                 InetAddress adres = InetAddress.getByName(host);
-                if (adres.getHostAddress().equals("127.0.0.1")) {
+                if (host.equals("localhost")
+                        || adres.getHostAddress().equals("127.0.0.1")) {
                     host = localhostName();
                 }
                 else {
