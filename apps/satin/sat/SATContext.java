@@ -5,9 +5,6 @@
  * for every recursion of the solve() method.
  */
 public class SATContext implements java.io.Serializable {
-    /** The variables to assign to, in order of decreasing use count. */
-    int varlist[];
-
     /** The number of open terms of each clause. */
     private int terms[];	/* The number of open terms of each clause. */
 
@@ -25,7 +22,6 @@ public class SATContext implements java.io.Serializable {
 
     /** Constructs a Context with the specified elements. */
     private SATContext(
-        int vl[],
 	int tl[],
 	int al[],
 	int poscl[],
@@ -33,7 +29,6 @@ public class SATContext implements java.io.Serializable {
 	boolean sat[],
 	int us
     ){
-        varlist = vl;
 	terms = tl;
 	assignments = al;
 	satisfied = sat;
@@ -58,7 +53,6 @@ public class SATContext implements java.io.Serializable {
     public Object clone()
     {
         return new SATContext(
-	    (int []) varlist.clone(),
 	    (int []) terms.clone(),
 	    (int []) assignments.clone(),
 	    (int []) posclauses.clone(),

@@ -21,80 +21,6 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
     static final boolean traceNewCode = true;
     static int label = 0;
 
-    /** 
-     * If there are less than this number of variables left, we consider
-     * this a problem that is trivial enough to hand to the leaf solver.
-     */
-    static final int leafVariables = 0;
-
-    /**
-     * A simple solver that is used when the remaining problem is too
-     * small to justify expensive solvers.
-     * The method throws a SATResultException if it finds a solution,
-     * or terminates normally if it cannot find a solution.
-     * @param level branching level
-     * @param p the SAT problem to solve
-     * @param assignments the current assignments
-     * @param varlist the list of variables to branch on, ordered for efficiency
-     * @param varix the next variable in <code>varlist</code> to branch on
-     */
-    private static void leafSolve(
-	int level,
-	SATProblem p,
-	int varlist[],
-	int assignments[],
-	int varix,
-	boolean val
-    ) throws SATResultException
-    {
-	int var = varlist[varix];
-
-	if( traceSolver ){
-	    System.err.println( "ls" + level + ": Trying assignment var[" + var + "]=" + val + " varix=" + varix );
-	}
-	assignments[var] = val?1:0;
-
-	if( p.isSatisfied( assignments ) ){
-	    SATSolution s = new SATSolution( assignments );
-
-	    if( traceSolver | printSatSolutions ){
-		System.err.println( "ls" + level + ": found a solution: " + s );
-	    }
-	    throw new SATResultException( s );
-	}
-	if( p.isConflicting( assignments ) ){
-	    if( traceSolver ){
-		System.err.println( "ls" + level + ": found a conflict" );
-	    }
-	    assignments[var] = -1;
-	    return;
-	}
-
-	varix++;
-	// Search for an unassigned variable.
-	while( varix<varlist.length ){
-	    int nextvar = varlist[varix];
-
-	    if( assignments[nextvar] == -1 ){
-		break;
-	    }
-	    varix++;
-	}
-	if( varix>=varlist.length ){
-	    // There are no variables left to assign, clearly there
-	    // is no solution.
-	    if( traceSolver ){
-		System.err.println( "ls" + level + ": there are only " + varlist.length + " variables; nothing to branch on varix=" + varix );
-	    }
-	    assignments[var] = -1;
-	    return;
-	}
-
-	leafSolve( level+1, p, varlist, assignments, varix, false );
-	leafSolve( level+1, p, varlist, assignments, varix, true );
-	assignments[var] = -1;
-    }
-
     /**
      * The method that implements a Satin task.
      * The method throws a SATResultException if it finds a solution,
@@ -102,8 +28,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
      * @param level branching level
      * @param p the SAT problem to solve
      * @param ctx the changable context of the solver
-     * @param assignments the current assignments
-     * @param varix the next variable in <code>varlist</code> to assign
+     * @param var the next variable to assign
      * @param val the value to assign
      */
     public void solve(
@@ -146,30 +71,23 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    // There are no variables left to assign, clearly there
 	    // is no solution.
 	    if( traceSolver ){
-		System.err.println( "s" + level + ": there are only " + ctx.varlist.length + " variables; nothing to branch on" );
+		System.err.println( "s" + level + ": nothing to branch on" );
 	    }
 	    return;
 	}
 
-	// TODO: when (if ever) should we switch to the leaf solver?
-	if( false ){
-	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, 0, false );
-	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, 0, true );
+	// We have variable 'nextvar' to branch on.
+	SATContext negctx = (SATContext) ctx.clone();
+	SATContext posctx = (SATContext) ctx.clone();
+	if( ctx.posDominant( nextvar ) ){
+	    solve( level+1, p, posctx, nextvar, true );
+	    solve( level+1, p, negctx, nextvar, false );
 	}
 	else {
-	    // We have variable 'nextvar' to branch on.
-	    SATContext negctx = (SATContext) ctx.clone();
-	    SATContext posctx = (SATContext) ctx.clone();
-	    if( ctx.posDominant( nextvar ) ){
-		solve( level+1, p, posctx, nextvar, true );
-		solve( level+1, p, negctx, nextvar, false );
-	    }
-	    else {
-		solve( level+1, p, negctx, nextvar, false );
-		solve( level+1, p, posctx, nextvar, true );
-	    }
-	    sync();
+	    solve( level+1, p, negctx, nextvar, false );
+	    solve( level+1, p, posctx, nextvar, true );
 	}
+	sync();
     }
 
     /**
@@ -205,7 +123,6 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 		p.buildNegClauses()
 	    );
 
-	    ctx.varlist = p.buildOrderedVarList();
 	    ctx.assignments = p.buildInitialAssignments();
 
 	    int nextvar = ctx.getDecisionVariable();
@@ -218,22 +135,16 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 		return null;
 	    }
 
-	    if( leafVariables>=ctx.varlist.length ){
-		leafSolve( 0, p, ctx.varlist, ctx.assignments, 0, false );
-		leafSolve( 0, p, ctx.varlist, ctx.assignments, 0, true );
+	    SATContext negctx = (SATContext) ctx.clone();
+	    if( ctx.posDominant( nextvar ) ){
+		s.solve( 0, p, ctx, nextvar, true );
+		s.solve( 0, p, negctx, nextvar, false );
 	    }
 	    else {
-		SATContext negctx = (SATContext) ctx.clone();
-		if( ctx.posDominant( nextvar ) ){
-		    s.solve( 0, p, ctx, nextvar, true );
-		    s.solve( 0, p, negctx, nextvar, false );
-		}
-		else {
-		    s.solve( 0, p, negctx, nextvar, false );
-		    s.solve( 0, p, ctx, nextvar, true );
-		}
-		s.sync();
+		s.solve( 0, p, negctx, nextvar, false );
+		s.solve( 0, p, ctx, nextvar, true );
 	    }
+	    s.sync();
 	}
 	catch( SATResultException r ){
 	    if( r.s == null ){
