@@ -40,14 +40,25 @@ final class TranspositionTable {
 	Rdtsc bcastTimer = new Rdtsc();
 	Rdtsc bcastHandlerTimer = new Rdtsc();
 
-	PoolInfo info = new PoolInfo();
-	int rank = info.rank();
-	int poolSize = info.size();
+	PoolInfo info;
+	int rank;
+	int poolSize;
 
-	TTReceiver[] receiverThreads = new TTReceiver[poolSize];
+	TTReceiver[] receiverThreads;
 
 	TranspositionTable() {
 		Random random = new Random();
+
+		try {
+		    info  = new PoolInfo();
+		} catch (Exception e) {
+		    System.err.println("Error creating pool info: " + e);
+		    System.exit(1);
+		}
+
+		rank = info.rank();
+		poolSize = info.size();
+		receiverThreads = new TTReceiver[poolSize];
 
 //		System.err.println("hosts = " + poolSize + ", rank = " + rank);
 
@@ -84,6 +95,7 @@ final class TranspositionTable {
 			}
 		} catch (Exception e) {
 			System.err.println("Exc: " + e);
+			e.printStackTrace();
 		}
 
 		System.err.println(rank + ": TT created");
@@ -103,6 +115,7 @@ final class TranspositionTable {
 //			System.err.println(rank + ": accepted socket, other = " + other);
 		} catch (Exception e) {
 			System.err.println("Exc: " + e);
+			e.printStackTrace();
 		}
 	}
 
@@ -247,6 +260,7 @@ final class TranspositionTable {
 				bcastStream.flush();
 			} catch (Exception e) {
 				System.err.println("Exc: " + e);
+				e.printStackTrace();
 			}
 
 			bufCount = 0;
