@@ -1,13 +1,15 @@
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import java.io.*;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 public class Main {
 
 	public static final boolean DEBUG = false;
 	public static final int LEN   = (1024)-1;
-	public static final int COUNT = 100;
+	public static final int COUNT = 1000;
 	public static final int TESTS = 10;
 		
 	public static double round(double val) { 		
@@ -17,7 +19,7 @@ public class Main {
 	public static void main(String args[]) {
 		
 		try {
-			DITree temp = null;
+			DITree tree = null;
 			long start, end;
 			int bytes;
 		
@@ -26,39 +28,31 @@ public class Main {
 
 			System.err.println("Main starting");
 			
-			StoreBuffer buf = new StoreBuffer();
-			StoreOutputStream out = new StoreOutputStream(buf);
-			StoreInputStream in = new StoreInputStream(buf);
-			
-			ObjectOutputStream mout = new ObjectOutputStream(out);
-			ObjectInputStream min = new ObjectInputStream(in);
-				
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ObjectOutputStream mout = new ObjectOutputStream(baos);
+
+			mout.reset();
+			mout.flush();
+			byte [] temp = baos.toByteArray();
+
+			int mark = temp.length;
+
 			// Create tree
-			temp = new DITree(LEN);
+			tree = new DITree(LEN);
 			
 			System.err.println("Writing tree of " + LEN + " DITree objects");
 
-			mout.writeObject(temp);
+			mout.writeObject(tree);
 			mout.flush();
 			mout.reset();
 
-			System.err.println("Wrote " + out.getAndReset() + " bytes");
-			
-			System.err.println("Reading tree of " + LEN + " DITree objects");
-			min.readObject();
-			in.reset();
-			buf.clear();
+			temp = baos.toByteArray();			
+			bytes = temp.length - mark;
 
-			System.err.println("Rewriting tree of " + LEN + " DITree objects");
+			ByteArrayInputStream bais = new ByteArrayInputStream(temp);
+			ObjectInputStream min = new ObjectInputStream(bais);
+			bais.mark(bytes);
 
-			mout.writeObject(temp);
-			mout.flush();
-			mout.reset();
-
-			bytes = out.getAndReset();
-
-			System.err.println("Wrote " + bytes + " bytes");
-			
 			System.err.println("Starting test");
 
 			for (int j=0;j<TESTS;j++) { 
@@ -67,7 +61,8 @@ public class Main {
 				
 				for (int i=0;i<COUNT;i++) {
 					min.readObject();
-					in.reset();
+					bais.reset();
+					bais.mark(bytes);
 				}
 				
 				end = System.currentTimeMillis();
@@ -90,8 +85,8 @@ public class Main {
 				}
 			} 
 
-			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("" + round(best_rtp) + " " + round(best_ktp));
+//			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
+			System.out.println("Total tp : " + round(best_rtp) + " User to :" + round(best_ktp));
 		} catch (Exception e) {
 			System.err.println("Main got exception " + e);
 			e.printStackTrace();

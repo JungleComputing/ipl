@@ -12,8 +12,8 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = (1024*16)-1;
-	public static final int COUNT = 100;
+	public static final int LEN   = (1024)-1;
+	public static final int COUNT = 1000;
 	public static final int TESTS = 10;
 
 	public static double round(double val) { 		
@@ -62,9 +62,9 @@ public class Main {
 				double rtp = ((1000.0*rb)/(1024*1024))/time;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
-				System.out.println("Karmi bytes written " + kb + " throughput = " + ktp + " MBytes/s");
-				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
+//				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
+//				System.out.println("Karmi bytes written " + kb + " throughput = " + ktp + " MBytes/s");
+//				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
 
 				if (time < best_time) { 
 					best_time = time;
@@ -73,8 +73,8 @@ public class Main {
 				}
 			} 
 
-			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("" + round(best_rtp) + " " + round(best_ktp));
+//			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
+			System.out.println("Real tp : " + round(best_rtp) + " User tp: " + round(best_ktp));
 		} catch (Exception e) {
 			System.err.println("Main got exception " + e);
 			e.printStackTrace();

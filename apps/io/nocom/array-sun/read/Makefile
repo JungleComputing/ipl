@@ -1,9 +1,6 @@
 # SRC=  DowncallLatency.java
 
 SRC	=
-SRC	+= StoreOutputStream.java
-SRC	+= StoreInputStream.java
-SRC	+= StoreBuffer.java
 
 MAIN = Main.java
 
