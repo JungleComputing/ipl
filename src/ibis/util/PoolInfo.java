@@ -57,10 +57,8 @@ public class PoolInfo {
 
     static final String s_key = PROPERTY_PREFIX + "key";
 
-    static final String s_debug = PROPERTY_PREFIX + "debug";
-
     static final String[] sysprops = { s_cluster, s_names, s_total, s_hnum,
-            s_single, s_port, s_host, s_key, s_debug };
+            s_single, s_port, s_host, s_key };
 
     int total_hosts;
 

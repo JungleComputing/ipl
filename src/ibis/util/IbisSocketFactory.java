@@ -144,8 +144,10 @@ public abstract class IbisSocketFactory {
                         + "within specified range. Wrapping around");
             }
 
-	    logger.debug("allocating local port in open range, returning: "
-                    + res);
+            if (logger.isDebugEnabled()) {
+                logger.debug("allocating local port in open range, returning: "
+                        + res);
+            }
             return res;
         }
         return 0; /* any free port */
@@ -201,9 +203,11 @@ public abstract class IbisSocketFactory {
         Socket s;
         s = a.accept();
         tuneSocket(s);
-        logger.debug("accepted new connection from "
-                + s.getInetAddress() + ":" + s.getPort() + ", local = "
-                + s.getLocalAddress() + ":" + s.getLocalPort());
+        if (logger.isDebugEnabled()) {
+            logger.debug("accepted new connection from "
+                    + s.getInetAddress() + ":" + s.getPort() + ", local = "
+                    + s.getLocalAddress() + ":" + s.getLocalPort());
+        }
 
         return s;
     }

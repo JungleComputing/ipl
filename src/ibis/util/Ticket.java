@@ -232,7 +232,9 @@ public class Ticket {
         top = initialSize;
         size = initialSize;
 
-        logger.debug("Ticket(" + initialSize + ") done");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket(" + initialSize + ") done");
+        }
     }
 
     /**
@@ -242,12 +244,16 @@ public class Ticket {
      */
     public synchronized int get() {
 
-        logger.debug("Ticket.get() starting");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.get() starting");
+        }
 
         if (top == 0) {
 
-            logger.debug("Ticket.get() resizing from " + size + " to "
-                    + (size * 2));
+            if (logger.isDebugEnabled()) {
+                logger.debug("Ticket.get() resizing from " + size + " to "
+                        + (size * 2));
+            }
 
             // resize the lot.
             int new_size = size * 2;
@@ -276,7 +282,9 @@ public class Ticket {
 
         buckets[ticket].setValid();
 
-        logger.debug("Ticket.get() returning tickets[" + top + "] = " + ticket);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.get() returning tickets[" + top + "] = " + ticket);
+        }
 
         return ticket;
     }
@@ -294,17 +302,23 @@ public class Ticket {
     public void put(int ticket, Object object) {
         Bucket bucket;
 
-        logger.debug("Ticket.put(" + ticket + ") starting");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.put(" + ticket + ") starting");
+        }
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        logger.debug("Ticket.put() got a bucket");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.put() got a bucket");
+        }
 
         bucket.put(object);
 
-        logger.debug("Ticket.put() done");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.put() done");
+        }
     }
 
     /**
@@ -318,23 +332,31 @@ public class Ticket {
         Bucket bucket;
         Object result;
 
-        logger.debug("Ticket.collect(" + ticket + ") starting");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.collect(" + ticket + ") starting");
+        }
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        logger.debug("Ticket.collect() got a bucket");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.collect() got a bucket");
+        }
 
         result = bucket.collect();
 
-        logger.debug("Ticket.collect() got a result");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.collect() got a result");
+        }
 
         synchronized (this) {
             tickets[top++] = ticket;
         }
 
-        logger.debug("Ticket.collect() done");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.collect() done");
+        }
 
         return result;
     }
@@ -350,17 +372,23 @@ public class Ticket {
         Object result;
         Bucket bucket;
 
-        logger.debug("Ticket.peek(" + ticket + ") starting");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.peek(" + ticket + ") starting");
+        }
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        logger.debug("Ticket.peek() got a bucket");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.peek() got a bucket");
+        }
 
         result = bucket.peek();
 
-        logger.debug("Ticket.peek() done");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.peek() done");
+        }
 
         return result;
     }
@@ -378,17 +406,23 @@ public class Ticket {
         Object result;
         Bucket bucket;
 
-        logger.debug("Ticket.get(" + ticket + ") starting");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.get(" + ticket + ") starting");
+        }
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        logger.debug("Ticket.get() got a bucket");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.get() got a bucket");
+        }
 
         result = bucket.get();
 
-        logger.debug("Ticket.get() done");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ticket.get() done");
+        }
 
         return result;
     }
