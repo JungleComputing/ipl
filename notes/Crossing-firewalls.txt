@@ -16,19 +16,20 @@ These mechanisms are implemented in the src/ibis/connect hierarchy.
 In the current Ibis, they are disabled by default. To activate these
 methods, you must set the Java property "ibis.connect.enable".
 Althgough theoretically they may be used by any Ibis implementation,
-only NetIbis is able to use them in the current implementation.
+only TCPIbis and NetIbis are able to use them in the current implementation.
 
 We distinguish two categories of communication links: control and
-data.  Control links are those for connection to the Ibis name service
-and the NetIbis control links. They rely on the client/server
-approach.  Data links are used to actually carry data. In NetIbis,
-there construction may involve a "control link" for parameter
+data.  Control links are the NetIbis control links and TCPIbis links
+that are set up to establish data links. They rely on the client/server
+approach.  Data links are used to actually carry data. In NetIbis and TCPIbis
+their construction may involve a "control link" for parameter
 negociation.  Therefore we call them "brokered links".
 
 You can choose which method you want to use for control links and
 service links through the Java properties "ibis.connect.control_links"
 and "ibis.connect.data_links". The following methods are implemented:
-Plain TCP, RoutedMessages, TCPSplice.
+Plain TCP, RoutedMessages, TCPSplice. Note: TCPSplice can only be used
+for data links, as it is a brokered link only.
 
 * Connection Establishment Methods
   --------------------------------
@@ -63,22 +64,15 @@ be:
 /s_ibis:Driver=bytes
 /s_ibis/bytes:Driver=tcp_splice
 
--- Step 3- start the control hub on a machine visible from every 
-computing node, e.g.:
+Alternatively, configure your application to use TCPIbis.
 
-fs0:~% ibis_controlhub -port 9832
+-- Step 3- start the Ibis name server on a machine visible from every 
+computing node, with the -controlhub flag, e.g.:
 
--- Step 4- start the Ibis name server. It is recommanded to run it on the
-same machine as the hub. Set the environment variable IBIS_HUB to the
-hub reference (in the form <host>:<port>), e.g.:
+fs0:~% ibis_nameserver -controlhub
 
-fs0:~% setenv IBIS_HUB fs0.das2.cs.vu.nl:9832
-fs0:~% ibis_nameserver
-
--- Step 5- run the application as usual, but add the following flags:
+-- Step 4- run the application as usual, but add the following flags:
 -Dibis.connect.enable 
--Dibis.connect.hub_host=fs0.das2.cs.vu.nl
--Dibis.connect.hub_port=9827 
 -Dibis.connect.data_links=TCPSplice 
 -Dibis.connect.control_links=RoutedMessages
 
