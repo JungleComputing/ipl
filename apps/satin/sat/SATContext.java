@@ -18,7 +18,7 @@ public class SATContext implements java.io.Serializable {
     int assignment[];
 
     /** The antecedent of each variable, or -1 if it is a decision variable. */
-    private int antecedent[];
+    int antecedent[];
 
     /** The number of positive clauses of each variable. */
     private int posclauses[];
@@ -318,16 +318,15 @@ public class SATContext implements java.io.Serializable {
 	    }
 	    if( pc == 0 ){
 		if( assignment[var] == UNASSIGNED ){
-		    if( negclauses[var] == 0 ){
-			return SATProblem.CONFLICTING;
-		    }
-		    if( tracePropagation ){
-			System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
-		    }
-		    // Only register the fact that there is an pure
-		    // variable. Don't propagate it yet, since the
-		    // adminstration is inconsistent at the moment.
-		    hasPure = true;
+                    if( negclauses[var] != 0 ){
+                        if( tracePropagation ){
+                            System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
+                        }
+                        // Only register the fact that there is an pure
+                        // variable. Don't propagate it yet, since the
+                        // adminstration is inconsistent at the moment.
+                        hasPure = true;
+                    }
 		}
 	    }
 	}
@@ -341,16 +340,15 @@ public class SATContext implements java.io.Serializable {
 	    }
 	    if( nc == 0 ){
 		if( assignment[var] == UNASSIGNED ){
-		    if( posclauses[var] == 0 ){
-			return SATProblem.CONFLICTING;
-		    }
-		    if( tracePropagation ){
-			System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
-		    }
-		    // Only register the fact that there is an pure
-		    // variable. Don't propagate it yet, since the
-		    // adminstration is inconsistent at the moment.
-		    hasPure = true;
+                    if( posclauses[var] != 0 ){
+                        if( tracePropagation ){
+                            System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
+                        }
+                        // Only register the fact that there is an pure
+                        // variable. Don't propagate it yet, since the
+                        // adminstration is inconsistent at the moment.
+                        hasPure = true;
+                    }
 		}
 	    }
 	}
@@ -359,7 +357,7 @@ public class SATContext implements java.io.Serializable {
 	    for( int i=0; i<pos.length; i++ ){
 		int var = pos[i];
 
-		if( assignment[var] == UNASSIGNED && posclauses[var] == 0 ){
+		if( assignment[var] == UNASSIGNED && posclauses[var] == 0 && negclauses[var] != 0 ){
 		    int res = propagateNegAssignment( p, var );
 		    if( res != 0 ){
 			return res;
@@ -369,7 +367,7 @@ public class SATContext implements java.io.Serializable {
 	    for( int i=0; i<neg.length; i++ ){
 		int var = neg[i];
 
-		if( assignment[var] == UNASSIGNED && negclauses[var] == 0 ){
+		if( assignment[var] == UNASSIGNED && negclauses[var] == 0 && posclauses[var] != 0 ){
 		    int res = propagatePosAssignment( p, var );
 		    if( res != 0 ){
 			return res;

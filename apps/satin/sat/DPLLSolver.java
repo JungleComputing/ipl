@@ -50,7 +50,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    res = ctx.propagateNegAssignment( p, var );
 	}
 	if( res == -1 ){
-	    // Propagation reveals a conflict.
 	    if( traceSolver ){
 		System.err.println( "ls" + level + ": propagation found a conflict" );
 	    }

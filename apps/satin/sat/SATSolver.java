@@ -61,7 +61,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    if( traceSolver ){
 		System.err.println( "ls" + level + ": propagation found a conflict" );
 	    }
-            analyzeConflict( ctx, p );
 	    return;
 	}
 	if( res == 1 ){
@@ -133,7 +132,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    if( traceSolver ){
 		System.err.println( "s" + level + ": propagation found a conflict" );
 	    }
-            analyzeConflict( ctx, p );
 	    return;
 	}
 	if( res == 1 ){
