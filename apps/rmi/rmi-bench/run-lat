@@ -1,6 +1,7 @@
 #!/bin/bash
 
 reserve="-reserve 724368"
+javaflags="-ip-map /home/rutger/myrinet-ip-map"
 
 n=10
 
@@ -15,7 +16,7 @@ for (( i = 0; i < $n; i++ )) ; do
     if true ; then
 	for ibis in $ibises ; do
 	    for ser in $sers ; do
-		sh run-rpc $ibis $ser 1000000 0 "$reserve" "" 
+		sh run-rpc $ibis $ser 1000000 0 "$reserve" "$javaflags" ""
 	    done
 	done
     fi
@@ -27,7 +28,7 @@ for (( i = 0; i < $n; i++ )) ; do
 	for ibis in $ibises ; do
 	    for (( j = 0; j < 5; j++ )); do
 		for ser in $sers ; do
-		    sh run-rpc $ibis $ser 10000 0 "$reserve" ""
+		    sh run-rpc $ibis $ser 10000 0 "$reserve" "$javaflags" ""
 		done
 	    done
 	done

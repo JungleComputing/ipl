@@ -1,6 +1,11 @@
 #!/bin/bash
 
-reserve="-reserve 724368"
+reserve="-reserve 748873"
+javaflags="-ip-map /home/rutger/myrinet-ip-map"
+
+tcp_N=1000
+myri_N=10000
+
 n=10
 
 sers="ibis sun"
@@ -11,22 +16,22 @@ for (( i = 0; i < $n; i++ )) ; do
     ibises="panda net.gm"
     # ibises="net.gm"
 
-    if true ; then
+    if false ; then
 	for ibis in $ibises ; do
 	    for ser in $sers ; do
-		sh run-rpc $ibis $ser 10000 100000 "$reserve" "-one-way $data"
+		sh run-rpc $ibis $ser $myri_N 100000 "$reserve" "$javaflags" "-one-way $data"
 	    done
 	done
     fi
 
-    if true ; then
+    if false ; then
 	data=-byte
 	for ibis in $ibises ; do
 	    for ser in $sers ; do
 		for data in "-int -double" ; do
-		    sh run-rpc $ibis $ser 10000 100000 "$reserve" "-one-way $data"
+		    sh run-rpc $ibis $ser $myri_N 100000 "$reserve" "$javaflags" "-one-way $data"
 		done
-		sh run-rpc $ibis $ser 10000 1023 "$reserve" "-one-way -tree"
+		sh run-rpc $ibis $ser $myri_N 1023 "$reserve" "$javaflags" "-one-way -tree"
 	    done
 	done
     fi
@@ -38,19 +43,19 @@ for (( i = 0; i < $n; i++ )) ; do
 	data=-byte
 	for ibis in $ibises ; do
 	    for ser in $sers ; do
-		sh run-rpc $ibis $ser 1000 100000 "$reserve" "-one-way $data"
+		sh run-rpc $ibis $ser $tcp_N 100000 "$reserve" "$javaflags" "-one-way $data"
 	    done
 	done
     fi
 
     if true ; then
 	for ibis in $ibises ; do
-	    for (( j = 0; j < 5; j++ )) ; do
+	    for (( j = 0; j < $(( $myri_N / $tcp_N ; j++ )) ; do
 		for ser in $sers ; do
 		    for data in "-int -double" ; do
-			sh run-rpc $ibis $ser 1000 100000 "$reserve" "-one-way $data"
+			sh run-rpc $ibis $ser $tcp_N 100000 "$reserve" "$javaflags" "-one-way $data"
 		    done
-		    sh run-rpc $ibis $ser 1000 1023 "$reserve" "-one-way -tree"
+		    sh run-rpc $ibis $ser $tcp_N 1023 "$reserve" "$javaflags" "-one-way -tree"
 		done
 	    done
 	done
