@@ -1202,7 +1202,7 @@ public final class NetServiceLink {
                                                 {
                                                         final String name = main_ois.readUTF();
                                                         Runnable r = new Runnable() {public void run() {requestSubstreamId(name);}};
-                                                        (new Thread(r)).start();
+                                                        (new Thread(r, "request_substream_id")).start();
                                                 }
                                                 break;
 
@@ -1210,7 +1210,7 @@ public final class NetServiceLink {
                                                 {
                                                         final Integer id = (Integer)main_ois.readObject();
                                                         Runnable r = new Runnable() {public void run() {receiveSubstreamId(id);}};
-                                                        (new Thread(r)).start();
+                                                        (new Thread(r, "receive_substream_id")).start();
                                                 }
                                                 break;
 

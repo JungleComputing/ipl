@@ -18,7 +18,7 @@ public abstract class NetStat {
                 this.on         = on;
 
                 if (on) {
-                        Runtime.getRuntime().addShutdownHook(new Thread() {
+                        Runtime.getRuntime().addShutdownHook(new Thread("NetStat's shutdown hook") {
 			        public void run() {
                                         synchronized (dummy) {
                                                 report();

@@ -43,7 +43,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         static private          boolean globalThreadStat = false;
         static {
                 if (globalThreadStat) {
-                        Runtime.getRuntime().addShutdownHook(new Thread() {
+                        Runtime.getRuntime().addShutdownHook(new Thread("NetInput's shutdown hook") {
                                         public void run() {
                                                 System.err.println("used "+threadCount+" Upcall threads");
                                                 System.err.println("current memory values: "+Runtime.getRuntime().totalMemory()+"/"+Runtime.getRuntime().freeMemory()+"/"+Runtime.getRuntime().maxMemory());

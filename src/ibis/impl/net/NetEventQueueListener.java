@@ -41,7 +41,7 @@ final class NetEventQueueListener extends Thread {
          */
         public NetEventQueueListener(NetEventQueueConsumer cons, String name, NetEventQueue queue) {
                 super("Event queue listener: "+name);
-                // setDaemon(true);
+                setDaemon(true);
 
                 this.cons  = cons;
                 this.queue = queue;
