@@ -134,7 +134,6 @@ public class RMSocket extends Socket
     private class RMInputStream extends InputStream
     {
 	private RMSocket socket = null;
-	private int deliveredData = 0;
 	private boolean  open = false;
 
 	private void checkOpen()
@@ -193,13 +192,22 @@ public class RMSocket extends Socket
 	    int rc = -1;
 	    synchronized(socket)
 		{
-		    checkOpen();
 		    int j = 0;
-		    waitFragment();
+
+		    if (len == 0) return 0;
+
+		    try {
+			checkOpen();
+			waitFragment();
+		    } catch(EOFException e) {
+			MyDebug.out.println("# RMInputStream: reading- port="+socket.localPort+" size=EOF");
+			return -1;
+		    }
 		    if(len <= socket.currentArray.length - socket.currentIndex)
 			j = len;
 		    else
 			j = socket.currentArray.length - socket.currentIndex;
+
 		    System.arraycopy(socket.currentArray, socket.currentIndex,
 				     b, off, j);
 		    pumpFragment(j);
@@ -214,12 +222,23 @@ public class RMSocket extends Socket
 	    int r = -1;
 	    synchronized(socket)
 		{
-		    checkOpen();
-		    waitFragment();
-		    r = socket.currentArray[socket.currentIndex];
-		    pumpFragment(1);
-		    deliveredData++;
-		    MyDebug.out.println("# RMInputStream: reading- port="+socket.localPort+" size=1");
+		    while (r == -1) {
+			try {
+			    checkOpen();
+			    waitFragment();
+			} catch(EOFException e) {
+			    MyDebug.out.println("# RMInputStream: reading- port="+socket.localPort+" size=EOF");
+			    return r;
+			}
+			if (socket.currentArray.length > socket.currentIndex) {
+			    r = socket.currentArray[socket.currentIndex];
+			    pumpFragment(1);
+			    MyDebug.out.println("# RMInputStream: reading- port="+socket.localPort+" size=1");
+			}
+			else {
+			    pumpFragment(0);
+			}
+		    }
 		}
 	    return r;
 	}
@@ -228,8 +247,9 @@ public class RMSocket extends Socket
 	{
 	    MyDebug.out.println("# RMInputStream: available()");
 	    checkOpen();
-	    return socket.currentArray==null?0:socket.currentArray.length;
+	    return socket.currentArray==null?0:socket.currentArray.length - socket.currentIndex;
 	}
+
 	public void close()
 	    throws IOException
 	{
@@ -303,5 +323,4 @@ public class RMSocket extends Socket
 	    }
 	}
     }
-
 }
