@@ -1,0 +1,33 @@
+This file acts as a placeholder for topics that need to be (further) discussed.
+Topics at the top of the list are discussed first.
+Feel free to add.
+
+
+Topic		Short explanation
+----------------------------------------------------------------------------
+Distribution	Bug reports and comments on the upcoming monolithic distibution.
+
+Grun		Do we include grun in the distribution or make a 
+		seperate release of grun?
+
+run_ibis	run_ibis 0 2 pool 4566 fs0 Main (current)
+		OR
+		run_ibis 0 2 pool fs0:4566 Main
+		OR
+		run_ibis 0 2 -Dibis.pool=pool -Dibis.nameserver=fs0:4566 Main
+		OR
+		...
+
+Binary distro	Do we want it? In what form? Timeframe?
+
+IbisC		The Ibis Compiler. Alternative for building apps to ANT?
+		Default build system for binary distro?
+
+build.xml	The build system has a few problems:
+		- slow^2 (due to recursive ant calls)
+		- too verbose
+		- apps building depends on whole tree
+		- apps building depends on included ant
+		- no "ant dist" => binairy-distro.tar.gz
+		- no way of building entiry tree (including apps) from root
+		- no support for automatic testing/benchmarking
