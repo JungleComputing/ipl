@@ -75,13 +75,13 @@ public interface SendPort
     public String name ();
 
     /**
-     * Returns the number of bytes that was written to this sendport.
+     * Returns the number of bytes that have been written to this sendport.
      * @return the number of bytes written.
      */
     public long getCount ();
 
     /**
-     * Resets the counter for the number of bytes that was written to this
+     * Sets the counter for the number of bytes that have been written to this
      * sendport to zero.
      */
     public void resetCount ();
