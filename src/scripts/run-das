@@ -133,7 +133,7 @@ do
 		;;
 	-key)
 		shift
-		Dns_pool="-Dibis.name_server.key=$PANDA_HOST_PORT_KEY"
+		Dns_pool="-Dibis.name_server.key=$1"
 		;;
         *)      java_args="$java_args $qarg"
                 ;;
