@@ -82,6 +82,10 @@
 			<pathelement path="${local.includes}"/>
 			<pathelement path="${default.includes}"/>
 		    </includepath>
+		    <defineset>
+			<define name="NDEBUG" if="native.optimize"/>
+		    </defineset>
+		    <compilerarg value="${optimize.arg}" if="native.optimize"/>
 		    <fileset dir="." includes="*.c"/>
 		</cc>
 	    </sequential>
