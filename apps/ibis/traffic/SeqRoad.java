@@ -11,7 +11,7 @@ class SeqRoad implements Configuration {
     Random r = new Random( 0 );
     static final boolean traceVehicleUpdates = false;
     static final boolean traceCreateRetire = true;
-    static final boolean traceBraking = true;
+    static final boolean traceBraking = false;
     static final boolean traceLaneSwitching = true;
 
     SeqRoad()
@@ -127,7 +127,7 @@ class SeqRoad implements Configuration {
 			if( safeSwitch ){
 			    // Ok, switch lanes.
 			    if( traceLaneSwitching ){
-				System.out.println( "T" + tick + ": switch to lane " + (lane+1) + ": " + v  + " lane " + lane + " culpit: " + v.next );
+				System.out.println( "T" + tick + ": switch lane " + lane + "->" + (lane+1) + ": " + v  + " culpit: " + v.next );
 			    }
 			    // Extract the vehicle from this lane.
 			    if( prev[lane] == null ){
@@ -167,6 +167,49 @@ class SeqRoad implements Configuration {
 		if( changed && traceBraking ){
 		    System.out.println( "T" + tick + ": relaxed velocity of " + v  + " lane " + lane );
 		}
+                // We want to switch to a faster lane.
+                if( lane>0 ){
+                    boolean safeSwitch = true;
+
+                    Vehicle pv = prev[lane-1];
+                    if( v.isUncomfortablyClose( prev[lane-1] ) ){
+                        // There is a vehicle in the previous lane that blocks
+                        // a lane switch.
+                        safeSwitch = false;
+                    }
+                    if( v.isUncomfortablyClose( front[lane-1] )){
+                        // There is a vehicle in the previous lane that blocks
+                        // a lane switch.
+                        safeSwitch = false;
+                    }
+
+                    if( safeSwitch ){
+                        // Ok, switch lanes.
+                        if( traceLaneSwitching ){
+                            System.out.println( "T" + tick + ": switch lane " + lane + "->" + (lane-1) + ": " + v  );
+                        }
+                        // Extract the vehicle from this lane.
+                        if( prev[lane] == null ){
+                            lanes[lane] = v.next;
+                        }
+                        else {
+                            prev[lane].next = v.next;
+                        }
+                        front[lane] = v.next;
+
+                        lane--;
+
+                        // Insert the vehicle in the next lane.
+                        v.next = front[lane];
+                        if( prev[lane] == null ){
+                            lanes[lane] = v;
+                        }
+                        else {
+                            prev[lane].next = v;
+                        }
+                        front[lane] = v;
+                    }
+                }
 	    }
 	    v.updatePosition();
 	    if( v.getPosition() >= ROAD_LENGTH ){
