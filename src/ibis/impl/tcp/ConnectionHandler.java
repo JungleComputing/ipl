@@ -88,7 +88,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 		m = new TcpReadMessage(port, in, origin, this);
 	}
 
-	private void close(Exception e) {
+	void close(Exception e) {
 		try {
 			if(in != null) {
 				in.close();
@@ -150,12 +150,32 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 					// If the upcall did not release the message, cool, 
 					// no need to create a new thread, we are the reader.
 					break;
-				case CLOSE_CONNECTION:
+				case CLOSE_ALL_CONNECTIONS:
 					if (DEBUG) { 
 						System.out.println(port.name + ": Got a FREE from " + origin);	
 					}
 					close(null);
 					return;
+				case CLOSE_ONE_CONNECTION:
+					TcpReceivePortIdentifier identifier;
+					//the identifier of the receiveport which whould disconnect is coming next
+					switch(port.type.serializationType) {
+						case TcpPortType.SERIALIZATION_SUN:
+						case TcpPortType.SERIALIZATION_IBIS:
+						identifier = (TcpReceivePortIdentifier) in.readObject();
+						if(identifier.equals(port.identifier())) {
+							if (DEBUG) {
+								System.out.println(port.name + ": got a disconnect from: " + origin);
+							}
+							close(null);
+							return;
+						} else {
+							//someone else is closing down, just reset the stream
+							in.close();
+							createNewStream();
+							break;
+						}
+					}
 				default:
 					throw new IbisError(port.name + " EEK TcpReceivePort: " +
 									   "run: got illegal opcode: " + opcode +

@@ -6,6 +6,7 @@ import ibis.io.DataSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 import ibis.io.SunSerializationOutputStream;
 import ibis.io.NoSerializationOutputStream;
+import ibis.io.Conversion;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
@@ -178,8 +179,50 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		connect(receiver, 0);
 	}
 
-	public void disconnect(ReceivePortIdentifier receiver) throws IOException {
-		/* Niels: TODO! */
+	public synchronized void disconnect(ReceivePortIdentifier receiver) throws IOException {
+		byte[] receiverBytes;
+		byte[] receiverLength;
+		Conn connection = null;
+
+		//find connection to "receiver"
+		for(int i = 0; i < receivers.size(); i++) {
+		    Conn temp = (Conn) receivers.get(i);
+		    if(temp.ident.equals(receiver)) {
+			connection = temp;
+			break;
+		    }
+		}
+		if (connection == null) {
+		    throw new IOException("Cannot disconnect from " + receiver + " since we are not connectted with it");
+		}
+
+		if (out == null) {
+		    throw new IbisError("no outputstream found on disconnect");
+		}
+
+
+		//close 
+		out.writeByte(CLOSE_ONE_CONNECTION);
+
+		switch(type.serializationType) {
+		    case TcpPortType.SERIALIZATION_SUN:
+		    case TcpPortType.SERIALIZATION_IBIS:
+			out.writeObject(receiver);
+			break;
+		    default:
+			//no writeObject available
+			receiverBytes = Conversion.object2byte(receiver);
+			receiverLength = new byte[Conversion.INT_SIZE];
+			Conversion.defaultConversion.int2byte(receiverBytes.length, receiverLength, 0);
+			out.writeArray(receiverLength);
+			out.writeArray(receiverBytes);
+			break;
+		}
+		out.flush();
+		out.close();
+
+		receivers.remove(connection);
+		splitter.remove(connection.out);
 	}
 
 	public ibis.ipl.WriteMessage newMessage() throws IOException { 
@@ -223,8 +266,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	public SendPortIdentifier identifier() {
 		return ident;
 	}
-	
-	public void close() throws IOException {
+
+	public synchronized void close() throws IOException {
 		if(aMessageIsAlive) {
 			throw new IOException("Trying to free a sendport port while a message is alive!");
 		}
@@ -239,7 +282,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
 		try {
 			if(out != null) {
-				out.writeByte(CLOSE_CONNECTION);
+				out.writeByte(CLOSE_ALL_CONNECTIONS);
 				out.reset();
 				out.flush();
 				out.close();
@@ -273,6 +316,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
 		return res;
 	}
+
 	
 	// called by the writeMessage
 	// the stream has already been removed from the splitter.

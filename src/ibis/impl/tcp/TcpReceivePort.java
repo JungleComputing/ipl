@@ -76,7 +76,14 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			this.m = m;
 		}
 
-		upcall.upcall(m);
+		try {
+		    upcall.upcall(m);
+		} catch (IOException e) {
+		    //an error occured on receiving (or finishing!) the message during the upcall.
+		    finishMessage(e);
+		    return false; // no need to start a new handler thread...
+		}
+
 
 		/* The code below was so terribly wrong.
 		 * You cannot touch m here anymore if it indeed
@@ -128,6 +135,17 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			h.m = new TcpReadMessage(old);
 			ThreadPool.createNew(h);
 		}
+	}
+
+	synchronized void finishMessage(IOException e) {
+
+		m.getHandler().die(); // tell the handler to stop handling new messages
+		m.getHandler().close(e); // tell the handler to clean up
+		leave(m.getHandler(), e); // tell the user the connection failed
+
+		m.isFinished = true;
+		m = null;
+		notifyAll();
 	}
 
 

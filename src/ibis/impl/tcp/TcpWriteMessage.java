@@ -71,11 +71,28 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void finish(IOException e) {
-		// What to do here? Niels?
 		try {
-			finish();
-		} catch(IOException e2) {
+			out.reset();
+		} catch (SplitterException e2) {
+			for(int i=0; i<e2.count(); i++) {
+			    sport.lostConnection(e2.getStream(i), e2.getException(i), connectionAdministration);
+			}
+		} catch (IOException e3) {
+			//IGNORE
 		}
+
+		try {
+			out.flush();
+		} catch (SplitterException e2) {
+			for(int i=0; i<e2.count(); i++) {
+				sport.lostConnection(e2.getStream(i), e2.getException(i), connectionAdministration);
+			}
+		} catch (IOException e3) {
+			//IGNORE
+		}
+
+		before = sport.dummy.getCount();
+		sport.finishMessage();
 	}
 
 	public void reset() throws IOException {
