@@ -7,7 +7,7 @@ import java.util.Random;
 
 import java.io.IOException;
 
-interface Config {
+interface OpenConfig {
     static final boolean tracePortCreation = false;
     static final boolean traceCommunication = false;
     static final boolean showProgress = true;
@@ -19,14 +19,49 @@ interface Config {
     static final int SHOWNBOARDHEIGHT = 30;
 }
 
-class Cell1D implements Config {
+class RszHandler implements OpenConfig, ResizeHandler {
+    int members = 0;
+
+    public void join( IbisIdentifier id )
+    {
+        if( traceClusterResizing ){
+            System.err.println( "Join of " + id.name() );
+        }
+        members++;
+    }
+
+    public void leave( IbisIdentifier id )
+    {
+        if( traceClusterResizing ){
+            System.err.println( "Leave of " + id.name() );
+        }
+        members--;
+    }
+
+    public void delete( IbisIdentifier id )
+    {
+        if( traceClusterResizing ){
+            System.err.println( "Delete of " + id );
+        }
+        members--;
+    }
+
+    public void reconfigure()
+    {
+        if( traceClusterResizing ){
+            System.err.println( "Reconfigure" );
+        }
+    }
+}
+
+class OpenCell1D implements OpenConfig {
     static Ibis ibis;
     static Registry registry;
     static ibis.util.PoolInfo info;
 
     private static void usage()
     {
-        System.out.println( "Usage: Cell1D [count]" );
+        System.out.println( "Usage: OpenCell1D [count]" );
         System.exit( 0 );
     }
 
@@ -206,6 +241,7 @@ class Cell1D implements Config {
         int rank = 0;
         int remoteRank = 1;
         boolean noneSer = false;
+        RszHandler rszHandler = new RszHandler();
 
         /* Parse commandline parameters. */
         for( int i=0; i<args.length; i++ ){
@@ -233,7 +269,7 @@ class Cell1D implements Config {
             s.add( "serialization", "data" );
             s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
             s.add( "worldmodel", "closed" );
-            ibis = Ibis.createIbis( s, null );
+            ibis = Ibis.createIbis( s, rszHandler );
 
             // ibis.openWorld();
 
