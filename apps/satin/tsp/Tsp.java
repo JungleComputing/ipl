@@ -131,7 +131,7 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 		int length = 0;
 		DistanceTable distance = DistanceTable.generate(NTowns, seed);
 
-		/* Wen no bound is specified, init minimum to first path. */
+		/* When no bound is specified, init minimum to first path. */
 		if(global_minimum == Integer.MAX_VALUE) {
 			global_minimum = 0;
 			for(int i=0; i<NTowns-1; i++) {
