@@ -1,11 +1,9 @@
-SRC  = DasInfo.java 
-SRC += Data.java
+SRC  = Data.java
 SRC += List.java
 SRC += DList.java
 SRC += Tree.java
 
 MAIN = Main.java
-OUT=main
 
 SERIALIZABLE	=
 SERIALIZABLE	+= Data.java
@@ -15,12 +13,9 @@ SERIALIZABLE	+= Tree.java
 
 INNER_CLASS	+= Receiver.class
 
-MP_MODE		= Panda
-
 include ../../../config.mk
 
 Receiver.class:	Main.class
-	$(MAKE) $(MFLAGS) Main.class
 
 APP_OPTIONS =
 APP_OPTIONS += -verbose
@@ -30,11 +25,6 @@ APP_OPTIONS += -count 1000
 APP_OPTIONS += -panda
 
 include ../config.mk
-
-java: $(CLASS_FILES) $(MAIN_CLASS)
-
-manta: $(MAIN) $(O_FILES)
-#	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) ../../../../ibis/$(IBIS_LIB)
 
 clean:
 	rm -f $(TRASH_FILES)

@@ -3,6 +3,8 @@ import ibis.util.nativeCode.Rdtsc;
 import java.io.*;
 import java.net.*;
 
+import ibis.util.PoolInfo;
+
 final class TranspositionTable {
 	static final boolean SUPPORT_TT = true;
 
@@ -38,9 +40,9 @@ final class TranspositionTable {
 	Rdtsc bcastTimer = new Rdtsc();
 	Rdtsc bcastHandlerTimer = new Rdtsc();
 
-	DasInfo info = new DasInfo();
-	int rank = info.hostNumber();
-	int poolSize = info.totalHosts();
+	PoolInfo info = new PoolInfo();
+	int rank = info.rank();
+	int poolSize = info.size();
 
 	TTReceiver[] receiverThreads = new TTReceiver[poolSize];
 
@@ -110,7 +112,7 @@ final class TranspositionTable {
 		while(true) {
 			try {
 //				System.err.println(rank + ": connecting to " + dest);
-				s = new Socket(info.getHost(dest), 5555);
+				s = new Socket(info.hostName(dest), 5555);
 //				System.err.println(rank + ": connecting to " + dest + " succ");
 				s.setTcpNoDelay(true);
 				

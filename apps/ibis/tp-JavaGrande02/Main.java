@@ -1,4 +1,5 @@
 import ibis.ipl.*;
+import ibis.util.PoolInfo;
 
 final class Receiver implements Upcall { 
 
@@ -194,7 +195,7 @@ final class Main {
 
 		try { 
 			boolean array = false, tree = false, list = false, dlist = false, oarray = false, one_way = true;
-			DasInfo info = new DasInfo();		
+			PoolInfo info = new PoolInfo();		
 			int i           = 0;
 			int len         = 1023;
 			int arraysize   = 16*1024;
@@ -203,7 +204,7 @@ final class Main {
 			boolean upcalls = false;
 			boolean panda   = false;
 			boolean manta   = true;
-			int rank = info.hostNumber(); 
+			int rank = info.rank(); 
 			int tests = 0;
 
 			while (i < args.length) { 
