@@ -25,6 +25,7 @@ public class IPMapSocketFactory extends RMISocketFactory {
 	if (DEBUG) {
 	    System.err.println("Created new ServerSocket " + s);
 	}
+	// s.setTcpNoDelay(true);
 	return s;
     }
 
@@ -38,6 +39,7 @@ public class IPMapSocketFactory extends RMISocketFactory {
 	if (DEBUG) {
 	    System.err.println("Created new Socket " + s);
 	}
+	s.setTcpNoDelay(true);
 	return s;
     }
 

@@ -16,28 +16,31 @@ import ibis.util.TypedProperties;
 public class RMI_init {
 
     private final static boolean VERBOSE = TypedProperties.booleanProperty("RMI_init.verbose", false);
+    private final static boolean USE_IP_MAP_FACTORY = TypedProperties.booleanProperty("RMI_init.factory", true);
 
     static Registry reg = null;
     static boolean isInitialized = false;
 
     static {
-	try {
-	    RMISocketFactory f = RMISocketFactory.getSocketFactory();
-	    if (f == null) {
-		f = new IPMapSocketFactory();
-		try {
-		    RMISocketFactory.setSocketFactory(f);
-		} catch (IOException e) {
-		    System.err.println("Cannot set RMISocketFactory " + f
-			    + "; use default");
+	if (USE_IP_MAP_FACTORY) {
+	    try {
+		RMISocketFactory f = RMISocketFactory.getSocketFactory();
+		if (f == null) {
+		    f = new IPMapSocketFactory();
+		    try {
+			RMISocketFactory.setSocketFactory(f);
+		    } catch (IOException e) {
+			System.err.println("Cannot set RMISocketFactory " + f
+				+ "; use default");
+		    }
+		} else {
+		    System.err.println("Cannot set RMISocketFactory: already in use");
 		}
-	    } else {
-		System.err.println("Cannot set RMISocketFactory: already in use");
-	    }
-	} catch (IllegalArgumentException e) {
-	    // This must be Ibis RMI. Silently ignore.
-	    if (VERBOSE) {
-		System.out.println("Ibis RMI does not support RMISocketFactory. Use the default Ibis SocketFactory.");
+	    } catch (IllegalArgumentException e) {
+		// This must be Ibis RMI. Silently ignore.
+		if (VERBOSE) {
+		    System.out.println("Ibis RMI does not support RMISocketFactory. Use the default Ibis SocketFactory.");
+		}
 	    }
 	}
     }
