@@ -4,10 +4,9 @@
  * A parallel SAT solver. Given a symbolic boolean equation in CNF, find a set
  * of assignments that make this equation true.
  * 
- * In this implementation the solver simply takes the first unassigned
- * variable, and tries both possible assignments. These tries can of course be
- * done in parallel, making this ideally suited for Satin. More subtle
- * approaches are definitely possible, though.
+ * This implementation tries to do all the things a professional SAT
+ * solver would do, although we are limited by implementation time and
+ * the fact that we need to parallelize the stuff.
  * 
  * @author Kees van Reeuwijk
  * @version $Revision$
