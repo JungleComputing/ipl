@@ -307,9 +307,6 @@ public class SATContext implements java.io.Serializable {
 		    // adminstration is inconsistent at the moment.
 		    hasPure = true;
 		}
-		else if( assignments[var] == 0 && posclauses[var] != 0 ){
-		    return -1;
-		}
 	    }
 	}
 	int neg[] = c.neg;
@@ -332,9 +329,6 @@ public class SATContext implements java.io.Serializable {
 		    // variable. Don't propagate it yet, since the
 		    // adminstration is inconsistent at the moment.
 		    hasPure = true;
-		}
-		else if( assignments[var] == 1 && posclauses[var] != 0 ){
-		    return -1;
 		}
 	    }
 	}
