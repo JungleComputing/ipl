@@ -34,6 +34,9 @@ timingTag = "ExecutionTime:"
 def get_time_stamp():
     return time.strftime( "%Y-%m-%d-%H:%M:%S", time.localtime())
 
+def get_time_string():
+    return time.strftime( "%d %b %Y %H:%M:%S", time.localtime())
+
 def makeNonBlocking( fd ):
     fl = fcntl.fcntl(fd, FCNTL.F_GETFL)
     try:
@@ -80,15 +83,15 @@ def getCommandOutput( command ):
 def build_run_command( pno, command, port ):
     ot = ''
     if orderedTuples:
-        ot = '-Dsatin.tuplespace.numbered=true '
-    return "prun -1 -t %s %s %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s -satin-closed" % (maxRunTime, run_ibis, pno, port, ot, command)
+        ot = '-Dsatin.tuplespace.ordered=true '
+    return "prun -t %s %s %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s -satin-closed" % (maxRunTime, run_ibis, pno, port, ot, command)
 
 def runP( P, command, results ):
     cmd = build_run_command( P, command, nameserverport )
-    print "Starting run for P=%d" % P
+    print "Starting run for P=%d at %s" % (P, get_time_string())
     data = getCommandOutput( cmd )
     results[P] = data
-    print "Finished run for P=%d" % P
+    print "Finished run for P=%d at %s" % (P, get_time_string())
 
 class Thread( threading.Thread ):
     def  __init__( self, P, command, results, lck ):
@@ -170,6 +173,7 @@ def run( command, logfile, runParallel ):
     lf = open( logfile, "w" )
     logstreams = [lf]
     allstreams = [lf,sys.stdout]
+    report( "Commandline: " + string.join( sys.argv ), logstreams )
     report( "Command: " + command, allstreams )
     report( "Logfile: " + logfile, allstreams )
     report( "Tag: '" + timingTag + "'", allstreams )
@@ -180,7 +184,11 @@ def run( command, logfile, runParallel ):
         mt.join()
     else:
         for P in ProcNos:
-            runP( P, command, results )
+            try:
+                runP( P, command, results )
+            except:
+                print "Run for P=%d failed: %s" % (P, sys.exc_info())
+                break
     report( "        P time", allstreams )
     for P in ProcNos:
         res = extractResult( results[P] )
@@ -253,7 +261,6 @@ def usage():
 def main():
     global ProcNos, nameserverport, maxRunTime, orderedTuples, timingTag, verbose
     try:
-        print "Command line: " + string.join( sys.argv )
         opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "parallel", "logfile=", "logdir=", "verbose", "tag=", "port=", "procs=", "time=","ordered-tuples"])
     except getopt.GetoptError:
         # print help information and exit:
@@ -286,6 +293,7 @@ def main():
         if o in ("--logfile",):
             logfile = a
     ProcNos = genps( procSet )
+    # ProcNos.reverse()
     run( string.join( args, ' ' ), logfile, runParallel )
 
 if __name__ == "__main__":

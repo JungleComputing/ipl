@@ -83,7 +83,7 @@ def getCommandOutput( command ):
 def build_run_command( pno, command, port ):
     ot = ''
     if orderedTuples:
-        ot = '-Dsatin.tuplespace.ordened=true '
+        ot = '-Dsatin.tuplespace.ordered=true '
     return "prun -t %s %s %d -ns-port %d -ns fs0.das2.cs.vu.nl %s%s" % (maxRunTime, run_ibis, pno, port, ot, command)
 
 def runP( P, command, results ):
@@ -173,6 +173,7 @@ def run( command, logfile, runParallel ):
     lf = open( logfile, "w" )
     logstreams = [lf]
     allstreams = [lf,sys.stdout]
+    report( "Commandline: " + string.join( sys.argv ), logstreams )
     report( "Command: " + command, allstreams )
     report( "Logfile: " + logfile, allstreams )
     report( "Tag: '" + timingTag + "'", allstreams )
@@ -260,7 +261,6 @@ def usage():
 def main():
     global ProcNos, nameserverport, maxRunTime, orderedTuples, timingTag, verbose
     try:
-        print "Command line: " + string.join( sys.argv )
         opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "parallel", "logfile=", "logdir=", "verbose", "tag=", "port=", "procs=", "time=","ordered-tuples"])
     except getopt.GetoptError:
         # print help information and exit:
