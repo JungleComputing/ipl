@@ -313,20 +313,72 @@ public final class Satinc {
 	
     }
 
+    static String do_mangle(String name, String sig) {
+	StringBuffer s = new StringBuffer(sig);
+
+	int open = s.indexOf("(");
+	if (open == -1) {
+	    return name;
+	}
+	s.delete(0, open+1);
+
+	int close = s.indexOf(")");
+	if (close == -1) {
+	    return name;
+	}
+	s.delete(close, s.length());
+
+	// OK, now sanitize parameters
+	int i = 0;
+	while (i < s.length()) {
+	    switch(s.charAt(i)) {
+	    case '.':
+	    case '/':
+		s.setCharAt(i, '_');
+		break;
+
+	    case '_':
+		s.replace(i, i+1, "_1");
+		break;
+
+	    case ';':
+		s.replace(i, i+1, "_2");
+		break;
+
+	    case ']':
+		s.replace(i, i+1, "_3");
+		break;
+	    
+	    default:
+		break;
+	    }
+	    i++;
+	}
+	return name + "__" + s.toString();
+    }
+
+    static String do_mangle(Method m) {
+	return do_mangle(m.getName(), m.getSignature());
+    }
+
+    static String do_mangle(MethodGen m) {
+	return do_mangle(m.getName(), m.getSignature());
+    }
+
     String invocationRecordName(Method m, String classname) {
-	return ("Satin_" + classname + "_" + m.getName() + "_InvocationRecord").replace('.', '_');
+	return ("Satin_" + classname + "_" + do_mangle(m) + "_InvocationRecord").replace('.', '_');
     }
 
     String localRecordName(Method m) {
-	return ("Satin_" + c.getClassName() + "_" + m.getName() + "_LocalRecord").replace('.', '_');
+	return ("Satin_" + c.getClassName() + "_" + do_mangle(m) + "_LocalRecord").replace('.', '_');
     }
 
     String localRecordName(MethodGen m) {
-	return ("Satin_" + c.getClassName() + "_" + m.getName() + "_LocalRecord").replace('.', '_');
+	return ("Satin_" + c.getClassName() + "_" + do_mangle(m) + "_LocalRecord").replace('.', '_');
     }
 
     String returnRecordName(Method m, String classname) {
-	return ("Satin_" + classname + "_" + m.getName() + "_ReturnRecord").replace('.', '_');
+	return ("Satin_" + classname + "_" + do_mangle(m) + "_ReturnRecord").replace('.', '_');
     }
 
     void insertAllDeleteLocalRecords(MethodGen m) {
