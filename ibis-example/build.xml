@@ -27,14 +27,14 @@
 	      executable="../bin/run_ibis"
 	      vmlauncher="false"
 	      spawn="true">
-	      <arg line="0 2 blabla localhost:4567 -Dibis.name=tcp -Dibis.pool.server.port=4568 Example"/>
+	      <arg line="0 2 blabla 4567 localhost -Dibis.name=tcp -Dibis.pool.server.port=4568 Example"/>
 	</exec>
 	<exec dir="${basedir}"
 	      executable="../bin/run_ibis"
 	      timeout="10000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="1 2 blabla localhost:4567 -Dibis.name=tcp -Dibis.pool.server.port=4568 Example"/>
+	      <arg line="1 2 blabla 4567 localhost -Dibis.name=tcp -Dibis.pool.server.port=4568 Example"/>
 	</exec>
     </target>
 
