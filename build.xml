@@ -684,10 +684,12 @@
 	    <package name="ibis.rmi.server"/>
 	    <package name="ibis.rmi.registry"/>
 	    <package name="ibis.satin"/>
+	    <package name="ibis.util"/>
 	    <group title="Ibis GMI" packages="ibis.gmi"/>
 	    <group title="Ibis RMI" packages="ibis.rmi"/>
 	    <group title="Ibis IPL" packages="ibis.ipl"/>
 	    <group title="Ibis Satin" packages="ibis.satin"/>
+	    <group title="Ibis Utilities" packages="ibis.util"/>
 	</javadoc>
     </target>
 
@@ -721,6 +723,7 @@
 	    <group title="Ibis IPL" packages="ibis.ipl"/>
 	    <group title="Ibis IO" packages="ibis.io"/>
 	    <group title="Ibis Satin" packages="ibis.satin"/>
+	    <group title="Ibis Utilities" packages="ibis.util"/>
 	    <!--
 	    <arg value="-verbose"/>
 	    <arg line="-source 1.4"/>
