@@ -99,6 +99,21 @@ public interface Registry {
     public Object elect(String election, Object candidate)
 	throws IOException, ClassNotFoundException;
 
+    /**
+     * (Re-)elects a single candidate from a number of candidates calling this
+     * method with a specified election name.
+     * Note that this has nothing to do with a real election: it is not like
+     * "most votes count". It is more like: "the first one in gets it".
+     *
+     * @param election the name of this election.
+     * @param candidate a candidate for this election.
+     * @param formerRuler could be the result of an earlier election, in which
+     *  case it is overridden by a new candidate (which might be the same).
+     * @return the object elected.
+     * @exception ClassNotFoundException is thrown if an object
+     * 	is returned whose class is locally unknown.
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
     public Object reelect(String election, Object candidate, Object formerRuler) 
 	throws IOException, ClassNotFoundException;		
 	
