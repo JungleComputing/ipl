@@ -82,13 +82,13 @@
  
  to use distributed Global Result Table, pass the following flag to java:
     
-	-Dibis.satin.ft.grt.replicated=true
+	-Dibis.satin.ft.grt.replicated=false
  (this is the default).
 	
  2C ----------------------------
  to use the "with aborts" version, pass the following flag to java:
  
-	-Dibis.satin.ft.noAborts=true
+	-Dibis.satin.ft.noAborts=false
  (this is the default).
  
  to use the "without aborts" version, pass the following flag to java:
