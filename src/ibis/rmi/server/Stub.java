@@ -5,7 +5,8 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.rmi.RTS;
+
+import ibis.rmi.impl.RTS;
 
 import java.io.IOException;
 

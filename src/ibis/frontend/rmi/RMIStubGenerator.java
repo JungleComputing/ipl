@@ -87,7 +87,7 @@ class RMIStubGenerator extends RMIGenerator {
 	    output.println("\t\t\t\tw.finish();");
 
 	    output.println("\t\t\t\tReadMessage r = reply.receive();");
-	    output.println("\t\t\t\tif (r.readByte() == ibis.rmi.Protocol.EXCEPTION) {");
+	    output.println("\t\t\t\tif (r.readByte() == RTS.EXCEPTION) {");
 	    output.println("\t\t\t\t\tremoteex = (Exception) r.readObject();");
 	    output.println("\t\t\t\t}");
 	    output.println("\t\t\t\telse {");
@@ -177,6 +177,7 @@ class RMIStubGenerator extends RMIGenerator {
 		}
 
 		output.println("import ibis.rmi.*;");		
+		output.println("import ibis.rmi.impl.RTS;");		
 		output.println("import ibis.ipl.*;");			
 		output.println();
 

@@ -1,4 +1,4 @@
-package ibis.rmi;
+package ibis.rmi.impl;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
@@ -12,20 +12,35 @@ import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
+
 import ibis.rmi.server.ExportException;
 import ibis.rmi.server.SkeletonNotFoundException;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.Skeleton;
 import ibis.rmi.server.Stub;
 
+import ibis.rmi.RemoteException;
+import ibis.rmi.NotBoundException;
+import ibis.rmi.StubNotFoundException;
+import ibis.rmi.AlreadyBoundException;
+import ibis.rmi.Remote;
+
 import java.io.IOException;
+
 import java.net.InetAddress;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Properties;
 
 public final class RTS {
+
+    /** Sent when a remote invocation resulted in an exception. */
+    public final static byte EXCEPTION    = 0;
+
+    /** Sent when a remote invocation did not result in an exception. */
+    public final static byte RESULT       = 1;
 
     public final static boolean DEBUG = false;
 
@@ -97,7 +112,7 @@ public final class RTS {
 		skel.upcall(r, method, stubID);
 	    } catch (RemoteException e) {
 		WriteMessage w = skel.stubs[stubID].newMessage();
-		w.writeByte(Protocol.EXCEPTION);
+		w.writeByte(EXCEPTION);
 		w.writeObject(e);
 		w.send();
 		w.finish();

@@ -35,6 +35,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 	}
 
 	output.println("import ibis.rmi.*;");
+	output.println("import ibis.rmi.impl.RTS;");
 	output.println("import java.lang.reflect.*;");
 	output.println("import ibis.ipl.*;");
 	output.println("import java.io.IOException;");
@@ -187,10 +188,10 @@ class RMISkeletonGenerator extends RMIGenerator {
 	    output.println("\t\t\t\tWriteMessage w = stubs[stubID].newMessage();");
 
 	    output.println("\t\t\t\tif (ex != null) {");
-	    output.println("\t\t\t\t\tw.writeByte(ibis.rmi.Protocol.EXCEPTION);");
+	    output.println("\t\t\t\t\tw.writeByte(RTS.EXCEPTION);");
 	    output.println("\t\t\t\t\tw.writeObject(ex);");
 	    output.println("\t\t\t\t} else {");
-	    output.println("\t\t\t\t\tw.writeByte(ibis.rmi.Protocol.RESULT);");
+	    output.println("\t\t\t\t\tw.writeByte(RTS.RESULT);");
 
 	    if (!ret.equals(Type.VOID)) {
 		output.println(writeMessageType("\t\t\t\t\t", "w", ret, "result"));

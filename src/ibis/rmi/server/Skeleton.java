@@ -3,8 +3,9 @@ package ibis.rmi.server;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.rmi.RTS;
 import ibis.rmi.RemoteException;
+
+import ibis.rmi.impl.RTS;
 
 //import java.io.IOException;
 

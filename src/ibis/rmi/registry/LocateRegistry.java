@@ -1,6 +1,6 @@
 package ibis.rmi.registry;
 
-import ibis.rmi.RTS;
+import ibis.rmi.impl.RTS;
 import ibis.rmi.RemoteException;
 
 /**

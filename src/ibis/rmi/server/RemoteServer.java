@@ -1,6 +1,6 @@
 package ibis.rmi.server;
 
-import ibis.rmi.RTS;
+import ibis.rmi.impl.RTS;
 
 public abstract class RemoteServer extends RemoteObject
 {
