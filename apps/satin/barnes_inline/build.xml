@@ -8,6 +8,10 @@
 
     <property name="satin-main-class" value="BarnesHut"/>
 
+    <fileset dir="." id="src.excludes-ref">
+	<include name="BodyCanvas.java"/>
+    </fileset>
+
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
 </project>

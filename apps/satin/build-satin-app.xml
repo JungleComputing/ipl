@@ -19,11 +19,19 @@
     <target name="compile"
 	    depends="init,property-init"
 	    description="Compile for sequential execution">
+	<if>
+	    <isreference refid="src.excludes-ref"/>
+	    <then>
+		<property name="src.excludes" refid="src.excludes-ref"/>
+	    </then>
+	</if>
+
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
 	    <include name="**/*.java"/>
+	    <exclude name="${src.excludes}" if="src.excludes"/>
 	</javac>
     </target>
 
