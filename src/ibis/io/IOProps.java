@@ -22,12 +22,6 @@ class IOProps {
 
     static final String s_no_array_buffers = PROPERTY_PREFIX + "noarraybuffers";
 
-    static final String s_timer_in = PROPERTY_PREFIX
-            + "serialization.timer.input";
-
-    static final String s_timer_out = PROPERTY_PREFIX
-            + "serialization.timer.output";
-
     static final String s_conversion = PROPERTY_PREFIX + "conversion";
 
     static final String s_cache = PROPERTY_PREFIX + "allocator";
@@ -51,7 +45,7 @@ class IOProps {
     static final String s_hash_timings = PROPERTY_PREFIX + "hash.timings";
 
     private static final String[] sysprops = { s_stats_nonrewritten,
-            s_stats_written, s_classloader, s_timer, s_timer_in, s_timer_out,
+            s_stats_written, s_classloader, s_timer,
             s_conversion, s_cache, s_cache_max, s_cache_stats, s_dbg,
             s_asserts, s_small_array_bound, s_hash_asserts, s_hash_stats,
             s_hash_timings };

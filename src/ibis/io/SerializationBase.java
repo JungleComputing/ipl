@@ -17,8 +17,7 @@ public class SerializationBase {
      * Each serialization entry/exit point must start/stop the timer.
      */
     protected final static boolean TIME_SERIALIZATION
-            = TypedProperties .booleanProperty(IOProps.s_timer, false)
-              || TypedProperties.booleanProperty(IOProps.s_timer_out, false);
+            = TypedProperties .booleanProperty(IOProps.s_timer, false);
 
     /** The serialization timer. */
     protected final SerializationTimer timer
