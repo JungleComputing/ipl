@@ -118,7 +118,6 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 			"!Cannot connect, port already connected to a receiver"
 			+ " and OneToMany not supported");
 	    }
-	    (new IOException()).printStackTrace(System.err);
 	    throw new IOException("This sendport is already connected to a"
 		    + " receiveport, and doesn't support multicast");
 	}

@@ -144,7 +144,6 @@ final class NioIbisSerializationOutputStream
      */
     public void close() throws IOException {
 	accumulator.flush();
-//	accumulator.close();
     }
 
 }

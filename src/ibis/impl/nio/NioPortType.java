@@ -1,8 +1,6 @@
 package ibis.impl.nio;
 
 import ibis.io.Accumulator;
-import ibis.io.DataSerializationInputStream;
-import ibis.io.DataSerializationOutputStream;
 import ibis.io.Dissipator;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.IbisSerializationOutputStream;
@@ -217,7 +215,7 @@ class NioPortType extends PortType implements Config {
 	    case SERIALIZATION_BYTE:
 		return new NoSerializationOutputStream(out);
 	    case SERIALIZATION_DATA:
-		return new DataSerializationOutputStream(out);
+		return new NioDataSerializationOutputStream(out);
 	    case SERIALIZATION_SUN:
 		return new SunSerializationOutputStream(out);
 	    case SERIALIZATION_IBIS:
@@ -237,7 +235,7 @@ class NioPortType extends PortType implements Config {
 	    case SERIALIZATION_BYTE:
 		return new NoSerializationInputStream(in);
 	    case SERIALIZATION_DATA:
-		return new DataSerializationInputStream(in);
+		return new NioDataSerializationInputStream(in);
 	    case SERIALIZATION_SUN:
 		return new SunSerializationInputStream(in);
 	    case SERIALIZATION_IBIS:
