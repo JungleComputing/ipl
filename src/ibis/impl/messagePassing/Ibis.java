@@ -1,19 +1,8 @@
 package ibis.impl.messagePassing;
 
-import java.util.Vector;
-import java.util.Hashtable;
-
-import java.io.IOException;
-
-import ibis.io.IbisSerializationInputStream;
-import ibis.io.IbisSerializationOutputStream;
-
-import ibis.util.IbisIdentifierTable;
-import ibis.util.ConditionVariable;
-import ibis.util.Monitor;
 import ibis.ipl.IbisException;
-import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
+import ibis.util.ConditionVariable;
 import ibis.util.IbisIdentifierTable;
 import ibis.util.Monitor;
 import ibis.util.PoolInfo;

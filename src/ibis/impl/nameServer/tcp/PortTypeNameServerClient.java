@@ -4,16 +4,16 @@ import ibis.ipl.StaticProperties;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.DataOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Set;
 import java.util.Iterator;
+import java.util.Set;
 
 class PortTypeNameServerClient implements Protocol {
 

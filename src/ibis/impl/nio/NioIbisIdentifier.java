@@ -1,13 +1,10 @@
 package ibis.impl.nio;
 
-import ibis.ipl.IbisError;
+import ibis.io.Accumulator;
+import ibis.io.Dissipator;
 import ibis.ipl.IbisIdentifier;
-import ibis.util.IbisIdentifierTable;
 
 import java.io.IOException;
-
-import ibis.io.Dissipator;
-import ibis.io.Accumulator;
 
 public final class NioIbisIdentifier extends IbisIdentifier 
 					    implements java.io.Serializable {

@@ -1,13 +1,9 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
-
-import ibis.io.IbisSerializationInputStream;
+import ibis.io.Accumulator;
 import ibis.io.IbisSerializationOutputStream;
 
-import ibis.ipl.IbisError;
-
-import ibis.io.Accumulator;
+import java.io.IOException;
 
 /**
  * Does "normal" Ibis serialization, but with a different output method, 

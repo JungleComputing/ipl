@@ -1,6 +1,5 @@
 package ibis.util;
 
-import java.lang.Math;
 
 /**
  * Class for doing some recurring statistical calculations

@@ -1,9 +1,7 @@
 package ibis.impl.net;
 
-import ibis.util.TypedProperties;
-
 import ibis.ipl.ConnectionClosedException;
-import ibis.ipl.StaticProperties;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.Collection;

@@ -3,8 +3,8 @@ package ibis.util;
 import ibis.ipl.IbisIdentifier;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 //import java.io.OutputStream;
 //import java.io.InputStream;

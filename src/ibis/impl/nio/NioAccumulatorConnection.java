@@ -1,12 +1,8 @@
 package ibis.impl.nio;
 
 import java.io.IOException;
-
 import java.nio.channels.GatheringByteChannel;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
-
-import ibis.ipl.IbisError;
 
 class NioAccumulatorConnection implements Config {
     static final int MAX_SEND_BUFFERS = 32;

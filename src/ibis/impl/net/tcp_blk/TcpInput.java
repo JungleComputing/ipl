@@ -5,16 +5,13 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
-import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPollInterruptible;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-
-import ibis.ipl.ConnectionClosedException;
-
 import ibis.io.Conversion;
+import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.io.InputStream;

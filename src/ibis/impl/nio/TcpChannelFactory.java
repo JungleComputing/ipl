@@ -1,36 +1,24 @@
 package ibis.impl.nio;
 
-import java.util.Properties;
-
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-
-import java.util.ArrayList;
-import java.util.Enumeration;
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.ServerSocket;
-import java.net.NetworkInterface;
-
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.Selector;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Channel;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.AsynchronousCloseException;
-
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.ReceiveTimedOutException;
-import ibis.util.ThreadPool;
 import ibis.ipl.IbisError;
-
-import ibis.util.IbisSocketFactory;
 import ibis.util.IPUtils;
+import ibis.util.IbisSocketFactory;
+import ibis.util.ThreadPool;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.nio.channels.Channel;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 
 /**

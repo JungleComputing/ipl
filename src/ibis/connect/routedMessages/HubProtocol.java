@@ -1,14 +1,13 @@
 package ibis.connect.routedMessages;
 
-import java.net.Socket;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-
 import ibis.connect.util.MyDebug;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 
 /* On-the-wire protocol management for links between 
  * computing nodes and control hub. Used by the HubLink

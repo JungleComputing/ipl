@@ -1,12 +1,12 @@
 package ibis.impl.net.gen;
 
-import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetBufferedOutputSupport;
 import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
-import ibis.impl.net.NetSplitter;
-import ibis.impl.net.NetBufferedOutputSupport;
 import ibis.impl.net.NetSendBuffer;
+import ibis.impl.net.NetSplitter;
 
 import java.io.IOException;
 

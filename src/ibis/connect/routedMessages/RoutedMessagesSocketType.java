@@ -1,18 +1,17 @@
 package ibis.connect.routedMessages;
 
-import ibis.connect.socketFactory.SocketType;
-import ibis.connect.socketFactory.ClientServerSocketFactory;
 import ibis.connect.socketFactory.BrokeredSocketFactory;
+import ibis.connect.socketFactory.ClientServerSocketFactory;
 import ibis.connect.socketFactory.ExtSocketFactory;
-
-import java.net.Socket;
-import java.net.ServerSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
+import ibis.connect.socketFactory.SocketType;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 // SocketType descriptor for Routed Messages
 // ------------------------------------------

@@ -1,15 +1,13 @@
 package ibis.impl.nio;
 
+import ibis.io.Accumulator;
+import ibis.io.Dissipator;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 
-import java.net.InetSocketAddress;
-import java.net.InetAddress;
-
 import java.io.IOException;
-
-import ibis.io.Dissipator;
-import ibis.io.Accumulator;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 
 public final class NioReceivePortIdentifier implements ReceivePortIdentifier, java.io.Serializable { 

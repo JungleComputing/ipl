@@ -1,21 +1,14 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.Iterator;
+import ibis.util.ThreadPool;
 
-import java.nio.channels.Selector;
-import java.nio.channels.Channel;
-import java.nio.channels.GatheringByteChannel;
-import java.nio.channels.ReadableByteChannel;
+import java.io.IOException;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.CancelledKeyException;
-import java.nio.ByteBuffer;
-
-import ibis.util.ThreadPool;
-import ibis.ipl.IbisException;
+import java.nio.channels.Selector;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Class used as a single send/receive thread for an entire NioIbis instance

@@ -10,10 +10,10 @@ import ibis.ipl.Upcall;
 import ibis.util.Input;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Provide a NetIbis'specific implementation of the {@link PortType} interface.

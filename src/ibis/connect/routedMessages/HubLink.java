@@ -1,22 +1,13 @@
 package ibis.connect.routedMessages;
 
-import java.util.Map;
-import java.util.Hashtable;
-
-import java.net.Socket;
-import java.net.ServerSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-
-import java.io.IOException;
-import java.io.EOFException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.BufferedInputStream;
-
 import ibis.connect.util.MyDebug;
+
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Hashtable;
+import java.util.Map;
 
 // HubLink manages the link with the control hub
 public class HubLink extends Thread

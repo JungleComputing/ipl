@@ -1,21 +1,15 @@
 package ibis.connect.tcpSplicing;
 
-import java.util.Hashtable;
-
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
+import ibis.connect.socketFactory.BrokeredSocketFactory;
+import ibis.connect.socketFactory.SocketType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import ibis.connect.socketFactory.SocketType;
-import ibis.connect.socketFactory.ClientServerSocketFactory;
-import ibis.connect.socketFactory.BrokeredSocketFactory;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.Hashtable;
 
 
 // SocketType descriptor for TCP Splicing

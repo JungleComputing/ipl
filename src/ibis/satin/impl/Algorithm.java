@@ -1,30 +1,38 @@
 package ibis.satin.impl;
 
-
 abstract class Algorithm {
-	/** Handler that is called when new work is added to the queue.
-	 *  Default implementation does nothing.
+	/**
+	 * Handler that is called when new work is added to the queue. Default
+	 * implementation does nothing.
 	 */
-	void jobAdded() {}
+	void jobAdded() {
+	}
 
-	/** Called in every iteration of the client loop. It decides which
-	 * jobs are run, and what kind(s) of steal requests are done. */
+	/**
+	 * Called in every iteration of the client loop. It decides which jobs are
+	 * run, and what kind(s) of steal requests are done.
+	 */
 	abstract public void clientIteration();
 
-	/** This one is called for each steal reply by the MessageHandler, so the
+	/**
+	 * This one is called for each steal reply by the MessageHandler, so the
 	 * algorithm knows about the reply (this is needed with asynchronous
 	 * communication)
 	 */
 	abstract public void stealReplyHandler(InvocationRecord ir, int opcode);
 
-	/** This one is called in the exit procedure so the algorithm can clean up,
-	 * e.g., wait for pending (async) messages
-	 *  Default implementation does nothing.
+	/**
+	 * This one is called in the exit procedure so the algorithm can clean up,
+	 * e.g., wait for pending (async) messages Default implementation does
+	 * nothing.
 	 */
-	public void exit() {}
+	public void exit() {
+	}
 
-	/** This one allows an implementation to print some statistics.
-	 *  Default implementation does nothing.
+	/**
+	 * This one allows an implementation to print some statistics. Default
+	 * implementation does nothing.
 	 */
-	public void printStats(java.io.PrintStream out) {}
+	public void printStats(java.io.PrintStream out) {
+	}
 }

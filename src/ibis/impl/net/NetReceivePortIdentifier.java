@@ -1,9 +1,8 @@
 package ibis.impl.net;
 
+import ibis.io.Conversion;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-
-import ibis.io.Conversion;
 
 import java.util.Hashtable;
 

@@ -3,18 +3,15 @@ package ibis.impl.nio;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Properties;
 
 public final class NioIbis extends Ibis implements Config {
 

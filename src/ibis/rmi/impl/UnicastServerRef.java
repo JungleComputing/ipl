@@ -2,10 +2,9 @@ package ibis.rmi.impl;
 
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
-
-import ibis.rmi.server.ServerRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.ServerNotActiveException;
+import ibis.rmi.server.ServerRef;
 
 // TODO: implement getClientHost
 

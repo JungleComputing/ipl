@@ -1,6 +1,6 @@
 package ibis.impl.nio;
 
-import ibis.ipl.ConnectionRefusedException;
+import ibis.io.SerializationOutputStream;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
@@ -11,13 +11,10 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 
-import ibis.io.SerializationOutputStream;
-
 import java.io.IOException;
-import java.util.ArrayList;
-
 import java.nio.channels.Channel;
 import java.nio.channels.GatheringByteChannel;
+import java.util.ArrayList;
 
 public final class NioSendPort implements SendPort, Config, Protocol {
 

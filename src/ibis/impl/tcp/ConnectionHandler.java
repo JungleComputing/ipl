@@ -7,11 +7,11 @@
 package ibis.impl.tcp;
 
 import ibis.io.BufferedArrayInputStream;
-import ibis.io.IbisSerializationInputStream;
 import ibis.io.DataSerializationInputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.NoSerializationInputStream;
 import ibis.io.SerializationInputStream;
 import ibis.io.SunSerializationInputStream;
-import ibis.io.NoSerializationInputStream;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
 import ibis.util.DummyInputStream;

@@ -6,55 +6,54 @@ import java.util.Vector;
 
 class MsgStats {
 
-    Vector	remotePortHash = new Vector();
-    int[]	upcall;
-    int[]	upcallRequest;
-    int[]	upcallReply;
-    int[]	upcallResult;
+	Vector remotePortHash = new Vector();
+	int[] upcall;
+	int[] upcallRequest;
+	int[] upcallReply;
+	int[] upcallResult;
 
-    Vector	localPortHash = new Vector();
-    int[]	sendRequest;
-    int[]	sendReply;
-    int[]	sendResult;
+	Vector localPortHash = new Vector();
+	int[] sendRequest;
+	int[] sendReply;
+	int[] sendResult;
 
-    int[]	sent;
-    int[]	received;
+	int[] sent;
+	int[] received;
 
-    private int[] realloc(int[] a, int n) {
-	int[] b = new int[n];
-	if (a != null) {
-	    System.arraycopy(a, 0, b, 0, a.length);
-	}
-	return b;
-    }
-
-    void addRemotePort(SendPortIdentifier id) {
-	if (remotePortHash.contains(id)) {
-	    return;
+	private int[] realloc(int[] a, int n) {
+		int[] b = new int[n];
+		if (a != null) {
+			System.arraycopy(a, 0, b, 0, a.length);
+		}
+		return b;
 	}
 
-	remotePortHash.add(id);
+	void addRemotePort(SendPortIdentifier id) {
+		if (remotePortHash.contains(id)) {
+			return;
+		}
 
-	upcall        = realloc(upcall,        remotePortHash.size());
-	upcallRequest = realloc(upcallRequest, remotePortHash.size());
-	upcallReply   = realloc(upcallReply,   remotePortHash.size());
-	upcallResult  = realloc(upcallResult,  remotePortHash.size());
-	received      = realloc(received,      remotePortHash.size());
-    }
+		remotePortHash.add(id);
 
-
-    void addLocalPort(SendPortIdentifier id) {
-	if (localPortHash.contains(id)) {
-	    return;
+		upcall = realloc(upcall, remotePortHash.size());
+		upcallRequest = realloc(upcallRequest, remotePortHash.size());
+		upcallReply = realloc(upcallReply, remotePortHash.size());
+		upcallResult = realloc(upcallResult, remotePortHash.size());
+		received = realloc(received, remotePortHash.size());
 	}
 
-	localPortHash.add(id);
+	void addLocalPort(SendPortIdentifier id) {
+		if (localPortHash.contains(id)) {
+			return;
+		}
 
-	sendRequest = realloc(sendRequest, localPortHash.size());
-	sendReply   = realloc(sendReply,   localPortHash.size());
-	sendResult  = realloc(sendResult,  localPortHash.size());
-	sent        = realloc(sent,        localPortHash.size());
-    }
+		localPortHash.add(id);
+
+		sendRequest = realloc(sendRequest, localPortHash.size());
+		sendReply = realloc(sendReply, localPortHash.size());
+		sendResult = realloc(sendResult, localPortHash.size());
+		sent = realloc(sent, localPortHash.size());
+	}
 
 }
 

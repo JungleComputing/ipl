@@ -1,11 +1,10 @@
 package ibis.impl.net.s_sun;
 
+import ibis.impl.net.NetBufferedOutputSupport;
+import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSerializedOutput;
-import ibis.impl.net.NetBufferedOutputSupport;
-import ibis.impl.net.NetConnection;
-
 import ibis.io.SerializationOutputStream;
 import ibis.io.SunSerializationOutputStream;
 

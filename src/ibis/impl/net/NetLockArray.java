@@ -1,7 +1,7 @@
 package ibis.impl.net;
 
-import ibis.util.IllegalLockStateException;
 import ibis.util.ConditionVariable;
+import ibis.util.IllegalLockStateException;
 import ibis.util.Monitor;
 
 /**

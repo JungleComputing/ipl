@@ -1,14 +1,12 @@
 package ibis.connect.parallelStreams;
 
-import java.net.Socket;
+import ibis.connect.socketFactory.BrokeredSocketFactory;
+import ibis.connect.socketFactory.SocketType;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
-import java.io.EOFException;
-
-import ibis.connect.socketFactory.SocketType;
-import ibis.connect.socketFactory.BrokeredSocketFactory;
+import java.net.Socket;
 
 public class ParallelStreamsSocketType 
     extends    SocketType

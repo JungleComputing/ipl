@@ -1,7 +1,6 @@
 package ibis.impl.messagePassing;
 
 import ibis.io.Conversion;
-
 import ibis.util.ConditionVariable;
 
 import java.io.IOException;

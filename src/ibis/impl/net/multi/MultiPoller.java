@@ -1,5 +1,6 @@
 package ibis.impl.net.multi;
 
+import ibis.impl.net.InterruptedIOException;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbisIdentifier;
@@ -8,7 +9,6 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetServiceLink;
-import ibis.impl.net.InterruptedIOException;
 import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;

@@ -491,7 +491,7 @@ public class IbisSerializationOutputStream
 	    flush();
 	}
 	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
+	    dbPrint("writeArray: " + new String(ref) + " offset: " 
 		    + offset + " len: " + len + " type: " + TYPE_CHAR);
 	}
 	array[array_index].type   = TYPE_CHAR;

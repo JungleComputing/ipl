@@ -1,24 +1,21 @@
 package ibis.impl.nio;
 
+import ibis.io.Dissipator;
+import ibis.io.SerializationInputStream;
+import ibis.ipl.IbisError;
+
 import java.io.IOException;
-
-import java.lang.Math;
-
 import java.nio.Buffer;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.CharBuffer;
-import java.nio.ShortBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-import java.nio.FloatBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.ByteOrder;
-import java.nio.BufferUnderflowException;
+import java.nio.ShortBuffer;
 import java.nio.channels.ReadableByteChannel;
-
-import ibis.ipl.IbisError;
-import ibis.io.SerializationInputStream;
-import ibis.io.Dissipator;
 
 /**
  * Reads data into a single bytebuffer, and creates views of it to

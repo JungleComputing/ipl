@@ -1,9 +1,9 @@
 package ibis.impl.net.s_ibis;
 
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSerializedInput;
-import ibis.impl.net.NetInputUpcall;
 import ibis.io.Dissipator;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.SerializationInputStream;

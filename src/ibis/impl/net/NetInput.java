@@ -1,15 +1,11 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 
-//import java.io.EOFException;
 import java.io.IOException;
-//import java.io.InputStream;
-//import java.io.ObjectInputStream;
-
-import ibis.ipl.IbisConfigurationException;
 
 /**
  * Provide an abstraction of a network input.

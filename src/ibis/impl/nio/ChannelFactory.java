@@ -1,10 +1,8 @@
 package ibis.impl.nio;
 
-import java.net.InetSocketAddress;
-
-import java.nio.channels.Channel;
-
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.Channel;
 
 /**
  * creates and recycles/destroys writeable and readable channels. Any

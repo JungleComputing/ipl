@@ -1,7 +1,7 @@
 package ibis.rmi.registry;
 
-import ibis.rmi.impl.RTS;
 import ibis.rmi.RemoteException;
+import ibis.rmi.impl.RTS;
 
 /**
  * The <code>LocateRegistry</code> class is a container class for methods that

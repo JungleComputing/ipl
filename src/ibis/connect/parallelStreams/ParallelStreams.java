@@ -1,20 +1,15 @@
 package ibis.connect.parallelStreams;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
-
-import java.util.Hashtable;
-
 import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.connect.util.MyDebug;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.Hashtable;
 
 public class ParallelStreams
 {

@@ -1,5 +1,7 @@
 package ibis.io;
 
+import ibis.util.Timer;
+
 
 /**
  * A hash table that aims for speed for pairs (Object, int).
@@ -515,15 +517,15 @@ final class IbisHash {
 	if (TIMINGS) {
 	    System.err.println(this + ": per insert: " +
 		" insert(" + t_insert.nrTimes() + ") " +
-		t_insert.format(t_insert.totalTimeVal() / t_insert.nrTimes()) +
+		Timer.format(t_insert.totalTimeVal() / t_insert.nrTimes()) +
 		" find(" + t_find.nrTimes() + ") " +
-		t_insert.format(t_find.totalTimeVal() / t_insert.nrTimes()) +
+		Timer.format(t_find.totalTimeVal() / t_insert.nrTimes()) +
 		" rebuild(" + t_rebuild.nrTimes() + ") " +
-		t_insert.format(t_rebuild.totalTimeVal() / t_insert.nrTimes()) +
+		Timer.format(t_rebuild.totalTimeVal() / t_insert.nrTimes()) +
 		" clear(" + t_clear.nrTimes() + ") " +
-		t_insert.format(t_clear.totalTimeVal() / t_insert.nrTimes()) +
+		Timer.format(t_clear.totalTimeVal() / t_insert.nrTimes()) +
 		" delete(" + t_delete.nrTimes() + ") " +
-		t_insert.format(t_delete.totalTimeVal() / t_insert.nrTimes()));
+		Timer.format(t_delete.totalTimeVal() / t_insert.nrTimes()));
 	}
     }
 }

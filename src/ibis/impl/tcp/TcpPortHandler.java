@@ -2,14 +2,13 @@
  **/
 package ibis.impl.tcp;
 
+import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisError;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
 import ibis.util.IbisSocketFactory;
 import ibis.util.ThreadPool;
-
-import ibis.connect.socketFactory.ExtSocketFactory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -21,7 +20,6 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Properties;
 
 final class TcpPortHandler implements Runnable, TcpProtocol { //, Config { 
 	static final boolean DEBUG = false;

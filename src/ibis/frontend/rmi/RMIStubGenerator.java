@@ -6,9 +6,9 @@ import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.ExceptionTable;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
-import org.apache.bcel.classfile.ExceptionTable;
 import org.apache.bcel.generic.Type;
 
 class RMIStubGenerator extends RMIGenerator { 

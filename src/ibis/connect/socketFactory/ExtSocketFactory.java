@@ -1,26 +1,22 @@
 package ibis.connect.socketFactory;
 
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.Properties;
-import java.util.Enumeration;
+import ibis.connect.util.MyDebug;
+import ibis.util.IPUtils;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import java.net.Socket;
-import java.net.ServerSocket;
+import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-
-import java.lang.reflect.Constructor;
-
-import ibis.connect.util.MyDebug;
-
-import ibis.util.IPUtils;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Properties;
+import java.util.Vector;
 
 /* A generalized SocketFactory which supports:
    -- client/server connection scheme

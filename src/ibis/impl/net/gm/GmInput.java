@@ -1,17 +1,16 @@
 package ibis.impl.net.gm;
 
+import ibis.impl.net.InterruptedIOException;
 import ibis.impl.net.NetAllocator;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetBufferFactoryImpl;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
-import ibis.impl.net.NetBufferFactory;
-import ibis.impl.net.NetBufferFactoryImpl;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-import ibis.impl.net.InterruptedIOException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

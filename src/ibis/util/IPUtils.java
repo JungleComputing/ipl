@@ -2,8 +2,6 @@ package ibis.util;
 
 import java.net.InetAddress;
 import java.util.Properties;
-import java.net.UnknownHostException;
-import java.net.Socket;
 
 public class IPUtils {
 

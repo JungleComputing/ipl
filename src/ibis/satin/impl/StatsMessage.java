@@ -17,7 +17,7 @@ class StatsMessage implements java.io.Serializable {
 	long intraClusterMessages;
 	long interClusterBytes;
 	long intraClusterBytes;
-	
+
 	double stealTime;
 	double handleStealTime;
 	double abortTime;
@@ -30,26 +30,24 @@ class StatsMessage implements java.io.Serializable {
 	long invocationRecordWriteCount;
 	double invocationRecordReadTime;
 	long invocationRecordReadCount;
-    double tupleWaitTime;
-    long tupleWaitCount;
-    double tupleSeqTime;
-    long tupleSeqCount;
-
+	double tupleWaitTime;
+	long tupleWaitCount;
+	double tupleSeqTime;
+	long tupleSeqCount;
 
 	//fault tolerance
 	long tableUpdates;
 	long tableLookups;
 	long tableSuccessfulLookups;
 	long tableRemoteLookups;
-	long killedOrphans;	
-	
+	long killedOrphans;
+
 	double tableLookupTime;
 	double tableUpdateTime;
 	double tableHandleUpdateTime;
 	double tableHandleLookupTime;
 	double crashHandlingTime;
 	double addReplicaTime;
-
 
 	void add(StatsMessage s) {
 		spawns += s.spawns;
@@ -86,15 +84,14 @@ class StatsMessage implements java.io.Serializable {
 		tupleWaitCount += s.tupleWaitCount;
 		tupleSeqTime += s.tupleSeqTime;
 		tupleSeqCount += s.tupleSeqCount;
-		
 
-		//fault tolerance		
+		//fault tolerance
 		tableUpdates += s.tableUpdates;
-		tableLookups += s.tableLookups;		
+		tableLookups += s.tableLookups;
 		tableSuccessfulLookups += s.tableSuccessfulLookups;
 		tableRemoteLookups += s.tableRemoteLookups;
 		killedOrphans += s.killedOrphans;
-		
+
 		tableLookupTime += s.tableLookupTime;
 		tableUpdateTime += s.tableUpdateTime;
 		tableHandleUpdateTime += s.tableHandleUpdateTime;

@@ -1,13 +1,12 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
+import ibis.io.Accumulator;
 
+import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.BufferOverflowException;
 import java.nio.channels.WritableByteChannel;
-
-import ibis.io.Accumulator;
 
 /**
  * Writes data to a channel (using big endian byte order)

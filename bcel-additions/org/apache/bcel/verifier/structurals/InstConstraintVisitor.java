@@ -59,16 +59,19 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantDouble;
-import org.apache.bcel.classfile.ConstantInteger;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantFloat;
+import org.apache.bcel.classfile.ConstantInteger;
 import org.apache.bcel.classfile.ConstantLong;
 import org.apache.bcel.classfile.ConstantString;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.generic.*;
-import org.apache.bcel.verifier.*;
-import org.apache.bcel.verifier.exc.*;
+import org.apache.bcel.verifier.VerificationResult;
+import org.apache.bcel.verifier.Verifier;
+import org.apache.bcel.verifier.VerifierFactory;
+import org.apache.bcel.verifier.exc.AssertionViolatedException;
+import org.apache.bcel.verifier.exc.StructuralCodeConstraintException;
 
 
 /**
@@ -666,7 +669,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 			referenceTypeIsInitialized(o, (ReferenceType) objectref);
 		}
 		// The unsigned indexbyte1 and indexbyte2 are used to construct an index into the runtime constant pool of the
-		// current class (§3.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The runtime constant
+		// current class (?3.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The runtime constant
 		// pool item at the index must be a symbolic reference to a class, array, or interface type.
 		Constant c = cpg.getConstant(o.getIndex());
 		if (! (c instanceof ConstantClass)){
@@ -1639,7 +1642,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 			referenceTypeIsInitialized(o, (ReferenceType) objectref);
 		}
 		// The unsigned indexbyte1 and indexbyte2 are used to construct an index into the runtime constant pool of the
-		// current class (§3.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The runtime constant
+		// current class (?3.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The runtime constant
 		// pool item at the index must be a symbolic reference to a class, array, or interface type.
 		Constant c = cpg.getConstant(o.getIndex());
 		if (! (c instanceof ConstantClass)){

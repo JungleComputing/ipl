@@ -1,5 +1,6 @@
 package ibis.impl.net.bytes;
 
+import ibis.impl.net.InterruptedIOException;
 import ibis.impl.net.NetAllocator;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetConnection;
@@ -9,8 +10,6 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-import ibis.impl.net.InterruptedIOException;
-
 import ibis.io.Conversion;
 
 import java.io.IOException;

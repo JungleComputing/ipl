@@ -1,13 +1,12 @@
 package ibis.rmi.impl;
 
-import ibis.rmi.server.RemoteRef;
-import ibis.rmi.server.RemoteStub;
-
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.rmi.server.RemoteRef;
+import ibis.rmi.server.RemoteStub;
 
 import java.io.IOException;
 

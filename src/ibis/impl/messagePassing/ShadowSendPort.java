@@ -1,8 +1,7 @@
 package ibis.impl.messagePassing;
 
-import ibis.ipl.PortMismatchException;
-
 import ibis.io.Conversion;
+import ibis.ipl.PortMismatchException;
 
 import java.io.IOException;
 import java.io.StreamCorruptedException;

@@ -15,7 +15,7 @@ final class Cluster {
 		this(v.ident.cluster());
 		victims.add(v);
 	}
-	
+
 	public boolean equals(Object o) {
 		if (o == this) {
 			return true;
@@ -26,7 +26,7 @@ final class Cluster {
 			return false;
 		}
 	}
-	
+
 	public boolean equals(Cluster other) {
 		if (other == this) {
 			return true;

@@ -1,17 +1,14 @@
 package ibis.connect.routedMessages;
 
-import java.util.List;
-import java.util.LinkedList;
+import ibis.connect.util.MyDebug;
 
-import java.net.Socket;
-import java.net.InetAddress;
-
+import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
-import java.io.EOFException;
-
-import ibis.connect.util.MyDebug;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.LinkedList;
 
 public class RMSocket extends Socket
 {

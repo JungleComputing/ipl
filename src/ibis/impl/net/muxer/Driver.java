@@ -6,7 +6,6 @@ import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
-
 import ibis.io.Conversion;
 
 import java.io.IOException;

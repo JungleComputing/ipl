@@ -3,8 +3,8 @@ package ibis.impl.net;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.IbisConfigurationException;
 
-import java.io.IOException;
 import java.io.EOFException;
+import java.io.IOException;
 
 /**
  * Provides an abstraction of a buffered network input.

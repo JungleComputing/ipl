@@ -1,19 +1,15 @@
 package ibis.connect.socketFactory;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
+import ibis.connect.util.MyDebug;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Properties;
-
-import ibis.connect.util.MyDebug;
 
 // SocketType descriptor for PortRange sockets
 // -------------------------------------------

@@ -1,7 +1,6 @@
 package ibis.impl.nio;
 
 import java.io.IOException;
-
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 

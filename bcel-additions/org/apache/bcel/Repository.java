@@ -65,10 +65,12 @@ package org.apache.bcel;
  * <http://www.apache.org/>.
  */
 
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.util.*;
-import java.io.*;
+import java.io.IOException;
 import java.util.Vector;
+
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.util.ClassPath;
+import org.apache.bcel.util.SyntheticRepository;
 
 /**
  * The repository maintains informations about class interdependencies, e.g.,

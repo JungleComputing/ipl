@@ -1,13 +1,13 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.DynamicProperties;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 

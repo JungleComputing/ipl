@@ -1,26 +1,17 @@
 package ibis.connect.controlHub;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.Properties;
-
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.SocketException;
-
-import java.io.IOException;
-import java.io.EOFException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.BufferedInputStream;
-
 import ibis.connect.routedMessages.HubProtocol;
 import ibis.connect.util.MyDebug;
+
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Properties;
 
 /** Incarnates a thread dedicated to HubWire management 
  * towards a given node.

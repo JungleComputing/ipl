@@ -2,9 +2,9 @@ package ibis.impl.messagePassing;
 
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.DynamicProperties;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.Replacer;
-import ibis.ipl.DynamicProperties;
 import ibis.util.ConditionVariable;
 import ibis.util.TypedProperties;
 

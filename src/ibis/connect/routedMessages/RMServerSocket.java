@@ -1,23 +1,14 @@
 package ibis.connect.routedMessages;
 
-import java.net.Socket;
-import java.net.ServerSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import ibis.connect.util.MyDebug;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
-import java.io.EOFException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.BufferedInputStream;
-
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
-
-import ibis.connect.util.MyDebug;
-
-import ibis.util.IPUtils;
 
 public class RMServerSocket extends ServerSocket
 {

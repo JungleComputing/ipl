@@ -1,13 +1,12 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
+import ibis.io.Dissipator;
 
-import java.nio.channels.ReadableByteChannel;
+import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.BufferUnderflowException;
-
-import ibis.io.Dissipator;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  * Reads data from a channel.

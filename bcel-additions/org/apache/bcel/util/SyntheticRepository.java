@@ -54,11 +54,12 @@ package org.apache.bcel.util;
  * <http://www.apache.org/>.
  */
 
-import java.io.*;
-
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 
-import org.apache.bcel.classfile.*;
+import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.JavaClass;
 
 /**
  * This repository is used in situations where a Class is created

@@ -4,14 +4,13 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
-import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetIO;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetVector;
-import ibis.ipl.ConnectionClosedException;
-
 import ibis.io.Conversion;
+import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.util.Hashtable;

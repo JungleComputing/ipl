@@ -1,13 +1,13 @@
 package ibis.impl.net.gm;
 
+import ibis.impl.net.InterruptedIOException;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
-import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
+import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetPortType;
-import ibis.impl.net.InterruptedIOException;
 
 import java.io.IOException;
 

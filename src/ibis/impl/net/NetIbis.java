@@ -1,28 +1,22 @@
 package ibis.impl.net;
 
+import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
-import ibis.ipl.IbisConfigurationException;
-
-import ibis.util.IbisIdentifierTable;
+import ibis.ipl.StaticProperties;
 import ibis.util.IbisSocketFactory;
 
-import ibis.impl.nameServer.NameServer;
-
 import java.io.IOException;
-
+import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Hashtable;
-import java.util.Properties;
 import java.util.Vector;
-
-import java.lang.reflect.Constructor;
 
 /**
  * Provides a generic {@link Ibis} implementation for pluggable network driver

@@ -1,12 +1,12 @@
 package ibis.impl.tcp;
 
 import ibis.io.BufferedArrayOutputStream;
-import ibis.io.IbisSerializationOutputStream;
+import ibis.io.Conversion;
 import ibis.io.DataSerializationOutputStream;
+import ibis.io.IbisSerializationOutputStream;
+import ibis.io.NoSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 import ibis.io.SunSerializationOutputStream;
-import ibis.io.NoSerializationOutputStream;
-import ibis.io.Conversion;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;

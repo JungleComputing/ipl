@@ -1,13 +1,13 @@
 package ibis.rmi.server;
 
-import ibis.rmi.Remote;
-
-import java.io.Serializable;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import ibis.rmi.MarshalException;
+import ibis.rmi.Remote;
 import ibis.rmi.UnmarshalException;
+
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 
 /**

@@ -7,7 +7,6 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 import ibis.util.PoolInfo;
 

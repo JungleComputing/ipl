@@ -1,11 +1,10 @@
 package ibis.rmi.registry.impl;
 
-import ibis.rmi.impl.RTS;
-
 import ibis.rmi.AlreadyBoundException;
 import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
+import ibis.rmi.impl.RTS;
 import ibis.rmi.registry.Registry;
 
 import java.net.InetAddress;

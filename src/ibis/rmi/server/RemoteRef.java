@@ -1,7 +1,5 @@
 package ibis.rmi.server;
 
-import ibis.rmi.RemoteException;
-
 import java.io.Externalizable;
 
 /**

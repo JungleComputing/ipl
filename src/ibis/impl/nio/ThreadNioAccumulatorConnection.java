@@ -1,11 +1,8 @@
 package ibis.impl.nio;
 
 import java.io.IOException;
-
-import java.nio.channels.SelectionKey;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
-import java.nio.channels.Selector;
 
 final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection 
 					   implements Config {

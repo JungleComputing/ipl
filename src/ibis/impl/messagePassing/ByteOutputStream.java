@@ -1,9 +1,8 @@
 package ibis.impl.messagePassing;
 
+import ibis.io.DataAllocator;
 import ibis.util.ConditionVariable;
 import ibis.util.TypedProperties;
-
-import ibis.io.DataAllocator;
 
 import java.io.IOException;
 

@@ -1,7 +1,7 @@
 package ibis.util;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Utility to run a process and read its output in a separate thread.

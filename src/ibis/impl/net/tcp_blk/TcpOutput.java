@@ -4,14 +4,11 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
-import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
-
-import ibis.ipl.ConnectionClosedException;
-
 import ibis.io.Conversion;
+import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.io.InputStream;

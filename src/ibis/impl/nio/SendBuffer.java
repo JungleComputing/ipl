@@ -1,19 +1,15 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
+import ibis.ipl.IbisError;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.CharBuffer;
-import java.nio.ShortBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-import java.nio.FloatBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.ByteOrder;
-import java.nio.BufferOverflowException;
-
-import ibis.ipl.IbisError;
+import java.nio.ShortBuffer;
 
 final class SendBuffer implements Config {
 

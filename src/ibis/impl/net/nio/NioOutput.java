@@ -7,11 +7,8 @@ import ibis.impl.net.NetPortType;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-
-//import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -21,7 +18,6 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.SocketChannel;
-
 import java.util.Hashtable;
 
 /**

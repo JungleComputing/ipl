@@ -1,28 +1,23 @@
 package ibis.impl.net.tcp_splice;
 
-import ibis.impl.net.NetIO;
+import ibis.connect.socketFactory.ExtSocketFactory;
+import ibis.connect.socketFactory.SocketType;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
-import ibis.impl.net.NetIbis;
+import ibis.impl.net.NetIO;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
-
-import ibis.ipl.ConnectionClosedException;
-
 import ibis.io.Conversion;
-
-import ibis.connect.socketFactory.ExtSocketFactory;
-import ibis.connect.socketFactory.SocketType;
+import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Hashtable;
 

@@ -1,8 +1,7 @@
 package ibis.impl.net;
 
-import ibis.ipl.ConnectionTimedOutException;
-
 import ibis.io.Conversion;
+import ibis.ipl.ConnectionTimedOutException;
 
 import java.io.EOFException;
 import java.io.IOException;

@@ -1,15 +1,11 @@
 package ibis.impl.nio;
 
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.Channel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.Selector;
+import ibis.ipl.IbisError;
 
 import java.io.IOException;
-
-import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.IbisError;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
 
 /**
  * Dissipator which reads from a single channel. reads whenever

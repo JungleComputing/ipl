@@ -6,8 +6,8 @@ import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.apache.bcel.classfile.Code;
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.ExceptionTable;
+import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.Instruction;

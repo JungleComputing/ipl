@@ -3,7 +3,6 @@ package ibis.impl.tcp;
 //import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
 import ibis.ipl.PortType;
-//import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPort;

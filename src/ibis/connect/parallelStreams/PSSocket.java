@@ -1,12 +1,9 @@
 package ibis.connect.parallelStreams;
 
-import java.net.Socket;
-import java.net.InetAddress;
-
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
-import java.io.EOFException;
+import java.net.Socket;
 
 
 public class PSSocket extends Socket

@@ -1,22 +1,15 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
-
-import java.util.Iterator;
-import java.util.ArrayList;
-
-import java.nio.channels.Selector;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Channel;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.ReadableByteChannel;
-
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.Upcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
-
+import ibis.ipl.Upcall;
 import ibis.util.Queue;
+
+import java.io.IOException;
+import java.nio.channels.Channel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SelectableChannel;
 
 
 final class ThreadNioReceivePort extends NioReceivePort

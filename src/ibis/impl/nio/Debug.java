@@ -1,6 +1,5 @@
 package ibis.impl.nio;
 
-import java.util.Properties;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.StringTokenizer;

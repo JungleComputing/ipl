@@ -3,10 +3,6 @@ package ibis.impl.nio;
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
-import java.nio.ByteBuffer;
-
-import ibis.ipl.IbisError;
-import ibis.ipl.ReceivePortIdentifier;
 
 final class BlockingChannelNioAccumulator extends NioAccumulator {
 

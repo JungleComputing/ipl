@@ -12,9 +12,8 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
-
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * The <code>Sequencer</code> class provides a global numbering.

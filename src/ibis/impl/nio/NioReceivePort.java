@@ -1,17 +1,5 @@
 package ibis.impl.nio;
 
-import java.lang.InterruptedException;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.BufferedInputStream;
-
-import java.net.InetSocketAddress;
-
-import java.util.ArrayList;
-
-import java.nio.channels.Channel;
-
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
 import ibis.ipl.ReadMessage;
@@ -21,11 +9,12 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
-
-import ibis.io.SerializationInputStream;
-import ibis.io.SunSerializationInputStream;
-
 import ibis.util.ThreadPool;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.Channel;
+import java.util.ArrayList;
 
 abstract class NioReceivePort implements ReceivePort, Runnable, Config {
 

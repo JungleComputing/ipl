@@ -1,11 +1,9 @@
 package ibis.satin.impl;
 
-
 /** The `normal' implementation of a double-ended queue. */
 
 // No need to delete aborted invocation records, the spawner keeps an
 // outstandingJobs list.
-
 final class DEQueueNormal extends DEQueue implements Config {
 	private InvocationRecord head = null;
 	private InvocationRecord tail = null;
@@ -17,8 +15,9 @@ final class DEQueueNormal extends DEQueue implements Config {
 	}
 
 	InvocationRecord getFromHead() {
-		synchronized(satin) {
-			if(length == 0) return null;
+		synchronized (satin) {
+			if (length == 0)
+				return null;
 
 			InvocationRecord rtn = head;
 			head = head.qnext;
@@ -28,15 +27,16 @@ final class DEQueueNormal extends DEQueue implements Config {
 				head.qprev = null;
 			}
 			length--;
-			
+
 			rtn.qprev = rtn.qnext = null;
 			return rtn;
 		}
 	}
 
 	InvocationRecord getFromTail() {
-		synchronized(satin) {
-			if(length == 0) return null;
+		synchronized (satin) {
+			if (length == 0)
+				return null;
 
 			InvocationRecord rtn = tail;
 			tail = tail.qprev;
@@ -46,17 +46,17 @@ final class DEQueueNormal extends DEQueue implements Config {
 				tail.qnext = null;
 			}
 			length--;
-			
+
 			rtn.qprev = rtn.qnext = null;
 			return rtn;
 		}
 	}
 
 	void addToHead(InvocationRecord o) {
-		if(ASSERTS && length > 10000) {
+		if (ASSERTS && length > 10000) {
 			System.err.println("LARGE Q");
 		}
-		synchronized(satin) {
+		synchronized (satin) {
 			if (length == 0) {
 				head = tail = o;
 			} else {
@@ -65,14 +65,14 @@ final class DEQueueNormal extends DEQueue implements Config {
 				head = o;
 			}
 			length++;
-  		}
+		}
 	}
 
 	void addToTail(InvocationRecord o) {
-		if(ASSERTS && length > 10000) {
+		if (ASSERTS && length > 10000) {
 			System.err.println("LARGE Q");
 		}
-		synchronized(satin) {
+		synchronized (satin) {
 			if (length == 0) {
 				head = tail = o;
 			} else {
@@ -85,7 +85,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 	}
 
 	private void removeElement(InvocationRecord curr) { // curr MUST be in q.
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 		if (curr.qprev != null) {
@@ -96,7 +96,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 				head.qprev = null;
 			}
 		}
-		
+
 		if (curr.qnext != null) {
 			curr.qnext.qprev = curr.qprev;
 		} else {
@@ -109,54 +109,53 @@ final class DEQueueNormal extends DEQueue implements Config {
 	}
 
 	int size() {
-		synchronized(satin) {
+		synchronized (satin) {
 			return length;
 		}
 	}
 
 	private void print(java.io.PrintStream out) {
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
 		out.println("work queue: " + length + " elements");
 		InvocationRecord curr = head;
-		while(curr != null) {
+		while (curr != null) {
 			out.println("    " + curr);
 			curr = curr.qnext;
 		}
 	}
 
 	void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
 		InvocationRecord curr = tail;
-		while(curr != null) {
-/*
-			if(curr.aborted) {
-				curr = curr.qprev; // This is correct, even if curr was just removed.
-				continue; // already handled.
-			}
-*/
-			if((curr.parent != null && curr.parent.aborted) ||
-			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+		while (curr != null) {
+			/*
+			 * if(curr.aborted) { curr = curr.qprev; // This is correct, even if
+			 * curr was just removed. continue; // already handled. }
+			 */
+			if ((curr.parent != null && curr.parent.aborted)
+					|| Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
 
-				if(ABORT_DEBUG) {
-					System.err.println("found local child: " + curr.stamp + ", it depends on " + targetStamp);
+				if (ABORT_DEBUG) {
+					System.err.println("found local child: " + curr.stamp
+							+ ", it depends on " + targetStamp);
 				}
-				
+
 				curr.spawnCounter.value--;
-				if(ASSERTS && curr.spawnCounter.value < 0) {
+				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.err.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
-				if(ABORT_STATS) {
+				if (ABORT_STATS) {
 					satin.abortedJobs++;
 				}
-				if(FT_ABORT_STATS) {
+				if (FT_ABORT_STATS) {
 					satin.killedOrphans++;
 				}
 				curr.aborted = true;
@@ -165,47 +164,49 @@ final class DEQueueNormal extends DEQueue implements Config {
 				// this is OK. Moreover, it might have children,
 				// so we should keep it alive.
 				// cleanup is done inside the spawner itself.
-				removeElement(curr); 
+				removeElement(curr);
 			}
 
-			curr = curr.qprev; // This is correct, even if curr was just removed.
+			curr = curr.qprev; // This is correct, even if curr was just
+							   // removed.
 		}
 	}
-	
+
 	/**
-	 * Used for fault-tolerance
-	 * Aborts all the descendents of any job stolen for the given (crashed) processor
-	 * @param owner IbisIdentifier of the processor whose jobs (and their descendents) will be aborted
+	 * Used for fault-tolerance Aborts all the descendents of any job stolen for
+	 * the given (crashed) processor
+	 * 
+	 * @param owner
+	 *            IbisIdentifier of the processor whose jobs (and their
+	 *            descendents) will be aborted
 	 */
-	 
+
 	void killSubtreeOf(ibis.ipl.IbisIdentifier owner) {
 		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
-		
+
 		InvocationRecord curr = tail;
 		while (curr != null) {
-			if ((curr.parent != null && curr.parent.aborted) ||
-			Satin.isDescendentOf1(curr, owner) ||
-			curr.owner.equals(owner)) //shouldn't happen
+			if ((curr.parent != null && curr.parent.aborted)
+					|| Satin.isDescendentOf1(curr, owner)
+					|| curr.owner.equals(owner)) //shouldn't happen
 			{
-			    curr.spawnCounter.value--;
-			    if (ASSERTS && curr.spawnCounter.value < 0) {
-				System.out.println("Just made spawncouter < )");
-				new Exception().printStackTrace();
-				System.exit(1);
-			    }
-			    curr.aborted = true;
-			    if (FT_ABORT_STATS) {
-				satin.killedOrphans ++;
-			    }
-			    removeElement(curr);
+				curr.spawnCounter.value--;
+				if (ASSERTS && curr.spawnCounter.value < 0) {
+					System.out.println("Just made spawncouter < )");
+					new Exception().printStackTrace();
+					System.exit(1);
+				}
+				curr.aborted = true;
+				if (FT_ABORT_STATS) {
+					satin.killedOrphans++;
+				}
+				removeElement(curr);
 			}
-			
+
 			curr = curr.qprev;
 		}
 	}
 }
-
-
 

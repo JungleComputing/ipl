@@ -1,7 +1,6 @@
 package ibis.impl.messagePassing;
 
 import ibis.io.SunSerializationInputStream;
-
 import ibis.util.ConditionVariable;
 
 import java.io.BufferedInputStream;

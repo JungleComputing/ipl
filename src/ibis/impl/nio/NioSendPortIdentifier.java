@@ -1,12 +1,11 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
-
+import ibis.io.Accumulator;
+import ibis.io.Dissipator;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPortIdentifier;
 
-import ibis.io.Dissipator;
-import ibis.io.Accumulator;
+import java.io.IOException;
 
 public final class NioSendPortIdentifier implements SendPortIdentifier, java.io.Serializable { 
     private static final long serialVersionUID = 5L;

@@ -1,16 +1,14 @@
 package ibis.ipl;
 
-import java.util.Set;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Properties;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.ArrayList;
-
-import java.io.InputStream;
-import java.io.IOException;
 
 /**
  * Container for the properties of an {@link ibis.ipl.Ibis Ibis} or a

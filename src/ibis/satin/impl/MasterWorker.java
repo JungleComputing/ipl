@@ -1,6 +1,5 @@
 package ibis.satin.impl;
 
-
 /** The master-worker distribution algorithm. */
 
 final class MasterWorker extends Algorithm {
@@ -15,12 +14,12 @@ final class MasterWorker extends Algorithm {
 		InvocationRecord r;
 		Victim v;
 
-		if(satin.master) {
-//			Thread.yield();
+		if (satin.master) {
+			//			Thread.yield();
 			return;
 		}
 
-		synchronized(satin) {
+		synchronized (satin) {
 			v = satin.victims.getVictim(satin.masterIdent);
 		}
 
@@ -28,21 +27,21 @@ final class MasterWorker extends Algorithm {
 	}
 
 	public void stealReplyHandler(InvocationRecord ir, int opcode) {
-		synchronized(satin) {
+		synchronized (satin) {
 			satin.gotStealReply = true;
 			satin.stolenJob = ir;
 			satin.notifyAll();
 		}
-	}	
+	}
 
 	void jobAdded() {
-		synchronized(satin) {
+		synchronized (satin) {
 			satin.notifyAll();
 		}
 	}
 
 	public void exit() {
-		synchronized(satin) {
+		synchronized (satin) {
 			satin.notifyAll();
 		}
 	}

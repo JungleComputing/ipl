@@ -1,14 +1,13 @@
 package ibis.ipl;
 
-import java.io.IOException;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.Enumeration;
 
 /**
  * This class defines the Ibis API, which can be implemented by an Ibis

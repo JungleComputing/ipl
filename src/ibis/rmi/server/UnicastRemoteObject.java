@@ -2,7 +2,6 @@ package ibis.rmi.server;
 
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
-
 import ibis.rmi.impl.UnicastServerRef;
 
 import java.io.IOException;

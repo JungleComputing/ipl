@@ -8,9 +8,8 @@ import ibis.impl.net.NetIO;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
-import ibis.ipl.ConnectionRefusedException;
-
 import ibis.io.Conversion;
+import ibis.ipl.ConnectionRefusedException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

@@ -1,8 +1,8 @@
 package ibis.impl.net;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**

@@ -6,7 +6,7 @@ import ibis.ipl.IbisIdentifier;
 
 final class IRVector implements Config {
 	InvocationRecord[] l = new InvocationRecord[500];
-	int count=0;
+	int count = 0;
 	Satin satin;
 
 	IRVector(Satin s) {
@@ -14,79 +14,84 @@ final class IRVector implements Config {
 	}
 
 	void add(InvocationRecord r) {
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
-		if(count >= l.length) {
-			InvocationRecord[] nl = new InvocationRecord[l.length*2];
+		if (count >= l.length) {
+			InvocationRecord[] nl = new InvocationRecord[l.length * 2];
 			System.arraycopy(l, 0, nl, 0, l.length);
 			l = nl;
 		}
 
 		l[count] = r;
 		count++;
-//		System.err.println("SATIN: " +  satin.ident.address() + "add count is: " + count);
+		//		System.err.println("SATIN: " + satin.ident.address() + "add count is:
+		// " + count);
 	}
 
 	int size() {
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 		return count;
 	}
-	
+
 	int numOf(ibis.ipl.IbisIdentifier owner) {
-	     int c = 0;
-	     for (int i=0; i<count; i++) {
-	        if (l[i].stealer.equals(owner)) c++;
-	     }
-	     return c;
-	} 
-		
+		int c = 0;
+		for (int i = 0; i < count; i++) {
+			if (l[i].stealer.equals(owner))
+				c++;
+		}
+		return c;
+	}
 
 	InvocationRecord remove(int stamp, ibis.ipl.IbisIdentifier owner) {
 		InvocationRecord res = null;
-		
-		if (ASSERTS) {
-		    Satin.assertLocked(satin);
-		}
-		
-//		System.err.println("SATIN: " + satin.ident.address() + " removing job " + stamp);
 
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
-		for(int i=0; i<count; i++) {
+		//		System.err.println("SATIN: " + satin.ident.address() + " removing job
+		// " + stamp);
+
+		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
+		for (int i = 0; i < count; i++) {
 			if (l[i] == null) {
-			    System.err.println("l[i] is null, i: " + i + ",count: " + count);
+				System.err
+						.println("l[i] is null, i: " + i + ",count: " + count);
 			}
-			if(l[i].stamp == stamp 
-			&& l[i].owner.equals(owner)) {
+			if (l[i].stamp == stamp && l[i].owner.equals(owner)) {
 				res = l[i];
 				count--;
 				l[i] = l[count];
-//				System.err.println("SATIN: " +  satin.ident.address() + "remove1 count is: " + count);
+				//				System.err.println("SATIN: " + satin.ident.address() +
+				// "remove1 count is: " + count);
 				return res;
 			}
 		}
-		
-//		System.err.println("SATIN: " +  satin.ident.address() + "remove1 count is: " + count);
+
+		//		System.err.println("SATIN: " + satin.ident.address() + "remove1 count
+		// is: " + count);
 
 		return null;
 	}
 
 	void remove(InvocationRecord r) {
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
-		for(int i=count-1; i>=0; i--) {
-			if(l[i].equals(r)) {
+		for (int i = count - 1; i >= 0; i--) {
+			if (l[i].equals(r)) {
 				count--;
 				l[i] = l[count];
-//				System.err.println("SATIN: " +  satin.ident.address() + "remove2 count is: " + count);
+				//				System.err.println("SATIN: " + satin.ident.address() +
+				// "remove2 count is: " + count);
 				return;
 			}
 		}
@@ -95,30 +100,31 @@ final class IRVector implements Config {
 	}
 
 	void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 		InvocationRecord curr;
-		for(int i=0; i<count; i++) {
+		for (int i = 0; i < count; i++) {
 			curr = l[i];
-//			if(curr.aborted) continue; // already handled.
+			//			if(curr.aborted) continue; // already handled.
 
-			if((curr.parent != null && curr.parent.aborted) || 
-			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+			if ((curr.parent != null && curr.parent.aborted)
+					|| Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
 				curr.aborted = true;
-				if(ABORT_DEBUG) {
-					System.out.println("found stolen child: " + curr.stamp + ", it depends on " + targetStamp);
+				if (ABORT_DEBUG) {
+					System.out.println("found stolen child: " + curr.stamp
+							+ ", it depends on " + targetStamp);
 				}
 				curr.spawnCounter.value--;
-				if(ASSERTS && curr.spawnCounter.value < 0) {
+				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
-				if(ABORT_STATS) {
+				if (ABORT_STATS) {
 					satin.abortedJobs++;
 				}
-				if(STEAL_STATS) {
+				if (STEAL_STATS) {
 					satin.abortMessages++;
 				}
 				// Curr is removed, but not put back in cache.
@@ -132,35 +138,35 @@ final class IRVector implements Config {
 		}
 	}
 	/**
-	 * Used for fault tolerance
-	 * send an ABORT_AND_STORE message to the stealer of each
-	 * descendent of the given job
+	 * Used for fault tolerance send an ABORT_AND_STORE message to the stealer
+	 * of each descendent of the given job
 	 */
 	void killAndStoreChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
 
 		if (ASSERTS) {
-		    Satin.assertLocked(satin);
+			Satin.assertLocked(satin);
 		}
-	
+
 		InvocationRecord curr;
-		for(int i=0; i<count; i++) {
+		for (int i = 0; i < count; i++) {
 			curr = l[i];
-			if((curr.parent != null && curr.parent.aborted) || 
-			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+			if ((curr.parent != null && curr.parent.aborted)
+					|| Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
 				curr.aborted = true;
-				if(ABORT_DEBUG) {
-					System.out.println("found stolen child: " + curr.stamp + ", it depends on " + targetStamp);
+				if (ABORT_DEBUG) {
+					System.out.println("found stolen child: " + curr.stamp
+							+ ", it depends on " + targetStamp);
 				}
 				curr.spawnCounter.value--;
-				if(ASSERTS && curr.spawnCounter.value < 0) {
+				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
-				if(ABORT_STATS) {
+				if (ABORT_STATS) {
 					satin.abortedJobs++;
 				}
-				if(STEAL_STATS) {
+				if (STEAL_STATS) {
 					satin.abortMessages++;
 				}
 
@@ -174,37 +180,38 @@ final class IRVector implements Config {
 			}
 		}
 	}
-
 
 	//abort every job that was spawned on targetOwner
 	//or is a child of a job spawned on targetOwner
 	void killSubtreeOf(IbisIdentifier targetOwner) {
 
 		if (ASSERTS) {
-		    Satin.assertLocked(satin);
+			Satin.assertLocked(satin);
 		}
-	
+
 		InvocationRecord curr;
-		for(int i=0; i<count; i++) {
+		for (int i = 0; i < count; i++) {
 			curr = l[i];
-			if((curr.parent != null && curr.parent.aborted) || 
-			   Satin.isDescendentOf1(curr, targetOwner) ||
-			   curr.owner.equals(targetOwner)) //this shouldnt happen, actually
-			   {
+			if ((curr.parent != null && curr.parent.aborted)
+					|| Satin.isDescendentOf1(curr, targetOwner)
+					|| curr.owner.equals(targetOwner)) //this shouldnt happen,
+													   // actually
+			{
 				curr.aborted = true;
-				if(ABORT_DEBUG) {
-					System.out.println("found stolen child: " + curr.stamp + ", it depends on " + targetOwner);
+				if (ABORT_DEBUG) {
+					System.out.println("found stolen child: " + curr.stamp
+							+ ", it depends on " + targetOwner);
 				}
 				curr.spawnCounter.value--; //not necessary?
-				if(ASSERTS && curr.spawnCounter.value < 0) {
+				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
-//				if(ABORT_STATS) {
-//					satin.abortedJobs++;
-//				}
-				if(STEAL_STATS) {
+				//				if(ABORT_STATS) {
+				//					satin.abortedJobs++;
+				//				}
+				if (STEAL_STATS) {
 					satin.abortMessages++;
 				}
 				removeIndex(i);
@@ -212,31 +219,32 @@ final class IRVector implements Config {
 				satin.sendAbortMessage(curr);
 			}
 		}
-//		System.err.println("SATIN: " +  satin.ident.address() + "count is: " + count);
+		//		System.err.println("SATIN: " + satin.ident.address() + "count is: " +
+		// count);
 	}
 
 	/**
-	 * Used for fault tolerance
-	 * send an ABORT_AND_STORE message to the stealer of each
-	 * job that is a descendent of any job spawned by the targetOwner
+	 * Used for fault tolerance send an ABORT_AND_STORE message to the stealer
+	 * of each job that is a descendent of any job spawned by the targetOwner
 	 */
-	
+
 	void killAndStoreSubtreeOf(IbisIdentifier targetOwner) {
 
 		if (ASSERTS) {
-		    Satin.assertLocked(satin);
+			Satin.assertLocked(satin);
 		}
-	
+
 		InvocationRecord curr;
-		for(int i=0; i<count; i++) {
+		for (int i = 0; i < count; i++) {
 			curr = l[i];
-			if((curr.parent != null && curr.parent.aborted) || 
-			   Satin.isDescendentOf1(curr, targetOwner) ||
-			   curr.owner.equals(targetOwner)) //this shouldnt happen, actually
-			   {
+			if ((curr.parent != null && curr.parent.aborted)
+					|| Satin.isDescendentOf1(curr, targetOwner)
+					|| curr.owner.equals(targetOwner)) //this shouldnt happen,
+													   // actually
+			{
 				curr.aborted = true;
 				curr.spawnCounter.value--; //not necessary?
-				if(ASSERTS && curr.spawnCounter.value < 0) {
+				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
 					System.exit(1);
@@ -248,77 +256,76 @@ final class IRVector implements Config {
 		}
 	}
 
-	
 	void killAll() {
 
 		if (ASSERTS) {
-		    Satin.assertLocked(satin);
+			Satin.assertLocked(satin);
 		}
 
+		InvocationRecord curr;
 
-	    InvocationRecord curr;
-	    
-	    for (int i=0; i<count; i++) {
-		curr = l[i];
-		curr.aborted = true;
-		curr.spawnCounter.value--;
-		removeIndex(i);
-		i--;
-	    }
+		for (int i = 0; i < count; i++) {
+			curr = l[i];
+			curr.aborted = true;
+			curr.spawnCounter.value--;
+			removeIndex(i);
+			i--;
+		}
 	}
 
 	InvocationRecord removeIndex(int i) {
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
-		if(i >= count) return null;
+		if (i >= count)
+			return null;
 
 		InvocationRecord res = l[i];
 		count--;
 		l[i] = l[count];
 		return res;
 	}
-	
-	/** Used for fault tolerance
-	 *  remove all the jobs stolen by targetOwner and 
-	 *  put them back in the taskQueue
+
+	/**
+	 * Used for fault tolerance remove all the jobs stolen by targetOwner and
+	 * put them back in the taskQueue
 	 */
-	void  redoStolenBy(IbisIdentifier targetOwner) {
-	
+	void redoStolenBy(IbisIdentifier targetOwner) {
+
 		if (ASSERTS) {
-		    Satin.assertLocked(satin);
+			Satin.assertLocked(satin);
 		}
 
-	
-	    for (int i=count-1; i>=0; i--) {
-		if (targetOwner.equals(l[i].stealer)) {
-		    if (FAULT_TOLERANCE) {
-			l[i].reDone = true;
-		    }
-		    l[i].stealer = null;
-		    satin.q.addToTail(l[i]);
-		    count--;
-		    ParameterRecord pr = l[i].getParameterRecord();
-		    l[i] = l[count];
-		    
+		for (int i = count - 1; i >= 0; i--) {
+			if (targetOwner.equals(l[i].stealer)) {
+				if (FAULT_TOLERANCE) {
+					l[i].reDone = true;
+				}
+				l[i].stealer = null;
+				satin.q.addToTail(l[i]);
+				count--;
+				ParameterRecord pr = l[i].getParameterRecord();
+				l[i] = l[count];
+
+			}
 		}
-	    }
 	}
 
 	void print(java.io.PrintStream out) {
-		if(ASSERTS) {
+		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
 		out.println("==============IRVector:=============");
-		for(int i=0; i<count; i++) {
+		for (int i = 0; i < count; i++) {
 			ParameterRecord pr = l[i].getParameterRecord();
-			out.println("outjobs [" + i + "] = " + pr + "," + l[i].stealer.name());
+			out.println("outjobs [" + i + "] = " + pr + ","
+					+ l[i].stealer.name());
 		}
 		out.println("end of IRVector: " + satin.ident.name() + "=");
 	}
-	
+
 	InvocationRecord first() {
-	    return l[0];
+		return l[0];
 	}
 }

@@ -1,9 +1,20 @@
 package ibis.impl.nio;
 
+import ibis.io.Accumulator;
+import ibis.io.DataSerializationInputStream;
+import ibis.io.DataSerializationOutputStream;
+import ibis.io.Dissipator;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
+import ibis.io.NoSerializationInputStream;
+import ibis.io.NoSerializationOutputStream;
+import ibis.io.SerializationInputStream;
+import ibis.io.SerializationOutputStream;
+import ibis.io.SunSerializationInputStream;
+import ibis.io.SunSerializationOutputStream;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
 import ibis.ipl.PortType;
-import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPort;
@@ -11,23 +22,7 @@ import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 
-import ibis.io.SerializationInputStream;
-import ibis.io.SerializationOutputStream;
-import ibis.io.NoSerializationInputStream;
-import ibis.io.NoSerializationOutputStream;
-import ibis.io.DataSerializationInputStream;
-import ibis.io.DataSerializationOutputStream;
-import ibis.io.IbisSerializationInputStream;
-import ibis.io.IbisSerializationOutputStream;
-import ibis.io.SunSerializationInputStream;
-import ibis.io.SunSerializationOutputStream;
-import ibis.io.Accumulator;
-import ibis.io.Dissipator;
-
 import java.io.IOException;
-
-import java.util.ArrayList;
-import java.util.ArrayList;
 import java.util.Properties;
 
 class NioPortType extends PortType implements Config { 

@@ -4,8 +4,6 @@ import ibis.io.SerializationOutputStream;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.nio.channels.GatheringByteChannel;
-
 import java.io.IOException;
 
 final class NioWriteMessage implements WriteMessage, Config {
