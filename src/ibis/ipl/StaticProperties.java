@@ -453,4 +453,43 @@ public class StaticProperties {
 	    }
 	}
     }
+
+    /**
+     * Returns true if <code>other</code> represents the same property
+     * set.
+     * @param other the object to compare with.
+     * @return true if equal.
+     */
+    public boolean equals(Object other) {
+	if (other == null) {
+	    return false;
+	}
+	if (! (other instanceof StaticProperties)) {
+	    return false;
+	}
+	StaticProperties o = (StaticProperties) other;
+	Set keys1 = propertyNames();
+	Set keys2 = o.propertyNames();
+	if (! keys1.equals(keys2)) {
+	    return false;
+	}
+	Iterator i = keys1.iterator();
+	while (i.hasNext()) {
+	    String s = (String) i.next();
+	    Set s1 = findSet(s);
+	    Set s2 = o.findSet(s);
+	    if (! s1.equals(s2)) {
+		return false;
+	    }
+	}
+        return true;
+    }
+    
+    /**
+     * Returns the hashcode of this property set.
+     * @return the hashcode.
+     */
+    public int hashCode() {
+	return propertyNames().hashCode();
+    }
 }
