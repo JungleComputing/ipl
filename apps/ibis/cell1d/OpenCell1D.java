@@ -21,21 +21,26 @@ interface OpenConfig {
 }
 
 final class Problem implements OpenConfig {
+    public byte leftBorder[];
     public byte board[][];
+    public byte rightBorder[];
     public int firstColumn = -1;
     public int firstNoColumn = -1;
 
     public Problem( int boardsize, int firstCol, int firstNoCol )
     {
-        board = new byte[boardsize+2][];
+        board = new byte[boardsize][];
         firstColumn = firstCol;
         firstNoColumn = firstNoCol;
 
         // Now populate the columns that are our responsibility,
-        // plus two border columns.
-        for( int col=firstCol-1; col<=firstNoCol; col++ ){
+        for( int col=firstCol; col<firstNoCol; col++ ){
             board[col] = new byte[boardsize+2];
         }
+
+        // And two border columns.
+        leftBorder = new byte[boardsize+2];
+        rightBorder = new byte[boardsize+2];
     }
 }
 
@@ -254,29 +259,6 @@ class OpenCell1D implements OpenConfig {
     }
 
     /**
-     * @param p The port to send to.
-     * @param firstColumn The first column to send.
-     * @param firstNoColumn The first column not to send.
-     * @param board The game board.
-     */
-    private static void send( SendPort p, int firstColumn, int firstNoColumn, byte board[][] )
-        throws java.io.IOException
-    {
-        if( traceCommunication ){
-            System.out.println( "P" + me + ": sending columns " + firstColumn + "-" + firstNoColumn + " onto port " + p );
-        }
-        WriteMessage m = p.newMessage();
-        m.writeInt( OpenCell1D.generation );
-        m.writeInt( firstColumn );
-        m.writeInt( firstNoColumn );
-        for( int i=firstColumn; i<firstNoColumn; i++ ){
-            m.writeArray( board[i] );
-        }
-        m.send();
-        m.finish();
-    }
-
-    /**
      * @param p The port to receive on.
      * @param board The game board.
      */
@@ -302,79 +284,172 @@ class OpenCell1D implements OpenConfig {
         m.finish();
     }
 
+    /**
+     * Sends a new border to the lefthand neighbour. For load balancing
+     * purposes, perhaps also send some of the columns I own to that
+     * neighbour.
+     * @param port The port to send to.
+     * @param p The problem.
+     * @param aimFirstColomn The first column we should own.
+     * @param aimFirstNoColomn The first column we should not own.
+     */
     static void sendLeft( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
         throws java.io.IOException
     {
         if( port == null ){
             return;
         }
-        if( aimFirstColumn>p.firstColumn ){
-            if( traceLoadBalancing ){
-                System.out.println( "P" + me + ": I should send columns " + p.firstColumn + "-" + aimFirstColumn + " to my left neighbour" );
-            }
+        if( p.firstColumn == 0 ){
+            System.err.println( "I have a left neighbour, but my first column is 0???" );
+            System.exit( 1 );
         }
-        send( port, p.firstColumn, p.firstColumn+1, p.board );
+        int sendCount = p.firstColumn-aimFirstColumn;
+        if( sendCount<0 ){
+            sendCount = 0;
+        }
+        if( sendCount>0 ){
+            if( traceLoadBalancing ){
+                System.out.println( "P" + me + ": I must send " + sendCount + " columns to my left neighbour" );
+            }
+            // The border has changed, but since until now we maintained it,
+            // we can record its current state from our own columns.
+            System.arraycopy( p.board[aimFirstColumn-1], 0, p.leftBorder, 0, boardsize+2 );
+        }
+        WriteMessage m = port.newMessage();
+        m.writeInt( OpenCell1D.generation );
+        m.writeInt( sendCount );
+
+        // Send the columns we want to move to the border.
+        while( p.firstColumn>aimFirstColumn ){
+            m.writeArray( p.board[p.firstColumn] );
+            p.board[p.firstColumn] = null;
+            p.firstColumn++;
+        }
+        // ... and always send our first column as border to
+        // the neighbour.
+        m.writeArray( p.board[p.firstColumn] );
+        m.send();
+        m.finish();
     }
 
+    /**
+     * Sends a new border to the righthand neighbour. For load balancing
+     * purposes, perhaps also send some of the columns I own to that
+     * neighbour.
+     * @param port The port to send to.
+     * @param p The problem.
+     * @param aimFirstColomn The first column we should own.
+     * @param aimFirstNoColomn The first column we should not own.
+     */
     static void sendRight( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
         throws java.io.IOException
     {
         if( port == null ){
             return;
         }
-        int firstSendCol = p.firstNoColumn-1;
-        int firstNoSendCol = p.firstNoColumn;
-        if( aimFirstNoColumn<p.firstNoColumn ){
-            firstSendCol = aimFirstNoColumn-1;
-            if( firstSendCol<p.firstColumn ){
-                firstSendCol = p.firstColumn-1;
-            }
+        int sendCount = p.firstNoColumn-aimFirstNoColumn;
+        if( sendCount<0 ){
+            sendCount = 0;
+        }
+        if( sendCount>0 ){
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ": I should send columns " + firstSendCol + "-" + firstNoSendCol + " to my right neighbour (I own " + p.firstColumn + "-" + p.firstNoColumn + ")" );
+                System.out.println( "P" + me + ": I must send " + sendCount + " columns to my right neighbour" );
             }
+            // The border has changed, but since until now we
+            // maintained it as an ordinary column, we can easily intialize
+            // it.
+            System.arraycopy( p.board[aimFirstNoColumn], 0, p.rightBorder, 0, boardsize+2 );
         }
-        // Sabotage all previous calculations.
-        firstSendCol = p.firstNoColumn-1;
-        firstNoSendCol = p.firstNoColumn;
-        send( port, firstSendCol, firstNoSendCol, p.board );
-        while( p.firstNoColumn>firstSendCol+1 ){
-            p.board[p.firstNoColumn] = null;
+        WriteMessage m = port.newMessage();
+        m.writeInt( OpenCell1D.generation );
+        m.writeInt( sendCount );
+
+        // Send the columns we want to move from right to left.
+        while( p.firstNoColumn>aimFirstNoColumn ){
             p.firstNoColumn--;
+            m.writeArray( p.board[p.firstNoColumn-1] );
+            p.board[p.firstNoColumn-1] = null;
         }
+
+        // TODO: make sure that all this shrinking doesn't leave us with
+        // an empty set, unless all our right neighbours are also
+        // empty.
+
+        // ... and always send our first column as border to the neighbour.
+        m.writeArray( p.board[p.firstNoColumn-1] );
+        m.send();
+        m.finish();
     }
 
     static void receiveLeft( ReceivePort port, Problem p )
         throws java.io.IOException
     {
         if( port != null ){
-            receive( port, p.board );
+            return;
         }
-
-        // Now see if our responsibilities have increased.
-        while( p.firstColumn>1 && p.board[p.firstColumn-2] != null ){
-            p.firstColumn--;
+        ReadMessage m = port.receive();
+        int gen = m.readInt();
+        if( gen>=0 && OpenCell1D.generation<0 ){
+            OpenCell1D.generation = gen;
         }
+        int receiveCount = m.readInt();
+        if( receiveCount>0 ){
+            if( traceLoadBalancing ){
+                System.out.println( "P" + me + ": receiving " + receiveCount + " columns from left neighbour" );
+            }
+        }
+        int newFirst = p.firstColumn-receiveCount;
+        for( int i=0; i<receiveCount; i++ ){
+            if( p.board[newFirst+i] == null ){
+                p.board[newFirst+i] = new byte[boardsize+2];
+            }
+            else {
+                // TODO: complain loudly.
+            }
+            m.readArray( p.board[newFirst+i] );
+        }
+        p.firstColumn = newFirst;
+        m.readArray( p.leftBorder );
+        m.finish();
     }
 
     static void receiveRight( ReceivePort port, Problem p )
         throws java.io.IOException
     {
-        if( port != null ){
-            receive( port, p.board );
+        if( port == null ){
+           return;
         }
+        ReadMessage m = port.receive();
+        int gen = m.readInt();
+        if( gen>=0 && OpenCell1D.generation<0 ){
+            OpenCell1D.generation = gen;
+        }
+        int receiveCount = m.readInt();
+        if( receiveCount>0 ){
+            if( traceLoadBalancing ){
+                System.out.println( "P" + me + ": receiving " + receiveCount + " columns from right neighbour" );
+            }
+        }
+        p.firstNoColumn += receiveCount;
+        int ix = p.firstNoColumn;
 
-        // Now see if our responsibilities have increased.
-        while( p.firstNoColumn<boardsize+1 && p.board[p.firstNoColumn+1] != null ){
-            p.firstNoColumn++;
+        for( int i=0; i<receiveCount; i++ ){
+            ix--;
+            if( p.board[ix] == null ){
+                p.board[ix] = new byte[boardsize+2];
+            }
+            else {
+                // TODO: complain loudly.
+            }
+            m.readArray( p.board[ix] );
         }
+        m.readArray( p.rightBorder );
+        m.finish();
     }
 
     public static void main( String [] args )
     {
         int count = GENERATIONS;
-        int rank = 0;
-        int remoteRank = 1;
-        boolean noneSer = false;
         RszHandler rszHandler = new RszHandler();
         int knownMembers = 0;
 
@@ -443,14 +518,14 @@ class OpenCell1D implements OpenConfig {
                 // I'm the leftmost node, I start with the entire board.
                 // Workstealing will spread the load to other processors later
                 // on.
-                firstColumn = 1;
-                firstNoColumn = boardsize+1;
+                firstColumn = 0;
+                firstNoColumn = boardsize;
                 generation = 0; // I decide the generation count.
                 knownMembers = 1;
             }
             else {
-                firstColumn = boardsize+1;
-                firstNoColumn = boardsize+1;
+                firstColumn = boardsize;
+                firstNoColumn = boardsize;
             }
 
             if( me == 0 ){
@@ -478,12 +553,12 @@ class OpenCell1D implements OpenConfig {
             while( generation<count ){
                 if( firstColumn<firstNoColumn ){
                     byte prev[];
-                    byte curr[] = p.board[firstColumn];
-                    byte next[] = p.board[firstColumn+1];
+                    byte curr[] = p.leftBorder;
+                    byte next[] = p.board[firstColumn];
 
                     if( showBoard && leftNeighbour == null ){
                         System.out.println( "Generation " + generation );
-                        for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
+                        for( int y=0; y<SHOWNBOARDHEIGHT; y++ ){
                             for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
                                 System.out.print( p.board[x][y] );
                             }
@@ -494,6 +569,11 @@ class OpenCell1D implements OpenConfig {
                         prev = curr;
                         curr = next;
                         next = p.board[i+1];
+                        if( next == null ){
+                            // No column there. We blindly assume that
+                            // that means we must use the right border.
+                            next = p.rightBorder;
+                        }
                         for( int j=1; j<=boardsize; j++ ){
                             int neighbours =
                                 prev[j-1] +
@@ -527,8 +607,8 @@ class OpenCell1D implements OpenConfig {
                 int mem = rszHandler.getMemberCount();
                 if( knownMembers<mem ){
                     // Some processors have joined the computation.
-                    aimFirstColumn = 1+(me*boardsize)/mem;
-                    aimFirstNoColumn = 1+((me+1)*boardsize)/mem;
+                    aimFirstColumn = (me*boardsize)/mem;
+                    aimFirstNoColumn = ((me+1)*boardsize)/mem;
                     if( traceLoadBalancing ){
                         System.out.println( "P" + me + ": there are now " + mem + " nodes in the computation (was " + knownMembers + ")" );
                         System.out.println( "P" + me + ": I have columns " + firstColumn + "-" + firstNoColumn );
