@@ -63,15 +63,15 @@ public class IbisSocketFactory {
 		boolean connected = false;
 		Socket s = null;
 
-/*
-		if(localIP == null) {
-			try {
-				localIP = InetAddress.getLocalHost();
-			} catch (IOException e1) { 
-				throw new IbisIOException("" + e1);
-			}
+		if (localIP != null && dest.getHostAddress().equals("127.0.0.1")) {
+		    /* Avoid ConnectionRefused exception */
+		    try {
+			    dest = InetAddress.getLocalHost();
+		    } catch (IOException e1) { 
+			    throw new IbisIOException("" + e1);
+		    }
 		}
-*/
+
 		while (!connected) {
 			int localPort = allocLocalPort();
 			if (DEBUG) {
