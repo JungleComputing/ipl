@@ -17,7 +17,8 @@ interface OpenConfig {
     static final boolean traceLoadBalancing = false;
     static final boolean traceWorkStealing = false;
     static final boolean doWorkStealing = true;
-    static final int disturbance = 0;
+    static final int DISTURBANCE = 0;
+    static final int DISTURBANCE_START = 0;
     static final int DEFAULTBOARDSIZE = 4000;
     static final int DEFAULTGENERATIONS = 30;
     static final int SHOWNBOARDWIDTH = 60;
@@ -148,6 +149,9 @@ class LevelRecorder implements ibis.ipl.Upcall {
         int mygen = OpenCell1D.lockedGeneration.get();
         if( mygen == gen ){
             level = OpenCell1D.boardsize-OpenCell1D.column.get();
+        }
+        else if( gen>mygen ){
+            System.err.println( "Steal request generation: " + gen + "; my generation: " + mygen );
         }
         m.finish();
     }
@@ -746,8 +750,24 @@ class OpenCell1D implements OpenConfig {
                     boolean alive = (neighbours == 3) || ((neighbours == 2) && (curr[j]==1));
                     p.updatecol[j] = alive?(byte) 1:(byte) 0;
                 }
+                if( DISTURBANCE>0 && (me == 1) && generation>=DISTURBANCE_START ){
+                    for( int iters=0; iters<3; iters++ ){
+                        for( int j=1; j<=boardsize; j++ ){
+                            int neighbours =
+                                prev[j-1] +
+                                prev[j] +
+                                prev[j+1] +
+                                curr[j-1] +
+                                curr[j+1] +
+                                next[j-1] +
+                                next[j] +
+                                next[j+1];
+                            boolean alive = (neighbours == 3) || ((neighbours == 2) && (curr[j]==1));
+                            p.updatecol[j] = alive?(byte) 1:(byte) 0;
+                        }
+                    }
+                }
                 
-                //
                 byte tmp[] = p.board[computeColumn];
                 p.board[computeColumn] = p.updatecol;
                 p.updatecol = p.nextupdatecol;
@@ -804,7 +824,15 @@ class OpenCell1D implements OpenConfig {
         if( lsteal>0 && rsteal>0 ){
             // Don't give away our work to *both* neighbours at the
             // same time.
-            dampen *= 2;
+            if( lsteal>rsteal ){
+                rsteal = 0;
+            }
+            else if( rsteal>lsteal ){
+                lsteal = 0;
+            }
+            else {
+                dampen *= 2;
+            }
         }
         if( lsteal>0 ){
             // The left neighbour needs columns the most, send them.
@@ -915,7 +943,7 @@ class OpenCell1D implements OpenConfig {
 
             if( me == 0 ){
                 System.out.println( "Using " + ibis.implementationName() );
-                System.out.println( "disturbance=" + disturbance );
+                System.out.println( "DISTURBANCE=" + DISTURBANCE );
                 System.out.println( "Started a run of " + count + " generations on a " + boardsize + "x" + boardsize + " board" );
             }
 
@@ -941,8 +969,8 @@ class OpenCell1D implements OpenConfig {
             }
 
             while( generation<count ){
-                if( disturbance>0 && me == 1 ){
-                    Thread.sleep( disturbance );
+                if( false && DISTURBANCE>0 && me == 2 && generation>=DISTURBANCE_START ){
+                    Thread.sleep( DISTURBANCE );
                 }
                 long startLoopTime = System.currentTimeMillis();
                 if( rightNeighbour != null && rightReceivePort == null ){

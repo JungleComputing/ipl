@@ -99,12 +99,24 @@ def dumpArray( A ):
     if repeats>0:
         print "(repeated %d times)" % repeats
 
+def dumpSummedArray( A ):
+    for gen in range( knownGenerations ):
+        print "%3d:" % gen,
+        total = 0
+        for P in range( knownMembers ):
+            total = total + A[P][gen]
+            print "%4d " % total,
+        print  ""
+
 def main():
     for arg in sys.argv[1:]:
         registerLog( arg )
     print 
     print "population"
     dumpArray( population )
+    print 
+    print "summed population"
+    dumpSummedArray( population )
     print 
     print "members"
     dumpArray( members )
