@@ -68,6 +68,7 @@ public class PoolInfoServer extends Thread {
 	    if (DEBUG) {
 		System.err.println("PoolInfoServer: Key " + key +
 				   " Host " + connected_hosts +
+				   " (" + socket.getInetAddress().getHostName() + ")" +
 				   " has connected");
 	    }
 	    host_clusters[connected_hosts] = cluster;
