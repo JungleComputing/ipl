@@ -11,8 +11,8 @@ import ibis.util.*;
  * results to the master, and the master replies to the workers.
  */
 final class MasterWorker {
-    static final int COUNT = 1000;
-    static final boolean ASSERT = true;
+    static final int COUNT = 10000;
+    static final boolean ASSERT = false;
 
     Ibis ibis;
     Registry registry;
@@ -102,6 +102,7 @@ final class MasterWorker {
 	Object data;
 	long start;
 	long end;
+	int max = 0;
 
 	ReceivePort rport = manyToOneType.createReceivePort(
 		"master receive port");
@@ -110,7 +111,7 @@ final class MasterWorker {
 	while(true) {
 	    start = System.currentTimeMillis();
 
-	    for (int i = 0; i < COUNT; i++) {
+	    for (int i = 0; (i < COUNT); i++) {
 
 		readMessage = rport.receive();
 		origin = readMessage.origin();
@@ -139,10 +140,16 @@ final class MasterWorker {
 
 	    end = System.currentTimeMillis();
 
-	    System.err.println("MASTER:" +  COUNT + " requests took " 
-		    + (end - start) + " millis, " 
-		    + ((end - start) * 1000.0) / COUNT
-		    + " microseconds per request");
+	    int speed = (int)(((COUNT * 1.0) / (end - start)) * 1000.0);
+
+	    if (speed > max) {
+		    max = speed;
+	    }
+
+	    System.err.println("MASTER: " +  COUNT + " requests / " 
+		    + (end - start) + " ms (" + speed
+		    + " requests/s), max: " + max);
+
 	}
     }
 
@@ -164,37 +171,24 @@ final class MasterWorker {
 	connect(sport, master);
 
 	while (true) {
-	    start = System.currentTimeMillis();
+	    writeMessage = sport.newMessage();
+	    writeMessage.writeObject(original);
+	    writeMessage.finish();
 
-	    for (int i = 0; i < COUNT; i++) {
+	    readMessage = rport.receive();
+	    result = (Data) readMessage.readObject();
+	    readMessage.finish();
 
-		writeMessage = sport.newMessage();
-		writeMessage.writeObject(original);
-		writeMessage.finish();
-
-		readMessage = rport.receive();
-		result = (Data) readMessage.readObject();
-		readMessage.finish();
-
-		if (ASSERT) {
-		    if (!original.equals(result)) {
-			System.err.println("did not receive data correctly");
-			System.exit(1);
-		    }
+	    if (ASSERT) {
+		if (!original.equals(result)) {
+		    System.err.println("did not receive data correctly");
+		    System.exit(1);
 		}
 	    }
-
-	    end = System.currentTimeMillis();
-
-	    System.err.println("WORKER:" +  COUNT + " requests took " 
-		    + (end - start) + " millis, " 
-		    + ((end - start) * 1000.0) / COUNT
-		    + " microseconds per request");
 	}
     }
 
-    public static void main(String[] args) {
+    public static void main(String args[]) {
 	new MasterWorker();
     }
-
 }
