@@ -1,0 +1,63 @@
+    <!--
+    Ibis gmi target.
+
+    Require prior definition of properties:
+    default.classpath refid of classpath
+    build             the root of the build tree, which contains all class files
+    -->
+
+    <target name="property-gmi-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="gmi-init"
+	    depends="property-gmi-build,property-init"/>
+
+    <target name="gmi"
+	depends="gmi-init">
+	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
+	<path id="all-classes">
+	    <fileset dir="${build}">
+		<include name="**/*.class"/>
+		<include name="ibis/ipl/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	    <map from="${build}${file.separator}" to=""/>
+	</pathconvert>
+	<echo message="${classes.all}" file="${build}/GMI-Classes"/>
+	<replaceregexp
+		byline="true"
+		file="${build}/GMI-Classes"
+		flags="g"
+		match=".class"
+		replace=""/>
+	<replaceregexp
+		byline="true"
+		file="${build}/GMI-Classes"
+		flags="g"
+		match="\${file.separator}"
+		replace="."/>
+	<loadfile
+		property="gmi-classes"
+		srcFile="${build}/GMI-Classes">
+	</loadfile>
+	<echo	level="debug"
+		message="All classes to be rewritten: ${gmi-classes}"/>
+	<echo	level="debug"
+		message="Run ibis gmi over all classes under ${build}${file.separator}"/>
+	<java   classname="ibis.frontend.group.Main"
+		taskname="ibis gmi"
+		dir="${build}"
+		fork="true">
+	    <arg line="-dir ${gmi-classes}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+	<javac	destdir="${build}"
+		srcdir="${build}">
+	    <include name="**/group_*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
