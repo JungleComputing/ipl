@@ -25,9 +25,6 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 	if( levels>0 ){
 	    a = applyFolding( a, levels );
 	}
-        if( doVerification ){
-            a.test();
-        }
         return a;
     }
 

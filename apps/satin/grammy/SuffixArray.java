@@ -17,29 +17,15 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     /** The next grammar rule number to hand out. */
     private short nextcode = FIRSTCODE;
 
-    /** The indices in increasing alphabetical order of their suffix. */
-    int indices[];
-
-    /** For each position in `indices', the number of elements it
-     * has in common with the previous entry, or -1 for element 0.
-     * The commonality may be overlapping, and that should be taken
-     * into account by compression algorithms.
-     */
-    int commonality[];
-
     private SuffixArray( short text[] ) throws VerificationException
     {
         this.text = text;
-
-        buildArray();
     }
 
     SuffixArray( byte t[] ) throws VerificationException
     {
         length = t.length;
         text = buildShortArray( t );
-
-        buildArray();
     }
 
     SuffixArray( String text ) throws VerificationException
@@ -47,13 +33,11 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         this( text.getBytes() );
     }
 
-    private SuffixArray( short t[], int l, short nextcode, int ixs[], int cs[] )
+    private SuffixArray( short t[], int l, short nextcode )
     {
         text = t;
         length = l;
         this.nextcode = nextcode;
-        indices = ixs;
-        commonality = cs;
     }
 
     /**
@@ -65,13 +49,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         short nt[] = new short[length];
         System.arraycopy( text, 0, nt, 0, length );
 
-        return new SuffixArray(
-            nt,
-            length,
-            nextcode,
-            new int[length],
-            new int[length]
-        );
+        return new SuffixArray( nt, length, nextcode );
     }
 
     private static short[] buildShortArray( byte text[] )
@@ -122,11 +100,11 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     private boolean isSmallerCharacter( int i0, int i1 )
     {
 	if( text[i0] == STOP ){
-	    // The sortest string is first, this is as it should be.
+	    // The shortest string is first, this is as it should be.
 	    return true;
 	}
 	if( text[i1] == STOP ){
-	    // The sortest string is last, this is not good.
+	    // The shortest string is last, this is not good.
 	    return false;
 	}
 	return (text[i0]<text[i1]);
@@ -150,6 +128,10 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         int jump = length;
         boolean done;
 
+        // Initialize the indices array.
+        for( int i=0; i<length; i++ ){
+            indices[i] = i;
+        }
         while( jump>1 ){
             jump /= 2;
 
@@ -191,26 +173,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         }
 
 	commonality[0] = -1;
-	if( false ){
-	    // TODO: integrate this with the stuff above.
-	    for( int i=1; i<length; i++ ){
-		commonality[i] = commonLength( indices[i-1], indices[i] );
-	    }
-        }
-    }
-
-    /** Builds the suffix array and the commonality array. */
-    private void buildArray() throws VerificationException
-    {
-	indices = new int[length];
-	commonality = new int[length];
-
-	commonality[0] = -1;
-	for( int i=0; i<indices.length; i++ ){
-	    indices[i] = i;
-	}
-
-        sort( indices, commonality );
     }
 
     String buildString( int start, int len )
@@ -249,13 +211,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     String buildString( Step s )
     {
         return buildString( s.occurences[0], s.len );
-    }
-
-    private void print( PrintStream s )
-    {
-	for( int i=0; i<indices.length; i++ ){
-	    s.println( "" + indices[i] + " " + commonality[i] + " " + buildString( indices[i] ) );
-	}
     }
 
     public void printGrammar()
@@ -337,68 +292,11 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         length += len;
         text[length] = STOP;
 
-        // Re-initialize the indices array, and sort it again.
-        // TODO: do this in a more subtle manner. It is probably possible
-        // to re-use some of the previous values.
-        for( int i=0; i<length; i++ ){
-            indices[i] = i;
-        }
-        sort( indices, commonality );
-
         if( doVerification ){
             int gain = s.getGain();
 
             if( length+gain != oldLength ){
                 System.out.println( "Error: predicted gain was " + gain + ", but realized gain is " + (oldLength-length) );
-            }
-        }
-    }
-
-    /**
-     * Verify that `indices' is a permutation of the character positions.
-     * This is done by (1) ensuring there are no repeats, and (2)
-     * all indices are valid positions.
-     */
-    private void verifyIndicesArePermutation()
-    {
-        boolean seen[] = new boolean[length];
-
-        for( int i=0; i<length; i++ ){
-            int ix = indices[i];
-
-            if( ix<0 ){
-                System.out.println( "Error: Negative index: indices[" + i + "]=" + ix );
-            }
-            else if( ix>=indices.length ){
-                System.out.println( "Error: Index out of range: indices[" + i + "]=" + ix );
-            }
-            else if( seen[ix] ){
-                System.out.println( "Error: Duplicate index: indices[" + i + "]=" + ix );
-            }
-            else {
-                seen[ix] = true;
-            }
-        }
-    }
-
-    public void test() throws VerificationException
-    {
-        verifyIndicesArePermutation();
-
-        // Verify that the elements are in fact ordered, and that the
-        // commonality entry is correct.
-        for( int i=1; i<length; i++ ){
-            int ix0 = i-1;
-            int ix1 = i;
-
-            if( !areCorrectlyOrdered( indices[ix0], indices[ix1] ) ){
-                int l = commonLength( indices[ix0], indices[ix1] );
-                short c0 = text[indices[ix0]+l];
-                short c1 = text[indices[ix1]+l];
-
-                throw new VerificationException(
-                    "suffix array order is incorrect between " + ix0 + " and " + ix1 + " (`" + buildString( indices[ix0] ) + "' and `" + buildString( indices[ix1] ) + "'); common length is " + l + "; c0=" + c0 + "; c1=" + c1 + "; ordered=" + (c0<c1)
-                );
             }
         }
     }
@@ -439,6 +337,19 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         int mincom = MINCOMMONALITY;
         int candidates[] = new int[length];
         int p = 0;
+
+	/** The indices in increasing alphabetical order of their suffix. */
+	int indices[] = new int[length];
+
+	/** For each position in `indices', the number of elements it
+	 * has in common with the previous entry, or -1 for element 0.
+	 * The commonality may be overlapping, and that should be taken
+	 * into account by compression algorithms.
+	 */
+	int commonality[] = new int[length];
+
+        sort( indices, commonality );
+
 
         StepList res = new StepList( top );
         for( int i=1; i<length; i++ ){
