@@ -1,15 +1,16 @@
 IBIS:
 
-- autodetect connection setup mechanism (splicing, reverse, direct, central)
-  Ceriel: not so easy. Once you are trying to set up a brokered socket,
-  both sides have to agree on what types to try, use timeouts to detect
-  if a connection setup fails, ... AnyTCP comes close, but does not revert
-  to RoutedMessages when TCPSplice fails. Difficulty is in detecting when
-  TCPSplice fails, but it might be done with a timeout?
-  Anyway, issue for after first distribution.
 - code formatting of entire tree
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
   After distribution.
+- ibis-* scripts (with consistent command line options)
+- remove das detection from build system
+- remove prun/wrapper/? support from run-ibis/ibis-run, move to new ibis-*
+  scripts
+- move bcel source to location equal to package name
+- add native detection to timer
+- add java 1.5 timer to ibis.util.timer
+
 
 satin:
 - add semantic analysis to the compiler
@@ -22,5 +23,4 @@ satin:
 general:
 - IBISC maken / fixen
   after distribution.
-+ include grun in distribution
 - run central nameserver on fs0

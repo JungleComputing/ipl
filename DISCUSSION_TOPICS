@@ -12,15 +12,6 @@ Binary distro	In what form? Timeframe?
 IbisC		The Ibis Compiler. Alternative for building apps to ANT?
 		Default build system for binary distro?
 
-build.xml	The build system has a few problems:
-		- slow^2 (due to recursive ant calls)
-		- too verbose
-		- apps building depends on whole tree
-		- apps building depends on included ant
-		- no "ant dist" => binairy-distro.tar.gz
-		- no way of building entiry tree (including apps) from root
-		- no support for automatic testing/benchmarking
-
 Multicast	Mathijs's multicast work should be integrated in the Ibis IPL.
 
 Abstract IPL	Most classes in the IPL should be abstract and include
@@ -33,9 +24,6 @@ Abstract IPL	Most classes in the IPL should be abstract and include
 		- Multicast
 		- ?
 
-Tcp connect	NioIbis should have support for the tcp connect stuff
-		need connect support for channels.
-
 rmi helper class
 		Would it be possible to write a small "helper" class to get
 		people started with RMI. It could handle registry creation,
@@ -47,7 +35,11 @@ Ibis coordinator
 		implementation. New functionality includes:
 		- selection of ibis implementation.
 		- management (tell an Ibis to leave)
-		- ?
+		- ibis group membership management (join/leave/delete?)
+		- tcp connection negotiation
+
+Tcp connect	NioIbis should have support for the tcp connect stuff
+		need connect support for channels.
 
 *ibis		(pronounced multi Ibis). An Ibis designed to use other,
 		possibly multiple, ibisses to actually communicate. Needs to
@@ -58,8 +50,3 @@ p2p coordinator
 		using Ibis in an p2p envoronment. Has some sort of scheduler,
 		file transfer support, and such. Forks new virtual machines
 		to run an app in.
-
-Ibis group membership management
-		join/leave/delete/reconfigure structure needs some attention.
-		- delete makes leave a bit obsolete.
-		- unreliable (exceptions cause undefined behaviour)
