@@ -18,10 +18,22 @@ public final class SunSerializationInputStream extends SerializationInputStream 
      * Constructor. Calls constructor of superclass and flushes.
      *
      * @param s the underlying <code>InputStream</code>
-     * @exception <code>IOException</code> is thrown when an IO error occurs.
+     * @exception IOException when an IO error occurs.
      */
     public SunSerializationInputStream(InputStream s) throws IOException {
 	super(s);
+    }
+
+    /**
+     * Constructor. Calls constructor of superclass with a newly created
+     * <code>InputStream</code> from the <code>IbisDissipator</code> parameter.
+     *
+     * @param s the <code>IbisDissipator</code>
+     * @exception IOException when an IO error occurs.
+     */
+
+    public SunSerializationInputStream(IbisDissipator in) throws IOException {
+	super(new DissipatorInputStream(in));
     }
 
     /**
@@ -49,7 +61,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
      * @param off offset in the array from where reading starts
      * @param len the number of elements to be read
      *
-     * @exception <code>IOException</code> is thrown when something is wrong.
+     * @exception IOException when something is wrong.
      */
     public void readArray(boolean[] ref, int off, int len) throws IOException {
 	boolean[] temp;
@@ -241,7 +253,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
      * with the initialization.
      *
      * @return nothing; an exception gets thrown.
-     * @exception <code>IOException</code> is always thrown.
+     * @exception IOException is always thrown.
      */
     protected Object doReadObject() throws IOException {
 	/*  We should not get here, because doReadObject is only

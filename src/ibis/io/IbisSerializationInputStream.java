@@ -13,7 +13,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     IbisVector objects = new IbisVector();
     int next_object;
 
-    public ArrayInputStream in;
+    public IbisDissipator in;
 
     /* Type id management */
     private int next_type = 1;
@@ -29,14 +29,22 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     private ImplGetField[] getfield_stack;
     private int max_stack_size = 0;
     private int stack_size = 0;
-
+   
+    /**
+      * Deprecated constructor only included for backwards compatibility.
+      */
     public IbisSerializationInputStream(ArrayInputStream in)
-	throws IOException {
+							 throws IOException {
+	super();
+	init(new IbisArrayInputStreamDissipator(in));
+    }
+
+    public IbisSerializationInputStream(IbisDissipator in) throws IOException {
 	super();
 	init(in);
     }
 
-    public void init(ArrayInputStream in) {
+    public void init(IbisDissipator in) {
 	types = new IbisVector();
 	types.add(0, null);	// Vector requires this
 	types.add(TYPE_BOOLEAN,
@@ -68,7 +76,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
     public void reset() {
 	if (DEBUG) {
-	    System.err.println("IN(" + this + ") reset: next handle = " + next_object + "."); 
+	    System.err.println("IN(" + this + ") reset: next handle = " + 
+							next_object + "."); 
 	}
 	init(in);
     }
@@ -78,25 +87,19 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	System.err.println("IbisSerializationInputStream: statistics() not yet implemented");
     }
 
-
-    private void receive() throws IOException {
-	int leftover = in.max_handle_index - in.handle_index;
-
-	if (leftover == 1 &&
-		in.handle_buffer[in.handle_index] == RESET_HANDLE) {
-	    reset();
-	    in.handle_index++;
-		}
-	in.receive();
+    public int bytesRead() {
+                return in.bytesRead();
     }
+                                                                                
+    public void resetBytesRead() {
+                in.resetBytesRead();
+    }
+
 
     /* This is the data output / object output part */
 
     public int read() throws IOException {
-	while (in.byte_index == in.max_byte_index) {
-	    receive();
-	}
-	return in.byte_buffer[in.byte_index++];
+	return in.readByte();
     }
 
     public int read(byte[] b) throws IOException {
@@ -119,7 +122,10 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public int available() throws IOException {
 	/* @@@ NOTE: this is not right. There are also some buffered arrays..*/
 
-	return in.available();
+        /* @@@ NOTE(2): now it is ;) --N */
+                                                                                
+        return in.available();
+
     }
 
     public void readFully(byte[] b) throws IOException {
@@ -131,31 +137,15 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     public boolean readBoolean() throws IOException {
-	while (in.byte_index == in.max_byte_index) {
-	    receive();
-	}
-	byte b = in.byte_buffer[in.byte_index++];
-	if (DEBUG) {
-	    System.out.println("readBoolean: got " + b);
-	    if (b != 0 && b != 1) {
-		System.out.println("readBoolean: expected 0 or 1, but got " + b);
-	    }
-	}
-	return (b == 1);
+	return in.readBoolean();
     }
 
     public byte readByte() throws IOException {
-	while (in.byte_index == in.max_byte_index) {
-	    receive();
-	}
-	return in.byte_buffer[in.byte_index++];
+	return in.readByte();
     }
 
     public int readUnsignedByte() throws IOException {
-	while (in.byte_index == in.max_byte_index) {
-	    receive();
-	}
-	int i = in.byte_buffer[in.byte_index++];
+	int i = in.readByte();
 	if (i < 0) {
 	    i += 256;
 	}
@@ -163,17 +153,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     public short readShort() throws IOException {
-	while (in.short_index == in.max_short_index) {
-	    receive();
-	}
-	return in.short_buffer[in.short_index++];
+	return in.readShort();
     }
 
     public int readUnsignedShort() throws IOException {
-	while (in.short_index == in.max_short_index) {
-	    receive();
-	}
-	int i = in.short_buffer[in.short_index++];
+	int i = in.readShort();
 	if (i < 0) {
 	    i += 65536;
 	}
@@ -181,50 +165,44 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     public char readChar() throws IOException {
-	while (in.char_index == in.max_char_index) {
-	    receive();
-	}
-	return in.char_buffer[in.char_index++];
+	return in.readChar();
     }
 
     public int readInt() throws IOException {
-	while (in.int_index == in.max_int_index) {
-	    receive();
-	}
-	return in.int_buffer[in.int_index++];
+	return in.readInt();
     }
 
     public int readHandle() throws IOException {
-	while (in.handle_index == in.max_handle_index) {
-	    receive();
+	int handle = in.readInt();
+
+       /* this replaces the checks for the reset handle
+	   everywhere else. --N */
+	while(handle == RESET_HANDLE) {
+		if (DEBUG) {
+			System.err.println("received a RESET");
+		}
+		reset();
+		handle = in.readInt();
 	}
+	
 	if (DEBUG) {
-	    System.err.println("read handle [" + in.handle_index + "] = " + Integer.toHexString(in.handle_buffer[in.handle_index]));
+	    System.err.println("read handle " + handle);
 	}
 
-	return in.handle_buffer[in.handle_index++];
+	return handle;
     }
 
     public long readLong() throws IOException {
-	while (in.long_index == in.max_long_index) {
-	    receive();
-	}
-	return in.long_buffer[in.long_index++];
+	return in.readLong();
     }
 
 
     public float readFloat() throws IOException {
-	while (in.float_index == in.max_float_index) {
-	    receive();
-	}
-	return in.float_buffer[in.float_index++];
+	return in.readFloat();
     }
 
     public double readDouble() throws IOException {
-	while (in.double_index == in.max_double_index) {
-	    receive();
-	}
-	return in.double_buffer[in.double_index++];
+	return in.readDouble();
     }
 
     public String readUTF() throws IOException {
@@ -277,11 +255,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public Class readClass() throws IOException, ClassNotFoundException {
 	int handle = readHandle();
 
-	while (handle == RESET_HANDLE) {
-	    reset();
-	    handle = readHandle();
-	}
-
 	if (handle == NUL_HANDLE) {
 	    return null;
 	}
@@ -316,14 +289,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	if (DEBUG) {
 	    System.err.println("readArrayHeader: class = " + clazz + " len = " + len);
 	}
-	int type;
-	while (true) {
-	    type = readHandle();
-	    if (type != RESET_HANDLE) {
-		break;
-	    }
-	    reset();
-	}
+	int type = readHandle();
 
 	if (ASSERTS && ((type & TYPE_BIT) == 0)) {
 	    throw new IOException("Array slice header but I receive a HANDLE!");

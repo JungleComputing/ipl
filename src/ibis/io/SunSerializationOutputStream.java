@@ -25,6 +25,20 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
     }
 
     /**
+     * Constructor. Calls constructor of superclass with a newly created
+     * <code>OututStream</code> from the <code>IbisAccumulator</code>
+     * parameter and flushes.
+     *
+     * @param out the <code>IbisAccumulator</code>
+     * @exception <code>IOException</code> is thrown when an IO error occurs.
+     */
+    public SunSerializationOutputStream(IbisAccumulator out) 
+							throws IOException {
+	super(new AccumulatorOutputStream(out));
+	flush();
+    }
+
+    /**
      * Returns the name of the current serialization implementation: "sun".
      *
      * @return the name of the current serialization implementation.
