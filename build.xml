@@ -268,7 +268,7 @@
 	<patternset id="build.sources.nio">
 	    <include name="ibis/impl/nio/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.nio" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -480,9 +480,10 @@
 	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources-nio" torefid="build.sources"/>
 	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
 	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
 	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
