@@ -33,674 +33,628 @@ import ibis.io.IbisSerializationOutputStream;
 /**
  * The NIO TCP output implementation.
  */
-public final class NioOutput extends NetOutput implements IbisAccumulator {
+public final class NioOutput extends NetOutput {
 
-	public static int BUFFER_SIZE =	256;	// bytes
-	public static int NR_OF_BUFFERS = 25;
+    public static int BUFFER_SIZE =	1024*1024;	// bytes
+    public static int NR_OF_BUFFERS = 25;
 
-	public static int	HEADER = 0,
-				BYTE_BUFFER = 1,
-				CHAR_BUFFER = 2,
-				SHORT_BUFFER = 3,
-				INT_BUFFER = 4,
-				LONG_BUFFER = 5,
-				FLOAT_BUFFER = 6,
-				DOUBLE_BUFFER = 7;
-	public static int NR_OF_PRIMITIVES = 7;
+    public static int	HEADER = 0,
+    BYTE_BUFFER = 1,
+    CHAR_BUFFER = 2,
+    SHORT_BUFFER = 3,
+    INT_BUFFER = 4,
+    LONG_BUFFER = 5,
+    FLOAT_BUFFER = 6,
+    DOUBLE_BUFFER = 7;
 
-	public static int FIRST_BYTE_BUFFER = NR_OF_PRIMITIVES + 1;
+    public static int NR_OF_PRIMITIVES = 7;
 
-	/**
-	 * The communication channel.
-	 */
-	private SocketChannel			socketChannel = null;
+    public static int FIRST_BYTE_BUFFER = NR_OF_PRIMITIVES + 1;
 
-	/**
-	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
-	 * local number.
-	 */
-	private Integer			 rpn	   = null;
+    /**
+     * The communication channel.
+     */
+    private SocketChannel			socketChannel = null;
 
-	/**
-	 * The number of bytes send since the last reset of this counter.
-	 */
-	private long			bytesSend	= 0;
+    /**
+     * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+     * local number.
+     */
+    private Integer			 rpn	   = null;
 
-	/**
-	 * did we put anything in a buffer since the last flush
-	 */
-	private boolean			needFlush	= false;
+    /**
+     * The number of bytes send since the last reset of this counter.
+     */
+    private long			bytesSend	= 0;
 
-	/**
-	 * The send buffers. The first buffer is reserved for the header
-	 * containing how many primitives are send, the next NR_OF_PRIMITIVES
-	 * are reserved for the buffers containing primitives, the rest of
-	 * the buffers can be used to store byte arrays that need to be
-	 * send
-	 */
-	private ByteBuffer[]	buffers = new ByteBuffer[NR_OF_BUFFERS];
+    /**
+     * did we put anything in a buffer since the last flush
+     */
+    private boolean			needFlush	= false;
 
-	/**
-	 * The views of the bytebuffers used to fill them.
-	 */
-	private IntBuffer    header;
-	private ByteBuffer   byteBuffer;
-	private CharBuffer   charBuffer;
-	private ShortBuffer  shortBuffer;
-	private IntBuffer    intBuffer;
-	private LongBuffer   longBuffer;
-	private FloatBuffer  floatBuffer;
-	private DoubleBuffer doubleBuffer;
+    /**
+     * The send buffers. The first buffer is reserved for the header
+     * containing how many primitives are send, the next NR_OF_PRIMITIVES
+     * are reserved for the buffers containing primitives, the rest of
+     * the buffers can be used to store byte arrays that need to be
+     * send
+     */
+    private ByteBuffer[]	buffers = new ByteBuffer[NR_OF_BUFFERS];
 
-	/* the number of buffers already in use, the minimum is 8, 1 header
-	 * and 7 primitive buffers
-	 */
-	private int nextBufferToFill = FIRST_BYTE_BUFFER;
+    /**
+     * The views of the bytebuffers used to fill them.
+     */
+    private IntBuffer    header;
+    private ByteBuffer   byteBuffer;
+    private CharBuffer   charBuffer;
+    private ShortBuffer  shortBuffer;
+    private IntBuffer    intBuffer;
+    private LongBuffer   longBuffer;
+    private FloatBuffer  floatBuffer;
+    private DoubleBuffer doubleBuffer;
+
+    /* the number of buffers already in use, the minimum is 8, 1 header
+     * and 7 primitive buffers
+     */
+    private int nextBufferToFill = FIRST_BYTE_BUFFER;
 
 
-	// Serialization variables
-
-	IbisSerializationOutputStream serializationStream = null;
-	
-	/**
-	 * Constructor.
-	 *
-	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the Tcp driver instance.
-	 * @param output the controlling output.
-	 */
-	NioOutput(NetPortType pt, NetDriver driver, String context) 
-						throws IOException {
-		super(pt, driver, context);
-		headerLength = 0;
+    /**
+     * Constructor.
+     *
+     * @param sp the properties of the output's 
+     * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+     * @param driver the Tcp driver instance.
+     * @param output the controlling output.
+     */
+    NioOutput(NetPortType pt, NetDriver driver, String context) 
+	throws IOException {
+	    super(pt, driver, context);
+	    headerLength = 0;
 
 	}
 
 
-	private void setupBuffers(ByteOrder order) throws IOException {
+    private void setupBuffers(ByteOrder order) throws IOException {
 
-		buffers[HEADER] = 
-			ByteBuffer.allocateDirect(NR_OF_PRIMITIVES * 4).
-			 order(order);
+	buffers[HEADER] = 
+	    ByteBuffer.allocateDirect(NR_OF_PRIMITIVES * 4).
+	    order(order);
 
-		for(int i = BYTE_BUFFER; i <= DOUBLE_BUFFER; i++) {
-			buffers[i] = ByteBuffer.allocateDirect(BUFFER_SIZE).
-					order(order);
-			buffers[i].clear();
-		}
-		
-		header = buffers[HEADER].asIntBuffer();
-		byteBuffer = buffers[BYTE_BUFFER]; // just a shorthand 
-		charBuffer = buffers[CHAR_BUFFER].asCharBuffer();
-		shortBuffer = buffers[SHORT_BUFFER].asShortBuffer();
-		intBuffer = buffers[INT_BUFFER].asIntBuffer();
-		longBuffer = buffers[LONG_BUFFER].asLongBuffer();
-		floatBuffer = buffers[FLOAT_BUFFER].asFloatBuffer();
-		doubleBuffer = buffers[DOUBLE_BUFFER].asDoubleBuffer();
+	for(int i = BYTE_BUFFER; i <= DOUBLE_BUFFER; i++) {
+	    buffers[i] = ByteBuffer.allocateDirect(BUFFER_SIZE).
+		order(order);
+	    buffers[i].clear();
 	}
 
-	/*
-	 * Sets up an outgoing TCP connection (using nio).
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
-	 */
-	public void setupConnection(NetConnection cnx)
-						 throws IOException {
-		ByteOrder peerOrder;
+	header = buffers[HEADER].asIntBuffer();
+	byteBuffer = buffers[BYTE_BUFFER]; // just a shorthand 
+	charBuffer = buffers[CHAR_BUFFER].asCharBuffer();
+	shortBuffer = buffers[SHORT_BUFFER].asShortBuffer();
+	intBuffer = buffers[INT_BUFFER].asIntBuffer();
+	longBuffer = buffers[LONG_BUFFER].asLongBuffer();
+	floatBuffer = buffers[FLOAT_BUFFER].asFloatBuffer();
+	doubleBuffer = buffers[DOUBLE_BUFFER].asDoubleBuffer();
+    }
 
-		if (this.rpn != null) {
-			throw new Error("connection already established");
-		}
-		
-		this.rpn = cnx.getNum();
+    /*
+     * Sets up an outgoing TCP connection (using nio).
+     *
+     * @param rpn {@inheritDoc}
+     * @param is {@inheritDoc}
+     * @param os {@inheritDoc}
+     */
+    public void setupConnection(NetConnection cnx)
+	throws IOException {
+	    ByteOrder peerOrder;
 
-		try {
-		    ObjectInputStream is = new ObjectInputStream(
-		    cnx.getServiceLink().
-		    getInputSubStream(this, "nio"));
-	
-		    Hashtable	rInfo = (Hashtable)is.readObject();
-		    is.close();
-		    InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
-		    int rport = ((Integer)rInfo.get("tcp_port")).intValue();
-		    InetSocketAddress sa = new InetSocketAddress(raddr, rport);
+	    if (this.rpn != null) {
+		throw new Error("connection already established");
+	    }
 
-		    socketChannel = SocketChannel.open(sa);
+	    this.rpn = cnx.getNum();
 
-		    socketChannel.socket().setSendBufferSize(0x8000);
+	    try {
+		ObjectInputStream is = new ObjectInputStream(
+			cnx.getServiceLink().
+			getInputSubStream(this, "nio"));
 
-		    /* figure out what byteOrder we need
-						 for the output buffers */
+		Hashtable	rInfo = (Hashtable)is.readObject();
+		is.close();
+		InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
+		int rport = ((Integer)rInfo.get("tcp_port")).intValue();
+		InetSocketAddress sa = new InetSocketAddress(raddr, rport);
 
-		    if( ( (String)rInfo.get("byte_order") ).
-			 compareTo(ByteOrder.LITTLE_ENDIAN.toString()) == 0) {
-			peerOrder = ByteOrder.LITTLE_ENDIAN;
-		    } else {
-			peerOrder = ByteOrder.BIG_ENDIAN;
-		    }
-		    setupBuffers(peerOrder);
+		socketChannel = SocketChannel.open(sa);
 
-		} catch (ClassNotFoundException e) {
-			throw new Error(e);
-		}
-	}
+		socketChannel.socket().setTcpNoDelay(true);
 
-	public void finish() throws IOException {
-		super.finish();
+		/* figure out what byteOrder we need
+		   for the output buffers */
 
-		if (serializationStream != null) {
-			// also calls this.flush()
-			serializationStream.flush();
-			serializationStream.reset();
+		if( ( (String)rInfo.get("byte_order") ).
+			compareTo(ByteOrder.LITTLE_ENDIAN.toString()) == 0) {
+		    peerOrder = ByteOrder.LITTLE_ENDIAN;
 		} else {
-			flush();
+		    peerOrder = ByteOrder.BIG_ENDIAN;
 		}
+		setupBuffers(peerOrder);
+
+	    } catch (ClassNotFoundException e) {
+		throw new Error(e);
+	    }
 	}
 
-	/** 
-	 * writes out all buffers to the channel 
-	 * public because of the Accumulator interface
-	 */
-	public void flush() throws IOException {
-		int lastSendBuffer = 0;
+    public void finish() throws IOException {
+	super.finish();
 
-		if (!needFlush) {
-			// no data to send
-			return;
+	flush();
+    }
+
+    /** 
+     * writes out all buffers to the channel 
+     * public because of the Accumulator interface
+     */
+    public void flush() throws IOException {
+	int firstSendBuffer, lastSendBuffer = 0;
+
+	if (!needFlush && (nextBufferToFill == FIRST_BYTE_BUFFER)) {
+	    // no data to send
+	    return;
+	}
+
+	if(needFlush) {
+	    /* fill the header buffer with the sizes of the 
+	       primitive buffers */ 
+	    header.clear();
+	    header.put(byteBuffer.position());
+	    header.put(charBuffer.position() * 2);
+	    header.put(shortBuffer.position() * 2);
+	    header.put(intBuffer.position() * 4);
+	    header.put(longBuffer.position() * 8);
+	    header.put(floatBuffer.position() * 4);
+	    header.put(doubleBuffer.position() * 8);
+
+	    /* set up the bytearrays so that they can be drained */
+	    buffers[HEADER].position(0);
+	    buffers[HEADER].limit(header.position() * 4);
+
+	    byteBuffer.flip();
+
+	    buffers[CHAR_BUFFER].position(0);
+	    buffers[CHAR_BUFFER].limit(charBuffer.position() * 2);
+
+	    buffers[SHORT_BUFFER].position(0);
+	    buffers[SHORT_BUFFER].limit(shortBuffer.position() * 2);
+
+	    buffers[INT_BUFFER].position(0);
+	    buffers[INT_BUFFER].limit(intBuffer.position() * 4);
+
+	    buffers[LONG_BUFFER].position(0);
+	    buffers[LONG_BUFFER].limit(longBuffer.position() * 8);
+
+	    buffers[FLOAT_BUFFER].position(0);
+	    buffers[FLOAT_BUFFER].limit(floatBuffer.position() * 4);
+
+	    buffers[DOUBLE_BUFFER].position(0);
+	    buffers[DOUBLE_BUFFER].limit(doubleBuffer.position() * 8);
+
+	    firstSendBuffer = 0;
+	} else {
+	    firstSendBuffer = FIRST_BYTE_BUFFER;
+	}
+
+	if (nextBufferToFill > FIRST_BYTE_BUFFER ) {
+	    lastSendBuffer = nextBufferToFill - 1;
+	} else {
+	    for(int i = HEADER; i <= DOUBLE_BUFFER; i++) {
+		if(buffers[i].hasRemaining()) {
+		    lastSendBuffer = i;
 		}
+	    }
+	} 
 
-		/* fill the header buffer with the sizes of the 
-		   primitive buffers */ 
-		header.clear();
-		header.put(byteBuffer.position());
-		header.put(charBuffer.position() * 2);
-		header.put(shortBuffer.position() * 2);
-		header.put(intBuffer.position() * 4);
-		header.put(longBuffer.position() * 8);
-		header.put(floatBuffer.position() * 4);
-		header.put(doubleBuffer.position() * 8);
+	/* write the array of buffers to the channel */
+	do {
+	    bytesSend += socketChannel.write(buffers, 
+		    firstSendBuffer, (lastSendBuffer - firstSendBuffer) + 1);
+	} while(buffers[lastSendBuffer].hasRemaining());
 
-		/* set up the bytearrays so that they can be drained */
-		buffers[HEADER].position(0);
-		buffers[HEADER].limit(header.position() * 4);
+	/* release all the (non-header non-primitive) buffers written */
+	for (int i = FIRST_BYTE_BUFFER; i < nextBufferToFill; i++) {
+	    buffers[i] = null;
+	}
+	nextBufferToFill = FIRST_BYTE_BUFFER;
 
-		byteBuffer.flip();
+	if(needFlush) {
 
-		buffers[CHAR_BUFFER].position(0);
-		buffers[CHAR_BUFFER].limit(charBuffer.position() * 2);
+	    /* clear the primitive buffers so that they can be filled
+	       again */
+	    byteBuffer.clear();
+	    charBuffer.clear();
+	    shortBuffer.clear();
+	    intBuffer.clear();
+	    longBuffer.clear();
+	    floatBuffer.clear();
+	    doubleBuffer.clear();
 
-		buffers[SHORT_BUFFER].position(0);
-		buffers[SHORT_BUFFER].limit(shortBuffer.position() * 2);
-
-		buffers[INT_BUFFER].position(0);
-		buffers[INT_BUFFER].limit(intBuffer.position() * 4);
-
-		buffers[LONG_BUFFER].position(0);
-		buffers[LONG_BUFFER].limit(longBuffer.position() * 8);
-
-		buffers[FLOAT_BUFFER].position(0);
-		buffers[FLOAT_BUFFER].limit(floatBuffer.position() * 4);
-
-		buffers[DOUBLE_BUFFER].position(0);
-		buffers[DOUBLE_BUFFER].limit(doubleBuffer.position() * 8);
-	
-		if (nextBufferToFill > FIRST_BYTE_BUFFER ) {
-			lastSendBuffer = nextBufferToFill - 1;
-		} else {
-			for(int i = HEADER; i <= DOUBLE_BUFFER; i++) {
-				if(buffers[i].hasRemaining()) {
-					lastSendBuffer = i;
-				}
-			}
-		} 
-
-		/* write the array of buffers to the channel */
-		do {
-		   bytesSend += socketChannel.write(buffers, 
-			0, lastSendBuffer + 1);
-		} while(buffers[lastSendBuffer].hasRemaining());
-
-		/* release all the (non-header non-primitive) buffers written */
-		for (int i = FIRST_BYTE_BUFFER; i < nextBufferToFill; i++) {
-			buffers[i] = null;
-		}
-		nextBufferToFill = FIRST_BYTE_BUFFER;
-
-		/* clear the primitive buffers so that they can be filled
-		   again */
-		byteBuffer.clear();
-		charBuffer.clear();
-		shortBuffer.clear();
-		intBuffer.clear();
-		longBuffer.clear();
-		floatBuffer.clear();
-		doubleBuffer.clear();
-
-		needFlush = false;
-		
-	}	
-
-	/*
-	 * {@inheritDoc}
-	 */
-	public long getCount() {
-		return bytesSend;
+	    needFlush = false;
 	}
 
-	/*
-	 * {@inheritDoc}
-	 */
-	public void resetCount() {
-		bytesSend = 0;
+    }	
+
+    /*
+     * {@inheritDoc}
+     */
+    public long getCount() {
+	return bytesSend;
+    }
+
+    /*
+     * {@inheritDoc}
+     */
+    public void resetCount() {
+	bytesSend = 0;
+    }
+
+    /*
+     * {@inheritDoc}
+     */
+    public void writeBoolean(boolean value) throws IOException {
+	try {
+	    /* least efficient way possible of doing this, 
+	     * i think (ideas welcome) --N
+	     */
+	    byteBuffer.put((byte) (value ? 1 : 0) );
+	    needFlush = true;
+
+	} catch (BufferOverflowException e) {
+	    // the buffer was already full, flush...
+	    flush();
+	    // and try again...
+	    writeBoolean(value);
 	}
-		
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeBoolean(boolean value) throws IOException {
-		try {
-			/* least efficient way possible of doing this, 
-			 * i think (ideas welcome) --N
-			 */
-			byteBuffer.put((byte) (value ? 1 : 0) );
-			needFlush = true;
+    }
 
-		} catch (BufferOverflowException e) {
-			// the buffer was already full, flush...
-			flush();
-			// and try again...
-			writeBoolean(value);
-		}
+    /*
+     * {@inheritDoc}
+     */
+    public void writeByte(byte value) throws IOException {
+	try {
+	    byteBuffer.put(value);
+	    needFlush = true;
+
+	} catch (BufferOverflowException e) {
+	    // the buffer was already full, flush...
+	    flush();
+	    // and try again...
+	    writeByte(value);
 	}
+    }
 
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeByte(byte value) throws IOException {
-		try {
-			byteBuffer.put(value);
-			needFlush = true;
-		
-		} catch (BufferOverflowException e) {
-			// the buffer was already full, flush...
-			flush();
-			// and try again...
-			writeByte(value);
-		}
+
+
+    /*
+     * {@inheritDoc}
+     */
+    public void writeChar(char value) throws IOException {
+	try {
+	    charBuffer.put(value);
+	    needFlush = true;
+
+	} catch (BufferOverflowException e) {
+	    // the buffer was already full, flush...
+	    flush();
+	    // and try again...
+	    writeChar(value);
 	}
+    }
 
+    /*
+     * {@inheritDoc}
+     */
+    public void writeShort(short value) throws IOException {
+	try {
+	    shortBuffer.put(value);
+	    needFlush = true;
 
-	
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeChar(char value) throws IOException {
-		try {
-			charBuffer.put(value);
-			needFlush = true;
+	} catch (BufferOverflowException e) {
+	    // the buffer was already full, flush...
+	    flush();
+	    // and try again...
+	    writeShort(value);
+	} 
+    }
 
-		} catch (BufferOverflowException e) {
-			// the buffer was already full, flush...
-			flush();
-			// and try again...
-			writeChar(value);
-		}
+    /*
+     * {@inheritDoc}
+     */
+    public void writeInt(int value) throws IOException {
+	try {
+	    intBuffer.put(value);
+	    needFlush = true;
+
+	} catch (BufferOverflowException e) {
+	    // the buffer was already full, flush...
+	    flush();
+	    // and try again...
+	    writeInt(value);
 	}
+    }
 
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeShort(short value) throws IOException {
-		try {
-			shortBuffer.put(value);
-			needFlush = true;
+    /*
+     * {@inheritDoc}
+     */
+    public void writeLong(long value) throws IOException {
+	try {
+	    longBuffer.put(value);
+	    needFlush = true;
 
-		} catch (BufferOverflowException e) {
-			// the buffer was already full, flush...
-			flush();
-			// and try again...
-			writeShort(value);
-		} 
-	}
+	} catch (BufferOverflowException e) {
+	    // the buffer was already full, flush...
+	    flush();
+	    // and try again...
+	    writeLong(value);
+	} 
+    }
 
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeInt(int value) throws IOException {
-		try {
-			intBuffer.put(value);
-			needFlush = true;
+    /*
+     * {@inheritDoc}
+     */
+    public void writeFloat(float value) throws IOException {
+	try {
+	    floatBuffer.put(value);
+	    needFlush = true;
 
-		} catch (BufferOverflowException e) {
-			// the buffer was already full, flush...
-			flush();
-			// and try again...
-			writeInt(value);
-		}
-	}
+	} catch (BufferOverflowException e) {
+	    // the buffer was already full, flush...
+	    flush();
+	    // and try again...
+	    writeFloat(value);
+	} 
+    }
 
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeLong(long value) throws IOException {
-		try {
-			longBuffer.put(value);
-			needFlush = true;
+    /*
+     * {@inheritDoc}
+     */
+    public void writeDouble(double value) throws IOException {
+	try {
+	    doubleBuffer.put(value);
+	    needFlush = true;
 
-		} catch (BufferOverflowException e) {
-			// the buffer was already full, flush...
-			flush();
-			// and try again...
-			writeLong(value);
-		} 
-	}
+	} catch (BufferOverflowException e) {
+	    // the buffer was already full, flush...
+	    flush();
+	    // and try again...
+	    writeDouble(value);
+	} 
+    }
 
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeFloat(float value) throws IOException {
-		try {
-			floatBuffer.put(value);
-			needFlush = true;
+    /*
+     * {@inheritDoc}
+     */
+    public void writeString(String value) throws IOException {
+	throw new IOException("writing Strings not implemented");
+    }
 
-		} catch (BufferOverflowException e) {
-			// the buffer was already full, flush...
-			flush();
-			// and try again...
-			writeFloat(value);
-		} 
-	}
+    /*
+     * {@inheritDoc}
+     */
+    public void writeObject(Object value) throws IOException {
+	throw new IOException("writing Objects not implemented");
+    }
 
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeDouble(double value) throws IOException {
-		try {
-			doubleBuffer.put(value);
-			needFlush = true;
+    /*
+     * {@inheritDoc}
+     */
+    public void writeArray(boolean [] destination,
+	    int offset,
+	    int size) throws IOException {
 
-		} catch (BufferOverflowException e) {
-			// the buffer was already full, flush...
-			flush();
-			// and try again...
-			writeDouble(value);
-		} 
-	}
+	ByteBuffer buffer = ByteBuffer.allocateDirect(size);
 
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeString(String value) throws IOException {
-		if(serializationStream == null) {
-			// stream not initialised yet
-			serializationStream = 
-				new IbisSerializationOutputStream(this);
-		}
-
-		serializationStream.writeUTF(value);
-	}
-
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeObject(Object value) throws IOException {
-		if(serializationStream == null) {
-			// stream not initialised yet
-			serializationStream = 
-				new IbisSerializationOutputStream(this);
-		}
-
-		serializationStream.writeObject(value);
-	}
-
-	/*
-	 * {@inheritDoc}
-	 */
-	public void writeArray(boolean [] destination,
-					   int offset,
-					   int size) throws IOException {
-
-		ByteBuffer buffer = ByteBuffer.allocateDirect(size);
-
-		for(int i = offset; i <  (offset + size); i++) {
-		    if(destination[i] == true) {
-			buffer.put((byte)1);
-		    } else {
-			buffer.put((byte)0);
-		    }
-		}
-
-		buffer.flip();
-
-		if(nextBufferToFill >= NR_OF_BUFFERS) {
-			flush();
-		}			
-
-		buffers[nextBufferToFill] = buffer;
-		nextBufferToFill += 1;
-
-		needFlush = true;
-		
-	}
-
-
-	/*
-	 * {@inheritDoc}
-	 *
-	 * This function wraps the given byte array into a Nio ByteBuffer,
-	 * then adds it to the buffers that need to be send out.
-	 */
-	public void writeArray(byte [] destination,
-					int offset,
-					int size) throws IOException {
-	    ByteBuffer buffer = null;
-	    int length;
-
-	    if (size < 100) {
-		while(size > 0) {
-			if(!byteBuffer.hasRemaining()) {
-				flush();
-			}
-
-			length = Math.min(byteBuffer.remaining(), size);
-			byteBuffer.put(destination, offset, length);
-			size -= length;
-			offset += length;
-
-			needFlush = true;
-		}
+	for(int i = offset; i <  (offset + size); i++) {
+	    if(destination[i] == true) {
+		buffer.put((byte)1);
 	    } else {
-		if(nextBufferToFill >= NR_OF_BUFFERS) {
-			flush();
-		}			
+		buffer.put((byte)0);
+	    }
+	}
 
-		buffers[nextBufferToFill] = 
-			    byteBuffer.wrap(destination, offset, size);
+	buffer.flip();
 
-		nextBufferToFill += 1;
+	if(nextBufferToFill >= NR_OF_BUFFERS) {
+	    flush();
+	}			
+
+	buffers[nextBufferToFill] = buffer;
+	nextBufferToFill += 1;
+
+    }
+
+
+    /*
+     * {@inheritDoc}
+     *
+     * This function wraps the given byte array into a Nio ByteBuffer,
+     * then adds it to the buffers that need to be send out.
+     */
+    public void writeArray(byte [] destination,
+	    int offset,
+	    int size) throws IOException {
+	ByteBuffer buffer = null;
+	int length;
+
+	if (size < 256) {
+	    while(size > 0) {
+		if(!byteBuffer.hasRemaining()) {
+		    flush();
+		}
+
+		length = Math.min(byteBuffer.remaining(), size);
+		byteBuffer.put(destination, offset, length);
+		size -= length;
+		offset += length;
 
 		needFlush = true;
+	    }
+	} else {
+	    if(nextBufferToFill >= NR_OF_BUFFERS) {
+		flush();
+	    }			
 
+	    buffers[nextBufferToFill] = 
+		byteBuffer.wrap(destination, offset, size);
+
+	    nextBufferToFill += 1;
+
+	}
+
+    }
+
+    public void writeArray(char [] destination,
+	    int offset,
+	    int size) throws IOException {
+	int length;
+
+	while(size > 0) {
+	    if(!charBuffer.hasRemaining()) {
+		flush();
 	    }
 
+	    length = Math.min(charBuffer.remaining(), size);
+	    charBuffer.put(destination, offset, length);
+	    size -= length;
+	    offset += length;
+
+	    needFlush = true;
+
 	}
+    }
 
-	public void writeArray(char [] destination,
-					int offset,
-					int size) throws IOException {
-		int length;
-
-		while(size > 0) {
-			if(!charBuffer.hasRemaining()) {
-				flush();
-			}
-
-			length = Math.min(charBuffer.remaining(), size);
-			charBuffer.put(destination, offset, length);
-			size -= length;
-			offset += length;
-
-			needFlush = true;
-
-		}
-	}
-
-	public void writeArray(short [] destination,
-					 int offset,
-					 int size) throws IOException {
-		int length;
-		while(size > 0) {
-		    if(!shortBuffer.hasRemaining()) {
-			       flush();
-		    }
-
-		    length = Math.min(shortBuffer.remaining(), size);
-		    shortBuffer.put(destination, offset, length);
-		    size -= length;
-		    offset += length;
-
-		    needFlush = true;
-
-		}
-	}
-
-	public void writeArray(int [] destination,
-				       int offset,
-				       int size) throws IOException {
-		int length;
-		while(size > 0) {
-			if(!intBuffer.hasRemaining()) {
-				flush();
-			}
-
-			length = Math.min(intBuffer.remaining(), size);
-			intBuffer.put(destination, offset, length);
-			size -= length;
-			offset += length;
-
-			needFlush = true;
-
-		}
-	}
-
-	public void writeArray(long [] destination,
-				       int offset,
-				       int size) throws IOException {
-		int length;
-
-		while(size > 0) {
-			if(!longBuffer.hasRemaining()) {
-				flush();
-			}
-
-			length = Math.min(longBuffer.remaining(), size);
-			longBuffer.put(destination, offset, length);
-			size -= length;
-			offset += length;
-
-			needFlush = true;
-		}
-	}
-
-	public void writeArray(float [] destination,
-				       int offset,
-				       int size) throws IOException {
-		int length;
-
-		while(size > 0) {
-		    if(!floatBuffer.hasRemaining()) {
-			    flush();
-		    }
-
-		    length = Math.min(floatBuffer.remaining(), size);
-		    floatBuffer.put(destination, offset, length);
-		    size -= length;
-		    offset += length;
-
-		    needFlush = true;
-
-		}
-	}
-
-	public void writeArray(double [] destination,
-				       int offset,
-				       int size) throws IOException {
-		int length;
-
-		while(size > 0) {
-		    if(!doubleBuffer.hasRemaining()) {
-			    flush();
-		    }
-
-		    length = Math.min(doubleBuffer.remaining(), size);
-		    doubleBuffer.put(destination, offset, length);
-		    size -= length;
-		    offset += length;
-
-		    needFlush = true;
-
-		}
-	}
-
-	/*
-	 * {@inheritDoc}
-	 */
-	public synchronized void close(Integer num) throws IOException {
-	    if (rpn == num) {
-
-		if (socketChannel != null) {
-			if(serializationStream != null) {
-				// also calls this.close()
-				serializationStream.close();
-			} else {
-				flush();
-			}
-			socketChannel.close();
-		}
-
-		rpn = null;
+    public void writeArray(short [] destination,
+	    int offset,
+	    int size) throws IOException {
+	int length;
+	while(size > 0) {
+	    if(!shortBuffer.hasRemaining()) {
+		flush();
 	    }
+
+	    length = Math.min(shortBuffer.remaining(), size);
+	    shortBuffer.put(destination, offset, length);
+	    size -= length;
+	    offset += length;
+
+	    needFlush = true;
+
+	}
+    }
+
+    public void writeArray(int [] destination,
+	    int offset,
+	    int size) throws IOException {
+	int length;
+	while(size > 0) {
+	    if(!intBuffer.hasRemaining()) {
+		flush();
+	    }
+
+	    length = Math.min(intBuffer.remaining(), size);
+	    intBuffer.put(destination, offset, length);
+	    size -= length;
+	    offset += length;
+
+	    needFlush = true;
+
+	}
+    }
+
+    public void writeArray(long [] destination,
+	    int offset,
+	    int size) throws IOException {
+	int length;
+
+	while(size > 0) {
+	    if(!longBuffer.hasRemaining()) {
+		flush();
+	    }
+
+	    length = Math.min(longBuffer.remaining(), size);
+	    longBuffer.put(destination, offset, length);
+	    size -= length;
+	    offset += length;
+
+	    needFlush = true;
+	}
+    }
+
+    public void writeArray(float [] destination,
+	    int offset,
+	    int size) throws IOException {
+	int length;
+
+	while(size > 0) {
+	    if(!floatBuffer.hasRemaining()) {
+		flush();
+	    }
+
+	    length = Math.min(floatBuffer.remaining(), size);
+	    floatBuffer.put(destination, offset, length);
+	    size -= length;
+	    offset += length;
+
+	    needFlush = true;
+
+	}
+    }
+
+    public void writeArray(double [] destination,
+	    int offset,
+	    int size) throws IOException {
+	int length;
+
+	while(size > 0) {
+	    if(!doubleBuffer.hasRemaining()) {
+		flush();
+	    }
+
+	    length = Math.min(doubleBuffer.remaining(), size);
+	    doubleBuffer.put(destination, offset, length);
+	    size -= length;
+	    offset += length;
+
+	    needFlush = true;
+
+	}
+    }
+
+    /*
+     * {@inheritDoc}
+     */
+    public synchronized void close(Integer num) throws IOException {
+	if (rpn == num) {
+
+	    if (socketChannel != null) {
+		flush();
+		socketChannel.close();
+	    }
+
+	    rpn = null;
+	}
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void free() throws IOException {
+
+	if (socketChannel != null) {
+	    socketChannel = null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public void free() throws IOException {
+	rpn	  = null;
 
-		if (serializationStream != null) {
-			serializationStream = null;
-		}
-
-		if (socketChannel != null) {
-			socketChannel = null;
-		}
-
-		rpn	  = null;
-
-		super.free();
-	}
-
-
-	// *** Extra functions needed for the Accumulator implementation ***
-
-	public void close() throws IOException {
-		// NOTHING
-	}
-
-	/*
-	 * {@inheritDoc}
-	 */
-	public long bytesWritten() {
-		return getCount();
-	}
-
-	/*
-	 * {@inheritDoc}
-	 */
-	public void resetBytesWritten() {
-		resetCount();
-	}
+	super.free();
+    }
 }
