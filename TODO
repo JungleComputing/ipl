@@ -10,6 +10,11 @@ IBIS:
 - investigate CvR's problem with an Ibis run involving 2 imacs/ibooks, a windows
   machine and a linux machine. It seems to hang (or compute forever) if the
   windows machine is added to the pool???
+- GMI race needs fixing: configuring a combined invocation should block until everybody
+  is done configuring.
+- Satin statistics are overly pessimistic: they measure steal handling as well as
+  steal attempts, but a node could very well be handling a steal attempt while it
+  is itself doing steal attempts.
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
     After distribution.
 
