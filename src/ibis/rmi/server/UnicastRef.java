@@ -13,7 +13,6 @@ import ibis.ipl.ReceivePortIdentifier;
 
 public class UnicastRef implements RemoteRef, java.io.Serializable
 {
-    public ReceivePortIdentifier skeletonPortId;
     public String GUID = null;
 
 
@@ -24,11 +23,6 @@ public class UnicastRef implements RemoteRef, java.io.Serializable
 	this.GUID = GUID;
     }
     
-    public UnicastRef(ReceivePortIdentifier rpi) 
-    {
-	skeletonPortId = rpi;
-    }
-	
 
     public RemoteCall newCall(RemoteObject obj, Operation[] ops, int opnum,
 			      long hash)

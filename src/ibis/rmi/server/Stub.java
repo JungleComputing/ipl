@@ -10,27 +10,29 @@ public class Stub extends RemoteStub {
 	transient protected SendPort send;
 	transient protected ReceivePort reply;
 	protected ReceivePortIdentifier skeletonPortId;
+	private boolean initialized = false;
 
 	public Stub() {};
     
-	public void init(SendPort s, ReceivePort r, int id, ReceivePortIdentifier rpi) {
+	public void init(SendPort s, ReceivePort r, int id, ReceivePortIdentifier rpi, boolean initialized) {
 	
 		stubID = id;
 		send = s;
 		reply = r;
-//	setRef(this, new UnicastRef(rpi));
 		skeletonPortId = rpi;
+		this.initialized = initialized;
 	}
     
 	//serialize & deserialize
 
 	public final void initSend() throws IbisIOException {
-	    if (send == null) {
-		send = RTS.createSendPort();
-		send.connect(skeletonPortId);
-		reply = RTS.createReceivePort();
-		reply.enableConnections();
-
+	    if (! initialized) {
+		if (send == null) {
+		    send = RTS.createSendPort();
+		    send.connect(skeletonPortId);
+		    reply = RTS.createReceivePort();
+		    reply.enableConnections();
+		}
 		WriteMessage wm = send.newMessage();
 		wm.writeInt(-1);
 		wm.writeInt(0);
@@ -42,6 +44,8 @@ public class Stub extends RemoteStub {
 		stubID = rm.readInt();
 		String stubType = (String) rm.readObject();
 		rm.finish();		
+
+		initialized = true;
 	    }
 	}
 
@@ -49,19 +53,18 @@ public class Stub extends RemoteStub {
 	    // Give up resources.
 	    try {
 		if (send != null) send.free();
-		if (reply != null) reply.free();
+		if (reply != null) reply.forcedClose();
 	    } catch(Exception e) {
 	    }
 	}
 
-	private void readObject(java.io.ObjectInputStream i) throws java.io.IOException, ClassNotFoundException {
-	    i.defaultReadObject();
-	    try {
-		if (skeletonPortId != null &&
-		    ! skeletonPortId.ibis().address().equals(java.net.InetAddress.getLocalHost())) {
-		    initSend();
-		}
-	    } catch (Exception e) {
-	    }
-	}
+//	private void readObject(java.io.ObjectInputStream i) throws java.io.IOException, ClassNotFoundException {
+//	    i.defaultReadObject();
+//	    try {
+//		if (! skeletonPortId.ibis().address().equals(java.net.InetAddress.getLocalHost())) {
+//		    initSend();
+//		}
+//	    } catch (Exception e) {
+//	    }
+//	}
 }
