@@ -42,5 +42,5 @@ shift
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-$JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
+$IBIS_ROOT/bin/java_wrapper $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
 
