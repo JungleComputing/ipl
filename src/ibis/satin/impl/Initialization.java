@@ -326,7 +326,7 @@ public abstract class Initialization extends SatinBase {
 			satinPortProperties.add("worldmodel", "open");
 		}
 
-		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+		String commprops = "OneToOne, ManyToOne, ExplicitReceipt, Reliable";
 		if (FAULT_TOLERANCE) {
 		    commprops += ", ConnectionUpcalls";
 		}
