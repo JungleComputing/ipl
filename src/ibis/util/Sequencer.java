@@ -24,6 +24,13 @@ import java.util.Iterator;
  * A sender must then first obtain a sequence number from the sequencer,
  * and tag the message with it. The receiver must then handle the messages
  * in the "tag" order.
+ * <p>
+ * A Sequencer associates a numbering scheme with a name, so the user can
+ * associate different sequences with different names.
+ * <p>
+ * A Sequencer is obtained by means of the {@link #getSequencer} method.
+ * A sequence number is obtained from a sequencer <code>seq</code> by
+ * the {@link #getSeqno seq.getSeqno(name)} call.
  */
 public class Sequencer {
     /** The first sequence number that gets given out. */
@@ -105,7 +112,7 @@ public class Sequencer {
 
 	StaticProperties p = new StaticProperties();
 	p.add("serialization", "object");
-	p.add("communication", "OneToOne, AutoUpcalls, ExplicitReceipt, Reliable");
+	p.add("communication", "OneToOne, ManyToOne, AutoUpcalls, ExplicitReceipt, Reliable");
 	try {
 	    tp = ibis.createPortType("sequencer", p);
 	} catch(IbisException e) {
