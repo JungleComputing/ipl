@@ -744,47 +744,46 @@ class OpenCell1D implements OpenConfig {
             // to balance things at the same time.
             max_lsteal = 1;
             max_rsteal = 1;
+
+	    if(false) {
+		System.out.println("NO STEALS, JOINS: aimFirst = " + aimFirstColumn + 
+				   ", first=" + p.firstColumn + ", aimFirstNo=" + aimFirstNoColumn +
+				   ", firstNo=" + p.firstNoColumn);
+	    }
             return;
         }
         double dampen = 0.3;
 
-        if( lsteal>0 && rsteal>0 ){
-            // Don't give away our work to *both* neighbours at the
-            // same time.
-            if( lsteal>rsteal ){
-                rsteal = 0;
-            }
-            else if( rsteal>lsteal ){
-                lsteal = 0;
-            }
-            else {
-                dampen *= 2;
-            }
-        }
         if( lsteal>0 ){
             // The left neighbour needs columns the most, send them.
-            int stolen = (int) (dampen*lsteal);
+            int stolen = (int) Math.ceil(dampen*lsteal);
             aimFirstColumn += Math.min( stolen, max_lsteal );
             if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstColumn = aimFirstNoColumn-minLoad;
             }
-            max_lsteal = Math.max( 1, (stolen+max_lsteal)/2 );
+//            max_lsteal = Math.max( 1, (stolen+max_lsteal)/2 );
+	    max_lsteal *= 2;
         }
         else {
             // No valid steal request this time, reset the allowance.
-            max_lsteal = 1;
+//            max_lsteal = 1;
+            max_lsteal /= 2;
+	    if(max_lsteal < 1) max_lsteal = 1;
         }
         if( rsteal>0 ){
-            int stolen = (int) (dampen*rsteal);
+            int stolen = (int) Math.ceil(dampen*rsteal);
             aimFirstNoColumn -= Math.min( stolen, max_rsteal );
             if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstNoColumn = aimFirstColumn+minLoad;
             }
-            max_rsteal = Math.max( 1, (stolen+max_rsteal)/2 );
+//            max_rsteal = Math.max( 1, (stolen+max_rsteal)/2 );
+	    max_rsteal *= 2;
         }
         else {
             // No valid steal request this time, reset the allowance.
-            max_rsteal = 1;
+//            max_rsteal = 1;
+            max_rsteal /= 2;
+	    if(max_rsteal < 1) max_rsteal = 1;
         }
         if( traceStealRequests ){
             System.out.println(
