@@ -1106,11 +1106,36 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			stealAttempts++;
 		}
 
-		sendStealRequest(v, true);
+		sendStealRequest(v, true, false);
 		waitForStealReply();
 	}
 
-	protected void sendStealRequest(Victim v, boolean synchronous) {
+	/* does a synchronous steal, but blocks on server side until work is available, or we must exit */
+	protected void stealJobBlocking(Victim v) {
+
+		if(ASSERTS && stolenJob != null) {
+			throw new IbisError("EEEK, trying to steal while an unhandled stolen job is available.");
+		}
+/*
+  synchronized(this) {
+  q.print(System.err);
+  outstandingJobs.print(System.err);
+  onStack.print(System.err);
+  }
+*/
+		if(STEAL_TIMING) {
+			stealTimer.start();
+		}
+
+		if(STEAL_STATS) {
+			stealAttempts++;
+		}
+
+		sendStealRequest(v, true, true);
+		waitForStealReply();
+	}
+
+	protected void sendStealRequest(Victim v, boolean synchronous, boolean blocking) {
 		if(exiting) return;
 
 		if(STEAL_DEBUG && synchronous) {
@@ -1127,8 +1152,19 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		try {
 			SendPort s = v.s;
 			WriteMessage writeMessage = s.newMessage();
-			writeMessage.writeByte(synchronous ? STEAL_REQUEST :
-					       ASYNC_STEAL_REQUEST);
+			byte opcode = -1;
+
+			if(synchronous) {
+				if(blocking) {
+					opcode = BLOCKING_STEAL_REQUEST;
+				} else {
+					opcode = STEAL_REQUEST;
+				}
+			} else {
+				opcode = ASYNC_STEAL_REQUEST;
+			}
+
+			writeMessage.writeByte(opcode);
 			writeMessage.send();
 			long cnt = writeMessage.finish();
 			if(STEAL_STATS) {

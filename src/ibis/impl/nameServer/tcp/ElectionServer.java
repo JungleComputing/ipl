@@ -74,12 +74,7 @@ class ElectionServer extends Thread implements Protocol {
 					handleElection();
 					break;
 				case (ELECTION_EXIT):
-					try {
-						IbisSocketFactory.close(in, out, s);
-					} catch (IOException e2) { 
-						// don't care.
-					} 
-
+					IbisSocketFactory.close(in, out, s);
 					return;
 				default: 
 					System.err.println("ElectionServer: got an illegal opcode " + opcode);					

@@ -158,11 +158,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 					handlePortLookup();
 					break;
 				case (PORT_EXIT):
-					try { 
-						IbisSocketFactory.close(in, out, s);
-					} catch (IOException e2) { 
-						// don't care.
-					} 
+					IbisSocketFactory.close(in, out, s);
 					return;
 				default: 
 					System.err.println("ReceivePortNameServer: got an illegal opcode " + opcode);					

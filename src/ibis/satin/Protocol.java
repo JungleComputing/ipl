@@ -15,4 +15,5 @@ interface Protocol {
 	static final byte ABORT =                    12;
 	static final byte TUPLE_ADD =                13;
 	static final byte TUPLE_DEL =                14;
+	static final byte BLOCKING_STEAL_REQUEST =   15;
 }

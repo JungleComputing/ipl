@@ -1,6 +1,6 @@
 package ibis.satin;
 
-class ClusterAwareRandomWorkStealing implements Algorithm, Protocol, Config {
+class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol, Config {
     Satin satin;
 
     boolean gotAsyncStealReply = false;
@@ -69,7 +69,7 @@ class ClusterAwareRandomWorkStealing implements Algorithm, Protocol, Config {
 	if(rv != null) {
 	    asyncStealInProgress = true;
 	    if(STEAL_STATS) asyncStealAttempts++;
-	    satin.sendStealRequest(rv, false);
+	    satin.sendStealRequest(rv, false, false);
 	}
 
 	if (lv != null) {

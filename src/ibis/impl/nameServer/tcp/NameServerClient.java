@@ -301,11 +301,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 				e1.printStackTrace();
 	  
 				if (s != null) { 
-					try { 	
-						IbisSocketFactory.close(null, null, s);
-					} catch (IOException e2) { 
-						// don't care.
-					} 
+					IbisSocketFactory.close(null, null, s);
 				}
 	  
 			}

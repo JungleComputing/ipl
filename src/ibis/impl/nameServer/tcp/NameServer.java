@@ -315,11 +315,7 @@ public class NameServer implements Protocol {
 				System.err.println("Got an exception in NameServer.run " + e1.toString());
 //				e1.printStackTrace();
 				if (s != null) { 
-					try { 
-						IbisSocketFactory.close(null, null, s);
-					} catch (IOException e2) { 
-						// don't care.
-					} 
+					IbisSocketFactory.close(null, null, s);
 				}
 			}
 		}

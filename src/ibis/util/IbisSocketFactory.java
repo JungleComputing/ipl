@@ -74,8 +74,8 @@ public class IbisSocketFactory {
 		long currentTime = 0;
 
 		if (localIP != null && dest.getHostAddress().equals("127.0.0.1")) {
-		    /* Avoid ConnectionRefused exception */
-		    dest = InetAddress.getLocalHost();
+			/* Avoid ConnectionRefused exception */
+			dest = InetAddress.getLocalHost();
 		}
 
 		while (!connected) {
@@ -106,7 +106,7 @@ public class IbisSocketFactory {
 				}
 
 				if (s != null && ! s.isClosed()) {
-				    s.close();
+					s.close();
 				}
 
 //System.err.println("Socket connect hits " + e1);
@@ -203,18 +203,34 @@ public class IbisSocketFactory {
 	}
 
 	/** Use this to close sockets, it nicely shuts down the streams, etc. **/
-	public static void close(InputStream in, OutputStream out, Socket s) throws IOException {
+	public static void close(InputStream in, OutputStream out, Socket s) {
 		if(out != null) {
-			out.flush();
-			out.close();
+			try {
+				out.flush();
+			} catch (Exception e) {
+				// ignore
+			}
+			try {
+				out.close();
+			} catch (Exception e) {
+				// ignore
+			}
 		}
 
 		if(in != null) {
-			in.close();
+			try {
+				in.close();
+			} catch (Exception e) {
+				// ignore
+			}
 		}
 
 		if(s != null) {
-			s.close();
+			try {
+				s.close();
+			} catch (Exception e) {
+				// ignore
+			}
 		}
 	}
 }

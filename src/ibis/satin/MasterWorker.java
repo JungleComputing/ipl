@@ -2,7 +2,7 @@ package ibis.satin;
 
 /** The master-worker distribution algorithm. */
 
-final class MasterWorker implements Algorithm {
+final class MasterWorker extends Algorithm {
 	Satin satin;
 
 	MasterWorker(Satin s) {
@@ -15,7 +15,7 @@ final class MasterWorker implements Algorithm {
 		Victim v;
 
 		if(satin.master) {
-			Thread.yield();
+//			Thread.yield();
 			return;
 		}
 
@@ -23,7 +23,7 @@ final class MasterWorker implements Algorithm {
 			v = satin.victims.getVictim(satin.masterIdent);
 		}
 
-		satin.stealJob(v);
+		satin.stealJob/*Blocking*/(v);
 	}
 
 	public void stealReplyHandler(InvocationRecord ir, int opcode) {
@@ -33,6 +33,12 @@ final class MasterWorker implements Algorithm {
 			satin.notifyAll();
 		}
 	}	
+
+	void jobAdded() {
+		synchronized(satin) {
+			satin.notifyAll();
+		}
+	}
 
 	public void exit() {
 		// Everything's synchronous, we don't have to wait for/do anything

@@ -107,12 +107,25 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 		synchronized(satin) {
 			s = satin.getReplyPort(ident.ibis());
-			result = satin.q.getFromTail();
-			if (result != null) {
-				result.stealer = ident.ibis();
 
+			while(true) {
+				result = satin.q.getFromTail();
+				if (result != null) {
+					result.stealer = ident.ibis();
+					
 				/* store the job in the outstanding list */
-				satin.addToOutstandingJobList(result);
+					satin.addToOutstandingJobList(result);
+				}
+
+				if(opcode != BLOCKING_STEAL_REQUEST || satin.exiting || result != null) {
+					break;
+				} else {
+					try {
+						satin.wait();
+					} catch (Exception e) {
+						// Ignore.
+					}
+				}
 			}
 		}
 
@@ -374,6 +387,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				break;
 			case STEAL_REQUEST:
 			case ASYNC_STEAL_REQUEST:
+			case BLOCKING_STEAL_REQUEST:
 				ident = m.origin();
 				//              m.finish();
 				handleStealRequest(ident, opcode);
