@@ -1,5 +1,6 @@
 package ibis.impl.net.tcp_blk;
 
+import ibis.impl.net.NetBuffer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
@@ -187,6 +188,53 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 	}
 
 
+	private NetBuffer surplusHead;
+	private NetBuffer surplusTail;
+
+
+	private void surplusEnqueue(NetReceiveBuffer buf) {
+	    buf.next = null;
+	    if (surplusHead == null) {
+		surplusHead = buf;
+	    } else {
+		surplusTail.next = buf;
+	    }
+	    surplusTail = buf;
+	}
+
+
+	private NetReceiveBuffer surplusDequeue() {
+	    NetBuffer buf = surplusHead;
+	    if (buf != null) {
+		surplusHead = buf.next;
+	    }
+	    return (NetReceiveBuffer) buf;
+	}
+
+
+	private void cacheSurplusBuffers(NetReceiveBuffer buf,
+					 int totalSize,
+					 int currentSize) {
+	    if (totalSize == currentSize) {
+		return;
+	    }
+	    buf.length = currentSize;
+	    // System.err.println("First segment: start at " + 0 + " size " + buf.length);
+
+	    do {
+		NetReceiveBuffer b = createReceiveBuffer(0);
+		int nextSize = NetConvert.readInt(buf.data, currentSize);
+		System.arraycopy(buf.data, currentSize,
+				 b.data, b.base,
+				 nextSize);
+		b.length = nextSize;
+		// System.err.println("Next segment: start at " + currentSize + " size " + b.length);
+		surplusEnqueue(b);
+		currentSize += nextSize;
+	    } while (totalSize > currentSize);
+	}
+
+
 	/* Create a NetReceiveBuffer and do a blocking receive. */
 	private NetReceiveBuffer receive() throws IOException {
 		log.in();
@@ -239,6 +287,10 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 				}
 				offset += result;
 			}
+
+			buf.length = offset;
+
+			cacheSurplusBuffers(buf, offset, l);
 		} catch (SocketException e) {
 			String msg = e.getMessage();
 			if (tcpSocket.isClosed() ||
@@ -249,8 +301,6 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 				throw e;
 			}
 		}
-
-		buf.length = offset;
 
 		log.out();
 
@@ -288,6 +338,10 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 				log.out("early return");
 				return spn;
 			}
+			if ((buf = surplusDequeue()) != null) {
+				log.out("early surplus return");
+				return spn;
+			}
 			buf = receive();
 			if (buf == null) {
 				return null;
@@ -312,6 +366,8 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
 		log.in();
+// System.err.println("receive Byte Buffer; require " + expectedLength);
+// Thread.dumpStack();
 		NetReceiveBuffer buf = this.buf;
 		if (buf != null) {
 			this.buf = null;
@@ -320,15 +376,18 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 			buf = receive();
 		}
 
-		if (buf.length - buf.base > expectedLength) {
-// System.err.println("Demand-copy buffer; require " + expectedLength + " get " + (buf.length - buf.base));
+		if (buf.length - buf.base >= expectedLength) {
+// System.err.println("Demand-copy buffer; require " + (expectedLength - headerLength) + "+" + headerLength + " get " + (buf.length - buf.base));
 		    this.buf = buf;
 		    buf = createReceiveBuffer(0);
-		    System.arraycopy(this.buf.data, this.buf.base,
+		    buf.base = headerLength;
+		    System.arraycopy(this.buf.data, this.buf.base + headerLength,
 				     buf.data, buf.base,
-				     expectedLength);
-		    buf.length = expectedLength;
-		    this.buf.base += expectedLength;
+				     expectedLength - headerLength);
+// System.err.print("Rcv buf = ["); for (int i = headerLength; i < expectedLength; i++) System.err.print(this.buf.data[this.buf.base + i] + ","); System.err.println();
+// System.err.print("Cpy buf = ["); for (int i = 0; i < expectedLength - headerLength; i++) System.err.print(buf.data[buf.base + i] + ","); System.err.println();
+		    buf.length += expectedLength;
+		    this.buf.base += expectedLength - headerLength;
 		}
 
 		log.out();
