@@ -23,7 +23,7 @@ public class SATContext implements java.io.Serializable {
     /** The information of a negative assignment of each variable. */
     private double neginfo[];
 
-    /** Satisified flags for all clauses in the problem. */
+    /** Satisified flags for each clause in the problem. */
     private boolean satisfied[];
 
     /** The number of unsatisfied clauses. */
@@ -211,10 +211,12 @@ public class SATContext implements java.io.Serializable {
 	    return 0;
 	}
 	Clause c = p.clauses[i];
-	if( terms[i] != 1 ){
-	    System.err.println( "Error: cannot propagate clause " + c + " since it's not a unit clause" );
-	    return 0;
-	}
+        if( doVerification ){
+            if( terms[i] != 1 ){
+                System.err.println( "Error: cannot propagate clause " + c + " since it's not a unit clause" );
+                return 0;
+            }
+        }
 	int arr[] = c.pos;
 	boolean foundIt = false;
 	if( tracePropagation ){
@@ -391,7 +393,7 @@ public class SATContext implements java.io.Serializable {
 	    int cno = neg.get( i );
 
             // Deduct the old info of this clause.
-            posinfo[var] += Math.log( terms[cno] );
+            posinfo[var] -= Helpers.information( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
 		// We now have a clause that cannot be satisfied. Conflict.
@@ -401,13 +403,15 @@ public class SATContext implements java.io.Serializable {
 		}
 	        return -1;
 	    }
-            // Add the new information of this clause.
-            posinfo[var] -= Math.log( terms[cno] );
 	    if( terms[cno] == 1 ){
 		// Remember that we saw a unit clause, but don't
 		// propagate it yet, since the administration is inconsistent.
 		hasUnitClauses = true;
 	    }
+            else {
+                // Add the new information of this clause.
+                posinfo[var] += Helpers.information( terms[cno] );
+            }
 	}
 
 	// Mark all clauses that contain this variable as a positive
@@ -418,7 +422,7 @@ public class SATContext implements java.io.Serializable {
 	    int cno = pos.get( i );
 
 	    if( !satisfied[cno] ){
-                posinfo[var] -= Math.log( terms[cno] );
+                posinfo[var] -= Helpers.information( terms[cno] );
 		int res = markClauseSatisfied( p, cno );
 
 		if( res != 0 ){
@@ -471,7 +475,7 @@ public class SATContext implements java.io.Serializable {
 	    int cno = pos.get( i );
 
             // Deduct the old info of this clause.
-            posinfo[var] += Math.log( terms[cno] );
+            posinfo[var] -= Helpers.information( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
 		// We now have a clause that cannot be satisfied. Conflict.
@@ -481,13 +485,15 @@ public class SATContext implements java.io.Serializable {
 		}
 	        return -1;
 	    }
-            // Add the new information of this clause.
-            posinfo[var] -= Math.log( terms[cno] );
 	    if( terms[cno] == 1 ){
 		// Remember that we saw a unit clause, but don't
 		// propagate it yet, since the administration is inconsistent.
 		hasUnitClauses = true;
 	    }
+            else {
+                // Add the new information of this clause.
+                posinfo[var] += Helpers.information( terms[cno] );
+            }
 	}
 
 	// Mark all clauses that contain this variable as a negative
@@ -498,7 +504,7 @@ public class SATContext implements java.io.Serializable {
 	    int cno = neg.get( i );
 
 	    if( !satisfied[cno] ){
-                neginfo[var] -= Math.log( terms[cno] );
+                neginfo[var] -= Helpers.information( terms[cno] );
 		int res = markClauseSatisfied( p, cno );
 
 		if( res != 0 ){
@@ -536,31 +542,59 @@ public class SATContext implements java.io.Serializable {
      */
     public int getDecisionVariable()
     {
-        // For the moment we return the variable that is used the most.
-	int bestvar = -1;
-	int bestusecount = 0;
-	int bestmaxcount = 0;
+        if( false ){
+            // For the moment we return the variable that is used the most.
+            int bestvar = -1;
+            int bestusecount = 0;
+            int bestmaxcount = 0;
 
-	for( int i=0; i<assignments.length; i++ ){
-	    if( assignments[i] != -1 ){
-		// Already assigned, so not interesting.
-	        continue;
-	    }
-	    int usecount = posclauses[i] + negclauses[i];
-	    if( usecount>=bestusecount ){
-		// Use maxcount to decide when usecounts are equal.
-		int maxcount = Math.max( posclauses[i], negclauses[i] );
+            for( int i=0; i<assignments.length; i++ ){
+                if( assignments[i] != -1 ){
+                    // Already assigned, so not interesting.
+                    continue;
+                }
+                int usecount = posclauses[i] + negclauses[i];
+                if( usecount>=bestusecount ){
+                    // Use maxcount to decide when usecounts are equal.
+                    int maxcount = Math.max( posclauses[i], negclauses[i] );
 
-		if( (usecount>bestusecount) || (maxcount>bestmaxcount) ){
-		    // This is a better one.
-		    bestvar = i;
-		    bestusecount = usecount;
-		    bestmaxcount = maxcount;
+                    if( (usecount>bestusecount) || (maxcount>bestmaxcount) ){
+                        // This is a better one.
+                        bestvar = i;
+                        bestusecount = usecount;
+                        bestmaxcount = maxcount;
 
-		}
-	    }
-	}
-	return bestvar;
+                    }
+                }
+            }
+            return bestvar;
+        }
+        else {
+            // For the moment we return the variable that is used the most.
+            int bestvar = -1;
+            double bestinfo = -1.0;
+
+            for( int i=0; i<assignments.length; i++ ){
+                if( assignments[i] != -1 ){
+                    // Already assigned, so not interesting.
+                    continue;
+                }
+                if( doVerification ){
+                    if( posinfo[i]<-0.01 || neginfo[i]<-0.01 ){
+                        System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
+                    }
+                }
+                //double info = Math.max( posinfo[i], neginfo[i] );
+                double info = posinfo[i] + neginfo[i];
+                if( info>bestinfo ){
+                    // This is a better one.
+                    bestvar = i;
+                    bestinfo = info;
+                }
+            }
+            //System.err.println( "Variable " + bestvar + " has " + bestinfo + " bits information" );
+            return bestvar;
+        }
     }
 
     /**

@@ -120,7 +120,7 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
             int cno = v.get( i );
             Clause c = clauses[cno];
 
-            info -= Math.log( c.pos.length+c.neg.length );
+            info += Helpers.information( c.pos.length+c.neg.length );
         }
         return info;
     }

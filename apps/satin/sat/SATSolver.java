@@ -153,11 +153,11 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    return;
 	}
 
+        boolean firstvar = ctx.posDominant( nextvar );
         if( level>30 || ctx.unsatisfied<100 ){
 	    //System.err.println( "s" + level + " depth: " + depth + " unsat: " + ctx.unsatisfied + " dsat: " + dsat );
 	    // We're nearly there, use the leaf solver.
 	    // We have variable 'nextvar' to branch on.
-	    boolean firstvar = ctx.posDominant( nextvar );
 	    SATContext subctx = (SATContext) ctx.clone();
 	    leafSolve( level+1, p, subctx, nextvar, firstvar );
 	    subctx = (SATContext) ctx.clone();
@@ -165,7 +165,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	}
 	else {
 	    // We have variable 'nextvar' to branch on.
-	    boolean firstvar = ctx.posDominant( nextvar );
 	    SATContext firstctx = (SATContext) ctx.clone();
 	    solve( level+1, p, firstctx, nextvar, firstvar );
 	    SATContext secondctx = (SATContext) ctx.clone();
