@@ -769,7 +769,7 @@ public final class Satin implements Config, ResizeHandler {
 			double pollTime = totalStats.pollTime / size;
 			double pollPerc = pollTime/totalTimer.totalTimeVal() * 100.0;
 			double totalOverhead = lbTime + serTime + abortTime + 
-			    tupleTime + tupleWaitTime + tupleSeqTime + pollTime;
+			    tupleTime + tupleWaitTime + pollTime;
 			double totalPerc = totalOverhead/totalTimer.totalTimeVal() * 100.0;
 			double appTime = totalTimer.totalTimeVal() - totalOverhead;
 			if(appTime < 0.0) appTime = 0.0;
