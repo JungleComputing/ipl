@@ -813,7 +813,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		return outstandingJobs.remove(stamp, owner);
 	}
 
-	protected synchronized void sendResult(InvocationRecord r, ReturnRecord rr) {
+	protected void sendResult(InvocationRecord r, ReturnRecord rr) {
 		if(exiting || r.alreadySentExceptionResult) return;
 
 		if(ASSERTS && r.owner == null) {
@@ -828,8 +828,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				    r.owner.name() + ", exception = " + (r.eek == null ? "null" : ("" + r.eek)));
 		}
 
+		SendPort s = null;
+		synchronized(this) {
+			s = getReplyPort(r.owner);
+		}
+
 		try {
-			SendPort s = getReplyPort(r.owner);
 			WriteMessage writeMessage = s.newMessage();
 			if(r.eek == null) {
 				writeMessage.writeByte(JOB_RESULT_NORMAL);
@@ -1723,25 +1727,30 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
+	void handleActiveTuples() {
+		String key = null;
+		ActiveTuple data = null;
 
-	synchronized void handleActiveTuples() {
 		while(true) {
-			if(activeTupleKeyList.size() > 0) {
-				// do upcall
-				try {
-					String key = (String) activeTupleKeyList.remove(0);
-					ActiveTuple data = (ActiveTuple) activeTupleDataList.remove(0);
-					if(TUPLE_DEBUG) {
-						System.err.println("calling active tuple key = " + 
-								   key + " data = " + data);
-					}
-					data.handleTuple(key);
-				} catch (Throwable t) {
-					System.err.println("WARNING: active tuple threw exception: " + t);
+			synchronized(this) {
+				if(activeTupleKeyList.size() == 0) {
+					gotActiveTuples = false;
+					return;
 				}
-			} else {
-				gotActiveTuples = false;
-				return;
+
+				// do upcall
+				key = (String) activeTupleKeyList.remove(0);
+				data = (ActiveTuple) activeTupleDataList.remove(0);
+				if(TUPLE_DEBUG) {
+					System.err.println("calling active tuple key = " + 
+							   key + " data = " + data);
+				}
+			}
+
+			try {
+				data.handleTuple(key);
+			} catch (Throwable t) {
+				System.err.println("WARNING: active tuple threw exception: " + t);
 			}
 		}
 	}
