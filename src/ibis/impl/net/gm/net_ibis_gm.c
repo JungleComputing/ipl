@@ -5,25 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-
-#ifdef __BORLANDC__
-#pragma warn - 8004
-#pragma warn - 8008
-#pragma warn - 8027
-#pragma warn - 8066
-#pragma warn - 8071
-#pragma warn - 8080
-#endif
-
 #include <gm.h>
-
-#ifdef __BORLANDC__
-#pragma warn . 8008
-// #pragma warn . 8027
-#pragma warn . 8066
-#pragma warn . 8071
-// #pragma warn . 8080
-#endif
 
 #include "ibis_ipl_impl_net_gm_Driver.h"
 #include "ibis_ipl_impl_net_gm_GmInput.h"
@@ -50,7 +32,7 @@
 #ifdef __GNUC__
 #define __trace__(s, p...)
 #else
-#define __trace__(s)
+#define __trace(s)
 #endif
 #endif
 
@@ -129,6 +111,19 @@ __error__(const char *s, ...)
  *  Types
  */
 
+typedef enum {
+        E_UNKNOWN = 0,
+        E_BUFFER,
+        E_BOOLEAN,
+        E_BYTE,
+        E_SHORT,
+        E_CHAR,
+        E_INT,
+        E_LONG,
+        E_FLOAT,
+        E_DOUBLE,
+} e_type;
+
 /* The driver */
 #if 0
 struct s_mutex {
@@ -201,12 +196,26 @@ struct s_port {
         int               nb_packets;
 };
 
+union u_j_array {
+        jbyteArray	j_buffer;
+        jbooleanArray	j_boolean;
+        jbyteArray	j_byte;
+        jshortArray	j_short;
+        jcharArray	j_char;
+        jintArray	j_int;
+        jlongArray	j_long;
+        jfloatArray	j_float;
+        jdoubleArray	j_double;
+};
+
+
 /* NetIbis output internal information. */
 struct s_output {
         struct s_lock    *p_lock;
         struct s_cache   *p_cache;
-        jbyteArray        j_byte_array;
-        unsigned char    *byte_array;
+        e_type            type;
+        union u_j_array   java;
+        unsigned char    *array;
         unsigned char    *buffer;
         int               length;
 	struct s_port    *p_port;
@@ -227,8 +236,9 @@ struct s_input {
         struct   s_lock  *p_lock;
         struct   s_cache *p_cache;
         volatile int      data_available;
-        jbyteArray        j_byte_array;
-        unsigned char    *byte_array;
+        e_type            type;
+        union u_j_array   java;
+        unsigned char    *array;
         unsigned char    *buffer;
         int               length;
 	struct   s_port  *p_port;
@@ -672,17 +682,73 @@ ni_gm_mutex_unlock(struct s_mutex *p_mutex) {
 
 static
 int
-ni_gm_release_byte_array(jbyteArray b, void *ptr) {
+ni_gm_release_byte_array(e_type type, union u_j_array *pb, void *ptr) {
         JNIEnv        *env    = _current_env;
 
         __in__();
         if (!env) {
                 (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
         }
-        (*env)->ReleaseByteArrayElements(env, b, ptr, 0);
+
+        switch (type) {
+
+        case E_BUFFER:
+                (*env)->ReleaseByteArrayElements(env, pb->j_buffer, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_buffer);
+                break;
+
+        case E_BOOLEAN:
+                (*env)->ReleaseBooleanArrayElements(env, pb->j_boolean, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_boolean);
+                break;
+
+        case E_BYTE:
+                (*env)->ReleaseByteArrayElements(env, pb->j_byte, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_byte);
+                break;
+
+        case E_SHORT:
+                (*env)->ReleaseShortArrayElements(env, pb->j_short, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_short);
+                break;
+
+        case E_CHAR:
+                (*env)->ReleaseCharArrayElements(env, pb->j_char, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_char);
+                break;
+
+        case E_INT:
+                (*env)->ReleaseIntArrayElements(env, pb->j_int, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_int);
+                break;
+
+        case E_LONG:
+                (*env)->ReleaseLongArrayElements(env, pb->j_long, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_long);
+                break;
+
+        case E_FLOAT:
+                (*env)->ReleaseFloatArrayElements(env, pb->j_float, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_float);
+                break;
+
+        case E_DOUBLE:
+                (*env)->ReleaseDoubleArrayElements(env, pb->j_double, ptr, 0);
+                (*env)->DeleteGlobalRef(env, pb->j_double);
+                break;
+
+        default:
+                goto error;
+        }
+
+
         __out__();
 
         return 0;
+
+ error:
+        __err__();
+        return -1;
 }
 
 static
@@ -1155,7 +1221,9 @@ ni_gm_callback(struct gm_port *port,
                         ni_gm_lock_unlock(p_out->p_lock);
                 } else if (p_out->state == 3) {
                         ni_gm_deregister_block(p_port, p_out->p_cache);
-                        ni_gm_release_byte_array(p_out->j_byte_array, p_out->byte_array);
+
+                        ni_gm_release_byte_array(p_out->type, &p_out->java, p_out->array);
+
                         p_out->p_cache = NULL;
                         p_out->buffer  = NULL;
                         p_out->length  = 0;
@@ -1592,6 +1660,8 @@ ni_gm_input_post_buffer(struct s_input *p_in, void *b, int len, jint *p_result) 
         return -1;
 }
 
+
+
 static
 int
 ni_gm_output_flow_control(struct s_port   *p_port,
@@ -1765,6 +1835,7 @@ ni_gm_process_high_recv_event(struct s_port   *p_port,
         return -1;
 }
 
+static
 int
 ni_gm_process_recv_event(struct s_port   *p_port,
                          gm_recv_event_t *p_event) {
@@ -1778,7 +1849,7 @@ ni_gm_process_recv_event(struct s_port   *p_port,
         assert(remote_node_id == (int)p_in->src_node_id);
 
         ni_gm_deregister_block(p_port, p_in->p_cache);
-        ni_gm_release_byte_array(p_in->j_byte_array, p_in->byte_array);
+        ni_gm_release_byte_array(p_in->type, &p_in->java, p_in->array);
         ni_gm_input_unlock(p_in, (int)gm_ntohl(p_event->recv.length));
         __out__();
 
@@ -2338,7 +2409,7 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
         __err__();
 }
 
-
+/* NetIbis Buffers */
 JNIEXPORT
 void
 JNICALL
@@ -2404,8 +2475,8 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nSendBuffer(JNIEnv     *env,
                 goto error;
         }
 
-        p_out->j_byte_array = b;
-        p_out->byte_array   = buffer;
+        p_out->java.j_buffer	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
         buffer += offset;
 
         if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
@@ -2455,8 +2526,8 @@ Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer(JNIEnv     *env,
         if (result) {
                 (*env)->ReleaseByteArrayElements(env, b, (jbyte *)buffer, 0);
         } else {
-                p_in->j_byte_array = b;
-                p_in->byte_array   = buffer;
+                p_in->java.j_buffer	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
         }
 
         __out__();
@@ -2467,6 +2538,1072 @@ Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer(JNIEnv     *env,
         __err__();
         return 0;
 }
+
+/* Boolean Buffers */
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendBooleanBufferIntoRequest(JNIEnv     *env,
+                                                                 jobject     output,
+                                                                 jlong       output_handle,
+                                                                 jbooleanArray  b,
+                                                                 jint        offset,
+                                                                 jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetBooleanArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type = E_BOOLEAN;
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+        (*env)->ReleaseBooleanArrayElements(env, b, (jboolean *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendBooleanBuffer(JNIEnv     *env,
+                                                      jobject     output,
+                                                      jlong       output_handle,
+                                                      jbooleanArray  b,
+                                                      jint        offset,
+                                                      jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetBooleanArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type		= E_BOOLEAN;
+        p_out->java.j_boolean	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
+        buffer += offset;
+
+        if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmInput_nPostBooleanBuffer(JNIEnv     *env,
+                                                     jobject     input,
+                                                     jlong       input_handle,
+                                                     jbooleanArray  b,
+                                                     jint        offset,
+                                                     jint        len) {
+        struct s_input *p_in = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
+
+        __in__();
+        p_in = ni_gm_handle2ptr(input_handle);
+
+        buffer = (unsigned char *)(*env)->GetBooleanArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(len);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_in->type = E_BOOLEAN;
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
+                ni_gm_throw_exception(env, "could not post a buffer");
+                goto error;
+        }
+
+        if (result) {
+                (*env)->ReleaseBooleanArrayElements(env, b, (jboolean *)buffer, 0);
+        } else {
+                p_in->java.j_boolean	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
+        }
+
+        __out__();
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
+
+ error:
+        __err__();
+        return 0;
+}
+
+/* Byte Buffers */
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendByteBufferIntoRequest(JNIEnv     *env,
+                                                                 jobject     output,
+                                                                 jlong       output_handle,
+                                                                 jbyteArray  b,
+                                                                 jint        offset,
+                                                                 jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetByteArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type = E_BYTE;
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+        (*env)->ReleaseByteArrayElements(env, b, (jbyte *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendByteBuffer(JNIEnv     *env,
+                                                      jobject     output,
+                                                      jlong       output_handle,
+                                                      jbyteArray  b,
+                                                      jint        offset,
+                                                      jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetByteArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type		= E_BYTE;
+        p_out->java.j_byte	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
+        buffer += offset;
+
+        if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmInput_nPostByteBuffer(JNIEnv     *env,
+                                                     jobject     input,
+                                                     jlong       input_handle,
+                                                     jbyteArray  b,
+                                                     jint        offset,
+                                                     jint        len) {
+        struct s_input *p_in = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
+
+        __in__();
+        p_in = ni_gm_handle2ptr(input_handle);
+
+        buffer = (unsigned char *)(*env)->GetByteArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(len);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_in->type = E_BYTE;
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
+                ni_gm_throw_exception(env, "could not post a buffer");
+                goto error;
+        }
+
+        if (result) {
+                (*env)->ReleaseByteArrayElements(env, b, (jbyte *)buffer, 0);
+        } else {
+                p_in->java.j_byte	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
+        }
+
+        __out__();
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
+
+ error:
+        __err__();
+        return 0;
+}
+
+/* Short Buffers */
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendShortBufferIntoRequest(JNIEnv     *env,
+                                                                 jobject     output,
+                                                                 jlong       output_handle,
+                                                                 jshortArray  b,
+                                                                 jint        offset,
+                                                                 jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetShortArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type = E_SHORT;
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+        (*env)->ReleaseShortArrayElements(env, b, (jshort *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendShortBuffer(JNIEnv     *env,
+                                                      jobject     output,
+                                                      jlong       output_handle,
+                                                      jshortArray  b,
+                                                      jint        offset,
+                                                      jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetShortArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type		= E_SHORT;
+        p_out->java.j_short	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
+        buffer += offset;
+
+        if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmInput_nPostShortBuffer(JNIEnv     *env,
+                                                     jobject     input,
+                                                     jlong       input_handle,
+                                                     jshortArray  b,
+                                                     jint        offset,
+                                                     jint        len) {
+        struct s_input *p_in = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
+
+        __in__();
+        p_in = ni_gm_handle2ptr(input_handle);
+
+        buffer = (unsigned char *)(*env)->GetShortArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(len);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_in->type = E_SHORT;
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
+                ni_gm_throw_exception(env, "could not post a buffer");
+                goto error;
+        }
+
+        if (result) {
+                (*env)->ReleaseShortArrayElements(env, b, (jshort *)buffer, 0);
+        } else {
+                p_in->java.j_short	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
+        }
+
+        __out__();
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
+
+ error:
+        __err__();
+        return 0;
+}
+
+/* Char Buffers */
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendCharBufferIntoRequest(JNIEnv     *env,
+                                                                 jobject     output,
+                                                                 jlong       output_handle,
+                                                                 jcharArray  b,
+                                                                 jint        offset,
+                                                                 jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetCharArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type = E_CHAR;
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+        (*env)->ReleaseCharArrayElements(env, b, (jchar *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendCharBuffer(JNIEnv     *env,
+                                                      jobject     output,
+                                                      jlong       output_handle,
+                                                      jcharArray  b,
+                                                      jint        offset,
+                                                      jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetCharArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type		= E_CHAR;
+        p_out->java.j_char	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
+        buffer += offset;
+
+        if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmInput_nPostCharBuffer(JNIEnv     *env,
+                                                     jobject     input,
+                                                     jlong       input_handle,
+                                                     jcharArray  b,
+                                                     jint        offset,
+                                                     jint        len) {
+        struct s_input *p_in = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
+
+        __in__();
+        p_in = ni_gm_handle2ptr(input_handle);
+
+        buffer = (unsigned char *)(*env)->GetCharArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(len);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_in->type = E_CHAR;
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
+                ni_gm_throw_exception(env, "could not post a buffer");
+                goto error;
+        }
+
+        if (result) {
+                (*env)->ReleaseCharArrayElements(env, b, (jchar *)buffer, 0);
+        } else {
+                p_in->java.j_char	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
+        }
+
+        __out__();
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
+
+ error:
+        __err__();
+        return 0;
+}
+
+/* Int Buffers */
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendIntBufferIntoRequest(JNIEnv     *env,
+                                                                 jobject     output,
+                                                                 jlong       output_handle,
+                                                                 jintArray  b,
+                                                                 jint        offset,
+                                                                 jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetIntArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type = E_INT;
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+        (*env)->ReleaseIntArrayElements(env, (*env)->NewGlobalRef(env, b), (jint *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendIntBuffer(JNIEnv     *env,
+                                                      jobject     output,
+                                                      jlong       output_handle,
+                                                      jintArray  b,
+                                                      jint        offset,
+                                                      jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetIntArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type		= E_INT;
+        p_out->java.j_int	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
+        buffer += offset;
+
+        if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmInput_nPostIntBuffer(JNIEnv     *env,
+                                                     jobject     input,
+                                                     jlong       input_handle,
+                                                     jintArray  b,
+                                                     jint        offset,
+                                                     jint        len) {
+        struct s_input *p_in = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
+
+        __in__();
+        p_in = ni_gm_handle2ptr(input_handle);
+
+        buffer = (unsigned char *)(*env)->GetIntArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(len);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_in->type = E_INT;
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
+                ni_gm_throw_exception(env, "could not post a buffer");
+                goto error;
+        }
+
+        if (result) {
+                (*env)->ReleaseIntArrayElements(env, b, (jint *)buffer, 0);
+        } else {
+                p_in->java.j_int	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
+        }
+
+        __out__();
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
+
+ error:
+        __err__();
+        return 0;
+}
+
+/* Long Buffers */
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendLongBufferIntoRequest(JNIEnv     *env,
+                                                                 jobject     output,
+                                                                 jlong       output_handle,
+                                                                 jlongArray  b,
+                                                                 jint        offset,
+                                                                 jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetLongArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type = E_LONG;
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+        (*env)->ReleaseLongArrayElements(env, b, (jlong *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendLongBuffer(JNIEnv     *env,
+                                                      jobject     output,
+                                                      jlong       output_handle,
+                                                      jlongArray  b,
+                                                      jint        offset,
+                                                      jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetLongArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type		= E_LONG;
+        p_out->java.j_long	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
+        buffer += offset;
+
+        if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmInput_nPostLongBuffer(JNIEnv     *env,
+                                                     jobject     input,
+                                                     jlong       input_handle,
+                                                     jlongArray  b,
+                                                     jint        offset,
+                                                     jint        len) {
+        struct s_input *p_in = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
+
+        __in__();
+        p_in = ni_gm_handle2ptr(input_handle);
+
+        buffer = (unsigned char *)(*env)->GetLongArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(len);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_in->type = E_LONG;
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
+                ni_gm_throw_exception(env, "could not post a buffer");
+                goto error;
+        }
+
+        if (result) {
+                (*env)->ReleaseLongArrayElements(env, b, (jlong *)buffer, 0);
+        } else {
+                p_in->java.j_long	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
+        }
+
+        __out__();
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
+
+ error:
+        __err__();
+        return 0;
+}
+
+/* Float Buffers */
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendFloatBufferIntoRequest(JNIEnv     *env,
+                                                                 jobject     output,
+                                                                 jlong       output_handle,
+                                                                 jfloatArray  b,
+                                                                 jint        offset,
+                                                                 jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetFloatArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type = E_FLOAT;
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+        (*env)->ReleaseFloatArrayElements(env, b, (jfloat *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendFloatBuffer(JNIEnv     *env,
+                                                      jobject     output,
+                                                      jlong       output_handle,
+                                                      jfloatArray  b,
+                                                      jint        offset,
+                                                      jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetFloatArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type		= E_FLOAT;
+        p_out->java.j_float	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
+        buffer += offset;
+
+        if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmInput_nPostFloatBuffer(JNIEnv     *env,
+                                                     jobject     input,
+                                                     jlong       input_handle,
+                                                     jfloatArray  b,
+                                                     jint        offset,
+                                                     jint        len) {
+        struct s_input *p_in = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
+
+        __in__();
+        p_in = ni_gm_handle2ptr(input_handle);
+
+        buffer = (unsigned char *)(*env)->GetFloatArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(len);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_in->type = E_FLOAT;
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
+                ni_gm_throw_exception(env, "could not post a buffer");
+                goto error;
+        }
+
+        if (result) {
+                (*env)->ReleaseFloatArrayElements(env, b, (jfloat *)buffer, 0);
+        } else {
+                p_in->java.j_float	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
+        }
+
+        __out__();
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
+
+ error:
+        __err__();
+        return 0;
+}
+
+/* Double Buffers */
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendDoubleBufferIntoRequest(JNIEnv     *env,
+                                                                 jobject     output,
+                                                                 jlong       output_handle,
+                                                                 jdoubleArray  b,
+                                                                 jint        offset,
+                                                                 jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetDoubleArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type = E_DOUBLE;
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+        (*env)->ReleaseDoubleArrayElements(env, b, (jdouble *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendDoubleBuffer(JNIEnv     *env,
+                                                      jobject     output,
+                                                      jlong       output_handle,
+                                                      jdoubleArray  b,
+                                                      jint        offset,
+                                                      jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetDoubleArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_out->type		= E_DOUBLE;
+        p_out->java.j_double	= (*env)->NewGlobalRef(env, b);
+        p_out->array		= buffer;
+        buffer += offset;
+
+        if (ni_gm_output_send_buffer(p_out, buffer, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        }
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_ipl_impl_net_gm_GmInput_nPostDoubleBuffer(JNIEnv     *env,
+                                                     jobject     input,
+                                                     jlong       input_handle,
+                                                     jdoubleArray  b,
+                                                     jint        offset,
+                                                     jint        len) {
+        struct s_input *p_in = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
+
+        __in__();
+        p_in = ni_gm_handle2ptr(input_handle);
+
+        buffer = (unsigned char *)(*env)->GetDoubleArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(len);
+
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        p_in->type = E_DOUBLE;
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
+                ni_gm_throw_exception(env, "could not post a buffer");
+                goto error;
+        }
+
+        if (result) {
+                (*env)->ReleaseDoubleArrayElements(env, b, (jdouble *)buffer, 0);
+        } else {
+                p_in->java.j_double	= (*env)->NewGlobalRef(env, b);
+                p_in->array		= buffer;
+        }
+
+        __out__();
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
+
+ error:
+        __err__();
+        return 0;
+}
+
+/* ----- */
 
 JNIEXPORT
 void

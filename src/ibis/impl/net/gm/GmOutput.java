@@ -39,8 +39,34 @@ public final class GmOutput extends NetBufferedOutput {
         native void nSendRequest(long outputHandle) throws NetIbisException;
         native void nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws NetIbisException;
         native void nSendBuffer(long outputHandle, byte []b, int base, int length) throws NetIbisException;
+
+        native void nSendBooleanBufferIntoRequest(long outputHandle, boolean []b, int base, int length) throws NetIbisException;
+        native void nSendBooleanBuffer(long outputHandle, boolean []b, int base, int length) throws NetIbisException;
+
+        native void nSendByteBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws NetIbisException;
+        native void nSendByteBuffer(long outputHandle, byte []b, int base, int length) throws NetIbisException;
+
+         native void nSendShortBufferIntoRequest(long outputHandle, short []b, int base, int length) throws NetIbisException;
+        native void nSendShortBuffer(long outputHandle, short []b, int base, int length) throws NetIbisException;
+
+         native void nSendCharBufferIntoRequest(long outputHandle, char []b, int base, int length) throws NetIbisException;
+        native void nSendCharBuffer(long outputHandle, char []b, int base, int length) throws NetIbisException;
+
+         native void nSendIntBufferIntoRequest(long outputHandle, int []b, int base, int length) throws NetIbisException;
+        native void nSendIntBuffer(long outputHandle, int []b, int base, int length) throws NetIbisException;
+
+         native void nSendLongBufferIntoRequest(long outputHandle, long []b, int base, int length) throws NetIbisException;
+        native void nSendLongBuffer(long outputHandle, long []b, int base, int length) throws NetIbisException;
+
+         native void nSendFloatBufferIntoRequest(long outputHandle, float []b, int base, int length) throws NetIbisException;
+        native void nSendFloatBuffer(long outputHandle, float []b, int base, int length) throws NetIbisException;
+
+         native void nSendDoubleBufferIntoRequest(long outputHandle, double []b, int base, int length) throws NetIbisException;
+        native void nSendDoubleBuffer(long outputHandle, double []b, int base, int length) throws NetIbisException;
+
         native void nCloseOutput(long outputHandle) throws NetIbisException;
 
+        static final int packetMTU = 4096;
 
         /**
          * Constructor.
@@ -135,7 +161,7 @@ public final class GmOutput extends NetBufferedOutput {
          */
         public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
                 log.in();
-                if (b.length > 4096) {
+                if (b.length > packetMTU) {
                         /* Post the 'request' */
                         Driver.gmAccessLock.lock(true);
                         nSendRequest(outputHandle);
@@ -218,5 +244,393 @@ public final class GmOutput extends NetBufferedOutput {
 
                 super.free();
                 log.out();
+        }
+
+        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
+                flush();
+
+                int i = 0;
+
+                while (l > 0) {
+                        int _l = 0;
+
+                        if (l > packetMTU) {
+                                _l = Math.min(l, mtu);
+
+                                /* Post the 'request' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendRequest(outputHandle);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Wait for 'ack' completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Post the 'buffer' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendBooleanBuffer(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'buffer' send */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                        } else {
+                                _l = l;
+
+                                Driver.gmAccessLock.lock(true);
+                                nSendBooleanBufferIntoRequest(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        l -= _l;
+                        o += _l;
+                }
+        }
+
+        /*
+        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
+                flush();
+
+                int i = 0;
+
+                while (l > 0) {
+                        int _l = 0;
+
+                        if (l > packetMTU) {
+                                _l = Math.min(l, mtu);
+
+                                // Post the 'request'
+                                Driver.gmAccessLock.lock(true);
+                                nSendRequest(outputHandle);
+                                Driver.gmAccessLock.unlock();
+
+                                // Wait for 'request' send completion
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                // Wait for 'ack' completion
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                // Post the 'buffer'
+                                Driver.gmAccessLock.lock(true);
+                                nSendByteBuffer(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                // Wait for 'buffer' send
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                        } else {
+                                _l = l;
+
+                                Driver.gmAccessLock.lock(true);
+                                nSendByteBufferIntoRequest(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                // Wait for 'request' send completion
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        l -= _l;
+                        o += _l;
+                }
+        }
+        */
+
+        public void writeArray(char [] b, int o, int l) throws NetIbisException {
+                flush();
+
+                int i = 0;
+
+                l <<= 1;
+                o <<= 1;
+
+                while (l > 0) {
+                        int _l = 0;
+
+                        if (l > packetMTU) {
+                                _l = Math.min(l, mtu);
+
+                                /* Post the 'request' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendRequest(outputHandle);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Wait for 'ack' completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Post the 'buffer' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendCharBuffer(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'buffer' send */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                        } else {
+                                _l = l;
+
+                                Driver.gmAccessLock.lock(true);
+                                nSendCharBufferIntoRequest(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        l -= _l;
+                        o += _l;
+                }
+        }
+
+        public void writeArray(short [] b, int o, int l) throws NetIbisException {
+                flush();
+
+                int i = 0;
+
+                l <<= 1;
+                o <<= 1;
+
+                while (l > 0) {
+                        int _l = 0;
+
+                        if (l > packetMTU) {
+                                _l = Math.min(l, mtu);
+
+                                /* Post the 'request' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendRequest(outputHandle);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Wait for 'ack' completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Post the 'buffer' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendShortBuffer(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'buffer' send */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                        } else {
+                                _l = l;
+
+                                Driver.gmAccessLock.lock(true);
+                                nSendShortBufferIntoRequest(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        l -= _l;
+                        o += _l;
+                }
+        }
+
+        public void writeArray(int [] b, int o, int l) throws NetIbisException {
+                flush();
+
+                int i = 0;
+
+                l <<= 2;
+                o <<= 2;
+
+                while (l > 0) {
+                        int _l = 0;
+
+                        if (l > packetMTU) {
+                                _l = Math.min(l, mtu);
+
+                                /* Post the 'request' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendRequest(outputHandle);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Wait for 'ack' completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Post the 'buffer' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendIntBuffer(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'buffer' send */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                        } else {
+                                _l = l;
+
+                                Driver.gmAccessLock.lock(true);
+                                nSendIntBufferIntoRequest(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        l -= _l;
+                        o += _l;
+                }
+        }
+
+        public void writeArray(long [] b, int o, int l) throws NetIbisException {
+                flush();
+
+                int i = 0;
+
+                l <<= 3;
+                o <<= 3;
+
+                while (l > 0) {
+                        int _l = 0;
+
+                        if (l > packetMTU) {
+                                _l = Math.min(l, mtu);
+
+                                /* Post the 'request' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendRequest(outputHandle);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Wait for 'ack' completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Post the 'buffer' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendLongBuffer(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'buffer' send */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                        } else {
+                                _l = l;
+
+                                Driver.gmAccessLock.lock(true);
+                                nSendLongBufferIntoRequest(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        l -= _l;
+                        o += _l;
+                }
+        }
+
+        public void writeArray(float [] b, int o, int l) throws NetIbisException {
+                flush();
+
+                int i = 0;
+
+                l <<= 2;
+                o <<= 2;
+
+                while (l > 0) {
+                        int _l = 0;
+
+                        if (l > packetMTU) {
+                                _l = Math.min(l, mtu);
+
+                                /* Post the 'request' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendRequest(outputHandle);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Wait for 'ack' completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Post the 'buffer' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendFloatBuffer(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'buffer' send */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                        } else {
+                                _l = l;
+
+                                Driver.gmAccessLock.lock(true);
+                                nSendFloatBufferIntoRequest(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        l -= _l;
+                        o += _l;
+                }
+        }
+
+        public void writeArray(double [] b, int o, int l) throws NetIbisException {
+                flush();
+
+                int i = 0;
+
+                l <<= 3;
+                o <<= 3;
+
+                while (l > 0) {
+                        int _l = 0;
+
+                        if (l > packetMTU) {
+                                _l = Math.min(l, mtu);
+
+                                /* Post the 'request' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendRequest(outputHandle);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Wait for 'ack' completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Post the 'buffer' */
+                                Driver.gmAccessLock.lock(true);
+                                nSendDoubleBuffer(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'buffer' send */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                        } else {
+                                _l = l;
+
+                                Driver.gmAccessLock.lock(true);
+                                nSendDoubleBufferIntoRequest(outputHandle, b, o, _l);
+                                Driver.gmAccessLock.unlock();
+
+                                /* Wait for 'request' send completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        l -= _l;
+                        o += _l;
+                }
         }
 }

@@ -31,10 +31,12 @@ public final class Driver extends NetDriver {
                 if (System.getProperty("ibis.net.gm.dynamic") != null) {
                         System.loadLibrary("gm");
                 }
-                
+
 		System.loadLibrary("net_ibis_gm");
                 gmReceiveLock = new NetMutex(false);
+
                 gmAccessLock = new NetPriorityMutex(false);
+
                 gmLockArray = new NetLockArray();
                 gmLockArray.initLock(0, false);
 	}

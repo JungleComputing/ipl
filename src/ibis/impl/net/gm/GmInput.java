@@ -14,8 +14,6 @@ import java.util.Hashtable;
  */
 public final class GmInput extends NetBufferedInput {
 
-        private final boolean         useUpcallThreadOpt = true;
-
 
 	/**
 	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
@@ -49,7 +47,26 @@ public final class GmInput extends NetBufferedInput {
         native int  nGetInputMuxId(long inputHandle) throws NetIbisException;
         native void nConnectInput(long inputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws NetIbisException;
         native int nPostBuffer(long inputHandle, byte []b, int base, int length) throws NetIbisException;
+
+        native int nPostBooleanBuffer(long inputHandle, boolean []b, int base, int length) throws NetIbisException;
+
+        native int nPostByteBuffer(long inputHandle, byte []b, int base, int length) throws NetIbisException;
+
+        native int nPostShortBuffer(long inputHandle, short []b, int base, int length) throws NetIbisException;
+
+        native int nPostCharBuffer(long inputHandle, char []b, int base, int length) throws NetIbisException;
+
+        native int nPostIntBuffer(long inputHandle, int []b, int base, int length) throws NetIbisException;
+
+        native int nPostLongBuffer(long inputHandle, long []b, int base, int length) throws NetIbisException;
+
+        native int nPostFloatBuffer(long inputHandle, float []b, int base, int length) throws NetIbisException;
+
+        native int nPostDoubleBuffer(long inputHandle, double []b, int base, int length) throws NetIbisException;
+
 	native void nCloseInput(long inputHandle) throws NetIbisException;
+
+        static final int packetMTU = 4096;
 
 	/**
 	 * Constructor.
@@ -278,4 +295,324 @@ public final class GmInput extends NetBufferedInput {
                 Driver.gmAccessLock.unlock();
                 log.out();
 	}
+
+	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
+                log.in();
+                freeBuffer();
+
+                if (firstBlock) {
+                        firstBlock = false;
+                } else {
+                        /* Request reception */
+                        gmDriver.blockingPump(lockId, lockIds);
+                }
+
+                while (l > 0) {
+                        int _l = Math.min(l, mtu);
+
+                        Driver.gmReceiveLock.lock();
+
+                        Driver.gmAccessLock.lock(true);
+                        int result = nPostBooleanBuffer(inputHandle, b, o, _l);
+                        Driver.gmAccessLock.unlock();
+
+                        if (result == 0) {
+                                /* Ack completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Communication transmission */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        Driver.gmReceiveLock.unlock();
+
+                        l -= _l;
+                        o += _l;
+                }
+
+                log.out();
+        }
+
+        /*
+	public void readArray(byte [] b, int o, int l) throws NetIbisException {
+                log.in();
+                freeBuffer();
+
+                if (firstBlock) {
+                        firstBlock = false;
+                } else {
+                        // Request reception
+                        gmDriver.blockingPump(lockId, lockIds);
+                }
+
+                while (l > 0) {
+                        int _l = Math.min(l, mtu);
+
+                        Driver.gmReceiveLock.lock();
+
+                        Driver.gmAccessLock.lock(true);
+                        int result = nPostByteBuffer(inputHandle, b, o, _l);
+                        Driver.gmAccessLock.unlock();
+
+                        if (result == 0) {
+                                // Ack completion
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                // Communication transmission
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        Driver.gmReceiveLock.unlock();
+
+                        l -= _l;
+                        o += _l;
+                }
+
+                log.out();
+        }
+        */
+
+	public void readArray(char [] b, int o, int l) throws NetIbisException {
+                log.in();
+                freeBuffer();
+
+                l <<= 1;
+                o <<= 1;
+
+                if (firstBlock) {
+                        firstBlock = false;
+                } else {
+                        /* Request reception */
+                        gmDriver.blockingPump(lockId, lockIds);
+                }
+
+                while (l > 0) {
+                        int _l = Math.min(l, mtu);
+
+                        Driver.gmReceiveLock.lock();
+
+                        Driver.gmAccessLock.lock(true);
+                        int result = nPostCharBuffer(inputHandle, b, o, _l);
+                        Driver.gmAccessLock.unlock();
+
+                        if (result == 0) {
+                                /* Ack completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Communication transmission */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        Driver.gmReceiveLock.unlock();
+
+                        l -= _l;
+                        o += _l;
+                }
+
+                log.out();
+        }
+
+
+	public void readArray(short [] b, int o, int l) throws NetIbisException {
+                log.in();
+                freeBuffer();
+
+                l <<= 1;
+                o <<= 1;
+
+                if (firstBlock) {
+                        firstBlock = false;
+                } else {
+                        /* Request reception */
+                        gmDriver.blockingPump(lockId, lockIds);
+                }
+
+                while (l > 0) {
+                        int _l = Math.min(l, mtu);
+
+                        Driver.gmReceiveLock.lock();
+
+                        Driver.gmAccessLock.lock(true);
+                        int result = nPostShortBuffer(inputHandle, b, o, _l);
+                        Driver.gmAccessLock.unlock();
+
+                        if (result == 0) {
+                                /* Ack completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Communication transmission */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        Driver.gmReceiveLock.unlock();
+
+                        l -= _l;
+                        o += _l;
+                }
+
+                log.out();
+        }
+
+
+	public void readArray(int [] b, int o, int l) throws NetIbisException {
+                log.in();
+
+                l <<= 2;
+                o <<= 2;
+
+                if (firstBlock) {
+                        firstBlock = false;
+                } else {
+                        /* Request reception */
+                        gmDriver.blockingPump(lockId, lockIds);
+                }
+
+                while (l > 0) {
+                        int _l = Math.min(l, mtu);
+
+                        Driver.gmReceiveLock.lock();
+
+                        Driver.gmAccessLock.lock(true);
+                        int result = nPostIntBuffer(inputHandle, b, o, _l);
+                        Driver.gmAccessLock.unlock();
+
+                        if (result == 0) {
+                                /* Ack completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Communication transmission */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        Driver.gmReceiveLock.unlock();
+
+                        l -= _l;
+                        o += _l;
+                }
+
+                log.out();
+        }
+
+
+	public void readArray(long [] b, int o, int l) throws NetIbisException {
+                log.in();
+                freeBuffer();
+
+                l <<= 3;
+                o <<= 3;
+
+                if (firstBlock) {
+                        firstBlock = false;
+                } else {
+                        /* Request reception */
+                        gmDriver.blockingPump(lockId, lockIds);
+                }
+
+                while (l > 0) {
+                        int _l = Math.min(l, mtu);
+
+                        Driver.gmReceiveLock.lock();
+
+                        Driver.gmAccessLock.lock(true);
+                        int result = nPostLongBuffer(inputHandle, b, o, _l);
+                        Driver.gmAccessLock.unlock();
+
+                        if (result == 0) {
+                                /* Ack completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Communication transmission */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        Driver.gmReceiveLock.unlock();
+
+                        l -= _l;
+                        o += _l;
+                }
+
+                log.out();
+        }
+
+
+	public void readArray(float [] b, int o, int l) throws NetIbisException {
+                log.in();
+                freeBuffer();
+
+                l <<= 2;
+                o <<= 2;
+
+                if (firstBlock) {
+                        firstBlock = false;
+                } else {
+                        /* Request reception */
+                        gmDriver.blockingPump(lockId, lockIds);
+                }
+
+                while (l > 0) {
+                        int _l = Math.min(l, mtu);
+
+                        Driver.gmReceiveLock.lock();
+
+                        Driver.gmAccessLock.lock(true);
+                        int result = nPostFloatBuffer(inputHandle, b, o, _l);
+                        Driver.gmAccessLock.unlock();
+
+                        if (result == 0) {
+                                /* Ack completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Communication transmission */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        Driver.gmReceiveLock.unlock();
+
+                        l -= _l;
+                        o += _l;
+                }
+
+                log.out();
+        }
+
+
+	public void readArray(double [] b, int o, int l) throws NetIbisException {
+                log.in();
+                freeBuffer();
+
+                l <<= 3;
+                o <<= 3;
+
+                if (firstBlock) {
+                        firstBlock = false;
+                } else {
+                        /* Request reception */
+                        gmDriver.blockingPump(lockId, lockIds);
+                }
+
+                while (l > 0) {
+                        int _l = Math.min(l, mtu);
+
+                        Driver.gmReceiveLock.lock();
+
+                        Driver.gmAccessLock.lock(true);
+                        int result = nPostDoubleBuffer(inputHandle, b, o, _l);
+                        Driver.gmAccessLock.unlock();
+
+                        if (result == 0) {
+                                /* Ack completion */
+                                gmDriver.blockingPump(lockId, lockIds);
+
+                                /* Communication transmission */
+                                gmDriver.blockingPump(lockId, lockIds);
+                        }
+
+                        Driver.gmReceiveLock.unlock();
+
+                        l -= _l;
+                        o += _l;
+                }
+
+                log.out();
+        }
 }
