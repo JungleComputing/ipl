@@ -235,6 +235,51 @@ final class MethodTable {
 
     private static HashMap analyzers = new HashMap();
 
+    // Make each stack position indicate a single variable.
+    void rewriteLocals(MethodGen m) {
+	LocalVariableGen[] locals = m.getLocalVariables();
+	int maxindex = 0;
+	for (int i = 0; i < locals.length; i++) {
+	    int ind = locals[i].getIndex();
+	    if (ind > maxindex) maxindex = ind;
+	}
+	Type[] types = new Type[maxindex+1];
+	for (int i = 0; i < locals.length; i++) {
+	    int ind = locals[i].getIndex();
+	    Type t = locals[i].getType();
+	    if (types[ind] != null && ! types[ind].equals(t)) {
+		// this stack position is already in use.
+		// Give this local a new stack position.
+		maxindex++;
+		locals[i].setIndex(maxindex);
+		if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
+		    // longs and doubles need two stack positions.
+		    maxindex++;
+		}
+
+		// now rewrite the instructions where this local is used.
+		InstructionHandle h = locals[i].getStart();
+		if (h.getPrev() != null) {
+		    h = h.getPrev();
+		    // This instruction should contain the store.
+		}
+		do {
+		    Instruction ins = h.getInstruction();
+		    if (ins instanceof LocalVariableInstruction) {
+			LocalVariableInstruction lins = (LocalVariableInstruction) ins;
+			if (lins.getIndex() == ind) {
+			    lins.setIndex(locals[i].getIndex());
+			}
+		    }
+		    if (h == locals[i].getEnd()) break;
+		    h = h.getNext();
+		} while (h != null);
+	    }
+	    else types[ind] = locals[i].getType();
+	}
+    }
+
+
     MethodTable(JavaClass c, ClassGen gen_c, Satinc self, boolean verbose) {
         this.verbose = verbose;
         this.self = self;
@@ -249,6 +294,13 @@ final class MethodTable {
             Method m = methods[i];
             MethodGen mg = new MethodGen(m, c.getClassName(), gen_c
                     .getConstantPool());
+	    rewriteLocals(mg);
+	    mg.setMaxLocals();
+	    mg.setMaxStack();
+	    gen_c.removeMethod(m);
+	    m = mg.getMethod();
+	    gen_c.addMethod(m);
+	    mg = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
             MethodTableEntry e = new MethodTableEntry();
 
             e.nrSpawns = calcNrSpawns(mg);

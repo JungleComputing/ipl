@@ -1005,6 +1005,10 @@ public final class Satinc {
 	    if (storeIns instanceof PUTFIELD) {
 		loadIns = getAndRemoveLoadIns(il, i);
 	    }
+	    else if (storeIns instanceof ReturnInstruction) {
+		System.err.println("\"return <spawnable method>\" is not allowed");
+		System.exit(1);
+	    }
 	    deleteIns(il, i.getNext(), i.getNext().getNext());
 	}
 
@@ -1168,7 +1172,7 @@ public final class Satinc {
 		// no need to init.
 	    }
 	    else {
-		System.err.println("WARNING: Unhandled store instruction in initSpawnTargets, opcode = " + store.getOpcode());
+		System.err.println("WARNING: Unhandled store instruction in initSpawnTargets:" + store);
 		//				System.exit(1);
 	    }
 	}
@@ -1682,6 +1686,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	for (int i = 0; i < methods.length; i++) {
 	    Method m = methods[i];
+
 	    if (mtab.containsSpawnedCall(m)) {
 		InstructionHandle l = null;
 
