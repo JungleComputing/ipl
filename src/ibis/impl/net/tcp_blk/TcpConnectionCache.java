@@ -42,6 +42,7 @@ class TcpConnectionCache {
 	if (oCache != null && oCache.remove(socket)) {
 	    if (VERBOSE) {
 		System.err.println("Remove/i " + socket
+			+ " port " + socket.getPort() 
 			+ " from caches because no used connections");
 	    }
 	    return false;
@@ -57,6 +58,7 @@ class TcpConnectionCache {
 	iCache.put(new Integer(socket.getPort()), socket);
 	if (VERBOSE) {
 	    System.err.println("Added input " + socket
+		    + " port " + socket.getPort() 
 		    + " to cache " + iCache);
 	}
 
@@ -124,16 +126,22 @@ class TcpConnectionCache {
 	Hashtable cache = (Hashtable)inputCache.get(ibis);
 
 	if (cache == null) {
-	    throw new Error("Must locate (" + ibis + "," + port
+	    if (VERBOSE) {
+		System.err.println("Must locate (" + ibis + "," + port
 			    + ") but there are no cached connections there");
+	    }
+
+	    return null;
 	}
 
 	Integer key = new Integer(port);
 	Socket socket = (Socket)cache.remove(key);
 
 	if (socket == null) {
-	    throw new Error("Must locate (" + ibis + "," + port
-			    + ") but it is not there");
+	    if (VERBOSE) {
+		System.err.println("Must locate (" + ibis + "," + port
+				    + ") but it is not there");
+	    }
 	}
 
 	if (VERBOSE) {

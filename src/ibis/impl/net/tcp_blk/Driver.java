@@ -41,9 +41,16 @@ public final class Driver extends NetDriver {
 	private final String name = "tcp_blk";
 
 	private TcpConnectionCache connectionCache = new TcpConnectionCache();
+	private int		connectWaiters = 0;
 
 	boolean cacheInput(IbisIdentifier ibis, Socket socket) {
-	    return connectionCache.cacheInput(ibis, socket);
+	    synchronized (connectionCache) {
+		boolean ok = connectionCache.cacheInput(ibis, socket);
+		if (connectWaiters > 0) {
+		    connectionCache.notifyAll();
+		}
+		return ok;
+	    }
 	}
 
 	boolean cacheOutput(IbisIdentifier ibis, Socket socket) {
@@ -51,7 +58,22 @@ public final class Driver extends NetDriver {
 	}
 
 	Socket getCachedInput(IbisIdentifier ibis, int port) {
-	    return connectionCache.getCachedInput(ibis, port);
+	    synchronized (connectionCache) {
+		while (true) {
+		    Socket s = connectionCache.getCachedInput(ibis, port);
+		    if (s != null) {
+			return s;
+		    }
+		    connectWaiters++;
+		    // System.err.println(this + ": hit the connectionCache race");
+		    try {
+			connectionCache.wait();
+		    } catch (InterruptedException e) {
+			// ignore
+		    }
+		    connectWaiters--;
+		}
+	    }
 	}
 
 	Socket getCachedOutput(IbisIdentifier ibis) {
