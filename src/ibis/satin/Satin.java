@@ -1216,9 +1216,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	       and I experienced decreasing is a non-atomic action (GRRR)
 	       so this decrement has to be synchronized - Maik
 	       Making value volatile didn't help with the IBM 1.4 JiT - Maik */
-	    synchronized(this) {
+	    //synchronized(this) {
 		r.spawnCounter.value--;
-	    }
+		//}
 
 	    if(ASSERTS && r.spawnCounter.value < 0) {
 		out.println("SATIN '" + ident.name() + ": Just made spawncounter < 0");
