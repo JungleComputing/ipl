@@ -78,7 +78,6 @@ final class SerializeWriteMessage extends WriteMessage {
 	return retval;
     }
 
-
     public void writeBoolean(boolean value) throws IOException {
 	obj_out.writeBoolean(value);
     }

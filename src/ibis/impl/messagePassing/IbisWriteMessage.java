@@ -61,6 +61,7 @@ final public class IbisWriteMessage extends WriteMessage {
     }
 
     public void reset() throws IOException {
+	// Should not this be (RFHH) : reset(true, false);
 	reset(false, false);
 	long after = (long) out.getCount();
 	sPort.count += after - before;

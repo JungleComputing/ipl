@@ -236,7 +236,6 @@ ibmp_send_port_init(JNIEnv *env)
 	fprintf(stderr, "%s.%d Cannot find class ibis/impl/messagePassing/ShadowSendPort\n", __FILE__, __LINE__);
 	abort();
     }
-fprintf(stderr, "Loaded class ShadowSendPort\n");
     cls_ShadowSendPort = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ShadowSendPort);
 
     md_createSSP = (*env)->GetStaticMethodID(

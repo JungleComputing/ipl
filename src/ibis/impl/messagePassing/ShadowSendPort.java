@@ -86,7 +86,9 @@ class ShadowSendPort extends SendPort {
 	if (! connect_allowed) {
 	    Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
 	} else if (group != NO_BCAST_GROUP) {
-System.err.println("Bind group " + group + " to port " + rId.port + "; sender " + sId.cpu + " port " + sId.port);
+	    if (Ibis.DEBUG) {
+		System.err.println("Bind group " + group + " to port " + rId.port + "; sender " + sId.cpu + " port " + sId.port);
+	    }
 	    Ibis.myIbis.bindGroup(group, receivePort, this);
 	}
 
@@ -112,7 +114,9 @@ System.err.println("Bind group " + group + " to port " + rId.port + "; sender " 
 	if (ssp == null) {
 	    throw new IOException("Cannot locate ShadowSendPort " + sId);
 	}
-System.err.println("Bind/later group " + group + " to port " + ((ReceivePortIdentifier)ssp.receivePort.identifier()).port + "; sender " + sId.cpu + " port " + sId.port);
+	if (Ibis.DEBUG) {
+	    System.err.println("Bind/later group " + group + " to port " + ((ReceivePortIdentifier)ssp.receivePort.identifier()).port + "; sender " + sId.cpu + " port " + sId.port);
+	}
 	Ibis.myIbis.bindGroup(group, ssp.receivePort, ssp);
     }
 

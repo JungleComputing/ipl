@@ -13,6 +13,8 @@ public class SendPort implements ibis.ipl.SendPort {
 
     private final static boolean DEBUG = /* true || */ Ibis.DEBUG;
 
+    private final static boolean BCAST_VERBOSE = /* true || */ Ibis.DEBUG;
+
     private final static boolean USE_BCAST;
     static {
 	USE_BCAST = System.getProperty("ibis.mp.broadcast") != null && System.getProperty("ibis.mp.broadcast").equals("native");
@@ -184,10 +186,12 @@ public class SendPort implements ibis.ipl.SendPort {
 	if (group == NO_BCAST_GROUP) {
 	    throw new IOException("Retrieval of group ID failed");
 	}
-System.err.println(ident + ": have broadcast group " + group + " receiver(s) ");
-for (int i = 0, n = splitter.length; i < n; i++) {
-    System.err.println("    " + (ReceivePortIdentifier)splitter[i]);
-}
+	if (BCAST_VERBOSE) {
+	    System.err.println(ident + ": have broadcast group " + group + " receiver(s) ");
+	    for (int i = 0, n = splitter.length; i < n; i++) {
+		System.err.println("    " + (ReceivePortIdentifier)splitter[i]);
+	    }
+	}
     }
 
 
