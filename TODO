@@ -23,3 +23,7 @@ general:
 - IBISC maken / fixen
     after distribution.
 - run central nameserver on fs0
+
+- System.exit werkt niet goed vanuit Satin.
+  ShutdownHook -> colission met ibis shutdownhook...
+
