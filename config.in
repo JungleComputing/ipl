@@ -86,7 +86,7 @@ JAVAPFLAGS	+= -c -classpath $(JAVACLASSPATH):
 CLASSPATH	= $(JAVACLASSPATH)
 export CLASSPATH
 
-LD_LIBRARY_PATH	= $(IBIS_ROOT)/ibis/lib
+LD_LIBRARY_PATH	:= $(IBIS_ROOT)/ibis/lib:$(LD_LIBRARY_PATH)
 export LD_LIBRARY_PATH
 
 LD_ASSUME_KERNEL	= 2.2.5
@@ -118,11 +118,11 @@ MAIN_CLASS_NAME	= $(MAIN:%.java=%)
 
 LDSO	= gcc -shared
 
-SATINC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.satin.Satinc -keep -compiler "$(JAVAC) -g -classpath $(JAVACLASSPATH)"
+SATINC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH): ibis.frontend.satin.Satinc -keep -compiler "$(JAVAC) -g -classpath $(JAVACLASSPATH):"
 
 IOC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.io.IOGenerator
 
-IBISC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.ibis.Ibisc -compiler  "$(JAVAC) -g -classpath $(JAVACLASSPATH)" -mantac "$(MANTAC_COMMAND)"
+IBISC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH): ibis.frontend.ibis.Ibisc -compiler  "$(JAVAC) -g -classpath $(JAVACLASSPATH):" -mantac "$(MANTAC_COMMAND)"
 
 
 # When using Manta, set these values correctly and use "make manta"
