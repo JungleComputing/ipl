@@ -1,6 +1,5 @@
 package ibis.util;
 
-
 /**
  * Class for doing some recurring statistical calculations.
  */
@@ -28,6 +27,7 @@ public final class Stats {
 	for (int i = off; i < (off+len); i++) {
 	    total += data[i];
 	}
+	if (len == 0) return 0.0;
 	return total / len;
     }
 
@@ -59,12 +59,17 @@ public final class Stats {
 	    sum += v * v;
 	}
 
+	if (len <= 1) return 0.0;
+
 	return Math.sqrt(sum / (len - 1));
     }
 
     /**
      * Calculates a speed in Mb/s given the size in bytes and the time
      * in milliseconds. The result is rounded to one hundreth of an integer
+      * @param bytes size of the data in bytes
+      * @param millis the time of the measurement in milliseconds
+      * @return the speed.
      */
     public static double mbs(double bytes, double millis) {
 	return round(((bytes / millis) * 1000.0) / (1024.0 * 1024.0));
