@@ -128,6 +128,7 @@ public class DataSerializationInputStream
      */
     private int		max_double_index;
 
+
     /**
      * Constructor with an <code>Dissipator</code>.
      * @param in		the underlying <code>Dissipator</code>
@@ -265,6 +266,7 @@ public class DataSerializationInputStream
      */
     protected void readBooleanArray(boolean ref[], int off, int len)
 	    throws IOException {
+	int received = readInt();
 	in.readArray(ref, off, len);
     }
 
@@ -274,6 +276,7 @@ public class DataSerializationInputStream
      */
     protected void readByteArray(byte ref[], int off, int len)
 	    throws IOException {
+	int received = readInt();
 	in.readArray(ref, off, len);
     }
 
@@ -283,6 +286,7 @@ public class DataSerializationInputStream
      */
     protected void readCharArray(char ref[], int off, int len)
 	    throws IOException {
+	int received = readInt();
 	in.readArray(ref, off, len);
     }
 
@@ -292,6 +296,7 @@ public class DataSerializationInputStream
      */
     protected void readShortArray(short ref[], int off, int len)
 	    throws IOException {
+	int received = readInt();
 	in.readArray(ref, off, len);
     }
 
@@ -301,6 +306,7 @@ public class DataSerializationInputStream
      */
     protected void readIntArray(int ref[], int off, int len)
 	    throws IOException {
+	int received = readInt();
 	in.readArray(ref, off, len);
     }
 
@@ -310,6 +316,7 @@ public class DataSerializationInputStream
      */
     protected void readLongArray(long ref[], int off, int len)
 	    throws IOException {
+	int received = readInt();
 	in.readArray(ref, off, len);
     }
 
@@ -319,6 +326,7 @@ public class DataSerializationInputStream
      */
     protected void readFloatArray(float ref[], int off, int len)
 	    throws IOException {
+	int received = readInt();
 	in.readArray(ref, off, len);
     }
 
@@ -328,6 +336,7 @@ public class DataSerializationInputStream
      */
     protected void readDoubleArray(double ref[], int off, int len)
 	    throws IOException {
+	int received = readInt();
 	in.readArray(ref, off, len);
     }
 
@@ -618,7 +627,7 @@ public class DataSerializationInputStream
      * @exception IOException when called, this is illegal
      */
     public String readUTF() throws IOException {
-	throw new IOException("Illegal data type read");
+	throw new IOException("Somebody claimed UTF is valid for data streams. But in Ibis: Illegal data type read");
     }
 
     /**

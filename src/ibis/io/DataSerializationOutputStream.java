@@ -578,57 +578,89 @@ public class DataSerializationOutputStream
 
     /**
      * {@inheritDoc}
+     *
+     * We must write something before the array to ensure that the receiver
+     * reads its buffer bounds.
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
+	writeInt(len);
 	writeArray(ref, off, len, TYPE_BOOLEAN);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * We must write something before the array to ensure that the receiver
+     * reads its buffer bounds.
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
+	writeInt(len);
 	writeArray(ref, off, len, TYPE_BYTE);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * We must write something before the array to ensure that the receiver
+     * reads its buffer bounds.
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
+	writeInt(len);
 	writeArray(ref, off, len, TYPE_SHORT);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * We must write something before the array to ensure that the receiver
+     * reads its buffer bounds.
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
+	writeInt(len);
 	writeArray(ref, off, len, TYPE_CHAR);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * We must write something before the array to ensure that the receiver
+     * reads its buffer bounds.
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
+	writeInt(len);
 	writeArray(ref, off, len, TYPE_INT);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * We must write something before the array to ensure that the receiver
+     * reads its buffer bounds.
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
+	writeInt(len);
 	writeArray(ref, off, len, TYPE_LONG);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * We must write something before the array to ensure that the receiver
+     * reads its buffer bounds.
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
+	writeInt(len);
 	writeArray(ref, off, len, TYPE_FLOAT);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * We must write something before the array to ensure that the receiver
+     * reads its buffer bounds.
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
+	writeInt(len);
 	writeArray(ref, off, len, TYPE_DOUBLE);
     }
 
