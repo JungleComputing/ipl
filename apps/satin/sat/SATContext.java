@@ -120,9 +120,6 @@ public class SATContext implements java.io.Serializable {
 	for( int i=0; i<sz; i++ ){
 	    int cno = neg.get( i );
 
-	    if( !satisfied[cno] ){
-	        unsatisfied--;
-	    }
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
 		// We now have a term that cannot be satisfied. Conflict.
@@ -168,9 +165,6 @@ public class SATContext implements java.io.Serializable {
 	for( int i=0; i<sz; i++ ){
 	    int cno = neg.get( i );
 
-	    if( !satisfied[cno] ){
-	        unsatisfied--;
-	    }
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
 		// We now have a term that cannot be satisfied. Conflict.
