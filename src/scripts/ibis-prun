@@ -40,7 +40,7 @@ key="$PRUN_ENV"
 function usage () {
 cat << 'EOF'
 Usage:
-    prun -no-panda ibis-prun <ibis-prun params> <jvm params> <classname> <application params>"
+    prun -no-panda ibis-prun <ibis-prun params> <jvm params> <classname> <application params>
 The first parameter that is not recognized as an option to ibis-prun
 terminates the ibis-prun parameters.
 The ibis-prun parameters are:
