@@ -358,6 +358,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             if( traceRestarts ){
                 System.err.println( "RestartException reaches top level, no solutions" );
             }
+	    s.abort();
+            return null;
         }
         catch( SATException x ){
             System.err.println( "Uncaught " + x + "???" );
