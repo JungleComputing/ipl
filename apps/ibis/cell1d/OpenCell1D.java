@@ -911,19 +911,32 @@ class OpenCell1D implements OpenConfig {
         }
 
         try {
-            StaticProperties s = new StaticProperties();
-            s.add( "serialization", "data" );
-            s.add( "communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt" );
-            s.add( "worldmodel", "open" );
-            ibis = Ibis.createIbis( s, rszHandler );
+            // The properties of Ibis; the union of the properties below.
+            StaticProperties iprop = new StaticProperties();
+            iprop.add( "serialization", "data" );
+            iprop.add( "communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt" );
+            iprop.add( "worldmodel", "open" );
+
+            // The properties of the update port.
+            StaticProperties uprop = new StaticProperties();
+            uprop.add( "serialization", "data" );
+            uprop.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
+            uprop.add( "worldmodel", "open" );
+
+            // The properties of the worksteal port.
+            StaticProperties sprop = new StaticProperties();
+            sprop.add( "serialization", "data" );
+            sprop.add( "communication", "OneToOne, Reliable, AutoUpcalls" );
+            sprop.add( "worldmodel", "open" );
+            ibis = Ibis.createIbis( iprop, rszHandler );
             myName = ibis.identifier();
 
             registry = ibis.registry();
 
             // TODO: be more precise about the properties for the two
             // port types.
-            PortType updatePort = ibis.createPortType( "neighbour update", s );
-            PortType stealPort = ibis.createPortType( "loadbalance", s );
+            PortType updatePort = ibis.createPortType( "neighbour update", uprop );
+            PortType stealPort = ibis.createPortType( "loadbalance", sprop );
 
             long startTime = System.currentTimeMillis();
             ibis.enableResizeUpcalls();

@@ -11,4 +11,4 @@ The program parameters are:
 -size <size>
     the width/height of the board (default is 3000)
 <ngenerations>
-    the number of generations to run this simulation (default is 10)
+    the number of generations to run this simulation (default is 30)
