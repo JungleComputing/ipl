@@ -368,9 +368,10 @@
     </target>
 
     <target name="-compile"
-	    depends="init,bcel"
-	    description="Compile Java source files without preprocessing">
-	    <!-- depend" -->
+	    depends="init,bcel">
+	    <!-- description commented out: internal target
+	    description="Compile Java source files without preprocessing"
+	    -->
 	<echo	message="java.debug.value = ${java.debug.value}"
 		level="verbose"/>
 	<javac  destdir="${build}"
