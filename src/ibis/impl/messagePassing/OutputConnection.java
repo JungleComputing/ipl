@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-class OutputConnection {
+final class OutputConnection {
 
     native void ibmp_connect(int cpu, int port,
 				       int my_port, String type, String ibisId,

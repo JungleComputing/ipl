@@ -6,7 +6,9 @@ import ibis.io.MantaOutputStream;
 
 // the implements should be unnecessary, but the IOGenerator does not 
 // see that the super class implents it, and rewrites the bytecode.
-final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Serializable, ibis.io.Serializable
+final class IbisIdentifier
+	extends ibis.ipl.IbisIdentifier
+	implements java.io.Serializable, ibis.io.Serializable
 {
     int cpu;
 

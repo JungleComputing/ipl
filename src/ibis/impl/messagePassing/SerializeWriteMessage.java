@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 
 import ibis.ipl.IbisIOException;
 
-class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
+final class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     ObjectOutputStream obj_out;
 

@@ -365,6 +365,22 @@ ibp_intr_unlock(void)
 
 
 void
+ibp_intr_enable(JNIEnv *env)
+{
+    pan_comm_intr_enable();
+}
+
+
+void
+ibp_intr_disable(JNIEnv *env)
+{
+    pan_comm_intr_disable();
+}
+
+
+
+
+void
 ibp_report(JNIEnv *env, jint out)
 {
     FILE *f;

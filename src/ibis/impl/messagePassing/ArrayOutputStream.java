@@ -8,7 +8,7 @@ import ibis.ipl.IbisIOException;
  * Extends OutputStream with write of array of primitives and writeSingleInt
  */
 
-public class ArrayOutputStream
+final public class ArrayOutputStream
 	extends ibis.io.ArrayOutputStream {
 
     private ByteOutputStream out;
@@ -115,8 +115,8 @@ public class ArrayOutputStream
     }
 
 
-    final public void flush() throws IbisIOException {
-	out.flush();
+    final public void flush(boolean lastFrag) throws IbisIOException {
+	out.flush(lastFrag);
 // System.err.println(this + ": flush; out " + out + "; out.completed " + out.completed());
 	if (! out.completed()) {
 	    indices_short = new short[PRIMITIVE_TYPES];

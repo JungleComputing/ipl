@@ -202,7 +202,7 @@ final class Main {
 			int retries     = 10;
 			boolean upcalls = false;
 			boolean panda   = false;
-			boolean manta   = false;
+			boolean manta   = true;
 			int rank = info.hostNumber(); 
 			int tests = 0;
 
@@ -255,7 +255,10 @@ final class Main {
 				} else if (args[i].equals("-retries")) { 
 					retries = Integer.parseInt(args[i+1]);
 					i += 2;
-				} 
+				} else { 
+					System.err.println("Unknown option " + args[i]);
+					i++;
+				}
 			} 
 
 			if (verbose) { 
@@ -265,7 +268,7 @@ final class Main {
 			if(!panda) {
 				ibis = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.tcp.TcpIbis", null);
 			} else {
-				ibis = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
+				ibis = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.messagePassing.PandaIbis", null);
 			}
 
 			if (verbose) { 

@@ -4,7 +4,7 @@ import java.io.ObjectInput;
 
 import ibis.ipl.IbisIOException;
 
-class SerializeReadMessage extends ibis.ipl.impl.messagePassing.ReadMessage {
+final class SerializeReadMessage extends ibis.ipl.impl.messagePassing.ReadMessage {
 
     java.io.ObjectInput obj_in;
 

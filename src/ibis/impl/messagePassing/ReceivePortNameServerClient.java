@@ -3,7 +3,7 @@ package ibis.ipl.impl.messagePassing;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
-class ReceivePortNameServerClient
+final class ReceivePortNameServerClient
     implements ReceivePortNameServerProtocol {
 
     static {

@@ -2,7 +2,7 @@ package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.impl.generic.ConditionVariable;
 
-class AcceptThread extends Thread {
+final class AcceptThread extends Thread {
 
     ReceivePort port;
     ibis.ipl.ConnectUpcall upcall;

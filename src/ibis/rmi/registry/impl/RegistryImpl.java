@@ -43,8 +43,9 @@ if(RTS.DEBUG)
 	} else {	    
 	    this.port = port;
 	}
-if(RTS.DEBUG) 
-	System.out.println("RegistryImpl<init>: host = "  + this.host + " port = " + this.port);
+if(RTS.DEBUG)  {
+    System.out.println("RegistryImpl<init>: host = "  + this.host + " port = " + this.port);
+}
 	
     }
     

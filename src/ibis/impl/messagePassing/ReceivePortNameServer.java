@@ -4,7 +4,7 @@ import ibis.ipl.IbisIOException;
 
 import java.util.Hashtable;
 
-class ReceivePortNameServer implements
+final class ReceivePortNameServer implements
     ReceivePortNameServerProtocol {
 
     private Hashtable ports;

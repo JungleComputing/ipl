@@ -7,7 +7,7 @@ import java.io.BufferedInputStream;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
-class SerializeShadowSendPort extends ShadowSendPort {
+final class SerializeShadowSendPort extends ShadowSendPort {
 
     java.io.ObjectInput obj_in;
     boolean initializing = false;

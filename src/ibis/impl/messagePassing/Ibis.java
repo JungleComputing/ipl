@@ -92,7 +92,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	 */
 	Runtime.getRuntime().addShutdownHook(new Thread() {
 	    public void run() {
-		report();
+		end();
 	    }
 	});
 	/* */
@@ -434,6 +434,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	ConditionVariable.report(System.out);
 	ReceivePort.report(System.out);
 	rcve_poll.report(System.out);
+	MantaOutputStream.statistics();
 	ibmp_report(1);
     }
 
@@ -464,7 +465,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
 	report();
 
-	ibis.ipl.impl.messagePassing.ReceivePort.end();
+	// ibis.ipl.impl.messagePassing.ReceivePort.end();
 
 System.err.println("Call Ibis.ibmp_end");
 	ibmp_end();

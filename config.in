@@ -404,13 +404,16 @@ $(OUT): $(MAIN_CLASS) $(O_FILES) $(MANTA_LIB)
 run:
 	$(JPATH)/bin/java $(JAVACFLAGS) $(MAIN:%.java=%)
 
+
+GETPID	= $(IBIS_ROOT)/ibis/bin/getpid
+
 # Print a feasible prun command; mouse this into your command line
 #
 .PHONY:	prun
 prun:
 ifeq (1, $(BUILD_MANTA))
-	@echo "prun IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) $(OUT) 2 -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger -Dibis.name=panda $(JAVACFLAGS) 'args ...'"
+	@echo "prun LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) $(OUT) 2 -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger\`$(GETPID)\` -Dibis.name=panda $(JAVACFLAGS) 'args ...'"
 else
-	@echo "prun -v -1 -subst IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) -no-panda $(IBIS_ROOT)/ibis/bin/java_wrapper 2 $(JPATH)/bin/java -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger -Dpool_host_number=%d -Dpool_total_hosts=%n -Dpool_host_names=\"%h\" -Dhosts=\"%h\" -Dibis.name=panda $(MAIN:%.java=%) args..."
+	@echo "prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH) -no-panda $(IBIS_ROOT)/ibis/bin/java_wrapper 2 $(JPATH)/bin/java -Xmx400M -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger\`$(GETPID)\` -Dpool_host_number=%d -Dpool_total_hosts=%n -Dpool_host_names=\"%h\" -Dhosts=\"%h\" -Dibis.name=panda $(MAIN:%.java=%) args..."
 endif
-	@echo $(IBIS_ROOT)/ibis/bin/java_wrapper $(JPATH)/bin/java -Dpool_total_hosts=2 -Dpool_host_number=$$PRUN_CPU_RANK -Dpool_host_names=\"$$HOSTS\" -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger -Dhosts=\"$$HOSTS\" -Dibis.name=panda
+	@echo $(IBIS_ROOT)/ibis/bin/java_wrapper $(JPATH)/bin/java -Xmx400M -Dpool_total_hosts=2 -Dpool_host_number=$$PRUN_CPU_RANK -Dpool_host_names=\"$$HOSTS\" -Dname_server=mercury.cs.vu.nl -Dname_server_pool=rutger\`$(GETPID)\` -Dhosts=\"$$HOSTS\" -Dibis.name=panda $(MAIN:%.java=%)

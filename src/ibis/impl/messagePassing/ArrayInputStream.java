@@ -8,7 +8,7 @@ import ibis.ipl.IbisIOException;
  * Extends InputStream with read of array of primitives
  */
 
-public class ArrayInputStream
+final public class ArrayInputStream
 	extends ibis.io.ArrayInputStream {
 
     private ByteInputStream in;

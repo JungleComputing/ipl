@@ -4,7 +4,7 @@ import ibis.ipl.IbisIOException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 
-class ByteOutputStream
+final class ByteOutputStream
 	extends java.io.OutputStream
 	implements PollClient {
 
@@ -33,6 +33,8 @@ class ByteOutputStream
 
     void send(boolean lastFrag) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+// if (lastFrag)
+// System.err.println("L");
 
 	int n = sport.splitter.length;
 
@@ -56,6 +58,14 @@ class ByteOutputStream
 			 i == n - 1,
 			 lastFrag)) {
 		send_acked = false;
+	    }
+	}
+
+	if (false && ! lastFrag) {
+	    try {
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.pollLocked();
+	    } catch (IbisIOException e) {
+		System.err.println("pollLocked throws " + e);
 	    }
 	}
 
@@ -191,12 +201,17 @@ class ByteOutputStream
 
 
     public void flush() {
+	flush(false);
+    }
+
+
+    public void flush(boolean lastFrag) {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; msgHandle 0x" + Integer.toHexString(msgHandle));
 	}
 // manta.runtime.RuntimeSystem.DebugMe(this, null);
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	send(false /* not lastFrag */);
+	send(lastFrag);
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 

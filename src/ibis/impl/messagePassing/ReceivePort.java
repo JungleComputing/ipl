@@ -31,6 +31,8 @@ class ReceivePort
     private static final boolean STATISTICS = true;
     private static int threadsCreated;
     private static int threadsCached;
+    private static long explicitFinish;
+    private static long implicitFinish;
 
     private static int livingPorts = 0;
     private static Syncer portCounter = new Syncer();
@@ -52,7 +54,7 @@ class ReceivePort
     private ibis.ipl.impl.messagePassing.ReadMessage currentMessage = null;
 
     Thread thread;
-    ibis.ipl.Upcall upcall;
+    private ibis.ipl.Upcall upcall;
     int upcallThreads;
 
     volatile boolean stop = false;
@@ -315,11 +317,15 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	    System.err.println(Thread.currentThread() + "******* Now finish this ReceivePort message: " + currentMessage);
 	    // Thread.dumpStack();
 	}
+	if (STATISTICS) {
+	    explicitFinish++;
+	}
 
 	ShadowSendPort ssp = currentMessage.shadowSendPort;
 	if (ssp.cachedMessage == null) {
 	    ssp.cachedMessage = currentMessage;
 	}
+	currentMessage.finished = true;
 	currentMessage = null;
 	aMessageIsAlive = false;
 	if (liveWaiters > 0) {
@@ -330,7 +336,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	    if (arrivedWaiters > 0) {
 		messageArrived.cv_signal();
 	    }
-	    else if (availableUpcallThread == 0) {
+	    else if (upcall != null && availableUpcallThread == 0) {
 // System.err.println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
 		createNewUpcallThread();
 	    }
@@ -434,7 +440,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
     }
 
 
-    private ibis.ipl.ReadMessage doReceive() throws IbisIOException {
+    private ReadMessage doReceive() throws IbisIOException {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 	if (DEBUG) {
@@ -488,13 +494,14 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
     }
 
 
-    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe)
+    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMeIpl)
 	    throws IbisIOException {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 // manta.runtime.RuntimeSystem.DebugMe(this, this);
-	    if (finishMe != null) {
-		finishMe.finish();
+	    if (finishMeIpl != null) {
+		ReadMessage finishMe = (ReadMessage)finishMeIpl;
+		finishMe.finishLocked();
 	    }
 	    return doReceive();
 	} finally {
@@ -568,7 +575,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
     }
 
-	/** Asynchronous receive. Return immediately when no message is available. 
+	/** Asynchronous receive. Return immediately when no message is available.
 	 Also works for upcalls, then it is a normal poll. **/
 	public ibis.ipl.ReadMessage poll() throws IbisIOException {
 		System.err.println("poll not implemented");
@@ -669,6 +676,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
+
     private String connectionToString() {
 	String t = "Connections =";
 	for (int i = 0; i < connections.size(); i++) {
@@ -677,83 +685,89 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	return t;
     }
 
+
     public void run() {
 
-	boolean locked = false;
-
 	if (upcall == null) {
-	    System.err.println(Thread.currentThread() + "ReceivePort runs but upcall == null");
+	    System.err.println(Thread.currentThread() + "ReceivePort " + name + ", daemon = " + this + " runs but upcall == null");
 	}
+else System.err.println(Thread.currentThread() + " ReceivePort " + name + ", daemon = " + this + " runs");
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + " ReceivePort " + name + ", daemon = " + this + " runs");
 	}
 
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+
 	try {
+	    Thread me = Thread.currentThread();
+
 	    while (true) {
-		ibis.ipl.ReadMessage msg = null;
+		ReadMessage msg = null;
 		
-		if (! locked) {
-		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-		    locked = true;
+		if (stop) {
+		    if (DEBUG) {
+			System.err.println(Thread.currentThread() + "Receive port daemon " + this +
+					   " upcall thread polls " + upcall_poll);
+		    }
+		    upcallThreads--;
+		    break;
 		}
 
-		try {
-		    if (stop) {
-			if (DEBUG) {
-			    System.err.println(Thread.currentThread() + "Receive port daemon " + this +
-					       " upcall thread polls " + upcall_poll);
-			}
-			upcallThreads--;
-			break;
-		    }
-
-		    /* Nowadays, use NON_POLLING for the preempt flag. */
-		    if (DEBUG) {
-			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
-		    }
-
-		    mePolling = true;
-		    for (int i = 0;
-			 queueFront == null && i < polls_before_yield;
-			 i++) {
-			if (Ibis.myIbis.pollLocked()) {
-			    // break;
-			}
-		    }
-		    mePolling = false;
-
-		    while (queueFront == null) {
-			// // // ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_PREEMPTIVE);
-			// ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.NON_PREEMPTIVE : Poll.NON_POLLING);
-			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_POLLING);
-		    }
-		    if (DEBUG) {
-			upcall_poll++;
-			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
-		    }
-
-		    while (! allowUpcalls) {
-			enable.cv_wait();
-		    }
-
-		    msg = doReceive();	// May throw an IbisIOException
-		    if (msg != null) availableUpcallThread--;
-
-		} finally {
-		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
-		    locked = false;
+		/* Nowadays, use NON_POLLING for the preempt flag. */
+		if (DEBUG) {
+		    System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		}
+
+		mePolling = true;
+		for (int i = 0;
+		     queueFront == null && i < polls_before_yield;
+		     i++) {
+		    if (Ibis.myIbis.pollLocked()) {
+			// break;
+		    }
+		}
+		mePolling = false;
+
+		while (queueFront == null) {
+		    // // // ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_PREEMPTIVE);
+		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.NON_PREEMPTIVE : Poll.NON_POLLING);
+		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_POLLING);
+		}
+		if (DEBUG) {
+		    upcall_poll++;
+		    System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
+		}
+
+		while (! allowUpcalls) {
+		    enable.cv_wait();
+		}
+
+		msg = doReceive();	// May throw an IbisIOException
 
 		if (msg != null) {
-		    if (DEBUG) {
-			System.err.println(Thread.currentThread() + "Now process this msg " + msg + " msg.fragmentFront.msgHandle " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)msg).fragmentFront.msgHandle));
+		    availableUpcallThread--;
+		    msg.creator = me;
+		    msg.finished = false;
+
+		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+
+		    try {
+			upcall.upcall(msg);
+		    } finally {
+			ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 		    }
-		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-		    upcall.upcall(msg);
+
+		    /* Be sure to signal the presence of an upcall thread
+		     * before calling finish(). Otherwise, finish() would
+		     * spawn an extra popup thread. */
+		    availableUpcallThread++;
+		    if (! msg.finished && msg.creator == me) {
+			msg.finishLocked();
+			if (STATISTICS) {
+			    implicitFinish++;
+			}
+		    }
 		}
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-		locked = true;
-		if (msg != null) availableUpcallThread++;
 	    }
 
 	} catch (IbisIOException e) {
@@ -770,6 +784,9 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	    // System.err.println("My stack: ");
 	    // Thread.dumpStack();
 	    // System.exit(44);
+
+	} finally {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
 
 	if (DEBUG) {
@@ -783,7 +800,7 @@ System.err.println("ReceivePort " + this + " upcallThread " + Thread.currentThre
     static void report(java.io.PrintStream out) {
 	if (STATISTICS) {
 	    out.println(Ibis.myIbis.myCpu + ": ReceivePort threads created " + threadsCreated +
-			" (cached " + threadsCached + ")");
+			" (cached " + threadsCached + "); finish Xpl " + (explicitFinish - implicitFinish) + " Mpl " + implicitFinish);
 	}
     }
 

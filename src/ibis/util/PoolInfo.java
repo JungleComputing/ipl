@@ -93,4 +93,11 @@ public class PoolInfo {
 		
 		return Integer.parseInt(temp);
 	}	
+
+
+    public static void printTime(String id, long time) {
+	System.out.println("Application: " + id + "; Ncpus: " + total_hosts +
+			   "; time: " + time/1000.0 + " seconds\n");
+    }
+
 }

@@ -33,21 +33,27 @@ public class ConditionVariable {
     }
 
 
-    final public void cv_wait(long timeout) {
+    final public boolean cv_wait(long timeout) {
 	lock.checkImOwner();
 	if (Monitor.DEBUG) {
 	    timed_waits++;
 	}
 
+	boolean timedOut = false;
+
 	synchronized (this) {
+	    long now = System.currentTimeMillis();
 	    lock.unlock();
 	    try {
 		wait(timeout);
 	    } catch (InterruptedException e) {
 		// Ignore
 	    }
+	    timedOut = (System.currentTimeMillis() - now >= timeout);
 	}
 	lock.lock();
+
+	return timedOut;
     }
 
 
@@ -75,12 +81,13 @@ public class ConditionVariable {
     }
 
     static public void report(java.io.PrintStream out) {
-	if (! Monitor.DEBUG) return;
-	Monitor.report(out);
-	out.println("Condition variables: wait " + waits +
-		    " timed wait " + timed_waits +
-		    " signal " + signals +
-		    " bcast " + bcasts);
+	if (Monitor.DEBUG) {
+	    Monitor.report(out);
+	    out.println("Condition variables: wait " + waits +
+			" timed wait " + timed_waits +
+			" signal " + signals +
+			" bcast " + bcasts);
+	}
     }
 
 }

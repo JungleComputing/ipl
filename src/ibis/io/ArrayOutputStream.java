@@ -106,7 +106,7 @@ public abstract class ArrayOutputStream
 //System.err.println("Sure, reset them indeces");
     }
 
-    /* protected */ public abstract void flush() throws IbisIOException;
+    /* protected */ public abstract void flush(boolean lastFrag) throws IbisIOException;
 
     /* protected */ public abstract void finish() throws IbisIOException;
 

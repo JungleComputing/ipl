@@ -3,7 +3,7 @@ package ibis.ipl.impl.messagePassing;
 import ibis.ipl.IbisIOException;
 
 
-class ByteInputStream
+final class ByteInputStream
 	extends java.io.InputStream
 	implements ibis.io.TypeSize {
 

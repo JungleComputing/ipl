@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-class PortHash {
+final class PortHash {
 
     private final int	PORT_DATABASE_CHUNK = 32;
     private int		maxPortDataBase = 0;

@@ -7,7 +7,20 @@ SRC += Tree.java
 MAIN = Main.java
 OUT=main
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Data.java
+SERIALIZABLE	+= List.java
+SERIALIZABLE	+= DList.java
+SERIALIZABLE	+= Tree.java
+
+INNER_CLASS	+= Receiver.class
+
+MP_MODE		= Panda
+
 include ../../../config.mk
+
+Receiver.class:	Main.class
+	$(MAKE) $(MFLAGS) Main.class
 
 APP_OPTIONS =
 APP_OPTIONS += -verbose
@@ -19,10 +32,6 @@ APP_OPTIONS += -panda
 include ../config.mk
 
 java: $(CLASS_FILES) $(MAIN_CLASS)
-	java ibis.frontend.io.IOGenerator Data.class
-	java ibis.frontend.io.IOGenerator List.class
-	java ibis.frontend.io.IOGenerator DList.class
-	java ibis.frontend.io.IOGenerator Tree.class
 
 manta: $(MAIN) $(O_FILES)
 #	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) ../../../../ibis/$(IBIS_LIB)

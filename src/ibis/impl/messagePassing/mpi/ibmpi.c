@@ -163,6 +163,18 @@ ibp_string_push(JNIEnv *env, jstring s, pan_iovec_p iov)
 
 
 void
+ibp_intr_enable(JNIEnv *env)
+{
+}
+
+
+void
+ibp_intr_disable(JNIEnv *env)
+{
+}
+
+
+void
 ibp_report(JNIEnv *env, jint out)
 {
 }

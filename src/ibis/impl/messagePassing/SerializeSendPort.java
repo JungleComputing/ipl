@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.Replacer;
 
-public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
+final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 
     ObjectOutputStream obj_out;
 

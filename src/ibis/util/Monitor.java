@@ -2,7 +2,7 @@ package ibis.ipl.impl.generic;
 
 public class Monitor {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     private boolean in_use = false;
     private int waiters = 0;
 
@@ -21,7 +21,7 @@ public class Monitor {
     final public synchronized void lock() {
 	if (DEBUG && owner == Thread.currentThread()) {
 	    // manta.runtime.RuntimeSystem.DebugMe(1, this);
-	    new Throwable().printStackTrace();
+	    Thread.dumpStack();
 	    throw new IllegalMonitorStateException("Already own monitor");
 	}
 
@@ -48,7 +48,7 @@ public class Monitor {
     final public synchronized void unlock() {
 	if (DEBUG && owner != Thread.currentThread()) {
 	    // manta.runtime.RuntimeSystem.DebugMe(2, this);
-	    new Throwable().printStackTrace();
+	    Thread.dumpStack();
 	    throw new IllegalMonitorStateException("Don't own monitor");
 	}
 
@@ -98,7 +98,9 @@ public class Monitor {
 
 
     static public void report(java.io.PrintStream out) {
-	if (DEBUG) out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " <waiters> " + ((double)unlock_waiters) / unlock_waiting);
+	if (Monitor.DEBUG) {
+	    out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " <waiters> " + ((double)unlock_waiters) / unlock_waiting);
+	}
     }
 
 }

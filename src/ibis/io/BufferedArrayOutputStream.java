@@ -310,7 +310,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	}
 
 
-	public final void flush() throws IbisIOException {
+	public final void flush(boolean lastFrag) throws IbisIOException {
 	    flush(0, true);
 	}
 

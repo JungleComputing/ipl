@@ -15,6 +15,9 @@ public class ReadMessage
 
     int msgSeqno;
 
+    boolean	finished;	// Use these for upcall receive without
+    Thread	creator;	// explicit finish() call
+
     ibis.ipl.impl.messagePassing.ReadMessage next;
     ReadFragment fragmentFront;
     ReadFragment fragmentTail;
@@ -132,10 +135,15 @@ public class ReadMessage
     }
 
 
-    public void finish() {
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+    void finishLocked() {
 	clear();
 	port.finishMessage();
+    }
+
+
+    public void finish() {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	finishLocked();
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
