@@ -1,6 +1,5 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
@@ -45,11 +44,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 			String key = in.readUTF();
 			String value = in.readUTF();
 
-			try { 
-				p.add(key, value);
-			} catch (IbisException e) {
-				// never happens
-			} 
+			p.add(key, value);
 		}
 
 		StaticProperties temp = (StaticProperties) portTypes.get(name);

@@ -56,6 +56,7 @@
 	<antcall inheritAll="true" inheritRefs="true" target="compile">
 	    <reference refid="build.sources.all" torefid="build.sources"/>
 	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
 	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
 	<antcall inheritAll="true" inheritRefs="true" target="natives"/>
@@ -323,6 +324,21 @@
 
     <target name="natives" depends="natives.misc,natives.mp,natives.net"/>
 
+    <target name="copyProperties"
+	    depends="init"
+	    description="Copy property files to the build tree">
+	<copy todir="${build}">
+	    <fileset dir="${src}">
+		<include name="ibis/impl/**/properties"/>
+	    </fileset>
+	</copy>
+	<copy todir="${build}">
+	    <fileset dir="${ibis}">
+		<include name="*_properties"/>
+	    </fileset>
+	</copy>
+    </target>
+
     <target name="compile"
 	    depends="init,bcel"
 	    description="Compile Java source files without preprocessing">
@@ -354,14 +370,14 @@
 	<echo level="verbose" message="basename = ${package-basename}"/>
 	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
 		basedir="${ibis}/build"
-		includes="ibis/impl/${package-basename}/**/*.class"/>
+		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties *_properties"/>
     </target>
 
     <target name="jars"
 	    description="Generate jar files for ibis">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
-		includes="**/*.class"/>
+		includes="**/*.class **/properties *_properties"/>
 	<foreach target="jar.package"
 		param="ibis.sub-package">
 	    <path>
@@ -398,6 +414,7 @@
 	<antcall inheritAll="true" inheritRefs="true" target="compile">
 	    <reference refid="build.sources-tcp" torefid="build.sources"/>
 	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
 	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
 	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
@@ -424,7 +441,7 @@
     </target>
 
     <!--
-	Compile, run IOGenerator, compile native code for Net Ibis
+	Compile, run IOGenerator, compile native code for MP Ibis
     -->
     <target name="build-mp"
 	    description="Build messagePassing Ibis">
@@ -438,6 +455,7 @@
 	<antcall inheritAll="true" inheritRefs="true" target="compile">
 	    <reference refid="build.sources-mp" torefid="build.sources"/>
 	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
 	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
 	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>

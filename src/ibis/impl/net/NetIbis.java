@@ -4,6 +4,7 @@ import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
@@ -239,14 +240,14 @@ public final class NetIbis extends Ibis {
 	 * @return the resulting properties.
 	 */
 	private StaticProperties extractDriverStack(StaticProperties sp) {
-	    StaticProperties s = new StaticProperties(sp);
+	    StaticProperties s = (StaticProperties) sp.clone();
 	    String serialization = s.find("Serialization");
 	    String path = "/";
 	    if (serialization != null && ! serialization.equals("none")) {
 		String top = "s_" + serialization;
 		try {
 		    s.add(path + ":Driver", top);
-		} catch(IbisException e) {
+		} catch(IbisRuntimeException e) {
 		    return sp;
 		}
 		path = path + top;
@@ -264,7 +265,7 @@ public final class NetIbis extends Ibis {
 		    // System.err.println("Now register static property \"" + (path + ":Driver") + "\" as \"" + top + "\"");
 		    try {
 			s.add(path + ":Driver", top);
-		    } catch(IbisException e) {
+		    } catch(IbisRuntimeException e) {
 			return sp;
 		    }
 		    if (dot == -1) {
