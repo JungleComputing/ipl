@@ -32,7 +32,7 @@
     </target>
 
     <target name="build"
-	    depends="init"
+	    depends="init, clean"
 	    description="Compile RMI application for Ibis RMI">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic"/>
