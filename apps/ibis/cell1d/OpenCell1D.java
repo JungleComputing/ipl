@@ -9,7 +9,7 @@ import java.io.IOException;
 
 interface OpenConfig {
     static final boolean tracePortCreation = false;
-    static final boolean traceCommunication = false;
+    static final boolean traceCommunication = true;
     static final boolean showProgress = true;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
@@ -282,12 +282,12 @@ class OpenCell1D implements OpenConfig {
     {
         if( port == null ){
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": I don't have a left neighbour to send to" );
+                System.out.println( "P" + me + ":" + generation + ": there is no left neighbour to send to" );
             }
             return;
         }
         if( traceCommunication ){
-            System.out.println( "P" + me + ":" + generation + ": sending to left neighbour " + port );
+            System.out.println( "P" + me + ":" + generation + ": sending to P" + (me-1) + ": " + port );
         }
         if( p.firstColumn == 0 ){
             System.err.println( "ERROR: I have a left neighbour, but my first column is 0???" );
@@ -305,7 +305,7 @@ class OpenCell1D implements OpenConfig {
         }
         if( sendCount>0 ){
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ":" + generation + ": I must send " + sendCount + " columns to left neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": sending " + sendCount + " columns to P" + (me+1) );
             }
             // The border has changed, but since until now we maintained it,
             // we can record its current state from our own columns.
@@ -322,7 +322,7 @@ class OpenCell1D implements OpenConfig {
 
             if( buf == null ){
                 // This shouldn't happen, but make the best of it.
-                System.out.println( "ERROR: P" + me + ":" + generation + ": cannot send null column " + ix + " to left neighbour; sending a dummy instead" );
+                System.out.println( "ERROR: P" + me + ":" + generation + ": cannot send null column " + ix + " to P" + (me-1) + "; sending a dummy instead" );
                 buf = p.leftBorder;
             }
             m.writeInt( ix );
@@ -337,13 +337,13 @@ class OpenCell1D implements OpenConfig {
         m.writeInt( p.firstColumn );
         if( p.firstColumn<p.firstNoColumn ){
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": sending border column " + p.firstColumn + " to left neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": sending border column " + p.firstColumn + " to P" + (me-1) );
             }
             m.writeArray( p.board[p.firstColumn] );
         }
         else {
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": I don't have a border column to send to left neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": there is no border column to send to P" + (me-1) );
             }
         }
         m.send();
@@ -364,12 +364,12 @@ class OpenCell1D implements OpenConfig {
     {
         if( port == null ){
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": I don't have a right neighbour to send to" );
+                System.out.println( "P" + me + ":" + generation + ": there is no right neighbour to send to" );
             }
             return;
         }
         if( traceCommunication ){
-            System.out.println( "P" + me + ":" + generation + ": sending to right neighbour " + port );
+            System.out.println( "P" + me + ":" + generation + ": sending to P" + (me+1) +": " + port );
         }
         int sendCount;
         if( p.firstColumn<boardsize ){
@@ -383,7 +383,7 @@ class OpenCell1D implements OpenConfig {
         }
         if( sendCount>0 ){
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ":" + generation + ": I must send " + sendCount + " columns to right neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": sending " + sendCount + " columns to P" + (me+1) );
             }
             // The border has changed, but since until now we
             // maintained it as an ordinary column, we can easily intialize
@@ -401,7 +401,7 @@ class OpenCell1D implements OpenConfig {
 
             if( buf == null ){
                 // This shouldn't happen, but make the best of it.
-                System.out.println( "ERROR: P" + me + ":" + generation + ": cannot send null column " + ix + " to right neighbour; sending a dummy instead" );
+                System.out.println( "ERROR: P" + me + ":" + generation + ": cannot send null column " + ix + " to P" + (me+1) + "; sending a dummy instead" );
                 buf = p.leftBorder;
             }
             m.writeInt( ix );
@@ -420,7 +420,7 @@ class OpenCell1D implements OpenConfig {
         m.writeInt( ix );
         if( p.firstColumn<p.firstNoColumn ){
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": sending border column " + ix + " to right neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": sending border column " + ix + " to P" + (me+1) );
             }
             byte buf[] = p.board[ix];
             if( buf == null ){
@@ -431,7 +431,7 @@ class OpenCell1D implements OpenConfig {
         }
         else {
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": I don't have a border column to send to right neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": there is no border column to send to P" + (me+1) );
             }
         }
         m.send();
@@ -445,12 +445,12 @@ class OpenCell1D implements OpenConfig {
 
         if( port == null ){
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": I don't have a left neighbour to receive from" );
+                System.out.println( "P" + me + ":" + generation + ": there is no left neighbour to receive from" );
             }
             return;
         }
         if( traceCommunication ){
-            System.out.println( "P" + me + ":" + generation + ": receiving from left neighbour " + port );
+            System.out.println( "P" + me + ":" + generation + ": receiving from P" + (me-1) + ": " + port );
         }
         ReadMessage m = port.receive();
         int gen = m.readInt();
@@ -460,7 +460,7 @@ class OpenCell1D implements OpenConfig {
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ":" + generation + ": receiving " + receiveCount + " columns from left neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": receiving " + receiveCount + " columns from P" + (me-1) );
             }
             int newFirst = p.firstColumn;
             int newLast = -1;
@@ -468,10 +468,10 @@ class OpenCell1D implements OpenConfig {
                 colno = m.readInt();
 
                 if( colno>=p.firstColumn && colno<p.firstNoColumn ){
-                    System.out.println( "ERROR: P" + me + ": left neighbour sent column " + colno + ", but that is in my range" );
+                    System.out.println( "ERROR: P" + me + ": left neighbour P" + (me-1) + " sent column " + colno + ", but that is in my range" );
                 }
                 else if( p.board[colno] != null ){
-                    System.out.println( "ERROR: P" + me + ": left neighbour sent column " + colno + ", but I already have a column there (although it is not in my range)" );
+                    System.out.println( "ERROR: P" + me + ": left neighbour P" + (me-1) + " sent column " + colno + ", but I already have a column there (although it is not in my range)" );
                 }
                 byte buf[] = new byte[boardsize+2];
 
@@ -489,7 +489,7 @@ class OpenCell1D implements OpenConfig {
             }
             else {
                 if( (newLast+1)<p.firstNoColumn ){
-                    System.out.println( "ERROR: P" + me + ": left neighbour sent columns " + newFirst + "-" + (newLast+1) + " but that leaves a gap to my columns " + p.firstColumn + "-" + p.firstNoColumn );
+                    System.out.println( "ERROR: P" + me + ": left neighbour P" + (me-1) + " sent columns " + newFirst + "-" + (newLast+1) + " but that leaves a gap to my columns " + p.firstColumn + "-" + p.firstNoColumn );
                 }
             }
             p.firstColumn = newFirst;
@@ -498,16 +498,19 @@ class OpenCell1D implements OpenConfig {
         if( colno<boardsize ){
             // TODO: check that the column number is the one we expect.
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": receiving border column " + colno + " from left neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": receiving border column " + colno + " from P" + (me-1) );
             }
             m.readArray( p.leftBorder );
         }
         else {
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": left neighbour doesn't have a border column to send" );
+                System.out.println( "P" + me + ":" + generation + ": P" + (me-1) + " doesn't have a border column to send" );
             }
         }
         m.finish();
+        if( traceCommunication ){
+            System.out.println( "P" + me + ":" + generation + ": completed receiving from P" + (me-1) );
+        }
     }
 
     static void receiveRight( ReceivePort port, Problem p )
@@ -517,12 +520,12 @@ class OpenCell1D implements OpenConfig {
 
         if( port == null ){
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": I don't have a right neighbour to receive from" );
+                System.out.println( "P" + me + ":" + generation + ": there is no right neighbour to receive from" );
             }
             return;
         }
         if( traceCommunication ){
-            System.out.println( "P" + me + ":" + generation + ": receiving from right neighbour " + port );
+            System.out.println( "P" + me + ":" + generation + ": receiving from P" + (me+1) + ": " + port );
         }
         ReadMessage m = port.receive();
         int gen = m.readInt();
@@ -532,7 +535,7 @@ class OpenCell1D implements OpenConfig {
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ": receiving " + receiveCount + " columns from right neighbour" );
+                System.out.println( "P" + me + ": receiving " + receiveCount + " columns from P" + (me+1) );
             }
         }
         p.firstNoColumn += receiveCount;
@@ -548,7 +551,7 @@ class OpenCell1D implements OpenConfig {
             }
             colno = m.readInt();
             if( colno != ix ){
-                System.out.println( "ERROR: P" + me + ": right neighbour sent me column " + colno + ", but I need column " + ix );
+                System.out.println( "ERROR: P" + me +":" + generation + ": P" + (me+1) + " sent me column " + colno + ", but I need column " + ix );
             }
             m.readArray( p.board[ix] );
         }
@@ -556,16 +559,19 @@ class OpenCell1D implements OpenConfig {
         if( colno<boardsize ){
             // TODO: check that the column number is the one we expect.
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": receiving border column " + colno + " from right neighbour" );
+                System.out.println( "P" + me + ":" + generation + ": receiving border column " + colno + " from P" + (me+1) );
             }
             m.readArray( p.rightBorder );
         }
         else {
             if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": right neighbour doesn't have a border column to send" );
+                System.out.println( "P" + me + ":" + generation + ": P" + (me+1) + " doesn't have a border column to send" );
             }
         }
         m.finish();
+        if( traceCommunication ){
+            System.out.println( "P" + me + ":" + generation + ": completed receiving from P" + (me+1) );
+        }
     }
 
     static void computeNextGeneration( Problem p )
@@ -678,7 +684,7 @@ class OpenCell1D implements OpenConfig {
             }
 
             if( me != 0 && leftNeighbour == null ){
-                System.out.println( "P" + me + ": I don't have a left neighbour???" );
+                System.out.println( "P" + me + ": there is no left neighbour???" );
             }
             if( leftNeighbour != null ){
                 leftReceivePort = createNeighbourReceivePort( updatePort, "upstream" );
