@@ -1,6 +1,6 @@
 package ibis.frontend.satin;
 
-import ibis.util.BT_Analyzer;
+import ibis.frontend.generic.BT_Analyzer;
 
 import java.util.HashMap;
 import java.util.Vector;

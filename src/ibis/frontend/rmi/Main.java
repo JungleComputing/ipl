@@ -1,6 +1,6 @@
 package ibis.frontend.rmi;
 
-import ibis.util.BT_Analyzer;
+import ibis.frontend.generic.BT_Analyzer;
 
 import java.io.File;
 import java.io.FileOutputStream;

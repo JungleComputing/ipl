@@ -1,6 +1,6 @@
 package ibis.frontend.repmi;
 
-import ibis.util.BT_Analyzer;
+import ibis.frontend.generic.BT_Analyzer;
 
 import java.io.PrintWriter;
 import java.util.Vector;
