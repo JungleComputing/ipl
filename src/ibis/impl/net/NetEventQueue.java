@@ -10,7 +10,9 @@ public class NetEventQueue {
         /**
          * Provide the queue backing data structure.
          */
-        Vector v = null;
+        private Vector v = null;
+
+	private boolean end = false;
 
         /**
          * Construct an empty queue.
@@ -47,11 +49,19 @@ public class NetEventQueue {
 			try {
 				wait();
 			} catch (InterruptedException e) {
-				throw new InterruptedIOException(e);
+				// Ignore
+			}
+			if (v.size() == 0 && end) {
+			    throw new InterruptedIOException();
 			}
                 }
 
                 return (NetEvent)v.remove(0);
         }
+
+	synchronized public void end() {
+	    end = true;
+	    notifyAll();
+	}
 
 }

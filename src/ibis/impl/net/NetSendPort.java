@@ -360,6 +360,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                         //
                                 }
                         }
+
+			eventQueueListener = null;
                 }
 
 		super.finalize();
@@ -426,6 +428,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 disconnectedPeers  = new Vector();
                 eventQueue         = new NetEventQueue();
                 eventQueueListener = new NetEventQueueListener(this, "SendPort: " + name, eventQueue);
+		eventQueueListener.setDaemon(true);
                 eventQueueListener.start();
                 log.out();
         }

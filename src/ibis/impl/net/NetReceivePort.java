@@ -176,7 +176,8 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 				serverSocket.close();
                         }
 
-                        this.interrupt();
+// System.err.println(this + ": interrupt...");
+                        // this.interrupt();
                         log.out();
                 }
 
@@ -644,6 +645,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         private void start() {
                 log.in();
+		eventQueueListener.setDaemon(true);
                 eventQueueListener.start();
                 acceptThread.start();
                 log.out();
@@ -1009,7 +1011,10 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                                         //
                                 }
                         }
+
+			eventQueueListener = null;
                 }
+
                 super.finalize();
                 log.out();
         }

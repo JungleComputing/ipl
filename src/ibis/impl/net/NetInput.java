@@ -331,8 +331,10 @@ finishedUpcallThreads--;
                 public void end() {
                         log.in();
                         end = true;
+			interrupt();
 // System.err.println(this + ": polls " + pollSuccess  + " (of " + polls + ") sleeps " + sleeps);
-                        this.interrupt();
+// System.err.println(this + ": interrupt...");
+                        // this.interrupt();
                         log.out();
                 }
         }
@@ -511,6 +513,7 @@ pollFail++;
                         upcallThreadNotStarted = false;
                         PooledUpcallThread up = new PooledUpcallThread("no "+upcallThreadNum++);
                         utStat.addAllocation();
+up.setDaemon(true);
                         up.start();
                         up.exec();
                 }

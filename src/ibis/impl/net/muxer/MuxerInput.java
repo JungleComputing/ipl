@@ -222,6 +222,7 @@ System.err.println("Returned from doPoll(0)");
 	}
 	releaseQueue(q);
 	if (USE_POLLER_THREAD) {
+System.err.println(this + ": interrupt...");
 	    poller.interrupt();
 	}
     }

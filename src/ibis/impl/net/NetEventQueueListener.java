@@ -41,7 +41,6 @@ final class NetEventQueueListener extends Thread {
          */
         public NetEventQueueListener(NetEventQueueConsumer cons, String name, NetEventQueue queue) {
                 super("Event queue listener: "+name);
-                setDaemon(true);
 
                 this.cons  = cons;
                 this.queue = queue;
@@ -58,8 +57,8 @@ final class NetEventQueueListener extends Thread {
                                 NetEvent event = queue.get();
                                 cons.event(event);
                         } catch (InterruptedIOException e) {
-                                end = true;
-                                continue;
+                                // end = true;
+                                // continue;
                         }
                 }
 
@@ -70,7 +69,7 @@ final class NetEventQueueListener extends Thread {
          */
         public void end() {
                 end = true;
-                this.interrupt();
+		queue.end();
         }
 }
 
