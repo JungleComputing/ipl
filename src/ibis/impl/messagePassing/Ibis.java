@@ -167,7 +167,10 @@ public class Ibis extends ibis.ipl.Ibis {
 
 
     public void join(ibis.ipl.IbisIdentifier id) {
-	    if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
+	if (DEBUG) {
+	    System.err.println(myCpu + ": An Ibis.join call for " + id);
+	    Thread.dumpStack();
+	}
 	if (resizeHandler != null) {
 	    resizeHandler.join(id);
 	}
@@ -214,7 +217,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
 	world = new IbisWorld();
 
-	ident = new IbisIdentifier(name, myCpu);
+	ident = new IbisIdentifier(name + "@" + myCpu, myCpu);
 
 	sendPorts = new PortHash[myIbis.nrCpus];
 	for (int i = 0; i < myIbis.nrCpus; i++) {
@@ -256,7 +259,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	}
 
 	if (DEBUG) {
-	    System.err.println(Thread.currentThread() + "Ibis lives...");
+	    System.err.println(Thread.currentThread() + "Ibis lives... " + ident);
 	}
     }
 
@@ -436,6 +439,12 @@ public class Ibis extends ibis.ipl.Ibis {
 		return;
 	    }
 	    origin = lookupGroupSendPort(group);
+	    if (src_cpu == myCpu) {
+		// Panda gives you pointers into the buffers that you handed
+		// it for sending off. Make a copy here.
+		// msgHandle = copyNativeMessage(msgHandle);
+		System.err.println("Should copy the MP message here");
+	    }
 // System.err.println(Thread.currentThread() + "receiveFragment/group port " + port);
 // System.err.println(Thread.currentThread() + "receiveFragment/group origin " + origin);
 	} else {

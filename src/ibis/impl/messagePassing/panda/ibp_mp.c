@@ -229,7 +229,7 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
 		      proto, proto_size, PAN_MP_DELAYED,
 		      sent_upcall, arg);
     IBP_VPRINTF(800, env, ("Done a Panda MP send %d async to %d size %d\n",
-		mp_sends[cpu], cpu, ibmp_iovec_len(iov, iov_size)));
+		mp_sends[cpu] - 1, cpu, ibmp_iovec_len(iov, iov_size)));
 }
 
 

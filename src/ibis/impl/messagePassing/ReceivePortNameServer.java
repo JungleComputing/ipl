@@ -45,7 +45,7 @@ final class ReceivePortNameServer implements
 	    bind_reply(PORT_REFUSED, tag, client);
 	} else {
 	    if (ReceivePortNameServerProtocol.DEBUG) {
-		System.err.println(Thread.currentThread() + "Bound new port name \"" + ri.name() + "\"" + " ibis " + ri.ibis().name());
+		System.err.println(Thread.currentThread() + "Bound new port name \"" + ri.name() + "\"" + "=\"" + ri + "\" ibis " + ri.ibis().name());
 	    }
 	    bind_reply(PORT_ACCEPTED, tag, client);
 	    ports.put(name, ri);

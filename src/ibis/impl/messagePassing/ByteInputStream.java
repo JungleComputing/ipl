@@ -3,7 +3,6 @@ package ibis.impl.messagePassing;
 import java.io.IOException;
 
 final class ByteInputStream
-	// extends java.io.InputStream
 	extends ibis.io.ArrayInputStream
 	implements ibis.io.IbisStreamFlags {
 

@@ -17,14 +17,14 @@ public class SendPort implements ibis.ipl.SendPort {
     private final static boolean BCAST_VERBOSE = /* true || */ Ibis.DEBUG;
 
     private final static boolean DEFAULT_USE_BCAST = false;
-    private final static boolean USE_BCAST;
+    private final static boolean USE_BCAST =
+		TypedProperties.stringProperty("ibis.mp.broadcast", "native");
+    private final static boolean USE_BCAST_ALL =
+		TypedProperties.booleanProperty("ibis.mp.broadcast.all");
+    private final static boolean USE_BCAST_AT_TWO =
+		TypedProperties.booleanProperty("ibis.mp.broadcast.2");
+
     static {
-	boolean use_bcast = DEFAULT_USE_BCAST;
-	String prop = System.getProperty("ibis.mp.broadcast");
-	if (prop != null) {
-	    use_bcast = prop.equals("native");
-	}
-	USE_BCAST = use_bcast;
 	if (USE_BCAST && Ibis.myIbis.myCpu == 0) {
 	    System.err.println("Use native MessagePassing broadcast");
 	}
@@ -133,6 +133,9 @@ public class SendPort implements ibis.ipl.SendPort {
 
 	ReceivePortIdentifier[] v = new ReceivePortIdentifier[n + 1];
 	for (int i = 0; i < n; i++) {
+	    if (splitter[i].cpu == rid.cpu && splitter[i].port == rid.port) {
+		throw new Error("Double connection between two ports not allowed");
+	    }
 	    v[i] = splitter[i];
 	}
 	v[n] = rid;
@@ -189,8 +192,10 @@ public class SendPort implements ibis.ipl.SendPort {
 
     protected void checkBcastGroup() throws IOException {
 	if (! USE_BCAST
-		|| splitter.length != Ibis.myIbis.nrCpus - 1
-		|| splitter.length == 1) {
+		|| (USE_BCAST_ALL ?
+			splitter.length != Ibis.myIbis.nrCpus :
+			splitter.length != Ibis.myIbis.nrCpus - 1)
+		|| (! USE_BCAST_AT_TWO && splitter.length == 1)) {
 	    group = NO_BCAST_GROUP;
 	    return;
 	}
@@ -205,9 +210,13 @@ public class SendPort implements ibis.ipl.SendPort {
 		}
 	    }
 	    if (ri.cpu == Ibis.myIbis.myCpu) {
-		System.err.println("Do something special for a group with a home connection -- currently disabled");
-		group = NO_BCAST_GROUP;
-		return;
+		if (Ibis.myIbis.myCpu == 0) {
+		    System.err.println("Do something special for a group with a home connection -- currently disabled");
+		}
+		if (! USE_BCAST_ALL) {
+		    group = NO_BCAST_GROUP;
+		    return;
+		}
 	    }
 	}
 

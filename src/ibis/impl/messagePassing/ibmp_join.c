@@ -67,7 +67,7 @@ join_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
 
     assert(env == ibp_JNIEnv);
 
-    IBP_VPRINTF(80, env, ("Receive join message from %d", ibp_msg_sender(msg)));
+    IBP_VPRINTF(80, env, ("Receive join message from %d\n", ibp_msg_sender(msg)));
 
     (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_join_upcall, ibisId);
 

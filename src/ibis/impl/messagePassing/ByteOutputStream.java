@@ -9,7 +9,6 @@ import java.io.IOException;
 
 
 final class ByteOutputStream
-	// extends java.io.OutputStream
 	extends ibis.io.ArrayOutputStream
 	implements PollClient {
 
@@ -109,6 +108,7 @@ final class ByteOutputStream
 	    send_acked = true;
 	    for (int i = 0; i < n; i++) {
 		ReceivePortIdentifier r = sport.splitter[i];
+
 		/* The call for the last connection knows whether the
 		 * send has been acked. Believe the last call. */
 		send_acked = msg_send(r.cpu,
