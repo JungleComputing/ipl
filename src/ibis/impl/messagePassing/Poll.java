@@ -40,16 +40,6 @@ public class Poll implements Runnable {
 	if (MANTA_COMPILE) {
 	    System.err.println("Ibis/Panda knows this is Manta");
 	}
-
-	/*
-	 * This is an 1.3 feature; cannot we use it please?
-	 */
-	Runtime.getRuntime().addShutdownHook(new Thread() {
-	    public void run() {
-		report();
-	    }
-	});
-	/* */
     }
 
 
@@ -95,17 +85,17 @@ public class Poll implements Runnable {
     }
 
 
-    protected native void msg_poll() throws IbisIOException;
+    protected native boolean msg_poll() throws IbisIOException;
 
     native void abort();
 
 
-    final void poll() throws IbisIOException {
+    final boolean poll() throws IbisIOException {
 	if (STATISTICS) {
 	    poll_poll_direct++;
 	}
-	msg_poll();
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.inputStreamPoll();
+	return (msg_poll() ||
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.inputStreamPoll());
     }
 
 
@@ -158,17 +148,15 @@ if (false)
 		}
 	    }
 
-go_to_sleep = false;
-
-	    if ((preempt == PREEMPTIVE && (poller == null || ! last_is_preemptive)) ||
-		(NONPREEMPTIVE_MAY_POLL &&
-		 preempt != NON_POLLING && poller == null && ! go_to_sleep)) {
+	    if (! go_to_sleep && poller == null &&
+		    (preempt == PREEMPTIVE ||
+		     (NONPREEMPTIVE_MAY_POLL && preempt != NON_POLLING))) {
 		// OK, let me become poller
 		poller = me;
 	    }
 
 	    if (poller == me) {
-		poll();
+		boolean poll_succeeded = poll();
 		if (STATISTICS) {
 		    poll_poll++;
 		}
@@ -176,7 +164,10 @@ go_to_sleep = false;
 		    break;
 		}
 
-		if (--polls == 0) {
+		if (poll_succeeded) {
+		    go_to_sleep = true;
+
+		} else if (--polls == 0) {
 		    // polls = polls_before_yield;
 		    polls = 1;
 
@@ -280,9 +271,9 @@ go_to_sleep = false;
     }
 
 
-    void report() {
+    void report(java.io.PrintStream out) {
 	if (STATISTICS) {
-	    System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu +
+	    out.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu +
 		    ": Poll: /preempt " + poll_preempt +
 		    " /non-preempt " + poll_non_preempt +
 		    " poll " + poll_poll +
@@ -311,7 +302,7 @@ go_to_sleep = false;
 
     protected void finalize() {
 	comm_lives = false;
-	report();
+	report(System.out);
     }
 
 }

@@ -3,7 +3,7 @@
 
 #include <jni.h>
 
-void ibmp_poll_register(void (*poll)(JNIEnv *env));
+void ibmp_poll_register(int (*poll)(JNIEnv *env));
 
 void ibmp_poll_init(JNIEnv *env);
 void ibmp_poll_end(JNIEnv *env);

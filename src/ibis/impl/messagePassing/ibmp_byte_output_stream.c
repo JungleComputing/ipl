@@ -221,12 +221,13 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
 }
 
 
-static void
+static int
 ibmp_msg_q_poll(JNIEnv *env)
 {
     ibmp_msg_p msg = ibmp_sent_msg_q;
     ibmp_msg_p prev = NULL;
     ibmp_msg_p next;
+    int		done_anything = 0;
 
     //    fprintf(stderr, "msg-q-poll\n");
 
@@ -235,6 +236,7 @@ ibmp_msg_q_poll(JNIEnv *env)
 	if (msg->outstanding_send == 0 /* && msg->outstanding_final */) {
 	    IBP_VPRINTF(800, env, ("Handle sent upcall for msg %p\n", msg));
 	    handle_finished_send(env, msg);
+	    done_anything = 1;
 
 	    if (prev == NULL) {
 		ibmp_sent_msg_q = next;
@@ -246,6 +248,8 @@ ibmp_msg_q_poll(JNIEnv *env)
 	}
 	msg = next;
     }
+
+    return done_anything;
 }
 
 

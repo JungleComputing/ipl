@@ -201,10 +201,10 @@ ibmp_unlock(JNIEnv *env)
 }
 
 
-void
+int
 ibmp_poll(JNIEnv *env)
 {
-    (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_poll);
+    return (int)(*env)->CallBooleanMethod(env, ibmp_obj_Ibis_ibis, md_poll);
 }
 
 
@@ -291,6 +291,13 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
 	ibmp_error(env, "Linked %s native lib with %s Ibis", name, class_name);
     }
     (*env)->ReleaseStringUTFChars(env, s, class_name);
+}
+
+
+void
+Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, jint out)
+{
+    ibp_mp_report(env, out);
 }
 
 
@@ -406,7 +413,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 
-    md_poll = (*env)->GetMethodID(env, ibmp_cls_Ibis, "pollLocked", "()V");
+    md_poll = (*env)->GetMethodID(env, ibmp_cls_Ibis, "pollLocked", "()Z");
     if (md_poll == NULL) {
 	ibmp_error(env, "Cannot find method pollLocked\n");
     }
@@ -477,6 +484,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1start(JNIEnv *env, jobject this)
 void
 Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
 {
+fprintf(stderr, "%2d: ibmp_1end: hi folks... \n", ibmp_me);
     ibmp_byte_input_stream_end(env);
     ibmp_byte_output_stream_end(env);
     ibmp_send_port_end(env);

@@ -310,10 +310,11 @@ ibmpi_finished_poll(JNIEnv *env)
 }
 
 
-static void
+static int
 ibmpi_mp_poll(JNIEnv *env)
 {
     int		ibmpi_upcall_done;
+    int		done_anything = 0;
 
     //fprintf(stderr, "ibmpi_mp-poll\n");
 
@@ -322,13 +323,14 @@ ibmpi_mp_poll(JNIEnv *env)
 	das_time_t	stop;
 
 	if (! ibmpi_alive) {
-	    return;
+	    break;
 	}
 
 	ibmpi_upcall_done = 1;
 	das_time_get(&start);
 	if (ibmpi_rcve_poll(env)) {
 	    ibmpi_upcall_done = 0;
+	    done_anything = 1;
 	}
 	das_time_get(&stop);
 	t_rcve_poll +=  stop - start;
@@ -336,11 +338,14 @@ ibmpi_mp_poll(JNIEnv *env)
 	das_time_get(&start);
 	if (ibmpi_finished_poll(env) > 0) {
 	    ibmpi_upcall_done = 0;
+	    done_anything = 1;
 	}
 	das_time_get(&stop);
 	t_send_poll +=  stop - start;
 	n_send_poll++;
     } while (! ibmpi_upcall_done);
+
+    return done_anything;
 }
 
 
@@ -476,6 +481,11 @@ ibp_mp_port_unregister(int port)
 int ibp_mp_proto_offset(void)
 {
     return sizeof(ibmpi_proto_t);
+}
+
+void
+ibp_mp_report(JNIEnv *env, jint out)
+{
 }
 
 

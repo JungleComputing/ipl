@@ -112,18 +112,25 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
 }
 
 
-static void
+static int
 ibp_mp_poll(JNIEnv *env)
 {
+    int		done_anything = 0;
 // fprintf(stderr, "ibp_mp-poll\n");
 
     ibmp_lock_check_owned(env);
     ibp_set_JNIEnv(env);
-    do {
+    while (1) {
 	ibp_upcall_done = 0;
 	pan_poll();
-    } while (ibp_upcall_done);
+	if (! ibp_upcall_done) {
+	    break;
+	}
+	done_anything = 1;
+    }
     ibp_unset_JNIEnv();
+
+    return done_anything;
 }
 
 
@@ -379,6 +386,22 @@ ibp_intr_unlock(void)
 
 
 void
+ibp_mp_report(JNIEnv *env, jint out)
+{
+    FILE *f;
+
+    if (out == 1) {
+	f = stdout;
+    } else {
+	f = stderr;
+    }
+#if INTERRUPTS_AS_UPCALLS
+    fprintf(f, "%2d: intpts %d\n", pan_my_pid(), intpts);
+#endif
+}
+
+
+void
 ibp_mp_init(JNIEnv *env)
 {
     IBP_VPRINTF(2000, env, ("here...\n"));
@@ -423,7 +446,6 @@ ibp_mp_end(JNIEnv *env)
     pan_mp_free_port(ibp_mp_port);
     pan_mp_end();
     pan_end();
-#if INTERRUPTS_AS_UPCALLS
-    fprintf(stderr, "%2d: intpts %d\n", pan_my_pid(), intpts);
-#endif
+
+    ibp_mp_report(env, 1);
 }

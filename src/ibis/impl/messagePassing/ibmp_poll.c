@@ -12,7 +12,7 @@
 #include "ibmp_poll.h"
 
 
-static void  (**poll_func)(JNIEnv *env) = NULL;
+static int   (**poll_func)(JNIEnv *env) = NULL;
 static int	n_poll_func = 0;
 
 #ifdef IBP_STATISTICS
@@ -21,7 +21,7 @@ static long long	poll_calls = 0;
 
 
 void
-ibmp_poll_register(void (*poll)(JNIEnv *env))
+ibmp_poll_register(int (*poll)(JNIEnv *env))
 {
     poll_func = pan_realloc(poll_func, (n_poll_func + 1) * sizeof(*poll_func));
     poll_func[n_poll_func] = poll;
@@ -29,17 +29,22 @@ ibmp_poll_register(void (*poll)(JNIEnv *env))
 }
 
 
-void
+jboolean
 Java_ibis_ipl_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
 {
     int	i;
+    jboolean poll_succeeded = JNI_FALSE;
 
 #ifdef IBP_STATISTICS
     poll_calls++;
 #endif
     for (i = 0; i < n_poll_func; i++) {
-	poll_func[i](env);
+	if (poll_func[i](env)) {
+	    poll_succeeded = JNI_TRUE;
+	}
     }
+
+    return poll_succeeded;
 }
 
 

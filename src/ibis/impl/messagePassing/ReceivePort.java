@@ -154,7 +154,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	if (! id.ibis().equals(ident.ibis())) {
 	    homeConnection = false;
 	} else {
-System.err.println("This IS a home-only connection");
+	    // System.err.println("This IS a home-only connection");
 	}
 
 	if (connectUpcall == null || acceptThread.checkAccept(id)) {
@@ -683,9 +683,12 @@ System.err.println("This IS a home-only connection");
 
 		    /* Maybe another request arrives really soon for this
 		     * (or some other) port. Poll a while, only then go
-		     * to wait. */
-		    for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
-			ibis.ipl.impl.messagePassing.Ibis.myIbis.pollLocked();
+		     * to wait, and quit polling if some message has arrived,
+		     * whether for me or for some other thread. */
+		    for (int i = 0;
+			 queueFront == null && i < Poll.polls_before_yield;
+			 i++) {
+			Ibis.myIbis.pollLocked();
 		    }
 
 		    if (queueFront == null) {

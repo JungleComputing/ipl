@@ -6,7 +6,7 @@
 
 typedef struct IBP_MSG	ibp_msg_t, *ibp_msg_p;
 
-void ibmp_poll(JNIEnv *env);
+int ibmp_poll(JNIEnv *env);
 
 int ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len);
 jstring ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len);

@@ -75,6 +75,16 @@ public class Ibis extends ibis.ipl.Ibis {
 	}
 
 	ibis.io.Conversion.classInit();
+
+	/*
+	 * This is an 1.3 feature; cannot we use it please?
+	 */
+	Runtime.getRuntime().addShutdownHook(new Thread() {
+	    public void run() {
+		report();
+	    }
+	});
+	/* */
     }
 
 
@@ -350,7 +360,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     int[] inputStreamMsgTags = new int[6];
 
-    final void inputStreamPoll() throws IbisIOException {
+    final boolean inputStreamPoll() throws IbisIOException {
 	if (getInputStreamMsg(inputStreamMsgTags)) {
 	    receiveFragment(inputStreamMsgTags[0],
 			    inputStreamMsgTags[1],
@@ -358,8 +368,12 @@ public class Ibis extends ibis.ipl.Ibis {
 			    inputStreamMsgTags[3],
 			    inputStreamMsgTags[4],
 			    inputStreamMsgTags[5]);
+	    return true;
 	}
+
+	return false;
     }
+
 
     private void receiveFragment(int src_cpu,
 				 int src_port,
@@ -383,8 +397,8 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    void pollLocked() throws IbisIOException {
-	rcve_poll.poll();
+    boolean pollLocked() throws IbisIOException {
+	return rcve_poll.poll();
     }
 
 
@@ -402,15 +416,33 @@ public class Ibis extends ibis.ipl.Ibis {
 	myIbis.rcve_poll.reset_stats();
     }
 
+
+    private native void ibmp_report(int out);
+
+    private void report() {
+	ConditionVariable.report(System.out);
+	rcve_poll.report(System.out);
+	ibmp_report(1);
+    }
+
+
+    private boolean ended = false;
+
     public void end() {
+	if (ended) {
+	    return;
+	}
+	ended = false;
+
 	registry.end();
 
+// System.err.println("Ibis.end(): grab Ibis lock");
 	myIbis.lock();
 
 	ibisNameService.remove(ident);
 	for (int i = 0; i < nrCpus; i++) {
 	    if (i != myCpu) {
-// System.err.println("Send join message to " + i);
+// System.err.println("Send leave message to " + i);
 		send_leave(i, ident.name());
 	    }
 	}
@@ -418,11 +450,11 @@ public class Ibis extends ibis.ipl.Ibis {
 
 	System.err.println("t native poll " + t2d(tMsgPoll) + " send " + t2d(tMsgSend));
 	System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
-	ConditionVariable.report(System.out);
-	rcve_poll.finalize();
+	report();
 
 	ibis.ipl.impl.messagePassing.ReceivePort.end();
 
+System.err.println("Call Ibis.ibmp_end");
 	ibmp_end();
 
 	myIbis.unlock();
