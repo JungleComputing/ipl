@@ -1212,7 +1212,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		r.runLocal();
 	    }
 
-	    r.spawnCounter.value--;
+	    synchronized(this) {
+		/* an incoming job result can *ALSO* decrease this variable,
+		   and I experienced decreasing is a non-atomic action (GRRR)
+		   so this decrement has to be synchronized - Maik */
+		r.spawnCounter.value--;
+	    }
+
 	    if(ASSERTS && r.spawnCounter.value < 0) {
 		out.println("SATIN '" + ident.name() + ": Just made spawncounter < 0");
 		new Exception().printStackTrace();
@@ -1311,7 +1317,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	    spawns++;
 	}
 
-	r.spawnCounter.value++;
+	r.spawnCounter.value++; 
 	r.stamp = stampCounter++;
 	r.owner = ident;
 
