@@ -214,7 +214,6 @@ public class Main {
 		mout.writeObject(obj);
 	    }
 	    mout.flush();
-	    mout.reset();
 
 	    min.readObject();
 
@@ -225,6 +224,7 @@ public class Main {
 
 	    buf.clear();
 
+	    mout.reset();
 	    if (array != null) {
 		mout.writeObject(array);
 	    }
@@ -232,7 +232,6 @@ public class Main {
 		mout.writeObject(obj);
 	    }
 	    mout.flush();
-	    mout.reset();
 
 	    bytes = buf.bytesWritten();
 	    buf.resetBytesWritten();
