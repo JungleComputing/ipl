@@ -5,8 +5,32 @@ import java.io.PrintStream;
 public class SuffixTree {
     short text[];
     Node root = new InternalNode();
-    static final boolean traceAdding = true;
+    static final boolean traceAdding = false;
     static final short END = 256;
+
+    static String buildString( short text[], int start, int length )
+    {
+        String s = "[" + start + ":" + length + "]";
+
+        for( int i = 0; i<length; i++ ){
+            short c = text[i+start];
+            if( c>0 && c<255 ){
+                s += (char) c;
+            }
+            else if( c == END ){
+                s += "<end>";
+            }
+            else {
+                s += "<" + c + ">";
+            }
+        }
+        return s;
+    }
+
+    static String buildString( short text[] )
+    {
+        return buildString( text, 0, text.length );
+    }
 
     abstract class Node {
         int start;
@@ -20,28 +44,11 @@ public class SuffixTree {
             sister = null;
         }
 
-        String buildString( short text[], int start, int length )
-        {
-            String s = "[" + start + ":" + length + "]";
-
-            for( int i = 0; i<length; i++ ){
-                short c = text[i+start];
-                if( c<255 ){
-                    s += (char) c;
-                }
-                else if( c == END ){
-                    s += "<end>";
-                }
-                else {
-                    s += "<" + c + ">";
-                }
-            }
-            return s;
-        }
-
-        abstract void add( short text[], int start, int length, int pos );
+        protected abstract void add( short text[], int start, int length, int pos );
 
         protected abstract void print( PrintStream stream, int indent );
+
+        protected abstract short [] getLongestRepeat( short text[] );
     }
 
     class InternalNode extends Node {
@@ -59,7 +66,7 @@ public class SuffixTree {
             super( 0, 0 );
         }
 
-        void add( short text[], int start, int length, int pos )
+        protected void add( short text[], int start, int length, int pos )
         {
             if( traceAdding ){
                 System.out.println( "Adding [" + buildString( text, start, length ) + "] @" + pos );
@@ -144,6 +151,37 @@ public class SuffixTree {
                 n = n.sister;
             }
         }
+
+        protected short [] getLongestRepeat( short text[] )
+        {
+            Node p = child;
+            short res[];
+
+            // Now do a second scan to find the longest sub-string.
+            short max[] = null;
+            p = child;
+            while( p != null ){
+                if( p instanceof InternalNode ){
+                    short r[] = p.getLongestRepeat( text );
+
+                    if( max == null || max.length<r.length ){
+                        max = r;
+                    }
+                }
+                p = p.sister;
+            }
+
+            if( max == null ){
+                res = new short[length];
+                System.arraycopy( text, start, res, 0, length );
+            }
+            else {
+                res = new short[length+max.length];
+                System.arraycopy( text, start, res, 0, length );
+                System.arraycopy( max, 0, res, length, max.length );
+            }
+            return res;
+        }
     }
 
     public class LeafNode extends Node {
@@ -155,7 +193,7 @@ public class SuffixTree {
             this.pos = pos;
         }
 
-        void add( short text[], int start, int length, int pos )
+        protected void add( short text[], int start, int length, int pos )
         {
             System.err.println( "Internal error, cannot add() on a leaf node." );
         }
@@ -167,6 +205,17 @@ public class SuffixTree {
             }
             stream.println( "[" + buildString( text, start, length ) + "] @" + pos );
         }
+
+        protected short [] getLongestRepeat( short text[] )
+        {
+            System.err.println( "Internal error, cannot getLongestRepeat() on a leaf node." );
+            return null;
+        }
+    }
+
+    private short[] getLongestRepeat()
+    {
+        return root.getLongestRepeat( text );
     }
 
     private short[] buildShortArray( byte text[] )
@@ -218,5 +267,9 @@ public class SuffixTree {
         SuffixTree t = new SuffixTree( args[0] );
 
         t.print( System.out );
+
+        short buf[] = t.getLongestRepeat();
+
+        System.out.println( "Longest repeat: " + buildString( buf ) );
     }
 }
