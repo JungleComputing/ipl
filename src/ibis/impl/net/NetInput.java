@@ -34,6 +34,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         private	volatile			int                  	upcallThreadNum        =    0;
         private                         volatile boolean        upcallThreadNotStarted = true;
         private                         NetThreadStat           utStat                 = null;
+        private                         volatile boolean        freeCalled             = false;
 
         /**
          * Upcall interface for incoming messages.
@@ -272,16 +273,20 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 */
 	public final Integer poll(boolean blockForMessage) throws NetIbisException {
                 log.in();
-                if (activeNum != null) {
-                        throw new Error("invalid state");
-                }
+                synchronized(this) {
+                        while (activeNum != null) {
+                                try {
+                                        wait();
+                                } catch (InterruptedException e) {
+                                        throw new NetIbisInterruptedException(e);
+                                }
+                        }
 
-                activeNum = null;
+                        activeNum = doPoll(blockForMessage);
 
-                activeNum = doPoll(blockForMessage);
-
-                if (activeNum != null) {
-                        initReceive(activeNum);
+                        if (activeNum != null) {
+                                initReceive(activeNum);
+                        }
                 }
                 log.out();
 
@@ -326,6 +331,10 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	public synchronized void setupConnection(NetConnection  cnx,
                                                  NetInputUpcall inputUpcall) throws NetIbisException {
                 log.in();
+                if (freeCalled) {
+                        throw new NetIbisClosedException("input closed");
+                }
+
                 this.upcallFunc = inputUpcall;
                 log.disp("this.upcallFunc = "+this.upcallFunc);
                 setupConnection(cnx);
@@ -390,6 +399,8 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 doClose(num);
                 if (activeNum == num) {
                         activeNum = null;
+                        notifyAll();
+
                 }
 
                 synchronized (threadStack) {
@@ -417,6 +428,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 */
 	public void free() throws NetIbisException {
                 log.in();
+                freeCalled = true;
                 doFree();
 		activeNum = null;
                 synchronized (threadStack) {
@@ -488,7 +500,10 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 
                 doFinish();
 
-                activeNum = null;
+                synchronized(this) {
+                        activeNum = null;
+                        notifyAll();
+                }
                 log.out();
         }
 

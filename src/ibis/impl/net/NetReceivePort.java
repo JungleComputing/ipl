@@ -421,7 +421,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
 
                 if (spn == null) {
-                        throw new Error("invalid state");
+                        throw new Error("invalid state: NetReceivePort.inputUpcall");
                 }
 
                 activeSendPortNum = spn;
@@ -798,7 +798,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                 NetConnection cnx = (NetConnection)connectionTable.get(activeSendPortNum);
                 if (cnx.getSendId() == null) {
-                        throw new Error("invalid state");
+                        throw new Error("invalid state: cnx.getSendId");
                 }
                 NetSendPortIdentifier id = cnx.getSendId();
 
