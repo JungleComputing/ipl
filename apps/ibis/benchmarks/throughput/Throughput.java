@@ -127,7 +127,7 @@ System.err.println(">>>>>>>> Righto, I'm the slave");
 				send();
 				time = System.currentTimeMillis() - time;
 				double speed = (time * 1000.0) / (double)count;
-				double dataSent = (transferSize * count * 2.0) / (1024.0 * 1024.0);
+				double dataSent = ((double) transferSize * count) / (1024.0 * 1024.0);
 				System.out.print("Latency: " + count + " calls took " + (time/1000.0) + " seconds, time/call = " + speed + " micros, ");
 				System.out.println("Throughput: " + (dataSent / (time / 1000.0)) + " MByte/s");
 			} else {			
