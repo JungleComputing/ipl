@@ -12,12 +12,12 @@ import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 
 /**
- * The class <code>DummySocket</code> is a common superclass 
+ * The class <code>IbisSocket</code> is a common superclass 
  * of all the ibis connect socket types. It is mostly there to
  * warn implementations for methods that are used but not
  * implemented.
  */
-public abstract class DummySocket extends Socket {
+public abstract class IbisSocket extends Socket {
 
     public void bind(SocketAddress p) throws IOException {
         System.err.println("bind(SocketAddress) not implemented by " + this);

@@ -2,15 +2,15 @@
 
 package ibis.connect.parallelStreams;
 
-import ibis.connect.socketFactory.ConnectProperties;
-import ibis.connect.socketFactory.DummySocket;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
+import ibis.connect.socketFactory.IbisSocket;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 
-public class PSSocket extends DummySocket {
+public class ParallelStreamsSocket extends IbisSocket {
     ParallelStreams ps = null;
 
     PSInputStream in = null;
@@ -26,11 +26,11 @@ public class PSSocket extends DummySocket {
     /* End-users are not supposed to call this constructor.
      * They should use the socket factory instead.
      */
-    protected PSSocket(int numWays, int blockSize, InputStream ctrlIs,
-            OutputStream ctrlOs, boolean hint, ConnectProperties p)
+    protected ParallelStreamsSocket(int numWays, int blockSize, InputStream ctrlIs,
+            OutputStream ctrlOs, boolean hint, ConnectionPropertiesProvider p)
             throws IOException {
         ps = new ParallelStreams(numWays, blockSize, p);
-        synchronized (PSSocket.class) {
+        synchronized (ParallelStreamsSocket.class) {
             localportno = portcounter++;
         }
         portno = ps.connect(ctrlIs, ctrlOs, hint, localportno);

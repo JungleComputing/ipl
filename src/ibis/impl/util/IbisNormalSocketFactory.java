@@ -2,7 +2,7 @@
 
 package ibis.impl.util;
 
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.util.IPUtils;
 import ibis.util.IbisSocketFactory;
@@ -181,7 +181,7 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
     }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean isServer, ConnectProperties p) throws IOException {
+            boolean isServer, ConnectionPropertiesProvider p) throws IOException {
         Socket s = null;
         if (isServer) {
             ServerSocket server = createServerSocket(0, 1,

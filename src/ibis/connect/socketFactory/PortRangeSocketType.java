@@ -2,7 +2,7 @@
 
 package ibis.connect.socketFactory;
 
-import ibis.connect.util.ConnProps;
+import ibis.connect.util.ConnectionProperties;
 import ibis.connect.util.MyDebug;
 
 import java.io.IOException;
@@ -26,10 +26,13 @@ public class PortRangeSocketType extends SocketType implements
 
     static {
         Properties p = System.getProperties();
-        String range = p.getProperty(ConnProps.port_range);
+        String range = p.getProperty(ConnectionProperties.port_range);
         if (range != null) {
             try {
                 int pos = range.indexOf('-');
+                if(pos == -1) {
+                	pos = range.indexOf(',');
+                }
                 String from = range.substring(0, pos);
                 String to = range.substring(pos + 1, range.length());
                 startRange = Integer.parseInt(from);
@@ -40,7 +43,7 @@ public class PortRangeSocketType extends SocketType implements
             } catch (Exception e) {
                 throw new Error(
                         "# PortRange : specify a port range property: "
-                        + "ibis.connect.port_range=3000-4000.");
+                        + "ibis.connect.port_range=3000-4000 or ibis.connect.port_range=3000,4000");
             }
         }
     }
@@ -67,7 +70,7 @@ public class PortRangeSocketType extends SocketType implements
     }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean hintIsServer, ConnectProperties p) throws IOException {
+            boolean hintIsServer, ConnectionPropertiesProvider p) throws IOException {
         return ExtSocketFactory.createBrokeredSocketFromClientServer(this, in,
                 out, hintIsServer, p);
     }

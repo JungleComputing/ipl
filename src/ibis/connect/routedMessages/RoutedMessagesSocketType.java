@@ -4,7 +4,7 @@ package ibis.connect.routedMessages;
 
 import ibis.connect.socketFactory.BrokeredSocketFactory;
 import ibis.connect.socketFactory.ClientServerSocketFactory;
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.connect.socketFactory.SocketType;
 
@@ -35,18 +35,18 @@ public class RoutedMessagesSocketType extends SocketType implements
 
     public Socket createClientSocket(InetAddress addr, int port)
             throws IOException {
-        Socket s = new RMSocket(addr, port);
+        Socket s = new RoutedMessagesSocket(addr, port);
         return s;
     }
 
     public ServerSocket createServerSocket(InetSocketAddress addr, int backlog)
             throws IOException {
-        ServerSocket s = new RMServerSocket(addr.getPort(), addr.getAddress());
+        ServerSocket s = new RoutedMessagesServerSocket(addr.getPort(), addr.getAddress());
         return s;
     }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean hintIsServer, ConnectProperties p) throws IOException {
+            boolean hintIsServer, ConnectionPropertiesProvider p) throws IOException {
         return ExtSocketFactory.createBrokeredSocketFromClientServer(this, in,
                 out, hintIsServer, p);
     }

@@ -2,7 +2,7 @@
 
 package ibis.impl.net.tcp_blk;
 
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
@@ -112,7 +112,7 @@ public final class TcpOutput extends NetBufferedOutput {
         }
 
         final NetIO nn = this;
-        ConnectProperties props = new ConnectProperties() {
+        ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
             public String getProperty(String name) {
                 if (p != null) {
                     String result = (String) p.find(name);

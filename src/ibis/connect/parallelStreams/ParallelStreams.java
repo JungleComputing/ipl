@@ -3,7 +3,7 @@
 package ibis.connect.parallelStreams;
 
 import ibis.connect.socketFactory.BrokeredSocketFactory;
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.connect.util.MyDebug;
 
@@ -38,7 +38,7 @@ public class ParallelStreams {
 
     private int recvBlock = 0;
 
-    private ConnectProperties props;
+    private ConnectionPropertiesProvider props;
 
     private boolean readerBusy = false;
 
@@ -46,7 +46,7 @@ public class ParallelStreams {
 
     private boolean hint = false;
 
-    public ParallelStreams(int n, int b, ConnectProperties props) {
+    public ParallelStreams(int n, int b, ConnectionPropertiesProvider props) {
         if (MyDebug.VERBOSE()) {
             System.err.println("# ParallelStreams: building link- numWays = "
                     + n + "; blockSize = " + b);

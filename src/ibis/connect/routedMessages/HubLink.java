@@ -100,7 +100,7 @@ public class HubLink extends Thread {
 
     /* ServerSocket list management
      */
-    protected synchronized void addServer(RMServerSocket s, int port) {
+    protected synchronized void addServer(RoutedMessagesServerSocket s, int port) {
         serverSockets.put(new Integer(port), s);
     }
 
@@ -108,9 +108,9 @@ public class HubLink extends Thread {
         serverSockets.remove(new Integer(port));
     }
 
-    private synchronized RMServerSocket resolveServer(int port) {
-        RMServerSocket s
-                = (RMServerSocket) serverSockets.get(new Integer(port));
+    private synchronized RoutedMessagesServerSocket resolveServer(int port) {
+        RoutedMessagesServerSocket s
+                = (RoutedMessagesServerSocket) serverSockets.get(new Integer(port));
         if (s == null) {
             throw new Error("HubLink: bad server- port=" + port);
         }
@@ -119,7 +119,7 @@ public class HubLink extends Thread {
 
     /* Socket list management
      */
-    protected synchronized void addSocket(RMSocket s, int port) {
+    protected synchronized void addSocket(RoutedMessagesSocket s, int port) {
         connectedSockets.put(new Integer(port), s);
     }
 
@@ -129,8 +129,8 @@ public class HubLink extends Thread {
         available_ports.add(m);
     }
 
-    private synchronized RMSocket resolveSocket(int port) throws IOException {
-        RMSocket s = (RMSocket) connectedSockets.get(new Integer(port));
+    private synchronized RoutedMessagesSocket resolveSocket(int port) throws IOException {
+        RoutedMessagesSocket s = (RoutedMessagesSocket) connectedSockets.get(new Integer(port));
         if (s == null) {
             throw new IOException("HubLink: bad socket- port=" + port);
         }
@@ -179,7 +179,7 @@ public class HubLink extends Thread {
                                     + p.serverPort
                                     + "; from host="
                                     + p.getHost() + "; port=" + p.clientPort);
-                    RMServerSocket s = resolveServer(p.serverPort);
+                    RoutedMessagesServerSocket s = resolveServer(p.serverPort);
                     if (s != null) {
                         // AD: TODO- investigate concurrency in CONNECT/ACCEPT
                         // Ceriel: Done.
@@ -202,7 +202,7 @@ public class HubLink extends Thread {
                                     + "; servantPort="
                                     + p.servantPort);
                     try {
-                        RMSocket s = resolveSocket(p.clientPort);
+                        RoutedMessagesSocket s = resolveSocket(p.clientPort);
                         s.enqueueAccept(p.servantPort, p.getPort());
                     } catch (Exception e) {
                         /* Exception may be discarded (socket has been closed
@@ -223,7 +223,7 @@ public class HubLink extends Thread {
                                     + " from host "
                                     + p.serverHost);
                     try {
-                        RMSocket s = resolveSocket(p.clientPort);
+                        RoutedMessagesSocket s = resolveSocket(p.clientPort);
                         s.enqueueReject();
                     } catch (Exception e) { /* ignore */
                     }
@@ -236,7 +236,7 @@ public class HubLink extends Thread {
                                     + "port = "
                                     + p.port);
                     try {
-                        RMSocket s = resolveSocket(p.port);
+                        RoutedMessagesSocket s = resolveSocket(p.port);
                         if (s.remotePort == p.senderport) {
                             s.enqueueFragment(p.b);
                         } else {
@@ -258,7 +258,7 @@ public class HubLink extends Thread {
                     MyDebug.out.println("# HubLink.run()- Got CLOSE for "
                                     + "port = " + p.closePort);
                     try {
-                        RMSocket s = resolveSocket(p.closePort);
+                        RoutedMessagesSocket s = resolveSocket(p.closePort);
                         if (p.h.equals(s.remoteHostname)
                                 && s.remotePort == p.localPort) {
                             s.enqueueClose();

@@ -4,7 +4,7 @@
  **/
 package ibis.impl.tcp;
 
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
@@ -109,7 +109,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     obj_out.writeObject(receiver);
                     obj_out.close();
                     final DynamicProperties p = sp.properties();
-                    ConnectProperties props = new ConnectProperties() {
+                    ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
                         public String getProperty(String name) {
                             return (String) p.find(name);
                         }
@@ -422,7 +422,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     TcpReceivePort rp = findReceivePort(receive);
                     final DynamicProperties p
                             = rp == null ? null : rp.properties();
-                    ConnectProperties props = new ConnectProperties() {
+                    ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
                         public String getProperty(String name) {
                             return (String) p.find(name);
                         }

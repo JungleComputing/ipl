@@ -3,7 +3,7 @@
 package ibis.connect.controlHub;
 
 import ibis.connect.routedMessages.HubProtocol;
-import ibis.connect.util.ConnProps;
+import ibis.connect.util.ConnectionProperties;
 import ibis.connect.util.MyDebug;
 import ibis.util.TypedProperties;
 
@@ -34,7 +34,7 @@ class NodeManager extends Thread {
     private int[] nmessages;
 
     private static final boolean STATS
-            = TypedProperties.booleanProperty(ConnProps.hub_stats);
+            = TypedProperties.booleanProperty(ConnectionProperties.hub_stats);
 
     private static final int np = HubProtocol.getNPacketTypes();
 
@@ -193,7 +193,7 @@ public class ControlHub extends Thread {
         int port = defaultPort;
         try {
             Properties p = System.getProperties();
-            String portString = p.getProperty(ConnProps.hub_port);
+            String portString = p.getProperty(ConnectionProperties.hub_port);
             if (portString != null) {
                 port = Integer.parseInt(portString);
             } else {

@@ -37,7 +37,7 @@ public class PlainTCPSocketType extends SocketType implements
     }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean hintIsServer, ConnectProperties p) throws IOException {
+            boolean hintIsServer, ConnectionPropertiesProvider p) throws IOException {
         Socket s = null;
         if (hintIsServer) {
             ServerSocket server = this.createServerSocket(

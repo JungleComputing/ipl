@@ -12,7 +12,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
-public class RMServerSocket extends ServerSocket {
+public class RoutedMessagesServerSocket extends ServerSocket {
     private HubLink hub = null;
 
     private int serverPort = -1;
@@ -37,13 +37,13 @@ public class RMServerSocket extends ServerSocket {
         }
     }
 
-    public RMServerSocket(int port, InetAddress addr) throws IOException {
+    public RoutedMessagesServerSocket(int port, InetAddress addr) throws IOException {
         hub = HubLinkFactory.getHubLink();
         serverPort = hub.newPort(port);
         this.addr = addr;
         socketOpened = true;
         hub.addServer(this, serverPort);
-        MyDebug.out.println("# RMServerSocket() addr=" + addr + "; port="
+        MyDebug.out.println("# RoutedMessagesServerSocket() addr=" + addr + "; port="
                 + serverPort);
     }
 
@@ -57,19 +57,19 @@ public class RMServerSocket extends ServerSocket {
             }
         }
         MyDebug.out.println(
-                "# RMServerSocket.getInetAddress() addr=" + address);
+                "# RoutedMessagesServerSocket.getInetAddress() addr=" + address);
         return address;
     }
 
     public int getLocalPort() {
-        MyDebug.out.println("# RMServerSocket.getLocalPort() port="
+        MyDebug.out.println("# RoutedMessagesServerSocket.getLocalPort() port="
                 + serverPort);
         return serverPort;
     }
 
     public Socket accept() throws IOException {
         Socket s = null;
-        MyDebug.out.println("# RMServerSocket.accept()- waiting on port "
+        MyDebug.out.println("# RoutedMessagesServerSocket.accept()- waiting on port "
                 + serverPort);
         hub = HubLinkFactory.getHubLink();
         Request r = null;
@@ -87,12 +87,12 @@ public class RMServerSocket extends ServerSocket {
         }
 
         int localPort = hub.newPort(0);
-        MyDebug.out.println("# RMServerSocket.accept()- on port " + serverPort
+        MyDebug.out.println("# RoutedMessagesServerSocket.accept()- on port " + serverPort
                 + " unlocked; from port=" + r.requestPort + "; host="
                 + r.requestHost);
-        s = new RMSocket(r.requestHost, r.requestPort, localPort,
+        s = new RoutedMessagesSocket(r.requestHost, r.requestPort, localPort,
                 r.requestHubPort);
-        MyDebug.out.println("# RMServerSocket.accept()- new RMSocket created "
+        MyDebug.out.println("# RoutedMessagesServerSocket.accept()- new RoutedMessagesSocket created "
                 + "on port=" + localPort + "- Sending ACK.");
         hub.sendPacket(r.requestHost, r.requestHubPort,
                 new HubProtocol.HubPacketAccept(r.requestPort,
@@ -101,7 +101,7 @@ public class RMServerSocket extends ServerSocket {
     }
 
     public synchronized void close() {
-        MyDebug.out.println("# RMServerSocket.close() of port " + serverPort);
+        MyDebug.out.println("# RoutedMessagesServerSocket.close() of port " + serverPort);
         socketOpened = false;
         this.notifyAll();
         hub.removeServer(serverPort);
@@ -113,10 +113,10 @@ public class RMServerSocket extends ServerSocket {
     protected synchronized void enqueueConnect(String clientHost,
             int clientPort, int clienthubport) {
         requests.add(new Request(clientPort, clientHost, clienthubport));
-        MyDebug.out.println("# RMServerSocket.enqueueConnect() for port "
+        MyDebug.out.println("# RoutedMessagesServerSocket.enqueueConnect() for port "
                 + serverPort + ", size = " + requests.size());
         if (requests.size() == 1) {
-            MyDebug.out.println("# RMServerSocket.enqueueConnect(): notify");
+            MyDebug.out.println("# RoutedMessagesServerSocket.enqueueConnect(): notify");
             this.notify();
         }
     }

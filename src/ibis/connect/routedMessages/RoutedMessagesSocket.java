@@ -2,7 +2,7 @@
 
 package ibis.connect.routedMessages;
 
-import ibis.connect.socketFactory.DummySocket;
+import ibis.connect.socketFactory.IbisSocket;
 import ibis.connect.util.MyDebug;
 
 import java.io.EOFException;
@@ -12,7 +12,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.LinkedList;
 
-public class RMSocket extends DummySocket {
+public class RoutedMessagesSocket extends IbisSocket {
     HubLink hub = null;
 
     String remoteHostname = null;
@@ -50,13 +50,13 @@ public class RMSocket extends DummySocket {
     /* misc methods for the HubLink to feed us
      */
     protected synchronized void enqueueFragment(byte[] b) {
-        MyDebug.out.println("# RMSocket.enqueueFragment, size = " + b.length);
+        MyDebug.out.println("# RoutedMessagesSocket.enqueueFragment, size = " + b.length);
         incomingFragments.addLast(b);
         this.notifyAll();
     }
 
     protected synchronized void enqueueAccept(int servantPort, int hport) {
-        MyDebug.out.println("# RMSocket.enqueueAccept()- servantPort="
+        MyDebug.out.println("# RoutedMessagesSocket.enqueueAccept()- servantPort="
                 + servantPort);
         state = state_ACCEPTED;
         remoteHostPort = hport;
@@ -65,13 +65,13 @@ public class RMSocket extends DummySocket {
     }
 
     protected synchronized void enqueueReject() {
-        MyDebug.out.println("# RMSocket.enqueueReject()");
+        MyDebug.out.println("# RoutedMessagesSocket.enqueueReject()");
         state = state_REJECTED;
         this.notifyAll();
     }
 
     protected synchronized void enqueueClose() {
-        MyDebug.out.println("# RMSocket.enqueueClose()- port = " + localPort
+        MyDebug.out.println("# RoutedMessagesSocket.enqueueClose()- port = " + localPort
                 + ", remotePort = " + remotePort);
         state = state_CLOSED;
         if (localPort != -1) {
@@ -94,12 +94,12 @@ public class RMSocket extends DummySocket {
         out = new RMOutputStream(this);
         in = new RMInputStream(this);
         state = state_NONE;
-        MyDebug.out.println("# RMSocket.commonInit()- rHost=" + rHost);
+        MyDebug.out.println("# RoutedMessagesSocket.commonInit()- rHost=" + rHost);
     }
 
-    // Incoming links constructor - reserved to RMServerSocket
-    protected RMSocket(String rHost, int rPort, int lPort, int hport) {
-        MyDebug.out.println("# RMSocket()");
+    // Incoming links constructor - reserved to RoutedMessagesServerSocket
+    protected RoutedMessagesSocket(String rHost, int rPort, int lPort, int hport) {
+        MyDebug.out.println("# RoutedMessagesSocket()");
         commonInit(rHost);
         remotePort = rPort;
         localPort = lPort;
@@ -109,25 +109,25 @@ public class RMSocket extends DummySocket {
     }
 
     // Outgoing links constructor - public
-    public RMSocket(InetAddress rAddr, int rPort) throws IOException {
-        MyDebug.out.println("# RMSocket(" + rAddr + ", " + rPort + ")");
+    public RoutedMessagesSocket(InetAddress rAddr, int rPort) throws IOException {
+        MyDebug.out.println("# RoutedMessagesSocket(" + rAddr + ", " + rPort + ")");
         commonInit(rAddr.getHostName());
         localPort = hub.newPort(0);
         hub.addSocket(this, localPort);
 
-        MyDebug.out.println("# RMSocket()- sending CONNECT");
+        MyDebug.out.println("# RoutedMessagesSocket()- sending CONNECT");
         state = state_CONNECTING;
         hub.sendPacket(remoteHostname, -1, new HubProtocol.HubPacketConnect(
                 rPort, localPort));
         synchronized (this) {
             while (state == state_CONNECTING) {
-                MyDebug.out.println("# RMSocket()- waiting for ACCEPTED port = "
+                MyDebug.out.println("# RoutedMessagesSocket()- waiting for ACCEPTED port = "
                                 + localPort);
                 try {
                     this.wait();
                 } catch (InterruptedException e) { /* ignore */
                 }
-                MyDebug.out.println("# RMSocket()- unlocked");
+                MyDebug.out.println("# RoutedMessagesSocket()- unlocked");
             }
             if (state == state_ACCEPTED) {
                 state = state_CONNECTED;
@@ -182,7 +182,7 @@ public class RMSocket extends DummySocket {
     }
 
     public synchronized void close() {
-        MyDebug.out.println("# RMSocket.close(), localPort = " + localPort
+        MyDebug.out.println("# RoutedMessagesSocket.close(), localPort = " + localPort
                 + ", remotePort = " + remotePort);
         state = state_CLOSED;
         if (remotePort != -1) {
@@ -192,10 +192,10 @@ public class RMSocket extends DummySocket {
         remotePort = -1;
     }
 
-    /* InputStream for RMSocket
+    /* InputStream for RoutedMessagesSocket
      */
     private class RMInputStream extends InputStream {
-        private RMSocket socket = null;
+        private RoutedMessagesSocket socket = null;
 
         private boolean open = false;
 
@@ -234,7 +234,7 @@ public class RMSocket extends DummySocket {
             }
         }
 
-        public RMInputStream(RMSocket s) {
+        public RMInputStream(RoutedMessagesSocket s) {
             super();
             socket = s;
             open = true;
@@ -321,10 +321,10 @@ public class RMSocket extends DummySocket {
         }
     }
 
-    /* OutputStream for RMSocket
+    /* OutputStream for RoutedMessagesSocket
      */
     private class RMOutputStream extends OutputStream {
-        private RMSocket socket;
+        private RoutedMessagesSocket socket;
 
         private boolean open = false;
 
@@ -336,7 +336,7 @@ public class RMSocket extends DummySocket {
             }
         }
 
-        public RMOutputStream(RMSocket s) {
+        public RMOutputStream(RoutedMessagesSocket s) {
             super();
             socket = s;
             open = true;

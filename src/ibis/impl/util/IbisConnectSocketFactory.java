@@ -2,7 +2,7 @@
 
 package ibis.impl.util;
 
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.ipl.ConnectionTimedOutException;
 
@@ -36,13 +36,13 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
     }
 
     public Socket createBrokeredSocket(Socket s, boolean isServer,
-            ConnectProperties p) throws IOException {
+            ConnectionPropertiesProvider p) throws IOException {
         return ExtSocketFactory.createBrokeredSocket(s.getInputStream(),
                 s.getOutputStream(), isServer, p);
     }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean isServer, ConnectProperties p) throws IOException {
+            boolean isServer, ConnectionPropertiesProvider p) throws IOException {
         return ExtSocketFactory.createBrokeredSocket(in, out, isServer, p);
     }
 

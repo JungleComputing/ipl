@@ -2,7 +2,7 @@
 
 package ibis.impl.net.tcp;
 
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
@@ -80,7 +80,7 @@ public final class TcpInput extends NetInput {
         }
 
         final NetIO nn = this;
-        ConnectProperties props = new ConnectProperties() {
+        ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
             public String getProperty(String name) {
                 if (p != null) {
                     String result = (String) p.find(name);

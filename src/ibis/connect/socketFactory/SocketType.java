@@ -2,17 +2,17 @@
 
 package ibis.connect.socketFactory;
 
-import ibis.connect.util.ConnProps;
+import ibis.connect.util.ConnectionProperties;
 
 public abstract class SocketType {
-    public static class DefaultConnectProperties implements ConnectProperties {
-        ConnectProperties prevail = null;
+    public static class DefaultConnectProperties implements ConnectionPropertiesProvider {
+        ConnectionPropertiesProvider prevail = null;
 
         public DefaultConnectProperties() {
             // empty constructor
         }
 
-        public DefaultConnectProperties(ConnectProperties prevail) {
+        public DefaultConnectProperties(ConnectionPropertiesProvider prevail) {
             this.prevail = prevail;
         }
 
@@ -24,7 +24,7 @@ public abstract class SocketType {
                 }
             }
             return System.getProperties().getProperty(
-                    ConnProps.PROPERTY_PREFIX + name);
+                    ConnectionProperties.PROPERTY_PREFIX + name);
         }
     }
 

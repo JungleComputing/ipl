@@ -2,7 +2,7 @@
 
 package ibis.connect.socketFactory;
 
-import ibis.connect.util.ConnProps;
+import ibis.connect.util.ConnectionProperties;
 import ibis.connect.util.MyDebug;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
@@ -65,7 +65,7 @@ public class ExtSocketFactory {
     /* static constructor
      */
     static {
-        ConnProps.checkProps();
+        ConnectionProperties.checkProps();
         if (MyDebug.VERBOSE()) {
             System.err.println("# ExtSocketFactory: starting configuration."); 
         }
@@ -85,8 +85,8 @@ public class ExtSocketFactory {
                 "ibis.connect.socketFactory.AnyTCPSocketType");
         // Declare new nicknames here.
 
-        String bl = TypedProperties.stringProperty(ConnProps.datalinks);
-        String cs = TypedProperties.stringProperty(ConnProps.controllinks);
+        String bl = TypedProperties.stringProperty(ConnectionProperties.datalinks);
+        String cs = TypedProperties.stringProperty(ConnectionProperties.controllinks);
 
         if (bl != null) {
             StringTokenizer st = new StringTokenizer(bl, " ,\t\n\r\f");
@@ -242,7 +242,7 @@ public class ExtSocketFactory {
 
     private static Socket createBrokeredSocket(InputStream in,
             OutputStream out, boolean hintIsServer, SocketType t,
-            ConnectProperties props) throws IOException {
+            ConnectionPropertiesProvider props) throws IOException {
         Socket s = null;
         BrokeredSocketFactory f = null;
         try {
@@ -265,7 +265,7 @@ public class ExtSocketFactory {
             boolean hintIsServer) throws IOException {
         SocketType t = parallel ? loadSocketType("ParallelStreams")
                 : defaultBrokeredLink;
-        ConnectProperties props = new SocketType.DefaultConnectProperties();
+        ConnectionPropertiesProvider props = new SocketType.DefaultConnectProperties();
         if (t == null) {
             throw new Error("no socket type found!");
         }
@@ -273,7 +273,7 @@ public class ExtSocketFactory {
     }
 
     public static Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean hintIsServer, ConnectProperties props) throws IOException {
+            boolean hintIsServer, ConnectionPropertiesProvider props) throws IOException {
         SocketType t = null;
         String st = null;
         if (props != null) {
@@ -305,7 +305,7 @@ public class ExtSocketFactory {
      */
     public static Socket createBrokeredSocketFromClientServer(
             ClientServerSocketFactory type, InputStream in, OutputStream out,
-            boolean hintIsServer, ConnectProperties p) throws IOException {
+            boolean hintIsServer, ConnectionPropertiesProvider p) throws IOException {
         Socket s = null;
         if (hintIsServer) {
             ServerSocket server = type.createServerSocket(
@@ -390,7 +390,7 @@ public class ExtSocketFactory {
         return (BrokeredSocketFactory) defaultBrokeredLink;
     }
 
-    private static void tuneSocket(Socket s, ConnectProperties p)
+    private static void tuneSocket(Socket s, ConnectionPropertiesProvider p)
             throws IOException {
         int ibufsiz = 0x10000;
         int obufsiz = 0x10000;

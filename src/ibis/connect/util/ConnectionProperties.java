@@ -8,7 +8,7 @@ import ibis.util.TypedProperties;
  * Collects all system properties used by the ibis.connect package
  * and sub-packages.
  */
-public class ConnProps {
+public class ConnectionProperties {
     public static final String PROPERTY_PREFIX = "ibis.connect.";
 
     public static final String hub_port = PROPERTY_PREFIX + "hub_port";

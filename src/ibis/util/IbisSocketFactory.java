@@ -2,7 +2,7 @@
 
 package ibis.util;
 
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -209,7 +209,7 @@ public abstract class IbisSocketFactory {
      *   be created for some reason.
      */
     public Socket createBrokeredSocket(Socket s, boolean isServer,
-            ConnectProperties p) throws IOException {
+            ConnectionPropertiesProvider p) throws IOException {
         return s;
     }
 
@@ -227,7 +227,7 @@ public abstract class IbisSocketFactory {
      *   be created for some reason.
      */
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean isServer, ConnectProperties p) throws IOException {
+            boolean isServer, ConnectionPropertiesProvider p) throws IOException {
         return null;
     }
 

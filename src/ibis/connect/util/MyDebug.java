@@ -35,8 +35,8 @@ public class MyDebug {
     public static final PrintStream out;
 
     static {
-        String sEnabled = System.getProperty(ConnProps.debug, "false");
-        String sVerbose = System.getProperty(ConnProps.verbose, "false");
+        String sEnabled = System.getProperty(ConnectionProperties.debug, "false");
+        String sVerbose = System.getProperty(ConnectionProperties.verbose, "false");
 
         enableVerbose = sVerbose.equals("true");
         enableDebug = sEnabled.equals("true");

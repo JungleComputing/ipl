@@ -5,7 +5,7 @@ package ibis.connect.socketFactory;
 /**
  * Interface for passing on connection properties.
  */
-public interface ConnectProperties {
+public interface ConnectionPropertiesProvider {
     /**
      * Returns the string associated with the specified name.
      * @param name the property name

@@ -77,7 +77,7 @@ public class AnyTCPSocketType extends SocketType implements
     }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean hint, ConnectProperties p) throws IOException {
+            boolean hint, ConnectionPropertiesProvider p) throws IOException {
         DataOutputStream os = new DataOutputStream(
                 new BufferedOutputStream(out));
         DataInputStream is = new DataInputStream(new BufferedInputStream(in));

@@ -9,5 +9,5 @@ import java.net.Socket;
 
 public interface BrokeredSocketFactory {
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean hintIsServer, ConnectProperties p) throws IOException;
+            boolean hintIsServer, ConnectionPropertiesProvider p) throws IOException;
 }

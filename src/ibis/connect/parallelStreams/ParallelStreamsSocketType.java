@@ -3,7 +3,7 @@
 package ibis.connect.parallelStreams;
 
 import ibis.connect.socketFactory.BrokeredSocketFactory;
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.connect.socketFactory.SocketType;
 
 import java.io.IOException;
@@ -18,7 +18,7 @@ public class ParallelStreamsSocketType extends SocketType implements
     }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean hint, ConnectProperties p) throws IOException {
+            boolean hint, ConnectionPropertiesProvider p) throws IOException {
         Socket s = null;
         if (p == null) {
             throw new Error(
@@ -34,7 +34,7 @@ public class ParallelStreamsSocketType extends SocketType implements
         if (sbs != null) {
             blockSize = Integer.parseInt(sbs);
         }
-        s = new PSSocket(numWays, blockSize, in, out, hint, p);
+        s = new ParallelStreamsSocket(numWays, blockSize, in, out, hint, p);
         return s;
     }
 }

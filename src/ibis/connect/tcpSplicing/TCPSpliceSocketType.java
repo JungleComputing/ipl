@@ -3,7 +3,7 @@
 package ibis.connect.tcpSplicing;
 
 import ibis.connect.socketFactory.BrokeredSocketFactory;
-import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.connect.socketFactory.PlainTCPSocketType;
 import ibis.connect.socketFactory.SocketType;
 import ibis.connect.util.MyDebug;
@@ -26,7 +26,7 @@ public class TCPSpliceSocketType extends SocketType implements
     }
 
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
-            boolean hint, ConnectProperties p) throws IOException {
+            boolean hint, ConnectionPropertiesProvider p) throws IOException {
         Splice theSplice = new Splice();
         int splicePort = theSplice.findPort();
         String spliceHost = theSplice.getLocalHost();
