@@ -287,7 +287,7 @@ public final class RTS {
 	}
 
 	/****
-	 * This is only supported in SDK 1.4 and upwards. Comment out
+	 * This is only supported in SDK 1.3 and upwards. Comment out
 	 * if you run an older SDK.
 	 */
 	Runtime.getRuntime().addShutdownHook(new Thread("Ibis RMI RTS ShutdownHook") {
@@ -303,7 +303,7 @@ public final class RTS {
 		}
 	    }
 	});
-	/* End of 1.4-specific code */
+	/* End of 1.3-specific code */
     }
 
     private static String get_skel_name(Class c) {
