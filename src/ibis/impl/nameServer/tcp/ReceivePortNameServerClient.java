@@ -80,7 +80,8 @@ class ReceivePortNameServerClient implements Protocol {
 			if (id == null) {
 				int timeLeft = (int)(startTime + timeout - System.currentTimeMillis());
 				try {
-					if (timeLeft > 0) Thread.sleep(0, Math.min(timeLeft, 500));
+					if (timeLeft <= 100) timeLeft = 100;
+					Thread.sleep(Math.min(timeLeft, 500));
 				} catch (InterruptedException e) {
 					// ignore               
 				}
