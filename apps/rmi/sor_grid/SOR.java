@@ -49,7 +49,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	int prevIndex, nextIndex;
 	int nit;
 	int sync;
-	boolean visualization;
+	VisualBuffer visual;
 
 	WaitingSendThread prevSender, nextSender;
 
@@ -59,11 +59,11 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 
 	PoolInfo info;
 
-	SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, boolean visualization, PoolInfo info) throws RemoteException {
+	SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, VisualBuffer visual, PoolInfo info) throws RemoteException {
 		this.nrow = nrow; // Add two rows to borders.
 		this.ncol = ncol; // Add two columns to borders.
 		this.nit  = nit;
-		this.visualization = visualization;
+		this.visual = visual;
 
 		this.sync       = sync;
 		this.info = info;
@@ -345,10 +345,10 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 		int width = 0;
 		int height = 0;
 		float[][] canvas = null;
-		if(visualization) {
-		    width = global.getRawDataWidth();
-		    height = global.getRawDataHeight();
-		    canvas = GlobalData.createDownsampledCanves(g, width, height);
+		if(visual != null) {
+		    width = visual.getRawDataWidth();
+		    height = visual.getRawDataHeight();
+		    canvas = VisualBuffer.createDownsampledCanves(g, width, height);
 		}
 
 		/* now do the "real" computation */
@@ -380,9 +380,9 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 			}
 			*/
 
-			if(visualization) {
-				GlobalData.downsample(g, canvas, width, height);
-				global.putMatrix(canvas);
+			if(visual != null) {
+				VisualBuffer.downsample(g, canvas, width, height);
+				visual.putMatrix(canvas);
 			}
 
 			diff = 0.0;

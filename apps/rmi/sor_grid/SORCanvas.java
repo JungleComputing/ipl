@@ -6,16 +6,27 @@ class SORCanvas extends Canvas {
 	private float[][] data;
 	BufferedImage img = null;
 
-	SORCanvas(int w, int h) {
-		int i;
+	SORCanvas(int width, int height) {
 
-		//make it a little bigger so everything should fit
-		setSize(w, h);
+	    this.width =  width;
+	    this.height = height;
 
-		width =  w;
-		height = h;
+	    // Create and set up the window.
+	    Frame frame = new Frame("SOR");
+//	    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+	    // make it a little bigger so everything should fit
+	    setSize(width, height);
+
+	    img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+	    frame.add(this);
+	    frame.validate();
+
+	    //Display the window.
+	    frame.pack();
+	    frame.setVisible(true);
 	}
 
 /*
@@ -30,6 +41,7 @@ class SORCanvas extends Canvas {
 		}
 	}
 */
+
 	public void update(Graphics g) {
 		paint(g);
 	}
@@ -55,6 +67,7 @@ class SORCanvas extends Canvas {
 		} else {
 		    scale = 255 / (max - min);
 		}
+System.err.println("min " + min + " max " + max + " scale " + scale);
 
 		for (int i = 0; i < height; i++) {
 			for(int j = 0; j<width; j++) {
@@ -80,7 +93,15 @@ class SORCanvas extends Canvas {
 	}
 
 	public synchronized void update(float[][] data) {
-		this.data = data;
-		repaint();
+	    for (int i = 0; i < data.length; i++) {
+		if (data[i] != null && data[i].length > 0) {
+		    System.arraycopy(this.data[i], 0,
+				     data[i], 0,
+				     data[i].length);
+		}
+	    }
+			
+	    repaint();
 	}
+
 }

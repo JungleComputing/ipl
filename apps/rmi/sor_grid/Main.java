@@ -111,6 +111,8 @@ class Main {
 	    // Start the registry.    
 	    reg = RMI_init.getRegistry(info.hostName(0));
 
+	    VisualBuffer visual = null;
+
 	    if (info.rank() == 0) {
 		System.out.println("Starting SOR");
 		System.out.println("");
@@ -119,8 +121,8 @@ class Main {
 		System.out.println("Iterations    : " + ((nit == 0) ? "dynamic" : ("" + nit)));
 		System.out.println("Calculation   : " + ((sync == SOR.SYNC_SEND) ? "one-phase"   : "split-phase"));
 		System.out.print("Visualization : ");
-		if(visualization) {
-		    if(asyncVisualization) {
+		if (visualization) {
+		    if (asyncVisualization) {
 			System.out.println("enabled, asynchronous");
 		    } else {
 			System.out.println("enabled, synchronous");
@@ -128,10 +130,9 @@ class Main {
 		} else {
 		    System.out.println("disabled");
 		}
-
 		System.out.println();
 
-		global = new GlobalData(info, ! asyncVisualization);
+		global = new GlobalData(info);
 		RMI_init.bind("GlobalData", global);
 		System.err.println("I am the master: " + info.hostName(0));
 	    } else {
@@ -139,20 +140,24 @@ class Main {
 
 	    }
 
+	    if (visualization) {
+		visual = new VisualBuffer(info, asyncVisualization);
+		RMI_init.bind("VisualBuffer", visual);
+	    }
 
 	    double[] nodeSpeed = null;	/* Speed of node[i] */
 	    double speed = 1.0;
 	    if (hetero_speed) {
 		PoolInfo seqInfo = new PoolInfo(true);
-		GlobalData seqGlobal = new GlobalData(seqInfo, false);
-		local = new SOR(1024, 1024, nit, sync, seqGlobal, false, seqInfo);
+		GlobalData seqGlobal = new GlobalData(seqInfo);
+		local = new SOR(1024, 1024, nit, sync, seqGlobal, null, seqInfo);
 		table = seqGlobal.table((i_SOR) local, seqInfo.rank());
 		local.setTable(table);
 		local.start(false, "Calibrate");
 		speed = 1.0 / local.getElapsedTime();
 	    }
 	    
-	    local = new SOR(nrow, ncol, nit, sync, global, visualization, info);
+	    local = new SOR(nrow, ncol, nit, sync, global, visual, info);
 	    if (hetero_speed) {
 		nodeSpeed = global.scatter2all(local.rank, speed);
 		for (int i = 0; i < local.nodes; i++) {

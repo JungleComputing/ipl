@@ -2,63 +2,82 @@ import java.awt.*;
 import java.rmi.RemoteException;
 
 class SORVisualizer {
-	int width;
-	int height;
-	i_GlobalData global;
-	static String masterName;
 
-	SORVisualizer(int width, int height, i_GlobalData global) {
-		this.width = width;
-		this.height = height;
-		this.global = global;
+    private int width;
+    private int height;
+    private float[][] data = null;
+    private SORCanvas canvas;
+    private boolean started = false;
+
+    SORVisualizer(int width, int height, String[] args) {
+	this.width = width;
+	this.height = height;
+	canvas = new SORCanvas(width, height);
+	for (int i = 0; i < args.length; i++) {
+	    new Reaper(args[i]).start();
 	}
 
-	public void start() {
-		SORCanvas c = createCanvas(width, height);
-		float[][] data = null;
-		try {
-			global = (i_GlobalData) RMI_init.lookup("//" + masterName + "/GlobalData");
-		} catch (java.io.IOException e) {
-			System.err.println("lookup fails " + e);
-			System.exit(33);
-		}
+	System.out.println("Hit enter to start sampling");
+	try {
+	    System.in.read();
+	} catch (java.io.IOException e) {
+	    System.err.println("System.in.read() -> " + e);
+	}
+	synchronized (this) {
+	    started = true;
+	    notifyAll();
+	}
+    }
 
-		try {
-			global.setRawDataSize(width, height);
+    private class Reaper extends Thread {
 
-			// do work
-			while(true) {
-				data = global.getRawData();
-				c.update(data); // give data to the canvas
+	private i_VisualBuffer visual;
+	private String	masterName;
+
+	Reaper(String masterName) {
+	    this.masterName = masterName;
+
+	    try {
+		visual = (i_VisualBuffer)RMI_init.lookup("//" + masterName + "/VisualBuffer");
+	    } catch (java.io.IOException e) {
+		System.err.println("lookup fails " + e);
+		System.exit(33);
+	    }
+	}
+
+	public void run() {
+
+	    try {
+		visual.setRawDataSize(width, height);
+
+		/* Wait for kickoff from user */
+		synchronized (SORVisualizer.this) {
+		    while (! started) {
+			try {
+			    wait();
+			} catch (InterruptedException e) {
+			    // have to live with this
 			}
-		} catch (RemoteException e) {
-			System.err.println("SORVisualizer.run: got exception: " + e);
+		    }
 		}
+
+		// do work
+		while(true) {
+System.err.print("[");
+		    data = visual.getRawData();
+System.err.print("]");
+		    canvas.update(data); // give data to the canvas
+		}
+
+	    } catch (RemoteException e) {
+		System.err.println("SORVisualizer.run: got exception: " + e);
+	    }
 	}
 
-	private SORCanvas createCanvas(int width, int height) {
+    }
 
-		//Create and set up the window.
-		Frame frame = new Frame("SOR");
-		//frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public static void main(String args[]) {
+	new SORVisualizer(500, 500, args);
+    }
 
-		SORCanvas c = new SORCanvas(width, height);
-		frame.add(c);
-		frame.validate();
-
-		//Display the window.
-		frame.pack();
-		frame.setVisible(true);
-
-		return c;
-	}
-
-	public static void main(String args[]) {
-		i_GlobalData global = null;
-		masterName = args[0];
-
-		new SORVisualizer(500, 500, global).start();
-		System.exit(0);
-	}
 }
