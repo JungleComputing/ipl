@@ -1,0 +1,21 @@
+<!DOCTYPE project [
+    <!ENTITY satinAppTargets  SYSTEM "../build-satin-app.xml">
+    <!ENTITY sharedProperties SYSTEM "../../../build-properties.xml">
+    <!ENTITY iogenTargets     SYSTEM "../../../build-iogen.xml">
+    <!ENTITY nativeTargets    SYSTEM "../../../build-native.xml">
+    <!ENTITY satinTargets     SYSTEM "../../../build-satin.xml">
+]>
+
+<project
+    name="ibis.apps.satin.two_out_three"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    &satinAppTargets;
+
+</project>
+
+
