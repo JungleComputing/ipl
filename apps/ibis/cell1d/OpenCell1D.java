@@ -250,31 +250,26 @@ class OpenCell1D implements OpenConfig {
         }
         WriteMessage m = p.newMessage();
         m.writeInt( OpenCell1D.generation );
-        m.writeInt( firstColumn );
-        m.writeInt( firstNoColumn );
-        m.writeInt( 0 );                // # of shipped columns
         m.writeArray( data );
         m.send();
         m.finish();
     }
 
-    private static void receive( ReceivePort p, byte data[] )
+    private static int receive( ReceivePort p, byte data[] )
         throws java.io.IOException
     {
         if( data == null ){
             System.err.println( "P" + me + ": cannot receive from " + p + " into a null array" );
-            return;
+            return -1;
         }
         if( traceCommunication ){
             System.out.println( myName.name() + ": receiving on port " + p );
         }
         ReadMessage m = p.receive();
         int gen = m.readInt();
-        int firstCol = m.readInt();
-        int lastCol = m.readInt();
-        int shippedCol = m.readInt();
         m.readArray( data );
         m.finish();
+        return gen;
     }
 
     public static void main( String [] args )
@@ -445,10 +440,18 @@ class OpenCell1D implements OpenConfig {
                 }
                 else {
                     if( rightReceivePort != null ){
-                        receive( rightReceivePort, board[firstNoColumn] );
+                        int gen = receive( rightReceivePort, board[firstNoColumn] );
+                        if( gen>0 && generation<0  ){
+                            // We now know at which generation we are.
+                            generation = gen;
+                        }
                     }
                     if( leftReceivePort != null ){
-                        receive( leftReceivePort, board[firstColumn-1] );
+                        int gen = receive( leftReceivePort, board[firstColumn-1] );
+                        if( gen>0 && generation<0  ){
+                            // We now know at which generation we are.
+                            generation = gen;
+                        }
                     }
                     if( rightSendPort != null ){
                         send( rightSendPort, board[firstNoColumn-1] );
