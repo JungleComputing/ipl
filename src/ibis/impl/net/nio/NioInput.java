@@ -109,7 +109,7 @@ public final class NioInput extends NetInput {
 	    oneByteBuffer.clear();
 	}
 
-    public void initReceive(Integer num) {
+    public void initReceive(Integer num) throws IOException {
 	// NOTHING
     }
 

@@ -72,10 +72,6 @@ public final class PipeInput extends NetBufferedInput {
                 log.out();
 	}
 
-        protected void initReceive(Integer num) {
-                //
-        }
-
 	public Integer doPoll(boolean block) throws IOException {
                 log.in();
 		if (spn == null) {

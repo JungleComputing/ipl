@@ -157,11 +157,6 @@ dumpBufferFactoryInfo();
     }
 
 
-    protected void initReceive() {
-        //
-    }
-    
-
     /**
      * {@inheritDoc}
      *

@@ -40,7 +40,7 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
 		super(pt, driver, context, inputUpcall);
 	}
 
-        public void initReceive(Integer num) {
+        public void initReceive(Integer num) throws IOException {
                 //
         }
 

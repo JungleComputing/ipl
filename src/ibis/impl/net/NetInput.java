@@ -381,7 +381,7 @@ finishedUpcallThreads--;
                 log.out();
         }
 
-        protected abstract void initReceive(Integer num) throws IOException;
+        public abstract void initReceive(Integer num) throws IOException;
 
 	protected void handleEmptyMsg() throws IOException {
 	    readByte();

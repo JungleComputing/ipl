@@ -593,10 +593,6 @@ public final class RelInput
 	}
     }
 
-    protected void initReceive() throws IOException {
-        //
-    }
-
     // No need to call this synchronized or non-synchronized
     // Note O.A.: - initReceive is now called by NetInput.poll()
     //            - activeNum is now private to NetInput

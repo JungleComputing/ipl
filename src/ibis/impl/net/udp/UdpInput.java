@@ -249,7 +249,7 @@ public final class UdpInput extends NetBufferedInput {
                 return result;
         }
 
-        protected void initReceive(Integer num) throws IOException {
+        public void initReceive(Integer num) throws IOException {
                 super.initReceive(num);
                 checkReceiveSeqno(buffer);
         }

@@ -590,7 +590,7 @@ nCurrent++;
     }
 
 
-    protected void initReceive(Integer num) throws IOException {
+    public void initReceive(Integer num) throws IOException {
 	    //
     }
 

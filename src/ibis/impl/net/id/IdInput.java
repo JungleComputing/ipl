@@ -64,9 +64,10 @@ public final class IdInput extends NetInput {
                 upcallFunc.inputUpcall(input, spn);
         }
 
-        public void initReceive(Integer num) {
+        public void initReceive(Integer num) throws IOException {
                 mtu          = subInput.getMaximumTransfertUnit();
                 headerOffset = subInput.getHeadersLength();
+		subInput.initReceive(num);
         }
 
 	/**

@@ -133,8 +133,7 @@ public abstract class NetBufferedInput extends NetInput
         }
 
 
-
-        protected void initReceive(Integer num) throws IOException {
+        public void initReceive(Integer num) throws IOException {
                 log.in();
                 if (mtu != 0) {
 			if (bufferAllocator == null || bufferAllocator.getBlockSize() != mtu) {
@@ -163,7 +162,7 @@ public abstract class NetBufferedInput extends NetInput
                 log.in();
 
 		if (buffer != null) {
-		    System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% pumpBuffer but there IS already a buffer");
+		    throw new Error("pumpBuffer but there IS already a buffer");
 		}
 
 		buffer       = receiveByteBuffer(dataOffset+length);
@@ -172,6 +171,7 @@ public abstract class NetBufferedInput extends NetInput
                 }
 
 		bufferOffset = dataOffset;
+// System.err.println(this + ": allocated new receive buffer " + buffer + " size " + (dataOffset + length) + " data size " + buffer.data.length + " dataOffset " + dataOffset);
                 log.out();
 	}
 
@@ -219,7 +219,7 @@ public abstract class NetBufferedInput extends NetInput
 		if (buffer == null) {
 			pumpBuffer(1);
 		}
-// System.err.println("POST-pump: readByte bufferOffset " + bufferOffset + " dataOffset " + dataOffset);
+// System.err.println("POST-pump: readByte bufferOffset " + bufferOffset + " dataOffset " + dataOffset + " buffer.length " + buffer.length);
 // Thread.dumpStack();
 
 		value = buffer.data[bufferOffset++];

@@ -93,8 +93,7 @@ public abstract class NetSerializedInput extends NetInput {
 
 	public void initReceive(Integer num) throws IOException {
 	    log.in();
-// System.err.println(this + ": now in initReceive() iss " + iss + " requiresStreamReinit " + requiresStreamReinit);
-// Thread.dumpStack();
+	    if (activeNum != null) throw new Error("Revise your calls to initReceive");
 	    activeNum = num;
 	    mtu          = subInput.getMaximumTransfertUnit();
 	    headerOffset = subInput.getHeadersLength();
@@ -104,6 +103,7 @@ public abstract class NetSerializedInput extends NetInput {
 	    if (requiresStreamReinit) {
 		byte b = subInput.readByte();
 		makeNewStream = (b != 0);
+// System.err.println(this + ": Read reinit byte " + b);
 	    } else {
 		makeNewStream = (iss == null);
 	    }

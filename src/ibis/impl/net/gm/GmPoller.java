@@ -138,7 +138,8 @@ public final class GmPoller extends NetPoller {
     }
 
 
-    protected void initReceive(Integer num) throws IOException {
+    public void initReceive(Integer num) throws IOException {
+	super.initReceive(num);
 	((GmInput)activeInput()).initReceive(num);
     }
 

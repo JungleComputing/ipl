@@ -91,7 +91,7 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 		} else {
 			buffer = createSendBuffer(dataOffset + length);
 		}
-// System.err.println(this + ": allocated new send buffer " + buffer + " size " + buffer.length + " data size " + buffer.data.length);
+// System.err.println(this + ": allocated new send buffer " + buffer + " size " + buffer.length + " data size " + buffer.data.length + " dataOffset " + dataOffset);
 // Thread.dumpStack();
 
 		buffer.length = dataOffset;

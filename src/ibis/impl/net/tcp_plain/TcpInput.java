@@ -145,7 +145,7 @@ public final class TcpInput extends NetInput {
 		return null;
 	}
 
-        protected void initReceive(Integer num) {
+        public void initReceive(Integer num) throws IOException {
                 //
         }
 

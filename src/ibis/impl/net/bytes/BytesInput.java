@@ -97,15 +97,17 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
 	}
 
-        protected void initReceive(Integer num) {
+        public void initReceive(Integer num) throws IOException {
                 log.in();
-                        mtu          = Math.min(maxMtu, subInput.getMaximumTransfertUnit());
-                        /*
-                        if (mtu == 0) {
-                                mtu = maxMtu;
-                        }
-                        */
-                        headerOffset = subInput.getHeadersLength();
+		if (activeNum != null) throw new Error("Revise your initReceive calls");
+		activeNum = num;
+		mtu          = Math.min(maxMtu, subInput.getMaximumTransfertUnit());
+		/*
+		if (mtu == 0) {
+			mtu = maxMtu;
+		}
+		*/
+		headerOffset = subInput.getHeadersLength();
                 if (mtu != 0) {
 			if (bufferAllocator == null || bufferAllocator.getBlockSize() != mtu) {
 				bufferAllocator = new NetAllocator(mtu);
@@ -118,6 +120,7 @@ public final class BytesInput extends NetInput implements Settings {
 		}
 
                 dataOffset = getHeadersLength();
+		subInput.initReceive(num);
                 log.out();
         }
 
@@ -161,7 +164,6 @@ public final class BytesInput extends NetInput implements Settings {
                                 throw new Error("invalid connection num");
                         }
 
-                        activeNum = spn;
                         activeUpcallThread = me;
                         initReceive(spn);
                 }
