@@ -1,4 +1,4 @@
-package manta.repmi;
+package ibis.repmi;
 
 public interface Protocol { 
 

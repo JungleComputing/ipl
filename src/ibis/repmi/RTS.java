@@ -1,10 +1,10 @@
-package manta.repmi;
+package ibis.repmi;
 
 import java.net.InetAddress;
 import java.util.Properties;
 import java.util.Vector;
 
-import manta.ibis.*;
+import ibis.ipl.*;
 
 public final class RTS { 
 
@@ -17,7 +17,7 @@ public final class RTS {
 	private static Ibis ibis;
         private static IbisIdentifier localID;
 	
-	private static manta.ibis.Registry ibisRegistry;
+	private static ibis.ipl.Registry ibisRegistry;
         
         private static PortType portType;
 
@@ -50,8 +50,8 @@ public final class RTS {
                                 System.out.println(name + ": init RepMI RTS");
                         }
                        
-                        ibis         = Ibis.createIbis("ibis:" + name, "manta.ibis.impl.tcp.TcpIbis", null);
-//                        ibis         = Ibis.createIbis("ibis:" + name, "manta.ibis.impl.panda.PandaIbis", null);
+                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.tcp.TcpIbis", null);
+//                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.panda.PandaIbis", null);
                         localID      = ibis.identifier();
                         ibisRegistry = ibis.registry();
 //                      ibis.start);

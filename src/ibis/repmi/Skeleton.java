@@ -1,7 +1,7 @@
-package manta.repmi;
+package ibis.repmi;
 
-import manta.ibis.ReadMessage;
-import manta.ibis.IbisIOException;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.IbisIOException;
 
 // This is a base class for generated group stubs
 

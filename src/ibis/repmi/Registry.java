@@ -1,6 +1,6 @@
 package ibis.group;
 
-import manta.ibis.*;
+import ibis.ipl.*;
 
 import java.util.Hashtable;
 

@@ -1,4 +1,4 @@
-package manta.repmi;
+package ibis.repmi;
 
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -41,11 +41,11 @@ public class Stub implements java.io.Serializable, ibis.io.Serializable {
 		localSkeleton = RTS.findSkeleton(objectID);
 	}
 	
-	public void generated_WriteObject(MantaOutputStream mantaoutputstream) throws IOException {
+	public void generated_WriteObject(MantaOutputStream mantaoutputstream) throws ibis.ipl.IbisIOException {
 		mantaoutputstream.writeInt(objectID);
 	}
 	
-	public void generated_ReadObject(MantaInputStream mantainputstream) throws IOException, ClassNotFoundException {
+	public void generated_ReadObject(MantaInputStream mantainputstream) throws ibis.ipl.IbisIOException, ClassNotFoundException {
 		objectID = mantainputstream.readInt();
 		localSkeleton = RTS.findSkeleton(objectID);
 	}

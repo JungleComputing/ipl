@@ -1,6 +1,6 @@
-package manta.repmi;
+package ibis.repmi;
 
-import manta.ibis.*;
+import ibis.ipl.*;
 
 final class CallHandler implements Protocol, Upcall { 
 	
