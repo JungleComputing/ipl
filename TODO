@@ -15,7 +15,7 @@ satin:
 - make return / throw an implicit sync again?
 - add comments to abort / inlet machinism
 - als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
-
+- rob (na distro): check satin caches.
 
 general:
 - IBISC maken / fixen
