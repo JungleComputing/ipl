@@ -1,0 +1,374 @@
+#!/usr/bin/perl
+#------------------------------------------parse command line args-----------------------------------------
+
+while (@ARGV) {
+    $arg = pop(@ARGV);
+
+    if ($arg eq "-v") {
+	$verbose = true;
+    } elsif ($arg eq "-runtime-jgraph") {
+	$runtime_jgraph_flag = true;
+    } elsif ($arg eq "-steal-jgraph") {
+	$steal_jgraph_flag = true;
+    } elsif ($arg eq "-speedup-jgraph") {
+	$speedup_jgraph_flag = true;
+    } else { 
+	print "Illegal argument $arg\n";
+	die;
+    }
+}
+
+#------------------------------------------parse the input files-------------------------------------------
+open(TIME, "time.txt") or die "Can't open time file: $!\n";
+%hash = ();
+%time_hash = ();
+
+while ($line = <TIME>) {
+    @words = split(" ", $line);
+    $problemsize = $words[2];
+    $time = $words[4];
+
+    ($dummy, $app, $type1, $tail) = split('-', $words[0]);
+    ($type, $dummy) = split(":", $type1);
+    if ($type eq "seq") {
+	$cpus = 1;
+	$spin = "";
+	$throughput = "";
+	$sched = "seq";
+    } elsif ($type eq "par") {
+	($dummy, $app, $type, $sched, $tail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $tail);
+	$spin = "";
+	$throughput = "";
+    } elsif ($type eq "sim") {
+	($dummy, $dummy, $dummy, $spin, $throughput, $sched, $newtail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $newtail);
+	$cpus -= 4;
+    } elsif ($type eq "conf") {
+	($dummy, $dummy, $dummy, $file, $sched, $newtail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $newtail);
+	$cpus -= 4;
+    } elsif ($type eq "scenar") {
+	($dummy, $app, $dummy, $scenarnr, $sched, $newtail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $newtail);
+	$cpus -= 4;
+	if($scenarnr < 10) { $scenarnr = "0$scenarnr";}
+	$type = "s;$scenarnr";
+    } else {
+	print "ERROR in time.txt: type = $type\n";
+    }
+
+    if ($cpus < 10) {
+	$cpus = "0" . $cpus;
+    }
+
+    $key = "$app:$cpus:$type:$spin:$throughput:$sched";
+    $data = "$app:$problemsize:$type:$cpus:$spin:$throughput:$sched:$time";
+
+    if($verbose) {
+	printf("key = $key, data = $data\n");
+    }
+
+    $hash{$key} = $data;
+}
+
+@keys = reverse sort keys %hash;
+while (@keys) {
+	$key = pop(@keys);
+	$val = $hash{$key};
+
+	($app, $problemsize, $type, $cpus, $spin, $throughput, $sched, $time) = split(':', $val);
+
+	if ($type eq "seq") {
+	    $speedup_seq = 1;
+
+	    # look for parallel version on 1 cpu
+	    $new_key = "$app:01:par:::$sched";
+	    $new_data = $hash{$new_key};
+
+	    ($new_app, $new_problemsize, $new_type, $new_cpus, $new_spin, $new_throughput, $new_sched, $new_time) = 
+		split(':', $new_data);
+
+	    $speedup_one = $new_time / $time;
+	} elsif ($type eq "par" || $type eq "sim") {
+	    # look for sequential version
+	    $new_key = "$app:01:seq:::seq";
+	    $new_data = $hash{$new_key};
+
+	    ($new_app, $new_problemsize, $new_type, $new_cpus, $new_spin, $new_throughput, $new_sched, $new_time) = 
+		split(':', $new_data);
+
+	    if($time != 0) {
+		$speedup_seq = $new_time / $time;
+	    } else {
+		$speedup_seq = 0;
+	    }
+
+	    # look for parallel version on 1 cpu
+	    $new_key = "$app:01:par:::$sched";
+	    $new_data = $hash{$new_key};
+
+	    ($new_app, $new_problemsize, $new_type, $new_cpus, $new_spin, $new_throughput, $new_sched, $new_time) = 
+		split(':', $new_data);
+
+	    if($time != 0) {
+		$speedup_one = $new_time / $time;
+	    } else {
+		$speedup_one = 0;
+	    }
+	} else {
+	    ($type, $scenarnr) = split(';', $type);
+	    if ($type eq "s") {
+		($dummy, $app, $dummy, $scenarnr, $sched, $newtail) = split('-', $words[0]);
+		($cpus, $dummy) = split(":", $newtail);
+		$cpus -= 4;
+
+		# look for sequential version
+		$new_key = "$app:01:seq:::seq";
+		$new_data = $hash{$new_key};
+		
+		($new_app, $new_problemsize, $new_type, $new_cpus, $new_spin, $new_throughput, $new_sched, $new_time) = 
+		    split(':', $new_data);
+		
+		if($time != 0) {
+		    $speedup_seq = $new_time / $time;
+		} else {
+		    $speedup_seq = 0;
+		}
+		
+		# look for parallel version on 1 cpu
+		$new_key = "$app:01:par:::$sched";
+		$new_data = $hash{$new_key};
+		
+		($new_app, $new_problemsize, $new_type, $new_cpus, $new_spin, $new_throughput, $new_sched, $new_time) = 
+		    split(':', $new_data);
+		
+		if($time != 0) {
+		    $speedup_one = $new_time / $time;
+		} else {
+		    $speedup_one = 0;
+		}
+	    } else {
+		print "ERROR 2 in time.txt, type = $type\n";
+	    }
+	}
+
+	$time_hash{$key} = "$problemsize:$time:$speedup_seq:$speedup_one";
+
+	if($verbose) {
+	    printf "time hash key = $key, data = $problemsize:$time:$speedup_seq:$speedup_one\n";
+	}
+}
+
+open(TIME, "steal1.txt") or die "Can't open steal file: $!\n";
+%steal_hash = ();
+while ($line = <TIME>) {
+    @words = split(" ", $line);
+
+    ($dummy, $app, $type, $sched, $tail) = split('-', $words[0]);
+    
+    if ($type eq "par") {
+	$spin = "";
+	$throughput = "";
+	($cpus, $dummy) = split(':', $tail);
+    } elsif ($type eq "sim") {
+	($dummy, $app, $type, $spin, $throughput, $sched, $tail) = split('-', $words[0]);
+	($cpus, $new_tail) = split('\.', $tail);
+	($node, $dummy) = split(':', $new_tail);
+	$cpus -= 4;
+    } elsif ($type eq "scenar") {
+	($dummy, $app, $dummy, $scenarnr, $sched, $newtail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $newtail);
+	$cpus -= 4;
+	if($scenarnr < 10) { $scenarnr = "0$scenarnr";}
+	$type = "s;$scenarnr";
+    } else {
+	print "ERROR in steal1.txt\n";
+    }
+
+    $local_attempts = $words[6];
+    $local_success = $words[9];
+
+    if ($cpus < 10) {
+	$cpus = "0" . $cpus;
+    }
+
+    $key = "$app:$cpus:$type:$spin:$throughput:$sched";
+    
+    $old_data = "0:0";
+    $old_data = $steal_hash{$key};
+    
+    ($old_local_attempts, $old_local_success) = split(':', $old_data);
+    
+    $local_attempts += $old_local_attempts;
+    $local_success += $old_local_success;
+
+    $data = join ':', ($local_attempts, $local_success);
+
+    if($verbose) {
+	printf("steal key = $key, new data = $data\n");
+    }
+
+    $steal_hash{$key} = $data;
+}
+
+
+open(TIME, "spawn.txt") or die "Can't open spawn file: $!\n";
+%spawn_hash = ();
+while ($line = <TIME>) {
+	@words = split(" ", $line);
+
+	($dummy, $app, $type, $sched, $tail) = split('-', $words[0]);
+
+	if ($type eq "par") {
+	    $spin = "";
+	    $throughput = "";
+	    ($cpus, $dummy) = split(':', $tail);
+	} elsif ($type eq "sim") {
+	    ($dummy, $app, $type, $spin, $throughput, $sched, $tail) = split('-', $words[0]);
+	    ($cpus, $new_tail) = split('\.', $tail);
+	    ($node, $dummy) = split(':', $new_tail);
+	    $cpus -= 4;
+	} elsif ($type eq "scenar") {
+	    ($dummy, $app, $dummy, $scenarnr, $sched, $newtail) = split('-', $words[0]);
+	    ($cpus, $dummy) = split(":", $newtail);
+	    $cpus -= 4;
+	    if($scenarnr < 10) { $scenarnr = "0$scenarnr";}
+	    $type = "s;$scenarnr";
+	}
+
+	$spawns = $words[5];
+	$syncs = $words[8];
+
+	if ($cpus < 10) {
+	    $cpus = "0" . $cpus;
+	}
+
+	$key = "$app:$cpus:$type:$spin:$throughput:$sched";
+
+	$old_data = "0:0";
+	$old_data = $spawn_hash{$key};
+
+	($old_spawns, $old_syncs) = split(':', $old_data);
+
+	$spawns += $old_spawns;
+	$syncs += $old_syncs;
+
+	$data = join ':', ($spawns, $syncs);
+
+	$spawn_hash{$key} = $data;
+}
+
+#------------------------------------------print one large table-------------------------------------------
+# print a nice legend
+
+print "LEGEND:\n" . 
+    "app = application   type = run type (seq, par, sim)   N = number of cpus in run\n" .
+    "run_time = application run time (seconds)\n" .
+    "s seq = speedup relative to version with SPAWN and SYNC filtered out\n" .
+    "s one = speedup relative to parallel version on 1 cpu\n" .
+    "attempts = the total number of steel attempts over all CPUs\n" .
+    "suc = the total number of successful steal attempts over all CPUs\n" .
+    "percnt = the percentage of steal attempts that was successful\n\n";
+
+printf "%-13s|%-4s|%-2s|%5s|%8s|%5s|%5s" .
+    "|%10s|%10s|%6s\n",
+    "app", "type", "N", "sched", "run_time", "s seq", "s one",
+    "attempts", "suc", "percnt";
+
+
+$last_app = "";
+
+@keys = reverse sort keys %time_hash;
+while (@keys) {
+    $key = pop(@keys);
+
+    ($app, $cpus, $type, $spin, $throughput, $sched) = split(":", $key);
+    ($problemsize, $run_time, $speedup_seq, $speedup_one) = split(":", $time_hash{$key});
+    ($local_attempts, $local_success) = split(":", $steal_hash{$key});
+
+    if ($local_attempts > 0) {
+	$local_percent = ($local_success / $local_attempts) * 100.0;
+    } else {
+	$local_percent = 0;
+    }
+
+    $attempts = $local_attempts;
+    $success = $local_success;
+    if($attempts > 0) {
+	$percent = ($success / $attempts) * 100.0;
+    }
+
+    ($spawns, $syncs) = split(':', $spawn_hash{$key});
+
+    if(($local_success) > 0) {
+	$stolen_ratio = $spawns / ($local_success);
+    } else {
+	$stolen_ratio = 0;
+    }
+
+    if($syncs > 0) {
+	$fanout = $spawns / $syncs;
+    } else {
+	$fanout = 0;
+    }
+
+    if ($last_app ne $app) {
+	print '-' x 77, "\n";
+	$last_app = $app;
+    }
+    
+    printf "%-13s|%-4s|%-2d|%5s|%8.3f|%5.2f|%5.2f|" .
+	"%10d|%10d|%6.3f\n",
+	$app, $type, $cpus, $sched, $run_time, $speedup_seq, $speedup_one,
+	$attempts, $success, $percent;
+
+
+#------------------------------------------ jgraph output -----------------------------------------
+    if($type eq "par") {
+	$my_spin = "single";
+	$my_throughput = "cluster";
+    } else {
+	$my_spin = $spin;
+	$my_throughput = $throughput;
+    }
+    
+    if($sched eq "RS") {
+	$x = 50;
+    }elsif ($sched eq "seq") {
+	$x = -1;
+    } else {
+	printf "unknown sched type $sched\n";
+	$x = -1;
+#	    die;
+    }
+
+    if($runtime_jgraph_flag) {
+	if(!($run_time eq "WRONG")) {
+	    if($x > 0) {
+		open(OUTFILE, ">> jgraph-$app-$my_spin-$my_throughput-runtime.dat") or die "Can't open jgraph output file: $!\n";
+		printf OUTFILE "$x $run_time (* $sched *)\n";
+		close OUTFILE;
+	    }
+	}
+    }
+
+    if($steal_jgraph_flag && $x > 0) {
+	if($steal_time) {
+	    $val = $steal_time;
+	} else {
+	    $val = 0;
+	}
+
+	open(OUTFILE, ">> jgraph-$app-$my_spin-$my_throughput-steal.dat") or die "Can't open jgraph output file: $!\n";
+	printf OUTFILE "$x $val (* $sched *)\n";
+	close OUTFILE;
+    }
+
+
+    if($speedup_jgraph_flag && $x > 0 && $cpus > 1) {
+	open(OUTFILE, ">> jgraph-$app-$my_spin-$my_throughput-speedup.dat") or die "Can't open jgraph output file: $!\n";
+	printf OUTFILE "$x $speedup_seq (* $sched *)\n";
+	close OUTFILE;
+    }
+}

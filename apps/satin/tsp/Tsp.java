@@ -1,7 +1,6 @@
 final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.Serializable  {
 	static final int N_TOWNS = 17;	        /* Default nr of towns */
 	static final int INIT_SEED = 1;         /* Default random seed */
-	static final int MAX_HOPS = 4;	        /* Default search depth of master */
 	static final int MAXX = 100;
 	static final int MAXY = 100;
 
