@@ -5,7 +5,9 @@ import java.util.Properties;
 
 public class IPUtils {
 
-	static final boolean DEBUG = true;
+	static final boolean DEBUG = false;
+
+	private static InetAddress localaddress = null;
 	
 	public static boolean isLoopbackAddress(InetAddress addr) {
 		byte[] a = addr.getAddress();
@@ -58,6 +60,20 @@ public class IPUtils {
 	}
 	
 	public static InetAddress getLocalHostAddress() {
+		if (localaddress == null) {
+		    localaddress = doWorkGetLocalHostAddress();
+
+		    // To make sure that a hostname is filled in:
+		    localaddress.getHostName();
+
+		    if (DEBUG) {
+			System.err.println("Found address: " + localaddress);
+		    }
+		}
+		return localaddress;
+	}
+
+	private static InetAddress doWorkGetLocalHostAddress() {
 		InetAddress external = null;
 		InetAddress internal = null;
 		InetAddress[] all = null;

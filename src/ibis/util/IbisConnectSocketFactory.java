@@ -44,11 +44,6 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
 		long startTime = System.currentTimeMillis();
 		long currentTime = 0;
 
-		if (localIP != null && dest.getHostAddress().equals("127.0.0.1")) {
-			/* Avoid ConnectionRefused exception */
-			dest = InetAddress.getLocalHost();
-		}
-
 		while (!connected) {
 			if (DEBUG) {
 				System.err.println("ibis-connect: Trying to connect Socket (local:" + (localIP==null?"any" : localIP.toString()) + ") to " + dest + ":" + port);
