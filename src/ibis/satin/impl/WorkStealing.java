@@ -28,23 +28,21 @@ public abstract class WorkStealing extends Stats {
 
 		SendPort s = null;
 
-		/*
-		 * boolean noUpdate = false; if (NUM_CRASHES > 0) { for (int i=1; i
-		 * <NUM_CRASHES+1 && i <allIbises.size(); i++) { IbisIdentifier id =
-		 * (IbisIdentifier) allIbises.get(i); if (id.equals(ident)) { //
-		 * System.out.println(ident.name() + " - i'm not sending the result");
-		 * noUpdate = true; } } }
-		 */
 
 		synchronized (this) {
+		
+			//for debugging
+			//globalResultTable.storeResult(r);
 
-			 if (FAULT_TOLERANCE && !FT_NAIVE && r.orphan) { 
+			
+			if (FAULT_TOLERANCE && !FT_NAIVE && r.orphan) { 
 				GlobalResultTable.Value value = globalResultTable.lookup(r, false);
 				if (ASSERTS && value == null) {
 					System.err.println("SATIN '" + ident.name() + "': orphan not locked in the table");
 					System.exit(1);
 				}
 				r.owner = value.sendTo;
+				System.err.println("SATIN '" + ident.name() + "': storing an orphan");
 				globalResultTable.storeResult(r);
 			}
 			s = getReplyPortNoWait(r.owner);
@@ -54,6 +52,7 @@ public abstract class WorkStealing extends Stats {
 			//probably crashed..
 			if (FAULT_TOLERANCE && !FT_NAIVE && !r.orphan) {
 				synchronized (this) {
+					System.err.println("SATIN '" + ident.name() + "': a job became an orphan??");
 					globalResultTable.storeResult(r);
 				}
 			}
@@ -233,8 +232,7 @@ public abstract class WorkStealing extends Stats {
 				}
 			} else {
 				synchronized (this) {
-					//remove before commit
-					while (!gotStealReply /*quick hack around some nasty bug*/&& !exiting) {
+					while (!gotStealReply) {
 
 						if (FAULT_TOLERANCE) {
 							if (currentVictimCrashed) {
@@ -404,7 +402,7 @@ public abstract class WorkStealing extends Stats {
 			if (FAULT_TOLERANCE) {
 				r.spawnCounter.value--;
 				if (!FT_WITHOUT_ABORTS && !FT_NAIVE) {
-					attachToParent(r);
+					attachToParentFinished(r);
 				}
 			} else {
 

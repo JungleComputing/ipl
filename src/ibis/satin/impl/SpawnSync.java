@@ -1,4 +1,4 @@
-package ibis.satin.impl;
+ package ibis.satin.impl;
 
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
@@ -192,9 +192,9 @@ public abstract class SpawnSync extends Termination {
 					out.println(" DONE with exception: " + r.eek);
 				}
 			}
-			if (FAULT_TOLERANCE && !FT_WITHOUT_ABORTS) {
+			if (FAULT_TOLERANCE && !FT_WITHOUT_ABORTS && !FT_NAIVE) {
 				//job is finished
-				attachToParent(r);
+				attachToParentFinished(r);
 			}
 
 		} else {
@@ -394,11 +394,11 @@ public abstract class SpawnSync extends Termination {
 				    //to be restarted					
 					InvocationRecord curr = null;					
 					if (parent != null) {
-						curr = parent.child;
-						parent.child = null;
+						curr = parent.toBeRestartedChild;
+						parent.toBeRestartedChild = null;
 					} else {
-						curr =  rootChild;
-						rootChild = null;
+						curr =  rootToBeRestartedChild;
+						rootToBeRestartedChild = null;
 					}
 					if (curr != null) {
 						int i = 0;
@@ -408,8 +408,8 @@ public abstract class SpawnSync extends Termination {
 								q.addToTail(curr);
 							}
 							InvocationRecord tmp = curr;
-							curr = curr.sibling;
-							tmp.sibling = null;
+							curr = curr.toBeRestartedSibling;
+							tmp.toBeRestartedSibling = null;
 							i++;
 						}
 					} else {

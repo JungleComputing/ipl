@@ -334,7 +334,7 @@ final class IRVector implements Config {
 			if (crashedIbis.equals(l[i].stealer)) {
 				l[i].reDone = true;
 				l[i].stealer = null;
-				satin.attachToParent(l[i]);
+				satin.attachToParentToBeRestarted(l[i]);
 				if (FT_STATS) {
 					satin.restartedJobs++;
 				}

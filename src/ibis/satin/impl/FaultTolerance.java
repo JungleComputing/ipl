@@ -38,9 +38,14 @@ public abstract class FaultTolerance extends Inlets {
 			if (!FT_NAIVE) {
 				globalResultTable.removeReplica(id);
 			}
+			
+			/*if (killTime > 0) {
+				System.err.println("SATIN '" + ident.name() + "': " + id +  " HAS CRASHED!!!");
+			}*/
 
-			if (id.equals(masterIdent)) {
+			if (id.equals(masterIdent) && /*quick hack*/!(killTime > 0)) {
 				//master has crashed, let's elect a new one
+				System.err.println("SATIN '" + ident.name() + "': MASTER (" + masterIdent + ") HAS CRASHED!!!");
 				try {
 					Registry r = ibis.registry();
 					masterIdent = (IbisIdentifier) r.reelect("satin master",
@@ -50,17 +55,17 @@ public abstract class FaultTolerance extends Inlets {
 					}
 					//barrier ports
 					if (master) {
-						barrierReceivePort = portType
+						barrierReceivePort = barrierPortType
 								.createReceivePort("satin barrier receive port on "
-										+ ident);
+										+ ident.name());
 						barrierReceivePort.enableConnections();
 					} else {
 						barrierSendPort.close();
-						barrierSendPort = portType
+						barrierSendPort = barrierPortType
 								.createSendPort("satin barrier send port on "
-										+ ident);
+										+ ident.name());
 						ReceivePortIdentifier barrierIdent = lookup("satin barrier receive port on "
-								+ masterIdent);
+								+ masterIdent.name());
 						connect(barrierSendPort, barrierIdent);
 					}
 
@@ -81,13 +86,13 @@ public abstract class FaultTolerance extends Inlets {
 				restarted = true;
 			}
 			
-			if (id.equals(clusterCoordinatorIdent)) {
+			if (id.equals(clusterCoordinatorIdent) && /*quick hack*/!(killTime > 0)) {
 				try {
 					Registry r = ibis.registry();
 					clusterCoordinatorIdent = (IbisIdentifier) r.reelect("satin " + ident.cluster() + " cluster coordinator",
 							ident, id); //implement it!
-					if (masterIdent.equals(ident)) {
-						master = true;
+					if (clusterCoordinatorIdent.equals(ident)) {
+						clusterCoordinator = true;
 					}
 				} catch (IOException e) {
 					System.err.println("SATIN '" + ident.name()
@@ -99,12 +104,12 @@ public abstract class FaultTolerance extends Inlets {
 							+ e.getMessage());
 				}
 			}
+			
+			if (master) {
+				System.err.println(id.name() + " has crashed");
+			}		
 
-			/*
-			 * if (NUM_CRASHES > 0) { for (int i=1; i <NUM_CRASHES+1 && i
-			 * <allIbises.size(); i++) { IbisIdentifier id1 = (IbisIdentifier)
-			 * allIbises.get(i); if (id1.equals(ident)) { return; } } }
-			 */
+
 
 			if (!FT_NAIVE) {
 				if (FT_WITHOUT_ABORTS) {
@@ -212,25 +217,44 @@ public abstract class FaultTolerance extends Inlets {
 	}
 	
 	/**
-	  * Attach a child to its parent's children list
-	  * unless the parent is on another machine
+	  * Attach a child to its parent's finished children list
 	  */
-	void attachToParent(InvocationRecord r) {
+	void attachToParentFinished(InvocationRecord r) {
 		if (r.parent != null) {
-		    r.sibling = r.parent.child;
-		    r.parent.child = r;
+		    r.finishedSibling = r.parent.finishedChild;
+		    r.parent.finishedChild = r;
 		} else if (r.owner.equals(ident)) {
 		    if (ASSERTS && !r.owner.equals(ident)) {
 			    System.err.println("SATIN '" + ident.name() + "': parent of a restarted job on another machine!");
 			    System.exit(1);
 		    }	
-		    r.sibling = rootChild;
-		    rootChild = r;
+		    r.finishedSibling = rootFinishedChild;
+		    rootFinishedChild = r;
 		}
 		//remove the job's children list
-		r.child = null;
+		r.finishedChild = null;
 	}
 		
+
+	/**
+	  * Attach a child to its parent's list of children which need to be restarted
+	  */
+	void attachToParentToBeRestarted(InvocationRecord r) {
+		if (r.parent != null) {
+		    r.toBeRestartedSibling = r.parent.toBeRestartedChild;
+		    r.parent.toBeRestartedChild = r;
+		} else if (r.owner.equals(ident)) {
+		    if (ASSERTS && !r.owner.equals(ident)) {
+			    System.err.println("SATIN '" + ident.name() + "': parent of a restarted job on another machine!");
+			    System.exit(1);
+		    }	
+		    r.toBeRestartedSibling = rootToBeRestartedChild;
+		    rootToBeRestartedChild = r;
+		}
+		//remove the job's children list
+		r.toBeRestartedChild = null;
+	}
+
 
 	//connect upcall functions
 	public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
@@ -242,9 +266,6 @@ public abstract class FaultTolerance extends Inlets {
 
 	synchronized void handleLostConnection(IbisIdentifier dead) {
 		if (!deadIbises.contains(dead)) {
-			if (master) {
-				System.err.println(dead.name() + " has crashed");
-			}		
 			crashedIbises.add(dead);
 			deadIbises.add(dead);
 			if (dead.equals(currentVictim)) {
@@ -320,7 +341,11 @@ public abstract class FaultTolerance extends Inlets {
 			}
 
 			if (GLOBAL_RESULT_TABLE_REPLICATED) {
-
+				
+				if (ASSERTS && value.type != GlobalResultTable.Value.TYPE_RESULT) {
+					out.println("SATIN '" + ident.name() + "': EEK using replicated table, but got a non-result value!");
+					System.exit(1);
+				}
 				ReturnRecord rr = value.result;
 				rr.assignTo(r);
 				r.spawnCounter.value--;
@@ -344,6 +369,7 @@ public abstract class FaultTolerance extends Inlets {
 							return false;
 						}
 
+//						System.err.println("SATIN '" + ident.name() + "': sending a result request of " + key + " to " + value.owner.name());
 						s = getReplyPortNoWait(value.owner);
 					}
 					
@@ -353,9 +379,9 @@ public abstract class FaultTolerance extends Inlets {
 						}
 						return false;
 					}
-					//put the job in the stolen jobs list
-					r.stealer = value.owner;
+					//put the job in the stolen jobs list					
 					synchronized (this) {
+						r.stealer = value.owner;
 						addToOutstandingJobList(r);
 					}
 					//send a request to the remote node
@@ -436,11 +462,6 @@ public abstract class FaultTolerance extends Inlets {
 				return;
 			}
 
-			/*
-			 * if (NUM_CRASHES > 0) { for (int i=1; i <NUM_CRASHES+1 && i
-			 * <allIbises.size(); i++) { IbisIdentifier id = (IbisIdentifier)
-			 * allIbises.get(i); if (id.equals(ident)) { return; } } }
-			 */
 
 			killAndStoreChildrenOf(stamp, owner);
 
@@ -459,16 +480,15 @@ public abstract class FaultTolerance extends Inlets {
 	}
 
 	synchronized void handleDelete() {
-		onStack.storeAll();
-		killedOrphans += onStack.size();
-		killedOrphans += q.size();
-		printDetailedStats();
-
-		//globalResultTable.exit();
-		/*
-		 * try { ibis.end(); } catch (IOException e) { System.err.println("SATIN '" +
-		 * ident.name() + "': unable to end ibis"); }
-		 */
+		
+		if (FAULT_TOLERANCE && !FT_NAIVE) {
+			if (GLOBAL_RESULT_TABLE_REPLICATED) {
+			//so far it only works with the replicated table
+				onStack.storeAll();
+				killedOrphans += onStack.size();
+				killedOrphans += q.size();
+			}
+		}
 		System.exit(0);
 	}
 }

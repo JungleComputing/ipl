@@ -47,6 +47,6 @@ interface Protocol {
 
 	static final byte ASYNC_STEAL_REPLY_FAILED_TABLE = 23;
 
-	static final byte ASYNC_STEAL_REPLY_SUCCESS_TABLE = 24;
+	static final byte ASYNC_STEAL_REPLY_SUCCESS_TABLE = 24;	
 
 }

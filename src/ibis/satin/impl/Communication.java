@@ -18,6 +18,8 @@ public abstract class Communication extends SpawnSync {
 				s.connect(ident);
 				success = true;
 			} catch (IOException e) {
+				e.printStackTrace();
+				System.err.println("connecting to: " + ident);			
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e2) {
@@ -36,6 +38,8 @@ public abstract class Communication extends SpawnSync {
 				s.connect(ident, timeoutMillis);
 				success = true;
 			} catch (IOException e) {
+				e.printStackTrace();
+				System.err.println("connecting to: " + ident);
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e2) {

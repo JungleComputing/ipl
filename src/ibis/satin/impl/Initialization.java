@@ -150,6 +150,15 @@ public abstract class Initialization extends SatinBase {
 				} catch (NumberFormatException e) {
 					System.err.println("SATIN: invalid delete time");
 				}
+			} else if (args[i].equals("-satin-delete-cluster")) {
+				i++;
+				try {
+					deleteTime = Integer.parseInt(args[i]);
+				} catch (NumberFormatException e) {
+					System.err.println("SATIN: invalid delete time");
+				}
+				i++;
+				deleteCluster = args[i];
 			} else if (args[i].equals("-satin-kill")) {
 				i++;
 				try {
@@ -157,6 +166,15 @@ public abstract class Initialization extends SatinBase {
 				} catch (NumberFormatException e) {
 					System.err.println("SATIN: invalid kill time");
 				}
+			} else if (args[i].equals("-satin-kill-cluster")) {
+				i++;
+				try {
+					killTime = Integer.parseInt(args[i]);
+				} catch (NumberFormatException e) {
+					System.err.println("SATIN: invalid kill time");
+				}
+				i++;
+				killCluster = args[i];
 			} else if (args[i].equals("-satin-branching-factor")) {
 				i++;
 				try {
@@ -166,6 +184,8 @@ public abstract class Initialization extends SatinBase {
 				}
 			} else if (args[i].equals("-satin-dump")) {
 				dump = true; 			
+			} else if (args[i].equals("-satin-initial-cluster")) {
+				getTable = false;
 			}else {
 				tempArgs.add(args[i]);
 			}
@@ -368,4 +388,41 @@ public abstract class Initialization extends SatinBase {
 
 		return ibis.createPortType("satin barrier porttype", s);
 	}
+	
+	PortType createGlobalResultTablePortType(StaticProperties reqprops) throws IOException,
+			IbisException {
+		StaticProperties satinPortProperties = new StaticProperties(reqprops);
+
+		if (closed) {
+			satinPortProperties.add("worldmodel", "closed");
+		} else {
+			satinPortProperties.add("worldmodel", "open");
+		}
+
+		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+		if (FAULT_TOLERANCE) {
+		    commprops += ", ConnectionUpcalls";
+		}
+		if (upcalls) {
+			if (upcallPolling) {
+				commprops += ", PollUpcalls";
+			} else {
+				commprops += ", AutoUpcalls";
+			}
+		}
+		satinPortProperties.add("communication", commprops);
+
+		if (ibisSerialization) {
+			satinPortProperties.add("Serialization", "ibis");
+			if (master) {
+				System.err.println("SATIN: using Ibis serialization");
+			}
+		} else {
+			satinPortProperties.add("serialization", "object");
+		}
+
+		return ibis.createPortType("satin global result table porttype", satinPortProperties);
+	}
+
+	
 }

@@ -34,13 +34,17 @@ public abstract class SatinBase implements Config {
 	protected int killTime = 0; //used in automatic ft tests
 
 	protected int deleteTime = 0;
+	
+	protected String killCluster = null;
+	
+	protected String deleteCluster = null;
 
 	int branchingFactor = 0; //if > 0, it is used for generating globally unique stamps
 	
 	protected boolean dump = false; //true if the node should dump its datastructures during shutdown
 				       //done by registering DumpThread as a shutdown hook
 
-	boolean getTable = true; //true if the node needs to download the contents
+	boolean getTable = true; //true if the node needs to download the contents of the global result table
 
 	// of the global result table; protected by lock
 
@@ -75,6 +79,7 @@ public abstract class SatinBase implements Config {
 	protected PortType portType;
 	PortType tuplePortType;
 	protected PortType barrierPortType;
+	PortType globalResultTablePortType;
 
 	protected ReceivePort receivePort;
 	ReceivePort tupleReceivePort;
@@ -86,7 +91,7 @@ public abstract class SatinBase implements Config {
 	SendPort tuplePort; /* used to bcast tuples */
 
 	//ft
-	protected long connectTimeout = 3000; /*
+	protected long connectTimeout =  1500000; /*
 										   * Timeout for connecting to other
 										   * nodes (in join()) who might be
 										   * crashed
@@ -221,8 +226,11 @@ public abstract class SatinBase implements Config {
 	//no node can execute the root job twice, so this counter does not have to
 	// be set to 0 after root crash
 	int rootNumSpawned = 0;
-	//list of children of the root node (which doesn't have and invocation record)
-	InvocationRecord rootChild;
+	//list of finished children of the root node (which doesn't have and invocation record)
+	InvocationRecord rootFinishedChild = null;
+	//list of children of the root node which need to be restarted
+	InvocationRecord rootToBeRestartedChild = null;
+	
 
 	//for debugging ft
 	boolean del = false;
@@ -368,5 +376,7 @@ public abstract class SatinBase implements Config {
 
 	abstract void addToExceptionList(InvocationRecord r);
 	
-	abstract void attachToParent(InvocationRecord r);
+	abstract void attachToParentFinished(InvocationRecord r);
+	
+	abstract void attachToParentToBeRestarted(InvocationRecord r);
 }

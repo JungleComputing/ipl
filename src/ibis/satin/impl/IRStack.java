@@ -118,10 +118,10 @@ final class IRStack implements Config {
 					s.killedOrphans++;
 				}
 				//update the global result table
-				InvocationRecord child = curr.child;
+				InvocationRecord child = curr.finishedChild;
 				while (child != null) {
 					s.globalResultTable.storeResult(child);
-					child = child.sibling;
+					child = child.finishedSibling;
 				}
 
 			}
@@ -175,10 +175,10 @@ final class IRStack implements Config {
 					s.killedOrphans++;
 				}
 				//update the global result table
-				InvocationRecord child = curr.child;
+				InvocationRecord child = curr.finishedChild;
 				while (child != null) {
 					s.globalResultTable.storeResult(child);
-					child = child.sibling;
+					child = child.finishedSibling;
 				}
 
 			}
@@ -221,10 +221,10 @@ final class IRStack implements Config {
 
 		for (int i = 0; i < count; i++) {
 			curr = l[i];
-			child = curr.child;
+			child = curr.finishedChild;
 			while (child != null) {
 				s.globalResultTable.storeResult(child);
-				child = child.sibling;
+				child = child.finishedSibling;
 			}
 		}
 	}

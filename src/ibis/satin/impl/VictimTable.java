@@ -277,4 +277,13 @@ final class VictimTable implements Config {
 			out.println("   " + victims.get(i));
 		}
 	}
+	
+	boolean contains(IbisIdentifier ident) {
+		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+		
+		return victims.contains(ident);
+	}
+		
 }

@@ -48,10 +48,14 @@ public abstract class Malleability extends FaultTolerance {
 	}
 
 	public void join(IbisIdentifier joiner) {
+	
+//		System.err.println("SATIN '" + ident.name() + "': '" + joiner.name()  +" is joining");
 
 		if (joiner.name().equals("ControlCentreIbis"))
 			return;
+
 		allIbises.add(joiner);
+
 		if (joiner.equals(ident))
 			return;
 
@@ -62,6 +66,10 @@ public abstract class Malleability extends FaultTolerance {
 		}
 		//		if (!victims.contains(joiner)) {
 		handleJoin(joiner);
+		
+/*		synchronized (this) {
+			System.err.println("SATIN '" + ident.name() + "': '" + victims.size() + " hosts joined");
+		}*/
 	}
 
 	public void leave(IbisIdentifier leaver) {

@@ -28,13 +28,21 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 	protected transient InvocationRecord parent;
 
 	/**
-	 * List of children, used for fault tolerance
-	 * In the algorithm with aborts used for storing finished children
-	 * In the algorithm without abourts used for storing children that need to be restarted
+	 * List of finished children, used for fault tolerance
 	 */
-	public transient InvocationRecord child;
-
-	public transient InvocationRecord sibling;
+	public transient InvocationRecord finishedChild;
+	/**
+	 * List of finished children, used for fault tolerance
+	 */
+	public transient InvocationRecord finishedSibling;
+	/**
+	 * List of children which need to be restarted, used for fault tolerance
+	 */
+	public transient InvocationRecord toBeRestartedChild;
+	/**
+	 * List of children which need to be restarted, used for fault tolerance
+	 */
+	public transient InvocationRecord toBeRestartedSibling;
 
 	/**
 	 * Number of _all_ spawned children (not spawned and not finished like with
@@ -150,8 +158,10 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 			reDone = false;
 		}
 		if (FAULT_TOLERANCE) {
-			child = null;
-			sibling = null;
+			finishedChild = null;
+			finishedSibling = null;
+			toBeRestartedChild = null;
+			toBeRestartedSibling = null;
 		}
 
 	}

@@ -135,6 +135,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 			Registry r = ibis.registry();
 
 			masterIdent = (IbisIdentifier) r.elect("satin master", ident);
+			
 
 			if (masterIdent.equals(ident)) {
 				/* I an the master. */
@@ -142,7 +143,8 @@ public final class Satin extends APIMethods implements ResizeHandler,
 					out.println("SATIN '" + hostName
 							+ "': init ibis: I am the master");
 				}
-				System.out.println("master is " + hostName);
+				System.out.println("master is " + masterIdent);
+				System.out.println("master name is " + masterIdent.name());
 				master = true;
 			} else {
 				if (COMM_DEBUG) {
@@ -159,7 +161,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 						/* I am the cluster coordinator */
 						clusterCoordinator = true;
 						System.out.println("cluster coordinator for cluster "
-							+ ident.cluster() + " is " + hostName);
+							+ ident.cluster() + " is " + clusterCoordinatorIdent);
 					}
 				}
 			}
@@ -167,6 +169,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 			portType = createSatinPortType(requestedProperties);
 			tuplePortType = createTuplePortType(requestedProperties);
 			barrierPortType = createBarrierPortType(requestedProperties);
+			globalResultTablePortType = createGlobalResultTablePortType(requestedProperties);
 			// do the same for tuple space @@@@
 			// but this needs a seperate receive port... --Rob
 
@@ -290,33 +293,37 @@ public final class Satin extends APIMethods implements ResizeHandler,
 							+ "': barrier, everybody has joined");
 				}
 
-				ibis.closeWorld();
+//				ibis.closeWorld();
 			}
 
 			barrier();
 
-			if (killTime > 0) {
-				(new KillerThread(killTime)).start();
-			}
-			if (deleteTime > 0) {
-				(new DeleteThread(this, deleteTime)).start();
-			}
 		}
-
+		
 		if (COMM_DEBUG) {
 			out.println("SATIN '" + hostName + "': post barrier");
 		}
+		
+		
+		if (killTime > 0) {
+			(new KillerThread(killTime, killCluster)).start();
+		}
+		if (deleteTime > 0) {
+			(new DeleteThread(deleteTime, deleteCluster)).start();
+		}
+		if (dump) {
+			DumpThread dumpThread = new DumpThread(this);
+			Runtime.getRuntime().addShutdownHook(dumpThread);
+		}
+		
+		
+
 
 		if (ADD_REPLICA_TIMING) {
 			if (!master) {
 				addReplicaTimer.start();
 			}
-		}
-		
-		if (dump) {
-			DumpThread dumpThread = new DumpThread(this);
-			Runtime.getRuntime().addShutdownHook(dumpThread);
-		}
+		}		
 		
 		totalTimer.start();
 	}

@@ -65,7 +65,7 @@ public class GlobalResultTable implements Upcall, Config {
 		static final int TYPE_POINTER	= 2;
 		int type;		    
 		transient IbisIdentifier sendTo;
-		transient ReturnRecord result;
+		ReturnRecord result;
 		IbisIdentifier owner;
 		
 		Value(int type, InvocationRecord r) {
@@ -119,8 +119,6 @@ public class GlobalResultTable implements Upcall, Config {
 	public int numRemoteLookups = 0;
 	
 	public final static int max = 20;
-
-	private PortType portType;
 	
 	private Value pointerValue = new Value(Value.TYPE_POINTER, null);
 
@@ -129,12 +127,7 @@ public class GlobalResultTable implements Upcall, Config {
 		satin = sat;
 		entries = new Hashtable();
 		try {
-			StaticProperties s = new StaticProperties();
-			s.add("Serialization", "ibis");
-			portType = satin.ibis.createPortType(
-					"satin global result table porttype", s);
-
-			receive = portType.createReceivePort(
+			receive = satin.globalResultTablePortType.createReceivePort(
 					"satin global result table receive port on "
 							+ satin.ident.name(), this);
 			//send = portType.createSendPort("satin global result table send
@@ -143,10 +136,6 @@ public class GlobalResultTable implements Upcall, Config {
 			receive.enableUpcalls();
 			receive.enableConnections();
 
-		} catch (IbisException e) {
-			System.err.println("SATIN '" + satin.ident.name()
-					+ "': Global result table - unable to create ports");
-			e.printStackTrace();
 		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': Global result table - unable to create ports - "
@@ -180,6 +169,7 @@ public class GlobalResultTable implements Upcall, Config {
 		if (GRT_STATS && stats) {
 			if (value != null) {
 				if (value.type == Value.TYPE_POINTER) {
+//					if (satin.allIbises.contains(value.owner)) {
 					if (!satin.deadIbises.contains(value.owner)) {
 						numLookupsSucceded++;
 						numRemoteLookups++;
@@ -232,11 +222,13 @@ public class GlobalResultTable implements Upcall, Config {
 		if (numReplicas > 0 && oldValue == null) {
 			if (GRT_DEBUG) {
 				System.err.println("SATIN '" + satin.ident.name()
-						+ "': sending update: " + key + "," + value);
+    				    	    + "': sending update: " + key + "," + value);
 			}
 			
 			//send an update message
 			Iterator sendIter = sends.values().iterator();
+			long size = 0;
+			int i = 0;
 			while (sendIter.hasNext()) {
 				try {
 					SendPort send = (SendPort) sendIter.next();
@@ -248,18 +240,23 @@ public class GlobalResultTable implements Upcall, Config {
 					if (GLOBAL_RESULT_TABLE_REPLICATED) {
 						m.writeObject(value);						
 					} else {
-						//m.writeObject(pointerValue);
-						m.writeObject(satin.ident);
+						m.writeObject(pointerValue);
+						//m.writeObject(satin.ident);
 					}
-					m.finish();
+					size = m.finish();
+					
 					if (GRT_TIMING) {
 						satin.tableSerializationTimer.stop();
 					}
+					/*System.err.println("SATIN '" + satin.ident.name() + "': " + size 
+					+ " sent in " + satin.tableSerializationTimer.lastTimeVal()
+					+ " to " + send.connectedTo()[0].ibis().name());*/
 					
 				} catch (IOException e) {
 					//always happens after a crash
 				}
 			}
+			
 
 			//send an update message
 			/*
@@ -303,12 +300,23 @@ public class GlobalResultTable implements Upcall, Config {
 			return (Map) ((Hashtable) entries).clone();
 		} else {
 			//replace "real" results with pointer values
-			Map newEntries = (Map) ((Hashtable) entries).clone();
+			Map newEntries = new Hashtable();
 			Iterator iter = entries.entrySet().iterator();
 			while (iter.hasNext()) {
 				Map.Entry element = (Map.Entry) iter.next();
-				if (!(element.getValue() instanceof IbisIdentifier)) {
-					newEntries.put(element.getKey(), pointerValue);
+				Value value = (Value) element.getValue();
+				Key key = (Key) element.getKey();
+				switch (value.type) {
+					case Value.TYPE_RESULT:
+					case Value.TYPE_LOCK:
+						newEntries.put(key, pointerValue);
+						break;
+					case Value.TYPE_POINTER:
+						newEntries.put(key, value);
+						break;
+					default:
+						System.err.println("SATIN '" + satin.ident.name()
+							+ "': EEK invalid value type in getContents()");
 				}
 			}
 			return newEntries;
@@ -319,6 +327,8 @@ public class GlobalResultTable implements Upcall, Config {
 		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
+		
+//		System.err.println("adding contents");
 
 		entries.putAll(contents);
 
@@ -335,15 +345,19 @@ public class GlobalResultTable implements Upcall, Config {
 		}
 
 		try {
-			SendPort send = portType
+			SendPort send = satin.globalResultTablePortType
 					.createSendPort("satin global result table send port on "
 							+ satin.ident.name() + System.currentTimeMillis());
 			sends.put(ident, send);
 			ReceivePortIdentifier r = null;
 			r = satin.lookup("satin global result table receive port on "
 					+ ident.name());
-			Satin.connect(send, r);
-			numReplicas++;
+			if (Satin.connect(send, r, satin.connectTimeout)) {
+				numReplicas++;
+			} else {
+				System.err.println("SATN '" + satin.ident.name()
+					+ "': Transpositon table - unable to add new replica");
+			}
 		} catch (IOException e) {
 			System.err.println("SATN '" + satin.ident.name()
 					+ "': Transpositon table - unable to add new replica");
@@ -393,10 +407,10 @@ public class GlobalResultTable implements Upcall, Config {
 				satin.tableDeserializationTimer.start();
 			}
 			Key key = (Key) m.readObject();
-			//Value value = (Value) m.readObject();
-			IbisIdentifier ident = (IbisIdentifier) m.readObject();
-			Value value = new Value(Value.TYPE_POINTER, null);
-			value.owner = ident;
+			Value value = (Value) m.readObject();
+			//IbisIdentifier ident = (IbisIdentifier) m.readObject();
+			//Value value = new Value(Value.TYPE_POINTER, null);
+			//value.owner = ident;
 			if (GRT_TIMING) {
 				satin.tableDeserializationTimer.stop();
 			}

@@ -14,7 +14,7 @@ public interface Config {
 	static final boolean STEAL_STATS = true;
 
 	/** Enable or disable statistics for aborts. * */
-	static final boolean ABORT_STATS = true;
+	static final boolean ABORT_STATS = false;
 
 	/** Enable or disable statistics for aborts/restarts done for fault-tolerance. * */
 	static final boolean FT_STATS = false;
@@ -63,7 +63,7 @@ public interface Config {
 
 	/** Enable or disable aborts and inlets. */
 	static final boolean ABORTS = true;
-
+	
 	/** Enable fault tolerance. */
 	static final boolean FAULT_TOLERANCE = false;
 	/**
@@ -89,6 +89,7 @@ public interface Config {
 	static final boolean HANDLE_MESSAGES_IN_LATENCY = false;
 
 	/** Use multicast to update the tuple space */
+	/** Don't use with fault tolerance. Multicast ports don't work with crashes yet*/
 	static final boolean SUPPORT_TUPLE_MULTICAST = true;
 
 	/** Enable or disable debug prints concerning communication. * */

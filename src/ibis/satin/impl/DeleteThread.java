@@ -2,15 +2,18 @@ package ibis.satin.impl;
 
 class DeleteThread extends Thread {
 
-	Satin satin;
-
 	int milis;
+	String cluster = null;
 
-	DeleteThread(Satin satin, int time) {
-
+	DeleteThread(int time) {
 		super("SatinDeleteThread");
-		this.satin = satin;
 		this.milis = 1000 * time;
+	}
+
+	DeleteThread(int time, String cluster) {
+		super("SatinDeleteThread");
+		this.milis = 1000 * time;
+		this.cluster = cluster;
 	}
 
 	public void run() {
@@ -19,7 +22,10 @@ class DeleteThread extends Thread {
 		} catch (InterruptedException e) {
 			//ignore
 		}
-		satin.delete(satin.ident);
+		Satin satin = Satin.this_satin;
+		if (satin.ident.cluster().equals(cluster) || cluster == null) {
+			satin.delete(satin.ident);
+		}
 	}
 
 }
