@@ -12,11 +12,11 @@
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
-    <target name="test"
+    <target name="run"
 	    depends="build"
 	    description="Run test">
 	<antcall target="run2">
-		<param name="runjob" value="-Dsatin.debug.spawn=true Mtdf -satin-closed"/>
+		<param name="runjob" value="Mtdf -satin-closed"/>
 	</antcall>
     </target>
 </project>
