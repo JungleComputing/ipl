@@ -18,7 +18,7 @@ public class SATSolver {
 	int assumptions;
     }
 
-    static final boolean traceSolver = false;
+    static final boolean traceSolver = true;
     static final boolean printSatSolutions = true;
     static int label = 0;
 
@@ -35,7 +35,7 @@ public class SATSolver {
 
 	    satisfied[cno] = true;
 	    if( traceSolver ){
-		System.out.println( "Assignment var[" + var + "]=true satisfies clause " + cno );
+		System.out.println( "Assignment var[" + var + "]=true satisfies clause (" + ctx.problem.getClauseLabel( cno ) + ")" );
 	    }
 	}
 	int terms[] = ctx.terms;
@@ -62,7 +62,7 @@ public class SATSolver {
 
 	    satisfied[cno] = true;
 	    if( traceSolver ){
-		System.out.println( "Assignment var[" + var + "]=false satisfies clause " + cno );
+		System.out.println( "Assignment var[" + var + "]=false satisfies clause (" + ctx.problem.getClauseLabel( cno ) + ")" );
 	    }
 	}
 	int terms[] = ctx.terms;
@@ -239,7 +239,7 @@ public class SATSolver {
 	ctx.level++;
 
 	if( traceSolver ){
-	    System.err.println( "(" + ctx.level + ") branching on " + min_terms + "-unsatisfied clause " + ix );
+	    System.err.println( "(" + ctx.level + ") branching on " + min_terms + "-unsatisfied clause (" + cl.label + ")" );
 	}
 
 	// We now have a clause `cl' that we try to satisfy by assigning

@@ -16,10 +16,21 @@ class Clause implements java.io.Serializable, Comparable {
 	label = l;
     }
 
-    // Note: this comparator imposes orderings that are inconsistent with equals.
+    // Note: this comparator imposes orderings that are inconsistent
+    // with equals.
     public int compareTo( Object other )
     {
-        return 0;
+	Clause co = (Clause) other;
+	int nthis = pos.length + neg.length;
+	int nother = co.pos.length + co.neg.length;
+
+	if( nthis>nother ){
+	    return 1;
+	}
+	if( nthis<nother ){
+	    return -1;
+	}
+	return 0;
     }
 
     // Return true iff 'l' contains 'n'.

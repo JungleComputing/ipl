@@ -3,6 +3,7 @@
 // Representation of a SAT problem in CNF form.
 
 import java.io.Reader;
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.io.File;
@@ -110,7 +111,6 @@ class SATProblem implements java.io.Serializable {
 	}
 	int clauseno = clauseCount++;
 	clauses[clauseno] = cl;
-	registerClauseVariables( cl, clauseno );
     }
 
     public void addClause( int pos[], int neg[] )
@@ -145,6 +145,10 @@ class SATProblem implements java.io.Serializable {
     public IntVector getNegClauses( int var )
     {
 	return variables[var].getNegClauses();
+    }
+
+    public int getClauseLabel( int n ){
+	return clauses[n].label;
     }
 
     // Given a list of assignments, return the index of a clause that
@@ -183,7 +187,10 @@ class SATProblem implements java.io.Serializable {
     void optimize()
     {
         // For the moment, sort the clauses into shortest-first order.
-	java.util.Arrays.sort( clauses );
+	java.util.Arrays.sort( clauses, 0, clauseCount );
+	for( int i=0; i<clauseCount; i++ ){
+	    registerClauseVariables( clauses[i], i );
+	}
     }
 
     // A CNF problem parser. Given a problem in DIMACS format,
@@ -321,6 +328,7 @@ class SATProblem implements java.io.Serializable {
 	if( res.clauseCount+res.deletedClauseCount<promisedClauseCount ){
 	    System.out.println( "There are only " +  (res.clauseCount+res.deletedClauseCount) + " clauses, although " + promisedClauseCount + " were promised" );
 	}
+	res.optimize();
 	return res;
     }
 
@@ -328,7 +336,7 @@ class SATProblem implements java.io.Serializable {
     // return a SATProblem instance for it.
     public static SATProblem parseDIMACSStream( File f ) throws java.io.IOException
     {
-	return parseDIMACSStream( new FileReader( f ) );
+	return parseDIMACSStream( new BufferedReader( new FileReader( f ) ) );
     }
 
     // Given an output stream, print the problem to it in DIMACS format.
