@@ -19,7 +19,7 @@ public class UnknownHostException extends RemoteException
      * Constructs an <code>UnknownHostException</code> with the specified
      * detail message and nested exception.
      * @param s the detail message
-     * @param ex the nested exception
+     * @param e the nested exception
      */
     public UnknownHostException(String s, Exception e) {
 	super(s, e);

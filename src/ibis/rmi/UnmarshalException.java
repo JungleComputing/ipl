@@ -1,8 +1,9 @@
 package ibis.rmi;
 
 /**
- * An <code>UnmarshalException</code> is thrown on one of the following
- * conditions:
+ * An <code>UnmarshalException</code> is thrown when an unmarshalling error
+ * occurs.
+ * It is thrown on one of the following conditions:
  * <ul>
  * <li> an exception occurs while unmarshalling the call header
  * <li> an <code>java.io.IOException</code> or

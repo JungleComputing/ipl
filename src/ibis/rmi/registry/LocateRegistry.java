@@ -64,6 +64,7 @@ public final class LocateRegistry
      * This registry will accept requests on the specified port.
      * @param port the port on which the registry accepts requests
      * @return the registry.
+     * @exception RemoteException if the registry could not be created.
      */
     public static Registry createRegistry(int port) throws RemoteException
     {
