@@ -332,7 +332,7 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 		get_bounds();
 		createGrid();
 	
-		if( doIO && rank==0) {
+		if( doIO && rank==0 && runName.equals("SOR")) {
 			System.out.println("Problem parameters");
 			System.out.println("r       : " + r);
 			System.out.println("omega   : " + omega);
