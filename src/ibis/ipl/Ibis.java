@@ -24,7 +24,6 @@ public abstract class Ibis {
 		Ibis impl;
 
 		try { 
-System.err.println("Create Ibis(" + name + ", " + implName + ")");
 			if (implName == null) { 
 				throw new NullPointerException("Implementation name is null");
 			} 
@@ -33,9 +32,7 @@ System.err.println("Create Ibis(" + name + ", " + implName + ")");
 				throw new NullPointerException("Ibis name is null");
 			} 
 			
-System.err.println("Gonna call Ibis.newInstance");
 			impl = (Ibis) Class.forName(implName).newInstance();
-System.err.println("Created new Ibis = " + impl);
 			impl.name = name;
 			impl.resizeHandler = resizeHandler;
 			impl.init(); //@@@ EXPORT THIS !! We want to check the properties before doint an init!! 
@@ -90,4 +87,9 @@ System.err.println("Created new Ibis = " + impl);
 
 	public abstract IbisIdentifier identifier();
 	protected abstract void init() throws IbisException, IbisIOException;
+
+	/* used by the nameserver, do not call from outside Ibis */
+	public abstract void join(IbisIdentifier joinIdent);
+	public abstract void leave(IbisIdentifier leaveIdent);
+
 } 
