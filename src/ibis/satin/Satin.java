@@ -1235,12 +1235,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				aborts++;
 			}
 			synchronized(this) {
-				r.parent.eek = r.eek; // rethrow exception
-				killChildrenOf(r.parent.stamp, r.parent.owner);
-				
 				// also kill the parent itself.
 				// It is either on the stack or on a remote machine.
+				// Here, this is OK, the child threw an exception, 
+				// the parent did not catch it, and must therefore die.
 				r.parent.aborted = true;
+				r.parent.eek = r.eek; // rethrow exception
+
+				killChildrenOf(r.parent.stamp, r.parent.owner);
 			}
 		}
 	}
@@ -1419,7 +1421,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					// May be needed if the method did not throw an exception,
 					// but its child did, and there is an empty inlet.
 					rr.eek = r.eek; 
-				} catch (Throwable t) { // @@@ handle this
+				} catch (Throwable t) {
 					out.println("SATIN '" + ident.name() + ": OOOhh dear, got exception in runremote: " + t);
 					t.printStackTrace();
 					System.exit(1);
@@ -1597,7 +1599,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						System.exit(1);
 					}
 					synchronized(this) {
-//						r.parent.aborted = true;
+				                // also kill the parent itself.
+				                // It is either on the stack or on a remote machine.
+			                        // Here, this is OK, the child threw an exception, 
+				                // the parent did not catch it, and must therefore die.
+						r.parent.aborted = true;
 						r.parent.eek = t;
 						killChildrenOf(r.parent.stamp, r.parent.owner);
 					}
