@@ -1172,6 +1172,7 @@ public final class SATContext implements java.io.Serializable {
 
     /**
      * Returns the best decision variable to branch on, or -1 if there is none.
+     * @return The decision variable.
      */
     public int getDecisionVariable()
     {
@@ -1189,7 +1190,8 @@ public final class SATContext implements java.io.Serializable {
                     System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
                 }
             }
-            float info = Math.max( posinfo[i], neginfo[i] );
+            //float info = Math.max( posinfo[i], neginfo[i] );
+            float info = posinfo[i] + neginfo[i];
             if( info>=bestinfo ){
                 int maxcount = Math.max( posclauses[i], negclauses[i] );
 

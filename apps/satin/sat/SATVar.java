@@ -113,7 +113,8 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     /**
      * Returns the amount of information in a positive assignment of this
      * variable.
-     * @param clauses the clauses of the problem
+     * @param clauses The clauses of the problem.
+     * @param r The reviewer that determines the info of a clause.
      * @return the amount of information in bit
      */
     float getPosInfo( Clause clauses[], ClauseReviewer r ) {
@@ -123,7 +124,8 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     /**
      * Returns the amount of information in a negative assignment of this
      * variable.
-     * @param clauses the clauses of the problem
+     * @param clauses The clauses of the problem.
+     * @param r The reviewer that determines the info of a clause.
      * @return the amount of information in bit
      */
     float getNegInfo( Clause clauses[], ClauseReviewer r ) {
