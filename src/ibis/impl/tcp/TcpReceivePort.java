@@ -19,6 +19,8 @@ import java.util.ArrayList;
 // If I create a receiveport, do a receive, and someone leaves, 
 // the user gets an upcall, or can find out with a downcall.
 // why should the receivePort die? --Rob
+// That is not what it does: it makes sure readers go away when the
+// receive port is closed. --Ceriel
 
 final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	TcpPortType type;
@@ -34,12 +36,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private boolean started = false;
 	private boolean connection_setup_present = false;
 	private TcpReadMessage m = null;
-//	private boolean shouldLeave;
+	private boolean shouldLeave = false;
 	private boolean delivered = false;
 	private ArrayList lostConnections = new ArrayList();
 	private ArrayList newConnections = new ArrayList();
 	private boolean connectionAdministration = false;
-private boolean shouldLeave;
+	private boolean no_connectionhandler_thread = false;
 
 
 	long count = 0;
@@ -62,6 +64,12 @@ private boolean shouldLeave;
 
 		int port = ibis.tcpPortHandler.register(this);
 		ident = new TcpReceivePortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier(), port);
+		if (upcall == null &&
+		    ! type.p.isProp("communication", "ManyToOne") &&
+		    ! type.p.isProp("communication", "Poll") &&
+		    ! type.p.isProp("communication", "ReceiveTimeout")) {
+		    no_connectionhandler_thread = true;
+		}
 	}
 
 	// returns:  was the message already finised?
@@ -163,35 +171,39 @@ private boolean shouldLeave;
 		}
 		if(upcall != null) {
 			return doUpcall(m);
-		} else {
-			setBlockingReceiveMessage(m);
-			return false;
 		}
+		setBlockingReceiveMessage(m);
+		return no_connectionhandler_thread;
 	}
 
 	private synchronized void setBlockingReceiveMessage(TcpReadMessage m) {
 		// Wait until the previous message was finished.
-		while(this.m != null) {
-			try {
-				wait();
-			} catch (Exception e) {
-				// Ignore.
+		if (! no_connectionhandler_thread) {
+			while(this.m != null) {
+				try {
+					wait();
+				} catch (Exception e) {
+					// Ignore.
+				}
 			}
 		}
 
 		this.m = m;
 		delivered = false;
-		notifyAll(); // now handle this message.
 
-		// Wait until the receiver thread finishes this message.
-		// We must wait here, because the thread that calls this method 
-		// wants to read an opcode from the stream.
-		// It can only read this opcode after the whole message is gone first.
-		while(this.m != null) {
-			try {
-				wait();
-			} catch (Exception e) {
-				// Ignore.
+		if (! no_connectionhandler_thread) {
+			notifyAll(); // now handle this message.
+
+			// Wait until the receiver thread finishes this message.
+			// We must wait here, because the thread that calls this method 
+			// wants to read an opcode from the stream.
+			// It can only read this opcode after the whole message is gone first.
+			while(this.m != null) {
+				try {
+					wait();
+				} catch (Exception e) {
+					// Ignore.
+				}
 			}
 		}
 	}
@@ -212,8 +224,17 @@ private boolean shouldLeave;
 		count = 0;
 	}
 
-	private synchronized TcpReadMessage getMessage(long timeout) throws ReceiveTimedOutException {
-		while((m == null || delivered)  && !shouldLeave) {
+	private synchronized TcpReadMessage getMessage(long timeout) throws IOException {
+		if (no_connectionhandler_thread) {
+			while (connectionsIndex == 0) {
+				try {
+					wait();
+				} catch(Exception e) {
+				}
+			}
+			connections[0].reader();
+		}
+		else while((m == null || delivered)  && !shouldLeave) {
 			try {
 				if(timeout > 0) {
 					wait(timeout);
@@ -225,14 +246,6 @@ private boolean shouldLeave;
 			}
 		}
 		delivered = true;
-/*
-		if(shouldLeave) {
-			throw new IOException("No connections!");
-		}
-*/
-//		if (shouldLeave) {
-//		System.out.println("shouldLeave true!!");
-//		}
 		return m;
 	}
 
@@ -289,10 +302,13 @@ private boolean shouldLeave;
 			return null;
 		}
 
-		// @@@@ if msg alive return!!!! --Rob
-
-		// Blocking receive...
 		synchronized (this) { // must this be synchronized? --Rob
+			if (m == null || delivered) {
+				return null;
+			}
+			if (m != null) {
+				delivered = true;
+			}
 			return m;
 		}
 	}
@@ -365,7 +381,6 @@ private boolean shouldLeave;
 			if(!found) {
 				throw new IbisError("TcpReceivePort: Connection handler not found in leave");
 			}
-			shouldLeave=true;
 			// Notify threads that might be blocked in a free
 			notifyAll();
 	}
@@ -391,7 +406,7 @@ private boolean shouldLeave;
 
 		disableConnections();
 
-		 shouldLeave = true;
+		shouldLeave = true;
 		notifyAll();
 
 		while (connectionsIndex > 0) {
@@ -440,7 +455,9 @@ private boolean shouldLeave;
 			} 
 
 			connections[connectionsIndex++] = con;
-			ThreadPool.createNew(con);
+			if (! no_connectionhandler_thread) {
+			    ThreadPool.createNew(con);
+			}
 
 			connection_setup_present = false;
 			notifyAll();
@@ -481,7 +498,7 @@ private boolean shouldLeave;
 				}
 			}
 		}
-		 shouldLeave = true;
+		shouldLeave = true;
 		notifyAll();
 	}
 

@@ -13,6 +13,7 @@ import ibis.io.SerializationInputStream;
 import ibis.io.SunSerializationInputStream;
 import ibis.io.NoSerializationInputStream;
 import ibis.ipl.IbisError;
+import ibis.ipl.IbisIOException;
 import ibis.util.DummyInputStream;
 
 import java.io.BufferedInputStream;
@@ -114,74 +115,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 		byte opcode = -1;
 
 		try {
-			while (!iMustDie) {
-				if(DEBUG) {
-					System.err.println("handler " + this + " for port: " + port.name + " woke up");
-				}
-				opcode = in.readByte();
-				if(iMustDie) {	/* in this case, a forcedClose was done, and my port is gone... */
-					close(null);
-					return;
-				}
-
-				if(DEBUG) {
-					System.err.println("handler " + this + " for port: " + port.name + ", READ BYTE " + opcode);
-				}
-
-				switch (opcode) {
-				case NEW_RECEIVER:
-					if (DEBUG) {
-						TcpReceivePortIdentifier x = (TcpReceivePortIdentifier) in.readObject();
-						System.out.println(port.name + ": Got a NEW_RECEIVER " + x + " from " + origin);	
-					}
-					in.close();
-					createNewStream();
-					break;
-				case NEW_MESSAGE:
-					if (DEBUG) {
-						System.err.println("handler " + this + " GOT a new MESSAGE " + m + " on port " + port.name);
-					}
-
-					if(port.setMessage(m)) {
-						// The port created a new reader thread, I must exit.
-						return;
-					}
-
-					// If the upcall did not release the message, cool, 
-					// no need to create a new thread, we are the reader.
-					break;
-				case CLOSE_ALL_CONNECTIONS:
-					if (DEBUG) { 
-						System.out.println(port.name + ": Got a FREE from " + origin);	
-					}
-					close(null);
-					return;
-				case CLOSE_ONE_CONNECTION:
-					TcpReceivePortIdentifier identifier;
-					//the identifier of the receiveport which whould disconnect is coming next
-					switch(port.type.serializationType) {
-						case TcpPortType.SERIALIZATION_SUN:
-						case TcpPortType.SERIALIZATION_IBIS:
-						identifier = (TcpReceivePortIdentifier) in.readObject();
-						if(identifier.equals(port.identifier())) {
-							if (DEBUG) {
-								System.out.println(port.name + ": got a disconnect from: " + origin);
-							}
-							close(null);
-							return;
-						} else {
-							//someone else is closing down, just reset the stream
-							in.close();
-							createNewStream();
-							break;
-						}
-					}
-				default:
-					throw new IbisError(port.name + " EEK TcpReceivePort: " +
-									   "run: got illegal opcode: " + opcode +
-									   " from: " + origin);
-				}
-			}
+			reader();
 		} catch (IOException e) {
 			if(DEBUG) {
 				System.err.println("ConnectionHandler.run : " + port.name +
@@ -195,5 +129,87 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 			close(null);
 			throw new IbisError(t);
 		}
+	}
+
+
+	void reader() throws IOException {
+		byte opcode = -1;
+
+		while (!iMustDie) {
+			if(DEBUG) {
+				System.err.println("handler " + this + " for port: " + port.name + " woke up");
+			}
+			opcode = in.readByte();
+			if(iMustDie) {	/* in this case, a forcedClose was done, and my port is gone... */
+				close(null);
+				return;
+			}
+
+			if(DEBUG) {
+				System.err.println("handler " + this + " for port: " + port.name + ", READ BYTE " + opcode);
+			}
+
+			switch (opcode) {
+			case NEW_RECEIVER:
+				if (DEBUG) {
+					try {
+					    TcpReceivePortIdentifier x = (TcpReceivePortIdentifier) in.readObject();
+					    System.out.println(port.name + ": Got a NEW_RECEIVER " + x + " from " + origin);	
+					} catch(ClassNotFoundException e) {
+					    throw new IbisIOException(e);
+					}
+				}
+				in.close();
+				createNewStream();
+				break;
+			case NEW_MESSAGE:
+				if (DEBUG) {
+					System.err.println("handler " + this + " GOT a new MESSAGE " + m + " on port " + port.name);
+				}
+
+				if(port.setMessage(m)) {
+					// The port created a new reader thread, I must exit.
+					// Also when there is no separate connectionhandler thread.
+					return;
+				}
+
+				// If the upcall did not release the message, cool, 
+				// no need to create a new thread, we are the reader.
+				break;
+			case CLOSE_ALL_CONNECTIONS:
+				if (DEBUG) { 
+					System.out.println(port.name + ": Got a FREE from " + origin);	
+				}
+				close(null);
+				return;
+			case CLOSE_ONE_CONNECTION:
+				TcpReceivePortIdentifier identifier;
+				//the identifier of the receiveport which whould disconnect is coming next
+				switch(port.type.serializationType) {
+				case TcpPortType.SERIALIZATION_SUN:
+				case TcpPortType.SERIALIZATION_IBIS:
+					try {
+					    identifier = (TcpReceivePortIdentifier) in.readObject();
+					    if(identifier.equals(port.identifier())) {
+						if (DEBUG) {
+							System.out.println(port.name + ": got a disconnect from: " + origin);
+						}
+						close(null);
+						return;
+					    }
+					} catch(ClassNotFoundException e)  {
+					}
+					//someone else is closing down, just reset the stream
+					in.close();
+					createNewStream();
+					break;
+				}
+			default:
+				throw new IbisError(port.name + " EEK TcpReceivePort: " +
+								   "run: got illegal opcode: " + opcode +
+								   " from: " + origin);
+			}
+		}
+		return;
 	}
 }
