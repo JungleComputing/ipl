@@ -27,6 +27,9 @@
 #include "ibp_mp.h"
 
 
+#define ATTACH_THREAD_OVER_CALLS	1
+
+
 static int	ibp_intr_enabled = 1;
 
 
