@@ -15,7 +15,7 @@ interface OpenConfig {
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
     static final boolean traceLoadBalancing = false;
-    static final boolean traceWorkStealing = true;
+    static final boolean traceWorkStealing = false;
     static final boolean doWorkStealing = false;
     static final int DEFAULTBOARDSIZE = 4000;
     static final int GENERATIONS = 30;
@@ -146,7 +146,7 @@ class LevelRecorder implements ibis.ipl.Upcall {
         int gen = m.readInt();
         int mygen = OpenCell1D.lockedGeneration.get();
         if( mygen == gen ){
-            level = OpenCell1D.column.get();
+            level = OpenCell1D.boardsize-OpenCell1D.column.get();
         }
         m.finish();
     }
@@ -188,13 +188,13 @@ class OpenCell1D implements OpenConfig {
     // null if we're not interested.
     static int population[] = null;
     static int members[] = null;
-    static int sentLeft[] = null;
-    static int sentRight[] = null;
+    static int sentToLeft[] = null;
+    static int sentToRight[] = null;
     static long computationTime[] = null;
     static long communicationTime[] = null;
     static long administrationTime[] = null;
-    static int stealLeft[] = null;
-    static int stealRight[] = null;
+    static int requestedByLeft[] = null;
+    static int requestedByRight[] = null;
 
     private static void usage()
     {
@@ -348,7 +348,7 @@ class OpenCell1D implements OpenConfig {
      * @param aimFirstColomn The first column we should own.
      * @param aimFirstNoColomn The first column we should not own.
      */
-    static void sendLeft( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
+    static void sendToLeft( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
         throws java.io.IOException
     {
         if( port == null ){
@@ -374,8 +374,8 @@ class OpenCell1D implements OpenConfig {
         else {
             sendCount = 0;
         }
-        if( sentLeft != null ){
-            sentLeft[generation] = sendCount;
+        if( sentToLeft != null ){
+            sentToLeft[generation] = sendCount;
         }
         if( sendCount>0 ){
             if( traceLoadBalancing ){
@@ -433,7 +433,7 @@ class OpenCell1D implements OpenConfig {
      * @param aimFirstColomn The first column we should own.
      * @param aimFirstNoColomn The first column we should not own.
      */
-    static void sendRight( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
+    static void sendToRight( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
         throws java.io.IOException
     {
         if( port == null ){
@@ -464,8 +464,8 @@ class OpenCell1D implements OpenConfig {
         else {
             sendCount = 0;
         }
-        if( sentRight != null ){
-            sentRight[generation] = sendCount;
+        if( sentToRight != null ){
+            sentToRight[generation] = sendCount;
         }
         if( sendCount>0 ){
             rightNeighbourIdle = false;
@@ -534,7 +534,7 @@ class OpenCell1D implements OpenConfig {
      * @param port The port to receive from.
      * @param p The problem to update.
      */
-    static void receiveLeft( ReceivePort port, Problem p )
+    static void receiveFromLeft( ReceivePort port, Problem p )
         throws java.io.IOException
     {
         int colno;
@@ -585,7 +585,6 @@ class OpenCell1D implements OpenConfig {
             }
             if( p.firstColumn>=boardsize ){
                 p.firstNoColumn = newLast+1;
-                aimFirstNoColumn = newLast+1;
             }
             else {
                 if( (newLast+1)<p.firstColumn ){
@@ -593,6 +592,7 @@ class OpenCell1D implements OpenConfig {
                 }
             }
             p.firstColumn = newFirst;
+            aimFirstColumn = newFirst;
         }
         colno = m.readInt();
         if( colno<boardsize ){
@@ -617,7 +617,7 @@ class OpenCell1D implements OpenConfig {
      * @param port The port to receive from.
      * @param p The problem to update.
      */
-    static void receiveRight( ReceivePort port, Problem p )
+    static void receiveFromRight( ReceivePort port, Problem p )
         throws java.io.IOException
     {
         int colno;
@@ -647,10 +647,9 @@ class OpenCell1D implements OpenConfig {
         }
         p.firstNoColumn += receiveCount;
         aimFirstNoColumn += receiveCount;
-        int ix = p.firstNoColumn;
+        int ix = p.firstNoColumn-receiveCount;
 
         for( int i=0; i<receiveCount; i++ ){
-            ix--;
             if( p.board[ix] == null ){
                 p.board[ix] = new byte[boardsize+2];
             }
@@ -662,6 +661,7 @@ class OpenCell1D implements OpenConfig {
                 System.out.println( "ERROR: P" + me +":" + generation + ": P" + (me+1) + " sent me column " + colno + ", but I need column " + ix );
             }
             m.readArray( p.board[ix] );
+            ix++;
         }
         colno = m.readInt();
         if( colno<boardsize ){
@@ -785,16 +785,26 @@ class OpenCell1D implements OpenConfig {
             knownMembers = members;
         }
         if( aimFirstColumn == p.firstColumn && aimFirstNoColumn == p.firstNoColumn ){
+            int weight = 10;
+
             // Everything is stable, honour steal requests.
-            if( lsteal>0 ){
-                if( aimFirstColumn+minLoad<aimFirstNoColumn ){
-                    aimFirstColumn++;
+            for( int i=0; i<60; i++ ){
+                if( lsteal>0 ){
+                    if( aimFirstColumn+minLoad<aimFirstNoColumn ){
+                        aimFirstColumn++;
+                    }
+                    lsteal -= weight;
                 }
-            }
-            if( rsteal>0 ){
-                if( aimFirstColumn+minLoad<aimFirstNoColumn ){
-                    aimFirstNoColumn--;
+                if( rsteal>0 ){
+                    if( aimFirstColumn+minLoad<aimFirstNoColumn ){
+                        aimFirstNoColumn--;
+                    }
+                    rsteal -= weight;
                 }
+                if( lsteal<=0 && rsteal<=0 ){
+                    break;
+                }
+                weight += weight;
             }
         }
     }
@@ -826,10 +836,10 @@ class OpenCell1D implements OpenConfig {
         if( collectStatistics ){
             population = new int[count];
             members = new int[count];
-            sentLeft = new int[count+1];
-            sentRight = new int[count+1];
-            stealLeft = new int[count+1];
-            stealRight = new int[count+1];
+            sentToLeft = new int[count+1];
+            sentToRight = new int[count+1];
+            requestedByLeft = new int[count+1];
+            requestedByRight = new int[count+1];
             computationTime = new long[count];
             communicationTime = new long[count];
             administrationTime = new long[count];
@@ -902,7 +912,7 @@ class OpenCell1D implements OpenConfig {
                 if( traceLoadBalancing ){
                     System.out.println( "P" + me + ": ready and waiting for work" );
                 }
-                receiveLeft( leftReceivePort, p );
+                receiveFromLeft( leftReceivePort, p );
             }
 
             while( generation<count ){
@@ -928,7 +938,7 @@ class OpenCell1D implements OpenConfig {
                     if( traceLoadBalancing ){
                         System.out.println( "P" + me + ":" + generation + ": sending work to idle neighbour P" + (me+1) );
                     }
-                    sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                    sendToRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     rightNeighbourIdle = false;
                 }
                 if( population != null ){
@@ -947,25 +957,25 @@ class OpenCell1D implements OpenConfig {
                 lockedGeneration.set( generation );
                 int lsteal = leftRecorder.get();
                 int rsteal = rightRecorder.get();
-                if( stealLeft != null ){
-                    stealLeft[generation-1] = lsteal;
-                    stealRight[generation-1] = rsteal;
+                if( requestedByLeft != null ){
+                    requestedByLeft[generation-1] = lsteal;
+                    requestedByRight[generation-1] = rsteal;
                 }
                 updateAims( p, lsteal, rsteal );
                 if( (me % 2) == 0 ){
                     if( !rightNeighbourIdle ){
-                        sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
-                        receiveRight( rightReceivePort, p );
+                        sendToRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                        receiveFromRight( rightReceivePort, p );
                     }
-                    sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
-                    receiveLeft( leftReceivePort, p );
+                    sendToLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                    receiveFromLeft( leftReceivePort, p );
                 }
                 else {
-                    receiveLeft( leftReceivePort, p );
-                    sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                    receiveFromLeft( leftReceivePort, p );
+                    sendToLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     if( !rightNeighbourIdle ){
-                        receiveRight( rightReceivePort, p );
-                        sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                        receiveFromRight( rightReceivePort, p );
+                        sendToRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     }
                 }
                 long endTime = System.currentTimeMillis();
@@ -1013,7 +1023,7 @@ class OpenCell1D implements OpenConfig {
             if( population != null ){
                 // We blindly assume all statistics arrays exist.
                 for( int gen=0; gen<count; gen++ ){
-                    System.out.println( "STATS " + me + " " + gen + " " + members[gen] + " " + population[gen] + " " + sentLeft[gen] + " " + sentRight[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] + " " + stealLeft[gen] + " " + stealRight[gen] );
+                    System.out.println( "STATS " + me + " " + gen + " " + members[gen] + " " + population[gen] + " " + sentToLeft[gen] + " " + sentToRight[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] + " " + requestedByLeft[gen] + " " + requestedByRight[gen] );
                 }
             }
 

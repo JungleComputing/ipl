@@ -18,19 +18,19 @@ def growMembers( A, n, gen ):
 
 population = []
 members = []
-sentLeft = []
-sentRight = []
+sentToLeft = []
+sentToRight = []
 Tcomm = []
 Tcomp = []
 Tadmin = []
-stealLeft = []
-stealRight = []
+requestedByLeft = []
+requestedByRight = []
 
 knownMembers = 0
 knownGenerations = -1
 
 def registerLog( arg ):
-    global population, members, sentLeft, sentRight, Tcomm, Tcomp, Tadmin, stealLeft, stealRight
+    global population, members, sentToLeft, sentToRight, Tcomm, Tcomp, Tadmin, requestedByLeft, requestedByRight
     global knownMembers, knownGenerations
 
     f = open( arg )
@@ -47,33 +47,33 @@ def registerLog( arg ):
                 knownGenerations = g
                 population = growSubArrays( population, g )
                 members = growSubArrays( members, g )
-                sentLeft = growSubArrays( sentLeft, g )
-                sentRight = growSubArrays( sentRight, g )
+                sentToLeft = growSubArrays( sentToLeft, g )
+                sentToRight = growSubArrays( sentToRight, g )
                 Tcomm = growSubArrays( Tcomm, g )
                 Tcomp = growSubArrays( Tcomp, g )
                 Tadmin = growSubArrays( Tadmin, g )
-                stealLeft = growSubArrays( stealLeft, g )
-                stealRight = growSubArrays( stealRight, g )
+                requestedByLeft = growSubArrays( requestedByLeft, g )
+                requestedByRight = growSubArrays( requestedByRight, g )
             if P>=knownMembers:
                 knownMembers = P+1
                 population = growMembers( population, knownMembers, knownGenerations )
                 members = growMembers( members, knownMembers, knownGenerations )
-                sentLeft = growMembers( sentLeft, knownMembers, knownGenerations )
-                sentRight = growMembers( sentRight, knownMembers, knownGenerations )
+                sentToLeft = growMembers( sentToLeft, knownMembers, knownGenerations )
+                sentToRight = growMembers( sentToRight, knownMembers, knownGenerations )
                 Tcomm = growMembers( Tcomm, knownMembers, knownGenerations )
                 Tcomp = growMembers( Tcomp, knownMembers, knownGenerations )
                 Tadmin = growMembers( Tadmin, knownMembers, knownGenerations )
-                stealLeft = growMembers( stealLeft, knownMembers, knownGenerations )
-                stealRight = growMembers( stealRight, knownMembers, knownGenerations )
+                requestedByLeft = growMembers( requestedByLeft, knownMembers, knownGenerations )
+                requestedByRight = growMembers( requestedByRight, knownMembers, knownGenerations )
             population[P][g] = int( pop )
             members[P][g] = int( mem )
-            sentLeft[P][g] = int( sl )
-            sentRight[P][g] = int( sr )
+            sentToLeft[P][g] = int( sl )
+            sentToRight[P][g] = int( sr )
             Tcomp[P][g] = int( tp )
             Tcomm[P][g] = int( tc )
             Tadmin[P][g] = int( ta )
-            stealLeft[P][g] = int( stl )
-            stealRight[P][g] = int( str )
+            requestedByLeft[P][g] = int( stl )
+            requestedByRight[P][g] = int( str )
 
 def isRepeat( A, gen ):
     for P in range( knownMembers ):
@@ -90,6 +90,7 @@ def dumpArray( A ):
             if repeats>0:
                 print "(repeated %d times)" % repeats
             repeats = 0
+            print "%3d:" % gen,
             for P in range( knownMembers ):
                 print "%4d " % A[P][gen],
             print  ""
@@ -105,12 +106,18 @@ def main():
     print 
     print "members"
     dumpArray( members )
+    print 
+    print "requestedByLeft"
+    dumpArray( requestedByLeft )
     print
-    print "sentLeft"
-    dumpArray( sentLeft )
+    print "sentToLeft"
+    dumpArray( sentToLeft )
+    print 
+    print "requestedByRight"
+    dumpArray( requestedByRight )
     print
-    print "sentRight"
-    dumpArray( sentRight )
+    print "sentToRight"
+    dumpArray( sentToRight )
     print 
     print "Tcomp"
     dumpArray( Tcomp )
@@ -120,12 +127,6 @@ def main():
     print 
     print "Tadmin"
     dumpArray( Tadmin )
-    print 
-    print "stealLeft"
-    dumpArray( stealLeft )
-    print 
-    print "stealRight"
-    dumpArray( stealRight )
 
 if __name__ == "__main__":
     main()
