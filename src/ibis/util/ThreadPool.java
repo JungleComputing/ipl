@@ -1,92 +1,62 @@
 package ibis.ipl.impl.generic;
 
-// also set size with property.
 class PoolThread extends Thread {
-	Object lock;
-	Runnable target;
-	boolean IamReady;
+    Queue q;
 	
-	PoolThread(Object lock) {
-		this.lock = lock;
-		setName("Pool thread");
+    PoolThread(Queue q) {
+	this.q = q;
+	synchronized(q) {
+	    if (ThreadPool.DEBUG) {
+		System.out.println("Create new poolthread, numthreads = " + ThreadPool.numthreads);
+	    }
+	    ThreadPool.numthreads++;
 	}
-	
-	public void run() {
-		while(true) {
-			synchronized(lock) {
-				if(ThreadPool.ready >= ThreadPool.MAX_CACHE_SIZE) {
-					System.err.println("AHAHAHA");
-						return;
-				}
+	setName("Pool thread");
+    }
 
-				if(target == null) {
-					IamReady = true;
-					ThreadPool.ready++;
-				}
-				while(target == null) {
-
-//					System.err.println("poolthread: waiting");
-					try {
-						lock.wait();
-					} catch (Exception e) {
-						// Ignore.
-					}
-//					System.err.println("poolthread: wakeup");
-				}
+    public void run() {
+	while(true) {
+	    Runnable target = null;
+	    synchronized(q) {
+		if (q.size() == 0) {
+		    ThreadPool.ready++;
+		    if (2 * ThreadPool.ready > ThreadPool.numthreads) {
+			if (ThreadPool.DEBUG) {
+			    System.out.println("Poolthread exits, numthreads = " + ThreadPool.numthreads);
 			}
-			
-			target.run();
-			target = null;
+			ThreadPool.numthreads--;
+			ThreadPool.ready--;
+			return;
+		    }
+		    target = (Runnable) q.dequeue();
+		    ThreadPool.ready--;
 		}
+		else {
+		    target = (Runnable) q.dequeue();
+		}
+	    }
+
+	    target.run();
 	}
+    }
 }
 
 public final class ThreadPool {
-	static final int MAX_CACHE_SIZE = 5;
-	static final boolean DEBUG = false;
+    static final boolean DEBUG = false;
 
-	static PoolThread[] threads = new PoolThread[MAX_CACHE_SIZE];
-	static int count = 0;
-	static int ready = 0;
-	static Object lock = new Object();
+    static int numthreads = 0;
+    static int ready = 0;
 
-	public static void createNew(Runnable r) {
-		synchronized(lock) {
-			if(ready == 0) {
-				if(count >= MAX_CACHE_SIZE) {
-					if(DEBUG) {
-						System.err.println("pool: no ready thread, cache full, started new one");
-					}
-					Thread p = new Thread(r, "Pool thread " + count);
-					p.setDaemon(true);
-					p.start();
-				} else {
-					if(DEBUG) {
-						System.err.println("pool: no ready thread, cache not full, started new poolthread");
-					}
-					threads[count] = new PoolThread(lock);
-					threads[count].target = r;
-					threads[count].setDaemon(true);
-					threads[count].start();
-					count++;
-				}
-				return;
-			}
+    static Queue q = new Queue();
 
-			// there is at least one thread ready!
-			for(int i=0; i<count; i++) {
-				if(threads[i].IamReady) {
-					threads[i].target = r;
-					threads[i].IamReady = false;
-					ready--;
-					lock.notifyAll();
-//					System.err.println("pool: notify ready thread");
-					return;
-				}
-			}
-
-			System.err.println("EEK, threadpool, this should not happen!");
-			System.exit(1);
-		}
+    public static void createNew(Runnable r) {
+	synchronized(q) {
+	    q.enqueue(r);
+	    if (ready == 0) {
+		PoolThread p = new PoolThread(q);
+		p.setDaemon(true);
+		p.start();
+	    }
 	}
+    }
 }

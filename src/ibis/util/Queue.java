@@ -21,7 +21,7 @@ public class Queue {
 		tail = node;
 		size++;
 
-		notifyAll();
+		notify();
 	}
 
 	public synchronized Object dequeue() {
