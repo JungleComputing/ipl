@@ -2,12 +2,15 @@
 
 import java.io.PrintStream;
 
-public class SuffixArray {
+public class SuffixArray implements Magic {
     /** The buffer containing the compressed text. */
     private short text[];
 
     /** The number of elements in `text' that are relevant. */
     private int length;
+
+    /** The next grammar rule number to hand out. */
+    private short ruleno = FIRSTRULE;
 
     /** The indices in increasing alphabetical order of their suffix. */
     int indices[];
@@ -18,18 +21,14 @@ public class SuffixArray {
      */
     int commonality[];
 
-    /** TODO, remove this encoding. */
-    static final short END = 0;
-
     private short[] buildShortArray( byte text[] )
     {
         length = text.length;
-        short arr[] = new short[length+1];
+        short arr[] = new short[length];
 
         for( int i=0; i<length; i++ ){
             arr[i] = (short) text[i];
         }
-        arr[length] = END;
         return arr;
     }
 
@@ -49,11 +48,11 @@ public class SuffixArray {
     private boolean areCorrectlyOrdered( int i0, int i1 )
     {
         int n = commonLength( i0, i1 );
-	if( text[i0] == END ){
+	if( i0+n>=length ){
 	    // The sortest string is first, this is as it should be.
 	    return true;
 	}
-	if( text[i1] == END ){
+	if( i1+n>=length ){
 	    // The sortest string is last, this is not good.
 	    return false;
 	}
@@ -124,42 +123,40 @@ public class SuffixArray {
         this( text.getBytes() );
     }
 
-    static String buildString( short text[], int start, int length )
+    String buildString( int start, int len )
     {
         String s = "";
 	int i = start;
 
-        while( length>0  ){
-            short c = text[i];
-            if( c>0 && c<255 ){
+        while( len>0 && i<this.length  ){
+            int c = (text[i] & 0xFFFF);
+
+            if( c<255 ){
                 s += (char) c;
-            }
-            else if( c == END ){
-		break;
             }
             else {
                 s += "<" + c + ">";
             }
 	    i++;
-	    length--;
+	    len--;
         }
         return s;
     }
 
-    static String buildString( short text[], int start )
+    String buildString( int start )
     {
-	return buildString( text, start, text.length );
+	return buildString( start, length );
     }
 
-    static String buildString( short text[] )
+    String buildString()
     {
-        return buildString( text, 0 );
+        return buildString( 0 );
     }
 
     private void print( PrintStream s )
     {
 	for( int i=0; i<indices.length; i++ ){
-	    s.println( "" + indices[i] + " " + commonality[i] + " " + buildString( text, indices[i] ) );
+	    s.println( "" + indices[i] + " " + commonality[i] + " " + buildString( indices[i] ) );
 	}
     }
 
@@ -174,7 +171,7 @@ public class SuffixArray {
 	}
 	for( int i=1; i<indices.length; i++ ){
 	    if( commonality[i] >= commonality[max] ){
-		s.println( "maximum: " + indices[i] + " " + commonality[i] + " " + buildString( text, indices[i], commonality[i] ) );
+		s.println( "maximum: " + indices[i] + " " + commonality[i] + " " + buildString( indices[i], commonality[i] ) );
 	    }
 	}
     }
