@@ -64,6 +64,8 @@ public final class PipeOutput extends NetBufferedOutput {
 		try {
 			NetConvert.writeInt(b.length, b.data, 0);
 			pipeOs.write(b.data, 0, b.length);
+			/* Flush, otherwise it takes 1 second RFHH */
+			pipeOs.flush();
                         if (!upcallMode) {
                                 Thread.currentThread().yield();
                         }

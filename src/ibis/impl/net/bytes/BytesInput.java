@@ -60,6 +60,9 @@ public final class BytesInput extends NetInput implements Settings {
 
         private volatile Integer activeNum = null;
 
+	private int waiters = 0;
+
+
 	BytesInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
 		super(pt, driver, context);
                 an = new NetAllocator(anThreshold);
@@ -130,10 +133,13 @@ public final class BytesInput extends NetInput implements Settings {
 
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 log.in();
+		Thread me = Thread.currentThread();
                 synchronized(this) {
                         while (activeNum != null) {
                                 try {
+					waiters++;
                                         wait();
+					waiters--;
                                 } catch (InterruptedException e) {
                                         throw new NetIbisInterruptedException(e);
                                 }
@@ -144,17 +150,20 @@ public final class BytesInput extends NetInput implements Settings {
                         }
 
                         activeNum = spn;
-                        activeUpcallThread = Thread.currentThread();
+                        activeUpcallThread = me;
                         initReceive(spn);
                 }
 
                 upcallFunc.inputUpcall(this, spn);
 
                 synchronized(this) {
-                        if (activeNum == spn && activeUpcallThread == Thread.currentThread()) {
+                        if (activeNum == spn && activeUpcallThread == me) {
                                 activeNum = null;
                                 activeUpcallThread = null;
-                                notifyAll();
+				if (waiters > 0) {
+					notify();
+					// notifyAll();
+				}
                         }
                 }
                 log.out();
@@ -246,6 +255,7 @@ public final class BytesInput extends NetInput implements Settings {
                         activeNum = null;
                         activeUpcallThread = null;
                         notifyAll();
+                        // notify();
                 }
 
                 log.out();

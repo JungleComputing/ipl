@@ -1,7 +1,5 @@
 package ibis.ipl.impl.net.rel;
 
-import ibis.ipl.IbisIOException;
-
 import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetSendBuffer;
 

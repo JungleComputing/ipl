@@ -211,7 +211,8 @@ public abstract class NetBufferedInput extends NetInput {
 			freeBuffer();
 		}
 
-                log.disp("OUT value = "+value);
+                // log.disp("OUT value = "+value);
+                log.disp("OUT");
                 log.out();
 
 		return value;

@@ -145,6 +145,13 @@ public final class RelInput
 	    discardRandom = new java.util.Random();
 	}
 
+	if (STATISTICS) {
+	    Runtime.getRuntime().addShutdownHook(new Thread("RelInput stats reporter") {
+			    public void run() {
+				report();
+			    }
+		        });
+	}
 // System.err.println(this + ": constructed");
 // Thread.dumpStack();
     }
@@ -778,8 +785,6 @@ public final class RelInput
 	if (spn != null) {
 	    close(spn);
 	}
-
-	report();
 
 	if (dataInput != null) {
 	    dataInput.free();

@@ -368,7 +368,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 this.trace = new NetLog(trace, s, "TRACE");
                 this.disp  = new NetLog(disp,  s, "DISP");
                 this.stat  = new NetMessageStat(stat, s);
-                this.trace.disp(sendPortTracePrefix+" send port created");
+                this.trace.disp(sendPortTracePrefix, " send port created");
         }
 
 
@@ -582,7 +582,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 output.initSend();
                 if (trace.on()) {
                         final String messageId = (((NetIbis)type.getIbis())._closedPoolRank())+"-"+sendPortMessageId+"-"+(messageCount++);
-                        trace.disp(sendPortTracePrefix+"message "+messageId+" send to "+receiversPrefixes+"-->");
+                        trace.disp(sendPortTracePrefix, "message "+messageId+" send to "+receiversPrefixes+"-->");
                         writeString(messageId);
                 }
 
@@ -685,14 +685,14 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	public void free()
 		throws NetIbisException {
                 log.in();
-                trace.disp(sendPortTracePrefix+"send port shutdown-->");
+                trace.disp(sendPortTracePrefix, "send port shutdown-->");
                 synchronized(this) {
                         try {
                                 if (outputLock != null) {
                                         outputLock.lock();
                                 }
 
-                                trace.disp(sendPortTracePrefix+"send port shutdown: output locked");
+                                trace.disp(sendPortTracePrefix, "send port shutdown: output locked");
 
                                 if (connectionTable != null) {
                                         while (true) {
@@ -708,29 +708,32 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                                 }
 
                                                 if (cnx != null) {
+							if (spcu != null) {
+								spcu.lostConnection(cnx.getReceiveId());
+							}
                                                         close(cnx);
                                                 }
                                         }
                                 }
-                                trace.disp(sendPortTracePrefix+"send port shutdown: all connections closed");
+                                trace.disp(sendPortTracePrefix, "send port shutdown: all connections closed");
 
                                 if (output != null) {
                                         output.free();
                                 }
 
-                                trace.disp(sendPortTracePrefix+"send port shutdown: all outputs freed");
+                                trace.disp(sendPortTracePrefix, "send port shutdown: all outputs freed");
 
                                 if (outputLock != null) {
                                         outputLock.unlock();
                                 }
 
-                                trace.disp(sendPortTracePrefix+"send port shutdown: output lock released");
+                                trace.disp(sendPortTracePrefix, "send port shutdown: output lock released");
                         } catch (Exception e) {
                                 __.fwdAbort__(e);
                         }
                 }
 
-                trace.disp(sendPortTracePrefix+"send port shutdown<--");
+                trace.disp(sendPortTracePrefix, "send port shutdown<--");
                 log.out();
 	}
 
@@ -769,7 +772,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		_finish();
 		output.finish();
                 stat.end();
-                trace.disp(sendPortTracePrefix+"message send <--");
+                trace.disp(sendPortTracePrefix, "message send <--");
 		outputLock.unlock();
                 log.out();
 	}

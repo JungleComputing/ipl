@@ -224,11 +224,42 @@ public final class NetLog {
         }
 
         /**
+         * Method entry point display.
+         *
+         * @param s some additional info string
+         */
+        public void in(String s, Object obj) {
+                if (on) {
+                        System.err.println(id(1)+"-- "+s + obj.toString() +" -->");
+                }
+        }
+
+        /**
+         * Method leave point display.
+         *
+         * @param s some additional info string
+         */
+        public void out(String s, Object obj) {
+                if (on) {
+                        System.err.println(id(1)+"<-- "+s + obj.toString() +" --");
+                }
+        }
+
+        /**
          * General purpose method-prefixed message display.
          */
         public void disp(String s) {
                 if (on) {
                         System.err.println(id(1)+"- "+s);
+                }
+        }
+
+        /**
+         * General purpose method-prefixed message display.
+         */
+        public void disp(String s, Object obj) {
+                if (on) {
+                        System.err.println(id(1)+"- "+s + obj.toString());
                 }
         }
 

@@ -146,7 +146,8 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 */
 	public void writeByte(byte value) throws NetIbisException {
 		log.in();
-                log.disp("IN value = "+value);
+                // log.disp("IN value = "+value);
+                log.disp("IN");
 
 		if (buffer == null) {
 			allocateBuffer(1);

@@ -48,6 +48,8 @@ public abstract class NetSerializedInput extends NetInput {
 
         private         volatile        Integer                         activeNum               = null;
 
+	private         int             waiters;
+
 
 	public NetSerializedInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
 		super(pt, driver, context);
@@ -113,6 +115,7 @@ public abstract class NetSerializedInput extends NetInput {
 
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 log.in();
+		Thread me = Thread.currentThread();
                 synchronized(this) {
                         if (spn == null) {
                                 throw new Error("invalid connection num");
@@ -120,23 +123,28 @@ public abstract class NetSerializedInput extends NetInput {
 
                         while (activeNum != null) {
                                 try {
+					waiters++;
                                         wait();
+					waiters--;
                                 } catch (InterruptedException e) {
                                         throw new NetIbisInterruptedException(e);
                                 }
                         }
 
                         initReceive(spn);
-                        activeUpcallThread = Thread.currentThread();
+                        activeUpcallThread = me;
                 }
 
                 upcallFunc.inputUpcall(this, spn);
                 synchronized(this) {
-                        if (activeNum == spn && activeUpcallThread == Thread.currentThread()) {
+                        if (activeNum == spn && activeUpcallThread == me) {
                                 activeNum = null;
                                 activeUpcallThread = null;
                                 iss = null;
-                                notifyAll();
+				if (waiters > 0) {
+				    notify();
+				    // notifyAll();
+				}
                         }
                 }
 
@@ -167,7 +175,10 @@ public abstract class NetSerializedInput extends NetInput {
                         iss = null;
                         activeNum = null;
                         activeUpcallThread = null;
-                        notifyAll();
+			if (waiters > 0) {
+			    notify();
+			    // notifyAll();
+			}
                         // System.err.println("NetSerializedInput: finish - activeNum = "+activeNum);
                 }
 

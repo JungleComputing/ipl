@@ -14,6 +14,11 @@ import java.util.Hashtable;
  */
 public final class GmInput extends NetBufferedInput {
 
+        // protected NetMessageStat newMessageStat(boolean on, String moduleName) {
+// System.err.println(" ********** GM Message stats always on");
+                // return new NetMessageStat(true, moduleName);
+        // }
+
 
 	/**
 	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
@@ -40,6 +45,7 @@ public final class GmInput extends NetBufferedInput {
         private boolean               firstBlock     = true;
 
         private Driver               gmDriver     = null;
+
 
 	native long nInitInput(long deviceHandle) throws NetIbisException;
         native int  nGetInputNodeId(long inputHandle) throws NetIbisException;
@@ -87,6 +93,10 @@ public final class GmInput extends NetBufferedInput {
                 Driver.gmAccessLock.unlock();
 
                 arrayThreshold = 256;
+	}
+
+	int getLockId() {
+	    return lockId;
 	}
 
 	/*
@@ -153,7 +163,7 @@ public final class GmInput extends NetBufferedInput {
                         throw new Error(e);
                 }
 
-                mtu = 2*1024*1024;
+                mtu = Driver.mtu;
 
 		allocator = new NetAllocator(mtu);
 		this.spn = cnx.getNum();

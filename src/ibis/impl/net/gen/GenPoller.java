@@ -13,11 +13,6 @@ import java.util.Hashtable;
 public final class GenPoller extends NetPoller {
 
 	/**
-	 * The driver used for the inputs.
-	 */
-	private NetDriver subDriver = null;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param staticProperties the port's properties.
@@ -27,51 +22,4 @@ public final class GenPoller extends NetPoller {
 		throws NetIbisException {
 		super(pt, driver, context);
 	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
-                log.in();
-		if (subDriver == null) {
-			String subDriverName = getMandatoryProperty("Driver");
-                        subDriver = driver.getIbis().getDriver(subDriverName);
-		}
-
-		NetInput ni = newSubInput(subDriver);
-
-		super.setupConnection(cnx, cnx.getNum(), ni);
-                log.out();
-	}
-
-        protected Object getKey(Integer num) {
-                return num;
-        }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * Call this synchronized (this)
-	 */
-	protected void selectConnection(ReceiveQueue rq) {
-                log.in();
-                NetInput    input = rq.input();
-                log.disp("1");
-                mtu = input.getMaximumTransfertUnit();
-                log.disp("2");
-                headerOffset = input.getHeadersLength();
-                log.out();
-	}
-
-        /**
-         * {@inheritDoc}
-         */
-        public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException {
-                //
-                NetInput input = rq.input();
-                if (input != null) {
-                        input.close(num);
-                }
-        }
-
 }

@@ -159,6 +159,14 @@ public final class RelOutput
 	if (RANDOM_DISCARDS > 0.0) {
 	    discardRandom = new java.util.Random();
 	}
+
+	if (STATISTICS) {
+	    Runtime.getRuntime().addShutdownHook(new Thread("RelOutput stats reporter") {
+			    public void run() {
+				report();
+			    }
+		        });
+	}
     }
 
     /*
@@ -904,8 +912,6 @@ checkRexmit();
 	}
 
 	super.free();
-
-	report();
     }
 
 }

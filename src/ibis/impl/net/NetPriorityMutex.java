@@ -18,6 +18,8 @@ public final class NetPriorityMutex {
          */
 	private int priorityvalue = 0;
 
+	private int waiters;	// Maintain whether we need to do a notify()
+
         /**
          * Construct an initially unlocked mutex.
          */
@@ -51,11 +53,16 @@ public final class NetPriorityMutex {
                         priorityvalue++;
                         while (lockvalue <= 0) {
                                 try {
+					waiters++;
                                         wait();
+					waiters--;
                                 } catch (InterruptedException e) {
                                         synchronized(this) {
                                                 priorityvalue--;
-                                                notifyAll();
+						if (waiters > 0) {
+							notify();
+							// notifyAll();
+						}
                                         }
                                         throw new NetIbisInterruptedException(e);
                                 }
@@ -64,7 +71,9 @@ public final class NetPriorityMutex {
                 } else {
                         while (priorityvalue > 0 || lockvalue <= 0) {
                                 try {
+					waiters++;
                                         wait();
+					waiters--;
                                 } catch (InterruptedException e) {
                                         throw new NetIbisInterruptedException(e);
                                 }
@@ -94,18 +103,26 @@ public final class NetPriorityMutex {
                         priorityvalue++;
                         while (lockvalue <= 0) {
                                 try {
+					waiters++;
                                         wait();
+					waiters--;
                                 } finally {
                                         synchronized(this) {
                                                 priorityvalue--;
-                                                notifyAll();
+						if (waiters > 0) {
+							notify();
+							// // notify();
+							// notifyAll();
+						}
                                         }
                                 }
                         }
                         priorityvalue--;
                 } else {
                         while (priorityvalue > 0 || lockvalue <= 0) {
+				waiters++;
                                 wait();
+				waiters--;
                         }
                 }
 		lockvalue--;
@@ -147,7 +164,10 @@ public final class NetPriorityMutex {
          */
 	public synchronized void unlock() {
 		lockvalue++;
-		notifyAll();
+		if (waiters > 0) {
+			notify();
+			// notifyAll();
+		}
 	}
 }
 

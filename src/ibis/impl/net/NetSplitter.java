@@ -6,7 +6,7 @@ import java.util.HashMap;
 /**
  * Provides a generic multiple network output poller.
  */
-public abstract class NetSplitter extends NetOutput {
+public class NetSplitter extends NetOutput {
 
 	// These fields are 'protected' instead of 'private' to allow the
 	// class to be used as a base class for other splitters.
@@ -15,6 +15,7 @@ public abstract class NetSplitter extends NetOutput {
 	 * The set of outputs.
 	 */
 	protected HashMap   outputMap = null;
+	private NetOutput   singleton;
 
 	/**
 	 * The driver used for the outputs.
@@ -35,6 +36,71 @@ public abstract class NetSplitter extends NetOutput {
 	}
 
 
+	private void setSingleton() {
+	    if (outputMap.values().size() == 1) {
+		java.util.Collection c = outputMap.values();
+		Iterator i = c.iterator();
+		singleton = (NetOutput)i.next();
+	    } else {
+		singleton = null;
+	    }
+	}
+
+
+	/**
+	 * Adds a new input to the output set.
+	 *
+	 * The MTU and the header offset is updated by this function.
+	 *
+	 * @param output the output.
+	 */
+	private void addOutput(Integer rpn, NetOutput output) {
+                log.in();
+		int _mtu = output.getMaximumTransfertUnit();
+
+		if (mtu == 0  ||  mtu > _mtu) {
+			mtu = _mtu;
+		}
+
+		int _headersLength = output.getHeadersLength();
+
+		if (headerOffset < _headersLength) {
+			headerOffset = _headersLength;
+		}
+
+		outputMap.put(rpn, output);
+                log.out();
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
+		if (subDriver == null) {
+			String subDriverName = getProperty("Driver");
+                        subDriver = driver.getIbis().getDriver(subDriverName);
+		}
+
+		NetOutput no = newSubOutput(subDriver);
+		setupConnection(cnx, cnx.getNum(), no);
+
+		int _mtu = no.getMaximumTransfertUnit();
+
+		if (mtu == 0  ||  mtu > _mtu) {
+			mtu = _mtu;
+		}
+
+		int _headersLength = no.getHeadersLength();
+
+		if (headerOffset < _headersLength) {
+			headerOffset = _headersLength;
+		}
+                log.out();
+	}
+
+
 	/**
          * Actually establish a connection with a remote port and
          * register an upcall function for incoming message
@@ -49,6 +115,7 @@ public abstract class NetSplitter extends NetOutput {
                 no.setupConnection(cnx);
                 if (outputMap.get(key) == null) {
                         outputMap.put(key, no);
+			setSingleton();
                 }
                 log.out();
 	}
@@ -61,11 +128,15 @@ public abstract class NetSplitter extends NetOutput {
                 log.in();
                 super.initSend();
 
-		Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.initSend();
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.initSend();
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.initSend();
+		    } while (i.hasNext());
+		}
                 log.out();
 	}
 
@@ -75,11 +146,15 @@ public abstract class NetSplitter extends NetOutput {
 	public void send() throws NetIbisException {
                 log.in();
                 super.send();
-                Iterator i = outputMap.values().iterator();
-                do {
-                        NetOutput no = (NetOutput)i.next();
-                        no.send();
-                } while (i.hasNext());
+		if (singleton != null) {
+		    singleton.send();
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.send();
+		    } while (i.hasNext());
+		}
                 log.out();
 	}
 
@@ -90,11 +165,15 @@ public abstract class NetSplitter extends NetOutput {
 	public void finish() throws NetIbisException {
                 log.in();
                 super.finish();
-		Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.finish();
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.finish();
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.finish();
+		    } while (i.hasNext());
+		}
                 log.out();
 	}
 
@@ -112,14 +191,26 @@ public abstract class NetSplitter extends NetOutput {
 				no.free();
                                 i.remove();
 			}
+
+			setSingleton();
 		}
 
 		super.free();
                 log.out();
 	}
         
-        protected abstract Object getKey(Integer num);
-        public abstract void closeConnection(Integer num) throws NetIbisException;
+
+        protected Object getKey(Integer num) {
+                return num;
+        }
+
+
+        public synchronized void closeConnection(Integer num) throws NetIbisException {
+                NetOutput output = (NetOutput)outputMap.get(num);
+                if (output != null) {
+                        output.close(num);
+                }
+        }
 
 
         public synchronized void close(Integer num) throws NetIbisException {
@@ -130,11 +221,15 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeByteBuffer(buffer);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeByteBuffer(buffer);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeByteBuffer(buffer);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -144,11 +239,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeBoolean(boolean v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeBoolean(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeBoolean(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeBoolean(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -158,11 +257,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeByte(byte v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeByte(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeByte(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeByte(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -172,11 +275,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeChar(char v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeChar(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeChar(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeChar(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -186,11 +293,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeShort(short v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeShort(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeShort(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeShort(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -200,11 +311,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeInt(int v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeInt(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeInt(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeInt(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -215,11 +330,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeLong(long v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeLong(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeLong(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeLong(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -229,11 +348,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeFloat(float v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeFloat(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeFloat(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeFloat(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -243,11 +366,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeDouble(double v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeDouble(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeDouble(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeDouble(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -257,11 +384,15 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeString(String v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeString(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeString(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeString(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
@@ -271,100 +402,140 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeObject(Object v) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeObject(v);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeObject(v);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeObject(v);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
         public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
-                log.out();
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
+		log.out();
         }
 
         public void writeArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
         public void writeArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
         public void writeArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
         public void writeArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
         public void writeArray(long [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
         public void writeArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
         public void writeArray(double [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 
         public void writeArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputMap.values().iterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeArray(b, o, l);
-		} while (i.hasNext());
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
                 log.out();
         }
 }

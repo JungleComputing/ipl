@@ -457,7 +457,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         emptyMsg = false;
                                 }
 
-                                trace.disp(receivePortTracePrefix+"message receive <--");
+                                trace.disp(receivePortTracePrefix, "message receive <--");
                         }
                 } else {
                         synchronized(dummyUpcallSync) {
@@ -476,7 +476,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.in();
                 NetPortEvent event = (NetPortEvent)e;
 
-                log.disp("IN: event.code() = "+event.code());
+                log.disp("IN: event.code() = " + event.code());
 
                 switch (event.code()) {
                         case NetPortEvent.CLOSE_EVENT:
@@ -493,21 +493,22 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         synchronized(connectionTable) {
                                                 cnx = (NetConnection)connectionTable.remove(num);
 
-                                                if (cnx == null)
+                                                if (cnx == null) {
                                                         break;
+						}
 
                                                 nspi = cnx.getSendId();
                                                 disconnectedPeers.add(nspi);
+                                        }
+
+                                        if (rpcu != null) {
+                                                rpcu.lostConnection(nspi);
                                         }
 
                                         try {
                                                 close(cnx);
                                         } catch (NetIbisException nie) {
                                                 throw new Error(nie);
-                                        }
-
-                                        if (rpcu != null) {
-                                                rpcu.lostConnection(nspi);
                                         }
                                 }
                         break;
@@ -569,7 +570,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                 this.log       = new NetLog(log,   s, "LOG");
                 this.trace     = new NetLog(trace, s, "TRACE");
-                this.disp      = new NetLog(disp,  s, "DISP");
+                this.disp      = new NetLog(true || disp,  s, "DISP");
 
                 this.trace.disp(receivePortTracePrefix+" receive port created");
         }
@@ -682,7 +683,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         return false;
                 }
 
-                log.out("activeSendPortNum = "+activeSendPortNum);
+                log.out("activeSendPortNum = ", activeSendPortNum);
                 return true;
         }
 
@@ -850,6 +851,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return id;
         }
+
 	public SendPortIdentifier[] connectedTo() {
                 synchronized(connectionTable) {
                         SendPortIdentifier t[] = new SendPortIdentifier[connectionTable.size()];
@@ -944,9 +946,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         return;
                 }
 
-                trace.disp(receivePortTracePrefix+"network connection shutdown-->");
+                trace.disp(receivePortTracePrefix, "network connection shutdown-->");
                 input.close(cnx.getNum());
-                trace.disp(receivePortTracePrefix+"network connection shutdown<--");
+                trace.disp(receivePortTracePrefix, "network connection shutdown<--");
 
                 try {
                         cnx.close();
@@ -964,14 +966,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          */
         public void free() {
                 log.in();
-                trace.disp(receivePortTracePrefix+"receive port shutdown-->");
+                trace.disp(receivePortTracePrefix, "receive port shutdown-->");
                 synchronized(this) {
                         try {
                                 if (inputLock != null) {
                                         inputLock.lock();
                                 }
 
-                                trace.disp(receivePortTracePrefix+"receive port shutdown: input locked");
+                                trace.disp(receivePortTracePrefix, "receive port shutdown: input locked");
 
                                 if (acceptThread != null) {
                                         acceptThread.end();
@@ -986,7 +988,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         }
                                 }
 
-                                trace.disp(receivePortTracePrefix+"receive port shutdown: accept thread terminated");
+                                trace.disp(receivePortTracePrefix, "receive port shutdown: accept thread terminated");
 
                                 if (connectionTable != null) {
                                         while (true) {
@@ -998,6 +1000,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                                 break;
 
                                                         cnx = (NetConnection)i.next();
+							if (rpcu != null) {
+								rpcu.lostConnection(cnx.getSendId());
+							}
                                                         i.remove();
                                                 }
 
@@ -1007,24 +1012,24 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         }
                                 }
 
-                                trace.disp(receivePortTracePrefix+"receive port shutdown: all connections closed");
+                                trace.disp(receivePortTracePrefix, "receive port shutdown: all connections closed");
 
                                 if (input != null) {
                                         input.free();
                                 }
-                                trace.disp(receivePortTracePrefix+"receive port shutdown: all inputs freed");
+                                trace.disp(receivePortTracePrefix, "receive port shutdown: all inputs freed");
 
                                 if (inputLock != null) {
                                         inputLock.unlock();
                                 }
-                                trace.disp(receivePortTracePrefix+"receive port shutdown: input lock released");
+                                trace.disp(receivePortTracePrefix, "receive port shutdown: input lock released");
                         } catch (Exception e) {
                                 e.printStackTrace();
                                 __.fwdAbort__(e);
                         }
                 }
 
-                trace.disp(receivePortTracePrefix+"receive port shutdown<--");
+                trace.disp(receivePortTracePrefix, "receive port shutdown<--");
                 log.out();
         }
 
@@ -1063,7 +1068,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         readByte();
                         emptyMsg = false;
                 }
-                trace.disp(receivePortTracePrefix+"message receive <--");
+                trace.disp(receivePortTracePrefix, "message receive <--");
                 activeSendPortNum = null;
                 currentThread = null;
                 input.finish();

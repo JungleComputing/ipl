@@ -31,12 +31,13 @@ public final class GmOutput extends NetBufferedOutput {
         private int        rmuxId       = -1;
         private Driver     gmDriver     = null;
 
+
         native long nInitOutput(long deviceHandle) throws NetIbisException;
         native int  nGetOutputNodeId(long outputHandle) throws NetIbisException;
         native int  nGetOutputPortId(long outputHandle) throws NetIbisException;
         native int  nGetOutputMuxId(long outputHandle) throws NetIbisException;
         native void nConnectOutput(long outputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws NetIbisException;
-        native void nSendRequest(long outputHandle) throws NetIbisException;
+        native void nSendRequest(long outputHandle, int base, int length) throws NetIbisException;
         native void nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws NetIbisException;
         native void nSendBuffer(long outputHandle, byte []b, int base, int length) throws NetIbisException;
 
@@ -150,7 +151,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                 this.rpn = cnx.getNum();
 
-                mtu = 2*1024*1024;
+                mtu = Driver.mtu;
 
                 log.out();
         }
@@ -163,15 +164,14 @@ public final class GmOutput extends NetBufferedOutput {
                 log.in();
                 if (b.length > packetMTU) {
                         /* Post the 'request' */
+// System.err.print("[");
                         Driver.gmAccessLock.lock(true);
-                        nSendRequest(outputHandle);
+                        nSendRequest(outputHandle, b.base, b.length);
                         Driver.gmAccessLock.unlock();
 
                         /* Wait for 'request' send completion */
-                        gmDriver.blockingPump(lockId, lockIds);
-
-                        /* Wait for 'ack' completion */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        // gmDriver.blockingPump(lockId, lockIds);
+                        gmDriver.blockingPump(lockIds);
 
                         /* Post the 'buffer' */
                         Driver.gmAccessLock.lock(true);
@@ -180,13 +180,17 @@ public final class GmOutput extends NetBufferedOutput {
 
                         /* Wait for 'buffer' send */
                         gmDriver.blockingPump(lockId, lockIds);
+// System.err.print("]");
                 } else {
+// System.err.print("<*");
                         Driver.gmAccessLock.lock(true);
                         nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);
                         Driver.gmAccessLock.unlock();
 
                         /* Wait for 'request' send completion */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        // gmDriver.blockingPump(lockId, lockIds);
+                        gmDriver.blockingPump(lockIds);
+// System.err.print(">*");
                 }
 
 		if (! b.ownershipClaimed) {
@@ -259,7 +263,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle);
+                                nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'request' send completion */
@@ -306,7 +310,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 // Post the 'request'
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle);
+                                nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
 
                                 // Wait for 'request' send completion
@@ -356,7 +360,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle);
+                                nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'request' send completion */
@@ -405,7 +409,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle);
+                                nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'request' send completion */
@@ -454,7 +458,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle);
+                                nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'request' send completion */
@@ -503,7 +507,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle);
+                                nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'request' send completion */
@@ -552,7 +556,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle);
+                                nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'request' send completion */
@@ -601,7 +605,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle);
+                                nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'request' send completion */

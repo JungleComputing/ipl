@@ -38,10 +38,17 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         private 	volatile 	boolean        		freeCalled             = false;
         final 		private         Integer                 takenNum               = new Integer(-1);
 
+	private         int             pollWaiters;
+
         /**
          * Upcall interface for incoming messages.
          */
         protected          NetInputUpcall upcallFunc = null;
+
+	private		boolean		upcallSpawnMode = true;
+	private		Object		nonSpawnSyncer = new Object();
+	private         int             nonSpawnWaiters;
+
 
         static private volatile int     threadCount = 0;
         static private          boolean globalThreadStat = false;
@@ -63,6 +70,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 private int nb_thread_allocated = 0;
                 private int nb_thread_reused    = 0;
                 private int nb_thread_discarded = 0;
+                private int nb_thread_poll      = 0;
                 private int nb_max_thread_stack = 0;
 
                 public NetThreadStat(boolean on, String moduleName) {
@@ -106,44 +114,80 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         if (on) {
                                 nb_thread_discarded++;
                         }
+		}
 
+                public void addPoll() {
+                        if (on) {
+                                nb_thread_poll++;
+                        }
                 }
 
                 public void report() {
                         if (on) {
+System.err.println(this + ".poll: Success " + pollSuccess + " Fail " + pollFail);
                                 System.err.println();
-                                System.err.println("Upcall thread allocation stats for module "+moduleName);
+                                System.err.println("Upcall thread allocation stats for module "+moduleName + " " + NetInput.this);
                                 System.err.println("------------------------------------");
 
                                 reportVal(nb_thread_requested, " thread request");
                                 reportVal(nb_thread_allocated, " thread allocation");
                                 reportVal(nb_thread_reused   , " thread reuse");
                                 reportVal(nb_thread_discarded   , " thread discardal");
+                                reportVal(nb_thread_poll        , " poll");
                                 reportVal(nb_max_thread_stack, " stack", "entry", "used");
                         }
                 }
         }
 
 
+private int waitingUpcallThreads;
+private int livingUpcallThreads;
+private int pollingThreads;
+private int finishedUpcallThreads;
 
         private final class PooledUpcallThread extends Thread {
+
                 private volatile boolean  end   = false;
                 private NetMutex sleep = new NetMutex(true);
+private int polls;
+private int pollSuccess;
+private int sleeps;
+
                 public PooledUpcallThread(String name) {
-                        super("NetInput.PooledUpcallThread["+(threadCount++)+"]: "+name);
+                        super(NetInput.this + ".PooledUpcallThread["+(threadCount++)+"]: "+name);
                 }
 
                 public void run() {
                         log.in();
                         while (!end) {
+livingUpcallThreads++;
+	
                                 log.disp("sleeping...");
                                 try {
+waitingUpcallThreads++;
+sleeps++;
                                         sleep.ilock();
+// if (livingUpcallThreads - waitingUpcallThreads > 0)
+// System.err.println(Thread.currentThread() + ": UpcallThreads waiting " + waitingUpcallThreads + " living " + livingUpcallThreads);
+waitingUpcallThreads--;
+if (activeThread != null && activeThread != this)
+System.err.println(this + ": want to become activeThread; but activeThread is " + activeThread);
                                         activeThread = this;
 
                                         if (activeNum != null) {
                                                 throw new Error("connection unavailable: "+activeNum);
                                         }
+if (finishedUpcallThreads > 1) {
+    // System.err.print(finishedUpcallThreads + " ");
+    // try {
+	for (int i = 0; i < finishedUpcallThreads; i++) {
+	    // threadStackLock.lock();
+	    // threadStackLock.unlock();
+	    Thread.yield();
+	}
+    // } catch (NetIbisInterruptedException e) {
+    // }
+}
 
                                 } catch (InterruptedException e) {
                                         log.disp("was interrupted...");
@@ -151,16 +195,23 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                         return;
                                 }
 
+				utStat.addPoll();
                                 log.disp("just woke up, polling...");
                                 while (!end) {
+pollingThreads++;
+if (pollingThreads > 1)
+System.err.println("pollingThreads " + pollingThreads);
                                         try {
+polls++;
                                                 Integer num = doPoll(true);
 
                                                 if (num == null) {
                                                         // the connection was probably closed
                                                         // let the 'while' test the end flag
+pollingThreads--;
                                                         continue;
                                                 }
+pollSuccess++;
 
                                                 activeNum = num;
                                                 initReceive(activeNum);
@@ -190,9 +241,25 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                         } catch (NetIbisException e) {
                                                 throw new Error(e);
                                         }
+// System.err.println(this + ": upcallSpawnMode " + upcallSpawnMode + " activeThread " + activeThread + " this " + this);
 
 
-                                        if (activeThread == this) {
+                                        if (! upcallSpawnMode) {
+pollingThreads--;
+					    synchronized (nonSpawnSyncer) {
+						while (activeThread != null) {
+						    try {
+							nonSpawnWaiters++;
+							nonSpawnSyncer.wait();
+							nonSpawnWaiters--;
+						    } catch (InterruptedException ie) {
+							// Ignore
+						    }
+						}
+					    }
+
+					} else if (activeThread == this) {
+pollingThreads--;
                                                 try {
                                                         implicitFinish();
                                                 } catch (Exception e) {
@@ -202,6 +269,9 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                                 utStat.addReuse();
                                                 continue;
                                         } else {
+synchronized (this) {
+finishedUpcallThreads--;
+}
                                                 try {
                                                         threadStackLock.lock();
                                                 } catch (NetIbisInterruptedException e) {
@@ -225,6 +295,8 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                         }
                                 }
                         }
+livingUpcallThreads--;
+System.err.println(Thread.currentThread() + ": call it quits");
                         log.out();
                 }
 
@@ -237,6 +309,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 public void end() {
                         log.in();
                         end = true;
+System.err.println(this + ": polls " + pollSuccess  + " (of " + polls + ") sleeps " + sleeps);
                         this.interrupt();
                         log.out();
                 }
@@ -259,7 +332,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 // Stat object
                 String s = "//"+type.name()+this.context+".input";
                 boolean utStatOn = type.getBooleanStringProperty(this.context, "UpcallThreadStat", false);
-                utStat = new NetThreadStat(utStatOn, s);
+                utStat = new NetThreadStat(true || utStatOn, s);
 	}
 
         /**
@@ -281,6 +354,18 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 
         protected abstract void initReceive(Integer num) throws NetIbisException;
 
+
+	protected void enableUpcallSpawnMode() {
+	    upcallSpawnMode = true;
+	}
+
+	protected void disableUpcallSpawnMode() {
+	    upcallSpawnMode = false;
+	}
+
+private int pollFail;
+private int pollSuccess;
+
 	/**
 	 * Test for incoming data.
 	 *
@@ -301,7 +386,9 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 synchronized(this) {
                         while (activeNum != null) {
                                 try {
+					pollWaiters++;
                                         wait();
+					pollWaiters--;
                                 } catch (InterruptedException e) {
                                         throw new NetIbisInterruptedException(e);
                                 }
@@ -316,8 +403,10 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         if (activeNum.equals(takenNum)) {
                                 if (num != null) {
                                         activeNum = num;
+pollSuccess++;
                                 } else {
                                         activeNum = null;
+pollFail++;
                                         return null;
                                 }
                         } else {
@@ -375,13 +464,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 }
 
                 this.upcallFunc = inputUpcall;
-                log.disp("this.upcallFunc = "+this.upcallFunc);
+                log.disp("this.upcallFunc = ", this.upcallFunc);
                 setupConnection(cnx);
                 log.out();
         }
 
         protected final void startUpcallThread() throws NetIbisException {
                 log.in();
+System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
+Thread.dumpStack();
                 threadStackLock.lock();
                 if (upcallFunc != null && upcallThreadNotStarted) {
                         upcallThreadNotStarted = false;
@@ -434,6 +525,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	}
 
         public final  void close(Integer num) throws NetIbisException {
+System.err.println("********************** NetInput.close");
                 log.in();
                 synchronized(this) {
                         doClose(num);
@@ -468,7 +560,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          * @exception NetIbisException if this operation fails.
 	 */
 	public void free() throws NetIbisException {
-                log.in();trace.in("this = "+this);
+                log.in();trace.in("this = ", this);
                 freeCalled = true;
                 doFree();
 		activeNum = null;
@@ -550,10 +642,14 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 synchronized(this)
                         {
                         activeNum = null;
-                        notifyAll();
+			if (pollWaiters > 0) {
+			    notify();
+			    // notifyAll();
+			}
                 }
                 log.out();
         }
+
 
 	/**
          * Complete the current incoming message extraction.
@@ -571,7 +667,19 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 
                 implicitFinish();
 
-                if (activeThread != null) {
+                if (! upcallSpawnMode) {
+		    synchronized (nonSpawnSyncer) {
+			activeThread = null;
+			if (nonSpawnWaiters > 0) {
+			    nonSpawnSyncer.notify();
+			    // nonSpawnSyncer.notifyAll();
+			}
+		    }
+		} else if (activeThread != null) {
+synchronized (this) {
+finishedUpcallThreads++;
+}
+pollingThreads--;
                         PooledUpcallThread ut = null;
 
                         threadStackLock.lock();
@@ -580,6 +688,8 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                 utStat.addReuse();
                         } else {
                                 ut = new PooledUpcallThread("no "+upcallThreadNum++);
+System.err.println(this + ": msg.finish creates another PooledUpcallThread[" + livingUpcallThreads + "] " + threadStackPtr + "; sleepingThreads " + waitingUpcallThreads + " finishedUpcallThreads " + finishedUpcallThreads);
+Thread.dumpStack();
                                 ut.start();
                                 utStat.addAllocation();
                         }

@@ -1,386 +1,589 @@
 package ibis.ipl.impl.net;
 
+import ibis.ipl.impl.generic.Monitor;
+import ibis.ipl.impl.generic.ConditionVariable;
+
 /**
  * Provide a set of lock that can be changed and tested atomically.
  */
 public final class NetLockArray {
 
-        /**
-         * Store the lock values.
-         */
-        private volatile int []     v = null;
+    class Lock {
+	/**
+	 * Store the lock values.
+	 */
+	private int	v;
 
-        /**
-         * Store the lock mask.
-         *
-         * Only the lock entries for whom the mask is
-         * <code>true</code> are alive.
-         */
-        private volatile boolean [] m = null;
+	/**
+	 * Store the lock mask.
+	 *
+	 * Only the lock entries for whom the mask is
+	 * <code>true</code> are alive.
+	 */
+	private boolean m;
 
-        /**
-         * Construct a lock array with a single lock entry and no alive locks.
-         */
-        public NetLockArray() {
-                v = new int[1];
-                m = new boolean[1];
-                m[0] = false;
-        }
+	private ConditionVariable cv;
+	private WaitingOn front;
+	private WaitingOn tail;
 
-        /**
-         * Initialize a new lock.
-         *
-         * @param id indicates the index of the lock in the lock array.
-         * @param locked indicates the initial state of the new lock.
-         */
-        public synchronized void initLock(int id, boolean locked) {
-                if (v.length <= id) {
-                        int []     _v = new int[id+1];
-                        boolean [] _m = new boolean[id+1];
-
-                        System.arraycopy(v, 0, _v, 0, v.length);
-                        System.arraycopy(m, 0, _m, 0, m.length);
-
-                        for (int i = m.length; i < _m.length; i++) {
-                                _m[i] = false;
-                        }
-
-                        v = _v;
-                        m = _m;
-                }
-
-                if (m[id]) {
-                        throw new Error("lock already initialized");
-                }
-
-                v[id] = locked?0:1;
-                m[id] = true;
-        }
-
-        /**
-         * Initialize a new lock.
-         *
-         * The new lock is initially unlocked.
-         *
-         * @param id indicates the index of the lock in the lock array.
-         */
-        public synchronized void initLock(int id) {
-                initLock(id, false);
-        }
-
-        /**
-         * Lock one of the array's locks.
-         *
-         * @param id indicates the index of the lock.
-         *
-         * @exception NetIbisClosedException if the requested lock has not been initialized or gets discarded while the method is blocked on a {@link #wait}.
-         * @exception NetIbisInterruptedException if the thread is
-         * interrupted while waiting. 
-         */
-	public synchronized void lock(int id) throws NetIbisException {
-                if (!m[id]) {
-                        throw new NetIbisClosedException("uninitialized lock");
-                }
-
-		while (v[id] <= 0) {
-			try {
-				wait();
-                                if (!m[id]) {
-                                        throw new NetIbisClosedException("uninitialized lock");
-                                }
-			} catch (InterruptedException e) {
-				throw new NetIbisInterruptedException(e);
-			}
-
-		}
-		v[id]--;
+	Lock(Monitor mon) {
+	    cv = mon.createCV(true);
 	}
+    };
 
-        /**
-         * Lock one of the array's locks.
-         *
-         * @param id indicates the index of the lock.
-         *
-         * @exception NetIbisClosedException if the requested lock has not been initialized or gets discarded while the method is blocked on a {@link #wait}.
-         * @exception InterruptedException if the thread is
-         * interrupted while waiting.
-         */
-	public synchronized void ilock(int id) throws InterruptedException, NetIbisException {
-                if (!m[id]) {
-                        throw new NetIbisClosedException("uninitialized lock");
-                }
+    private Lock[]	lock;
 
-		while (v[id] <= 0) {
-			wait();
-                        if (!m[id]) {
-                                throw new NetIbisClosedException("uninitialized lock");
-                        }
-		}
-		v[id]--;
-	}
+    private Monitor	mon;
 
-        /**
-         * Attempt to lock one of the array's locks.
-         *
-         * @param id indicates the index of the lock.
-         *
-         * @return true if the lock was successfully acquired, false otherwise.
-         *
-         * @exception NetIbisClosedException if the requested lock has
-         * not been initialized
-         */
-	public synchronized boolean trylock(int id) throws NetIbisException {
-                if (!m[id]) {
-                        throw new NetIbisClosedException("uninitialized lock");
-                }
 
-		if (v[id] <= 0) {
-			return false;
-		} else {
-			v[id]--;
-			return true;
-		}
-	}
+    /**
+     * Construct a lock array with a single lock entry and no alive locks.
+     */
+    public NetLockArray() {
+	mon = new Monitor();
+	lock = new Lock[1];
+	lock[0] = new Lock(mon);
+    }
 
-        /*
-         * Atomically --- but interruptibly ---  acquire a whole set of lock entries.
-         *
-         * @param ids stores the set of entry indexes.
-         *
-         * @exception NetIbisClosedException if one of the requested locks has
-         * not been initialized or or got discarded while the method is
-         * blocked on a {@link #wait}.
-         * @exception InterruptedException if the thread is
-         * interrupted while waiting.
-         */
-	public synchronized void lockAll(int [] ids) throws NetIbisException {
-                boolean state = true;
+    /**
+     * Initialize a new lock.
+     *
+     * @param id indicates the index of the lock in the lock array.
+     * @param locked indicates the initial state of the new lock.
+     */
+    public void initLock(int id, boolean locked) {
+	mon.lock();
+	try {
+	    if (lock.length <= id) {
+		Lock[] _lock = new Lock[id + 1];
 
-                for (int i = 0; i < ids.length; i++) {
-                        if (!m[ids[i]]) {
-                                throw new NetIbisClosedException("uninitialized lock");
-                        }
+		System.arraycopy(lock, 0, _lock, 0, lock.length);
 
-                        state = state && (v[ids[i]] > 0);
-                }
-
-		while (!state) {
-			try {
-				wait();
-                                for (int i = 0; i < ids.length; i++) {
-                                        if (!m[ids[i]]) {
-                                                throw new NetIbisClosedException("uninitialized lock");
-                                        }
-                                }
-			} catch (InterruptedException e) {
-				throw new NetIbisInterruptedException(e);
-			}
-
-                        state = true;
-                        for (int i = 0; i < ids.length; i++) {
-                                state = state && (v[ids[i]] > 0);
-                        }
+		for (int i = lock.length; i < _lock.length; i++) {
+		    _lock[i] = new Lock(mon);
 		}
 
-                for (int i = 0; i < ids.length; i++) {
-                        v[ids[i]]--;
-                }
+		lock = _lock;
+	    }
+
+	    if (lock[id].m) {
+		throw new Error("lock already initialized");
+	    }
+
+	    lock[id].v = locked?0:1;
+	    lock[id].m = true;
+// if (id == 2) {
+// System.err.println("Initialize lock(" + id + ") as " + (locked ? "locked" : "unlocked"));
+// }
+	} finally {
+	    mon.unlock();
+	}
+    }
+
+    /**
+     * Initialize a new lock.
+     *
+     * The new lock is initially unlocked.
+     *
+     * @param id indicates the index of the lock in the lock array.
+     */
+    public void initLock(int id) {
+	initLock(id, false);
+    }
+
+
+    /**
+     * Because of the (i)lockFirst functionality, we cannot just use
+     * cv_wait() and cv_signal() -- we must atomically wait on multiple
+     * condition variables.
+     * Use a datastructure to register the CVs we are waiting for.
+     * If one of these CVs is signalled, it must inspect the datastructure
+     * and possibly signal a different CV.
+     */
+
+    class WaitingOn {
+	WaitingOn	next;
+	int		id;
+    }
+
+
+    private WaitingOn	waitingOnFreelist = null;
+
+
+    private WaitingOn getWaitingOn(int id) {
+	WaitingOn w = waitingOnFreelist;
+	if (w == null) {
+	    w = new WaitingOn();
+	} else {
+	    waitingOnFreelist = w.next;
+	}
+	w.id = id;
+	return w;
+    }
+
+
+    private void putWaitingOn(WaitingOn w) {
+	w.next = waitingOnFreelist;
+	waitingOnFreelist = w;
+    }
+
+    
+    /**
+     * Append our wait request to the queue that might be signalled
+     */
+    private void registerWaitingOn(int id, int wait_id) {
+	WaitingOn w = getWaitingOn(wait_id);
+
+	w.next = null;
+	Lock q = lock[id];
+	if (q.front == null) {
+	    q.front = w;
+	} else {
+	    q.tail.next = w;
+	}
+	q.tail = w;
+// System.err.print("Enqueue(" + wait_id + "); Wait queue[" + id + "] := (");
+// for (w = q.front; w != null; w = w.next) {
+    // System.err.print(w.id + ",");
+// }
+// System.err.println(")");
+    }
+
+
+    /**
+     * Apparently we have been signalled. Remove our wait request
+     * from the queue.
+     */
+    private void unregisterWaitingOn(int id, int wait_id) {
+	WaitingOn scan;
+	WaitingOn prev = null;
+
+	Lock q = lock[id];
+	for (scan = q.front; scan != null; scan = scan.next) {
+	    if (scan.id == wait_id) {
+		break;
+	    }
+	    prev = scan;
+	}
+// System.err.print("Dequeue(" + wait_id + "); Wait queue[" + id + "] was (");
+// for (WaitingOn w = q.front; w != null; w = w.next) {
+    // System.err.print(w.id + ",");
+// }
+// System.err.println(")");
+
+	if (scan == null) {
+	    throw new RuntimeException("Multi-wait queue[" + id + "," + wait_id + "] corrupt");
 	}
 
-        /**
-         * Atomically --- but interruptibly --- acquire a whole set of lock entries.
-         *
-         * @param ids stores the set of entry indexes.
-         *
-         * @exception NetIbisClosedException if one of the requested locks has
-         * not been initialized or or got discarded while the method is
-         * blocked on a {@link #wait}.
-         * @exception InterruptedException if the thread is
-         * interrupted while waiting.
-         */
-	public synchronized void ilockAll(int [] ids) throws InterruptedException, NetIbisException {
-                boolean state = true;
+	if (prev == null) {
+	    q.front = scan.next;
+	} else {
+	    prev.next = scan.next;
+	}
+	if (scan == q.tail) {
+	    if (prev == null) {
+		q.tail = q.front;
+	    } else {
+		q.tail = prev;
+	    }
+	}
 
-                for (int i = 0; i < ids.length; i++) {
-                        if (!m[ids[i]]) {
-                                throw new NetIbisClosedException("uninitialized lock");
-                        }
+	putWaitingOn(scan);
+// System.err.print("Dequeue(" + wait_id + "); Wait queue[" + id + "] := (");
+// for (WaitingOn w = q.front; w != null; w = w.next) {
+    // System.err.print(w.id + ",");
+// }
+// System.err.println(")");
+    }
 
-                        state = state && (v[ids[i]] > 0);
-                }
 
-		while (!state) {
-                        wait();
-                        for (int i = 0; i < ids.length; i++) {
-                                if (!m[ids[i]]) {
-                                        throw new NetIbisClosedException("uninitialized lock");
-                                }
-                        }
+    /**
+     * Lock one of the array's locks.
+     *
+     * @param id indicates the index of the lock.
+     *
+     * @exception NetIbisClosedException if the requested lock has not been initialized or gets discarded while the method is blocked on a {@link #wait}.
+     * @exception NetIbisInterruptedException if the thread is
+     * interrupted while waiting. 
+     */
+    public void lock(int id) throws NetIbisException {
 
-                        state = true;
-                        for (int i = 0; i < ids.length; i++) {
-                                state = state && (v[ids[i]] > 0);
-                        }
+	mon.lock();
+// System.err.println("enter lock(" + id +")");
+	try {
+	    if (!lock[id].m) {
+		throw new NetIbisClosedException("uninitialized lock");
+	    }
+
+	    while (lock[id].v <= 0) {
+		registerWaitingOn(id, id);
+		try {
+		    lock[id].cv.cv_wait();
+		} catch (InterruptedException e) {
+		    throw new NetIbisInterruptedException(e);
+		} finally {
+		    unregisterWaitingOn(id, id);
 		}
 
-                for (int i = 0; i < ids.length; i++) {
-                        v[ids[i]]--;
-                }
+		if (!lock[id].m) {
+		    throw new NetIbisClosedException("uninitialized lock");
+		}
+	    }
+
+// if (id == 2) {
+// System.err.println("lock(" + id + ")");
+// Thread.dumpStack();
+// }
+	    lock[id].v--;
+// System.err.println("locked(" + id +")");
+
+	} finally {
+	    mon.unlock();
 	}
+    }
 
-	public synchronized boolean trylockAll(int [] ids) throws NetIbisException {
-                boolean state = true;
+    /**
+     * Lock one of the array's locks.
+     *
+     * @param id indicates the index of the lock.
+     *
+     * @exception NetIbisClosedException if the requested lock has not been initialized or gets discarded while the method is blocked on a {@link #wait}.
+     * @exception InterruptedException if the thread is
+     * interrupted while waiting.
+     */
+    public void ilock(int id) throws InterruptedException, NetIbisException {
+	mon.lock();
+// System.err.println("enter ilock(" + id +")");
 
-                for (int i = 0; i < ids.length; i++) {
-                        if (!m[ids[i]]) {
-                                throw new NetIbisClosedException("uninitialized lock");
-                        }
+	try {
 
-                        state = state && (v[ids[i]] > 0);
-                }
+	    if (!lock[id].m) {
+		throw new NetIbisClosedException("uninitialized lock");
+	    }
 
-                if (state) {
-                        for (int i = 0; i < ids.length; i++) {
-                                v[ids[i]]--;
-                        }
-                }
+	    while (lock[id].v <= 0) {
+		registerWaitingOn(id, id);
+		try {
+		    lock[id].cv.cv_wait();
+		} finally {
+		    unregisterWaitingOn(id, id);
+		}
+		if (!lock[id].m) {
+		    throw new NetIbisClosedException("uninitialized lock");
+		}
+	    }
+	    lock[id].v--;
+// if (id == 2) {
+// System.err.println("ilock(" + id + ")");
+// Thread.dumpStack();
+// }
+// System.err.println("ilocked(" + id +")");
 
-                return state;
+	} finally {
+	    mon.unlock();
 	}
+    }
 
-	public synchronized int lockFirst(int [] ids) throws NetIbisException {
-                int result = -1;
 
-                for (int i = 0; i < ids.length; i++) {
-                        if (!m[ids[i]]) {
-                                throw new NetIbisClosedException("uninitialized lock");
-                        }
-                }
+    /**
+     * Attempt to lock one of the array's locks.
+     *
+     * @param id indicates the index of the lock.
+     *
+     * @return true if the lock was successfully acquired, false otherwise.
+     *
+     * @exception NetIbisClosedException if the requested lock has
+     * not been initialized
+     */
+    public boolean trylock(int id) throws NetIbisException {
+	mon.lock();
+	try {
+	    if (!lock[id].m) {
+		throw new NetIbisClosedException("uninitialized lock");
+	    }
 
-                boolean state = false;
+	    if (lock[id].v <= 0) {
+		return false;
+	    }
 
-                for (int i = 0; i < ids.length; i++) {
-                        if (v[ids[i]] > 0) {
-                                result = i;
-                                state  = true;
-                                break;
-                        }
-                }
+// System.err.println("trylocked(" + id +")");
+// if (id == 2) {
+// System.err.println("trylock(" + id + ")");
+// Thread.dumpStack();
+// }
+	    lock[id].v--;
 
-		while (!state) {
-			try {
-				wait();
-                                for (int i = 0; i < ids.length; i++) {
-                                        if (!m[ids[i]]) {
-                                                throw new NetIbisClosedException("uninitialized lock");
-                                        }
-                                }
-			} catch (InterruptedException e) {
-				throw new NetIbisInterruptedException(e);
-			}
+	    return true;
 
-                        state = false;
-                        for (int i = 0; i < ids.length; i++) {
-                                if (v[ids[i]] > 0) {
-                                        result = i;
-                                        state  = true;
-                                        break;
-                                }
-                        }
+	} finally {
+	    mon.unlock();
+	}
+    }
+
+
+    /*
+     * Atomically --- but interruptibly ---  acquire a whole set of lock entries.
+     *
+     * @param ids stores the set of entry indexes.
+     *
+     * @exception NetIbisClosedException if one of the requested locks has
+     * not been initialized or or got discarded while the method is
+     * blocked on a {@link #wait}.
+     * @exception InterruptedException if the thread is
+     * interrupted while waiting.
+     */
+    public void lockAll(int[] ids) throws NetIbisException {
+	throw new NetIbisException("lockAll is not implemented");
+    }
+
+
+    /**
+     * Atomically --- but interruptibly --- acquire a whole set of lock entries.
+     *
+     * @param ids stores the set of entry indexes.
+     *
+     * @exception NetIbisClosedException if one of the requested locks has
+     * not been initialized or or got discarded while the method is
+     * blocked on a {@link #wait}.
+     * @exception InterruptedException if the thread is
+     * interrupted while waiting.
+     */
+    public void ilockAll(int[] ids) throws InterruptedException, NetIbisException {
+	throw new NetIbisException("ilockAll is not implemented");
+    }
+
+
+    public boolean trylockAll(int[] ids) throws NetIbisException {
+	throw new NetIbisException("trylockAll is not implemented");
+    }
+
+
+    public synchronized int lockFirst(int[] ids) throws NetIbisException {
+	int wait_id = ids[0];
+
+	mon.lock();
+// System.err.print("enter lockFirst(");
+// for (int i = 0; i < ids.length; i++) {
+    // System.err.print(ids[i] + ",");
+// }
+// System.err.println(")");
+	try {
+	    int result = -1;
+
+	    boolean state = false;
+
+	    while (true) {
+		for (int i = 0; i < ids.length; i++) {
+		    if (!lock[ids[i]].m) {
+			throw new NetIbisClosedException("uninitialized lock");
+		    }
 		}
 
-                v[ids[result]]--;
-
-                return result;
-	}
-
-	public synchronized int ilockFirst(int [] ids) throws InterruptedException, NetIbisException {
-                int result = -1;
-
-                for (int i = 0; i < ids.length; i++) {
-                        if (!m[ids[i]]) {
-                                throw new NetIbisClosedException("uninitialized lock");
-                        }
-                }
-
-                boolean state = false;
-
-                for (int i = 0; i < ids.length; i++) {
-                        if (v[ids[i]] > 0) {
-                                result = i;
-                                state  = true;
-                                break;
-                        }
-                }
-
-		while (!state) {
-                        wait();
-                        for (int i = 0; i < ids.length; i++) {
-                                if (!m[ids[i]]) {
-                                        throw new NetIbisClosedException("uninitialized lock");
-                                }
-                        }
-
-                        state = false;
-                        for (int i = 0; i < ids.length; i++) {
-                                if (v[ids[i]] > 0) {
-                                        result = i;
-                                        state  = true;
-                                        break;
-                                }
-                        }
+		for (int i = 0; i < ids.length; i++) {
+		    if (lock[ids[i]].v > 0) {
+			result = i;
+			state  = true;
+			break;
+		    }
 		}
 
-                v[ids[result]]--;
+		if (state) {
+		    break;
+		}
 
-                return result;
+		for (int i = 0; i < ids.length; i++) {
+		    registerWaitingOn(ids[i], wait_id);
+		}
+		try {
+// System.err.println("lockFirst wait(" + wait_id + ")");
+		    lock[wait_id].cv.cv_wait();
+		} catch (InterruptedException e) {
+		    throw new NetIbisInterruptedException(e);
+		} finally {
+		    for (int i = 0; i < ids.length; i++) {
+			unregisterWaitingOn(ids[i], wait_id);
+		    }
+		}
+	    }
+
+// if (ids[result] == 2) {
+// System.err.println("lockFirst(" + ids[result] + ")");
+// Thread.dumpStack();
+// }
+// System.err.println("lockFirst(" + ids[result] + ")");
+	    lock[ids[result]].v--;
+
+	    return result;
+	} finally {
+	    mon.unlock();
+	}
+    }
+
+    public int ilockFirst(int[] ids) throws InterruptedException, NetIbisException {
+	int wait_id = ids[0];
+
+	mon.lock();
+// System.err.print("enter ilockFirst(");
+// for (int i = 0; i < ids.length; i++) {
+    // System.err.print(ids[i] + ",");
+// }
+// System.err.println(")");
+	try {
+	    int result = -1;
+
+	    boolean state = false;
+
+	    while (true) {
+
+		for (int i = 0; i < ids.length; i++) {
+		    if (!lock[ids[i]].m) {
+			throw new NetIbisClosedException("uninitialized lock");
+		    }
+		}
+
+		for (int i = 0; i < ids.length; i++) {
+		    if (lock[ids[i]].v > 0) {
+			result = i;
+			state  = true;
+			break;
+		    }
+		}
+
+		if (state) {
+		    break;
+		}
+
+// System.err.println("ilockFirst wait(" + wait_id + ")");
+		for (int i = 0; i < ids.length; i++) {
+		    registerWaitingOn(ids[i], wait_id);
+		}
+		try {
+		    lock[wait_id].cv.cv_wait();
+		} finally {
+		    for (int i = 0; i < ids.length; i++) {
+			unregisterWaitingOn(ids[i], wait_id);
+		    }
+		}
+	    }
+
+// if (ids[result] == 2) {
+// System.err.println("ilockFirst(" + ids[result] + ")");
+// Thread.dumpStack();
+// }
+// System.err.println("ilockFirst(" + ids[result] + ")");
+	    lock[ids[result]].v--;
+
+	    return result;
+	} finally {
+	    mon.unlock();
+	}
+    }
+
+
+    public int trylockFirst(int[] ids) throws NetIbisException {
+	mon.lock();
+	try {
+	    int		result = -1;
+
+	    for (int i = 0; i < ids.length; i++) {
+		if (!lock[ids[i]].m) {
+		    throw new NetIbisClosedException("uninitialized lock");
+		}
+	    }
+
+	    for (int i = 0; i < ids.length; i++) {
+
+		if (lock[ids[i]].v > 0) {
+		    result = i;
+		    lock[ids[result]].v--;
+// if (ids[result] == 2) {
+// System.err.println("trylockFirst(" + ids[result] + ")");
+// Thread.dumpStack();
+// }
+		    break;
+		}
+	    }
+
+	    return result;
+	} finally {
+	    mon.unlock();
+	}
+    }
+
+
+    private void unlockLocked(int id) throws NetIbisException {
+	if (!lock[id].m) {
+	    throw new NetIbisClosedException("uninitialized lock");
+	}
+	/** It seems NetIbis allows unlocking of a free lock?????
+	if (lock[id].v > 0) {
+System.err.println("Unlock free lock");
+Thread.dumpStack();
+	    throw new NetIbisException("Unlock free lock");
+	}
+	*/
+
+	if (lock[id].front != null) {
+	    if (false && true) {
+		WaitingOn w = lock[id].front;
+		while (w != null) {
+// System.err.println("Signal(" + w.id + ") from unlock(" + id +")");
+		    lock[w.id].cv.cv_signal();
+		    w = w.next;
+		}
+	    } else {
+		int	signal_id = lock[id].front.id;
+
+		if (!lock[signal_id].m) {
+		    throw new NetIbisClosedException("uninitialized lock");
+		}
+		lock[signal_id].cv.cv_signal();
+	    }
 	}
 
-	public synchronized int trylockFirst(int [] ids) throws NetIbisException {
-                int result = -1;
+// System.err.println("Unlocked(" + id +")");
+// if (id == 2) {
+// System.err.println("unlock(" + id + ")");
+// Thread.dumpStack();
+// }
+	lock[id].v++;
+    }
 
-                for (int i = 0; i < ids.length; i++) {
-                        if (!m[ids[i]]) {
-                                throw new NetIbisClosedException("uninitialized lock");
-                        }
-                }
 
-                for (int i = 0; i < ids.length; i++) {
-
-                        if (v[ids[i]] > 0) {
-                                result = i;
-                                v[ids[result]]--;
-                                break;
-                        }
-                }
-
-                return result;
+    public void unlock(int id) throws NetIbisException {
+	mon.lock();
+	try {
+	    unlockLocked(id);
+	} finally {
+	    mon.unlock();
 	}
+    }
 
-	public synchronized void unlock(int id) throws NetIbisException {
-                if (!m[id]) {
-                        throw new NetIbisClosedException("uninitialized lock");
-                }
 
-		v[id]++;
-		notifyAll();
+    public void unlockAll(int [] ids) throws NetIbisException {
+	mon.lock();
+	try {
+	    for (int i = 0; i < ids.length; i++) {
+		unlockLocked(ids[i]);
+	    }
+	} finally {
+	    mon.unlock();
 	}
+    }
 
-	public synchronized void unlockAll(int [] ids) throws NetIbisException {
-                for (int i = 0; i < ids.length; i++) {
-                        if (!m[ids[i]]) {
-                                throw new NetIbisClosedException("uninitialized lock");
-                        }
 
-                        v[ids[i]]++;
-                }
-
-		notifyAll();
+    public void deleteLock(int id) {
+	mon.lock();
+	try {
+	    lock[id].m = false;
+	    WaitingOn w = lock[id].front;
+	    while (w != null) {
+		lock[w.id].cv.cv_bcast();
+		w = w.next;
+	    }
+	} finally {
+	    mon.unlock();
 	}
-
-        public synchronized void deleteLock(int id) {
-                m[id] = false;
-		notifyAll();
-        }
+    }
 
 }

@@ -10,12 +10,13 @@ import java.util.HashMap;
 /**
  * Provides a generic multiple network input poller.
  */
-public abstract class NetPoller extends NetInput {
+public class NetPoller extends NetInput {
 
 	/**
 	 * The set of inputs.
 	 */
         protected HashMap inputMap  = null;
+	private ReceiveQueue singleton;
 
 	/**
 	 * The driver used for the inputs.
@@ -25,27 +26,24 @@ public abstract class NetPoller extends NetInput {
 	/**
 	 * The input queue that was last sucessfully polled, or <code>null</code>.
 	 */
-	protected volatile ReceiveQueue  activeQueue = null;
-        protected volatile Thread    activeUpcallThread = null;
-	private volatile int			upcallWaiters;
+	protected ReceiveQueue  activeQueue = null;
+        protected Thread	activeUpcallThread = null;
+
+	private int		upcallWaiters;
 
 	/**
 	 * Count the number of application threads that are blocked in a poll
 	 */
-	protected volatile int		waitingThreads = 0;
-
-
-	/**
-	 * Upcall thread
-	 */
-	//private UpcallThread	upcallThread = null;
+	protected int		waitingThreads = 0;
 
 
         /**
          * The first queue that should be polled first next time we have to poll the queues.
          */
         private int             firstToPoll  = 0;
+
         private boolean         upcallMode = false;
+	protected boolean	upcallModeAllowed;
 
 	/**
 	 * Constructor.
@@ -58,7 +56,42 @@ public abstract class NetPoller extends NetInput {
 		throws NetIbisException {
                 super(pt, driver, context);
                 inputMap = new HashMap();
+		upcallModeAllowed = true;	// default, override at will
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
+
+		if (subDriver == null) {
+			String subDriverName = getMandatoryProperty("Driver");
+                        subDriver = driver.getIbis().getDriver(subDriverName);
+		}
+
+		NetInput ni = newSubInput(subDriver);
+
+		setupConnection(cnx, cnx.getNum(), ni);
+
+		if (! upcallModeAllowed) {
+		    startUpcallThread();
+		}
+                log.out();
+	}
+
+
+
+	private void setSingleton() {
+	    if (inputMap.values().size() == 1) {
+		Collection c = inputMap.values();
+		Iterator i = c.iterator();
+		singleton = (ReceiveQueue)i.next();
+	    } else {
+		singleton = null;
+	    }
+	}
+
 
 	/**
          * Actually establish a connection with a remote port and
@@ -69,10 +102,11 @@ public abstract class NetPoller extends NetInput {
          * @param key the connection key in the splitter {@link #inputMap map}.
          * @param ni the connection's input.
 	 */
-	protected void setupConnection(NetConnection cnx,
-				       Object key,
-				       NetInput ni)
+	public void setupConnection(NetConnection cnx,
+				    Object key,
+				    NetInput ni)
 		throws NetIbisException {
+
                 log.in();
                 /*
                  * Because a blocking poll can be pending while we want
@@ -86,19 +120,34 @@ public abstract class NetPoller extends NetInput {
                         if (q == null) {
                                 q = new ReceiveQueue(ni);
                                 inputMap.put(key, q);
+System.err.println(this + ": add subInput " + ni + "; key " + key + "; upcallFunc " + upcallFunc);
+				setSingleton();
                         }
 
                         upcallMode = (upcallFunc != null);
 
-                        if (NetReceivePort.useBlockingPoll||upcallMode) {
+                        if (upcallModeAllowed &&
+			    (NetReceivePort.useBlockingPoll || upcallMode)) {
                                 ni.setupConnection(cnx, q);
                         } else {
                                 ni.setupConnection(cnx, null);
                         }
 
-                        // Don't understand: wakeupBlockedReceiver();
+			/* If this NetPoller is used in downcallMode, the
+			 * upcall threads of the subInputs deliver their
+			 * message to the queue here. They do not enter
+			 * application space. If the message is finished,
+			 * they can continue without having to mind other
+			 * possible spawning of other upcall threads.
+			 * 				RFHH
+			 */
+			if (! upcallMode) {
+			    ni.disableUpcallSpawnMode();
+			}
 
+                        // Don't understand: wakeupBlockedReceiver();
                 }
+
                 log.out();
 	}
 
@@ -125,9 +174,10 @@ public abstract class NetPoller extends NetInput {
 	 * thread waits.
 	 *
 	 * ToDo:
-	 * Performance optimization: if there is only one subInput, the roll
+	 * Performance optimization: if there is only one subInput, the role
 	 * of the poller thread can be taken by the application thread.
 	 */
+private int nCurrent;
 
 	protected final class ReceiveQueue
 		implements NetInputUpcall {
@@ -167,7 +217,8 @@ public abstract class NetPoller extends NetInput {
 
                                 me = Thread.currentThread();
                                 activeUpcallThread = me;
-                                log.disp(this + ": NetPoller queue thread poll returns " + activeNum);
+                                log.disp("NetPoller queue thread poll returns ",activeNum);
+nCurrent++;
                         }
 
                         if (upcallMode) {
@@ -177,7 +228,7 @@ public abstract class NetPoller extends NetInput {
                                 synchronized (NetPoller.this) {
                                         if (activeUpcallThread == me) {
                                                 // implicit finish()
-                                                finishLocked();
+                                                finishLocked(true);
                                         }
                                 }
 
@@ -185,7 +236,9 @@ public abstract class NetPoller extends NetInput {
                                 synchronized (NetPoller.this) {
                                         while (activeNum == spn) {
                                                 try {
+							waitingThreads++;
                                                         NetPoller.this.wait();
+							waitingThreads--;
                                                 } catch (InterruptedException e) {
                                                         throw new NetIbisInterruptedException(e);
                                                 }
@@ -198,8 +251,26 @@ public abstract class NetPoller extends NetInput {
 
 
                 /* Call this from synchronized (NetPoller.this) */
+                Integer poll(boolean block) throws NetIbisException {
+                        log.in();
+			if (upcallModeAllowed) {
+			    if (! NetReceivePort.useBlockingPoll && activeNum == null) {
+				    activeNum = input.poll(block);
+			    }
+			} else {
+// System.err.print("P>");
+			    activeNum = input.poll(block); // (false);
+// System.err.print("<");
+			}
+
+                        return activeNum;
+                }
+
+
+                /* Call this from synchronized (NetPoller.this) */
                 Integer poll() throws NetIbisException {
                         log.in();
+// System.err.print("p");
                         if (! NetReceivePort.useBlockingPoll && activeNum == null) {
                                 activeNum = input.poll(false);
                         }
@@ -212,16 +283,19 @@ public abstract class NetPoller extends NetInput {
 
 
                 /* Call this from synchronized (NetPoller.this) */
-                public void finish() throws NetIbisException {
+                public void finish(boolean implicit) throws NetIbisException {
                         log.in();
 
                         activeNum = null;
-                        input.finish();
+			if (! implicit) {
+				input.finish();
+			}
 
                         if (upcallMode) {
                                 releaseUpcallLock();
-                        } else {
-                                NetPoller.this.notifyAll();
+                        } else if (waitingThreads > 0) {
+                                // NetPoller.this.notifyAll();
+                                NetPoller.this.notify();
                         }
 
                         log.out();
@@ -262,7 +336,8 @@ public abstract class NetPoller extends NetInput {
 
                 activeQueue = null;
                 if (upcallWaiters > 0) {
-                        notifyAll();
+                        notify();
+                        // notifyAll();
                 }
 
                 log.out();trace.out();
@@ -273,7 +348,8 @@ public abstract class NetPoller extends NetInput {
                 log.in();
                 // System.err.println(this + ": gonna unblock receiver thread");
                 if (waitingThreads > 0) {
-                        notifyAll();
+                        notify();
+                        // notifyAll();
                 }
                 log.out();
 	}
@@ -288,7 +364,7 @@ public abstract class NetPoller extends NetInput {
                 } catch (InterruptedException e) {
                         throw new NetIbisInterruptedException(e);
                 }
-                waitingThreads++;
+                waitingThreads--;
                 // System.err.println(this + ": unblocked receiver thread");
                 log.out();
 	}
@@ -298,11 +374,21 @@ public abstract class NetPoller extends NetInput {
 	 * Called from poll() when the input indicated by ni has a message
 	 * to receive.
 	 * Set the state local to your implementation here.
+	 *
+	 * Call this synchronized (this)
 	 */
-	protected abstract void selectConnection(ReceiveQueue rq);
+	protected void selectConnection(ReceiveQueue rq) {
+                log.in();
+                NetInput    input = rq.input();
+                log.disp("1");
+                mtu = input.getMaximumTransfertUnit();
+                log.disp("2");
+                headerOffset = input.getHeadersLength();
+                log.out();
+	}
 
 
-        protected void initReceive(Integer num) {
+        protected void initReceive(Integer num) throws NetIbisException {
                 //
         }
 
@@ -310,16 +396,42 @@ public abstract class NetPoller extends NetInput {
 	 * Polls the inputs.
 	 *
 	 * {@inheritDoc}
+	 *
+	 * Opportunities for faster path:
+	 * - record whether there is exactly one subInput.
+	 *   If so, skip manipulating the inputMap.
+	 * - Manana: if there is exactly one subInput, don't use threads for
+	 *   downcall receives. Let the thread that does a receive to us
+	 *   perform the poll to the lower layer itself.
+	 *   Caveat for one subInput: if this thread is blocked in a poll and
+	 *   a second connection is set up, the poll must be interrupted.
+	 *   I think NetIbis requires a mechanism to interrupt blocking polls
+	 *   for that. (Implementation hints: either close the connection and
+	 *   catch the exception or ourselves send a control message to the
+	 *   thread.)
 	 */
 	public Integer doPoll(boolean block) throws NetIbisException {
                 log.in();
-                if (activeQueue != null) {
-                        throw new NetIbisException("Call message.finish before calling Net.poll");
-                }
 
 		Integer      spn = null;
 
                 synchronized (this) {
+		    if (activeQueue != null) {
+			    throw new NetIbisException("Call message.finish before calling Net.poll");
+		    }
+
+// System.err.print("[");
+		    if (singleton != null) {
+			/* Do we actually require synchronized here?
+			 * Usually not :-) */
+			if ((spn = singleton.poll(block)) != null) {
+			    activeQueue = singleton;
+
+			    selectConnection(singleton);
+			}
+
+		    } else {
+
                         while (true) {
                                 final Collection c = inputMap.values();
                                 final int        s = c.size();
@@ -381,13 +493,20 @@ public abstract class NetPoller extends NetInput {
                                         }
                                 }
 
-                                blockReceiver();
+			    }
+
+			    blockReceiver();
                         }
                 }
+// System.err.print("]");
 
                 /* break because ! block && spn == null */
 
-                Thread.yield();
+		if (false) {
+			/* It is better to yield at a higher level.
+			 * Here it is uncontrollable, anyway. */
+			Thread.yield();
+		}
                 log.out();
 
                 return spn;
@@ -400,10 +519,10 @@ public abstract class NetPoller extends NetInput {
 	 *
 	 * Call this synchronized(this)
 	 */
-	private void finishLocked() throws NetIbisException {
+	private void finishLocked(boolean implicit) throws NetIbisException {
                 log.in();
                 if (activeQueue != null) {
-                        activeQueue.finish();
+                        activeQueue.finish(implicit);
                         activeQueue = null;
                 }
 
@@ -418,7 +537,7 @@ public abstract class NetPoller extends NetInput {
 	public void doFinish() throws NetIbisException {
                 log.in();
 		synchronized (this) {
-                        finishLocked();
+                        finishLocked(false);
 		}
                 log.out();
 	}
@@ -429,18 +548,20 @@ public abstract class NetPoller extends NetInput {
 	 */
 	public void doFree() throws NetIbisException {
                 log.in();trace.in();
-                trace.disp("0, "+this);
+                trace.disp("0, ", this);
+// if (singleton != null)
+System.err.println(this + ": singleton = " + singleton + " nCurrent " + nCurrent);
 		if (inputMap != null) {
 			Iterator i = inputMap.values().iterator();
 
-                        trace.disp("1, "+this);
+                        trace.disp("1, ", this);
 			if (inputMap.values().size() == 1) {
                                 log.disp("Pity, missed the chance of a blocking NetPoller without thread switch");
 			} else {
                                 log.disp("No chance of a blocking NetPoller without thread switch; size " + inputMap.values().size());
 			}
 
-                        trace.disp("2, "+this);
+                        trace.disp("2, ", this);
 			while (i.hasNext()) {
 				ReceiveQueue q = (ReceiveQueue)i.next();
 				//NetInput ni = q.input;
@@ -448,7 +569,9 @@ public abstract class NetPoller extends NetInput {
 				//ni.free();
                                 i.remove();
 			}
-                        trace.disp("3, "+this);
+                        trace.disp("3, ", this);
+
+			setSingleton();
 		}
 
 		synchronized(this) {
@@ -458,14 +581,27 @@ public abstract class NetPoller extends NetInput {
                         //                          while (activeQueue != null)
                         //                                  wait();
                 }
-                trace.disp("4, "+this);
+                trace.disp("4, ", this);
                 trace.out();log.out();
 	}
 
-        protected abstract Object getKey(Integer num);
+
+        protected Object getKey(Integer num) {
+                return num;
+        }
 
 
-        public abstract void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException;
+        /**
+         * {@inheritDoc}
+         */
+        public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException {
+                //
+                NetInput input = rq.input();
+                if (input != null) {
+                        input.close(num);
+                }
+        }
+
 
         public synchronized final void doClose(Integer num) throws NetIbisException {
                 log.in();
@@ -487,7 +623,7 @@ public abstract class NetPoller extends NetInput {
                 log.out();
         }
 
-        private NetInput activeInput() throws NetIbisException {
+        protected NetInput activeInput() throws NetIbisException {
                 try {
                         ReceiveQueue  rq    = activeQueue;
                         NetInput      input = rq.input;

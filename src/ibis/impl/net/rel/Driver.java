@@ -2,7 +2,6 @@ package ibis.ipl.impl.net.rel;
 
 import ibis.ipl.impl.net.*;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisIOException;
 
 
 /**

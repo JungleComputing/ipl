@@ -15,7 +15,10 @@ public final class Driver extends NetDriver {
         static NetPriorityMutex gmAccessLock  = null;
         static NetLockArray     gmLockArray   = null;
 
+	static final int        mtu = 2*1024*1024;
+
         private static final int speculativePolls = 16;
+
 
 	/**
 	 * The driver name.
@@ -70,7 +73,7 @@ public final class Driver extends NetDriver {
 	public NetInput newInput(NetPortType pt, String context)
 		throws NetIbisException {
                 //System.err.println("new gm input");
-		return new GmInput(pt, this, context);
+		return new GmPoller(pt, this, context);
 	}
 
 	/**
@@ -83,8 +86,53 @@ public final class Driver extends NetDriver {
 	public NetOutput newOutput(NetPortType pt, String context)
 		throws NetIbisException {
                 //System.err.println("new gm output");
-		return new GmOutput(pt, this, context);
+		return new GmSplitter(pt, this, context);
 	}
+
+
+        protected int blockingPump(int []lockIds) throws NetIbisException {
+                int result;
+		int main = lockIds.length - 1;
+
+                try {
+                        result = gmLockArray.ilockFirst(lockIds);
+                } catch (InterruptedException e) {
+                        throw new NetIbisInterruptedException(e);
+                }
+// System.err.println("blockingPump: ilockFirst -> " + result);
+
+                if (result == main) {
+                        /* got GM main lock, let's pump */
+			// We are NOT interested in lockIds[main], but
+			// luckily we already got that, so no fear that we
+			// get it again.
+			try {
+				do {
+                                        gmAccessLock.ilock(false);
+
+					nGmThread();
+					gmAccessLock.unlock();
+					result = gmLockArray.trylockFirst(lockIds);
+// if (result != -1)
+// System.err.println("blockingPump: trylockFirst -> " + result);
+					if (result == main) {
+					    throw new Error("invalid trylock return");
+					}
+				} while (result == -1);
+			} catch (InterruptedException e) {
+				throw new NetIbisInterruptedException(e);
+			} finally {
+				gmLockArray.unlock(0);
+			}
+
+		} else if (result > main) {
+                        throw new Error("invalid state");
+                }
+                /* else: request already completed */
+// System.err.println("blockingPump: return " + result);
+
+		return result;
+        }
 
 
         protected void blockingPump(int lockId, int []lockIds) throws NetIbisException {
@@ -96,7 +144,7 @@ public final class Driver extends NetDriver {
                         throw new NetIbisInterruptedException(e);
                 }
 
-                if (result == 1) {
+                if (result == lockIds.length - 1) {
                         /* got GM main lock, let's pump */
                         do {
                                 try {
@@ -114,7 +162,7 @@ public final class Driver extends NetDriver {
                         gmLockArray.unlock(0);
 
                 } /* else: request already completed */
-                else if (result != 0) {
+                else if (result > lockIds.length - 1) {
                         throw new Error("invalid state");
                 }
         }
@@ -128,7 +176,7 @@ public final class Driver extends NetDriver {
                         throw new NetIbisInterruptedException(e);
                 }
 
-                if (result == 1) {
+                if (result == lockIds.length - 1) {
                         /* got GM main lock, let's pump */
                         try {
                                 gmAccessLock.ilock(false);
@@ -170,13 +218,45 @@ public final class Driver extends NetDriver {
                 }
         }
 
+
+        protected int tryPump(int []lockIds) throws NetIbisException {
+		int main = lockIds.length - 1;
+                int result = gmLockArray.trylockFirst(lockIds);
+
+                if (result == main) {
+                        /* got GM main lock, let's pump */
+			// We are NOT interested in lockIds[main], but
+			// luckily we already got that, so no fear that we
+			// get it again.
+                        if (gmAccessLock.trylock(false)) {
+                                int i = speculativePolls;
+                                do {
+                                        nGmThread();
+                                        result = gmLockArray.trylockFirst(lockIds);
+                                } while (result == -1 && --i > 0);
+
+                                gmAccessLock.unlock();
+                        } else {
+                                result = gmLockArray.trylockFirst(lockIds);
+                        }
+
+                        /* request completed, release GM main lock */
+                        gmLockArray.unlock(0);
+
+                        return result;
+                } else {
+                        return result;
+                }
+        }
+
+
         protected boolean tryPump(int lockId, int []lockIds) throws NetIbisException {
                 int result = gmLockArray.trylockFirst(lockIds);
                 if (result == -1) {
                         return false;
                 } else if (result == 0) {
                         return true;
-                } else if (result == 1) {
+                } else if (result == lockIds.length - 1) {
                         boolean value = false;
 
                         /* got GM main lock, let's pump */

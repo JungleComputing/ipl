@@ -21,6 +21,8 @@ public final class NetMutex {
 	 */
 	private int value = 1;
 
+	private int waiters;
+
 	/**
 	 * Construct an initially unlocked mutex.
 	 */
@@ -57,7 +59,9 @@ public final class NetMutex {
 	public synchronized void lock() throws NetIbisInterruptedException {
 		while (value <= 0) {
 			try {
+				waiters++;
 				wait();
+				waiters--;
 			} catch (InterruptedException e) {
 				throw new NetIbisInterruptedException(e);
 			}
@@ -81,7 +85,9 @@ public final class NetMutex {
 	 */
 	public synchronized void ilock() throws InterruptedException {
 		while (value <= 0) {
+			waiters++;
 			wait();
+			waiters--;
 		}
 		value--;
 		if (DEBUG) {
@@ -119,7 +125,10 @@ public final class NetMutex {
 	 */
 	public synchronized void unlock() {
 		value++;
-		notifyAll();
+		if (waiters > 0) {
+		    // notifyAll();
+		    notify();
+		}
 	}
 }
 
