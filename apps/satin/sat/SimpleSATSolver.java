@@ -16,12 +16,13 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     static final boolean printSatSolutions = true;
     static int label = 0;
 
-    public void solve( SATProblem p, int assignments[], int var ) throws SATResultException
+    public void solve(
+	SATProblem p,
+	int assignments[],
+	int varlist[],
+	int varix
+    ) throws SATResultException
     {
-	if( traceSolver ){
-	    System.err.println( "Branching on variable " + var );
-	    System.err.flush();
-	}
 	if( p.isSatisfied( assignments ) ){
 	    if( traceSolver ){
 		System.err.println( "Found a solution" );
@@ -34,13 +35,19 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	    }
 	    return;
 	}
-	if( var>=p.getVariableCount() ){
+	if( varix>=varlist.length ){
 	    // There are no variables left to assign, clearly there
-	    // isn't a solution.
+	    // is no solution.
 	    if( traceSolver ){
 		System.err.println( "There are only " + p.getVariableCount() + " variables; nothing to branch on" );
 	    }
 	    return;
+	}
+
+	int var = varlist[varix];
+	if( traceSolver ){
+	    System.err.println( "Branching on variable " + var );
+	    System.err.flush();
 	}
 
 	// We have variable 'var' to branch on.
@@ -49,8 +56,8 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	posassignments[var] = 1;
 	negassignments[var] = 0;
 	try {
-	    solve( p, posassignments, var+1 );
-	    solve( p, negassignments, var+1 );
+	    solve( p, posassignments, varlist, varix+1 );
+	    solve( p, negassignments, varlist, varix+1 );
 	    sync();
 	}
 	catch( SATResultException e ){
@@ -62,16 +69,22 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     static SATSolution solveSystem( final SATProblem p )
     {
 	int assignments[] = p.getInitialAssignments();
+	int varlist[] = new int[p.getVariableCount()];
 	SATSolution res = null;
 
         SimpleSATSolver s = new SimpleSATSolver();
+
+	for( int i=0; i<varlist.length; i++ ){
+	    // Start with a unit mapping of the variables.
+	    varlist[i] = i;
+	}
 
         // Now recursively try to find a solution.
 	try {
 	    if( traceSolver ){
 		System.err.println( "Starting recursive solver" );
 	    }
-	    s.solve( p, assignments, 0 );
+	    s.solve( p, assignments, varlist, 0 );
 	    //System.err.println( "Solve finished??" );
 	    // res = null;
 	    s.sync();
