@@ -2,3 +2,5 @@ HOSTNAME=rage1.man.poznan.pl
 JAVA_HOME=/usr/java
 RSH="gsissh -p 2222"
 RCP="scp -P 2222"
+JOBMANAGER=jobmanager-pbs
+SPLIT=true
