@@ -48,8 +48,11 @@ public final class Driver extends NetDriver {
 
 	static native long nInitDevice(int deviceNum) throws IOException;
 	static native void nCloseDevice(long deviceHandler) throws IOException;
-        static native boolean nGmThread();
-        static native void nGmBlockingThread();
+
+        private static native boolean nGmThread();
+        private static native void nGmBlockingThread();
+
+	private static native void nStatistics();
 
 	static final boolean TIMINGS = false;
 
@@ -88,6 +91,7 @@ public final class Driver extends NetDriver {
 				+ t_lock.nrTimes() + " "
 				+ t_lock.averageTime());
 			}
+			nStatistics();
 		    }
 		});
 	}

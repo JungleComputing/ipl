@@ -2909,8 +2909,6 @@ pdump();
                 free(p_dev);
         }
 
-fprintf(stderr, "Net GM: sent: eager %d; rndvz req %d data %d\n", sent_eager, sent_rndvz_req, sent_rndvz_data);
-
         __out__();
         return 0;
 
@@ -4043,6 +4041,16 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
 }
 
 #endif
+
+
+JNIEXPORT
+jint
+JNICALL
+Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
+					 jclass  clazz)
+{
+    fprintf(stderr, "Net GM: sent: eager %d; rndvz req %d data %d\n", sent_eager, sent_rndvz_req, sent_rndvz_data);
+}
 
 
 JNIEXPORT jint JNICALL
