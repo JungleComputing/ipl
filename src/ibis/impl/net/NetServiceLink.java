@@ -190,11 +190,11 @@ public final class NetServiceLink {
                 incoming = true;
 
                 try {
-			if (true || DEBUG) {
+			if (DEBUG) {
 			    System.err.println("t = " + NetIbis.now() + ": " + this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + ss + " " + ss.getLocalSocketAddress() + " start accept");
 			}
                         socket = ss.accept();
-			if (true || DEBUG) {
+			if (DEBUG) {
 			    System.err.println("t = " + NetIbis.now() + ": " + this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
 			}
                 } catch (SocketException e) {
@@ -221,13 +221,13 @@ public final class NetServiceLink {
                 InetAddress raddr =  (InetAddress)nfo.get("accept_address");
 		int         rport = ((Integer)    nfo.get("accept_port"   )).intValue();
 
-		if (true || DEBUG) {
+		if (DEBUG) {
 		    System.err.println("t = " + NetIbis.now() + " " + this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + " NetServiceLink outgoing socket - try to connect to " + raddr + "/" + rport);
 		}
 		socket = NetIbis.socketFactory.createSocket(raddr, rport);
 		// Else, I fear the read() would appear high up in the profile:
 		socket.setSoTimeout(0);
-		if (true || DEBUG) {
+		if (DEBUG) {
 		    System.err.println("t = " + NetIbis.now() + " " + this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " NetServiceLink outgoing socket - connected to " + raddr + "/" + rport);
 		}
         }
