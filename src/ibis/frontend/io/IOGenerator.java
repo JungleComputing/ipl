@@ -56,6 +56,7 @@ public class IOGenerator {
 	boolean		super_is_serializable;
 	boolean		super_is_ibis_serializable;
 	boolean		super_has_ibis_constructor;
+	boolean		super_is_externalizable;
 	boolean		has_serial_persistent_fields;
 	boolean		final_fields;
 	Field[]		fields;
@@ -78,6 +79,7 @@ public class IOGenerator {
 	    versionUID();
 
 	    super_is_serializable = isSerializable(super_class);
+	    super_is_externalizable = isExternalizable(super_class);
 	    super_is_ibis_serializable = isIbisSerializable(super_class);
 	    super_has_ibis_constructor = hasIbisConstructor(super_class);
 	    has_serial_persistent_fields = hasSerialPersistentFields();
@@ -296,8 +298,10 @@ public class IOGenerator {
 	    gen.addMethod(default_read_method.getMethod());
 
 	    /* Construct a read-of-the-stream constructor, but only when we can actually use it. */
-	    if (! super_is_serializable ||
-		    (force_generated_calls || super_has_ibis_constructor)) {
+	    if (super_is_externalizable ||
+		! super_is_serializable ||
+		force_generated_calls ||
+		super_has_ibis_constructor) {
 		il = new InstructionList();
 		il.append(new RETURN());
 
@@ -1039,7 +1043,10 @@ public class IOGenerator {
 
 	    InstructionList il = new InstructionList();
 
-	    if (super_is_serializable && ! super_has_ibis_constructor && ! force_generated_calls) {
+	    if (! super_is_externalizable &&
+		super_is_serializable &&
+		! super_has_ibis_constructor &&
+		! force_generated_calls) {
 		/* This is a difficult case. We cannot call a constructor, because
 		   this constructor would be obliged to call a constructor for the super-class.
 		   So, we do it differently: generate calls to IbisSerializationInputStream methods
@@ -1279,9 +1286,9 @@ public class IOGenerator {
 	    */
 
 	    read_il = null;
-	    if (super_has_ibis_constructor || ! super_is_serializable || force_generated_calls) {
+	    if (super_is_externalizable || super_has_ibis_constructor || ! super_is_serializable || force_generated_calls) {
 		read_il = new InstructionList();
-		if (! super_is_serializable) {
+		if (super_is_externalizable || ! super_is_serializable) {
 		    read_il.append(new ALOAD(0));
 		    read_il.append(factory.createInvoke(super_classname,
 							"<init>",
@@ -1296,6 +1303,15 @@ public class IOGenerator {
 							Type.VOID,
 							new Type[] {Type.OBJECT},
 							Constants.INVOKEVIRTUAL));
+		    if (super_is_externalizable) {
+			read_il.append(new ALOAD(0));
+			read_il.append(new ALOAD(1));
+			read_il.append(factory.createInvoke(super_classname,
+							    "readExternal",
+							    Type.VOID,
+							    new Type[] { new ObjectType("java.io.ObjectInput") },
+							    Constants.INVOKESPECIAL));
+		    }
 		}
 		else {
 		    read_il.append(new ALOAD(0));
@@ -1309,7 +1325,16 @@ public class IOGenerator {
 	    write_gen = new MethodGen(methods[write_method_index], classname, constantpool);
 
 	    /* write the superclass if neccecary */
-	    if (super_is_ibis_serializable || (force_generated_calls && super_is_serializable)) {
+	    if (super_is_externalizable) {
+		write_il.append(new ALOAD(0));
+		write_il.append(new ALOAD(1));
+		write_il.append(factory.createInvoke(super_classname,
+						     "writeExternal",
+						     Type.VOID,
+						     new Type[] {new ObjectType("java.io.ObjectOutput")},
+						     Constants.INVOKESPECIAL));
+	    }
+	    else if (super_is_ibis_serializable || (force_generated_calls && super_is_serializable)) {
 		write_il.append(new ALOAD(0));
 		write_il.append(new ALOAD(1));
 		write_il.append(createGeneratedWriteObjectInvocation(super_classname, Constants.INVOKESPECIAL));
@@ -1360,8 +1385,19 @@ public class IOGenerator {
 	    }
 
 	    /* Now, do the same for the reading side. */
+	    MethodGen mgen = null;
+	    int index = -1;
 	    if (read_il != null) {
-		MethodGen read_cons_gen = new MethodGen(methods[read_cons_index], classname, constantpool);
+		mgen = new MethodGen(methods[read_cons_index], classname, constantpool);
+		index = read_cons_index;
+	    }
+	    else if (hasReadObject()) {
+		mgen = new MethodGen(methods[read_wrapper_index], classname, constantpool);
+		read_il = new InstructionList();
+		index = read_wrapper_index;
+	    }
+
+	    if (read_il != null) {
 		if (hasReadObject()) {
 		    /* First, get and set IbisSerializationInputStream's idea of the current object. */
 		    read_il.append(new ALOAD(1));
@@ -1387,28 +1423,16 @@ public class IOGenerator {
 							 Constants.INVOKEVIRTUAL));
 		}
 		else {
-		    read_il.append(generateDefaultReads(true, dpth, read_cons_gen));
+		    read_il.append(generateDefaultReads(true, dpth, mgen));
 		}
 
-		read_il.append(read_cons_gen.getInstructionList());
-		read_cons_gen.setInstructionList(read_il);
+		read_il.append(mgen.getInstructionList());
+		mgen.setInstructionList(read_il);
 
-		read_cons_gen.setMaxStack(read_cons_gen.getMaxStack(constantpool, read_il, read_cons_gen.getExceptionHandlers()));
-		read_cons_gen.setMaxLocals();
+		mgen.setMaxStack(mgen.getMaxStack(constantpool, read_il, mgen.getExceptionHandlers()));
+		mgen.setMaxLocals();
 
-		gen.setMethodAt(read_cons_gen.getMethod(), read_cons_index);
-	    }
-	    else if (hasReadObject()) {
-		read_il = new InstructionList();
-		read_il.append(new ALOAD(0));
-		read_il.append(new ALOAD(1));
-		read_il.append(createReadObjectInvocation());
-		MethodGen read_wrapper = new MethodGen(methods[read_wrapper_index], classname, constantpool);
-		read_il.append(read_wrapper.getInstructionList());
-		read_wrapper.setInstructionList(read_il);
-		read_wrapper.setMaxStack(read_wrapper.getMaxStack(constantpool, read_il, read_wrapper.getExceptionHandlers()));
-		read_wrapper.setMaxLocals();
-		gen.setMethodAt(read_wrapper.getMethod(), read_wrapper_index);
+		gen.setMethodAt(mgen.getMethod(), index);
 	    }
 
 	    write_gen = new MethodGen(methods[write_method_index], classname, constantpool);
@@ -1500,6 +1524,10 @@ public class IOGenerator {
 	return Repository.implementationOf(clazz, "java.io.Serializable");
     }
 
+    private boolean isExternalizable(JavaClass clazz) {
+	return directImplementationOf(clazz, "java.io.Externalizable");
+    }
+
     private boolean isIbisSerializable(JavaClass clazz) {
 	return directImplementationOf(clazz, "ibis.io.Serializable");
     }
@@ -1533,6 +1561,8 @@ public class IOGenerator {
 
     private void  addClass(JavaClass clazz) {
 	boolean serializable = false;
+
+	if (isExternalizable(clazz)) return;
 
 	JavaClass super_classes[] = Repository.getSuperClasses(clazz);
 
