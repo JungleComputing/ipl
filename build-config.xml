@@ -1,0 +1,212 @@
+<!--
+  Install-time configuration.
+  Figure out where the packages are that we depend on.
+-->
+
+
+<target name="configure" depends="property-init">
+    <property name="default.home.bcel" location="/home2/ceriel/bcel-5.1"/>
+    <property name="default.home.ant-contrib" location="/usr/local/ant/ant-contrib"/>
+    <property name="default.home.ant-cpptasks" location="/usr/local/ant/ant-cpptasks"/>
+
+    <property name="default.home.panda"  location="/usr/local/VU/panda/panda4.0"/>
+    <property name="default.home.daslib" location="/usr/local/VU/daslib"/>
+    <property name="default.home.lfc"    location="/usr/local/VU/lfc/lfc-gm"/>
+    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
+    <property name="default.home.gm"     location="/usr/local/gm/current"/>
+
+    <input
+	    message="Please enter the install directory of BCEL: [${default.home.bcel}] "
+	    addproperty="install.home.bcel"/>
+    <!--
+    <input
+	    message="Please enter the install directory of BCEL-additions: "
+	    addproperty="install.home.bcel-additions"/>
+    -->
+    <property
+	    name="install.home.bcel-additions"
+	    location="${ibis}/bcel-additions"/>
+
+    <input
+	    message="Please enter the install directory of ant-contrib: [${default.home.ant-contrib}] "
+	    addproperty="install.home.ant-contrib"/>
+    <input
+	    message="Please enter the install directory of ant-cpptasks: [${default.home.ant-cpptasks}] "
+	    addproperty="install.home.ant-cpptasks"/>
+
+    <input
+	    message="Please enter the install directory of gm: [${default.home.gm}] "
+	    addproperty="install.home.gm"/>
+    <input
+	    message="Please enter the install directory of daslib: [${default.home.daslib}] "
+	    addproperty="install.home.daslib"/>
+    <input
+	    message="Please enter the install directory of lfc: [${default.home.lfc}] "
+	    addproperty="install.home.lfc"/>
+    <input
+	    message="Please enter the install directory of panda: [${default.home.panda}] "
+	    addproperty="install.home.panda"/>
+    <input
+	    message="Please enter the install directory of mpi: [${default.home.mpi}] "
+	    addproperty="install.home.mpi"/>
+
+
+    <property
+	    name="config.home.ibis"
+	    location="${ibis}"/>
+    <if>
+	<equals arg1="${install.home.bcel}" arg2=""/>
+	<then>
+	    <property name="config.home.bcel"
+		    location="${default.home.bcel}"/>
+	</then>
+	<else>
+	    <property name="config.home.bcel"
+		    location="${install.home.bcel}"/>
+	</else>
+    </if>
+    <property name="config.home.bcel-additions"
+	    location="${install.home.bcel-additions}"/>
+    <if>
+	<equals arg1="${install.home.ant-contrib}" arg2=""/>
+	<then>
+	    <property name="config.home.ant-contrib"
+		    location="${default.home.ant-contrib}"/>
+	</then>
+	<else>
+	    <property name="config.home.ant-contrib"
+		    location="${install.home.ant-contrib}"/>
+	</else>
+    </if>
+    <if>
+	<equals arg1="${install.home.ant-cpptasks}" arg2=""/>
+	<then>
+	    <property name="config.home.ant-cpptasks"
+		    location="${default.home.ant-cpptasks}"/>
+	</then>
+	<else>
+	    <property name="config.home.ant-cpptasks"
+		    location="${install.home.ant-cpptasks}"/>
+	</else>
+    </if>
+
+    <if>
+	<equals arg1="${install.home.gm}" arg2=""/>
+	<then>
+	    <property name="config.home.gm"
+		    location="${default.home.gm}"/>
+	</then>
+	<else>
+	    <property name="config.home.gm"
+		    location="${install.home.gm}"/>
+	</else>
+    </if>
+    <if>
+	<equals arg1="${install.home.daslib}" arg2=""/>
+	<then>
+	    <property name="config.home.daslib"
+		    location="${default.home.daslib}"/>
+	</then>
+	<else>
+	    <property name="config.home.daslib"
+		    location="${install.home.daslib}"/>
+	</else>
+    </if>
+    <if>
+	<equals arg1="${install.home.lfc}" arg2=""/>
+	<then>
+	    <property name="config.home.lfc"
+		    location="${default.home.lfc}"/>
+	</then>
+	<else>
+	    <property name="config.home.lfc"
+		    location="${install.home.lfc}"/>
+	</else>
+    </if>
+    <if>
+	<equals arg1="${install.home.panda}" arg2=""/>
+	<then>
+	    <property name="config.home.panda"
+		    location="${default.home.panda}"/>
+	</then>
+	<else>
+	    <property name="config.home.panda"
+		    location="${install.home.panda}"/>
+	</else>
+    </if>
+    <if>
+	<equals arg1="${install.home.mpi}" arg2=""/>
+	<then>
+	    <property name="config.home.mpi"
+		    location="${default.home.mpi}"/>
+	</then>
+	<else>
+	    <property name="config.home.mpi"
+		    location="${install.home.mpi}"/>
+	</else>
+    </if>
+
+
+    <!--
+    <echo	file="config.status"
+	    append="false">${config.home.bcel}
+    </echo>
+    <echo	file="config.status"
+	    append="true">${config.home.bcel-additions}
+    </echo>
+    <echo	file="config.status"
+	    append="true">${config.home.ant-contrib}
+    </echo>
+    <echo	file="config.status"
+	    append="true">${config.home.ant-cpptasks}
+    </echo>
+    -->
+
+    <copy
+	    overwrite="true"
+	    file="${ibis}/build-properties.in"
+	    tofile="${ibis}/build-properties">
+	<filterchain>
+	    <filterreader
+		    classname="org.apache.tools.ant.filters.ReplaceTokens">
+		<param  type="token"
+			name="IBIS"
+			value="${config.home.ibis}"/>
+		<param  type="token"
+			name="BCEL_HOME"
+			value="${config.home.bcel}"/>
+		<param  type="token"
+			name="BCEL_ADDITIONS"
+			value="${config.home.bcel-additions}"/>
+		<param  type="token"
+			name="ANT_CONTRIB"
+			value="${config.home.ant-contrib}"/>
+		<param  type="token"
+			name="ANT_CPPTASKS"
+			value="${config.home.ant-cpptasks}"/>
+
+		<param  type="token"
+			name="GM_HOME"
+			value="${config.home.gm}"/>
+		<param  type="token"
+			name="DASLIB_HOME"
+			value="${config.home.daslib}"/>
+		<param  type="token"
+			name="LFC_HOME"
+			value="${config.home.lfc}"/>
+		<param  type="token"
+			name="PANDA_HOME"
+			value="${config.home.panda}"/>
+		<param  type="token"
+			name="MPI_HOME"
+			value="${config.home.mpi}"/>
+	    </filterreader>
+	</filterchain>
+    </copy>
+    <replaceregexp
+	    file="${ibis}/build-properties"
+	    flags="g"
+	    match="\${file.separator}"
+	    replace="/"/>
+</target>
+
