@@ -181,7 +181,7 @@ final class ReceivePortNameServerClient implements
                         }
 
                         if (ri != null) {
-                            if (ri.cpu != -1 && name.equals(ri.name())) {
+                            if (ri.cpu != -1) {
                                 if (ReceivePortNameServerProtocol.DEBUG) {
                                     System.err.println(Thread.currentThread()
                                             + "ReceivePortNSClient: "
