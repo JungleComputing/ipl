@@ -1,0 +1,4 @@
+HOSTNAME=skirit.ics.muni.cz
+JAVA_HOME=/packages/run/jdkibm
+RSH="gsissh -p 2222"
+RCP="scp -P 2222"

@@ -1,3 +1,6 @@
 HOSTNAME=kiwi.zib.de
+JAVA_HOME=/usr/java/j2sdk1.4.0
+RSH="gsissh -p 2222"
+RCP="scp -P 2222"
 JOBMGR=jobmanager
 SPLIT=false
