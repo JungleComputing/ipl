@@ -29,7 +29,7 @@ ibmp_poll_register(int (*poll)(JNIEnv *env))
 }
 
 
-jboolean
+JNIEXPORT jboolean JNICALL
 Java_ibis_ipl_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
 {
     int	i;
@@ -48,7 +48,7 @@ Java_ibis_ipl_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_Poll_abort(JNIEnv *env, jobject this)
 {
     kill(getpid(), SIGQUIT);

@@ -35,7 +35,7 @@ join_hdr(void *proto)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_Ibis_send_1join(
 		JNIEnv *env,
 		jobject this,
@@ -74,7 +74,7 @@ join_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_Ibis_send_1leave(
 		JNIEnv *env,
 		jobject this,

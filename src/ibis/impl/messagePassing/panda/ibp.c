@@ -87,7 +87,7 @@ ibp_proto_clear(void *proto)
 }
 
 
-jlong
+JNIEXPORT jlong JNICALL
 Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 {
     union lt {
@@ -101,7 +101,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 }
 
 
-jdouble
+JNIEXPORT jdouble JNICALL
 Java_ibis_ipl_impl_messagePassing_Ibis_t2d(JNIEnv *env, jclass c, jlong l)
 {
     union lt {

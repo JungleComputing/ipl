@@ -45,7 +45,7 @@ ibp_ns_lookup_hdr(void *proto)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1lookup(
 	JNIEnv *env,
 	jobject this,
@@ -124,7 +124,7 @@ lookup_reply_clear(void *v)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 	JNIEnv *env,
 	jobject this,

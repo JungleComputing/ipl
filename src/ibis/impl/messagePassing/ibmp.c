@@ -325,7 +325,7 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, jint out)
 {
     ibmp_byte_output_stream_report(env);
@@ -333,7 +333,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, j
 }
 
 
-jarray
+JNIEXPORT jarray JNICALL
 Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray java_args)
 {
     jfieldID	fld_Ibis_ibis;
@@ -506,14 +506,14 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1start(JNIEnv *env, jobject this)
 {
     ibp_start(env);
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
 {
     ibmp_connect_end(env);

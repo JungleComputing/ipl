@@ -36,7 +36,7 @@ ibp_ns_unbind_hdr(void *proto)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1unbind(
 	JNIEnv *env,
 	jobject this,

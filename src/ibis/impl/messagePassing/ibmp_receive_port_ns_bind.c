@@ -42,7 +42,7 @@ ibp_ns_bind_hdr(void *proto)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
 	JNIEnv *env,
 	jobject this,
@@ -110,7 +110,7 @@ ibp_ns_bind_reply_hdr(void *proto)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_bind_1reply(
 	JNIEnv *env,
 	jobject this,

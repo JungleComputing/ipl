@@ -21,7 +21,7 @@ static jclass	cls_PandaByteInputStream;
 static jfieldID	fld_msgHandle;
 
 
-jint
+JNIEXPORT jint JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteInputStream_lockedRead(
 	JNIEnv *env,
 	jobject this)
@@ -45,7 +45,7 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_lockedRead(
 }
 
 
-jlong
+JNIEXPORT jlong JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteInputStream_skip(
 	JNIEnv *env,
 	jobject this,
@@ -57,7 +57,7 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_skip(
 }
 
 
-jint
+JNIEXPORT jint JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteInputStream_available(
 	JNIEnv *env,
 	jobject this)
@@ -68,7 +68,7 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_available(
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteInputStream_resetMsg(
 	JNIEnv *env,
 	jobject this,
@@ -197,7 +197,8 @@ DUMP_DATA(jdouble, "f ", double)
 #define COPY_THRESHOLD 64
 
 #define ARRAY_READ(JType, jtype) \
-jint Java_ibis_ipl_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
+JNIEXPORT jint JNICALL \
+Java_ibis_ipl_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
 		JNIEnv *env, \
 		jobject this, \
 		jtype ## Array a, \
@@ -244,7 +245,8 @@ ARRAY_READ(Float, jfloat)
 ARRAY_READ(Double, jdouble)
 
 
-jboolean Java_ibis_ipl_impl_messagePassing_ByteInputStream_getInputStreamMsg(
+JNIEXPORT jboolean JNICALL
+Java_ibis_ipl_impl_messagePassing_ByteInputStream_getInputStreamMsg(
 		JNIEnv *env,
 		jclass this,
 		jarray jtags)

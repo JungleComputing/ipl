@@ -397,7 +397,7 @@ ibmp_msg_check(JNIEnv *env, jobject this, int msgHandle, int locked)
 }
 
 
-jboolean
+JNIEXPORT jboolean JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 	JNIEnv *env, 
 	jobject this,
@@ -554,7 +554,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteOutputStream_init(
 	JNIEnv *env,
 	jobject this)
@@ -563,7 +563,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_init(
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteOutputStream_resetMsg(
 	JNIEnv *env, 
 	jobject this)
@@ -576,7 +576,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_resetMsg(
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteOutputStream_close(
 	JNIEnv *env, 
 	jobject this)
@@ -644,7 +644,7 @@ buf_grow(JNIEnv *env, ibmp_msg_p msg, int incr, int locked)
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write(
 	JNIEnv *env, 
 	jobject this,
@@ -681,7 +681,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write(
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_ByteOutputStream_report(
 	JNIEnv *env, 
 	jobject this)
@@ -702,7 +702,8 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_report(
 
 
 #define ARRAY_WRITE(JType, jtype) \
-void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
+JNIEXPORT void JNICALL \
+Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
 	JNIEnv *env,  \
 	jobject this, \
 	jtype ## Array b, \

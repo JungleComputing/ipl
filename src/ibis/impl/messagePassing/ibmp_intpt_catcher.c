@@ -35,7 +35,7 @@ init_fields(JNIEnv *env)
 }
 
 
-jboolean
+JNIEXPORT jboolean JNICALL
 Java_ibis_ipl_impl_messagePassing_InterruptCatcher_supported(JNIEnv *env, jobject this)
 {
     return JNI_TRUE;
@@ -51,7 +51,7 @@ Java_ibis_ipl_impl_messagePassing_InterruptCatcher_supported(JNIEnv *env, jobjec
  */
 pthread_t ibmp_sigcatcher_pthread;
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_InterruptCatcher_registerHandler(JNIEnv *env, jobject this)
 {
     extern void pan_comm_intr_enable(void);
@@ -61,7 +61,7 @@ Java_ibis_ipl_impl_messagePassing_InterruptCatcher_registerHandler(JNIEnv *env, 
 }
 
 
-void
+JNIEXPORT void JNICALL
 Java_ibis_ipl_impl_messagePassing_InterruptCatcher_waitForSignal(JNIEnv *env, jobject this)
 {
     sigset_t	mask;
