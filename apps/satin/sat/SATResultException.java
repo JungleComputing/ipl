@@ -1,5 +1,7 @@
-    class SATResultException extends Exception {
-	SATSolution s;
+// File: $Id$
 
-	SATResultException( SATSolution s ){ this.s = s; }
-    }
+class SATResultException extends Exception {
+    SATSolution s;
+
+    SATResultException( SATSolution s ){ this.s = s; }
+}

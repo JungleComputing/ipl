@@ -12,21 +12,34 @@
 import java.io.File;
 
 public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSATInterface, java.io.Serializable {
-    static final boolean traceSolver = false;
+    static final boolean traceSolver = true;
     static final boolean printSatSolutions = true;
     static int label = 0;
 
     public void solve( SATProblem p, int assignments[], int var ) throws SATResultException
     {
+	if( traceSolver ){
+	    System.err.println( "Branching on variable " + var );
+	    System.err.flush();
+	}
 	if( p.isSatisfied( assignments ) ){
+	    if( traceSolver ){
+		System.err.println( "Found a solution" );
+	    }
 	    throw new SATResultException( new SATSolution( assignments ) );
 	}
 	if( p.isConflicting( assignments ) ){
+	    if( traceSolver ){
+		System.err.println( "Found a conflict" );
+	    }
 	    return;
 	}
 	if( var>=p.getVariableCount() ){
 	    // There are no variables left to assign, clearly there
 	    // isn't a solution.
+	    if( traceSolver ){
+		System.err.println( "There are only " + p.getVariableCount() + " variables; nothing to branch on" );
+	    }
 	    return;
 	}
 
@@ -44,6 +57,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     static SATSolution solveSystem( final SATProblem p )
     {
 	int assignments[] = new int[p.getVariableCount()];
+	SATSolution res = null;
 
 	// Start with a vector of unassigned variables.
 	for( int ix=0; ix<assignments.length; ix++ ){
@@ -54,14 +68,22 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 
         // Now recursively try to find a solution.
 	try {
+	    if( traceSolver ){
+		System.err.println( "Starting recursive solver" );
+	    }
 	    s.solve( p, assignments, 0 );
+	    //System.err.println( "Solve finished??" );
+	    // res = null;
 	    s.sync();
 	}
 	catch( SATResultException r ){
-	    return r.s;
+	    if( r.s == null ){
+		System.err.println( "A null solution thrown???" );
+	    }
+	    res = r.s;
 	}
 
-	return null;
+	return res;
     }
 
     public static void main( String args[] ) throws java.io.IOException
