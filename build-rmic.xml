@@ -89,4 +89,83 @@
 	</javac>
     </target>
 
+    <target name="rmic-sun"
+	  depends="property-init"
+	  description="Preprocess class files in the build tree for SUN RMI">
+
+      <path id="all-classes">
+	  <fileset dir="${build}">
+	      <include name="**/*.class"/>
+	  </fileset>
+      </path>
+      <pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	  <map from="${build}${file.separator}" to=""/>
+      </pathconvert>
+
+      <!--
+	  Do regexp on ${classes.all} -> rmic-classes
+	      %s/.class//g
+	      %s/\${file.separator}/./g
+      -->
+      <echo message="${classes.all}" file="${build}/-RMIC-Classes"/>
+      <replaceregexp
+	      byline="true"
+	      file="${build}/-RMIC-Classes"
+	      flags="g"
+	      match=".class"
+	      replace=""/>
+      <replaceregexp
+	      byline="true"
+	      file="${build}/-RMIC-Classes"
+	      flags="g"
+	      match="\${file.separator}"
+	      replace="."/>
+      <loadfile
+	      property="rmic-classes"
+	      srcFile="${build}/-RMIC-Classes">
+      </loadfile>
+
+      <echo   level="debug"
+	      message="All classes to be inspected: ${rmic-classes}"/>
+      <echo   level="debug"
+	      message="Run frontend.rmi.Main -n -java over all classes under ${build}${file.separator}"/>
+      <java   classname="ibis.frontend.rmi.Main"
+	      taskname="rmic locator"
+	      dir="${build}"
+	      failonerror="true"
+	      fork="true"
+	      output="${build}/-REMOTE-Classes">
+	  <arg line="-n -java ${rmic-classes}"/>
+	  <classpath refid="default.classpath"/>
+      </java>
+
+      <!--
+	  Do regexp on ${rmic-classes} -> remote-classes
+	      %s/\${line.separator/.class /g
+	      %s/ $//g
+      -->
+      <replaceregexp
+	      file="${build}/-REMOTE-Classes"
+	      flags="g"
+	      match="\${line.separator}"
+	      replace=".class "/>
+      <replaceregexp
+	      file="${build}/-REMOTE-Classes"
+	      flags="g"
+	      match=" $"
+	      replace=""/>
+      <loadfile
+	      property="remote.classes"
+	      srcFile="${build}/-REMOTE-Classes"/>
+
+      <echo   level="debug"
+	      message="Now run sun.rmic over '${remote.classes}'"/>
+      <rmic   base="${build}"
+	      includes="${remote.classes}">
+	  <classpath refid="default.classpath"/>
+      </rmic>
+    </target>
+
+
+
 </project>
