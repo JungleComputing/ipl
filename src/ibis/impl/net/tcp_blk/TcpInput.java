@@ -188,6 +188,7 @@ public final class TcpInput extends NetBufferedInput
 	public void setInterruptible() throws IOException {
 	    interruptible = true;
 	    upcallFunc = null;
+// System.err.println(Thread.currentThread() + ": " + this + ": setInterruptible, upcallFunc " + upcallFunc);
 	    if (tcpSocket != null) {
 		tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
 	    }
@@ -304,6 +305,7 @@ public final class TcpInput extends NetBufferedInput
 					if (interrupted) {
 						interrupted = false;
 						// throw Ibis.createInterruptedIOException(e);
+// System.err.println(this + ": we are interrupted. Return null (or throw an InterruptedException?)");
 						return null;
 					}
 				}

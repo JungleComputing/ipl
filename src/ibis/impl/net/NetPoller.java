@@ -147,7 +147,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 	    }
 
 	} else if (singleton != null) {
-// System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton fastpath.");
+// System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton " + singleton.input + " fastpath.");
 	    while (handlingSingleton) {
 		singleton.interruptPoll();
 		waitingConnections++;
@@ -203,8 +203,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 	}
 
 	setupConnection(cnx, cnx.getNum());
-if (singleton != null)
-System.err.println(this + ": OK, we enabled singleton fastpath");
+if (false && singleton != null)
+System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fastpath");
 
 	if (decouplePoller) {
 	    /*
@@ -223,7 +223,10 @@ System.err.println(this + ": OK, we enabled singleton fastpath");
 	    throws IOException {
 	NetInput ni;
 
-	if (decouplePoller && singleton == null &&
+	// Don't test here whether singleton is null. Singleton is set/cleared
+	// only *after* this call, and the subInput is interrupted accordingly
+	// if it becomes a singleton.
+	if (decouplePoller &&
 		(NetReceivePort.useBlockingPoll || upcallMode)) {
 	    ni = newSubInput(subDriver, q);
 	} else {
