@@ -30,6 +30,16 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	private static class Conn  {
  		OutputStream out;
 		TcpReceivePortIdentifier ident;
+
+	    public boolean equals(Object o) {
+		if( ! (o instanceof Conn)) {
+		    return false;
+		}
+
+		Conn other = (Conn) o;
+
+		return other.ident.equals(ident);
+	    }
 	}
 
 	private TcpPortType type;
@@ -112,16 +122,20 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 							   "' connecting to " + receiver); 
 		}
 
+		// we have a new receiver, now add it to our tables.
 		TcpReceivePortIdentifier ri = (TcpReceivePortIdentifier) receiver;
+		Conn c = new Conn();
+		c.ident = ri;
+
+		if(receivers.contains(c)) {
+		    throw new Error("This sendport was already connected to " + receiver);
+		}
 
 		OutputStream res = ibis.tcpPortHandler.connect(this, ri, timeoutMillis);
 		if(res == null) {
 			throw new ConnectionRefusedException("Could not connect");
 		} 
 
-		// we have a new receiver, now add it to our tables.
-		Conn c = new Conn();
-		c.ident = ri;
 		c.out = res;
 
 		if(DEBUG) {

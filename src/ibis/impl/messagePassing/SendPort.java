@@ -375,13 +375,16 @@ public class SendPort implements ibis.ipl.SendPort {
 	}
     }
 
+
     public DynamicProperties properties() {
 	return DynamicProperties.NoDynamicProperties;
     }
 
-	public String name() {
-		return name;
-	}
+
+    public String name() {
+	return name;
+    }
+
 
     public ibis.ipl.SendPortIdentifier identifier() {
 	return ident;

@@ -1,9 +1,9 @@
-import      java.util.Properties;
-import      java.util.Hashtable;
+import java.util.Properties;
+import java.util.Hashtable;
 import java.io.IOException;
 
-import      ibis.ipl.*;
-import      ibis.util.nativeCode.Rdtsc;
+import ibis.ipl.*;
+import ibis.util.nativeCode.Rdtsc;
 
 
 class RszHandler implements ResizeHandler {
@@ -15,7 +15,7 @@ class RszHandler implements ResizeHandler {
 	    idents.add(id);
 	    notifyAll();
 	}
-// System.err.println(this + " See join of " + id + "; n := " + idents.size());
+System.err.println(this + " See join of " + id + "; n := " + idents.size());
     }
 
     public void leave(IbisIdentifier id) {
@@ -75,8 +75,9 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private int		rank = -1;
 
     private int		clients = -1;
-    private int		servers = 1;
+    private int		servers = -1;
     private boolean	bcast = false;
+    private boolean	bcast_all = false;
     private boolean	i_am_client = false;
 
     private int		warmup = -1;
@@ -127,7 +128,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 	    } else if (size > 0) {
 		switch (data_type) {
 		case DATA_BYTES:
-// System.err.println(this + ": writeArray[" + byte_buffer.length + "] writeMessage " + writeMessage);
+// System.err.println(rank + ": writeArray[" + byte_buffer.length + "] writeMessage " + writeMessage);
 		    writeMessage.writeArray(byte_buffer);
 		    break;
 		case DATA_SHORTS:
@@ -463,7 +464,7 @@ System.err.println("Server: seen " + services + " msgs");
 
 
     private void runClient() throws IOException, ClassNotFoundException {
-	System.err.println("I am " + rank + " -- client; clients " + clients + " servers " + servers);
+	System.err.println(rank + ": I am " + rank + " -- client; clients " + clients + " servers " + servers + "; client port name \"client port " + rank + "\"");
 
 	if (connectUpcalls) {
 	    sport = portType.createSendPort("latency-client", (SendPortConnectUpcall)this);
@@ -479,12 +480,14 @@ System.err.println("Server: seen " + services + " msgs");
 	    rport = portType.createReceivePort("client port " + rank, (ReceivePortConnectUpcall)this);
 	} else {
 	    rport = portType.createReceivePort("client port " + rank);
+// System.err.println(rank + ": created \"client port " + rank + "\"");
 	}
 	rport.enableConnections();
 
 	for (int i = 0; i < servers; i++) {
 	    ReceivePortIdentifier rp;
 	    while (true) {
+// System.err.println(rank + ": lookup \"server port " + i + "\"");
 		rp = registry.lookup("server port " + i);
 		if (rp != null) {
 		    break;
@@ -496,6 +499,7 @@ System.err.println("Server: seen " + services + " msgs");
 		}
 	    }
 	    sport.connect(rp);
+// System.err.println(rank + ": connected to \"server port " + i + "\"");
 	}
 
 	System.err.println(rank + ": client: connected");
@@ -523,7 +527,7 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 
 
     private void runServer() throws IOException, ClassNotFoundException {
-	System.err.println("I am " + rank + " -- server; clients " + clients + " servers " + servers);
+	System.err.println(rank + ": I am " + rank + " -- server; clients " + clients + " servers " + servers + "; server port name \"server port " + (rank - clients) + "\"");
 
 	if (connectUpcalls) {
 	    sport = portType.createSendPort("latency-server", (SendPortConnectUpcall)this);
@@ -548,11 +552,13 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 		rport = portType.createReceivePort("server port " + (rank - clients));
 	    }
 	}
+// System.err.println(rank + ": created \"server port " + (rank - clients) + "\"");
 	rport.enableConnections();
 
 	for (int i = 0; i < clients; i++) {
 	    ReceivePortIdentifier rp;
 	    while (true) {
+// System.err.println(rank + ": lookup \"client port " + i + "\"");
 		rp = registry.lookup("client port " + i);
 		if (rp != null) {
 		    break;
@@ -563,17 +569,14 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 		    // Try again
 		}
 	    }
-System.err.println("Server connects to client #" + i);
 	    sport.connect(rp);
+	    System.err.println(rank + ": Server: connected to \"client port " + i + "\"");
 	}
-
-	System.err.println("Server: connected");
 
 	// Do a poor-man's barrier to allow the connections to proceed.
 	WriteMessage w = sport.newMessage();
-System.err.println("Poor-man's barrier send start...");
 	w.finish();
-System.err.println("Poor-man's barrier send finished");
+System.err.println(rank + ": Poor-man's barrier send finished");
 
 	System.err.println("Go ahead now!");
 
@@ -632,6 +635,9 @@ System.err.println("Poor-man's barrier send finished");
 
 	    } else if (args[i].equals("-bcast")) {
 		bcast = true;
+
+	    } else if (args[i].equals("-bcast-all")) {
+		bcast_all = true;
 
 	    } else if (args[i].equals("-warmup")) {
 		warmup = Integer.parseInt(args[++i]);
@@ -782,24 +788,41 @@ System.err.println("Poor-man's barrier send finished");
 		break;
 	    default:
 		if (bcast) {
-		    if (clients != -1 || servers != 1) {
-			System.err.println("Cannot both specify -bcast and -cliets/-servers");
+		    if (clients != -1 || servers != -1) {
+			System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
 			System.exit(33);
 		    }
 		    clients = 1;
 		    servers = ncpus - 1;
+		} else if (bcast_all) {
+		    if (clients != -1 || servers != -1) {
+			System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
+			System.exit(33);
+		    }
+		    clients = 1;
+		    servers = ncpus;
 		}
 		if (clients == -1) {
 		    clients = ncpus - 1;
 		}
+		if (servers == -1) {
+		    servers = 1;
+		}
 	    }
 	} else {
 	    /* Try to think of a sensible default */
+	    if (clients == -1) {
+		clients = 1;
+	    }
+	    if (servers == -1) {
+		servers = 1;
+	    }
 	    ncpus = 2;
 	}
 	String my_cpu = p.getProperty("ibis.pool.host_number");
 	if (my_cpu != null) {
 	    rank = Integer.parseInt(my_cpu);
+	    System.err.println(rank + ": found my rank, " + rank);
 	}
     }
 
@@ -807,7 +830,7 @@ System.err.println("Poor-man's barrier send finished");
     private void createIbis() throws IOException, IbisException {
 // manta.runtime.RuntimeSystem.DebugMe(this, byte_buffer);
 
-	if (USE_RESIZEHANDLER) {
+	if (USE_RESIZEHANDLER || rank == -1) {
 	    rszHandler = new RszHandler();
 	}
 
@@ -843,6 +866,11 @@ System.err.println("Poor-man's barrier send finished");
 	});
 
 	portType = myIbis.createPortType("test type", null);
+
+	if (rank == -1 && rszHandler != null) {
+	    rszHandler.sync(clients + servers);
+	    rank = rszHandler.idents.indexOf(myIbis.identifier());
+	}
 // manta.runtime.RuntimeSystem.DebugMe(2, 0);
     }
 
@@ -859,12 +887,12 @@ System.err.println("Poor-man's barrier send finished");
 
 	    if (rank != -1) {
 
-	    } else if (USE_RESIZEHANDLER) {
+	    } else if (rszHandler != null) {
 		rszHandler.sync(clients + servers);
 		rank = rszHandler.idents.indexOf(myIbis.identifier());
 
 	    } else {
-		System.err.println("Going to find out my rank, my ID is " + myIbis.identifier().toString() + " name = " + myIbis.identifier().name());
+		System.err.println("Going to find out my rank, my ID is " + myIbis.identifier().toString() + " name = " + myIbis.identifier().name() + "; I am " + (i_am_client ? "client" : "server"));
 
 		IbisIdentifier master = (IbisIdentifier)registry.elect("RPC", myIbis.identifier());
 // System.err.println("Election master id=" + master + " name=" + master.name());
@@ -887,7 +915,7 @@ System.err.println("Poor-man's barrier send finished");
 	    } else {
 		runClient();
 	    }
-System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not ") + "a client\n");
+System.err.println(rank + ": call it quits...; I am " + (i_am_client ? "" : "not ") + "a client\n");
 	    try {
 		Thread.sleep(1000);
 	    } catch (InterruptedException e) {
@@ -895,12 +923,12 @@ System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not
 	    }
 
 	} catch(IOException e) {
-	    System.out.println(this + ": Got exception " + e);
+	    System.out.println(rank + ": Got exception " + e);
 	    System.out.println("StackTrace:");
 	    e.printStackTrace();
 
 	} catch (ClassNotFoundException e) {
-	    System.out.println(this + ": Got exception " + e);
+	    System.out.println(rank + ": Got exception " + e);
 	    System.out.println("StackTrace:");
 	    e.printStackTrace();
 	}
@@ -930,27 +958,26 @@ System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not
 		// ibis.util.Timer timer = ibis.util.Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 		// timer.start();
 		registerIbis();
-		if (ncpus == 1) {
+		if (servers == ncpus && rank < clients) {
 		    RPC dl = new RPC(args, this);
 		    Thread server = new Thread(dl);
 		    server.setName("RPC server");
 		    server.start();
-		    clients = 1;
 		    i_am_client = true;
 		    System.err.println("Kick-force server run; my rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
 		} else {
 		    i_am_client = rank < clients;
 		}
-		System.err.println(this + ": Regular run; rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
+		System.err.println(rank + ": Regular run; rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
 		run();
 		// timer.stop();
 		// System.err.println("Nano timering -> " + timer.totalTimeVal());
 		System.exit(0);
 	    } else {
 		i_am_client = false;
-		rank = 1;
+		rank = ncpus;
 		clients = 1;
-		System.err.println(this + ": Forced server run; rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
+		System.err.println(rank + ": Forced server run; rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
 		myIbis = client.myIbis;
 		this.rszHandler = client.rszHandler;
 		this.portType = client.portType;

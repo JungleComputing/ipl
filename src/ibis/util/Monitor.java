@@ -35,11 +35,11 @@ public final class Monitor {
     private static int	unlock_bcast;
 
     static {
-	DEBUG = TypedProperties.booleanProperty("ibis.monitor.debug");
+	DEBUG = false; // TypedProperties.booleanProperty("ibis.monitor.debug");
 	if (DEBUG) {
 	    System.err.println("Turn on Monitor.DEBUG");
 	}
-	STATISTICS = TypedProperties.booleanProperty("ibis.monitor.stats");
+	STATISTICS = false; // TypedProperties.booleanProperty("ibis.monitor.stats");
 	if (STATISTICS) {
 	    Runtime.getRuntime().addShutdownHook(new Thread() {
 		public void run() {

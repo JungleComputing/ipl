@@ -46,6 +46,7 @@ PROFILING=
 
 cpumask="1"
 attach=0
+noJIT=0
 
 Dns_port="-Dibis.name_server.port=@IBIS_NS_PORT@"
 Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
@@ -63,6 +64,9 @@ do
 		shift
 		cpumask="$1"
                 ;;
+	-no-jit)
+		noJIT=1
+		;;
 	-no-pool)
 		no_pool=1
 		;;
@@ -98,6 +102,10 @@ else
 	Dpool_total=
 	Dpool_host_num=
 	Dpool_host_names=
+fi
+if [ $noJIT -eq 1 ]
+then
+	JIT_OPTS="$JIT_OPTS -Djava.compiler=NONE"
 fi
 if [ $attach -eq 1 ]
 then

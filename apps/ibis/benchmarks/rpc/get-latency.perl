@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 
-@serializations = ( "none", "ibis", "sun" );
+@serializations = ( "byte", "none", "ibis", "sun" );
 @ibises = ( "tcp", "net.bytes.gen.tcp_blk", "panda","net.gm" );
 
 $header = 1;
@@ -20,18 +20,22 @@ while ( <> ) {
 
 	$average{ $ix } += $lat;
 	$n { $ix } ++;
+	if ($min_lat { $ix } == 0 || $lat < $min_lat { $ix } ) {
+		$min_lat { $ix } = $lat;
+	}
 }
 
-printf("%-24s %-8s %-12s\n", "Ibis", "Ser", "average(us)");
+printf("%-24s %-8s %12s %12s\n", "Ibis", "Ser", "min(us)", "average(us)");
 foreach ( @serializations ) {
 	$ser = $_;
 	foreach ( @ibises ) {
 		$ibis = $_;
 		$ix = $ibis . "/" . $ser;
 		if ( $n { $ix } > 0) {
-			printf("%-24s %-8s %12.1f\n",
+			printf("%-24s %-8s %12.1f %12.1f\n",
 				"$ibis", "$ser", 
-				$average{ $ix } / $n { $ix });
+				$min_lat { $ix },
+				$average{ $ix } / $n { $ix } );
 		}
 	}
 }

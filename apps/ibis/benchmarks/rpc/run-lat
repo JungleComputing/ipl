@@ -1,12 +1,12 @@
 #!/bin/sh
 
-reserve="-reserve 548034"
+reserve="-reserve 642448"
 
-sers="none ibis sun"
+sers="byte ibis sun"
 # sers="ibis sun"
 
-# ibises="panda net.gm"
-ibises="panda"
+ibises="panda net.gm"
+# ibises="panda"
 
 if `true`
 then
@@ -22,7 +22,7 @@ fi
 # ibises="net.tcp_blk net.gen.tcp_blk tcp"
 ibises="tcp net.bytes.gen.tcp_blk"
 
-if `false`
+if `true`
 then
 for ibis in $ibises ; do
 	for x in 0 1 2 3 4 5 6 7 8 9 ; do

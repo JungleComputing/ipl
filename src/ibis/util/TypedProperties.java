@@ -38,27 +38,6 @@ public class TypedProperties {
     }
 
     /**
-     * Returns true if property name is defined and has an integer value
-     *
-     * @return true if property is defined and integer
-     * @param name property name
-     */
-    public static boolean intProperty(String name) {
-	String prop = System.getProperty(name);
-	
-	if (prop == null) {
-	    return false;
-	}
-
-	try {
-	    int x = Integer.parseInt(prop);
-	    return true;
-	} catch (NumberFormatException e) {
-	    return false;
-	}
-    }
-
-    /**
      * Returns the integer value of property
      *
      * @return the integer value of property
@@ -66,10 +45,27 @@ public class TypedProperties {
      * @throws NumberFormatException if the property is undefined or not an
      * 		integer
      */
-    public static int intPropertyValue(String name) {
+    public static int intProperty(String name) {
 	String prop = System.getProperty(name);
 	if (prop == null) {
 	    throw new NumberFormatException("Property " + name + " undefined");
+	}
+	return Integer.parseInt(prop);
+    }
+
+    /**
+     * Returns the integer value of property
+     *
+     * @return the integer value of property
+     * @param name property name
+     * @param dflt default value if the property is undefined
+     * @throws NumberFormatException if the property defined and not an
+     * 		integer
+     */
+    public static int intProperty(String name, int dflt) {
+	String prop = System.getProperty(name);
+	if (prop == null) {
+	    return dflt;
 	}
 	return Integer.parseInt(prop);
     }

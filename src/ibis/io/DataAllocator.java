@@ -20,13 +20,7 @@ public class DataAllocator implements IbisStreamFlags {
     private final static int CACHE_MAX;
 
     static {
-	int n = DEFAULT_CACHE_MAX;
-	try {
-	    n = TypedProperties.intPropertyValue("ibis.io.allocator.size");
-	} catch (NumberFormatException e) {
-	    // leave it the default
-	}
-	CACHE_MAX = n;
+	CACHE_MAX = TypedProperties.intProperty("ibis.io.allocator.size", DEFAULT_CACHE_MAX);
     }
 
     /**

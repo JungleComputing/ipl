@@ -1,7 +1,7 @@
 #! /usr/bin/perl
 
 @datatypes = ( "byte", "int", "double", "tree" );
-@serializations = ( "none", "ibis", "sun" );
+@serializations = ( "byte", "none", "ibis", "sun" );
 @ibises = ( "tcp", "net.bytes.gen.tcp_blk", "panda","net.gm" );
 
 $header = 1;
