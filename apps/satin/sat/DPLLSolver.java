@@ -176,6 +176,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     static public SATSolution solveSystem( final SATProblem p )
     {
 	SATSolution res = null;
+	long startTime = 0;
 
 	if( p.isConflicting() ){
 	    return null;
@@ -220,6 +221,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 
 	    DPLLContext negctx = (DPLLContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
+	    startTime = System.currentTimeMillis();
             s.solve( 0, negctx, nextvar, firstvar );
             s.solve( 0, ctx, nextvar, !firstvar );
             s.sync();
@@ -235,6 +237,10 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
             System.err.println( "Uncaught " + x + "???" );
         }
 
+	long endTime = System.currentTimeMillis();
+	double time = ((double) (endTime - startTime))/1000.0;
+
+	System.out.println( "Parallel caclulation Time: " + time );
 	return res;
     }
 
