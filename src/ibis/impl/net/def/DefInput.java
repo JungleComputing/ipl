@@ -5,6 +5,7 @@ import ibis.ipl.impl.net.*;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.InputStream;
+import java.net.SocketException;
 
 public final class DefInput extends NetBufferedInput {
 
@@ -76,7 +77,7 @@ public final class DefInput extends NetBufferedInput {
 
                 mtu = 1024;
 		if (factory == null) {
-		    factoy = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl());
+		    factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl());
 		} else {
 		    factory.setMaximumTransferUnit(mtu);
 		}
