@@ -6,12 +6,46 @@ import java.net.InetAddress;
 
 public class PoolInfo {
 
-	private static int total_hosts;
-	private  static int host_number;
-	private  static String [] host_names;
-	private  static InetAddress [] hosts;
+	int total_hosts;
+	int host_number;
+	String [] host_names;
+	InetAddress [] hosts;
 
-	static {
+	public PoolInfo() {
+	    this(false);
+	}
+
+	public PoolInfo(boolean forceSequential) {
+	    if (forceSequential) {
+		sequentialPool();
+	    } else {
+		propertiesPool();
+	    }
+	}
+
+
+	private void sequentialPool() {
+		String temp;
+		
+		total_hosts = 1;
+		host_number = 0;
+		
+		host_names = new String[total_hosts];
+		hosts      = new InetAddress[total_hosts];
+				
+		try {
+			InetAddress adres = InetAddress.getLocalHost();
+			adres             = InetAddress.getByName(adres.getHostAddress());
+			host_names[host_number] = adres.getHostName();
+			hosts[host_number]      = adres;
+			
+		} catch (Exception e) {
+			throw new RuntimeException("Could not find my host name");
+		}		       			
+	}
+
+
+	private void propertiesPool() {
 		String temp;
 		
 		Properties p = System.getProperties();
@@ -59,35 +93,35 @@ public class PoolInfo {
 		}
 	}
 
-	public static int size() {
+	public int size() {
 		return total_hosts;
 	}
 
-	public static int rank() {
+	public int rank() {
 		return host_number;
 	}
 
-	public static String hostName() {
+	public String hostName() {
 		return host_names[host_number];
 	}
 
-	public static String hostName(int rank) {
+	public String hostName(int rank) {
 		return host_names[rank];
 	}
 
-	public static InetAddress hostAddress(int rank) {
+	public InetAddress hostAddress(int rank) {
 		return hosts[rank];
 	}
 
-	public static InetAddress hostAddress() {
+	public InetAddress hostAddress() {
 		return hosts[host_number];
 	}
 
-	public static InetAddress[] hostAddresses() {
+	public InetAddress[] hostAddresses() {
 		return hosts;
 	}
 
-	public static String[] hostNames() {
+	public String[] hostNames() {
 		return host_names;
 	}
 
@@ -103,7 +137,7 @@ public class PoolInfo {
 	}	
 
 
-    public static void printTime(String id, long time) {
+    public void printTime(String id, long time) {
 	System.out.println("Application: " + id + "; Ncpus: " + total_hosts +
 			   "; time: " + time/1000.0 + " seconds\n");
     }
