@@ -28,6 +28,8 @@ class TimeTimer {
 	    Timer timer = Timer.createTimer(timerName);
 	    Timer outerTimer = Timer.createTimer(timerName);
 
+	    System.out.println("Timer accuracy = " + timer.accuracy());
+
 	    long t = System.currentTimeMillis();
 	    outerTimer.start();
 	    for (int i = 0; i < n; i++) {
