@@ -56,11 +56,11 @@ public final class Satinc {
 
     private class StoreClass {
 	Instruction store;
-	Instruction load; // for putfield 
+	InstructionList load; // for putfield 
 	Method target;
 	JavaClass cl;
 
-	StoreClass(Instruction store, Instruction load, Method target, JavaClass cl) {
+	StoreClass(Instruction store, InstructionList  load, Method target, JavaClass cl) {
 	    this.store = store;
 	    this.target = target;
 	    this.load = load;
@@ -365,7 +365,7 @@ public final class Satinc {
 	return i;
     }
 
-    int allocateId(Instruction storeIns, Instruction loadIns, Method target, JavaClass cl) {
+    int allocateId(Instruction storeIns, InstructionList loadIns, Method target, JavaClass cl) {
 	StoreClass s = new StoreClass(storeIns, loadIns, target, cl);
 
 	int id = idTable.indexOf(s);
@@ -381,7 +381,7 @@ public final class Satinc {
 	return ((StoreClass)idTable.get(id)).store;
     }
 
-    Instruction getLoadIns(int id) {
+    InstructionList getLoadIns(int id) {
 	return ((StoreClass) idTable.get(id)).load;
     }
 
@@ -536,7 +536,7 @@ public final class Satinc {
 		il.insert(pos, new ASTORE(maxLocals+3));
 		il.insert(pos, ins_f.createFieldAccess(invClass,
 						       "array",
-						       new ArrayType(returnType, 1),
+						       new ArrayType(target_returntype, 1),
 						       Constants.GETFIELD));
 		
 		il.insert(pos, new ALOAD(maxLocals+3));
@@ -752,13 +752,29 @@ public final class Satinc {
 	}
     }
 
-    Instruction getAndRemoveLoadIns(InstructionList il, InstructionHandle i) {
-	InstructionHandle loadPos = getFirstParamPushPos(il, i).getPrev();
+    InstructionList getAndRemoveLoadIns(InstructionList il, InstructionHandle i) {
+	InstructionHandle loadEnd = getFirstParamPushPos(il, i).getPrev();
+	InstructionHandle loadStart = loadEnd;
 
-	Instruction res = loadPos.getInstruction();
-	deleteIns(il, loadPos, loadPos.getNext());
+	int netto_stack_inc = 0;
 
-	return res;
+	do {
+	    int inc = loadStart.getInstruction().produceStack(cpg) - loadStart.getInstruction().consumeStack(cpg);
+	    netto_stack_inc += inc;
+	    loadStart = loadStart.getPrev();
+	} while (netto_stack_inc <= 0);
+
+	InstructionList result = new InstructionList();
+	InstructionHandle ip = loadStart;
+
+	do {
+	    ip = ip.getNext();
+	    result.append(ip.getInstruction());
+	} while (ip != loadEnd);
+
+	deleteIns(il, loadStart.getNext(), loadEnd, loadEnd.getNext());
+
+	return result;
     }
 
     boolean isArrayStore(Instruction ins) {
@@ -781,7 +797,7 @@ public final class Satinc {
 	}
 
 	Instruction storeIns = null;
-	Instruction loadIns = null;
+	InstructionList loadIns = null;
 
 	// A spawned method invocation. Target and parameters are already on the stack.
 	// Push spawnCounter, outstandingSpawns, and the id for the result. 
