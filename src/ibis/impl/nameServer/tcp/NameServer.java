@@ -169,7 +169,7 @@ public class NameServer extends Thread implements Protocol {
 		pools = new Hashtable();
 
 		if (VERBOSE) { 
-			System.err.println("NameServer: created server on port " + serverSocket.getLocalPort());
+			System.err.println("NameServer: created server on " + serverSocket);
 		}
 
 	}
