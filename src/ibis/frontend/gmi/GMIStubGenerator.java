@@ -2,16 +2,19 @@ package ibis.frontend.group;
 
 import java.util.Vector;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
-import ibis.util.Analyzer;
+import ibis.util.BT_Analyzer;
+
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
 
 class GMIStubGenerator extends GMIGenerator { 
 
-    Analyzer data;
+    BT_Analyzer data;
     PrintWriter output;
     boolean verbose;
 
-    GMIStubGenerator(Analyzer data, PrintWriter output, boolean verbose) {
+    GMIStubGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
 	this.data   = data;		
 	this.output = output;
 	this.verbose = verbose;
@@ -19,8 +22,8 @@ class GMIStubGenerator extends GMIGenerator {
 
     void methodHeader(Method m) { 
 	
-	Class ret       = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret       = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
            
 	output.print("\tpublic final " + getType(ret) + " " + m.getName() + "(");
 	
@@ -34,14 +37,14 @@ class GMIStubGenerator extends GMIGenerator {
 	
 	output.print(") {\n");
 	    
-	if (!ret.equals(Void.TYPE)) { 
+	if (!ret.equals(Type.VOID)) { 
 	    output.println("\t\t" + getInitedLocal(ret, "result" ) + ";");
 	} 
     }
 
-    void invokeSpecial(String spacing, Method m, Class ret, Class [] params, String pre) { 
+    void invokeSpecial(String spacing, Method m, Type ret, Type [] params, String pre) { 
 
-	if (!ret.equals(Void.TYPE)) { 
+	if (!ret.equals(Type.VOID)) { 
 	    output.print(spacing + "return ");
 	} else { 
 	    output.print(spacing);
@@ -55,15 +58,15 @@ class GMIStubGenerator extends GMIGenerator {
 	
 	output.println(");");			
 
-	if (ret.equals(Void.TYPE)) { 
+	if (ret.equals(Type.VOID)) { 
 	    output.print(spacing + "return;");
 	} 		
     } 
 
     void methodBody(String spacing, Method m, int number) { 
 	
-	Class ret = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
 
 	output.println(spacing + "try {");
 	output.println(spacing + "\tGroupMethod method = methods[" + number + "];");			
@@ -108,7 +111,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "}");			
     }
 
-    void writeAdditionalData(String spacing, Class [] params) { 
+    void writeAdditionalData(String spacing, Type [] params) { 
 
 	output.println(spacing + "w.writeByte((byte)(method.result_mode));");	
 	output.println(spacing + "w.writeInt( method.index);");
@@ -145,8 +148,8 @@ class GMIStubGenerator extends GMIGenerator {
     } 
 
     void writeSpecialHeader(String spacing, Method m, String extra) { 
-	Class ret = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
 	
 	output.print(spacing + "public final " + getType(ret) + " GMI_" + extra + "_" + m.getName() + "(GroupMethod method");
 	
@@ -158,15 +161,15 @@ class GMIStubGenerator extends GMIGenerator {
     } 
 
     void combinedMethod(String spacing, Method m, boolean flat) {
-	Class ret = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
 	String caps_type = flat ? "FLAT" : "BIN";
 
 	writeSpecialHeader(spacing, m, "COMBINED_" + caps_type);
 
 	output.println(spacing + "\tif (Group.DEBUG) System.out.println(\"group_stub_" + data.classname + "." + m.getName() + " doing COMBINED_" + caps_type + " call\");");
 
-	if (!ret.equals(Void.TYPE)) { 	
+	if (!ret.equals(Type.VOID)) { 	
 	    output.println(spacing + "\t" + getInitedLocal(ret, "result") + ";");
 	}
 
@@ -187,8 +190,8 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\t\tfreeGroupMessage(r);");
 	output.println(spacing + "\t\t\tthrow e;");
 	output.println(spacing + "\t\t}");
-	if (! ret.equals(Void.TYPE)) {
-	    if (ret.isPrimitive()) {
+	if (! ret.equals(Type.VOID)) {
+	    if (ret instanceof BasicType) {
 		output.println(spacing + "\t\tresult = r." + getType(ret) + "Result;");
 	    }
 	    else {
@@ -197,7 +200,7 @@ class GMIStubGenerator extends GMIGenerator {
 	}
 	output.println(spacing + "\t\tfreeGroupMessage(r);");
 	output.println(spacing + "\t}");
-	if (!ret.equals(Void.TYPE)) { 	
+	if (!ret.equals(Type.VOID)) { 	
 	    output.println(spacing + "\treturn result;");
 	}
 
@@ -206,8 +209,8 @@ class GMIStubGenerator extends GMIGenerator {
 
     void singleMethod(String spacing, Method m) { 
 
-	Class ret = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
 
 	writeSpecialHeader(spacing, m, "SINGLE");
 
@@ -216,7 +219,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\tint ticket = 0;");
 	output.println(spacing + "\tException ex = null;");			
 
-	if (!ret.equals(Void.TYPE)) { 	
+	if (!ret.equals(Type.VOID)) { 	
 	    output.println(spacing + "\t" + getInitedLocal(ret, "result") + ";");
 	}
 
@@ -237,9 +240,9 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\t\tif (r.exceptionResult != null) {");
 	output.println(spacing + "\t\t\t\tex = r.exceptionResult;");
 	
-	if (!ret.equals(Void.TYPE)) {
+	if (!ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t\t\t} else {");
-	    if (ret.isPrimitive()) { 
+	    if (ret instanceof BasicType) { 
 		output.println(spacing + "\t\t\t\tresult = r." + getType(ret) + "Result;");
 	    } else { 
 		output.println(spacing + "\t\t\t\tresult = (" + getType(ret) + ") r.objectResult;");
@@ -254,14 +257,14 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tthrow ex;");
 	output.println(spacing + "\t}");
 
-	if (!ret.equals(Void.TYPE)) { 	
+	if (!ret.equals(Type.VOID)) { 	
 	    output.println(spacing + "\treturn result;");
 	}
 
 	output.println(spacing + "}");
     }
 
-    void handleGroupResult(String spacing, Method m, Class ret) { 
+    void handleGroupResult(String spacing, Method m, Type ret) { 
 
 	output.println(spacing + "switch (result_mode) {");		
 
@@ -272,9 +275,9 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\tif (r.exceptionResult != null) {");
 	output.println(spacing + "\t\tex = r.exceptionResult;");
 	
-	if (!ret.equals(Void.TYPE)) {
+	if (!ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t} else {");
-	    if (ret.isPrimitive()) { 
+	    if (ret instanceof BasicType) { 
 		output.println(spacing + "\t\tresult = r." + getType(ret) + "Result;");
 	    } else { 
 		output.println(spacing + "\t\tresult = (" + getType(ret) + ") r.objectResult;");
@@ -285,25 +288,25 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\tbreak;");
 
 	output.println(spacing + "case ReplyScheme.R_COMBINE_FLAT:");
-	if (!ret.equals(Void.TYPE)) { 			
-	    if (ret.isPrimitive()) {				
+	if (!ret.equals(Type.VOID)) { 			
+	    if (ret instanceof BasicType) {				
 		output.print(spacing + "\t" + getType(ret) + " [] results = new ");
 		
-		if (ret.equals(Byte.TYPE)) { 
+		if (ret.equals(Type.BYTE)) { 
 			output.println("byte");
-		} else if (ret.equals(Character.TYPE)) { 
+		} else if (ret.equals(Type.CHAR)) { 
 			output.println("char");
-		} else if (ret.equals(Short.TYPE)) {
+		} else if (ret.equals(Type.CHAR)) {
 			output.println("short");
-		} else if (ret.equals(Integer.TYPE)) {
+		} else if (ret.equals(Type.INT)) {
 			output.println("int");
-		} else if (ret.equals(Long.TYPE)) {
+		} else if (ret.equals(Type.LONG)) {
 			output.println("long");
-		} else if (ret.equals(Float.TYPE)) {
+		} else if (ret.equals(Type.FLOAT)) {
 			output.println("float");
-		} else if (ret.equals(Double.TYPE)) {
+		} else if (ret.equals(Type.DOUBLE)) {
 			output.println("double");
-		} else if (ret.equals(Boolean.TYPE)) {
+		} else if (ret.equals(Type.BOOLEAN)) {
 			output.println("boolean");
 		} 				
 
@@ -322,9 +325,9 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tif (r.exceptionResult != null) {");		
 	output.println(spacing + "\t\t\texceptions[r.rank] = r.exceptionResult;");		
 
-	if (!ret.equals(Void.TYPE)) {
+	if (!ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t\t} else {");
-	    if (ret.isPrimitive()) { 
+	    if (ret instanceof BasicType) { 
 		output.println(spacing + "\t\t\tresults[r.rank] = r." + getType(ret) + "Result;");
 	    } else { 
 		output.println(spacing + "\t\t\tresults[r.rank] = (" + getType(ret) + ") r.objectResult;");
@@ -335,8 +338,8 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t}");
 	output.println(spacing + "\treplyStack.freePosition(ticket);");		
 
-	if (ret.isPrimitive()) { 
-	    if (ret.equals(Void.TYPE)) { 			
+	if (ret instanceof BasicType) { 
+	    if (ret.equals(Type.VOID)) { 			
 		output.println(spacing + "\t((CombineReply) rep).flatCombiner.combine(exceptions);");				
 	    } else {
 		output.println(spacing + "\tresult = ((CombineReply) rep).flatCombiner.combine(results, exceptions);");  			
@@ -359,8 +362,8 @@ class GMIStubGenerator extends GMIGenerator {
 
     void groupMethod(String spacing, Method m) { 
 
-	Class ret = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
 
 	writeSpecialHeader(spacing, m, "GROUP");
 
@@ -370,7 +373,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\tint ticket = 0;");
 	output.println(spacing + "\tException ex = null;");			
 
-	if (!ret.equals(Void.TYPE)) { 	
+	if (!ret.equals(Type.VOID)) { 	
 	    output.println(spacing + "\t" + getInitedLocal(ret, "result") + ";");
 	}
 
@@ -386,7 +389,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tthrow ex;");
 	output.println(spacing + "\t}");
 
-	if (!ret.equals(Void.TYPE)) { 	
+	if (!ret.equals(Type.VOID)) { 	
 	    output.println(spacing + "\treturn result;");
 	}
 
@@ -395,8 +398,8 @@ class GMIStubGenerator extends GMIGenerator {
     
     void personalizedMethod(String spacing, Method m) { 
 
-	Class ret = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
 
 	writeSpecialHeader(spacing, m, "PERSONAL");
 
@@ -408,7 +411,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\tException ex = null;");			
 	output.println(spacing + "\tWriteMessage w;");
 
-	if (!ret.equals(Void.TYPE)) { 	
+	if (!ret.equals(Type.VOID)) { 	
 	    output.println(spacing + "\t" + getInitedLocal(ret, "result") + ";");
 	}
 
@@ -472,7 +475,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println();
 
 	for (int j=0;j<params.length;j++) { 
-	    if (params[j].isArray()) {
+	    if (params[j] instanceof ArrayType) {
 		output.println(spacing + "\t\tif (pv[i].p"+j+"_subarray) {");	
 		output.println(spacing + "\t\t\tw.writeArray(pv[i].p"+ j + ", pv[i].p" + j + "_offset, pv[i].p" + j + "_size);");
 		output.println(spacing + "\t\t}else {");
@@ -492,7 +495,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tthrow ex;");
 	output.println(spacing + "\t}");
 
-	if (!ret.equals(Void.TYPE)) { 	
+	if (!ret.equals(Type.VOID)) { 	
 	    output.println(spacing + "\treturn result;");
 	}
 
@@ -501,9 +504,9 @@ class GMIStubGenerator extends GMIGenerator {
 
     void methodTrailer(Method m) { 
 	
-	Class ret = m.getReturnType();
+	Type ret = m.getReturnType();
 
-	if (!ret.equals(Void.TYPE)) {       
+	if (!ret.equals(Type.VOID)) {       
 	    output.println("\t\treturn result;"); 
 	} 
 	
@@ -512,7 +515,7 @@ class GMIStubGenerator extends GMIGenerator {
 
     void header() { 
 
-	//Class [] interfaces = data.subject.getInterfaces();
+	//Type [] interfaces = data.subject.getInterfaces();
 
 	if (data.packagename != null && ! data.packagename.equals("")) { 
 	    output.println("package " + data.packagename + ";");		
@@ -524,7 +527,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println();
 
 	output.print("public final class group_stub_" + data.classname + " extends ibis.group.GroupStub implements ");		
-	output.print(data.subject.getName());
+	output.print(data.subject.getClassName());
 
 	//for (int i=0;i<interfaces.length;i++) { 
 	//	output.print(interfaces[i].getName());
@@ -548,8 +551,8 @@ class GMIStubGenerator extends GMIGenerator {
 
 	    Method m = (Method) methods.get(i);
 
-	    Class ret = m.getReturnType();
-	    Class [] params = m.getParameterTypes();
+	    Type ret = m.getReturnType();
+	    Type [] params = m.getArgumentTypes();
 
 	    output.print("\t\tmethods[" + i + "] = new GroupMethod(this, " + i + ", new group_parameter_vector_" + data.classname + "_" + m.getName() + "(), \"");
 	    output.print(getType(ret) + " " + m.getName() + "(");
@@ -568,15 +571,15 @@ class GMIStubGenerator extends GMIGenerator {
 
 	    output.println("\t\tmethods[" + i + "].destinationSkeleton = -1;");
 /*
-	    if (!ret.equals(Void.TYPE)) {       
-		output.println("\t\tmethods[" + i + "].combineParameters = new Class[5];");
+	    if (!ret.equals(Type.VOID)) {       
+		output.println("\t\tmethods[" + i + "].combineParameters = new Type[5];");
 		output.println("\t\tmethods[" + i + "].combineParameters[0] = " + getType(ret) + ".class;"); 
 		output.println("\t\tmethods[" + i + "].combineParameters[1] = int.class;");
 		output.println("\t\tmethods[" + i + "].combineParameters[2] = " + getType(ret) + ".class;");
 		output.println("\t\tmethods[" + i + "].combineParameters[3] = int.class;");
 		output.println("\t\tmethods[" + i + "].combineParameters[4] = int.class;");
 	    } else { 
-		output.println("\t\tmethods[" + i + "].combineParameters = new Class[3];");
+		output.println("\t\tmethods[" + i + "].combineParameters = new Type[3];");
 		output.println("\t\tmethods[" + i + "].combineParameters[0] = int.class;");
 		output.println("\t\tmethods[" + i + "].combineParameters[1] = int.class;");
 		output.println("\t\tmethods[" + i + "].combineParameters[2] = int.class;");

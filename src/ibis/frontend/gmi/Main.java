@@ -1,6 +1,7 @@
 package ibis.frontend.group;
 
 import ibis.util.Analyzer;
+import ibis.util.BT_Analyzer;
 
 import java.util.Vector;
 import java.util.StringTokenizer;
@@ -10,6 +11,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 import ibis.group.GroupInterface;
+
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+
 
 class Main { 
 
@@ -40,16 +46,16 @@ class Main {
            
 	Vector classes = new Vector();
 	boolean verbose = false;
-	Class groupInterface = null;
+	JavaClass groupInterface = null;
 
 	if (args.length == 0) { 
 	    System.err.println("Usage : java Main [-v] [-dir | -local] classname");
 	    System.exit(1);
 	}
 
-	try { 
-	    groupInterface = Class.forName("ibis.group.GroupInterface");
-	} catch (Exception e) { 
+	groupInterface = Repository.lookupClass("ibis.group.GroupInterface");
+
+	if (groupInterface == null) {
 	    System.err.println("Class ibis.group.GroupInterface not found");
 	    System.exit(1);
 	}
@@ -62,13 +68,12 @@ class Main {
 	    } else if (args[i].equals("-local")) { 
 		local = true;
 	    } else { 
-		try { 
-		    Class c = Class.forName(args[i]);
-		    classes.addElement(c);
-		} catch (Exception e) { 
+		JavaClass c = Repository.lookupClass(args[i]);
+		if (c == null) {
 		    System.err.println("Class " + args[i] + " not found");
 		    System.exit(1);
 		}
+		classes.addElement(c);
 	    }
 	} 
 		
@@ -76,13 +81,14 @@ class Main {
 	    
 	    try { 
 		PrintWriter output;
-		Class subject = (Class) classes.get(i);
+		JavaClass subject = (JavaClass) classes.get(i);
 		
 		if (verbose) { 
-		    System.out.println("Handling " + subject.getName());
+		    System.out.println("Handling " + subject.getClassName());
 		}
-		
-		Analyzer a = new Analyzer(subject, groupInterface, verbose);
+
+		// BT_Analyzer a = new BT_Analyzer(subject, groupInterface, verbose);
+		BT_Analyzer a = new BT_Analyzer(subject, groupInterface, true);
 		a.start();
 
 		if (a.specialInterfaces.size() == 0) {

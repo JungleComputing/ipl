@@ -2,26 +2,27 @@ package ibis.frontend.group;
 
 import java.util.Vector;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
-import ibis.util.Analyzer;
+import ibis.util.BT_Analyzer;
+
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
 
 class GMISkeletonGenerator extends GMIGenerator {
 
-    Analyzer data;
+    BT_Analyzer data;
     PrintWriter output;
     boolean verbose;
 
     String dest_name;
 
-    GMISkeletonGenerator(Analyzer data, PrintWriter output, boolean verbose) {
+    GMISkeletonGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
 	this.data   = data;
 	this.output = output;
 	this.verbose = verbose;
     }
 
     void header() {
-	Class [] interfaces = data.subject.getInterfaces();
-
 	if (data.packagename != null && ! data.packagename.equals("")) {
 	    output.println("package " + data.packagename + ";");
 	    output.println();
@@ -39,7 +40,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println();
     }
 
-    void writeResult(String spacing, Class ret) {
+    void writeResult(String spacing, Type ret) {
 	String resultOpcode = getResultOpcode(ret);
 
 	output.println(spacing + "if (ex != null) {");
@@ -48,14 +49,14 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println(spacing + "} else {");
 	output.println(spacing + "\tw.writeByte("+ resultOpcode +");");
 
-	if (!ret.equals(Void.TYPE)) {
+	if (!ret.equals(Type.VOID)) {
 	    output.println(writeMessageType(spacing + "\t", "w", ret, "result"));
 	}
 
 	output.println(spacing + "}");
     }
 
-    void handleResult(String spacing, Class ret) {
+    void handleResult(String spacing, Type ret) {
 
 	output.println(spacing + "switch (resultMode) {");
 
@@ -84,9 +85,14 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println(spacing + "\t\t\t\tException[] out = new Exception[1];");
 	output.println(spacing + "\t\t\t\tpersonalizer.personalize(ex, out);");
 	output.println(spacing + "\t\t\t\tex = out[0];\n");
-	if (! ret.equals(Void.TYPE)) {
+	if (! ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t\t\t} else {");
-	    output.println(spacing + "\t\t\t" + getType(ret) + "[] out = new " + getType(ret) + "[1];");
+	    if (ret instanceof ArrayType) {
+		output.println(spacing + "\t\t\t" + getType(ret) + "[] out = new " + getArrayType((ArrayType) ret, "1") + "[];");
+	    }
+	    else {
+		output.println(spacing + "\t\t\t" + getType(ret) + "[] out = new " + getType(ret) + "[1];");
+	    }
 	    output.println(spacing + "\t\t\t\tpersonalizer.personalize(result, out);");
 	    output.println(spacing + "\t\t\t\tresult = out[0];");
 	}
@@ -99,17 +105,22 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tw.finish();");
 	output.println(spacing + "\t} else {");
 	output.println(spacing + "\t\tException[] excpts = null;");
-	if (! ret.equals(Void.TYPE)) {
+	if (! ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t\t" + getType(ret) + "[] out = null;");
 	}
 	output.println(spacing + "\t\tif (personalizer != null) {");
 	output.println(spacing + "\t\t\texcpts = new Exception[info.numInvokers];");
-	if (! ret.equals(Void.TYPE)) {
-	    output.println(spacing + "\t\t\tout = new " + getType(ret) + "[info.numInvokers];");
+	if (! ret.equals(Type.VOID)) {
+	    if (ret instanceof ArrayType) {
+		output.println(spacing + "\t\t\tout = new " + getArrayType((ArrayType) ret, "info.numInvokers") + "[];");
+	    }
+	    else {
+		output.println(spacing + "\t\t\tout = new " + getType(ret) + "[info.numInvokers];");
+	    }
 	}
 	output.println(spacing + "\t\t\tif (ex != null) {");
 	output.println(spacing + "\t\t\t\tpersonalizer.personalize(ex, excpts);");
-	if (! ret.equals(Void.TYPE)) {
+	if (! ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t\t\t} else {");
 	    output.println(spacing + "\t\t\t\tpersonalizer.personalize(result, out);");
 	}
@@ -125,7 +136,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println(spacing + "\t\t\tw.writeInt(myGroupRank);");
 	output.println(spacing + "\t\t\tif (personalizer != null) {");
 	output.println(spacing + "\t\t\t\tex = excpts[i];");
-	if (! ret.equals(Void.TYPE)) {
+	if (! ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t\t\t\tresult = out[i];");
 	}
 	output.println(spacing + "\t\t\t}");
@@ -149,13 +160,13 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println();
     }
 
-    void handleMethodInvocation(String spacing, Method m, Class ret, Class [] params) {
+    void handleMethodInvocation(String spacing, Method m, Type ret, Type [] params) {
 
 	output.println(spacing + "\t/* Second - Extract the parameters */");
 
 	for (int j=0;j<params.length;j++) {
-	    Class temp = params[j];
-	    if (temp.isPrimitive()) {
+	    Type temp = params[j];
+	    if (temp instanceof BasicType) {
 		output.println(readMessageType(spacing + "\t", "p" + j, "r", temp, true));
 	    }
 	    else {
@@ -175,7 +186,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println(spacing + "\ttry {");
 	output.print(spacing + "\t\t");
 
-	if (!ret.equals(Void.TYPE)) {
+	if (!ret.equals(Type.VOID)) {
 	    output.print("result = ");
 	}
 
@@ -197,8 +208,8 @@ class GMISkeletonGenerator extends GMIGenerator {
 
     void methodHandler(String spacing, Method m) {
 
-	Class ret = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
 
 	output.print(spacing + "private final void GMI_" + m.getName() + "(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IOException {");
 	output.println();
@@ -216,7 +227,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 	    output.println(spacing + "\t" + getInitedLocal(params[j], "p" + j) + ";");
 	}
 
-	if (!ret.equals(Void.TYPE)) {
+	if (!ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t" + getInitedLocal(ret, "result") + ";");
 	}
 
@@ -271,10 +282,10 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println(spacing + "\t\t/* call combiner here */");
 	output.println(spacing + "\t\ttry {");
 
-	if (ret.equals(Void.TYPE)) {
+	if (ret.equals(Type.VOID)) {
 	    output.println(spacing + "\t\t\tcombine_void(combiner, false, cpu_rank, ex);");
 	} else {
-	    if (ret.isPrimitive()) {
+	    if (ret instanceof BasicType) {
 		output.println(spacing + "\t\t\tresult = combine_" +
 		           getType(ret) + "(combiner, false, cpu_rank, result, ex);");
 	    } else {
@@ -295,28 +306,28 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println();
     }
 
-    String getResultOpcode(Class ret) {
+    String getResultOpcode(Type ret) {
 
 	String result = null;
 
-	if (ret.isPrimitive()) {
-	    if (ret.equals(Byte.TYPE)) {
+	if (ret instanceof BasicType) {
+	    if (ret.equals(Type.BYTE)) {
 		result = "RESULT_BYTE";
-	    } else if (ret.equals(Void.TYPE)) {
+	    } else if (ret.equals(Type.VOID)) {
 		result = "RESULT_VOID";
-	    } else if (ret.equals(Character.TYPE)) {
+	    } else if (ret.equals(Type.CHAR)) {
 		result = "RESULT_CHAR";
-	    } else if (ret.equals(Short.TYPE)) {
+	    } else if (ret.equals(Type.CHAR)) {
 		result = "RESULT_SHORT";
-	    } else if (ret.equals(Integer.TYPE)) {
+	    } else if (ret.equals(Type.INT)) {
 		result = "RESULT_INT";
-	    } else if (ret.equals(Long.TYPE)) {
+	    } else if (ret.equals(Type.LONG)) {
 		result = "RESULT_LONG";
-	    } else if (ret.equals(Float.TYPE)) {
+	    } else if (ret.equals(Type.FLOAT)) {
 		result = "RESULT_FLOAT";
-	    } else if (ret.equals(Double.TYPE)) {
+	    } else if (ret.equals(Type.DOUBLE)) {
 		result = "RESULT_DOUBLE";
-	    } else if (ret.equals(Boolean.TYPE)) {
+	    } else if (ret.equals(Type.BOOLEAN)) {
 		result = "RESULT_BOOLEAN";
 	    }
 	} else {

@@ -2,26 +2,29 @@ package ibis.frontend.group;
 
 import java.util.Vector;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
-import ibis.util.Analyzer;
+import ibis.util.BT_Analyzer;
+
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
 
 class GMIParameterVectorGenerator extends GMIGenerator { 
     
-    Analyzer data;
+    BT_Analyzer data;
     PrintWriter output;
     boolean verbose;
     String name;
 
-    GMIParameterVectorGenerator(Analyzer data, PrintWriter output, boolean verbose) {
+    GMIParameterVectorGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
 	this.data    = data;		
 	this.output  = output;
 	this.verbose = verbose;
-	name = "group_parameter_vector_" + data.subject.getName() + "_";
+	name = "group_parameter_vector_" + data.subject.getClassName() + "_";
     } 
 
     void header(Method m) { 
 
-	Class [] params = m.getParameterTypes();
+	Type [] params = m.getArgumentTypes();
 	String name = this.name + m.getName();
 
 	output.println("final class " + name + " extends ibis.group.ParameterVector {\n");	
@@ -36,10 +39,10 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	    
 	    output.println("\t" + getType(params[j]) + " p" + j + ";");
 	    
-	    if (params[j].isArray() || 
-	        params[j].getName().equals("java.lang.Object") || 
-	        params[j].getName().equals("java.lang.Cloneable") ||
-	        params[j].getName().equals("java.lang.Serializable")) { 
+	    if (params[j] instanceof ArrayType || 
+	        params[j].toString().equals("java.lang.Object") || 
+	        params[j].toString().equals("java.lang.Cloneable") ||
+	        params[j].toString().equals("java.lang.Serializable")) { 
 		/* we may write a sub array here !!! */					
 		output.println("\tboolean p" + j + "_subarray = false;");
 		output.println("\tint p" + j + "_offset, p" + j + "_size;");
@@ -65,10 +68,10 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	output.println("\tpublic final void reset() {");
 	output.println("\t\tsuper.reset();");
 	for (int j=0;j<params.length;j++) { 
-	    if (params[j].isArray() || 
-	        params[j].getName().equals("java.lang.Object") || 
-	        params[j].getName().equals("java.lang.Cloneable") ||
-	        params[j].getName().equals("java.lang.Serializable")) { 
+	    if (params[j] instanceof ArrayType || 
+	        params[j].toString().equals("java.lang.Object") || 
+	        params[j].toString().equals("java.lang.Cloneable") ||
+	        params[j].toString().equals("java.lang.Serializable")) { 
 		output.println("\t\tp" + j + "_subarray = false;");
 	    } 
 	}
@@ -80,9 +83,9 @@ class GMIParameterVectorGenerator extends GMIGenerator {
     }
 
 
-    void writeMethod(Class param, int [] numbers, int count) { 
+    void writeMethod(Type param, int [] numbers, int count) { 
 
-	if (param.isPrimitive()) {
+	if (param instanceof BasicType) {
 	    output.println("\tpublic final void write(int num, " + getType(param) + " value) {");
 	}
 	else {
@@ -95,7 +98,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	    output.println("\t\tswitch (num) {");		
 	    for (int i=0;i<count;i++) { 
 		output.println("\t\tcase " + numbers[i] + ":");		
-		if (param.isPrimitive()) {
+		if (param instanceof BasicType) {
 		    output.println("\t\t\tp" + numbers[i] + " = value;");		
 		}
 		else {
@@ -108,7 +111,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	    output.println("\t\t}");		
 	} else { 
 	    output.println("\t\tif (num == " + numbers[0] + ") {");
-	    if (param.isPrimitive()) {
+	    if (param instanceof BasicType) {
 		output.println("\t\t\tp" + numbers[0] + " = value;");		
 	    }
 	    else {
@@ -123,9 +126,9 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	output.println("\t}\n");
     } 
 
-    void readMethod(Class param, int [] numbers, int count) { 
+    void readMethod(Type param, int [] numbers, int count) { 
 
-	if (param.isPrimitive()) {
+	if (param instanceof BasicType) {
 	    output.println("\tpublic final " + getType(param) + " read" + printType(param) + "(int num) {");
 	}
 	else {
@@ -153,10 +156,10 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	output.println("\t}\n");
     } 
 
-    void writeParametersMethod(Class[] params) {
+    void writeParametersMethod(Type[] params) {
 	output.println("\tpublic void writeParameters(WriteMessage w) throws IOException {");
 	for (int i = 0; i < params.length; i++) {
-	    if (params[i].isArray()) {
+	    if (params[i] instanceof ArrayType) {
 		output.println("\t\tif (p" + i + "_subarray) {");
 		output.println("\t\t\tw.writeArray(p"+ i + ", p" + i + "_offset, p" + i + "_size);");
 		output.println("\t\t} else {");
@@ -170,12 +173,12 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	output.println("\t}\n");
     }
 
-    void readParametersMethod(Class[] params, Method m) {
+    void readParametersMethod(Type[] params, Method m) {
 	String name = this.name + m.getName();
 	output.println("\tpublic ParameterVector readParameters(ReadMessage r) throws IOException {");
 	output.println("\t\t" + name + " p = new " + name + "();");
 	for (int i = 0; i < params.length; i++) {
-	    if (params[i].isPrimitive()) {
+	    if (params[i] instanceof BasicType) {
 		output.println(readMessageType("\t\t", "p.p" + i, "r", params[i], true));
 	    }
 	    else {
@@ -192,7 +195,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	output.println("\t}\n");
     }
 
-    void writeSubArrayMethod(Class param, int [] numbers, int count) { 
+    void writeSubArrayMethod(Type param, int [] numbers, int count) { 
 
 	output.println("\tpublic void writeSubArray(int num, int offset, int size, " + getType(param) + " value) {");
 	
@@ -226,7 +229,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	output.println("\t}\n");
     } 
 
-    void writeSubObjectArrayMethod(Class [] param, int [] numbers, int count) { 
+    void writeSubObjectArrayMethod(Type [] param, int [] numbers, int count) { 
 
 	output.println("\tpublic void writeSubArray(int num, int offset, int size, Object [] value) {");
 	
@@ -237,9 +240,9 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	    for (int i=0;i<count;i++) { 
 		output.println("\t\tcase " + numbers[i] + ":");		
 		output.println("\t\t\t\tp" + numbers[i] + " = (" + getType(param[i]) + ") value;");	
-		output.println("\t\t\tp_" + numbers[i] + "_subarray = true;");
-		output.println("\t\t\tp_" + numbers[i] + "_offset = offset;");
-		output.println("\t\t\tp_" + numbers[i] + "_size = size;");
+		output.println("\t\t\tp" + numbers[i] + "_subarray = true;");
+		output.println("\t\t\tp" + numbers[i] + "_offset = offset;");
+		output.println("\t\t\tp" + numbers[i] + "_size = size;");
 		output.println("\t\t\tbreak;");		
 	    }
 	    output.println("\t\tdefault:");		
@@ -248,9 +251,9 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	} else { 
 	    output.println("\t\tif (num == " + numbers[0] + ") {");
 	    output.println("\t\t\tp" + numbers[0] + " = (" + getType(param[0]) + ") value;");	
-	    output.println("\t\t\tp_" + numbers[0] + "_subarray = true;");
-	    output.println("\t\t\tp_" + numbers[0] + "_offset = offset;");
-	    output.println("\t\t\tp_" + numbers[0] + "_size = size;");
+	    output.println("\t\t\tp" + numbers[0] + "_subarray = true;");
+	    output.println("\t\t\tp" + numbers[0] + "_offset = offset;");
+	    output.println("\t\t\tp" + numbers[0] + "_size = size;");
 	    output.println("\t\t} else {");
 	    output.println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");	
 	    output.println("\t\t}");
@@ -262,8 +265,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
     void body(Method m) { 
 
-	Class ret       = m.getReturnType();
-	Class [] params = m.getParameterTypes();
+	Type ret       = m.getReturnType();
+	Type [] params = m.getArgumentTypes();
 
 	writeParametersMethod(params);
 
@@ -272,17 +275,17 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	if (params.length > 0) { 
 				
 	    /* Parameter write methods */
-	    Class params_to_write = null;
+	    Type params_to_write = null;
 
-	    Class [] object_params = new Class[params.length];
-	    Class [] temp_params = new Class[params.length];
+	    Type [] object_params = new Type[params.length];
+	    Type [] temp_params = new Type[params.length];
 	    System.arraycopy(params, 0, temp_params, 0, params.length);
 
 	    int [] param_numbers = new int[params.length];
 	    int count = 0;
 
 	    for (int j=0;j<params.length;j++) {
-		if (!params[j].isPrimitive()) { 
+		if (!(params[j] instanceof BasicType)) { 
 		    object_params[count] = params[j];
 		    param_numbers[count] = j;
 		    count++;
@@ -321,7 +324,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 		}									
 
 		if (temp_params[j] != null) { 
-		    if (temp_params[j].isArray() && (temp_params[j].getComponentType().isPrimitive())) { 
+		    if (temp_params[j] instanceof ArrayType &&
+			    (((ArrayType)temp_params[j]).getElementType() instanceof BasicType)) { 
 			count = 0;		
 			params_to_write = temp_params[j];
 			param_numbers[count++] = j; 
@@ -349,7 +353,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 		    output.println("\t/* Methods to write sub object arrays */");
 		}									
 
-		if (temp_params[j].isArray() && (!temp_params[j].getComponentType().isPrimitive())) { 
+		if (temp_params[j] instanceof ArrayType &&
+			! (((ArrayType)temp_params[j]).getElementType() instanceof BasicType)) { 
 		    param_numbers[count] = j; 
 		    object_params[count] = temp_params[j];
 		    count++;
