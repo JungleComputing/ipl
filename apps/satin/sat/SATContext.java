@@ -467,4 +467,35 @@ public class SATContext implements java.io.Serializable {
 	}
 	return 0;
     }
+
+    /** Returns the best decision variable to branch on, or -1 if there is none. */
+    public int getDecisionVariable()
+    {
+        // For the moment we return the variable that is used the most.
+	int bestvar = -1;
+	int bestusecount = 0;
+
+	for( int i=0; i<assignments.length; i++ ){
+	    if( assignments[i] != -1 ){
+		// Already assigned, so not interesting.
+	        continue;
+	    }
+	    int usecount = posclauses[i] + negclauses[i];
+	    if( usecount>bestusecount ){
+		// This is a better one.
+	        bestvar = i;
+		bestusecount = usecount;
+	    }
+	}
+	return bestvar;
+    }
+
+    /**
+     * Returns true iff the given variable is more frequently used as
+     * positive variable than as negative variable.
+     */
+    public boolean posDominant( int var )
+    {
+        return (posclauses[var]>negclauses[var]);
+    }
 }

@@ -2,7 +2,12 @@
 //
 // Description of a single variable in the SAT solver.
 
-/** A single variable of a SAT problem, with associated administration. */
+/**
+ * A single variable of a SAT problem, with associated administration.
+ * 
+ * @author Kees van Reeuwijk
+ * @version $Revision$
+ */
 
 final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     private int label;
@@ -65,10 +70,10 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     boolean isUsed() { return (pos != null && pos.size() != 0) || (neg != null && neg.size() != 0); }
 
     /** Returns true iff the variable only occurs in positive terms */
-    boolean isPosOnly() { return neg == null || neg.size() == 0; }
+    boolean isPosOnly() { return assignment == -1 && (neg == null || neg.size() == 0); }
 
     /** Returns true iff the variable only occurs in negative terms */
-    boolean isNegOnly() { return pos == null || pos.size() == 0; }
+    boolean isNegOnly() { return assignment == -1 && (pos == null || pos.size() == 0); }
 
     /** Registers assignment 'v' for this variable. */
     void setAssignment( int v ) { assignment = v; }

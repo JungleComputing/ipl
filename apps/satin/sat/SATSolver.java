@@ -117,14 +117,12 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	int level,
 	SATProblem p,
 	SATContext ctx,
-	int varix,
+	int var,
 	boolean val
     ) throws SATResultException
     {
-	int var = ctx.varlist[varix];
-
 	if( traceSolver ){
-	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val + " varix=" + varix );
+	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 	ctx.assignments[var] = val?1:0;
 	int res;
@@ -150,17 +148,8 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    }
 	    throw new SATResultException( s );
 	}
-	varix++;
-	// Search for an unassigned variable.
-	while( varix<ctx.varlist.length ){
-	    int nextvar = ctx.varlist[varix];
-
-	    if( ctx.assignments[nextvar] == -1 ){
-		break;
-	    }
-	    varix++;
-	}
-	if( varix>=ctx.varlist.length ){
+	int nextvar = ctx.getDecisionVariable();
+	if( nextvar<0 ){
 	    // There are no variables left to assign, clearly there
 	    // is no solution.
 	    if( traceSolver ){
@@ -169,16 +158,24 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    return;
 	}
 
-	// We have variable 'var' to branch on.
-	if( varix+leafVariables>=ctx.varlist.length ){
-	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, varix, false );
-	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, varix, true );
+	// TODO: when should we switch to the leaf solver?
+	if( false ){
+	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, 0, false );
+	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, 0, true );
 	}
 	else {
+	    // We have variable 'nextvar' to branch on.
 	    SATContext negctx = (SATContext) ctx.clone();
 	    SATContext posctx = (SATContext) ctx.clone();
-	    solve( level+1, p, negctx, varix, false );
-	    solve( level+1, p, posctx, varix, true );
+	    //if( ctx.posDominant( nextvar ) ){
+	    if( ctx.posDominant( nextvar ) ){
+		solve( level+1, p, negctx, nextvar, false );
+		solve( level+1, p, posctx, nextvar, true );
+	    }
+	    else {
+		solve( level+1, p, posctx, nextvar, true );
+		solve( level+1, p, negctx, nextvar, false );
+	    }
 	    sync();
 	}
     }
@@ -271,8 +268,10 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    }
 	    else {
 		SATContext negctx = (SATContext) ctx.clone();
-		solve( level+1, p, negctx, 0, false );
-		solve( level+1, p, ctx, 0, true );
+		int nextvar = ctx.getDecisionVariable();
+
+		solve( level+1, p, negctx, nextvar, false );
+		solve( level+1, p, ctx, nextvar, true );
 		sync();
 	    }
 	}
