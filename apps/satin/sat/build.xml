@@ -14,4 +14,14 @@
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
+    <target name="docs"
+        description="Build JavaDoc documentation in `docs' directory">
+	<!-- Create the javadoc directory -->
+	<delete dir="docs"/>
+	<mkdir dir="docs"/>
+	<javadoc destdir="docs" author="true" version="true" use="true" windowtitle="SAT solver documentation" doctitle="SAT Solver Documentation" bottom="The Ibis project">
+	<FileSet file="*.java"/>
+	<classpath refid="default.classpath"/>
+	</javadoc>
+    </target>
 </project>

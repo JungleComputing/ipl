@@ -47,8 +47,8 @@ public class SATProblem implements java.io.Serializable {
     }
 
     /**
-     * Constructs a SAT problem with a given number of variables and
-     * a given list of clauses.
+     * Constructs a SAT problem with the given number of variables and
+     * the given list of clauses.
      *
      * @param v the number of variables in the problem
      * @param cl the clauses of the problem
@@ -113,6 +113,9 @@ public class SATProblem implements java.io.Serializable {
     }
 
     /**
+     * Adds a new clause to the problem. The clause is constructed
+     * from <em>copies</em> of the arrays of positive and negative variables
+     * that are given as parameters.
      * @param pos the array of positive variables
      * @param possz the number of elements in <code>pos</code> to use
      * @param neg the array of negative variables
@@ -163,6 +166,9 @@ public class SATProblem implements java.io.Serializable {
     }
 
     /**
+     * Adds a new clause to the problem. The clause is constructed
+     * from <em>copies</em> of the arrays of positive and negative variables
+     * that are given as parameters.
      * @param pos the array of positive variables
      * @param neg the array of negative variables
      * @return the label of the added clause
@@ -262,10 +268,11 @@ public class SATProblem implements java.io.Serializable {
 
     /**
      * Given a list of assignments, returns true iff the assignments
-     * conflict with this problem. That is, if any further assignments
-     * to unassigned variables * cannot possibly satisfy the problem.
-     * @param assignments The variable assignments.
-     * @return <code>true</code> iff the assignments conflict with the problem.
+     * conflict with this problem. An assignment is conflicting if any
+     * further assignments to unassigned variables cannot possibly satisfy
+     * the problem.
+     * @param assignments the variable assignments
+     * @return <code>true</code> iff the assignments conflict with the problem
      */
     public boolean isConflicting( int assignments[] )
     {
@@ -418,7 +425,7 @@ public class SATProblem implements java.io.Serializable {
 
     /**
      * Returns the initial assignment array for this problem.
-     * @return An array of assignments for the variables of this problem.
+     * @return an array of assignments for the variables of this problem
      */
     int [] getInitialAssignments()
     {
@@ -433,7 +440,7 @@ public class SATProblem implements java.io.Serializable {
     /**
      * Returns a list of variables for this problem, ordered to be
      * most effective in solving the problem as fast as possible.
-     * @return An ordered list of variables.
+     * @return an ordered list of variables
      */
     int [] buildOrderedVarList()
     {
@@ -463,10 +470,10 @@ public class SATProblem implements java.io.Serializable {
      * Reads a CNF problem in DIMACS format from the given reader, and
      * returns a new SATProblem instance for that problem. 
      * See
-     * www.intellektik.informatik.tu-darmstadt.de/SATLIB/Benchmarks/SAT/satformat.ps
+     * {@link <a href="http://www.intellektik.informatik.tu-darmstadt.de/SATLIB/Benchmarks/SAT/satformat.ps">satformat.ps</a>}
      * for a description of the format.
-     * @param in The reader that provides the stream to parse.
-     * @return The parsed problem.
+     * @param in the reader that provides the stream to parse
+     * @return the parsed problem
      */
     public static SATProblem parseDIMACSStream( Reader in ) throws java.io.IOException
     {
@@ -604,8 +611,8 @@ public class SATProblem implements java.io.Serializable {
     /**
      * A CNF problem parser. Given a problem in DIMACS format, returns
      * a SATProblem instance for it.
-     * @param f The file to parse.
-     * @return The parsed problem.
+     * @param f the file to parse
+     * @return the parsed problem
      */
     public static SATProblem parseDIMACSStream( File f ) throws java.io.IOException
     {
@@ -614,7 +621,7 @@ public class SATProblem implements java.io.Serializable {
 
     /**
      * Given an output stream, prints the problem to it in DIMACS format.
-     * @param s The stream to print to.
+     * @param s the stream to print to
      */
     public void printDIMACS( PrintStream s )
     {
