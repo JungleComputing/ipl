@@ -2,6 +2,7 @@ package ibis.satin;
 
 // warning! this does not work correctly in combination with aborts!
 // This is because we have to remove elements from random places in the queue
+// is this true???
 
 public final class DEQueueDijkstra implements Config {
 

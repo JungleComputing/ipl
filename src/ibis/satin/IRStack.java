@@ -10,6 +10,10 @@ final class IRStack implements Config {
 		this.s = s;
 	}
 
+	int size() {
+		return count;
+	}
+
 	boolean contains(InvocationRecord r) {
 		InvocationRecord curr;
 
@@ -42,12 +46,35 @@ final class IRStack implements Config {
 		count--;
 	}
 
-	void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+        /* Observation: mostly, the jobs on the stack are children of eachother.
+	   In the normal case, there is no need to run isDescendentOf all the time. */
+	void oldkillChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
 		InvocationRecord curr;
 
 		for(int i=0; i<count; i++) {
 			curr = l[i];
 			if(Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+				curr.aborted = true;
+				s.abortedJobs++;
+
+				if(ABORT_DEBUG) {
+					System.out.println("found child on the stack: " + curr.stamp + 
+							   ", it depends on " + targetStamp);
+				}
+			}
+		}
+	}
+
+	void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+		InvocationRecord curr;
+
+		for(int i=0; i<count; i++) {
+			curr = l[i];
+
+			if((curr.parent != null && curr.parent.aborted) || 
+			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+//				if(curr.parent != null && curr.parent.aborted) System.err.print("#");
+
 				curr.aborted = true;
 				s.abortedJobs++;
 

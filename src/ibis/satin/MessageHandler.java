@@ -46,7 +46,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					   "': got exception while reading job result: " + e1);
 			System.exit(1);
 		}
-		
+
 		synchronized(satin) {
 			InvocationRecord r = satin.getStolenInvocationRecord(rr.stamp, sender, i);
 			if(r != null) {
@@ -62,12 +62,17 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					   "': got result for aborted job, ignoring.");
 				}
 			}
+			satin.notifyAll();
 		}
 	}
 
 	// Just make this method synchronized, than all the methods we call don't have to be.
 	// Furthermore, this makes sure that nobody changes tables while I am busy.
 	void handleStealRequest(SendPortIdentifier ident) {
+//		long tstart = System.currentTimeMillis();
+		if(STEAL_TIMING) {
+			satin.handleStealTimer.start();
+		}
 		synchronized(satin) {
 			if(STEAL_STATS) {
 				satin.stealRequests++;
@@ -93,6 +98,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					m.writeByte(STEAL_REPLY_FAILED);
 					m.send();
 					m.finish();
+//					long tend = System.currentTimeMillis();
+//					System.out.println("failed steal handler took " + (tend - tstart));
+					if(STEAL_TIMING) {
+						satin.handleStealTimer.stop();
+					}
+
 					return;
 				} catch (IbisIOException e) {
 					System.out.println("SATIN '" + satin.ident.name() + 
@@ -121,6 +132,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				m.writeObject(result);
 				m.send();
 				m.finish();
+//				long tend = System.currentTimeMillis();
+//				System.out.println("succ steal handler took " + (tend - tstart));
+
+				if(STEAL_TIMING) {
+					satin.handleStealTimer.stop();
+				}
 				return;
 			} catch (IbisIOException e) {
 				System.out.println("SATIN '" + satin.ident.name() + 
@@ -138,13 +155,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			
 			switch(opcode) {
 			case EXIT:
-				if(COMM_DEBUG) {
+//				if(COMM_DEBUG) {
 					ident = m.origin();
 					System.out.println("SATIN '" + satin.ident.name() + 
 							   "': got exit message from " + ident.ibis().name());
-				}
-				m.finish();
+//				}
 				satin.exiting = true;
+				m.finish();
 				break;
 			case STEAL_REQUEST:
 				ident = m.origin();
@@ -164,13 +181,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 								   "': got steal reply message from " + ident.ibis().name() + ": FAILED");
 					}
 				}
-				if(COMM_DEBUG) {
+//				if(COMM_DEBUG) {
 					ident = m.origin();
 					if(opcode == BARRIER_REPLY) {
 						System.out.println("SATIN '" + satin.ident.name() + 
 								   "': got barrier reply message from " + ident.ibis().name());
 					}
-				}
+//				}
 				synchronized(satin) {
 					if(opcode == BARRIER_REPLY) {
 						satin.gotBarrierReply = true;

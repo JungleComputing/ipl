@@ -5,13 +5,19 @@ public interface Config {
 	/* Enable or disable statistics. */
 	static final boolean SPAWN_STATS = true;
 	static final boolean STEAL_STATS = true;
-	static final boolean ABORT_STATS = false;
+	static final boolean ABORT_STATS = true;
+
+	/*Enable or disable timings */
+	static final boolean STEAL_TIMING = true;
+	static final boolean ABORT_TIMING = true;
+	static final boolean IDLE_TIMING = true;
+	static final boolean POLL_TIMING = true;
 
 	/* Enable or disable asserts. */
 	static final boolean ASSERTS = false;
 
 	/* Enable or disable aborts and inlets. */
-	static final boolean ABORTS = false;
+	static final boolean ABORTS = true;
 
 	
 	/* Enable or disable debug prints. */

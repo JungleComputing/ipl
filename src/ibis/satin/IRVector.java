@@ -1,8 +1,17 @@
 package ibis.satin;
 
-final class IRVector {
+import ibis.ipl.*;
+
+// add assert locked @@@
+
+final class IRVector implements Config {
 	InvocationRecord[] l = new InvocationRecord[500];
 	int count=0;
+	Satin satin;
+
+	IRVector(Satin s) {
+		this.satin = s;
+	}
 
 	void add(InvocationRecord r) {
 		if(count >= l.length) {
@@ -13,6 +22,10 @@ final class IRVector {
 
 		l[count] = r;
 		count++;
+	}
+
+	int size() {
+		return count;
 	}
 
 	InvocationRecord remove(int stamp, ibis.ipl.IbisIdentifier owner) {
@@ -41,6 +54,36 @@ final class IRVector {
 
 		System.err.println("EEK, IRVector: removeing non-existant elt: " + r);
 	}
+
+	void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+		InvocationRecord curr;
+		for(int i=0; i<count; i++) {
+			curr = l[i];
+			if((curr.parent != null && curr.parent.aborted) || 
+			   satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+				curr.aborted = true;
+				if(ABORT_DEBUG) {
+					System.out.println("found stolen child: " + curr.stamp + ", it depends on " + targetStamp);
+				}
+				curr.spawnCounter.value--;
+				if(ASSERTS && curr.spawnCounter.value < 0) {
+					System.out.println("Just made spawncounter < 0");
+					new Exception().printStackTrace();
+					System.exit(1);
+				}
+				if(ABORT_STATS) {
+					satin.abortedJobs++;
+				}
+				if(STEAL_STATS) {
+					satin.abortMessages++;
+				}
+				removeIndex(i);
+				i--;
+				satin.sendAbortMessage(curr);
+			}
+		}
+	}
+
 
 	InvocationRecord removeIndex(int i) {
 		if(i >= count) return null;
