@@ -9,7 +9,7 @@ import ibis.util.Monitor;
  */
 public final class NetLockArray {
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = false; // true;
 
     private class Lock {
 	/**
@@ -72,29 +72,25 @@ public final class NetLockArray {
      * @param locked initial state of the new lock.
      */
     public void initLock(int id, boolean locked) {
-	mon.lock();
-	try {
-	    if (lock.length <= id) {
-		Lock[] _lock = new Lock[id + 1];
+	mon.checkImOwner();
+	if (lock.length <= id) {
+	    Lock[] _lock = new Lock[id + 1];
 
-		System.arraycopy(lock, 0, _lock, 0, lock.length);
+	    System.arraycopy(lock, 0, _lock, 0, lock.length);
 
-		for (int i = lock.length; i < _lock.length; i++) {
-		    _lock[i] = new Lock();
-		}
-
-		lock = _lock;
+	    for (int i = lock.length; i < _lock.length; i++) {
+		_lock[i] = new Lock();
 	    }
 
-	    if (lock[id].m) {
-		throw new IllegalLockStateException("lock already initialized");
-	    }
-
-	    lock[id].v = locked ? 0 : 1;
-	    lock[id].m = true;
-	} finally {
-	    mon.unlock();
+	    lock = _lock;
 	}
+
+	if (lock[id].m) {
+	    throw new IllegalLockStateException("lock already initialized");
+	}
+
+	lock[id].v = locked ? 0 : 1;
+	lock[id].m = true;
     }
 
     /**
@@ -234,9 +230,18 @@ public final class NetLockArray {
 	try {
 	    lock[id].cv.cv_wait();
 	} catch (InterruptedException e) {
+	    if (DEBUG) {
+		System.err.println(NetIbis.hostName() +
+		       	" Thread.interrupt() -> interrupted Id "
+		       	+ id + "; intpts " + lock[id].interrupts);
+	    }
 	    throw new InterruptedIOException(e);
 	}
 	if (lock[id].interrupts > interrupts) {
+	    if (DEBUG) {
+		System.err.println(NetIbis.hostName() + " interrupted Id "
+		       	+ id + "; intpts " + lock[id].interrupts);
+	    }
 	    throw new InterruptedIOException();
 	}
     }
@@ -254,37 +259,32 @@ public final class NetLockArray {
      */
     public void lock(int id) {
 
-	mon.lock();
+	mon.checkImOwner();
 	if (DEBUG) {
 	    System.err.println("enter lock(" + id +")");
 	}
-	try {
+	if (!lock[id].m) {
+	    throw new IllegalLockStateException("uninitialized lock");
+	}
+
+	while (lock[id].v <= 0) {
+	    registerWaitingOn(id, id);
+	    try {
+		iwait(id);
+	    } catch (InterruptedIOException e) {
+		// Don't care about interrupts. Retry grabbing the lock.
+	    } finally {
+		unregisterWaitingOn(id, id);
+	    }
+
 	    if (!lock[id].m) {
 		throw new IllegalLockStateException("uninitialized lock");
 	    }
+	}
 
-	    while (lock[id].v <= 0) {
-		registerWaitingOn(id, id);
-		try {
-		    iwait(id);
-		} catch (InterruptedIOException e) {
-		    // Don't care about interrupts. Retry grabbing the lock.
-		} finally {
-		    unregisterWaitingOn(id, id);
-		}
-
-		if (!lock[id].m) {
-		    throw new IllegalLockStateException("uninitialized lock");
-		}
-	    }
-
-	    lock[id].v--;
-	    if (DEBUG) {
-		System.err.println("locked(" + id +")");
-	    }
-
-	} finally {
-	    mon.unlock();
+	lock[id].v--;
+	if (DEBUG) {
+	    System.err.println("locked(" + id +")");
 	}
     }
 
@@ -302,35 +302,29 @@ public final class NetLockArray {
      * {@link #interrupt}ed while waiting.
      */
     public void ilock(int id) throws InterruptedIOException {
-	mon.lock();
+	mon.checkImOwner();
 	if (DEBUG) {
 	    System.err.println("enter ilock(" + id +")");
 	}
 
-	try {
+	if (!lock[id].m) {
+	    throw new IllegalLockStateException("uninitialized lock");
+	}
 
+	while (lock[id].v <= 0) {
+	    registerWaitingOn(id, id);
+	    try {
+		iwait(id);
+	    } finally {
+		unregisterWaitingOn(id, id);
+	    }
 	    if (!lock[id].m) {
 		throw new IllegalLockStateException("uninitialized lock");
 	    }
-
-	    while (lock[id].v <= 0) {
-		registerWaitingOn(id, id);
-		try {
-		    iwait(id);
-		} finally {
-		    unregisterWaitingOn(id, id);
-		}
-		if (!lock[id].m) {
-		    throw new IllegalLockStateException("uninitialized lock");
-		}
-	    }
-	    lock[id].v--;
-	    if (DEBUG) {
-		System.err.println("ilocked(" + id +")");
-	    }
-
-	} finally {
-	    mon.unlock();
+	}
+	lock[id].v--;
+	if (DEBUG) {
+	    System.err.println("ilocked(" + id +")");
 	}
     }
 
@@ -346,26 +340,21 @@ public final class NetLockArray {
      * not been initialized or has been cleared.
      */
     public boolean trylock(int id) {
-	mon.lock();
-	try {
-	    if (!lock[id].m) {
-		throw new IllegalLockStateException("uninitialized lock");
-	    }
-
-	    if (lock[id].v <= 0) {
-		return false;
-	    }
-
-	    if (DEBUG) {
-		System.err.println("trylocked(" + id +")");
-	    }
-	    lock[id].v--;
-
-	    return true;
-
-	} finally {
-	    mon.unlock();
+	mon.checkImOwner();
+	if (!lock[id].m) {
+	    throw new IllegalLockStateException("uninitialized lock");
 	}
+
+	if (lock[id].v <= 0) {
+	    return false;
+	}
+
+	if (DEBUG) {
+	    System.err.println("trylocked(" + id +")");
+	}
+	lock[id].v--;
+
+	return true;
     }
 
 
@@ -383,7 +372,7 @@ public final class NetLockArray {
     public int lockFirst(int[] ids) {
 	int wait_id = ids[0];
 
-	mon.lock();
+	mon.checkImOwner();
 	if (DEBUG) {
 	    System.err.print("enter lockFirst(");
 	    for (int i = 0; i < ids.length; i++) {
@@ -391,50 +380,47 @@ public final class NetLockArray {
 	    }
 	    System.err.println(")");
 	}
-	try {
-	    int result = -1;
+
+	int result = -1;
 
 outer:
-	    while (true) {
-		for (int i = 0; i < ids.length; i++) {
-		    if (!lock[ids[i]].m) {
-			throw new IllegalLockStateException("uninitialized lock");
-		    }
-		}
-
-		for (int i = 0; i < ids.length; i++) {
-		    if (lock[ids[i]].v > 0) {
-			result = i;
-			break outer;
-		    }
-		}
-
-		for (int i = 0; i < ids.length; i++) {
-		    registerWaitingOn(ids[i], wait_id);
-		}
-		try {
-		    if (DEBUG) {
-			System.err.println("lockFirst wait(" + wait_id + ")");
-		    }
-		    iwait(wait_id);
-		} catch (InterruptedIOException e) {
-		    // Don't care about interrupts. Retry grabbing the lock.
-		} finally {
-		    for (int i = 0; i < ids.length; i++) {
-			unregisterWaitingOn(ids[i], wait_id);
-		    }
+	while (true) {
+	    for (int i = 0; i < ids.length; i++) {
+		if (!lock[ids[i]].m) {
+		    throw new IllegalLockStateException("uninitialized lock");
 		}
 	    }
 
-	    if (DEBUG) {
-		System.err.println("lockFirst(" + ids[result] + ")");
+	    for (int i = 0; i < ids.length; i++) {
+		if (lock[ids[i]].v > 0) {
+		    result = i;
+		    break outer;
+		}
 	    }
-	    lock[ids[result]].v--;
 
-	    return result;
-	} finally {
-	    mon.unlock();
+	    for (int i = 0; i < ids.length; i++) {
+		registerWaitingOn(ids[i], wait_id);
+	    }
+	    try {
+		if (DEBUG) {
+		    System.err.println("lockFirst wait(" + wait_id + ")");
+		}
+		iwait(wait_id);
+	    } catch (InterruptedIOException e) {
+		// Don't care about interrupts. Retry grabbing the lock.
+	    } finally {
+		for (int i = 0; i < ids.length; i++) {
+		    unregisterWaitingOn(ids[i], wait_id);
+		}
+	    }
 	}
+
+	if (DEBUG) {
+	    System.err.println("lockFirst(" + ids[result] + ")");
+	}
+	lock[ids[result]].v--;
+
+	return result;
     }
 
 
@@ -454,7 +440,7 @@ outer:
     public int ilockFirst(int[] ids) throws InterruptedIOException {
 	int wait_id = ids[0];
 
-	mon.lock();
+	mon.checkImOwner();
 	if (DEBUG) {
 	    System.err.print("enter ilockFirst(");
 	    for (int i = 0; i < ids.length; i++) {
@@ -462,49 +448,46 @@ outer:
 	    }
 	    System.err.println(")");
 	}
-	try {
-	    int result = -1;
+
+	int result = -1;
 
 outer:
-	    while (true) {
+	while (true) {
 
-		for (int i = 0; i < ids.length; i++) {
-		    if (!lock[ids[i]].m) {
-			throw new IllegalLockStateException("uninitialized lock");
-		    }
+	    for (int i = 0; i < ids.length; i++) {
+		if (!lock[ids[i]].m) {
+		    throw new IllegalLockStateException("uninitialized lock");
 		}
+	    }
 
-		for (int i = 0; i < ids.length; i++) {
-		    if (lock[ids[i]].v > 0) {
-			result = i;
-			break outer;
-		    }
-		}
-
-		if (DEBUG) {
-		    System.err.println("ilockFirst wait(" + wait_id + ")");
-		}
-		for (int i = 0; i < ids.length; i++) {
-		    registerWaitingOn(ids[i], wait_id);
-		}
-		try {
-		    iwait(wait_id);
-		} finally {
-		    for (int i = 0; i < ids.length; i++) {
-			unregisterWaitingOn(ids[i], wait_id);
-		    }
+	    for (int i = 0; i < ids.length; i++) {
+		if (lock[ids[i]].v > 0) {
+		    result = i;
+		    break outer;
 		}
 	    }
 
 	    if (DEBUG) {
-		System.err.println("ilockFirst(" + ids[result] + ")");
+		System.err.println("ilockFirst wait(" + wait_id + ")");
 	    }
-	    lock[ids[result]].v--;
-
-	    return result;
-	} finally {
-	    mon.unlock();
+	    for (int i = 0; i < ids.length; i++) {
+		registerWaitingOn(ids[i], wait_id);
+	    }
+	    try {
+		iwait(wait_id);
+	    } finally {
+		for (int i = 0; i < ids.length; i++) {
+		    unregisterWaitingOn(ids[i], wait_id);
+		}
+	    }
 	}
+
+	if (DEBUG) {
+	    System.err.println("ilockFirst(" + ids[result] + ")");
+	}
+	lock[ids[result]].v--;
+
+	return result;
     }
 
 
@@ -521,36 +504,40 @@ outer:
      * not been initialized or has been cleared.
      */
     public int trylockFirst(int[] ids) {
-	mon.lock();
-	try {
-	    int		result = -1;
+	mon.checkImOwner();
 
-	    for (int i = 0; i < ids.length; i++) {
-		if (!lock[ids[i]].m) {
-		    throw new IllegalLockStateException("uninitialized lock");
-		}
+	int		result = -1;
+
+	for (int i = 0; i < ids.length; i++) {
+	    if (!lock[ids[i]].m) {
+		throw new IllegalLockStateException("uninitialized lock");
 	    }
-
-	    for (int i = 0; i < ids.length; i++) {
-
-		if (lock[ids[i]].v > 0) {
-		    result = i;
-		    lock[ids[result]].v--;
-		    if (DEBUG) {
-			System.err.print("L(" + i + ")");
-		    }
-		    break;
-		}
-	    }
-
-	    return result;
-	} finally {
-	    mon.unlock();
 	}
+
+	for (int i = 0; i < ids.length; i++) {
+
+	    if (lock[ids[i]].v > 0) {
+		result = i;
+		lock[ids[result]].v--;
+		if (DEBUG) {
+		    System.err.print("L(" + i + ")");
+		}
+		break;
+	    }
+	}
+
+	return result;
     }
 
 
-    private void unlockLocked(int id) {
+    /**
+     * Unlock the lock in our array indexed by <code>id</code>
+     *
+     * @param id index into the lock array
+     */
+    public void unlock(int id) {
+	mon.checkImOwner();
+
 	if (!lock[id].m) {
 	    throw new IllegalLockStateException("uninitialized lock");
 	}
@@ -591,36 +578,17 @@ outer:
 
 
     /**
-     * Unlock the lock in our array indexed by <code>id</code>
-     *
-     * @param id index into the lock array
-     */
-    public void unlock(int id) {
-	mon.lock();
-	try {
-	    unlockLocked(id);
-	} finally {
-	    mon.unlock();
-	}
-    }
-
-
-    /**
      * Delete the lock in our array indexed by <code>id</code>
      *
      * @param id index into the lock array
      */
     public void deleteLock(int id) {
-	mon.lock();
-	try {
-	    lock[id].m = false;
-	    WaitingOn w = lock[id].front;
-	    while (w != null) {
-		lock[w.id].cv.cv_bcast();
-		w = w.next;
-	    }
-	} finally {
-	    mon.unlock();
+	mon.checkImOwner();
+	lock[id].m = false;
+	WaitingOn w = lock[id].front;
+	while (w != null) {
+	    lock[w.id].cv.cv_bcast();
+	    w = w.next;
 	}
     }
 
@@ -630,6 +598,11 @@ outer:
 	while (w != null) {
 	    Lock lck = lock[w.id];
 	    if (w.id != 0 && lck.interrupts < interrupts) {
+		if (DEBUG) {
+		    System.err.println(NetIbis.hostName()
+			    + ": interrupt dependent id " + w.id
+			    + "; intpts " + interrupts);
+		}
 		lck.interrupts = interrupts;
 		lck.cv.cv_bcast();
 	    }
@@ -637,6 +610,11 @@ outer:
 	}
 	Lock lck = lock[id];
 	if (lck.front != null && lck.interrupts < interrupts && id != 0) {
+	    if (DEBUG) {
+		System.err.println(NetIbis.hostName()
+			+ ": interrupt own id " + id
+		       	+ "; intpts " + interrupts);
+	    }
 	    lck.interrupts = interrupts;
 	    lck.cv.cv_bcast();
 	}
@@ -652,13 +630,9 @@ outer:
      * @param id index into the lock array
      */
     public void interrupt(int id) {
-	mon.lock();
+	mon.checkImOwner();
 	interrupts++;
-	try {
-	    interruptLocked(id);
-	} finally {
-	    mon.unlock();
-	}
+	interruptLocked(id);
     }
 
 
@@ -671,14 +645,10 @@ outer:
      * @param lockIds indices into the lock array
      */
     public void interrupt(int[] lockIds) {
-	mon.lock();
-	try {
-	    interrupts++;
-	    for (int i = 0; i < lockIds.length; i++) {
-		interruptLocked(lockIds[i]);
-	    }
-	} finally {
-	    mon.unlock();
+	mon.checkImOwner();
+	interrupts++;
+	for (int i = 0; i < lockIds.length; i++) {
+	    interruptLocked(lockIds[i]);
 	}
     }
 

@@ -9,6 +9,10 @@ import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetPriorityMutex;
 import ibis.impl.net.InterruptedIOException;
+
+import ibis.util.Monitor;
+import ibis.util.TypedProperties;
+
 import ibis.ipl.Ibis;
 
 import java.io.IOException;
@@ -24,9 +28,14 @@ public final class Driver extends NetDriver {
 	//private static native void gm_init();
 	//private static native void gm_exit();
 
-        static NetMutex         gmReceiveLock = null;
-        static NetPriorityMutex gmAccessLock  = null;
+	static final boolean	DEBUG = false; // true; // false;
+
+	static final boolean	VERBOSE_INTPT = DEBUG; // true; // false;
+
+        static Monitor		gmAccessLock  = null;
         static NetLockArray     gmLockArray   = null;
+
+	static final boolean	PRIORITY = TypedProperties.booleanProperty("ibis.net.gm.prioritymutex", true);
 
 	static final int        mtu = 2*1024*1024;
 
@@ -70,12 +79,13 @@ public final class Driver extends NetDriver {
                 }
 
 		Ibis.loadLibrary("net_ibis_gm");
-                gmReceiveLock = new NetMutex(false);
 
-                gmAccessLock = new NetPriorityMutex(false);
+                gmAccessLock = new Monitor(PRIORITY);
 
-                gmLockArray = new NetLockArray();
+                gmLockArray = new NetLockArray(gmAccessLock);
+		gmAccessLock.lock();
                 gmLockArray.initLock(0, false);
+		gmAccessLock.unlock();
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 		    public void run() {
@@ -121,6 +131,10 @@ public final class Driver extends NetDriver {
 	 */
 	public Driver(NetIbis ibis) {
 		super(ibis);
+
+		if (! PRIORITY && ibis.closedPoolRank() == 0) {
+		    System.err.println("No priority mutex in NetGM");
+		}
 	}
 
 	/**
@@ -160,11 +174,13 @@ public final class Driver extends NetDriver {
 
 
 	protected void interruptPump(int[] lockIds) throws IOException {
-System.err.println(NetIbis.poolInfo.hostName()
-	// + " "
-	// + Thread.currentThread()
-	+ ":********** perform interrupt");
-// Thread.dumpStack();
+	    if (VERBOSE_INTPT) {
+		System.err.println(NetIbis.hostName()
+			// + " "
+			// + Thread.currentThread()
+			+ ":********** perform interrupt, Driver.interrupts " + (interrupts + 1));
+		// Thread.dumpStack();
+	    }
 	    gmLockArray.interrupt(lockIds);
 	    interrupts++;
 	}
@@ -175,12 +191,16 @@ System.err.println(NetIbis.poolInfo.hostName()
 	}
 
 
+	/* Must hold gmAccessLock on entry/exit */
         private int pump(int interrupts, int lockId, int[] lockIds)
 		throws IOException {
 	    int result;
-// System.err.print(NetIbis.poolInfo.hostName() + " " + Thread.currentThread() + " [b");
-// for (int i = 0; i < lockIds.length - 1; i++)
-// System.err.print(lockIds[i] + ",");
+	    if (DEBUG) {
+		System.err.print(NetIbis.hostName() + " "
+				  + Thread.currentThread() + " [b");
+		for (int i = 0; i < lockIds.length - 1; i++)
+		System.err.print(lockIds[i] + ",");
+	    }
 
 	    if (TIMINGS) {
 		t_poll.start();
@@ -201,14 +221,12 @@ System.err.println(NetIbis.poolInfo.hostName()
 		try {
 		    boolean locked;
 		    do {
-			gmAccessLock.lock(false);
 // System.err.print(">");
 			nGmThread();
 // System.err.print("<");
-			gmAccessLock.unlock();
 
 			if (interrupts != this.interrupts) {
-			    throw new InterruptedIOException("got interrupted");
+			    throw new InterruptedIOException("got interrupted, Driver.interrupts " + this.interrupts + " was " + interrupts);
 			}
 
 			if (lockId == -1) {
@@ -220,7 +238,9 @@ System.err.println(NetIbis.poolInfo.hostName()
 			if (locked) {
 			    break;
 			} else {
+			    gmAccessLock.unlock();
 			    Thread.yield();
+			    gmAccessLock.lock(false);
 			}
 		    } while (true);
 		} finally {
@@ -239,24 +259,29 @@ System.err.println(NetIbis.poolInfo.hostName()
 	    if (TIMINGS) {
 		t_poll.stop();
 	    }
-// System.err.println("b" + lockIds[result] + "]");
+	    if (DEBUG) {
+		System.err.println("b" + lockIds[result] + "]");
+	    }
 
 	    return result;
         }
 
 
+	/* Must hold gmAccessLock on entry/exit */
         protected int blockingPump(int interrupts, int[] lockIds)
 	    	throws IOException {
 	    return pump(interrupts, -1, lockIds);
 	}
 
 
+	/* Must hold gmAccessLock on entry/exit */
         protected void blockingPump(int interrupts, int lockId, int[] lockIds)
 	    	throws IOException {
 	    pump(interrupts, lockId, lockIds);
 	}
 
 
+	/* Must hold gmAccessLock on entry/exit */
         protected int tryPump(int []lockIds) throws IOException {
                 int result = gmLockArray.trylockFirst(lockIds);
 
@@ -265,17 +290,11 @@ System.err.println(NetIbis.poolInfo.hostName()
 			// We are NOT interested in lockIds[main], but
 			// luckily we already got that, so no fear that we
 			// get it again.
-                        if (gmAccessLock.trylock(false)) {
-                                int i = speculativePolls;
-                                do {
-                                        nGmThread();
-                                        result = gmLockArray.trylockFirst(lockIds);
-                                } while (result == -1 && --i > 0);
-
-                                gmAccessLock.unlock();
-                        } else {
-                                result = gmLockArray.trylockFirst(lockIds);
-                        }
+			int i = speculativePolls;
+			do {
+				nGmThread();
+				result = gmLockArray.trylockFirst(lockIds);
+			} while (result == -1 && --i > 0);
 
                         /* request completed, release GM main lock */
                         gmLockArray.unlock(0);
@@ -287,6 +306,7 @@ System.err.println(NetIbis.poolInfo.hostName()
         }
 
 
+	/* Must hold gmAccessLock on entry/exit */
         protected boolean tryPump(int lockId, int []lockIds) throws IOException {
                 int result = gmLockArray.trylockFirst(lockIds);
 
@@ -298,17 +318,11 @@ System.err.println(NetIbis.poolInfo.hostName()
                         boolean value = false;
 
                         /* got GM main lock, let's pump */
-                        if (gmAccessLock.trylock(false)) {
-                                int i = speculativePolls;
-                                do {
-                                        nGmThread();
-                                        value = gmLockArray.trylock(lockId);
-                                } while (!value && --i > 0);
-
-                                gmAccessLock.unlock();
-                        } else {
-                                value = gmLockArray.trylock(lockId);
-                        }
+			int i = speculativePolls;
+			do {
+				nGmThread();
+				value = gmLockArray.trylock(lockId);
+			} while (!value && --i > 0);
 
                         /* request completed, release GM main lock */
                         gmLockArray.unlock(0);

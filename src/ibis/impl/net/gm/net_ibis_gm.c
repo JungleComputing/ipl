@@ -937,7 +937,7 @@ ni_gm_access_lock_init(JNIEnv                *env,
                 driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
                 assert(driver_class);
 
-                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmAccessLock", "Libis/impl/net/NetPriorityMutex;");
+                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmAccessLock", "Libis/util/Monitor;");
                 assert(fid);
 
                 alock_obj          = (*env)->GetStaticObjectField(env, driver_class, fid);

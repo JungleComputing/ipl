@@ -369,7 +369,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
         private void initDebugStreams() {
                 sendPortMessageId = sendPortCount++;
-                sendPortMessageRank = ((NetIbis)type.getIbis())._closedPoolRank();
+                sendPortMessageRank = ((NetIbis)type.getIbis()).closedPoolRank();
                 sendPortTracePrefix = "_s"+sendPortMessageRank+"-"+sendPortMessageId+"_ ";
 
                 String s = "//"+type.name()+" sendPort("+name+")/";
@@ -592,7 +592,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		emptyMsg = true;
                 output.initSend();
                 if (trace.on()) {
-                        final String messageId = (((NetIbis)type.getIbis())._closedPoolRank())+"-"+sendPortMessageId+"-"+(messageCount++);
+                        final String messageId = (((NetIbis)type.getIbis()).closedPoolRank())+"-"+sendPortMessageId+"-"+(messageCount++);
                         trace.disp(sendPortTracePrefix, "message "+messageId+" send to "+receiversPrefixes+"-->");
                         writeString(messageId);
                 }

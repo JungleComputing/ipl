@@ -187,7 +187,7 @@ public final class NetServiceLink {
                 try {
                         socket = ss.accept();
 			if (DEBUG) {
-			    System.err.println(this + "@" + NetIbis.poolInfo.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
+			    System.err.println(this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
 			}
                 } catch (SocketException e) {
                         throw new InterruptedIOException(e);
@@ -215,7 +215,7 @@ public final class NetServiceLink {
 
 		socket = new Socket(raddr, rport);
 		if (DEBUG) {
-		    System.err.println(this + "@" + NetIbis.poolInfo.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " Socket - connect to " + raddr + "/" + rport);
+		    System.err.println(this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " Socket - connect to " + raddr + "/" + rport);
 		}
         }
 

@@ -4,6 +4,7 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferFactoryImpl;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
@@ -96,7 +97,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                 gmDriver = (Driver)driver;
 
-                Driver.gmAccessLock.lock(false);
+                Driver.gmAccessLock.lock();
                 deviceHandle = Driver.nInitDevice(0);
                 outputHandle = nInitOutput(deviceHandle);
                 Driver.gmAccessLock.unlock();
@@ -125,7 +126,7 @@ public final class GmOutput extends NetBufferedOutput {
                         throw new Error("connection already established");
                 }
 
-                Driver.gmAccessLock.lock(false);
+                Driver.gmAccessLock.lock();
                 lnodeId = nGetOutputNodeId(outputHandle);
                 lportId = nGetOutputPortId(outputHandle);
                 lmuxId  = nGetOutputMuxId(outputHandle);
@@ -161,7 +162,7 @@ public final class GmOutput extends NetBufferedOutput {
 		os.writeObject(lInfo);
 		os.flush();
 
-		Driver.gmAccessLock.lock(false);
+		Driver.gmAccessLock.lock();
 		nConnectOutput(outputHandle, rnodeId, rportId, rmuxId);
 		Driver.gmAccessLock.unlock();
 
@@ -193,7 +194,9 @@ public final class GmOutput extends NetBufferedOutput {
 		} catch (InterruptedIOException e) {
 		    // try once more
 		    interrupted = true;
-		    System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+		    if (Driver.VERBOSE_INTPT) {
+			System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+		    }
 		}
 	    } while (interrupted);
 	}
@@ -212,7 +215,9 @@ public final class GmOutput extends NetBufferedOutput {
 		} catch (InterruptedIOException e) {
 		    // try once more
 		    interrupted = true;
-		    System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+		    if (Driver.VERBOSE_INTPT) {
+			System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+		    }
 		}
 	    } while (interrupted);
 	}
@@ -221,6 +226,7 @@ public final class GmOutput extends NetBufferedOutput {
 	/**
 	 * Flush the buffers that the native layer has built up.
 	 */
+	/* Must hold gmAccessLock on entry/exit */
 	private void flushAllBuffers() throws IOException {
 	    if (! mustFlush) {
 		return;
@@ -228,9 +234,7 @@ public final class GmOutput extends NetBufferedOutput {
 
 // System.err.println(this + ": Now flush the buffers");
 // Thread.dumpStack();
-	    Driver.gmAccessLock.lock(true);
 	    nFlush(outputHandle);
-	    Driver.gmAccessLock.unlock();
 	    mustFlush = false;
 	    /* Wait for buffer send completion */
 	    pump();
@@ -244,37 +248,47 @@ public final class GmOutput extends NetBufferedOutput {
 	    flushing++;
 	    super.flushBuffer();
 // System.err.println(this + ": past super.flushBuffer()");
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    flushAllBuffers();
+	    Driver.gmAccessLock.unlock();
+	    flushing--;
+	}
+
+
+	private void flushBufferLocked() throws IOException {
+// Thread.dumpStack();
+	    flushing++;
+	    Driver.gmAccessLock.unlock();
+	    super.flushBuffer();
+// System.err.println(this + ": past super.flushBuffer()");
+	    Driver.gmAccessLock.lock();
 	    flushAllBuffers();
 	    flushing--;
 	}
 
-	/**
-	 * Pre=postcondition: caller must have Driver.gmAccesslock
-	 */
+
+	/* Must hold gmAccessLock on entry/exit */
 	private boolean tryFlush(int length) throws IOException {
 	    boolean mustFlush = nTryFlush(outputHandle,
 					  length + available());
 	    if (mustFlush) {
-		Driver.gmAccessLock.unlock();
-		flushBuffer();
-		Driver.gmAccessLock.lock(true);
+		flushBufferLocked();
 	    }
 	    return mustFlush;
 	}
 
+	/* Must hold gmAccessLock on entry/exit */
 	private void sendRequest(int offset, int length) throws IOException {
 	    if (flushing > 0) {
 		flushAllBuffers();
 	    } else {
-		flushBuffer();
+		flushBufferLocked();
 	    }
 
 // System.err.print("[");
 // System.err.println("Post a request");
 	    /* Post the 'request' */
-	    Driver.gmAccessLock.lock(true);
 	    nSendRequest(outputHandle, offset, length);
-	    Driver.gmAccessLock.unlock();
 
 // System.err.println("Wait for request sent completion");
 	    /* Wait for 'request' send completion */
@@ -296,7 +310,12 @@ public final class GmOutput extends NetBufferedOutput {
 	 * other typed buffers that may have been pushed earlier.
          */
         public void sendByteBuffer(NetSendBuffer b) throws IOException {
-                log.in();
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    boolean locked = true;
+
+	    try {
 
                 if (b.length > Driver.packetMTU) {
                         /* Post the 'request' */
@@ -305,9 +324,7 @@ public final class GmOutput extends NetBufferedOutput {
 			sendRequest(b.base, b.length);
 
                         /* Post the 'buffer' */
-                        Driver.gmAccessLock.lock(true);
                         nSendBuffer(outputHandle, b.data, b.base, b.length);
-                        Driver.gmAccessLock.unlock();
 
                         /* Wait for 'buffer' send completion */
                         gmDriver.blockingPump(gmDriver.interrupts(), lockId, lockIds);
@@ -317,9 +334,7 @@ public final class GmOutput extends NetBufferedOutput {
 // System.err.print("<*");
 // System.err.println("Send lockId " + lockId + " byte buffer " + b + " offset " + b.base + " size " + b.length);
 // Thread.dumpStack();
-                        Driver.gmAccessLock.lock(true);
                         nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);
-                        Driver.gmAccessLock.unlock();
 
 			/* @@@@@@@@@@@@@@@@@ IS THIS CORRECT?????????????? */
 			mustFlush = true;
@@ -327,10 +342,17 @@ public final class GmOutput extends NetBufferedOutput {
                 }
 
 		if (! b.ownershipClaimed) {
+			Driver.gmAccessLock.unlock();
 			b.free();
+			locked = false;
 		}
 
+	    } finally {
+		if (locked) {
+		    Driver.gmAccessLock.unlock();
+		}
                 log.out();
+	    }
         }
 
         /**
@@ -341,7 +363,7 @@ public final class GmOutput extends NetBufferedOutput {
 // System.err.println(this + ": close");
 // Thread.dumpStack();
                 if (rpn == num) {
-                        Driver.gmAccessLock.lock(true);
+                        Driver.gmAccessLock.lock();
                         Driver.gmLockArray.deleteLock(lockId);
 
                         if (outputHandle != 0) {
@@ -367,7 +389,7 @@ public final class GmOutput extends NetBufferedOutput {
                 log.in();
                 rpn = null;
 
-                Driver.gmAccessLock.lock(true);
+                Driver.gmAccessLock.lock();
                 Driver.gmLockArray.deleteLock(lockId);
 
                 if (outputHandle != 0) {
@@ -386,8 +408,12 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         public void writeArray(boolean [] b, int o, int l) throws IOException {
-                // No, we aggregate and flush explicitly: flushBuffer();
 // System.err.println("Send boolean array; byte offset " + o + " size " + l);
+
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    try {
 
                 while (l > 0) {
                         int _l = 0;
@@ -398,9 +424,7 @@ public final class GmOutput extends NetBufferedOutput {
 				sendRequest(o, l);
 
                                 /* Post the 'buffer' */
-                                Driver.gmAccessLock.lock(true);
                                 nSendBooleanBuffer(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
                                 pump();
@@ -408,10 +432,8 @@ public final class GmOutput extends NetBufferedOutput {
                         } else {
                                 _l = l;
 
-                                Driver.gmAccessLock.lock(true);
 				tryFlush(_l);
                                 nSendBooleanBufferIntoRequest(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
 				mustFlush = true;
                         }
@@ -419,6 +441,11 @@ public final class GmOutput extends NetBufferedOutput {
                         l -= _l;
                         o += _l;
                 }
+
+	    } finally {
+		Driver.gmAccessLock.unlock();
+                log.out();
+	    }
         }
 
 	/**
@@ -429,9 +456,12 @@ public final class GmOutput extends NetBufferedOutput {
 	 * with the buffering used in NetGM.
 	 */
         public void writeArray(byte [] b, int o, int l) throws IOException {
-                // No, we aggregate and flush explicitly: flushBuffer();
-
 // System.err.println("Send byte array; byte offset " + o + " size " + l);
+
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    try {
 
                 while (l > 0) {
                         int _l = 0;
@@ -443,9 +473,7 @@ public final class GmOutput extends NetBufferedOutput {
 				sendRequest(o, l);
 
                                 // Post the 'buffer'
-                                Driver.gmAccessLock.lock(true);
                                 nSendByteBuffer(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
                                 // Wait for 'buffer' send completion
                                 pump();
@@ -453,10 +481,8 @@ public final class GmOutput extends NetBufferedOutput {
                         } else {
                                 _l = l;
 
-                                Driver.gmAccessLock.lock(true);
 				tryFlush(_l);
                                 nSendByteBufferIntoRequest(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
 				mustFlush = true;
                         }
@@ -464,10 +490,18 @@ public final class GmOutput extends NetBufferedOutput {
                         l -= _l;
                         o += _l;
                 }
+
+	    } finally {
+		Driver.gmAccessLock.unlock();
+                log.out();
+	    }
         }
 
         public void writeArray(char [] b, int o, int l) throws IOException {
-                // No, we aggregate and flush explicitly: flushBuffer();
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    try {
 
                 l <<= 1;
                 o <<= 1;
@@ -482,9 +516,7 @@ public final class GmOutput extends NetBufferedOutput {
 				sendRequest(o, l);
 
                                 /* Post the 'buffer' */
-                                Driver.gmAccessLock.lock(true);
                                 nSendCharBuffer(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
                                 pump();
@@ -492,10 +524,8 @@ public final class GmOutput extends NetBufferedOutput {
                         } else {
                                 _l = l;
 
-                                Driver.gmAccessLock.lock(true);
 				tryFlush(_l);
                                 nSendCharBufferIntoRequest(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
 				mustFlush = true;
                         }
@@ -503,10 +533,18 @@ public final class GmOutput extends NetBufferedOutput {
                         l -= _l;
                         o += _l;
                 }
+
+	    } finally {
+		Driver.gmAccessLock.unlock();
+                log.out();
+	    }
         }
 
         public void writeArray(short [] b, int o, int l) throws IOException {
-                // No, we aggregate and flush explicitly: flushBuffer();
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    try {
 
                 l <<= 1;
                 o <<= 1;
@@ -523,9 +561,7 @@ public final class GmOutput extends NetBufferedOutput {
 				sendRequest(o, l);
 
                                 /* Post the 'buffer' */
-                                Driver.gmAccessLock.lock(true);
                                 nSendShortBuffer(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
                                 pump();
@@ -533,11 +569,9 @@ public final class GmOutput extends NetBufferedOutput {
                         } else {
                                 _l = l;
 
-                                Driver.gmAccessLock.lock(true);
 // System.err.println("Locked access lock");
 				tryFlush(_l);
                                 nSendShortBufferIntoRequest(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
 				mustFlush = true;
                         }
@@ -545,10 +579,18 @@ public final class GmOutput extends NetBufferedOutput {
                         l -= _l;
                         o += _l;
                 }
+
+	    } finally {
+		Driver.gmAccessLock.unlock();
+                log.out();
+	    }
         }
 
         public void writeArray(int [] b, int o, int l) throws IOException {
-                // No, we aggregate and flush explicitly: flushBuffer();
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    try {
 
                 l <<= 2;
                 o <<= 2;
@@ -564,9 +606,7 @@ public final class GmOutput extends NetBufferedOutput {
 				sendRequest(o, l);
 
                                 /* Post the 'buffer' */
-                                Driver.gmAccessLock.lock(true);
                                 nSendIntBuffer(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
                                 pump();
@@ -576,10 +616,8 @@ public final class GmOutput extends NetBufferedOutput {
 // Thread.dumpStack();
                                 _l = l;
 
-                                Driver.gmAccessLock.lock(true);
 				tryFlush(_l);
                                 nSendIntBufferIntoRequest(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
 				mustFlush = true;
                         }
@@ -587,10 +625,18 @@ public final class GmOutput extends NetBufferedOutput {
                         l -= _l;
                         o += _l;
                 }
+
+	    } finally {
+		Driver.gmAccessLock.unlock();
+                log.out();
+	    }
         }
 
         public void writeArray(long [] b, int o, int l) throws IOException {
-                // No, we aggregate and flush explicitly: flushBuffer();
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    try {
 
                 l <<= 3;
                 o <<= 3;
@@ -605,9 +651,7 @@ public final class GmOutput extends NetBufferedOutput {
 				sendRequest(o, l);
 
                                 /* Post the 'buffer' */
-                                Driver.gmAccessLock.lock(true);
                                 nSendLongBuffer(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
                                 pump();
@@ -615,10 +659,8 @@ public final class GmOutput extends NetBufferedOutput {
                         } else {
                                 _l = l;
 
-                                Driver.gmAccessLock.lock(true);
 				tryFlush(_l);
                                 nSendLongBufferIntoRequest(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
 				mustFlush = true;
                         }
@@ -626,10 +668,18 @@ public final class GmOutput extends NetBufferedOutput {
                         l -= _l;
                         o += _l;
                 }
+
+	    } finally {
+		Driver.gmAccessLock.unlock();
+                log.out();
+	    }
         }
 
         public void writeArray(float [] b, int o, int l) throws IOException {
-                // No, we aggregate and flush explicitly: flushBuffer();
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    try {
 
                 l <<= 2;
                 o <<= 2;
@@ -644,9 +694,7 @@ public final class GmOutput extends NetBufferedOutput {
 				sendRequest(o, l);
 
                                 /* Post the 'buffer' */
-                                Driver.gmAccessLock.lock(true);
                                 nSendFloatBuffer(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
                                 pump();
@@ -654,10 +702,8 @@ public final class GmOutput extends NetBufferedOutput {
                         } else {
                                 _l = l;
 
-                                Driver.gmAccessLock.lock(true);
 				tryFlush(_l);
                                 nSendFloatBufferIntoRequest(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
 				mustFlush = true;
                         }
@@ -665,10 +711,18 @@ public final class GmOutput extends NetBufferedOutput {
                         l -= _l;
                         o += _l;
                 }
+
+	    } finally {
+		Driver.gmAccessLock.unlock();
+                log.out();
+	    }
         }
 
         public void writeArray(double [] b, int o, int l) throws IOException {
-                // No, we aggregate and flush explicitly: flushBuffer();
+	    log.in();
+
+	    Driver.gmAccessLock.lock(Driver.PRIORITY);
+	    try {
 
                 l <<= 3;
                 o <<= 3;
@@ -683,9 +737,7 @@ public final class GmOutput extends NetBufferedOutput {
 				sendRequest(o, l);
 
                                 /* Post the 'buffer' */
-                                Driver.gmAccessLock.lock(true);
                                 nSendDoubleBuffer(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
                                 pump();
@@ -693,10 +745,8 @@ public final class GmOutput extends NetBufferedOutput {
                         } else {
                                 _l = l;
 
-                                Driver.gmAccessLock.lock(true);
 				tryFlush(_l);
                                 nSendDoubleBufferIntoRequest(outputHandle, b, o, _l);
-                                Driver.gmAccessLock.unlock();
 
 				mustFlush = true;
                         }
@@ -704,5 +754,12 @@ public final class GmOutput extends NetBufferedOutput {
                         l -= _l;
                         o += _l;
                 }
+
+	    } finally {
+		Driver.gmAccessLock.unlock();
+                log.out();
+	    }
         }
+
+
 }

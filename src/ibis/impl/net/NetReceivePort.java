@@ -137,6 +137,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                 //inputLock.unlock();
                                                 connectionLock.unlock();
                                         } catch (InterruptedIOException e) {
+System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                                                 continue connect_loop;
                                         } catch (Exception e) {
                                                 System.err.println(e.getMessage());
@@ -551,14 +552,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         private void initDebugStreams() {
                 receivePortMessageId = receivePortCount++;
-                receivePortMessageRank = ((NetIbis)type.getIbis())._closedPoolRank();
+                receivePortMessageRank = ((NetIbis)type.getIbis()).closedPoolRank();
                 receivePortTracePrefix = "_r"+receivePortMessageRank+"-"+receivePortMessageId+"_ ";
 
                 String  s      = "//"+type.name()+" receivePort("+name+")/";
 
                 boolean log    = type.getBooleanStringProperty(null, "Log",   false);
                 boolean trace  = type.getBooleanStringProperty(null, "Trace", false);
-                boolean disp   = type.getBooleanStringProperty(null, "Disp",  true);
+                boolean disp   = type.getBooleanStringProperty(null, "Disp",  ibis.util.TypedProperties.booleanProperty("net.disp"));
 
                 this.log       = new NetLog(log,   s, "LOG");
                 this.trace     = new NetLog(trace, s, "TRACE");

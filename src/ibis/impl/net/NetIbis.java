@@ -14,6 +14,7 @@ import ibis.util.IbisIdentifierTable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
@@ -98,9 +99,16 @@ public final class NetIbis extends Ibis {
 	static {
 	    try {
 		poolInfo = new ibis.util.PoolInfo();
+		hostName = poolInfo.hostName();
 	    } catch (ibis.ipl.IbisException e) {
-		System.err.println("What's THIS: " + e);
-		// Let it be null then
+		// OK, no pool, so this better not be closed world
+		try {
+		    InetAddress addr = InetAddress.getLocalHost();
+		    addr = InetAddress.getByName(addr.getHostAddress());
+		    hostName = addr.getHostName();
+		} catch (UnknownHostException e1) {
+		    // Ignore if it won't work
+		}
 	    }
 	}
 
@@ -111,6 +119,12 @@ public final class NetIbis extends Ibis {
          * The master {@link Ibis} instance for this process.
          */
 	static volatile NetIbis globalIbis;
+
+	private static String hostName;
+
+	public static String hostName() {
+	    return hostName;
+	}
 
 	/**
 	 * Default constructor.
@@ -150,9 +164,13 @@ public final class NetIbis extends Ibis {
 		    }
 		}
 
-		closedPoolSize = poolInfo.size();
-		closedPoolRank = poolInfo.rank();
-		// System.err.println("I am node " + closedPoolRank + " out of " + closedPoolSize);
+		if (poolInfo == null) {
+		    closedPoolRank = joinedIbises.indexOf(identifier());
+		} else {
+		    closedPoolSize = poolInfo.size();
+		    closedPoolRank = poolInfo.rank();
+		    // System.err.println("I am node " + closedPoolRank + " out of " + closedPoolSize);
+		}
 	}
 
 	/**
@@ -335,8 +353,8 @@ public final class NetIbis extends Ibis {
          */
 	public void join(IbisIdentifier joinIdent) {
 		synchronized (this) {
-			if(!open && resizeHandler != null) {
-				joinedIbises.add(joinIdent);
+			joinedIbises.add(joinIdent);
+			if(!open && resizeHandler == null) {
 				return;
 			}
 
@@ -358,7 +376,7 @@ public final class NetIbis extends Ibis {
          */
 	public void leave(IbisIdentifier leaveIdent) {
 		synchronized (this) {
-			if(!open && resizeHandler != null) {
+			if(!open && resizeHandler == null) {
 				leftIbises.add(leaveIdent);
 				return;
 			}
@@ -416,11 +434,22 @@ public final class NetIbis extends Ibis {
 		__.unimplemented__("poll");
 	}
 
-        protected int _closedPoolRank() {
-                return closedPoolRank;
+        public int closedPoolRank() {
+	    if (closedPoolRank == -1) {
+		closedPoolRank = joinedIbises.indexOf(identifier());
+	    }
+	    if (closedPoolRank == -1) {
+		throw new Error("closedPoolRank only defined in closed world");
+	    }
+
+	    return closedPoolRank;
         }
 
-        protected int _closedPoolSize() {
+        public int closedPoolSize() {
+	    if (closedPoolSize == 0) {
+		throw new Error("closedPoolSize only defined in closed world");
+	    } else {
                 return closedPoolSize;
+	    }
         }
 }
