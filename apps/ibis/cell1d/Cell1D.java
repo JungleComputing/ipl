@@ -10,7 +10,7 @@ interface Config {
     static final boolean traceCommunication = false;
     static final boolean showProgress = true;
     static final boolean traceClusterResizing = true;
-    static final int BOARDSIZE = 30000;
+    static final int BOARDSIZE = 20000;
     static final int GENERATIONS = 10;
 }
 
@@ -310,6 +310,7 @@ class Cell1D implements Config {
                     prev = curr;
                     curr = next;
                     next = oldboard[i+1];
+                    byte res[] = newboard[i];
                     for( int j=1; j<=BOARDSIZE; j++ ){
                         int neighbours =
                             prev[j-1] +
@@ -321,7 +322,7 @@ class Cell1D implements Config {
                             next[j] +
                             next[j+1];
                         boolean alive = (neighbours == 3) || ((neighbours == 2) && (oldboard[i][j]==1));
-                        newboard[i][j] = alive?(byte) 1:(byte) 0;
+                        res[j] = alive?(byte) 1:(byte) 0;
                     }
                 }
                 if( (me % 2) == 0 ){
