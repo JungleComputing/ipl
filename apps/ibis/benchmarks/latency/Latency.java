@@ -9,8 +9,59 @@ interface Config {
 }
 
 class Computer extends Thread {
+
+	boolean stop = false;
+	long cycles = 0;
+	long start  = 0;
+	
+	final synchronized void printCycles(String temp) { 
+		
+		long tmp = start;
+		start = System.currentTimeMillis();
+
+		double result = ((double) cycles) / ((start-tmp)/1000.0);
+		cycles = 0;
+		
+		System.err.println(temp + " cycles/s " + result);		
+	} 
+
+	final synchronized void reset() { 
+		start = System.currentTimeMillis();
+		cycles = 0;
+	} 
+
+	final synchronized void setStop() { 
+		stop = true;
+	} 
+
+	final synchronized boolean getStop() { 
+		return stop;
+	} 
+
+	final void flip(double [] src, double [] dst, double mult) { 
+		for (int i=0;i<src.length;i++) { 
+			dst[i] = mult*src[src.length-i-1];
+		}
+	} 
+
 	public void run() {
-		while(true);
+
+		double [] a = new double[4096];
+		double [] b = new double[4096];
+
+		for (int i=0;i<4096;i++) { 
+			a[i] = i*0.8;
+		} 
+
+		start = System.currentTimeMillis();
+
+		while (!getStop()){ 
+			synchronized (this) { 
+				cycles++;
+			} 
+			flip(a, b, 0.5);
+			flip(a, b, 2.0);
+		}			
 	}
 }
 
@@ -23,100 +74,89 @@ class Sender implements Config {
 		this.sport = sport;
 	} 
 	
-	void send(int count) throws Exception {
-		// warmup
-		for(int i = 0; i< count; i++) {
-			if(DEBUG) {
-				System.out.println("LAT: get new message");
+	void send(int count, int repeat, Computer c) throws Exception {
+
+		for (int r=0;r<repeat;r++) { 
+
+			long time = System.currentTimeMillis();
+
+			for(int i = 0; i< count; i++) {
+				WriteMessage writeMessage = sport.newMessage();
+				if(DEBUG) {
+					System.out.println("LAT: send message");
+				}
+				writeMessage.send();
+				if(DEBUG) {
+					System.out.println("LAT: finish message");
+				}
+				writeMessage.finish();
+				if(DEBUG) {
+					System.out.println("LAT: message done");
+				}
+
+				ReadMessage readMessage = rport.receive();
+				readMessage.finish();
 			}
-			WriteMessage writeMessage = sport.newMessage();
-			if(DEBUG) {
-				System.out.println("LAT: send message");
-			}
-			writeMessage.send();
-			if(DEBUG) {
-				System.out.println("LAT: finish message");
-			}
-			writeMessage.finish();
-			if(DEBUG) {
-				System.out.println("LAT: message done");
-			}
-			
-			ReadMessage readMessage = rport.receive();
-			readMessage.finish();
+
+			time = System.currentTimeMillis() - time;
+
+			double speed = (time * 1000.0) / (double)count;
+			System.err.println("Latency: " + count + " calls took " + (time/1000.0) + " seconds, time/call = " + speed + " micros");
+			if (c != null) c.printCycles("Sender");
 		}
-
-		// test
-		long time = System.currentTimeMillis();
-
-		for(int i = 0; i< count; i++) {
-			if(DEBUG) {
-				System.out.println("LAT: get new message");
-			}
-			WriteMessage writeMessage = sport.newMessage();
-			if(DEBUG) {
-				System.out.println("LAT: send message");
-			}
-			writeMessage.send();
-			if(DEBUG) {
-				System.out.println("LAT: finish message");
-			}
-			writeMessage.finish();
-			if(DEBUG) {
-				System.out.println("LAT: message done");
-			}
-			
-			ReadMessage readMessage = rport.receive();
-			readMessage.finish();
-		}
-
-		time = System.currentTimeMillis() - time;
-
-		double speed = (time * 1000.0) / (double)count;
-		System.err.println("Latency: " + count + " calls took " + (time/1000.0) + " seconds, time/call = " + speed + " micros");
 	}
-} 
+}
 
 class ExplicitReceiver implements Config { 
 
 	SendPort sport;
 	ReceivePort rport;
-
-	ExplicitReceiver(ReceivePort rport, SendPort sport) {
+	Computer c;
+	
+	ExplicitReceiver(ReceivePort rport, SendPort sport, Computer c) {
 		this.rport = rport;
 		this.sport = sport;
+		this.c = c;
 	} 
 
-	void receive(int count) throws IbisIOException {
-		for(int i = 0; i< count; i++) {
-			if(DEBUG) {
-				System.out.println("LAT: in receive");
+	void receive(int count, int repeat) throws IbisIOException {
+		
+		for (int r=0;r<repeat;r++) {
+			for(int i = 0; i< count; i++) {
+				if(DEBUG) {
+					System.out.println("LAT: in receive");
+				}
+				ReadMessage readMessage = rport.receive();
+				if(DEBUG) {
+					System.out.println("LAT: receive done");
+				}
+				readMessage.finish();
+				if(DEBUG) {
+					System.out.println("LAT: finish done");
+				}
+				
+				WriteMessage writeMessage = sport.newMessage();
+				writeMessage.send();
+				writeMessage.finish();
 			}
-			ReadMessage readMessage = rport.receive();
-			if(DEBUG) {
-				System.out.println("LAT: receive done");
-			}
-			readMessage.finish();
-			if(DEBUG) {
-				System.out.println("LAT: finish done");
-			}
-
-			WriteMessage writeMessage = sport.newMessage();
-			writeMessage.send();
-			writeMessage.finish();
-		}
-	} 
+			if (c != null) c.printCycles("Server");
+		} 
+	}
 } 
 
 class UpcallReceiver implements Upcall { 
 	SendPort sport;
+	Computer c;
 	int count = 0;
 	int max;
+	int repeat;
 	boolean earlyFinish;
 	boolean delayedFinish;
-
-	UpcallReceiver(SendPort sport, int max, boolean earlyFinish, boolean delayedFinish) {
+	
+	UpcallReceiver(SendPort sport, int max, boolean earlyFinish, boolean delayedFinish, int repeat, Computer c) {
 		this.sport = sport;
+		this.c = c;
+		this.repeat = repeat;
 		this.max = max;
 		this.earlyFinish = earlyFinish;
 		this.delayedFinish = delayedFinish;
@@ -124,7 +164,7 @@ class UpcallReceiver implements Upcall {
 	
 	public void upcall(ReadMessage readMessage) { 
 
-		//		System.out.println("Got readMessage!!");
+		//		System.err.println("Got readMessage!!");
 
 		try { 
 			if(earlyFinish) {
@@ -137,7 +177,9 @@ class UpcallReceiver implements Upcall {
 
 			count++;
 
-			if (count == max) { 
+			if (c != null && (count % max == 0)) c.printCycles("Server");
+				
+			if (count == max*repeat) { 
 				synchronized (this) { 
 					notifyAll();
 				}
@@ -146,8 +188,9 @@ class UpcallReceiver implements Upcall {
 			if(delayedFinish) {
 				readMessage.finish();
 			}
+
 		} catch (Exception e) { 			
-			System.out.println("EEEEEK " + e);
+			System.err.println("EEEEEK " + e);
 			e.printStackTrace();
 		} 
 	} 
@@ -170,13 +213,17 @@ class UpcallSender implements Upcall, Config {
 	SendPort sport;
 	int count, max;
 	long time;
+	int repeat;
+	Computer c;
 	boolean earlyFinish;
 	boolean delayedFinish;
 
-	UpcallSender(SendPort sport, int count, boolean earlyFinish, boolean delayedFinish) {
+	UpcallSender(SendPort sport, int count, boolean earlyFinish, boolean delayedFinish, int repeat, Computer c) {
 		this.sport = sport;
 		this.count = 0;
 		this.max   = count;
+		this.repeat = repeat;
+		this.c = c;
 		this.earlyFinish = earlyFinish;
 		this.delayedFinish = delayedFinish;
 	} 
@@ -188,7 +235,7 @@ class UpcallSender implements Upcall, Config {
 			writeMessage.send();
 			writeMessage.finish();
 		} catch (Exception e) { 			
-			System.out.println("EEEEEK " + e);
+			System.err.println("EEEEEK " + e);
 			e.printStackTrace();
 		}
 	} 
@@ -199,22 +246,28 @@ class UpcallSender implements Upcall, Config {
 				readMessage.finish();
 			}
 
-			count++;
-
 //			System.err.println("Sending " + count);
 			
-			if (count == max) { 
+			if (count == 0) { 
 				time = System.currentTimeMillis();
-			}
+			} 
+
+			count++;
 			
-			if (count == 2*max) { 
-				time = System.currentTimeMillis() - time;
-				double speed = (time * 1000.0) / (double)max;
-				System.err.println("Latency: " + max + " calls took " + (time/1000.0) + " seconds, time/call = " + speed + " micros");
-				synchronized (this) { 
-					notifyAll();
+			if (count == max) { 
+				long temp = time;
+				time = System.currentTimeMillis();
+				double speed = ((time-temp) * 1000.0) / (double)max;
+				System.err.println("Latency: " + max + " calls took " + ((time-temp)/1000.0) + " seconds, time/call = " + speed + " micros");
+
+				count = 0;
+				repeat--;
+				if (repeat == 0) { 
+					synchronized (this) { 
+						notifyAll();
+					}
+					return;
 				}
-				return;
 			} 
 			
 			if(DEBUG) {
@@ -238,7 +291,7 @@ class UpcallSender implements Upcall, Config {
 			}
 
 		} catch (Exception e) { 			
-			System.out.println("EEEEEK " + e);
+			System.err.println("EEEEEK " + e);
 			e.printStackTrace();
 		}
 
@@ -309,10 +362,12 @@ class Latency implements Config {
 		boolean panda = false;
 		boolean ibisSer = false;
 		int count = -1;
+		int repeat = 10;
 		int rank = 0, remoteRank = 1;
 		Random r = new Random();
 		boolean compRec = false;
 		boolean compSnd = false;
+		Computer c = null;
 		boolean earlyFinish = false;
 		boolean delayedFinish = false;
 
@@ -325,6 +380,9 @@ class Latency implements Config {
 				upcallsend = true;
 			} else if(args[i].equals("-panda")) {
 				panda = true;
+			} else if(args[i].equals("-repeat")) {
+				i++;
+				repeat = Integer.parseInt(args[i]);
 			} else if(args[i].equals("-ibis")) {
 				ibisSer = true;
 			} else if(args[i].equals("-comp-rec")) {
@@ -345,7 +403,7 @@ class Latency implements Config {
 		}
 
 		if(count == -1) {
-			count = 1000;
+			count = 10000;
 		}
 
 		try {
@@ -391,7 +449,9 @@ class Latency implements Config {
 
 			if (rank == 0) { 
 				if(compSnd) {
-					new Computer().start();
+					c = new Computer();
+					c.setDaemon(true);
+					c.start();
 				}
 
 				if (!upcallsend) { 
@@ -404,9 +464,9 @@ class Latency implements Config {
 					if(DEBUG) {
 						System.out.println("LAT: starting send test");
 					}
-					sender.send(count);
+					sender.send(count, repeat, c);
 				} else {
-					UpcallSender sender = new UpcallSender(sport, count, earlyFinish, delayedFinish);
+					UpcallSender sender = new UpcallSender(sport, count, earlyFinish, delayedFinish, repeat, c);
 					rport = t.createReceivePort("test port 0", sender);
 					rport.enableConnections();
 
@@ -423,11 +483,13 @@ class Latency implements Config {
 				connect(sport, ident);
 
 				if(compRec) {
-					new Computer().start();
+					c = new Computer();
+					c.setDaemon(true);
+					c.start();
 				}
 
 				if (upcalls) {
-					UpcallReceiver receiver = new UpcallReceiver(sport, 2*count, earlyFinish, delayedFinish);
+					UpcallReceiver receiver = new UpcallReceiver(sport, count, earlyFinish, delayedFinish, repeat, c);
 					rport = t.createReceivePort("test port 1", receiver);
 					rport.enableConnections();
 					rport.enableUpcalls();
@@ -435,12 +497,12 @@ class Latency implements Config {
 				} else { 
 					rport = t.createReceivePort("test port 1");
 					rport.enableConnections();
-					ExplicitReceiver receiver = new ExplicitReceiver(rport, sport);
+
+					ExplicitReceiver receiver = new ExplicitReceiver(rport, sport, c);
 					if(DEBUG) {
 						System.out.println("LAT: starting test receiver");
 					}
-
-					receiver.receive(2*count);
+					receiver.receive(count, repeat);
 				}
 			}
 
@@ -449,8 +511,8 @@ class Latency implements Config {
                         rport.free();
 			ibis.end();
 		} catch (Exception e) { 
-			System.out.println("Got exception " + e);
-			System.out.println("StackTrace:");
+			System.err.println("Got exception " + e);
+			System.err.println("StackTrace:");
 			e.printStackTrace();
 		}
 	}
