@@ -819,18 +819,16 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @exception IOException	gets thrown when an IO error occurs.
      */
     private boolean writeTypeHandle(Object ref, Class clazz) throws IOException {
-	int hashCode = references.getHashCode(ref);
-	int handle = references.find(ref, hashCode);
+	int handle = references.lazyPut(ref, next_handle + 1);
 
-	if (handle != 0) {
+	if (handle != next_handle + 1) {
 	    writeHandle(handle);
 	    return true;
 	}
 
 	writeType(clazz);
+	next_handle++;
 
-	handle = next_handle++;
-	references.put(ref, handle, hashCode);
 	if (DEBUG) {
 	    dbPrint("writeTypeHandle: references[" + handle + "] = " + (ref == null ? "null" : ref));
 	}

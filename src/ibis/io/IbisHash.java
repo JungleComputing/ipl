@@ -129,8 +129,6 @@ final class IbisHash {
 	int h0 = hash_first(hashCode, size);
 
 	int ix = h0 + offset;
-if (ix >= dataBucket.length)
-System.err.println("find: ix " + ix + " data.length " + dataBucket.length);
 	Object b = dataBucket[ix];
 	
 	if (b == null) {
@@ -207,7 +205,7 @@ System.err.println("find: ix " + ix + " data.length " + dataBucket.length);
 		}
 		dataBucket[h0 + new_offset] = b;
 		handleBucket[h0 + new_offset] = old_handle[ix];
-		dataBucket[ix] = null;
+		old_data[ix] = null;
 	    }
 	}
 
