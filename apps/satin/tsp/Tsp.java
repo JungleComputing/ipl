@@ -139,7 +139,7 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 			}
 		}
 
-		System.out.println("tsp " + NTowns + " seed = " + seed + ", bound = " + global_minimum);
+		System.out.println("tsp " + NTowns + " seed = " + seed + ", bound = " + global_minimum + (verbose ? "verbose" : ""));
 
 		int res;
 		start = System.currentTimeMillis();

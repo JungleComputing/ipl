@@ -1,0 +1,43 @@
+#!/bin/sh
+
+#APP=Fib
+#PROBLEMSIZE=40
+RUNSIZE=32
+POOL=bla
+NAMESERVER=flits.cs.vu.nl
+NAMESERVER_PORT=5432
+
+#NAMESERVER=origin.aei-potsdam.mpg.de
+#NAMESERVER_PORT=7600
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=0 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=1 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=2 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=3 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=4 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=5 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=6 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=7 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=8 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=9 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=10 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=11 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=12 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=13 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=14 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &
+
+/usr/java/bin/java -native -Xmx400M -Dfirewall_range=7000-8000 -Dpool_host_number=15 -Dpool_total_hosts=$RUNSIZE -Dname_server_pool=$POOL -Dname_server=$NAMESERVER -Dname_server_port=$NAMESERVER_PORT -Dibis.property.file=$HOME/projects/ibis/properties -classpath $HOME/projects:. $1 $2 -satin-closed -satin-stats -satin-ibis &

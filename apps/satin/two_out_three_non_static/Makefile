@@ -1,4 +1,5 @@
 APP_OPTIONS =
+TEST_APP_OPTIONS =
 
 MAIN = TwoOutThree.java
 OUT= two_out_three
@@ -8,12 +9,6 @@ include ../config.mk
 
 satin:
 	$(IBISC_COMMAND) $(MAIN)
-
-test:
-	../../../bin/ibis_nameserver -single &
-	../../../bin/run_ibis 0 1 two_out_three_non_static localhost TwoOutThree -satin-closed > test_out 2> test_err
-	grep "application result" test_out > test_res
-	diff test_res test_goal
 
 clean:
 	rm -f $(TRASH_FILES) test_out test_err test_res

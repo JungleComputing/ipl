@@ -1,4 +1,6 @@
 APP_OPTIONS = 20 -bound 350
+SMALL_APP_OPTIONS = 19 -bound 340
+TEST_APP_OPTIONS = 11
 
 MAIN = Tsp.java
 OUT= tsp
@@ -14,20 +16,6 @@ include ../config.mk
 
 satin:
 	$(IBISC_COMMAND) -no-aborts $(MAIN)
-
-test:
-	../../../bin/ibis_nameserver -single &
-	../../../bin/run_ibis 0 1 tsp_test localhost Tsp 11 -satin-closed > test_out 2> test_err
-	grep "application result" test_out > test_res
-	diff test_res test_goal
-
-test_par:
-	../../../bin/ibis_nameserver -single &
-	rm -f test_par_out test_par_err test_par_res
-	../../../bin/run_ibis 0 2 tsp_par_test localhost Tsp 11 $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out 2>> test_par_err &
-	../../../bin/run_ibis 1 2 tsp_par_test localhost Tsp 11 $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out 2>> test_par_err
-	grep "application result" test_par_out > test_par_res
-	diff test_par_res test_goal
 
 clean:
 	rm -f $(TRASH_FILES) test_out test_err test_res test_par_out test_par_err test_par_res

@@ -23,13 +23,16 @@ class Main {
 				
 				do {
 					try { 
+						System.err.print(".");
 						Thread.sleep(1000);
 						s = (myServer) Naming.lookup("//bimbambom/bla");
 					} catch (Exception e) { 
+						System.err.println("exception: " + e);
 						// ignore.
 					} 
-				} while (s == null);		    
+				} while (s == null);
 				
+System.out.println("Calling foo");
 				s.foo();
 System.out.println("Called foo");
 				s.bar();	
@@ -62,8 +65,11 @@ System.out.println("Called bar");
 				// System.exit(0);
 
 			} else {
+				System.out.println("creating new test");
 				Test t = new Test();
+				System.out.println("creating new test done");
 				Naming.bind("//bimbambom/bla", t);
+				System.out.println("bind done");
 				Thread.sleep(100000);
 			} 
 		} catch (Exception e) { 

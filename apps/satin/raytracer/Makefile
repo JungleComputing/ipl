@@ -1,4 +1,6 @@
 APP_OPTIONS = pics/balls2_hires.nff
+SMALL_APP_OPTIONS = pics/balls2.nff
+TEST_APP_OPTIONS = pics/balls2_small.nff
 
 OUT= raytracer
 
@@ -9,22 +11,6 @@ include ../config.mk
 
 satin: 
 	$(IBISC_COMMAND) -no-aborts $(MAIN)
-
-test:
-	../../../bin/ibis_nameserver -single &
-	../../../bin/run_ibis 0 1 raytracer_test localhost Raytracer pics/balls2_small.nff -dump -satin-closed > test_out 2> test_err
-	grep "application result" test_out > test_res
-	diff test_res test_goal
-	mv out.ppm test_res_out.ppm
-	diff test_res_out.ppm test_goal.ppm
-
-test_par:
-	../../../bin/ibis_nameserver -single &
-	rm -f test_par_out test_par_err test_par_res
-	../../../bin/run_ibis 0 2 raytracer_par_test localhost Raytracer pics/balls2_small.nff $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out 2>> test_par_err &
-	../../../bin/run_ibis 1 2 raytracer_par_test localhost Raytracer pics/balls2_small.nff $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out 2>> test_par_err
-	grep "application result" test_par_out > test_par_res
-	diff test_par_res test_goal
 
 clean:
 	rm -f $(TRASH_FILES) test_out test_err test_res test_par_out test_par_err test_par_res test_res_out.ppm

@@ -217,6 +217,9 @@ final class Main {
 				} else if (args[i].equals("-sun")) { 
 					manta = false;
 					i++; 
+				} else if (args[i].equals("-ibis")) { 
+					manta = true;
+					i++; 
 				} else if (args[i].equals("-array")) { 
 					array = true;
 					i++;
@@ -255,9 +258,9 @@ final class Main {
 				} else if (args[i].equals("-retries")) { 
 					retries = Integer.parseInt(args[i+1]);
 					i += 2;
-				} else { 
-					System.err.println("Unknown option " + args[i]);
-					i++;
+				} else {
+					System.err.println("unknown option: " + args[i]);
+					System.exit(1);
 				}
 			} 
 
@@ -283,7 +286,7 @@ final class Main {
 
 			StaticProperties s = new StaticProperties();
 			if (manta) { 
-				s.add("Serialization", "manta");
+				s.add("Serialization", "ibis");
 			}
 
 			PortType t = ibis.createPortType("test type", s);			

@@ -1,4 +1,6 @@
 APP_OPTIONS = 22
+SMALL_APP_OPTIONS = 20
+TEST_APP_OPTIONS = 13
 
 MAIN = NQueens.java
 OUT= nqueens
@@ -17,20 +19,6 @@ satin:
 #	cd abort; make satin
 #	cd simple_abort; make satin
 #	cd exceptions; make satin
-
-test:
-	../../../bin/ibis_nameserver -single &
-	../../../bin/run_ibis 0 1 nqueens_test localhost NQueens 13 -satin-closed > test_out 2> test_err
-	grep "application result" test_out > test_res
-	diff test_res test_goal
-
-test_par:
-	../../../bin/ibis_nameserver -single &
-	rm -f test_par_out test_par_err test_par_res
-	../../../bin/run_ibis 0 2 nqueens_par_test localhost NQueens 13 $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out 2>> test_par_err &
-	../../../bin/run_ibis 1 2 nqueens_par_test localhost NQueens 13 $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out 2>> test_par_err
-	grep "application result" test_par_out > test_par_res
-	diff test_par_res test_goal
 
 clean:
 	rm -f $(TRASH_FILES) test_out test_err test_res test_par_out test_par_err test_par_res

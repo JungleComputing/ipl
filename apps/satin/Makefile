@@ -42,7 +42,7 @@ test:
 	done)
 	cd two_out_three; make test
 	cd two_out_three_non_static; make test
-	cd mtdf/par; make test
+	cd mtdf/par; make do_test
 
 test_par:
 	(for p in $(APPS); do \
@@ -50,7 +50,7 @@ test_par:
 		$(MAKE) $(MFLAGS) test_par) \
 	done)
 # this only works when the classlibs have been rewritten
-#	cd mtdf/par; make test_par
+#	cd mtdf/par; make do_test_par
 
 seqrun:
 	(for p in $(APPS); do \

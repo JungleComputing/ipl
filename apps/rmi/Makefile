@@ -12,3 +12,6 @@ clean:
 	rm -f $(TRASH_FILES)
 	cd latency; $(MAKE) $(MFLAGS) clean
 	cd throughput; $(MAKE) $(MFLAGS) clean
+	cd asp_toplass; $(MAKE) $(MFLAGS) clean
+	cd rmi-bench; $(MAKE) $(MFLAGS) clean
+	cd sor_toplass; $(MAKE) $(MFLAGS) clean
