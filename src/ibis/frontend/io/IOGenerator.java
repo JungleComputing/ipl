@@ -8,6 +8,10 @@ import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
 import org.apache.bcel.verifier.*;
 
+/* TODO: Deal with SerializablePersistentFields ... For now, the alternativeReadObject
+   mechanism deals with it.
+*/
+
 public class IOGenerator {
 
     class SerializationInfo { 
@@ -164,7 +168,7 @@ public class IOGenerator {
     } 
 
     boolean isIbisSerializable(JavaClass clazz) { 
-	return Repository.implementationOf(clazz, "ibis.io.Serializable");
+	return directImplementationOf(clazz, "ibis.io.Serializable");
     } 
 
     void addTargetClass(JavaClass clazz) { 
@@ -204,10 +208,10 @@ public class IOGenerator {
 	    for (int i = 0; i < super_classes.length; i++) {
 		if (isSerializable(super_classes[i])) {
 		    serializable = true;
-		    if (! directImplementationOf(super_classes[i], "ibis.io.Serializable")) {
+		    if (! isIbisSerializable(super_classes[i])) {
 			addRewriteClass(super_classes[i]);
 		    } else { 
-			    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
+			if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
 		    }
 		}
 	    }
@@ -337,9 +341,10 @@ public class IOGenerator {
 	/* Construct a read-of-the-stream constructor, but only when we can actually use it. */
 
 	String super_class_name = clazz.getSuperclassName();
+	JavaClass super_class = Repository.lookupClass(super_class_name);
 
-	if (Repository.implementationOf(super_class_name, "java.io.Serializable") &&
-		(force_generated_calls || Repository.implementationOf(super_class_name, "ibis.io.Serializable"))) {
+	if (! isSerializable(super_class) ||
+		(force_generated_calls || isIbisSerializable(super_class))) {
 	    il = new InstructionList();
 	    il.append(new RETURN());
 	
@@ -665,12 +670,10 @@ public class IOGenerator {
 			field_class = Repository.lookupClass(((ObjectType)field_type).getClassName());
 			if (field_class != null && field_class.isFinal()) isfinal = true;
 		    }
-		    /*
-		     TODO: Check that field is serializable???
-		     TODO: Check that field is IbisSerializable???
-		     TODO: Otherwise: initialize to 0???
-		    */
+
 		    if (isfinal &&
+			( isIbisSerializable(field_class) ||
+			  (isSerializable(field_class) && force_generated_calls)) &&
 			(! (Repository.implementationOf(field_class, "java.rmi.Remote") ||
 			    Repository.implementationOf(field_class, "ibis.rmi.Remote"))) &&
 			!field_type.getSignature().startsWith("Ljava/")) {
@@ -1212,7 +1215,7 @@ do_verify(gen);
 		/* BCEL throws an exception here if it cannot find some class.
 		 * In this case, we won't rewrite.
 		 */
-		if (! directImplementationOf(clazz, "ibis.io.Serializable")) {
+		if (! isIbisSerializable(clazz)) {
 		    addClass(clazz);
 		} else { 
 		    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
@@ -1278,7 +1281,7 @@ do_verify(gen);
 	System.exit(1);
     }
 
-    private static boolean do_verify(JavaClass c) {
+    private boolean do_verify(JavaClass c) {
 	Verifier verf = VerifierFactory.getVerifier(c.getClassName());
 	boolean verification_failed = false;
 
@@ -1300,7 +1303,9 @@ System.out.println("Verifying " + c.getClassName());
 	    else {
 		Method[] methods = c.getMethods();
 		for (int i = 0; i < methods.length; i++) {
-System.out.println("verifying method " + methods[i].getName());
+		    if (verbose) {
+			System.out.println("verifying method " + methods[i].getName());
+		    }
 		    res = verf.doPass3a(i);
 		    if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
 			System.out.println("Verification pass 3a failed for method " + methods[i].getName());
