@@ -38,6 +38,7 @@ public class ReadMessage
 	    fragmentTail.next = f;
 	}
 	fragmentTail = f;
+	wakeup();
     }
 
 
