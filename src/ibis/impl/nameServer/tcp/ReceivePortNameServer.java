@@ -20,6 +20,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
 	private Hashtable ports;
 	private Hashtable requestedPorts;
+	private boolean finishSweeper = false;
 	private ServerSocket serverSocket;
 
 	private	ObjectInputStream in;
@@ -133,6 +134,9 @@ class ReceivePortNameServer extends Thread implements Protocol {
 		while(true) {
 		    long current = System.currentTimeMillis();
 		    synchronized(requestedPorts) {
+			if (finishSweeper) {
+			    return;
+			}
 			Enumeration names = requestedPorts.keys();
 			while (names.hasMoreElements()) {
 			    String name = (String) names.nextElement();
@@ -259,6 +263,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
 					break;
 				case (PORT_EXIT):
 					NameServerClient.socketFactory.close(in, out, s);
+					synchronized(requestedPorts) {
+					    finishSweeper = true;
+					    requestedPorts.notifyAll();
+					}
 					return;
 				default: 
 					System.err.println("ReceivePortNameServer: got an illegal opcode " + opcode);

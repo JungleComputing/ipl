@@ -267,7 +267,7 @@ public class NameServer implements Protocol {
 		NameServerClient.socketFactory.close(null, out3, s3);
 	}
 
-	
+
 	private void handleIbisLeave() throws IOException, ClassNotFoundException {
 		String key = (String) in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
