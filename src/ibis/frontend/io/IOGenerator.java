@@ -177,20 +177,25 @@ public class IOGenerator {
 		}
 	}
 
-	void addClass(BT_Class clazz) { 
-		
-		if (isSerializable(clazz)) {
-			addRewriteClass(clazz);
-			addTargetClass(clazz);
-		} else { 
-			BT_Class super_clazz = clazz.getSuperClass();
+	boolean addClass(BT_Class clazz, boolean isTarget) { 
+		BT_Class super_clazz = clazz.getSuperClass();
+		boolean serializable = false;
 
-			if (super_clazz != null && recursiveIsSerializable(super_clazz)) {
-				addRewriteClass(clazz);
-				addRewriteClass(super_clazz);
+		if (super_clazz != null) {
+			serializable = addClass(super_clazz, false);
+		} 
+
+		serializable |= isSerializable(clazz);
+
+
+		if (serializable) {
+			addRewriteClass(clazz);
+			if(isTarget) {
 				addTargetClass(clazz);
 			}
-		}
+		} 
+
+		return serializable;
 	} 
 
 	void addReferencesToRewrite(BT_Class clazz) { 
@@ -201,8 +206,8 @@ public class IOGenerator {
 		for (int i=0;i<fields.size();i++) { 
 			BT_Field field = fields.elementAt(i);
 			
-			/* Don't send fields that are STATIC, TRANSIENT or FINAL */
-			if ((field.flags & (BT_Item.STATIC | BT_Item.TRANSIENT | BT_Item.FINAL)) == 0) { 
+			/* Don't send fields that are STATIC or TRANSIENT */
+			if ((field.flags & (BT_Item.STATIC | BT_Item.TRANSIENT)) == 0) { 
 				BT_Class field_type = field.type;       		
 
 				if (!field_type.isBasicTypeClass && 
@@ -355,8 +360,8 @@ public class IOGenerator {
 		for (int i=0;i<fields.size();i++) { 
 			BT_Field field = fields.elementAt(i);
 			
-			/* Don't send fields that are STATIC, TRANSIENT or FINAL */
-			if ((field.flags & (BT_Item.STATIC | BT_Item.TRANSIENT | BT_Item.FINAL)) == 0) { 
+			/* Don't send fields that are STATIC or TRANSIENT */
+			if ((field.flags & (BT_Item.STATIC | BT_Item.TRANSIENT)) == 0) { 
 				BT_Class field_type = field.type;       		
 
 				if (!field_type.isBasicTypeClass && !field_type.fullName().equals("java.lang.String")) { 	       
@@ -435,8 +440,8 @@ public class IOGenerator {
 		for (int i=0;i<fields.size();i++) { 
 			BT_Field field = fields.elementAt(i);
 			
-			/* Don't send fields that are STATIC, TRANSIENT or FINAL */
-			if ((field.flags & (BT_Item.STATIC | BT_Item.TRANSIENT | BT_Item.FINAL)) == 0) { 
+			/* Don't send fields that are STATIC or TRANSIENT  */
+			if ((field.flags & (BT_Item.STATIC | BT_Item.TRANSIENT)) == 0) { 
 				BT_Class field_type = field.type;       		
 
 				if (field_type.fullName().equals("java.lang.String")) { 	       
@@ -456,8 +461,8 @@ public class IOGenerator {
 		for (int i=0;i<fields.size();i++) { 
 			BT_Field field = fields.elementAt(i);
 			
-			/* Don't send fields that are STATIC, TRANSIENT or FINAL */
-			if ((field.flags & (BT_Item.STATIC | BT_Item.TRANSIENT | BT_Item.FINAL)) == 0) { 
+			/* Don't send fields that are STATIC, or TRANSIENT */
+			if ((field.flags & (BT_Item.STATIC | BT_Item.TRANSIENT)) == 0) { 
 				BT_Class field_type = field.type;       		
 
 				if (field_type.isBasicTypeClass) { 	       
@@ -559,7 +564,7 @@ public class IOGenerator {
 			BT_Class clazz = (BT_Class)BT_Class.forName(classnames[i]);
 
 			if (clazz.getParents().findClass("ibis.io.Serializable") == null) { 
-				addClass(clazz);
+				addClass(clazz, true);
 			} else { 
 				if (verbose) System.out.println(clazz.className() + " already implements ibis.io.Serializable");
 			}
@@ -620,10 +625,3 @@ public class IOGenerator {
 		new IOGenerator().scanClass(args, num);
 	} 
 }
-
-
-
-
-
-
-
