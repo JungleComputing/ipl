@@ -90,8 +90,6 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private final boolean USE_RESIZEHANDLER = false;
     private final boolean EMPTY_REPLY	= true; // false; // true;
 
-    private boolean reset = true;
-
     private final int DATA_BYTES   = 0;
     private final int DATA_SHORTS  = DATA_BYTES   + 1;
     private final int DATA_INTS    = DATA_SHORTS  + 1;
@@ -118,7 +116,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     // private Rdtsc t_client = new Rdtsc();
 
 
-    private void send_one(boolean is_server, int size, boolean finish)
+    private void send_one(boolean is_server, int size)
 	    throws IOException {
 	writeMessage = sport.newMessage();
 
@@ -157,6 +155,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 	    }
 	}
 
+	// writeMessage.send();
 	// t_send.start();
 	writeMessage.send();
 	// t_send.stop();
@@ -168,14 +167,9 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     }
 
 
-    private void send_one(boolean is_server, boolean reset)
+    private void send_one(boolean is_server)
 	    throws IOException {
-	send_one(is_server, size, reset);
-    }
-
-
-    private void send_one(boolean is_server, int size) throws IOException {
-	send_one(is_server, size, true);
+	send_one(is_server, size);
     }
 
 
@@ -258,7 +252,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		for (int k = 0; k < client_spin; k++) {
 		    int r = rand.nextInt();
 		}
-		send_one(false /* Not is_server */, i == count - 1);
+		send_one(false /* Not is_server */);
 	    }
 	    rcve_one(false /* Not read_data */, partners, 0);
 	} else {
@@ -266,7 +260,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		for (int k = 0; k < client_spin; k++) {
 		    int r = rand.nextInt();
 		}
-		send_one(false /* Not is_server */, i == count - 1);
+		send_one(false /* Not is_server */);
 		rcve_one(false /* Not read_data */, partners);
 // System.err.print(".");
 	    }
@@ -298,7 +292,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		    int r = rand.nextInt();
 		}
 		if (clients == 1 || (i + 1) % clients == 0) {
-		    send_one(true /* is_server */, i == count - 1);
+		    send_one(true /* is_server */);
 		}
 		if (gc_on_rcve) {
 		    object_buffer = null;
@@ -319,7 +313,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 // System.err.println(rank + ": received msg");
 	    if (! one_way) {
 		if (clients == 1 || (services + 1) % clients == 0) {
-		    send_one(true /* is_server */, services == clients * count - 1);
+		    send_one(true /* is_server */);
 // System.err.println(rank + ": sent ack");
 		}
 	    }
@@ -610,10 +604,6 @@ System.err.println("Poor-man's barrier send finished");
     private void parseArgs(String[] args) {
 	int         options = 0;
 
-	if (upcall) {
-	    System.err.println("****** Upcall server is now default");
-	}
-
 	for (int i = 0; i < args.length; i++) {
 // System.err.println("Now inspect option[" + i + "] = " + args[i]);
 	    if (false) {
@@ -891,6 +881,10 @@ System.err.println("Poor-man's barrier send finished");
 		} else {
 		    rank = 1;
 		}
+	    }
+
+	    if (rank == 0) {
+		System.err.println("RPC: ****** Upcall server is now default");
 	    }
 
 	    if (! i_am_client) {
