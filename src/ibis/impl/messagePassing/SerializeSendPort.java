@@ -11,8 +11,6 @@ import java.io.IOException;
  */
 final public class SerializeSendPort extends SendPort {
 
-    private static final boolean DEBUG = SendPort.DEBUG;
-
     ibis.io.SunSerializationOutputStream obj_out;
 
     private Replacer replacer;
@@ -124,7 +122,7 @@ final public class SerializeSendPort extends SendPort {
 	    }
 
 	    // Add the new receiver to our tables.
-	    int my_split = addConnection((ReceivePortIdentifier)receiver);
+	    addConnection((ReceivePortIdentifier)receiver);
 
 	    checkBcastGroup();
 

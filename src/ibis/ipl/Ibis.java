@@ -405,7 +405,7 @@ public abstract class Ibis {
 			// No more Ibis to try.
 			throw e;
 		    }
-		    else {
+
 			if (combinedprops.find("verbose") != null) {
 			    System.err.println("Warning: could not create " +
 					  (String) implementation_names.get(i) +
@@ -413,13 +413,11 @@ public abstract class Ibis {
 					  (String) implementation_names.get(i+1));
 			}
 			break;
-		    }
 		} catch(RuntimeException e) {
 		    if (i == n-1) {
 			// No more Ibis to try.
 			throw e;
 		    }
-		    else {
 			if (combinedprops.find("verbose") != null) {
 			    System.err.println("Warning: could not create " +
 					  (String) implementation_names.get(i) +
@@ -427,13 +425,11 @@ public abstract class Ibis {
 					  (String) implementation_names.get(i+1));
 			}
 			break;
-		    }
 		} catch(Error e) {
 		    if (i == n-1) {
 			// No more Ibis to try.
 			throw e;
 		    }
-		    else {
 			if (combinedprops.find("verbose") != null) {
 			    System.err.println("Warning: could not create " +
 					  (String) implementation_names.get(i) +
@@ -441,7 +437,6 @@ public abstract class Ibis {
 					  (String) implementation_names.get(i+1));
 			}
 			break;
-		    }
 		}
 	    }
 	}
@@ -479,7 +474,7 @@ public abstract class Ibis {
 
 	    try {
 		// See if this Ibis actually exists.
-		Class cl = Class.forName(name,
+		Class.forName(name,
 					 false,
 					 Ibis.class.getClassLoader());
 	    } catch(ClassNotFoundException e) {
@@ -697,7 +692,7 @@ public abstract class Ibis {
      * the same <code>PortType</code> can communicate.
      * Any number of <code>ReceivePort</code>s and <code>SendPort</code>s
      * can be created on a JVM (even of the same <code>PortType</code>).
-     * @param name name of the porttype.
+     * @param nm name of the porttype.
      * @param p properties of the porttype.
      * @return the porttype.
      * @exception IbisException is thrown when Ibis configuration,
@@ -705,7 +700,7 @@ public abstract class Ibis {
      * @exception IOException may be thrown for instance when communication
      *  with a nameserver fails.
      */
-    public PortType createPortType(String name, StaticProperties p)
+    public PortType createPortType(String nm, StaticProperties p)
 	throws IOException, IbisException
     {
 	if (p == null) {
@@ -726,20 +721,20 @@ public abstract class Ibis {
 					// and may conflict with the ibis prop.
 	    checkPortProperties(p);
 	}
-	if (name == null) {
+	if (nm == null) {
 	    throw new IbisException("anonymous name for port type not allowed");
 	}
 	if (combinedprops.find("verbose") != null) {
-	    System.out.println("Creating port type " + name +
+	    System.out.println("Creating port type " + nm +
 				" with properties\n" + p);
 	}
-	return newPortType(name, p);
+	return newPortType(nm, p);
     }
 
     /**
      * See {@link ibis.ipl.Ibis#createPortType(String, StaticProperties)}.
      */
-    protected abstract PortType newPortType(String name, StaticProperties p)
+    protected abstract PortType newPortType(String nm, StaticProperties p)
 	throws IOException, IbisException;
 
     /**
@@ -762,11 +757,11 @@ public abstract class Ibis {
     /**
      * Returns the {@link ibis.ipl.PortType PortType} corresponding to
      * the given name.
-     * @param name the name of the requested port type.
+     * @param nm the name of the requested port type.
      * @return a reference to the port type, or <code>null</code>
      * if the given name is not the name of a valid port type.
      */
-    public abstract PortType getPortType(String name);
+    public abstract PortType getPortType(String nm);
 
     /** 
      * Returns the Ibis {@linkplain ibis.ipl.Registry Registry}.

@@ -122,14 +122,14 @@ final class ByteInputStream
 
     native static void resetMsg(int msgHandle);
 
-    private native int readBooleanArray(boolean[] array, int off, int len, int msgHandle);
-    private native int readByteArray(byte[] array, int off, int len, int msgHandle);
-    private native int readCharArray(char[] array, int off, int len, int msgHandle);
-    private native int readShortArray(short[] array, int off, int len, int msgHandle);
-    private native int readIntArray(int[] array, int off, int len, int msgHandle);
-    private native int readLongArray(long[] array, int off, int len, int msgHandle);
-    private native int readFloatArray(float[] array, int off, int len, int msgHandle);
-    private native int readDoubleArray(double[] array, int off, int len, int msgHandle);
+    private native int readBooleanArray(boolean[] array, int off, int len, int handle);
+    private native int readByteArray(byte[] array, int off, int len, int handle);
+    private native int readCharArray(char[] array, int off, int len, int handle);
+    private native int readShortArray(short[] array, int off, int len, int handle);
+    private native int readIntArray(int[] array, int off, int len, int handle);
+    private native int readLongArray(long[] array, int off, int len, int handle);
+    private native int readFloatArray(float[] array, int off, int len, int handle);
+    private native int readDoubleArray(double[] array, int off, int len, int handle);
 
     public void readArray(boolean b[], int off, int len) throws IOException {
 	Ibis.myIbis.lock();

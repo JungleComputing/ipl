@@ -192,17 +192,18 @@ final class AlternativeTypeInfo {
     /**
      * This is needed for the private field access hack.
      */
-    private Field temporary_field;
+    Field temporary_field;
 
     /**
      * This is needed for the private method access hack.
      */
-    private Method temporary_method;
+    Method temporary_method;
 
     static {
 	try {
 	    newInstance = ObjectStreamClass.class.getDeclaredMethod("newInstance", new Class[] { });
 	} catch(Exception e) {
+	    // ignored. 
 	}
 	if (newInstance != null) {
 	    try {
@@ -652,6 +653,7 @@ final class AlternativeTypeInfo {
 						f.get(null);
 	    }
 	} catch (Exception e) {
+	    // ignored, no serialPersistentFields
 	}
     }
 

@@ -149,16 +149,15 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
                         } catch (IOException e1) {
 				if (!retry) {
 					throw e1;
-				} else {         
-					if (DEBUG) { 
-						System.err.println("ServerSocket connect to " + port + " failed: " + e1 + "; retrying");
-					}
+				}      
+				if (DEBUG) { 
+					System.err.println("ServerSocket connect to " + port + " failed: " + e1 + "; retrying");
+				}
                                                          
-					try { 
-						Thread.sleep(1000);
-					} catch (InterruptedException e2) { 
-						// don't care
-					}
+				try { 
+					Thread.sleep(1000);
+				} catch (InterruptedException e2) { 
+					// don't care
 				}
                         }                       
                 } 

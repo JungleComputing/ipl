@@ -19,8 +19,8 @@ import java.util.Hashtable;
 class ReceivePortNameServer extends Thread implements Protocol {
 
 	private Hashtable ports;
-	private Hashtable requestedPorts;
-	private boolean finishSweeper = false;
+	Hashtable requestedPorts;
+	boolean finishSweeper = false;
 	private ServerSocket serverSocket;
 
 	private	ObjectInputStream in;
@@ -106,7 +106,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 	    }
 	}
 	
-	private void handlePortList() throws IOException, ClassNotFoundException {
+	private void handlePortList() throws IOException {
 		
 		ArrayList goodNames = new ArrayList();
 	
@@ -168,13 +168,14 @@ class ReceivePortNameServer extends Thread implements Protocol {
 			    if (timeout < 100) timeout = 100;
 			    requestedPorts.wait(timeout);
 			} catch(InterruptedException e) {
+			    // ignored
 			}
 		    }
 		}
 	    }
 	}
 	
-	private void handlePortLookup(Socket s) throws IOException, ClassNotFoundException {
+	private void handlePortLookup(Socket s) throws IOException {
 
 		ReceivePortIdentifier storedId;
 
@@ -204,7 +205,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 		} 
 	}
 	
-	private void handlePortFree() throws IOException, ClassNotFoundException {
+	private void handlePortFree() throws IOException {
 		ReceivePortIdentifier id;
 
 		String name = in.readUTF();

@@ -402,55 +402,55 @@ public class DataSerializationInputStream
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {
 	startTimer();
-	int received = readInt();
+	readInt();
 	readBooleanArray(ref, off, len);
 	stopTimer();
     }
 
     public void readArray(byte[] ref, int off, int len) throws IOException {
 	startTimer();
-	int received = readInt();
+	readInt();
 	readByteArray(ref, off, len);
     }
 
     public void readArray(char[] ref, int off, int len) throws IOException {
 	startTimer();
-	int received = readInt();
+	readInt();
 	readCharArray(ref, off, len);
 	stopTimer();
     }
 
     public void readArray(short[] ref, int off, int len) throws IOException {
 	startTimer();
-	int received = readInt();
+	readInt();
 	readShortArray(ref, off, len);
 	stopTimer();
     }
 
     public void readArray(int[] ref, int off, int len) throws IOException {
 	startTimer();
-	int received = readInt();
+	readInt();
 	readIntArray(ref, off, len);
 	stopTimer();
     }
 
     public void readArray(long[] ref, int off, int len) throws IOException {
 	startTimer();
-	int received = readInt();
+	readInt();
 	readLongArray(ref, off, len);
 	stopTimer();
     }
 
     public void readArray(float[] ref, int off, int len) throws IOException {
 	startTimer();
-	int received = readInt();
+	readInt();
 	readFloatArray(ref, off, len);
 	stopTimer();
     }
 
     public void readArray(double[] ref, int off, int len) throws IOException {
 	startTimer();
-	int received = readInt();
+	readInt();
 	readDoubleArray(ref, off, len);
 	stopTimer();
     }
@@ -494,9 +494,11 @@ public class DataSerializationInputStream
     }
 
     public void clear() {
+        // nothing
     }
 
     public void statistics() {
+        // nothing
     }
 
     /* This is the data output / object output part */

@@ -336,7 +336,7 @@ public abstract class WorkStealing extends Stats {
 
 		// if we have ordered communication, we have to wait until
 		// our sequence number equals the one in the job
-		if (Satin.use_seq) {
+		if (TupleSpace.use_seq) {
 			if (TUPLE_TIMING) {
 				tupleOrderingWaitTimer.start();
 			}

@@ -68,7 +68,7 @@ final class IRStack implements Config {
 
 		for (int i = 0; i < count; i++) {
 			curr = l[i];
-			if (Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+			if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 				curr.aborted = true;
 				s.abortedJobs++;
 
@@ -88,7 +88,7 @@ final class IRStack implements Config {
 			if(curr.aborted) continue; // already handled.
 
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+					|| Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 				//				if(curr.parent != null && curr.parent.aborted)
 				// System.err.print("#");
 
@@ -115,7 +115,7 @@ final class IRStack implements Config {
 			curr = l[i];
 
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+					|| Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 
 				if (curr.aborted)
 					continue;
@@ -147,7 +147,7 @@ final class IRStack implements Config {
 			curr = l[i];
 
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf1(curr, targetOwner)
+					|| Aborts.isDescendentOf1(curr, targetOwner)
 					|| curr.owner.equals(targetOwner)) {
 				//				if(curr.parent != null && curr.parent.aborted)
 				// System.err.print("#");
@@ -171,7 +171,7 @@ final class IRStack implements Config {
 			curr = l[i];
 
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf1(curr, targetOwner)
+					|| Aborts.isDescendentOf1(curr, targetOwner)
 					|| curr.owner.equals(targetOwner)) {
 
 				if (curr.aborted)
@@ -199,7 +199,7 @@ final class IRStack implements Config {
 	 **/
 	void storeOrphansOf(IbisIdentifier crashedIbis) {
 		if (ASSERTS) {
-			Satin.assertLocked(s);
+			SatinBase.assertLocked(s);
 		}
 		
 		InvocationRecord curr;

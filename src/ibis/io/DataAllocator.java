@@ -47,30 +47,30 @@ public class DataAllocator implements IbisStreamFlags {
     private final static boolean STATISTICS = TypedProperties.booleanProperty(IOProps.s_cache_stats);
 
     // if (STATISTICS)
-    private int alloc_index;
-    private int alloc_byte;
-    private int alloc_short;
-    private int alloc_char;
-    private int alloc_int;
-    private int alloc_long;
-    private int alloc_float;
-    private int alloc_double;
-    private int gc_index;
-    private int gc_byte;
-    private int gc_short;
-    private int gc_char;
-    private int gc_int;
-    private int gc_long;
-    private int gc_float;
-    private int gc_double;
-    private int cache_index;
-    private int cache_byte;
-    private int cache_short;
-    private int cache_char;
-    private int cache_int;
-    private int cache_long;
-    private int cache_float;
-    private int cache_double;
+    int alloc_index;
+    int alloc_byte;
+    int alloc_short;
+    int alloc_char;
+    int alloc_int;
+    int alloc_long;
+    int alloc_float;
+    int alloc_double;
+    int gc_index;
+    int gc_byte;
+    int gc_short;
+    int gc_char;
+    int gc_int;
+    int gc_long;
+    int gc_float;
+    int gc_double;
+    int cache_index;
+    int cache_byte;
+    int cache_short;
+    int cache_char;
+    int cache_int;
+    int cache_long;
+    int cache_float;
+    int cache_double;
 
     public DataAllocator() {
 	index_cache  = new short[CACHE_MAX][];
@@ -114,6 +114,7 @@ public class DataAllocator implements IbisStreamFlags {
     }
 
     DataAllocator(int dummy) {
+        // empty constructor, to use as super for a DummyAllocator
     }
 
     /**
@@ -128,9 +129,8 @@ public class DataAllocator implements IbisStreamFlags {
 	    short[] buffer = new short[PRIMITIVE_TYPES];
 	    indexHash.put(buffer, 1);
 	    return buffer;
-	} else {
-	    return index_cache[--cached[PRIMITIVE_TYPES]];
 	}
+	return index_cache[--cached[PRIMITIVE_TYPES]];
     }
 
     /**
@@ -146,9 +146,8 @@ public class DataAllocator implements IbisStreamFlags {
 	    byte[] buffer = new byte[BYTE_BUFFER_SIZE];
 	    byteHash.put(buffer, 1);
 	    return buffer;
-	} else {
-	    return byte_cache[--cached[TYPE_BYTE]];
 	}
+	return byte_cache[--cached[TYPE_BYTE]];
     }
 
     /**
@@ -164,9 +163,8 @@ public class DataAllocator implements IbisStreamFlags {
 	    char[] buffer = new char[CHAR_BUFFER_SIZE];
 	    charHash.put(buffer, 1);
 	    return buffer;
-	} else {
-	    return char_cache[--cached[TYPE_CHAR]];
 	}
+	return char_cache[--cached[TYPE_CHAR]];
     }
 
     /**
@@ -182,9 +180,8 @@ public class DataAllocator implements IbisStreamFlags {
 	    short[] buffer = new short[SHORT_BUFFER_SIZE];
 	    shortHash.put(buffer, 1);
 	    return buffer;
-	} else {
-	    return short_cache[--cached[TYPE_SHORT]];
 	}
+	return short_cache[--cached[TYPE_SHORT]];
     }
 
     /**
@@ -200,7 +197,7 @@ public class DataAllocator implements IbisStreamFlags {
 	    int[] buffer = new int[INT_BUFFER_SIZE];
 	    intHash.put(buffer, 1);
 	    return buffer;
-	} else {
+	}
 	    if (ASSERTS) {
 		if (int_cache[cached[TYPE_INT] - 1].length != INT_BUFFER_SIZE) {
 		    throw new RuntimeException("Cache contains int[] length "
@@ -208,7 +205,6 @@ public class DataAllocator implements IbisStreamFlags {
 		}
 	    }
 	    return int_cache[--cached[TYPE_INT]];
-	}
     }
 
     /**
@@ -224,9 +220,8 @@ public class DataAllocator implements IbisStreamFlags {
 	    long[] buffer = new long[LONG_BUFFER_SIZE];
 	    longHash.put(buffer, 1);
 	    return buffer;
-	} else {
-	    return long_cache[--cached[TYPE_LONG]];
 	}
+	return long_cache[--cached[TYPE_LONG]];
     }
 
     /**
@@ -242,9 +237,8 @@ public class DataAllocator implements IbisStreamFlags {
 	    float[] buffer = new float[FLOAT_BUFFER_SIZE];
 	    floatHash.put(buffer, 1);
 	    return buffer;
-	} else {
-	    return float_cache[--cached[TYPE_FLOAT]];
 	}
+	return float_cache[--cached[TYPE_FLOAT]];
     }
 
     /**
@@ -260,9 +254,8 @@ public class DataAllocator implements IbisStreamFlags {
 	    double[] buffer = new double[DOUBLE_BUFFER_SIZE];
 	    doubleHash.put(buffer, 1);
 	    return buffer;
-	} else {
-	    return double_cache[--cached[TYPE_DOUBLE]];
 	}
+	return double_cache[--cached[TYPE_DOUBLE]];
     }
 
     /**

@@ -81,11 +81,11 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    protected ibis.ipl.PortType newPortType(String name, StaticProperties p)
+    protected ibis.ipl.PortType newPortType(String nm, StaticProperties p)
 	    throws IbisException {
 	lock();
-	PortType tp = new PortType(name, p);
-	portTypeList.put(name, tp);
+	PortType tp = new PortType(nm, p);
+	portTypeList.put(nm, tp);
 	unlock();
 
 	return tp;
@@ -193,9 +193,8 @@ public class Ibis extends ibis.ipl.Ibis {
 
 	if (myIbis != null) {
 	    throw new IbisException("Only one Ibis allowed");
-	} else {
-	    myIbis = this;
 	}
+	myIbis = this;
 
 // System.err.println("Gonna load libibis_mp.so");
 	// System.loadLibrary("ibis_mp");
@@ -335,14 +334,14 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    IbisIdentifier lookupIbis(String name, int cpu) throws IOException {
-	if (myIbis.ident.name().equals(name)) {
+    IbisIdentifier lookupIbis(String nm, int cpu) throws IOException {
+	if (myIbis.ident.name().equals(nm)) {
 	    return myIbis.ident;
 	}
 
 	for (int i = 0; i < ibisNameService.size(); i++) {
 	    IbisIdentifier id = (IbisIdentifier)ibisNameService.get(i);
-	    if (id.name().equals(name)) {
+	    if (id.name().equals(nm)) {
 		return id;
 	    }
 	}
@@ -354,7 +353,6 @@ public class Ibis extends ibis.ipl.Ibis {
     IbisIdentifier lookupIbis(byte[] serialForm) throws IOException {
 
 	IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
-	String name = id.name();
 	if (lookupIbis(id.name(), id.getCPU()) == null) {
 	    ibisNameService.add(id);
 	}
@@ -363,14 +361,14 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    PortType getPortTypeLocked(String name) {
-	return (PortType)portTypeList.get(name);
+    PortType getPortTypeLocked(String nm) {
+	return (PortType)portTypeList.get(nm);
     }
 
 
-    public ibis.ipl.PortType getPortType(String name) {
+    public ibis.ipl.PortType getPortType(String nm) {
 	myIbis.lock();
-	PortType tp = (PortType)getPortTypeLocked(name);
+	PortType tp = getPortTypeLocked(nm);
 	myIbis.unlock();
 
 	return tp;
@@ -623,7 +621,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
     private SendPort sendPortList = null;
-    private ReceivePort receivePortList = null;
+    ReceivePort receivePortList = null;
 
     void registerSendPort(SendPort p) {
 	checkLockOwned();

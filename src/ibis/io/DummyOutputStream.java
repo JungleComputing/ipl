@@ -42,7 +42,7 @@ public class DummyOutputStream extends OutputStream {
 		out.flush();
 	}
 
-	public void close() throws IOException {
+	public void close() {
 		/* don't propagate the close, otherwise we close the underlying socket,
 		   and that is not what we want here. */
 	}

@@ -17,7 +17,7 @@ final class IRVector implements Config {
 
 	void add(InvocationRecord r) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		if (count >= l.length) {
@@ -34,14 +34,14 @@ final class IRVector implements Config {
 
 	int size() {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		return count;
 	}
 
 	int numOf(ibis.ipl.IbisIdentifier owner) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		int c = 0;
 		for (int i = 0; i < count; i++) {
@@ -55,14 +55,14 @@ final class IRVector implements Config {
 		InvocationRecord res = null;
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		//		System.err.println("SATIN: " + satin.ident.address() + " removing job
 		// " + stamp);
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		for (int i = 0; i < count; i++) {
@@ -89,7 +89,7 @@ final class IRVector implements Config {
 
 	InvocationRecord remove(InvocationRecord r) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		for (int i = count - 1; i >= 0; i--) {
@@ -111,7 +111,7 @@ final class IRVector implements Config {
 
 	void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		InvocationRecord curr;
 		for (int i = 0; i < count; i++) {
@@ -119,7 +119,7 @@ final class IRVector implements Config {
 			//			if(curr.aborted) continue; // already handled.
 
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+					|| Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 				curr.aborted = true;
 				if (ABORT_DEBUG) {
 					System.out.println("found stolen child: " + curr.stamp
@@ -158,14 +158,14 @@ final class IRVector implements Config {
 	void killAndStoreChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		InvocationRecord curr;
 		for (int i = 0; i < count; i++) {
 			curr = l[i];
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+					|| Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 				curr.aborted = true;
 				if (ABORT_DEBUG) {
 					System.out.println("found stolen child: " + curr.stamp
@@ -203,14 +203,14 @@ final class IRVector implements Config {
 	void killSubtreeOf(IbisIdentifier targetOwner) {
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		InvocationRecord curr;
 		for (int i = 0; i < count; i++) {
 			curr = l[i];
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf1(curr, targetOwner)
+					|| Aborts.isDescendentOf1(curr, targetOwner)
 					|| curr.owner.equals(targetOwner)) //this shouldnt happen,
 			// actually
 			{
@@ -251,14 +251,14 @@ final class IRVector implements Config {
 	void killAndStoreSubtreeOf(IbisIdentifier targetOwner) {
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		InvocationRecord curr;
 		for (int i = 0; i < count; i++) {
 			curr = l[i];
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf1(curr, targetOwner)
+					|| Aborts.isDescendentOf1(curr, targetOwner)
 					|| curr.owner.equals(targetOwner)) //this shouldnt happen,
 			// actually
 			{
@@ -282,7 +282,7 @@ final class IRVector implements Config {
 	void killAll() {
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		InvocationRecord curr;
@@ -301,7 +301,7 @@ final class IRVector implements Config {
 
 	InvocationRecord removeIndex(int i) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		if (i >= count)
 			return null;
@@ -320,7 +320,7 @@ final class IRVector implements Config {
 	void redoStolenByWorkQueue(IbisIdentifier crashedIbis) {
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		for (int i = count - 1; i >= 0; i--) {
@@ -345,7 +345,7 @@ final class IRVector implements Config {
 	void redoStolenByAttachToParents(IbisIdentifier crashedIbis) {
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		for (int i = count - 1; i >= 0; i--) {

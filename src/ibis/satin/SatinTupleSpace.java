@@ -2,7 +2,7 @@ package ibis.satin;
 
 // @@@ make tuple space objects, not static.
 import ibis.satin.impl.Config;
-import ibis.satin.impl.Satin;
+import ibis.satin.impl.TupleSpace;
 
 import java.io.Serializable;
 
@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class SatinTupleSpace implements Config {
 
 	static {
-	    Satin.initTupleSpace();
+	    TupleSpace.initTupleSpace();
 	}
 
 	// The satin reference can be null if the run is completely sequential.
@@ -49,7 +49,7 @@ public class SatinTupleSpace implements Config {
 	 *            The data associated with the key.
 	 */
 	public static void add(String key, Serializable data) {
-		Satin.addTuple(key, data);
+		TupleSpace.addTuple(key, data);
 	}
 
 	/**
@@ -61,7 +61,7 @@ public class SatinTupleSpace implements Config {
 	 * @return the data associated with the key.
 	 */
 	public static Serializable get(String key) {
-		return Satin.getTuple(key);
+		return TupleSpace.getTuple(key);
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class SatinTupleSpace implements Config {
 	 * @return the data associated with the key.
 	 */
 	public static Serializable peek(String key) {
-		return Satin.peekTuple(key);
+		return TupleSpace.peekTuple(key);
 	}
 
 	/**
@@ -83,6 +83,6 @@ public class SatinTupleSpace implements Config {
 	 *            the key of the tuple to be removed.
 	 */
 	public static void remove(String key) {
-		Satin.removeTuple(key);
+		TupleSpace.removeTuple(key);
 	}
 }

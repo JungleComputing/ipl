@@ -18,7 +18,7 @@ class DeleteThread extends Thread {
 		} catch (InterruptedException e) {
 			//ignore
 		}
-		Satin satin = Satin.this_satin;
+		Satin satin = SatinBase.this_satin;
 		satin.mustLeave(new IbisIdentifier[] { satin.ident });
 	}
 

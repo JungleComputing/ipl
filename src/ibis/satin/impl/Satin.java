@@ -3,7 +3,6 @@ package ibis.satin.impl;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;

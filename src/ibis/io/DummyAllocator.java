@@ -105,6 +105,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @param buffer the index buffer
      */
     public void putIndexArray(short[] buffer) {
+        // no implementation needed
     }
 
     /**
@@ -114,6 +115,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @param buffer the byte buffer
      */
     public void putByteArray(byte[] buffer) {
+        // no implementation needed
     }
 
     /**
@@ -123,6 +125,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @param buffer the char buffer
      */
     public void putCharArray(char[] buffer) {
+        // no implementation needed
     }
 
     /**
@@ -132,6 +135,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @param buffer the short buffer
      */
     public void putShortArray(short[] buffer) {
+        // no implementation needed
     }
 
     /**
@@ -141,6 +145,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @param buffer the int buffer
      */
     public void putIntArray(int[] buffer) {
+        // no implementation needed
     }
 
     /**
@@ -150,6 +155,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @param buffer the long buffer
      */
     public void putLongArray(long[] buffer) {
+        // no implementation needed
     }
 
     /**
@@ -159,6 +165,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @param buffer the float buffer
      */
     public void putFloatArray(float[] buffer) {
+        // no implementation needed
     }
 
     /**
@@ -168,6 +175,7 @@ public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
      * @param buffer the double buffer
      */
     public void putDoubleArray(double[] buffer) {
+        // no implementation needed
     }
 
 }

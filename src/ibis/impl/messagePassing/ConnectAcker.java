@@ -52,8 +52,8 @@ class ConnectAcker extends Syncer {
      * Signal condition by setting the accepted field
      * Doesn't touch the <code>acks</code> field.
      */
-    public void signal(boolean accepted) {
-	this.accepted = accepted;
+    public void signal(boolean accept) {
+	this.accepted = accept;
 	signal();
     }
 

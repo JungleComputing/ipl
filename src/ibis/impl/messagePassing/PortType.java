@@ -124,31 +124,31 @@ public class PortType extends ibis.ipl.PortType {
 
 
     public ibis.ipl.ReceivePort createReceivePort(
-					String name,
+					String nm,
 					ibis.ipl.Upcall u,
 					ibis.ipl.ReceivePortConnectUpcall cU,
 					boolean connectionAdministration)
 	    throws IOException {
 
-	ReceivePort p = new ReceivePort(this, name, u, cU, connectionAdministration);
+	ReceivePort port = new ReceivePort(this, nm, u, cU, connectionAdministration);
 
 	if (Ibis.DEBUG) {
 	    System.out.println(Ibis.myIbis.name() + ": Receiveport created of type '" +
-			       this.name + "', name = '" + name + "'" +
-			       " id " + p.identifier());
+			       this.name + "', name = '" + nm + "'" +
+			       " id " + port.identifier());
 	}
 
 	if (Ibis.DEBUG) {
 	    System.out.println(Ibis.myIbis.name() +
 			       ": Receiveport bound in registry, type = '" +
-			       this.name + "', name = '" + name + "'");
+			       this.name + "', name = '" + nm + "'");
 	}
 
-	return p;
+	return port;
     }
 
-    void freeReceivePort(String name) throws IOException {
-	((Registry)Ibis.myIbis.registry()).unbind(name);
+    void freeReceivePort(String nm) throws IOException {
+	((Registry)Ibis.myIbis.registry()).unbind(nm);
     }
 
     public String toString() {

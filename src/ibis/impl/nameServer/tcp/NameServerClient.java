@@ -52,8 +52,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		/* do nothing */
 	}
 
-	protected void init(Ibis ibisImpl) throws IOException, IbisConfigurationException {
-		this.ibisImpl   = ibisImpl;
+	protected void init(Ibis ibis) throws IOException, IbisConfigurationException {
+		this.ibisImpl   = ibis;
 		this.id     = ibisImpl.identifier();
 
 		Properties p = System.getProperties();
@@ -219,7 +219,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		}
 	} 
 
-	public boolean isDead(IbisIdentifier id) throws IOException {
+	public boolean isDead(IbisIdentifier ibisId) throws IOException {
 		Socket s;
 		try {
 		    s = socketFactory.createSocket(serverAddress, port, myAddress, -1);
@@ -233,7 +233,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 
 		out.writeByte(IBIS_ISALIVE);
 		out.writeUTF(poolName);
-		out.writeObject(id);
+		out.writeObject(ibisId);
 		out.flush();
 		if(DEBUG) {
 			System.err.println("NS client: isAlive sent");
@@ -251,7 +251,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		return temp != IBIS_ISALIVE;
 	}
 
-	public void dead(IbisIdentifier id) throws IOException {
+	public void dead(IbisIdentifier corpse) throws IOException {
 		Socket s;
 		try {
 		    s = socketFactory.createSocket(serverAddress, port, myAddress, -1);
@@ -264,7 +264,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 
 		out.writeByte(IBIS_DEAD);
 		out.writeUTF(poolName);
-		out.writeObject(id);
+		out.writeObject(corpse);
 		if(DEBUG) {
 			System.err.println("NS client: kill sent");
 		}
@@ -308,7 +308,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		    DummyInputStream di = new DummyInputStream(s.getInputStream());
 		    ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
 		
-		    int temp = in.readByte();
+		    in.readByte();
 		    if(DEBUG) {
 			    System.err.println("NS client: leave ack received");
 		    }
@@ -333,7 +333,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		while (true) { // !stop
 
 			Socket s;
-			IbisIdentifier id;
+			IbisIdentifier ibisId;
 
 			try {
 				s = socketFactory.accept(serverSocket);
@@ -378,25 +378,24 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 					}
 					break;
 				case (IBIS_JOIN):
-					id = (IbisIdentifier) in.readObject();
+					ibisId = (IbisIdentifier) in.readObject();
 					if (DEBUG) {
-					    System.out.println("NameServerClient: receive join request " + id);
+					    System.out.println("NameServerClient: receive join request " + ibisId);
 					}
 					socketFactory.close(in, null, s);
-					ibisImpl.joined(id);
+					ibisImpl.joined(ibisId);
 					break;
 				case (IBIS_LEAVE):
-					id = (IbisIdentifier) in.readObject();
+					ibisId = (IbisIdentifier) in.readObject();
 					socketFactory.close(in, null, s);
-					if(id.equals(this.id)) {
+					if(ibisId.equals(this.id)) {
 						// received an ack from the nameserver that I left.
 						if (DEBUG) { 
 							System.out.println("NameServerClient: thread dying");
 						}
 						return;
-					} else {
-						ibisImpl.left(id);
 					}
+					ibisImpl.left(ibisId);
 					break;
 				case (IBIS_DEAD):
 					IbisIdentifier[] ids = (IbisIdentifier[]) in.readObject();
@@ -428,16 +427,16 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		return receivePortNameServerClient.lookup(name, timeout);
 	}
 
-	public IbisIdentifier lookupIbis(String name) throws IOException {
+	public IbisIdentifier lookupIbis(String name) {
 		return lookupIbis(name, 0);
 	} 
 
-	public IbisIdentifier lookupIbis(String name, long timeout) throws IOException {
+	public IbisIdentifier lookupIbis(String name, long timeout) {
 		/* not implemented yet */
 		return null;
 	} 
 
-	public ReceivePortIdentifier [] listReceivePorts(IbisIdentifier ident)  throws IOException, ClassNotFoundException { 
+	public ReceivePortIdentifier [] listReceivePorts(IbisIdentifier ident) { 
 		/* not implemented yet */
 		return new ReceivePortIdentifier[0];
 	}

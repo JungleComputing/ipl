@@ -17,7 +17,7 @@ public final class SunSerializationOutputStream
      * Constructor. Calls constructor of superclass and flushes.
      *
      * @param s the underlying <code>OutputStream</code>
-     * @exception <code>IOException</code> is thrown when an IO error occurs.
+     * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public SunSerializationOutputStream(OutputStream s) throws IOException {
 	super(s);
@@ -30,7 +30,7 @@ public final class SunSerializationOutputStream
      * parameter and flushes.
      *
      * @param out the <code>Accumulator</code>
-     * @exception <code>IOException</code> is thrown when an IO error occurs.
+     * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public SunSerializationOutputStream(Accumulator out) 
 							throws IOException {
@@ -60,7 +60,7 @@ public final class SunSerializationOutputStream
      * @param off offset in the array from where writing starts
      * @param len the number of elements to be written
      *
-     * @exception <code>IOException</code> is thrown on an IO error.
+     * @exception java.io.IOException is thrown on an IO error.
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
 /*
@@ -235,5 +235,6 @@ public final class SunSerializationOutputStream
      * No statistics are printed for the Sun serialization version.
      */
     public void statistics() {
+        // no statistics for Sun serialization.
     }
 }

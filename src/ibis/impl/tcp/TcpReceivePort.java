@@ -48,7 +48,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 
 	TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall, 
-		       boolean connectionAdministration, ReceivePortConnectUpcall connUpcall) throws IOException {
+		       boolean connectionAdministration, ReceivePortConnectUpcall connUpcall) {
 
 		this.type   = type;
 		this.upcall = upcall;
@@ -73,7 +73,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	// returns:  was the message already finised?
-	private boolean doUpcall(TcpReadMessage m) throws IOException {
+	private boolean doUpcall(TcpReadMessage msg) {
 	        synchronized (this) {
 				// Wait until the previous message was finished.
 			while(this.m != null || ! allowUpcalls) {
@@ -84,11 +84,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 				}
 			}
 
-			this.m = m;
+			this.m = msg;
 		}
 
 		try {
-		    upcall.upcall(m);
+		    upcall.upcall(msg);
 		} catch (IOException e) {
 		    //an error occured on receiving (or finishing!) the message during the upcall.
 		    finishMessage(e);
@@ -107,12 +107,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		 * in the finish() call.
 		 */
 		synchronized(this) {
-			if(!m.isFinished) { // It wasn't finished. Cool, this means that we don't have to start a new thread!
+			if(!msg.isFinished) { // It wasn't finished. Cool, this means that we don't have to start a new thread!
 				this.m = null;
 				if (STATS) {
-					long after = m.getHandler().dummy.getCount();
-					count += after - m.before;
-					m.before = after;
+					long after = msg.getHandler().dummy.getCount();
+					count += after - msg.before;
+					msg.before = after;
 				}
 				notifyAll();
 
@@ -287,9 +287,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			connection_setup_present = true;
 			notifyAll();
 			return RECEIVER_ACCEPTED;
-		} else {
-			return RECEIVER_DISABLED;
 		}
+		return RECEIVER_DISABLED;
 	} 
 
 	public synchronized void enableUpcalls() {
@@ -301,7 +300,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		allowUpcalls = false;
 	}
 
-	public ReadMessage poll() throws IOException {
+	public ReadMessage poll() {
 		if(upcall != null) {
 			Thread.yield();
 			return null;
@@ -324,12 +323,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			throw new IOException("Configured Receiveport for upcalls, downcall not allowed");
 		}
 
-		ReadMessage m = getMessage(-1);
+		ReadMessage msg = getMessage(-1);
 
-		if (m == null) {
+		if (msg == null) {
 			throw new IOException("receive port closed");
 		}
-		return m;
+		return msg;
 	}
 
 	public ReadMessage receive(long timeoutMillis) throws IOException {
@@ -400,7 +399,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return res;
 	}
 
-	public void close(long timeout) throws IOException {
+	public void close(long timeout) {
 	    if (timeout == 0L) {
 		close();
 	    } else if (timeout > 0L) {
@@ -412,7 +411,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	}
 
-	public synchronized void close() throws IOException {
+	public synchronized void close() {
 		if (DEBUG) { 
 			System.err.println("TcpReceivePort.free: " + name + ": Starting");
 		}

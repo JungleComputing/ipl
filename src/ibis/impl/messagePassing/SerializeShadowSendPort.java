@@ -12,7 +12,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
     java.io.ObjectInput obj_in;
 
-    private int syncer;
+    private int synchost;
 
     // private
     private final static int UNCONNECTED = 0;
@@ -35,12 +35,12 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
 	Ibis.myIbis.checkLockOwned();
 
-	this.syncer = syncer;
+	this.synchost = syncer;
     }
 
 
 
-    ReadMessage getMessage(int msgSeqno) throws IOException {
+    ReadMessage getMessage(int seqno) throws IOException {
 	if (DEBUG) {
 	    if (obj_in == null || connectState != CONNECTED) {
 		System.err.println(this + ": OOOOOPS getMessage(), cachedMessage " + cachedMessage + " obj_in " + obj_in + " connectState " + connectState);
@@ -66,7 +66,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	    }
 	}
 
-	msg.msgSeqno = msgSeqno;
+	msg.msgSeqno = seqno;
 
 	return msg;
     }
@@ -145,11 +145,11 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
 	connectState = CONNECTED;
 
-	sendConnectAck(ident.cpu, syncer, true);
+	sendConnectAck(ident.cpu, synchost, true);
 
 	if (DEBUG) {
 	    System.err.println(this +": handled connect, msg " + msg
-		    + " syncer " + Integer.toHexString(syncer)
+		    + " syncer " + Integer.toHexString(synchost)
 		    + " startSeqno " + messageCount
 		    + " groupStartSeqno " + groupStartSeqno);
 	}

@@ -25,7 +25,7 @@ final class IbisShadowSendPort extends ShadowSendPort {
     }
 
 
-    ReadMessage getMessage(int msgSeqno) {
+    ReadMessage getMessage(int seqno) {
 	ReadMessage msg = cachedMessage;
 
 	if (Ibis.DEBUG) {
@@ -43,7 +43,7 @@ final class IbisShadowSendPort extends ShadowSendPort {
 	    }
 	}
 
-	msg.msgSeqno = msgSeqno;
+	msg.msgSeqno = seqno;
 	return msg;
     }
 

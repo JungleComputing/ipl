@@ -20,9 +20,8 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier, java.io.
 		
 		if (other == null) { 
 			return false;
-		} else { 
-			return (type().equals(other.type()) && ibis.equals(other.ibis) && name().equals(other.name()));
 		}
+		return (type().equals(other.type()) && ibis.equals(other.ibis) && name().equals(other.name()));
 	}
 
 	public int hashCode() {
@@ -33,9 +32,8 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier, java.io.
 		if (other == null) return false;
 		if (other instanceof TcpSendPortIdentifier) {			
 			return equals((TcpSendPortIdentifier) other);
-		} else { 
-			return false;
 		}
+		return false;
 	} 
 
 	public final String name() {

@@ -32,8 +32,6 @@ public abstract class Aborts extends WorkStealing {
 						+ "': Abort, outstanding = " + outstandingSpawns
 						+ ", thrower = " + exceptionThrower);
 			}
-			InvocationRecord curr;
-
 			if (SPAWN_STATS) {
 				aborts++;
 			}
@@ -52,7 +50,6 @@ public abstract class Aborts extends WorkStealing {
 			// now kill mine
 			if (outstandingSpawns != null) {
 				int stamp;
-				int me;
 				if (outstandingSpawns.parent == null) {
 					stamp = -1;
 				} else {

@@ -77,12 +77,12 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
 
     void clear() {
-	ReadFragment next;
-	for (ReadFragment f = fragmentFront; f != null; f = next) {
+	ReadFragment nxt;
+	for (ReadFragment f = fragmentFront; f != null; f = nxt) {
 	    if (Ibis.DEBUG) {
 		System.err.println("Now clear fragment " + f + " handle " + Integer.toHexString(f.msgHandle) + "; next " + f.next);
 	    }
-	    next = f.next;
+	    nxt = f.next;
 	    f.clear();
 	    shadowSendPort.putFragment(f);
 	}

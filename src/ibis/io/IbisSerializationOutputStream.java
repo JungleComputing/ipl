@@ -27,11 +27,11 @@ public class IbisSerializationOutputStream
     private static final boolean STATS_OBJECTS = TypedProperties.booleanProperty(IOProps.s_stats_written);
 
     // if STATS_OBJECTS
-    private static java.util.Hashtable statSendObjects;
-    private static final int[] statArrayCount;
-    private static int statObjectHandle;
-    private static final int[] statArrayHandle;
-    private static final long[] statArrayLength;
+    static java.util.Hashtable statSendObjects;
+    static final int[] statArrayCount;
+    static int statObjectHandle;
+    static final int[] statArrayHandle;
+    static final long[] statArrayLength;
 
     /**
      * A hash table that aims for speed for pairs (Object, int).
@@ -321,7 +321,7 @@ public class IbisSerializationOutputStream
 	}
     }
 
-    private static String primitiveName(int i) {
+    static String primitiveName(int i) {
 	switch (i) {
 	case TYPE_BOOLEAN:
 	    return "boolean";
@@ -344,7 +344,7 @@ public class IbisSerializationOutputStream
 	return null;
     }
 
-    private static int primitiveBytes(int i) {
+    static int primitiveBytes(int i) {
 	switch (i) {
 	case TYPE_BOOLEAN:
 	    return SIZEOF_BOOLEAN;
@@ -370,6 +370,7 @@ public class IbisSerializationOutputStream
 
     private static int arrayClassType(Class arrayClass) {
 	if (false) {
+	    // nothing
 	} else if (arrayClass == classByteArray) {
 	    return TYPE_BYTE;
 	} else if (arrayClass == classIntArray) {
@@ -486,43 +487,6 @@ public class IbisSerializationOutputStream
     private int stack_size = 0;
 
     /**
-     * Structure summarizing an array write.
-     */
-    private static final class ArrayDescriptor {
-	int		type;
-	boolean[]	booleanArray;
-	byte[]		byteArray;
-	char[]		charArray;
-	short[]		shortArray;
-	int[]		intArray;
-	long[]		longArray;
-	float[]		floatArray;
-	double[]	doubleArray;
-	int		offset;
-	int		len;
-    }
-
-    /**
-     * Where the arrays to be written are collected.
-     */
-    private ArrayDescriptor[] 	array;
-
-    /**
-     * Index in the <code>array</code> array.
-     */
-    private int			array_index;
-
-    /**
-     * Collects all indices of the <code>_buffer</code> arrays.
-     */
-    private short[]	indices_short;
-
-    /**
-     * For each 
-     */
-    private boolean[] touched = new boolean[PRIMITIVE_TYPES];
-
-    /**
      * Constructor with an <code>Accumulator</code>.
      * @param out		the underlying <code>Accumulator</code>
      * @exception IOException	gets thrown when an IO error occurs.
@@ -581,7 +545,7 @@ public class IbisSerializationOutputStream
 	next_type = PRIMITIVE_TYPES;
     }
 
-    public void reset() throws IOException {
+    public void reset() {
 	if (next_handle > CONTROL_HANDLES) {
 	    if(DEBUG) {
 		dbPrint("reset: next handle = " + next_handle + ".");
@@ -1366,7 +1330,7 @@ public class IbisSerializationOutputStream
      * to call <code>writeObjectOverride</code> instead of doing its own thing.
      *
      * @param ref the object to be written
-     * @exception <code>IOException</code> is thrown when an IO error occurs.
+     * @exception java.io.IOException is thrown when an IO error occurs.
     */
     public void writeObjectOverride(Object ref) throws IOException {
 	/*
@@ -1543,7 +1507,7 @@ public class IbisSerializationOutputStream
 	private char[]    chars;
 	private byte[]	  bytes;
 	private boolean[] booleans;
-	private Object[]  references;
+	private Object[]  refs;
 	private AlternativeTypeInfo t;
 
 	ImplPutField(AlternativeTypeInfo t) {
@@ -1555,7 +1519,7 @@ public class IbisSerializationOutputStream
 	    chars = new char[t.char_count];
 	    bytes = new byte[t.byte_count];
 	    booleans = new boolean[t.boolean_count];
-	    references = new Object[t.reference_count];
+	    refs = new Object[t.reference_count];
 	    this.t = t;
 	}
 
@@ -1600,7 +1564,7 @@ public class IbisSerializationOutputStream
 	}
 
 	public void put(String name, Object value) {
-	    references[t.getOffset(name, Object.class)] = value;
+	    refs[t.getOffset(name, Object.class)] = value;
 	}
 
 	public void write(ObjectOutput o) throws IOException {
@@ -1629,7 +1593,7 @@ public class IbisSerializationOutputStream
 		o.writeBoolean(booleans[i]);
 	    }
 	    for (int i = 0; i < t.reference_count; i++) {
-		o.writeObject(references[i]);
+		o.writeObject(refs[i]);
 	    }
 	}
 
@@ -1660,7 +1624,7 @@ public class IbisSerializationOutputStream
 		writeBoolean(booleans[i]);
 	    }
 	    for (int i = 0; i < t.reference_count; i++) {
-		writeObjectOverride(references[i]);
+		writeObjectOverride(refs[i]);
 	    }
 	}
     }

@@ -89,7 +89,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 
 	private void removeElement(InvocationRecord curr) { // curr MUST be in q.
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		if (curr.qprev != null) {
 			curr.qprev.qnext = curr.qnext;
@@ -120,7 +120,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 
 	void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		InvocationRecord curr = tail;
@@ -130,7 +130,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 			 * curr was just removed. continue; // already handled. }
 			 */
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+					|| Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 
 				if (ABORT_DEBUG) {
 					System.err.println("found local child: " + curr.stamp
@@ -177,13 +177,13 @@ final class DEQueueNormal extends DEQueue implements Config {
 
 	void killSubtreeOf(ibis.ipl.IbisIdentifier owner) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		InvocationRecord curr = tail;
 		while (curr != null) {
 			if ((curr.parent != null && curr.parent.aborted)
-					|| Satin.isDescendentOf1(curr, owner)
+					|| Aborts.isDescendentOf1(curr, owner)
 					|| curr.owner.equals(owner)) //shouldn't happen
 			{
 				if (SPAWN_DEBUG) {

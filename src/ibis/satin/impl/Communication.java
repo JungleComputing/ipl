@@ -52,23 +52,23 @@ public abstract class Communication extends SpawnSync {
 	}
 
 	//used by GlobalResultTable
-	ReceivePortIdentifier lookup(String name) throws IOException {
-		return ibis.registry().lookupReceivePort(name);
+	ReceivePortIdentifier lookup(String portname) throws IOException {
+		return ibis.registry().lookupReceivePort(portname);
 	}
 
-	SendPort getReplyPortWait(IbisIdentifier ident) {
+	SendPort getReplyPortWait(IbisIdentifier id) {
 		SendPort s;
 		if (ASSERTS) {
 			assertLocked(this);
 		}
 
 		do {
-			s = victims.getReplyPort(ident);
+			s = victims.getReplyPort(id);
 			if (s == null) {
 				if (COMM_DEBUG) {
 
 					out.println("SATIN '" + this.ident.name()
-							+ "': could not get reply port to " + ident.name()
+							+ "': could not get reply port to " + id.name()
 							+ ", retrying");
 				}
 				try {
@@ -82,12 +82,12 @@ public abstract class Communication extends SpawnSync {
 		return s;
 	}
 
-	SendPort getReplyPortNoWait(IbisIdentifier ident) {
+	SendPort getReplyPortNoWait(IbisIdentifier id) {
 		SendPort s;
 		if (ASSERTS) {
 			assertLocked(this);
 		}
-		s = victims.getReplyPort(ident);
+		s = victims.getReplyPort(id);
 		return s;
 	}
 

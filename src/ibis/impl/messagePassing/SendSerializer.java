@@ -72,12 +72,12 @@ class SendSerializer {
 
     void lockAll(int[] cpu) {
 	Ibis.myIbis.checkLockOwned();
-	int locked;
+	int lockcounter;
 	do {
-	    locked = 0;
+	    lockcounter = 0;
 	    for (int i = 0; i < cpu.length; i++) {
 		if (tryLock(cpu[i])) {
-		    locked++;
+		    lockcounter++;
 		} else {
 		    /* Sorry, cannot lock all. Release the locks I already
 		     * got, and try again */
@@ -104,7 +104,7 @@ class SendSerializer {
 		    break;
 		}
 	    }
-	} while (locked < cpu.length);
+	} while (lockcounter < cpu.length);
     }
 
 

@@ -63,12 +63,14 @@ public final class NoSerializationInputStream extends SerializationInputStream {
      * RESET when a handle is expected.
      */
     public void clear() {
+        // Nothing for No serialization.
     }
 
     /**
      * No statistics are printed for the No serialization version.
      */
     public void statistics() {
+        // no statistics for No serialization.
     }
 
     public final byte readByte() throws IOException {
@@ -120,17 +122,17 @@ public final class NoSerializationInputStream extends SerializationInputStream {
 	throw new IOException("Illegal data type read");
     }
 
-    public Class readClass() throws IOException, ClassNotFoundException {
+    public Class readClass() throws IOException {
 	throw new IOException("Illegal data type read");
     }
 
     public final Object readObjectOverride()
-	    throws IOException, ClassNotFoundException
+	    throws IOException
     {
 	throw new IOException("Illegal data type read");
     }
 
-    public GetField readFields() throws IOException, ClassNotFoundException {
+    public GetField readFields() throws IOException {
 	throw new IOException("Illegal data type read");
     }
 
@@ -215,7 +217,7 @@ public final class NoSerializationInputStream extends SerializationInputStream {
      * @exception IOException when called, this is illegal.
      */
     public void readArray(Object[] ref, int off, int len)
-	    throws IOException, ClassNotFoundException
+	    throws IOException
     {
 	throw new IOException("Illegal data type read");
     }

@@ -18,7 +18,7 @@ class ShadowSendPort extends SendPort {
 
     ByteInputStream in;
 
-    protected int messageCount = Integer.MAX_VALUE;
+    protected int msgcount = Integer.MAX_VALUE;
     private int quitCount;
     private int quitSyncer;
 
@@ -101,7 +101,7 @@ class ShadowSendPort extends SendPort {
 	    throw new PortMismatchException("Cannot connect send port and receive port of different types: " + type + " <-> " + receivePort.identifier().type());
 	}
 	this.type = receivePort.type();
-	this.messageCount = startSeqno;
+	this.msgcount = startSeqno;
 	this.groupStartSeqno = groupStartSeqno;
 
 	connect_allowed = receivePort.connect(this);
@@ -145,12 +145,12 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
     }
 
 
-    boolean acceptableSeqno(int msgSeqno) {
-	return (msgSeqno & ~ByteOutputStream.SEQNO_FRAG_BITS) >= groupStartSeqno;
+    boolean acceptableSeqno(int seqno) {
+	return (seqno & ~ByteOutputStream.SEQNO_FRAG_BITS) >= groupStartSeqno;
     }
 
 
-    ReadMessage getMessage(int msgSeqno) throws IOException {
+    ReadMessage getMessage(int seqno) throws IOException {
 	ReadMessage msg = cachedMessage;
 
 	if (DEBUG) {
@@ -167,7 +167,7 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 	    }
 	}
 
-	msg.msgSeqno = msgSeqno;
+	msg.msgSeqno = seqno;
 	return msg;
     }
 
@@ -210,7 +210,7 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
     }
 
 
-    private void doDisconnect(int syncer) throws IOException {
+    private void doDisconnect(int sncer) throws IOException {
 	disconnect();
 	Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
 	if (group != NO_BCAST_GROUP) {
@@ -219,15 +219,15 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 	}
 	groupStartSeqno = Integer.MAX_VALUE;
 	receivePort.disconnect(this);
-	messageCount = Integer.MAX_VALUE;
+	msgcount = Integer.MAX_VALUE;
 
-	sendDisconnectAck(ident.cpu, syncer, true);
+	sendDisconnectAck(ident.cpu, sncer, true);
     }
 
 
     void tickReceive() throws IOException {
-	messageCount++;
-	if (messageCount == quitCount) {
+	msgcount++;
+	if (msgcount == quitCount) {
 	    doDisconnect(quitSyncer);
 	}
     }
@@ -251,15 +251,15 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 	ReceivePort rp = Ibis.myIbis.lookupReceivePort(rId.port);
 
 	if (DEBUG) {
-	    System.err.println(Thread.currentThread() + "Receive a disconnect call from SendPort " + sp + ", disconnect from RcvePort " + rp + " count " + count + " sp.messageCount " + sp.messageCount);
+	    System.err.println(Thread.currentThread() + "Receive a disconnect call from SendPort " + sp + ", disconnect from RcvePort " + rp + " count " + count + " sp.messageCount " + sp.msgcount);
 	}
 	if (rp != sp.receivePort) {
 	    System.err.println("Try to disconnect from a receive port we're not connected to...");
 	    Thread.dumpStack();
 	}
-	if (sp.messageCount == count) {
+	if (sp.msgcount == count) {
 	    sp.doDisconnect(syncer);
-	} else if (sp.messageCount > count) {
+	} else if (sp.msgcount > count) {
 	    throw new StreamCorruptedException("This cannot happen...");
 	} else {
 	    sp.quitCount = count;

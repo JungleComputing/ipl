@@ -621,7 +621,7 @@ public class IbisSerializationInputStream
 	    return o;
 	}
 
-	IbisTypeInfo t = readType(handle & TYPE_MASK);
+	readType(handle & TYPE_MASK);
 
 	String s = readUTF();
 	Class c = getClassFromName(s);
@@ -860,10 +860,9 @@ public class IbisSerializationInputStream
 		     */
 		    return java.lang.reflect.Array.newInstance(
 				getClassFromName(typeName), dims).getClass();
-		} else {
-                    return loadClassFromCustomCL(typeName);
 		}
-	    }
+                   return loadClassFromCustomCL(typeName);
+		}
 	}
     }
     
@@ -1299,6 +1298,7 @@ public class IbisSerializationInputStream
 					getName();
 
 		if (fieldtype.startsWith("[")) {
+		    // do nothing
 		} else {
 		    fieldtype = "L" + fieldtype.replace('.', '/') + ";";
 		}
@@ -1470,12 +1470,11 @@ public class IbisSerializationInputStream
      * constructor of the "highest" superclass that is not serializable.
      *
      * @param classname		name of the class
-     * @exception IOException	gets thrown when an IO error occurs.
      * @exception ClassNotFoundException when class <code>classname</code>
      *  cannot be loaded.
      */
     public Object create_uninitialized_object(String classname)
-	throws ClassNotFoundException, IOException {
+	throws ClassNotFoundException {
 	Class clazz = getClassFromName(classname);
 	return create_uninitialized_object(clazz);
     }
@@ -1585,9 +1584,8 @@ public class IbisSerializationInputStream
 	    return o;
 	}
 
-	IbisTypeInfo t;
 	try {
-	    t = readType(handle & TYPE_MASK);
+	    readType(handle & TYPE_MASK);
 	} catch (ClassNotFoundException e) {
 	    if (DEBUG) {
 		dbPrint("Caught exception: " + e);
@@ -1716,6 +1714,7 @@ public class IbisSerializationInputStream
      * Ignored for Ibis serialization.
      */
     protected void readStreamHeader() {
+        // ignored
     }
 
     public GetField readFields() throws IOException, ClassNotFoundException {

@@ -42,14 +42,14 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     private static long explicitFinish;
     private static long implicitFinish;
 
-    private static int livingPorts = 0;
+    static int livingPorts = 0;
     private static PortCounter  portCounter = new PortCounter ();
 
     private PortType type;
     private ReceivePortIdentifier ident;
     private String name;	// needed to unbind
 
-    private ReadMessage queueFront;
+    ReadMessage queueFront;
     private ReadMessage queueTail;
     private MessageArrived messageArrived = new MessageArrived();
     private int arrivedWaiters = 0;
@@ -64,7 +64,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     private ibis.ipl.Upcall upcall;
     private int upcallThreads;
 
-    private volatile boolean stop = false;
+    volatile boolean stop = false;
 
     private ReceivePortConnectUpcall connectUpcall;
     private boolean allowConnections = false;
@@ -81,7 +81,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
      */
     private boolean homeConnection = true;
 
-    private Vector connections = new Vector();
+    Vector connections = new Vector();
 
     private Shutdown shutdown = new Shutdown();
 
@@ -358,9 +358,8 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	if (connectUpcall == null || acceptThread.checkAccept(id)) {
 	    connections.add(sp);
 	    return true;
-	} else {
-	    return false;
 	}
+	return false;
     }
 
 
@@ -391,11 +390,11 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	else {
 // System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because the previous one didn't terminate");
 // Thread.dumpStack();
-	    Thread thread = new Thread(this, "ReceivePort upcall thread " + upcallThreads);
+	    Thread upcallthread = new Thread(this, "ReceivePort upcall thread " + upcallThreads);
 	    upcallThreads++;
 	    availableUpcallThread++;
-	    thread.setDaemon(true);
-	    thread.start();
+	    upcallthread.setDaemon(true);
+	    upcallthread.start();
 	    if (STATISTICS) {
 		threadsCreated++;
 	    }
@@ -855,7 +854,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     private String connectionToString() {
 	String t = "Connections =";
 	for (int i = 0; i < connections.size(); i++) {
-	    t = t + " " + (ShadowSendPort)connections.elementAt(i);
+	    t = t + " " + connections.elementAt(i);
 	}
 	return t;
     }

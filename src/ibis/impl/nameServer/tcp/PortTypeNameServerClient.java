@@ -32,7 +32,7 @@ class PortTypeNameServerClient implements Protocol {
 		Socket s = null;
 		DataOutputStream out;
 		DataInputStream in;
-		int result, type;
+		int result;
 
 		s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());

@@ -2,9 +2,7 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
-
 import ibis.ipl.BindingException;
-import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePort;
@@ -38,8 +36,6 @@ class ReceivePortNameServerClient implements Protocol {
 		ObjectInputStream in;
 		ReceivePortIdentifier id = null;
 		int result;
-		long startTime = System.currentTimeMillis();
-
 		s = NameServerClient.socketFactory.createSocket(server, port, localAddress, timeout);
 			
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
@@ -86,13 +82,13 @@ class ReceivePortNameServerClient implements Protocol {
 		return id;
 	}
 
-	public ReceivePortIdentifier [] query(IbisIdentifier ident)  throws IOException, ClassNotFoundException {
+	public ReceivePortIdentifier [] query(IbisIdentifier ident) {
 		/* not implemented yet */
 		return new ReceivePortIdentifier[0];
 	}
 
-	public void bind(String name, ReceivePort port) throws IOException {
-		bind(name, port.identifier());
+	public void bind(String name, ReceivePort prt) throws IOException {
+		bind(name, prt.identifier());
 	}
 
 	//gosia
@@ -183,9 +179,6 @@ class ReceivePortNameServerClient implements Protocol {
 		Socket s = null;
 		ObjectOutputStream out;
 		ObjectInputStream in;
-		ReceivePortIdentifier id;
-		int result;
-
 		s = NameServerClient.socketFactory.createSocket(server, this.port, localAddress, 0 /* retry */);
 
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());

@@ -92,8 +92,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 		long startTime = System.currentTimeMillis();
 
 		try { 
-		    boolean reuse_connection = false;
-
 		    if (DEBUG) {
 			    System.err.println("--> Creating socket for connection to " + receiver);
 		    }
@@ -154,8 +152,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			    result = data_in.readByte();
 
 			    if (result == NEW_CONNECTION) { 
-				/* no unused stream found, so reuse current one */
-				reuse_connection = true;
 				obj_out.flush();
 				obj_out.close();
 				data_in.close();
@@ -214,7 +210,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			/* Connect to the serversocket, so that the port handler
 			 * thread wakes up.
 			 */
-			Socket s = socketFactory.createSocket(me.address(), port, me.address(), 0 /* retry */);
+			socketFactory.createSocket(me.address(), port, me.address(), 0 /* retry */);
 		} catch (Exception e) { 
 			// Ignore
 		}

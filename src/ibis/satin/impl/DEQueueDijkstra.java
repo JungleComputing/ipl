@@ -76,11 +76,6 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 		return l[tail - 1];
 	}
 
-	private void removeElement(int i) {
-		l[i] = l[head - 1];
-		head--;
-	}
-
 	boolean contains(InvocationRecord r) {
 		for (int i = tail; i < head; i++) {
 			InvocationRecord curr = l[i];
@@ -93,7 +88,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 
 	void removeJob(int index) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		for (int i = index + 1; i < head; i++) {
@@ -106,12 +101,12 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	/* hold the satin lock here! */
 	void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		for (int i = tail; i < head; i++) {
 			InvocationRecord curr = l[i];
-			if (Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+			if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 				if (ABORT_DEBUG) {
 					System.err.println("found local child: " + curr.stamp
 							+ ", it depends on " + targetStamp);
@@ -151,12 +146,12 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	//never used -- dijkstra queue doesnt work with fault tolerance
 	void killSubtreeOf(ibis.ipl.IbisIdentifier owner) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		for (int i = tail; i < head; i++) {
 			InvocationRecord curr = l[i];
-			if (Satin.isDescendentOf1(curr, owner) || curr.owner.equals(owner)) //shouldn
+			if (Aborts.isDescendentOf1(curr, owner) || curr.owner.equals(owner)) //shouldn
 			// happen
 			{
 

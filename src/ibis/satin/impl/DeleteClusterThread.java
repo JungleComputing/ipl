@@ -15,7 +15,7 @@ class DeleteClusterThread extends Thread {
 		} catch (InterruptedException e) {
 			//ignore
 		}
-		Satin satin = Satin.this_satin;
+		Satin satin = SatinBase.this_satin;
 		satin.deleteCluster(satin.ident.cluster());
 	}
 

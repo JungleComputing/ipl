@@ -95,7 +95,7 @@ final class ReceivePortNameServerClient
 	bind.signal();
     }
 
-    private native void ns_bind(String name, byte[] recvPortId);
+    native void ns_bind(String name, byte[] recvPortId);
 
     private Bind bind = new Bind();
 
@@ -114,7 +114,7 @@ final class ReceivePortNameServerClient
 	private boolean	ns_busy = false;
 	private ConditionVariable	ns_free = Ibis.myIbis.createCV();
 
-	private ReceivePortIdentifier ri;
+	ReceivePortIdentifier ri;
 
 	private static final int BACKOFF_MILLIS = 100;
 
@@ -190,7 +190,7 @@ final class ReceivePortNameServerClient
 	}
     }
 
-    private native void ns_lookup(String name);
+    native void ns_lookup(String name);
 
     /* Called from native */
     private void lookup_reply(byte[] rcvePortId) {

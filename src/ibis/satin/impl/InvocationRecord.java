@@ -195,12 +195,11 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		if (o instanceof InvocationRecord) {
 			InvocationRecord other = (InvocationRecord) o;
 			return stamp == other.stamp && owner.equals(other.owner);
-		} else {
-			if (Config.ASSERTS) {
-				System.out.println("warning: weird equals in Invocationrecord");
-			}
-			return false;
 		}
+		if (Config.ASSERTS) {
+			System.out.println("warning: weird equals in Invocationrecord");
+		}
+		return false;
 	}
 
 	/**

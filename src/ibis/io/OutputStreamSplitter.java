@@ -16,6 +16,7 @@ public final class OutputStreamSplitter extends OutputStream {
     ArrayList out = new ArrayList();
 
 	public OutputStreamSplitter() {
+	    // empty constructor
 	}
 
 	public OutputStreamSplitter(boolean removeOnException) {

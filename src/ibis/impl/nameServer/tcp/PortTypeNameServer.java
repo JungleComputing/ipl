@@ -49,9 +49,8 @@ class PortTypeNameServer extends Thread implements Protocol {
 	     * Returns the next sequence number associated with the specified name.
 	     * @param name the name of the sequence.
 	     * @return the next sequence number
-	     * @exception IOException gets thrown in case of trouble
 	     */
-	    public synchronized long getSeqno(String name) throws IOException {
+	    public synchronized long getSeqno(String name) {
 		LongObject i = (LongObject) counters.get(name);
 		if (i == null) {
 		    i = new LongObject(ibis.ipl.ReadMessage.INITIAL_SEQNO);
@@ -117,7 +116,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 
 
 	private void handleSeqno() throws IOException {
-		String name = (String) in.readUTF();
+		String name = in.readUTF();
 
 		long l = seq.getSeqno(name);
 		out.writeLong(l);

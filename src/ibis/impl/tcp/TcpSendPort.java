@@ -65,8 +65,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	long count;
 
 	TcpSendPort(TcpIbis ibis, TcpPortType type, String name,
-		    boolean connectionAdministration, SendPortConnectUpcall cU)
-		throws IOException {
+		    boolean connectionAdministration, SendPortConnectUpcall cU) {
 
 		this.name = name;
 		this.type = type;

@@ -33,9 +33,8 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 		if (other == null) return false;
 		if (other instanceof TcpReceivePortIdentifier) { 
 			return equals((TcpReceivePortIdentifier) other);
-		} else { 
-			return false;		
 		}
+		return false;		
 	} 
 	
 	//gosia

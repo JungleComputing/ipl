@@ -112,8 +112,6 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 
 //	static int msgCounter = 0;
 	public void run() {
-		byte opcode = -1;
-
 		try {
 			reader();
 		} catch (IOException e) {

@@ -27,7 +27,7 @@ final class ByteOutputStream
      * Count the number of outstandig fragments that live within the current
      * message.
      */
-    private int outstandingFrags;
+    int outstandingFrags;
 
     /**
      * This field counts the number of sent fragments within a message.
@@ -329,12 +329,12 @@ final class ByteOutputStream
     private native boolean msg_send(int cpu,
 				    int port,
 				    int my_port,
-				    int msgSeqno,
+				    int seqno,
 				    int splitCount,
 				    int splitTotal,
 				    boolean lastFrag) throws IOException;
     private native boolean msg_bcast(int group,
-				     int msgSeqno,
+				     int seqno,
 				     boolean lastFrag) throws IOException;
 
     public native void close();

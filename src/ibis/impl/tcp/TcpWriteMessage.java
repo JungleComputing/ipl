@@ -16,7 +16,7 @@ final class TcpWriteMessage implements WriteMessage {
         boolean isFinished = false;
 
 	TcpWriteMessage(TcpSendPort p, SerializationOutputStream out,
-					boolean connectionAdministration) throws IOException {
+					boolean connectionAdministration) {
 		this.connectionAdministration = connectionAdministration;
 		sport = p;
 		this.out = out;
@@ -47,7 +47,7 @@ final class TcpWriteMessage implements WriteMessage {
 		return sport;
 	}
 
-	public int send() throws IOException {
+	public int send() {
 	        if(isFinished) {
 		        throw new IbisError("Writing data to a message that was already finished");
 	        }
@@ -77,9 +77,7 @@ final class TcpWriteMessage implements WriteMessage {
 			before = after;
 			return retval;
 		}
-		else {
-			return 0;
-		}
+		return 0;
 	}
 
 	public void finish(IOException e) {

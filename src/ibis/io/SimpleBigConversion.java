@@ -67,7 +67,7 @@ public class SimpleBigConversion extends Conversion {
 	t1 = byte2int(src, off);
 	t2 = byte2int(src, off + 4);
 
-	return ((((long) t1) << 32) | (((long) t2) & 0xffffffffL));
+	return ((((long) t1) << 32) | (t2 & 0xffffffffL));
     }
 
     public final void float2byte(float src, byte[] dst, int off) {
@@ -218,16 +218,16 @@ public class SimpleBigConversion extends Conversion {
 	int end = index_dst + len;
 
 	for (int i=index_dst;i<end;i++) { 	
-	    int t1 = (((int)(src[count+0] & 0xff) << 24) |
-		    ((int)(src[count+1] & 0xff) << 16) |
-		    ((int)(src[count+2] & 0xff) <<  8) |
-		    ((int)(src[count+3] & 0xff) <<  0));
-	    int t2 = (((int)(src[count+4] & 0xff) << 24) |
-		    ((int)(src[count+5] & 0xff) << 16) |
-		    ((int)(src[count+6] & 0xff) <<  8) |
-		    ((int)(src[count+7] & 0xff) <<  0));
+	    int t1 = (((src[count+0] & 0xff) << 24) |
+		    ((src[count+1] & 0xff) << 16) |
+		    ((src[count+2] & 0xff) <<  8) |
+		    ((src[count+3] & 0xff) <<  0));
+	    int t2 = (((src[count+4] & 0xff) << 24) |
+		    ((src[count+5] & 0xff) << 16) |
+		    ((src[count+6] & 0xff) <<  8) |
+		    ((src[count+7] & 0xff) <<  0));
 	    dst[i] = ((((long) t1) << 32) 
-		    | (((long) t2) & 0xffffffffL));
+		    | (t2 & 0xffffffffL));
 	    count += 8;
 	}
     }
@@ -292,17 +292,17 @@ public class SimpleBigConversion extends Conversion {
 	int end = index_dst + len;
 
 	for (int i=index_dst;i<end;i++) { 			
-	    int t1 = (((int)(src[count+0] & 0xff) << 24) |
-		    ((int)(src[count+1] & 0xff) << 16) |
-		    ((int)(src[count+2] & 0xff) <<  8) |
-		    ((int)(src[count+3] & 0xff) <<  0));
-	    int t2 = (((int)(src[count+4] & 0xff) << 24) |
-		    ((int)(src[count+5] & 0xff) << 16) |
-		    ((int)(src[count+6] & 0xff) <<  8) |
-		    ((int)(src[count+7] & 0xff) <<  0));
+	    int t1 = (((src[count+0] & 0xff) << 24) |
+		    ((src[count+1] & 0xff) << 16) |
+		    ((src[count+2] & 0xff) <<  8) |
+		    ((src[count+3] & 0xff) <<  0));
+	    int t2 = (((src[count+4] & 0xff) << 24) |
+		    ((src[count+5] & 0xff) << 16) |
+		    ((src[count+6] & 0xff) <<  8) |
+		    ((src[count+7] & 0xff) <<  0));
 
 	    dst[i] = Double.longBitsToDouble((((long) t1) << 32) 
-		    | (((long) t2) & 0xffffffffL));
+		    | (t2 & 0xffffffffL));
 	    count += 8;
 	}
     } 

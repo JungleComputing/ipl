@@ -12,12 +12,6 @@ import java.io.OutputStream;
 public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
     /**
-     * Some debugging information is printed when this is set to
-     * <code>true</code>.
-     */
-    public static final boolean DEBUG = false;
-
-    /**
      * Size of the buffer in which output data is collected.
      */
     private static final int BUF_SIZE = IbisStreamFlags.BUFFER_SIZE;
@@ -278,7 +272,8 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 	out.flush();
     }
 
-    public final void finish() throws IOException {
+    public final void finish() {
+        // empty
     }
 
     public final boolean finished() {

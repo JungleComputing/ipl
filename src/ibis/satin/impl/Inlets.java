@@ -145,8 +145,6 @@ public abstract class Inlets extends Aborts {
 			r.eek.printStackTrace();
 		}
 
-		InvocationRecord curr = r;
-
 		synchronized (this) {
 			// also kill the parent itself.
 			// It is either on the stack or on a remote machine.

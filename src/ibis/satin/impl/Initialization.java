@@ -296,7 +296,7 @@ public abstract class Initialization extends SatinBase {
 		}
 
 		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
-		if (Satin.use_seq) {
+		if (TupleSpace.use_seq) {
 		    commprops += ", Numbered";
 		}
 		if (FAULT_TOLERANCE) {
@@ -362,7 +362,7 @@ public abstract class Initialization extends SatinBase {
 		}
 
 		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
-		if (Satin.use_seq) {
+		if (TupleSpace.use_seq) {
 		    commprops += ", Numbered";
 		}
 		if (FAULT_TOLERANCE) {

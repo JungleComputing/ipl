@@ -58,7 +58,7 @@ public final class TcpIbis extends Ibis implements Config {
 	    socketFactory = IbisSocketFactory.createFactory();
 	}
 
-	public TcpIbis() throws IbisException {
+	public TcpIbis() {
 		try {
 			Runtime.getRuntime().addShutdownHook(new TcpShutdown());
 		} catch (Exception e) {
@@ -66,26 +66,26 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 	}
      
-	protected PortType newPortType(String name, StaticProperties p)
+	protected PortType newPortType(String nm, StaticProperties p)
 		    throws IOException, IbisException {
 
-		TcpPortType resultPort = new TcpPortType(this, name, p);
+		TcpPortType resultPort = new TcpPortType(this, nm, p);
 		p = resultPort.properties();
 
-		if (nameServer.newPortType(name, p)) { 
+		if (nameServer.newPortType(nm, p)) { 
 			/* add type to our table */
-			portTypeList.put(name, resultPort);
+			portTypeList.put(nm, resultPort);
 
 			if(DEBUG) {
-				System.out.println(this.name + ": created PortType '" + name + "'");
+				System.out.println(this.name + ": created PortType '" + nm + "'");
 			}
 		}
 
 		return resultPort;
 	}
 
-	long getSeqno(String name) throws IOException {
-		return nameServer.getSeqno(name);
+	long getSeqno(String nm) throws IOException {
+		return nameServer.getSeqno(nm);
 	}
 
 	public Registry registry() {
@@ -100,7 +100,7 @@ public final class TcpIbis extends Ibis implements Config {
 		return ident;
 	}
 
-	protected void init() throws IbisException, IOException { 
+	protected void init() throws IOException { 
 		if(DEBUG) {
 			System.err.println("In TcpIbis.init()");
 		}
@@ -205,22 +205,22 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 	}
 
-	public PortType getPortType(String name) { 
-		return (PortType) portTypeList.get(name);
+	public PortType getPortType(String nm) { 
+		return (PortType) portTypeList.get(nm);
 	} 
 
 	public void enableResizeUpcalls() {
-		TcpIbisIdentifier ident = null;
+		TcpIbisIdentifier id = null;
 
 		if(resizeHandler != null) {
 			while(true) {
 				synchronized(this) {
 					if(joinedIbises.size() == 0) break;
 					poolSize++;
-					ident = (TcpIbisIdentifier)joinedIbises.remove(0);
+					id = (TcpIbisIdentifier)joinedIbises.remove(0);
 				}
-				resizeHandler.joined(ident); // Don't hold the lock during user upcall
-				if (ident.equals(this.ident)) {
+				resizeHandler.joined(id); // Don't hold the lock during user upcall
+				if (id.equals(this.ident)) {
 				    i_joined = true;
 				}
 			}
@@ -229,18 +229,18 @@ public final class TcpIbis extends Ibis implements Config {
 				synchronized(this) {
 					if(leftIbises.size() == 0) break;
 					poolSize--;
-					ident = (TcpIbisIdentifier)leftIbises.remove(0);
+					id = (TcpIbisIdentifier)leftIbises.remove(0);
 				}
-				resizeHandler.left(ident); // Don't hold the lock during user upcall
+				resizeHandler.left(id); // Don't hold the lock during user upcall
 
 			}
 			while(true) {
 				synchronized(this) {
 					if(diedIbises.size() == 0) break;
 					poolSize--;
-					ident = (TcpIbisIdentifier)diedIbises.remove(0);
+					id = (TcpIbisIdentifier)diedIbises.remove(0);
 				}
-				resizeHandler.died(ident); // Don't hold the lock during user upcall
+				resizeHandler.died(id); // Don't hold the lock during user upcall
 
 			}
 		}
@@ -284,16 +284,16 @@ public final class TcpIbis extends Ibis implements Config {
 		} 
 	}
 
-	public void poll() throws IOException {
+	public void poll() {
 		// Empty implementation, as TCP Ibis has interrupts.
 	}
 
-	void bindReceivePort(String name, ReceivePortIdentifier p) throws IOException {
-		nameServer.bind(name, p);
+	void bindReceivePort(String nm, ReceivePortIdentifier p) throws IOException {
+		nameServer.bind(nm, p);
 	}
 
-	void unbindReceivePort(String name) throws IOException {
-		nameServer.unbind(name);
+	void unbindReceivePort(String nm) throws IOException {
+		nameServer.unbind(nm);
 	}
 	
 	class TcpShutdown extends Thread {

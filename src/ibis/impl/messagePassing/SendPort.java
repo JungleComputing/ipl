@@ -83,17 +83,17 @@ public class SendPort implements ibis.ipl.SendPort {
     protected native void ibmp_connect(int dest,
 	    			       byte[] rcvePortId,
 				       byte[] sendPortId,
-				       ConnectAcker syncer,
+				       ConnectAcker sncer,
 				       ConnectAcker delayed_syncer,
-				       int messageCount,
-				       int group,
+				       int cnt,
+				       int grp,
 				       int startSeqno);
 
     protected native void ibmp_disconnect(int remoteCPU,
 					  byte[] receiverPortId,
 					  byte[] sendPortId,
-					  ConnectAcker syncer,
-					  int count);
+					  ConnectAcker sncer,
+					  int cnt);
 
     public SendPort(PortType type,
 		    String name,
@@ -189,7 +189,7 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
 
-    private native void requestGroupID(ConnectAcker syncer);
+    private native void requestGroupID(ConnectAcker sncer);
 
     public long getCount() {
 	return count;
@@ -295,7 +295,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 
 	boolean hasHomeBcastConnection = false;
 	for (int i = 0, n = splitter.length; i < n; i++) {
-	    ReceivePortIdentifier ri = (ReceivePortIdentifier)splitter[i];
+	    ReceivePortIdentifier ri = splitter[i];
 	    if (ri.cpu == Ibis.myIbis.myCpu) {
 		hasHomeBcastConnection = true;
 		if (false && (! USE_BCAST_ALL || ! total)) {
@@ -323,7 +323,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 	    if (DEBUG || Ibis.BCAST_VERBOSE) {
 		System.err.println(ident + ": have broadcast group " + group + " receiver(s) ");
 		for (int i = 0, n = splitter.length; i < n; i++) {
-		    System.err.println("    " + (ReceivePortIdentifier)splitter[i]);
+		    System.err.println("    " + splitter[i]);
 		}
 	    }
 	}
@@ -332,7 +332,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
     }
 
 
-    private native void sendBindGroupRequest(int to, byte[] senderId, int group)
+    private native void sendBindGroupRequest(int to, byte[] senderId, int grp)
 	    throws IOException;
 
 
@@ -359,7 +359,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 		/* The extant connections are not aware that this is now
 		 * a broadcast group. Notify them. */
 		for (int i = 0, n = splitter.length; i < n; i++) {
-		    ReceivePortIdentifier ri = (ReceivePortIdentifier)splitter[i];
+		    ReceivePortIdentifier ri = splitter[i];
 		    if (! ri.equals(rid)) {
 			sendBindGroupRequest(ri.cpu, ident.getSerialForm(), group);
 		    }
@@ -369,7 +369,6 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Now do native connect call to " + rid + "; me = " + ident);
 	    }
-	    IbisIdentifier ibisId = (IbisIdentifier)Ibis.myIbis.identifier();
 	    syncer[my_split].setAcks(1);
 	    ibmp_connect(rid.cpu, rid.getSerialForm(), ident.getSerialForm(),
 			 syncer[my_split], null, messageCount,

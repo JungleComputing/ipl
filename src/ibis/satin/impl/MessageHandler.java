@@ -136,7 +136,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	void handleStealRequest(SendPortIdentifier ident, int opcode) {
 		SendPort s = null;
 		Map table = null;
-		Map tupleSpace = null;
 		Timer handleStealTimer = null;
 		Timer invocationRecordWriteTimer = null;
 		
@@ -210,12 +209,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				if (opcode != BLOCKING_STEAL_REQUEST || satin.exiting
 						|| result != null) {
 					break;
-				} else {
-					try {
-						satin.wait();
-					} catch (Exception e) {
-						// Ignore.
-					}
+				}
+				try {
+					satin.wait();
+				} catch (Exception e) {
+					// Ignore.
 				}
 			}
 
@@ -384,7 +382,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				System.exit(1);
 			}
 
-			if (Satin.use_seq) { // ordered communication
+			if (TupleSpace.use_seq) { // ordered communication
 				m.writeLong(satin.expected_seqno);
 			}
 
@@ -420,8 +418,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		SendPortIdentifier ident;
 		InvocationRecord tmp = null;
 		Map table = null;
-		Map tupleSpace = null;
-
 		if (STEAL_DEBUG) {
 			ident = m.origin();
 			if (opcode == STEAL_REPLY_SUCCESS) {
@@ -518,7 +514,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				if (STEAL_TIMING) {
 					satin.invocationRecordReadTimer.start();
 				}
-				if (Satin.use_seq) { // ordered communication
+				if (TupleSpace.use_seq) { // ordered communication
 					satin.stealReplySeqNr = m.readLong();
 				}
 				tmp = (InvocationRecord) m.readObject();
@@ -647,11 +643,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 						satin.gotActiveTuples = true;
 					}
 				} else {
-					Satin.remoteAdd(t.key, t.data);
+					TupleSpace.remoteAdd(t.key, t.data);
 				}
 				break;
 			case TUPLE_DEL:
-				Satin.remoteDel(t.key);
+				TupleSpace.remoteDel(t.key);
 				break;
 			}
 			satin.expected_seqno++;
@@ -670,16 +666,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 	private void handleTupleAdd(ReadMessage m) {
 		long seqno = 0;
-		boolean done = false;
 		try {
-			if (Satin.use_seq) {
+			if (TupleSpace.use_seq) {
 				seqno = m.sequenceNumber();
 			}
 			String key = m.readString();
 			Serializable data = (Serializable) m.readObject();
 			SendPortIdentifier s = m.origin();
 
-			if (Satin.use_seq && seqno > satin.expected_seqno) {
+			if (TupleSpace.use_seq && seqno > satin.expected_seqno) {
 				add_to_queue(seqno, key, data, s, TUPLE_ADD);
 			} else {
 				if (data instanceof ActiveTuple) {
@@ -688,9 +683,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 						satin.gotActiveTuples = true;
 					}
 				} else {
-					Satin.remoteAdd(key, data);
+					TupleSpace.remoteAdd(key, data);
 				}
-				if (Satin.use_seq) {
+				if (TupleSpace.use_seq) {
 					satin.expected_seqno++;
 					scan_queue();
 			
@@ -721,15 +716,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		long seqno = 0;
 		boolean done = false;
 		try {
-			if (Satin.use_seq) {
+			if (TupleSpace.use_seq) {
 				seqno = m.sequenceNumber();
 			}
 			String key = m.readString();
-			if (Satin.use_seq && seqno > satin.expected_seqno) {
+			if (TupleSpace.use_seq && seqno > satin.expected_seqno) {
 				add_to_queue(seqno, key, null, m.origin(), TUPLE_DEL);
 			} else {
-				Satin.remoteDel(key);
-				if (Satin.use_seq) {
+				TupleSpace.remoteDel(key);
+				if (TupleSpace.use_seq) {
 				        satin.expected_seqno++;
 					scan_queue();
 				}
@@ -748,7 +743,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					+ "': Got Exception while reading tuple remove: " + e);
 			System.exit(1);
 		}
-		if (Satin.use_seq) {
+		if (TupleSpace.use_seq) {
 			if (done) {
 				synchronized (satin) {
 					satin.notifyAll();

@@ -48,7 +48,7 @@ public class DummyInputStream extends InputStream {
 		return in.available();
 	}
 
-	public void close() throws IOException {
+	public void close() {
 		/* ignore */
 	}
 

@@ -10,6 +10,7 @@ public class SplitterException extends IOException {
 	private ArrayList exceptions = new ArrayList();
 
 	public SplitterException() {
+	    // empty constructor
 	}
 
 	public void add(OutputStream s, Exception e) {

@@ -1,6 +1,6 @@
 package ibis.satin;
 
-import ibis.satin.impl.Satin;
+import ibis.satin.impl.APIMethods;
 
 /**
  * This is the magic class that should be extended by objects that invoke
@@ -32,7 +32,7 @@ public class SatinObject implements java.io.Serializable {
 	 * during sequential code.
 	 */
 	public static void pause() {
-		Satin.pause();
+		APIMethods.pause();
 	}
 
 	/**
@@ -40,7 +40,7 @@ public class SatinObject implements java.io.Serializable {
 	 * large sequential part in a program.
 	 */
 	public static void resume() {
-		Satin.resume();
+		APIMethods.resume();
 	}
 
 	/**
@@ -52,7 +52,7 @@ public class SatinObject implements java.io.Serializable {
 	 *         invocations, false if there is enough work in the system.
 	 */
 	public static boolean needMoreJobs() {
-		return Satin.needMoreJobs();
+		return APIMethods.needMoreJobs();
 	}
 
 	/**
@@ -64,6 +64,6 @@ public class SatinObject implements java.io.Serializable {
 	 *         another processor.
 	 */
 	public static boolean localJob() {
-		return Satin.localJob();
+		return APIMethods.localJob();
 	}
 }

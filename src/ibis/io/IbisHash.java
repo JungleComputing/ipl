@@ -35,7 +35,7 @@ final class IbisHash {
     private static final int PRE_ALLOC_FACTOR = 1;
 
     // private static final int SHIFT1  = 5;
-    private static final int SHIFT1  = 4;
+    // private static final int SHIFT1  = 4;
     private static final int SHIFT2  = 16;
 
     private Object[]	dataBucket;
@@ -114,13 +114,13 @@ final class IbisHash {
 	}
     }
 
-    private void newBucketSet(int size) {
-	dataBucket = new Object[size];
-	handleBucket = new int[size];
+    private void newBucketSet(int sz) {
+	dataBucket = new Object[sz];
+	handleBucket = new int[sz];
 	if (supportDelete) {
-	    deleted = new boolean[size];
+	    deleted = new boolean[sz];
 	}
-	alloc_size = size;
+	alloc_size = sz;
     }
 
 

@@ -34,7 +34,7 @@ final class VictimTable implements Config {
 
 	void add(IbisIdentifier ident, SendPort port) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		Victim v = new Victim();
 		v.ident = ident;
@@ -54,7 +54,7 @@ final class VictimTable implements Config {
 
 	Victim remove(IbisIdentifier ident) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		Victim v = new Victim();
 		v.ident = ident;
@@ -70,7 +70,7 @@ final class VictimTable implements Config {
 
 	Victim remove(int i) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		// ??? hier een assert van maken??, let op bij 'this already happ...'
@@ -89,14 +89,14 @@ final class VictimTable implements Config {
 
 	int size() {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		return victims.size();
 	}
 
 	SendPort getPort(int i) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		if (i < 0 || i >= victims.size()) {
 			return null;
@@ -106,7 +106,7 @@ final class VictimTable implements Config {
 
 	IbisIdentifier getIdent(int i) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		if (i < 0 || i >= victims.size()) {
 			return null;
@@ -136,7 +136,7 @@ final class VictimTable implements Config {
 		Victim v = null;
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		for (int i = 0; i < victims.size(); i++) {
@@ -164,7 +164,7 @@ final class VictimTable implements Config {
 		int index;
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		if (victims.size() == 0) { // can happen with open world, no others have
@@ -198,7 +198,7 @@ final class VictimTable implements Config {
 		int clusterSize = thisCluster.size();
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		if (clusterSize == 0)
@@ -231,7 +231,7 @@ final class VictimTable implements Config {
 		Cluster c;
 
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		if (ASSERTS && clusters.get(0) != thisCluster) {
@@ -268,7 +268,7 @@ final class VictimTable implements Config {
 
 	void print(java.io.PrintStream out) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 
 		out.println("victimtable on " + satin + ", size is " + victims.size());
@@ -280,7 +280,7 @@ final class VictimTable implements Config {
 	
 	boolean contains(IbisIdentifier ident) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		
 		return victims.contains(ident);

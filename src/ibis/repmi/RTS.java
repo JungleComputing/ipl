@@ -71,7 +71,7 @@ public final class RTS {
                         receivePort = portType.createReceivePort("RepMI port on " + name, ch);                     
                         receivePort.enableConnections();
 
-                        IbisIdentifier i = (IbisIdentifier) ibisRegistry.elect("RepMI Master", localID);
+                        IbisIdentifier i = (IbisIdentifier) ibisRegistry.elect("RepMI Master");
 
                         if (localID.equals(i)) { 
 

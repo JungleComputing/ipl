@@ -9,7 +9,6 @@ final class MasterWorker extends Algorithm {
 	}
 
 	public InvocationRecord clientIteration() {
-		InvocationRecord r;
 		Victim v;
 
 		if (satin.master) {

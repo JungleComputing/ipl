@@ -159,7 +159,7 @@ final class TcpReadMessage implements ReadMessage {
 	        if(isFinished) {
 		        throw new IbisError("Reading data from a message that was already finished");
 	        }
-		return (String) in.readUTF();
+		return in.readUTF();
 	} 
 
 	public Object readObject() throws IOException, ClassNotFoundException {

@@ -52,12 +52,14 @@ public final class SunSerializationInputStream
      * a RESET when a handle is expected.
      */
     public void clear() {
+        // Not needed for Sun serialization.
     }
 
     /**
      * No statistics are printed for the Sun serialization version.
      */
     public void statistics() {
+        // No statistics for Sun serialization.
     }
 
     /**

@@ -15,6 +15,7 @@ public abstract class ArrayOutputStream extends Accumulator
      * Constructor.
      */
     public ArrayOutputStream() {
+        // empty constructor
     }
 
     /**

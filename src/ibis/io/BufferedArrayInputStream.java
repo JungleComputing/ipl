@@ -11,11 +11,6 @@ import java.io.InputStream;
 public final class BufferedArrayInputStream extends ArrayInputStream {
 
     /**
-     * When set to <code>true</code>, debugging prints are enabled.
-     */
-    private static final boolean DEBUG = false;
-
-    /**
      * The underlying <code>InputStream</code>.
      */
     private InputStream in;
@@ -38,14 +33,6 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	this.in = in;
 	buffer = new byte[BUF_SIZE];
 	conversion = Conversion.loadConversion(false);
-    }
-
-    private void dump(byte[] buffer, int off, int len, String caller) {
-	System.err.print(caller + " buffer read[" + off + ":" + len + "] = [");
-	for (int i = off; i < min(off + len, 256); i++) {
-	    System.err.print(Integer.toHexString(buffer[i] & 0xff) + " ");
-	}
-	System.err.println("]");
     }
 
     private static final int min(int a, int b) {
@@ -482,7 +469,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	index += to_convert;
     }
 
-    public void close() throws IOException {
+    public void close() {
 	/* Ignore */
     }
 }

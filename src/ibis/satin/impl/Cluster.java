@@ -31,9 +31,8 @@ final class Cluster {
 	public boolean equals(Cluster other) {
 		if (other == this) {
 			return true;
-		} else {
-			return other.name.equals(name);
 		}
+		return other.name.equals(name);
 	}
 
 	public int hashCode() {

@@ -7,8 +7,6 @@ public class SerializationTimer {
     private final String	name;
 
     private int			starts;
-    private int			stops;
-
     private Timer		timer = Timer.createTimer();
     private Timer		suspend = Timer.createTimer();
 
@@ -44,7 +42,6 @@ public class SerializationTimer {
 
     public void reset() {
 	starts = 0;
-	stops = 0;
 	timer.reset();
 	suspend.reset();
     }

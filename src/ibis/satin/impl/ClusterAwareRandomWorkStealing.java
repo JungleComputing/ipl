@@ -164,7 +164,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
 	 */
 	public void checkAsyncVictimCrash(IbisIdentifier crashedIbis) {
 		if (ASSERTS) {
-			Satin.assertLocked(satin);
+			SatinBase.assertLocked(satin);
 		}
 		if (crashedIbis.equals(asyncCurrentVictim)) {
 			/*

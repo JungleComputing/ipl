@@ -517,7 +517,7 @@ public abstract class TupleSpace extends Communication {
 	//returns ready to send contents of the table
 	Map getContents() {
 		if (ASSERTS) {
-			Satin.assertLocked(this_satin);
+			SatinBase.assertLocked(this_satin);
 		}
 
 		return space;
@@ -525,7 +525,7 @@ public abstract class TupleSpace extends Communication {
 
 	void addContents(Map contents) {
 		if (ASSERTS) {
-			Satin.assertLocked(this_satin);
+			SatinBase.assertLocked(this_satin);
 		}
 
 		synchronized(space) {

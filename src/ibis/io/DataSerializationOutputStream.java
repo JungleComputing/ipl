@@ -179,6 +179,7 @@ public class DataSerializationOutputStream
     }
 
     public void statistics() {
+        // No statistics
     }
 
     /**
@@ -487,6 +488,7 @@ public class DataSerializationOutputStream
     }
 
     void addStatSendArray(Object ref, int type, int len) {
+        // empty
     }
 
     /**
@@ -766,6 +768,7 @@ public class DataSerializationOutputStream
     }
 
     public void reset() throws IOException {
+        // nothing
     }
 
     /* This is the data output / object output part */
