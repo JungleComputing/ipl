@@ -24,10 +24,12 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	private int bytes = 0;
 
 	public int bytesWritten() { 
-		int temp = bytes;
-		bytes = 0;
-		return temp;
+		return bytes;
 	} 
+
+	public void resetBytesWritten() {
+		bytes = 0;
+	}
 
 	public BufferedArrayOutputStream(OutputStream out) {
 		this.out = out;

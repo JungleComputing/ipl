@@ -108,7 +108,7 @@ final class AwariBoard extends NodeType implements Cloneable {
 
 		while (pit2 >= 0 && pit2 < 6 && (child.pits[pit2] == 2 || child.pits[pit2] == 3)) {
 			child.score -= child.pits[pit2];
-			captures -= child.pits[pit2];
+			child.captures -= child.pits[pit2]; ///@@@@@ EEEK, SHOULD BE child.captures, used to be captures.
 			child.pits[pit2--] = 0; // capture
 		}
 

@@ -1,5 +1,3 @@
-import java.awt.*;
-
 public class GfxColor implements java.io.Serializable 
 {
   float r, g, b;
@@ -104,6 +102,7 @@ public class GfxColor implements java.io.Serializable
 		return color & 0xff;
 	}
 
+/*
     Color convert()
     {
 	UpperClip();
@@ -111,7 +110,7 @@ public class GfxColor implements java.io.Serializable
 			 (int)(g*254.0),
 			 (int)(b*254.0));
     }
-
+*/
   GfxColor DirectMultiply(float angle)
     {
       r *= angle;

@@ -40,6 +40,7 @@ public final class Satinc implements BT_Opcodes {
 	String compiler = "jikes";
 	boolean supportAborts;
 	boolean inletOpt;
+	boolean spawnCounterOpt;
 	MethodTable mtab;
 
 	private class StoreClass {
@@ -90,7 +91,7 @@ public final class Satinc implements BT_Opcodes {
 	}
 
 	public Satinc(boolean verbose, boolean keep, boolean print, boolean invocationRecordCache,
-	       String classname, String mainClassname, String compiler, boolean supportAborts, boolean inletOpt, boolean createFactory) {
+	       String classname, String mainClassname, String compiler, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt, boolean createFactory) {
 		this.verbose = verbose;
 		this.keep = keep;
 		this.print = print;
@@ -100,6 +101,7 @@ public final class Satinc implements BT_Opcodes {
 		this.compiler = compiler;
 		this.supportAborts = supportAborts;
 		this.inletOpt = inletOpt;
+		this.spawnCounterOpt = spawnCounterOpt;
 
 		if(createFactory) {
 			BT_Factory.factory = new SatinFactory(classname);
@@ -1014,28 +1016,63 @@ public final class Satinc implements BT_Opcodes {
 		BT_CodeAttribute code = m.getCode();
 		BT_InsVector ins = code.ins;
 		int maxLocals = code.maxLocals;
+		int insertAllocPos = -1;
+
 		if(verbose) {
 			System.out.println("maxLocals = " + maxLocals);
 		}
 
+		// optimization:
+		// find first spawn, then look if there is a jump before the spawn that jumps over it...
+                // this avoids alloccing and deleting spawn counters before a spawn hapens (e.g. with thresholds)
+		if(spawnCounterOpt) {
+			System.out.println("spawnCounterOpt on");
+			for(int i=0; i<ins.size(); i++) {
+				int opcode = ins.elementAt(i).opcode;
+				
+				if(opcode == opc_invokevirtual) {
+					BT_Method target = ins.elementAt(i).getMethodTarget();
+					if(mtab.isSpawnable(target)) {
+						for(int j=0; j<i; j++) {
+							if(ins.elementAt(j) instanceof BT_JumpIns) {
+								BT_Ins jumpTarget = ((BT_JumpIns) ins.elementAt(j)).target;
+								int targetPos = ins.indexOf(jumpTarget);
+								if(targetPos >= i) {
+									insertAllocPos = 0;
+								}
+							}
+						}
+						
+						if(insertAllocPos == -1) { // no jumps
+							insertAllocPos = i;
+							System.out.println("spawnCounterOpt triggered");
+						}
+					break;
+					}
+				}
+			}
+		} else {
+			insertAllocPos = 0;
+		}
+
 		// Allocate a spawn counter at the start of the method, local slot is maxLocals 
 		ins.insertElementAt(BT_Ins.make(opc_invokestatic, satinClass.
-					       findMethod("newSpawnCounter", "()")), 0);
-		ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals), 1);
+					       findMethod("newSpawnCounter", "()")), insertAllocPos + 0);
+		ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals), insertAllocPos + 1);
 
 		// Allocate and init outstandingSpawns at slot maxLocals+1 
-		ins.insertElementAt(BT_Ins.make(opc_aconst_null), 2);
-		ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals+1), 3);
+		ins.insertElementAt(BT_Ins.make(opc_aconst_null), insertAllocPos + 2);
+		ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals+1), insertAllocPos + 3);
 
 		// Allocate and init curr at slot maxLocals+2 
-		ins.insertElementAt(BT_Ins.make(opc_aconst_null), 4);
-		ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals+2), 5);
+		ins.insertElementAt(BT_Ins.make(opc_aconst_null), insertAllocPos + 4);
+		ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals+2), insertAllocPos + 5);
 
 		// Allocate and init curr at slot maxLocals+3 
-		ins.insertElementAt(BT_Ins.make(opc_aconst_null), 6);
-		ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals+3), 7);
+		ins.insertElementAt(BT_Ins.make(opc_aconst_null), insertAllocPos + 6);
+		ins.insertElementAt(BT_Ins.make(opc_astore, maxLocals+3), insertAllocPos + 7);
 
-		for(int i=8; i<ins.size(); i++) {
+		for(int i=insertAllocPos + 8; i<ins.size(); i++) {
 			int opcode = ins.elementAt(i).opcode;
 			switch(opcode) {
 			case opc_areturn:
@@ -2195,7 +2232,7 @@ public final class Satinc implements BT_Opcodes {
 	}
 
 	public static void usage() {
-		System.err.println("Usage : java Satinc [-v] [-keep] [-print] [-irc-off] " +
+		System.err.println("Usage : java Satinc [-v] [-keep] [-print] [-irc-off] [-no-sc-opt]" +
 				   "[-compiler \"your compile command\" ] [-no-aborts] [-no-inlet-opt] <classname> [mainClass]");
 		System.exit(1);
 	}
@@ -2210,6 +2247,7 @@ public final class Satinc implements BT_Opcodes {
 		boolean supportAborts = true;
 		String compiler = "jikes";
 		boolean inletOpt = true;
+		boolean spawnCounterOpt = true;
 
 		for(int i=0; i<args.length; i++) {
 			if(args[i].equals("-v")) {
@@ -2235,6 +2273,8 @@ public final class Satinc implements BT_Opcodes {
 				supportAborts = false;
 			} else if(args[i].equals("-no-inlet-opt")) {
 				inletOpt = false;
+			} else if(args[i].equals("-no-sc-opt")) {
+				spawnCounterOpt = false;
 			} else {
 				usage();
 			}
@@ -2248,6 +2288,6 @@ public final class Satinc implements BT_Opcodes {
 			mainClass = target;
 		}
 
-		new Satinc(verbose, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt, true).start();
+		new Satinc(verbose, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt, spawnCounterOpt, true).start();
 	}
 }

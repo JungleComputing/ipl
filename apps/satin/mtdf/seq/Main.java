@@ -68,6 +68,6 @@ class Main {
 		bestChild.print();
 
 		Mtdf.tt.stats();
-		System.out.println("application Awari took " + ((double)(end - start) / 1000.0) + " seconds");
+		System.out.println("application Awari (" + depth + "," + (file == null ? "start" : file) + ") took " + ((double)(end - start) / 1000.0) + " seconds");
 	}
 }

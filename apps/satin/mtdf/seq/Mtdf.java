@@ -1,4 +1,8 @@
 public final class Mtdf {
+
+	static final boolean BEST_FIRST =false;
+	static final boolean DO_ABORT = true;
+
 	static final int INF = 10000;
 	static TranspositionTable tt = new TranspositionTable();
 
@@ -6,7 +10,7 @@ public final class Mtdf {
 		NodeType children[];
 		short bestChild = 0;
 		TranspositionTableEntry e;
-		short[] order;
+		short currChild = 0;
 
 		tt.visited++;
 
@@ -26,35 +30,42 @@ public final class Mtdf {
 				}
 			}
 
-			order = new short[children.length];
-			order[0] = e.bestChild;
-			for(short i=0; i<e.bestChild; i++) {
-				order[i+1] = i;
-			}
-			for(short i=(short) (e.bestChild+1); i<children.length; i++) {
-				order[i] = i;
-			}
-		} else {
-			order = new short[children.length];
-			for(short i=0; i<children.length; i++) {
-				order[i] = i;
-			}
+			currChild = e.bestChild;
 		}
 
 		node.score = -INF;
 
-		for (short i = 0; i < children.length; i++) {
-			short currChild = order[i];
+		if(BEST_FIRST) {
+			// try best child first, if it generates a cut-off, stop.
 			depthFirstSearch(children[currChild], 1-pivot, depth - 1);
-
-//			System.out.println("my score = " + node.score + ", spawned score = " + children[currChild].score);
 
 			if (-children[currChild].score > node.score) {
 				tt.scoreImprovements++;
 				bestChild = currChild;
 				node.score = (short) -children[currChild].score;
-
+				
 				if (node.score >= pivot) {
+					tt.cutOffs++;
+				// update transposition table
+					tt.store(node.signature, node.score, currChild, (byte)depth, node.score >= pivot);
+					return children[currChild];
+				}
+			}
+		}
+
+		for (short i = 0; i < children.length; i++) {
+			if(BEST_FIRST && i == currChild) continue;
+
+			depthFirstSearch(children[i], 1-pivot, depth - 1);
+
+//			System.out.println("my score = " + node.score + ", spawned score = " + children[currChild].score);
+
+			if (-children[i].score > node.score) {
+				tt.scoreImprovements++;
+				bestChild = i;
+				node.score = (short) -children[i].score;
+
+				if (DO_ABORT && node.score >= pivot) {
 					tt.aborts++;
 					break;
 				}
@@ -62,14 +73,8 @@ public final class Mtdf {
 		}
 
 		// update transposition table
-		e = new TranspositionTableEntry();
-		e.tag = node.signature;
-		e.value = node.score;
-		e.bestChild = bestChild;
-		e.depth = (byte) depth;
-		e.lowerBound = node.score >= pivot;
-		tt.store(e);
-		
+		tt.store(node.signature, node.score, bestChild, (byte)depth, node.score >= pivot);
+
 		return children[bestChild];
 	}
 

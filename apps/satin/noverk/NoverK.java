@@ -1,6 +1,6 @@
 public final class NoverK extends ibis.satin.SatinObject implements NoverKInterface, java.io.Serializable  {
 
-	static final long THRESHOLD = 20;
+	static final long THRESHOLD = 25;
 
 	public long spawn_nok (long n, long k) {
 		return nok(n, k);
@@ -12,16 +12,16 @@ public final class NoverK extends ibis.satin.SatinObject implements NoverKInterf
 		if ( n == k || k == 0) return 1;
 		if ( k == 1 ) return n;
 
-		if(n > THRESHOLD) {
-			r1 = spawn_nok(n-1, k-1);
-			r2 = spawn_nok(n-1, k);
-			sync();
-			return r1+r2;
-		} else {
+		if(n <= THRESHOLD) {
 			r1 = nok(n-1, k-1);
 			r2 = nok(n-1, k);
 			return r1+r2;
 		}
+
+		r1 = spawn_nok(n-1, k-1);
+		r2 = spawn_nok(n-1, k);
+		sync();
+		return r1+r2;
 	}
 
 

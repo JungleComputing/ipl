@@ -53,6 +53,7 @@ public abstract class ArrayOutputStream
 	    throws IbisIOException;
 
     public abstract int bytesWritten();
+    public abstract void resetBytesWritten();
 
     final protected void reset_indices() {
 	byte_index = 0;
@@ -110,6 +111,3 @@ public abstract class ArrayOutputStream
     /* protected */ public abstract void finish() throws IbisIOException;
 
 }
-
-
-

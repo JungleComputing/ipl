@@ -24,6 +24,7 @@ class Ibisc {
 	boolean doManta;
 	boolean supportAborts;
 	boolean inletOpt;
+	boolean spawnCounterOpt;
 	IbiscFactory factory;
 	Vector targets;
 	Vector satinized = new Vector();
@@ -33,7 +34,7 @@ class Ibisc {
 	Ibisc(boolean verbose, boolean satinVerbose, boolean iogenVerbose, boolean keep, 
 	      boolean print, boolean invocationRecordCache, Vector targets, 
 	      String packageName, String exeName, String compiler, String mantac, 
-	      boolean link, boolean doManta, boolean supportAborts, boolean inletOpt) {
+	      boolean link, boolean doManta, boolean supportAborts, boolean inletOp, boolean spawnCounterOpt) {
 		this.verbose = verbose;
 		this.satinVerbose = satinVerbose;
 		this.iogenVerbose = iogenVerbose;
@@ -47,6 +48,7 @@ class Ibisc {
 		this.doManta = doManta;
 		this.supportAborts = supportAborts;
 		this.inletOpt = inletOpt;
+		this.spawnCounterOpt = spawnCounterOpt;
 		this.packageName = packageName;
 		this.exeName = exeName;
 
@@ -173,7 +175,7 @@ class Ibisc {
 				}
 				new ibis.frontend.satin.Satinc(satinVerbose, keep, print, invocationRecordCache, 
 							       (String)factory.loadList.get(i), className, compiler, 
-							       supportAborts, inletOpt, false).start();
+							       supportAborts, inletOpt, spawnCounterOpt, false).start();
 				if(verbose) {
 					System.out.println(" Done");
 				}
@@ -220,7 +222,7 @@ class Ibisc {
 	public static void usage() {
 		System.err.println("Usage : ibisc [-v] [-sv] [-iv] [-keep] [-print] [-irc-off] " +
 				   "[-compiler \"your compile command\" ] [-mantac \"your compile command\" ] " +
-				   "[-c] [-o outfile] [-manta] [-no-aborts] [-no-inlet-opt] [-package] <java file(s)>");
+				   "[-c] [-o outfile] [-manta] [-no-aborts] [-no-inlet-opt] [-no-sc-opt] [-package] <java file(s)>");
 		System.exit(1);
 	}
 
@@ -234,6 +236,7 @@ class Ibisc {
 		String mantac = "mantac";
 		boolean doManta = false;
 		boolean inletOpt = true;
+		boolean spawnCounterOpt = true;
 		boolean satinVerbose = false;
 		boolean iogenVerbose = false;
 		boolean link = true;
@@ -276,6 +279,8 @@ class Ibisc {
 				supportAborts = false;
 			} else if(args[i].equals("-no-inlet-opt")) {
 				inletOpt = false;
+			} else if(args[i].equals("-no-sc-opt")) {
+				spawnCounterOpt = false;
 			} else {
 				usage();
 			}
@@ -286,6 +291,6 @@ class Ibisc {
 		}
 
 		new Ibisc(verbose, satinVerbose, iogenVerbose, keep, print, invocationRecordCache, 
-			  targets, packageName, exeName, compiler, mantac, link, doManta, supportAborts, inletOpt).start();
+			  targets, packageName, exeName, compiler, mantac, link, doManta, supportAborts, inletOpt, spawnCounterOpt).start();
 	}
 }
