@@ -182,7 +182,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    if( !p.isSatisfied( ctx.assignment ) ){
 		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
 	    }
-	    System.err.println("THROW RESULT");
 	    throw new SATResultException( s );
 	}
 	int nextvar = ctx.getDecisionVariable();
@@ -208,12 +207,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                 sync();
             }
             catch( SATRestartException x ){
-		System.err.println("IN RESTART INLET");
                 if( x.level<level ){
                     if( traceRestarts ){
                         System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
                     }
-		    System.err.println("IN RESTART INLET, throwing further");
                     throw x;
                 }
             }
@@ -309,7 +306,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	}
         catch( SATRestartException x ){
             if( traceRestarts ){
-                System.err.println( "RestartException reaches top level. Waiting for the termination of all jobs." );
+                System.err.println( "RestartException reaches top level, no solutions" );
             }
         }
         catch( SATException x ){
@@ -328,7 +325,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     public static void main( String args[] ) throws java.io.IOException
     {
 	if( args.length != 1 ){
-	    System.err.println( "Exactly one filename argument required." );
+	    System.err.println( "Exactly one filename argument required, but I have " + args.length + ":" );
+            for( int i=0; i<args.length; i++ ){
+                System.err.println( " [" + i + "] "  + args[i] );
+            }
 	    System.exit( 1 );
 	}
 	File f = new File( args[0] );
@@ -341,7 +341,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	// sequential code.
 	ibis.satin.SatinObject.pause(); 
 
-        System.err.println( "Problem in tuple space: " + problemInTuple );
+        System.err.println( "Put problem in tuple space: " + problemInTuple );
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );

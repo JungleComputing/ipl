@@ -77,11 +77,12 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean tracePropagation = false;
     private static final boolean traceLearning = false;
     private static final boolean traceResolutionChain = false;
-    private static final boolean traceRestarts = true;
+    private static final boolean traceRestarts = false;
     private static final boolean traceUpdates = false;
 
-    private static final boolean doVerification = false;
+    private static final boolean doVerification = true;
     private static final boolean doLearning = true;
+    private static final boolean doRestarts = false;
     private static final boolean propagatePureVariables = true;
 
     /**
@@ -621,13 +622,16 @@ public final class SATContext implements java.io.Serializable {
                     p.addConflictClause( cc );
                 }
 
-		int cl = calculateConflictLevel( p, cc, -1, level );
-                if( cl>=0 && cl<level ){
-                    if( traceLearning | traceRestarts ){
-                        System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
-                    }
-                    if( cl<level ){
-                        //throw new SATRestartException( cl-1 );
+                if( doRestarts ){
+                    int cl = calculateConflictLevel( p, cc, -1, level );
+
+                    if( cl>=0 && cl<level ){
+                        if( traceLearning | traceRestarts ){
+                            System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
+                        }
+                        if( cl<level ){
+                            throw new SATRestartException( cl-1 );
+                        }
                     }
                 }
 	    }

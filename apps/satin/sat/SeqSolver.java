@@ -198,7 +198,10 @@ public final class SeqSolver {
     public static void main( String args[] ) throws java.io.IOException
     {
 	if( args.length != 1 ){
-	    System.err.println( "Exactly one filename argument required." );
+	    System.err.println( "Exactly one filename argument required, but I have " + args.length + ":" );
+            for( int i=0; i<args.length; i++ ){
+                System.err.println( " [" + i + "] "  + args[i] );
+            }
 	    System.exit( 1 );
 	}
 	File f = new File( args[0] );

@@ -253,7 +253,10 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	}
 	File f = new File( args[0] );
 	if( !f.exists() ){
-	    System.err.println( "File does not exist: " + f );
+	    System.err.println( "Exactly one filename argument required, but I have " + args.length + ":" );
+            for( int i=0; i<args.length; i++ ){
+                System.err.println( " [" + i + "] "  + args[i] );
+            }
 	    System.exit( 1 );
 	}
 
