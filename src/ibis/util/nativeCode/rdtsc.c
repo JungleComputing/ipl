@@ -10,7 +10,7 @@ JNIEXPORT jlong JNICALL Java_ibis_util_nativeCode_Rdtsc_rdtsc(JNIEnv *env, jclas
 {
     jlong time;
 
-#ifdef __GNUC__
+#if defined(__linux) && defined __GNUC__ && defined __i386__
     __asm__ __volatile__ ("rdtsc" : "=A" (time));
 
 #elif _M_IX86 >= 400
@@ -42,9 +42,9 @@ JNIEXPORT jlong JNICALL Java_ibis_util_nativeCode_Rdtsc_rdtsc(JNIEnv *env, jclas
 }
 
 
-JNIEXPORT jfloat JNICALL Java_ibis_util_naticeCode_Rdtsc_getMHz(JNIEnv *env, jclass clazz)
+JNIEXPORT jfloat JNICALL Java_ibis_util_nativeCode_Rdtsc_getMHz(JNIEnv *env, jclass clazz)
 {
-#if defined(__linux)
+#if defined(__linux) && defined __GNUC__ && defined __i386__
 #define HOST_MHZ_DEFAULT 1000.0
     /* code borrowed from Panda 4.0 */
 #   define LINE_SIZE       512
@@ -56,14 +56,14 @@ JNIEXPORT jfloat JNICALL Java_ibis_util_naticeCode_Rdtsc_getMHz(JNIEnv *env, jcl
     if (f != NULL) {
         while (! feof(f)) {
             fgets(line, LINE_SIZE, f);
-            if (sscanf(line, " cpu MHz : %lf", &time_host_mhz) == 1) {
+            if (sscanf(line, " cpu MHz : %f", &time_host_mhz) == 1) {
                 break;
             }
         }
         if (time_host_mhz == -1.0) {
             while (! feof(f)) {
                 fgets(line, LINE_SIZE, f);
-                if (sscanf(line, " bogomips : %lf", &time_host_mhz) == 1) {
+                if (sscanf(line, " bogomips : %f", &time_host_mhz) == 1) {
                     break;
                 }
             }
