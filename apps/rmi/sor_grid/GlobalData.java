@@ -231,7 +231,7 @@ System.err.println(this + ": setRawDataSize " + width + " x " + height);
 	public synchronized float[][] getRawData() throws RemoteException {
 		// never send the same data twice...
 System.err.println(this + ": attempt to collect RawData");
-		while(dataWritten < total_num) {
+		while(synchronous && dataWritten < total_num) {
 			try {
 				wait();
 			} catch (InterruptedException e) {
@@ -250,14 +250,13 @@ System.err.println(this + ": collected RawData");
 
 	public static float[][] createDownsampledCanves(double[][] m, int width, int height) {
 	    // create the result matrix, downsample m.
-	    int ci = m.length / height;
-	    float[][] canvas = new float[ci][];
+	    float[][] canvas = new float[height][];
 
 	    for (int i=0; i<height; i++) {
 		int ypos = i * m.length / height;
-		if (m[ypos] != null) {
-		    int cj = m[ypos].length / width;
-		    canvas[i] = new float[cj];
+		if (m[ypos] != null && m[ypos].length > 0) {
+// System.err.println("Create canvas[" + i + "]");
+		    canvas[i] = new float[width];
 		}
 	    }
 
@@ -267,12 +266,15 @@ System.err.println(this + ": collected RawData");
 
 	public static void downsample(double[][] m, float[][] canvas, int width, int height) {
 	    for (int i=0; i<height; i++) {
-		for (int j=0; j<width; j++) {
-		    int ypos = i * m.length / height;
-		    if (m[ypos] != null) {
-			int xpos = j * m[j].length / width;
+		int ypos = i * m.length / height;
+		if (m[ypos] != null && m[ypos].length > 0) {
+// System.err.println("Downsample to canvas[" + i + "] from m[" + ypos + "]");
+		    for (int j=0; j<width; j++) {
+			int xpos = j * m[ypos].length / width;
 
-			canvas[i][j] = (float) m[ypos][xpos];
+			double[] row = m[ypos];
+			float val = (float)row[xpos];
+			canvas[i][j] = val;
 		    }
 		}
 	    }
@@ -303,6 +305,6 @@ System.err.println(this + ": collected RawData");
 		if (dataWritten == total_num) {
 		    notifyAll();
 		}
-System.err.println(this + ": deposited matrix[" + height + "][" + width + "]");
+// System.err.println(this + ": deposited matrix[" + height + "][" + width + "]");
 	}
 }

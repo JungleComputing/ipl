@@ -131,7 +131,7 @@ class Main {
 
 		System.out.println();
 
-		global = new GlobalData(info, true);
+		global = new GlobalData(info, ! asyncVisualization);
 		RMI_init.bind("GlobalData", global);
 		System.err.println("I am the master: " + info.hostName(0));
 	    } else {
