@@ -56,7 +56,7 @@ JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
 JAVAP_COMMAND   = $(JPATH)/bin/javap $(JAVAPFLAGS)
 JRE		= $(JPATH)/jre/lib
 ifeq (IBMJava2-14, $(findstring IBMJava2-14,$(JPATH)))
-JAVART		= $(JRE)/core.jar:$(JRE)/server.jar
+JAVART		= $(JRE)/core.jar:$(JRE)/server.jar:$(JRE)/security.jar
 else
 JAVART		= $(JRE)/rt.jar
 endif

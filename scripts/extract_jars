@@ -1,0 +1,5 @@
+JARFILES=`echo "$1" | tr ':' ' '`
+for i in $JARFILES
+do
+    $JAVA_ROOT/bin/jar xf $i
+done
