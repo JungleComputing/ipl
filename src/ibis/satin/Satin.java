@@ -567,7 +567,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				WriteMessage writeMessage = barrierSendPort.newMessage();
 				writeMessage.send();
 				writeMessage.finish();
-
+				
 				if (!upcalls) {
 					while(!gotBarrierReply && !exiting) {
 						satinPoll();
@@ -649,10 +649,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeByte(JOB_RESULT);
 			writeMessage.writeObject(r.owner); 
 			writeMessage.writeObject(rr);
+			writeMessage.send();
+			writeMessage.finish();
 
 			if(STEAL_STATS) {
 				if(inDifferentCluster(r.owner)) {
-					System.err.println("inter-cluster message!");
 					interClusterMessages++;
 					interClusterBytes += writeMessage.getCount();
 				} else {
@@ -660,8 +661,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					intraClusterBytes += writeMessage.getCount();
 				}
 			} 
-			writeMessage.send();
-			writeMessage.finish();
 		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending steal request: " + e);
@@ -691,6 +690,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeByte(STEAL_REQUEST);
 			writeMessage.send();
 			writeMessage.finish();
+			if(STEAL_STATS) {
+				if(inDifferentCluster(v.ident)) {
+					interClusterMessages++;
+					interClusterBytes += writeMessage.getCount();
+				} else {
+					intraClusterMessages++;
+					intraClusterBytes += writeMessage.getCount();
+				}
+			} 
 		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending steal request: " + e);
@@ -927,6 +935,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeObject(r.parentOwner);
 			writeMessage.send();
 			writeMessage.finish();
+			if(STEAL_STATS) {
+				if(inDifferentCluster(r.stealer)) {
+					interClusterMessages++;
+					interClusterBytes += writeMessage.getCount();
+				} else {
+					intraClusterMessages++;
+					intraClusterBytes += writeMessage.getCount();
+				}
+			} 
 		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending abort message: " + e);

@@ -90,6 +90,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					m.writeByte(STEAL_REPLY_FAILED);
 					m.send();
 					m.finish();
+					if(STEAL_STATS) {
+						if(satin.inDifferentCluster(ident.ibis())) {
+							satin.interClusterMessages++;
+							satin.interClusterBytes += m.getCount();
+						} else {
+							satin.intraClusterMessages++;
+							satin.intraClusterBytes += m.getCount();
+						}
+					} 
 
 //					long tend = System.currentTimeMillis();
 //					System.err.println("failed steal handler took " + (tend - tstart));
@@ -131,6 +140,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				m.writeObject(result);
 				m.send();
 				m.finish();
+				if(STEAL_STATS) {
+					if(satin.inDifferentCluster(ident.ibis())) {
+						satin.interClusterMessages++;
+						satin.interClusterBytes += m.getCount();
+					} else {
+						satin.intraClusterMessages++;
+						satin.intraClusterBytes += m.getCount();
+					}
+				} 
 
 //				long tend = System.currentTimeMillis();
 //				System.err.println("succ steal handler took " + (tend - tstart));
