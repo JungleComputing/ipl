@@ -586,7 +586,7 @@ public class NameServer implements Protocol {
 				}
 			} else if (args[i].equals("-controlhub")) {
 				control_hub = true;
-			} else if (args[i].equals("no-controlhub")) {
+			} else if (args[i].equals("-no-controlhub")) {
 				control_hub = false;
 			} else if (args[i].equals("-poolserver")) {
 				pool_server = true;
