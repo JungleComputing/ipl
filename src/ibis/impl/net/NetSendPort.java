@@ -25,6 +25,8 @@ import java.util.Hashtable;
  */
 public final class NetSendPort implements SendPort, WriteMessage {
 
+        final private boolean         streamChecking         = false;
+
 	/**
 	 * The type of the port.
 	 */
@@ -327,12 +329,12 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * a single byte is forced to be sent over the network.
 	 */
 	private void _finish() throws  IbisIOException{
-                //System.err.println("NetSendPort["+identifier+"]: finish-->");
+                //System.err.println("NetSendPort["+identifier+"]: _finish-->");
 		if (emptyMsg) {
-                        //System.err.println("NetSendPort["+identifier+"]: finish- empty message -");
+                        System.err.println("NetSendPort["+identifier+"]: finish- empty message -");
 			writeByte((byte)0);
 		}
-                //System.err.println("NetSendPort["+identifier+"]: finish<--");
+                //System.err.println("NetSendPort["+identifier+"]: _finish<--");
 	}
 	
 	/**
@@ -353,7 +355,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param doSend {@inheritDoc}
 	 */
 	public void reset(boolean doSend) throws IbisIOException {
-                //System.err.println("NetSendPort: reset-->");
+                System.err.println("NetSendPort: reset-->");
 		if (doSend) {
 			send();
 		} else {
@@ -361,7 +363,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
                 }
 		_finish();
 		output.reset(doSend);
-                //System.err.println("NetSendPort: reset<--");
+                System.err.println("NetSendPort: reset<--");
 	}
 
 	public int getCount() {
@@ -376,6 +378,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
                 //System.err.println("NetSendPort: write");
 		emptyMsg = false;
 		output.writeBoolean(value);
+                if (streamChecking) {
+                        debugWriteBoolean(value);
+                }
+
 	}
 
 	/**
@@ -389,54 +395,89 @@ public final class NetSendPort implements SendPort, WriteMessage {
                 //System.err.println("NetSendPort: writeByte-->");
 		emptyMsg = false;
 		output.writeByte(value);
+                if (streamChecking) {
+                        debugWriteByte(value);
+                }
+
 	}
 
 	public void writeChar(char value) throws IbisIOException {
                 //System.err.println("NetSendPort: writeChar-->");
 		emptyMsg = false;
 		output.writeChar(value);
+                if (streamChecking) {
+                        debugWriteChar(value);
+                }
+
 	}
 
 	public void writeShort(short value) throws IbisIOException {
                 //System.err.println("NetSendPort: writeShort-->");
 		emptyMsg = false;
 		output.writeShort(value);
+                if (streamChecking) {
+                        debugWriteShort(value);
+                }
+
 	}
 
 	public void writeInt(int value) throws IbisIOException {
                 //System.err.println("NetSendPort: writeInt-->");
 		emptyMsg = false;
 		output.writeInt(value);
+                if (streamChecking) {
+                        debugWriteInt(value);
+                }
+
 	}
 
 	public void writeLong(long value) throws IbisIOException {
                 //System.err.println("NetSendPort: writeLong-->");
 		emptyMsg = false;
 		output.writeLong(value);
+                if (streamChecking) {
+                        debugWriteLong(value);
+                }
+
 	}
 	
 	public void writeFloat(float value) throws IbisIOException {
                 //System.err.println("NetSendPort: writeFloat-->");
 		emptyMsg = false;
 		output.writeFloat(value);
+                if (streamChecking) {
+                        debugWriteFloat(value);
+                }
+
 	}
 
 	public void writeDouble(double value) throws IbisIOException {
                 //System.err.println("NetSendPort: writeDouble-->");
 		emptyMsg = false;
 		output.writeDouble(value);
+                if (streamChecking) {
+                        debugWriteDouble(value);
+                }
+
 	}
 
 	public void writeString(String value) throws IbisIOException {
                 //System.err.println("NetSendPort: writeString-->");
 		emptyMsg = false;
 		output.writeString(value);
+                if (streamChecking) {
+                        debugWriteString(value);
+                }
+
 	}
 
 	public void writeObject(Object value) throws IbisIOException {
                 //System.err.println("NetSendPort: writeObject-->");
 		emptyMsg = false;
 		output.writeObject(value);
+                if (streamChecking) {
+                        debugWriteObject(value);
+                }
 	}
 
 	public void writeArrayBoolean(boolean [] userBuffer) throws IbisIOException {
@@ -446,6 +487,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
 		output.writeArrayBoolean(userBuffer);
+                if (streamChecking) {
+                        debugWriteArrayBoolean(userBuffer);
+                }
+
 	}
 	
 	/**
@@ -462,6 +507,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
 		output.writeArrayByte(userBuffer);
+                if (streamChecking) {
+                        debugWriteArrayByte(userBuffer);
+                }
+
 	}
 	
 	public void writeArrayChar(char [] userBuffer) throws IbisIOException {
@@ -471,6 +520,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeArrayChar(userBuffer);
+                if (streamChecking) {
+                        debugWriteArrayChar(userBuffer);
+                }
+
 	}
 	
 	public void writeArrayShort(short [] userBuffer) throws IbisIOException {
@@ -480,6 +533,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeArrayShort(userBuffer);
+                if (streamChecking) {
+                        debugWriteArrayShort(userBuffer);
+                }
+
 	}
 	
 	public void writeArrayInt(int [] userBuffer) throws IbisIOException {
@@ -489,6 +546,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeArrayInt(userBuffer);
+                if (streamChecking) {
+                        debugWriteArrayInt(userBuffer);
+                }
+
 	}
 	
 	public void writeArrayLong(long [] userBuffer) throws IbisIOException {
@@ -498,6 +559,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeArrayLong(userBuffer);
+                if (streamChecking) {
+                        debugWriteArrayLong(userBuffer);
+                }
+
 	}
 	
 	public void writeArrayFloat(float [] userBuffer) throws IbisIOException {
@@ -507,6 +572,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeArrayFloat(userBuffer);
+                if (streamChecking) {
+                        debugWriteArrayFloat(userBuffer);
+                }
+
 	}
 	
 	public void writeArrayDouble(double [] userBuffer) throws IbisIOException {
@@ -516,6 +585,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeArrayDouble(userBuffer);
+                if (streamChecking) {
+                        debugWriteArrayDouble(userBuffer);
+                }
+
 	}
 	
 
@@ -526,6 +599,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeSubArrayBoolean(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugWriteSubArrayBoolean(userBuffer, offset, length);
+                }
+
 	}
 	
 	public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
@@ -535,6 +612,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeSubArrayByte(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugWriteSubArrayByte(userBuffer, offset, length);
+                }
+
 	}
 	
 	public void writeSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
@@ -544,6 +625,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeSubArrayChar(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugWriteSubArrayChar(userBuffer, offset, length);
+                }
+
 	}
 	
 	public void writeSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
@@ -553,6 +638,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeSubArrayShort(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugWriteSubArrayShort(userBuffer, offset, length);
+                }
+
 	}
 	
 	public void writeSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
@@ -562,6 +651,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeSubArrayInt(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugWriteSubArrayInt(userBuffer, offset, length);
+                }
+
 	}
 	
 	public void writeSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
@@ -571,6 +664,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeSubArrayLong(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugWriteSubArrayLong(userBuffer, offset, length);
+                }
+
 	}
 	
 	public void writeSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
@@ -580,6 +677,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
                 
                 emptyMsg = false;
                 output.writeSubArrayFloat(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugWriteSubArrayFloat(userBuffer, offset, length);
+                }
+
 	}
 	
 	public void writeSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
@@ -589,7 +690,267 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 		emptyMsg = false;
                 output.writeSubArrayDouble(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugWriteSubArrayDouble(userBuffer, offset, length);
+                }
+
+	}
+	
+        /*
+         * - Debug section -
+         */
+	public void debugWriteBoolean(boolean v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeBoolean(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+
+	public void debugWriteByte(byte v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeByte(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+
+	public void debugWriteChar(char v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeChar(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+
+	public void debugWriteShort(short v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeShort(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+
+	public void debugWriteInt(int v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeInt(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+
+	public void debugWriteLong(long v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeLong(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+	
+	public void debugWriteFloat(float v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeFloat(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+
+	public void debugWriteDouble(double v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeDouble(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+
+	public void debugWriteString(String v) throws IbisIOException {
+                Enumeration e = receivePortOs.keys();
+                while (e.hasMoreElements()) {
+                        Object             key   = e.nextElement();
+                        Object             value = receivePortOs.get(key);
+                        ObjectOutputStream os    = (ObjectOutputStream)value;
+                        try {
+                                os.writeUTF(v);
+                                os.flush();
+                        } catch(Exception x) {
+                                throw new Error(x.getMessage());
+                        }
+
+                }	
+
+	}
+
+	public void debugWriteObject(Object v) throws IbisIOException {
+                System.err.println("debugWriteObject:"+v.getClass().getName());
+                debugWriteString(v.getClass().getName());
+	}
+
+	public void debugWriteArrayBoolean(boolean [] b) throws IbisIOException {
+		debugWriteSubArrayBoolean(b, 0, b.length);
+	}
+	
+	public void debugWriteArrayByte(byte [] b) throws IbisIOException {
+		debugWriteSubArrayByte(b, 0, b.length);
+	}
+	
+	public void debugWriteArrayChar(char [] b) throws IbisIOException {
+                debugWriteSubArrayChar(b, 0, b.length);
+	}
+	
+	public void debugWriteArrayShort(short [] b) throws IbisIOException {
+                debugWriteSubArrayShort(b, 0, b.length);
+	}
+	
+	public void debugWriteArrayInt(int [] b) throws IbisIOException {
+                debugWriteSubArrayInt(b, 0, b.length);
+	}
+	
+	public void debugWriteArrayLong(long [] b) throws IbisIOException {
+                debugWriteSubArrayLong(b, 0, b.length);
+	}
+	
+	public void debugWriteArrayFloat(float [] b) throws IbisIOException {
+                debugWriteSubArrayFloat(b, 0, b.length);
+	}
+	
+	public void debugWriteArrayDouble(double [] b) throws IbisIOException {
+                debugWriteSubArrayDouble(b, 0, b.length);
 	}
 	
 
+	public void debugWriteSubArrayBoolean(boolean [] b, int o, int l) throws IbisIOException {
+                debugWriteInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugWriteBoolean(b[o+i]);
+                }
+
+	}
+	
+	public void debugWriteSubArrayByte(byte [] b, int o, int l) throws IbisIOException {
+                debugWriteInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugWriteByte(b[o+i]);
+                }
+
+	}
+	
+	public void debugWriteSubArrayChar(char [] b, int o, int l) throws IbisIOException {
+                debugWriteInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugWriteChar(b[o+i]);
+                }
+
+	}
+	
+	public void debugWriteSubArrayShort(short [] b, int o, int l) throws IbisIOException {
+                debugWriteInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugWriteShort(b[o+i]);
+                }
+
+	}
+	
+	public void debugWriteSubArrayInt(int [] b, int o, int l) throws IbisIOException {
+                debugWriteInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugWriteInt(b[o+i]);
+                }
+
+	}
+	
+	public void debugWriteSubArrayLong(long [] b, int o, int l) throws IbisIOException {
+                debugWriteInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugWriteLong(b[o+i]);
+                }
+
+	}
+	
+	public void debugWriteSubArrayFloat(float [] b, int o, int l) throws IbisIOException {
+                debugWriteInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugWriteFloat(b[o+i]);
+                }
+
+	}
+	
+	public void debugWriteSubArrayDouble(double [] b, int o, int l) throws IbisIOException {
+                debugWriteInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugWriteDouble(b[o+i]);
+                }
+
+        }
 }

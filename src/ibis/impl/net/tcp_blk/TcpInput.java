@@ -30,7 +30,6 @@ import java.io.OutputStream;
 
 import java.util.Hashtable;
 
-
 /**
  * The TCP input implementation (block version).
  */
@@ -178,10 +177,10 @@ public class TcpInput extends NetBufferedInput {
 		throws IbisIOException {
 		byte [] b = allocator.allocate();
 		int     l = 0;
-		
-                //System.err.println("tcp_blk: readByteBuffer --> : " + expectedLength);
+
 		try {
 			int offset = 0;
+
 			do {
 				offset += tcpIs.read(b, offset, 4);
 			} while (offset < 4);
@@ -191,12 +190,11 @@ public class TcpInput extends NetBufferedInput {
 			do {
 				offset += tcpIs.read(b, offset, l - offset);
 			} while (offset < l);
+
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new IbisIOException(e.getMessage());
 		} 
-		
-                //System.err.println("tcp_blk: readByteBuffer <-- : " + l);
-		
+
 		return new NetReceiveBuffer(b, l, allocator);
 	}
 

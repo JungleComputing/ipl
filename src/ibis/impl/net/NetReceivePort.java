@@ -31,10 +31,15 @@ import java.util.Hashtable;
  */
 public final class NetReceivePort implements ReceivePort, ReadMessage {
 	
+        final private boolean            streamChecking      = false;
+
 	/**
 	 * Flag indicating whether the port use a polling thread.
 	 */
 	private boolean                  usePollingThread    = false;
+
+
+	private boolean                  useUpcallThread     = true;
 
 	/**
 	 * Flag indicating whether unsuccessful active polling should be followed by
@@ -303,13 +308,18 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
                                                 //System.err.println("NetReceivePort: upcall-->");
                                                 //System.err.println("NetReceivePort["+identifier+"] - "+Thread.currentThread()+": poll success");
                                                 final ReadMessage rm = _receive();
-                                                Runnable r = new Runnable() {
-                                                                public void run() {
-                                                                        upcall.upcall(rm);
-                                                                }
-                                                        };
-                                                (new Thread(r)).start();
 
+                                                if (useUpcallThread) {
+                                                        upcall.upcall(rm);
+                                                } else {
+                                                        Runnable r = new Runnable() {
+                                                                        public void run() {
+                                                                                upcall.upcall(rm);
+                                                                        }
+                                                                };
+                                                        (new Thread(r)).start();
+                                                }
+                                                
                                                 //System.err.println("NetReceivePort: upcall<--");
 					} else {
 						polledLock.unlock();
@@ -716,53 +726,92 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 	public boolean readBoolean() throws IbisIOException {
 		emptyMsg = false;
-		return input.readBoolean();
+		boolean v = input.readBoolean();
+                if (streamChecking) {
+                        debugReadBoolean(v);
+                }
+                return v;
 	}
 	
 	public byte readByte() throws IbisIOException {
 		emptyMsg = false;
-                return input.readByte();
+		byte v = input.readByte();
+                if (streamChecking) {
+                        debugReadByte(v);
+                }
+                return v;
 	}
 	
 	public char readChar() throws IbisIOException {
 		emptyMsg = false;
-		return input.readChar();
+		char v = input.readChar();
+                if (streamChecking) {
+                        debugReadChar(v);
+                }
+                return v;
 	}
 	
 	public short readShort() throws IbisIOException {
 		emptyMsg = false;
-		return input.readShort();
+		short v = input.readShort();
+                if (streamChecking) {
+                        debugReadShort(v);
+                }
+                return v;
 	}
 	
 	public int readInt() throws IbisIOException {
 		emptyMsg = false;
-		return input.readInt();
+		int v = input.readInt();
+                if (streamChecking) {
+                        debugReadInt(v);
+                }
+                return v;
 	}
 	
 	public long readLong() throws IbisIOException {
 		emptyMsg = false;
-		return input.readLong();
+		long v = input.readLong();
+                if (streamChecking) {
+                        debugReadLong(v);
+                }
+                return v;
 	}
 	
 	public float readFloat() throws IbisIOException {
 		emptyMsg = false;
-		return input.readFloat();
+		float v = input.readFloat();
+                if (streamChecking) {
+                        debugReadFloat(v);
+                }
+                return v;
 	}
 	
 	public double readDouble() throws IbisIOException {
 		emptyMsg = false;
-		return input.readDouble();
+		double v = input.readDouble();
+                if (streamChecking) {
+                        debugReadDouble(v);
+                }
+                return v;
 	}
 	
 	public String readString() throws IbisIOException {
 		emptyMsg = false;
-		return input.readString();
+		String v = input.readString();
+                if (streamChecking) {
+                        debugReadString(v);
+                }
+                return v;
 	}
 	
 	public Object readObject()
 		throws IbisIOException {
-		emptyMsg = false;
-		return input.readObject();
+		Object v = input.readObject();
+                if (streamChecking) {
+                        debugReadObject(v);
+                }
+                return v;
 	}
 	
 
@@ -772,6 +821,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
 		input.readArrayBoolean(userBuffer);
+                if (streamChecking) {
+                        debugReadArrayBoolean(userBuffer);
+                }
 	}
 
 	public void readArrayByte(byte [] userBuffer) throws IbisIOException {
@@ -780,6 +832,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
                 emptyMsg = false;
                 input.readArrayByte(userBuffer);
+                if (streamChecking) {
+                        debugReadArrayByte(userBuffer);
+                }
 	}
 
 	public void readArrayChar(char [] userBuffer) throws IbisIOException {
@@ -788,6 +843,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
 		input.readArrayChar(userBuffer);
+                if (streamChecking) {
+                        debugReadArrayChar(userBuffer);
+                }
 	}
 
 	public void readArrayShort(short [] userBuffer) throws IbisIOException {
@@ -796,6 +854,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
 		input.readArrayShort(userBuffer);
+                if (streamChecking) {
+                        debugReadArrayShort(userBuffer);
+                }
 	}
 
 	public void readArrayInt(int [] userBuffer) throws IbisIOException {
@@ -804,6 +865,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
 		input.readArrayInt(userBuffer);
+                if (streamChecking) {
+                        debugReadArrayInt(userBuffer);
+                }
 	}
 
 	public void readArrayLong(long [] userBuffer) throws IbisIOException {
@@ -812,6 +876,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
                 input.readArrayLong(userBuffer);
+                if (streamChecking) {
+                        debugReadArrayLong(userBuffer);
+                }
 	}
 
 	public void readArrayFloat(float [] userBuffer) throws IbisIOException {
@@ -820,6 +887,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
                 input.readArrayFloat(userBuffer);
+                if (streamChecking) {
+                        debugReadArrayFloat(userBuffer);
+                }
 	}
 
 	public void readArrayDouble(double [] userBuffer) throws IbisIOException {
@@ -828,6 +898,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
 		input.readArrayDouble(userBuffer);
+                if (streamChecking) {
+                        debugReadArrayDouble(userBuffer);
+                }
 	}
 
 
@@ -837,6 +910,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
 		input.readSubArrayBoolean(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugReadSubArrayBoolean(userBuffer, offset, length);
+                }
 	}
 
 	public void readSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
@@ -845,6 +921,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 		emptyMsg = false;
                 input.readSubArrayByte(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugReadSubArrayByte(userBuffer, offset, length);
+                }
 	}
 
 	public void readSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
@@ -852,7 +931,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			return;
 
 		emptyMsg = false;
-		readSubArrayChar(userBuffer, offset, length);
+		input.readSubArrayChar(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugReadSubArrayChar(userBuffer, offset, length);
+                }
 	}
 
 	public void readSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
@@ -860,7 +942,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			return;
 
 		emptyMsg = false;
-		readSubArrayShort(userBuffer, offset, length);
+		input.readSubArrayShort(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugReadSubArrayShort(userBuffer, offset, length);
+                }
 	}
 
 	public void readSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
@@ -868,7 +953,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			return;
 
 		emptyMsg = false;
-		readSubArrayInt(userBuffer, offset, length);
+		input.readSubArrayInt(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugReadSubArrayInt(userBuffer, offset, length);
+                }
 	}
 
 	public void readSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
@@ -876,7 +964,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			return;
 
 		emptyMsg = false;
-		readSubArrayLong(userBuffer, offset, length);
+		input.readSubArrayLong(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugReadSubArrayLong(userBuffer, offset, length);
+                }
 	}
 
 	public void readSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
@@ -884,7 +975,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			return;
 
 		emptyMsg = false;
-		readSubArrayFloat(userBuffer, offset, length);
+		input.readSubArrayFloat(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugReadSubArrayFloat(userBuffer, offset, length);
+                }
 	}
 
 	public void readSubArrayDouble(double [] userBuffer, int offset, int length)
@@ -893,7 +987,240 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			return;
 
 		emptyMsg = false;
-		readSubArrayDouble(userBuffer, offset, length);
+		input.readSubArrayDouble(userBuffer, offset, length);
+                if (streamChecking) {
+                        debugReadSubArrayDouble(userBuffer, offset, length);
+                }
+	}
+	
+        /*
+         * - Debug section -
+         */
+	public void debugReadBoolean(boolean v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        boolean _v = is.readBoolean();
+                        if (v != _v) {
+                                 throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
 	}
 
+	public void debugReadByte(byte v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        byte _v = is.readByte();
+                        if (v != _v) {
+                                throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
+	}
+
+	public void debugReadChar(char v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        char _v = is.readChar();
+                        if (v != _v) {
+                                throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
+	}
+
+	public void debugReadShort(short v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        short _v = is.readShort();
+                        if (v != _v) {
+                                throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
+	}
+
+	public void debugReadInt(int v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        int _v = is.readInt();
+                        if (v != _v) {
+                                throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
+	}
+
+	public void debugReadLong(long v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        long _v = is.readLong();
+                        if (v != _v) {
+                                throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
+	}
+	
+	public void debugReadFloat(float v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        float _v = is.readFloat();
+                        if (v != _v) {
+                                throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
+	}
+
+	public void debugReadDouble(double v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        double _v = is.readDouble();
+                        if (v != _v) {
+                                throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
+	}
+
+	public void debugReadString(String v) throws IbisIOException {
+                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
+                try {
+                        String _v = is.readUTF();
+                        if (!v.equals(_v)) {
+                                throw new Error("data mismatch: "+v+", should be:"+_v);
+                        }
+
+                } catch(Exception x) {
+                        throw new Error(x.getMessage());
+                }
+
+	}
+
+	public void debugReadObject(Object v) throws IbisIOException {
+                System.err.println("debugReadObject:"+v.getClass().getName());
+                debugReadString(v.getClass().getName());
+	}
+
+	public void debugReadArrayBoolean(boolean [] b) throws IbisIOException {
+		debugReadSubArrayBoolean(b, 0, b.length);
+	}
+	
+	public void debugReadArrayByte(byte [] b) throws IbisIOException {
+		debugReadSubArrayByte(b, 0, b.length);
+	}
+	
+	public void debugReadArrayChar(char [] b) throws IbisIOException {
+                debugReadSubArrayChar(b, 0, b.length);
+	}
+	
+	public void debugReadArrayShort(short [] b) throws IbisIOException {
+                debugReadSubArrayShort(b, 0, b.length);
+	}
+	
+	public void debugReadArrayInt(int [] b) throws IbisIOException {
+                debugReadSubArrayInt(b, 0, b.length);
+	}
+	
+	public void debugReadArrayLong(long [] b) throws IbisIOException {
+                debugReadSubArrayLong(b, 0, b.length);
+	}
+	
+	public void debugReadArrayFloat(float [] b) throws IbisIOException {
+                debugReadSubArrayFloat(b, 0, b.length);
+	}
+	
+	public void debugReadArrayDouble(double [] b) throws IbisIOException {
+                debugReadSubArrayDouble(b, 0, b.length);
+	}
+	
+
+	public void debugReadSubArrayBoolean(boolean [] b, int o, int l) throws IbisIOException {
+                debugReadInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugReadBoolean(b[o+i]);
+                }
+
+	}
+	
+	public void debugReadSubArrayByte(byte [] b, int o, int l) throws IbisIOException {
+                debugReadInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugReadByte(b[o+i]);
+                }
+
+	}
+	
+	public void debugReadSubArrayChar(char [] b, int o, int l) throws IbisIOException {
+                debugReadInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugReadChar(b[o+i]);
+                }
+
+	}
+	
+	public void debugReadSubArrayShort(short [] b, int o, int l) throws IbisIOException {
+                debugReadInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugReadShort(b[o+i]);
+                }
+
+	}
+	
+	public void debugReadSubArrayInt(int [] b, int o, int l) throws IbisIOException {
+                debugReadInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugReadInt(b[o+i]);
+                }
+
+	}
+	
+	public void debugReadSubArrayLong(long [] b, int o, int l) throws IbisIOException {
+                debugReadInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugReadLong(b[o+i]);
+                }
+
+	}
+	
+	public void debugReadSubArrayFloat(float [] b, int o, int l) throws IbisIOException {
+                debugReadInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugReadFloat(b[o+i]);
+                }
+
+	}
+	
+	public void debugReadSubArrayDouble(double [] b, int o, int l) throws IbisIOException {
+                debugReadInt(l);
+                for (int i = 0; i < l; i++) {
+                        debugReadDouble(b[o+i]);
+                }
+
+        }
 } 

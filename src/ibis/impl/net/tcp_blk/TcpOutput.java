@@ -60,7 +60,6 @@ public class TcpOutput extends NetBufferedOutput {
 	 * The remote MTU.
 	 */
 	private int                      rmtu      =   0;
-        
 
 	/**
 	 * Constructor.
@@ -94,8 +93,7 @@ public class TcpOutput extends NetBufferedOutput {
 		Hashtable   rInfo = receiveInfoTable(is);
 		InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
 		int         rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
-		rmtu  		  = ((Integer)	  rInfo.get("tcp_mtu")    ).intValue();
-                //System.err.println("rpn = "+rpn+", tcp_address = "+raddr+", tcp_port = "+rport);
+		rmtu              = ((Integer)    rInfo.get("tcp_mtu")    ).intValue();
 		
 		Hashtable lInfo = new Hashtable();
 		lInfo.put("tcp_mtu",     new Integer(lmtu));
@@ -123,27 +121,11 @@ public class TcpOutput extends NetBufferedOutput {
          */
 	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
 		try {
-                        //System.err.println("tcp_blk: writeByteBuffer["+rpn+"] --> : " + b.length);
 			writeInt(b.data, 0, b.length);
 			tcpOs.write(b.data, 0, b.length);
-                        //System.err.println("tcp_blk: writeByteBuffer["+rpn+"] <-- : " + b.length);
 		} catch (IOException e) {
-			throw new IbisIOException(e);
+			throw new IbisIOException(e.getMessage());
 		} 
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void release() {
-		// nothing
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void reset() {
-		// nothing
 	}
 
 	/**

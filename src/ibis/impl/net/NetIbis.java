@@ -8,6 +8,8 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 
+import ibis.ipl.impl.generic.IbisIdentifierTable;
+
 import ibis.ipl.impl.nameServer.*;
 
 import java.net.InetAddress;
@@ -102,6 +104,8 @@ public final class NetIbis extends Ibis {
 	 */
 	private   NetBank           bank             = new NetBank();
 
+	static NetIbis globalIbis;
+	IbisIdentifierTable identTable = new IbisIdentifierTable();
 
 	/**
 	 * Default constructor.
@@ -109,6 +113,10 @@ public final class NetIbis extends Ibis {
 	 * Loads compile-time known drivers if {@link #staticDriverLoading} is set.
 	 */
 	public NetIbis() {
+		if (globalIbis == null) {
+			globalIbis = this;
+		}
+
 		if (staticDriverLoading) {
 			driverTable.put("gen", new ibis.ipl.impl.net.gen.Driver(this));
 			driverTable.put("udp", new ibis.ipl.impl.net.udp.Driver(this));

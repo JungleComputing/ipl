@@ -72,6 +72,8 @@ public class TcpInput extends NetInput {
          * Object stream for the internal fallback serialization.
 	 */
         private ObjectInputStream        _inputConvertStream = null;
+        
+        private long seq = 0;
 
 	/**
 	 * Constructor.
@@ -150,7 +152,7 @@ public class TcpInput extends NetInput {
 	}
 
        	public void finish() throws IbisIOException {
-                //System.err.println("NetInput: finish -->");
+                //System.err.println("TcpInput: finish --> from "+raddr+"("+rport+")");
                 super.finish();
                 if (_inputConvertStream != null) {
                         try {
@@ -163,7 +165,7 @@ public class TcpInput extends NetInput {
                 }
 
                 activeNum = null;
-                //System.err.println("NetInput: finish <--");
+                //System.err.println("TcpInput: finish <-- from "+raddr+"("+rport+")");
         }
         
 	public boolean readBoolean() throws IbisIOException {
@@ -171,7 +173,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readBoolean();
-                        //System.err.println("receiving boolean: ["+result+"] from "+raddr+"("+rport+")");
+                        //System.err.println("receiving boolean["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
                 } catch (IOException e) {
                         throw new IbisIOException(e);
 		}
@@ -186,7 +188,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readByte();
-                        //System.err.println("receiving byte: ["+result+"] from "+raddr+"("+rport+")");
+                        //System.err.println("receiving byte["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -200,7 +202,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readChar();
-                        //System.err.println("receiving char: ["+result+"] from "+raddr+"("+rport+")");
+                        //System.err.println("receiving char["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -213,6 +215,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readShort();
+                        //System.err.println("receiving short["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -225,7 +228,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readInt();
-                        //System.err.println("receiving int: ["+result+"] from "+raddr+"("+rport+")");
+                        //System.err.println("receiving int["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
                 } catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -238,7 +241,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readLong();
-                        //System.err.println("receiving Long: ["+result+"] from "+raddr+"("+rport+")");
+                        //System.err.println("receiving long["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -251,7 +254,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readFloat();
-                        //System.err.println("receiving Float: ["+result+"] from "+raddr+"("+rport+")");
+                        //System.err.println("receiving float["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -264,7 +267,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readDouble();
-                        //System.err.println("receiving Double: ["+result+"] from "+raddr+"("+rport+")");
+                        //System.err.println("receiving double["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -277,7 +280,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readUTF();
-                        //System.err.println("receiving string: ["+result+"] from "+raddr+"("+rport+")");
+                        //System.err.println("receiving string["+ seq++ +"]: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}

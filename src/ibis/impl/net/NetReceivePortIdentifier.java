@@ -3,15 +3,13 @@ package ibis.ipl.impl.net;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 
-import java.io.Serializable;
-
 import java.util.Hashtable;
 
 /**
  * Provides an identifier for a {@link NetReceivePort}.
  */
 public class NetReceivePortIdentifier
-	implements ReceivePortIdentifier, Serializable {
+	implements ReceivePortIdentifier, java.io.Serializable {
 
 	/**
 	 * ReceivePort type name.

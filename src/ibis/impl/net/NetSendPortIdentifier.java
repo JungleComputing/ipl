@@ -3,13 +3,11 @@ package ibis.ipl.impl.net;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPortIdentifier;
 
-import java.io.Serializable;
-
 /**
  * Provides an identifier for a {@link NetSendPort}.
  */
 public class NetSendPortIdentifier
-	implements SendPortIdentifier, Serializable {
+	implements SendPortIdentifier, java.io.Serializable {
 
 	/**
 	 * SendPort type name.

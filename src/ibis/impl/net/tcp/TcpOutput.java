@@ -60,7 +60,7 @@ public class TcpOutput extends NetOutput {
 
         private InetAddress raddr = null;
         private int         rport =    0;
-
+        private long        seq   =    0;
 
 
 	/**
@@ -107,7 +107,7 @@ public class TcpOutput extends NetOutput {
 	}
 
         public void finish() throws IbisIOException{
-                //System.err.println("TcpOutput: finish -->");
+                //System.err.println("TcpOutput: finish --> to "+raddr+"("+rport+")");
                 super.finish();
                 if (_outputConvertStream != null) {
                         try {
@@ -122,7 +122,7 @@ public class TcpOutput extends NetOutput {
         }
 
         public void reset(boolean doSend) throws IbisIOException {
-                //System.err.println("TcpOutput: reset("+doSend+") -->");
+                //System.err.println("TcpOutput: reset("+doSend+") --> to "+raddr+"("+rport+")");
                 if (doSend) {
                         send();
                 } else {
@@ -144,6 +144,7 @@ public class TcpOutput extends NetOutput {
         
         public void writeBoolean(boolean b) throws IbisIOException {
                 try {
+                        //System.err.println("sending boolean["+ seq++ +"]: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeBoolean(b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -152,7 +153,7 @@ public class TcpOutput extends NetOutput {
         
         public void writeByte(byte b) throws IbisIOException {
                 try {
-                        //System.err.println("sending byte: ["+(int)b+"] to "+raddr+"("+rport+")");
+                        //System.err.println("sending byte["+ seq++ +"]: ["+(int)b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeByte((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -161,7 +162,7 @@ public class TcpOutput extends NetOutput {
         
         public void writeChar(char b) throws IbisIOException {
                 try {
-			//System.err.println("sending char: ["+(int)b+"] to "+raddr+"("+rport+")");
+			//System.err.println("sending char["+ seq++ +"]: ["+(int)b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeChar((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -170,7 +171,7 @@ public class TcpOutput extends NetOutput {
 
         public void writeShort(short b) throws IbisIOException {
                 try {
-			//System.err.println("sending short: ["+(int)b+"] to "+raddr+"("+rport+")");
+			//System.err.println("sending short["+ seq++ +"]: ["+(int)b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeShort((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -179,7 +180,7 @@ public class TcpOutput extends NetOutput {
 
         public void writeInt(int b) throws IbisIOException {
                 try {
-			//System.err.println("sending int: ["+b+"] to "+raddr+"("+rport+")");
+			//System.err.println("sending int["+ seq++ +"]: ["+b+"] to "+raddr+"("+rport+")");
                         tcpOs.writeInt((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -188,7 +189,7 @@ public class TcpOutput extends NetOutput {
 
         public void writeLong(long b) throws IbisIOException {
                 try {
-			//System.err.println("sending long: ["+b+"] to "+raddr+"("+rport+")");
+			//System.err.println("sending long["+ seq++ +"]: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeLong(b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -197,7 +198,7 @@ public class TcpOutput extends NetOutput {
 
         public void writeFloat(float b) throws IbisIOException {
                 try {
-			//System.err.println("sending float: ["+b+"] to "+raddr+"("+rport+")");
+			//System.err.println("sending float["+ seq++ +"]: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeFloat(b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -206,7 +207,7 @@ public class TcpOutput extends NetOutput {
 
         public void writeDouble(double b) throws IbisIOException {
                 try {
-			//System.err.println("sending double: ["+b+"] to "+raddr+"("+rport+")");
+			//System.err.println("sending double["+ seq++ +"]: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeDouble(b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -215,7 +216,7 @@ public class TcpOutput extends NetOutput {
 
         public void writeString(String b) throws IbisIOException {
                 try {
-			//System.err.println("sending string: ["+b+"] to "+raddr+"("+rport+")");
+			//System.err.println("sending string["+ seq++ +"]: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeUTF(b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
