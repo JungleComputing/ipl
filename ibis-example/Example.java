@@ -180,6 +180,7 @@ public class Example {
 		try {
 		    ibis.end();
 		} catch (IOException e) {
+		    // Ignored
 		}
 	    }
 	});
@@ -226,8 +227,7 @@ public class Example {
 	if (ex.failure) {
 	    System.exit(1);
 	}
-	else {
-	    System.out.println("Test succeeded!");
-	}
+	System.out.println("Test succeeded!");
+	System.exit(0);		// let shutdown hook terminate ibis
     }
 }
