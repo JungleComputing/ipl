@@ -650,10 +650,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(POLL_FREQ != 0 && POLL_TIMING) {
 				out.println("SATIN: POLL_TIME:              avg. per machine " +
 					    Timer.format(pollTime) + " (" +
-					    pf.format(pollPerc) + " %)\n");
+					    pf.format(pollPerc) + " %)");
 			}
 
-			out.println("SATIN: TOTAL_SATIN_OVERHEAD:   avg. per machine " +
+			out.println("\nSATIN: TOTAL_SATIN_OVERHEAD:   avg. per machine " +
 				    Timer.format(totalOverhead) + " (" +
 				    pf.format(totalPerc) + " %)");
 

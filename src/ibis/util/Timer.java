@@ -146,7 +146,7 @@ public class Timer implements java.io.Serializable {
 	} else if (micros < 1000000.0) {
 	    return nf.format(micros / 1000) + " ms";
 	} else {
-	    return nf.format(micros / 1000000) + " s";
+	    return nf.format(micros / 1000000) + "  s";
 	}
     }
 
