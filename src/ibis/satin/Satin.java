@@ -123,6 +123,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 
 	public Satin(String[] args) {
+		if(stealTimer == null) stealTimer = Ibis.newTimer("ibis.util.Timer");
+		if(handleStealTimer == null) handleStealTimer = Ibis.newTimer("ibis.util.Timer");
+		if(abortTimer == null) abortTimer = Ibis.newTimer("ibis.util.Timer");
+		if(idleTimer == null) idleTimer = Ibis.newTimer("ibis.util.Timer");
+		if(pollTimer == null) pollTimer = Ibis.newTimer("ibis.util.Timer");
+
 		init(args);
 	}
 
