@@ -491,7 +491,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	boolean changed;
 	int unitClauses = 0;
 	int iters = 0;
-	int unipolars = 0;
+	int purevars = 0;
 	int subsumptions = 0;
 
 	do {
@@ -513,7 +513,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 			System.err.println( "Variable " + v + " only occurs as positive term" ); 
 		    }
 		    changed |= propagateAssignment( ix, true );
-		    unipolars++;
+		    purevars++;
 		}
 		else if( v.isNegOnly() ){
 		    // Variable 'v' only occurs in negative terms, we may as
@@ -523,7 +523,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 			System.err.println( "Variable " + v + " only occurs as negative term" ); 
 		    }
 		    changed |= propagateAssignment( ix, false );
-		    unipolars++;
+		    purevars++;
 		}
 	    }
 	    for( int i=0; i<clauseCount; i++ ){
@@ -571,7 +571,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	buildAdministration();
 	if( traceStats ){
 	    System.err.println( "Propagated " + unitClauses + " unit clauses" );
-	    System.err.println( "Propagated " + unipolars + " unipolar variables" );
+	    System.err.println( "Propagated " + purevars + " pure variables" );
 	    System.err.println( "Did " + subsumptions + " subsumptions" );
 	    System.err.println( "Did " + iters + " optimization iterations" );
 	}

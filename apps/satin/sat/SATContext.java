@@ -256,7 +256,7 @@ public class SATContext implements java.io.Serializable {
      */
     private int markClauseSatisfied( SATProblem p, int cno )
     {
-	boolean hasUniPolar = false;
+	boolean hasPure = false;
 
 	satisfied[cno] = true;
 	unsatisfied--;
@@ -281,10 +281,10 @@ public class SATContext implements java.io.Serializable {
 		    if( tracePropagation ){
 			System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
 		    }
-		    // Only register the fact that there is an unipolar
+		    // Only register the fact that there is an pure
 		    // variable. Don't propagate it yet, since the
 		    // adminstration is inconsistent at the moment.
-		    hasUniPolar = true;
+		    hasPure = true;
 		}
 		else if( assignments[var] == 0 && posclauses[var] != 0 ){
 		    return -1;
@@ -307,18 +307,18 @@ public class SATContext implements java.io.Serializable {
 		    if( tracePropagation ){
 			System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
 		    }
-		    // Only register the fact that there is an unipolar
+		    // Only register the fact that there is an pure
 		    // variable. Don't propagate it yet, since the
 		    // adminstration is inconsistent at the moment.
-		    hasUniPolar = true;
+		    hasPure = true;
 		}
 		else if( assignments[var] == 1 && posclauses[var] != 0 ){
 		    return -1;
 		}
 	    }
 	}
-	if( hasUniPolar ){
-	    // Now propagate the unipolar variables.
+	if( hasPure ){
+	    // Now propagate the pure variables.
 	    for( int i=0; i<pos.length; i++ ){
 		int var = pos[i];
 
@@ -565,7 +565,7 @@ public class SATContext implements java.io.Serializable {
 
     /**
      * Optimize the problem by searching for and propagating all unit
-     * clauses and unipolar variables that we can find.
+     * clauses and pure variables that we can find.
      * @param p The SAT problem this is the context for.
      * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
      */
@@ -580,7 +580,7 @@ public class SATContext implements java.io.Serializable {
 		}
 	    }
 	}
-	// Search for and propagate unipolar variables.
+	// Search for and propagate pure variables.
 	for( int i=0; i<assignments.length; i++ ){
 	    if( assignments[i] != -1 || (posclauses[i] == 0 && negclauses[i] == 0) ){
 		// Unused variable, not interesting.
