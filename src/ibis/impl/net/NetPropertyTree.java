@@ -91,7 +91,7 @@ public class NetPropertyTree {
         
 
         protected void put (String name, Object value) {
-                System.err.println("put: "+name+" = "+value);
+                //System.err.println("put: "+name+" = "+value);
                 String levels  = null;
                 String property = null;
                 
@@ -108,7 +108,7 @@ public class NetPropertyTree {
                         }
                 }
 
-                System.err.println("put: levels = "+levels+", property = "+property);
+                //System.err.println("put: levels = "+levels+", property = "+property);
                 if (levels != null) {
                         String level     = null;
                         String subLevels = null;
@@ -126,7 +126,7 @@ public class NetPropertyTree {
                                 }
                         }
 
-                        System.err.println("put: level = "+level+", subLevels = "+subLevels);
+                        //System.err.println("put: level = "+level+", subLevels = "+subLevels);
 
                         String context = null;
                         {
@@ -164,7 +164,7 @@ public class NetPropertyTree {
         }
         
         public Object get(String name) {
-                System.err.println("get: "+name);
+                //System.err.println("get: "+name);
                 String levels  = null;
                 String property = null;
 
