@@ -4,59 +4,114 @@ package ibis.util;
  * Utility for measuring time.
  */
 public class Timer implements java.io.Serializable {
-	/**
-	 * Counts the number of start/stop sequences.
-	 */
-	protected int count;
+    /**
+     * Counts the number of start/stop sequences.
+     */
+    protected int count;
 
-	private long time = 0;
+    private long time = 0;
+    private long lastTime = 0;
+    private long t_start = 0;
+    private boolean started = false;
 
-	private long lastTime = 0;
+    /**
+     * Constructs a <code>Timer</code>.
+     */
+    public Timer() {
+    }
 
-	private long t_start = 0;
+    /**
+     * Returns implementation name of this timer ("e.g., "javaTimer").
+     * @return the implementation name.
+     */
+    public String implementationName() {
+	return "ibis.util.Timer";
+    }
 
-	private boolean started = false;
+    /**
+     * Returns accuracy of this timer in seconds.
+     * @return the accuracy.
+     */
+    public double accuracy() {
+	return 1e-3;
+    }
 
-	/**
-	 * Constructs a <code>Timer</code>.
-	 */
-	public Timer() {
+    /**
+     * Returns the current time stamp in nano seconds.
+     * @return the current time stamp.
+     */
+    public long currentTimeNanos() {
+	return System.currentTimeMillis() * 1000000L;
+    }
+
+    /**
+     * Resets the timer.
+     */
+    public void reset() {
+	time = 0;
+	count = 0;
+    }
+
+
+    /**
+     * Returns the total measured time in microseconds.
+     * @return total measured time.
+     */
+    public double totalTimeVal() {
+	return 1000.0*(double) time;
+    }
+
+    /**
+     * Returns the total measured time in microseconds, nicely formatted.
+     * @return total measured time.
+     */
+    public String totalTime() {
+	return format(totalTimeVal());
+    }
+
+    /**
+     * Returns the average measured time in microseconds.
+     * @return the average measured time.
+     */
+    public double averageTimeVal() {
+	if (count > 0) {
+	    return 1000.0*(double) time / (count);
 	}
+	return 0.0;
+    }
 
-	/**
-	 * Returns implementation name of this timer ("e.g., "javaTimer").
-	 * 
-	 * @return the implementation name.
-	 */
-	public String implementationName() {
-		return "ibis.util.Timer";
-	}
+    /**
+     * Returns the average measured time in microseconds, nicely formatted.
+     * @return the average measured time.
+     */
+    public String averageTime() {
+	return format(averageTimeVal());
+    }
 
-	/**
-	 * Returns accuracy of this timer in seconds.
-	 * 
-	 * @return the accuracy.
-	 */
-	public double accuracy() {
-		return 1e-3;
-	}
+    /**
+     * Returns the last measured time in microseconds.
+     * @return the last measured time.
+     */
+    public double lastTimeVal() {
+	return 1000.0*(double)lastTime;
+    }
 
-	/**
-	 * Returns the current time stamp in nano seconds.
-	 * 
-	 * @return the current time stamp.
-	 */
-	public long currentTimeNanos() {
-		return System.currentTimeMillis() * 1000000L;
-	}
+    /**
+     * Returns the last measured time in microseconds, nicely formatted.
+     * @return the last measured time.
+     */
+    public String lastTime() {
+	return format(lastTimeVal());
+    }
 
-	/**
-	 * Resets the timer.
-	 */
-	public void reset() {
-		time = 0;
-		count = 0;
-	}
+    /**
+     * Returns the number of measurements.
+     * @return the number of measurements.
+     */
+    public int nrTimes() {
+	return count;
+    }
+
 
 	/**
 	 * Starts the timer. If the timer is already started, this is a no-op. The
@@ -87,71 +142,6 @@ public class Timer implements java.io.Serializable {
 		started = false;
 	}
 
-	/**
-	 * Returns the total measured time in microseconds.
-	 * 
-	 * @return total measured time.
-	 */
-	public double totalTimeVal() {
-		return 1000.0 * (double) time;
-	}
-
-	/**
-	 * Returns the total measured time in microseconds, nicely formatted.
-	 * 
-	 * @return total measured time.
-	 */
-	public String totalTime() {
-		return format(totalTimeVal());
-	}
-
-	/**
-	 * Returns the average measured time in microseconds.
-	 * 
-	 * @return the average measured time.
-	 */
-	public double averageTimeVal() {
-		if (count > 0) {
-			return 1000.0 * (double) time / (count);
-		}
-		return 0.0;
-	}
-
-	/**
-	 * Returns the average measured time in microseconds, nicely formatted.
-	 * 
-	 * @return the average measured time.
-	 */
-	public String averageTime() {
-		return format(averageTimeVal());
-	}
-
-	/**
-	 * Returns the last measured time in microseconds.
-	 * 
-	 * @return the last measured time.
-	 */
-	public double lastTimeVal() {
-		return 1000.0 * (double) lastTime;
-	}
-
-	/**
-	 * Returns the last measured time in microseconds, nicely formatted.
-	 * 
-	 * @return the last measured time.
-	 */
-	public String lastTime() {
-		return format(lastTimeVal());
-	}
-
-	/**
-	 * Returns the number of measurements.
-	 * 
-	 * @return the number of measurements.
-	 */
-	public int nrTimes() {
-		return count;
-	}
 
 	/**
 	 * Formats a time in microseconds

@@ -211,9 +211,9 @@ public abstract class SatinBase implements Config {
 
 	boolean currentVictimCrashed = false;
 
-	IbisIdentifier asyncCurrentVictim = null;
+//	IbisIdentifier asyncCurrentVictim = null;
 
-	boolean asyncCurrentVictimCrashed = false;
+//	boolean asyncCurrentVictimCrashed = false;
 
 	/* historical name.. it's the global job table used in fault tolerance */
 	GlobalResultTable globalResultTable = null;

@@ -117,14 +117,13 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
 	}
 
 	public void exit() {
-	
 		//wait for a pending async steal reply
 		if (asyncStealInProgress) {
-			System.err.println("waiting for a pending async steal reply...");
+			System.err.println("waiting for a pending async steal reply from " + asyncCurrentVictim);
 			synchronized (satin) {
 				while (!gotAsyncStealReply) {
 					try {
-						wait();
+						satin.wait();
 					} catch (InterruptedException e) {
 						//ignore
 					}
@@ -174,6 +173,8 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
 			 */
 			asyncStealInProgress = false;
 			asyncStolenJob = null;
+			asyncCurrentVictim = null;
+			gotAsyncStealReply = false;
 		}
 	}
 }

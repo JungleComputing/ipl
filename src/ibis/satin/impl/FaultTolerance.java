@@ -25,14 +25,14 @@ public abstract class FaultTolerance extends Inlets {
 		IbisIdentifier id = null;
 		while (crashedIbises.size() > 0) {
 			id = (IbisIdentifier) crashedIbises.remove(0);
-			if (COMM_DEBUG) {
+//			if (COMM_DEBUG) {
 				out.println("SATIN '" + ident.name() + ": handling crash of "
 						+ id.name());
-			}
+//			}
 
 			if (algorithm instanceof ClusterAwareRandomWorkStealing) {
 				((ClusterAwareRandomWorkStealing) algorithm)
-						.checkAsyncVictimCrash(ident);
+						.checkAsyncVictimCrash(id);
 			}
 
 			if (!FT_NAIVE) {

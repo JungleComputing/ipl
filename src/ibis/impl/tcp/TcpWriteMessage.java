@@ -28,7 +28,7 @@ final class TcpWriteMessage implements WriteMessage {
 	// if we keep connectionAdministration, forward exception to upcalls / downcalls.
 	// otherwise, rethrow the exception to the user.
 	private void forwardLosses(SplitterException e) throws IOException {
-		System.err.println("connection lost!");
+//		System.err.println("connection lost!");
 
 		// Inform the port
 		for(int i=0; i<e.count(); i++) {

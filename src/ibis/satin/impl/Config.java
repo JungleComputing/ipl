@@ -14,16 +14,16 @@ public interface Config {
 	static final boolean STEAL_STATS = true;
 
 	/** Enable or disable statistics for aborts. * */
-	static final boolean ABORT_STATS = false;
+	static final boolean ABORT_STATS = true;
 
 	/** Enable or disable statistics for aborts/restarts done for fault-tolerance. * */
-	static final boolean FT_STATS = false;
+	static final boolean FT_STATS = true;
 
 	/** Enable or disable statistics for the tuple space. * */
 	static final boolean TUPLE_STATS = true;
 
 	/** Enable or disable statistics for the global result table. * */
-	static final boolean GRT_STATS = false;
+	static final boolean GRT_STATS = true;
 
 	/** Enable or disable steal timings. * */
 	static final boolean STEAL_TIMING = true;
@@ -38,10 +38,10 @@ public interface Config {
 	static final boolean POLL_TIMING = false;
 
 	//used for fault tolerance with global result table
-	static final boolean GRT_TIMING = false;
-	static final boolean CRASH_TIMING = false;
-	static final boolean TABLE_CHECK_TIMING = false;
-	static final boolean ADD_REPLICA_TIMING = false;
+	static final boolean GRT_TIMING = true;
+	static final boolean CRASH_TIMING = true;
+	static final boolean TABLE_CHECK_TIMING = true;
+	static final boolean ADD_REPLICA_TIMING = true;
 
 	/** Enable or disable tuple space timing. * */
 	static final boolean TUPLE_TIMING = true;
@@ -65,12 +65,12 @@ public interface Config {
 	static final boolean ABORTS = true;
 	
 	/** Enable fault tolerance. */
-	static final boolean FAULT_TOLERANCE = false;
+	static final boolean FAULT_TOLERANCE = true;
 	/**
 	 * If true, the global result table is replicated if false, the table is
 	 * distributed
 	 */
-	static final boolean GLOBAL_RESULT_TABLE_REPLICATED = false;
+	static final boolean GLOBAL_RESULT_TABLE_REPLICATED = true;
 	/** 
 	 *If true, orphan jobs are not aborted. Pointers are stored immediately
 	 * after crashes and results later. Jobs stolen by crashed processors

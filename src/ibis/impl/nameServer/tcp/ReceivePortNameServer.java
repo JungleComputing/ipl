@@ -224,7 +224,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 			try {
 				s = NameServerClient.socketFactory.accept(serverSocket);
 			} catch (Exception e) {
-				throw new IbisRuntimeException("PortTypeNameServer: got an error ", e);
+				throw new IbisRuntimeException("ReceivePortNameServer: got an error ", e);
 			}
 
 			try {
@@ -261,22 +261,16 @@ class ReceivePortNameServer extends Thread implements Protocol {
 					NameServerClient.socketFactory.close(in, out, s);
 					return;
 				default: 
-					System.err.println("ReceivePortNameServer: got an illegal opcode " + opcode);					
+					System.err.println("ReceivePortNameServer: got an illegal opcode " + opcode);
 				}
 
 				if (opcode != PORT_LOOKUP) {
 				    NameServerClient.socketFactory.close(in, out, s);
 				}
 			} catch (Exception e1) {
-				System.err.println("Got an exception in ReceivePortNameServer.run " + e1);
-				e1.printStackTrace();
-				if (s != null) { 
-					try { 
-						s.close();
-					} catch (IOException e2) { 
-						// don't care.
-					} 
-				}
+				System.err.println("Got an exception in ReceivePortNameServer.run " + e1 + ", continuing");
+//				e1.printStackTrace();
+				NameServerClient.socketFactory.close(in, out, s);
 			}
 		}
 	}

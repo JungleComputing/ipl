@@ -8,6 +8,7 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.util.PoolInfoServer;
 import ibis.util.TypedProperties;
 
+import java.util.Calendar;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -25,6 +26,7 @@ public class NameServer implements Protocol {
 
 	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
 	// public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 5678;
+        public static final int BUF_SIZE = 1024;
 	
 	public static boolean DEBUG = false;
 	public static boolean VERBOSE = TypedProperties.booleanProperty("ibis.ns.verbose");
@@ -128,7 +130,7 @@ public class NameServer implements Protocol {
 		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /* do not retry */);
 		    
 		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
 		    out.writeByte(IBIS_JOIN);
 		    out.writeObject(id);
 		    NameServerClient.socketFactory.close(null, out, s);
@@ -137,11 +139,9 @@ public class NameServer implements Protocol {
 			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + " DONE");
 		    }
 		} catch (Exception e) {
-		    if (DEBUG) {
 			System.err.println("Could not forward join of "  + 
 					   id.toString() + " to " + dest.identifier.toString() + 
 					   "error = " + e);					   
-		    }
 		}
 
 	}
@@ -212,7 +212,10 @@ public class NameServer implements Protocol {
 			}
 
 			p.pool.add(info);
-			System.out.println(id.name() + " JOINS  pool " + key + " (" + p.pool.size() + " nodes)");
+
+			String date = Calendar.getInstance().getTime().toString();
+ 
+			System.out.println(date + " " + id.name() + " JOINS  pool " + key + " (" + p.pool.size() + " nodes)");
 		}
 	}	
 
@@ -227,17 +230,15 @@ public class NameServer implements Protocol {
 							      dest.ibisNameServerport, null, -1 /* do not retry */);
 
 		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
 		    out.writeByte(IBIS_LEAVE);
 		    out.writeObject(id);
 		    NameServerClient.socketFactory.close(null, out, s);
 		} catch (Exception e) {
-		    if (DEBUG) {
 			System.err.println("Could not forward leave of "  + 
 					   id.toString() + " to " + dest.identifier.toString() + 
 					   "error = " + e);					   
-			e.printStackTrace();
-		    }
+//			e.printStackTrace();
 		}
     }
     
@@ -246,7 +247,7 @@ public class NameServer implements Protocol {
 							  p.portTypeNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 
-		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(d));
+		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(d, BUF_SIZE));
 		out.writeByte(PORTTYPE_EXIT);
 		NameServerClient.socketFactory.close(null, out, s);
 
@@ -254,14 +255,14 @@ public class NameServer implements Protocol {
 							  p.receivePortNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
 
-		ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2));
+		ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2, BUF_SIZE));
 		out2.writeByte(PORT_EXIT);
 		NameServerClient.socketFactory.close(null, out2, s2);
 
 		Socket s3 = NameServerClient.socketFactory.createSocket(InetAddress.getLocalHost(), 
 							  p.electionServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
-		ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3));
+		ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3, BUF_SIZE));
 		out3.writeByte(ELECTION_EXIT);
 		NameServerClient.socketFactory.close(null, out3, s3);
 	}
@@ -308,7 +309,9 @@ public class NameServer implements Protocol {
 				p.pool.remove(index);
 				p.toBeDeleted.remove(id);
 
-				System.out.println(id.name() + " LEAVES pool " + key + " (" + p.pool.size() + " nodes)");
+				String date = Calendar.getInstance().getTime().toString();
+
+				System.out.println(date + " " + id.name() + " LEAVES pool " + key + " (" + p.pool.size() + " nodes)");
 				id.free();
 
 
@@ -339,7 +342,7 @@ public class NameServer implements Protocol {
 			Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /*do not retry*/);
 
 			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
 			out.writeByte(IBIS_DELETE);
 			out.writeObject(id);
 			NameServerClient.socketFactory.close(null, out, s);
@@ -418,7 +421,7 @@ public class NameServer implements Protocol {
 			Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /*do not retry*/);
 
 			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
 			out.writeByte(IBIS_RECONFIGURE);
 			NameServerClient.socketFactory.close(null, out, s);
 		} catch (Exception e) {
@@ -485,10 +488,10 @@ public class NameServer implements Protocol {
 
 			try {
 				DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-				out = new ObjectOutputStream(new BufferedOutputStream(dos, 4096));
+				out = new ObjectOutputStream(new BufferedOutputStream(dos, BUF_SIZE));
 
 				DummyInputStream di = new DummyInputStream(s.getInputStream());
-				in  = new ObjectInputStream(new BufferedInputStream(di));
+				in  = new ObjectInputStream(new BufferedInputStream(di, BUF_SIZE));
 
 				opcode = in.readByte();
 

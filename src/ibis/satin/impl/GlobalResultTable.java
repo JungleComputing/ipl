@@ -61,7 +61,7 @@ public class GlobalResultTable implements Upcall, Config {
 		static final int TYPE_RESULT	= 1;
 		static final int TYPE_POINTER	= 2;
 		int type;		    
-		transient IbisIdentifier sendTo;
+	    transient IbisIdentifier sendTo; // @@@ this field is never written --Rob
 		ReturnRecord result;
 		IbisIdentifier owner;
 		
@@ -227,31 +227,45 @@ public class GlobalResultTable implements Upcall, Config {
 			long size = 0;
 			int i = 0;
 			while (sendIter.hasNext()) {
-				try {
-					SendPort send = (SendPort) sendIter.next();
-					if (GRT_TIMING) {
-						satin.tableSerializationTimer.start();
-					}
-					WriteMessage m = send.newMessage();
-					m.writeObject(key);
-					if (GLOBAL_RESULT_TABLE_REPLICATED) {
-						m.writeObject(value);						
-					} else {
-						m.writeObject(pointerValue);
-						//m.writeObject(satin.ident);
-					}
-					size = m.finish();
-					
-					if (GRT_TIMING) {
-						satin.tableSerializationTimer.stop();
-					}
-					/*System.err.println("SATIN '" + satin.ident.name() + "': " + size 
-					+ " sent in " + satin.tableSerializationTimer.lastTimeVal()
-					+ " to " + send.connectedTo()[0].ibis().name());*/
-					
-				} catch (IOException e) {
-					//always happens after a crash
+			    SendPort send = (SendPort) sendIter.next();
+			    WriteMessage m = null;
+
+			    try {
+				m = send.newMessage();
+			    } catch (IOException e) {
+				continue;
+                                //always happens after a crash
+			    }
+			    
+			    if (GRT_TIMING) {
+				satin.tableSerializationTimer.start();
+			    }
+			    try {
+				m.writeObject(key);
+				
+				if (GLOBAL_RESULT_TABLE_REPLICATED) {
+				    m.writeObject(value);						
+				} else {
+				    m.writeObject(pointerValue);
+				    //m.writeObject(satin.ident);
 				}
+			    } catch (IOException e) {
+				//always happens after a crash
+			    }
+			    
+			    if (GRT_TIMING) {
+				satin.tableSerializationTimer.stop();
+			    }
+			    try {
+				size = m.finish();
+				
+				/*System.err.println("SATIN '" + satin.ident.name() + "': " + size 
+				  + " sent in " + satin.tableSerializationTimer.lastTimeVal()
+				  + " to " + send.connectedTo()[0].ibis().name());*/
+				
+			    } catch (IOException e) {
+				//always happens after a crash
+			    }
 			}
 			
 

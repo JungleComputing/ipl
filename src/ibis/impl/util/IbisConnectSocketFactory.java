@@ -55,7 +55,9 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
 				}
                                 connected = true;
                                 s.setTcpNoDelay(true);
-//				s.setSoTimeout(1000);
+//				s.setSoTimeout(5*60*1000);
+//				System.err.println("set socket timeout to 10 seconds");
+
 //				System.err.println("created socket linger = " + s.getSoLinger());
                         } catch (IOException e1) { 
 				if (DEBUG) { 

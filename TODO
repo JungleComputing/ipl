@@ -1,4 +1,4 @@
-IBIS:
+5FIBIS:
 
 + reverse connection setup if one of the two sites has a firewall, but the other doesn't  -> much better performance than going through a central point]
   Ceriel: not important, as this central point is only used during connection
@@ -16,6 +16,10 @@ satin:
 
 	- make return / throw an implicit sync again?
 	- add comments to abort / inlet machinism
+	- do not crash on sync without spawn
+        - als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
+	- 3x print ibis serialization
+
 
 tcp ibis:
 + EEK TcpReceivePort: run: got illegal opcode: -1

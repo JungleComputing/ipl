@@ -192,23 +192,23 @@ public abstract class Stats extends TupleSpace {
 		out
 				.println("-------------------------------SATIN TOTAL TIMES-------------------------------");
 		if (STEAL_TIMING) {
-			out.println("SATIN: STEAL_TIME:             total "
+			out.println("SATIN: STEAL_TIME:               total "
 					+ Timer.format(totalStats.stealTime)
 					+ " time/req    "
 					+ Timer.format(totalStats.stealTime
 							/ totalStats.stealAttempts));
-			out.println("SATIN: HANDLE_STEAL_TIME:      total "
+			out.println("SATIN: HANDLE_STEAL_TIME:        total "
 					+ Timer.format(totalStats.handleStealTime)
 					+ " time/handle "
 					+ Timer.format((totalStats.handleStealTime)
 							/ totalStats.stealAttempts));
 
-			out.println("SATIN: SERIALIZATION_TIME:     total "
+			out.println("SATIN: SERIALIZATION_TIME:       total "
 					+ Timer.format(totalStats.invocationRecordWriteTime)
 					+ " time/write  "
 					+ Timer.format(totalStats.invocationRecordWriteTime
 							/ totalStats.stealSuccess));
-			out.println("SATIN: DESERIALIZATION_TIME:   total "
+			out.println("SATIN: DESERIALIZATION_TIME:     total "
 					+ Timer.format(totalStats.invocationRecordReadTime)
 					+ " time/read   "
 					+ Timer.format(totalStats.invocationRecordReadTime
@@ -216,19 +216,18 @@ public abstract class Stats extends TupleSpace {
 		}
 
 		if (ABORT_TIMING) {
-			out.println("SATIN: ABORT_TIME:             total "
+			out.println("SATIN: ABORT_TIME:               total "
 					+ Timer.format(totalStats.abortTime) + " time/abort  "
 					+ Timer.format(totalStats.abortTime / totalStats.aborts));
 		}
 
 		if (TUPLE_TIMING) {
-			out
-					.println("SATIN: TUPLE_SPACE_BCAST_TIME: total "
+			out.println("SATIN: TUPLE_SPACE_BCAST_TIME:   total "
 							+ Timer.format(totalStats.tupleTime)
 							+ " time/bcast  "
 							+ Timer.format(totalStats.tupleTime
 									/ totalStats.tupleMsgs));
-			out.println("SATIN: TUPLE_SPACE_WAIT_TIME:  total "
+			out.println("SATIN: TUPLE_SPACE_WAIT_TIME:    total "
 					+ Timer.format(totalStats.tupleWaitTime)
 					+ " time/bcast  "
 					+ Timer.format(totalStats.tupleWaitTime
@@ -236,38 +235,38 @@ public abstract class Stats extends TupleSpace {
 		}
 
 		if (POLL_FREQ != 0 && POLL_TIMING) {
-			out.println("SATIN: POLL_TIME:            total "
+			out.println("SATIN: POLL_TIME:                total "
 					+ Timer.format(totalStats.pollTime) + " time/poll "
 					+ Timer.format(totalStats.pollTime / totalStats.pollCount));
 		}
 
 		if (GRT_TIMING) {
-			out.println("SATIN: GRT_UPDATE_TIME:		  total "
+			out.println("SATIN: GRT_UPDATE_TIME:          total "
 					+ Timer.format(totalStats.tableUpdateTime)
 					+ " time/update "
 					+ Timer.format(totalStats.tableUpdateTime
 							/ (totalStats.tableResultUpdates 
 							+ totalStats.tableLockUpdates)));
-			out.println("SATIN: GRT_LOOKUP_TIME:		  total "
+			out.println("SATIN: GRT_LOOKUP_TIME:          total "
 					+ Timer.format(totalStats.tableLookupTime)
 					+ " time/lookup "
 					+ Timer.format(totalStats.tableLookupTime
 							/ totalStats.tableLookups));
-			out.println("SATIN: GRT_HANDLE_UPDATE_TIME:	  total "
+			out.println("SATIN: GRT_HANDLE_UPDATE_TIME:   total "
 					+ Timer.format(totalStats.tableHandleUpdateTime)
 					+ " time/handle "
 					+ Timer.format(totalStats.tableHandleUpdateTime
 							/ totalStats.tableResultUpdates * (size - 1)));
-			out.println("SATIN: GRT_HANDLE_LOOKUP_TIME: 	  total "
+			out.println("SATIN: GRT_HANDLE_LOOKUP_TIME:   total "
 					+ Timer.format(totalStats.tableHandleLookupTime)
 					+ " time/handle "
 					+ Timer.format(totalStats.tableHandleLookupTime
 							/ totalStats.tableRemoteLookups));
-			out.println("SATIN: GRT_SERIALIZATION_TIME: 	  total "
+			out.println("SATIN: GRT_SERIALIZATION_TIME:   total "
 					+ Timer.format(totalStats.tableSerializationTime));
-			out.println("SATIN: GRT_DESERIALIZATION_TIME:	  total "
+			out.println("SATIN: GRT_DESERIALIZATION_TIME: total "
 					+ Timer.format(totalStats.tableDeserializationTime));
-			out.println("SATIN: GRT_CHECK_TIME: 		  total "
+			out.println("SATIN: GRT_CHECK_TIME:           total "
 					+ Timer.format(totalStats.tableCheckTime)
 					+ " time/check "
 					+ Timer.format(totalStats.tableCheckTime
@@ -276,12 +275,12 @@ public abstract class Stats extends TupleSpace {
 		}
 
 		if (CRASH_TIMING) {
-			out.println("SATIN: CRASH_HANDLING_TIME: 	  "
+			out.println("SATIN: CRASH_HANDLING_TIME:      total "
 					+ Timer.format(totalStats.crashHandlingTime));
 		}
 
 		if (ADD_REPLICA_TIMING) {
-			out.println("SATIN: ADD_REPLICA_TIME:	 	  "
+			out.println("SATIN: ADD_REPLICA_TIME:         total "
 					+ Timer.format(totalStats.addReplicaTime));
 		}
 
@@ -290,7 +289,7 @@ public abstract class Stats extends TupleSpace {
 		out.println("SATIN: TOTAL_RUN_TIME:                           "
 				+ Timer.format(totalTimer.totalTimeVal()));
 
-		double lbTime = (totalStats.stealTime
+		double lbTime = (totalStats.stealTime + totalStats.handleStealTime
 				- totalStats.invocationRecordReadTime - totalStats.invocationRecordWriteTime)
 				/ size;
 		if (lbTime < 0.0)
@@ -344,66 +343,65 @@ public abstract class Stats extends TupleSpace {
 		double appPerc = appTime / totalTimer.totalTimeVal() * 100.0;
 
 		if (STEAL_TIMING) {
-			out.println("SATIN: LOAD_BALANCING_TIME:     avg. per machine "
+			out.println("SATIN: LOAD_BALANCING_TIME:      avg. per machine "
 					+ Timer.format(lbTime) + " (" + (lbPerc < 10 ? " " : "")
 					+ pf.format(lbPerc) + " %)");
-			out.println("SATIN: (DE)SERIALIZATION_TIME:  avg. per machine "
+			out.println("SATIN: (DE)SERIALIZATION_TIME:   avg. per machine "
 					+ Timer.format(serTime) + " (" + (serPerc < 10 ? " " : "")
 					+ pf.format(serPerc) + " %)");
 		}
 
 		if (ABORT_TIMING) {
-			out.println("SATIN: ABORT_TIME:              avg. per machine "
+			out.println("SATIN: ABORT_TIME:               avg. per machine "
 					+ Timer.format(abortTime) + " ("
 					+ (abortPerc < 10 ? " " : "") + pf.format(abortPerc)
 					+ " %)");
 		}
 
 		if (TUPLE_TIMING) {
-			out.println("SATIN: TUPLE_SPACE_BCAST_TIME:  avg. per machine "
+			out.println("SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine "
 					+ Timer.format(tupleTime) + " ("
 					+ (tuplePerc < 10 ? " " : "") + pf.format(tuplePerc)
 					+ " %)");
-			out.println("SATIN: TUPLE_SPACE_WAIT_TIME:   avg. per machine "
+			out.println("SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine "
 					+ Timer.format(tupleWaitTime) + " ("
 					+ (tupleWaitPerc < 10 ? " " : "")
 					+ pf.format(tupleWaitPerc) + " %)");
 		}
 
 		if (POLL_FREQ != 0 && POLL_TIMING) {
-			out.println("SATIN: POLL_TIME:               avg. per machine "
+			out.println("SATIN: POLL_TIME:                avg. per machine "
 					+ Timer.format(pollTime) + " ("
 					+ (pollPerc < 10 ? " " : "") + pf.format(pollPerc) + " %)");
 		}
 
 		if (GRT_TIMING) {
 			out
-					.println("SATIN: GRT_UPDATE_TIME:              avg. per machine "
+			                .println("SATIN: GRT_UPDATE_TIME:          avg. per machine "
 							+ Timer.format(tableUpdateTime)
 							+ " ("
 							+ pf.format(tableUpdatePerc) + " %)");
 			out
-					.println("SATIN: GRT_LOOKUP_TIME:              avg. per machine "
+					.println("SATIN: GRT_LOOKUP_TIME:          avg. per machine "
 							+ Timer.format(tableLookupTime)
 							+ " ("
 							+ pf.format(tableLookupPerc) + " %)");
 			out
-					.println("SATIN: GRT_HANDLE_UPDATE_TIME:       avg. per machine "
+					.println("SATIN: GRT_HANDLE_UPDATE_TIME:   avg. per machine "
 							+ Timer.format(tableHandleUpdateTime)
 							+ " ("
 							+ pf.format(tableHandleUpdatePerc) + " %)");
 			out
-					.println("SATIN: GRT_HANDLE_LOOKUP_TIME:       avg. per machine "
+					.println("SATIN: GRT_HANDLE_LOOKUP_TIME:   avg. per machine "
 							+ Timer.format(tableHandleLookupTime)
 							+ " ("
 							+ pf.format(tableHandleLookupPerc) + " %)");
 			out
-					.println("SATIN: GRT_SERIALIZATION_TIME:       avg. per machine "
+					.println("SATIN: GRT_SERIALIZATION_TIME:   avg. per machine "
 							+ Timer.format(tableSerializationTime)
 							+ " ("
 							+ pf.format(tableSerializationPerc) + " %)");
-			out
-					.println("SATIN: GRT_DESERIALIZATION_TIME:       avg. per machine "
+			out.println("SATIN: GRT_DESERIALIZATION_TIME: avg. per machine "
 							+ Timer.format(tableDeserializationTime)
 							+ " ("
 							+ pf.format(tableDeserializationPerc) + " %)");
@@ -411,22 +409,22 @@ public abstract class Stats extends TupleSpace {
 		}
 
 		if (CRASH_TIMING) {
-			out.println("SATIN: CRASH_HANDLING_TIME: 	  avg. per machine "
+			out.println("SATIN: CRASH_HANDLING_TIME:      avg. per machine "
 					+ Timer.format(crashHandlingTime) + " ("
 					+ pf.format(crashHandlingPerc) + " %)");
 		}
 
 		if (ADD_REPLICA_TIMING) {
-			out.println("SATIN: ADD_REPLICA_TIME:	 	  avg. per machine "
+			out.println("SATIN: ADD_REPLICA_TIME:         avg. per machine "
 					+ Timer.format(addReplicaTime) + " ("
 					+ pf.format(addReplicaPerc) + " %)");
 		}
 
-		out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD: avg. per machine "
+		out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine "
 				+ Timer.format(totalOverhead) + " ("
 				+ (totalPerc < 10 ? " " : "") + pf.format(totalPerc) + " %)");
 
-		out.println("SATIN: USEFUL_APP_TIME:         avg. per machine "
+		out.println("SATIN: USEFUL_APP_TIME:          avg. per machine "
 				+ Timer.format(appTime) + " (" + (appPerc < 10 ? " " : "")
 				+ pf.format(appPerc) + " %)");
 
