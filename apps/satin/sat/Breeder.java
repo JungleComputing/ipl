@@ -7,10 +7,32 @@
 
 import java.io.File;
 import java.util.Random;
+import ibis.satin.SatinTupleSpace;
+
+final class CutoffUpdater implements ibis.satin.ActiveTuple {
+    int limit;
+
+    CutoffUpdater( int v ){
+        limit = v;
+    }
+
+    public void handleTuple( String key ){
+        if( limit<Breeder.cutoff ){
+            System.err.println( "New cutoff is " + limit );
+            Breeder.cutoff = limit;
+        }
+    }
+}
+
 
 public final class Breeder implements BreederInterface {
     static final int MAXGEN = 400;
-    static final int GENSIZE = 20;
+    static final int GENSIZE = 10;
+
+    /** Maximal number decisions allowed before we give up. Can
+     * be updated by the CutoffUpdater class above.
+     */
+    static int cutoff = Integer.MAX_VALUE;
 
     static class Result {
         Genes genes;    // The genes used.
@@ -29,9 +51,18 @@ public final class Breeder implements BreederInterface {
     };
 
 
-    public int run( SATProblem pl[], Genes genes, int cutoff )
+    public int run( SATProblem pl[], Genes genes )
     {
-        return BreederSolver.run( pl, genes, cutoff );
+        int total = BreederSolver.run( pl, genes, cutoff );
+        int newCutoff = 2*total;
+        System.err.println( "newCutoff=" + newCutoff + "; cutoff = " + cutoff );
+        if( cutoff>newCutoff ){
+            // We may have a new cutoff value, broadcast it.
+            System.err.println( "Broadcasting cutoff update" );
+            SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
+            cutoff = newCutoff;
+        }
+        return total;
     }
  
     // Given genes, and old, slightly worse genes, generate an
@@ -98,14 +129,14 @@ public final class Breeder implements BreederInterface {
             // with an extrapolation of the change in genes.
             g[slot] = extrapolateGenes( 0.3f, genes, prevBestGenes, maxGenes, minGenes );
             extrapolating = true;
-            res[slot] = BreederSolver.run( pl, g[slot], (3*bestD)/2 );
+            res[slot] = run( pl, g[slot] );
             slot++;
         }
         prevBestGenes = null;
         for( int i=slot; i<GENSIZE; i++ ){
             // Fill all remaining slots with mutations
             g[i] = mutateGenes( rng, genes, step, maxGenes, minGenes );
-            res[i] = BreederSolver.run( pl, g[i], (3*bestD)/2 );
+            res[i] = run( pl, g[i] );
         }
 
         // Now evaluate the results.

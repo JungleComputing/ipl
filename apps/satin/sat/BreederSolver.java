@@ -14,21 +14,6 @@
  */
 
 import java.io.File;
-import ibis.satin.SatinTupleSpace;
-
-final class CutoffUpdater implements ibis.satin.ActiveTuple {
-    int limit;
-
-    CutoffUpdater( int v ){
-        limit = v;
-    }
-
-    public void handleTuple( String key ){
-        if( limit<BreederSolver.cutoff ){
-            BreederSolver.cutoff = limit;
-        }
-    }
-}
 
 public final class BreederSolver {
     private static final boolean traceSolver = false;
@@ -39,11 +24,8 @@ public final class BreederSolver {
     /** Total number of decisions in all solves. */
     private int decisions = 0;
 
-    /** Maximal number decisions allowed before we give up. Can
-     * be updated by the CutoffUpdater class above.
-     */
+    private int cutoff = 0;
 
-    static int cutoff = Integer.MAX_VALUE;
     private static final int GENECOUNT = 8;
 
     /**
@@ -236,39 +218,40 @@ public final class BreederSolver {
 	return new Genes( g, null, null );
     }
 
-    static int run( final SATProblem p_in, Genes genes, int cutoff )
+    static int run( final SATProblem p_in, Genes genes, int startd, int cutoff )
+       throws SATCutoffException
     {
         BreederSolver s = new BreederSolver();
+        s.decisions = startd;
+        s.cutoff = cutoff;
 
-	//System.err.println( "Using genes: " + genes );
 	SATProblem p = (SATProblem) p_in.clone();
 	p.reviewer = new GeneticClauseReviewer( genes.floats );
-	try {
-	    s.solveSystem( p );
-	}
-	catch( SATCutoffException x ){
-	    return -1;
-	}
+        s.solveSystem( p );
 	return s.decisions;
     }
 
+    /**
+     * Given a set of SAT problems, a set of genes, and an upper limit
+     * for the number of decisions to try, solve all the given problems,
+     * and count the number of decisions that were required for it.
+     * @param pl The list of SAT problems to solve.
+     * @param genes The configuration values to use.
+     * @param cutoff The maximum number of decisions to try before giving up.
+     * @return The number of decisions needed, or -1 if we're over
+     * the cutoff limit.
+     */
     static int run( final SATProblem pl[], Genes genes, int cutoff )
     {
 	int total = 0;
 
-	for( int i=0; i<pl.length; i++ ){
-	    int d = run( pl[i], genes, cutoff );
-
-	    if( d<0 ){
-		// Over the budget, we're done.
-		return d;
-	    }
-	    total += d;
-	}
-        int newCutoff = (3*total)/2;
-        if( cutoff>newCutoff ){
-            // We may have a new cutoff value, broadcast it.
-            SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
+        try {
+            for( int i=0; i<pl.length; i++ ){
+                total = run( pl[i], genes, total, cutoff );
+            }
+        }
+        catch( SATCutoffException x ){
+             return -1;
         }
 	return total;
     }
