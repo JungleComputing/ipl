@@ -6,6 +6,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 {
     static final boolean traceMatches = false;
     static final boolean traceLookahead = false;
+    static int max_shortening = Configuration.MAX_SHORTENING;
+    static int lookahead_depth = Configuration.LOOKAHEAD_DEPTH;
 
     private static void generateIndent( java.io.PrintStream str, int n )
     {
@@ -188,7 +190,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
         if( !haveAlternatives ){
             // The only possible move is a copy.
-            if( mv != null && depth>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
+            if( mv != null && depth>0 && depth<lookahead_depth ){
                 // It is permitted and useful to evaluate the copy move
                 // using recursion, so that higher levels can accurately
                 // compare it to other alternatives.
@@ -221,7 +223,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             }
         }
 
-        if( depth<Configuration.LOOKAHEAD_DEPTH ){
+        if( depth<lookahead_depth ){
             Backref mv1 = null;
 
             // We have some recursion depth left. We know we can backreference
@@ -231,8 +233,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             if( minLen<Configuration.MINIMAL_SPAN ){
                 minLen = Configuration.MINIMAL_SPAN;
             }
-            if( minLen<maxLen-Configuration.MAX_SHORTENING ){
-                minLen = maxLen-Configuration.MAX_SHORTENING;
+            if( minLen<maxLen-max_shortening ){
+                minLen = maxLen-max_shortening;
             }
             if( pos+minLen<=bestpos ){
                 minLen = 1+bestpos-pos;
@@ -304,7 +306,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         int pos = 0;
         ByteBuffer out = new ByteBuffer();
 
-        while( pos<Configuration.MINIMAL_SPAN && pos<text.length ){
+        while( pos<text.length && (pos<Configuration.MINIMAL_SPAN || backrefs[pos] == -1) ){
             out.append( text[pos++] );
         }
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
@@ -332,22 +334,48 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return out;
     }
 
+    static void usage()
+    {
+        System.err.println( "Usage: [-short <n>] [-depth <n>] <text> <compressedtext>" );
+    }
+
     /**
      * Allows execution of the class.
      * @param args The command-line arguments.
      */
     public static void main( String args[] ) throws java.io.IOException
     {
-	if( args.length != 2 ){
-	    System.err.println( "Usage: <text> <compressedtext>" );
-	    System.exit( 1 );
-	}
-	File infile = new File( args[0] );
-	File outfile = new File( args[1] );
+	File infile = null;
+	File outfile = null;
+
+        for( int i=0; i<args.length; i++ ){
+            if( args[i].equals( "-short" ) ){
+                i++;
+                max_shortening = Integer.parseInt( args[i] );
+            }
+            else if( args[i].equals( "-depth" ) ){
+                i++;
+                lookahead_depth = Integer.parseInt( args[i] );
+            }
+            else if( infile == null ){
+                infile = new File( args[i] );
+            }
+            else if( outfile == null ){
+                outfile = new File( args[i] );
+            }
+            else {
+                usage();
+                System.exit( 1 );
+            }
+        }
+        if( infile == null || outfile == null ){
+            usage();
+            System.exit( 1 );
+        }
         byte text[] = Helpers.readFile( infile );
 	long startTime = System.currentTimeMillis();
 
-        System.out.println( "Recursion depth: " + Configuration.LOOKAHEAD_DEPTH + ", max. shortening: " + Configuration.MAX_SHORTENING  );
+        System.out.println( "Recursion depth: " + lookahead_depth + ", max. shortening: " + max_shortening  );
 
         Compress c = new Compress();
 
