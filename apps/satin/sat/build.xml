@@ -10,7 +10,9 @@
     <property name="satinc-flags" value="-no-aborts"/>
     -->
 
-    <property name="satin-main-class" value="SimpleSATSolver"/>
+    <property name="satinc-flags" value="-keep"/>
+
+    <property name="satin-main-class" value="SimpleSATSolver SATSolver"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
