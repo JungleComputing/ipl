@@ -82,3 +82,12 @@ MacOS X
 Set the environment variable `JAVA_HOME' to `/Library/Java/Home'.
 
 For native code generation, you are required to install the Java SDK.
+
+Windows 2000, Windows XP
+=-=-=-=-=-=-=-=-=-=-=-=-
+
+Install a recent Java SDK, at least 1.4. This will get installed in
+for instance c:\Program Files\Java\jdk1.4. You can set the
+JAVA_HOME environment variable to this path by going to the
+Control Panel, System, the "Advanced" tab, Environment variables,
+add it there and reboot your system.
