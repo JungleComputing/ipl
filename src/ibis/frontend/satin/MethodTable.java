@@ -452,7 +452,7 @@ final class MethodTable implements BT_Opcodes {
 			if(start == handlerIndex || start == handlerIndex + 1 || start == handlerIndex + 2 && 
 			   l.descriptorC.equals(catchBlock.catchType)) {
 				int end = ins.indexOf(l.beyondIns) - 1;
-				System.out.println("found end of catch block: " + handlerIndex + " - " + end);
+//				System.out.println("found end of catch block: " + handlerIndex + " - " + end);
 				return end;
 			}
 		}
