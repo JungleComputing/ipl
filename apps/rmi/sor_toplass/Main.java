@@ -1,4 +1,15 @@
-Now default and only option, but still recognized.
+/*
+ * SOR.java
+ * Successive over relaxation
+ * SUN RMI version implementing a red-black SOR, based on earlier Orca source.
+ * with cluster optimization, and split phase optimization, reusing a thread
+ * each Wide-Area send. (All switchable)
+ *
+ * Rob van Nieuwpoort & Jason Maassen
+ *
+ */
+ 
+import ibis.util.PoolInfo;
 
 import ibis.rmi.*;
 import ibis.rmi.server.UnicastRemoteObject;
