@@ -102,11 +102,19 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					  ident.ibis().name());
 		}
 			
+		InvocationRecord result = null;
+
 		synchronized(satin) {
 			s = satin.getReplyPort(ident.ibis());
+			result = satin.q.getFromTail();
+			if (result != null) {
+				result.stealer = ident.ibis();
+
+				/* store the job in the outstanding list */
+				satin.addToOutstandingJobList(result);
+			}
 		}
 
-		InvocationRecord result = satin.q.getFromTail();
 		if(result == null) {
 			try {
 				WriteMessage m = s.newMessage();
@@ -137,11 +145,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 							  ident.ibis().name() + " DONE");
 				}
 
-				return;
 			} catch (IOException e) {
 				System.err.println("SATIN '" + satin.ident.name() + 
 						   "': trying to send FAILURE back, but got exception: " + e);
 			}
+			return;
 		}
 
 		/* else */
@@ -161,12 +169,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					  " back to " + ident.ibis().name());
 		}
 
-		result.stealer = ident.ibis();
-
-		/* store the job in the outstanding list */
-		synchronized(satin) {
-			satin.addToOutstandingJobList(result);
-		}
 
 		try {
 			WriteMessage m = s.newMessage();
