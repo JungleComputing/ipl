@@ -5,4 +5,9 @@ class Truck extends Vehicle implements Configuration {
     {
 	super( TRUCK_SPEED, TRUCK_SPEED_SD );
     }
+
+    public String toString()
+    {
+	return "Truck " + label + " @" + position + " v=" + velocity;
+    }
 }

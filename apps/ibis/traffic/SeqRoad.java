@@ -10,6 +10,7 @@ class SeqRoad implements Configuration {
     Vehicle lanes[] = new Vehicle[LANES];
     Random r = new Random( 0 );
     static final boolean traceVehicleUpdates = true;
+    static final boolean traceRetiring = true;
 
     SeqRoad()
     {
@@ -70,6 +71,24 @@ class SeqRoad implements Configuration {
 	    Vehicle v = front[lane];
 
 	    v.updatePosition( v.next );
+	    if( traceVehicleUpdates ){
+		System.out.println( "Update vehicle in lane " + lane + ": " + v );
+	    }
+	    if( v.position>= ROAD_LENGTH ){
+		// Retire this car.
+		if( traceRetiring ){
+		    System.out.println( "Retiring " + v );
+		}
+		if( prev[lane] == null ){
+		    lanes[lane] = v.next;
+		}
+		else {
+		    prev[lane].next = v.next;
+		}
+	    }
+	    else {
+		prev[lane] = front[lane];
+	    }
 	    front[lane] = v.next;
 	}
 
@@ -83,6 +102,7 @@ class SeqRoad implements Configuration {
 	    launchElapsed -= launchInterval;
 	    launchVehicle();
 	}
+	launchElapsed += 1.0;
     }
 
     private void runSimulation()
