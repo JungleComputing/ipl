@@ -18,7 +18,7 @@ public final class OutputStreamSplitter extends OutputStream {
 			
 	public void add(OutputStream s) {
 		if (DEBUG) {
-			System.err.println("SPLIT: ADDING: " + s);
+			System.err.println("SPLIT: ADDING: " + s + ", index = " + index);
 		}
 		if (index == size) { 
 			OutputStream [] temp = new OutputStream[2*size];
@@ -63,7 +63,7 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].write(b);
 			} catch (IOException e2) {
-				e = e2;
+				if (e == null) e = e2;
 			}
 		}
 
@@ -75,14 +75,14 @@ public final class OutputStreamSplitter extends OutputStream {
 	public void write(byte[] b) throws IOException {
 		IOException e = null;
 		if (DEBUG) {
-			System.err.println("SPLIT: writing: " + b);
+			System.err.println("SPLIT: writing: " + b + ", b.lenth = " + b.length);
 		}
 
 		for (int i=0; i<index; i++) {
 			try {
 				out[i].write(b);
 			} catch (IOException e2) {
-				e = e2;
+				if (e == null) e = e2;
 			}
 		}
 
@@ -94,14 +94,14 @@ public final class OutputStreamSplitter extends OutputStream {
 	public void write(byte[] b, int off, int len) throws IOException {
 		IOException e = null;
 		if (DEBUG) {
-			System.err.println("SPLIT: writing: " + b);
+			System.err.println("SPLIT: writing: " + b + ", off = " + off + ", len = " + len);
 		}
 
 		for (int i=0; i<index; i++) {
 			try {
 				out[i].write(b, off, len);
 			} catch (IOException e2) {
-				e = e2;
+				if (e == null) e = e2;
 			}
 		}
 
@@ -120,7 +120,7 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].flush();
 			} catch (IOException e2) {
-				e = e2;
+				if (e == null) e = e2;
 			}
 		}
 
@@ -139,7 +139,7 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].close();
 			} catch (IOException e2) {
-				e = e2;
+				if (e == null) e = e2;
 			}
 		}
 

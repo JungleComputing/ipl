@@ -56,13 +56,16 @@ public final class ThreadPool {
 					if(DEBUG) {
 						System.err.println("pool: no ready thread, cache full, started new one");
 					}
-					new Thread(r).start();
+					Thread p = new Thread(r);
+					p.setDaemon(true);
+					p.start();
 				} else {
 					if(DEBUG) {
 						System.err.println("pool: no ready thread, cache not full, started new poolthread");
 					}
 					threads[count] = new PoolThread(lock);
 					threads[count].target = r;
+					threads[count].setDaemon(true);
 					threads[count].start();
 					count++;
 				}
