@@ -69,7 +69,6 @@ final class TcpSendPort implements SendPort {
 		}
 
 		/* first check the types */
-System.err.println("Connect(), my type " + type + "=" + type.name() + " receiver " + receiver);
 		if(!type.name().equals(receiver.type())) {
 			throw new IbisIOException("Cannot connect ports of different PortTypes");
 		}

@@ -199,6 +199,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 								 ident.name(), messageHandler);
 
 			masterIdent = (IbisIdentifier) r.elect("satin master", ident);
+
 			if(masterIdent.equals(ident)) {
 				/* I an the master. */
 				if(COMM_DEBUG) {

@@ -13,6 +13,8 @@ import ibis.ipl.Registry;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
 
+import ibis.ipl.impl.nameServer.*;
+
 import java.net.Socket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -38,11 +40,11 @@ public final class TcpIbis extends Ibis {
 
 	private TcpIbisIdentifier ident; 
 
-	protected TcpIbisNameServerClient        tcpIbisNameServerClient;
-	protected TcpPortTypeNameServerClient    tcpPortTypeNameServerClient;
-	protected TcpReceivePortNameServerClient tcpReceivePortNameServerClient;
-	protected TcpElectionClient              tcpElectionClient;
-	protected TcpRegistry                    tcpRegistry;
+	protected NameServerClient        tcpIbisNameServerClient;
+	protected PortTypeNameServerClient    tcpPortTypeNameServerClient;
+	protected ReceivePortNameServerClient tcpReceivePortNameServerClient;
+	protected ElectionClient              tcpElectionClient;
+	protected Registry                    tcpRegistry;
 
 	private String nameServerName;
 	private String nameServerPool;
@@ -78,7 +80,7 @@ public final class TcpIbis extends Ibis {
 		TcpPortType resultPort = new TcpPortType(this, name, p);		
 		p = resultPort.properties();
 
-		TcpPortTypeNameServerClient temp = tcpIbisNameServerClient.tcpPortTypeNameServerClient;
+		PortTypeNameServerClient temp = tcpIbisNameServerClient.tcpPortTypeNameServerClient;
 
 		if (temp.newPortType(name, p)) { 
 			/* add type to our table */
@@ -106,7 +108,9 @@ public final class TcpIbis extends Ibis {
 
 	protected void init() throws IbisException, IbisIOException { 
 
-System.err.println("In TcpIbis.init()");
+		if(DEBUG) {
+			System.err.println("In TcpIbis.init()");
+		}
 		poolSize = 1;
 
 		Properties p = System.getProperties();
@@ -125,20 +129,22 @@ System.err.println("In TcpIbis.init()");
 		} catch (UnknownHostException e) {
 			throw new IbisIOException("cannot get ip of name server", e);
 		}
-System.err.println("Found nameServerInet " + nameServerInet);
+		if(DEBUG) {
+			System.err.println("Found nameServerInet " + nameServerInet);
+		}
 
 		try {
-			ident = new TcpIbisIdentifier();
-			ident.address = InetAddress.getLocalHost();
-			ident.name = name;
+			ident = new TcpIbisIdentifier(name, InetAddress.getLocalHost());
 		} catch (UnknownHostException e) {
 			throw new IbisIOException("cannot get ip of local host", e);
 		}
-System.err.println("Made IbisIdentifier " + ident);
+		if(DEBUG) {
+			System.err.println("Made IbisIdentifier " + ident);
+		}
 
 		try { 
-			tcpIbisNameServerClient = new TcpIbisNameServerClient(this, ident, nameServerPool, nameServerInet, 
-									      TcpIbisNameServer.TCP_IBIS_NAME_SERVER_PORT_NR);
+			tcpIbisNameServerClient = new NameServerClient(this, ident, nameServerPool, nameServerInet, 
+									      NameServer.TCP_IBIS_NAME_SERVER_PORT_NR);
 			tcpPortTypeNameServerClient = tcpIbisNameServerClient.tcpPortTypeNameServerClient;
 			tcpReceivePortNameServerClient = tcpIbisNameServerClient.tcpReceivePortNameServerClient;
 			tcpElectionClient = tcpIbisNameServerClient.tcpElectionClient;
@@ -149,7 +155,7 @@ System.err.println("Made IbisIdentifier " + ident);
 		}
 	}
 
-	void join(TcpIbisIdentifier joinIdent) { 
+	public void join(IbisIdentifier joinIdent) { 
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				joinedIbises.add(joinIdent);
@@ -158,7 +164,7 @@ System.err.println("Made IbisIdentifier " + ident);
 		
 			// this method forwards the join to the application running on top of ibis.		
 			if(DEBUG) {
-				System.out.println(name + ": Ibis '" + joinIdent.name + "' joined"); 
+				System.out.println(name + ": Ibis '" + joinIdent.name() + "' joined"); 
 			}
 			
 			poolSize++;
@@ -169,7 +175,7 @@ System.err.println("Made IbisIdentifier " + ident);
 		}
 	}
 
-	void leave(TcpIbisIdentifier leaveIdent) { 
+	public void leave(IbisIdentifier leaveIdent) { 
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				leftIbises.add(leaveIdent);
@@ -178,7 +184,7 @@ System.err.println("Made IbisIdentifier " + ident);
 
 			// this method forwards the leave to the application running on top of ibis.
 			if(DEBUG) {
-				System.out.println(name + ": Ibis '" + leaveIdent.name + "' left"); 
+				System.out.println(name + ": Ibis '" + leaveIdent.name() + "' left"); 
 			}
 			poolSize--;
 		}

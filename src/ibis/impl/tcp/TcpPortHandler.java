@@ -92,7 +92,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 			boolean reuse_connection = false;
 
 //			System.err.println("Creating socket for connection to " + receiver);
-			s = TcpIbisSocketFactory.createSocket(receiver.ibis.address, receiver.port, true);
+			s = TcpIbisSocketFactory.createSocket(receiver.ibis.address(), receiver.port, true);
 
 //			System.err.println("Getting streams from socket");
 			InputStream sin = s.getInputStream();
@@ -189,7 +189,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 
 	void quit() { 
 		try { 
-			Socket s = TcpIbisSocketFactory.createSocket(me.address, port, true);
+			Socket s = TcpIbisSocketFactory.createSocket(me.address(), port, true);
 			OutputStream sout = s.getOutputStream();
 			sout.write(FREE);
 			sout.flush();

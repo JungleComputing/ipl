@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.ConditionVariable;
+import ibis.ipl.impl.generic.ConditionVariable;
 
 public class Syncer implements PollClient {
     boolean	signalled;

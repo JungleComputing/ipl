@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.ConditionVariable;
+import ibis.ipl.impl.generic.ConditionVariable;
 
 class AcceptThread extends Thread {
 

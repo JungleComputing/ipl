@@ -12,16 +12,17 @@ import ibis.io.MantaOutputStream;
 import ibis.io.MantaInputStream;
 
 
-public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializable, ibis.io.Serializable {
+public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.Serializable, ibis.io.Serializable {
 	public static final int serialversionID = 1;
-	InetAddress address; // these are transferred as strings in the form WWW.XXX.YYY.ZZZ
-	                     // to avoid (SUN) serialization problems, *NO* lookups are needed.
-	String name;
+	// inet addresses  are transferred as strings in the form WWW.XXX.YYY.ZZZ
+        // to avoid (SUN) serialization problems, *NO* lookups are needed.
 
-	public TcpIbisIdentifier() { 
+	public TcpIbisIdentifier(String name, InetAddress address) { 
+		super(name, address);
 	}
 
 	public TcpIbisIdentifier(MantaInputStream stream) throws IbisIOException, ClassNotFoundException {
+		super(null, null);
 		stream.addObjectToCycleCheck(this);
 		int handle = stream.readInt();
 		if(handle < 0) {
@@ -66,10 +67,6 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 		return ("(TcpId: " + name + " on [" + 
 			address.getHostName() + ", " + 
 			address.getHostAddress() + "])");
-	}
-
-	public String name() {
-		return name;
 	}
 
 	public int hashCode() {

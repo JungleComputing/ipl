@@ -2,17 +2,22 @@ package ibis.ipl.impl.messagePassing;
 
 
 // Make this final, make inlining possible
-final class IbisIdentifier
-	implements ibis.ipl.IbisIdentifier,
-		   java.io.Serializable
+final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Serializable
 {
 
     String name;
     int cpu;
 
     IbisIdentifier(String name, int cpu) {
-	this.name = name + "@" + cpu;
-	this.cpu  = cpu;
+	    try {
+		    this.address = java.net.InetAddress.getLocalHost();
+	    } catch (java.net.UnknownHostException e) {
+		    // this should not happen.
+		    System.err.println("EEk: could not get my own IP address: " + e);
+		    System.exit(1);
+	    }
+	    this.name = name + "@" + cpu;
+	    this.cpu  = cpu;
     }
 
     // Compare ranks here, much faster. This is method critical for Satin. --Rob

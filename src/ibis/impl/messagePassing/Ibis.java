@@ -3,8 +3,8 @@ package ibis.ipl.impl.messagePassing;
 import java.util.Vector;
 import java.util.Hashtable;
 
-import ibis.ipl.ConditionVariable;
-import ibis.ipl.Monitor;
+import ibis.ipl.impl.generic.ConditionVariable;
+import ibis.ipl.impl.generic.Monitor;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
@@ -116,15 +116,15 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    void join(IbisIdentifier id) {
-if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
+    public void join(ibis.ipl.IbisIdentifier id) {
+	    if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 	if (resizeHandler != null) {
 	    resizeHandler.join(id);
 	}
     }
 
 
-    void leave(IbisIdentifier id) {
+    public void leave(ibis.ipl.IbisIdentifier id) {
 	if (resizeHandler != null) {
 	    resizeHandler.leave(id);
 	}

@@ -1,7 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.ConditionVariable;
+import ibis.ipl.impl.generic.ConditionVariable;
 
 public class ReadMessage
 	implements ibis.ipl.ReadMessage,
