@@ -1,0 +1,1 @@
+BarnesHutt -N50000 -M10 -tstop 0.25 -dtime 0.025 -eps 0.00000025 -das -threads
