@@ -3,6 +3,11 @@ package ibis.util;
 import ibis.ipl.IbisIdentifier;
 
 import java.util.HashMap;
+import java.util.Set;
+import java.util.Iterator;
+import java.util.Vector;
+import java.io.OutputStream;
+import java.io.InputStream;
 
 final class SendNode {
 	Object outStream;
@@ -75,6 +80,45 @@ final public class IbisIdentifierTable {
 		receiveTable.put(n, n);
 
 // System.out.println("added ibis " + ident + " with handle " + n.handle + " to rectable");
+	}
+
+	public synchronized void removeIbis(IbisIdentifier i) {
+		Set s = receiveTable.keySet();
+		Iterator si = s.iterator();
+		Vector v = new Vector();
+		while (si.hasNext()) {
+			ReceiveNode n = (ReceiveNode) si.next();
+			if (n.ident.equals(i)) {
+				v.add(n);
+			}
+		}
+		int len = v.size();
+		while (len > 0) {
+		    try {
+			ReceiveNode n = (ReceiveNode) v.remove(0);
+			receiveTable.remove(n);
+		    } catch(ArrayIndexOutOfBoundsException e) {
+		    }
+		    len--;
+		}
+		
+		s = sendTable.keySet();
+		si = s.iterator();
+		while (si.hasNext()) {
+			SendNode n = (SendNode) si.next();
+			if (n.ident.equals(i)) {
+				v.add(n);
+			}
+		}
+		len = v.size();
+		while (len > 0) {
+		    try {
+			SendNode n = (SendNode) v.remove(0);
+			sendTable.remove(n);
+		    } catch(ArrayIndexOutOfBoundsException e) {
+		    }
+		    len--;
+		}
 	}
 
 	public synchronized IbisIdentifier getIbis(Object stream, int handle) {

@@ -85,4 +85,11 @@ public abstract class IbisIdentifier implements java.io.Serializable {
     public String cluster() {
 	return cluster;
     }
+
+    /**
+     * Releases any resources held by the Ibis identifier.
+     * The default does nothing.
+     */
+    public void free() {
+    }
 }

@@ -80,4 +80,8 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 			cluster = ident.cluster;
 		}
 	}
+
+	public void free() {
+		cache.removeIbis(this);
+	}
 }

@@ -210,7 +210,7 @@ public class NameServer implements Protocol {
 	private void handleIbisLeave() throws IOException, ClassNotFoundException {
 		String key = (String) in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
-		    
+
 		RunInfo p = (RunInfo) pools.get(key);
 
 		if (DEBUG) { 
@@ -246,6 +246,8 @@ public class NameServer implements Protocol {
 					forwardLeave((IbisInfo) p.pool.get(i), id);
 				} 
 				p.pool.remove(index);
+
+				id.free();
 
 				System.out.println("LEAVE: pool " + key + " now contains " + p.pool.size() + " nodes");
 
