@@ -29,6 +29,8 @@ public class SATContext implements java.io.Serializable {
 	unsatisfied = us;
     }
 
+    private static final boolean tracePropagation = true;
+
     /** Constructs an empty Context. */
     SATContext( int clauseCount ){
 	satisfied = new boolean[clauseCount];
@@ -50,12 +52,15 @@ public class SATContext implements java.io.Serializable {
     /** Propagates any unit clauses in the problem.  */
     private int propagateUnitClauses( SATProblem p )
     {
+	boolean sawEm = false;
+
 	for( int i=0; i<terms.length; i++ ){
 	    if( !satisfied[i] && terms[i] == 1 ){
 	        Clause c = p.clauses[i];
 		int arr[] = c.pos;
 		int var = -1;
 
+		sawEm = true;
 		// Now search for the variable that isn't satisfied.
 		for( int j=0; j<arr.length; j++ ){
 		    int v = arr[j];
@@ -69,6 +74,9 @@ public class SATContext implements java.io.Serializable {
 		}
 		if( var != -1 ){
 		    // We have found the unassigned one, propagate it.
+		    if( tracePropagation ){
+		        System.err.println( "Propagating positive unit variable " + var + " from clause " + c );
+		    }
 		    int res = propagatePosAssignment( p, var );
 		    if( res != 0 ){
 			// The problem is now conflicting/satisfied, we're
@@ -91,6 +99,9 @@ public class SATContext implements java.io.Serializable {
 		    }
 		    if( var != -1 ){
 			// We have found the unassigned one, propagate it.
+			if( tracePropagation ){
+			    System.err.println( "Propagating negative unit variable " + var + " from clause " + c );
+			}
 			int res = propagatePosAssignment( p, var );
 			if( res != 0 ){
 			    // The problem is now conflicting/satisfied, we're
@@ -100,6 +111,9 @@ public class SATContext implements java.io.Serializable {
 		    }
 		}
 	    }
+	}
+	if( !sawEm ){
+	    System.err.println( "The promised unit clauses could not be found" );
 	}
 	return 0;
     }
