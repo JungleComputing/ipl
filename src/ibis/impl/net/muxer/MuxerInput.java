@@ -52,8 +52,8 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 			 NetDriver   driver,
 			 String      context) {
 	super(portType, driver, context);
-	mtu   	     =    0;
-	headerLength = NetConvert.INT_SIZE;
+	mtu   	     = 0;
+	headerLength = Driver.HEADER_SIZE;
 
 	/* ... please be patient, we'll find out how setup works *
 	String s = null;
@@ -73,7 +73,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
     private void receive() throws NetIbisException {
 	NetReceiveBuffer buffer = receiveByteBuffer(max_mtu);
-	int rKey = NetConvert.readInt(buffer.data, buffer.base);
+	int rKey = NetConvert.readInt(buffer.data, buffer.base + Driver.KEY_OFFSET);
 	MuxerQueue q = locateQueue(rKey);
 	if (q == null) {
 	    throw new NetIbisException("Message arrives for MuxerInput that is closed");
@@ -104,7 +104,11 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 	    }
 	}
 
+if (! block)
+System.err.println("Call doPoll(0)");
 	Integer spn = doPoll(block ? 0 : pollTimeout);
+if (! block)
+System.err.println("Returned from doPoll(0)");
 
 	if (! USE_POLLER_THREAD) {
 	    synchronized (this) {

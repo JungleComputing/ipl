@@ -4,7 +4,12 @@ import ibis.ipl.impl.net.NetIbisException;
 
 public class MuxerKey {
 
-    public MuxerKey() {
+    int		seqno;
+    int		remoteKey;
+
+
+    public MuxerKey(int remoteKey) {
+	this.remoteKey = remoteKey;
     }
 
 

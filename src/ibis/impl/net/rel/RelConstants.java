@@ -26,10 +26,12 @@ public interface RelConstants {
      * </PRE>
      */
 
+    final static boolean STATISTICS = true; // false;
+
     final static boolean	DEBUG = false; // true;
     final static boolean	DEBUG_REXMIT_NACK = DEBUG;
-    final static boolean	DEBUG_REXMIT = true; // DEBUG_REXMIT_NACK;
-    final static boolean	DEBUG_ACK = DEBUG;
+    final static boolean	DEBUG_REXMIT = DEBUG_REXMIT_NACK;
+    final static boolean	DEBUG_ACK = false; // DEBUG;
     final static boolean	DEBUG_PIGGY = DEBUG;
     final static boolean	DEBUG_LOCK = DEBUG;
     final static boolean	DEBUG_HUGE = false; // DEBUG;
@@ -47,9 +49,9 @@ public interface RelConstants {
     // The length of the ack header expressed in bytes
     // Here, we don't count the frag count
     final static int	headerLength =
-				NetConvert.INT_SIZE	// the index for the reverse connection
-				+ NetConvert.INT_SIZE	// the contiguous ack
-				+ NetConvert.INT_SIZE * ACK_SET_IN_INTS; // ack bitset beyond contiguous
+	NetConvert.INT_SIZE	// the index for the reverse connection
+	+ NetConvert.INT_SIZE	// the contiguous ack
+	+ NetConvert.INT_SIZE * ACK_SET_IN_INTS; // ack bitset beyond contiguous
 
     /**
      * Sweeper interval in ms.

@@ -8,17 +8,15 @@ class UdpMuxerKey extends MuxerKey {
 
     InetAddress		remoteAddress;
     int			remotePort;
-    int			remoteKey;
 
     UdpMuxerKey(InetAddress remoteAddress,
 		int remotePort,
 		int remoteKey) {
 
-	super();
+	super(remoteKey);
 
 	this.remoteAddress = remoteAddress;
 	this.remotePort = remotePort;
-	this.remoteKey = remoteKey;
     }
 
 }

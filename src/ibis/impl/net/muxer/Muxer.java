@@ -56,10 +56,10 @@ public final class Muxer extends NetBufferedOutput {
 
 	synchronized (driver) {
 	    if (subDriver == null) {
-		String subDriverName = getMandatoryProperty("Driver");
-		System.err.println("subDriverName = " + subDriverName);
+		// String subDriverName = getMandatoryProperty("Driver");
+		// System.err.println("subDriverName = " + subDriverName);
 		System.err.println("It should depend on Driver properties which muxer suboutput is created");
-		// String subDriverName = "muxer.udp";
+		String subDriverName = "muxer.udp";
 		subDriver = driver.getIbis().getDriver(subDriverName);
 		System.err.println("The subDriver is " + subDriver);
 		muxer = (MuxerOutput)newSubOutput(subDriver, "muxer");
@@ -148,6 +148,11 @@ public final class Muxer extends NetBufferedOutput {
 	    System.err.println(this + ": try to send buffer size " + b.length);
 	}
 	b.connectionId = myKey;
+	NetConvert.writeInt(myKey.remoteKey, b.data, b.base + Driver.KEY_OFFSET);
+	if (ibis.ipl.impl.net.muxer.Driver.PACKET_SEQNO) {
+	    NetConvert.writeLong(myKey.seqno++, b.data,
+				 b.base + Driver.SEQNO_OFFSET);
+	}
 
 	muxer.writeByteBuffer(b);
     }

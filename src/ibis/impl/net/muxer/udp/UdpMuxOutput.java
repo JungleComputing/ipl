@@ -166,9 +166,8 @@ Thread.dumpStack();
 
 	if (Driver.DEBUG_HUGE) {
 	    System.err.println("Send packet, key " + uk);
-	    System.err.println("Send packet size " + b.length + " key " + uk.remoteKey + "@" + b.base);
+	    System.err.println("Send packet size " + b.length);
 	}
-	NetConvert.writeInt(uk.remoteKey, b.data, b.base);
 
 	packet.setAddress(uk.remoteAddress);
 	packet.setPort(uk.remotePort);

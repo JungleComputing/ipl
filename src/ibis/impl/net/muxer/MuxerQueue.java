@@ -7,7 +7,7 @@ import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetBufferFactory;
 
 
-public class MuxerQueue extends MuxerKey {
+public class MuxerQueue {
 
     private final static boolean WAIT_YIELDING = false;
     private final static int	OPTIMISTIC_YIELDS = 0;
@@ -51,7 +51,6 @@ public class MuxerQueue extends MuxerKey {
      *        connection.
      */
     public MuxerQueue(MuxerInput input, Integer spn) {
-	super();
 	this.input = input;
 	this.spn   = spn;
 	this.connectionKey = -1;

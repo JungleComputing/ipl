@@ -35,7 +35,7 @@ public final class Demuxer extends NetBufferedInput {
     private MuxerQueue		myQueue;
 
 
-    private long		rcve_seqno;	/* For out-of-order debugging */
+    private long		receiveSeqno;	/* For out-of-order debugging */
     private long		deliver_seqno;	/* For out-of-order debugging */
 
 
@@ -154,30 +154,20 @@ dumpBufferFactoryInfo();
     }
 
 
-    private void checkReceiveSeqno(NetReceiveBuffer buffer) {
-	if (Driver.DEBUG) {
-	    long seqno = NetConvert.readLong(buffer.data,
-					headerOffset + NetConvert.INT_SIZE);
-	    if (seqno < rcve_seqno) {
-		System.err.println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Receive: packet overtakes: " + seqno + " expect " + rcve_seqno);
-	    } else {
-		rcve_seqno = seqno;
+    private void checkReceiveSeqno(NetReceiveBuffer buffer)
+	    throws NetIbisException {
+	if (Driver.PACKET_SEQNO) {
+	    long rSeqno = NetConvert.readLong(buffer.data, buffer.base + Driver.SEQNO_OFFSET);
+	    if (rSeqno != receiveSeqno) {
+		System.err.println("Seems a packet was lost: receive seqno " + rSeqno + "; expect " + receiveSeqno);
+		if (rSeqno < receiveSeqno) {
+		    throw new NetIbisException("Packet count goes back");
+		}
 	    }
+	    receiveSeqno = rSeqno + 1;
 	}
     }
 
-
-    private void checkDeliverSeqno(NetReceiveBuffer buffer) {
-	if (Driver.DEBUG) {
-	    long seqno = NetConvert.readLong(buffer.data,
-					headerOffset + NetConvert.INT_SIZE);
-	    if (seqno < deliver_seqno) {
-		System.err.println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Deliver: packet overtakes: " + seqno + " expect " + deliver_seqno);
-	    } else {
-		deliver_seqno = seqno;
-	    }
-	}
-    }
 
     protected void initReceive() {
         //
@@ -217,6 +207,7 @@ dumpBufferFactoryInfo();
 	    throws NetIbisException {
 
 	NetReceiveBuffer b = myQueue.receiveByteBuffer(expectedLength);
+	checkReceiveSeqno(b);
 	return b;
     }
 
@@ -229,6 +220,7 @@ dumpBufferFactoryInfo();
 	    Thread.dumpStack();
 	}
 	myQueue.receiveByteBuffer(userBuffer);
+	checkReceiveSeqno(userBuffer);
     }
 
 
@@ -244,7 +236,7 @@ dumpBufferFactoryInfo();
      * {@inheritDoc}
      */
     public synchronized void doClose(Integer num) throws NetIbisException {
-	if (true || Driver.DEBUG) {
+	if (Driver.DEBUG) {
 	    System.err.println(this + ": doClose.");
 	    Thread.dumpStack();
 	}
@@ -264,7 +256,7 @@ dumpBufferFactoryInfo();
      * {@inheritDoc}
      */
     public void doFree() throws NetIbisException {
-	if (true || Driver.DEBUG) {
+	if (Driver.DEBUG) {
 	    System.err.println(this + ": doFree.");
 	    Thread.dumpStack();
 	}

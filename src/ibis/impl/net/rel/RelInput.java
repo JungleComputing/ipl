@@ -15,8 +15,6 @@ public final class RelInput
 	// extends NetInput
 	implements RelConstants, RelSweep {
 
-    private final static boolean STATISTICS = Driver.STATISTICS;
-
     /**
      * My poller flag
      */
@@ -55,7 +53,6 @@ public final class RelInput
 
     /**
      * The sliding window descriptor.
-     * The window size is in rel.Driver.
      */
     private int	nextDeliver	= FIRST_PACKET_COUNT;
     private int	nextContiguous	= FIRST_PACKET_COUNT;	// From here on, require bitset ack

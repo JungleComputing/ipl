@@ -15,8 +15,6 @@ public final class RelOutput
 	// extends NetOutput
 	implements RelConstants, RelSweep {
 
-    private final static boolean STATISTICS = Driver.STATISTICS;
-
     /**
      * The driver used for the 'real' output.
      */
@@ -60,13 +58,13 @@ public final class RelOutput
 
     private NetBufferFactory controlFactory;
 
+    private boolean sendContRecursing = false;
 
 
     /**
      * The sliding window descriptor.
-     * The window size is in rel.Driver.
      */
-    private static final int DEFAULT_WINDOW_SIZE = 8; // 16; 8; // 4;
+    private static final int DEFAULT_WINDOW_SIZE = 5; // 4; // 16; // 8;
     private int		windowSize = DEFAULT_WINDOW_SIZE;
     private int		nextAllocate = FIRST_PACKET_COUNT; // Allocated to send up to here
     private int		windowStart = FIRST_PACKET_COUNT;  // Acked up to here
@@ -357,6 +355,7 @@ public final class RelOutput
 	    return;
 	}
 
+// System.err.print("s");
 	dataOutput.writeByteBuffer(frag);
 	if (DEBUG_ACK) {
 	    int first_int = reportPacket(System.err,
@@ -400,12 +399,14 @@ public final class RelOutput
 
 	checkLocked();
 
+	boolean messageArrived = false;
+
+// System.err.print("[");
 	if (ackPacket == null) {
 	    controlInput.dumpBufferFactoryInfo();
 	    System.err.println("Get an ack packet, length " + (controlHeaderStart + RelConstants.headerLength));
 	    ackPacket = controlInput.createReceiveBuffer(controlHeaderStart + RelConstants.headerLength);
 	}
-	boolean messageArrived = false;
 	if (DEBUG_ACK) {
 	    System.err.println("Out of credits? Poll control channel");
 	}
@@ -415,7 +416,7 @@ public final class RelOutput
 		if (DEBUG_ACK) {
 		    System.err.println("Poll control channel fails, messageArrived " + messageArrived);
 		}
-		return messageArrived;
+		break;
 	    }
 	    messageArrived = true;
 	    int windowStart = this.windowStart;
@@ -430,13 +431,14 @@ public final class RelOutput
 	    controlInput.finish();
 	    if (windowStart != this.windowStart) {
 		/* It seems there is room to continue sending, return */
-		return messageArrived;
+		break;
 	    }
 	}
+// System.err.print("]");
+
+	return messageArrived;
     }
 
-
-    private int allowPoll = 0;
 
     // Call this synchronized
 // synchronized
@@ -451,10 +453,6 @@ public final class RelOutput
 		    (nextToSend == null ? -1 : nextToSend.fragCount));
 	}
 	long now = System.currentTimeMillis();
-
-	if (allowPoll > 1) {
-	    throw new NetIbisException("Too deep recursion in handleSendContinuation");
-	}
 
 	RelSendBuffer scan = nextToSend;
 	while (scan != null && scan.fragCount - windowStart < windowSize) {
@@ -473,13 +471,15 @@ public final class RelOutput
 
 	/* If the send window is closed and we still have packets to
 	 * send out, poll the explicit ack channel */
-	if (allowPoll == 0 && nextToSend != null) {
+	if (! sendContRecursing && nextToSend != null) {
+	    sendContRecursing = true;
 	    if (pollControlChannel(true)) {
-		allowPoll++;
 		handleSendContinuation();
-		allowPoll--;
 	    }
+	    sendContRecursing = false;
 	}
+
+checkRexmit();
     }
 
 
@@ -689,13 +689,28 @@ public final class RelOutput
 
 
     // call this synchronized
+    private void checkRexmit() throws NetIbisException {
+
+	checkLocked();
+
+	if (pendingRexmits() > 0) {
+	    if (DEBUG_REXMIT) {
+		System.err.println("Rexmit from sync check: window start " + windowStart +
+			" nextAllocate " + nextAllocate);
+	    }
+	    handleRexmit();
+	}
+    }
+
+
+    // call this synchronized
     private void handleRexmit() throws NetIbisException {
 
 	checkLocked();
 
 	long now = System.currentTimeMillis();
 
-	if (false && DEBUG_REXMIT) {
+	if (DEBUG_REXMIT) {
 	    System.err.println("Rexmit: window start " + windowStart +
 		    " nextAllocate " + nextAllocate);
 	}
@@ -724,19 +739,19 @@ public final class RelOutput
 	    // Not yet started
 	    return;
 	}
-	if (false && DEBUG_REXMIT) {
+	if (true && DEBUG_REXMIT) {
 	    System.err.print("->rex-");
 	}
 
 	try {
 	    synchronized (this) {
 		if (pendingRexmits() == 0) {
-		    if (false && DEBUG_REXMIT) {
+		    if (true && DEBUG_REXMIT) {
 			System.err.print("V");
 		    }
 		    return;
 		}
-		if (false && DEBUG_REXMIT) {
+		if (true && DEBUG_REXMIT) {
 		    System.err.print("_");
 		}
 		pollControlChannel(false);

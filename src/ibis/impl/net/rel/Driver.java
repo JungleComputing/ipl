@@ -10,8 +10,6 @@ import ibis.ipl.IbisIOException;
  */
 public final class Driver extends NetDriver implements RelConstants {
 
-	static final boolean STATISTICS = false;
-
 	/**
 	 * The driver name.
 	 */

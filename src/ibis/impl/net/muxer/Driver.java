@@ -7,6 +7,7 @@ import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetOutput;
 import ibis.ipl.impl.net.NetIbisException;
+import ibis.ipl.impl.net.NetConvert;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -22,6 +23,13 @@ public final class Driver extends NetDriver {
 	final static boolean DEBUG = false; // true;
 	final static boolean DEBUG_HUGE = false; // DEBUG;
 	final static boolean STATISTICS = false;
+
+	final static boolean	PACKET_SEQNO = false; // true;
+	final static int	KEY_OFFSET = 0;
+	final static int	SEQNO_OFFSET = NetConvert.INT_SIZE;
+	final static int	HEADER_SIZE = PACKET_SEQNO ?
+						SEQNO_OFFSET + NetConvert.LONG_SIZE :
+						SEQNO_OFFSET;
 
 	/**
 	 * The driver name.
