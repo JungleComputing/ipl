@@ -177,14 +177,14 @@ public class StaticProperties {
     }
 
     /**
-     * Creates an emtpy property set.
+     * Creates an empty property set.
      */
     public StaticProperties() {
 	defaults = null;
     }
 
     /**
-     * Creates an empty property set with defaults.
+     * Creates an empty property set with the specified defaults.
      */
     public StaticProperties(StaticProperties sp) {
 	defaults = sp;
