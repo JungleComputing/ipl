@@ -186,7 +186,6 @@ public class SuffixTree {
             int l = (text.length-1)-i;
 
             root.add( text, i, l, i );
-            root.print( System.out, 1 );
         }
     }
 
