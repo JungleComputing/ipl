@@ -34,13 +34,16 @@ public abstract class FaultTolerance extends Inlets {
             id = (IbisIdentifier) crashedIbises.remove(0);
 
             // Let the Ibis registry know ...
-            try {
-                r.dead(id);
-            } catch (IOException e) {
-                System.err.println("SATIN '" + ident.name()
-                        + "' :exception while notifying registry about crash "
-                        + "of " + id.name() + ": " + e.getMessage());
-            }
+            // Only if this is the master, otherwise everything gets terribly slow
+            if (id.equals(masterIdent) || id.equals(clusterCoordinatorIdent)) {	    
+        	try {
+            	    r.maybeDead(id);
+        	} catch (IOException e) {
+            	    System.err.println("SATIN '" + ident.name()
+                    	    + "' :exception while notifying registry about crash "
+                    	    + "of " + id.name() + ": " + e.getMessage());
+        	}
+	    }
 
             if (COMM_DEBUG) {
                 out.println("SATIN '" + ident.name() + ": handling crash of "
@@ -110,7 +113,7 @@ public abstract class FaultTolerance extends Inlets {
 
     }
     
-    void handleMasterCrash() {
+    synchronized void handleMasterCrash() {
         masterHasCrashed = false;
         Registry r = ibis.registry();	    
         //master has crashed, let's elect a new one
@@ -134,14 +137,17 @@ public abstract class FaultTolerance extends Inlets {
                 ReceivePortIdentifier barrierIdent = lookup(
                         "satin barrier receive port on "
                         + masterIdent.name());
-                connect(barrierSendPort, barrierIdent);
+                boolean success = connect(barrierSendPort, barrierIdent, 1000);
+                if (!success) {
+                    System.err.println("SATIN '" + ident.name()
+                            + "' :unable to connect to the master barrier port");
+                }                    
             }
 
             //statistics
             if (stats && master) {
                 totalStats = new StatsMessage();
             }
-
         } catch (IOException e) {
     	    System.err.println("SATIN '" + ident.name()
             	    + "' :exception while electing a new master "
