@@ -241,6 +241,18 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /**
+     * Adds a new conflict clause to the problem, and updates the
+     * conflict administration.
+     * @param cl The conflict clause to add.
+     */
+    public void addConflictClause( Clause cl )
+    {
+        int cno = clauseCount;
+        addClause( cl );
+        registerClauseVariables( cl, cno );
+    }
+
+    /**
      * Given a list of variables and a clause, registers all uses
      * of the variables in the clause.
      * @param cl the clause to register

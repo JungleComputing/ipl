@@ -82,6 +82,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	leafSolve( level+1, p, subctx, nextvar, firstvar );
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
+        // However, we must update the context for any new clauses
+        // that have been added.
+        ctx.update( p );
 	leafSolve( level+1, p, ctx, nextvar, !firstvar );
     }
 
@@ -156,12 +159,14 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    SATContext subctx = (SATContext) ctx.clone();
 	    leafSolve( level+1, p, subctx, nextvar, firstvar );
 	    subctx = (SATContext) ctx.clone();
+            subctx.update( p );
 	    leafSolve( level+1, p, subctx, nextvar, !firstvar );
 	}
 	else {
 	    // We have variable 'nextvar' to branch on.
 	    SATContext firstctx = (SATContext) ctx.clone();
 	    solve( level+1, firstctx, nextvar, firstvar );
+            ctx.update( p );
 	    SATContext secondctx = (SATContext) ctx.clone();
 	    solve( level+1, secondctx, nextvar, !firstvar );
 	    sync();

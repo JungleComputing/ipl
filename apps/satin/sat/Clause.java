@@ -466,6 +466,63 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	return true;
     }
 
+    private static int countUnset( int l[], int assignment[] )
+    {
+        int res = 0;
+        for( int ix=0; ix<l.length; ix++ ){
+            int v = l[ix];
+
+            if( assignment[v] != -1 ){
+                res++;
+            }
+        }
+        return res;
+    }
+
+    private static void registerInfo( int l[], float info[], float val )
+    {
+        for( int ix=0; ix<l.length; ix++ ){
+            int v = l[ix];
+
+            info[v] += val;
+        }
+    }
+
+    /**
+     * Given positive and negative info, updates the
+     * counts with the info of this clause.
+     * @param posclauses The positive clause count.
+     * @param negclauses The negative clause count.
+     */
+    public void registerInfo( int assignment[], float posinfo[], float neginfo[] )
+    {
+        int n = countUnset( pos, assignment ) + countUnset( neg, assignment );
+        float info = Helpers.information( n );
+        registerInfo( pos, posinfo, info );
+        registerInfo( neg, neginfo, info );
+    }
+
+    private static void registerCount( int l[], int counts[] )
+    {
+        for( int ix=0; ix<l.length; ix++ ){
+            int v = l[ix];
+
+            counts[v]++;
+        }
+    }
+
+    /**
+     * Given positive and negative clause counts, updates the
+     * counts with the values of this clause.
+     * @param posclauses The positive clause count.
+     * @param negclauses The negative clause count.
+     */
+    public void registerVariableCounts( int posclauses[], int negclauses[] )
+    {
+        registerCount( pos, posclauses );
+        registerCount( neg, negclauses );
+    }
+
     /**
      * Given an output stream, print the clause to it in DIMACS format.
      * @param s the stream to print to

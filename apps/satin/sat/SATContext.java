@@ -75,7 +75,7 @@ public class SATContext implements java.io.Serializable {
     }
 
     private static final boolean tracePropagation = false;
-    private static final boolean traceLearning = true;
+    private static final boolean traceLearning = false;
     private static final boolean doVerification = false;
 
     /**
@@ -337,6 +337,10 @@ public class SATContext implements java.io.Serializable {
                 System.err.println( "Added conflict clause " + cc );
             }
         }
+        if( cc != null ){
+            p.addConflictClause( cc );
+        }
+        update( p );
     }
 
     /**
@@ -417,8 +421,44 @@ public class SATContext implements java.io.Serializable {
     }
 
     /**
+     * Update the adminstration for any new clauses in the specified
+     * SAT problem.
+     * @param p The SAT problem.
+     */
+    public void update( SATProblem p )
+    {
+        int newCount = p.getClauseCount();
+
+        if( newCount>terms.length ){
+            int oldCount = terms.length;
+            // New clauses have been added. Enlarge the arrays related
+            // to the clauses, and fill them with the correct values.
+
+            int newterms[] = new int[newCount];
+            System.arraycopy( terms, 0, newterms, 0, terms.length );
+            terms = newterms;
+
+            boolean newsatisfied[] = new boolean[newCount];
+            System.arraycopy( satisfied, 0, newsatisfied, 0, satisfied.length );
+            satisfied = newsatisfied;
+
+            for( int i=oldCount; i<newCount; i++ ){
+                Clause cl = p.clauses[i];
+
+                terms[i] = cl.getTermCount();
+                boolean issat = cl.isSatisfied( assignment );
+                if( !issat ){
+                    unsatisfied++;
+                    cl.registerInfo( assignment, posinfo, neginfo );
+                }
+                cl.registerVariableCounts( posclauses, negclauses );
+            }
+        }
+    }
+
+    /**
      * Registers the fact that the specified clause is satisfied.
-     * @param p The SAT Problem.
+     * @param p The SAT problem.
      * @param cno The index of the clause that is now satisifed.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */

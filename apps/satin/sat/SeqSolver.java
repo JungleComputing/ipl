@@ -87,6 +87,9 @@ public final class SeqSolver {
 	// give it to the recursion.
 	// Also note that this call is a perfect candidate for tail
 	// call elimination.
+        // However, we must update the administration with any
+        // new clauses that we've learned recently.
+        ctx.update( p );
 	leafSolve( level+1, p, ctx, nextvar, !firstvar );
     }
 
@@ -141,6 +144,7 @@ public final class SeqSolver {
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
             leafSolve( 0, p, negctx, nextvar, firstvar );
+            ctx.update( p );
             leafSolve( 0, p, ctx, nextvar, !firstvar );
 	}
 	catch( SATResultException r ){
