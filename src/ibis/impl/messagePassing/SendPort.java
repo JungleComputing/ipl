@@ -197,6 +197,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	if (DEBUG) {
 	    System.err.println("Create a new writeMessage SendPort " + this + " serializationType " + type.serializationType + " message " + m);
 	}
+	m.resetCount();
 
 	return m;
     }
