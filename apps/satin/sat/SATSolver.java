@@ -147,12 +147,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	int var,
 	boolean val,
         boolean learnTuple
-	) throws SATException
+    ) throws SATException
     {
-//        if( p == null ){
-//            p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
-//        }
-
         ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
