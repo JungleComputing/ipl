@@ -76,8 +76,6 @@ public class PoolInfoClient {
 		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
 			throw new RuntimeException("Sanity check on host numbers failed!");
 		}
-
-		
 	}
 
 	public int size() {

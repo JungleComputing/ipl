@@ -22,13 +22,13 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	static final boolean PREV = true;
 	static final boolean NEXT = false;
 
-	static final int   SYNC_SEND = 0;
-	static final int  ASYNC_SEND = 1;
+	static final boolean   SYNC_SEND = true;
 
-	static PoolInfoClient info = PoolInfoClient.create();
+	static PoolInfoClient info;
 
 	static {
 		try {
+			info = PoolInfoClient.create();
 			System.out.println("info.size(): " + info.size());	
 			System.out.println("info.rank(): " + info.rank());
 			System.out.println("info.hostName(): " + info.hostName());
@@ -60,11 +60,12 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	double[] prevCol, nextCol;
 
 	int prevIndex, nextIndex;
-	int nit, sync;
+	int nit;
+	boolean sync;
 
 	WaitingSendThread prevSender, nextSender;
 
-	SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global) throws RemoteException {
+	SOR(int nrow, int ncol, int nit, boolean sync, i_GlobalData global) throws RemoteException {
 
 		this.nrow = nrow; // Add two rows to borders.
 		this.ncol = ncol; // Add two columns to borders.
@@ -79,7 +80,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		nodes = info.size();
 		rank = info.rank();
     
-		if (sync == ASYNC_SEND) { 
+		if (!SYNC_SEND) { 
 
 			prevSender = new WaitingSendThread();
 			nextSender = new WaitingSendThread();
@@ -253,41 +254,26 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	}
 
 	private void send(boolean i_am, int index, double[] col) throws RemoteException {
-
 		/* Two cases here: sync and async */
 		if (i_am == NEXT) {
 
-			switch  (sync) {
-			case SYNC_SEND:
+			if(sync) {
 				// System.out.println("sending row to " + (rank-1));
 				table[rank-1].putCol(NEXT, index, col);
-				break;
-			case ASYNC_SEND:
+			} else {
 				nextSender.put(table[rank-1], NEXT, index, col);
-				break;
-			default:
-				System.err.println(rank + " Check out send!");
 			} 
-		
 		} else {
-
-			switch  (sync) {
-			case SYNC_SEND:
+			if(sync) {
 				// System.out.println("sending row to " + (rank+1));
 				table[rank+1].putCol(PREV, index, col);
-				break;
-			case ASYNC_SEND:
+			} else {
 				prevSender.put(table[rank+1], PREV, index, col);				
-				break;
-			default:
-				System.err.println(rank + " Check out send!");
-				// does not happen !
 			} 
 		}	
 	}
 
 	public void start () throws RemoteException {
-
 		int phase;
 		int iteration;               /* counters */
 		long t_start,t_end;             /* time values */
@@ -350,9 +336,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 					send(PREV, ub-1, g[ub-1]);
 				}
 
-				switch (sync) {
-				case SYNC_SEND:
-					
+				if(sync) {
 					if(rank != 0) {
 						// System.out.println("Getting row from " + (rank-1));
 						recCol(PREV);
@@ -366,11 +350,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 					}
 					
 					diff = compute(phase, diff, lb, ub);
-
-					break;
-
-				case ASYNC_SEND:
-					
+				} else {
 					diff = compute(phase, diff, lb+1, ub-1);
 
 					if(rank != 0) {
@@ -385,10 +365,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 				
 					diff = compute(phase, diff, lb, lb+2);
 					diff = compute(phase, diff, ub-2, ub);
-			
-					break; 
 				}
-				
 			}
 
 			if (nit == 0 && nodes > 1) {
