@@ -1,4 +1,4 @@
-import ibis.rmi.*;
+import java.rmi.*;
 
 public interface i_Server extends Remote {
 
@@ -9,6 +9,6 @@ public interface i_Server extends Remote {
     public void one_way(Object b) throws RemoteException;
 
     public void reset() throws RemoteException;
-    public void quit() throws ibis.rmi.RemoteException;
+    public void quit() throws java.rmi.RemoteException;
 
 }

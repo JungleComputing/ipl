@@ -1,7 +1,7 @@
 import java.net.*;
-import ibis.rmi.*;
-import ibis.rmi.server.*;
-import ibis.rmi.registry.*;
+import java.rmi.*;
+import java.rmi.server.*;
+import java.rmi.registry.*;
 import java.io.IOException;
 
 public class Server extends UnicastRemoteObject implements i_Server, Runnable {
@@ -12,7 +12,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
     private Worker worker = null;
 
 
-    public Server(String[] args, Registry local) throws ibis.rmi.RemoteException {
+    public Server(String[] args, Registry local) throws java.rmi.RemoteException {
 	super();
 
 	System.err.println("Server object: constructor");
@@ -106,7 +106,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
     }
 
 
-    public void quit() throws ibis.rmi.RemoteException {
+    public void quit() throws java.rmi.RemoteException {
 	// System.out.println("Server receives quit request");
 	synchronized (this) {
 	    finished = true;

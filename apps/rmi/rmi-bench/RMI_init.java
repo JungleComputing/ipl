@@ -1,6 +1,6 @@
-import ibis.rmi.*;
-import ibis.rmi.registry.*;
-import ibis.rmi.server.*;
+import java.rmi.*;
+import java.rmi.registry.*;
+import java.rmi.server.*;
 import java.io.IOException;
 import java.net.InetAddress;
 
@@ -45,7 +45,7 @@ System.out.println("Use LocateRegistry to create a Registry");
 System.out.println("Use LocateRegistry to get a Registry from owner " + registryOwner);
 		try {
 		    reg = LocateRegistry.getRegistry(registryOwner, port);
-		} catch (ibis.rmi.RemoteException e) {
+		} catch (java.rmi.RemoteException e) {
 		    try {
 			System.out.println("Look up registry: sleep a while..");
 			Thread.sleep(100);

@@ -10,6 +10,8 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
+    <property name="rmic-flags"	value="-java2ibis"/>
+
     <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
 
 </project>

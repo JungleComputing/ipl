@@ -1,7 +1,7 @@
-import ibis.rmi.*;
-import ibis.rmi.server.*;
+import java.rmi.*;
+import java.rmi.server.*;
 import java.net.*;
-import ibis.rmi.registry.*;
+import java.rmi.registry.*;
 
 public class Client {
 
@@ -122,7 +122,7 @@ public class Client {
 		} 
 		s = (i_Server)r;
 		break;
-	    } catch (ibis.rmi.NotBoundException eR) {
+	    } catch (java.rmi.NotBoundException eR) {
 		try {
 		    System.out.println("Look up server object: sleep a while... " + eR);
 		    Thread.sleep(1000);
