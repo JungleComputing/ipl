@@ -69,8 +69,12 @@ class Helpers {
      */
     static int matchSpans( byte arr[], int p1, int p2 )
     {
-        int maxsz = Math.max( arr.length-p2, 65535+Configuration.MINIMAL_SPAN );
+        int maxsz = Math.min( arr.length-p2, 65535+Configuration.MINIMAL_SPAN );
 
+        if( p1>=p2 ){
+            System.err.println( "Bad match in matchSpans()" );
+            System.exit( 1 );
+        }
         if( p1+maxsz>p2 ){
             maxsz = p2-p1;
         }
