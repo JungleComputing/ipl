@@ -28,7 +28,7 @@ final public class SerializeSendPort extends SendPort {
 
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver,
-			int timeout)
+			long timeout)
 	    throws IOException {
 
 	// Reset all our previous connections so the
