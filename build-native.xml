@@ -229,12 +229,12 @@
 
     <taskdef resource="cpptasks.tasks">
 	<classpath>
-	    <pathelement location="${package.home.ant-cpptasks}/cpptasks-1.0b1/cpptasks.jar"/>
+	    <pathelement location="${package.home.ant-cpptasks}/cpptasks.jar"/>
 	</classpath>
     </taskdef>
     <typedef resource="cpptasks.types">
 	<classpath>
-	    <pathelement location="${package.home.ant-cpptasks}/cpptasks-1.0b1/cpptasks.jar"/>
+	    <pathelement location="${package.home.ant-cpptasks}/cpptasks.jar"/>
 	</classpath>
     </typedef>
 
@@ -254,6 +254,7 @@
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${build}/lib"/>
 
+	<echo message="native.dir = ${native.dir}"/>
 	<pathconvert pathsep=" " property="native-path">
 	    <path>
 		<pathelement path="${native.dir}"/>

@@ -47,7 +47,7 @@
 
     <taskdef resource="net/sf/antcontrib/antcontrib.properties">
 	<classpath>
-	    <pathelement location="${package.home.ant-contrib}/lib/ant-contrib-0.3.jar"/>
+	    <pathelement location="${package.home.ant-contrib}/ant-contrib-0.3.jar"/>
 	</classpath>
     </taskdef>
 
@@ -116,7 +116,7 @@
 	<condition property="c.compiler" value="gcc">
 	    <isset property="os-is-unix"/>
 	</condition>
-	<condition property="c.compiler" value="msvc">
+	<condition property="c.compiler" value="bcc">
 	    <isset property="os-is-windows"/>
 	</condition>
 	<condition property="c.compiler" value="gcc">
@@ -133,3 +133,20 @@
 	<pathelement path="${package.home.bcel}/bcel-5.1.jar"/>
     </path>
 
+
+    <target name="run">
+	<java
+		fork="true"
+		classname="${MAIN}"
+		classpath="build:${ibis}/build">
+	    <sysproperty key="java.library.path"      value="${ibis}/build/lib"/>
+	    <sysproperty key="ibis.name_server.host"  value="mercury.cs.vu.nl"/>
+	    <sysproperty key="ibis.name_server.port"  value="7654"/>
+	    <sysproperty key="ibis.name_server.key"   value="rutger.0001"/>
+	    <sysproperty key="ibis.pool.host_number"  value="0"/>
+	    <sysproperty key="ibis.pool.total_hosts"  value="2"/>
+	    <sysproperty key="ibis.pool.hosts"        value="athlon-win2000 p3"/>
+	    <sysproperty key="ibis.name"              value="panda"/>
+	    <arg line="${ARGS}"/>
+	</java>
+    </target>

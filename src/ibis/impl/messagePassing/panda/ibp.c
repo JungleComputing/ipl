@@ -251,6 +251,28 @@ ibp_byte_array_push(JNIEnv *env, jbyteArray a, pan_iovec_p iov)
     return iov->len;
 }
 
+#ifdef _M_IX86
+#define IBP_NO_INTERRUPTS	1
+#endif
+
+#if IBP_NO_INTERRUPTS
+
+static void
+ibp_intr_poll(void)
+{
+}
+
+static void
+ibp_intr_lock(void)
+{
+}
+
+static void
+ibp_intr_unlock(void)
+{
+}
+
+#else		/* IBP_NO_INTERRUPTS */
 
 #define INTERRUPTS_AS_UPCALLS	1
 
@@ -455,6 +477,8 @@ ibp_intr_unlock(void)
 
 #endif
 
+#endif		/* IBP_NO_INTERRUPTS */
+
 
 void
 ibp_intr_enable(JNIEnv *env)
@@ -637,9 +661,9 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
 #endif
 
     if (ibp_intr_enabled) {
-    void pan_comm_intr_register(void (*)(void), void (*)(void), void (*)(void));
-    
-    pan_comm_intr_register(ibp_intr_poll, ibp_intr_lock, ibp_intr_unlock);
+	void pan_comm_intr_register(void (*)(void), void (*)(void), void (*)(void));
+
+	pan_comm_intr_register(ibp_intr_poll, ibp_intr_lock, ibp_intr_unlock);
     }
 }
 

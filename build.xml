@@ -62,14 +62,16 @@
 	The list of directories that contain native sources.
     -->
     <path id="native.src.dirs">
-	<!--
-	-->
 	<pathelement path="${ibis}/io"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/panda"/>
+	<!--
 	<pathelement path="${ibis}/ipl/impl/messagePassing/mpi"/>
+	-->
 	<pathelement path="${ibis}/ipl/impl/net/gm"/>
 	<pathelement path="${ibis}/util/nativeCode"/>
+	<!--
+	-->
     </path>
 
     <property name="native.src.path" refid="native.src.dirs"/>

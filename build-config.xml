@@ -5,15 +5,37 @@
 
 
 <target name="configure" depends="property-init">
-    <property name="default.home.bcel" location="/home2/ceriel/bcel-5.1"/>
-    <property name="default.home.ant-contrib" location="/usr/local/ant/ant-contrib"/>
-    <property name="default.home.ant-cpptasks" location="/usr/local/ant/ant-cpptasks"/>
+    <if>
+	<os family="unix"/>
+	<then>
+	    <property name="default.home.bcel" location="/home2/ceriel/bcel-5.1"/>
+	    <property name="default.home.ant-contrib" location="/usr/local/ant/ant-contrib/lib"/>
+	    <property name="default.home.ant-cpptasks" location="/usr/local/ant/ant-cpptasks"/>
 
-    <property name="default.home.panda"  location="/usr/local/VU/panda/panda4.0"/>
-    <property name="default.home.daslib" location="/usr/local/VU/daslib"/>
-    <property name="default.home.lfc"    location="/usr/local/VU/lfc/lfc-gm"/>
-    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
-    <property name="default.home.gm"     location="/usr/local/gm/current"/>
+	    <property name="default.home.panda"  location="/usr/local/VU/panda/panda4.0"/>
+	    <property name="default.home.daslib" location="/usr/local/VU/daslib"/>
+	    <property name="default.home.lfc"    location="/usr/local/VU/lfc/lfc-gm"/>
+	    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
+	    <property name="default.home.gm"     location="/usr/local/gm/current"/>
+	</then>
+    <elseif>
+	<os family="windows"/>
+	<then>
+	    <property name="default.home.bcel" location="../bcel/bcel-5.1"/>
+	    <property name="default.home.ant-contrib" location="../ant-contrib/ant-contrib/lib"/>
+	    <property name="default.home.ant-cpptasks" location="../ant-cpptasks"/>
+
+	    <property name="default.home.panda"  location="../panda/panda4.0"/>
+	    <property name="default.home.daslib" location="../daslib"/>
+	    <property name="default.home.lfc"    location="../lfc-gm"/>
+	    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
+	    <property name="default.home.gm"     location="../GM"/>
+	</then>
+    </elseif>
+	<os family="mac"/>
+    <else>
+    </else>
+    </if>
 
     <input
 	    message="Please enter the install directory of BCEL: [${default.home.bcel}] "

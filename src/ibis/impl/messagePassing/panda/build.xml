@@ -66,7 +66,7 @@
 	    <os family="windows"/>
 	    <then>
 		<property name="das.lib.dir" location="${package.home.daslib}/lib/i386_win32"/>
-		<property name="gm.lib.dir"  location="${package.home.gm}"/>
+		<property name="gm.lib.dir" location="${package.home.gm}/examples"/>
 		<path id="local.includes-ref">
 		    <pathelement path="${package.home.gm}"/>
 		</path>
@@ -125,6 +125,7 @@
 		    <libset dir="${panda.lib.dir}" libs="panda"/>
 		    <libset dir="${lfc.lib.dir}"   libs="lfc"/>
 		    <libset dir="${gm.lib.dir}"    libs="gm"/>
+		    <libset dir="${das.lib.dir}"   libs="das"/>
 		    <includepath>
 			<pathelement path="${local.includes}"/>
 			<pathelement path="${default.includes}"/>

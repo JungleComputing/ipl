@@ -28,7 +28,7 @@
 
     &sharedProperties;
 
-    <property name="local.lib" value="libibis_mp"/>
+    <property name="local.lib" value="ibis_mp"/>
     <property name="cc.outtype" value="static"/>
 
     &nativeTargets;
