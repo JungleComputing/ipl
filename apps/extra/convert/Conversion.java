@@ -13,13 +13,6 @@ class Conversion {
          *
          */
 
-	static void classInit() {
-//		System.loadLibrary("conversion");
-	}
-	
-	static {
-		classInit();
-	}
 
 	static final int BOOLEAN2BYTE_THRESHOLD = 100;
 	static final int CHAR2BYTE_THRESHOLD    = 50;
