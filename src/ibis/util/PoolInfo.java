@@ -7,6 +7,27 @@ import java.net.InetAddress;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+/**
+ * The <code>PoolInfo</code> class provides a utility for finding out
+ * information about the nodes involved in the run.
+ * It depends on the following system properties:
+ * <br>
+ * <pre>ibis.pool.total_hosts</pre>
+ * must contain the total number of hosts involved in the run.
+ * <br>
+ * <pre>ibis.pool.host_names</pre>
+ * must contain a space-separated list of hostnames.
+ * The number of hostnames in the list must at least be equal to
+ * the number of hosts involved in the run as given by the
+ * <pre>ibis.pool.total_hosts</pre> property. Any additional host names
+ * are ignored.
+ * <br>
+ * <pre>ibis.pool.host_number</pre>
+ * optional, gives the index of the current host in the list of host names.
+ * Should be between 0 and <pre>ibis.pool.total_hosts</pre> (inclusive).
+ * If not supplied, it is determined by looking up the current host in
+ * the list of host names.
+ */
 public class PoolInfo {
 
 	int total_hosts;
@@ -14,10 +35,21 @@ public class PoolInfo {
 	String [] host_names;
 	InetAddress [] hosts;
 
+	/**
+	 * Constructs a <code>PoolInfo</code> object.
+	 * @exception IbisException is thrown when something is wrong.
+	 */
 	public PoolInfo() throws IbisException {
 		this(false);
 	}
 
+	/**
+	 * Constructs a <code>PoolInfo</code> object.
+	 * @param forceSequential when set to <code>true</code>,
+	 * a sequential pool is created, with only the current node as
+	 * member. The system properties are ignored.
+	 * @exception IbisException is thrown when something is wrong.
+	 */
 	public PoolInfo(boolean forceSequential) throws IbisException {
 		if (forceSequential) {
 			sequentialPool();
@@ -82,7 +114,12 @@ public class PoolInfo {
 		int my_host = -1;
 		for (int i=0;i<total_hosts;i++) {
 			
-			String t = tok.nextToken();       
+			String t;
+			try {
+			    t = tok.nextToken();       
+			} catch (NoSuchElementException e) {
+			    throw new IbisException("Not enough hostnames in ibis.pool.host_names!");
+			}
 			
 			try {
 				/*
@@ -122,34 +159,68 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 		}
 	}
 
+	/**
+	 * Returns the number of nodes in the pool.
+	 * @return the total number of nodes.
+	 */
 	public int size() {
 		return total_hosts;
 	}
 
+	/**
+	 * Returns the rank number in the pool of the current host.
+	 * @return the rank number.
+	 */
 	public int rank() {
 		return host_number;
 	}
 
+	/**
+	 * Returns the name of the current host.
+	 * @return the name of the current host.
+	 */
 	public String hostName() {
 		return host_names[host_number];
 	}
 
+	/**
+	 * Returns the name of the host with the given rank.
+	 * @return the name of the host with the given rank.
+	 */
 	public String hostName(int rank) {
 		return host_names[rank];
 	}
 
+	/**
+	 * Returns the <code>InetAddress</code> of the host with the given
+	 * rank.
+	 * @return the <code>InetAddress</code> of the host with the given
+	 * rank.
+	 */
 	public InetAddress hostAddress(int rank) {
 		return hosts[rank];
 	}
 
+	/**
+	 * Returns the <code>InetAddress</code> of the current host.
+	 * @return the <code>InetAddress</code> of the current host.
+	 */
 	public InetAddress hostAddress() {
 		return hosts[host_number];
 	}
 
+	/**
+	 * Returns an array of <code>InetAddress</code>es of the hosts.
+	 * @return an array of <code>InetAddress</code>es of the hosts.
+	 */
 	public InetAddress[] hostAddresses() {
 		return (InetAddress[]) hosts.clone();
 	}
 
+	/**
+	 * Returns an array of hostnames of the hosts.
+	 * @return an array of hostnames of the hosts.
+	 */
 	public String[] hostNames() {
 		return (String[]) host_names.clone();
 	}
@@ -165,6 +236,11 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 		return Integer.parseInt(temp);
 	}	
 
+	/**
+	 * Utility method to print the time used in a uniform format.
+	 * @param id name of the application
+	 * @param time the time used, in milliseconds.
+	 */
 	public void printTime(String id, long time) {
 		System.out.println("Application: " + id + "; Ncpus: " + total_hosts +
 				   "; time: " + time/1000.0 + " seconds\n");

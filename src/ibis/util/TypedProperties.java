@@ -1,5 +1,8 @@
 package ibis.util;
 
+/**
+ * Utility to extract some typed system properties.
+ */
 public class TypedProperties {
 
     /**
