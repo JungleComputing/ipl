@@ -24,7 +24,7 @@ This manual describes how to write and run Ibis applications.
 \html{
 It is also available in
 \htmladdnormallink{postscript}{http://www.cs.vu.nl/ibis/progman.ps.gz}.}
-\latex{It is available online at http://www.cs.vu.nl/ibis/progman/.}
+\latex{It is available on-line at http://www.cs.vu.nl/ibis/progman/.}
 Ibis is a Java-centric grid programming environment.
 It is described in several publications (see Section \ref{Further Reading}).
 Rather than giving a detailed overview of what each class and method does,
@@ -34,8 +34,8 @@ The \emph{docs/api} subdirectory of the Ibis installation provides
 documentation for each class and method (point your favorite HTML viewer
 to docs/api/index.html file of the Ibis installation).
 The Ibis API is also available
-\html{\htmladdnormallink{online}{http://www.cs.vu.nl/ibis/api/index.html}.}
-\latex{online at http://www.cs.vu.nl/ibis/api/index.html.}
+\html{\htmladdnormallink{on-line}{http://www.cs.vu.nl/ibis/api/index.html}.}
+\latex{on-line at http://www.cs.vu.nl/ibis/api/index.html.}
 Fragments of an actual Ibis application will be used for illustration purposes.
 Section \ref{An Ibis Application} will discuss a typical Ibis application,
 with subsections on each phase of the program.
@@ -333,7 +333,7 @@ or a connection is lost.
 The possible ``serialization'' properties are:
 \begin{description}
 \item[Byte]
-Only the methods \texttt{readByte()}, \texttt{writeByte()}, \verb'readArray(byte[]' and \verb'writeArray(byte[])' are supported.
+Only the methods \texttt{readByte()}, \texttt{writeByte()}, \texttt{readArray(byte[]} and \texttt{writeArray(byte[])} are supported.
 \item[Data]
 Only read()/write() and readArray()/writeArray() of primitive types are supported.
 \item[Object]
@@ -941,8 +941,96 @@ in a directory called \texttt{build}.
 
 \mysubsection{The Ibis Nameserver}
 
-Most Ibis implementations depend on a name server.
-\remark{Write this section.}
+Most Ibis implementations depend on a nameserver for providing
+information about a particular run, such as finding Ibis instances
+participating in the run, finding or registering receive ports, et cetera.
+The Ibis nameserver collects this information for multiple Ibis
+runs, even simultaneous ones. It does so by associating a user-supplied
+identifier with each Ibis run. Each Ibis instance announces its
+presence to the nameserver, using this identifier, so that the
+nameserver can determine to which Ibis run this Ibis instance belongs.
+The nameserver then notifies the other Ibis instances of this run that
+a new instance has joined the run, including some identification of
+this instance.
+
+The Ibis nameserver is started with the ibis\_nameserver script which
+lives in the Ibis bin directory. Before starting an Ibis application,
+you need to have a nameserver running on a machine that is accessible
+from all nodes participating in the Ibis run.
+The nameserver expects the Ibis instances to connect to a
+socket that it creates when it starts up.
+The port number of this socket can be specified using a command line
+option to the ibis\_nameserver script. This script recognizes
+the following options:
+\begin{description}
+\item{-single}
+specifies that the nameserver should only serve a single Ibis run
+and then exit.
+\item{-port \emph{portno}}
+specifies the port number of the nameserver socket.
+\item{-poolport \emph{poolportno}}
+specifies the port number of the \texttt{PoolInfoServer} mentioned
+in Section \ref{PoolInfo}.
+\end{description}
+
+\mysubsection{Running an Ibis Application}
+
+An Ibis instance is started with the run\_ibis script which lives in
+the Ibis bin directory.
+This run\_ibis script is called as follows:
+\begin{center}
+run\_ibis \emph{procno nprocs id port ns javaflags class ...}
+\end{center}
+The parameters are explained below:
+\begin{description}
+\item{\emph{procno}}
+specifies the rank number of this Ibis instance within this run,
+so its range is 0 ... \emph{nprocs}-1.
+\item{\emph{nprocs}}
+specifies the total number of Ibis instances involved in this run.
+\item{\emph{id}}
+specifies the identifier used to identify the run to the nameserver.
+\item{\emph{port}}
+specifies the port of the Ibis nameserver, as described above.
+\item{\emph{ns}}
+specifies the hostname of the machine where the Ibis nameserver runs.
+\item{\emph{javaflags}}
+any flags that need to be passed on to java.
+\item{\emph{class}}
+specifies the application class name.
+\item{...}
+specifies the application parameters.
+\end{description}
+
+The run\_ibis script uses these parameters to set the following
+system properties (see also Section \ref{PoolInfo}):
+\begin{description}
+\item{ibis.pool.host\_number}
+the rank number of this Ibis instance.
+\item{ibis.pool.total\_hosts}
+the total number of Ibis instances.
+\item{ibis.name\_server.key}
+identifies the run to the nameserver.
+\item{ibis.name\_server.port}
+the nameserver port.
+\item{ibis.name\_server.host}
+the nameserver hostname.
+\end{description}
+
+In addition, the following system properties can be specified
+(as \emph{javaflags}):
+\begin{description}
+\item{ibis.pool.cluster}
+specifies a cluster name. If not specified,
+``unknown'' is used.
+See Section \ref{Satin job scheduling} for a possible need for cluster
+names.
+\item{ibis.pool.server.port}
+specifies the port number on which the
+\texttt{PoolInfoServer} is listening.
+\end{description}
+
+\remark{TODO: describe grun for wide-area runs}
 
 \mysection{The Satin Divide-and-Conquer System}
 
@@ -1153,6 +1241,11 @@ each participant first tries to steal jobs from other participants in its
 own cluster (thus using the fast local network).
 It will only go to participants from other clusters if no participant on the
 same cluster has work.
+To determine to which cluster a participant belongs, the cluster name
+is used.
+As described in Section \ref{Running an Ibis Application},
+the \emph{ibis.pool.cluster} system property can be used to
+specify a cluster name to the Ibis instance.
 
 \item[Master-worker]
 this strategy is suitable for applications where all Satin jobs are
