@@ -1,4 +1,5 @@
-# SRC=  DowncallLatency.java
+SRC	+= Data1.java
+SRC	+= Data2.java
 
 MAIN = DowncallLatency.java
 OUT=latency
