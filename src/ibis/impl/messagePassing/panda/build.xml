@@ -67,7 +67,6 @@
 	</path>
 	<property name="local.includes" refid="local.includes-ref"/>
 	<echo message="local.includes = ${local.includes}"/>
-	<property name="local.includes" refid="local.includes-ref"/>
     </target>
 
     <target name="panda-init-opt" depends="property-init,native-init,arch-init" if="native.optimize">

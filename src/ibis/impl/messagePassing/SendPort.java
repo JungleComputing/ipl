@@ -10,13 +10,24 @@ import java.io.IOException;
 
 public class SendPort implements ibis.ipl.SendPort {
 
-    private final static boolean DEBUG = Ibis.DEBUG;
+    private final static boolean DEBUG = /* true || */ Ibis.DEBUG;
+
+    private final static boolean USE_BCAST;
+    static {
+	USE_BCAST = System.getProperty("ibis.mp.broadcast") != null && System.getProperty("ibis.mp.broadcast").equals("native");
+	if (USE_BCAST) {
+	    System.err.println("Use native MessagePassing broadcast");
+	}
+    }
 
     protected PortType type;
     protected SendPortIdentifier ident;
     protected Replacer replacer;
 
     protected ReceivePortIdentifier[] splitter;
+
+    protected static final int NO_BCAST_GROUP = -1;
+    protected int group = NO_BCAST_GROUP;
 
     protected Syncer[] syncer;
 
@@ -116,6 +127,56 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
 
+    private native void requestGroupID(Syncer syncer);
+
+
+    protected void checkBcastGroup() throws IOException {
+	if (! USE_BCAST
+		|| splitter.length != Ibis.myIbis.nrCpus - 1
+		|| splitter.length == 1) {
+	    group = NO_BCAST_GROUP;
+	    return;
+	}
+
+	for (int i = 0, n = splitter.length; i < n; i++) {
+	    ReceivePortIdentifier ri = (ReceivePortIdentifier)splitter[i];
+	    for (int j = 0; j < i; j++) {
+		ReceivePortIdentifier rj = (ReceivePortIdentifier)splitter[j];
+		if (ri.cpu == rj.cpu) {
+		    group = NO_BCAST_GROUP;
+		    return;
+		}
+	    }
+	    if (ri.cpu == Ibis.myIbis.myCpu) {
+		System.err.println("Do something special for a group with a home connection -- currently disabled");
+		group = NO_BCAST_GROUP;
+		return;
+	    }
+	}
+
+	// Apply for a bcast group id with the group id server
+	Syncer s = new Syncer();
+	requestGroupID(s);
+	if (! s.s_wait(0)) {
+	    throw new ConnectionRefusedException("No connection to group ID server");
+	}
+	if (! s.accepted()) {
+	    throw new ConnectionRefusedException("No connection to group ID server");
+	}
+	if (group == NO_BCAST_GROUP) {
+	    throw new IOException("Retrieval of group ID failed");
+	}
+System.err.println(ident + ": have broadcast group " + group + " receiver(s) ");
+for (int i = 0, n = splitter.length; i < n; i++) {
+    System.err.println("    " + (ReceivePortIdentifier)splitter[i]);
+}
+    }
+
+
+    private native void sendBindGroupRequest(int to, byte[] senderId, int group)
+	    throws IOException;
+
+
     public void connect(ibis.ipl.ReceivePortIdentifier receiver,
 			long timeout)
 	    throws IOException {
@@ -123,10 +184,24 @@ public class SendPort implements ibis.ipl.SendPort {
 	Ibis.myIbis.lock();
 	try {
 	    ReceivePortIdentifier rid = (ReceivePortIdentifier)receiver;
-// System.out.println("Connecting to " + rid);
 
 	    // Add the new receiver to our tables.
 	    int my_split = addConnection(rid);
+
+	    int oldGroup = group;
+
+	    checkBcastGroup();
+
+	    if (group != NO_BCAST_GROUP && oldGroup == NO_BCAST_GROUP) {
+		/* The extant connections are not aware that this is now
+		 * a broadcast group. Notify them. */
+		for (int i = 0, n = splitter.length; i < n; i++) {
+		    ReceivePortIdentifier ri = (ReceivePortIdentifier)splitter[i];
+		    if (! ri.equals(rid)) {
+			sendBindGroupRequest(ri.cpu, ident.getSerialForm(), group);
+		    }
+		}
+	    }
 
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Now do native connect call to " + rid + "; me = " + ident);
@@ -135,7 +210,8 @@ public class SendPort implements ibis.ipl.SendPort {
 	    outConn.ibmp_connect(rid.cpu,
 				 rid.getSerialForm(),
 				 ident.getSerialForm(),
-				 syncer[my_split]);
+				 syncer[my_split],
+				 group);
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident);
 	    }

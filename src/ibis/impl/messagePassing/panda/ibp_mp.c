@@ -52,9 +52,13 @@ static int	ibp_mp_proto_start;
 static int	ibp_mp_proto_top;
 static int	ibp_mp_port;
 
+static int	ibp_group_port;
+
 #ifndef NDEBUG
 static int     *ibp_send_seqno;
 static int     *ibp_rcve_seqno;
+static int	ibp_group_send_seqno;
+static int     *ibp_group_rcve_seqno;
 #endif
 
 
@@ -64,6 +68,7 @@ struct IBP_MP_HDR {
     int			port;
 #ifndef NDEBUG
     int			seqno;
+    int			bcast;
 #endif
 };
 
@@ -81,8 +86,10 @@ ibp_mp_proto_offset(void)
 
 
 #ifdef IBP_VERBOSE
-static int *mp_upcalls = 0;
-static int *mp_sends = 0;
+static int     *mp_upcalls = 0;
+static int     *mp_sends = 0;
+static int	group_upcalls = 0;
+static int	group_sends = 0;
 #endif
 
 
@@ -102,7 +109,8 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
 #endif
 
     assert(ibp_JNIEnv != NULL);
-    assert(hdr->seqno == ibp_rcve_seqno[pan_msg_sender(msg)]++);
+    assert(hdr->bcast || hdr->seqno == ibp_rcve_seqno[pan_msg_sender(msg)]++);
+    assert(! hdr->bcast || hdr->seqno == ibp_group_rcve_seqno[pan_msg_sender(msg)]++);
 
     IBP_VPRINTF(200, ibp_JNIEnv,
 		     ("Receive ibp MP upcall %d msg %p port %d sender %d size %d\n",
@@ -118,7 +126,7 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
 }
 
 
-static int
+int
 ibp_mp_poll(JNIEnv *env)
 {
     int		done_anything = 0;
@@ -180,6 +188,7 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
 
 #ifndef NDEBUG
     hdr->seqno = ibp_send_seqno[cpu]++;
+    hdr->bcast = 0;
 #endif
     ibp_set_JNIEnv(env);
     IBP_VPRINTF(200, env, ("Do a Panda MP send %d port %d to %d size %d env %p\n",
@@ -205,6 +214,7 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
 
 #ifndef NDEBUG
     hdr->seqno = ibp_send_seqno[cpu]++;
+    hdr->bcast = 0;
 #endif
     ibp_set_JNIEnv(env);
     IBP_VPRINTF(200, env, ("Do a Panda MP send %d async to %d size %d\n",
@@ -215,6 +225,33 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
 		      sent_upcall, arg);
     IBP_VPRINTF(800, env, ("Done a Panda MP send %d async to %d size %d\n",
 		mp_sends[cpu], cpu, ibmp_iovec_len(iov, iov_size)));
+
+    ibp_unset_JNIEnv();
+}
+
+
+void
+ibp_mp_bcast(JNIEnv *env, int port,
+	     pan_iovec_p iov, int iov_size,
+	     void *proto, int proto_size)
+{
+    ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
+
+    if (! ibp_mp_alive) {
+	(*env)->ThrowNew(env, cls_java_io_IOException, "Ibis/Panda Group closed");
+    }
+
+#ifndef NDEBUG
+    hdr->bcast = 1;
+    hdr->seqno = ibp_group_send_seqno++;
+#endif
+    ibp_set_JNIEnv(env);
+    IBP_VPRINTF(200, env, ("Do a Panda group send %d\n",
+		group_sends++, ibmp_iovec_len(iov, iov_size)));
+    hdr->port = port;
+    pan_group_send(ibp_group_port, iov, iov_size, proto, proto_size);
+    IBP_VPRINTF(800, env, ("Done a Panda group send %d async to %d size %d\n",
+		group_sends, ibmp_iovec_len(iov, iov_size)));
 
     ibp_unset_JNIEnv();
 }
@@ -239,18 +276,27 @@ sigabort(int sig)
 void
 ibp_mp_init(JNIEnv *env)
 {
+    int		mp_offset;
+    int		group_offset;
+
     IBP_VPRINTF(2000, env, ("here...\n"));
     pan_init(NULL, NULL); /* No no is reentrant (what do you think RFHH): THIS HAS ALLREADY BEEN DONE ??? JASON */
     IBP_VPRINTF(2000, env, ("here...\n"));
     pan_mp_init(NULL, NULL);
     IBP_VPRINTF(2000, env, ("here...\n"));
+    pan_group_init(NULL, NULL);
+    IBP_VPRINTF(2000, env, ("here...\n"));
 
-    ibp_mp_proto_start = align_to(pan_mp_proto_offset(), ibp_mp_hdr_t);
+    mp_offset    = align_to(pan_mp_proto_offset(), ibp_mp_hdr_t);
+    group_offset = align_to(pan_group_proto_offset(), ibp_mp_hdr_t);
+    ibp_mp_proto_start = mp_offset > group_offset ? mp_offset : group_offset;
     ibp_mp_proto_top   = ibp_mp_proto_start + sizeof(ibp_mp_hdr_t);
     IBP_VPRINTF(2000, env, ("here...\n"));
 
     ibp_mp_port = pan_mp_register_port(ibp_mp_upcall);
     IBP_VPRINTF(2000, env, ("here...\n"));
+
+    ibp_group_port = pan_group_register_port(ibp_mp_upcall);
 
     ibmp_poll_register(ibp_mp_poll);	/* Finding this had been commented out by Jason took me another day... RFHH */
     IBP_VPRINTF(2000, env, ("here...\n"));
@@ -262,6 +308,7 @@ ibp_mp_init(JNIEnv *env)
 #ifndef NDEBUG
     ibp_send_seqno = calloc(pan_nr_processes(), sizeof(*ibp_send_seqno));
     ibp_rcve_seqno = calloc(pan_nr_processes(), sizeof(*ibp_rcve_seqno));
+    ibp_group_rcve_seqno = calloc(pan_nr_processes(), sizeof(*ibp_group_rcve_seqno));
 #endif
 
 #ifndef NDEBUG
@@ -281,5 +328,6 @@ ibp_mp_end(JNIEnv *env)
     pan_comm_intr_disable();
     pan_mp_free_port(ibp_mp_port);
     pan_mp_end();
+    pan_group_end();
     pan_end();
 }

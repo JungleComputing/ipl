@@ -5,7 +5,8 @@ final class OutputConnection {
     native void ibmp_connect(int remoteCPU,
 			     byte[] receivePortId,
 			     byte[] sendPortId,
-			     Syncer syncer);
+			     Syncer syncer,
+			     int group);
 
     native void ibmp_disconnect(int remoteCPU,
 				byte[] receiverPortId,

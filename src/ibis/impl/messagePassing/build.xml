@@ -51,13 +51,13 @@
 	</elseif>
 	</if>
 
-	<path id="local.includes-ref">
+	<path id="mp-local.includes-ref">
 	    <pathelement path="${native.dir}/include"/>
 	    <pathelement path="${package.home.panda}/include"/>
 	    <pathelement path="${package.home.panda}/include/${panda.arch}/lfc/no_threads"/>
 	    <pathelement path="${package.home.daslib}/include"/>
 	</path>
-	<property name="local.includes" refid="local.includes-ref"/>
+	<property name="local.includes" refid="mp-local.includes-ref"/>
 	<echo message="local.includes = ${local.includes}"/>
     </target>
 

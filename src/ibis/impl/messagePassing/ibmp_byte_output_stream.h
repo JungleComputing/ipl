@@ -14,10 +14,14 @@ struct IBP_BYTE_STREAM_HDR {
     jint	dest_port;
     jint	src_port;
     jint	msgSeqno;
+    jint	group;
+    void       *home_msg;
 };
 
 #define ibmp_byte_stream_hdr(proto) \
     (ibmp_byte_stream_hdr_p)((char *)proto + ibmp_byte_stream_proto_start)
+
+void ibmp_bcast_home_ack(ibmp_byte_stream_hdr_p hdr);
 
 void ibmp_byte_output_stream_report(JNIEnv *env);
 

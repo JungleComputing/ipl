@@ -35,6 +35,7 @@ static jmethodID	md_dumpStack;
 
 static jclass		cls_Object;
 static jmethodID	md_toString;
+static jmethodID	md_equals;
 
 static jmethodID	md_checkLockOwned;
 static jmethodID	md_checkLockNotOwned;
@@ -209,6 +210,13 @@ ibmp_thread_yield(JNIEnv *env)
 }
 
 
+int
+ibmp_equals(JNIEnv *env, jobject obj1, jobject obj2)
+{
+    return (int)(*env)->CallBooleanMethod(env, obj1, md_equals, obj2);
+}
+
+
 void
 ibmp_lock(JNIEnv *env)
 {
@@ -377,7 +385,12 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
 
     md_toString = (*env)->GetMethodID(env, cls_Object, "toString", "()Ljava/lang/String;");
     if (md_toString == NULL) {
-	ibmp_error(env, "Cannot find method toString\n");
+	ibmp_error(env, "Cannot find method Object.toString\n");
+    }
+
+    md_equals = (*env)->GetMethodID(env, cls_Object, "equals", "(Ljava/lang/Object;)Z");
+    if (md_equals == NULL) {
+	ibmp_error(env, "Cannot find method Object.equals\n");
     }
 
     md_dumpStack   = (*env)->GetStaticMethodID(env, cls_Thread, "dumpStack", "()V");

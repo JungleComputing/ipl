@@ -4,8 +4,10 @@
 #include <jni.h>
 
 
-jboolean ibmp_send_port_new(JNIEnv *env, jbyteArray rcvePort,
-			    jbyteArray sendPort);
+jboolean ibmp_send_port_new(JNIEnv *env,
+			    jbyteArray rcvePort,
+			    jbyteArray sendPort,
+			    jint group);
 void ibmp_send_port_disconnect(JNIEnv *env,
 			       jbyteArray rcvePort,
 			       jbyteArray sendPort,

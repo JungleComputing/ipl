@@ -11,6 +11,7 @@
 #include "ibmp.h"
 
 #include "ibis_impl_messagePassing_ByteInputStream.h"
+#include "ibis_impl_messagePassing_SendPort.h"
 
 #include "ibp.h"
 #include "ibmp_byte_input_stream.h"
@@ -71,7 +72,7 @@ Java_ibis_impl_messagePassing_ByteInputStream_available(
 JNIEXPORT void JNICALL
 Java_ibis_impl_messagePassing_ByteInputStream_resetMsg(
 	JNIEnv *env,
-	jobject this,
+	jclass clazz,
 	jint msgHandle)
 {
     /* This CANNOT be field_msgHandle because we are not sure the fragment
@@ -254,10 +255,11 @@ Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
 		jclass this,
 		jarray jtags)
 {
-    jint       tags[6];
+    jint       tags[7];
     ibp_msg_p   msg;
     void       *proto;
     ibmp_byte_stream_hdr_p hdr;
+    int		sender;
 
     msg = ibmp_msg_q_deq(&proto);
 
@@ -267,16 +269,27 @@ Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
 
     hdr = ibmp_byte_stream_hdr(proto);
 
-    IBP_VPRINTF(202, env, ("Dequeue msg %p from %d port %d\n", msg, ibp_msg_sender(msg), hdr->dest_port));
+    IBP_VPRINTF(202, env, ("Dequeue msg %p from %d port %d group %d\n", msg, ibp_msg_sender(msg), hdr->dest_port, hdr->group));
 
-    tags[0] = ibp_msg_sender(msg);
+    sender  = ibp_msg_sender(msg);
+    tags[0] = sender;
     tags[1] = hdr->src_port;
     tags[2] = hdr->dest_port;
     tags[3] = (jint)msg;
     tags[4] = (jint)ibp_msg_consume_left(msg);
     tags[5] = hdr->msgSeqno;
+    tags[6] = hdr->group;
 
-    (*env)->SetIntArrayRegion(env, jtags, (jint)0, (jint)6, tags);
+    if (hdr->group != ibis_impl_messagePassing_SendPort_NO_BCAST_GROUP &&
+	    sender == ibp_me) {
+	ibmp_bcast_home_ack(hdr);
+    }
+
+    (*env)->SetIntArrayRegion(env,
+			      jtags,
+			      (jint)0,
+			      (jint)(sizeof(tags) / sizeof(tags[0])),
+			      tags);
 
     return JNI_TRUE;
 }

@@ -61,6 +61,8 @@ final public class SerializeSendPort extends SendPort {
 					messageCount);
 	    }
 
+	    checkBcastGroup();
+
 	    messageCount = 0;
 
 	    for (int i = 0; i < splitter.length; i++) {
@@ -74,7 +76,8 @@ final public class SerializeSendPort extends SendPort {
 		outConn.ibmp_connect(r.cpu,
 				     r.getSerialForm(),
 				     ident.getSerialForm(),
-				     i == my_split ? syncer[i] : null);
+				     i == my_split ? syncer[i] : null,
+				     group);
 		if (Ibis.DEBUG) {
 		    System.err.println(Thread.currentThread() + "Done native connect call to " + r + "; me = " + ident);
 		}

@@ -408,7 +408,8 @@ class ReceivePort
     void receiveFragment(ShadowSendPort origin,
 			 int msgHandle,
 			 int msgSize,
-			 int msgSeqno)
+			 int msgSeqno,
+			 int group)
 	    throws IOException {
 	Ibis.myIbis.checkLockOwned();
 

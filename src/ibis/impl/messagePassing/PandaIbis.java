@@ -10,6 +10,10 @@ public class PandaIbis extends Ibis {
 	super();
     }
 
+    boolean broadcastSupported() {
+	return true;
+    }
+
     protected void init() throws IbisException, IOException {
 	ibis.ipl.Ibis.loadLibrary("ibis_mp_panda");
 	super.init();

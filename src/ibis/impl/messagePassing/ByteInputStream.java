@@ -52,7 +52,7 @@ final class ByteInputStream
     public native long skip(long n);
     public native int available();
 
-    native void resetMsg(int msgHandle);
+    native static void resetMsg(int msgHandle);
 
     private native int readBooleanArray(boolean[] array, int off, int len, int msgHandle);
     private native int readByteArray(byte[] array, int off, int len, int msgHandle);

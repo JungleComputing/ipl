@@ -25,7 +25,8 @@ class ShadowSendPort extends SendPort {
     protected ReceivePort receivePort;
 
     static ShadowSendPort createShadowSendPort(byte[] rcvePortBuf,
-					       byte[] sendPortBuf)
+					       byte[] sendPortBuf,
+					       int group)
 	    throws IOException {
 
 // System.err.println("createShadowSendPort: rcvePortBuf[" + rcvePortBuf.length + "] sendPortBuf[" + sendPortBuf.length + "]");
@@ -35,7 +36,7 @@ class ShadowSendPort extends SendPort {
 	try {
 	    rId = (ReceivePortIdentifier)Conversion.byte2object(rcvePortBuf);
 	    sId = (SendPortIdentifier)Conversion.byte2object(sendPortBuf);
-// System.err.println("Create shadow SendPort for sendPort that belongs to Ibis " + sId.ibis());
+// System.err.println("Create shadow SendPort (group " + group + ") for sendPort that belongs to Ibis " + sId);
 	} catch (ClassNotFoundException e) {
 	    throw new IOException("Cannot read Ids from stream " + e);
 	}
@@ -48,13 +49,13 @@ class ShadowSendPort extends SendPort {
 	}
 	switch (serializationType) {
 	case PortType.SERIALIZATION_NONE:
-	    return new ShadowSendPort(rId, sId);
+	    return new ShadowSendPort(rId, sId, group);
 
 	case PortType.SERIALIZATION_SUN:
-	    return new SerializeShadowSendPort(rId, sId);
+	    return new SerializeShadowSendPort(rId, sId, group);
 
 	case PortType.SERIALIZATION_IBIS:
-	    return new IbisShadowSendPort(rId, sId);
+	    return new IbisShadowSendPort(rId, sId, group);
 
 	default:
 	    throw new Error("No such serialization type " + serializationType);
@@ -63,7 +64,7 @@ class ShadowSendPort extends SendPort {
 
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
-    ShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId)
+    ShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId, int group)
 	    throws IOException {
 
 	if (Ibis.DEBUG) {
@@ -84,11 +85,35 @@ class ShadowSendPort extends SendPort {
 	connect_allowed = receivePort.connect(this);
 	if (! connect_allowed) {
 	    Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
+	} else if (group != NO_BCAST_GROUP) {
+System.err.println("Bind group " + group + " to port " + rId.port + "; sender " + sId.cpu + " port " + sId.port);
+	    Ibis.myIbis.bindGroup(group, receivePort, this);
 	}
+
 	in = new ByteInputStream();
 	if (Ibis.DEBUG) {
 	    System.err.println(Thread.currentThread() + "Created shadow send port " + this + " (" + sId.cpu + "," + sId.port + "), connect to local port " + rId.port);
 	}
+    }
+
+
+    /* Called from native */
+    static void bindGroup(int src_cpu, byte[] sendPortBuf, int group)
+	    throws IOException {
+
+	SendPortIdentifier sId;
+
+	try {
+	    sId = (SendPortIdentifier)Conversion.byte2object(sendPortBuf);
+	} catch (ClassNotFoundException e) {
+	    throw new IOException("Cannot read Ids from stream " + e);
+	}
+	ShadowSendPort ssp = Ibis.myIbis.lookupSendPort(sId.cpu, sId.port);
+	if (ssp == null) {
+	    throw new IOException("Cannot locate ShadowSendPort " + sId);
+	}
+System.err.println("Bind/later group " + group + " to port " + ((ReceivePortIdentifier)ssp.receivePort.identifier()).port + "; sender " + sId.cpu + " port " + sId.port);
+	Ibis.myIbis.bindGroup(group, ssp.receivePort, ssp);
     }
 
 
@@ -149,7 +174,8 @@ class ShadowSendPort extends SendPort {
     protected void ibmp_connect(int remoteCPU,
 				byte[] rcvePortId,
 				byte[] sendPortId,
-				Syncer syncer)
+				Syncer syncer,
+				int group)
 	    throws IOException {
 	throw new IOException("ShadowSendPort cannot (dis)connect");
     }

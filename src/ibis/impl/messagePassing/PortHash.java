@@ -10,8 +10,6 @@ final class PortHash {
     void bind(int x, Object p) {
 	Ibis.myIbis.checkLockOwned();
 
-	// System.err.println("PortHash: now bind port " + x + " to Object " + p);
-
 	if (x >= allocPortDataBase) {
 	    Object[] a;
 
@@ -31,6 +29,9 @@ final class PortHash {
 
     Object lookup(int x) {
 	Ibis.myIbis.checkLockOwned();
+	if (portDataBase == null || x >= portDataBase.length) {
+	    return null;
+	}
 	return portDataBase[x];
     }
 

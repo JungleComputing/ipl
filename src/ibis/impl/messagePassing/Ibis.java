@@ -50,6 +50,8 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private PortHash[] sendPorts;
     private PortHash rcvePorts;
+    private PortHash groupSendPorts;
+    private PortHash groupRcvePorts;
 
     int sendPort;
     int receivePort;
@@ -83,10 +85,18 @@ public class Ibis extends ibis.ipl.Ibis {
 	Runtime.getRuntime().addShutdownHook(
 		new Thread("Ibis ShutdownHook") {
 		    public void run() {
-			report();
+			try {
+			    end();
+			} catch (IOException e) {
+			}
 		    }
 		});
 	/* */
+    }
+
+
+    boolean broadcastSupported() {
+	return false;
     }
 
 
@@ -118,14 +128,15 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-
     boolean getInputStreamMsg(int tags[]) {
 	return ByteInputStream.getInputStreamMsg(tags);
     }
 
+
     public StaticProperties properties() {
 	return systemProperties;
     }
+
 
     public ibis.ipl.IbisIdentifier identifier() {
 	return ident;
@@ -216,6 +227,8 @@ public class Ibis extends ibis.ipl.Ibis {
 	    sendPorts[i] = new PortHash();
 	}
 	rcvePorts = new PortHash();
+	groupSendPorts = new PortHash();
+	groupRcvePorts = new PortHash();
 
 	ibmp_start();
 	rcve_poll.wakeup();
@@ -355,7 +368,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
     ShadowSendPort lookupSendPort(int cpu, int port) {
 	checkLockOwned();
-
 	return (ShadowSendPort)sendPorts[cpu].lookup(port);
     }
 
@@ -366,12 +378,28 @@ public class Ibis extends ibis.ipl.Ibis {
 
     ReceivePort lookupReceivePort(int port) {
 	checkLockOwned();
-
 	return (ReceivePort)rcvePorts.lookup(port);
     }
 
 
-    int[] inputStreamMsgTags = new int[6];
+    void bindGroup(int group, ReceivePort rp, ShadowSendPort sp) {
+	checkLockOwned();
+	groupRcvePorts.bind(group, rp);
+	groupSendPorts.bind(group, sp);
+    }
+
+    ReceivePort lookupGroupReceivePort(int group) {
+	checkLockOwned();
+	return (ReceivePort)groupRcvePorts.lookup(group);
+    }
+
+    ShadowSendPort lookupGroupSendPort(int group) {
+	checkLockOwned();
+	return (ShadowSendPort)groupSendPorts.lookup(group);
+    }
+
+
+    int[] inputStreamMsgTags = new int[7];
 
     final boolean inputStreamPoll() throws IOException {
 	if (getInputStreamMsg(inputStreamMsgTags)) {
@@ -380,7 +408,8 @@ public class Ibis extends ibis.ipl.Ibis {
 			    inputStreamMsgTags[2],
 			    inputStreamMsgTags[3],
 			    inputStreamMsgTags[4],
-			    inputStreamMsgTags[5]);
+			    inputStreamMsgTags[5],
+			    inputStreamMsgTags[6]);
 	    return true;
 	}
 
@@ -393,20 +422,38 @@ public class Ibis extends ibis.ipl.Ibis {
 				 int dest_port,
 				 int msgHandle,
 				 int msgSize,
-				 int msgSeqno)
+				 int msgSeqno,
+				 int group)
 	    throws IOException {
 	checkLockOwned();
-// System.err.println(Thread.currentThread() + "receiveFragment");
-	ReceivePort port = lookupReceivePort(dest_port);
+
+	ReceivePort port;
+	ShadowSendPort origin;
+
+// System.err.println(Thread.currentThread() + "receiveFragment, group " + group);
+
+	if (group != SendPort.NO_BCAST_GROUP) {
+	    port = lookupGroupReceivePort(group);
+	    if (port == null) {
+		// System.err.println("Finish&clear this bcast fragment. It is not for us.");
+		ByteInputStream.resetMsg(msgHandle);
+		return;
+	    }
+	    origin = lookupGroupSendPort(group);
+// System.err.println(Thread.currentThread() + "receiveFragment/group port " + port);
+// System.err.println(Thread.currentThread() + "receiveFragment/group origin " + origin);
+	} else {
+	    port = lookupReceivePort(dest_port);
+	    origin = lookupSendPort(src_cpu, src_port);
 // System.err.println(Thread.currentThread() + "receiveFragment port " + port);
-	ShadowSendPort origin = lookupSendPort(src_cpu, src_port);
 // System.err.println(Thread.currentThread() + "receiveFragment origin " + origin);
+	}
 
 	if (origin == null) {
 	    throw new IOException("Receive message from sendport we're not connected to");
 	}
 
-	port.receiveFragment(origin, msgHandle, msgSize, msgSeqno);
+	port.receiveFragment(origin, msgHandle, msgSize, msgSeqno, group);
     }
 
 
@@ -478,7 +525,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
 	// ReceivePort.end();
 
-System.err.println("Call Ibis.ibmp_end");
 	ibmp_end();
 
 	myIbis.unlock();

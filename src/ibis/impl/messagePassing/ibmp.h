@@ -14,6 +14,7 @@ void ibmp_lock(JNIEnv *env);
 void ibmp_unlock(JNIEnv *env);
 char *ibmp_currentThread(JNIEnv *env);
 void ibmp_dumpStack(JNIEnv *env);
+int ibmp_equals(JNIEnv *env, jobject obj1, jobject obj2);
 
 void ibmp_lock_check_owned(JNIEnv *env);
 void ibmp_lock_check_not_owned(JNIEnv *env);

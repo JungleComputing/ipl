@@ -5,8 +5,7 @@ import ibis.util.ConditionVariable;
 import java.io.IOException;
 
 public class ReadMessage
-	implements ibis.ipl.ReadMessage,
-		   PollClient {
+	implements ibis.ipl.ReadMessage, PollClient {
 
     ShadowSendPort shadowSendPort;
 

@@ -1,16 +1,16 @@
 #include <jni.h>
 
+#include "ibis_impl_messagePassing_OutputConnection.h"
+
 #include <pan_sys.h>
 #include <pan_align.h>
-
-#include "ibmp.h"
-#include "ibmp_send_port.h"
-
-#include "ibis_impl_messagePassing_OutputConnection.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
 #include "ibmp_connect.h"
+
+#include "ibmp.h"
+#include "ibmp_send_port.h"
 
 
 static jclass		cls_Syncer;
@@ -79,6 +79,7 @@ struct IBP_CONNECT_HDR {
     int		send_length;
     jobject	syncer;
     jint	serializationType;
+    jint	group;
 };
 
 static ibmp_connect_hdr_p
@@ -95,7 +96,8 @@ Java_ibis_impl_messagePassing_OutputConnection_ibmp_1connect(
 	jint rcve_cpu,
 	jbyteArray rcvePortId,
 	jbyteArray sendPortId,
-	jobject syncer)
+	jobject syncer,
+	jint group)
 {
     void       *proto;
     ibmp_connect_hdr_p hdr;
@@ -110,6 +112,7 @@ Java_ibis_impl_messagePassing_OutputConnection_ibmp_1connect(
 	syncer = (*env)->NewGlobalRef(env, syncer);
     }
     hdr->syncer = syncer;
+    hdr->group  = group;
 
     ibp_mp_send_sync(env, (int)rcve_cpu, ibmp_connect_port,
 		     iov, sizeof(iov) / sizeof(iov[0]),
@@ -134,7 +137,7 @@ ibmp_connect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     ibmp_lock_check_owned(env);
     IBP_VPRINTF(100, env, ("ibp MP port %d start upcall connect_handle()\n",
 		    ibmp_connect_port, (int)sender));
-    accept = ibmp_send_port_new(env, rcvePortId, sendPortId);
+    accept = ibmp_send_port_new(env, rcvePortId, sendPortId, hdr->group);
 
     if (hdr->syncer != NULL) {
 	IBP_VPRINTF(100, env, ("ibp MP port %d send connect_reply()\n",
@@ -162,20 +165,6 @@ ibmp_connect_init(JNIEnv *env)
     ibmp_connect_reply_proto_size  = ibmp_connect_reply_proto_start +
 					    sizeof(ibmp_connect_reply_hdr_t);
 
-    cls_Syncer = (*env)->FindClass(env,
-	    "ibis/impl/messagePassing/Syncer");
-    if (cls_Syncer == NULL) {
-	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/Syncer\n");
-    }
-
-    md_s_signal = (*env)->GetMethodID(env,
-					  cls_Syncer,
-					  "s_signal",
-					  "(Z)V");
-    if (md_s_signal == NULL) {
-	ibmp_error(env, "Cannot find method s_signal(Z)V\n");
-    }
-
     cls_ShadowSendPort = (*env)->FindClass(env,
 					   "ibis/impl/messagePassing/ShadowSendPort");
     if (cls_ShadowSendPort == NULL) {
@@ -185,6 +174,20 @@ ibmp_connect_init(JNIEnv *env)
 
     fld_connect_allowed = (*env)->GetFieldID(env, cls_ShadowSendPort,
 					     "connect_allowed", "Z");
+
+    cls_Syncer = (*env)->FindClass(env, "ibis/impl/messagePassing/Syncer");
+    if (cls_Syncer == NULL) {
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/Syncer\n");
+    }
+    cls_Syncer = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Syncer);
+
+    md_s_signal = (*env)->GetMethodID(env,
+					  cls_Syncer,
+					  "s_signal",
+					  "(Z)V");
+    if (md_s_signal == NULL) {
+	ibmp_error(env, "Cannot find method s_signal(Z)V\n");
+    }
 
 }
 

@@ -27,12 +27,12 @@
 
     <import file="${ibis}/build-native.xml"/>
 
-    <path id="local.includes-ref">
+    <path id="mpi-local.includes-ref">
 	<pathelement path="${native.dir}/../include"/>
 	<pathelement path="${package.home.daslib}/include"/>
 	<pathelement path="${package.home.mpi}/include"/>
     </path>
-    <property name="local.includes" refid="local.includes-ref"/>
+    <property name="local.includes" refid="mpi-local.includes-ref"/>
 
     <property name="das.lib.dir" location="${package.home.daslib}/lib/i386_Linux"/>
     <property name="mpi.lib.dir" location="${package.home.mpi}/lib"/>

@@ -38,6 +38,8 @@ final class ByteOutputStream
 
     private int msgSeqno = 0;
 
+    private boolean firstFrag = true;	// Enforce firstFrag setting in native
+
     /**
      * This field is read from native code
      */
@@ -67,7 +69,7 @@ final class ByteOutputStream
 
 	int n = sport.splitter.length;
 
-	boolean send_acked = true;
+	boolean send_acked;
 
 	if (Ibis.DEBUG && this.nativeIOVec == 0) {
 	    System.err.println("%%%%%%:::::::%%%%%%% Yeck -- message handle is NULL in " + this);
@@ -75,18 +77,34 @@ final class ByteOutputStream
 
 	outstandingFrags++;
 
-	for (int i = 0; i < n; i++) {
-	    ReceivePortIdentifier r = sport.splitter[i];
-	    /* The call for the last connection knows whether the
-	     * send has been acked. Believe the last call. */
-	    send_acked = ! msg_send(r.cpu,
-				    r.port,
-				    sport.ident.port,
-				    msgSeqno,
-				    nativeIOVec,
-				    i,
-				    n,
-				    lastFrag);
+	if (sport.group != SendPort.NO_BCAST_GROUP) {
+	    send_acked = ! msg_bcast(sport.group,
+				     msgSeqno,
+				     nativeIOVec,
+				     firstFrag,
+				     lastFrag);
+	} else {
+	    send_acked = true;
+	    for (int i = 0; i < n; i++) {
+		ReceivePortIdentifier r = sport.splitter[i];
+		/* The call for the last connection knows whether the
+		 * send has been acked. Believe the last call. */
+		send_acked = ! msg_send(r.cpu,
+					r.port,
+					sport.ident.port,
+					msgSeqno,
+					nativeIOVec,
+					i,
+					n,
+					firstFrag,
+					lastFrag);
+	    }
+	}
+
+	if (lastFrag) {
+	    firstFrag = true;	// Set state for next time round
+	} else {
+	    firstFrag = false;
 	}
 
 	if (send_acked) {
@@ -240,16 +258,22 @@ final class ByteOutputStream
     }
 
 
-    native void init();
+    private native void init();
 
-    native boolean msg_send(int cpu,
-			    int port,
-			    int my_port,
-			    int msgSeqno,
-			    int nativeIOVec,
-			    int splitCount,
-			    int splitTotal,
-			    boolean lastFrag) throws IOException;
+    private native boolean msg_send(int cpu,
+				    int port,
+				    int my_port,
+				    int msgSeqno,
+				    int nativeIOVec,
+				    int splitCount,
+				    int splitTotal,
+				    boolean forceFirstFrag,
+				    boolean lastFrag) throws IOException;
+    private native boolean msg_bcast(int group,
+				     int msgSeqno,
+				     int nativeIOVec,
+				     boolean forceFirstFrag,
+				     boolean lastFrag) throws IOException;
 
     public native void close();
 

@@ -19,9 +19,11 @@ final class SerializeShadowSendPort
 
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
-    SerializeShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId)
+    SerializeShadowSendPort(ReceivePortIdentifier rId,
+			    SendPortIdentifier sId,
+			    int group)
 	    throws IOException {
-	super(rId, sId);
+	super(rId, sId, group);
     }
 
 

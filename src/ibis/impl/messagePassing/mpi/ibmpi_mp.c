@@ -314,8 +314,8 @@ ibmpi_finished_poll(JNIEnv *env)
 }
 
 
-static int
-ibmpi_mp_poll(JNIEnv *env)
+int
+ibp_mp_poll(JNIEnv *env)
 {
     int		ibmpi_upcall_done;
     int		done_anything = 0;
@@ -396,7 +396,7 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
 	free(buf);
     }
 
-    ibmpi_mp_poll(env);
+    ibp_mp_poll(env);
 }
 
 
@@ -447,7 +447,7 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
     MPI_Isend(buf, len, MPI_PACKED, cpu, IBMPI_MSG_TAG, MPI_COMM_WORLD,
 	      &finished_req[f->index]);
 
-    ibmpi_mp_poll(env);
+    ibp_mp_poll(env);
 }
 
 
@@ -491,7 +491,7 @@ int ibp_mp_proto_offset(void)
 void
 ibp_mp_init(JNIEnv *env)
 {
-    ibmp_poll_register(ibmpi_mp_poll);
+    ibmp_poll_register(ibp_mp_poll);
     ibmpi_unused_port = ibp_mp_port_register(no_such_upcall);
 #ifndef NDEBUG
     ibmpi_send_seqno = calloc(ibmp_nr, sizeof(*ibmpi_send_seqno));
@@ -503,7 +503,7 @@ ibp_mp_init(JNIEnv *env)
 void
 ibp_mp_end(JNIEnv *env)
 {
-    ibmpi_mp_poll(env);
+    ibp_mp_poll(env);
     fprintf(stdout, "%2d: t_rcve_poll total %.06f (av %.06f in %d)\n",
 	    ibmp_me, das_time_t2d(&t_rcve_poll),
 	    das_time_t2d(&t_rcve_poll) / n_rcve_poll, n_rcve_poll);
