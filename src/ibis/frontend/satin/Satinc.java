@@ -2261,9 +2261,12 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	// runRemote method 
 	out.println("    public ibis.satin.ReturnRecord runRemote() {");
-	if (supportAborts) {
-	    out.println("        Throwable eek = null;");
-	}
+
+	// Code below commented out because it is wrong:
+	// the "eek" field of the invocation record should be used. 
+//	if (supportAborts) {
+//	    out.println("        Throwable eek = null;");
+//	}
 	if (supportAborts) {
 	    if (! returnType.equals(Type.VOID)) {
 		out.print("        " + returnType + " result = ");
