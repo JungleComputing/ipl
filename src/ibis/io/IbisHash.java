@@ -249,7 +249,7 @@ final class IbisHash {
 	 * free space, use first/last slice when we currently use
 	 * last/first slice. */
 	if (n + size > alloc_size) {
-	    newBucketSet(PRE_ALLOC_FACTOR * (size + n));
+	    newBucketSet(PRE_ALLOC_FACTOR * n);
 	} else if (offset == 0) {
 	    new_offset = alloc_size - n;
 	}
