@@ -179,9 +179,11 @@ class Main {
 	boolean verbose = false;
 	boolean java2ibis = false;
 	JavaClass rmiInterface = null;
+	boolean printOnly = false;
+	boolean useJava = false;
 
 	if (args.length == 0) {
-	    System.err.println("Usage : java Main [-v] [-java2ibis] [-dir | -local] classname");
+	    System.err.println("Usage : java Main [-n] [-v] [-java2ibis] [-dir | -local] classname");
 	    System.exit(1);
 	}
 
@@ -189,7 +191,16 @@ class Main {
 	int i = 0;
 
 	while (i<num) {
-	    if (args[i].equals("-v")) {
+	    if (false) {
+	    } else if (args[i].equals("-n")) {
+		printOnly = true;
+		args[i] = args[num-1];
+		num--;
+	    } else if (args[i].equals("-java")) {
+		useJava = true;
+		args[i] = args[num-1];
+		num--;
+	    } else if (args[i].equals("-v")) {
 		verbose = true;
 		args[i] = args[num-1];
 		num--;
@@ -210,10 +221,16 @@ class Main {
 	    }
 	}
 
-	rmiInterface = Repository.lookupClass("ibis.rmi.Remote");
+	String remoteInterface;
+	if (useJava) {
+	    remoteInterface = "java.rmi.Remote";
+	} else {
+	    remoteInterface = "ibis.rmi.Remote";
+	}
+	rmiInterface = Repository.lookupClass(remoteInterface);
 
 	if (rmiInterface == null) {
-	    System.err.println("Class ibis.rmi.Remote not found");
+	    System.err.println("Class " + remoteInterface + " not found");
 	    System.exit(1);
 	}
 
@@ -246,6 +263,11 @@ class Main {
 		a.start();
 
 		if (a.specialInterfaces.size() == 0) {
+		    continue;
+		}
+
+		if (printOnly) {
+		    System.out.println(subject.getClassName());
 		    continue;
 		}
 
