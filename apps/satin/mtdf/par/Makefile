@@ -2,6 +2,8 @@ APP_OPTIONS = 15
 
 OUT= awari
 
+MAIN=Mtdf.java
+
 include ../../../../config.mk
 include ../../config.mk
 
