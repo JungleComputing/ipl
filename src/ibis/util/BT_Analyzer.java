@@ -130,13 +130,18 @@ public class BT_Analyzer {
 	Vector findSpecialInterfaces() { 
 		Vector specialInterfaces = new Vector();
 
-		String[] interfaces = subject.getInterfaceNames();
+		if (! subject.isClass()) {
+		    findSpecialInterfaces(subject.getClassName(), specialInterfaces);
+		}
+		else {
+		    String[] interfaces = subject.getInterfaceNames();
 		
-		for (int i=0;i<interfaces.length;i++) { 
-			if (verbose) {
-			    System.out.println(subject.getClassName() + " implements " + interfaces[i]);
-			}
-			findSpecialInterfaces(interfaces[i], specialInterfaces);
+		    for (int i=0;i<interfaces.length;i++) { 
+			    if (verbose) {
+				System.out.println(subject.getClassName() + " implements " + interfaces[i]);
+			    }
+			    findSpecialInterfaces(interfaces[i], specialInterfaces);
+		    }
 		}
 
 		return specialInterfaces;
