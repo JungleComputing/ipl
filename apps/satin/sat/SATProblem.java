@@ -9,11 +9,11 @@ import java.io.File;
 import java.io.StreamTokenizer;
 
 class SATProblem {
-    int vars;		 	// Number of variables in the problem.
+    private int vars;		// Number of variables in the problem.
     Clause clauses[];		// The clauses of the problem.
-    private SATVar variables[];		// The variables of the problem.
-    int clauseCount;		// The number of valid entries in `clauses'.
-    int label = 0;
+    private SATVar variables[];	// The variables of the problem.
+    private int clauseCount;	// The number of valid entries in `clauses'.
+    private int label = 0;
 
     private SATProblem()
     {
