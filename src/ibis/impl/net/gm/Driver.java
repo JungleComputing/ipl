@@ -51,6 +51,8 @@ public final class Driver extends NetDriver {
 
 	private static int	interrupts = 0;	// Support poll interrupts
 
+	private final static int POLLS_BEFORE_YIELD = 300;	    
+
 
 	/**
 	 * The driver name.
@@ -220,6 +222,7 @@ public final class Driver extends NetDriver {
 		// get it again.
 		try {
 		    boolean locked;
+		    int pollsBeforeYield = POLLS_BEFORE_YIELD;	    
 		    do {
 // System.err.print(">");
 			nGmThread();
@@ -237,10 +240,11 @@ public final class Driver extends NetDriver {
 			}
 			if (locked) {
 			    break;
-			} else {
+			} else if (pollsBeforeYield-- == 0) {
 			    gmAccessLock.unlock();
 			    Thread.yield();
 			    gmAccessLock.lock(false);
+			    pollsBeforeYield = POLLS_BEFORE_YIELD;	    
 			}
 		    } while (true);
 		} finally {

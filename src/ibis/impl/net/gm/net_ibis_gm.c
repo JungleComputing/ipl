@@ -8,6 +8,10 @@
 #include <assert.h>
 #include <gm.h>
 
+#define HOSTNAMELEN	1024
+
+static char hostname[HOSTNAMELEN];
+
 #ifndef NDEBUG
 
 #if REPLACE_DEFINITION
@@ -20,12 +24,9 @@
 static int
 do_assert(char *file, int line, char *c)
 {
-    char	hostname[256];
-
     fprintf(stderr, "%s.%d: Assertion failed: %s\n",
 		   file, line, c);
 
-    gethostname(hostname, sizeof(hostname) / sizeof(hostname[0]));
     while (1) {
 	fprintf(stderr, "%s %d: attach me please\n", hostname, getpid());
 	sleep(1);
@@ -37,12 +38,9 @@ do_assert(char *file, int line, char *c)
 void __assert_fail(__const char *__assertion, __const char *__file,
 		   unsigned int __line, __const char *__function)
 {
-    char	hostname[256];
-
     fprintf(stderr, "%s.%d: Assertion failed in %s: %s\n",
 		   __file, __line, __function, __assertion);
 
-    gethostname(hostname, sizeof(hostname) / sizeof(hostname[0]));
     while (1) {
 	fprintf(stderr, "%s %d: attach me please\n", hostname, getpid());
 	sleep(1);
@@ -299,6 +297,9 @@ struct s_lock {
         jobject   ref;
         jmethodID lock_id;
         jmethodID unlock_id;
+	jfieldID	lock_array;
+	jfieldID	lock_array_value;
+	jfieldID	lock_array_front;
         jint      id;
 };
 
@@ -857,65 +858,128 @@ static
 int
 ni_gm_lock_init(JNIEnv          *env,
                 int              id,
-                struct s_lock  **pp_lock) {
-        struct s_lock *p_lock = NULL;
+                struct s_lock  **pp_lock)
+{
+    struct s_lock *p_lock = NULL;
+    jclass   driver_class;
+    jclass   lock_class;
+    jfieldID fid;
+    jobject  lock_array;
+    jclass   lock_lock_class;
 
-        __in__();
-        p_lock = malloc(sizeof(struct s_lock));
-        assert(p_lock);
+    __in__();
 
-        {
-                jclass   driver_class = 0;
-                jclass   lock_class   = 0;
-                jfieldID fid          = 0;
-                jobject  lock_array   = 0;
+    p_lock = malloc(sizeof(*p_lock));
+    assert(p_lock);
 
-                driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
-                assert(driver_class);
+    driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
+    if (driver_class == NULL) {
+	fprintf(stderr, "Cannot find class %s\n",
+		"ibis/impl/net/gm/Driver\n");
+    }
 
-                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmLockArray", "Libis/impl/net/NetLockArray;");
-                assert(fid);
+    fid               = (*env)->GetStaticFieldID(env, driver_class, "gmLockArray", "Libis/impl/net/NetLockArray;");
+    if (fid == NULL) {
+	fprintf(stderr, "Cannot find field \"%s\" of %s\n",
+		"gmLockArray", "ibis/impl/net/gm/Driver\n");
+    }
 
-                lock_array        = (*env)->GetStaticObjectField(env, driver_class, fid);
-                assert(lock_array);
+    lock_array        = (*env)->GetStaticObjectField(env, driver_class, fid);
+    if (lock_array == NULL) {
+	fprintf(stderr, "Cannot get field \"%s\" of %s\n",
+		"gmLockArray", "ibis/impl/net/gm/Driver\n");
+    }
 
-                p_lock->ref       = (*env)->NewGlobalRef(env, lock_array);
-                assert(p_lock->ref);
+    p_lock->ref       = (*env)->NewGlobalRef(env, lock_array);
+    if (p_lock->ref == NULL) {
+	fprintf(stderr, "Cannot create global ref for %s\n",
+		"lock_array\n");
+    }
 
-                lock_class        = (*env)->FindClass(env, "ibis/impl/net/NetLockArray");
-                assert(lock_class);
+    lock_class        = (*env)->FindClass(env, "ibis/impl/net/NetLockArray");
+    if (lock_class == NULL) {
+	fprintf(stderr, "Cannot find class %s\n",
+		"ibis/impl/net/NetLockArray\n");
+    }
 
-                p_lock->lock_id = (*env)->GetMethodID(env, lock_class, "lock", "(I)V");
-                assert(p_lock->lock_id);
-                p_lock->unlock_id = (*env)->GetMethodID(env, lock_class, "unlock", "(I)V");
-                assert(p_lock->unlock_id);
-        }
+    p_lock->lock_id = (*env)->GetMethodID(env, lock_class, "lock", "(I)V");
+    if (p_lock->lock_id == NULL) {
+	fprintf(stderr, "Cannot find method \"%s\" of class %s\n",
+		"lock", "ibis/impl/net/NetLockArray\n");
+    }
+    p_lock->unlock_id = (*env)->GetMethodID(env, lock_class, "unlock", "(I)V");
+    if (p_lock->unlock_id == NULL) {
+	fprintf(stderr, "Cannot find method \"%s\" of class %s\n",
+		"unlock", "ibis/impl/net/NetLockArray\n");
+    }
 
-        p_lock->id = (jint)id;
-        assert(!*pp_lock);
-        *pp_lock = p_lock;
-        __out__();
+    p_lock->lock_array = (*env)->GetFieldID(env, lock_class, "lock", "[Libis/impl/net/NetLockArray$Lock;");
+    if (p_lock->lock_array == NULL) {
+	fprintf(stderr, "Cannot find field \"%s\" of class %s\n",
+		"lock", "ibis/impl/net/NetLockArray\n");
+    }
 
-        return 0;
+    lock_lock_class    = (*env)->FindClass(env, "ibis/impl/net/NetLockArray$Lock");
+    if (lock_lock_class == NULL) {
+	fprintf(stderr, "Cannot find class %s\n",
+		"ibis/impl/net/NetLockArray$Lock\n");
+    }
+
+    p_lock->lock_array_value = (*env)->GetFieldID(env, lock_lock_class, "v", "I");
+    if (p_lock->lock_array_value == NULL) {
+	fprintf(stderr, "Cannot find field \"%s\" of class %s\n",
+		"v", "ibis/impl/net/NetLockArray$Lock\n");
+    }
+
+    p_lock->lock_array_front = (*env)->GetFieldID(env, lock_lock_class, "front", "Libis/impl/net/NetLockArray$WaitingOn;");
+    if (p_lock->lock_array_value == NULL) {
+	fprintf(stderr, "Cannot find field \"%s\" of class %s\n",
+		"front", "ibis/impl/net/NetLockArray$Lock\n");
+    }
+
+    p_lock->id = (jint)id;
+    assert(!*pp_lock);
+    *pp_lock = p_lock;
+
+    __out__();
+
+    return 0;
 }
 
 static
 int
-ni_gm_lock_unlock(struct s_lock *p_lock) {
-        JNIEnv *env = _current_env;
+ni_gm_lock_unlock(struct s_lock *p_lock)
+{
+    JNIEnv	       *env = _current_env;
+    jint		value;
+    jobjectArray	lock_array;
+    jobject		lock;
+    jobject		front;
 
-        __in__();
-        if (!env) {
-                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
-        }
+    __in__();
 
-	VPRINTF(1000, ("Here...\n"));
-	VPRINTF(1000, ("unlock(%d)\n", p_lock->id));
+    if (!env) {
+	(*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+    }
 
-        (*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
-        __out__();
+    VPRINTF(1000, ("Here...\n"));
+    VPRINTF(1000, ("unlock nonnotify(%d)\n", p_lock->id));
 
-        return 0;
+    lock_array = (jobjectArray)(*env)->GetObjectField(
+			    env, p_lock->ref, p_lock->lock_array);
+    lock = (*env)->GetObjectArrayElement(env, lock_array, p_lock->id);
+    front = (*env)->GetObjectField(env, lock, p_lock->lock_array_front);
+    if (front != NULL) {
+	(*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
+    } else {
+	value = (*env)->GetIntField(env, lock, p_lock->lock_array_value);
+	value++;
+	(*env)->SetIntField(env, lock, p_lock->lock_array_value, value);
+    }
+
+    __out__();
+
+    return 0;
 }
 
 static
@@ -2325,7 +2389,8 @@ ni_gm_input_post_ ## Jtype ## _buffer(JNIEnv *env, \
     VPRINTF(100, ("At post: %p pending data? (offset %d data_size %d); require %d bytes of type %s\n", p_packet, p_in->offset, p_in->data_size, len, #Jtype)); \
     \
     if (! is_rendez_vous) { \
-	memcpy(&data_size, p_packet->data + p_in->offset, sizeof(data_size)); \
+	/* memcpy(&data_size, p_packet->data + p_in->offset, sizeof(data_size)); */ \
+	data_size = *(int *)(p_packet->data + p_in->offset); \
 	buffer = (jtype *)(p_packet->data + p_in->offset + sizeof(data_size)); \
 	(*env)->Set ## Jtype ## ArrayRegion(env, \
 					    b, \
@@ -3772,7 +3837,8 @@ mtu_init(JNIEnv *env)
 	b = (*env)->NewByteArray(env, mtu);
 	buffer  = (*env)->GetByteArrayElements(env, b, &ni_gm_copy_get_elts);
 
-	fprintf(stderr, "NetGM native array: makes %s copy\n", ni_gm_copy_get_elts ? "a" : "no");
+	fprintf(stderr, "%s: NetGM native array: makes %s copy\n",
+		hostname, ni_gm_copy_get_elts ? "a" : "no");
 
         __out__();
 	return 0;
@@ -3793,6 +3859,8 @@ Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint devic
         __in__();
         if (!_p_drv) {
                 struct s_drv *p_drv = NULL;
+
+		gethostname(hostname, sizeof(hostname) / sizeof(hostname[0]));
 
                 if (ni_gm_init(&p_drv))
                         goto error;
@@ -3847,6 +3915,69 @@ Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong dev
         __out__();
 }
 
+
+#if PRINT_OWNED_MONITORS
+
+#include <jvmdi.h>
+
+static jthread
+currentThread(JNIEnv *env)
+{
+    static jclass	cls_Thread;
+    static jmethodID	md_currentThread;
+
+    if (cls_Thread == NULL) {
+	cls_Thread = (jclass)(*env)->FindClass(env, "java/lang/Thread");
+	md_currentThread = (*env)->GetStaticMethodID(env, cls_Thread, "currentThread", "()Ljava/lang/Thread;");
+    }
+
+    return (jthread)(*env)->CallStaticObjectMethod(env, cls_Thread, md_currentThread);
+}
+
+
+static void
+dump_monitors(JNIEnv *env)
+{
+    jthread	me = currentThread(env);
+    JVMDI_owned_monitor_info info;
+    int		i;
+    int		n;
+    static JavaVM *vm;
+    static JVMDI_Interface_1 *jvmdi;
+
+    if (jvmdi == NULL) {
+	if ((*env)->GetJavaVM(env, &vm) != 0) {
+	    fprintf(stderr, "GetJavaVM fails\n");
+	    return;
+	} else {
+	    fprintf(stderr, "GetJavaVM -> %p\n", vm);
+	}
+	if ((*vm)->GetEnv(vm, &jvmdi, JVMDI_VERSION_1_3) != JNI_OK) {
+	    fprintf(stderr, "GetEnv fails\n");
+	    return;
+	} else {
+	    fprintf(stderr, "GetEnv -> jvmdi %p\n", jvmdi);
+	}
+    }
+    if ((jvmdi)->GetOwnedMonitorInfo(me, &info) != JVMDI_ERROR_NONE) {
+	fprintf(stderr, "GetOwnedMonitorInfo call fails\n");
+	return;
+    }
+    for (i = 0; i < info.owned_monitor_count; i++) {
+	fprintf(stderr, "Own monitor %d %p\n", i, info.owned_monitors[i]);
+    }
+    for (i = 0; i < info.owned_monitor_count; i++) {
+	(*env)->DeleteGlobalRef(env, info.owned_monitors[i]);
+    }
+}
+
+#else
+
+#define dump_monitors(env)
+
+#endif
+
+
 JNIEXPORT
 jboolean
 JNICALL
@@ -3857,6 +3988,7 @@ Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
 
         _current_env = env;
 
+dump_monitors(env);
         __in__();
 	pstart(GM_THREAD);
         for (;;) {
@@ -4050,7 +4182,7 @@ JNICALL
 Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
 					 jclass  clazz)
 {
-    fprintf(stderr, "Net GM: sent: eager %d; rndvz req %d data %d\n", sent_eager, sent_rndvz_req, sent_rndvz_data);
+    fprintf(stderr, "%s: Net GM: sent: eager %d; rndvz req %d data %d\n", hostname, sent_eager, sent_rndvz_req, sent_rndvz_data);
 }
 
 
