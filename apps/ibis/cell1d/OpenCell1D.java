@@ -97,7 +97,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     public void reconfigure()
     {
         if( traceClusterResizing ){
-            System.out.println( "Reconfigure" );
+            System.out.println( "Cluster is reconfigured" );
         }
     }
 
@@ -259,32 +259,6 @@ class OpenCell1D implements OpenConfig {
     }
 
     /**
-     * @param p The port to receive on.
-     * @param board The game board.
-     */
-    private static void receive( ReceivePort p, byte board[][] )
-        throws java.io.IOException
-    {
-        ReadMessage m = p.receive();
-        int gen = m.readInt();
-        if( gen>=0 && OpenCell1D.generation<0 ){
-            OpenCell1D.generation = gen;
-        }
-        int firstCol = m.readInt();
-        int firstNoCol = m.readInt();
-        if( traceCommunication ){
-            System.out.println( "P" + me + ": receiving " + firstCol + "-" + firstNoCol + " on port " + p );
-        }
-        for( int i=firstCol; i<firstNoCol; i++ ){
-            if( board[i] == null ){
-                board[i] = new byte[boardsize+2];
-            }
-            m.readArray( board[i] );
-        }
-        m.finish();
-    }
-
-    /**
      * Sends a new border to the lefthand neighbour. For load balancing
      * purposes, perhaps also send some of the columns I own to that
      * neighbour.
@@ -321,12 +295,14 @@ class OpenCell1D implements OpenConfig {
 
         // Send the columns we want to move to the border.
         while( p.firstColumn>aimFirstColumn ){
+            m.writeInt( p.firstColumn );
             m.writeArray( p.board[p.firstColumn] );
             p.board[p.firstColumn] = null;
             p.firstColumn++;
         }
         // ... and always send our first column as border to
         // the neighbour.
+        m.writeInt( p.firstColumn );
         m.writeArray( p.board[p.firstColumn] );
         m.send();
         m.finish();
@@ -367,6 +343,7 @@ class OpenCell1D implements OpenConfig {
         // Send the columns we want to move from right to left.
         while( p.firstNoColumn>aimFirstNoColumn ){
             p.firstNoColumn--;
+            m.writeInt( p.firstNoColumn-1 );
             m.writeArray( p.board[p.firstNoColumn-1] );
             p.board[p.firstNoColumn-1] = null;
         }
@@ -376,6 +353,7 @@ class OpenCell1D implements OpenConfig {
         // empty.
 
         // ... and always send our first column as border to the neighbour.
+        m.writeInt( p.firstNoColumn-1 );
         m.writeArray( p.board[p.firstNoColumn-1] );
         m.send();
         m.finish();
@@ -384,6 +362,8 @@ class OpenCell1D implements OpenConfig {
     static void receiveLeft( ReceivePort port, Problem p )
         throws java.io.IOException
     {
+        int colno;
+
         if( port != null ){
             return;
         }
@@ -406,9 +386,15 @@ class OpenCell1D implements OpenConfig {
             else {
                 // TODO: complain loudly.
             }
+            colno = m.readInt();
+            if( colno != newFirst+i ){
+                System.out.println( "P" + me + ": my right neighbour sent me column " + colno + ", but I need column " + newFirst+i );
+            }
             m.readArray( p.board[newFirst+i] );
         }
         p.firstColumn = newFirst;
+        colno = m.readInt();
+        // TODO: check that the column number is the one we expect.
         m.readArray( p.leftBorder );
         m.finish();
     }
@@ -416,6 +402,8 @@ class OpenCell1D implements OpenConfig {
     static void receiveRight( ReceivePort port, Problem p )
         throws java.io.IOException
     {
+        int colno;
+
         if( port == null ){
            return;
         }
@@ -441,8 +429,14 @@ class OpenCell1D implements OpenConfig {
             else {
                 // TODO: complain loudly.
             }
+            colno = m.readInt();
+            if( colno != ix ){
+                System.out.println( "P" + me + ": my right neighbour sent me column " + colno + ", but I need column " + ix );
+            }
             m.readArray( p.board[ix] );
         }
+        colno = m.readInt();
+        // TODO: check that the column number is the one we expect.
         m.readArray( p.rightBorder );
         m.finish();
     }
@@ -470,6 +464,7 @@ class OpenCell1D implements OpenConfig {
                     count = Integer.parseInt( args[i] );
                 }
                 else {
+                    System.out.println( "Bad generation count `" + args[i] + "'" );
                     usage();
                 }
             }
@@ -547,6 +542,7 @@ class OpenCell1D implements OpenConfig {
             byte updatecol[] = new byte[boardsize+2];
             byte nextupdatecol[] = new byte[boardsize+2];
 
+            // Put a few fixed objects on the board to do a sanity check.
             putTwister( p, 100, 3 );
             putPattern( p, 4, 4, glider );
 
@@ -597,6 +593,8 @@ class OpenCell1D implements OpenConfig {
                 }
                 if( rightNeighbour != null ){
                     if( rightReceivePort == null ){
+                        // We now have a right neightbour. Set up communication
+                        // with it.
                         if( tracePortCreation ){
                             System.out.println( "P" + me + ": a right neighbour has appeared; creating ports" );
                         }
@@ -604,17 +602,20 @@ class OpenCell1D implements OpenConfig {
                         rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
                     }
                 }
-                int mem = rszHandler.getMemberCount();
-                if( knownMembers<mem ){
+                int members = rszHandler.getMemberCount();
+                if( knownMembers<members ){
                     // Some processors have joined the computation.
-                    aimFirstColumn = (me*boardsize)/mem;
-                    aimFirstNoColumn = ((me+1)*boardsize)/mem;
+                    // Redistribute the load.
+
+                    // For an equal division of the load, I should get...
+                    aimFirstColumn = (me*boardsize)/members;
+                    aimFirstNoColumn = ((me+1)*boardsize)/members;
                     if( traceLoadBalancing ){
-                        System.out.println( "P" + me + ": there are now " + mem + " nodes in the computation (was " + knownMembers + ")" );
+                        System.out.println( "P" + me + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
                         System.out.println( "P" + me + ": I have columns " + firstColumn + "-" + firstNoColumn );
                         System.out.println( "P" + me + ": I should have columns " + aimFirstColumn + "-" + aimFirstNoColumn );
                     }
-                    knownMembers = mem;
+                    knownMembers = members;
                 }
                 if( (me % 2) == 0 ){
                     sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
@@ -628,21 +629,23 @@ class OpenCell1D implements OpenConfig {
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
                 }
-                if( showProgress ){
-                    if( leftNeighbour == null ){
-                        System.out.print( '.' );
-                    }
+                if( showProgress && me == 0 ){
+                    System.out.print( '.' );
                 }
                 generation++;
             }
-            if( showProgress ){
-                if( leftNeighbour == null ){
-                    System.out.println();
-                }
+            if( showProgress && me == 0 ){
+                System.out.println();
             }
+
+            // Do a sanity check.
             if( !hasTwister( p, 100, 3 ) ){
                 System.out.println( "Twister has gone missing" );
             }
+
+            // TODO: also do a sanity check on the other pattern we
+            // put on the board.
+
             if( me == 0 ){
                 long endTime = System.currentTimeMillis();
                 double time = ((double) (endTime - startTime))/1000.0;
