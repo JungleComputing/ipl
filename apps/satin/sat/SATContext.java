@@ -75,7 +75,7 @@ public final class SATContext implements java.io.Serializable {
     }
 
     private static final boolean tracePropagation = false;
-    private static final boolean traceLearning = true;
+    private static final boolean traceLearning = false;
     private static final boolean traceResolutionChain = false;
     private static final boolean traceRestarts = true;
     private static final boolean traceUpdates = false;
@@ -608,12 +608,7 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 	    else {
-                if( false ){
-                    ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
-                }
-                else {
-                    p.addConflictClause( cc );
-                }
+		ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
 		int cl = calculateConflictLevel( p, cc, -1, level );
                 if( cl>=0 && cl<level ){
                     if( traceLearning | traceRestarts ){

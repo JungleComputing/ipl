@@ -44,7 +44,6 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
     private NioPortType type;
     private NioSendPortIdentifier ident;
     private boolean aMessageIsAlive = false;
-    private Replacer replacer;
     private NioIbis ibis;
     private NioChannelSplitter splitter;
     private NioOutputStream nos = null;
@@ -54,13 +53,13 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
     private boolean connectionAdministration;
     private SendPortConnectUpcall connectUpcall;
     private ArrayList lostConnections = new ArrayList();
+    private Replacer replacer = null;
     private long count = 0; //number of byte send since last resetCount();
 
-    NioSendPort(NioIbis ibis, NioPortType type, String name, Replacer r, 
+    NioSendPort(NioIbis ibis, NioPortType type, String name,
 	    boolean connectionAdministration, SendPortConnectUpcall cU)
 							throws IOException {
 	this.type = type;
-	this.replacer = r;
 	this.ibis = ibis;
 	this.connectionAdministration = connectionAdministration;
 	this.connectUpcall = cU;
@@ -145,6 +144,7 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	    case NioPortType.SERIALIZATION_SUN:
 		nos = new NioOutputStream(splitter);
 		out = new SunSerializationOutputStream(nos);
+		if (replacer != null) out.setReplacer(replacer);
 		break;
 	    case NioPortType.SERIALIZATION_NONE:
 		nos = new NioOutputStream(splitter);
@@ -153,17 +153,18 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	    case NioPortType.SERIALIZATION_IBIS:
 	    case NioPortType.SERIALIZATION_DATA:
 		out = new NioIbisSerializationOutputStream(splitter);
+		if (replacer != null) out.setReplacer(replacer);
 		break;
 	    default:
 		System.err.println("EEK, serialization type unknown");
 		System.exit(1);
 	}
-
-	if (replacer != null) {
-	    out.setReplacer(replacer);
-	}
     }
 
+    public void setReplacer(Replacer r) {
+	replacer = r;
+	if (out != null) out.setReplacer(r);
+    }
 
     public synchronized ibis.ipl.WriteMessage newMessage() throws IOException { 
 	if(receivers.size() == 0) {

@@ -632,7 +632,7 @@ public abstract class Ibis {
      * <p>
      * The name and properties <strong>together</strong> define the
      * <code>PortType</code>.
-     * If two Ibis implementations want to communicate, they must both
+     * If two Ibis instances want to communicate, they must both
      * create a <code>PortType</code> with the same name and properties.
      * If multiple implementations try to create a <code>PortType</code>
      * with the same name but different properties, an IbisException will

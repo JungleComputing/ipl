@@ -44,6 +44,14 @@ public interface SendPort
     public WriteMessage newMessage () throws IOException;
 
     /**
+     * Installs an object replacer on the underlying object stream.
+     * This can be used, for instance, by an RMI implementation to
+     * replace remote objects by stubs.
+     * @param r the object replacer.
+     */
+    public void setReplacer(Replacer r);
+
+    /**
      * Returns the {@link ibis.ipl.DynamicProperties DynamicProperties} of
      * this port. The user can set some implementation-specific dynamic
      * properties of the port, by means of the
@@ -81,6 +89,8 @@ public interface SendPort
 
     /**
      * Attempts to set up a connection with a receiver.
+     * It is not allowed to set up a new connection while a message
+     * is alive.
      *
      * @param receiver identifies the {@link ReceivePort} to connect to
      * @exception ConnectionRefusedException is thrown
@@ -89,6 +99,7 @@ public interface SendPort
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
+     * @exception IOException is thrown if a message is alive.
      */
     public void connect (ReceivePortIdentifier receiver) throws IOException;
 

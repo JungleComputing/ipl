@@ -35,7 +35,6 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	private TcpSendPortIdentifier ident;
 	private String name;
 	private boolean aMessageIsAlive = false;
-	private Replacer replacer = null;
 	private TcpIbis ibis;
 	private OutputStreamSplitter splitter;
 	DummyOutputStream dummy;
@@ -45,15 +44,15 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	private boolean connectionAdministration = false;
 	private SendPortConnectUpcall connectUpcall = null;
 	private ArrayList lostConnections = new ArrayList();
+	private Replacer replacer;
 	long count;
 
-	TcpSendPort(TcpIbis ibis, TcpPortType type, String name, Replacer r, 
+	TcpSendPort(TcpIbis ibis, TcpPortType type, String name,
 		    boolean connectionAdministration, SendPortConnectUpcall cU)
 		throws IOException {
 
 		this.name = name;
 		this.type = type;
-		this.replacer = r;
 		this.ibis = ibis;
 		this.connectionAdministration = connectionAdministration;
 		this.connectUpcall = cU;
@@ -146,12 +145,14 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		switch(type.serializationType) {
 		case TcpPortType.SERIALIZATION_SUN:
 			out = new SunSerializationOutputStream(dummy);
+			if (replacer != null) out.setReplacer(replacer);
 			break;
 		case TcpPortType.SERIALIZATION_NONE:
 			out = new NoSerializationOutputStream(dummy);
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 			out = new IbisSerializationOutputStream(new BufferedArrayOutputStream(dummy));
+			if (replacer != null) out.setReplacer(replacer);
 			break;
 		case TcpPortType.SERIALIZATION_DATA:
 			out = new DataSerializationOutputStream(new BufferedArrayOutputStream(dummy));
@@ -161,15 +162,16 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			System.exit(1);
 		}
 		
-		if (replacer != null) {
-			out.setReplacer(replacer);
-		}
-
 		message = new TcpWriteMessage(this, out, connectionAdministration);
 
 		if(DEBUG) {
 			System.err.println("Sendport '" + name + "' connecting to " + receiver + " done"); 
 		}
+	}
+
+	public void setReplacer(Replacer r) {
+		replacer = r;
+		if (out != null) out.setReplacer(r);
 	}
 
 	public void connect(ReceivePortIdentifier receiver) throws IOException {

@@ -6,7 +6,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
@@ -96,10 +95,10 @@ class NioPortType extends PortType implements Config {
 	return p;
     }
 
-    public SendPort createSendPort(String name, Replacer r, 
+    public SendPort createSendPort(String name,
 	    SendPortConnectUpcall cU,
 	    boolean connectionAdministration) throws IOException {
-	return new NioSendPort(ibis, this, name, r, connectionAdministration, cU);
+	return new NioSendPort(ibis, this, name, connectionAdministration, cU);
     }
 
     public ReceivePort createReceivePort(String name, Upcall u, 

@@ -3,7 +3,6 @@ package ibis.impl.net;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
@@ -261,9 +260,9 @@ public final class NetPortType extends PortType {
 	/**
 	 * {@inheritDoc}
 	 */
-	public SendPort createSendPort(String name, Replacer r, SendPortConnectUpcall spcu, boolean connectionAdministration) 
+	public SendPort createSendPort(String name, SendPortConnectUpcall spcu, boolean connectionAdministration) 
 		throws IOException {
-		return new NetSendPort(this, r, name, spcu, connectionAdministration);
+		return new NetSendPort(this, name, spcu, connectionAdministration);
 	}
 
 	/**

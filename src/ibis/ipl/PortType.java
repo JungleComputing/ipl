@@ -42,7 +42,7 @@ public abstract class PortType {
      * created.
      */
     public SendPort createSendPort() throws IOException {
-	return doCreateSendPort(null, null, null, false);
+	return doCreateSendPort(null, null, false);
     }
 
     /**
@@ -57,22 +57,7 @@ public abstract class PortType {
      * type does not match what is required here.
      */
     public SendPort createSendPort(String name) throws IOException {
-	return doCreateSendPort(name, null, null, false);
-    }
-
-    /**
-     * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
-     * with a {@link Replacer}. 
-     *
-     * @param r an object replacer, used in object serialization.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
-     */
-    public SendPort createSendPort(Replacer r) throws IOException {
-	return doCreateSendPort(null, r, null, false);
+	return doCreateSendPort(name, null, false);
     }
 
     /**
@@ -89,7 +74,7 @@ public abstract class PortType {
      */
     public SendPort createSendPort(boolean connectionDowncalls)
 	    throws IOException {
-	return doCreateSendPort(null, null, null, connectionDowncalls);
+	return doCreateSendPort(null, null, connectionDowncalls);
     }
 
     /**
@@ -109,7 +94,7 @@ public abstract class PortType {
     public SendPort createSendPort(String name,
 				   boolean connectionDowncalls)
 	    throws IOException {
-	return doCreateSendPort(name, null, null, connectionDowncalls);
+	return doCreateSendPort(name, null, connectionDowncalls);
     }
 
     /** 
@@ -129,97 +114,13 @@ public abstract class PortType {
      */
     public SendPort createSendPort(String name, SendPortConnectUpcall cU)
 	    throws IOException {
-	return doCreateSendPort(name, null, cU, false);
+	return doCreateSendPort(name, cU, false);
     }
 
     /**
-     * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
-     * with a {@link Replacer}. 
-     *
-     * @param r an object replacer, used in object serialization.
-     * @param connectionDowncalls set when this port must keep
-     * connection administration to support the lostConnections
-     * downcall.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
-     */
-    public SendPort createSendPort(Replacer r, boolean connectionDowncalls)
-	    throws IOException {
-	return doCreateSendPort(null, r, null, connectionDowncalls);
-    }
-
-    /**
-     * Creates a named {@link SendPort} of this <code>PortType</code>,
-     * with a {@link Replacer}. 
+     * Creates a {@link SendPort} of this <code>PortType</code>.
      *
      * @param name the name of this sendport.
-     * @param r an object replacer, used in object serialization.
-     * @param connectionDowncalls set when this port must keep
-     * connection administration to support the lostConnections
-     * downcall.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
-     */
-    public SendPort createSendPort(String name,
-				   Replacer r,
-				   boolean connectionDowncalls)
-	    throws IOException {
-	return doCreateSendPort(name, r, null, connectionDowncalls);
-    }
-
-    /**
-     * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
-     * with a {@link Replacer}. 
-     *
-     * @param r an object replacer, used in object serialization.
-     * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort,
-     * ReceivePortIdentifier, Exception)} method.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
-     */
-    public SendPort createSendPort(Replacer r, SendPortConnectUpcall cU)
-	    throws IOException {
-	return doCreateSendPort(null, r, cU, false);
-    }
-
-    /**
-     * Creates a {@link SendPort} of this <code>PortType</code>,
-     * with a {@link Replacer}. 
-     *
-     * @param name the name of this sendport.
-     * @param r an object replacer, used in object serialization.
-     * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort,
-     * ReceivePortIdentifier, Exception)} method.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
-     */
-    public SendPort createSendPort(String name,
-				   Replacer r,
-				   SendPortConnectUpcall cU)
-	    throws IOException {
-	return doCreateSendPort(name, r, cU, false);
-    }
-
-    /**
-     * Creates a {@link SendPort} of this <code>PortType</code>,
-     * with a {@link Replacer}. 
-     *
-     * @param name the name of this sendport.
-     * @param r an object replacer, used in object serialization.
      * @param cU object implementing the
      * {@link SendPortConnectUpcall#lostConnection(SendPort,
      * ReceivePortIdentifier, Exception)} method.
@@ -233,7 +134,6 @@ public abstract class PortType {
      * type does not match what is required here.
      */
     private SendPort doCreateSendPort(String name,
-				   Replacer r,
 				   SendPortConnectUpcall cU,
 				   boolean connectionDowncalls)
 	    throws IOException {
@@ -253,15 +153,13 @@ public abstract class PortType {
 	    name = "__Send__" + name() + "__" + anon_counter++;
 	}
 
-	return createSendPort(name, r, cU, connectionDowncalls);
+	return createSendPort(name, cU, connectionDowncalls);
     }
 
     /**
-     * Creates a {@link SendPort} of this <code>PortType</code>,
-     * with a {@link Replacer}. 
+     * Creates a {@link SendPort} of this <code>PortType</code>.
      *
      * @param name the name of this sendport.
-     * @param r an object replacer, used in object serialization.
      * @param cU object implementing the
      * {@link SendPortConnectUpcall#lostConnection(SendPort,
      * ReceivePortIdentifier, Exception)} method.
@@ -273,7 +171,6 @@ public abstract class PortType {
      * created.
      */
     protected abstract SendPort createSendPort(String name,
-				   Replacer r,
 				   SendPortConnectUpcall cU,
 				   boolean connectionDowncalls)
 	    throws IOException;

@@ -39,7 +39,6 @@ public class SendPort implements ibis.ipl.SendPort {
 
     protected PortType type;
     protected SendPortIdentifier ident;
-    protected Replacer replacer;
 
     protected ReceivePortIdentifier[] splitter;
 
@@ -80,13 +79,11 @@ public class SendPort implements ibis.ipl.SendPort {
     public SendPort(PortType type,
 		    String name,
 		    OutputConnection conn,
-		    Replacer r,
 		    boolean syncMode,
 		    boolean makeCopy)
 	    throws IOException {
 	this.name = name;
 	this.type = type;
-	this.replacer = r;
 	ident = new SendPortIdentifier(name, type.name());
 	portIsFree = Ibis.myIbis.createCV();
 	outConn = conn;
@@ -94,9 +91,12 @@ public class SendPort implements ibis.ipl.SendPort {
 	count = 0;
     }
 
+    public void setReplacer(Replacer r) {
+    }
+
     public SendPort(PortType type, String name, OutputConnection conn)
 	    throws IOException {
-	this(type, name, conn, null, true, false);
+	this(type, name, conn, true, false);
     }
 
 

@@ -6,7 +6,6 @@ import ibis.ipl.PortType;
 //import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
@@ -91,11 +90,10 @@ class TcpPortType extends PortType implements Config {
 	}
 
 	public SendPort createSendPort(String name,
-				       Replacer r, 
 				       SendPortConnectUpcall cU,
 				       boolean connectionAdministration)
 	    throws IOException {
-		return new TcpSendPort(ibis, this, name, r, connectionAdministration, cU);
+		return new TcpSendPort(ibis, this, name, connectionAdministration, cU);
 	}
 
 	public ReceivePort createReceivePort(String name,

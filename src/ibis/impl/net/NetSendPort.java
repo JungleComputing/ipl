@@ -305,6 +305,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         /* ___ SENDPORT RELATED FUNCTIONS __________________________________ */
 
 
+	public void setReplacer(Replacer r) {
+		replacer = r;
+	}
+
 
         /* ----- CONSTRUCTORS ______________________________________________ */
 
@@ -312,14 +316,12 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 * General purpose constructor.
 	 *
 	 * @param type the {@linkplain NetPortType port type}.
-         * @param replacer the replacer for this object.
 	 * @param name the name of the port.
 	 */
-	public NetSendPort(NetPortType type, Replacer replacer, String name, SendPortConnectUpcall spcu,
+	public NetSendPort(NetPortType type, String name, SendPortConnectUpcall spcu,
 			   boolean connectionAdministration) throws IOException {
 		this.name     = name;
 		this.type     = type;
-                this.replacer = replacer;
                 this.ibis     = type.getIbis();
                 this.spcu     = spcu;
 

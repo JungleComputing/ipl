@@ -1,7 +1,6 @@
 package ibis.impl.messagePassing;
 
 import ibis.ipl.IbisException;
-import ibis.ipl.Replacer;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 
@@ -71,8 +70,10 @@ public class PortType extends ibis.ipl.PortType {
 	return p;
     }
 
-    public ibis.ipl.SendPort createSendPort(String portname, Replacer r, SendPortConnectUpcall cU, 
-					    boolean connectionAdministration) throws IOException {
+    public ibis.ipl.SendPort createSendPort(String portname,
+					    SendPortConnectUpcall cU, 
+					    boolean connectionAdministration)
+	    throws IOException {
 
 	if (cU != null) {
 	    System.err.println(this + ": createSendPort with ConnectUpcall. UNIMPLEMENTED");
@@ -93,13 +94,13 @@ public class PortType extends ibis.ipl.PortType {
 
 	case PortType.SERIALIZATION_SUN:
 // System.err.println("MSG: SUN SER, name = " + portname);
-	    s = new SerializeSendPort(this, portname, new OutputConnection(), r);
+	    s = new SerializeSendPort(this, portname, new OutputConnection());
 	    break;
 
 	case PortType.SERIALIZATION_DATA:
 	case PortType.SERIALIZATION_IBIS:
 // System.err.println("MSG: IBIS SER, name = " + portname);
-	    s = new IbisSendPort(this, portname, new OutputConnection(), r);
+	    s = new IbisSendPort(this, portname, new OutputConnection());
 	    break;
 
 	default:

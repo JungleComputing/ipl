@@ -494,7 +494,9 @@ public final class RTS {
     public static SendPort createSendPort()
 	throws IOException
     {
-	return portType.createSendPort(new RMIReplacer());
+	SendPort s = portType.createSendPort();
+	s.setReplacer(new RMIReplacer());
+	return s;
     }
 
     public static synchronized SendPort getSendPort(ReceivePortIdentifier rpi)

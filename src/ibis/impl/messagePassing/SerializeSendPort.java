@@ -10,13 +10,14 @@ import java.io.IOException;
 final public class SerializeSendPort extends SendPort {
 
     ibis.io.SunSerializationOutputStream obj_out;
+    private Replacer replacer;
 
     SerializeSendPort() {
     }
 
-    public SerializeSendPort(PortType type, String name, OutputConnection conn, Replacer r)
+    public SerializeSendPort(PortType type, String name, OutputConnection conn)
 	    throws IOException {
-	super(type, name, conn, r,
+	super(type, name, conn,
 	      true,	/* syncMode */
 	      true	/* makeCopy */);
 	if (Ibis.DEBUG) {
@@ -113,6 +114,10 @@ final public class SerializeSendPort extends SendPort {
 	}
     }
 
+    public void setReplacer(Replacer r) {
+	replacer = r;
+	if (obj_out != null) obj_out.setReplacer(replacer);
+    }
 
     ibis.ipl.WriteMessage cachedMessage() throws IOException {
 	if (message == null) {

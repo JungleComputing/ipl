@@ -16,17 +16,13 @@ final public class IbisSendPort extends SendPort {
 
     public IbisSendPort(PortType type,
 			String name,
-			OutputConnection conn,
-			Replacer r)
+			OutputConnection conn)
 	    throws IOException {
-	super(type, name, conn, r,
+	super(type, name, conn,
 	      false,	/* syncMode */
 	      false	/* makeCopy */);
 	// obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
 	obj_out = new IbisSerializationOutputStream(out);
-	if (replacer != null) {
-	    obj_out.setReplacer(replacer);
-	}
 	out.setAllocator(obj_out.getAllocator());
 
 	if (Ibis.DEBUG) {
@@ -34,6 +30,9 @@ final public class IbisSendPort extends SendPort {
 	}
     }
 
+    public void setReplacer(Replacer r) {
+	obj_out.setReplacer(r);
+    }
 
     ibis.ipl.WriteMessage cachedMessage() throws IOException {
 	if (message == null) {
