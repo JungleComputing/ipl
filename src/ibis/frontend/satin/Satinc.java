@@ -249,9 +249,14 @@ public final class Satinc {
 	CodeExceptionGen exc[] = m.getExceptionHandlers();
 
 	for (int j=0; j<exc.length; j++) {
-	    if (exc[j].containsTarget(self)) {
-		return exc[j];
-	    }
+	    InstructionHandle h = exc[j].getStartPC();
+	    InstructionHandle h2 = exc[j].getEndPC();
+	    do {
+		if (h == self) {
+		    return exc[j];
+		}
+		h = h.getNext();
+	    } while (h != h2);
 	}
 
 	return null;
