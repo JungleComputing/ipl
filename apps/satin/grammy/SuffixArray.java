@@ -6,6 +6,9 @@ public class SuffixArray implements Configuration, Magic {
     /** The buffer containing the compressed text. */
     private short text[];
 
+    /** The lowest interesting commonality. */
+    private final int MINCOMMONALITY = 3;
+
     /** The number of elements in `text' that are relevant. */
     private int length;
 
@@ -215,14 +218,12 @@ public class SuffixArray implements Configuration, Magic {
     }
 
     /**
-     * Replaces the string at the given entry in the suffix array, and with
-     * the given length, with the given code. Also updates part of the
-     * administration, but does NOT leave the adminstration in sorted order.
+     * Replaces the string at the given posititon, and with
+     * the given length, with the given code. Also marks the replaced
+     * text as deleted.
      */
-    private void replace( int pos, int len, short code, boolean deleted[] )
+    private void replace( int ix, int len, short code, boolean deleted[] )
     {
-        int ix = indices[pos];
-
         text[ix] = code;
 
         for( int i=1; i<len; i++ ){
@@ -235,27 +236,23 @@ public class SuffixArray implements Configuration, Magic {
      * to take advantage of the commonality indicated by that entry.
      * It also covers any further entries with the same commonality.
      */
-    private void applyCompression( int pos ) throws VerificationException
+    private void applyCompression( Step s ) throws VerificationException
     {
         // First, move the grammar text aside.
-        int len = commonality[pos];
+        int len = s.len;
         short t[] = new short[len];
-        System.arraycopy( text, indices[pos], t, 0, len );
+        System.arraycopy( text, s.i, t, 0, len );
 
         boolean deleted[] = new boolean[length];
 
         // Now assign a new variable and replace all occurences.
         short variable = nextcode++;
 
-        replace( pos-1, len, variable, deleted );
-        int i = pos;
-        while( i<length && commonality[i] == len ){
-            replace( i, len, variable, deleted );
-            i++;
-        }
+        replace( s.i, len, variable, deleted );
+        replace( s.j, len, variable, deleted );
 
         int j = 0;
-        for( i=0; i<length; i++ ){
+        for( int i=0; i<length; i++ ){
             if( !deleted[i] ){
                 // Before the first deleted character this copies the
                 // character onto itself. This is harmless.
@@ -274,7 +271,7 @@ public class SuffixArray implements Configuration, Magic {
 
         // Re-initialize the indices array, and sort it again.
         // TODO: do this in a more subtle manner.
-        for( i=0; i<length; i++ ){
+        for( int i=0; i<length; i++ ){
             indices[i] = i;
         }
         sort();
@@ -329,57 +326,88 @@ public class SuffixArray implements Configuration, Magic {
         }
     }
 
-    /** Apply one step in the folding process. */
+    /** Given two text positions, calculates the non-overlapping
+     * match of these two.
+     */
+    private int disjunctMatch( int ix0, int ix1 )
+    {
+	int n = 0;
+        if( ix0 == ix1 ){
+            // TODO: complain, this should never happen.
+            return 0;
+        }
+
+        if( ix0>ix1 ){
+            int h = ix0;
+            ix0 = ix1;
+            ix1 = h;
+        }
+	while( (ix0+n)<ix1 && (text[ix0+n] == text[ix1+n]) && (text[ix0+n] != STOP) ){
+	    n++;
+	}
+	return n;
+    }
+
+    /**
+     * Calculates the best folding step to take.
+     * @return The best step, or null if there is nothing worthwile.
+     */
+    private Step selectBestStep()
+    {
+        int maxlen = 0;
+        int ix0 = 0;
+        int ix1 = 0;
+
+        for( int i=1; i<length; i++ ){
+            // TODO: once we have a serious maxlen, it is probably
+            // possible to use that instead fo MINCOMMONALITY.
+            if( commonality[i]>=MINCOMMONALITY ){
+                int pos0 = indices[i-1];
+                
+                for( int j=i; j<length; j++ ){
+                    if( commonality[j]<MINCOMMONALITY ){
+                        break;
+                    }
+                    int pos1 = indices[j];
+                    
+                    int len = disjunctMatch( pos0, pos1 );
+                    if( len>maxlen ){
+                        maxlen = len;
+                        ix0 = pos0;
+                        ix1 = pos1;
+                    }
+                }
+            }
+        }
+        if( maxlen == 0 ){
+            return null;
+        }
+        return new Step( ix0, ix1, maxlen );
+    }
+
+    /**
+     * Applies one step in the folding process.
+     * @return True iff there was a useful compression step.
+     */
     public boolean applyFolding() throws VerificationException
     {
         if( length == 0 ){
             return false;
         }
-	int max = 0;
-        int maxgain = 0;
-        int repeats = 0;
+        Step mv = selectBestStep();
 
-	for( int i=1; i<length; i++ ){
-            int r = 0;
-            int gain = -1;
-
-	    if( commonality[i]>2 ){
-                r = 2;
-                for( int j = i+1; j<length; j++ ){
-                    if( commonality[j] == commonality[i] ){
-                        // TODO: make sure we don't look at these
-                        // again in the next top-level iteration,
-                        // since that will never be useful.
-                        r++;
-                    }
-                    else {
-                        break;
-                    }
-                }
-                // We gain by replacing of `r' instances of
-                // the string with one code, but we must add a new
-                // grammar rule to the text.
-                // TODO: take the cost of encoding these things into account.
-                gain = (r*(commonality[i]-1)) - (commonality[i]+1);
-            }
-	    if( gain>maxgain ){
-		max = i;
-                repeats = r;
-                maxgain = gain;
-	    }
-	}
-
-        if( maxgain>0 ){
+        if( mv != null ){
             // It is worthwile to do this compression.
             if( traceCompressionCosts ){
-                System.out.println( "String [" + buildString( indices[max], commonality[max] ) + "] has " + repeats + " repeats: gain=" + maxgain );
+                System.out.println( "Best move: string [" + buildString( indices[mv.i], mv.len ) + "]" );
             }
-            applyCompression( max );
+            applyCompression( mv );
             if( doVerification ){
                 test();
             }
+            return true;
         }
-        return maxgain>0;
+        return false;
     }
 
     /** Returns a compressed version of the string represented by
