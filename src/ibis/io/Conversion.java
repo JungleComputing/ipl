@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import java.util.Properties;
 
 public abstract class Conversion { 
 
@@ -22,7 +23,6 @@ public abstract class Conversion {
     // load a SimpleConversion to and from networkorder as default
     static {
 	defaultConversion = new SimpleBigConversion();
-
     }
 
     /**
@@ -110,21 +110,26 @@ public abstract class Conversion {
      * Load a conversion
      */
     public static final Conversion loadConversion(boolean bigEndian) {
+	Properties systemProperties = System.getProperties();
 
-	try {
-	    if(bigEndian) {
-		return loadConversion("ibis.io.NioBigConversion");
-	    } else {
-		return loadConversion("ibis.io.NioLittleConversion");
-	    }
-	} catch (Exception e) {
-	    // loading of nio conversion failed.
+	String conversion = systemProperties.getProperty("ibis.conversion");
 
-	    if(bigEndian) {
-		return new SimpleBigConversion();
-	    } else {
-		return new SimpleLittleConversion();
+	if (conversion == null || conversion.equalsIgnoreCase("nio")) {
+	    try {
+		if(bigEndian) {
+		    return loadConversion("ibis.io.NioBigConversion");
+		} else {
+		    return loadConversion("ibis.io.NioLittleConversion");
+		}
+	    } catch (Exception e) {
+		//nio conversion loading failed
 	    }
+	}
+
+	if(bigEndian) {
+	    return new SimpleBigConversion();
+	} else {
+	    return new SimpleLittleConversion();
 	}
     }
 
