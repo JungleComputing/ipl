@@ -71,7 +71,12 @@ public class TypedProperties {
         if (prop == null) {
             throw new NumberFormatException("Property " + name + " undefined");
         }
-        return Integer.parseInt(prop);
+        try {
+            return Integer.parseInt(prop);
+        } catch(NumberFormatException e) {
+            throw new NumberFormatException("Integer expected for property "
+                    + name + ", not \"" + prop + "\"");
+        }
     }
 
     /**
@@ -88,7 +93,12 @@ public class TypedProperties {
         if (prop == null) {
             return dflt;
         }
-        return Integer.parseInt(prop);
+        try {
+            return Integer.parseInt(prop);
+        } catch(NumberFormatException e) {
+            throw new NumberFormatException("Integer expected for property "
+                    + name + ", not \"" + prop + "\"");
+        }
     }
 
     /**
@@ -104,7 +114,12 @@ public class TypedProperties {
         if (prop == null) {
             throw new NumberFormatException("Property " + name + " undefined");
         }
-        return Long.parseLong(prop);
+        try {
+            return Long.parseLong(prop);
+        } catch(NumberFormatException e) {
+            throw new NumberFormatException("Long expected for property "
+                    + name + ", not \"" + prop + "\"");
+        }
     }
 
     /**
@@ -121,7 +136,12 @@ public class TypedProperties {
         if (prop == null) {
             return dflt;
         }
-        return Long.parseLong(prop);
+        try {
+            return Long.parseLong(prop);
+        } catch(NumberFormatException e) {
+            throw new NumberFormatException("Long expected for property "
+                    + name + ", not \"" + prop + "\"");
+        }
     }
 
     /**
