@@ -24,7 +24,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 
 	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
 
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 	public static final boolean VERBOSE = true;
 
 	class IbisInfo { 		
@@ -106,6 +106,10 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		}  catch (IOException e) {
 			throw new IbisIOException(e);
 		}
+
+		if (DEBUG) { 
+			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + " DONE");
+		}
 	}
 
 	private void handleIbisJoin() throws IbisIOException, ClassNotFoundException { 
@@ -119,7 +123,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			System.err.println(" requested by " + id.toString());
 		}
 
-		IbisInfo info = new IbisInfo(id, port);	       
+		IbisInfo info = new IbisInfo(id, port);
 		RunInfo p = (RunInfo) pools.get(key);
 
 		if (p == null) { 

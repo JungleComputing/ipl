@@ -287,7 +287,7 @@ public abstract class Ibis {
 		try {
 			Class c = Class.forName(impl);
 			return (Timer) c.newInstance();
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			return null;
 		}
 	}

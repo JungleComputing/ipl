@@ -310,6 +310,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					try {
 						wait();
 					} catch (InterruptedException e) {
+						System.err.println("eek: " + e);
 						// Ignore.
 					}
 				}
