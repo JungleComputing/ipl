@@ -163,7 +163,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        if( level>30 || ctx.unsatisfied<100 ){
+        if( !needMoreJobs() ){
 	    // We're nearly there, use the leaf solver.
 	    // We have variable 'nextvar' to branch on.
 	    SATContext subctx = (SATContext) ctx.clone();
@@ -171,6 +171,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                 leafSolve( level+1, p, subctx, nextvar, firstvar );
             }
             catch( SATRestartException x ){
+                if( x.level<level ){
+                    //System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    throw x;
+                }
                 // We have an untried value, continue with that.
             }
 	    subctx = (SATContext) ctx.clone();
@@ -178,13 +182,24 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    leafSolve( level+1, p, subctx, nextvar, !firstvar );
 	}
 	else {
-	    // We have variable 'nextvar' to branch on.
-	    SATContext firstctx = (SATContext) ctx.clone();
-	    solve( level+1, firstctx, nextvar, firstvar );
-            ctx.update( p );
-	    SATContext secondctx = (SATContext) ctx.clone();
-	    solve( level+1, secondctx, nextvar, !firstvar );
-	    sync();
+            try {
+                // We have variable 'nextvar' to branch on.
+                SATContext firstctx = (SATContext) ctx.clone();
+                solve( level+1, firstctx, nextvar, firstvar );
+                ctx.update( p );
+                SATContext secondctx = (SATContext) ctx.clone();
+                solve( level+1, secondctx, nextvar, !firstvar );
+                sync();
+            }
+            catch( SATRestartException x ){
+                if( x.level<level ){
+                    //System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    abort();
+                    throw x;
+                }
+                // We have an untried value, wait for that.
+                sync();
+            }
 	}
     }
 
@@ -205,6 +220,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	if( p.isSatisfied() ){
 	    return new SATSolution( p.buildInitialAssignments() );
 	}
+	int oldClauseCount = p.getClauseCount();
         SATSolver s = new SATSolver();
 
         // Now recursively try to find a solution.
@@ -255,14 +271,20 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    res = r.s;
 	    s.abort();
 	}
+        catch( SATRestartException x ){
+            s.sync();
+        }
         catch( SATException x ){
             System.err.println( "Uncaught " + x + "???" );
         }
 
+	int newClauseCount = p.getClauseCount();
+	System.err.println( "Learned " + (newClauseCount-oldClauseCount) + " clauses." );
+
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
-	System.out.println( "Parallel caclulation Time: " + time );
+	System.out.println( "Parallel calculation Time: " + time );
 	return res;
     }
 
@@ -301,6 +323,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
+	p.report( System.out );
 	System.out.println( "ExecutionTime: " + time );
 	if( res == null ){
 	    System.out.println( "There are no solutions" );

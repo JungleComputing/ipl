@@ -11,6 +11,22 @@ import java.util.Random;
 public final class Breeder {
     static final int MAXGEN = 400;
 
+    static class Result {
+        Genes genes;    // The genes used.
+        int decisions;  // The number of decisions needed.
+
+        public Result( Genes g, int d )
+        {
+            genes = g;
+            decisions = d;
+        }
+
+        public String toString()
+        {
+            return "(" + decisions + ") " + genes;
+        }
+    };
+
     // Given genes, and old, slightly worse genes, an extrapolated clone.
     private static Genes extrapolateGenes( float scale, Genes g, Genes oldG, Genes max, Genes min )
     {
@@ -56,6 +72,76 @@ public final class Breeder {
 	return res;
     }
 
+    private Genes prevBestGenes = null;
+
+    /**
+     * Breed the next generation.
+     */
+    private Result breedNextGeneration( Random rng, SATProblem pl[], Genes genes, int bestD, Genes maxGenes, Genes minGenes )
+    {
+        Genes nextGenes;
+        boolean extrapolating = false;
+        float step = 0.2f;
+
+        if( prevBestGenes != null ){
+            nextGenes = extrapolateGenes( 0.3f, genes, prevBestGenes, maxGenes, minGenes );
+            System.err.println( "Extrapolating ..." );
+            extrapolating = true;
+        }
+        else {
+            nextGenes = mutateGenes( rng, genes, step, maxGenes, minGenes );
+        }
+        prevBestGenes = null;
+        int nextD = BreederSolver.run( pl, nextGenes, (3*bestD)/2 );
+        if( nextD<0 ){
+            // Way out of line. Perhaps a smaller step leads to something
+            // useful.
+            if( extrapolating ){
+                System.err.println( "Hopeless" );
+            }
+            else {
+                step *= 0.98;
+                System.err.println( "Hopeless; step=" + step );
+            }
+        }
+        else {
+            System.err.print( "Decisions: " + nextD );
+        
+            if( nextD == bestD ){
+                // Nothing interesting happens
+                if( !extrapolating ){
+                    step *= 1.02;
+                    System.err.print( " step=" + step );
+                }
+            }
+            System.err.println();
+            if( nextD<bestD ){
+                bestD = nextD;
+                prevBestGenes = genes;
+                genes = nextGenes;
+                System.err.println( "New optimum (" + bestD + ") " + genes );
+            }
+        }
+        return new Result( genes, bestD );
+    }
+
+    public void run( SATProblem pl[] ){
+	Genes maxGenes = BreederSolver.getMaxGenes();
+	Genes minGenes = BreederSolver.getMinGenes();
+	Random rng = new Random( 2 );
+
+	Genes bestGenes = BreederSolver.getInitialGenes();
+        int bestD = Integer.MAX_VALUE;
+
+        for( int gen = 0; gen<MAXGEN; gen++ ){
+            Result res = breedNextGeneration( rng, pl, bestGenes, bestD, maxGenes, minGenes );
+            bestGenes = res.genes;
+            bestD = res.decisions;
+            System.err.println( "g" + gen + "->" + res );
+        }
+	System.out.println( "Best result (" + bestD + ") " + bestGenes );
+    }
+
     /**
      * Allows execution of the class.
      * @param args The command-line arguments.
@@ -68,7 +154,6 @@ public final class Breeder {
 	    System.exit( 1 );
 	}
 
-	Random rng = new Random( 2 );
 	SATProblem pl[] = new SATProblem[args.length];
 
 	for( int i=0; i<args.length; i++ ){
@@ -85,66 +170,9 @@ public final class Breeder {
 	    pl[i] = p;
 	}
 
-	Genes maxGenes = BreederSolver.getMaxGenes();
-	Genes minGenes = BreederSolver.getMinGenes();
+        Breeder b = new Breeder();
 
-	Genes genes = BreederSolver.getInitialGenes();
+        b.run( pl );
 
-	Genes bestGenes = genes;
-	Genes prevBestGenes = null;
-	int bestD = BreederSolver.run( pl, genes, Integer.MAX_VALUE );
-	if( bestD == -1 ){
-	    System.err.println( "Initial run is hopeless???" );
-	    System.exit( 1 );
-	}
-	System.err.println( "Decisions: " + bestD );
-	System.err.println( "Initial (" + bestD + ") " + bestGenes );
-	float step = 0.2f;
-
-	for( int gen = 0; gen<MAXGEN; gen++ ){
-	    Genes nextGenes;
-	    boolean extrapolating = false;
-
-	    if( prevBestGenes != null ){
-		nextGenes = extrapolateGenes( 0.3f, bestGenes, prevBestGenes, maxGenes, minGenes );
-		System.err.println( "Extrapolating ..." );
-		extrapolating = true;
-	    }
-	    else {
-		nextGenes = mutateGenes( rng, bestGenes, step, maxGenes, minGenes );
-	    }
-	    prevBestGenes = null;
-	    int nextD = BreederSolver.run( pl, nextGenes, (3*bestD)/2 );
-	    if( nextD<0 ){
-		// Way out of line. Perhaps a smaller step leads to something
-		// useful.
-		if( extrapolating ){
-		    System.err.println( "Hopeless" );
-		}
-		else {
-		    step *= 0.98;
-		    System.err.println( "Hopeless; step=" + step );
-		}
-	    }
-	    else {
-		System.err.print( "Decisions: " + nextD );
-	    
-		if( nextD == bestD ){
-		    // Nothing interesting happens
-		    if( !extrapolating ){
-			step *= 1.02;
-			System.err.print( " step=" + step );
-		    }
-		}
-		System.err.println();
-		if( nextD<bestD ){
-		    bestD = nextD;
-		    prevBestGenes = bestGenes;
-		    bestGenes = nextGenes;
-		    System.err.println( "New optimum (" + bestD + ") " + bestGenes );
-		}
-	    }
-	}
-	System.out.println( "Best result (" + bestD + ") " + bestGenes );
     }
 }
