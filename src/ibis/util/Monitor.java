@@ -61,6 +61,8 @@ public class Monitor {
 		    // manta.runtime.RuntimeSystem.DebugMe(0x3, this);
 		}
 	    }
+	    /* The only condition that governs Monitor access is lock/unlock.
+	     * We do <standout>NOT</standout> require notifyAll. */
 	    notify();
 	}
 
