@@ -227,6 +227,37 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 	} 
 
+	public long getSeqno(String name) throws IOException { 
+		if(DEBUG) {
+			System.err.println("NS client: getSeqno");
+		}
+		Socket s = IbisSocketFactory.createSocket(serverAddress, port, myAddress, 0 /* retry */);
+		
+		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
+
+		out.writeByte(SEQNO);
+		out.writeUTF(poolName);
+		out.writeUTF(name);
+		out.flush();
+		if(DEBUG) {
+			System.err.println("NS client: getSeqno sent");
+		}
+
+		DummyInputStream di = new DummyInputStream(s.getInputStream());
+		ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
+		
+		long temp = in.readLong();
+
+		IbisSocketFactory.close(null, out, s);
+
+		if(DEBUG) {
+			System.err.println("NS client: getSeqno gives " + temp);
+		}
+
+		return temp;
+	} 
+
 	public void run() {
 		if (DEBUG) { 
 			System.out.println("NameServerClient: stread started");

@@ -13,6 +13,9 @@ import java.util.Properties;
 **/
 public abstract class NameServer implements ibis.ipl.Registry {
 
+	/** Initial sequence number. **/
+	public static final int INIT_SEQNO = 1;
+
 	/** call on exit of an ibis **/
 	public abstract void leave() throws IOException;
 
@@ -23,6 +26,8 @@ public abstract class NameServer implements ibis.ipl.Registry {
 	protected abstract void init(Ibis ibis) 
 		throws IOException, IbisConfigurationException;
 
+	/** Method to obtain a sequence number */
+	public abstract long getSeqno(String name) throws IOException;
 
 	/** Method to load a nameserver implementation. **/
 	public static NameServer loadNameServer(Ibis ibis) 

@@ -27,6 +27,8 @@ interface Protocol {
 		PORTTYPE_REFUSED  = 42,
                 PORTTYPE_EXIT     = 43,
 
+		SEQNO		  = 50,
+
 	        ELECTION      = 99,
 		ELECTION_EXIT      = 100;
 } 
