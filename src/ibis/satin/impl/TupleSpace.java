@@ -216,8 +216,9 @@ public abstract class TupleSpace extends Communication {
 			size = victims.size();
 		}
 
-		if (! SUPPORT_TUPLE_MULTICAST && size == 0)
+		if (size == 0 && ! use_seq) {
 			return; // don't multicast when there is no-one.
+		}
 
 		if (TUPLE_TIMING) {
 			tupleTimer.start();
@@ -317,7 +318,7 @@ public abstract class TupleSpace extends Communication {
 			size = victims.size();
 		}
 
-		if(! SUPPORT_TUPLE_MULTICAST && size == 0)
+		if(! use_seq && size == 0)
 			return; // don't multicast when there is no-one.
 
 		if (TUPLE_TIMING) {
