@@ -55,7 +55,7 @@ final class TcpReadMessage implements ReadMessage {
 	}
 
       	public long finish() throws IOException {
-		long retval;
+		long retval = 0;
 
 	        if(isFinished) {
 		        throw new IbisError("Reading data from a message that was already finished");
@@ -71,10 +71,7 @@ final class TcpReadMessage implements ReadMessage {
 		port.finishMessage();
 		in.clear();
 
-		if (Config.STATS) {
-			return retval;
-		}
-		return 0;
+		return retval;
 	}
 
 	public void finish(IOException e) {
