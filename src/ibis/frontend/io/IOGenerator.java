@@ -1580,7 +1580,7 @@ public class IOGenerator {
 	void generateCode() {
 	    /* Generate code inside the methods */
 	    int write_method_index = findMethod("generated_WriteObject",
-						"(Libis/io/IbisSerializationOutputStream;)V");;
+						"(Libis/io/IbisSerializationOutputStream;)V");
 	    int default_write_method_index = findMethod("generated_DefaultWriteObject",
 							"(Libis/io/IbisSerializationOutputStream;I)V");
 	    int default_read_method_index = findMethod("generated_DefaultReadObject",

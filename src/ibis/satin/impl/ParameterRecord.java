@@ -6,4 +6,4 @@ package ibis.satin.impl;
  */
 public class ParameterRecord implements java.io.Serializable {
 	//    public abstract String toString();
-};
+}

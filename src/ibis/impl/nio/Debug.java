@@ -23,7 +23,7 @@ final class Debug {
     /**
      * are ALL debug types enabled?
      */
-    static boolean all = false;;
+    static boolean all = false;
 
     static PrintStream log = null;
     static FileOutputStream file = null;

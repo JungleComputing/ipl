@@ -165,7 +165,7 @@ public class HubProtocol
 	    MyDebug.out.println("# HubPacketConnect.recv()- got CONNECT to port " + serverPort + " from " + h + ":" + p);
 	    return new HubPacketConnect(serverPort, clientPort);
 	}
-    };
+    }
 
     public static class HubPacketAccept extends HubPacket {
 	public int    clientPort;

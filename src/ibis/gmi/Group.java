@@ -763,7 +763,7 @@ public final class Group implements GroupProtocol {
 
 		while (!done) { 
 		    /* this group is unknown -> go and ask the registry */
-		    int ticket = ticketMaster.get();;
+		    int ticket = ticketMaster.get();
 		    WriteMessage w = unicast[0].newMessage();
 		    w.writeByte(REGISTRY);
 		    w.writeByte(FIND_GROUP);
@@ -851,7 +851,7 @@ public final class Group implements GroupProtocol {
      */
     protected static CombinedInvocationInfo defineCombinedInvocation(CombinedInvocation ci, int groupID, String method, String name, int mode, int rank, int size) throws RuntimeException { 
 	try { 		
-	    int ticket = ticketMaster.get();;
+	    int ticket = ticketMaster.get();
 	    WriteMessage w = unicast[0].newMessage();
 	    w.writeByte(REGISTRY);
 	    w.writeByte(DEFINE_COMBINED);

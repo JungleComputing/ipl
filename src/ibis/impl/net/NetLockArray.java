@@ -38,7 +38,7 @@ public final class NetLockArray {
 	Lock() {
 	    cv = mon.createCV(true);
 	}
-    };
+    }
 
     private Lock[]	lock;
 

@@ -15,7 +15,7 @@ import java.net.InetAddress;
  * Provide an example of multiprotocol's driver plugin.
  */
 public final class abc implements MultiPlugin {
-        public abc() {};
+        public abc() {}
 
         //
         public String getSubContext(boolean 		isOutgoing,

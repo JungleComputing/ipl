@@ -193,7 +193,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 			throw new ConnectionClosedException();
 		    } else {
 			if (deadline == -1) {
-			    deadlinePassed = true;;
+			    deadlinePassed = true;
 			    continue;
 			} else if (deadline == 0) {
 			    try {

@@ -1,6 +1,5 @@
 package ibis.impl.net.multi;
 
-import ibis.impl.net.InterruptedIOException;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbisIdentifier;
@@ -11,14 +10,10 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetServiceInputStream;
 import ibis.impl.net.NetServiceLink;
 import ibis.impl.net.NetServicePopupThread;
-import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Hashtable;
 import java.util.Vector;
 

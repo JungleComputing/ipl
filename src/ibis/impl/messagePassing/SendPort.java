@@ -458,7 +458,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 	messageCount++;
 	if (homeConnection) {
 	    for (int i = 0; i < homeConnectionPolls; i++) {
-		while (Ibis.myIbis.pollLocked());
+		while (Ibis.myIbis.pollLocked()) { /* do noting */ }
 	    }
 	}
     }

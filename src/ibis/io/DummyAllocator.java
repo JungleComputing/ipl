@@ -1,6 +1,5 @@
 package ibis.io;
 
-import ibis.util.TypedProperties;
 
 /**
  * Allocator for arrays of primitives that is tailored towards the

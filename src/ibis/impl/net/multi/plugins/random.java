@@ -13,7 +13,7 @@ import java.util.Random;
  * Provide an example of multiprotocol's driver plugin.
  */
 public final class random implements MultiPlugin {
-        public random() {};
+        public random() {}
 
         static Random r = new Random();
 

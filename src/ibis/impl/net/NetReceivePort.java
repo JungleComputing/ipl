@@ -839,7 +839,7 @@ pollerThread = null;
                                         // n_yield++;
                                 }
                         } else {
-                                while (!_doPoll(useBlockingPoll));
+                                while (!_doPoll(useBlockingPoll)) { /* do noting */ }
                         }
 
                 }

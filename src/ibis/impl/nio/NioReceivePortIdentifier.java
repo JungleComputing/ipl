@@ -32,7 +32,7 @@ public final class NioReceivePortIdentifier implements ReceivePortIdentifier, ja
 	int addressLength;
 	byte[] nameBytes;
 	byte[] typeBytes;
-	byte[] addressBytes;;
+	byte[] addressBytes;
 	InetAddress inetAddress;
 	int port;
 
