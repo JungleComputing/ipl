@@ -16,7 +16,7 @@ public class Poll implements Runnable {
 
     private static final boolean DEBUG = false;
     private static final boolean NEED_POLLER_THREAD = true;
-    private int	dumps = 0;
+    private static final boolean NONPREEMPTIVE_MAY_POLL = true;
 
     protected Poll() {
 	// Sun doesn't set java.compiler, so getProperty returns null --Rob
@@ -173,12 +173,6 @@ public class Poll implements Runnable {
 		    } else {
 			Thread.yield();
 		    }
-		    if (DEBUG || ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-			if (preemptive_pollers > 1 && dumps++ < 10) {
-			    System.err.println("I'm the preemptive poller, but somebody else arrived in between");
-			    Thread.dumpStack();
-			}
-		    }
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 		}
 
@@ -202,7 +196,7 @@ public class Poll implements Runnable {
 	    // Quit being the poller
 	    poller = null;
 	    if (waiting_threads != null &&
-		    preemptive_waiters > 0) {
+		    (NONPREEMPTIVE_MAY_POLL || preemptive_waiters > 0)) {
 		// Wake up another poller thread
 		waiting_threads.wakeup();
 	    }

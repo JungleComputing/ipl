@@ -12,5 +12,5 @@ interface ReceivePortNameServerProtocol {
 	PORT_KNOWN = 26,
 	PORT_UNKNOWN = 27;
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 }

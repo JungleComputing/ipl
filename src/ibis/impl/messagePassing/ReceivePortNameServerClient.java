@@ -77,6 +77,7 @@ class ReceivePortNameServerClient
 		bound = false;
 		if (ReceivePortNameServerProtocol.DEBUG) {
 		    System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
+		    Thread.dumpStack();
 		}
 		ns_bind(name, id.type, id.cpu, id.port);
 // System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
