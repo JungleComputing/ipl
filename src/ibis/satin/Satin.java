@@ -741,7 +741,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	protected void stealJob(Victim v) {
 
 		if(ASSERTS && stolenJob != null) {
-			throw new IbisError("EEEK");
+			throw new IbisError("EEEK, trying to steal while an unhandled stolen job is available.");
 		}
 /*
 		synchronized(this) {
@@ -867,9 +867,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			stealSuccess++;
 		}
 
-		/* I love it when a plan comes together! */
-		callSatinFunction(stolenJob);
+		InvocationRecord myJob = stolenJob;
 		stolenJob = null;
+
+		/* I love it when a plan comes together! */
+		callSatinFunction(myJob);
 
 		return true;
 	}
