@@ -9,7 +9,7 @@
 
 #include <pan_sys.h>
 
-#include "ibis_ipl_impl_messagePassing_Poll.h"
+#include "ibis_impl_messagePassing_Poll.h"
 
 #include "ibmp_poll.h"
 
@@ -32,7 +32,7 @@ ibmp_poll_register(int (*poll)(JNIEnv *env))
 
 
 JNIEXPORT jboolean JNICALL
-Java_ibis_ipl_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
+Java_ibis_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
 {
     int	i;
     jboolean poll_succeeded = JNI_FALSE;
@@ -51,7 +51,7 @@ Java_ibis_ipl_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_Poll_abort(JNIEnv *env, jobject this)
+Java_ibis_impl_messagePassing_Poll_abort(JNIEnv *env, jobject this)
 {
 #ifdef _M_IX86
     fprintf(stderr, "Poll.abort not implemented for win32\n");

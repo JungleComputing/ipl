@@ -1,7 +1,7 @@
-package ibis.ipl.impl.net.rel;
+package ibis.impl.net.rel;
 
-import ibis.ipl.impl.net.NetAllocator;
-import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.impl.net.NetAllocator;
+import ibis.impl.net.NetSendBuffer;
 
 class RelSendBuffer extends NetSendBuffer {
 

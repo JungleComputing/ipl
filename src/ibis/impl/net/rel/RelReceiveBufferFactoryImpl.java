@@ -1,10 +1,10 @@
-package ibis.ipl.impl.net.rel;
+package ibis.impl.net.rel;
 
-import ibis.ipl.impl.net.NetBuffer;
-import ibis.ipl.impl.net.NetAllocator;
+import ibis.impl.net.NetBuffer;
+import ibis.impl.net.NetAllocator;
 
 class RelReceiveBufferFactoryImpl
-	implements ibis.ipl.impl.net.NetBufferFactoryImpl {
+	implements ibis.impl.net.NetBufferFactoryImpl {
 
     public NetBuffer createBuffer(byte[] data,
 				  int length,

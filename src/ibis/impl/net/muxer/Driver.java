@@ -1,12 +1,12 @@
-package ibis.ipl.impl.net.muxer;
+package ibis.impl.net.muxer;
 
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIbis;
-import ibis.ipl.impl.net.NetPortType;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetInput;
-import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetConvert;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbis;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetIO;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetOutput;
+import ibis.impl.net.NetConvert;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -57,7 +57,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new UDP input.
 	 *
 	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
+	 * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
 	 * @return The new UDP input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
@@ -69,7 +69,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new UDP output.
 	 *
 	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @return The new UDP output.
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)

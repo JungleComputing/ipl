@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.tcp_blk;
+package ibis.impl.net.tcp_blk;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 

@@ -188,7 +188,7 @@ class Latency {
 		}
 
 		try {
-			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.tcp.TcpIbis", null);
+			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.impl.tcp.TcpIbis", null);
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();

@@ -1,7 +1,7 @@
 /*
  * Native methods for
- * 	ibis.ipl.impl.messagePassing.ReceivePortNameServer
- * 	ibis.ipl.impl.messagePassing.ReceivePortNameServerClient
+ * 	ibis.impl.messagePassing.ReceivePortNameServer
+ * 	ibis.impl.messagePassing.ReceivePortNameServerClient
  */
 
 #include <string.h>
@@ -14,8 +14,8 @@
 #include "ibmp.h"
 #include "ibmp_receive_port_ns.h"
 
-#include "ibis_ipl_impl_messagePassing_ReceivePortNameServer.h"
-#include "ibis_ipl_impl_messagePassing_ReceivePortNameServerClient.h"
+#include "ibis_impl_messagePassing_ReceivePortNameServer.h"
+#include "ibis_impl_messagePassing_ReceivePortNameServerClient.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
@@ -46,7 +46,7 @@ ibp_ns_lookup_hdr(void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1lookup(
+Java_ibis_impl_messagePassing_ReceivePortNameServerClient_ns_1lookup(
 	JNIEnv *env,
 	jobject this,
 	jstring name)
@@ -125,7 +125,7 @@ lookup_reply_clear(void *v)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
+Java_ibis_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 	JNIEnv *env,
 	jobject this,
 	jint ret,
@@ -207,9 +207,9 @@ ibmp_receive_port_ns_lookup_init(JNIEnv *env)
 
     cls_PandaReceivePortNameServerClient = (*env)->FindClass(
 					    env,
-					    "ibis/ipl/impl/messagePassing/ReceivePortNameServerClient");
+					    "ibis/impl/messagePassing/ReceivePortNameServerClient");
     if (cls_PandaReceivePortNameServerClient == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ReceivePortNameServerClient\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ReceivePortNameServerClient\n");
     }
     cls_PandaReceivePortNameServerClient = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_PandaReceivePortNameServerClient);
 
@@ -219,20 +219,20 @@ ibmp_receive_port_ns_lookup_init(JNIEnv *env)
 					    "lookup_reply",
 					    "([B)V");
     if (md_NameServerClient_lookup_reply == NULL) {
-	ibmp_error(env, "Cannot find method lookup_reply(Libis/ipl/impl/messagePassing/ReceivePortIdentifier;)V\n");
+	ibmp_error(env, "Cannot find method lookup_reply(Libis/impl/messagePassing/ReceivePortIdentifier;)V\n");
     }
 
 #if MUST_USE_INTERFACE
     cls = (*env)->FindClass(env,
-			    "ibis/ipl/impl/messagePassing/ReceivePortNameServerProtocol");
+			    "ibis/impl/messagePassing/ReceivePortNameServerProtocol");
     if (cls == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ReceivePortNameServer\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ReceivePortNameServer\n");
     }
 #else
     cls = (*env)->FindClass(env,
-			    "ibis/ipl/impl/messagePassing/ReceivePortNameServer");
+			    "ibis/impl/messagePassing/ReceivePortNameServer");
     if (cls == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ReceivePortName\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ReceivePortName\n");
     }
 #endif
 
@@ -241,7 +241,7 @@ ibmp_receive_port_ns_lookup_init(JNIEnv *env)
 				"PORT_KNOWN",
 				"B");
     if (fld == NULL) {
-	ibmp_error(env, "Cannot find field PORT_KNOWN in ibis/ipl/impl/messagePassing/ReceivePortNameServer\n");
+	ibmp_error(env, "Cannot find field PORT_KNOWN in ibis/impl/messagePassing/ReceivePortNameServer\n");
     }
     PORT_KNOWN = (*env)->GetStaticByteField(env,
 				cls,
@@ -252,7 +252,7 @@ ibmp_receive_port_ns_lookup_init(JNIEnv *env)
 				"PORT_UNKNOWN",
 				"B");
     if (fld == NULL) {
-	ibmp_error(env, "Cannot find field PORT_KNOWN in ibis/ipl/impl/messagePassing/ReceivePortNameServer\n");
+	ibmp_error(env, "Cannot find field PORT_KNOWN in ibis/impl/messagePassing/ReceivePortNameServer\n");
     }
     PORT_UNKNOWN = (*env)->GetStaticByteField(env,
 				cls,

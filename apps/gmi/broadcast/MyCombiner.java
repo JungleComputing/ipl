@@ -1,5 +1,5 @@
-import ibis.group.ParameterVector;
-import ibis.group.FlatInvocationCombiner;
+import ibis.gmi.ParameterVector;
+import ibis.gmi.FlatInvocationCombiner;
 
 public class MyCombiner extends FlatInvocationCombiner { 
 

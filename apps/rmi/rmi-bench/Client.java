@@ -188,7 +188,7 @@ public class Client {
 		System.gc();
 		// javaSocketResetStats();
 		// fs_stats_reset();
-		// ibis.ipl.impl.messagePassing.Ibis.resetStats();
+		// ibis.impl.messagePassing.Ibis.resetStats();
 		if (client_worker) {
 		    worker.reset();
 		}

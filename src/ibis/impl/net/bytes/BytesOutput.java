@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.bytes;
+package ibis.impl.net.bytes;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 
@@ -48,7 +48,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Constructor.
 	 *
 	 * @param sp the properties of the output's
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 */
 	BytesOutput(NetPortType pt, NetDriver driver, String context) {

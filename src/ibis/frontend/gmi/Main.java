@@ -1,4 +1,4 @@
-package ibis.frontend.group;
+package ibis.frontend.gmi;
 
 import ibis.util.BT_Analyzer;
 
@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import ibis.group.GroupInterface;
+import ibis.gmi.GroupInterface;
 
 import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
@@ -52,10 +52,10 @@ class Main {
 	    System.exit(1);
 	}
 
-	groupInterface = Repository.lookupClass("ibis.group.GroupInterface");
+	groupInterface = Repository.lookupClass("ibis.gmi.GroupInterface");
 
 	if (groupInterface == null) {
-	    System.err.println("Class ibis.group.GroupInterface not found");
+	    System.err.println("Class ibis.gmi.GroupInterface not found");
 	    System.exit(1);
 	}
 

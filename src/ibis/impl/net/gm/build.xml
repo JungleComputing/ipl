@@ -1,5 +1,5 @@
 <project
-    name="ibis.ipl.impl.net.gm.native"
+    name="ibis.impl.net.gm.native"
     default="build"
     basedir=".">
 

@@ -1,7 +1,7 @@
 #ifndef __IBIS_MANTA_IBIS_IMPL_MESSAGEPASSING_IBP_BYTE_STREAM_H__
 #define __IBIS_MANTA_IBIS_IMPL_MESSAGEPASSING_IBP_BYTE_STREAM_H__
 
-/* Native methods for ibis.ipl.impl.messagePassing.ByteOutputStream
+/* Native methods for ibis.impl.messagePassing.ByteOutputStream
  */
 
 #include <jni.h>

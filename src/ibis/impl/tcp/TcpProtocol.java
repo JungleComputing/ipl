@@ -1,4 +1,4 @@
-package ibis.ipl.impl.tcp;
+package ibis.impl.tcp;
 
 interface TcpProtocol {
 	static final byte NEW_RECEIVER = 1;

@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net.muxer;
+package ibis.impl.net.muxer;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -6,15 +6,15 @@ import java.io.ObjectOutputStream;
 
 import ibis.ipl.ConnectionRefusedException;
 
-import ibis.ipl.impl.net.NetBufferedOutput;
-import ibis.ipl.impl.net.NetPortType;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetSendBuffer;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetBufferFactory;
-import ibis.ipl.impl.net.NetSendBufferFactoryDefaultImpl;
-import ibis.ipl.impl.net.NetConvert;
-import ibis.ipl.impl.net.NetConnection;
+import ibis.impl.net.NetBufferedOutput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetSendBuffer;
+import ibis.impl.net.NetIO;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetConnection;
 
 /**
  * The UDP Multiplexer output implementation.
@@ -24,7 +24,7 @@ import ibis.ipl.impl.net.NetConnection;
 public final class Muxer extends NetBufferedOutput {
 
     /**
-     * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+     * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}
      * local number.
      */
     private Integer		rpn    = null;
@@ -32,7 +32,7 @@ public final class Muxer extends NetBufferedOutput {
     private MuxerKey		myKey;
 
 
-    private static ibis.ipl.impl.net.NetDriver	subDriver;
+    private static ibis.impl.net.NetDriver	subDriver;
     private static MuxerOutput	muxer;
 
 
@@ -43,7 +43,7 @@ public final class Muxer extends NetBufferedOutput {
      * Constructor.
      *
      * @param sp the properties of the output's 
-     * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
+     * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
      * @param driver the TCP driver instance.
      */
     Muxer(NetPortType pt, NetDriver driver, String context)
@@ -141,7 +141,7 @@ public final class Muxer extends NetBufferedOutput {
 	}
 	b.connectionId = myKey;
 	NetConvert.writeInt(myKey.remoteKey, b.data, b.base + Driver.KEY_OFFSET);
-	if (ibis.ipl.impl.net.muxer.Driver.PACKET_SEQNO) {
+	if (ibis.impl.net.muxer.Driver.PACKET_SEQNO) {
 	    NetConvert.writeLong(myKey.seqno++, b.data,
 				 b.base + Driver.SEQNO_OFFSET);
 	}

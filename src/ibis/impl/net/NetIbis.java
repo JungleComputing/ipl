@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
@@ -8,9 +8,9 @@ import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 import ibis.ipl.IbisConfigurationException;
 
-import ibis.ipl.impl.generic.IbisIdentifierTable;
+import ibis.util.IbisIdentifierTable;
 
-import ibis.ipl.impl.nameServer.NameServer;
+import ibis.impl.nameServer.NameServer;
 
 import java.io.IOException;
 
@@ -161,7 +161,7 @@ public final class NetIbis extends Ibis {
 					};
 		    for (int i = 0; i < drivers.length; i++) {
 			try {
-			    Class clazz = Class.forName("ibis.ipl.impl.net." + drivers[i] + ".Driver");
+			    Class clazz = Class.forName("ibis.impl.net." + drivers[i] + ".Driver");
 			    NetDriver d = (NetDriver)clazz.newInstance();
 			    d.setIbis(this);
 			} catch (java.lang.Exception e) {

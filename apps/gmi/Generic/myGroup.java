@@ -1,4 +1,4 @@
-import ibis.group.GroupInterface;
+import ibis.gmi.GroupInterface;
 
 interface myGroup extends GroupInterface { 
 

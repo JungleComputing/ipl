@@ -4,8 +4,8 @@
 %top level of the Panda distribution.
  */
 
-#ifndef __IBIS_IPL_IMPL_MP_MPI_PAN_UTIL_H__
-#define __IBIS_IPL_IMPL_MP_MPI_PAN_UTIL_H__
+#ifndef __IBIS_IMPL_MP_MPI_PAN_UTIL_H__
+#define __IBIS_IMPL_MP_MPI_PAN_UTIL_H__
 
 int	pan_arg_match(const char *option, const char *arg);
 int	pan_narg_match(const char *option, const char *arg, int n);

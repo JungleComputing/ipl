@@ -1,11 +1,11 @@
-package ibis.ipl.impl.messagePassing;
+package ibis.impl.messagePassing;
 
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 
 import ibis.ipl.ConnectionTimedOutException;
 
-import ibis.ipl.impl.generic.ConditionVariable;
+import ibis.util.ConditionVariable;
 
 final class ReceivePortNameServerClient
     implements ReceivePortNameServerProtocol {

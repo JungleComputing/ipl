@@ -402,8 +402,8 @@ System.err.println("Server: seen " + services + " upcall msgs for warmup");
 
 	System.err.println("Do measurement: " + count + " calls");
 
-	if (myIbis instanceof ibis.ipl.impl.messagePassing.Ibis) {
-	    ibis.ipl.impl.messagePassing.Ibis.resetStats();
+	if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
+	    ibis.impl.messagePassing.Ibis.resetStats();
 	}
 	System.gc();
 	// t_client.start();
@@ -452,8 +452,8 @@ System.err.println("Server: seen " + services + " msgs for warmup");
 	    }
 
 	    // myIbis.closeWorld();
-	    if (myIbis instanceof ibis.ipl.impl.messagePassing.Ibis) {
-		ibis.ipl.impl.messagePassing.Ibis.resetStats();
+	    if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
+		ibis.impl.messagePassing.Ibis.resetStats();
 	    }
 	    System.gc();
 	    // myIbis.openWorld();
@@ -476,8 +476,8 @@ System.err.println("Server: seen " + services + " msgs");
 	} else {
 	    // warmup
 	    serve(clients, warmup);
-	    if (myIbis instanceof ibis.ipl.impl.messagePassing.Ibis) {
-		ibis.ipl.impl.messagePassing.Ibis.resetStats();
+	    if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
+		ibis.impl.messagePassing.Ibis.resetStats();
 	    }
 
 	    // test
@@ -887,7 +887,7 @@ System.err.println("Now register static property \"" + (path + ":Driver") + "\" 
 	    ibis_path = "tcp.TcpIbis";
 	}
 
-	ibis_path = "ibis.ipl.impl." + ibis_path;
+	ibis_path = "ibis.impl." + ibis_path;
 	System.err.println("Ibis: " + ibis_path);
     }
 

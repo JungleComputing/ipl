@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.pipe;
+package ibis.impl.net.pipe;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;

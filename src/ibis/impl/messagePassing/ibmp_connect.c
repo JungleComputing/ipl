@@ -6,7 +6,7 @@
 #include "ibmp.h"
 #include "ibmp_send_port.h"
 
-#include "ibis_ipl_impl_messagePassing_OutputConnection.h"
+#include "ibis_impl_messagePassing_OutputConnection.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
@@ -89,7 +89,7 @@ ibmp_connect_hdr(void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_OutputConnection_ibmp_1connect(
+Java_ibis_impl_messagePassing_OutputConnection_ibmp_1connect(
 	JNIEnv *env,
 	jobject this,
 	jint rcve_cpu,
@@ -163,9 +163,9 @@ ibmp_connect_init(JNIEnv *env)
 					    sizeof(ibmp_connect_reply_hdr_t);
 
     cls_Syncer = (*env)->FindClass(env,
-	    "ibis/ipl/impl/messagePassing/Syncer");
+	    "ibis/impl/messagePassing/Syncer");
     if (cls_Syncer == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/Syncer\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/Syncer\n");
     }
 
     md_s_signal = (*env)->GetMethodID(env,
@@ -177,9 +177,9 @@ ibmp_connect_init(JNIEnv *env)
     }
 
     cls_ShadowSendPort = (*env)->FindClass(env,
-					   "ibis/ipl/impl/messagePassing/ShadowSendPort");
+					   "ibis/impl/messagePassing/ShadowSendPort");
     if (cls_ShadowSendPort == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ShadowSendPort\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ShadowSendPort\n");
     }
     cls_ShadowSendPort = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ShadowSendPort);
 

@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.rel;
+package ibis.impl.net.rel;
 
-import ibis.ipl.impl.net.NetConvert;
+import ibis.impl.net.NetConvert;
 
 /**
  * The NetIbis shared constants

@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.tcp;
+package ibis.impl.net.tcp;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new TCP input.
 	 *
 	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
+	 * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
 	 * @param input the controlling input.
 	 * @return The new TCP input.
 	 */
@@ -54,7 +54,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new TCP output.
 	 *
 	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param output the controlling output.
 	 * @return The new TCP output.
 	 */

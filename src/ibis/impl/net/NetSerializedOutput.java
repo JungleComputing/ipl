@@ -1,10 +1,10 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 import ibis.io.SerializationOutputStream;
 
 import ibis.ipl.Replacer;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 
@@ -33,7 +33,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 * Constructor.
 	 *
 	 * @param sp the properties of the output's
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 * @param output the controlling output.
 	 */

@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * The {@link FlatInvocationCombiner} class provides a base class for user-defined

@@ -1,7 +1,7 @@
 /*
  * Native methods for
- * 	ibis.ipl.impl.messagePassing.ReceivePortNameServer
- * 	ibis.ipl.impl.messagePassing.ReceivePortNameServerClient
+ * 	ibis.impl.messagePassing.ReceivePortNameServer
+ * 	ibis.impl.messagePassing.ReceivePortNameServerClient
  */
 
 #include <assert.h>
@@ -15,8 +15,8 @@
 #include "ibmp.h"
 #include "ibmp_receive_port_ns.h"
 
-#include "ibis_ipl_impl_messagePassing_ReceivePortNameServer.h"
-#include "ibis_ipl_impl_messagePassing_ReceivePortNameServerClient.h"
+#include "ibis_impl_messagePassing_ReceivePortNameServer.h"
+#include "ibis_impl_messagePassing_ReceivePortNameServerClient.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
@@ -43,7 +43,7 @@ ibp_ns_bind_hdr(void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
+Java_ibis_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
 	JNIEnv *env,
 	jobject this,
 	jstring name,
@@ -111,7 +111,7 @@ ibp_ns_bind_reply_hdr(void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_bind_1reply(
+Java_ibis_impl_messagePassing_ReceivePortNameServer_bind_1reply(
 	JNIEnv *env,
 	jobject this,
 	jint ret,
@@ -172,9 +172,9 @@ ibmp_receive_port_ns_bind_init(JNIEnv *env)
 					sizeof(ibp_ns_bind_reply_hdr_t);
 
     cls_NameServerClient = (*env)->FindClass(env,
-		    "ibis/ipl/impl/messagePassing/ReceivePortNameServerClient");
+		    "ibis/impl/messagePassing/ReceivePortNameServerClient");
     if (cls_NameServerClient == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ReceivePortNameServerClient\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ReceivePortNameServerClient\n");
     }
 
     md_NameServerClient_bind_reply = (*env)->GetMethodID(env,

@@ -1,4 +1,4 @@
-package ibis.ipl.impl.tcp;
+package ibis.impl.tcp;
 
 import ibis.ipl.WriteMessage;
 
@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.DataOutputStream;
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 import ibis.io.SerializationOutputStream;
 import ibis.ipl.SendPort;
 

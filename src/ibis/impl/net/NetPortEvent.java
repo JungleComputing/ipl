@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 /**
  * Provide a set of {@link NetSendPort} {@link NetReceivePort} state

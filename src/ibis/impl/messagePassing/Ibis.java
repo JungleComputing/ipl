@@ -1,4 +1,4 @@
-package ibis.ipl.impl.messagePassing;
+package ibis.impl.messagePassing;
 
 import java.util.Vector;
 import java.util.Hashtable;
@@ -8,13 +8,13 @@ import java.io.IOException;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.IbisSerializationOutputStream;
 
-import ibis.ipl.impl.generic.IbisIdentifierTable;
-import ibis.ipl.impl.generic.ConditionVariable;
-import ibis.ipl.impl.generic.Monitor;
+import ibis.util.IbisIdentifierTable;
+import ibis.util.ConditionVariable;
+import ibis.util.Monitor;
 import ibis.ipl.IbisException;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.impl.generic.IbisIdentifierTable;
+import ibis.util.IbisIdentifierTable;
 
 public class Ibis extends ibis.ipl.Ibis {
 

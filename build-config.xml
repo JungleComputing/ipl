@@ -14,7 +14,7 @@
 	    if="config.is-das">
 	<property
 		name="default.home.bcel"
-		location="/home2/ceriel/bcel-5.1/bcel-5.1.jar"/>
+		location="3rdparty/bcel-5.1.jar"/>
 	<property
 		name="default.home.ant-contrib"
 		location="/usr/local/ant/ant-contrib/lib/ant-contrib-0.4.jar"/>
@@ -274,7 +274,7 @@
 	</echo>
 	-->
 
-	<property name="ibis.super" location="${config.home.ibis}/.."/>
+	<property name="ibis.super" location="${config.home.ibis}"/>
 	<copy
 		overwrite="true"
 		file="${ibis}/build-properties.in"
@@ -316,6 +316,7 @@
 		</filterreader>
 	    </filterchain>
 	</copy>
+
 	<replaceregexp
 		file="${ibis}/build-properties"
 		flags="g"
@@ -330,6 +331,7 @@
 
 	<property environment="env"/>
 	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
+
 	<echo
 		file="${ibis}/configuration.sh">#!/bin/bash
 # Shell variables to describe Ibis configuration
@@ -341,7 +343,7 @@
 </echo>
 	<echo
 		append="true"
-		file="${ibis}/configuration.sh">JAVAC=/bin/javac
+		file="${ibis}/configuration.sh">JAVAC=${JAVA_HOME_ENV}/bin/javac
 </echo>
 	<echo
 		append="true"
@@ -373,10 +375,12 @@
 </echo>
 	<echo
 		append="true"
-		file="${ibis}/configuration.sh">BCEL_ROOT=${config.home.bcel}
+		file="${ibis}/configuration.sh">BCEL=${config.home.bcel}
 </echo>
 
 	<!-- Concat the stuff in scripts to the bin directory -->
+	<mkdir dir="${ibis}/bin"/>
+
 	<concat destfile="${ibis}/bin/ibisc">
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/ibisc" />
 	</concat>
@@ -427,24 +431,24 @@
 	</concat>
 	<chmod file="${ibis}/bin/run_ibis_wide_area" perm="+x"/>
 
-	<concat destfile="${ibis}/globus/grun">
+	<concat destfile="${ibis}/bin/grun">
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/grun" />
 	</concat>
-	<chmod file="${ibis}/globus/grun" perm="+x"/>
+	<chmod file="${ibis}/bin/grun" perm="+x"/>
 
-	<concat destfile="${ibis}/globus/pprun">
+	<concat destfile="${ibis}/bin/pprun">
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/pprun" />
 	</concat>
-	<chmod file="${ibis}/globus/pprun" perm="+x"/>
+	<chmod file="${ibis}/bin/pprun" perm="+x"/>
 
-	<concat destfile="${ibis}/globus/frun">
+	<concat destfile="${ibis}/bin/frun">
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/frun" />
 	</concat>
-	<chmod file="${ibis}/globus/frun" perm="+x"/>
+	<chmod file="${ibis}/bin/frun" perm="+x"/>
 
 	<copy
 		overwrite="true"
-		file="${ibis}/bin/cluster_wrapper.in"
+		file="${ibis}/scripts/cluster_wrapper.in"
 		tofile="${ibis}/bin/cluster_wrapper">
 	    <filterchain>
 		<filterreader

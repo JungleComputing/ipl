@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.gm;
+package ibis.impl.net.gm;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -15,7 +15,7 @@ import java.util.Hashtable;
 public final class GmOutput extends NetBufferedOutput {
 
         /**
-         * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+         * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}
          * local number.
          */
         private volatile Integer rpn          = null;
@@ -81,7 +81,7 @@ public final class GmOutput extends NetBufferedOutput {
          * Constructor.
          *
          * @param sp the properties of the output's
-         * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+         * {@link ibis.impl.net.NetSendPort NetSendPort}.
          * @param driver the GM driver instance.
          */
         GmOutput(NetPortType pt, NetDriver driver, String context)

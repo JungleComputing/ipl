@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * The {@link ForwardReply} class must be used when configuring a group method

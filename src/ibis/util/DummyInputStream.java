@@ -1,4 +1,4 @@
-package ibis.ipl.impl.generic;
+package ibis.util;
 
 import java.io.InputStream;
 import java.io.IOException;

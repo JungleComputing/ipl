@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.udp;
+package ibis.impl.net.udp;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
@@ -60,7 +60,7 @@ public final class UdpOutput extends NetBufferedOutput {
         private int            rmtu   =   0;
 
         /**
-         * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+         * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}
          * local number.
          */
         private Integer        rpn    = null;
@@ -73,7 +73,7 @@ public final class UdpOutput extends NetBufferedOutput {
          * Constructor.
          *
          * @param sp the properties of the output's 
-         * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
+         * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
          * @param driver the TCP driver instance.
          */
         UdpOutput(NetPortType pt, NetDriver driver, String context) throws IOException {

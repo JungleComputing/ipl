@@ -1,4 +1,4 @@
-import ibis.group.*;
+import ibis.gmi.*;
 
 class Slave extends GroupMember implements i_Slave {
 

@@ -1,8 +1,8 @@
-import ibis.group.Group;
-import ibis.group.GroupMethod;
-import ibis.group.CombineReply;
-import ibis.group.GroupInvocation;
-import ibis.group.BinomialCombiner;
+import ibis.gmi.Group;
+import ibis.gmi.GroupMethod;
+import ibis.gmi.CombineReply;
+import ibis.gmi.GroupInvocation;
+import ibis.gmi.BinomialCombiner;
 
 class Adder extends BinomialCombiner {
     public int combine(int rank1, int result1, int rank2, int result2, int size) {

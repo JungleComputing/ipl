@@ -1,5 +1,5 @@
-#ifndef __IBIS_IPL_IMPL_MP_PANDA_IBP_ENV_H__
-#define __IBIS_IPL_IMPL_MP_PANDA_IBP_ENV_H__
+#ifndef __IBIS_IMPL_MP_PANDA_IBP_ENV_H__
+#define __IBIS_IMPL_MP_PANDA_IBP_ENV_H__
 
 #include <jni.h>
 

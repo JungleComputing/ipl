@@ -1,4 +1,4 @@
-package ibis.ipl.impl.tcp;
+package ibis.impl.tcp;
 
 import ibis.ipl.*;
 
@@ -12,7 +12,7 @@ import java.io.ObjectInputStream;
 import java.io.BufferedInputStream;
 
 import ibis.io.*;
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 import java.io.*;
 import java.util.ArrayList;
 

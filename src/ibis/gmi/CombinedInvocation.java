@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * The {@link CombinedInvocation} class must be used whenever a group method must be

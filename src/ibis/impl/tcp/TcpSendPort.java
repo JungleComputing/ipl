@@ -1,4 +1,4 @@
-package ibis.ipl.impl.tcp;
+package ibis.impl.tcp;
 
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
@@ -27,7 +27,7 @@ import ibis.io.SunSerializationOutputStream;
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 
 final class TcpSendPort implements SendPort, Config, TcpProtocol {
 

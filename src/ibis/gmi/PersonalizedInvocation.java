@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * The {@link PersonalizedInvocation} class must be used to configure a group method

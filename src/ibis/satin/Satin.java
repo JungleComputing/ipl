@@ -235,16 +235,16 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				name = "ibis@" + hostName + "_" + Math.abs(random.nextInt());
 				if(panda) {
 					ibis = Ibis.createIbis(name,
-							       "ibis.ipl.impl.messagePassing.PandaIbis", this);
+							       "ibis.impl.messagePassing.PandaIbis", this);
 				} else if (mpi) {
 					ibis = Ibis.createIbis(name,
-							       "ibis.ipl.impl.messagePassing.MPIIbis", this);
+							       "ibis.impl.messagePassing.MPIIbis", this);
 				} else if (net) {
 					ibis = Ibis.createIbis(name,
-							       "ibis.ipl.impl.net.NetIbis", this);
+							       "ibis.impl.net.NetIbis", this);
 				} else {
 					ibis = Ibis.createIbis(name,
-							       "ibis.ipl.impl.tcp.TcpIbis", this);
+							       "ibis.impl.tcp.TcpIbis", this);
 				}
 			} catch (IbisException e) {
 				System.err.println("SATIN '" + hostName + 
@@ -433,17 +433,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				    "': TUPLE_STATS: tuple msgs: " + tupleMsgs +
 				    ", bytes = " + tupleBytes);
 		}
-
 		if(STEAL_STATS && stats) {
-			java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
-
 			out.println("SATIN '" + ident.name() + 
 				    "': INTRA_STATS: messages = " + intraClusterMessages +
-				    ", bytes = " + nf.format(intraClusterBytes));
+				    ", bytes = " + intraClusterBytes);
 
 			out.println("SATIN '" + ident.name() + 
 				    "': INTER_STATS: messages = " + interClusterMessages +
-				    ", bytes = " + nf.format(interClusterBytes));
+				    ", bytes = " + interClusterBytes);
 
 			out.println("SATIN '" + ident.name() + 
 				    "': STEAL_STATS 1: attempts = " + stealAttempts +

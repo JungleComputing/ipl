@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.tcp;
+package ibis.impl.net.tcp;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.ConnectionClosedException;

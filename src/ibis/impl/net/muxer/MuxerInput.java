@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net.muxer;
+package ibis.impl.net.muxer;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,16 +9,16 @@ import java.util.Hashtable;
 
 import ibis.ipl.ConnectionClosedException;
 
-import ibis.ipl.impl.net.NetConvert;
-import ibis.ipl.impl.net.NetPortType;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetAllocator;
-import ibis.ipl.impl.net.NetBufferedInput;
-import ibis.ipl.impl.net.NetBufferFactory;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetVector;
-import ibis.ipl.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIO;
+import ibis.impl.net.NetAllocator;
+import ibis.impl.net.NetBufferedInput;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetVector;
+import ibis.impl.net.NetConnection;
 
 public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 

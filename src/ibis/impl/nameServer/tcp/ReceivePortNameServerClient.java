@@ -1,4 +1,4 @@
-package ibis.ipl.impl.nameServer.tcp;
+package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
@@ -6,7 +6,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ConnectionRefusedException;
 
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 
 import java.net.Socket;
 import java.net.InetAddress;

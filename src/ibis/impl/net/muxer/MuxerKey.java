@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net.muxer;
+package ibis.impl.net.muxer;
 
 import java.io.IOException;
 

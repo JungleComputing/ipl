@@ -1,4 +1,4 @@
-import ibis.group.*;
+import ibis.gmi.*;
 
 interface i_Data extends GroupInterface { 
 	void done(double result);

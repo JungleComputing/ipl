@@ -15,7 +15,7 @@
 # C_SRC		= List of .c files that contain native code
 # PACKAGE	= package in . notation
 # SO_LIB	= libbla.so for jit builds. Otherwise, the default
-#		  Ibis library (IBISROOT/ibis/lib/libibis.a) is used.
+#		  Ibis library (IBISROOT/build/lib/libibis.a) is used.
 #
 # SERIALIZABLE	= List of .java files that implement Serializable
 # REMOTE        = List of .java files that implement remote
@@ -52,7 +52,7 @@ DAS		= @DAS_LIB@
 JPATH           = @JAVA_ROOT@
 export JPATH
 JAVAC           = @JAVAC@
-BCEL		= @BCEL_ROOT@
+BCEL		= @BCEL@
 ifndef IBIS_ROOT
 IBIS_ROOT	= @IBIS_ROOT@
 endif
@@ -77,16 +77,16 @@ ifeq (sun-java, $(findstring sun-java,$(JPATH)))
 JAVARUNFLAGS	+= -server
 endif
 endif
-JAVACLASSPATH	= build:.:$(IBIS_ROOT):$(IBIS_ROOT)/classlibs:$(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis/build:$(IBIS_ROOT)/ibis:$(IBIS_ROOT)/ibis/bcel-additions:$(BCEL)/bcel-5.1.jar
-JAVABOOTCLASSPATH = $(IBIS_ROOT)/classlibs:$(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis/build:$(IBIS_ROOT)/ibis
-JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/ibis/build/lib:$(IBIS_ROOT)/ibis/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
+JAVACLASSPATH	= build:.:$(IBIS_ROOT)/build:$(BCEL):$(IBIS_ROOT)/build/classlibs
+JAVABOOTCLASSPATH = $(IBIS_ROOT)/build/classlibs:$(IBIS_ROOT)/build
+JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/build/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH):
 JAVAHFLAGS      += -classpath $(JAVACLASSPATH):
 JAVAPFLAGS	+= -c -classpath $(JAVACLASSPATH):
 CLASSPATH	= $(JAVACLASSPATH)
 export CLASSPATH
 
-LD_LIBRARY_PATH	:= $(IBIS_ROOT)/ibis/lib:$(LD_LIBRARY_PATH)
+LD_LIBRARY_PATH	:= $(IBIS_ROOT)/build/lib:$(LD_LIBRARY_PATH)
 export LD_LIBRARY_PATH
 
 LD_ASSUME_KERNEL	= 2.2.5
@@ -165,11 +165,11 @@ PACKAGE_SLASH	:= $(subst .,/,$(PACKAGE))
 PACKAGE_MANGLE	:= $(subst .,_,$(PACKAGE))
 endif
 
-LASM_CACHE	:= $(IBIS_ROOT)/ibis/LASM_IBIS_CACHE
+LASM_CACHE	:= $(IBIS_ROOT)/build/LASM_IBIS_CACHE
 
 MANTA	= @MANTA_ROOT@
 export MANTA
-MANTACLASSPATH	= .:$(IBIS_ROOT):$(IBIS_ROOT)/ibis:$(MANTA)/javalibs
+MANTACLASSPATH	= .:$(IBIS_ROOT):$(IBIS_ROOT)/build:$(MANTA)/javalibs
 
 MANTACFLAGS	+= -classpath $(MANTACLASSPATH)
 MANTACFLAGS	+= -g
@@ -222,7 +222,7 @@ endif
 PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
 PKG_O_DOLLAR	:= $(subst $$,\$$,$(PKG_O_FILES))
 
-MANTA_LIB	= $(IBIS_ROOT)/ibis/lib/libibis.a
+MANTA_LIB	= $(IBIS_ROOT)/build/lib/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
 MANTA_LDLIBS	=
 MANTA_LDLIBS	+= $(MANTA_LIB)
@@ -243,7 +243,7 @@ else
 endif
 
 ifeq (mpi, $(MP_MODE))
-    MANTA_LDLIBS	+= $(IBIS_ROOT)/ibis/lib/libibis_mp_mpi.a
+    MANTA_LDLIBS	+= $(IBIS_ROOT)/build/lib/libibis_mp_mpi.a
     ifeq (gm, $(MPI_MODE))
 	MANTA_LDLIBS	+= -L$(MPI)/lib -lmpich
 	MANTA_LDLIBS	+= $(GM)
@@ -267,7 +267,7 @@ ifeq (mpi, $(MP_MODE))
 	endif
     endif
 else
-    MANTA_LDLIBS	+= $(IBIS_ROOT)/ibis/lib/libibis_mp_panda.a
+    MANTA_LDLIBS	+= $(IBIS_ROOT)/build/lib/libibis_mp_panda.a
 endif
 
 #JACKAL_PATCHERS	=
@@ -406,7 +406,7 @@ C_OBJ		= $(C_SRC:%.c=%.o)
 
 $(SO_LIB):	h_files $(C_LIB) $(C_OBJ)
 	$(LDSO) -o $@ $(C_OBJ)
-	cp $(SO_LIB) $(IBIS_ROOT)/ibis/lib
+	cp $(SO_LIB) $(IBIS_ROOT)/build/lib
 
 
 $(LASM_CACHE):
@@ -432,7 +432,7 @@ run:
 	$(JPATH)/bin/java $(JAVACFLAGS) $(MAIN:%.java=%)
 
 
-GETPID	= $(IBIS_ROOT)/ibis/bin/getpid
+GETPID	= $(IBIS_ROOT)/bin/getpid
 
 ifeq (x$(NS_PORT), x)
 NS_PORT		= 7654
@@ -453,6 +453,6 @@ prun:
 ifeq (1, $(BUILD_MANTA))
 	@echo "prun LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH): $(OUT) $(NHOSTS) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.name=panda $(JAVACFLAGS) 'args ...'"
 else
-	@echo "prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH): -no-panda $(IBIS_ROOT)/ibis/bin/java_wrapper $(NHOSTS) $(JPATH)/bin/java $(JAVARUNFLAGS) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.pool.host_number=%d -Dibis.pool.total_hosts=%n -Dibis.pool.host_names=\"%h\" -Dibis.name=panda $(MAIN:%.java=%) args..."
+	@echo "prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH): -no-panda $(IBIS_ROOT)/bin/java_wrapper $(NHOSTS) $(JPATH)/bin/java $(JAVARUNFLAGS) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.pool.host_number=%d -Dibis.pool.total_hosts=%n -Dibis.pool.host_names=\"%h\" -Dibis.name=panda $(MAIN:%.java=%) args..."
 endif
-	@echo $(IBIS_ROOT)/ibis/bin/java_wrapper $(JPATH)/bin/java $(JAVARUNFLAGS) -Dibis.pool.total_hosts=$(NHOSTS) -Dibis.pool.host_number=$$PRUN_CPU_RANK -Dibis.pool.host_names=\"$$HOSTS\" -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger0000 -Dibis.name=panda $(MAIN:%.java=%)
+	@echo $(IBIS_ROOT)/bin/java_wrapper $(JPATH)/bin/java $(JAVARUNFLAGS) -Dibis.pool.total_hosts=$(NHOSTS) -Dibis.pool.host_number=$$PRUN_CPU_RANK -Dibis.pool.host_names=\"$$HOSTS\" -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger0000 -Dibis.name=panda $(MAIN:%.java=%)

@@ -1,5 +1,5 @@
 /*
- * Code shared by natives for package ibis.ipl.impl.messagePassing
+ * Code shared by natives for package ibis.impl.messagePassing
  */
 
 #include <stdlib.h>
@@ -12,7 +12,7 @@
 #include "ibp.h"
 #include "ibp_mp.h"
 
-#include "ibis_ipl_impl_messagePassing_Ibis.h"
+#include "ibis_impl_messagePassing_Ibis.h"
 
 #include "ibmp.h"
 #include "ibmp_receive_port_ns.h"
@@ -326,7 +326,7 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, jint out)
+Java_ibis_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, jint out)
 {
     ibmp_byte_output_stream_report(env);
     ibp_report(env, out);
@@ -334,7 +334,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1report(JNIEnv *env, jobject this, j
 
 
 JNIEXPORT jarray JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray java_args)
+Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray java_args)
 {
     jfieldID	fld_Ibis_ibis;
     jfieldID	fld_Ibis_nrCpus;
@@ -385,15 +385,15 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
 	ibmp_error(env, "Cannot find static method dumpStack()V\n");
     }
 
-    ibmp_cls_Ibis = (*env)->FindClass(env, "ibis/ipl/impl/messagePassing/Ibis");
+    ibmp_cls_Ibis = (*env)->FindClass(env, "ibis/impl/messagePassing/Ibis");
     if (ibmp_cls_Ibis == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/Ibis\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/Ibis\n");
     }
     ibmp_cls_Ibis = (jclass)(*env)->NewGlobalRef(env, (jobject)ibmp_cls_Ibis);
 
-    fld_Ibis_ibis = (*env)->GetStaticFieldID(env, ibmp_cls_Ibis, "myIbis", "Libis/ipl/impl/messagePassing/Ibis;");
+    fld_Ibis_ibis = (*env)->GetStaticFieldID(env, ibmp_cls_Ibis, "myIbis", "Libis/impl/messagePassing/Ibis;");
     if (fld_Ibis_ibis == NULL) {
-	ibmp_error(env, "Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n");
+	ibmp_error(env, "Cannot find static field myIbis:Libis/impl/messagePassing/Ibis;\n");
     }
 
     cls_java_io_IOException = (*env)->FindClass(env, "java/io/IOException");
@@ -507,14 +507,14 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1start(JNIEnv *env, jobject this)
+Java_ibis_impl_messagePassing_Ibis_ibmp_1start(JNIEnv *env, jobject this)
 {
     ibp_start(env);
 }
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
+Java_ibis_impl_messagePassing_Ibis_ibmp_1end(JNIEnv *env, jobject this)
 {
     ibmp_connect_end(env);
     ibmp_disconnect_end(env);

@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.gm;
+package ibis.impl.net.gm;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -22,7 +22,7 @@ public final class GmInput extends NetBufferedInput {
 
 
 	/**
-	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
+	 * The peer {@link ibis.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
 	private volatile Integer      spn  	      = null;
@@ -80,7 +80,7 @@ public final class GmInput extends NetBufferedInput {
 	 * Constructor.
 	 *
 	 * @param sp the properties of the input's
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the GM driver instance.
 	 */
 	GmInput(NetPortType pt, NetDriver driver, String context)

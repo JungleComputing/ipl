@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPortIdentifier;

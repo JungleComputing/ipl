@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;

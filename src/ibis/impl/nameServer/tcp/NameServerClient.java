@@ -1,4 +1,4 @@
-package ibis.ipl.impl.nameServer.tcp;
+package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
@@ -7,9 +7,11 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisException;
-import ibis.ipl.impl.generic.*;
-import ibis.ipl.impl.nameServer.NameServer;
 import ibis.ipl.StaticProperties;
+
+import ibis.impl.nameServer.NameServer;
+
+import ibis.util.*;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -75,7 +77,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 		String nameServerPortString = p.getProperty("ibis.name_server.port");
 		if (nameServerPortString == null) {
-			port = ibis.ipl.impl.nameServer.tcp.NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+			port = ibis.impl.nameServer.tcp.NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
 		} else {
 			try {
 				port = Integer.parseInt(nameServerPortString);

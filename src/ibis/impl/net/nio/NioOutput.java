@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.nio;
+package ibis.impl.net.nio;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.net.Socket;
 import java.net.InetAddress;
@@ -57,7 +57,7 @@ public final class NioOutput extends NetOutput {
     private SocketChannel			socketChannel = null;
 
     /**
-     * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+     * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}
      * local number.
      */
     private Integer			 rpn	   = null;
@@ -103,7 +103,7 @@ public final class NioOutput extends NetOutput {
      * Constructor.
      *
      * @param sp the properties of the output's 
-     * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
      * @param driver the Tcp driver instance.
      * @param output the controlling output.
      */

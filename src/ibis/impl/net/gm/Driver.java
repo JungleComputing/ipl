@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.gm;
+package ibis.impl.net.gm;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -109,7 +109,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new GM input.
 	 *
 	 * @param sp the properties of the input's
-	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
+	 * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
 	 * @return The new GM input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
@@ -122,7 +122,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new GM output.
 	 *
 	 * @param sp the properties of the output's
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @return The new GM output.
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)

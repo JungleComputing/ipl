@@ -1,4 +1,4 @@
-import ibis.group.*;
+import ibis.gmi.*;
 
 public class Work extends GroupMember implements i_Work {
 

@@ -53,8 +53,8 @@ public final class RTS {
                                 System.out.println(name + ": init RepMI RTS");
                         }
                        
-                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.tcp.TcpIbis", null);
-//                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.panda.PandaIbis", null);
+                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.impl.tcp.TcpIbis", null);
+//                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.impl.panda.PandaIbis", null);
                         localID      = ibis.identifier();
                         ibisRegistry = ibis.registry();
 //                      ibis.start);

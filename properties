@@ -1,12 +1,12 @@
-ibis.ipl.impl.messagePassing.MPIIbis
-ipl/impl/messagePassing/mpi/properties
+ibis.impl.messagePassing.MPIIbis
+src/ibis/impl/messagePassing/mpi/properties
 system_mpi_properties
 
-ibis.ipl.impl.messagePassing.PandaIbis
-ipl/impl/messagePassing/panda/properties
+ibis.impl.messagePassing.PandaIbis
+src/ibis/impl/messagePassing/panda/properties
 system_panda_properties
 
-ibis.ipl.impl.tcp.TcpIbis
-ipl/impl/tcp/properties
+ibis.impl.tcp.TcpIbis
+src/ibis/impl/tcp/properties
 system_tcp_properties
 

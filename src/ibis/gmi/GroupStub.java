@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 import java.io.IOException;
 

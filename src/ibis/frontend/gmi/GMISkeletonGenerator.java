@@ -1,4 +1,4 @@
-package ibis.frontend.group;
+package ibis.frontend.gmi;
 
 import java.util.Vector;
 import java.io.PrintWriter;
@@ -28,13 +28,13 @@ class GMISkeletonGenerator extends GMIGenerator {
 	    output.println();
 	}
 
-	output.println("import ibis.group.*;");
+	output.println("import ibis.gmi.*;");
 	output.println("import ibis.ipl.*;");
 	output.println("import java.lang.reflect.*;");
 	output.println("import java.io.IOException;");
 	output.println();
 
-	output.println("public final class group_skeleton_" + dest_name + " extends ibis.group.GroupSkeleton {");
+	output.println("public final class group_skeleton_" + dest_name + " extends ibis.gmi.GroupSkeleton {");
 	output.println();
 	output.println("public String toString() { return \"group_skeleton_" + dest_name + "\";}");
 	output.println();

@@ -1,4 +1,4 @@
-/* Native methods for ibis.ipl.impl.messagePassing.ByteOutputStream
+/* Native methods for ibis.impl.messagePassing.ByteOutputStream
  */
 
 #include <string.h>
@@ -13,7 +13,7 @@
 #include "ibmp_poll.h"
 #include "ibmp_inttypes.h"
 
-#include "ibis_ipl_impl_messagePassing_ByteOutputStream.h"
+#include "ibis_impl_messagePassing_ByteOutputStream.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
@@ -456,7 +456,7 @@ ibmp_msg_check(JNIEnv *env, jobject this, int msgHandle, int locked)
 
 
 JNIEXPORT jboolean JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
+Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
 	JNIEnv *env, 
 	jobject this,
 	jint cpu,
@@ -619,7 +619,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteOutputStream_init(
+Java_ibis_impl_messagePassing_ByteOutputStream_init(
 	JNIEnv *env,
 	jobject this)
 {
@@ -628,7 +628,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_init(
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteOutputStream_resetMsg(
+Java_ibis_impl_messagePassing_ByteOutputStream_resetMsg(
 	JNIEnv *env, 
 	jobject this)
 {
@@ -642,7 +642,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_resetMsg(
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteOutputStream_close(
+Java_ibis_impl_messagePassing_ByteOutputStream_close(
 	JNIEnv *env, 
 	jobject this)
 {
@@ -710,7 +710,7 @@ buf_grow(JNIEnv *env, ibmp_msg_p msg, int incr, int locked)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write(
+Java_ibis_impl_messagePassing_ByteOutputStream_write(
 	JNIEnv *env, 
 	jobject this,
 	jint b)
@@ -747,7 +747,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write(
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteOutputStream_report(
+Java_ibis_impl_messagePassing_ByteOutputStream_report(
 	JNIEnv *env, 
 	jobject this)
 {
@@ -768,7 +768,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_report(
 
 #define ARRAY_WRITE(JType, jtype) \
 JNIEXPORT void JNICALL \
-Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
+Java_ibis_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
 	JNIEnv *env,  \
 	jobject this, \
 	jtype ## Array b, \
@@ -849,9 +849,9 @@ void
 ibmp_byte_output_stream_init(JNIEnv *env)
 {
     cls_PandaByteOutputStream = (*env)->FindClass(env,
-			 "ibis/ipl/impl/messagePassing/ByteOutputStream");
+			 "ibis/impl/messagePassing/ByteOutputStream");
     if (cls_PandaByteOutputStream == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ByteOutputStream\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ByteOutputStream\n");
     }
     cls_PandaByteOutputStream = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_PandaByteOutputStream);
 

@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * Class {@link ReplyScheme} is the base class for all reply schemes.

@@ -1,5 +1,5 @@
 /* Native methods for
- * ibis.ipl.impl.messagePassing.ByteInputStream.java
+ * ibis.impl.messagePassing.ByteInputStream.java
  */
 
 #include <assert.h>
@@ -10,7 +10,7 @@
 
 #include "ibmp.h"
 
-#include "ibis_ipl_impl_messagePassing_ByteInputStream.h"
+#include "ibis_impl_messagePassing_ByteInputStream.h"
 
 #include "ibp.h"
 #include "ibmp_byte_input_stream.h"
@@ -22,7 +22,7 @@ static jfieldID	fld_msgHandle;
 
 
 JNIEXPORT jint JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteInputStream_lockedRead(
+Java_ibis_impl_messagePassing_ByteInputStream_lockedRead(
 	JNIEnv *env,
 	jobject this)
 {
@@ -46,7 +46,7 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_lockedRead(
 
 
 JNIEXPORT jlong JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteInputStream_skip(
+Java_ibis_impl_messagePassing_ByteInputStream_skip(
 	JNIEnv *env,
 	jobject this,
 	jlong len)
@@ -58,7 +58,7 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_skip(
 
 
 JNIEXPORT jint JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteInputStream_available(
+Java_ibis_impl_messagePassing_ByteInputStream_available(
 	JNIEnv *env,
 	jobject this)
 {
@@ -69,7 +69,7 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_available(
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteInputStream_resetMsg(
+Java_ibis_impl_messagePassing_ByteInputStream_resetMsg(
 	JNIEnv *env,
 	jobject this,
 	jint msgHandle)
@@ -198,7 +198,7 @@ DUMP_DATA(jdouble, "f ", double)
 
 #define ARRAY_READ(JType, jtype) \
 JNIEXPORT jint JNICALL \
-Java_ibis_ipl_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
+Java_ibis_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
 		JNIEnv *env, \
 		jobject this, \
 		jtype ## Array a, \
@@ -246,7 +246,7 @@ ARRAY_READ(Double, jdouble)
 
 
 JNIEXPORT jboolean JNICALL
-Java_ibis_ipl_impl_messagePassing_ByteInputStream_getInputStreamMsg(
+Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
 		JNIEnv *env,
 		jclass this,
 		jarray jtags)
@@ -294,9 +294,9 @@ void
 ibmp_byte_input_stream_init(JNIEnv *env)
 {
     cls_PandaByteInputStream = (*env)->FindClass(env,
-			    "ibis/ipl/impl/messagePassing/ByteInputStream");
+			    "ibis/impl/messagePassing/ByteInputStream");
     if (cls_PandaByteInputStream == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ByteInputStream\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ByteInputStream\n");
     }
     cls_PandaByteInputStream = (jobject)(*env)->NewGlobalRef(env, (jobject)cls_PandaByteInputStream);
 

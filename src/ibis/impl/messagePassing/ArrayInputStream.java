@@ -1,4 +1,4 @@
-package ibis.ipl.impl.messagePassing;
+package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
@@ -84,7 +84,7 @@ final public class ArrayInputStream
     }
 
     public int available() throws IOException {
-	throw new IOException("ibis.ipl.impl.messagePassing.available() not implemented");
+	throw new IOException("ibis.impl.messagePassing.available() not implemented");
     }
 
     public void close() throws IOException {

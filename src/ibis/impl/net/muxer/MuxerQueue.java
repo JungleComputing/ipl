@@ -1,8 +1,8 @@
-package ibis.ipl.impl.net.muxer;
+package ibis.impl.net.muxer;
 
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetAllocator;
-import ibis.ipl.impl.net.NetBufferFactory;
+import ibis.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetAllocator;
+import ibis.impl.net.NetBufferFactory;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net.rel;
+package ibis.impl.net.rel;
 
 interface RelSweep {
 

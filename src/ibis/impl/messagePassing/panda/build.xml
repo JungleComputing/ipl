@@ -1,5 +1,5 @@
 <project
-    name="ibis.ipl.impl.messagePassing.panda.native"
+    name="ibis.impl.messagePassing.panda.native"
     default="build"
     basedir=".">
 

@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * The {@link ReplyPersonalizer} class can be extended by the user to create a

@@ -1,11 +1,11 @@
-package ibis.ipl.impl.messagePassing;
+package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
 import java.util.Vector;
 
 import ibis.ipl.IbisException;
-import ibis.ipl.impl.generic.ConditionVariable;
+import ibis.util.ConditionVariable;
 
 class ReceivePort
     implements ibis.ipl.ReceivePort, Protocol, Runnable, PollClient {

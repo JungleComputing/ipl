@@ -97,5 +97,5 @@ else
 		$JAVA/bin/java \
 		-Xmx400M -Xcomp \
 		-Djava.library.path=$IBIS/ibis/lib \
-		ibis.ipl.impl.messagePassing.PandaIbis
+		ibis.impl.messagePassing.PandaIbis
 fi

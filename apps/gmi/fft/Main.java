@@ -3,7 +3,7 @@
    port of the RMI version of Ronald Blankedaal
 */
 
-import ibis.group.*;
+import ibis.gmi.*;
 
 class Main {
 

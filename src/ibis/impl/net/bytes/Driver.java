@@ -1,5 +1,5 @@
-package ibis.ipl.impl.net.bytes;
-import ibis.ipl.impl.net.*;
+package ibis.impl.net.bytes;
+import ibis.impl.net.*;
 
 /**
  * The primitive to byte conversion driver.

@@ -1,7 +1,7 @@
 /** 
     This class handles all incoming connection requests.
  **/
-package ibis.ipl.impl.tcp;
+package ibis.impl.tcp;
 
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -19,7 +19,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 import ibis.ipl.IbisError;
 
 final class TcpPortHandler implements Runnable, TcpProtocol { //, Config { 

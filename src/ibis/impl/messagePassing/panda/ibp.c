@@ -1,5 +1,5 @@
 /*
- * Code for Panda natives for package ibis.ipl.impl.messagePassing
+ * Code for Panda natives for package ibis.impl.messagePassing
  */
 
 #include <string.h>
@@ -19,7 +19,7 @@
 #include <pan_time.h>
 #include <pan_util.h>
 
-#include "ibis_ipl_impl_messagePassing_Ibis.h"
+#include "ibis_impl_messagePassing_Ibis.h"
 
 #include "../ibmp.h"
 
@@ -92,7 +92,7 @@ ibp_proto_clear(void *proto)
 
 
 JNIEXPORT jlong JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
+Java_ibis_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 {
     union lt {
 	struct pan_time t;
@@ -106,7 +106,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 
 
 JNIEXPORT jdouble JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_t2d(JNIEnv *env, jclass c, jlong l)
+Java_ibis_impl_messagePassing_Ibis_t2d(JNIEnv *env, jclass c, jlong l)
 {
     union lt {
 	struct pan_time t;
@@ -658,7 +658,7 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
 {
     IBP_VPRINTF(2000, env, ("here...\n"));
 
-    ibmp_check_ibis_name(env, "ibis.ipl.impl.messagePassing.PandaIbis");
+    ibmp_check_ibis_name(env, "ibis.impl.messagePassing.PandaIbis");
     IBP_VPRINTF(2000, env, ("here...\n"));
 
     ibp_pan_init(env, argc, argv);

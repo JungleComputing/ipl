@@ -1,4 +1,4 @@
-import ibis.group.*;
+import ibis.gmi.*;
 
 public class Data extends GroupMember implements i_Data {
 	

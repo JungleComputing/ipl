@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * The {@link CombinedInvocationInfo} class is used to collect some information

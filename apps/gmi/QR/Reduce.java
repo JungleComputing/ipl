@@ -1,4 +1,4 @@
-import ibis.group.GroupMember;
+import ibis.gmi.GroupMember;
 
 class Reduce extends GroupMember implements i_Reduce { 
 

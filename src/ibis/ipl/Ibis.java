@@ -149,20 +149,20 @@ public abstract class Ibis {
 	    String name = "ibis:" + hostname + "@" + System.currentTimeMillis();
 
 	    if (ibisname.equals("panda")) {
-		return createIbis(name, "ibis.ipl.impl.messagePassing.PandaIbis", r);
+		return createIbis(name, "ibis.impl.messagePassing.PandaIbis", r);
 	    } else if (ibisname.equals("mpi")) {
-		return createIbis(name, "ibis.ipl.impl.messagePassing.MPIIbis", r);
+		return createIbis(name, "ibis.impl.messagePassing.MPIIbis", r);
 	    } else if (ibisname.startsWith("net.")) {
-		return createIbis(name, "ibis.ipl.impl.net.NetIbis", r);
+		return createIbis(name, "ibis.impl.net.NetIbis", r);
 	    } else if (ibisname.startsWith("net")) {
-		return createIbis(name, "ibis.ipl.impl.net.NetIbis", r);
+		return createIbis(name, "ibis.impl.net.NetIbis", r);
 	    } else {
 		// The default: tcp.
 		if (! ibisname.equals("tcp")) {
 		    System.err.println("Warning: name '" + ibisname +
 				       "' not recognized, using TCP version");
 		}
-		return createIbis(name, "ibis.ipl.impl.tcp.TcpIbis", r);
+		return createIbis(name, "ibis.impl.tcp.TcpIbis", r);
 	    }
 	    // @@@ end of horrible code
 	}

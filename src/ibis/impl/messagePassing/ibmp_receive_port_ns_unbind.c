@@ -1,7 +1,7 @@
 /*
  * Native methods for
- * 	ibis.ipl.impl.messagePassing.ReceivePortNameServer
- * 	ibis.ipl.impl.messagePassing.ReceivePortNameServerClient
+ * 	ibis.impl.messagePassing.ReceivePortNameServer
+ * 	ibis.impl.messagePassing.ReceivePortNameServerClient
  */
 
 #include <jni.h>
@@ -12,8 +12,8 @@
 #include "ibmp.h"
 #include "ibmp_receive_port_ns.h"
 
-#include "ibis_ipl_impl_messagePassing_ReceivePortNameServer.h"
-#include "ibis_ipl_impl_messagePassing_ReceivePortNameServerClient.h"
+#include "ibis_impl_messagePassing_ReceivePortNameServer.h"
+#include "ibis_impl_messagePassing_ReceivePortNameServerClient.h"
 
 
 #include "ibp.h"
@@ -37,7 +37,7 @@ ibp_ns_unbind_hdr(void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1unbind(
+Java_ibis_impl_messagePassing_ReceivePortNameServerClient_ns_1unbind(
 	JNIEnv *env,
 	jobject this,
 	jstring name)

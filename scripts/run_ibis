@@ -1,4 +1,4 @@
-JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/ibis/classlibs:$IBIS_ROOT/ibis/build:$IBIS_ROOT/ibis/build/lib:$IBIS_ROOT:build:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
+JAVACLASSPATH=$IBIS_ROOT/build/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
 
 export LD_ASSUME_KERNEL=2.2.5
 
@@ -14,14 +14,14 @@ export IBP_SEND_SYNC=100
 export MANTA_NO_PANDA=1
 export PAN_COMM_NO_IDLE_POLL=1
 
-Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/ibis/lib:$IBIS_ROOT/ibis/build/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
+Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/build/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
 
 Dpool_host_num="-Dibis.pool.host_number=$1"
 #PROFILING=-Xhprof:cpu=samples,file=profile.$1,depth=3
 PROFILING=
 shift
 
-Dprops="-Dibis.property.file=$IBIS_ROOT/ibis/properties"
+Dprops="-Dibis.property.file=$IBIS_ROOT/properties"
 
 Dpool_total="-Dibis.pool.total_hosts=$1"
 shift

@@ -1,4 +1,4 @@
-package ibis.frontend.group;
+package ibis.frontend.gmi;
 
 import java.util.Vector;
 import java.io.PrintWriter;

@@ -1,14 +1,14 @@
-package ibis.ipl.impl.net.muxer;
+package ibis.impl.net.muxer;
 
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetBufferFactory;
-import ibis.ipl.impl.net.NetBufferedInput;
-import ibis.ipl.impl.net.NetPortType;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetConnection;
-import ibis.ipl.impl.net.NetConvert;
-import ibis.ipl.impl.net.NetReceiveBufferFactoryDefaultImpl;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetBufferedInput;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetIO;
+import ibis.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 
 /* Only for java >= 1.4
 * import java.net.SocketTimeoutException;
@@ -34,7 +34,7 @@ public final class Demuxer extends NetBufferedInput {
     private long		deliver_seqno;	/* For out-of-order debugging */
 
 
-    private static ibis.ipl.impl.net.NetDriver	subDriver;
+    private static ibis.impl.net.NetDriver	subDriver;
     private static MuxerInput	demux;
 
 

@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.def;
+package ibis.impl.net.def;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;

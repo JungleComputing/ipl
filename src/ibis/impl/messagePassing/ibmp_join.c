@@ -9,7 +9,7 @@
 #include "ibp.h"
 #include "ibp_mp.h"
 
-#include "ibis_ipl_impl_messagePassing_Ibis.h"
+#include "ibis_impl_messagePassing_Ibis.h"
 
 #include "ibmp_join.h"
 
@@ -36,7 +36,7 @@ join_hdr(void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_send_1join(
+Java_ibis_impl_messagePassing_Ibis_send_1join(
 		JNIEnv *env,
 		jobject this,
 		jint host,
@@ -75,7 +75,7 @@ join_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_send_1leave(
+Java_ibis_impl_messagePassing_Ibis_send_1leave(
 		JNIEnv *env,
 		jobject this,
 		jint host,

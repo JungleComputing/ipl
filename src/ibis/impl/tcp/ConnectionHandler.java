@@ -4,7 +4,7 @@
 // The connectionhandler reads the opcode, and notifies receiveport.
 // In a blocking receive, a wait is done until the slot is filled.
 
-package ibis.ipl.impl.tcp;
+package ibis.impl.tcp;
 
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReadMessage;
@@ -15,7 +15,7 @@ import ibis.ipl.IbisError;
 
 import ibis.io.*;
 
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 
 import java.io.InputStream;
 import java.io.BufferedInputStream;

@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net.rel;
+package ibis.impl.net.rel;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,7 +9,7 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ConnectionRefusedException;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 /**
 * The REL output implementation.
@@ -137,7 +137,7 @@ public final class RelOutput
      * Constructor.
      *
      * @param sp the properties of the output's
-     * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
      * @param driver the REL driver instance.
      * @param output the controlling output.
      */

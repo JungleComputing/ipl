@@ -1,4 +1,4 @@
-package ibis.frontend.group;
+package ibis.frontend.gmi;
 
 import java.util.Vector;
 import java.io.PrintWriter;
@@ -522,11 +522,11 @@ class GMIStubGenerator extends GMIGenerator {
 	    output.println();
 	}
 
-	output.println("import ibis.group.*;");		
+	output.println("import ibis.gmi.*;");		
 	output.println("import ibis.ipl.*;");		
 	output.println();
 
-	output.print("public final class group_stub_" + data.classname + " extends ibis.group.GroupStub implements ");		
+	output.print("public final class group_stub_" + data.classname + " extends ibis.gmi.GroupStub implements ");		
 	output.print(data.subject.getClassName());
 
 	//for (int i=0;i<interfaces.length;i++) { 
@@ -566,8 +566,8 @@ class GMIStubGenerator extends GMIGenerator {
 
 	    output.println(")\");");
 
-	    output.println("\t\tmethods[" + i + "].invocation_mode = ibis.group.InvocationScheme.I_SINGLE;");
-	    output.println("\t\tmethods[" + i + "].result_mode = ibis.group.ReplyScheme.R_RETURN;");
+	    output.println("\t\tmethods[" + i + "].invocation_mode = ibis.gmi.InvocationScheme.I_SINGLE;");
+	    output.println("\t\tmethods[" + i + "].result_mode = ibis.gmi.ReplyScheme.R_RETURN;");
 
 	    output.println("\t\tmethods[" + i + "].destinationSkeleton = -1;");
 /*

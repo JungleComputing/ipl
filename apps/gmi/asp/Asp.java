@@ -7,7 +7,7 @@
  *
  */
 
-import ibis.group.GroupMember;
+import ibis.gmi.GroupMember;
 
 class Asp extends GroupMember implements i_Asp {
 

@@ -1,7 +1,7 @@
-package ibis.ipl.impl.net.multi.plugins;
+package ibis.impl.net.multi.plugins;
 
-import ibis.ipl.impl.net.*;
-import ibis.ipl.impl.net.multi.*;
+import ibis.impl.net.*;
+import ibis.impl.net.multi.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;

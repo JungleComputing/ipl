@@ -1,4 +1,4 @@
-package ibis.ipl.impl.messagePassing;
+package ibis.impl.messagePassing;
 
 interface Protocol {
     static final byte NEW_RECEIVER = 1;

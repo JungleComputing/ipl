@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 /**
  * Provide a common interface to both {@link NetSendPort} and {@link

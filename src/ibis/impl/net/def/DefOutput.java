@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.def;
+package ibis.impl.net.def;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -13,7 +13,7 @@ public final class DefOutput extends NetBufferedOutput {
 	 * Constructor.
 	 *
 	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the DEF driver instance.
 	 */
 	DefOutput(NetPortType pt, NetDriver driver, String context)

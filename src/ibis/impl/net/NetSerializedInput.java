@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 import java.util.Hashtable;
 
@@ -6,7 +6,7 @@ import java.io.IOException;
 
 import ibis.io.SerializationInputStream;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 import ibis.ipl.Ibis;
 import ibis.ipl.InterruptedIOException;
 

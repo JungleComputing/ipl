@@ -409,9 +409,9 @@ class Latency implements Config {
 
 		try {
 			if(!panda) {
-				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.ipl.impl.tcp.TcpIbis", null);
+				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.impl.tcp.TcpIbis", null);
 			} else {
-				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.ipl.impl.messagePassing.PandaIbis", null);
+				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.impl.messagePassing.PandaIbis", null);
 			}
 
 			registry = ibis.registry();

@@ -17,7 +17,7 @@
 
     <import file="${ibis}/build-properties.xml"/>
 
-    <property name="src"         location="${ibis}/.."/>
+    <property name="src"         location="${ibis}/src"/>
     <property name="build"       location="${ibis}/build"/>
     <property name="docs"        location="${ibis}/docs"/>
 
@@ -66,8 +66,8 @@
 	<property name="ibis.escaped" value="${ibis}"/>
 
 	<copy
-		file="${ibis}/ipl/InstallConfiguration.java.in"
-		tofile="${ibis}/ipl/InstallConfiguration.java">
+		file="${ibis}/src/ibis/ipl/InstallConfiguration.java.in"
+		tofile="${ibis}/src/ibis/ipl/InstallConfiguration.java">
 	    <filterchain>
 		<filterreader
 			classname="org.apache.tools.ant.filters.ReplaceTokens">
@@ -100,14 +100,14 @@
     <path id="native.src.dirs">
 	<!--
 	-->
-	<pathelement path="${ibis}/io"/>
-	<pathelement path="${ibis}/ipl/impl/messagePassing"/>
-	<pathelement path="${ibis}/ipl/impl/messagePassing/panda"/>
+	<pathelement path="${ibis}/src/ibis/io"/>
+	<pathelement path="${ibis}/src/ibis/impl/messagePassing"/>
+	<pathelement path="${ibis}/src/ibis/impl/messagePassing/panda"/>
 	<!--
-	<pathelement path="${ibis}/ipl/impl/messagePassing/mpi"/>
+	<pathelement path="${ibis}/src/ibis/impl/messagePassing/mpi"/>
 	-->
-	<pathelement path="${ibis}/ipl/impl/net/gm"/>
-	<pathelement path="${ibis}/util/nativeCode"/>
+	<pathelement path="${ibis}/src/ibis/impl/net/gm"/>
+	<pathelement path="${ibis}/src/ibis/util/nativeCode"/>
 	<!--
 	-->
     </path>
@@ -145,14 +145,15 @@
 	    <include name="java/**/*.java"/>
 
 	    <include name="ibis/frontend/**/*.java"/>
-	    <include name="ibis/group/**/*.java"/>
+	    <include name="ibis/gmi/**/*.java"/>
 	    <include name="ibis/io/**/*.java"/>
 
 	    <include name="ibis/ipl/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/net/gm2/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/net/muxer/tcp_blk/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/messagePassing/panda/**/*.java"/>
+	    <include name="ibis/impl/**/*.java"/>
+	    <exclude name="ibis/impl/net/nio/**/*.java"/>
+	    <exclude name="ibis/impl/net/gm2/**/*.java"/>
+	    <exclude name="ibis/impl/net/muxer/tcp_blk/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
 
 	    <include name="ibis/satin/**/*.java"/>
 	    <include name="ibis/classfile/**/*.java"/>
@@ -172,15 +173,6 @@
 	For a number of source modules, provide a separate target
 	so we may compile only this source module, which is quicker.
     -->
-    <target name="classfile" depends="init">
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
-	    <include name="ibis/classfile/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-    </target>
-
 
     <target name="util" depends="init">
 	<javac  destdir="${build}"
@@ -226,13 +218,10 @@
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir="${src}">
-	    <include name="ibis/ipl/impl/nameServer/**/*.java"/>
+	    <include name="ibis/impl/nameServer/**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
-    </target>
-
-    <target name="run-ns" depends="init">
-	<java	classname="ibis.ipl.impl.nameServer.tcp.NameServer"
+	<java	classname="ibis.impl.nameServer.NameServer"
 		fork="true">
 	    <classpath refid="default.classpath"/>
 	    <arg line="-port 7654"/>
@@ -244,8 +233,8 @@
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir="${src}">
-	    <include name="ibis/ipl/impl/messagePassing/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/messagePassing/panda/**/*.java"/>
+	    <include name="ibis/impl/messagePassing/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
@@ -255,7 +244,7 @@
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir="${src}">
-	    <include name="ibis/ipl/impl/tcp/**/*.java"/>
+	    <include name="ibis/impl/tcp/**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
@@ -265,10 +254,9 @@
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir="${src}">
-	    <include name="ibis/ipl/impl/net/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/net/gm2/**/*.java"/>
-	    <exclude name="ibis/ipl/impl/net/muxer/tcp_blk/**/*.java"/>
+	    <include name="ibis/impl/net/**/*.java"/>
+	    <exclude name="ibis/impl/net/nio/**/*.java"/>
+	    <exclude name="ibis/impl/net/muxer/tcp_blk/**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
@@ -341,7 +329,7 @@
 	put them into ${rewritten-classlibs}
     -->
 
-    <property name="rewritten-classlibs" location="${src}/classlibs"/>
+    <property name="rewritten-classlibs" location="${build}/classlibs"/>
 
     <target name="-rewrite-unjar-one">
 	<echo level="warning" message="Now unjar ${jar.file}"/>
@@ -412,21 +400,30 @@
 
     <target name="clean">
 	<delete dir="build"/>
-	<delete dir="${docs}/api"/>
+	<delete dir="${docs}"/>
     </target>
 
     <target name="distclean" depends="clean">
 	<delete file="build-properties"/>
+	<delete file="config.mk"/>
+	<delete file="config.mk.old"/>
+	<delete file="config.mk.orig"/>
+	<delete file="configuration.sh"/>
+	<delete dir="bin"/>
     </target>
 
     <target name="docs" depends="init">
 	<!-- Create the javadoc directory -->
 	<delete dir="${docs}"/>
 	<mkdir dir="${docs}"/>
+	<copy
+	    file="${ibis}/src/ibis/doc/overview.html"
+	    tofile="${ibis}/docs/overview.html">
+	</copy>
 	<mkdir dir="${docs}/api"/>
-	<javadoc packagenames="ibis.ipl.*,ibis.group,ibis.rmi,ibis.io,ibis.satin" sourcepath="${src}" destdir="${docs}/api" author="true" version="true" use="true" windowtitle="Ibis API" doctitle="Ibis" bottom="The Ibis project">
+	<javadoc packagenames="ibis.ipl,ibis.impl.*,ibis.gmi,ibis.rmi,ibis.io,ibis.satin" sourcepath="${src}" destdir="${docs}/api" author="true" version="true" use="true" windowtitle="Ibis Documentation" overview="${ibis}/docs/overview.html" doctitle="Ibis Documentation" bottom="The Ibis project">
 	    <classpath refid="default.classpath"/>
-	    <group title="Ibis group" packages="ibis.group"/>
+	    <group title="Ibis GMI" packages="ibis.gmi"/>
 	    <group title="Ibis RMI" packages="ibis.rmi"/>
 	    <group title="Ibis IPL" packages="ibis.ipl*"/>
 	    <group title="Ibis IO" packages="ibis.io"/>

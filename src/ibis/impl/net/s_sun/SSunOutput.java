@@ -1,10 +1,10 @@
-package ibis.ipl.impl.net.s_sun;
+package ibis.impl.net.s_sun;
 
 import ibis.io.ArrayOutputStream;
 import ibis.io.SunSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 import java.io.OutputStream;

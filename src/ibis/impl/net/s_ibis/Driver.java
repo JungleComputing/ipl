@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.s_ibis;
+package ibis.impl.net.s_ibis;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 

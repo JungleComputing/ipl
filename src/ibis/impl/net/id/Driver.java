@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.id;
+package ibis.impl.net.id;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -45,7 +45,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new Id input.
 	 *
 	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
+	 * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
 	 * @return The new Id input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
@@ -57,7 +57,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new Id output.
 	 *
 	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @return The new Id output.
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)

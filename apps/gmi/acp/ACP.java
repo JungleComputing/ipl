@@ -1,5 +1,5 @@
 import java.io.*;
-import ibis.group.*;
+import ibis.gmi.*;
 
 class ACP {
       

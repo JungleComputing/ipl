@@ -1,5 +1,5 @@
-package ibis.ipl.impl.net.gen;
-import ibis.ipl.impl.net.*;
+package ibis.impl.net.gen;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 

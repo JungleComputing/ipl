@@ -31,7 +31,7 @@ NODES_EXCL_GATEWAYS=$(( $NODES_INCL_GATEWAYS-$CLUSTERS ))
 
 if [ $RANK -ge $NODES_EXCL_GATEWAYS ]; then
 	export LFC_RECV_PKTS=1024
-	$JAVA_ROOT/bin/java ibis.ipl.impl.messagePassing.PandaIbis
+	$JAVA_ROOT/bin/java ibis.impl.messagePassing.PandaIbis
 else
 	echo csim_run_ibis: My clusterid is.. clust$CLUSTERID
 	$JAVA_ROOT/bin/java -Xmx400M -Dibis.pool.host_number=$RANK -Dibis.pool.total_hosts=$NODES_EXCL_GATEWAYS -Dcluster=clust$CLUSTERID "$@"

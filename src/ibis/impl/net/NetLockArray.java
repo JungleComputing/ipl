@@ -1,7 +1,7 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
-import ibis.ipl.impl.generic.Monitor;
-import ibis.ipl.impl.generic.ConditionVariable;
+import ibis.util.Monitor;
+import ibis.util.ConditionVariable;
 
 import java.io.IOException;
 

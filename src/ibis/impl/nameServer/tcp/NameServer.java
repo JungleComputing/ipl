@@ -1,4 +1,4 @@
-package ibis.ipl.impl.nameServer.tcp;
+package ibis.impl.nameServer.tcp;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,7 +18,7 @@ import java.util.Vector;
 import java.util.Hashtable;
 
 import ibis.ipl.*;
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 
 public class NameServer implements Protocol {
 

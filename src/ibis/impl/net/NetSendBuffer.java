@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 /**
  * Provides a simple wrapper class for a byte array for sending data.

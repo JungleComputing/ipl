@@ -1,7 +1,7 @@
-package ibis.ipl.impl.net.rel;
+package ibis.impl.net.rel;
 
-import ibis.ipl.impl.net.NetAllocator;
-import ibis.ipl.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetAllocator;
+import ibis.impl.net.NetReceiveBuffer;
 
 class RelReceiveBuffer extends NetReceiveBuffer {
 

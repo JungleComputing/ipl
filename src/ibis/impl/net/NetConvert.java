@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

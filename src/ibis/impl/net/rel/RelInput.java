@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.rel;
+package ibis.impl.net.rel;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.Ibis;
@@ -131,7 +131,7 @@ public final class RelInput
      * Constructor.
      *
      * @param sp the properties of the input's
-     * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
      * @param driver the REL driver instance.
      */
     RelInput(NetPortType pt, NetDriver driver, String context) throws IOException {

@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * The {@link InvocationScheme} class provides a base class for all invocation schemes.

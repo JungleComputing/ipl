@@ -1,4 +1,4 @@
-import ibis.group.GroupMember;
+import ibis.gmi.GroupMember;
 
 class Broadcast extends GroupMember implements i_Broadcast { 
 

@@ -1,8 +1,8 @@
-package ibis.ipl.impl.nameServer.tcp;
+package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.*;
 
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 
 import java.net.ServerSocket;
 import java.net.Socket;

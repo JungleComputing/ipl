@@ -6,7 +6,7 @@
 
 #include "ibmp.h"
 
-#include "ibis_ipl_impl_messagePassing_InterruptCatcher.h"
+#include "ibis_impl_messagePassing_InterruptCatcher.h"
 
 
 static jfieldID	fld_signo;
@@ -24,9 +24,9 @@ init_fields(JNIEnv *env)
 
     inited = 1;
 
-    cls_InterruptCatcher = (*env)->FindClass(env, "ibis/ipl/impl/messagePassing/InterruptCatcher");
+    cls_InterruptCatcher = (*env)->FindClass(env, "ibis/impl/messagePassing/InterruptCatcher");
     if (cls_InterruptCatcher == NULL) {
-	ibmp_error(env, "Cannot finr class ibis/ipl/impl/messagePassing/InterruptCatcher");
+	ibmp_error(env, "Cannot finr class ibis/impl/messagePassing/InterruptCatcher");
     }
 
     fld_signo = (*env)->GetFieldID(env, cls_InterruptCatcher, "signo", "I");
@@ -34,7 +34,7 @@ init_fields(JNIEnv *env)
 
 
 JNIEXPORT jboolean JNICALL
-Java_ibis_ipl_impl_messagePassing_InterruptCatcher_supported(JNIEnv *env, jobject this)
+Java_ibis_impl_messagePassing_InterruptCatcher_supported(JNIEnv *env, jobject this)
 {
     return JNI_TRUE;
 }
@@ -59,7 +59,7 @@ pthread_t ibmp_sigcatcher_pthread;
 #endif
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_InterruptCatcher_registerHandler(JNIEnv *env, jobject this)
+Java_ibis_impl_messagePassing_InterruptCatcher_registerHandler(JNIEnv *env, jobject this)
 {
 #ifndef IBP_NO_INTPT
     extern void pan_comm_intr_enable(void);
@@ -71,7 +71,7 @@ Java_ibis_ipl_impl_messagePassing_InterruptCatcher_registerHandler(JNIEnv *env, 
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_InterruptCatcher_waitForSignal(JNIEnv *env, jobject this)
+Java_ibis_impl_messagePassing_InterruptCatcher_waitForSignal(JNIEnv *env, jobject this)
 {
 #ifndef IBP_NO_INTPT
     sigset_t	mask;

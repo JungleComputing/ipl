@@ -1,5 +1,5 @@
-#ifndef __IBIS_IPL_IMPL_MP_MPI_PAN_ALIGN_H__
-#define __IBIS_IPL_IMPL_MP_MPI_PAN_ALIGN_H__
+#ifndef __IBIS_IMPL_MP_MPI_PAN_ALIGN_H__
+#define __IBIS_IMPL_MP_MPI_PAN_ALIGN_H__
 
 
 #include <stddef.h>

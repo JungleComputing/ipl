@@ -107,7 +107,7 @@
 	    <fileset dir="${build}">
 		<include name="**/*.class"/>
 		<!--
-		<include name="ibis/ipl/impl/net/NetIbisException_ibis_io_Generator.class"/>
+		<include name="ibis/impl/net/NetIbisException_ibis_io_Generator.class"/>
 		-->
 	    </fileset>
 	</path>

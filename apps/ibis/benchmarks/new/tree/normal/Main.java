@@ -65,7 +65,7 @@ public class Main {
 				} 
 			}
 					
-			ibis = Ibis.createIbis("ibis", "ibis.ipl.impl.tcp.TcpIbis", null);
+			ibis = Ibis.createIbis("ibis", "ibis.impl.tcp.TcpIbis", null);
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();

@@ -93,7 +93,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 	// fs_stats_reset();
 	System.gc();
 	// javaSocketResetStats();
-	// ibis.ipl.impl.messagePassing.Ibis.resetStats();
+	// ibis.impl.messagePassing.Ibis.resetStats();
 	if (server_worker) {
 	    worker.reset();
 	}

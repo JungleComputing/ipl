@@ -1,4 +1,4 @@
-package ibis.ipl.impl.nameServer.tcp;
+package ibis.impl.nameServer.tcp;
 
 interface Protocol { 
 

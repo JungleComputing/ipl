@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.udp;
+package ibis.impl.net.udp;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;

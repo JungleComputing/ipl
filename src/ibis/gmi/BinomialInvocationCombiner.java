@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 /**
  * The {@link BinomialInvocationCombiner} class serves as a base class

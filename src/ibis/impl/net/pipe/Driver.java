@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.pipe;
+package ibis.impl.net.pipe;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 
@@ -37,7 +37,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new PIPE input.
 	 *
 	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
+	 * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
 	 * @return The new PIPE input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
@@ -49,7 +49,7 @@ public final class Driver extends NetDriver {
 	 * Creates a new PIPE output.
 	 *
 	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @return The new PIPE output.
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)

@@ -13,7 +13,7 @@ class Throughput extends Thread {
 
 	int windowSize = Integer.MAX_VALUE;
 
-	String ibis_impl = "ibis.ipl.impl.tcp.TcpIbis";
+	String ibis_impl = "ibis.impl.tcp.TcpIbis";
 
 	ReceivePort rport;
 	SendPort sport;
@@ -66,7 +66,7 @@ class Throughput extends Thread {
 		for (int i = 0; i < args.length; i++) {
 		    if (false) {
 		    } else if (args[i].equals("-panda")) {
-			ibis_impl = "ibis.ipl.impl.panda.PandaIbis";
+			ibis_impl = "ibis.impl.panda.PandaIbis";
 		    } else if (args[i].equals("-window")) {
 			windowSize = Integer.parseInt(args[++i]);
 			if (windowSize <= 0) {

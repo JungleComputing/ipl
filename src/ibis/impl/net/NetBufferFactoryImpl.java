@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 /**
  * Interface to specify a NetBufferFactoryImpl.

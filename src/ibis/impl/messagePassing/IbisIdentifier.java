@@ -1,4 +1,4 @@
-package ibis.ipl.impl.messagePassing;
+package ibis.impl.messagePassing;
 
 import java.io.IOException;
 import java.io.StreamCorruptedException;
@@ -6,7 +6,7 @@ import java.net.InetAddress;
 
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.IbisSerializationInputStream;
-import ibis.ipl.impl.generic.IbisIdentifierTable;
+import ibis.util.IbisIdentifierTable;
 
 // Make this final, make inlining possible
 final class IbisIdentifier

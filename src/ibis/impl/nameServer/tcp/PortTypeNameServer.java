@@ -1,9 +1,9 @@
-package ibis.ipl.impl.nameServer.tcp;
+package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 
-import ibis.ipl.impl.generic.*;
+import ibis.util.*;
 
 import java.net.ServerSocket;
 import java.net.Socket;

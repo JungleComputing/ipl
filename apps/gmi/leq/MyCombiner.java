@@ -1,4 +1,4 @@
-import ibis.group.*;
+import ibis.gmi.*;
 
 public class MyCombiner extends FlatInvocationCombiner { 
 

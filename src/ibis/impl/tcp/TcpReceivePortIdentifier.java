@@ -1,4 +1,4 @@
-package ibis.ipl.impl.tcp;
+package ibis.impl.tcp;
 
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.PortType;

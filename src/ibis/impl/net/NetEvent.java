@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 /**
  * Provide an abstract class for implementing {@linkplain

@@ -1,4 +1,4 @@
-import ibis.group.GroupMember;
+import ibis.gmi.GroupMember;
 
 class Test extends GroupMember implements myGroup { 
 

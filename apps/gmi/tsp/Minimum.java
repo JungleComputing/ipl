@@ -1,4 +1,4 @@
-import ibis.group.GroupMember;
+import ibis.gmi.GroupMember;
 
 public class Minimum extends GroupMember implements i_Minimum {
 

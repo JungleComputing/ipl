@@ -1,5 +1,5 @@
 <project
-    name="ibis.ipl.impl.messagePassing.mpi.native"
+    name="ibis.impl.messagePassing.mpi.native"
     default="build"
     basedir=".">
 

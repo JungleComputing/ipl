@@ -1,7 +1,7 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 public class NetReceiveBufferFactoryDefaultImpl
-    implements ibis.ipl.impl.net.NetBufferFactoryImpl {
+    implements ibis.impl.net.NetBufferFactoryImpl {
 
     public NetBuffer createBuffer(byte[] data,
 				  int length,

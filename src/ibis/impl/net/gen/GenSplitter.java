@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.gen;
+package ibis.impl.net.gen;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.util.Iterator;
 import java.util.HashMap;

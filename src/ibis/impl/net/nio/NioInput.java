@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.nio;
+package ibis.impl.net.nio;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import ibis.ipl.ConnectionClosedException;
 
@@ -108,7 +108,7 @@ public final class NioInput extends NetInput {
      * Constructor.
      *
      * @param sp the properties of the input's 
-     * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+     * {@link ibis.impl.net.NetSendPort NetSendPort}.
      * @param driver the Nio driver instance.
      * @param input the controlling input.
      */

@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 import java.io.IOException;
 
@@ -6,7 +6,7 @@ import java.io.IOException;
  * Provide a generic interface for the low level network drivers.
  *
  * Each non-abstract subclass of this class should be named <CODE>Driver</CODE>
- * and placed in a sub-package/sub-directory of {@link ibis.ipl.impl.net} to allow
+ * and placed in a sub-package/sub-directory of {@link ibis.impl.net} to allow
  * for the dynamic driver loading mechanism to find the driver properly.
  */
 public abstract class NetDriver {

@@ -1,4 +1,4 @@
-package ibis.ipl.impl.generic;
+package ibis.util;
 
 import ibis.io.*;
 import java.util.HashMap;

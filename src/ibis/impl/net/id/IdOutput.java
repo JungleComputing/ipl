@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.id;
+package ibis.impl.net.id;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.IOException;
 
@@ -24,7 +24,7 @@ public final class IdOutput extends NetOutput {
 	 * Constructor.
 	 *
 	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 */
 	IdOutput(NetPortType pt, NetDriver driver, String context) throws IOException {

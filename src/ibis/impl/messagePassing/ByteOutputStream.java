@@ -1,8 +1,8 @@
-package ibis.ipl.impl.messagePassing;
+package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
-import ibis.ipl.impl.generic.ConditionVariable;
+import ibis.util.ConditionVariable;
 
 
 final class ByteOutputStream

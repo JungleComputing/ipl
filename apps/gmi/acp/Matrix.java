@@ -1,4 +1,4 @@
-import ibis.group.*;
+import ibis.gmi.*;
 
 class Matrix extends GroupMember implements i_Matrix { 
 

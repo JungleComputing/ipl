@@ -1,5 +1,5 @@
 /*
- * Code shared by natives for package ibis.ipl.impl.messagePassing.mpi
+ * Code shared by natives for package ibis.impl.messagePassing.mpi
  */
 
 #include <string.h>
@@ -19,7 +19,7 @@
 #define USE_STDARG
 #include <mpi.h>
 
-#include "ibis_ipl_impl_messagePassing_Ibis.h"
+#include "ibis_impl_messagePassing_Ibis.h"
 
 #include "../ibmp.h"
 
@@ -48,7 +48,7 @@ ibp_pid_nr(void)
 
 
 JNIEXPORT jlong JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
+Java_ibis_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 {
     union lt {
 	double	t;
@@ -62,7 +62,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 
 
 JNIEXPORT jdouble JNICALL
-Java_ibis_ipl_impl_messagePassing_Ibis_t2d(JNIEnv *env, jclass c, jlong l)
+Java_ibis_impl_messagePassing_Ibis_t2d(JNIEnv *env, jclass c, jlong l)
 {
     union lt {
 	double	t;
@@ -348,7 +348,7 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
 {
     int		p4_argc = *argc;
 
-    ibmp_check_ibis_name(env, "ibis.ipl.impl.messagePassing.MPIIbis");
+    ibmp_check_ibis_name(env, "ibis.impl.messagePassing.MPIIbis");
 
     argv = ibmpi_p4_args(&p4_argc, argv);
 

@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.tcp_plain;
+package ibis.impl.net.tcp_plain;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.net.Socket;
 import java.net.InetAddress;
@@ -25,7 +25,7 @@ public final class TcpOutput extends NetOutput {
 	private Socket                   tcpSocket = null;
 
 	/**
-	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+	 * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}
 	 * local number.
 	 */
 	private Integer                  rpn 	   = null;
@@ -49,7 +49,7 @@ public final class TcpOutput extends NetOutput {
 	 * Constructor.
 	 *
 	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
 	 */
 	TcpOutput(NetPortType pt, NetDriver driver, String context)

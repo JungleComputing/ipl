@@ -1,4 +1,4 @@
-import ibis.group.GroupMember;
+import ibis.gmi.GroupMember;
 
 public class JobQueue extends GroupMember implements i_JobQueue {
 

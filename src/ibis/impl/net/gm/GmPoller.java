@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.gm;
+package ibis.impl.net.gm;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

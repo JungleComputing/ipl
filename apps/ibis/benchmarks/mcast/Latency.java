@@ -45,7 +45,7 @@ class Latency {
 			int size = info.size();
 			int remoteRank = (rank == 0 ? 1 : 0);
 
-			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.tcp.TcpIbis", null);
+			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.impl.tcp.TcpIbis", null);
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();

@@ -1,4 +1,4 @@
-package ibis.ipl.impl.nameServer;
+package ibis.impl.nameServer;
 
 import java.io.IOException;
 import ibis.ipl.StaticProperties;
@@ -33,7 +33,7 @@ public abstract class NameServer implements ibis.ipl.Registry {
 		String nameServerName = p.getProperty("ibis.name_server.impl");
 		if(nameServerName == null) {
 			System.err.println("property ibis.name_server.impl not set, using TCP nameserver");
-			nameServerName = "ibis.ipl.impl.nameServer.tcp.NameServerClient";
+			nameServerName = "ibis.impl.nameServer.tcp.NameServerClient";
 		}
 
 		Class c;

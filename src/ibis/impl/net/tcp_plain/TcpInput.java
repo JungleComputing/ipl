@@ -1,8 +1,8 @@
-package ibis.ipl.impl.net.tcp_plain;
+package ibis.impl.net.tcp_plain;
 
 import ibis.ipl.ConnectionClosedException;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -38,7 +38,7 @@ public final class TcpInput extends NetInput {
 	private Socket                tcpSocket       = null;
 
 	/**
-	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
+	 * The peer {@link ibis.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
 	private volatile Integer      spn  	      = null;
@@ -70,7 +70,7 @@ public final class TcpInput extends NetInput {
 	 * Constructor.
 	 *
 	 * @param sp the properties of the input's
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
+	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
 	 * @param input the controlling input.
 	 */

@@ -1,4 +1,4 @@
-package ibis.ipl.impl.tcp;
+package ibis.impl.tcp;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.PortType;
@@ -11,10 +11,10 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisException;
 import ibis.ipl.Registry;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.impl.generic.IbisIdentifierTable;
+import ibis.util.IbisIdentifierTable;
 import ibis.ipl.ReadMessage;
 
-import ibis.ipl.impl.nameServer.NameServer;
+import ibis.impl.nameServer.NameServer;
 
 import java.net.Socket;
 import java.net.InetAddress;

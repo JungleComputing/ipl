@@ -51,9 +51,9 @@ void
 ibmp_send_port_init(JNIEnv *env)
 {
     cls_ShadowSendPort = (*env)->FindClass(env,
-				   "ibis/ipl/impl/messagePassing/ShadowSendPort");
+				   "ibis/impl/messagePassing/ShadowSendPort");
     if (cls_ShadowSendPort == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/ShadowSendPort\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find class ibis/impl/messagePassing/ShadowSendPort\n", __FILE__, __LINE__);
 	abort();
     }
     cls_ShadowSendPort = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ShadowSendPort);
@@ -62,13 +62,13 @@ ibmp_send_port_init(JNIEnv *env)
 			env,
 			cls_ShadowSendPort,
 			"createShadowSendPort",
-			"([B[B)Libis/ipl/impl/messagePassing/ShadowSendPort;");
+			"([B[B)Libis/impl/messagePassing/ShadowSendPort;");
 
     if (md_createSSP == NULL) {
 	if ((*env)->ExceptionOccurred(env)) {
 	    (*env)->ExceptionDescribe(env);
 	}
-	fprintf(stderr, "%s.%d Cannot find method createShadowSendPort([B[B)Libis.ipl.impl.messagePassing.ShadowSendPort;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find method createShadowSendPort([B[B)Libis.impl.messagePassing.ShadowSendPort;\n", __FILE__, __LINE__);
 	abort();
     }
     md_disconnect = (*env)->GetStaticMethodID(env, cls_ShadowSendPort,

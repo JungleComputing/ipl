@@ -1,15 +1,15 @@
-package ibis.ipl.impl.net.muxer;
+package ibis.impl.net.muxer;
 
 import java.util.Hashtable;
 
 import java.io.IOException;
 
-import ibis.ipl.impl.net.NetConvert;
-import ibis.ipl.impl.net.NetPortType;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetBufferedOutput;
-import ibis.ipl.impl.net.NetConnection;
+import ibis.impl.net.NetConvert;
+import ibis.impl.net.NetPortType;
+import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIO;
+import ibis.impl.net.NetBufferedOutput;
+import ibis.impl.net.NetConnection;
 
 public abstract class MuxerOutput extends NetBufferedOutput {
 

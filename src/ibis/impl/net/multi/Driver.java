@@ -1,6 +1,6 @@
-package ibis.ipl.impl.net.multi;
+package ibis.impl.net.multi;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.util.Hashtable;
 

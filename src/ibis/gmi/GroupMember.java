@@ -1,4 +1,4 @@
-package ibis.group;
+package ibis.gmi;
 
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -147,7 +147,7 @@ public class GroupMember {
      */
     private boolean isGroupInterface(Class inter) { 
 
-	if (inter == ibis.group.GroupInterface.class) { 
+	if (inter == ibis.gmi.GroupInterface.class) { 
 	    return true;
 	}
 

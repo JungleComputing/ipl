@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net.bytes;
+package ibis.impl.net.bytes;
 
 public interface Settings {
 

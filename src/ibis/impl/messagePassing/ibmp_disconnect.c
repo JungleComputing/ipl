@@ -6,7 +6,7 @@
 #include "ibmp.h"
 #include "ibmp_send_port.h"
 
-#include "ibis_ipl_impl_messagePassing_OutputConnection.h"
+#include "ibis_impl_messagePassing_OutputConnection.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
@@ -34,7 +34,7 @@ ibmp_disconnect_hdr(void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_ipl_impl_messagePassing_OutputConnection_ibmp_1disconnect(
+Java_ibis_impl_messagePassing_OutputConnection_ibmp_1disconnect(
 	JNIEnv *env,
 	jobject this,
 	jint cpu,

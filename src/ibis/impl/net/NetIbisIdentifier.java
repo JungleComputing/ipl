@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net;
+package ibis.impl.net;
 
 import java.io.IOException;
 import java.io.EOFException;
@@ -9,7 +9,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisError;
 
 import ibis.io.Serializable;
-import ibis.ipl.impl.generic.IbisIdentifierTable;
+import ibis.util.IbisIdentifierTable;
 
 public final class NetIbisIdentifier extends IbisIdentifier implements java.io.Serializable {
 

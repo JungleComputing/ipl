@@ -1,4 +1,4 @@
-package ibis.frontend.group;
+package ibis.frontend.gmi;
 
 import java.util.Vector;
 import java.io.PrintWriter;
@@ -27,7 +27,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	Type [] params = m.getArgumentTypes();
 	String name = this.name + m.getName();
 
-	output.println("final class " + name + " extends ibis.group.ParameterVector {\n");	
+	output.println("final class " + name + " extends ibis.gmi.ParameterVector {\n");	
 	output.println("\tprivate final static int TOTAL_PARAMS = " + params.length + ";\n");	
 
 	/* Parameter fields */
@@ -374,7 +374,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
       
     void generate() { 
 	output.println("import java.io.IOException;\n");
-	output.println("import ibis.group.ParameterVector;\n");
+	output.println("import ibis.gmi.ParameterVector;\n");
 	output.println("import ibis.ipl.WriteMessage;");
 	output.println("import ibis.ipl.ReadMessage;\n");
 	for (int i=0;i<data.specialMethods.size();i++) { 

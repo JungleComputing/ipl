@@ -1,4 +1,4 @@
-package ibis.ipl.impl.generic;
+package ibis.util;
 
 class PoolThread extends Thread {
 	Queue q;

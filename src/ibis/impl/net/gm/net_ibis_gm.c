@@ -18,9 +18,9 @@
 #pragma warn - 8057
 #endif
 
-#include "ibis_ipl_impl_net_gm_Driver.h"
-#include "ibis_ipl_impl_net_gm_GmInput.h"
-#include "ibis_ipl_impl_net_gm_GmOutput.h"
+#include "ibis_impl_net_gm_Driver.h"
+#include "ibis_impl_net_gm_GmInput.h"
+#include "ibis_impl_net_gm_GmOutput.h"
 
 
 #if defined _M_IX86
@@ -209,7 +209,7 @@ typedef struct NI_GM_HDR {
 } ni_gm_hdr_t, *ni_gm_hdr_p;
 
 #define NI_GM_PACKET_HDR_LEN	((int)sizeof(ni_gm_hdr_t))
-#define NI_GM_PACKET_BODY_LEN	ibis_ipl_impl_net_gm_Driver_packetMTU
+#define NI_GM_PACKET_BODY_LEN	ibis_impl_net_gm_Driver_packetMTU
 #define NI_GM_PACKET_LEN	(NI_GM_PACKET_HDR_LEN + NI_GM_PACKET_BODY_LEN)
 #define NI_GM_BYTE_BUFFER_OFFSET \
 				((int)offsetof(ni_gm_hdr_t, byte_buffer_offset))
@@ -813,10 +813,10 @@ ni_gm_lock_init(JNIEnv          *env,
                 jfieldID fid          = 0;
                 jobject  lock_array   = 0;
 
-                driver_class      = (*env)->FindClass(env, "ibis/ipl/impl/net/gm/Driver");
+                driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
                 assert(driver_class);
 
-                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmLockArray", "Libis/ipl/impl/net/NetLockArray;");
+                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmLockArray", "Libis/impl/net/NetLockArray;");
                 assert(fid);
 
                 lock_array        = (*env)->GetStaticObjectField(env, driver_class, fid);
@@ -825,7 +825,7 @@ ni_gm_lock_init(JNIEnv          *env,
                 p_lock->ref       = (*env)->NewGlobalRef(env, lock_array);
                 assert(p_lock->ref);
 
-                lock_class        = (*env)->FindClass(env, "ibis/ipl/impl/net/NetLockArray");
+                lock_class        = (*env)->FindClass(env, "ibis/impl/net/NetLockArray");
                 assert(lock_class);
 
                 p_lock->lock_id = (*env)->GetMethodID(env, lock_class, "lock", "(I)V");
@@ -877,10 +877,10 @@ ni_gm_access_lock_init(JNIEnv                *env,
                 jfieldID fid          = 0;
                 jobject  alock_obj    = 0;
 
-                driver_class      = (*env)->FindClass(env, "ibis/ipl/impl/net/gm/Driver");
+                driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
                 assert(driver_class);
 
-                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmAccessLock", "Libis/ipl/impl/net/NetPriorityMutex;");
+                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmAccessLock", "Libis/impl/net/NetPriorityMutex;");
                 assert(fid);
 
                 alock_obj          = (*env)->GetStaticObjectField(env, driver_class, fid);
@@ -889,7 +889,7 @@ ni_gm_access_lock_init(JNIEnv                *env,
                 p_alock->ref       = (*env)->NewGlobalRef(env, alock_obj);
                 assert(p_alock->ref);
 
-                alock_class        = (*env)->FindClass(env, "ibis/ipl/impl/net/NetPriorityMutex");
+                alock_class        = (*env)->FindClass(env, "ibis/impl/net/NetPriorityMutex");
                 assert(alock_class);
 
                 p_alock->lock_id = (*env)->GetMethodID(env, alock_class, "lock", "(Z)V");
@@ -982,7 +982,7 @@ ni_gm_mutex_init(JNIEnv          *env,
                 assert(object_class);
 
                 fid = (*env)->GetFieldID(env, object_class, field,
-                                         "Libis/ipl/impl/net/NetMutex;");
+                                         "Libis/impl/net/NetMutex;");
                 assert(fid);
 
                 mutex = (*env)->GetObjectField(env, object, fid);
@@ -991,7 +991,7 @@ ni_gm_mutex_init(JNIEnv          *env,
                 p_mutex->ref = (*env)->NewGlobalRef(env, mutex);
                 assert(p_mutex->ref);
 
-                mutex_class = (*env)->FindClass(env, "ibis/ipl/impl/net/NetMutex");
+                mutex_class = (*env)->FindClass(env, "ibis/impl/net/NetMutex");
                 assert(mutex_class);
 
                 p_mutex->unlock_id =
@@ -2919,9 +2919,9 @@ fprintf(stderr, "NI GM: throw an exception \"%s\"\n", msg);
 JNIEXPORT
 jlong
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nInitOutput(JNIEnv  *env,
-                                                jobject  output,
-                                                jlong    device_handle) {
+Java_ibis_impl_net_gm_GmOutput_nInitOutput(JNIEnv  *env,
+                                           jobject  output,
+                                           jlong    device_handle) {
         struct s_dev    *p_dev  = NULL;
         struct s_output *p_out  = NULL;
         jlong            result =    0;
@@ -2943,9 +2943,9 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nInitOutput(JNIEnv  *env,
 JNIEXPORT
 jlong
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmInput_nInitInput(JNIEnv  *env,
-                                              jobject  input,
-                                              jlong    device_handle) {
+Java_ibis_impl_net_gm_GmInput_nInitInput(JNIEnv  *env,
+                                         jobject  input,
+                                         jlong    device_handle) {
         struct s_dev   *p_dev  = NULL;
         struct s_input *p_in   = NULL;
         jlong           result =    0;
@@ -2981,9 +2981,9 @@ Java_ibis_ipl_impl_net_gm_GmInput_nInitInput(JNIEnv  *env,
 JNIEXPORT
 jint
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nGetOutputNodeId(JNIEnv  *env,
-                                                    jobject  output,
-                                                    jlong    output_handle){
+Java_ibis_impl_net_gm_GmOutput_nGetOutputNodeId(JNIEnv  *env,
+                                                jobject  output,
+                                                jlong    output_handle){
         struct s_output *p_out  = NULL;
         int              result = 0;
 
@@ -3003,9 +3003,9 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nGetOutputNodeId(JNIEnv  *env,
 JNIEXPORT
 jint
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmInput_nGetInputNodeId(JNIEnv  *env,
-                                                   jobject  input,
-                                                   jlong    input_handle) {
+Java_ibis_impl_net_gm_GmInput_nGetInputNodeId(JNIEnv  *env,
+                                              jobject  input,
+                                               jlong    input_handle) {
         struct s_input *p_in  = NULL;
         int             result = 0;
 
@@ -3025,9 +3025,9 @@ Java_ibis_ipl_impl_net_gm_GmInput_nGetInputNodeId(JNIEnv  *env,
 JNIEXPORT
 jint
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nGetOutputPortId(JNIEnv  *env,
-                                                     jobject  output,
-                                                     jlong    output_handle){
+Java_ibis_impl_net_gm_GmOutput_nGetOutputPortId(JNIEnv  *env,
+                                                jobject  output,
+                                                jlong    output_handle){
         struct s_output *p_out  = NULL;
         int              result = 0;
 
@@ -3047,9 +3047,9 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nGetOutputPortId(JNIEnv  *env,
 JNIEXPORT
 jint
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmInput_nGetInputPortId(JNIEnv  *env,
-                                                   jobject  input,
-                                                   jlong    input_handle) {
+Java_ibis_impl_net_gm_GmInput_nGetInputPortId(JNIEnv  *env,
+                                              jobject  input,
+                                              jlong    input_handle) {
         struct s_input *p_in   = NULL;
         int             result = 0;
 
@@ -3069,9 +3069,9 @@ Java_ibis_ipl_impl_net_gm_GmInput_nGetInputPortId(JNIEnv  *env,
 JNIEXPORT
 jint
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nGetOutputMuxId(JNIEnv  *env,
-                                                   jobject  output,
-                                                   jlong    output_handle){
+Java_ibis_impl_net_gm_GmOutput_nGetOutputMuxId(JNIEnv  *env,
+                                               jobject  output,
+                                               jlong    output_handle){
         struct s_output *p_out  = NULL;
         int              result = 0;
 
@@ -3091,9 +3091,9 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nGetOutputMuxId(JNIEnv  *env,
 JNIEXPORT
 jint
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmInput_nGetInputMuxId(JNIEnv  *env,
-                                                 jobject  input,
-                                                 jlong    input_handle) {
+Java_ibis_impl_net_gm_GmInput_nGetInputMuxId(JNIEnv  *env,
+                                             jobject  input,
+                                             jlong    input_handle) {
         struct s_input *p_in   = NULL;
         int             result = 0;
 
@@ -3113,12 +3113,12 @@ Java_ibis_ipl_impl_net_gm_GmInput_nGetInputMuxId(JNIEnv  *env,
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nConnectOutput(JNIEnv  *env,
-                                                  jobject  output,
-                                                  jlong    output_handle,
-                                                  jint     remote_node_id,
-                                                  jint     remote_port_id,
-                                                  jint     remote_mux_id) {
+Java_ibis_impl_net_gm_GmOutput_nConnectOutput(JNIEnv  *env,
+                                              jobject  output,
+                                              jlong    output_handle,
+                                              jint     remote_node_id,
+                                              jint     remote_port_id,
+                                              jint     remote_mux_id) {
         struct s_output *p_out = NULL;
 
         __in__();
@@ -3138,12 +3138,12 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nConnectOutput(JNIEnv  *env,
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmInput_nConnectInput(JNIEnv  *env,
-                                                jobject  input,
-                                                jlong    input_handle,
-                                                jint     remote_node_id,
-                                                jint     remote_port_id,
-                                                jint     remote_mux_id) {
+Java_ibis_impl_net_gm_GmInput_nConnectInput(JNIEnv  *env,
+                                            jobject  input,
+                                            jlong    input_handle,
+                                            jint     remote_node_id,
+                                            jint     remote_port_id,
+                                            jint     remote_mux_id) {
         struct s_input *p_in = NULL;
 
         __in__();
@@ -3162,11 +3162,11 @@ Java_ibis_ipl_impl_net_gm_GmInput_nConnectInput(JNIEnv  *env,
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
-                                                jobject     output,
-                                                jlong       output_handle,
-						jint        offset,
-						jint        length) {
+Java_ibis_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
+                                            jobject     output,
+                                            jlong       output_handle,
+					    jint        offset,
+					    jint        length) {
         struct s_output *p_out   = NULL;
 
         __in__();
@@ -3193,9 +3193,9 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nFlush(JNIEnv *env,
-					  jobject this,
-					  jlong output_handle)
+Java_ibis_impl_net_gm_GmOutput_nFlush(JNIEnv *env,
+				      jobject this,
+				      jlong output_handle)
 {
     struct s_output *p_out;
 
@@ -3208,10 +3208,10 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nFlush(JNIEnv *env,
 JNIEXPORT
 jboolean
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nTryFlush(JNIEnv *env,
-					     jobject this,
-					     jlong output_handle,
-					     jint length)
+Java_ibis_impl_net_gm_GmOutput_nTryFlush(JNIEnv *env,
+					 jobject this,
+					 jlong output_handle,
+					 jint length)
 {
     struct s_output *p_out = ni_gm_handle2ptr(output_handle);
 
@@ -3228,10 +3228,10 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nTryFlush(JNIEnv *env,
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nSendByte(JNIEnv *env,
-					     jobject this,
-					     jlong output_handle,
-					     jbyte value)
+Java_ibis_impl_net_gm_GmOutput_nSendByte(JNIEnv *env,
+					 jobject this,
+					 jlong output_handle,
+					 jbyte value)
 {
     struct s_output *p_out = ni_gm_handle2ptr(output_handle);
     jbyte      *buffer;
@@ -3253,7 +3253,7 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nSendByte(JNIEnv *env,
 JNIEXPORT \
 void \
 JNICALL \
-Java_ibis_ipl_impl_net_gm_GmOutput_nSend ## Jtype ## BufferIntoRequest( \
+Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## BufferIntoRequest( \
 			JNIEnv     *env, \
 			jobject     output, \
 			jlong       output_handle, \
@@ -3313,7 +3313,7 @@ error: \
 JNIEXPORT \
 void \
 JNICALL \
-Java_ibis_ipl_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
+Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
 			jobject     output, \
 			jlong       output_handle, \
 			jtype ## Array  b, \
@@ -3381,7 +3381,7 @@ SEND_BUFFER(E_DOUBLE,  jdouble,  j_double,  Double)
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nSendBufferIntoRequest(
+Java_ibis_impl_net_gm_GmOutput_nSendBufferIntoRequest(
 		JNIEnv     *env,
 		jobject     output,
 		jlong       output_handle,
@@ -3451,14 +3451,14 @@ error:
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nSendBuffer(JNIEnv     *env,
-                                               jobject     output,
-                                               jlong       output_handle,
-                                               jbyteArray  b,
-                                               jint        offset,
-                                               jint        length)
+Java_ibis_impl_net_gm_GmOutput_nSendBuffer(JNIEnv     *env,
+                                           jobject     output,
+                                           jlong       output_handle,
+                                           jbyteArray  b,
+                                           jint        offset,
+                                           jint        length)
 {
-    Java_ibis_ipl_impl_net_gm_GmOutput_nSendByteBuffer(env,
+    Java_ibis_impl_net_gm_GmOutput_nSendByteBuffer(env,
 						       output,
 						       output_handle,
 						       b,
@@ -3470,9 +3470,9 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nSendBuffer(JNIEnv     *env,
 JNIEXPORT
 jint
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmInput_nPostByte(JNIEnv *env,
-					    jobject this,
-					    jlong   input_handle)
+Java_ibis_impl_net_gm_GmInput_nPostByte(JNIEnv *env,
+					jobject this,
+					jlong   input_handle)
 {
     struct s_input *p_in = NULL;
     jbyte          *buffer;
@@ -3495,7 +3495,7 @@ Java_ibis_ipl_impl_net_gm_GmInput_nPostByte(JNIEnv *env,
     pend(POST_BUFFER);
 
     __out__();
-    __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostByte: returning %d", (int)result);
+    __disp__("Java_ibis_impl_net_gm_GmInput_nPostByte: returning %d", (int)result);
     return ((jint)result) & 0xFF;
 
 error:
@@ -3508,7 +3508,7 @@ error:
 JNIEXPORT \
 jint \
 JNICALL \
-Java_ibis_ipl_impl_net_gm_GmInput_nPost ## Jtype ## Buffer(JNIEnv     *env, \
+Java_ibis_impl_net_gm_GmInput_nPost ## Jtype ## Buffer(JNIEnv     *env, \
                                               jobject     input, \
                                               jlong       input_handle, \
                                               jtype ## Array  b, \
@@ -3536,7 +3536,7 @@ Java_ibis_ipl_impl_net_gm_GmInput_nPost ## Jtype ## Buffer(JNIEnv     *env, \
     pend(POST_BUFFER); \
     \
     __out__(); \
-    __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPost%s: returning %d", #Jtype, (int)result); \
+    __disp__("Java_ibis_impl_net_gm_GmInput_nPost%s: returning %d", #Jtype, (int)result); \
     return result; \
     \
 error: \
@@ -3561,12 +3561,12 @@ POST_BUFFER(E_DOUBLE,  jdouble,  j_double,  Double)
 JNIEXPORT
 jint
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer(JNIEnv    *env,
-					      jobject    input,
-					      jlong      input_handle,
-					      jbyteArray b,
-					      jint       offset,
-					      jint       len)
+Java_ibis_impl_net_gm_GmInput_nPostBuffer(JNIEnv    *env,
+					  jobject    input,
+					  jlong      input_handle,
+					  jbyteArray b,
+					  jint       offset,
+					  jint       len)
 {
     struct s_input *p_in = NULL;
     jbyte          *buffer;
@@ -3589,7 +3589,7 @@ Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer(JNIEnv    *env,
     pend(POST_BUFFER);
    
     __out__();
-    __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPost%s: returning %d", "Buffer", (int)result);
+    __disp__("Java_ibis_impl_net_gm_GmInput_nPost%s: returning %d", "Buffer", (int)result);
     return result;
    
 error:
@@ -3601,9 +3601,9 @@ error:
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmOutput_nCloseOutput(JNIEnv  *env,
-                                                jobject  output,
-                                                jlong    output_handle) {
+Java_ibis_impl_net_gm_GmOutput_nCloseOutput(JNIEnv  *env,
+                                            jobject  output,
+                                            jlong    output_handle) {
         struct s_output *p_out = NULL;
 
         __in__();
@@ -3623,7 +3623,7 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nCloseOutput(JNIEnv  *env,
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_GmInput_nCloseInput(JNIEnv *env, jobject input, jlong input_handle) {
+Java_ibis_impl_net_gm_GmInput_nCloseInput(JNIEnv *env, jobject input, jlong input_handle) {
         struct s_input *p_in = NULL;
 
         __in__();
@@ -3651,7 +3651,7 @@ mtu_init(JNIEnv *env)
 
         __in__();
 
-	driver_class      = (*env)->FindClass(env, "ibis/ipl/impl/net/gm/Driver");
+	driver_class      = (*env)->FindClass(env, "ibis/impl/net/gm/Driver");
 	assert(driver_class);
 
 	fid               = (*env)->GetStaticFieldID(env, driver_class, "mtu", "I");
@@ -3679,7 +3679,7 @@ mtu_init(JNIEnv *env)
 JNIEXPORT
 jlong
 JNICALL
-Java_ibis_ipl_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint device_num) {
+Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint device_num) {
         struct s_dev *p_dev  = NULL;
         jlong         result =    0;
 
@@ -3719,7 +3719,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint d
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong device_handle) {
+Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong device_handle) {
         struct s_dev *p_dev  = NULL;
 
         __in__();
@@ -3743,7 +3743,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong
 JNIEXPORT
 jboolean
 JNICALL
-Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
+Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
         static int next_dev = 0;
         _current_env = env;
 
@@ -3835,7 +3835,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
 JNIEXPORT
 void
 JNICALL
-Java_ibis_ipl_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class) {
+Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class) {
         static int next_dev = 0;
         _current_env = env;
 

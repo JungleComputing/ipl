@@ -1,10 +1,10 @@
-package ibis.ipl.impl.net.s_ibis;
+package ibis.impl.net.s_ibis;
 
 import ibis.io.IbisDissipator;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.SerializationInputStream;
 
-import ibis.ipl.impl.net.*;
+import ibis.impl.net.*;
 
 import java.util.Hashtable;
 

@@ -74,9 +74,9 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     fld_ibis = (*env)->GetStaticFieldID(env,
 				        ibmp_cls_Ibis,
 				        "myIbis",
-				        "Libis/ipl/impl/messagePassing/Ibis;");
+				        "Libis/impl/messagePassing/Ibis;");
     if (fld_ibis == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find static field myIbis:Libis/impl/messagePassing/Ibis;\n", __FILE__, __LINE__);
 	abort();
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
@@ -86,18 +86,18 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     fld_registry = (*env)->GetFieldID(env,
 				ibmp_cls_Ibis,
 				"registry",
-				"Libis/ipl/impl/messagePassing/Registry;");
+				"Libis/impl/messagePassing/Registry;");
     if (fld_registry == NULL) {
-	fprintf(stderr, "%s.%d Cannot find field registry:Libis/ipl/impl/messagePassing/Registry;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find field registry:Libis/impl/messagePassing/Registry;\n", __FILE__, __LINE__);
 	abort();
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 
     obj_registry = (*env)->GetObjectField(env, obj_ibis, fld_registry);
 
-    cls_Registry = (*env)->FindClass(env, "ibis/ipl/impl/messagePassing/Registry");
+    cls_Registry = (*env)->FindClass(env, "ibis/impl/messagePassing/Registry");
     if (cls_Registry == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/Registry\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find class ibis/impl/messagePassing/Registry\n", __FILE__, __LINE__);
 	abort();
     }
     cls_Registry = (*env)->NewGlobalRef(env, cls_Registry);
@@ -106,9 +106,9 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     fld_ns = (*env)->GetFieldID(env,
 				cls_Registry,
 				"nameServer",
-				"Libis/ipl/impl/messagePassing/ReceivePortNameServer;");
+				"Libis/impl/messagePassing/ReceivePortNameServer;");
     if (fld_ns == NULL) {
-	fprintf(stderr, "%s.%d Cannot find field nameServer:Libis/ipl/impl/messagePassing/ReceivePortNameServer;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find field nameServer:Libis/impl/messagePassing/ReceivePortNameServer;\n", __FILE__, __LINE__);
 	abort();
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
@@ -123,10 +123,10 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     }
 
     cls_ns = (*env)->FindClass(env,
-			    "ibis/ipl/impl/messagePassing/ReceivePortNameServer");
+			    "ibis/impl/messagePassing/ReceivePortNameServer");
     IBP_VPRINTF(2000, env, ("here..\n"));
     if (cls_ns == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/ReceivePortNameServer\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find class ibis/impl/messagePassing/ReceivePortNameServer\n", __FILE__, __LINE__);
 	abort();
     }
     IBP_VPRINTF(2000, env, ("here..\n"));

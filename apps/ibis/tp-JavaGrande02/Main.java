@@ -272,9 +272,9 @@ final class Main {
 			}
 
 			if(!panda) {
-				ibis = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.tcp.TcpIbis", null);
+				ibis = Ibis.createIbis("ibis:" + rank, "ibis.impl.tcp.TcpIbis", null);
 			} else {
-				ibis = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.messagePassing.PandaIbis", null);
+				ibis = Ibis.createIbis("ibis:" + rank, "ibis.impl.messagePassing.PandaIbis", null);
 			}
 
 			if (verbose) { 
