@@ -323,6 +323,19 @@ class SATProblem implements java.io.Serializable {
 	return res;
     }
 
+    // Return a list of variables for this problem, ordered to be
+    // most effective in solving the problem as fast as possible.
+    int [] buildOrderedVarList()
+    {
+	int res[] = new int[vars];
+
+	for( int i=0; i<res.length; i++ ){
+	    // For the moment just use the unit mapping.
+	    res[i] = i;
+	}
+	return res;
+    }
+
     // A CNF problem parser. Given a problem in DIMACS format,
     // return a SATProblem instance for it.
     //

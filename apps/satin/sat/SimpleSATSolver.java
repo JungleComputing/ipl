@@ -69,15 +69,10 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     static SATSolution solveSystem( final SATProblem p )
     {
 	int assignments[] = p.getInitialAssignments();
-	int varlist[] = new int[p.getVariableCount()];
+	int varlist[] = p.buildOrderedVarList();
 	SATSolution res = null;
 
         SimpleSATSolver s = new SimpleSATSolver();
-
-	for( int i=0; i<varlist.length; i++ ){
-	    // Start with a unit mapping of the variables.
-	    varlist[i] = i;
-	}
 
         // Now recursively try to find a solution.
 	try {
