@@ -1,6 +1,7 @@
 import ibis.ipl.*;
 
 import ibis.util.nativeCode.Rdtsc;
+import ibis.util.Timer;
 
 import java.text.*;
 
