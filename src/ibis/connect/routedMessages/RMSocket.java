@@ -1,6 +1,7 @@
 package ibis.connect.routedMessages;
 
 import ibis.connect.util.MyDebug;
+import ibis.connect.socketFactory.DummySocket;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -10,7 +11,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedList;
 
-public class RMSocket extends Socket
+public class RMSocket extends DummySocket
 {
     private HubLink hub = null;
     String  remoteHostname = null;

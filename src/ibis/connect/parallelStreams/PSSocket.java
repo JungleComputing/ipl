@@ -1,6 +1,7 @@
 package ibis.connect.parallelStreams;
 
 import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.DummySocket;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,7 +10,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 
-public class PSSocket extends Socket
+public class PSSocket extends DummySocket
 {
     private ParallelStreams ps = null;
     private PSInputStream   in = null;
