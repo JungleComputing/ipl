@@ -33,7 +33,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
     /**
      * Given a (possibly compressed) text with surrounding information,
      * try to find the optimal compression.
-     * @return True iff a useful compression step could be done.
+     * @return The compressed text.
      */
     private SuffixArray applyFolding( SuffixArray a ) throws VerificationException
     {
@@ -44,21 +44,24 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
         }
         StepList steps = a.selectBestSteps( top );
 
+	if( steps.getLength() == 0 ){
+	    return a;
+	}
         System.out.println( "Choices: " + steps.getLength() );
 
         // For now, just pick the best move.
-        Step mv = steps.getBestStep();
-        if( mv != null && mv.getGain()>0 ){
-            // It is worthwile to do this compression.
-            if( traceCompressionCosts ){
-                System.out.println( "Best step: string [" + a.buildString( mv )  + "]: " + mv );
-            }
-            res = applyFoldingStep( (SuffixArray) a.clone(), mv );
-            sync();
+        Step mv[] = steps.toArray();
+	SuffixArray l[] = new SuffixArray[mv.length];
+	for( int i=0; i<mv.length; i++ ){
+            l[i] = applyFoldingStep( (SuffixArray) a.clone(), mv[i] );
         }
-        else {
-            res = a;
-        }
+	sync();
+	res = l[0];
+	for( int i=1; i<l.length; i++ ){
+	    if( l[i].getLength()<res.getLength() ){
+		res = l[i];
+	    }
+	}
         return res;
     }
 

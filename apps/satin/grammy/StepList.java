@@ -54,14 +54,13 @@ public class StepList {
     }
 
     /**
-     * Returns the top step, or null if there isn't one.
+     * Returns an array containing all the steps.
      */
-    public Step getBestStep()
+    public Step[] toArray()
     {
-        if( ix == 0 ){
-            return null;
-        }
-        return steps[0];
+	Step res[] = new Step[ix];
+	System.arraycopy( steps, 0, res, 0, ix );
+        return res;
     }
 
     /** Returns the length of the step list. */
