@@ -29,7 +29,7 @@ public final class DPLLContext implements java.io.Serializable {
     /** The information of a negative assignment of each variable. */
     private float neginfo[];
 
-    /** Satisified flags for each clause in the problem. */
+    /** Satisified flags for every clause in the problem. */
     private boolean satisfied[];
 
     /** The number of unsatisfied clauses. */
