@@ -1,4 +1,5 @@
 import ibis.io.*;
+import ibis.io.nio.*;
 
 import java.util.Random;
 
@@ -340,56 +341,44 @@ public final class Main {
 
     Main() {
 	Conversion conversion;
+	boolean success = true;
 
-	try {
+	System.out.println("Testing available conversions one-by-one");
 
-	    System.out.println("Testing available conversions one-by-one");
+	String[] conversions = {
+	    "ibis.io.SimpleLittleConversion",
+	    "ibis.io.SimpleBigConversion",
+	    "ibis.io.nio.NioWrapLittleConversion",
+	    "ibis.io.nio.NioWrapBigConversion",
+	    "ibis.io.nio.NioChunkLittleConversion",
+	    "ibis.io.nio.NioChunkBigConversion",
+	    "ibis.io.nio.HybridWrapLittleConversion",
+	    "ibis.io.nio.HybridWrapBigConversion",
+	    "ibis.io.nio.HybridChunkLittleConversion",
+	    "ibis.io.nio.HybridChunkBigConversion"};
 
+	for (int i = 0; i < conversions.length; i++) {
 
-	    // little endian NioConversion
-	    conversion = new NioLittleConversion();
+	    try {
 
-	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.NioLittleConversion"
-			+ " is not a valid little endian Conversion");
-		System.exit(1);
+		conversion = Conversion.loadConversion(conversions[i]);
+
+		if(!checkConversion(conversion)) {
+		    System.err.println(conversions[i] 
+			    + " is not a valid Conversion");
+		    success = false;
+		}
+	    } catch (Exception e) {
+		System.err.println("Conversion test got Exception " + e);
+		//e.printStackTrace(System.err);
+		success = false;
 	    }
+	}
 
-
-	    // big endian NioConversion
-	    conversion = new NioBigConversion();
-
-	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.NioBigConversion"
-			+ " is not a valid big endian Conversion");
-		System.exit(1);
-	    }
-
-
-	    // little endian SimpleConversion
-	    conversion = new SimpleLittleConversion(); 
-
-	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.SimpleLittleConversion"
-			+ " is not a valid little endian Conversion");
-		System.exit(1);
-	    }
-
-
-	    // big endian SimpleConversion
-	    conversion = new SimpleBigConversion(); 
-
-	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.SimpleBigConversion"
-			+ " is not a valid big endian Conversion");
-		System.exit(1);
-	    }
-
-	    System.out.println("Conversion tests ended succesfully!");
-
-	} catch (Exception e) {
-	    System.err.println("Conversion test got Exception " + e);
-	    e.printStackTrace(System.err);
+	if(success) {
+	    System.out.println("Conversion tests ended successfully");
+	} else {
+	    System.out.println("Conversion tests failed");
 	    System.exit(1);
 	}
     }
