@@ -54,6 +54,8 @@ The nameserver parameters are:
 -port <portno>
     make the nameserver listen to port number <portno>. The default
     port number is 9826.
+-ns-port <portno>
+    same as "-port".
 -poolserver
     make the nameserver start a pool server (see ibis.util.PoolInfo in the
     Ibis API). This is the default.
@@ -128,15 +130,15 @@ do
 	fi
 	args="$args -controlhub"
 	;;
-    -port)
+    -port|-ns-port)
 	shift
 	Ddefines="$Ddefines -Dibis.name_server.port=$1"
 	;;
-    -poolport)
+    -poolport|-pool-port)
 	shift
 	Ddefines="$Ddefines -Dibis.pool.server.port=$1"
 	;;
-    -hubport)
+    -hubport|-hub-port)
 	shift
 	if [ "x$IBIS_HUB" != "x" ]; then
 		echo "You cannot use both -hubport and the IBIS_HUB environment variable" 1>&2
@@ -151,7 +153,7 @@ do
 	    Ddefines="$Ddefines -Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
 	fi
 	;;
-    -hubhost)
+    -hubhost|-hub-host)
 	shift
 	if [ "x$IBIS_HUB" != "x" ]; then
 		echo "You cannot use both -hubhost and the IBIS_HUB environment variable" 1>&2

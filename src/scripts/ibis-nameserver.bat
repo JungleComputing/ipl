@@ -80,7 +80,19 @@ if "%1"=="-port" (
     goto nextarg
 )
 
+if "%1"=="-ns-port" (
+    set Dport="-Dibis.name_server.port=%2"
+    shift
+    goto nextarg
+)
+
 if "%1"=="-poolport" (
+    set Dpoolport="-Dibis.pool.server.port=%2"
+    shift
+    goto nextarg
+)
+
+if "%1"=="-pool-port" (
     set Dpoolport="-Dibis.pool.server.port=%2"
     shift
     goto nextarg
@@ -93,7 +105,21 @@ if "%1"=="-hubport" (
     goto nextarg
 )
 
+if "%1"=="-hub-port" (
+    set Dhubport="-Dibis.connect.hub_port=%2"
+    set Dhub=%ConnectHub%
+    shift
+    goto nextarg
+)
+
 if "%1"=="-hubhost" (
+    set Dhubhost="-Dibis.connect.hub_host=%2"
+    set Dhub=%ConnectHub%
+    shift
+    goto nextarg
+)
+
+if "%1"=="-hub-host" (
     set Dhubhost="-Dibis.connect.hub_host=%2"
     set Dhub=%ConnectHub%
     shift
@@ -128,6 +154,8 @@ goto end
     echo -port ^<portno^>
     echo     make the nameserver listen to port number ^<portno^>. The default
     echo     port number is 9826.
+    echo -ns-port ^<portno^>
+    echo     same as -port.
     echo -poolserver
     echo     make the nameserver start a pool server (see ibis.util.PoolInfo in the
     echo     Ibis API). This is the default.
