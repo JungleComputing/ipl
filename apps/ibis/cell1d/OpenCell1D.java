@@ -198,8 +198,8 @@ class OpenCell1D implements OpenConfig {
     static int requestedByLeft[] = null;
     static int requestedByRight[] = null;
 
-    static int max_lsteal = 0;
-    static int max_rsteal = 0;
+    static int max_lsteal = 1;
+    static int max_rsteal = 1;
 
     private static void usage()
     {
@@ -368,10 +368,10 @@ class OpenCell1D implements OpenConfig {
             int currentAimFirstNoColumn = aimFirstNoColumn;
 
             // Make sure we have at least two columns left.
-            if( currentAimFirstNoColumn<p.firstColumn+2 ){
-                currentAimFirstNoColumn = p.firstColumn+2;
+            if( currentAimFirstNoColumn<p.firstColumn+minLoad ){
+                currentAimFirstNoColumn = p.firstColumn+minLoad;
                 if( traceLoadBalancing ){
-                    System.out.println( "P" + me + ":" + generation + ": P" + (me+1) + " cannot get all my columns, I keep 2" );
+                    System.out.println( "P" + me + ":" + generation + ": P" + (me+1) + " cannot get all my columns, I keep " + minLoad );
                 }
             }
             sendCount = p.firstNoColumn-currentAimFirstNoColumn;
@@ -475,7 +475,6 @@ class OpenCell1D implements OpenConfig {
         }
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
-            max_lsteal = 0;
             if( traceLoadBalancing ){
                 System.out.println( "P" + me + ":" + generation + ": receiving " + receiveCount + " columns from P" + (me-1) );
             }
@@ -559,7 +558,6 @@ class OpenCell1D implements OpenConfig {
         }
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
-            max_rsteal = 0;
             if( traceLoadBalancing ){
                 System.out.println( "P" + me + ":" + generation + ": receiving " + receiveCount + " columns from P" + (me+1) );
             }
