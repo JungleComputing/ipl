@@ -12,6 +12,13 @@
 
     <import file="${ibis}/apps/gmi/build-gmi-app.xml"/>
 
+    <target name="test"
+	    depends="build"
+	    description="Run test">
+	<antcall target="run2">
+		<param name="runjob" value="Main 20"/>
+	</antcall>
+    </target>
 </project>
 
 

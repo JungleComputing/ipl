@@ -33,10 +33,4 @@
 	<delete dir="${build}"/>
     </target>
 
-    <!-- Default test target, for if the application does not have one.
-    -->
-    <target name="test"
-	    depends="build">
-    </target>
-
 </project>

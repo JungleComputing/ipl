@@ -347,6 +347,8 @@ class Slave extends GroupMember implements i_Slave {
 
 	void run() throws Exception { 
 
+		boolean failed = false;
+
 		long start = System.currentTimeMillis();
 
 		double checksum1 = checksum();
@@ -361,6 +363,7 @@ class Slave extends GroupMember implements i_Slave {
 		
 		if (Math.abs(checksum1 - checksum2) > 0.1) {
 			System.out.println("CPU" + myCpu + " checksum ERROR !!! (" + checksum1 + "," + checksum2 +  ")   " + checksum3);
+			failed = true;
 		} else {
 //			System.out.println("CPU" + myCpu + " checksum OK (" + checksum1+","+checksum2+")   " + checksum3);
 			
@@ -370,11 +373,14 @@ class Slave extends GroupMember implements i_Slave {
 
 		if (myCpu == 0) { 
 			System.out.println("FFT, M = " + M + " time " + ((end-start)/1000.0));
+			if (failed) {
+			    System.exit(1);
+			}
 		}
 //		printTime("FFT, M = " + M, transposeAndFFT);
 	} 
 }
-	 	
+
 
 
 

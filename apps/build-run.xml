@@ -74,4 +74,12 @@
 	      <arg line="${runjob}"/>
 	</exec>
     </target>
+
+    <!-- Default test target, for if the application does not have one.
+	 Causes a build.
+    -->
+    <target name="test"
+	    depends="build">
+    </target>
+
 </project>

@@ -95,7 +95,7 @@
     <!--
 	Test
     -->
-    <target name="clean"
+    <target name="test"
 	    depends="-list-build-files"
 	    description="Run tests in Ibis applications">
 	<foreach

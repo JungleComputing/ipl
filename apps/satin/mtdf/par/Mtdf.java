@@ -69,13 +69,19 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 					node.score = (short) -d.score;
 					
 					if (DO_ABORT && node.score >= pivot) {
+						System.out.println("Abort ...");
 						aborted = true;
 						abort();
 					}
 				}
 				return null;
 			}
-			if (aborted) break;
+			/*
+			if (aborted) {
+			    System.out.println("Saw aborted set");
+			    break;
+			}
+			*/
 		}
 
 		sync();

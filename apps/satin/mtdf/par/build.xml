@@ -8,13 +8,15 @@
 
     <property name="satin-main-class" value="Mtdf"/>
 
+    <property name="satinc-flags" value="-keep -no-irc"/>
+
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
     <target name="test"
 	    depends="build"
 	    description="Run test">
 	<antcall target="run2">
-		<param name="runjob" value="Mtdf -satin-closed"/>
+		<param name="runjob" value="-Dsatin.debug.spawn=true Mtdf -satin-closed"/>
 	</antcall>
     </target>
 </project>
