@@ -138,6 +138,7 @@ final class Main {
 				}
 
 				if (array) { 	
+/*
 					data = new byte[arraysize];								
 					if (verbose) { 
 						System.out.println("starting byte[" + arraysize + "] test");
@@ -164,9 +165,9 @@ final class Main {
 				
 					time = runTest(s, count, retries, data, one_way);
 					System.out.println("long[" + alen + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
+*/
 
-
-					alen = arraysize/8;
+					int alen = arraysize/8;
 					data = new double[alen];				
 
 					if (verbose) { 
