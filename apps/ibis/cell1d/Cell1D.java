@@ -10,7 +10,7 @@ interface Config {
     static final boolean traceCommunication = false;
     static final boolean showProgress = true;
     static final boolean traceClusterResizing = true;
-    static final int BOARDSIZE = 20000;
+    static final int BOARDSIZE = 30000;
     static final int GENERATIONS = 10;
 }
 
