@@ -11,8 +11,6 @@ contains a detailed description of the Ibis Application Programmer's
 interface (API), illustrated with example code fragments.
 
 The apps directory contains a large collection of example programs.
-Unfortunately, in the current release there is no overview of the
-examples.
 
 The file BUGS contains information for filing bug reports.
 
