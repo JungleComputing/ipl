@@ -1,6 +1,5 @@
 package ibis.gmi;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
 import ibis.util.Ticket;
@@ -97,24 +96,24 @@ public class GroupStub implements GroupInterface, GroupProtocol {
     /**
      * Initializes the stub, once everything is known.
      *
-     * @param groupID the identification of the group
-     * @param memberRanks the ranks of the group members
-     * @param memberSkels the skeleton identifications of the group skeletons
+     * @param gid the identification of the group
+     * @param mranks the ranks of the group members
+     * @param mskels the skeleton identifications of the group skeletons
      * @param stubID the identification of this stub
      */
-    protected void init(int groupID, int memberRanks[], int [] memberSkels, int stubID) { 
+    protected void init(int gid, int mranks[], int [] mskels, int stubID) { 
 	if (Group.DEBUG) System.out.println("GroupStub.init(" + stubID + ") started");
 
-	this.groupID   = groupID;
-	this.memberRanks = memberRanks;
-     	this.memberSkels = memberSkels;
-	this.targetGroupSize = memberSkels.length; 
+	this.groupID   = gid;
+	this.memberRanks = mranks;
+     	this.memberSkels = mskels;
+	this.targetGroupSize = mskels.length; 
 
 	// Find all the ranks.
-	multicastHosts = new int[memberRanks.length];
+	multicastHosts = new int[mranks.length];
 	
-	for (int i=0;i<memberRanks.length;i++) { 
-	    multicastHosts[i] =  memberRanks[i];
+	for (int i=0;i<mranks.length;i++) { 
+	    multicastHosts[i] =  mranks[i];
 	} 
 
 	// sort them low...high (bubble sort)
@@ -200,7 +199,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * @param ticket the ticket number of this reply
      * @param resultMode the reply handling scheme
      */
-    protected final void handleResultMessage(ReadMessage r, int ticket, byte resultMode) throws IbisException, IOException { 
+    protected final void handleResultMessage(ReadMessage r, int ticket, byte resultMode) throws IOException { 
 
 	if (resultMode == ReplyScheme.R_FORWARD) { 
 	    Forwarder f = (Forwarder) replyStack.peek(ticket);
@@ -405,6 +404,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 		    try {
 			wait();
 		    } catch(Exception e) {
+		        // ignored
 		    }
 		}
 
@@ -525,6 +525,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 			    try {
 				wait();
 			    } catch(Exception e) {
+			        // ignored
 			    }
 			}
 			inv.binCombiner.combine(params, info.in[peer], n);
@@ -602,6 +603,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 		try {
 		    wait();
 		} catch(Exception e) {
+		    // ignored
 		}
 		waiters--;
 	    }
@@ -653,6 +655,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 		try {
 		    wait();
 		} catch(Exception e) {
+		    // ignored
 		}
 		waiters--;
 	    }

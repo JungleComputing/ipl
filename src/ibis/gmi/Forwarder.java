@@ -124,11 +124,11 @@ public class Forwarder implements GroupProtocol {
      * on the reply stack of the stub, so that a reply handler can invoke the
      * forwarder, once it receives a reply.
      *
-     * @param stub the stub expecting a reply
-     * @param numResults the total number of replies to be expected
-     * @param ticket the ticket number for the stub's reply stack
+     * @param stb the stub expecting a reply
+     * @param nr the total number of replies to be expected
+     * @param tckt the ticket number for the stub's reply stack
      */
-    public void startReceiving(GroupStub stub, int numResults, int ticket) { 
+    public void startReceiving(GroupStub stb, int nr, int tckt) { 
 	
 	/* Assumes stub is locked !!! */
 
@@ -137,12 +137,12 @@ public class Forwarder implements GroupProtocol {
 	} 
 
 	inUse = true;
-	this.numResults = numResults;
-	this.ticket = ticket;
-	this.stub = stub;
+	this.numResults = nr;
+	this.ticket = tckt;
+	this.stub = stb;
 	receivedResults = 0;
 	
-	stub.replyStack.put(ticket, this);
+	stb.replyStack.put(tckt, this);
     } 
 
     /**

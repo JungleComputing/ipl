@@ -108,7 +108,7 @@ final class GroupRegistry implements GroupProtocol {
      * @param rank the node identification of the requester
      * @param ticket ticket number for the reply
      * @param type the group interface for this new group
-     * @exception {@link java.io.IOException} on an IO error.
+     * @exception java.io.IOException on an IO error.
      */
     private synchronized void newGroup(String groupName, int groupSize, int rank, int ticket, String type) throws IOException {
            
@@ -137,7 +137,7 @@ final class GroupRegistry implements GroupProtocol {
      * @param rank the node identification of the requester
      * @param ticket ticket number for the reply
      * @param interfaces the group interfaces that this requester implements
-     * @exception {@link io.IOException} on an IO error.
+     * @exception java.io.IOException on an IO error.
      */
     private synchronized void joinGroup(String groupName, int memberSkel, int rank, int ticket, String [] interfaces) throws IOException { 	
 
@@ -210,7 +210,7 @@ final class GroupRegistry implements GroupProtocol {
      * @param groupName the name of the group to be found
      * @param rank the node identification of the requester
      * @param ticket ticket number for the reply
-     * @exception {@link java.io.IOException} on an IO error.
+     * @exception java.io.IOException on an IO error.
      */
     private synchronized void findGroup(String groupName, int rank, int ticket) throws IOException { 	
 
@@ -241,7 +241,7 @@ final class GroupRegistry implements GroupProtocol {
      * requested information.
      *
      * @param r the request message
-     * @exception {@link java.io.IOException} on an IO error.
+     * @exception java.io.IOException on an IO error.
      */
     private void defineCombinedInvocation(ReadMessage r) throws IOException {
 	String name;
@@ -316,7 +316,6 @@ final class GroupRegistry implements GroupProtocol {
 	    String [] interfaces;
 	    int size;
 	    int ticket;
-	    int number;
 	    int memberSkel;
 	    
 	    opcode = r.readByte();

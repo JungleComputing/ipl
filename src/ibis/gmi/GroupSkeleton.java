@@ -110,11 +110,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
 
 	    if (qs[from] == null) { 
 		return null;
-	    } else { 
+	    }
 		GroupMessage temp = qs[from];
 		qs[from] = temp.next;		
 		return temp;
-	    }
 	}
 
 	/**
@@ -132,7 +131,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * Constructor.
      */
-    public GroupSkeleton() { 
+    public GroupSkeleton() {
+        // empty constructor
     } 
 
     /**
@@ -214,7 +214,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
 	while (temp == null) { 
 	    try { 
 		wait();
-	    } catch (Exception e) { 
+	    } catch (Exception e) {
+	        // ignored
 	    } 
 	    temp = messageQ.dequeue(peer);
 	} 

@@ -87,16 +87,16 @@ public class GroupMethod {
      * Method configuration.
      * This method just fills in the fields, and does some sanity checks.
      *
-     * @param inv the invocation scheme
-     * @param rep the reply scheme
+     * @param invscheme the invocation scheme
+     * @param repscheme the reply scheme
      *
      * @exception ConfigurationException when some illegal configuration
      * is given.
      */
-    public void configure(InvocationScheme inv, ReplyScheme rep) throws ConfigurationException { 
-	switch (inv.mode) { 
+    public void configure(InvocationScheme invscheme, ReplyScheme repscheme) throws ConfigurationException { 
+	switch (invscheme.mode) { 
 	case InvocationScheme.I_SINGLE: 
-	    SingleInvocation si = (SingleInvocation)inv;
+	    SingleInvocation si = (SingleInvocation)invscheme;
 
 	    if (si.destination >= parent_stub.targetGroupSize || si.destination < 0) { 
 		throw new ConfigurationException("Invalid configuration: destination groupmember ouf of range!");
@@ -105,72 +105,72 @@ public class GroupMethod {
 	    destinationSkeleton = parent_stub.memberSkels[si.destination];
 	    sendport = Group.unicast[parent_stub.memberRanks[si.destination]];
 	
-	    if (rep.mode == ReplyScheme.R_RETURN) { 
-		if (si.destination != ((ReturnReply)rep).rank) { 
+	    if (repscheme.mode == ReplyScheme.R_RETURN) { 
+		if (si.destination != ((ReturnReply)repscheme).rank) { 
 		    throw new ConfigurationException("Invalid configuration: invalid reply rank!");
 		} 
 	    } 
 
-	    if (rep.mode == ReplyScheme.R_COMBINE_FLAT ||
-		rep.mode == ReplyScheme.R_COMBINE_BINOMIAL) {
+	    if (repscheme.mode == ReplyScheme.R_COMBINE_FLAT ||
+		repscheme.mode == ReplyScheme.R_COMBINE_BINOMIAL) {
 		throw new ConfigurationException("Invalid configuration: combined reply not possible with single invocation");
 	    }
 
-	    invocation_mode = inv.mode;
+	    invocation_mode = invscheme.mode;
 	    break;
 
 	case InvocationScheme.I_GROUP: 
-	    invocation_mode = inv.mode;			
+	    invocation_mode = invscheme.mode;			
 	    sendport = Group.getMulticastSendport(parent_stub.multicastHostsID, parent_stub.multicastHosts);
 	    break;
 
 	case InvocationScheme.I_PERSONAL: 
-	    invocation_mode = inv.mode;
+	    invocation_mode = invscheme.mode;
 	    break;
 
 	case InvocationScheme.I_COMBINED_FLAT:
 	case InvocationScheme.I_COMBINED_BINOMIAL: {
-	    CombinedInvocation ci = (CombinedInvocation)inv;
+	    CombinedInvocation ci = (CombinedInvocation)invscheme;
 
-	    configure(ci.inv, rep);
+	    configure(ci.inv, repscheme);
 
-	    invocation_mode = inv.mode + ci.inv.mode;
-	    info = Group.defineCombinedInvocation(ci, parent_stub.groupID, descriptor, ci.id, inv.mode, ci.rank, ci.size);
+	    invocation_mode = invscheme.mode + ci.inv.mode;
+	    info = Group.defineCombinedInvocation(ci, parent_stub.groupID, descriptor, ci.id, invscheme.mode, ci.rank, ci.size);
 	    info.myInvokerRank = ci.rank;
 	    }
 	    break;
 	} 
 
-	switch (rep.mode) { 
+	switch (repscheme.mode) { 
 	case ReplyScheme.R_DISCARD:
-	    result_mode = rep.mode;
+	    result_mode = repscheme.mode;
 	    break;
 	case ReplyScheme.R_RETURN:
-	    result_mode = rep.mode;
+	    result_mode = repscheme.mode;
 	    break;
 	case ReplyScheme.R_FORWARD:
 	    // Could check here that the forwarder supplied in fact has
 	    // a proper forward method for the result type of this group method!
-	    result_mode = rep.mode;
+	    result_mode = repscheme.mode;
 	    break;
 	case ReplyScheme.R_COMBINE_BINOMIAL:
-	    result_mode = rep.mode;
+	    result_mode = repscheme.mode;
 	    // Could check here that the combiner supplied in fact has
 	    // a proper combine method for the result type of this group method!
 	    break;
 	case ReplyScheme.R_COMBINE_FLAT:
 	    // Could check here that the combiner supplied in fact has
 	    // a proper combine method for the result type of this group method!
-	    result_mode = rep.mode;
+	    result_mode = repscheme.mode;
 	    break;
 	case ReplyScheme.R_PERSONALIZED:
 	    // No checks here, the default reply personalizer could be
 	    // fine.
-	    result_mode = rep.mode + ((PersonalizeReply) rep).rs.mode;
+	    result_mode = repscheme.mode + ((PersonalizeReply) repscheme).rs.mode;
 	    break;
 	}
 
-	this.inv = inv;
-	this.rep = rep;		
+	this.inv = invscheme;
+	this.rep = repscheme;		
     } 
 }

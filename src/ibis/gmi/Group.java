@@ -49,7 +49,7 @@ public final class Group implements GroupProtocol {
     /**
      * To get tickets from.
      */
-    private static Ticket ticketMaster = null;
+    static Ticket ticketMaster = null;
 
     /**
      * Unicast send ports, one for each node.
@@ -69,7 +69,7 @@ public final class Group implements GroupProtocol {
     /**
      * The group registry, only lives on the node elected as the master.
      */
-    private static GroupRegistry registry;
+    static GroupRegistry registry;
 
     /**
      * Local cache of stub classes, so that not every group lookup has to
@@ -80,7 +80,7 @@ public final class Group implements GroupProtocol {
     /**
      * My local ibis.
      */
-    private static Ibis ibis;
+    static Ibis ibis;
 
     /**
      * My local Ibis identifier.
@@ -145,12 +145,12 @@ public final class Group implements GroupProtocol {
     /**
      * Stubs and stub identifications.
      */
-    private static GroupStub stubIDStack[] = new GroupStub[16];
+    static GroupStub stubIDStack[] = new GroupStub[16];
 
     /**
      * The stub counter, used to allocate stubs.
      */
-    private static int stubCounter;
+    static int stubCounter;
 
     /**
      * Container class for group information.
@@ -314,7 +314,7 @@ public final class Group implements GroupProtocol {
 
 		case COMBINE:
 		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a COMBINE");
-		    s = (GroupSkeleton) Group.getSkeleton(m.readInt());
+		    s = Group.getSkeleton(m.readInt());
 		    s.handleCombineMessage(m);
 		    break;
 
@@ -615,7 +615,7 @@ public final class Group implements GroupProtocol {
      * @param skel the local skeleton identification
      * @return the group skeleton.
      */
-    private static GroupSkeleton getSkeleton(int skel) { 
+    static GroupSkeleton getSkeleton(int skel) { 
 	return (GroupSkeleton) skeletons.get(skel);
     }  
 
@@ -624,23 +624,23 @@ public final class Group implements GroupProtocol {
      * @param groupID the group identification
      * @return the group skeleton
      */
-    private static GroupSkeleton getSkeletonByGroupID(int groupID) {
+    static GroupSkeleton getSkeletonByGroupID(int groupID) {
 	return groups[groupID];
     }
     
     /**
      * Creates a group.
      *
-     * @param name  the name of the group to be created
+     * @param nm  the name of the group to be created
      * @param type  the group interface that this group will provide
      * @param size  the number of group members that this group will have
      * @exception RuntimeException when the group already exists or in case
      * of a communication error.
      */
-    public static void create(String name, Class type, int size) throws RuntimeException {
+    public static void create(String nm, Class type, int size) throws RuntimeException {
 
 	try { 
-	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + type + ", " + size + ") starting");
+	    if (DEBUG) System.out.println(_rank + ": Group.create(" + nm + ", " + type + ", " + size + ") starting");
 
 	    int ticket = ticketMaster.get();
 
@@ -649,23 +649,23 @@ public final class Group implements GroupProtocol {
 	    w.writeByte(CREATE_GROUP);
 	    w.writeInt(_rank);
 	    w.writeInt(ticket);
-	    w.writeObject(name);
+	    w.writeObject(nm);
 	    w.writeObject(type.getName());
 	    w.writeInt(size);
 	    w.finish();
 
-	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") waiting for reply on ticket(" + ticket +")");
+	    if (DEBUG) System.out.println(_rank + ": Group.create(" + nm + ", " + size + ") waiting for reply on ticket(" + ticket +")");
 
 	    RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
 
 	    if (r.result == CREATE_FAILED) { 
-		throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : Group already exists!");  
+		throw new RuntimeException(_rank + " Group.create(" + nm + ", " + size + ") Failed : Group already exists!");  
 	    }
 
-	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") done");
+	    if (DEBUG) System.out.println(_rank + ": Group.create(" + nm + ", " + size + ") done");
 
 	} catch (IOException e) { 
-	    throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : communication error !" + e.getMessage());  
+	    throw new RuntimeException(_rank + " Group.create(" + nm + ", " + size + ") Failed : communication error !" + e.getMessage());  
 	}
     }
 
@@ -673,15 +673,15 @@ public final class Group implements GroupProtocol {
      * Joins the group with this name, by communicating with
      * the group registry, and blocks until the group is ready.
      *
-     * @param name  the name of the group we are joining
+     * @param nm  the name of the group we are joining
      * @param o     the member that is joining the group
      * @exception RuntimeException when the group is not found,
      *            the group is already full, or something else goes wrong.
      */
-    public static void join(String name, GroupMember o) throws RuntimeException {
+    public static void join(String nm, GroupMember o) throws RuntimeException {
 
 	try { 
-	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") starting");
+	    if (DEBUG) System.out.println(_rank + ": Group.join(" + nm + ", " + o + ") starting");
 
 	    int groupnumber = 0;
 	    int [] memberRanks = null;
@@ -700,25 +700,25 @@ public final class Group implements GroupProtocol {
 		w.writeByte(JOIN_GROUP);
 		w.writeInt(_rank);
 		w.writeInt(ticket);
-		w.writeObject(name);
+		w.writeObject(nm);
 		w.writeObject(o.groupInterfaces);
 		w.writeInt(o.mySkel);
 		w.finish();
 
-		if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") waiting for reply on ticket(" + ticket +")");
+		if (DEBUG) System.out.println(_rank + ": Group.join(" + nm + ") waiting for reply on ticket(" + ticket +")");
 		
 		r = (RegistryReply) ticketMaster.collect(ticket);
 		
 		switch(r.result) { 
 		case JOIN_UNKNOWN: 
-		    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group not found, retry");
+		    if (DEBUG) System.out.println(_rank + ": Group.join(" + nm + ") group not found, retry");
 		    break;
 
 		case JOIN_WRONG_TYPE:
-		    throw new RuntimeException(_rank + " Group.join(" + name + ") Failed : Group member has wrong type!");  
+		    throw new RuntimeException(_rank + " Group.join(" + nm + ") Failed : Group member has wrong type!");  
 
 		case JOIN_FULL:
-		    throw new RuntimeException(_rank + " Group.join(" + name + ") Failed : Group full!");  
+		    throw new RuntimeException(_rank + " Group.join(" + nm + ") Failed : Group full!");  
 		    
 		case JOIN_OK:
 		    retry = false;
@@ -727,20 +727,20 @@ public final class Group implements GroupProtocol {
 		    memberSkels = r.memberSkels;
 		    break;
 		default:
-		    System.out.println(_rank + " Group.join(" + name + ") Failed : got illegal opcode");  		
+		    System.out.println(_rank + " Group.join(" + nm + ") Failed : got illegal opcode");  		
 		    System.exit(1);
 		} 
 	    }
 	    
-	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group(" + groupnumber + ") found !");
+	    if (DEBUG) System.out.println(_rank + ": Group.join(" + nm + ") group(" + groupnumber + ") found !");
 
 	    o.init(groupnumber, memberRanks, memberSkels);			       
-	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") done");
+	    if (DEBUG) System.out.println(_rank + ": Group.join(" + nm + ", " + o + ") done");
 
 	} catch (Exception e) { 
 	    System.err.println("Got exception" + e);
 	    e.printStackTrace();
-	    throw new RuntimeException(_rank + " Group.join(" + name + ") Failed : communication error !" + e.getMessage());  
+	    throw new RuntimeException(_rank + " Group.join(" + nm + ") Failed : communication error !" + e.getMessage());  
 	}
     } 
     
@@ -748,13 +748,13 @@ public final class Group implements GroupProtocol {
      * Looks up the group with this name, if necessary by communicating with
      * the group registry, and possibly waiting until the group is ready.
      *
-     * @param name  the name of the group we are looking for
+     * @param nm  the name of the group we are looking for
      * @return the group interface we were looking for
      * @exception RuntimeException when the group is not found, or something
      *            else goes wrong.
      */
-    public static GroupInterface lookup(String name) throws RuntimeException { 
-	GroupStubData data = (GroupStubData) stubclasses.get(name);
+    public static GroupInterface lookup(String nm) throws RuntimeException { 
+	GroupStubData data = (GroupStubData) stubclasses.get(nm);
     
 	if (data == null) {
 	    data = new GroupStubData();
@@ -769,16 +769,16 @@ public final class Group implements GroupProtocol {
 		    w.writeByte(FIND_GROUP);
 		    w.writeInt(_rank);
 		    w.writeInt(ticket);
-		    w.writeObject(name);
+		    w.writeObject(nm);
 		    w.finish();
 		    
 		    RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
 		    switch (r.result) { 
 		    case GROUP_UNKNOWN:
-			throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unknown group!");  	
+			throw new RuntimeException(Group._rank + " Group.lookup(" + nm + ") Failed : unknown group!");  	
 			
 		    case GROUP_NOT_READY: 
-			System.err.println("Group " + name + " not ready yet -> going to sleep");
+			System.err.println("Group " + nm + " not ready yet -> going to sleep");
 			try { 
 			    Thread.sleep(100);
 			} catch (Exception e) { 
@@ -789,7 +789,7 @@ public final class Group implements GroupProtocol {
 		    case GROUP_OK:
 			done = true;
 
-			data.groupName = name;
+			data.groupName = nm;
 			data.typeName  = r.str;
 			data.groupID   = r.groupnum;
 			data.memberRanks = r.memberRanks;
@@ -813,20 +813,20 @@ public final class Group implements GroupProtocol {
 			    classname += "group_stub_" + s.nextToken();
 			    data.stubClass = Class.forName(classname); 
 			} catch (Exception e) { 
-			    throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unknown group!");  
+			    throw new RuntimeException(Group._rank + " Group.lookup(" + nm + ") Failed : unknown group!");  
 			} 
 			break;
 
 		    default:
-			throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unexpected answer!");  
+			throw new RuntimeException(Group._rank + " Group.lookup(" + nm + ") Failed : unexpected answer!");  
 		    } 
 		} 
 
 	    } catch (Exception e) { 
-		throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : " + e); 
+		throw new RuntimeException(Group._rank + " Group.lookup(" + nm + ") Failed : " + e); 
 	    } 
 
-	    stubclasses.put(name, data);
+	    stubclasses.put(nm, data);
 	}
 	    
 	return data.newStub();
@@ -841,7 +841,7 @@ public final class Group implements GroupProtocol {
      * @param ci      the combined invocation scheme
      * @param groupID the group identification
      * @param method  the method descriptor
-     * @param name    the name used for registering this combined invocation
+     * @param nm    the name used for registering this combined invocation
      * @param mode    summary of the combined invocation scheme
      * @param rank    node identification of caller
      * @param size    total number of nodes that will be involved in this
@@ -849,7 +849,7 @@ public final class Group implements GroupProtocol {
      * @return the combined invocation info structure.
      * @exception RuntimeException when there is a failure.
      */
-    protected static CombinedInvocationInfo defineCombinedInvocation(CombinedInvocation ci, int groupID, String method, String name, int mode, int rank, int size) throws RuntimeException { 
+    protected static CombinedInvocationInfo defineCombinedInvocation(CombinedInvocation ci, int groupID, String method, String nm, int mode, int rank, int size) throws RuntimeException { 
 	try { 		
 	    int ticket = ticketMaster.get();
 	    WriteMessage w = unicast[0].newMessage();
@@ -858,13 +858,13 @@ public final class Group implements GroupProtocol {
 	    w.writeInt(groupID);
 	    w.writeInt(_rank);
 	    w.writeInt(ticket);
-	    w.writeObject(name);
+	    w.writeObject(nm);
 	    w.writeObject(method);
 	    w.writeInt(rank);
 	    w.writeInt(size);
 	    w.writeInt(mode);
 	    w.finish();
-		    
+
 	    RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
 
 	    switch (r.result) { 
@@ -876,7 +876,7 @@ public final class Group implements GroupProtocol {
 		throw new RuntimeException("Unexpected answer on DEFINE_COMBINED");
 	    }
 	} catch (Exception e) { 
-	    throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : " + e); 
+	    throw new RuntimeException(Group._rank + " Group.lookup(" + nm + ") Failed : " + e); 
 	} 
     }
 
@@ -989,7 +989,11 @@ public final class Group implements GroupProtocol {
      */
     public static GroupMethod findMethod(GroupInterface i, String desc) throws NoSuchMethodException { 
 	GroupStub stub = (GroupStub) i;
-	return stub.getMethod(desc);
+	GroupMethod m = stub.getMethod(desc);
+	if (m == null) {
+	    throw new NoSuchMethodException("Method " + desc + " not found");
+	}
+	return m;
     }
 }
 
