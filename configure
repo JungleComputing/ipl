@@ -190,4 +190,10 @@ chmod +x bin/tree_ioc
 cat scripts/preamble configuration scripts/run_ibis_wide_area > bin/run_ibis_wide_area
 chmod +x bin/run_ibis_wide_area
 
+cat scripts/preamble configuration scripts/pprun_ibis > bin/pprun_ibis
+chmod +x bin/pprun_ibis
+
+cat scripts/preamble configuration scripts/csim_run_ibis > bin/csim_run_ibis
+chmod +x bin/csim_run_ibis
+
 (cd ipl; sed "s+@IBIS_INSTALL_PATH@+\"$IBIS_ROOT/ibis\"+" < InstallConfiguration.java.in > InstallConfiguration.java)
