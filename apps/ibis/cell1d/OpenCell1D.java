@@ -8,11 +8,12 @@ import java.util.Random;
 import java.io.IOException;
 
 interface OpenConfig {
-    static final boolean tracePortCreation = true;
+    static final boolean tracePortCreation = false;
     static final boolean traceCommunication = false;
     static final boolean showProgress = true;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = true;
+    static final boolean traceLoadBalancing = true;
     static final int DEFAULTBOARDSIZE = 3000;
     static final int GENERATIONS = 100;
     static final int SHOWNBOARDWIDTH = 60;
@@ -353,7 +354,6 @@ class OpenCell1D implements OpenConfig {
             // First, create an array to hold all columns of the total
             // array size, plus two empty dummy border columns. (The top and
             // bottom *rows* are also empty dummies that are never updated).
-            // The Life board.
             byte board[][] = new byte[boardsize+2][];
 
             // We need two extra column arrays to temporarily store the update
@@ -415,15 +415,27 @@ class OpenCell1D implements OpenConfig {
                         nextupdatecol = tmp;
                     }
                 }
-                    if( rightNeighbour != null ){
-                        if( rightReceivePort == null ){
-                            if( tracePortCreation ){
-                                System.out.println( "P" + me + ": a right neighbour has appeared; creating ports" );
-                            }
-                            rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
-                            rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
+                if( rightNeighbour != null ){
+                    if( rightReceivePort == null ){
+                        if( tracePortCreation ){
+                            System.out.println( "P" + me + ": a right neighbour has appeared; creating ports" );
                         }
+                        rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
+                        rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
                     }
+                }
+                int mem = rszHandler.getMemberCount();
+                if( knownMembers<mem ){
+                    // Some processors have joined the computation.
+                    int aimFirstColumn = 1+(me*boardsize)/mem;
+                    int aimFirstNoColumn = 1+((me+1)*boardsize)/mem;
+                    if( traceLoadBalancing ){
+                        System.out.println( "P" + me + ": there are now " + mem + " nodes in the computation (was " + knownMembers + ")" );
+                        System.out.println( "P" + me + ": I have columns " + firstColumn + " to " + firstNoColumn );
+                        System.out.println( "P" + me + ": I should have columns " + aimFirstColumn + " to " + aimFirstNoColumn );
+                    }
+                    knownMembers = mem;
+                }
                 if( (me % 2) == 0 ){
                     if( leftSendPort != null ){
                         send( leftSendPort, board[firstColumn] );
