@@ -24,7 +24,7 @@ final class BarnesHut {
     private long[] forceCalcTimes;
 
     //Parameters for the BarnesHut algorithm / simulation
-    private static final double THETA = 2.0; //cell subdivision tolerance
+    private static final double THETA = 1.0; //cell subdivision tolerance
     private static final double DT = 0.025; //integration time-step
 
     //we do 7 iterations (first one isn't measured)
@@ -397,9 +397,9 @@ final class BarnesHut {
 
 	if (phase_timing) {
 	    long total = 0;
+	    System.out.println("tree building and CoM computation took: " +
+			       btcomTime/1000.0 + " s");
 	    if (impl != IMPL_TUPLE2) {
-		System.out.println("tree building and CoM computation took: " +
-				   btcomTime/1000.0 + " s");
 		System.out.println("                  Updating bodies took: " +
 				   updateTime/1000.0 + " s");
 	    }
