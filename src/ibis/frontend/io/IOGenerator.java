@@ -577,12 +577,17 @@ public class IOGenerator {
 		    write_il.append(new ALOAD(1));
 		    write_il.append(new ALOAD(0));
 		    write_il.append(factory.createFieldAccess(classname,
-							field.getName(),
-							field_type,
-							Constants.GETFIELD));
+							      field.getName(),
+							      field_type,
+							      Constants.GETFIELD));
 		    write_il.append(new ARRAYLENGTH());
-		    write_il.append(new DUP_X1());
-		    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeInt", Type.VOID, new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
+		    write_il.append(new DUP());
+		    write_il.append(new ISTORE(4));
+		    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
+							 "writeInt",
+							 Type.VOID,
+							 new Type[] { Type.INT },
+							 Constants.INVOKEVIRTUAL));
 		    write_il.append(new ICONST(0));
 		    write_il.append(new ISTORE(3));
 		    GOTO gto = new GOTO(null);
@@ -591,17 +596,17 @@ public class IOGenerator {
 		    InstructionHandle loop_body_start = write_il.append(new ALOAD(1));
 		    write_il.append(new ALOAD(0));
 		    write_il.append(factory.createFieldAccess(classname,
-							field.getName(),
-							field_type,
-							Constants.GETFIELD));
+							      field.getName(),
+							      field_type,
+							      Constants.GETFIELD));
 		    write_il.append(new ILOAD(3));
 		    write_il.append(new AALOAD());
 
 		    write_il.append(factory.createInvoke(ibis_output_stream_name,
-						   "writeKnownObjectHeader",
-						   Type.INT,
-						   new Type[] { Type.OBJECT },
-						   Constants.INVOKEVIRTUAL));
+						         "writeKnownObjectHeader",
+						         Type.INT,
+						         new Type[] { Type.OBJECT },
+						         Constants.INVOKEVIRTUAL));
 		    write_il.append(new ISTORE(2));
 		    write_il.append(new ILOAD(2));
 		    write_il.append(new ICONST(1));
@@ -610,20 +615,20 @@ public class IOGenerator {
 
 		    write_il.append(new ALOAD(0));
 		    write_il.append(factory.createFieldAccess(classname,
-							field.getName(),
-							field_type,
-							Constants.GETFIELD));
+							      field.getName(),
+							      field_type,
+							      Constants.GETFIELD));
 		    write_il.append(new ILOAD(3));
 		    write_il.append(new AALOAD());
 		    write_il.append(new ALOAD(1));
-		    write_il.append(createGeneratedWriteObjectInvocation(field_class.getClassName(), Constants.INVOKEVIRTUAL));
+		    write_il.append(createGeneratedWriteObjectInvocation(field_class.getClassName(),
+									 Constants.INVOKEVIRTUAL));
 
 		    ifcmp1.setTarget(write_il.append(new IINC(3, 1)));
-		    gto.setTarget(write_il.append(new DUP()));
+		    gto.setTarget(write_il.append(new ILOAD(4)));
 
 		    write_il.append(new ILOAD(3));
 		    write_il.append(new IF_ICMPGT(loop_body_start));
-		    write_il.append(new POP());
 		}
 		else {
 		    write_il.append(new ALOAD(0));
@@ -862,10 +867,10 @@ public class IOGenerator {
 
 		read_il.append(new ALOAD(1));
 		read_il.append(factory.createInvoke(ibis_input_stream_name,
-					       "readKnownTypeHeader",
-					       Type.INT,
-					       Type.NO_ARGS,
-					       Constants.INVOKEVIRTUAL));
+						   "readKnownTypeHeader",
+						   Type.INT,
+						   Type.NO_ARGS,
+						   Constants.INVOKEVIRTUAL));
 		read_il.append(new ISTORE(2));
 		read_il.append(new ILOAD(2));
 		read_il.append(new ICONST(-1));
@@ -877,10 +882,14 @@ public class IOGenerator {
 		    Type el_type = ((ArrayType) field_type).getElementType();
 		    read_il.append(new ALOAD(0));
 		    read_il.append(new ALOAD(1));
-		    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream", "readInt", Type.INT, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+		    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+							"readInt",
+							Type.INT,
+							Type.NO_ARGS,
+							Constants.INVOKEVIRTUAL));
 		    read_il.append(new DUP());
 		    read_il.append(new ISTORE(3));
-		    read_il.append(factory.createNewArray(((ArrayType) field_type).getElementType(), (short)1));
+		    read_il.append(factory.createNewArray(el_type, (short)1));
 		    read_il.append(factory.createFieldAccess(classname,
 							     field.getName(),
 							     field_type,
@@ -905,10 +914,10 @@ public class IOGenerator {
 
 		    InstructionHandle loop_body_start = read_il.append(new ALOAD(1));
 		    read_il.append(factory.createInvoke(ibis_input_stream_name,
-						   "readKnownTypeHeader",
-						   Type.INT,
-						   Type.NO_ARGS,
-						   Constants.INVOKEVIRTUAL));
+						        "readKnownTypeHeader",
+						        Type.INT,
+						        Type.NO_ARGS,
+						        Constants.INVOKEVIRTUAL));
 		    read_il.append(new ISTORE(2));
 		    read_il.append(new ILOAD(2));
 		    read_il.append(new ICONST(-1));
@@ -946,10 +955,10 @@ public class IOGenerator {
 		    read_il.append(new ALOAD(1));
 		    read_il.append(new ILOAD(2));
 		    read_il.append(factory.createInvoke(ibis_input_stream_name,
-						   "getObjectFromCycleCheck",
-						   Type.OBJECT,
-						   new Type[] { Type.INT },
-						   Constants.INVOKEVIRTUAL));
+						        "getObjectFromCycleCheck",
+						        Type.OBJECT,
+						        new Type[] { Type.INT },
+						        Constants.INVOKEVIRTUAL));
 		    read_il.append(factory.createCheckCast((ReferenceType)el_type));
 		    read_il.append(new AASTORE());
 		    InstructionHandle target2 = read_il.append(new NOP());
