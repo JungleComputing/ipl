@@ -397,6 +397,7 @@ public class SuffixArray implements Configuration, Magic {
         int candidates[] = new int[length];
         int p = 0;
 
+        StepList res = new StepList( top );
         for( int i=1; i<length; i++ ){
             if( commonality[i]>=mincom ){
 		// TODO: we should also consider pairs that
@@ -435,21 +436,16 @@ public class SuffixArray implements Configuration, Magic {
 		    }
 		    maxlen = len;
 		    mincom = len;
+                    res.add( new Step( candidates, p, maxlen ) );
 		}
             }
         }
-        if( maxlen == 0 ){
-            return null;
-        }
-        // For now, construct a list with one element.
-        StepList res = new StepList( top );
-        res.add( new Step( candidates, p, maxlen ) );
         return res;
     }
 
     /**
      * Applies one step in the folding process.
-     * @return True iff there was a useful compression step.
+     * @return True iff a useful compression step could be done.
      */
     public boolean applyFolding( int top ) throws VerificationException
     {
