@@ -175,7 +175,16 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	output.println("\tpublic ParameterVector readParameters(ReadMessage r) throws IOException {");
 	output.println("\t\t" + name + " p = new " + name + "();");
 	for (int i = 0; i < params.length; i++) {
-	    output.println(readMessageType("\t\t", "p.p" + i, "r", params[i], true));
+	    if (params[i].isPrimitive()) {
+		output.println(readMessageType("\t\t", "p.p" + i, "r", params[i], true));
+	    }
+	    else {
+		output.println("\t\ttry {");
+		output.println(readMessageType("\t\t\t", "p.p" + i, "r", params[i], true));
+		output.println("\t\t} catch(ClassNotFoundException e) {");
+		output.println("\t\t\tthrow new RuntimeException(\"class not found exception: \" + e);");
+		output.println("\t\t}");
+	    }
 	    output.println("\t\tp.set[" + i + "] = true;");
 	}
 	output.println("\t\tdone = true;");

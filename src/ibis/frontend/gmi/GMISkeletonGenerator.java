@@ -155,7 +155,16 @@ class GMISkeletonGenerator extends GMIGenerator {
 
 	for (int j=0;j<params.length;j++) {
 	    Class temp = params[j];
-	    output.println(readMessageType(spacing + "\t", "p" + j, "r", temp, true));
+	    if (temp.isPrimitive()) {
+		output.println(readMessageType(spacing + "\t", "p" + j, "r", temp, true));
+	    }
+	    else {
+		output.println(spacing + "\ttry {");
+		output.println(readMessageType(spacing + "\t\t", "p" + j, "r", temp, true));
+		output.println(spacing + "\t} catch(ClassNotFoundException e) {");
+		output.println(spacing + "\t\tthrow new RuntimeException(\"class not found exception \" + e);");
+		output.println(spacing + "\t}");
+	    }
 	}
 
 	output.println(spacing + "\tr.finish();");
