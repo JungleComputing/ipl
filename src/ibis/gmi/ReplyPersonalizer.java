@@ -20,7 +20,10 @@ public class ReplyPersonalizer implements java.io.Serializable {
     }
 
     /**
-     * See {@link #personalize(boolean,boolean[])} but for bytes.
+     * Personalize method for bytes.
+     *
+     * @param in the result of the method invocation
+     * @param out the array of personalized results
      */
     public void personalize(byte in, byte[] out) {
         for (int i = 0; i < out.length; i++)
@@ -28,7 +31,10 @@ public class ReplyPersonalizer implements java.io.Serializable {
     }
 
     /**
-     * See {@link #personalize(boolean,boolean[])} but for shorts.
+     * Personalize method for shorts.
+     *
+     * @param in the result of the method invocation
+     * @param out the array of personalized results
      */
     public void personalize(short in, short[] out) {
         for (int i = 0; i < out.length; i++)
@@ -36,7 +42,10 @@ public class ReplyPersonalizer implements java.io.Serializable {
     }
 
     /**
-     * See {@link #personalize(boolean,boolean[])} but for chars.
+     * Personalize method for chars.
+     *
+     * @param in the result of the method invocation
+     * @param out the array of personalized results
      */
     public void personalize(char in, char[] out) {
         for (int i = 0; i < out.length; i++)
@@ -44,7 +53,10 @@ public class ReplyPersonalizer implements java.io.Serializable {
     }
 
     /**
-     * See {@link #personalize(boolean,boolean[])} but for ints.
+     * Personalize method for ints.
+     *
+     * @param in the result of the method invocation
+     * @param out the array of personalized results
      */
     public void personalize(int in, int[] out) {
         for (int i = 0; i < out.length; i++)
@@ -52,7 +64,10 @@ public class ReplyPersonalizer implements java.io.Serializable {
     }
 
     /**
-     * See {@link #personalize(boolean,boolean[])} but for longs.
+     * Personalize method for longs.
+     *
+     * @param in the result of the method invocation
+     * @param out the array of personalized results
      */
     public void personalize(long in, long[] out) {
         for (int i = 0; i < out.length; i++)
@@ -60,7 +75,10 @@ public class ReplyPersonalizer implements java.io.Serializable {
     }
 
     /**
-     * See {@link #personalize(boolean,boolean[])} but for floats.
+     * Personalize method for floats.
+     *
+     * @param in the result of the method invocation
+     * @param out the array of personalized results
      */
     public void personalize(float in, float[] out) {
         for (int i = 0; i < out.length; i++)
@@ -68,7 +86,10 @@ public class ReplyPersonalizer implements java.io.Serializable {
     }
 
     /**
-     * See {@link #personalize(boolean,boolean[])} but for doubles.
+     * Personalize method for doubles.
+     *
+     * @param in the result of the method invocation
+     * @param out the array of personalized results
      */
     public void personalize(double in, double[] out) {
         for (int i = 0; i < out.length; i++)
@@ -76,7 +97,10 @@ public class ReplyPersonalizer implements java.io.Serializable {
     }
 
     /**
-     * See {@link #personalize(boolean,boolean[])} but for Objects..
+     * Personalize method for Objects
+     *
+     * @param in the result of the method invocation
+     * @param out the array of personalized results
      */
     public void personalize(Object in, Object[] out) {
         for (int i = 0; i < out.length; i++)

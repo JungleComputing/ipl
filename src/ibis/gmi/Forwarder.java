@@ -48,7 +48,7 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * Invoked when a "boolean" result is received.
+     * Invoked when a boolean result is received.
      *
      * @param rank the rank number of the group member from which this reply
      *   was received
@@ -61,7 +61,12 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * See {@link #forward(int,int,boolean)}, but for a byte result.
+     * Invoked when a byte result is received.
+     *
+     * @param rank the rank number of the group member from which this reply
+     *   was received
+     * @param size the total number of replies to be expected
+     * @param result the replied value
      */
     public void forward(int rank, int size, byte result) {
         throw new RuntimeException(
@@ -69,7 +74,12 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * See {@link #forward(int,int,boolean)}, but for a char result.
+     * Invoked when a char result is received.
+     *
+     * @param rank the rank number of the group member from which this reply
+     *   was received
+     * @param size the total number of replies to be expected
+     * @param result the replied value
      */
     public void forward(int rank, int size, char result) {
         throw new RuntimeException(
@@ -77,7 +87,12 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * See {@link #forward(int,int,boolean)}, but for a short result.
+     * Invoked when a short result is received.
+     *
+     * @param rank the rank number of the group member from which this reply
+     *   was received
+     * @param size the total number of replies to be expected
+     * @param result the replied value
      */
     public void forward(int rank, int size, short result) {
         throw new RuntimeException(
@@ -85,7 +100,12 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * See {@link #forward(int,int,boolean)}, but for an int result.
+     * Invoked when a int result is received.
+     *
+     * @param rank the rank number of the group member from which this reply
+     *   was received
+     * @param size the total number of replies to be expected
+     * @param result the replied value
      */
     public void forward(int rank, int size, int result) {
         throw new RuntimeException(
@@ -93,7 +113,12 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * See {@link #forward(int,int,boolean)}, but for a long result.
+     * Invoked when a long result is received.
+     *
+     * @param rank the rank number of the group member from which this reply
+     *   was received
+     * @param size the total number of replies to be expected
+     * @param result the replied value
      */
     public void forward(int rank, int size, long result) {
         throw new RuntimeException(
@@ -101,7 +126,12 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * See {@link #forward(int,int,boolean)}, but for a float result.
+     * Invoked when a float result is received.
+     *
+     * @param rank the rank number of the group member from which this reply
+     *   was received
+     * @param size the total number of replies to be expected
+     * @param result the replied value
      */
     public void forward(int rank, int size, float result) {
         throw new RuntimeException(
@@ -109,7 +139,12 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * See {@link #forward(int,int,boolean)}, but for a double result.
+     * Invoked when a double result is received.
+     *
+     * @param rank the rank number of the group member from which this reply
+     *   was received
+     * @param size the total number of replies to be expected
+     * @param result the replied value
      */
     public void forward(int rank, int size, double result) {
         throw new RuntimeException(
@@ -117,7 +152,12 @@ public class Forwarder implements GroupProtocol {
     }
 
     /**
-     * See {@link #forward(int,int,boolean)}, but for an Object result.
+     * Invoked when an Object result is received.
+     *
+     * @param rank the rank number of the group member from which this reply
+     *   was received
+     * @param size the total number of replies to be expected
+     * @param result the replied value
      */
     public void forward(int rank, int size, Object result) {
         throw new RuntimeException(

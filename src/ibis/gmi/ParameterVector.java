@@ -43,6 +43,7 @@ public abstract class ParameterVector {
      *
      * @param r the message from which the parameters are to be read
      * @return The resulting parameter vector.
+     * @throws IOException some network error occurred
      */
     public abstract ParameterVector readParameters(ReadMessage r)
             throws IOException;
@@ -51,6 +52,7 @@ public abstract class ParameterVector {
      * Writes this parameter vector to a message.
      *
      * @param w the message to which the parameters are to be appended
+     * @throws IOException some network error occurred
      */
     public abstract void writeParameters(WriteMessage w) throws IOException;
 
@@ -74,65 +76,89 @@ public abstract class ParameterVector {
     }
 
     /**
-     * See {@link #write(int,boolean)}, but for a byte.
+     * Places a byte value in parameter number "num".
+     *
+     * @param num the parameter number, ranging from 0 .. #parameters-1
+     * @param value the value to be stored
      */
     public void write(int num, byte value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #write(int,boolean)}, but for a short.
+     * Places a short value in parameter number "num".
+     *
+     * @param num the parameter number, ranging from 0 .. #parameters-1
+     * @param value the value to be stored
      */
     public void write(int num, short value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #write(int,boolean)}, but for a char.
+     * Places a char value in parameter number "num".
+     *
+     * @param num the parameter number, ranging from 0 .. #parameters-1
+     * @param value the value to be stored
      */
     public void write(int num, char value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #write(int,boolean)}, but for an int.
+     * Places an int value in parameter number "num".
+     *
+     * @param num the parameter number, ranging from 0 .. #parameters-1
+     * @param value the value to be stored
      */
     public void write(int num, int value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #write(int,boolean)}, but for a long.
+     * Places a long value in parameter number "num".
+     *
+     * @param num the parameter number, ranging from 0 .. #parameters-1
+     * @param value the value to be stored
      */
     public void write(int num, long value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #write(int,boolean)}, but for a float.
+     * Places a float value in parameter number "num".
+     *
+     * @param num the parameter number, ranging from 0 .. #parameters-1
+     * @param value the value to be stored
      */
     public void write(int num, float value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #write(int,boolean)}, but for a double.
+     * Places a double value in parameter number "num".
+     *
+     * @param num the parameter number, ranging from 0 .. #parameters-1
+     * @param value the value to be stored
      */
     public void write(int num, double value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #write(int,boolean)}, but for an Object.
+     * Places an Object value in parameter number "num".
+     *
+     * @param num the parameter number, ranging from 0 .. #parameters-1
+     * @param value the value to be stored
      */
     public void write(int num, Object value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * Places a notion in the parameter vector that parameter "num" is
-     * a sub-array of array "value", with offset "offset" and length "size".
-     * No copying takes place.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of boolean array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
      *
      * @param num The parameter number, ranging from 0 .. #parameters-1.
      * @param offset Offset in the array where the sub-array begins.
@@ -144,56 +170,112 @@ public abstract class ParameterVector {
     }
 
     /**
-     * See {@link #writeSubArray(int,int,int,boolean[])}, but for byte arrays.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of byte array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
+     *
+     * @param num The parameter number, ranging from 0 .. #parameters-1.
+     * @param offset Offset in the array where the sub-array begins.
+     * @param size Length (number of elements) in the sub-array.
+     * @param value The array of which a sub-array is the parameter.
      */
     public void writeSubArray(int num, int offset, int size, byte[] value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #writeSubArray(int,int,int,boolean[])}, but for short arrays.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of short array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
+     *
+     * @param num The parameter number, ranging from 0 .. #parameters-1.
+     * @param offset Offset in the array where the sub-array begins.
+     * @param size Length (number of elements) in the sub-array.
+     * @param value The array of which a sub-array is the parameter.
      */
     public void writeSubArray(int num, int offset, int size, short[] value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #writeSubArray(int,int,int,boolean[])}, but for char arrays.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of char array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
+     *
+     * @param num The parameter number, ranging from 0 .. #parameters-1.
+     * @param offset Offset in the array where the sub-array begins.
+     * @param size Length (number of elements) in the sub-array.
+     * @param value The array of which a sub-array is the parameter.
      */
     public void writeSubArray(int num, int offset, int size, char[] value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #writeSubArray(int,int,int,boolean[])}, but for int arrays.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of int array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
+     *
+     * @param num The parameter number, ranging from 0 .. #parameters-1.
+     * @param offset Offset in the array where the sub-array begins.
+     * @param size Length (number of elements) in the sub-array.
+     * @param value The array of which a sub-array is the parameter.
      */
     public void writeSubArray(int num, int offset, int size, int[] value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #writeSubArray(int,int,int,boolean[])}, but for long arrays.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of long array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
+     *
+     * @param num The parameter number, ranging from 0 .. #parameters-1.
+     * @param offset Offset in the array where the sub-array begins.
+     * @param size Length (number of elements) in the sub-array.
+     * @param value The array of which a sub-array is the parameter.
      */
     public void writeSubArray(int num, int offset, int size, long[] value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #writeSubArray(int,int,int,boolean[])}, but for float arrays.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of float array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
+     *
+     * @param num The parameter number, ranging from 0 .. #parameters-1.
+     * @param offset Offset in the array where the sub-array begins.
+     * @param size Length (number of elements) in the sub-array.
+     * @param value The array of which a sub-array is the parameter.
      */
     public void writeSubArray(int num, int offset, int size, float[] value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #writeSubArray(int,int,int,boolean[])}, but for double arrays.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of double array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
+     *
+     * @param num The parameter number, ranging from 0 .. #parameters-1.
+     * @param offset Offset in the array where the sub-array begins.
+     * @param size Length (number of elements) in the sub-array.
+     * @param value The array of which a sub-array is the parameter.
      */
     public void writeSubArray(int num, int offset, int size, double[] value) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #writeSubArray(int,int,int,boolean[])}, but for Object arrays.
+     * Records in the parameter vector that parameter "num" is a sub-array 
+     * of Object array "value", with offset "offset" and length "size".
+     * Copying does not necessarily take place.
+     *
+     * @param num The parameter number, ranging from 0 .. #parameters-1.
+     * @param offset Offset in the array where the sub-array begins.
+     * @param size Length (number of elements) in the sub-array.
+     * @param value The array of which a sub-array is the parameter.
      */
     public void writeSubArray(int num, int offset, int size, Object[] value) {
         throw new RuntimeException("EEK: ParameterVector");
@@ -210,56 +292,80 @@ public abstract class ParameterVector {
     }
 
     /**
-     * See {@link #readBoolean(int)}, but for a byte.
+     * Get a byte from position "num" in the parameter vector.
+     *
+     * @param num The position number in the parameter vector.
+     * @return The boolean requested.
      */
     public byte readByte(int num) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #readBoolean(int)}, but for a short.
+     * Get a short from position "num" in the parameter vector.
+     *
+     * @param num The position number in the parameter vector.
+     * @return The boolean requested.
      */
     public short readShort(int num) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #readBoolean(int)}, but for a char.
+     * Get a char from position "num" in the parameter vector.
+     *
+     * @param num The position number in the parameter vector.
+     * @return The boolean requested.
      */
     public char readChar(int num) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #readBoolean(int)}, but for an int.
+     * Get a int from position "num" in the parameter vector.
+     *
+     * @param num The position number in the parameter vector.
+     * @return The boolean requested.
      */
     public int readInt(int num) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #readBoolean(int)}, but for a long.
+     * Get a long from position "num" in the parameter vector.
+     *
+     * @param num The position number in the parameter vector.
+     * @return The boolean requested.
      */
     public long readLong(int num) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #readBoolean(int)}, but for a float.
+     * Get a float from position "num" in the parameter vector.
+     *
+     * @param num The position number in the parameter vector.
+     * @return The boolean requested.
      */
     public float readFloat(int num) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #readBoolean(int)}, but for a double.
+     * Get a double from position "num" in the parameter vector.
+     *
+     * @param num The position number in the parameter vector.
+     * @return The boolean requested.
      */
     public double readDouble(int num) {
         throw new RuntimeException("EEK: ParameterVector");
     }
 
     /**
-     * See {@link #readBoolean(int)}, but for an Object.
+     * Get a Object from position "num" in the parameter vector.
+     *
+     * @param num The position number in the parameter vector.
+     * @return The boolean requested.
      */
     public Object readObject(int num) {
         throw new RuntimeException("EEK: ParameterVector");

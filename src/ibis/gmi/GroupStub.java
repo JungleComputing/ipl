@@ -95,7 +95,9 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * @param stubID the identification of this stub
      */
     protected void init(int gid, int mranks[], int[] mskels, int stubID) {
-        logger.debug("GroupStub.init(" + stubID + ") started");
+        if (Group.DEBUG) {
+            logger.debug(Group._rank + ": init(" + stubID + ") started");
+        }
 
         this.groupID = gid;
         this.memberRanks = mranks;
@@ -134,8 +136,11 @@ public class GroupStub implements GroupInterface, GroupProtocol {
         realStubID = stubID;
         shiftedStubID = stubID << 16;
         replyStack = new Ticket();
-        logger.debug("GroupStub.init(" + stubID
-                + ") done, multicastHostsID = " + multicastHostsID);
+
+        if (Group.DEBUG) {
+            logger.debug(Group._rank + ": init(" + stubID
+                    + ") done, multicastHostsID = " + multicastHostsID);
+        }
     }
 
     /**
@@ -320,20 +325,28 @@ public class GroupStub implements GroupInterface, GroupProtocol {
             ReplyPersonalizer personalizer) throws IOException {
         switch (inv.inv.mode) {
         case InvocationScheme.I_SINGLE: {
-            logger.debug("Single invoke");
+            if (Group.DEBUG) {
+                logger.debug(Group._rank + ": do_invoke(...) - Single invoke");
+            }
             WriteMessage w = m.sendport.newMessage();
             do_message(w, m, personalizer, m.destinationSkeleton, m.info.out);
         }
             break;
         case InvocationScheme.I_GROUP: {
-            logger.debug("Group invoke");
+            if (Group.DEBUG) {
+                logger.debug(Group._rank + ": do_invoke(...) - Group invoke");
+            }
             WriteMessage w = m.sendport.newMessage();
             // System.out.println("Sendport = " + m.sendport);
             do_message(w, m, personalizer, groupID, m.info.out);
         }
             break;
         case InvocationScheme.I_PERSONAL: {
-            logger.debug("Personalized invoke");
+            if (Group.DEBUG) {
+                logger.debug(Group._rank + ": do_invoke(...) - " + 
+                        "Personalized invoke");
+            }
+
             ParameterVector[] personal = new ParameterVector[targetGroupSize];
             for (int i = 0; i < targetGroupSize; i++) {
                 personal[i] = m.info.out.getVector();

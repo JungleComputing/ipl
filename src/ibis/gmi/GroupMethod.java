@@ -90,8 +90,16 @@ public class GroupMethod {
      */
     public void configure(InvocationScheme invscheme, ReplyScheme repscheme)
             throws ConfigurationException {
+        
         switch (invscheme.mode) {
         case InvocationScheme.I_SINGLE:
+            
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting invocation mode to SINGLE");
+                
+            }
+            
             SingleInvocation si = (SingleInvocation) invscheme;
 
             if (si.destination >= parent_stub.targetGroupSize
@@ -122,17 +130,38 @@ public class GroupMethod {
             break;
 
         case InvocationScheme.I_GROUP:
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting invocation mode to GROUP");
+                
+            }
+            
             invocation_mode = invscheme.mode;
             sendport = Group.getMulticastSendport(parent_stub.multicastHostsID,
                     parent_stub.multicastHosts);
             break;
 
         case InvocationScheme.I_PERSONAL:
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting invocation mode to PERSONAL");
+                
+            }
+            
             invocation_mode = invscheme.mode;
             break;
 
-        case InvocationScheme.I_COMBINED_FLAT:
+        case InvocationScheme.I_COMBINED_FLAT:            
         case InvocationScheme.I_COMBINED_BINOMIAL: {
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting invocation mode to COMBINED");
+                
+            }
+            
             CombinedInvocation ci = (CombinedInvocation) invscheme;
 
             configure(ci.inv, repscheme);
@@ -147,27 +176,69 @@ public class GroupMethod {
 
         switch (repscheme.mode) {
         case ReplyScheme.R_DISCARD:
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting reply mode to DISCARD");
+                
+            }
+            
             result_mode = repscheme.mode;
             break;
         case ReplyScheme.R_RETURN:
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting reply mode to RETURN");
+                
+            }
+
             result_mode = repscheme.mode;
             break;
         case ReplyScheme.R_FORWARD:
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting reply mode to FORWARD");
+                
+            }
+
             // Could check here that the forwarder supplied in fact has
             // a proper forward method for the result type of this group method!
             result_mode = repscheme.mode;
             break;
         case ReplyScheme.R_COMBINE_BINOMIAL:
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting reply mode to COMBINE_BINOMIAL");
+                
+            }
+
             result_mode = repscheme.mode;
             // Could check here that the combiner supplied in fact has
             // a proper combine method for the result type of this group method!
             break;
         case ReplyScheme.R_COMBINE_FLAT:
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting reply mode to COMBINE_FLAT");
+                
+            }
+
             // Could check here that the combiner supplied in fact has
             // a proper combine method for the result type of this group method!
             result_mode = repscheme.mode;
             break;
         case ReplyScheme.R_PERSONALIZED:
+
+            if (Group.DEBUG) { 
+                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
+                        " Setting reply mode to PERSONALIZED");
+                
+            }
+
             // No checks here, the default reply personalizer could be
             // fine.
             result_mode = repscheme.mode

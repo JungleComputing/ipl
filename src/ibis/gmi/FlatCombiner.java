@@ -30,6 +30,7 @@ public class FlatCombiner {
      *
      * @param results the results to be combined
      * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public boolean combine(boolean[] results, Exception[] exceptions) {
         throw new RuntimeException(
@@ -38,7 +39,12 @@ public class FlatCombiner {
     }
 
     /**
-     * See {@link #combine(boolean[],Exception[])}, but for byte results.
+     * Combine with a byte result. May throw an exception that is the result
+     * of an exception combine.
+     *
+     * @param results the results to be combined
+     * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public byte combine(byte[] results, Exception[] exceptions) {
         throw new RuntimeException(
@@ -47,7 +53,12 @@ public class FlatCombiner {
     }
 
     /**
-     * See {@link #combine(boolean[],Exception[])}, but for char results.
+     * Combine with a char result. May throw an exception that is the result
+     * of an exception combine.
+     *
+     * @param results the results to be combined
+     * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public char combine(char[] results, Exception[] exceptions) {
         throw new RuntimeException(
@@ -56,7 +67,12 @@ public class FlatCombiner {
     }
 
     /**
-     * See {@link #combine(boolean[],Exception[])}, but for short results.
+     * Combine with a short result. May throw an exception that is the result
+     * of an exception combine.
+     *
+     * @param results the results to be combined
+     * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public short combine(short[] results, Exception[] exceptions) {
         throw new RuntimeException(
@@ -65,7 +81,12 @@ public class FlatCombiner {
     }
 
     /**
-     * See {@link #combine(boolean[],Exception[])}, but for int results.
+     * Combine with an int result. May throw an exception that is the result
+     * of an exception combine.
+     *
+     * @param results the results to be combined
+     * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public int combine(int[] results, Exception[] exceptions) {
         throw new RuntimeException(
@@ -74,7 +95,12 @@ public class FlatCombiner {
     }
 
     /**
-     * See {@link #combine(boolean[],Exception[])}, but for long results.
+     * Combine with a long result. May throw an exception that is the result
+     * of an exception combine.
+     *
+     * @param results the results to be combined
+     * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public long combine(long[] results, Exception[] exceptions) {
         throw new RuntimeException(
@@ -83,7 +109,12 @@ public class FlatCombiner {
     }
 
     /**
-     * See {@link #combine(boolean[],Exception[])}, but for float results.
+     * Combine with a float result. May throw an exception that is the result
+     * of an exception combine.
+     *
+     * @param results the results to be combined
+     * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public float combine(float[] results, Exception[] exceptions) {
         throw new RuntimeException(
@@ -92,7 +123,12 @@ public class FlatCombiner {
     }
 
     /**
-     * See {@link #combine(boolean[],Exception[])}, but for double results.
+     * Combine with a double result. May throw an exception that is the result
+     * of an exception combine.
+     *
+     * @param results the results to be combined
+     * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public double combine(double[] results, Exception[] exceptions) {
         throw new RuntimeException(
@@ -101,7 +137,12 @@ public class FlatCombiner {
     }
 
     /**
-     * See {@link #combine(boolean[],Exception[])}, but for Object results.
+     * Combine with an Object result. May throw an exception that is the result
+     * of an exception combine.
+     *
+     * @param results the results to be combined
+     * @param exceptions the exceptions to be combined
+     * @return result of the combine operation
      */
     public Object combine(Object[] results, Exception[] exceptions) {
         throw new RuntimeException(

@@ -4,8 +4,8 @@ package ibis.gmi;
 
 /**
  * The {@link BinomialCombiner} class serves as a base class for user-defined
- * binomial (reply) combiners. This class contains methods that can be used
- * to do a pairwise combine of the results. There is a combine method for
+ * binomial reply combiners. This class contains methods that can be used
+ * to do a pairwise combine of two results. There is a combine method for
  * each result type. The user-defined combiner-class should redefine the
  * combine methods that it will use.
  *
@@ -34,14 +34,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with boolean results.
+     * Combiner for boolean results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
-     * for a description of some of the parameters.
-     * The other parameters are:
-     *
-     * @param result1 the first result
-     * @param result2 the second result
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public boolean combine(int rank1, boolean result1, Exception e1, int rank2,
             boolean result2, Exception e2, int size) {
@@ -51,10 +53,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with byte results.
+     * Combiner for byte results.
      *
-     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
-     * for a description of the parameters.
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public byte combine(int rank1, byte result1, Exception e1, int rank2,
             byte result2, Exception e2, int size) {
@@ -64,10 +72,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with char results.
+     * Combiner for char results.
      *
-     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
-     * for a description of the parameters.
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public char combine(int rank1, char result1, Exception e1, int rank2,
             char result2, Exception e2, int size) {
@@ -77,10 +91,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with short results.
+     * Combiner for short results.
      *
-     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
-     * for a description of the parameters.
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public short combine(int rank1, short result1, Exception e1, int rank2,
             short result2, Exception e2, int size) {
@@ -90,10 +110,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with int results.
+     * Combiner for int results.
      *
-     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
-     * for a description of the parameters.
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public int combine(int rank1, int result1, Exception e1, int rank2,
             int result2, Exception e2, int size) {
@@ -103,10 +129,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with long results.
+     * Combiner for long results.
      *
-     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
-     * for a description of the parameters.
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public long combine(int rank1, long result1, Exception e1, int rank2,
             long result2, Exception e2, int size) {
@@ -116,10 +148,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with float results.
+     * Combiner for float results.
      *
-     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
-     * for a description of the parameters.
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public float combine(int rank1, float result1, Exception e1, int rank2,
             float result2, Exception e2, int size) {
@@ -129,10 +167,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with double results.
+     * Combiner for double results.
      *
-     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
-     * for a description of the parameters.
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public double combine(int rank1, double result1, Exception e1, int rank2,
             double result2, Exception e2, int size) {
@@ -142,10 +186,16 @@ public class BinomialCombiner implements java.io.Serializable {
     }
 
     /**
-     * Combiner with Object results.
+     * Combiner for Object results.
      *
-     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
-     * for a description of the parameters.
+     * @param rank1 rank of the member that produced the first result
+     * @param result1 the first result (if available)
+     * @param e1 the first exception (if available)
+     * @param rank2 rank of the member that produced the second result
+     * @param result2 the second result (if available)
+     * @param e2 the first exception (if available)
+     * @param size total number of members participating
+     * @return result of the combine operation
      */
     public Object combine(int rank1, Object result1, Exception e1, int rank2,
             Object result2, Exception e2, int size) {

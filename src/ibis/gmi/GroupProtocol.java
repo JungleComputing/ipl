@@ -104,6 +104,15 @@ public interface GroupProtocol {
      */
     public static final byte JOIN_WRONG_TYPE = 13;
 
+    /** Registry reply to a JOIN_GROUP request: rank taken. */
+    public static final byte JOIN_RANK_TAKEN = 14;
+    
+    /** Registry reply to a JOIN_GROUP request: illegal rank specified. */
+    public static final byte JOIN_ILLEGAL_RANK = 15;
+
+    /** Registry reply to a JOIN_GROUP request: timeout. */
+    public static final byte JOIN_TIMEOUT = 16;
+    
     /** Registry reply to a FIND_GROUP: group not known. */
     public static final byte GROUP_UNKNOWN = 20;
 

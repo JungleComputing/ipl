@@ -83,8 +83,10 @@ public class CombinedInvocation extends InvocationScheme {
                     + inv);
         }
 
-        System.out.println("CombinedInvocation(" + identifier + ", " + size
-                + ", FLAT): mode = " + mode);
+        if (Group.DEBUG) { 
+            System.out.println(Group.rank() + ": CombinedInvocation.constructor("
+                    + identifier + ", " + size + ", FLAT): mode = " + mode);
+        }
     }
 
     /**
@@ -126,6 +128,11 @@ public class CombinedInvocation extends InvocationScheme {
         if (inv == null || (inv.mode > InvocationScheme.I_PERSONAL)) {
             throw new ConfigurationException("Invalid nested invocation "
                     + inv);
+        }
+
+        if (Group.DEBUG) { 
+            System.out.println(Group.rank() + ": CombinedInvocation.constructor("
+                    + identifier + ", " + size + ", BINOMIAL): mode = " + mode);
         }
     }
 }
