@@ -16,7 +16,7 @@ import java.io.File;
 
 
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
-    private static final boolean traceSolver = false;
+    private static final boolean traceSolver = true;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static final boolean traceLearning = false;
@@ -60,10 +60,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	boolean val
     ) throws SATResultException, SATRestartException
     {
-	if( traceSolver ){
-	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
-	}
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
+	if( traceSolver ){
+	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
+	}
         // We must update the administration with any
         // new clauses that we've learned recently.
         ctx.update( p );
@@ -138,12 +138,11 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	boolean val
     ) throws SATException
     {
-	if( traceSolver ){
-	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
-	}
-
-        ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
+	if( traceSolver ){
+	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
+	}
+        ctx.update( p );
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level );
@@ -283,11 +282,11 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             s.sync();
 	}
 	catch( SATResultException r ){
-	    if( r.s == null ){
-		System.err.println( "A null result thrown???" );
-	    }
 	    res = r.s;
 	    s.abort();
+	    if( res == null ){
+		System.err.println( "A null result thrown???" );
+	    }
             return res;
 	}
         catch( SATRestartException x ){

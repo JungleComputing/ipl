@@ -593,7 +593,7 @@ public final class SATContext implements java.io.Serializable {
         throws SATRestartException
     {
         if( tracePropagation | traceLearning | traceResolutionChain ){
-            System.err.println( "Clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
+            System.err.println( "S" + level + ": clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
             dumpAssignments();
             if( traceResolutionChain ){
                 dumpImplications( "", p, cno );
@@ -649,7 +649,7 @@ public final class SATContext implements java.io.Serializable {
 	int arr[] = c.pos;
 	boolean foundIt = false;
 	if( tracePropagation ){
-	    System.err.println( "Propagating unit clause " + c );
+	    System.err.println( "S" + level + ": propagating unit clause " + c );
 	}
 	// Now search for the variable that isn't satisfied.
 	for( int j=0; j<arr.length; j++ ){
@@ -662,7 +662,7 @@ public final class SATContext implements java.io.Serializable {
 		}
 		// We have found the unassigned one, propagate it.
 		if( tracePropagation ){
-		    System.err.println( "Propagating positive unit variable " + v + " from clause " + c );
+		    System.err.println( "S" + level + ": propagating positive unit variable " + v + " from clause " + c );
 		}
                 antecedent[v] = i;
 		int res = propagatePosAssignment( p, v, level );
@@ -686,7 +686,7 @@ public final class SATContext implements java.io.Serializable {
 		}
 		// We have found the unassigned one, propagate it.
 		if( tracePropagation ){
-		    System.err.println( "Propagating negative unit variable " + v + " from clause " + c );
+		    System.err.println( "S" + level + ": propagating negative unit variable " + v + " from clause " + c );
 		}
                 antecedent[v] = i;
 		int res = propagateNegAssignment( p, v, level );
@@ -764,7 +764,7 @@ public final class SATContext implements java.io.Serializable {
 	}
 	Clause c = p.clauses[cno];
 	if( tracePropagation ){
-	    System.err.println( "Clause " + c + " is now satisfied, " + unsatisfied + " to go" );
+	    System.err.println( "S" + level + ": clause " + c + " is now satisfied, " + unsatisfied + " to go" );
 	}
 
 	int pos[] = c.pos;
@@ -856,7 +856,7 @@ public final class SATContext implements java.io.Serializable {
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
-	    System.err.println( "Propagating assignment v" + var + "=true" );
+	    System.err.println( "S" + level + ": propagating assignment v" + var + "=1" );
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// negative term.
@@ -929,7 +929,7 @@ public final class SATContext implements java.io.Serializable {
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
-	    System.err.println( "Propagating assignment v" + var + "=false" );
+	    System.err.println( "S" + level + ": propagating assignment v" + var + "=0" );
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// Positive term.

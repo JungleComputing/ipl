@@ -228,11 +228,11 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
             s.sync();
 	}
 	catch( SATResultException r ){
-	    if( r.s == null ){
-		System.err.println( "A null result thrown???" );
-	    }
 	    res = r.s;
 	    s.abort();
+	    if( res == null ){
+		System.err.println( "A null result thrown???" );
+	    }
             return res;
 	}
         catch( SATException x ){

@@ -398,7 +398,7 @@ public final class DPLLContext implements java.io.Serializable {
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
-	    System.err.println( "Propagating assignment v" + var + "=true" );
+	    System.err.println( "Propagating assignment v" + var + "=1" );
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// negative term.
@@ -469,7 +469,7 @@ public final class DPLLContext implements java.io.Serializable {
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
-	    System.err.println( "Propagating assignment v" + var + "=false" );
+	    System.err.println( "Propagating assignment v" + var + "=0" );
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// Positive term.
