@@ -4,7 +4,7 @@
 
 /** A single variable of a SAT problem, with associated administration. */
 
-class SATVar implements java.io.Serializable, Comparable {
+final class SATVar implements java.io.Serializable, Comparable {
     private int label;
     private int ix;		// The index in the the original var array.
     private IntVector pos;	// Clauses in which this var occurs as a pos.

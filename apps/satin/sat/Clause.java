@@ -4,7 +4,7 @@
 
 import java.io.PrintStream;
 
-class Clause implements java.io.Serializable, Comparable {
+final class Clause implements java.io.Serializable, Comparable {
     int label;
     int pos[];		// The positive terms
     int neg[];		// The negative terms

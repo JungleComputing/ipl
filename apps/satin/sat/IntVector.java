@@ -6,7 +6,7 @@
  * to provide precise typing and an efficient array representation.
  * We try to adhere to the naming scheme of these classes, though.
  */
-public class IntVector implements java.io.Serializable, Cloneable {
+public final class IntVector implements java.io.Serializable, Cloneable {
     /**
      * The amount by which the capacity of this vector is automatically
      * incremented when its size becomes grater than its capacity.
@@ -153,6 +153,13 @@ public class IntVector implements java.io.Serializable, Cloneable {
 	elementData[elementCount++] = val;
         return true;
     }
+
+    /**
+     * Returns the internal array containing the elements of this vector.
+     * Note that the length of the array may be more than the value returned
+     * by size().
+     */
+    public int[] toArray() { return elementData; }
 
     /**
      * Returns a string representation of this vector.
