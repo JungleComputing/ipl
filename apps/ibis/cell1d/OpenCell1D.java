@@ -138,6 +138,8 @@ class OpenCell1D implements OpenConfig {
     static int aimFirstNoColumn;
     static int knownMembers = 0;
     static RszHandler rszHandler = new RszHandler();
+    static long computeTime = 0;
+    static long adminTime = 0;
 
     private static void usage()
     {
@@ -787,6 +789,7 @@ class OpenCell1D implements OpenConfig {
             }
 
             while( generation<count ){
+                long startLoopTime = System.currentTimeMillis();
                 if( rightNeighbour != null && rightReceivePort == null ){
                     // We now have a right neightbour. Set up communication
                     // with it.
@@ -806,7 +809,9 @@ class OpenCell1D implements OpenConfig {
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     rightNeighbourIdle = false;
                 }
+                long startComputeTime = System.currentTimeMillis();
                 computeNextGeneration( p );
+                long endComputeTime = System.currentTimeMillis();
                 generation++;
                 updateAims( p );
                 if( (me % 2) == 0 ){
@@ -828,6 +833,9 @@ class OpenCell1D implements OpenConfig {
                 if( showProgress && me == 0 ){
                     System.out.print( '.' );
                 }
+                long endTime = System.currentTimeMillis();
+                computeTime += (endComputeTime-startComputeTime);
+                adminTime += (endTime-endComputeTime)+(startComputeTime-startLoopTime);
             }
             if( showProgress && me == 0 ){
                 System.out.println();
@@ -848,6 +856,7 @@ class OpenCell1D implements OpenConfig {
 
                 System.out.println( "ExecutionTime: " + time );
                 System.out.println( "Did " + updates + " updates" );
+                System.out.println( "Spent " + (computeTime/1000.0) + "s computing, and " + (adminTime/1000.0) + "s administrating." );
             }
 
             ibis.end();
