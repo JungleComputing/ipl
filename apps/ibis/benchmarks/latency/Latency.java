@@ -397,17 +397,22 @@ class Latency implements Config {
 		}
 
 		try {
-			ibis = Ibis.createIbis(null, null);
-
-			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();
 			if (ibisSer) { 
 			    s.add("Serialization", "ibis");
 			}
-			if (noneSer) { 
+			else if (noneSer) { 
 			    s.add("Serialization", "none");
 			}
+			else s.add("Serialization", "sun");
+
+			s.add("Communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt");
+			s.add("worldmodel", "open");
+			ibis = Ibis.createIbis(s, null);
+
+			registry = ibis.registry();
+
 			PortType t = ibis.createPortType("test type", s);
 
 			SendPort sport = t.createSendPort("send port");
