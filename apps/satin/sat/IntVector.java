@@ -51,12 +51,30 @@ class IntVector {
 	return oldval;
     }
 
-    int size() { return elementData.length; }
+    int size() { return elementCount; }
     
     boolean add( int val )
     {
 	ensureCapacity( elementCount+1 );
 	elementData[elementCount++] = val;
         return true;
+    }
+
+    public String toString()
+    {
+        String res = "[";
+	boolean first = true;
+
+	for( int i=0; i<elementCount; i++ ){
+	    if( first ){
+	        first = false;
+	    }
+	    else {
+	        res += ",";
+	    }
+	    res += elementData[i];
+	}
+
+	return res + "]";
     }
 }

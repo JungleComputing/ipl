@@ -5,6 +5,7 @@
 
 import java.io.File;
 
+
 public class SATSolver {
     static class Context {
 	Clause clauses[];	// The clauses of the system.
@@ -26,12 +27,12 @@ public class SATSolver {
     // propagate this variable to the clauses. 
     static void propagateTrueValue( Context ctx, final int var )
     {
-	final IntVector pos = ctx.variables[var].pos;
-	final int sz = pos.size();
+	final IntVector poscls = ctx.variables[var].getPosClauses();
+	final int sz = poscls.size();
 	boolean satisfied[] = ctx.satisfied;
 
 	for( int ix=0; ix<sz; ix++ ){
-	    int cno = pos.get( ix );
+	    int cno = poscls.get( ix );
 
 	    satisfied[cno] = true;
 	    if( traceSolver ){
@@ -39,7 +40,7 @@ public class SATSolver {
 	    }
 	}
 	int terms[] = ctx.terms;
-	final IntVector neg = ctx.variables[var].neg;
+	final IntVector neg = ctx.variables[var].getNegClauses();
 	final int szt = neg.size();
 
 	for( int ix=0; ix<szt; ix++ ){
@@ -53,23 +54,26 @@ public class SATSolver {
     // propagate this variable to the clauses. 
     static void propagateFalseValue( Context ctx, final int var )
     {
-	final IntVector neg = ctx.variables[var].neg;
+	final IntVector neg = ctx.variables[var].getNegClauses();
 	final int sz = neg.size();
 	boolean satisfied[] = ctx.satisfied;
 
 	for( int ix=0; ix<sz; ix++ ){
 	    int cno = neg.get( ix );
+
 	    satisfied[cno] = true;
 	    if( traceSolver ){
 		System.out.println( "Assignment var[" + var + "]=false satisfies clause " + cno );
 	    }
 	}
 	int terms[] = ctx.terms;
-	final IntVector pos = ctx.variables[var].pos;
+	final IntVector pos = ctx.variables[var].getPosClauses();
 	final int szt = pos.size();
 
 	for( int ix=0; ix<szt; ix++ ){
-	    terms[pos.get( ix )]--;
+	    int cno = pos.get( ix );
+
+	    terms[cno]--;
 	}
     }
 
@@ -133,7 +137,7 @@ public class SATSolver {
 	        return;
 	    }
 	}
-	System.err.println( "Verification error: clause " + cl.label + " is not satisfied" );
+	System.err.println( "Verification failed: clause " + cl.label + " is not satisfied" );
     }
 
     // Given the current solver context, verify that it does in fact
@@ -468,7 +472,7 @@ public class SATSolver {
 	// Now start with a vector of unassigned variables.
 	for( int ix=0; ix<ctx.variables.length; ix++ ){
 	    ctx.assignments[ix] = -1;
-	    ctx.variables[ix] = new SATVar();
+	    ctx.variables[ix] = new SATVar( ix );
 	}
 	// Construct a table occurences of all variables.
 	registerClauseVariables( ctx.variables, ctx.clauses );
