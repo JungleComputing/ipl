@@ -1,6 +1,7 @@
 package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisError;
 
 public abstract class Inlets extends Aborts {
 	// trace back from the exception, and execute inlets / empty imlets back to
@@ -80,7 +81,7 @@ public abstract class Inlets extends Aborts {
 					RuntimeException tr = (RuntimeException) t;
 					throw tr;
 				}
-				throw new Error(t);
+				throw new IbisError(t);
 //				System.exit(1);
 			}
 

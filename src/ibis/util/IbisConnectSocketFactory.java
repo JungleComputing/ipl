@@ -5,7 +5,6 @@ import ibis.ipl.ConnectionTimedOutException;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -15,7 +14,7 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
      */
     public ServerSocket createServerSocket(int port, int backlog, InetAddress addr) 
 	throws IOException {
-	ServerSocket s = ExtSocketFactory.createServerSocket(new InetSocketAddress(addr, port), backlog);
+	ServerSocket s = ExtSocketFactory.createServerSocket(port, backlog, addr);
 	return s;
     }
 
@@ -64,8 +63,11 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
 					e1.printStackTrace();
 				}
 
-				if (s != null && ! s.isClosed()) {
+				if (s != null) {
+				    try {
 					s.close();
+				    } catch(IOException e) {
+				    }
 				}
 
 //System.err.println("Socket connect hits " + e1);

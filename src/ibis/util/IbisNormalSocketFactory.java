@@ -120,8 +120,11 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 					e1.printStackTrace();
 				}
 
-				if (s != null && ! s.isClosed()) {
+				if (s != null) {
+				    try {
 					s.close();
+				    } catch(IOException e) {
+				    }
 				}
 
 //System.err.println("Socket connect hits " + e1);
