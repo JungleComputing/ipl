@@ -783,16 +783,16 @@ public final class SATContext implements java.io.Serializable {
             for( int i=oldCount; i<newCount; i++ ){
                 Clause cl = p.clauses[i];
 
-                int nterm = cl.getTermCount( assignment );
-		float info = p.reviewer.info( nterm );
-                terms[i] = nterm;
                 boolean issat = cl.isSatisfied( assignment );
                 satisfied[i] = issat;
                 if( !issat ){
+                    unsatisfied++;
+                    int nterm = cl.getTermCount( assignment );
+                    terms[i] = nterm;
                     if( nterm == 1 ){
                         haveUnitClauses = true;
                     }
-                    unsatisfied++;
+                    float info = p.reviewer.info( nterm );
                     cl.registerInfo( posinfo, neginfo, info );
                     cl.registerVariableCounts( posclauses, negclauses );
                 }
