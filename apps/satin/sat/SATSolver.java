@@ -25,7 +25,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
      * If there are less than this number of variables left, we consider
      * this a problem that is trivial enough to hand to the leaf solver.
      */
-    static final int leafVariables = 30;
+    static final int leafVariables = 0;
 
     /** 
      * For all combinations of the first `firstVariables' variables we

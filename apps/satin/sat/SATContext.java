@@ -104,7 +104,7 @@ public class SATContext implements java.io.Serializable {
 	    }
 	}
 
-	// Keep searching for the unassigned variable 
+	// Also count the negative variables.
 	arr = c.neg;
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
@@ -131,6 +131,40 @@ public class SATContext implements java.io.Serializable {
 	}
     }
 
+    /** Verifies that the clause counts of the specified variable are correct. */
+    private void verifyClauseCount( SATProblem p, int var )
+    {
+	int poscount = 0;
+	int negcount = 0;
+
+	// Count the positive clauses
+	IntVector pos = p.getPosClauses( var );
+	int sz = pos.size();
+	for( int i=0; i<sz; i++ ){
+	    int cno = pos.get( i );
+
+	    if( !satisfied[cno] ){
+	        poscount++;
+	    }
+	}
+
+	// Count the negative clauses
+	IntVector neg = p.getNegClauses( var );
+	sz = neg.size();
+	for( int i=0; i<sz; i++ ){
+	    int cno = neg.get( i );
+
+	    if( !satisfied[cno] ){
+	        negcount++;
+	    }
+	}
+	if( posclauses[var] != poscount || negclauses[var] != negcount ){
+	    System.err.println( "Error: clause count of var[" + var + "] says (" + posclauses[var] + "," + negclauses[var] + "), not (" + poscount + "," + negcount + ")" );
+	    posclauses[var] = poscount;
+	    negclauses[var] = negcount;
+	}
+    }
+
     /**
      * Propagates the specified unit clause.
      * @param p the SAT problem to solve
@@ -150,7 +184,6 @@ public class SATContext implements java.io.Serializable {
 	}
 	int arr[] = c.pos;
 	boolean foundIt = false;
-
 	if( tracePropagation ){
 	    System.err.println( "Propagating unit clause " + c );
 	}
@@ -181,7 +214,6 @@ public class SATContext implements java.io.Serializable {
 	arr = c.neg;
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
-
 	    if( assignments[v] == -1 ){
 		if( foundIt ){
 		    System.err.println( "Error: a unit clause with multiple unassigned variables" );
@@ -212,47 +244,71 @@ public class SATContext implements java.io.Serializable {
      */
     private int markClauseSatisfied( SATProblem p, int cno )
     {
-        if( !satisfied[cno] ){
-	    unsatisfied--;
-	    if( tracePropagation ){
-	        System.err.println( "Clause " + p.clauses[cno] + " is now satisfied, " + unsatisfied + " to go" );
-	    }
+	boolean hasUniPolar = false;
+
+	if( satisfied[cno] ){
+	    // Already marked as satisfied, nothing to do.
+	    // TODO: is calling this method when already satisfied ever
+	    // necessary?
+	    return 0;
 	}
 	satisfied[cno] = true;
+	unsatisfied--;
+	if( tracePropagation ){
+	    System.err.println( "Clause " + p.clauses[cno] + " is now satisfied, " + unsatisfied + " to go" );
+	}
 	Clause c = p.clauses[cno];
 
 	int pos[] = c.pos;
+	int neg[] = c.neg;
 	for( int i=0; i<pos.length; i++ ){
 	    int var = pos[i];
 
-	    posclauses[i]--;
-	    if( false ){
-	    if( posclauses[i] == 0 && negclauses[i] != 0 ){
-		if( tracePropagation ){
-		    System.err.println( "Variable " + var + " only occurs negatively"  );
-		}
-	        int res = propagateNegAssignment( p, var );
-		if( res != 0 ){
-		    return res;
-		}
+	    posclauses[var]--;
+	    if( doVerification ){
+	        verifyClauseCount( p, var );
 	    }
+	    if( assignments[var] == -1 && posclauses[var] == 0 && negclauses[var] != 0 ){
+		if( tracePropagation ){
+		    System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
+		}
+		hasUniPolar = true;
 	    }
 	}
-	int neg[] = c.neg;
 	for( int i=0; i<neg.length; i++ ){
 	    int var = neg[i];
 
-	    negclauses[i]--;
-	    if( false ){
-	    if( posclauses[i] != 0 && negclauses[i] == 0 ){
+	    negclauses[var]--;
+	    if( doVerification ){
+	        verifyClauseCount( p, var );
+	    }
+	    if( assignments[var] == -1 && posclauses[var] != 0 && negclauses[var] == 0 ){
 		if( tracePropagation ){
-		    System.err.println( "Variable " + var + " only occurs positively"  );
+		    System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
 		}
-	        int res = propagatePosAssignment( p, var );
-		if( res != 0 ){
-		    return res;
+		hasUniPolar = true;
+	    }
+	}
+	if( hasUniPolar ){
+	    for( int i=0; i<pos.length; i++ ){
+		int var = pos[i];
+
+		if( assignments[var] == -1 && posclauses[var] == 0 && negclauses[var] != 0 ){
+		    int res = propagateNegAssignment( p, var );
+		    if( res != 0 ){
+			return res;
+		    }
 		}
 	    }
+	    for( int i=0; i<neg.length; i++ ){
+		int var = neg[i];
+
+		if( assignments[var] == -1 && posclauses[var] != 0 && negclauses[var] == 0 ){
+		    int res = propagatePosAssignment( p, var );
+		    if( res != 0 ){
+			return res;
+		    }
+		}
 	    }
 	}
 	return 0;
