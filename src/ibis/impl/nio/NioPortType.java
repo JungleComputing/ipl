@@ -54,7 +54,7 @@ class NioPortType extends PortType implements Config {
     byte sendPortImplementation;
     byte receivePortImplementation;
 
-    final boolean sequenced;
+    final boolean numbered;
     final boolean oneToMany;
     final boolean manyToOne;
 
@@ -68,10 +68,10 @@ class NioPortType extends PortType implements Config {
 	oneToMany = p.isProp("Communication", "OneToMany");
 	manyToOne = p.isProp("Communication", "ManyToOne");
 
-	if (systemProperties.getProperty("ibis.nio.sequenced") != null) {
-	    sequenced = true;
+	if (systemProperties.getProperty("ibis.nio.numbered") != null) {
+	    numbered = true;
 	} else {
-	    sequenced = p.isProp("Communication", "Sequenced");
+	    numbered = p.isProp("Communication", "Numbered");
 	}
 
 	String ser = this.p.find("Serialization");
@@ -82,8 +82,8 @@ class NioPortType extends PortType implements Config {
 
 	if (p.isProp("Serialization", "byte")) {
 	    serializationType = SERIALIZATION_BYTE;
-	    if(sequenced) {
-		throw new IbisException("Sequenced communication is not"
+	    if(numbered) {
+		throw new IbisException("Numbered communication is not"
 			+ " supported on byte serialization streams");
 	    }
 	} else if (p.isProp("Serialization", "data")) {
@@ -147,7 +147,7 @@ class NioPortType extends PortType implements Config {
 		    + IMPLEMENTATION_NAMES[sendPortImplementation]
 		    + "\nreceive port implementation = "
 		    + IMPLEMENTATION_NAMES[receivePortImplementation]
-		    + "\nsequenced = " + sequenced
+		    + "\nnumbered = " + numbered
 		    + "\n");
 	}
     } 

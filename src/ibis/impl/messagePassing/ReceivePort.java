@@ -301,7 +301,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     void enqueue(ReadMessage msg) {
 	Ibis.myIbis.checkLockOwned();
-	if (type.sequenced) {
+	if (type.numbered) {
 	    msg.setSequenceNumber(seqno++);
 	}
 	if (DEBUG) {

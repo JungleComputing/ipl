@@ -62,7 +62,7 @@ public class Ibis extends ibis.ipl.Ibis {
     protected native void ibmp_start();
     protected native void ibmp_end();
 
-    private boolean requireSequenced;
+    private boolean requireNumbered;
 
     Ibis() throws IbisException {
 
@@ -225,7 +225,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
 	registry = new Registry();
 
-	requireSequenced = combinedprops.isProp("Communication", "Sequenced");
+	requireNumbered = combinedprops.isProp("Communication", "Numbered");
 
 	    /* Fills in:
 		nrCpus;
@@ -470,8 +470,8 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    boolean requireSequenced() {
-	return requireSequenced;
+    boolean requireNumbered() {
+	return requireNumbered;
     }
 
 

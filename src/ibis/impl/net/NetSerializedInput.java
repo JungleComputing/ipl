@@ -118,7 +118,7 @@ public abstract class NetSerializedInput extends NetInput {
 		streamTable.put(activeNum, iss);
 	    }
 
-	    if (type.sequenced()) {
+	    if (type.numbered()) {
 		messageSeqno = iss.readLong();
 	    }
 

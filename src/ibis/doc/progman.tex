@@ -21,24 +21,21 @@ Programmer's Manual}
 \section{Introduction}
 
 This manual describes how to write and run Ibis applications.
-\remark{The html version contains some links that should also
-be shown in the paper version.}
-\begin{htmlonly}
+\html{
 It is also available in
-\htmladdnormallink{postscript}{http://www.cs.vu.nl/ibis/progman.ps.gz}.
-\end{htmlonly}
+\htmladdnormallink{postscript}{http://www.cs.vu.nl/ibis/progman.ps.gz}.}
+\latex{It is available online at http://www.cs.vu.nl/ibis/progman/.}
 Ibis is a Java-centric grid programming environment.
 It is described in several publications (see Section \ref{Further Reading}).
 Rather than giving a detailed overview of what each class and method does,
 the aim of this document is to describe how to actually use these classes
 and methods.
 The \emph{docs/api} subdirectory of the Ibis installation provides
-documentation for each class and method.
-\begin{htmlonly}
+documentation for each class and method (point your favorite HTML viewer
+to docs/api/index.html file of the Ibis installation).
 The Ibis API is also available
-\htmladdnormallink{online}{http://www.cs.vu.nl/ibis/api/index.html}.
-\end{htmlonly}
-\remark{Put in instructions to build and access the JavaDoc version.}
+\html{\htmladdnormallink{online}{http://www.cs.vu.nl/ibis/api/index.html}.}
+\latex{online at http://www.cs.vu.nl/ibis/api/index.html.}
 Fragments of an actual Ibis application will be used for illustration purposes.
 Section \ref{An Ibis Application} will discuss a typical Ibis application,
 with subsections on each phase of the program.
@@ -53,9 +50,8 @@ system, and Section \ref{The GMI System} discusses GMI
 a flexible group communication system.
 We also built a (not quite complete) RMI (Remote Method Invocation)
 implementation on top of Ibis. RMI documentation can be found on-line at
-{\html {\htmladdnormallink{http://java.sun.com}{http://java.sun.com}}}
-{\latex {http://java.sun.com}}.
-\remark{A more specific link would be very helpful.}
+{\html {\htmladdnormallink{http://java.sun.com/j2se/1.4.2/docs/guide/rmi/index.html}{http://java.sun.com/j2se/1.4.2/docs/guide/rmi/index.html}}}
+{\latex {http://java.sun.com/j2se/1.4.2/docs/guide/rmi/index.html}}.
 Section \ref{Ibis RMI} briefly discusses the Ibis RMI implementation.
 
 \mysection{Some Ibis concepts}
@@ -92,7 +88,7 @@ a single send or receive port, allowing Ibis to choose a more efficient
 implementation.  A connection is always \emph{unidirectional}; reverse
 connections are conceptually totally independent.
 
-All send and receive ports have a \emph{type} represented by an
+All send and receive ports have a \emph{type} which is represented by an
 instance of \texttt{ibis.ipl.PortType}. A port type is is associated
 with communication properties such as serialization method used, message
 ordering, restriction to a single send or receive port, et cetera. The
@@ -111,18 +107,21 @@ To receive a message, the IPL provides two mechanisms:
 \begin{description}
 \item[explicit receipt]
 when a receive port is configured for explicit receipt, a message can be
-received with the receive port's blocking \emph{receive} primitive.
-This method returns a \emph{read message} object. from which data can
-be extracted using its read methods.
+received with the receive port's blocking \emph{receive} method,
+or with its non-blocking \emph{poll} method.
+These methods return a \emph{read message} object, from which data can
+be extracted using its read methods. The \emph{poll} method may also
+return \emph{null}, in case no message is available.
 \item[upcalls]
 when a receive port is configured for upcalls, the Ibis application provides
 an \emph{upcall} method, which is to be called when a message arrives.
 The upcall provides the message received as a parameter.
 The message contents will be lost when the upcall returns, so the data
 in the message must be read in the upcall.
+Upcalls are either automatic, or must be polled for explicitly, see Section
+\ref{Creating an Ibis Instance}.
 \end{description}
 \noindent
-\remark{There is also such a thing as polling for upcalls.}
 
 \mysubsection{Port Types}
 
@@ -138,9 +137,12 @@ to a single receive port, et cetera.
 
 Serialization is a mechanism for converting Java objects
 into portable data streams that can be stored or transferred.  Java
-has input (\texttt{java.io.ObjectInputStream}) and output
-(\texttt{java.io.ObjectOutputStream}) streams for reading and writing
-objects.  In Ibis, we call this mechanism \emph{Sun serialization}.
+has input
+and output
+streams for reading and writing
+objects
+(\texttt{java.io.ObjectInputStream} and \texttt{java.io.ObjectOutputStream}).
+In Ibis, we call this mechanism \emph{Sun serialization}.
 Ibis also has its own mechanism, which is completely compatible (with
 regard to its interface) with Sun serialization, but more efficient.
 We call this mechanism \emph{Ibis serialization}.
@@ -297,11 +299,9 @@ sendports may connect to a single receiveport).
 \item[FifoOrdered]
 messages from a send port are delivered to the receive ports it is
 connected to in the order in which they were sent.
-\item[Sequenced]
+\item[Numbered]
 all messages originating from any send port of a specific port type have
 a sequence number. This allows the application to do its own sequencing.
-\remark{If this doesn't enforce sequenced communication, this is a very
-unfortunate name. What about `numbered'.}
 \item[Reliable]
 reliable communication is supported, that is,
 a reliable communication protocol is used.
@@ -787,11 +787,9 @@ void upcall(ReadMessage m) throws IOException {
 \end{quote}
 
 Note that the read message is finished before replying to the
-request. To prevent deadlocks, upcalls are not allowed to block in
-condition synchronization or network access as long as the message
-is active. \remark{What is `condition synchronization'?} This means that a thread is not allowed to write as long
-as a read message is active, and a thread is not allowed to wait for
-some condition (call \verb+Thread.wait()+) \remark{Clarify this.}.
+request. To prevent deadlocks, upcalls are not allowed to block
+(call \texttt{Thread.wait}) or access the network (write a message or
+read another message) as long as a read message is active.
 
 Now, we can also finish the \verb+obtainLength+ method of the client:
 \begin{quote}
@@ -919,9 +917,17 @@ our example program:
 </project>
 \end{verbatim}
 \end{quote}
-Note that the assumption here is that Ibis is installed in
+The assumption here is that Ibis is installed in
 \verb+/usr/local/ibis+.
-\remark{Explain this.}
+The line
+\begin{quote}
+\begin{verbatim}
+    <property name="ibis"   location="/usr/local/ibis"/>
+\end{verbatim}
+\end{quote}
+\noindent
+may need to be modified to reflect the location of your Ibis
+installation.
 
 Now, invoking \emph{ant} compiles the application, leaving the class files
 in a directory called \verb+build+.
@@ -942,9 +948,11 @@ Ibis, using work stealing to distribute the jobs.
 
 \mysubsection{Satin jobs}
 
-To use Satin, the programmer must label one or more methods in the program
+To use Satin, the programmer must label one or more methods in his class
 as Satin jobs. This is done by defining an interface that extends
 the Satin interface \verb+ibis.satin.Spawnable+.
+A class that spawns work must extend the special class
+\texttt{ibis.satin.SatinObject} and implement the above mentioned interface.
 All methods that implement a method in such an
 interface are Satin jobs. For example, given the following interface:
 
@@ -956,9 +964,10 @@ interface Searcher extends ibis.satin.Spawnable {
 \end{verbatim}
 \end{quote}
 \noindent
-All methods that implement \verb+Searcher.search()+ will be Satin jobs.
+all methods that implement \verb+Searcher.search()+ will be Satin jobs.
 In general such a marker interface may contain an arbitrary number
 of methods.
+
 When actually using Satin, invoking a Satin job puts this Satin job
 on a job queue instead of invoking it directly.
 Later on, the job will be executed either locally, or it will be
@@ -966,8 +975,9 @@ Later on, the job will be executed either locally, or it will be
 
 The result of a Satin job can only be used after the invocation
 of the \verb+sync()+ method, which lives in \verb+ibis.satin.SatinObject+.
-(Remember that a class that implements a job method must extend
-\verb+ibis.satin.SatinObject+.) \remark{Remember??} The \verb+sync()+
+(a class that implements a job method must extend
+\verb+ibis.satin.SatinObject+.)
+The \verb+sync()+
 method is guaranteed to only terminate after the earlier job
 invocations have terminated.
 
@@ -1055,9 +1065,7 @@ result was found. In such cases it is often useful to terminate other
 running jobs.  This can be done with the \verb+abort()+ method.  Satin has
 its own exception type: \verb+ibis.satin.Inlet+.  An \verb+Inlet+ is a
 \verb+Throwable+ that inhibits the generation of a stack trace, which
-is an expensive operation.  \remark{The name Inlet is very much jargon
-that is unimportant to the user. Even \texttt{ibis.satin.CheapException}
-would be clearer than this.}
+is an expensive operation.
 
 For example:
 
@@ -1128,11 +1136,16 @@ If that job queue is empty, it randomly selects another Satin, et cetera,
 et cetera.  This strategy is the default, and has in the past been proven
 to be optimal, although that might seem counter-intuitive.
 \item[Cluster-aware random work-stealing]
-this strategy is very similar to random work-stealing, except that
+the word ``cluster'' refers to a group of computers that are connected
+to each other by means of a fast local network.
+In turn, clusters can be connected to each other, but usually the
+network between clusters is much slower, and/or has a much higher latency.
+The cluster-aware random work-stealing strategy
+is very similar to random work-stealing, except that
 each participant first tries to steal jobs from other participants in its
-own cluster (thus using a local network). It will only go to participants
-from other clusters if no participant on the same cluster has work.
-\remark{No definition of `cluster' is given.}
+own cluster (thus using the fast local network).
+It will only go to participants from other clusters if no participant on the
+same cluster has work.
 \item[Master-worker]
 this strategy is suitable for applications where all Satin jobs are
 generated on a single participant, the ``master''. All other participants

@@ -35,10 +35,10 @@ PropertyCategories:	communication worldmodel serialization
 #   FifoOrdered
 #   	messages from a sendport are delivered to its receiveports in the
 #   	order in which they were sent.
-#   Sequenced
+#   Numbered
 #	messages from sendports of a port type with this property are
 #	given global sequence numbers so that the application can order
-#	them. The sequencing is per port type.
+#	them. The numbering is per port type.
 #   Reliable
 #	reliable communication is supported.
 #   AutoUpcalls
@@ -58,7 +58,7 @@ PropertyCategories:	communication worldmodel serialization
 
 communication:	OneToOne, OneToMany, ManyToOne, \
 		Poll, ReceiveTimeout, \
-		FifoOrdered, Sequenced, \
+		FifoOrdered, Numbered, \
 		Reliable, \
 		AutoUpcalls, PollUpcalls, ExplicitReceipt, \
 		ConnectionDowncalls, ConnectionUpcalls

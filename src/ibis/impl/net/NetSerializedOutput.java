@@ -107,7 +107,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 		    oss.reset();
                 }
 
-		if (type.sequenced()) {
+		if (type.numbered()) {
 		    long seqno = NetIbis.globalIbis.getSeqno(type.name());
 		    oss.writeLong(seqno);
 		}

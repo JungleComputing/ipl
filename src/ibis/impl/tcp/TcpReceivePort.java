@@ -167,7 +167,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		// resetting it here.
 		m.isFinished = false;
 
-		if (type.sequenced) {
+		if (type.numbered) {
 		    m.setSequenceNumber(m.readLong());
 		}
 		if (STATS) {

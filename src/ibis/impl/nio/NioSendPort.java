@@ -234,7 +234,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
 	out.writeByte(NEW_MESSAGE);
 	
-	if(type.sequenced) {
+	if(type.numbered) {
 	    sequencenr = ibis.getSeqno(type.name);
 	    out.writeLong(sequencenr);
 	}

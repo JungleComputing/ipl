@@ -204,7 +204,7 @@ public class SendPort implements ibis.ipl.SendPort {
     private boolean requiresTotallyOrderedBcast() {
 	StaticProperties p = type.properties();
 
-	if (! Ibis.myIbis.requireSequenced()) {
+	if (! Ibis.myIbis.requireNumbered()) {
 	    // We only support totally ordered broadcast when our Ibis has
 	    // been required to support it.
 	    return false;
@@ -215,7 +215,7 @@ public class SendPort implements ibis.ipl.SendPort {
 	if (! p.isProp("Communication", "ManyToOne")) {
 	    return false;
 	}
-	if (! p.isProp("Communication", "Sequenced")) {
+	if (! p.isProp("Communication", "Numbered")) {
 	    return false;
 	}
 	if (splitter.length <= 1) {
@@ -275,7 +275,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 	 *    This requires:
 	 *      OneToMany
 	 *      ManyToOne
-	 *      Sequenced
+	 *      Numbered
 	 *      <STANDOUT>more than one</STANDOUT> connection
 	 * or
 	 * 2. Fast native broadcast
@@ -428,8 +428,8 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 	    newMessageWaiters--;
 	}
 
-	if (false && type.sequenced && group == NO_BCAST_GROUP) {
-	    throw new IOException("Sequenced port type but no group?");
+	if (false && type.numbered && group == NO_BCAST_GROUP) {
+	    throw new IOException("Numbered port type but no group?");
 	}
 
 	aMessageIsAlive = true;

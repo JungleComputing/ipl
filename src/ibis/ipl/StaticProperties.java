@@ -190,7 +190,7 @@ public class StaticProperties {
 		    user_properties.add(n, prop);
 		}
 		else {
-		    // Allow for properties like ibis.communication.sequenced
+		    // Allow for properties like ibis.communication.numbered
 		    Iterator i = category_names.iterator();
 		    while (i.hasNext()) {
 			String catName = (String) i.next();

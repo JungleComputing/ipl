@@ -983,13 +983,13 @@ System.err.println("Allocated double buffer size " + size);
 	}
 	StaticProperties s = new StaticProperties();
 	if (requireOneToMany) {
-	    // s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt" + " Sequenced ManyToOne");
+	    // s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt" + " Numbered ManyToOne");
 	    s.add("communication", "OneToOne OneToMany ManyToOne Reliable AutoUpcalls ExplicitReceipt");
 	    if (rank == 0) {
 		System.err.println("Require a multicast/multireceive PortType");
 	    }
 	} else {
-	    // s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt" + " Sequenced ManyToOne");
+	    // s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt" + " Numbered ManyToOne");
 	    s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
 	}
 	s.add("serialization", "object");
@@ -1011,10 +1011,10 @@ System.err.println("Allocated double buffer size " + size);
 
 	s = new StaticProperties();
 	if (requireOneToMany) {
-	    // s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt" + " Sequenced ManyToOne");
+	    // s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt" + " Numbered ManyToOne");
 	    s.add("communication", "OneToOne OneToMany ManyToOne Reliable AutoUpcalls ExplicitReceipt");
 	} else {
-	    // s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt" + " Sequenced ManyToOne");
+	    // s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt" + " Numbered ManyToOne");
 	    s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
 	}
 	portType = myIbis.createPortType("test type", s);

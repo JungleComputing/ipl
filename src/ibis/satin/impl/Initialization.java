@@ -279,7 +279,7 @@ public abstract class Initialization extends SatinBase {
 
 		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
 		if (Satin.use_seq) {
-		    commprops += ", Sequenced";
+		    commprops += ", Numbered";
 		}
 		if (FAULT_TOLERANCE) {
 		    commprops += ", ConnectionUpcalls";
@@ -343,7 +343,7 @@ public abstract class Initialization extends SatinBase {
 
 		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
 		if (Satin.use_seq) {
-		    commprops += ", Sequenced";
+		    commprops += ", Numbered";
 		}
 		if (FAULT_TOLERANCE) {
 		    commprops += ", ConnectionUpcalls";

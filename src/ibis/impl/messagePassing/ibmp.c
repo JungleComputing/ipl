@@ -522,12 +522,12 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
 	char *argv[3];
 	int	argc = 0;
 	jfieldID fld_rS =
-	    (*env)->GetFieldID(env, ibmp_cls_Ibis, "requireSequenced", "Z");
-	jboolean requireSequenced =
+	    (*env)->GetFieldID(env, ibmp_cls_Ibis, "requireNumbered", "Z");
+	jboolean requireNumbered =
 	    (*env)->GetBooleanField(env, ibmp_obj_Ibis_ibis, fld_rS);
 
 	argv[argc++] = "ibis-executable";
-	if (! requireSequenced) {
+	if (! requireNumbered) {
 	    argv[argc++] = "-pan-mcast-no-order";
 	}
 	argv[argc++] = NULL;

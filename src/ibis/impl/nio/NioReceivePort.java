@@ -250,7 +250,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
 	    }
 	}
 
-	if(type.sequenced) {
+	if(type.numbered) {
 	    sequencenr = dissipator.sis.readLong();
 	}
 

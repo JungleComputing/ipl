@@ -17,7 +17,7 @@ class TcpPortType extends PortType implements Config {
 	StaticProperties p;
 	String name;
 	TcpIbis ibis;
-	boolean sequenced;
+	boolean numbered;
 	
 	static final byte SERIALIZATION_SUN = 0;
 	static final byte SERIALIZATION_IBIS = 1;
@@ -30,7 +30,7 @@ class TcpPortType extends PortType implements Config {
 		this.ibis = ibis;
 		this.name = name;
 		this.p = p;
-		sequenced = p.isProp("communication", "Sequenced");
+		numbered = p.isProp("communication", "Numbered");
 
 		String ser = p.find("Serialization");
 		if(ser == null) {
@@ -67,8 +67,8 @@ class TcpPortType extends PortType implements Config {
 			}
 		}
 		if (serializationType == SERIALIZATION_NONE &&
-		    p.isProp("communication", "Sequenced")) {
-		    throw new IbisException("Sequenced communication is not supported on byte serialization streams");
+		    p.isProp("communication", "Numbered")) {
+		    throw new IbisException("Numbered communication is not supported on byte serialization streams");
 		}
 	} 
 
