@@ -34,7 +34,7 @@ public interface IbisAccumulator {
      * in the stream dependant format.
      * This is the number of bytes that will be sent over the network 
      */
-    public int bytesWritten();
+    public long bytesWritten();
 
     /** 
      * Reset the counter for the number of bytes written

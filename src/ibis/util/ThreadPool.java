@@ -66,7 +66,7 @@ public final class ThreadPool {
 			q.enqueue(r);
 			if (ready == 0) {
 				PoolThread p = new PoolThread(q);
-				p.setDaemon(true);  // @@@ This is a Bug --Rob
+				p.setDaemon(true);
 				p.start();
 			}
 		}

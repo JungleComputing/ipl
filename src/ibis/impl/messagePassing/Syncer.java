@@ -55,7 +55,7 @@ public class Syncer implements PollClient {
 	me = thread;
     }
 
-    boolean s_wait(int timeout) throws IOException {
+    boolean s_wait(long timeout) throws IOException {
 	Ibis.myIbis.checkLockOwned();
 
 	long	t_start = 0;

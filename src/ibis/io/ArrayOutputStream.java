@@ -47,7 +47,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * This is the number of bytes that will be sent over the network 
      * @return the number of bytes written
      */
-    public abstract int bytesWritten();
+    public abstract long bytesWritten();
 
     /** 
      * Resets the counter for the number of bytes written

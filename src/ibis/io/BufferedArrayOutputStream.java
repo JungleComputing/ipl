@@ -38,12 +38,12 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     /**
      * Number of bytes written so far to the underlying layer.
      */
-    private int bytes = 0;
+    private long bytes = 0;
 
     /**
      * @inheritDoc
      */
-    public int bytesWritten() { 
+    public long bytesWritten() { 
 	return bytes;
     } 
 

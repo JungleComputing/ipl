@@ -92,7 +92,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @return 0.
          */
-        public int getCount() {
+        public long getCount() {
+                __.unimplemented__("getCount");
                 return 0;
         }
 

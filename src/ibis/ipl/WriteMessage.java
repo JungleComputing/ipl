@@ -37,7 +37,7 @@ public interface WriteMessage {
 	 * in the stream dependant format.
 	 * This is the number of bytes that will be sent over the network
 	 */
-	public int getCount();
+	public long getCount();
 
 	/** Reset the counter */
 	public void resetCount();

@@ -8,9 +8,12 @@ import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Upcall;
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisError;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.io.Replacer;
+import java.util.ArrayList;
+import ibis.ipl.ReadMessage;
 
 class TcpPortType implements PortType, Config { 
 
@@ -22,6 +25,8 @@ class TcpPortType implements PortType, Config {
 	static final byte SERIALIZATION_IBIS = 1;
 
 	byte serializationType = SERIALIZATION_SUN;
+
+	private ArrayList receivePorts = new ArrayList();
 
 	TcpPortType(TcpIbis ibis, String name, StaticProperties p) throws IbisException { 
 		this.ibis = ibis;
@@ -168,14 +173,47 @@ class TcpPortType implements PortType, Config {
 			System.out.println(ibis.name() + ": Receiveport bound in registry, name = '" + name() + "'");
 		}
 
+		synchronized(this) {
+			receivePorts.add(p);
+		}
+
 		return p;
 	}
 
 	void freeReceivePort(String name) throws IOException {
-		ibis.tcpReceivePortNameServerClient.unbind(name);
+		synchronized(this) {
+			for(int i=0; i<receivePorts.size(); i++) {
+				ReceivePort rp = (ReceivePort) receivePorts.get(i);
+				if(rp.equals(name)) {
+					receivePorts.remove(i);
+					ibis.tcpReceivePortNameServerClient.unbind(name);
+					return;
+				}
+			}
+
+			throw new IbisError("Internal error in TcpPortType: could not fine port with name: " + name);
+		}
 	}
 
 	public String toString() {
 		return ("(TcpPortType: name = " + name() + ")");
+	}
+
+	/* Only used interally to implement ibis.poll.
+	   Poll all receiveports. */
+	ReadMessage poll() throws IOException {
+		Object[] a;
+
+		synchronized(this) {
+			a = receivePorts.toArray();
+		}
+		
+		for(int i=0; i<a.length; i++) {
+			TcpReceivePort r = (TcpReceivePort) a[i];
+			ReadMessage m = r.poll(); // all exceptions are just forwared
+			if(m != null) return m;
+		}
+
+		return null;
 	}
 }

@@ -29,7 +29,7 @@ then
 fi
 if [ x$JAVA_ROOT = x ]
 then
-	JAVA_ROOT=/usr/local/VU/jdk1.2.2
+	JAVA_ROOT=/usr/local/ibm-java/IBMJava2-141
 fi
 if [ x$JAVAC = x ]
 then

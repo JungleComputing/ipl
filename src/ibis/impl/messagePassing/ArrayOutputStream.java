@@ -101,7 +101,7 @@ final public class ArrayOutputStream
 	out.close();
     }
 
-    public final int bytesWritten() { 
+    public final long bytesWritten() { 
 	return out.getCount();
     }
 

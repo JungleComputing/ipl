@@ -67,6 +67,8 @@ public class IbisSocketFactory {
 	    timeoutMillis > 0  means block at most for timeoutMillis milliseconds, then return. 
 	    An IOException is thrown when the socket was not properly created within this time.
 	**/
+	// timneout is not implemented correctly @@@@
+	// this can only be done with 1.4 functions... --Rob
 	public static Socket createSocket(InetAddress dest, int port, InetAddress localIP, long timeoutMillis) throws IOException { 
 		boolean connected = false;
 		Socket s = null;

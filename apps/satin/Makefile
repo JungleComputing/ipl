@@ -90,6 +90,7 @@ clean:
 	cd abort_test && $(MAKE) $(MFLAGS) clean
 	cd mtdf && $(MAKE) $(MFLAGS) clean
 	cd lowlevel && $(MAKE) $(MFLAGS) clean
+	cd barnes && $(MAKE) $(MFLAGS) clean
 
 distclean:
 	rm -f $(TRASH_FILES)
@@ -113,3 +114,4 @@ distclean:
 	cd abort_test && $(MAKE) $(MFLAGS) distclean
 	cd mtdf && $(MAKE) $(MFLAGS) distclean
 	cd lowlevel && $(MAKE) $(MFLAGS) distclean
+	cd barnes && $(MAKE) $(MFLAGS) distclean

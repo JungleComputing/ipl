@@ -20,8 +20,11 @@ import java.io.IOException;
 
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.impl.generic.*;
+import ibis.ipl.IbisError;
 
-final class TcpPortHandler implements Runnable, TcpProtocol, Config { 
+final class TcpPortHandler implements Runnable, TcpProtocol { //, Config { 
+	static final boolean DEBUG = false;
+
 	private ServerSocket systemServer;
 	private ConnectionCache connectionCache = new ConnectionCache();
 	private ArrayList receivePorts;
@@ -58,7 +61,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 		connectionCache.releaseInput(si.ibis, in);
 	}
 
-	boolean connect(TcpSendPort sp, TcpReceivePortIdentifier receiver) throws IOException { 
+	OutputStream connect(TcpSendPort sp, TcpReceivePortIdentifier receiver, long timeout) throws IOException { 
 		Socket s = null;
 
 		try { 
@@ -67,7 +70,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			if (DEBUG) {
 				System.err.println("Creating socket for connection to " + receiver);
 			}
-			s = IbisSocketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), 0 /* retry */);
+			s = IbisSocketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), timeout);
 
 			InputStream sin = s.getInputStream();
 			OutputStream sout = s.getOutputStream();
@@ -91,7 +94,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 				sin.close();
 				sout.close();
 				s.close();	
-				return false;
+				return null;
 			} 
 
 			if(DEBUG) {
@@ -102,54 +105,37 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			   stream */
 			result = data_in.readByte();
 
-			Connection c = null;
-
 			if (result == NEW_CONNECTION) { 
 				/* no unused stream found, so reuse current one */
-				c = connectionCache.newConnection(receiver.ibis, s, sin, sout);
 				reuse_connection = true;
-
-				obj_out.writeInt(c.local_id);
 				obj_out.flush();
 				obj_out.close();
-
-				c.remote_id = data_in.readInt();
 				data_in.close();
 					
-				connectionCache.addFreeInput(receiver.ibis, c);
+				connectionCache.addFreeInput(receiver.ibis, s, sin, sout);
 
 				if(DEBUG) {
 					System.err.println("Created new connection to " + receiver);
 				}
-				sp.connect(receiver, c.out);
 
-				if(DEBUG) {
-					System.err.println("connection to " + receiver + " done");
-				}
-				return true;
-			} else { 
-				int remote_id = data_in.readInt();
-				int local_id = data_in.readInt();
-
+				return sout;
+			} else if (result == EXISTING_CONNECTION) {
 				data_in.close();
 				obj_out.flush();
 				obj_out.close();
 				
-				c = connectionCache.findFreeOutput(receiver.ibis, local_id, remote_id);
-				connectionCache.addUsed(receiver.ibis, c);
+				OutputStream out = connectionCache.getFreeOutput(receiver.ibis);
 				if(DEBUG) {
 					System.err.println("Reused connection to " + receiver);
 				}
-				sp.connect(receiver, c.out);	
-					
-				if(DEBUG) {
-					System.err.println("connection to " + receiver + " done");
-				}
+
 				sin.close();
 				sout.close();
 				s.close();
-				return true;
-			} 
+				return out;
+			} else {
+				throw new IbisError("Illegal opcode in TcpPortHandler:connect");
+			}
 		} catch (IOException e) {
 			try {
 				s.close();
@@ -158,7 +144,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			}
 			throw new ConnectionRefusedException("Could not connect" + e);
 		}
-	} 
+	}
 
 	void quit() { 
 		try { 
@@ -266,48 +252,45 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			System.err.println("S getting peer");
 		}
 
-		Connection c = connectionCache.findFreeInput(ibis);
+		InputStream cin = connectionCache.getFreeInput(ibis);
 
 		if (DEBUG) {
-			System.err.println("S found connection " + c);
+			if(cin != null) {
+				System.err.println("S found connection " + cin);
+			} else {
+				System.err.println("no connection found");
+			}
 		}
-				
-		if (c == null) { 
-			/* no unused stream found, so reuse current socket */
-			c = connectionCache.newConnection(ibis, s, in, out);
 
+		if (cin == null) { 
+			/* no unused stream found, so reuse current socket */
 			data_out.writeByte(RECEIVER_ACCEPTED);
 			data_out.writeByte(NEW_CONNECTION);
-			data_out.writeInt(c.local_id);
 			data_out.flush();
 			data_out.close();
 
-			c.remote_id = obj_in.readInt();
 			obj_in.close();
 			// do not close s here, we just reused it :-)
 
-			connectionCache.addFreeOutput(ibis, c);
+			connectionCache.addFreeOutput(ibis, s, in, out);
+			cin = in;
 		} else { 
 			data_out.writeByte(RECEIVER_ACCEPTED);
 			data_out.writeByte(EXISTING_CONNECTION);
-			data_out.writeInt(c.local_id);
-			data_out.writeInt(c.remote_id);
 			data_out.flush();
 			data_out.close();
-			obj_in.close();						
+			obj_in.close();
 			out.close();
 			in.close();
 			s.close();
-
-			connectionCache.addUsed(ibis, c);
 		}
 							
 		if (DEBUG) {
-			System.err.println("S connected " + c);
+			System.err.println("S connected " + cin);
 		}
 							
 		/* add the connection to the receiveport. */
-		rp.connect(send, c.in, c.local_id);
+		rp.connect(send, cin);
 
 		if (DEBUG) {
 			System.err.println("S connect done ");
@@ -335,8 +318,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			} catch (Exception e ) {
 				/* if the accept itself fails, we have a fatal problem.
 				   Close this receiveport.
-				   @@@ needs fixing, probably report error to user,
-				   and cleanup the ReceivePort state. --Rob
 				*/
 				try {
 					System.err.println("EEK: TcpPortHandler:run: got exception in accept ReceivePort closing!: " + e);
@@ -347,7 +328,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 				}
 
 				cleanup();
-				return;
+				throw new IbisError("Fatal: PortHandler could not do an accept");
 			}
 
 			boolean exit = false;

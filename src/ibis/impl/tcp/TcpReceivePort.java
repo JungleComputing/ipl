@@ -17,22 +17,22 @@ import java.io.*;
 import java.util.ArrayList;
 
 final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
-	protected TcpPortType type;
+	TcpPortType type;
+	String name; // needed to unbind
 	private TcpReceivePortIdentifier ident;
 	private int sequenceNumber = 0;
 	private int connectCount = 0;
-	String name; // needed to unbind
 	private SerializationStreamConnectionHandler [] connections;
 	private int connectionsIndex;
 	private volatile boolean stop = false;
-	boolean allowUpcalls = false;
-	Upcall upcall;
-	ReceivePortConnectUpcall connUpcall;
+	private boolean allowUpcalls = false;
+	private Upcall upcall;
+	private ReceivePortConnectUpcall connUpcall;
 	private boolean started = false;
 	private boolean connection_setup_present = false;
 	private SerializationStreamReadMessage m = null;
 	private TcpIbis ibis;
-	protected boolean shouldLeave;
+	private boolean shouldLeave;
 	private boolean delivered = false;
 
 	TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IOException {
@@ -214,25 +214,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			Thread.yield();
 			return null;
 		}
-/* For some reason, the available call seems to block for sun serialziation! Check this!! --Rob @@@ 
-   while(true) {
-   boolean success = false;
-   synchronized(this) {
-   for (int i=0; i<connectionsIndex; i++) { 
-   if(connections[i].m.available() > 0) {
-   success = true;
-   break;
-   }
-   }
-   }
 
-   if(success) {
-   Thread.yield();
-   } else {
-   return null;
-   }
-   }
-*/
 		// Blocking receive...
 		synchronized (this) { // must this be synchronized? --Rob
 			return m;
@@ -390,10 +372,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	synchronized void connect(TcpSendPortIdentifier origin, InputStream in, int id) {	
+	synchronized void connect(TcpSendPortIdentifier origin, InputStream in) {
 		try {
 			SerializationStreamConnectionHandler con = 
-				new SerializationStreamConnectionHandler(origin, this, in, id);
+				new SerializationStreamConnectionHandler(origin, this, in);
 
 			if (connections.length == connectionsIndex) { 
 				SerializationStreamConnectionHandler [] temp = 
@@ -416,7 +398,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-
 	public void forcedClose() {
 		System.err.println("forcedClose not implemented!");
 	}
@@ -438,5 +419,21 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	public SendPortIdentifier[] newConnections() {
 		System.err.println("newConnections not implemented!");
 		return null;
+	}
+
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	public boolean equals(Object obj) {
+		if(obj instanceof TcpReceivePort) {
+			TcpReceivePort other = (TcpReceivePort) obj;
+			return name.equals(other.name);
+		} else if (obj instanceof String) {
+			String s = (String) obj;
+			return s.equals(name);
+		} else {
+			return false;
+		}
 	}
 }

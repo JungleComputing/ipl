@@ -637,7 +637,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 * @param timeout_millis the connection timeout in milliseconds.
 	 */
 	public void connect(ReceivePortIdentifier rpi,
-			    int                   timeout_millis)
+			    long                   timeout_millis)
 		throws IOException {
                 log.in();
 				long start = System.currentTimeMillis();
@@ -813,7 +813,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	}
 
 
-	public int getCount() {
+	public long getCount() {
                 log.in();
                 log.out();
 		return 0;

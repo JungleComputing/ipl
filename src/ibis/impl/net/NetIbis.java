@@ -439,8 +439,9 @@ public final class NetIbis extends Ibis {
 		nameServerClient.leave();
 	}
 
-	public void poll() {
+	public ibis.ipl.ReadMessage poll() throws IOException {
 		__.unimplemented__("poll");
+		return null;
 	}
 
         protected int _closedPoolRank() {

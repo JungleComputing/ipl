@@ -424,13 +424,15 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    public void poll() throws IOException {
+    public ibis.ipl.ReadMessage poll() throws IOException {
 	try {
 	    myIbis.lock();
 	    pollLocked();
 	} finally {
 	    myIbis.unlock();
 	}
+
+	return null;
     }
 
 

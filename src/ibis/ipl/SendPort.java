@@ -75,9 +75,9 @@ public interface SendPort {
 	   @exception PortConfigurationException is thrown if this receive
 	   port and the send port are of different types.
 	   @param receiver identifies the <code>ReceivePort</code> to connect to
-	   @param timeout_millis timeout in milliseconds
+	   @param timeoutMillis timeout in milliseconds
 	*/
-	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IOException;
+	public void connect(ReceivePortIdentifier receiver, long timeoutMillis) throws IOException;
 
 	/** Free the resources held by the SendPort.
 	    If a free is attempted when a message is still alive, an exception will be thrown. 

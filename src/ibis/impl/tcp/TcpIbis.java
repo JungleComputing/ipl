@@ -11,6 +11,7 @@ import ibis.ipl.IbisException;
 import ibis.ipl.Registry;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
+import ibis.ipl.ReadMessage;
 
 import ibis.ipl.impl.nameServer.*;
 
@@ -141,7 +142,7 @@ public final class TcpIbis extends Ibis implements Config {
 		ident = new TcpIbisIdentifier(name, myAddress);
 
 		if(DEBUG) {
-			System.err.println("Made IbisIdentifier " + ident);
+			System.err.println("Created IbisIdentifier " + ident);
 /*
 			InetAddress[] res = InetAddress.getAllByName(myIp);
 			for(int i=0; i<res.length; i++) {
@@ -251,7 +252,17 @@ public final class TcpIbis extends Ibis implements Config {
 		} 
 	}
 
-	public void poll() {
-		System.out.println("poll not implemented");
+	public ReadMessage poll() throws IOException {
+		Object[] a = portTypeList.values().toArray();
+
+		for(int i=0; i<a.length; i++) {
+			TcpPortType t = (TcpPortType) a[i];
+			ReadMessage m = t.poll(); // just forward all exceptions
+			if(m != null) {
+				return m;
+			}
+		}
+
+		return null;
 	}
 }

@@ -41,7 +41,7 @@ public final class SIbisOutput extends NetSerializedOutput {
 			// NOTHING
                 }
 
-                public int bytesWritten() {
+                public long bytesWritten() {
 			return subOutput.getCount();
                 }
 

@@ -119,7 +119,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver,
-			int timeout)
+			long timeout)
 	    throws IOException {
 
 	Ibis.myIbis.lock();

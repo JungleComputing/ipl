@@ -20,7 +20,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
-    public int getCount() {
+    public long getCount() {
 	return out.getCount();
     }
 
