@@ -121,7 +121,7 @@ class RMIStubGenerator extends RMIGenerator {
 		    JavaClass[] supers = excpt[i].getSuperClasses();
 		outer:
 		    for (int s = 0; s < supers.length; s++) {
-			for (int j = 0; j < i; j++) {
+			for (int j = 0; j < n; j++) {
 			    if (excpt[j].equals(supers[s])) {
 				disable[i] = true;
 				break outer;
