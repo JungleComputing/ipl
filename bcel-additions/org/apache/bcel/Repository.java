@@ -236,11 +236,21 @@ public abstract class Repository {
 
       if(clazz.isInterface())
 	vec.addElement(clazz);
-      else if(!s.equals("java.lang.Object"))
-	queue.addElement(lookupClass(s));
+      else if(!s.equals("java.lang.Object")) {
+        JavaClass cl = lookupClass(s);
+	if (cl == null) {
+	    System.err.println("warning: could not find class " + s);
+	}
+	else queue.addElement(cl);
+      }
       
-      for(int i=0; i < interfaces.length; i++)
-	queue.addElement(lookupClass(interfaces[i]));
+      for(int i=0; i < interfaces.length; i++) {
+	JavaClass cl = lookupClass(interfaces[i]);
+	if (cl == null) {
+	    System.err.println("warning: could not find interface " + interfaces[i]);
+	}
+	else queue.addElement(cl);
+      }
     }
 
     return vec.toArray();
