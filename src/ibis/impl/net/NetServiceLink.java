@@ -214,6 +214,8 @@ public final class NetServiceLink {
 		int         rport = ((Integer)    nfo.get("accept_port"   )).intValue();
 
 		socket = new Socket(raddr, rport);
+		// Else, I fear the read() would appear high up in the profile:
+		socket.setSoTimeout(0);
 		if (DEBUG) {
 		    System.err.println(this + "@" + NetIbis.hostName() + "/" + Thread.currentThread() + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " Socket - connect to " + raddr + "/" + rport);
 		}
@@ -1004,6 +1006,7 @@ public final class NetServiceLink {
                                         exit = true;
                                         continue;
                                 } catch (InterruptedIOException e) {
+System.err.println(this + ": NetServiceLink catches " + e);
                                         continue;
                                 } catch (Exception e) {
                                         throw new Error(e);

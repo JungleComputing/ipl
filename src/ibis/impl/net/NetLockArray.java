@@ -534,6 +534,15 @@ outer:
      * Unlock the lock in our array indexed by <code>id</code>
      *
      * @param id index into the lock array
+     *
+     * <br>
+     * <standout>NOTE</standout> This method is called from native code.
+     * <br>
+     * <standout>NOTE</standout> This method is also emulated from native
+     * code, for the case where it is known that no notify is necessary.
+     * The native code is completely aware of the fields of this and of
+     * lock[id]. If anything is changed here, be sure to also check function
+     * ni_gm_lock_unlock in gm/net_ibis_gm.c.
      */
     public void unlock(int id) {
 	mon.checkImOwner();
