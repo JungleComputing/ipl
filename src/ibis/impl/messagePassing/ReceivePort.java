@@ -21,7 +21,7 @@ class ReceivePort
     // private static final int polls_before_yield = 10;
 
     private static final boolean DEBUG = false;
-    private static final int max_sleepers = 8; // 0; // 8;
+    private static final int max_sleepers = 128; // 0; // 8;
 
     private static int livingPorts = 0;
     private static Syncer portCounter = new Syncer();
@@ -194,6 +194,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	}
 	else {
 System.err.println("Create another UpcallThread because the previous one didn't terminate");
+// Thread.dumpStack();
 	    Thread thread = new Thread(this);
 	    thread.setName("ReceivePort upcall thread " + upcallThreads);
 	    upcallThreads++;
