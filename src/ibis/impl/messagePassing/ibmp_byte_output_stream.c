@@ -1368,9 +1368,10 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 	    } \
 	} \
 	else { \
+	    jtype *a; \
 	    b = (*env)->NewGlobalRef(env, b); \
 	    IBMP_GLOBAL_REF_INC(); \
-	    jtype *a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
+	    a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
 	    must_release = 1; \
 	    msg->iov[msg->iov_len].data = a + off; \
 	    msg->iov[msg->iov_len].len  = sz; \
