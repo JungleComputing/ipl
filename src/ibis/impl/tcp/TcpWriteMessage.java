@@ -23,11 +23,13 @@ final class TcpWriteMessage implements WriteMessage {
 	// otherwise, rethrow the exception to the user.
 	private void forwardLosses(SplitterException e) throws IOException {
 		System.err.println("connection lost!");
-		if(connectionAdministration) {
-			for(int i=0; i<e.count(); i++) {
-				sport.lostConnection(e.getStream(i), e.getException(i));
-			}
-		} else {
+
+		// Inform the port
+		for(int i=0; i<e.count(); i++) {
+			sport.lostConnection(e.getStream(i), e.getException(i), connectionAdministration);
+		}
+
+		if(!connectionAdministration) { // otherwise an upcall /downcall was/will be done
 			throw e;
 		}
 	}

@@ -259,7 +259,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	// called by the writeMessage
 	// the stream has already been removed from the splitter.
 	// we must remove it from our receivers table and inform the user.
-	void lostConnection(OutputStream s, Exception cause) {
+	void lostConnection(OutputStream s, Exception cause, boolean report) {
 		TcpReceivePortIdentifier rec = null;
 
 		if(DEBUG) {
@@ -279,14 +279,16 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			if(rec == null) {
 				throw new IbisError("could not find connection in lostConnection");
 			}
-			if(connectUpcall == null) {
+			if(report && connectUpcall == null) {
 				lostConnections.add(rec);
 				return;
 			}
 		}
 
-		// don't hold lock during upcall
-		connectUpcall.lostConnection(this, rec, cause);
+		if(report) {
+			// don't hold lock during upcall
+			connectUpcall.lostConnection(this, rec, cause);
+		}
 	}
 
 	public synchronized ReceivePortIdentifier[] lostConnections() {
