@@ -42,8 +42,6 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
 
     /**
-     * @constructor.
-     *
      * Call this from all subclass constructors.
      */
     protected MuxerInput(NetPortType portType,
@@ -84,8 +82,6 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
 
     /**
-     * @method
-     *
      * @param timeout poll timeout in msec. 0 signifies indefinite timeout.
      */
     abstract protected Integer doPoll(int timeout) throws IOException;
@@ -119,8 +115,6 @@ System.err.println("Returned from doPoll(0)");
 
 
     /**
-     * @method
-     *
      * Test whether some other thread is busy polling or blocking.
      * If so, return immediately.
      * If not, perform poll(block).
@@ -175,8 +169,6 @@ System.err.println("Returned from doPoll(0)");
 
 
     /**
-     * @method
-     *
      * This should be called from setupConnection in the subclass, before
      * any communication takes place.
      */

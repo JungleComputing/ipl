@@ -287,12 +287,6 @@ public final class NetPortType implements PortType {
 		return new NetSendPort(this, r, null, null, false);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public SendPort createSendPort(String name, Replacer r) throws IOException {
-		return new NetSendPort(this, r, name, null, false);
-	}
 
 	public SendPort createSendPort(boolean connectionAdministration) throws IOException {
 		return new NetSendPort(this, null, null, null, connectionAdministration);
@@ -367,10 +361,7 @@ public final class NetPortType implements PortType {
 		return createReceivePort(name, u, rpcu, true);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall rpcu,
+	private ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall rpcu,
 					     boolean connectionAdministration) throws IOException {
 		NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu, connectionAdministration);
 
@@ -395,7 +386,7 @@ public final class NetPortType implements PortType {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public int hashCode() {
 		return name().hashCode() + ibis.hashCode();

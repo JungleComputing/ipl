@@ -21,8 +21,6 @@ public interface NetPollInterruptible {
      * It is implementation dependent if poll interruptibility can be switched
      * on again after having been switched off using clearInterruptible.
      * If not, this method will throw an IllegalArgumentException.
-     *
-     * @param on enable/disable interruptibility of the poll
      */
     public void setInterruptible() throws IOException;
 

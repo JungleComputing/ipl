@@ -34,10 +34,9 @@ public final class MultiSplitter extends NetSplitter {
         private MultiPlugin plugin         = null;
 
 	/**
-	 * Constructor.
-	 *
-	 * @param staticProperties the port's properties.
+	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
 	 * @param driver the driver of this poller.
+	 * @param context the context.
 	 */
 	public MultiSplitter(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);

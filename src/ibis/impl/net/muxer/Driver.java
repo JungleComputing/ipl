@@ -52,8 +52,8 @@ public final class Driver extends NetDriver {
 	/**
 	 * Creates a new UDP input.
 	 *
-	 * @param sp the properties of the input's 
-	 * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
+	 * @param pt the input's {@link ibis.impl.net.NetPortType NetPortType}.
+	 * @param context the context.
 	 * @return The new UDP input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
@@ -64,8 +64,8 @@ public final class Driver extends NetDriver {
 	/**
 	 * Creates a new UDP output.
 	 *
-	 * @param sp the properties of the output's 
-	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
+	 * @param pt the output's {@link ibis.impl.net.NetPortType NetPortType}.
+	 * @param context the context.
 	 * @return The new UDP output.
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)

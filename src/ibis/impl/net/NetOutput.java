@@ -705,8 +705,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */
@@ -718,8 +716,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */
@@ -731,8 +727,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */
@@ -744,8 +738,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */
@@ -757,8 +749,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */
@@ -770,8 +760,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */
@@ -783,8 +771,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */
@@ -796,8 +782,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */
@@ -809,8 +793,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Append some elements to the current message.
          *
          * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to extract.
          *
          * @exception IOException in case of trouble. 
          */

@@ -789,9 +789,6 @@ nCurrent++;
         }
 
 
-        /**
-         * {@inheritDoc}
-         */
         public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws IOException {
                 //
                 NetInput input = rq.input();

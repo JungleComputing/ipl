@@ -27,7 +27,7 @@ public abstract class NetDriver {
 	/**
 	 * Constructor.
 	 *
-	 * @param NetIbis the owning {@link NetIbis} instance.
+	 * @param ibis the owning Ibis instance.
 	 */
 	public NetDriver(NetIbis ibis) {
 		this.ibis = ibis;
@@ -45,9 +45,9 @@ public abstract class NetDriver {
 
 
 	/**
-	 * Return the owning {@link NetIbis} instance.
+	 * Return the owning Ibis instance.
 	 *
-	 * @return the {@link NetIbis} instance which loaded this driver.
+	 * @return the Ibis instance which loaded this driver.
 	 */
 	public NetIbis getIbis() {
 		return ibis;
@@ -59,7 +59,7 @@ public abstract class NetDriver {
 	 * Note: the name of the driver should preferably be equals to the suffix
 	 * of the driver's package name.
 	 *
-	 * @param return the driver's name.
+	 * @return The driver's name.
 	 */
 	public abstract String getName();
 

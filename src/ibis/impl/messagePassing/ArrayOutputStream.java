@@ -19,7 +19,7 @@ final public class ArrayOutputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     final public void writeArray(byte[] ref, int offset, int len)
 	    throws IOException {
@@ -27,7 +27,7 @@ final public class ArrayOutputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     final public void writeArray(boolean[] ref, int offset, int len)
 	    throws IOException {
@@ -35,7 +35,7 @@ final public class ArrayOutputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     final public void writeArray(char[] ref, int offset, int len)
 	    throws IOException {
@@ -43,7 +43,7 @@ final public class ArrayOutputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     final public void writeArray(short[] ref, int offset, int len)
 	    throws IOException {
@@ -51,7 +51,7 @@ final public class ArrayOutputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     final public void writeArray(int[] ref, int offset, int len)
 	    throws IOException {
@@ -59,7 +59,7 @@ final public class ArrayOutputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     final public void writeArray(long[] ref, int offset, int len)
 	    throws IOException {
@@ -67,7 +67,7 @@ final public class ArrayOutputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     final public void writeArray(float[] ref, int offset, int len)
 	    throws IOException {
@@ -75,7 +75,7 @@ final public class ArrayOutputStream
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     final public void writeArray(double[] ref, int offset, int len)
 	    throws IOException {

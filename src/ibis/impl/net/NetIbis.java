@@ -129,7 +129,7 @@ public final class NetIbis extends Ibis {
 	/**
 	 * Default constructor.
 	 *
-	 * Loads compile-time known drivers if {@link #staticDriverLoading} is set.
+	 * May load compile-time known drivers.
 	 *
 	 * @exception IbisConfigurationException if the requested driver class
 	 * 		could not be loaded or the requested driver instance
@@ -180,9 +180,9 @@ public final class NetIbis extends Ibis {
 	}
 
 	/**
-	 * Returns the {@link #bank}.
+	 * Returns the {@link NetBank}.
 	 *
-	 * @return The {@link #bank}.
+	 * @return The {@link NetBank}.
 	 */
 	public NetBank getBank() {
 		return bank;
@@ -254,7 +254,7 @@ public final class NetIbis extends Ibis {
 	}
 
 	/**
-	 * Returns the <I>name server</I> {@linkplain #nameServerClient client} {@linkplain Registry registry}.
+	 * Returns the <I>name server</I> {@linkplain #nameServer client} {@linkplain Registry registry}.
 	 *
 	 * @return A reference to the instance's registry access.
 	 */

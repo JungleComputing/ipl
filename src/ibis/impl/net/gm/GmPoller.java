@@ -31,8 +31,9 @@ public final class GmPoller extends NetPoller {
 	/**
 	 * Constructor.
 	 *
-	 * @param staticProperties the port's properties.
+	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
 	 * @param driver the driver of this poller.
+	 * @param context the context.
 	 */
 	public GmPoller(NetPortType pt, NetDriver driver, String context)
 		throws IOException {

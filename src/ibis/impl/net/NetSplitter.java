@@ -28,11 +28,9 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 
 
 	/**
-	 * Constructor.
-	 *
-	 * @param staticProperties the port's properties.
+	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
 	 * @param driver the driver of this poller.
-	 * @param output the controlling output.
+	 * @param context the context.
 	 */
 	public NetSplitter(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);

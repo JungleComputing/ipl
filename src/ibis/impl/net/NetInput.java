@@ -1342,7 +1342,7 @@ pollingThreads--;
         /**
          * Atomic packet read function.
          *
-         * @param b the buffer to fill.
+         * @param buffer the buffer to fill.
          * @exception IOException in case of trouble.
          */
         public void readByteBuffer(NetReceiveBuffer buffer) throws IOException {

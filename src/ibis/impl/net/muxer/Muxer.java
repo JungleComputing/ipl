@@ -148,18 +148,6 @@ public final class Muxer extends NetBufferedOutput {
 	muxer.writeByteBuffer(b);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void release() {
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void reset() {
-    }
-
 
     /**
      * {@inheritDoc}

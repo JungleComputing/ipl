@@ -81,7 +81,7 @@ public abstract class NetStat {
          * Report 'a quantity of something'.
          *
          * @param value the quantity.
-         * @param String the 'name' of 'something'.
+         * @param type the 'name' of 'something'.
          */
         protected void reportVal(long value, String type) {
                 if (value < 1) {

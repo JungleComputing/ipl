@@ -171,7 +171,7 @@ public abstract class NetIO {
          * Creates and returns a new {@linkplain NetInput input} object.
          *
          * @param subDriver the new {@linkplain NetInput input}'s {@linkplain NetDriver driver}.
-         * @param contextValue the {@link #subContext sub-context} discriminant.
+         * @param contextValue the subcontext discriminant.
          * @return the new {@linkplain NetInput input}.
          */
         public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws IOException {
@@ -182,7 +182,7 @@ public abstract class NetIO {
          * Creates and returns a new {@linkplain NetOutput output} object.
          *
          * @param subDriver the new {@linkplain NetOutput output}'s {@linkplain NetDriver driver}.
-         * @param contextValue the {@link #subContext sub-context} discriminant.
+         * @param contextValue the subcontext discriminant.
          * @return the new {@linkplain NetOutput output}.
          */
         public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws IOException {
@@ -255,7 +255,6 @@ public abstract class NetIO {
          * Note: if the property is not found for that context, a default value
            is searched for, recursively removing subcontexts discriminants.
          *
-         * @param contextValue the property context {@linkplain String string}.
          * @param name the property name {@linkplain String string}.
          * @throws Error if the property is not found
          * @return the property {@linkplain String string} value.

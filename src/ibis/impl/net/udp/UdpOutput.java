@@ -175,22 +175,6 @@ public final class UdpOutput extends NetBufferedOutput {
                 log.out();
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        public void release() {
-                log.in();
-                log.out();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        public void reset() {
-                log.in();
-                log.out();
-        }
-
         public synchronized void close(Integer num) throws IOException {
                 log.in();
                 if (rpn == num) {

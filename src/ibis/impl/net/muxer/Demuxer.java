@@ -164,8 +164,8 @@ dumpBufferFactoryInfo();
     /**
      * {@inheritDoc}
      *
-     * <BR><B>Note</B>: This UDP polling implementation uses a timed out
-     * {@link DatagramSocket#receive(DatagramPacket)}. As the minimum timeout value is one
+     * <BR><B>Note</B>: This UDP polling implementation uses a timeout.
+     * As the minimum timeout value is one
      * millisecond, an unsuccessful polling operation is rather expensive.
      *
      * @return {@inheritDoc}

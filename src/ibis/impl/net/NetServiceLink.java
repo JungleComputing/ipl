@@ -369,12 +369,12 @@ public final class NetServiceLink {
         }
 
         /**
-         * Allocate a new {@linkplain ServiceOutputStream output sub-stream}.
+         * Allocate a new output sub-stream.
          *
-         * <BR><B>Note:</B>&nbsp;The peer node is not required to synchronously allocate the corresponding {@linkplain ServiceInputStream input sub-stream}.
-         * <BR><B>Note 2:</B>&nbsp;Requesting a {@linkplain ServiceOutputStream output sub-stream} after it has been closed will <B>not</B> reopen the stream.
+         * <BR><B>Note:</B>&nbsp;The peer node is not required to synchronously allocate the corresponding input sub-stream.
+         * <BR><B>Note 2:</B>&nbsp;Requesting a output sub-stream after it has been closed will <B>not</B> reopen the stream.
          *
-         * @param name the name associated to the stream, used to match this with the corresponding {@linkplain ServiceInputStream input sub-stream} on the peer node.
+         * @param name the name associated to the stream, used to match this with the corresponding input sub-stream on the peer node.
          * @exception IOException when the operation fails.
          */
         protected synchronized OutputStream getOutputSubStream(String name) throws IOException {
@@ -410,19 +410,16 @@ public final class NetServiceLink {
         }
 
         /**
-         * Allocate a new {@linkplain ServiceInputStream input sub-stream}.
+         * Allocate a new input sub-stream.
          *
          * <BR><B>Note:</B>&nbsp;The peer node is not required to
-         * synchronously allocate the corresponding {@linkplain
-         * ServiceOutputStream output sub-stream}.
+         * synchronously allocate the corresponding output sub-stream.
          *
-         * <BR><B>Note 2:</B>&nbsp;Requesting a {@linkplain
-         * ServiceInputStream input sub-stream} after it has been
+         * <BR><B>Note 2:</B>&nbsp;Requesting a input sub-stream after it has been
          * closed will <B>not</B> reopen the stream.
          *
          * @param name the name associated to the stream, used to
-         * match this with the corresponding {@linkplain
-         * ServiceOutputStream output sub-stream} on the peer node.
+         * match this with the corresponding output sub-stream on the peer node.
          *
          * @exception IOException when the operation fails.
          */
@@ -456,8 +453,7 @@ public final class NetServiceLink {
         }
 
         /**
-         * Allocate a new {@linkplain ServiceOutputStream output
-         * sub-stream}.
+         * Allocate a new output sub-stream.
          *
          * @see #getOutputSubStream(String)
          *
@@ -465,8 +461,7 @@ public final class NetServiceLink {
          * sub-stream.
          *
          * @param name the name associated to the stream, used to
-         * match this with the corresponding {@linkplain
-         * ServiceInputStream input sub-stream} on the peer node;
+         * match this with the corresponding input sub-stream on the peer node;
          * <B>Note:</B>&nbsp;this name will be prefixed by the {@link
          * NetIO}'s {@linkplain NetIO#context() context string} to
          * provide some kind of dynamic namespace.
@@ -478,8 +473,7 @@ public final class NetServiceLink {
         }
 
         /**
-         * Allocate a new {@linkplain ServiceInputStream input
-         * sub-stream}.
+         * Allocate a new input sub-stream.
          *
          * @see #getInputSubStream(String)
          *
@@ -487,8 +481,7 @@ public final class NetServiceLink {
          * sub-stream.
          *
          * @param name the name associated to the stream, used to
-         * match this with the corresponding {@linkplain
-         * ServiceOutputStream output sub-stream} on the peer node;
+         * match this with the corresponding output sub-stream on the peer node;
          * <B>Note:</B>&nbsp;this name will be prefixed by the {@link
          * NetIO}'s {@linkplain NetIO#context() context string} to
          * provide some kind of dynamic namespace.
@@ -568,9 +561,9 @@ public final class NetServiceLink {
 
 
         /**
-         * Provide a multiplexed output sub-stream over the {@linkplain #os socket output stream}.
+         * Provide a multiplexed output sub-stream over the socket output stream.
          */
-        public final class ServiceOutputStream extends OutputStream  {
+        private final class ServiceOutputStream extends OutputStream  {
 
                 /**
                  * Set to true once the stream is closed.
@@ -720,9 +713,9 @@ public final class NetServiceLink {
 
 
         /**
-         * Provide a multiplexed input sub-stream over the {@linkplain #is socket input stream}.
+         * Provide a multiplexed input sub-stream over the socket input stream.
          */
-        public final class ServiceInputStream extends InputStream {
+        private final class ServiceInputStream extends InputStream {
 
                 /**
                  * Provide a double-linked list of incoming buffers.
@@ -1076,12 +1069,10 @@ public final class NetServiceLink {
                  * Process a request for a sub-stream id.
                  *
                  * Such a request is supposed to be send by the node
-                 * that is creating the {@linkplain
-                 * NetServiceLink.ServiceOutputStream output sub-stream} end of the
+                 * that is creating the output sub-stream end of the
                  * sub-stream and is processed by the node that owns
-                 * the {@linkplain NetServiceLink.ServiceInputStream input
-                 * sub-stream} part of the stream. If the {@linkplain
-                 * NetServiceLink.ServiceInputStream input sub-stream} corresponding
+                 * the input sub-stream part of the stream. If the
+                 * input sub-stream corresponding
                  * to the <code>name</code> parameter does not already exist,
                  * it is created on the fly.
                  *

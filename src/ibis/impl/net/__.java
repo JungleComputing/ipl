@@ -24,7 +24,7 @@ public final class __ {
 	 *
 	 * This function reuses the message of a {@link Throwable}.
 	 *
-	 * @param Throwable The throwable providing the error message.
+	 * @param e The throwable providing the error message.
 	 */
 	public static final void fwdAbort__(Throwable e) {
                 e.printStackTrace();
@@ -54,7 +54,7 @@ public final class __ {
 	/**
 	 * Display a string over the error output stream.
 	 *
-	 * @param the string to display.
+	 * @param s the string to display.
 	 */
 	public static void disp__(String s) {
 		System.err.println(s);
@@ -63,7 +63,7 @@ public final class __ {
 	/**
 	 * Display a warning string over the error output stream.
 	 *
-	 * @param the warning to display.
+	 * @param s the warning to display.
 	 */
 	public static void warning__(String s) {
 		__.disp__("__warning__: " + s);
@@ -72,7 +72,7 @@ public final class __ {
 	/**
 	 * Display a string followed by a stack trace.
 	 *
-	 * @param the string to display.
+	 * @param s the string to display.
 	 */
 	public static void trace__(String s) {
 		__.disp__(s);
@@ -84,7 +84,7 @@ public final class __ {
 	 * The string is sent to the error output stream only if
 	 * {@link __#debugActivated__ __.debugActivated__} is set.
 	 *
-	 * @param the string to display.
+	 * @param s the string to display.
 	 */
 	public static void debug__(String s) {
 		if (__.debugActivated__) {

@@ -4,6 +4,7 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.Replacer;
+import ibis.ipl.DynamicProperties;
 import ibis.util.ConditionVariable;
 
 import java.io.IOException;
@@ -295,7 +296,7 @@ for (int i = 0, n = splitter.length; i < n; i++) {
 	}
     }
 
-    public ibis.ipl.DynamicProperties properties() {
+    public DynamicProperties properties() {
 	return null;
     }
 

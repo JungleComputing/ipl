@@ -205,10 +205,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         /* ___ NET EVENT QUEUE CONSUMER RELATED FUNCTIONS __________________ */
 
         /**
-         * The callback function for processing incoming events from the {@link #eventQueue} and called by the {@link #eventQueueListener} thread.
+         * The callback function for processing incoming events.
          *
-         * <BR><B>Note 1:</B> the only {@linkplain NetPortEvent event} supported currently is the <I>close</I> {@linkplain NetPortEvent event} ({@link NetPortEvent#CLOSE_EVENT}) which is added to the {@link #eventQueue} when a {@linkplain NetConnection connection} is detected to have been remotely closed. The argument of the <I>close</I> {@linkplain NetPortEvent event} is the {@linkplain NetConnection connection} identification {@link Integer}.
-         * <BR><B>Note 2:</B> there is a possible race condition in the case that the <I>close</I> {@linkplain NetPortEvent event} is triggered before the {@linkplain NetConnection connection} is added to the {@link #connectionTable}. In that case, the {@linkplain NetPortEvent event} is ignored and when the {@linkplain NetConnection connection} later gets finally added to the {@link #connectionTable}, there is no mechanism to remember that it has actually been closed and has no need to be kept in the {@link #connectionTable}. There is no "simple light" solution to this problem as there is no "simple light way" to know whether a {@linkplain NetConnection connection} is not in the {@link #connectionTable} because it has not yet been added to it or because it as already been closed earlier.
+         * <BR><B>Note 1:</B> the only {@linkplain NetPortEvent event} supported currently is the <I>close</I> {@linkplain NetPortEvent event} ({@link NetPortEvent#CLOSE_EVENT}) which is added to the eventQueue when a {@linkplain NetConnection connection} is detected to have been remotely closed. The argument of the <I>close</I> {@linkplain NetPortEvent event} is the {@linkplain NetConnection connection} identification {@link Integer}.
+         * <BR><B>Note 2:</B> there is a possible race condition in the case that the <I>close</I> {@linkplain NetPortEvent event} is triggered before the {@linkplain NetConnection connection} is added to the connection table. In that case, the {@linkplain NetPortEvent event} is ignored and when the {@linkplain NetConnection connection} later gets finally added to the connection table, there is no mechanism to remember that it has actually been closed and has no need to be kept in the connection table. There is no "simple light" solution to this problem as there is no "simple light way" to know whether a {@linkplain NetConnection connection} is not in the connection table because it has not yet been added to it or because it as already been closed earlier.
          *
          * @param e the {@linkplain NetPortEvent event}.
          */
@@ -269,7 +269,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         /**
          * Returns the port type.
          *
-         * @return the contents of {@link #type}.
+         * @return the port type.
          */
         public NetPortType getPortType() {
                 log.in();
@@ -322,7 +322,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 * The class unloading time cleaning function.
          *
          * <BR><B>Note 1:</B> the {@link #free} method is forcibly called, just in case it was not called before, in the user application.
-         * <BR><B>Note 2:</B> the {@link #eventQueue} is closed there (that is, not in the {@link #free} method).
+         * <BR><B>Note 2:</B> the eventQueue is closed there (that is, not in the {@link #free} method).
 	 */
 	protected void finalize() throws Throwable {
                 log.in();
@@ -533,7 +533,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * The unconditionnal closing of a {@link NetConnection}.
          *
          * This function is mainly called by the {@link #event event-processing callback}.
-         * <BR><B>Note:</B> The <code>cnx</code> connection should be removed from the {@link #connectionTable} before being passed to this function.
+         * <BR><B>Note:</B> The <code>cnx</code> connection should be removed from the connection table before being passed to this function.
          * @param     cnx the {@linkplain NetConnection connection} to close.
          * @exception IOException in case of trouble.
          */

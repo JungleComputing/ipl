@@ -42,8 +42,6 @@ public class MuxerQueue {
 
 
     /**
-     * @Constructor
-     *
      * Create the queue to receive messages from the global demultiplexer.
      *
      * @param spn the (globally unique?) Integer that characterizes our
@@ -66,8 +64,6 @@ public class MuxerQueue {
 
 
     /**
-     * @method
-     *
      * Set the factory that generates the kind of buffers our Input driver
      * wants.
      */
@@ -85,8 +81,6 @@ public class MuxerQueue {
 
 
     /**
-     * @method
-     *
      * The global demultiplexer Driver delivers a message to this queue.
      *
      * @param buffer can be of arbitrary Class; if necessary, this method
@@ -296,8 +290,7 @@ Thread.dumpStack();
 
 
     /**
-     * @method
-     *
+     * Returns the first delivered buffer.
      * <BR><B>Note</B>: this function may block if the expected data is not there.
      * @param expectedLength is ignored because the packet actually received
      *        might not be the one that is expected.
@@ -333,8 +326,7 @@ Thread.dumpStack();
 
 
     /**
-     * @method
-     *
+     * Receives data in the provided buffer.
      * <BR><B>Note</B>: this function may block if the expected data is not there.
      * @param userBuffer Receive data into this buffer. In the general case
      *        a copy is incurred.

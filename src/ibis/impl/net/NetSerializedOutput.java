@@ -27,12 +27,9 @@ public abstract class NetSerializedOutput extends NetOutput {
         private   boolean                   needFlush = false;
 
 	/**
-	 * Constructor.
-	 *
-	 * @param sp the properties of the output's
-	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the ID driver instance.
-	 * @param output the controlling output.
+	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
+	 * @param driver the driver.
+	 * @param context the context.
 	 */
 	public NetSerializedOutput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);

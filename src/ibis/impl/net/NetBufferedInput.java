@@ -40,13 +40,9 @@ public abstract class NetBufferedInput extends NetInput
         private boolean circularCheck = false;
 
 	/**
-	 * Constructor.
-	 *
-	 * @param staticProperties the properties of the corresponing
-	 *                         {@linkplain NetReceivePort receive port}.
-	 * @param driver the input's driver.
-	 * @param input the controlling input or <code>null</code> if this input is a
-	 *              root input.
+	 * @param portType the {@link ibis.impl.net.NetPortType NetPortType}.
+	 * @param driver the driver of this poller.
+	 * @param context the context.
 	 */
 	protected NetBufferedInput(NetPortType      portType,
                                    NetDriver 	    driver,

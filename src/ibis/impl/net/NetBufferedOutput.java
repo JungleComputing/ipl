@@ -27,13 +27,9 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 	private NetSendBuffer buffer = null;
 
 	/**
-	 * Constructor.
-	 *
-	 * @param staticProperties the properties of the corresponding
-	 *                         {@linkplain NetReceivePort receive port}.
-	 * @param driver the output's driver.
-	 * @param output the controlling output or <code>null</code>
-	 *               if this output is a root output.
+	 * @param portType the {@link ibis.impl.net.NetPortType NetPortType}.
+	 * @param driver the driver.
+	 * @param context the context.
 	 */
 	protected NetBufferedOutput(NetPortType portType,
                                     NetDriver 	driver,

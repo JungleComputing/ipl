@@ -79,7 +79,7 @@ public final class NetReceivePortIdentifier
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public int hashCode() {
 		return name().hashCode() + ibis.hashCode();

@@ -58,9 +58,9 @@ public final class UdpMuxOutput
     /**
      * Constructor.
      *
-     * @param sp the properties of the output's 
-     * {@link ibis.impl.net.NetReceivePort NetReceivePort}.
+     * @param portType the output's {@link ibis.impl.net.NetPortType NetPortType}.
      * @param driver the TCP driver instance.
+     * @param context the context.
      */
     public UdpMuxOutput(NetPortType portType,
 		        NetDriver   driver,

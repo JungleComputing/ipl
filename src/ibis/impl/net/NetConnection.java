@@ -104,7 +104,7 @@ public final class NetConnection {
          * perform some kind of multiplexing.
          *
          * Both the model connection and the new connection will share attributes
-         * with the exception of the {@linkplain #num connection identifier}. In particular,
+         * with the exception of the connection identifier. In particular,
          * the service link <B>will</B> be shared.
          *
          * @param model the model connection that will share its
@@ -173,8 +173,7 @@ public final class NetConnection {
         /**
          * Closes the connection.
          *
-         * This method also closes the connection's {@linkplain
-         * #serviceLink service link}.
+         * This method also closes the connection's service link.
          *
          * @exception IOException if the operation fails.
          */

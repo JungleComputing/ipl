@@ -11,7 +11,7 @@ import java.util.Random;
  * Objects are stored in an {@link HashMap} objects using 64bit {@link
  * Long} keys. Every method is synchronized. <BR><B>Note:</B>&nbsp;
  * the {@link Random} object used is not safely 'seeded' at object
- * creation time. The {@link #seed} used is a static attribute
+ * creation time. The seed used is a static attribute
  * initialized at 0 and incremented at each new bank creation to
  * prevent two process-local instances of the bank to generate the same
  * sequences of keys to which the {@link System#currentTimeMillis}

@@ -86,10 +86,9 @@ public final class MultiPoller extends NetPoller {
         private MultiPlugin plugin  = null;
 
         /**
-         * Constructor.
-         *
-         * @param staticProperties the port's properties.
-         * @param driver the driver of this poller.
+	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
+	 * @param driver the driver of this poller.
+	 * @param context the context.
          */
         public MultiPoller(NetPortType pt, NetDriver driver, String context)
                 throws IOException {
