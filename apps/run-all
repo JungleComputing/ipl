@@ -13,7 +13,7 @@ t="15:0"
 # reserve="-reserve $reservation"
 timeout="-t $t"
 
-nodes="2 4 8 16 32"
+nodes="2 4 8 16 24 32 40 48 56 64"
 # nodes="32"
 runs=10
 # runs=1
