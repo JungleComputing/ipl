@@ -152,6 +152,57 @@ class Cell1D implements Config {
         System.exit( 0 );
     }
 
+    /**
+     * Given the name of a receive port, return its identifier.
+     */
+    private static ReceivePortIdentifier findReceivePort( String name )
+        throws java.io.IOException
+    {
+        ReceivePortIdentifier id = null;
+
+        while( id == null ){
+            id = registry.lookup( name );
+
+            if( id == null ){
+                try {
+                    Thread.sleep( 1000 );
+                }
+                catch( Exception e ){
+                    // Ignore.
+                    // TODO: do somethingg a bit more subtle.
+                }
+            }
+        }
+        return id;
+    }
+
+    /**
+     * Creates an update send port that connected to the specified neighbour.
+     * @param t The type of the port to construct.
+     * @param me My own processor number.
+     * @param procno The processor number to connect to.
+     */
+    private static SendPort createUpdateSendPort( PortType t, int me, int procno )
+        throws java.io.IOException
+    {
+        SendPort res = t.createSendPort( "update" + me );
+        ReceivePortIdentifier id = findReceivePort( "update" + procno );
+        connect( res, id );
+        return res;
+    }
+
+    /**
+     * Creates an update receive port.
+     * @param t The type of the port to construct.
+     * @param me My own processor number.
+     */
+    private ReceivePort createUpdateReceivePort( PortType t, int me, int procno )
+        throws java.io.IOException
+    {
+        ReceivePort res = t.createReceivePort( "update" + me );
+        return res;
+    }
+
     public static void main( String [] args )
     {
         int count = -1;
@@ -182,6 +233,8 @@ class Cell1D implements Config {
         }
 
         try {
+            String portprops = "OneToOne, Reliable, ExplicitReceipt";
+
             info = new ibis.util.PoolInfo();
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
@@ -193,65 +246,33 @@ class Cell1D implements Config {
 
             registry = ibis.registry();
 
-            PortType t = ibis.createPortType( "cell type", s );
+            // This only works for a closed world...
+            final int me = info.rank();         // My processor number.
+            final int NProcs = info.size();     // Total number of procs.
 
-            SendPort sport = t.createSendPort( "send port" );
+            System.err.println( "Me=" + me + ", NProcs=" + NProcs );
+
+            PortType t = ibis.createPortType( "neighbour update", s );
+
+            SendPort leftSendPort = null;
+            SendPort rightSendPort = null;
+            ReceivePort leftReceivePort = null;
+            ReceivePort rightReceivePort = null;
+
+            if( me != 0 ){
+                leftReceivePort = t.createReceivePort( "send port" );
+                leftSendPort = t.createSendPort( "send port" );
+            }
+            if( me != NProcs-1 ){
+                rightReceivePort = t.createReceivePort( "send port" );
+                rightSendPort = t.createSendPort( "send port" );
+            }
             ReceivePort rport;
             Cell1D lat = null;
 
             if( DEBUG ) {
                 System.out.println( "LAT: pre elect" );
             }
-            System.err.println( "Node " + info.rank() + "/" + info.size() + " present" );
-            IbisIdentifier master = ( IbisIdentifier ) registry.elect( "latency", ibis.identifier() );
-            if( DEBUG ) {
-                System.out.println( "LAT: post elect" );
-            }
-
-            if( master.equals( ibis.identifier() ) ) {
-                if( DEBUG ) {
-                    System.out.println( "LAT: I am master" );
-                }
-                rank = 0;
-                remoteRank = 1;
-            }
-            else {
-                if( DEBUG ) {
-                    System.out.println( "LAT: I am slave" );
-                }
-                rank = 1;
-                remoteRank = 0;
-            }
-
-            if( rank == 0 ) {
-                rport = t.createReceivePort( "test port 0" );
-                rport.enableConnections();
-                ReceivePortIdentifier ident = lookup( "test port 1" );
-                connect( sport, ident );
-                Sender sender = new Sender( rport, sport );
-
-                if( DEBUG ) {
-                    System.out.println( "LAT: starting send test" );
-                }
-                sender.send( count, repeat );
-            }
-            else {
-                ReceivePortIdentifier ident = lookup( "test port 0" );
-                connect( sport, ident );
-
-                rport = t.createReceivePort( "test port 1" );
-                rport.enableConnections();
-
-                Receiver receiver = new Receiver( rport, sport );
-                if( DEBUG ) {
-                    System.out.println( "LAT: starting test receiver" );
-                }
-                receiver.receive( count, repeat );
-            }
-
-            /* free the send ports first */
-            sport.close();
-            rport.close();
             ibis.end();
         }
         catch( Exception e ) {
