@@ -82,7 +82,7 @@ public final class SATContext implements java.io.Serializable {
 
     private static final boolean doVerification = false;
     private static final boolean doLearning = true;
-    private static final boolean doRestarts = false;
+    private static final boolean doRestarts = true;
     private static final boolean propagatePureVariables = true;
 
     /**
@@ -582,20 +582,25 @@ public final class SATContext implements java.io.Serializable {
 	return level;
     }
 
+    private boolean isSmallClause( Clause c )
+    {
+	return c.getTermCount()<18;
+    }
+
     /**
      * Registers the fact that the specified clause is in conflict with
      * the current assignments. This method throws a restart exception if
      * that is useful. Analysis may learn a new clause that summarizes the
      * conflict, and helps to guide the search process. If
-     * <code>learnTuple</code> is true, this clause is registered as a
+     * <code>learnAsTuple</code> is true, this clause is registered as a
      * new active tuple, else it is just added to the local problem.
      * @param p The SAT problem.
      * @param cno The clause that is in conflict.
      * @param var The variable that causes the conflict.
      * @param level The recursion level of the solution process.
-     * @param learnTuple Register learned clauses as active tuples?
+     * @param learnAsTuple Register learned clauses as active tuples?
      */
-    private void analyzeConflict( SATProblem p, int cno, int var, int level, boolean learnTuple, boolean learn )
+    private void analyzeConflict( SATProblem p, int cno, int var, int level, boolean learnAsTuple, boolean learn )
         throws SATRestartException
     {
         if( satisfied[cno] ){
@@ -621,42 +626,47 @@ public final class SATContext implements java.io.Serializable {
                 Helpers.dumpAssignments( "Assignments", assignment );
             }
         }
-	if( doLearning && learn ){
-	    Clause cc = buildConflictClause( p, cno, var, level );
+	Clause cc = null;
+	if( (doLearning && learn) || doRestarts ){
+	    cc = buildConflictClause( p, cno, var, level );
 	    if( cc == null ){
 		if( traceLearning ){
 		    System.err.println( "No interesting conflict clause could be constructed" );
 		}
 	    }
-	    else {
-                if( !cc.isConflicting( assignment ) ){
-                    if( cc.isSatisfied( assignment ) ){
-                        System.err.println( "Error: learned clause " + cc + " is satisfied" );
-                    }
-                    else {
-                        System.err.println( "Error: learned clause " + cc + " is not in conflict" );
-                    }
-                    Helpers.dumpAssignments( "Assignments", assignment );
-                }
-                if( learnTuple ){
-                    ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
-                }
-                else {
-                    p.addConflictClause( cc );
-                }
+	}
+	if( cc != null ){
+	    if( doVerification ){
+		if( !cc.isConflicting( assignment ) ){
+		    if( cc.isSatisfied( assignment ) ){
+			System.err.println( "Error: learned clause " + cc + " is satisfied" );
+		    }
+		    else {
+			System.err.println( "Error: learned clause " + cc + " is not in conflict" );
+		    }
+		    Helpers.dumpAssignments( "Assignments", assignment );
+		}
+	    }
+	    if( doLearning && learn && isSmallClause( cc ) ){
+		if( learnAsTuple ){
+		    ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
+		}
+		else {
+		    p.addConflictClause( cc );
+		}
+	    }
 
-                if( doRestarts ){
-                    int cl = calculateConflictLevel( p, cc, -1 );
+	    if( doRestarts ){
+		int cl = calculateConflictLevel( p, cc, -1 );
 
-                    if( cl>=0 && cl<level ){
-                        if( traceLearning | traceRestarts ){
-                            System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
-                        }
-                        if( cl<level ){
-                            throw new SATRestartException( cl-1 );
-                        }
-                    }
-                }
+		if( cl>=0 && cl<level ){
+		    if( traceLearning | traceRestarts ){
+			System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
+		    }
+		    if( cl<level ){
+			throw new SATRestartException( cl-1 );
+		    }
+		}
 	    }
 	}
     }
@@ -666,11 +676,11 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem to solve.
      * @param i The index of the unit clause.
      * @param level The current recursion level of the solver.
-     * @param learnTuple Propagate any learned clauses as active tuple?
+     * @param learnAsTuple Propagate any learned clauses as active tuple?
      * @param learn Do any learning?
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    private int propagateUnitClause( SATProblem p, int i, int level, boolean learnTuple, boolean learn )
+    private int propagateUnitClause( SATProblem p, int i, int level, boolean learnAsTuple, boolean learn )
         throws SATRestartException
     {
 	if( satisfied[i] ){
@@ -698,7 +708,7 @@ public final class SATContext implements java.io.Serializable {
 		    System.err.println( "S" + level + ": propagating positive unit variable " + v + " from clause " + c );
 		}
                 antecedent[v] = i;
-		int res = propagatePosAssignment( p, v, level, learnTuple, learn );
+		int res = propagatePosAssignment( p, v, level, learnAsTuple, learn );
 		if( (res != 0) || !doVerification ){
 		    return res;
 		}
@@ -715,7 +725,7 @@ public final class SATContext implements java.io.Serializable {
 		    System.err.println( "S" + level + ": propagating negative unit variable " + v + " from clause " + c );
 		}
                 antecedent[v] = i;
-		int res = propagateNegAssignment( p, v, level, learnTuple, learn );
+		int res = propagateNegAssignment( p, v, level, learnAsTuple, learn );
 		if( (res != 0) || !doVerification ){
 		    // The problem is now conflicting/satisfied, we're
 		    // done.
@@ -800,10 +810,10 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem.
      * @param cno The index of the clause that is now satisifed.
      * @param level The decision level of the conflict.
-     * @param learnTuple Register learned clauses as active tuples?
+     * @param learnAsTuple Register learned clauses as active tuples?
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    private int markClauseSatisfied( SATProblem p, int cno, int level, boolean learnTuple, boolean learn )
+    private int markClauseSatisfied( SATProblem p, int cno, int level, boolean learnAsTuple, boolean learn )
         throws SATRestartException
     {
 	boolean hasPure = false;
@@ -869,7 +879,7 @@ public final class SATContext implements java.io.Serializable {
 
 		if( assignment[var] == UNASSIGNED && posclauses[var] == 0 && negclauses[var] != 0 ){
                     antecedent[var] = cno;
-		    int res = propagateNegAssignment( p, var, level, learnTuple, learn );
+		    int res = propagateNegAssignment( p, var, level, learnAsTuple, learn );
 		    if( res != 0 ){
 			return res;
 		    }
@@ -880,7 +890,7 @@ public final class SATContext implements java.io.Serializable {
 
 		if( assignment[var] == UNASSIGNED && negclauses[var] == 0 && posclauses[var] != 0 ){
                     antecedent[var] = cno;
-		    int res = propagatePosAssignment( p, var, level, learnTuple, learn );
+		    int res = propagatePosAssignment( p, var, level, learnAsTuple, learn );
 		    if( res != 0 ){
 			return res;
 		    }
@@ -899,7 +909,7 @@ public final class SATContext implements java.io.Serializable {
      * Propagates the fact that variable 'var' is true.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    public int propagatePosAssignment( SATProblem p, int var, int level, boolean learnTuple, boolean learn )
+    public int propagatePosAssignment( SATProblem p, int var, int level, boolean learnAsTuple, boolean learn )
         throws SATRestartException
     {
         if( doVerification ){
@@ -931,7 +941,7 @@ public final class SATContext implements java.io.Serializable {
             posinfo[var] -= p.reviewer.info( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-                analyzeConflict( p, cno, var, level, learnTuple, learn );
+                analyzeConflict( p, cno, var, level, learnAsTuple, learn );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
@@ -953,7 +963,7 @@ public final class SATContext implements java.io.Serializable {
 
 	    if( !satisfied[cno] ){
                 posinfo[var] -= p.reviewer.info( terms[cno] );
-		int res = markClauseSatisfied( p, cno, level, learnTuple, learn );
+		int res = markClauseSatisfied( p, cno, level, learnAsTuple, learn );
 
 		if( res != 0 ){
 		    return res;
@@ -970,7 +980,7 @@ public final class SATContext implements java.io.Serializable {
 		    verifyTermCount( p, cno );
 		}
 		if( terms[cno] == 1 ){
-		    int res = propagateUnitClause( p, cno, level, learnTuple, learn );
+		    int res = propagateUnitClause( p, cno, level, learnAsTuple, learn );
 		    if( res != 0 ){
 			return res;
 		    }
@@ -984,7 +994,7 @@ public final class SATContext implements java.io.Serializable {
      * Propagates the fact that variable 'var' is false.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    public int propagateNegAssignment( SATProblem p, int var, int level, boolean learnTuple, boolean learn )
+    public int propagateNegAssignment( SATProblem p, int var, int level, boolean learnAsTuple, boolean learn )
         throws SATRestartException
     {
         if( doVerification ){
@@ -1016,7 +1026,7 @@ public final class SATContext implements java.io.Serializable {
             posinfo[var] -= p.reviewer.info( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-                analyzeConflict( p, cno, var, level, learnTuple, learn );
+                analyzeConflict( p, cno, var, level, learnAsTuple, learn );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
@@ -1038,7 +1048,7 @@ public final class SATContext implements java.io.Serializable {
 
 	    if( !satisfied[cno] ){
                 neginfo[var] -= p.reviewer.info( terms[cno] );
-		int res = markClauseSatisfied( p, cno, level, learnTuple, learn );
+		int res = markClauseSatisfied( p, cno, level, learnAsTuple, learn );
 
 		if( res != 0 ){
 		    return res;
@@ -1055,7 +1065,7 @@ public final class SATContext implements java.io.Serializable {
 		    verifyTermCount( p, cno );
 		}
 		if( terms[cno] == 1 ){
-		    int res = propagateUnitClause( p, cno, level, learnTuple, learn );
+		    int res = propagateUnitClause( p, cno, level, learnAsTuple, learn );
 		    if( res != 0 ){
 			return res;
 		    }
