@@ -491,7 +491,7 @@ class OpenCell1D implements OpenConfig {
                 p.firstNoColumn = newLast+1;
             }
             else {
-                if( (newLast+1)<p.firstNoColumn ){
+                if( (newLast+1)<p.firstColumn ){
                     System.out.println( "ERROR: P" + me + ": left neighbour P" + (me-1) + " sent columns " + newFirst + "-" + (newLast+1) + " but that leaves a gap to my columns " + p.firstColumn + "-" + p.firstNoColumn );
                 }
             }
