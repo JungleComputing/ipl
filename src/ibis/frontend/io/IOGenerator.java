@@ -166,7 +166,7 @@ public class IOGenerator {
 
 	    Class cl = null;
 	    try {
-		cl = Class.forName(classname, false, null);
+		cl = Class.forName(classname, false, this.getClass().getClassLoader());
 	    } catch(ClassNotFoundException e) {
 		return;
 	    }
