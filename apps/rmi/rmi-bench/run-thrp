@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# reserve="-reserve 748923"
+reserve="-reserve 201906"
 # javaflags="-ip-map /home/rutger/myrinet-ip-map"
 # javaflags="-DRMI_init.factory=off"
 
@@ -44,8 +44,10 @@ for (( i = 0; i < $n; i++ )) ; do
     if true ; then
 	data=-byte
 	for ibis in $ibises ; do
-	    for ser in $sers ; do
-		sh run-rpc $ibis $ser $tcp_N 100000 "$reserve" "$javaflags" "-one-way $data"
+	    for (( j = 0; j < $(( $myri_N / $tcp_N )) ; j++ )) ; do
+		for ser in $sers ; do
+		    sh run-rpc $ibis $ser $tcp_N 100000 "$reserve" "$javaflags" "-one-way $data"
+		done
 	    done
 	done
     fi
