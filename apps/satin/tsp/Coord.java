@@ -1,5 +1,5 @@
 
 
 class Coord {
-	int x, y;
+    int x, y;
 }

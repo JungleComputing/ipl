@@ -146,9 +146,9 @@ class Main {
 
 	    if (visualization) {
 		visual = new VisualBuffer(info, asyncVisualization);
-// System.err.println("Bound " + visual + " as VisualBuffer");
+		// System.err.println("Bound " + visual + " as VisualBuffer");
 		RMI_init.bind("VisualBuffer", visual);
-// System.err.println("Lookup " + visual + " as " + RMI_init.lookup("//" + info.hostName(info.rank()) + "/VisualBuffer"));
+		// System.err.println("Lookup " + visual + " as " + RMI_init.lookup("//" + info.hostName(info.rank()) + "/VisualBuffer"));
 	    }
 
 	    double[] nodeSpeed = null;	/* Speed of node[i] */
@@ -162,7 +162,7 @@ class Main {
 		local.start(false, "Calibrate");
 		speed = 1.0 / local.getElapsedTime();
 	    }
-	    
+
 	    local = new SOR(nrow, ncol, nit, sync, global, visual, info, reduceFactor);
 	    if (hetero_speed) {
 		nodeSpeed = global.scatter2all(info.rank(), speed);
@@ -180,7 +180,7 @@ class Main {
 
 	    local.start(true, "SOR");
 
-System.err.println(info.rank() + ": quits...");
+	    System.err.println(info.rank() + ": quits...");
 	    if (info.rank() == 0) {
 		Thread.sleep(2000); 
 		// Give the other nodes a chance to exit.

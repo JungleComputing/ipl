@@ -5,7 +5,7 @@ class Prefix_Node implements Serializable {
     int[] densities;
     int[] ranks;
     boolean done;
-    
+
     Prefix_Node(int max_Radix){
 	densities = new int[max_Radix];
 	ranks = new int[max_Radix];
@@ -24,7 +24,7 @@ class Prefix_Node implements Serializable {
 	    this.ranks[i] = node.ranks[i];
 	}
     }
-    
+
     void init(){
 	int length = densities.length;
 	for(int i = 0; i < length; i++){
@@ -45,4 +45,4 @@ class Prefix_Node implements Serializable {
 	done = false;
     }
 }
-	  
+

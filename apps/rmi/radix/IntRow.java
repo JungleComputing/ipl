@@ -16,7 +16,7 @@ public class IntRow implements Serializable{
 	maxSize = number;
 	size = 0;
     }
-     
+
     public synchronized int length() {
 	return size;
     } 
@@ -39,8 +39,8 @@ public class IntRow implements Serializable{
 	IntRow temp;
 	temp = new IntRow(number);
 	for(int i = 0; i < number; i++){ 
-	  temp.row[i] = (int) Math.rint((Integer.MAX_VALUE * Math.random() * 0.25));
-	  temp.size++;	    
+	    temp.row[i] = (int) Math.rint((Integer.MAX_VALUE * Math.random() * 0.25));
+	    temp.size++;	    
 	}
 	return temp;
     }
@@ -57,16 +57,16 @@ public class IntRow implements Serializable{
 	}
 	return sub;
     }
-    
+
     //returns array from begin to end -1 
     public int[] subArray(int begin, int end){	
-    	int[] sub = new int[end - begin];
-    	for(int i = begin; i < end; i++){
+	int[] sub = new int[end - begin];
+	for(int i = begin; i < end; i++){
 	    sub[i - begin] = this.row[i];
-    	}
-    	return sub;
+	}
+	return sub;
     }
-    
+
 }
 
 

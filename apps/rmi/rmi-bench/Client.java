@@ -119,7 +119,7 @@ public class Client {
 			    sum.add(t);
 			}
 		    }
-// System.err.print(".");
+		    // System.err.print(".");
 		}
 	    }
 	} else if (one_way) {
@@ -276,12 +276,12 @@ public class Client {
 		System.out.print(" " + N + " size " + size + " Throughput ");
 		if (send_type == Datatype.TREE || send_type == Datatype.CYCLIC) {
 		    System.out.print(((N * 1000.0) * size / (1048576.0 * total)) +
-					" Mnode/s; payload ");
+			    " Mnode/s; payload ");
 		    System.out.println(N * (16 * 1000.0) * size / (1048576.0 * total) +
-				       " MB/s");
+			    " MB/s");
 		} else {
 		    System.out.println(N * (size * 1000.0) / (1048576.0 * total) +
-				       " MB/s");
+			    " MB/s");
 		}
 	    }
 

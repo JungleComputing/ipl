@@ -19,14 +19,14 @@ class Master extends UnicastRemoteObject implements MasterInterface {
 	this.rowsperproc = rowsperproc;
 	innerBarrier = new Barrier(cpus);
 	slaves = new SlaveInterface[cpus];
-	
+
 	System.out.println("binding FFT_Master ...");
 	reg.bind("FFT_Master", this);
 	System.out.println("binding FFT_Master done");
     }
 
     public synchronized SlaveInterface[] table(SlaveInterface me, int node)
-		throws RemoteException {
+	throws RemoteException {
 	num_nodes++;
 	slaves[node] = me;
 	if (num_nodes == cpus) notifyAll();

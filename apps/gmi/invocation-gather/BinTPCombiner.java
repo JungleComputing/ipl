@@ -2,8 +2,8 @@ import ibis.gmi.*;
 
 public class BinTPCombiner extends BinomialInvocationCombiner { 
 
-	boolean copy;
-	
+    boolean copy;
+
     BinTPCombiner(boolean copy) {
 	this.copy = copy;
     }   

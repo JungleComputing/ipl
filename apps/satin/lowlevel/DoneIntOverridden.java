@@ -1,11 +1,11 @@
 final class DoneIntOverridden extends Throwable {
-	int i;
+    int i;
 
-	DoneIntOverridden(int i) {
-		this.i = i;
-	}
+    DoneIntOverridden(int i) {
+	this.i = i;
+    }
 
-	public Throwable fillInStackTrace() {
-		return null;
-	}
+    public Throwable fillInStackTrace() {
+	return null;
+    }
 }

@@ -105,9 +105,9 @@ class SORVisualizer {
 
 		// do work
 		while(true) {
-System.err.print("[");
+		    System.err.print("[");
 		    data = visual.getRawData();
-System.err.print("]");
+		    System.err.print("]");
 		    canvas.update(data); // give data to the canvas
 		    if (PAINT_SYNC) {
 			barrier.syncAndRepaint();

@@ -65,78 +65,78 @@ public class RMI_init {
 
 	// System.out.println("In RMI_init.getRegistry");
 
-	if (isInitialized) {
-	    System.out.println("Registry already initialized");
-	    return reg;
-	}
-	isInitialized = true;
-
-	String version = System.getProperty("java.version");
-	if (version == null || version.startsWith("1.1")) {
-			    // Start a security manager.
-	    if (VERBOSE) {
-		System.out.println("Start a security manager");
+	    if (isInitialized) {
+		System.out.println("Registry already initialized");
+		return reg;
 	    }
-	    System.setSecurityManager(new RMISecurityManager());
-	}
+	    isInitialized = true;
 
-	int port = Registry.REGISTRY_PORT;
-
-	InetAddress addr    = IPUtils.getLocalHostAddress();
-	InetAddress regAddr = InetAddress.getByName(registryOwner);
-
-	if (addr.equals(regAddr)) {
-	    while (reg == null) {
-		try {
-		    if (socketFactory != null) {
-			reg = LocateRegistry.createRegistry(port, socketFactory, socketFactory);
-		    } else {
-			reg = LocateRegistry.createRegistry(port);
-		    }
-		    if (VERBOSE) {
-			System.out.println("Use LocateRegistry to create a Registry, socketFactory " + socketFactory);
-		    }
-		    break;
-		} catch (RemoteException e) {
+	    String version = System.getProperty("java.version");
+	    if (version == null || version.startsWith("1.1")) {
+		// Start a security manager.
+		if (VERBOSE) {
+		    System.out.println("Start a security manager");
 		}
-		try {
-		    if (socketFactory != null) {
-			reg = LocateRegistry.getRegistry(registryOwner, port, socketFactory);
-		    } else {
-			reg = LocateRegistry.getRegistry(registryOwner, port);
-		    }
-		    if (VERBOSE) {
-			System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr + ", socketFactory " + socketFactory);
-		    }
-		    break;
-		} catch (RemoteException e) {
-		}
+		System.setSecurityManager(new RMISecurityManager());
 	    }
 
-	} else {
-	    if (VERBOSE) {
-		System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr + ", socketFactory " + socketFactory);
-	    }
-	    while (reg == null) {
-		try {
-		    if (socketFactory != null) {
-			reg = LocateRegistry.getRegistry(registryOwner, port, socketFactory);
-		    } else {
-			reg = LocateRegistry.getRegistry(registryOwner, port);
-		    }
-		} catch (RemoteException e) {
+	    int port = Registry.REGISTRY_PORT;
+
+	    InetAddress addr    = IPUtils.getLocalHostAddress();
+	    InetAddress regAddr = InetAddress.getByName(registryOwner);
+
+	    if (addr.equals(regAddr)) {
+		while (reg == null) {
 		    try {
-			System.out.println("Look up registry: sleep a while..");
-			Thread.sleep(100);
-		    } catch (InterruptedException eI) {
+			if (socketFactory != null) {
+			    reg = LocateRegistry.createRegistry(port, socketFactory, socketFactory);
+			} else {
+			    reg = LocateRegistry.createRegistry(port);
+			}
+			if (VERBOSE) {
+			    System.out.println("Use LocateRegistry to create a Registry, socketFactory " + socketFactory);
+			}
+			break;
+		    } catch (RemoteException e) {
+		    }
+		    try {
+			if (socketFactory != null) {
+			    reg = LocateRegistry.getRegistry(registryOwner, port, socketFactory);
+			} else {
+			    reg = LocateRegistry.getRegistry(registryOwner, port);
+			}
+			if (VERBOSE) {
+			    System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr + ", socketFactory " + socketFactory);
+			}
+			break;
+		    } catch (RemoteException e) {
+		    }
+		}
+
+	    } else {
+		if (VERBOSE) {
+		    System.out.println("Use LocateRegistry to get a Registry from owner " + regAddr + ", socketFactory " + socketFactory);
+		}
+		while (reg == null) {
+		    try {
+			if (socketFactory != null) {
+			    reg = LocateRegistry.getRegistry(registryOwner, port, socketFactory);
+			} else {
+			    reg = LocateRegistry.getRegistry(registryOwner, port);
+			}
+		    } catch (RemoteException e) {
+			try {
+			    System.out.println("Look up registry: sleep a while..");
+			    Thread.sleep(100);
+			} catch (InterruptedException eI) {
+			}
 		    }
 		}
 	    }
-	}
 
-	// System.out.println("Registry is " + reg);
+	    // System.out.println("Registry is " + reg);
 
-	return reg;
+	    return reg;
     }
 
 
@@ -181,7 +181,7 @@ public class RMI_init {
      * A wrapper for the RMI nameserver bind
      */
     public static void bind(String name, Remote obj)
-	    throws IOException, java.rmi.AlreadyBoundException {
+	throws IOException, java.rmi.AlreadyBoundException {
 	Naming.bind(name, obj);
     }
 
@@ -190,7 +190,7 @@ public class RMI_init {
      * A wrapper for the RMI nameserver unbind
      */
     public static void unbind(String name)
-	    throws IOException, java.rmi.NotBoundException {
+	throws IOException, java.rmi.NotBoundException {
 	Naming.unbind(name);
     }
 

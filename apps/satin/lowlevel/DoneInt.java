@@ -1,7 +1,7 @@
 final class DoneInt extends Throwable {
-	int i;
+    int i;
 
-	DoneInt(int i) {
-		this.i = i;
-	}
+    DoneInt(int i) {
+	this.i = i;
+    }
 }

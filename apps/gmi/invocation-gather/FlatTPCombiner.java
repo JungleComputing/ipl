@@ -2,10 +2,10 @@ import ibis.gmi.*;
 
 public class FlatTPCombiner extends FlatInvocationCombiner { 
 
-	byte [] buffer;
-	int size;	
-	boolean copy;
-	
+    byte [] buffer;
+    int size;	
+    boolean copy;
+
     FlatTPCombiner(int size, boolean copy) {
 	buffer = new byte[size];
 	this.size = size;
@@ -19,11 +19,11 @@ public class FlatTPCombiner extends FlatInvocationCombiner {
 	byte [] temp;
 
 	for (int i=0;i<len;i++) { 
-		temp = (byte []) in[i].readObject(0);
-		if (copy) {
-		    System.arraycopy(temp, 0, buffer, offset, frag);
-		    offset += frag;
-		}
+	    temp = (byte []) in[i].readObject(0);
+	    if (copy) {
+		System.arraycopy(temp, 0, buffer, offset, frag);
+		offset += frag;
+	    }
 	} 
 
 	out.write(0, buffer);

@@ -1,3 +1,3 @@
 class Result extends Exception {
-	int score;
+    int score;
 }

@@ -3,19 +3,19 @@ import java.rmi.server.UnicastRemoteObject;
 
 class ProcsImpl extends UnicastRemoteObject implements Procs {
 
-private int total_num;
+    private int total_num;
 
-// Used for the initial exchange of stubs.
-private Processor [] nodes;
-private int num_nodes;
+    // Used for the initial exchange of stubs.
+    private Processor [] nodes;
+    private int num_nodes;
 
-ProcsImpl(int nhosts) throws RemoteException {
+    ProcsImpl(int nhosts) throws RemoteException {
 	total_num = nhosts;
 	nodes     = new Processor[total_num];
 	num_nodes = 0;
-}
+    }
 
-public synchronized Processor [] table(Processor me, int node) throws RemoteException {
+    public synchronized Processor [] table(Processor me, int node) throws RemoteException {
 
 	// Note: This function can only be used once !
 	num_nodes++;
@@ -23,17 +23,17 @@ public synchronized Processor [] table(Processor me, int node) throws RemoteExce
 	nodes[node] = me;
 
 	if (num_nodes == total_num) {
-		notifyAll();
+	    notifyAll();
 	}
 	else while (num_nodes < total_num) {
-		try {
-			wait();
-		} catch (Exception e) {
-			throw new RemoteException(e.toString());
-		}
+	    try {
+		wait();
+	    } catch (Exception e) {
+		throw new RemoteException(e.toString());
+	    }
 	} 
-	
+
 	return nodes;
-}
+    }
 
 }

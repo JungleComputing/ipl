@@ -2,8 +2,8 @@
 
 class WhiteSurface extends Surface
 {
-  WhiteSurface()
+    WhiteSurface()
     {
-      color = new GfxColor(1,1,1);
+	color = new GfxColor(1,1,1);
     }
 }

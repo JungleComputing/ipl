@@ -16,11 +16,11 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
     private SlaveInterface[] slaveArray;
     private int[][] distribution;
 
-//    public static native void fs_stats_reset();
+    //    public static native void fs_stats_reset();
 
     Slave(String masterName, int cpu, int cpus, int N, int M,
-	  int rootN, int rowsperproc, double[] u, double[] u2,
-	  int[][] dis, PoolInfo d, int rounds) throws Exception {
+	    int rootN, int rowsperproc, double[] u, double[] u2,
+	    int[][] dis, PoolInfo d, int rounds) throws Exception {
 
 	master = (MasterInterface)RMI_init.lookup("//" + masterName + "/FFT_Master");
 	System.out.println(cpu + ": Slave has found Master " + master);
@@ -87,28 +87,28 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 	    total += end - start;
 
 	    if (Math.abs(checksum1 - checksum2) > 0.1) {
-		    System.out.println("CPU" + myCpu + " checksum ERROR !!! (" +
-				       checksum1 + "," + checksum2 + ")   " + checksum3);
+		System.out.println("CPU" + myCpu + " checksum ERROR !!! (" +
+			checksum1 + "," + checksum2 + ")   " + checksum3);
 	    } else {
-//		System.out.println("CPU" + myCpu + " checksum OK (" + 
-//				   checksum1+","+checksum2+")   " + checksum3);
+		//		System.out.println("CPU" + myCpu + " checksum OK (" + 
+		//				   checksum1+","+checksum2+")   " + checksum3);
 
-//		System.out.println(myCpu + "-> FFT: " + fftDuration + "\t Trans: " +
-//				   transposeAndFFT + "\t Communication: " +
-//				   totalComDuration + "\t Barriers: " + barDuration +
-//				   " ms.\t     ");
+		//		System.out.println(myCpu + "-> FFT: " + fftDuration + "\t Trans: " +
+		//				   transposeAndFFT + "\t Communication: " +
+		//				   totalComDuration + "\t Barriers: " + barDuration +
+		//				   " ms.\t     ");
 	    }
 
 	    if (myCpu == 0) { 
-		    System.out.println("FFT round " + warmup + " time " + (end - start) / 1000.0);
+		System.out.println("FFT round " + warmup + " time " + (end - start) / 1000.0);
 	    }
 	}
 	//d.printTime("FFT, M = " + M, transposeAndFFT);
 
 	if (myCpu == 0) { 
-		long per_round = total / rounds;
-		System.out.println("FFT, iterate " + rounds + "; M = " + M + " time " + total / 1000.0 + "; per round " + per_round / 1000.0);
-		System.out.println("Application: FFT " + M + " -warmup " + (rounds - 1) + "; time: " + total / 1000.0 + " seconds");
+	    long per_round = total / rounds;
+	    System.out.println("FFT, iterate " + rounds + "; M = " + M + " time " + total / 1000.0 + "; per round " + per_round / 1000.0);
+	    System.out.println("Application: FFT " + M + " -warmup " + (rounds - 1) + "; time: " + total / 1000.0 + " seconds");
 	}
     }
 
@@ -139,22 +139,22 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
     void pageOut(double[] x, int[][] ind) {
 	try {
-//	    long start = System.currentTimeMillis();
-//	    double[] matrix = master.getMatrixValues(ind[myCpu][0]);
+	    //	    long start = System.currentTimeMillis();
+	    //	    double[] matrix = master.getMatrixValues(ind[myCpu][0]);
 	    int slaveNr = distribution[0][ ind[myCpu][0] ];
 	    int matrixNr =distribution[0][ ind[myCpu][0] ];
 
-//          PERFORMANCE BUG ??? 
-//
-//	    double[] matrix;
+	    //          PERFORMANCE BUG ??? 
+	    //
+	    //	    double[] matrix;
 
-//	    if (myCpu == slaveNr) {
-//		matrix = getCopyValues(matrixNr);
-//	    } else { 
-//		    matrix = slaveArray[slaveNr].getValues(matrixNr);
-//	    } 
-//
-//    
+	    //	    if (myCpu == slaveNr) {
+	    //		matrix = getCopyValues(matrixNr);
+	    //	    } else { 
+	    //		    matrix = slaveArray[slaveNr].getValues(matrixNr);
+	    //	    } 
+	    //
+	    //    
 	    double [] matrix = new double[rowsperproc*rowsperproc*2];
 
 	    for (int i = 0; i < rootN; i++) {
@@ -164,23 +164,23 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 		    matrix[index + 1] =  x[(i + rootN * j) * 2 + 1];
 		}
 		if (i % rowsperproc == (rowsperproc - 1)) {
-//		    master.setMatrixValues(ind[myCpu][i / rowsperproc], matrix);
+		    //		    master.setMatrixValues(ind[myCpu][i / rowsperproc], matrix);
 		    slaveNr = distribution[0][ ind[myCpu][i / rowsperproc] ];
 		    matrixNr =distribution[1][ ind[myCpu][i / rowsperproc] ];
 		    if (slaveNr == myCpu) {
 			// System.err.print("=" + slaveNr);
 			setCopyValues(matrixNr, matrix);
 			// System.err.print(">");
-//			System.out.println(slaveNr + "Exchange got matrix " + matrixNr + " " + matrix[0]); 
+			//			System.out.println(slaveNr + "Exchange got matrix " + matrixNr + " " + matrix[0]); 
 		    } else { 
 			// System.err.print("<" + slaveNr);
-			  slaveArray[slaveNr].setValues(matrixNr, matrix);
+			slaveArray[slaveNr].setValues(matrixNr, matrix);
 			// System.err.print(">");
 		    }
-		    
+
 		}
 	    }
-//	    totalComDuration += System.currentTimeMillis() - start;
+	    //	    totalComDuration += System.currentTimeMillis() - start;
 	} catch (Exception e) {
 	    System.out.println("Couldn't get/set matrix values from master " + e);
 	    System.exit(1);
@@ -190,22 +190,22 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
     void pageIn(double[] x, int[][] ind) {
 	try {
-//	    long start = System.currentTimeMillis();
+	    //	    long start = System.currentTimeMillis();
 	    if (cpus > 1) master.sync();
-//	    barDuration += System.currentTimeMillis() - start;
-//	    start = System.currentTimeMillis();
+	    //	    barDuration += System.currentTimeMillis() - start;
+	    //	    start = System.currentTimeMillis();
 	    for (int i = 0; i < cpus; i++) {
-//		double[] matrix = master.getMatrixValues(ind[myCpu][i]);
+		//		double[] matrix = master.getMatrixValues(ind[myCpu][i]);
 		int slaveNr = distribution[0][ ind[myCpu][i] ];
 		int matrixNr =distribution[1][ ind[myCpu][i] ];
 		double[] matrix;
-	        if (myCpu == slaveNr) {
+		if (myCpu == slaveNr) {
 		    matrix = getCopyValues(matrixNr);
-	        } else {
-			matrix = slaveArray[slaveNr].getValues(matrixNr);
+		} else {
+		    matrix = slaveArray[slaveNr].getValues(matrixNr);
 		}
 
-//		System.out.println(myCpu + "Exchange got matrix " + matrixNr + " " + matrix[0]); 
+		//		System.out.println(myCpu + "Exchange got matrix " + matrixNr + " " + matrix[0]); 
 
 		for (int j = 0; j < rowsperproc; j++) {
 		    for (int k = 0; k < rowsperproc; k++) {
@@ -216,7 +216,7 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 		    }
 		}
 	    }
-//	    totalComDuration += System.currentTimeMillis() - start;
+	    //	    totalComDuration += System.currentTimeMillis() - start;
 	} catch (Exception e) {
 	    System.out.println("Couldn't get/set matrix values from master " + e);
 	    System.exit(1);
@@ -227,14 +227,14 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
     double checksum() {
 	double checksum = 0.0;
 	/*
-	  try {
-	    for (int i = 0; i < cpus; i++)
-		checksum += master.getMatrixChecksum(myCpu * cpus + i);
-	} catch (Exception e) {
-	    System.out.println("Couldn't get checksum values from master " + e);
-	    System.exit(1);
-	}
-	*/
+	   try {
+	   for (int i = 0; i < cpus; i++)
+	   checksum += master.getMatrixChecksum(myCpu * cpus + i);
+	   } catch (Exception e) {
+	   System.out.println("Couldn't get checksum values from master " + e);
+	   System.exit(1);
+	   }
+	 */
 
 	for (int i = 0; i < cpus; i++)
 	    checksum += matrixArray[i].checksum();
@@ -243,7 +243,7 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
 
     void doFFT(double direction, double[] u, double[] u2,
-	       int myFirst, int myLast) throws Exception {
+	    int myFirst, int myLast) throws Exception {
 
 	if (direction == FORWARD) {
 	    int[][] tmp = ind1;
@@ -254,29 +254,29 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 	double[] x = new double[cpus * rowsperproc * rowsperproc * 2];
 	int m1 = M / 2;
 
-//	long start = System.currentTimeMillis();
+	//	long start = System.currentTimeMillis();
 	transpose(ind1, ind2, x);
 
-//	long start_FFT = System.currentTimeMillis();
+	//	long start_FFT = System.currentTimeMillis();
 	for (int i = myFirst; i < myLast; i++) {
 	    fft1DOnce(direction, m1, rootN, i - myFirst, u, x);
 	    twiddleOneCol(direction, i, i - myFirst, u2, x);
 	}
-//	fftDuration += System.currentTimeMillis() - start_FFT;
+	//	fftDuration += System.currentTimeMillis() - start_FFT;
 	pageOut(x, ind2);
 	transpose(ind2, ind1, x);
 
-//	start_FFT = System.currentTimeMillis();
+	//	start_FFT = System.currentTimeMillis();
 	for (int i = myFirst; i < myLast; i++) {
 	    fft1DOnce(direction, m1, rootN, i - myFirst, u, x);
 	    if (direction == BACKWARD)
 		scale(i - myFirst, x);
 	}
-//	fftDuration += System.currentTimeMillis() - start_FFT;
+	//	fftDuration += System.currentTimeMillis() - start_FFT;
 
 	pageOut(x, ind1);
 	transpose(ind1, ind2, x);
-//	transposeAndFFT += System.currentTimeMillis() - start;
+	//	transposeAndFFT += System.currentTimeMillis() - start;
 
 	if (direction == FORWARD) {
 	    int[][] tmp = ind1;
@@ -293,16 +293,16 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
     void transpose(int[][] ind1, int[][] ind2, double[] matrix) {
 	try {
-//	    long start = System.currentTimeMillis();
+	    //	    long start = System.currentTimeMillis();
 	    if (cpus > 1) master.sync();
-//	    barDuration += System.currentTimeMillis() - start;
+	    //	    barDuration += System.currentTimeMillis() - start;
 
 	    for (int i = 0; i < cpus; i++) {
-//		master.matrixTranspose(ind1[myCpu][i]);
-//		int slaveNr = distribution[0][ ind1[myCpu][i] ];
-//		int matrixNr = distribution[1][ ind1[myCpu][i] ];
-//		slaveArray[slaveNr].doTranspose(matrixNr);
-		    matrixArray[i].transpose();
+		//		master.matrixTranspose(ind1[myCpu][i]);
+		//		int slaveNr = distribution[0][ ind1[myCpu][i] ];
+		//		int matrixNr = distribution[1][ ind1[myCpu][i] ];
+		//		slaveArray[slaveNr].doTranspose(matrixNr);
+		matrixArray[i].transpose();
 	    }
 	} catch (Exception e) {
 	    System.out.println("Couldn't transpose matrix from master " + e);
@@ -314,7 +314,7 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
 
     void fft1DOnce(double direction, int M, int N, int column, double[] u,
-		   double[] matrix) {
+	    double[] matrix) {
 	reverse(M, N, column, matrix);
 
 	for (int q = 1; q <= M; q++) {
@@ -352,7 +352,7 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 
 
     void twiddleOneCol(double direction, int j, int column, double[] u2,
-		       double[] matrix) {
+	    double[] matrix) {
 	for (int i = 0; i < rootN; i++) {
 	    double omega_r = u2[2 * (j * rootN + i)];
 	    double omega_c = u2[2 * (j * rootN + i) + 1] * direction;
@@ -414,15 +414,15 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
     }
 
     public void setValues(int i, 
-				double[] values) throws java.rmi.RemoteException {
-//	System.out.println(myCpu + "slave got matrix " + i + " " + values[0]);
-//	    System.out.println(myCpu + "Exchange got matrix " + i + " " + values[0]); 
+	    double[] values) throws java.rmi.RemoteException {
+	//	System.out.println(myCpu + "slave got matrix " + i + " " + values[0]);
+	//	    System.out.println(myCpu + "Exchange got matrix " + i + " " + values[0]); 
 	matrixArray[i].setValues(values);
 	// matrixArray[i].print();
     }
 
     public void setCopyValues(int i, 
-				double[] values) throws java.rmi.RemoteException {
+	    double[] values) throws java.rmi.RemoteException {
 	// System.out.println("setValues " + i);
 	matrixArray[i].copyValues(values);
 	// matrixArray[i].print();

@@ -1,11 +1,11 @@
 final class DoneObjectOverridden extends Throwable {
-	SerializableObject o;
+    SerializableObject o;
 
-	DoneObjectOverridden(SerializableObject o) {
-		this.o = o;
-	}
+    DoneObjectOverridden(SerializableObject o) {
+	this.o = o;
+    }
 
-	public Throwable fillInStackTrace() {
-		return null;
-	}
+    public Throwable fillInStackTrace() {
+	return null;
+    }
 }

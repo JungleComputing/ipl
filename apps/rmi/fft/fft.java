@@ -1,8 +1,8 @@
 /* Sun RMI One Dimensional Fast Fourier Transformation (FFT)
 
-   author: Ronald Blankendaal
-   email : rcblanke@cs.vu.nl
-   date  : 10-5-1999
+author: Ronald Blankendaal
+email : rcblanke@cs.vu.nl
+date  : 10-5-1999
 */
 
 import java.rmi.registry.Registry;
@@ -79,27 +79,27 @@ class fft {
 	if (host == 0) {
 	    System.out.println("Sun RMI One Dimensional Fast Fourier Transformation");
 	    System.out.println("M:" + M + " N:" + N + " rootN:" + rootN +
-			       "  Running on " + cpus + " cpu(s), each having " +
-			       rowsperproc + " rows to process");
+		    "  Running on " + cpus + " cpu(s), each having " +
+		    rowsperproc + " rows to process");
 	    try {
-	        masterObject = new Master(local, cpus, M, rowsperproc);
+		masterObject = new Master(local, cpus, M, rowsperproc);
 	    } catch (Exception e) {
-	        System.out.println("Exception: " + e);
-	        fatal("Couldn't create master");
+		System.out.println("Exception: " + e);
+		fatal("Couldn't create master");
 	    }
 	}
 
 	try {
 	    new Slave(masterName, host, cpus, N, M, rootN,
-		      rowsperproc, u, u2, distribution, d, rounds);
+		    rowsperproc, u, u2, distribution, d, rounds);
 	} catch (Exception e) {
 	    System.out.println("Exception: " + e);
 	    fatal("Couldn't create slave");
 	}
 
-        if (host == 0) {
-            masterObject.unbind(local);
-        }
+	if (host == 0) {
+	    masterObject.unbind(local);
+	}
 
 	System.exit(0);
     }

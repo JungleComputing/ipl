@@ -3,7 +3,7 @@ import java.rmi.server.UnicastRemoteObject;
 import ibis.util.PoolInfo;
 
 public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInterface, ConstInterface {
-	
+
     MoleculeEnsemble var; 
     double[] tlc, pcc;
     int id, nmol, startMol, nrmols, ncpus, rest;
@@ -28,7 +28,7 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	this.masterName = masterName;
 	this.ncpus = ncpus;
 	master = (WaterMasterInterface) RMI_init.lookup("//" + masterName + "/WaterMaster");
-	
+
 	id = master.logon(myName, this);
 
 	//wait for others
@@ -42,7 +42,7 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 
 	//get my job
 	Job job = master.getJob(id);
-	
+
 	this.var = job.var;
 
 	this.startMol = job.startMol;
@@ -63,7 +63,7 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 
 	vir = new double[1];
 	fe = new ForcesEnergy(job.nmol, job.boxh, job.boxl, job.cut2, job.ref1, job.fhm, 
-			      job.fom, job.cutoff, HMAS, OMAS);
+		job.fom, job.cutoff, HMAS, OMAS);
 	pe = new PredCorr(job.norder, job.boxh, job.boxl);	
 
 	avgt = 0.0;
@@ -80,7 +80,7 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	    if( cpu < rest){
 		allPositions[i] = new double[quotient + 1][NDIR][NATOMS]; 
 		allVal[i] = new double[quotient + 1][NDIR][NATOMS];
-		
+
 	    }else{
 		allPositions[i] = new double[quotient][NDIR][NATOMS]; 
 		allVal[i] = new double[quotient][NDIR][NATOMS];		
@@ -101,20 +101,20 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
     }
 
     public synchronized void incAll(int dest, double[][][] all, int size)throws RemoteException{
-    	
-    	for(int mol = 0; mol < size; mol++){  
+
+	for(int mol = 0; mol < size; mol++){  
 	    for(int dir = XDIR; dir <= ZDIR; dir++){
 		for(int atom = H1; atom <= H2; atom++){
 		    var.f[dest][mol][dir][atom] += all[mol][dir][atom];
 		}
-		
+
 	    }
-    	}	
+	}	
     }
-    
+
     public void incAllForceAcc(int dest, double[][][][] allVal)throws Exception{
 	int cpu = id;
-	
+
 	for(int count = 0; count < nrBufs(); count++){
 	    cpu++;
 	    if(cpu == ncpus)
@@ -144,9 +144,9 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	master.sync();		
 	// System.out.println("Done sync " + no + ": " + (System.currentTimeMillis() - start) + " ms.");
     }
-	
+
     public void doInterf(int dest, double[] vir) throws Exception {
-	
+
 	int cpu = id;
 	int quotient = 0;
 	double tmp = 0.0;
@@ -182,23 +182,23 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	// System.out.println("vars after fe.multiplyForces:");
 	// printVar();
     }
-	
+
     public double getPotA()throws RemoteException{
 	return potA[0];
     }
-    
+
     public double getPotR()throws RemoteException{
 	return potR[0];
     }
-    
+
     public double getPotRF()throws RemoteException{
 	return potRF[0];
     }
-    
+
     public double getTen()throws RemoteException{
 	return ten;
     }
-    
+
     public double getAvgt()throws RemoteException{
 	return avgt;
     }
@@ -294,12 +294,12 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	    System.out.println(iteration + "  "+ ten +"  "+ lpotA+"  "+ lpotR);
 	    System.out.println(lpotRF+ "   "+ xtt + "   "+avgt+ "   "+xvir);
 	}
-	
+
     }
-    
+
     public void mdmain(PoolInfo info) throws Exception {
-    	
-    	long start, end;
+
+	long start, end;
 	long start1, end1;
 	double tvir = 0.00;
 	double ttmv = 0.00;
@@ -308,10 +308,10 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 
 	total = new double[NDIR];
 	/*.....START MOLECULAR DYNAMIC LOOP */
-	
+
 	if (nsave > 0)  /* not true for input decks provided */
 	    System.out.println("COLLECTING X AND V DATA AT EVERY "+ nsave +" TIME STEPS");
-	
+
 	/* MOLECULAR DYNAMICS LOOP OVER ALL TIME-STEPS */
 
 	start = System.currentTimeMillis();
@@ -341,17 +341,17 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	    // System.out.println("vars after fe.kinety:");
 	    // printVar();
 	    sync(7);
-	    
+
 	    tkin = tkin + total[0] + total[1] + total[2];
 	    tvir = tvir - vir[0];
 
- 	    // System.out.println("tkin = " + (float) tkin);
- 	    // System.out.println("tvir = " + (float) tvir);
+	    // System.out.println("tkin = " + (float) tkin);
+	    // System.out.println("tvir = " + (float) tvir);
 	    /*  check if potential energy is to be computed, and if
 		printing and/or saving is to be done, this time step.
 		Note that potential energy is computed once every NPRINT
 		time-steps */
-	    
+
 	    if (((i % nprint) == 0) || ( (nsave > 0) && ((i % nsave) == 0))){ 
 		// printVar();
 		doPoteng(ttmv, tvir, i);
@@ -360,7 +360,7 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	    end1 = System.currentTimeMillis();
 	    if(id == 0)
 		System.out.println(" iteration took " + (end1 - start1) + " ms");
-	   
+
 	} 
 	end = System.currentTimeMillis();
 	if(info.rank() == 0){
@@ -371,12 +371,12 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	}
 	// System.exit(1);
     }		
-    
+
     public double[][][] getPositions()throws RemoteException{   
 	double[][][] all;
-	
+
 	all = new double[nrmols][NDIR][];
-	
+
 	for(int i = 0; i < nrmols; i++){
 	    for(int j = 0; j < NDIR; j++){
 		all[i][j] = var.f[DISP][i][j];
@@ -384,11 +384,11 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	}	
 	return all;
     }
-	
+
     public int nrBufs(){
 	return ((nmol/2) + (nmol/ncpus - 1)) / (nmol/ncpus);
     }
-    
+
     public void getAllPositions()throws Exception{
 	int last, rest, cpu, count;
 
@@ -403,18 +403,18 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	    count += 1;
 	}
     }
-    
+
     public double getVir()throws RemoteException{ 
 	return vir[0];
     }
-    
+
     public double getAllVir()throws Exception{
 	double temp = 0.0;
-	
+
 	for(int i = 0; i < ncpus; i++){
 	    if(i != id){
 		temp += workers[i].getVir();
-		
+
 	    }
 	}
 	return temp;
@@ -433,7 +433,7 @@ public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInter
 	vir[0] = 0.0;
 	// System.out.println("vars before fe.intraf:");
 	// printVar();
-System.out.println("fe = " + fe);
+	System.out.println("fe = " + fe);
 	fe.intraf(var, vir, nrmols);
 
 	//master.sync();
@@ -450,5 +450,5 @@ System.out.println("fe = " + fe);
 	//    System.out.println("---->" + vir[0]);
 	mdmain(info);
     }
-    
+
 }

@@ -1,5 +1,5 @@
 public interface ConstInterface{
-	
+
     public static final int MAXODR = 8; //was 7
     public static final int NATOMS = 3;
     public static final int NDIR = 3;
@@ -24,7 +24,7 @@ public interface ConstInterface{
     public static final double UNITL = 1.0e-8;
     public static final double UNITM = 1.6605655e-24;
     public static final double BOLTZ = 1.380662e-16;
-    
+
     public static final double TEMP = 298.0D;
     public static final double RHO = 0.9980D;
 

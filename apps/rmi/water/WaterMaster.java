@@ -2,9 +2,10 @@ import java.lang.Math;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public class WaterMaster extends UnicastRemoteObject 
-    implements WaterMasterInterface, Runnable, ConstInterface {
-	
+public class WaterMaster
+	extends UnicastRemoteObject
+	implements WaterMasterInterface, Runnable, ConstInterface {
+
     public static final boolean VERBOSE = false;
     public static final boolean USE_VM = false;
 
@@ -18,10 +19,10 @@ public class WaterMaster extends UnicastRemoteObject
     Input in;
     int[] index;
     WaterWorkerInterface workers_i[];
-	
+
     WaterMaster(int ncpus, String randomFile) throws Exception{
-    	
-        in = new Input(randomFile);
+
+	in = new Input(randomFile);
 
 	this.ncpus = ncpus;
 	workersAssigned = 0;
@@ -36,7 +37,7 @@ public class WaterMaster extends UnicastRemoteObject
 	RMI_init.bind("WaterMaster", this);
 
 	readVariables();
-	
+
 	var = new MoleculeEnsemble(nmol);
 	init();
 
@@ -70,7 +71,7 @@ public class WaterMaster extends UnicastRemoteObject
 	double sum = 0.0;
 
 	computePccConstants(norder+1);
-		
+
 	System.out.println("TEMPERATURE                = "+ TEMP+" K");
 	System.out.println("DENSITY                    = "+ RHO+" G/CC");
 	System.out.println("NUMBER OF MOLECULES        = "+ nmol);
@@ -78,14 +79,14 @@ public class WaterMaster extends UnicastRemoteObject
 	System.out.println("ORDER USED TO SOLVE F=MA   = "+norder);
 	System.out.println("NO. OF TIME STEPS          = "+nstep);
 	System.out.println("FREQUENCY OF DATA SAVING   = "+nsave);
-		
+
 	setUpSystemConstants();
-		
+
 	System.out.println("SPHERICAL CUTOFF RADIUS    = "+cutoff+" ANGSTROM");
-	
+
 	/* initialization routine; also reads displacements and
 	   sets up random velocities*/
-	
+
 	initia();
     }
 
@@ -105,24 +106,24 @@ public class WaterMaster extends UnicastRemoteObject
 	int mol = 0;
 	int atom = 0;
 	double val;
-		
+
 	double ns = Math.pow((double) nmol, 1.0/3.0) - 0.00001;
 	double xs = boxl/ns;
 	double zero = xs * 0.50;
 	double wcos = ROH * Math.cos(ANGLE * 0.5);
 	double wsin = ROH * Math.sin(ANGLE * 0.5);	
-		
+
 	xMas[1] = Math.sqrt(OMAS * HMAS); //in orca: omas
 	xMas[0] = HMAS;
 	xMas[2] = HMAS;
-		
+
 	/* .....ASSIGN POSITIONS */
 	/* do not use input file for displacements; use a
 	   regular lattice; */
-	    
+
 	System.out.println("***** NEW RUN STARTING FROM REGULAR LATTICE *****");
 	System.out.println(ns+"  "+xs+"  "+wcos+"  "+wsin);
-		
+
 	xt[2] = zero;
 	mol = 0;
 	for(int i = 0; i < ns; i+=1) {
@@ -150,13 +151,13 @@ public class WaterMaster extends UnicastRemoteObject
 	if(nmol != mol) {
 	    System.out.println("Lattice init error: total mol "+mol+" != "+nmol);
 	}
-    
+
 	/* ASSIGN RANDOM MOMENTA */
 	System.out.println("** ASSIGN RANDOM MOMENTA **");
 	sumx = 0.0;
 	sumy = 0.0;
 	sumz = 0.0;
-		
+
 	sux = in.readDouble();
 
 	/*   read pseudo-random numbers from input file random.in */
@@ -179,7 +180,7 @@ public class WaterMaster extends UnicastRemoteObject
 	sumx = sumx/(NATOMS * nmol);
 	sumy = sumy/(NATOMS * nmol);
 	sumz = sumz/(NATOMS * nmol);
-		
+
 	// System.out.println("sumx = " + (float) sumx);
 	// System.out.println("sumy = " + (float) sumy);
 	// System.out.println("sumz = " + (float) sumz);
@@ -190,15 +191,15 @@ public class WaterMaster extends UnicastRemoteObject
 	suz = 0.0;
 	for(mol = 0; mol < nmol; mol++) {
 	    sux = sux + (Math.pow((var.f[VEL][mol][XDIR][H1] - sumx),2.0)
-			 + Math.pow((var.f[VEL][mol][XDIR][H2] - sumx),2.0))/HMAS
+		    + Math.pow((var.f[VEL][mol][XDIR][H2] - sumx),2.0))/HMAS
 		+ Math.pow((var.f[VEL][mol][XDIR][O]  - sumx),2.0)/OMAS;
-		
+
 	    suy = suy + (Math.pow((var.f[VEL][mol][YDIR][H1] - sumy),2.0)
-			 + Math.pow((var.f[VEL][mol][YDIR][H2] - sumy),2.0))/HMAS
+		    + Math.pow((var.f[VEL][mol][YDIR][H2] - sumy),2.0))/HMAS
 		+ Math.pow((var.f[VEL][mol][YDIR][O]  - sumy),2.0)/OMAS;
-		
+
 	    suz = suz + (Math.pow((var.f[VEL][mol][ZDIR][H1] - sumz),2.0)
-			 + Math.pow((var.f[VEL][mol][ZDIR][H2] - sumz),2.0))/HMAS
+		    + Math.pow((var.f[VEL][mol][ZDIR][H2] - sumz),2.0))/HMAS
 		+ Math.pow((var.f[VEL][mol][ZDIR][O] - sumz),2.0)/OMAS;
 	}
 	fac = BOLTZ * TEMP * natmo/UNITM * 
@@ -213,18 +214,18 @@ public class WaterMaster extends UnicastRemoteObject
 	// System.out.println("sux = " + (float) sux);
 	// System.out.println("suy = " + (float) suy);
 	// System.out.println("suz = " + (float) suz);
-		
+
 	/* normalize individual velocities so that there are no bulk
 	   momenta  */
 	xMas[1] = OMAS;
 	for (mol = 0; mol < nmol; mol++) {
 	    for (atom = 0; atom < NATOMS; atom++) {
 		var.f[VEL][mol][XDIR][atom] = ( var.f[VEL][mol][XDIR][atom] -
-						sumx) * sux/xMas[atom];
+			sumx) * sux/xMas[atom];
 		var.f[VEL][mol][YDIR][atom] = ( var.f[VEL][mol][YDIR][atom] -
-						sumy) * suy/xMas[atom];
+			sumy) * suy/xMas[atom];
 		var.f[VEL][mol][ZDIR][atom] = ( var.f[VEL][mol][ZDIR][atom] -
-						sumz) * suz/xMas[atom];
+			sumz) * suz/xMas[atom];
 	    } 
 	} 
     } 
@@ -233,10 +234,10 @@ public class WaterMaster extends UnicastRemoteObject
 	/*  calculate the coefficients of taylor series expansion */
 	/*     for F(X), F"(X), F""(X), ...... (with DELTAT**n/n] included) */
 	/*     in C(1,1),..... C(1,2),..... C(1,3),....... */
-		
+
 	int nn;
 	double tn, tk;
-		
+
 	tlc[1] = 1.0D;
 	for (int n1 = 2; n1 <= n; n1++) {  
 	    nn = n1 - 1;
@@ -250,7 +251,7 @@ public class WaterMaster extends UnicastRemoteObject
 		tk = tk + 1.0D;
 	    }
 	}
-		
+
 	/* predictor-corrector constants for 2nd order differential equation */
 	pcc[ACC] = 1.0D;
 	int n1 = n-1;
@@ -298,10 +299,10 @@ public class WaterMaster extends UnicastRemoteObject
 	    break;
 	}
     }           
-	    
-	
+
+
     public void setUpSystemConstants(){
-										  	
+
 	tstep = tstep / UNITT;        /* time between steps */
 	natmo = NATOMS * nmol;        /* total number of atoms in system */
 
@@ -311,7 +312,7 @@ public class WaterMaster extends UnicastRemoteObject
 								  that box size is computed as being large 
 								  enough to handle the input
 								  number of water molecules */
-		                
+
 	boxl = boxl/UNITL;    /* normalized length of computational box */
 	boxh = boxl*0.50; /* half the box length, used in 
 			     computing cutoff radius */
@@ -332,12 +333,12 @@ public class WaterMaster extends UnicastRemoteObject
     }   
 
     public synchronized int logon(String workerName, WaterWorkerInterface i)
-      throws RemoteException {
+	throws RemoteException {
 	System.out.println("logon: " + workersAssigned);
 	workers_i[workersAssigned] = i;
-        workersAssigned++;
-	
-        return workersAssigned -1;
+	workersAssigned++;
+
+	return workersAssigned -1;
     }
 
     public WaterWorkerInterface[] getWorkers() throws RemoteException {
@@ -347,11 +348,11 @@ public class WaterMaster extends UnicastRemoteObject
     public void sync() throws RemoteException {
 	bar.sync();
     }
-    
+
     public void sync1() throws RemoteException {
 	bar1.sync();
     }
-    
+
     public synchronized Job getJob(int id) throws RemoteException {
 	Job job;
 	MoleculeEnsemble tmpVar;
@@ -359,20 +360,20 @@ public class WaterMaster extends UnicastRemoteObject
 	tmpVar = copy(index[id], index[id+1]);
 	int rest = nmol % ncpus; 
 	job = new Job(tmpVar, boxh, boxl, tlc, pcc, nmol, index[id], 
-		      index[id+1] - index[id], tstep, cut2, ref1, fhm, fom, cutoff, fpot, fkin,
-		      norder, nstep, nprint, nsave, rest);
+		index[id+1] - index[id], tstep, cut2, ref1, fhm, fom, cutoff, fpot, fkin,
+		norder, nstep, nprint, nsave, rest);
 	return job;
     }
-	
+
     public void readVariables(){
-			
+
 	tstep = in.readDouble();
 	nmol = in.readInt();
 	nstep = in.readInt();
 	norder = in.readInt();
 	nsave = in.readInt();
 	nprint = in.readInt();
-			
+
 	if(nmol > MAX_MOLS){
 	    System.out.println("Error: Too many molecules");
 	    System.exit(1);
@@ -389,10 +390,10 @@ public class WaterMaster extends UnicastRemoteObject
 		tmp.f[ordr][i] = MoleculeEnsemble.deepCopy(var.f[ordr][begin + i]);
 	    }
 	}
-	
+
 	return tmp;
     }
-	
+
     public void run(){
 	bar1.sync();
 	System.out.println("Unbinding WaterMaster ...");

@@ -12,10 +12,10 @@ public class Job implements Serializable{
     Barrier bar, bar1;
 
     Job(MoleculeEnsemble var, double boxh, double boxl, double[] tlc, double[] pcc,
-	int nmol, int startMol, int nrmols, double tstep, double cut2, double ref1, double fhm, 
-	double fom, double cutoff, double fpot, double fkin, int norder, int nstep, int nprint, 
-	int nsave, int rest){
-	
+	    int nmol, int startMol, int nrmols, double tstep, double cut2, double ref1, double fhm, 
+	    double fom, double cutoff, double fpot, double fkin, int norder, int nstep, int nprint, 
+	    int nsave, int rest){
+
 	this.var = var;
 	this.boxh = boxh;
 	this.boxl = boxl;
@@ -40,5 +40,5 @@ public class Job implements Serializable{
 	this.bar = bar;
 	this.bar1 = bar1;
     }
-    
+
 }

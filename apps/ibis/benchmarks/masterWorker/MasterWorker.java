@@ -34,7 +34,7 @@ final class MasterWorker {
 	    registry = ibis.registry();
 
 	    boolean master = registry.elect("master")
-		    .equals(ibis.identifier());
+		.equals(ibis.identifier());
 
 	    manyToOneType = ibis.createPortType("many2one type", s);
 
@@ -144,7 +144,7 @@ final class MasterWorker {
 	    int speed = (int)(((COUNT * 1.0) / (end - start)) * 1000.0);
 
 	    if (speed > max) {
-		    max = speed;
+		max = speed;
 	    }
 
 	    System.err.println("MASTER: " +  COUNT + " requests / " 

@@ -47,29 +47,29 @@ public class ForcesEnergy implements ConstInterface {
     Barrier bar;
 
     ForcesEnergy(int nmol, double boxh, double boxl, double cut2, double ref1,
-		 double fhm, double fom, double cutoff, double hmas, double omas){
+	    double fhm, double fom, double cutoff, double hmas, double omas){
 
 	this.nmol = nmol;
 	this.boxh = boxh;
 	this.boxl = boxl;
 	this.cut2 = cut2;
 	this.cutoff = cutoff;
-    	this.ref1 = ref1;
-    	this.fhm = fhm;
-    	this.fom = fom;
-    	this.hmas = hmas;
-    	this.omas = omas;
+	this.ref1 = ref1;
+	this.fhm = fhm;
+	this.fom = fom;
+	this.hmas = hmas;
+	this.omas = omas;
     }
 
 
     public void intraf(MoleculeEnsemble var, double[] vir, int nrmols) {
 	/*
-	  .....this routine calculates the intra-molecular force/mass acting on
-	  each atom.
-	  FC11, FC12, FC13, AND FC33 are the quardratic force constants
-	  FC111, FC112, ....... ETC. are the cubic      force constants
-	  FC1111, FC1112 ...... ETC. are the quartic    force constants
-	*/
+	   .....this routine calculates the intra-molecular force/mass acting on
+	   each atom.
+	   FC11, FC12, FC13, AND FC33 are the quardratic force constants
+	   FC111, FC112, ....... ETC. are the cubic      force constants
+	   FC1111, FC1112 ...... ETC. are the quartic    force constants
+	   */
 
 	double sum, r1, r2, cos, sin, tempp;
 	double dt, dts, dr1, dr1s, dr2, dr2s, r1s, r2s;
@@ -149,23 +149,23 @@ public class ForcesEnergy implements ConstInterface {
 	    f2 = FC33 * dt + FC13 * (dr1 + dr2);
 	    f3 = FC11 * dr2 + FC12 * dr1 + FC13 * dt;
 	    f1 = f1 + (3.0 * FC111 * dr1s + FC112 * (2.0 * dr1 + dr2) * dr2
-		       + 2.0 * FC113 * dr1 * dt + FC123 * dr2 * dt + FC133 * dts) * ROHI;
+		    + 2.0 * FC113 * dr1 * dt + FC123 * dr2 * dt + FC133 * dts) * ROHI;
 	    f2 = f2 + (3.0 * FC333 * dts + FC113 * (dr1s + dr2s)
-			       + FC123 * dr1 * dr2 + 2.0 * FC133 * (dr1 + dr2) * dt) * ROHI;
+		    + FC123 * dr1 * dr2 + 2.0 * FC133 * (dr1 + dr2) * dt) * ROHI;
 	    f3 = f3 + (3.0 * FC111 * dr2s + FC112 * (2.0 * dr2 + dr1) * dr1
-		       + 2.0 * FC113 * dr2 * dt + FC123 * dr1 * dt + FC133 * dts) * ROHI;
+		    + 2.0 * FC113 * dr2 * dt + FC123 * dr1 * dt + FC133 * dts) * ROHI;
 	    f1 = f1 + (4.0 * FC1111 * dr1s * dr1 + FC1112 * (3.0 * dr1s + dr2s)
-			* dr2 + 2.0 * FC1122 * dr1 * dr2s + 3.0 * FC1113 * dr1s * dt
-			+ FC1123 * (2.0 * dr1 + dr2) * dr2 * dt + (2.0 * FC1133 * dr1
+		    * dr2 + 2.0 * FC1122 * dr1 * dr2s + 3.0 * FC1113 * dr1s * dt
+		    + FC1123 * (2.0 * dr1 + dr2) * dr2 * dt + (2.0 * FC1133 * dr1
 			+ FC1233 * dr2 + FC1333 * dt) * dts) * ROHI2;
 	    f2 = f2 + (4.0 * FC3333 * dts * dt + FC1113 * (dr1s * dr1 + dr2s * dr2)
-		       + FC1123 * (dr1 + dr2) * dr1 * dr2 + 2.0 * FC1133 * (dr1s + dr2s)
-		       * dt + 2.0 * FC1233 * dr1 * dr2 * dt + 3.0 * FC1333 * (dr1 + dr2) * dts)
-		       * ROHI2;
+		    + FC1123 * (dr1 + dr2) * dr1 * dr2 + 2.0 * FC1133 * (dr1s + dr2s)
+		    * dt + 2.0 * FC1233 * dr1 * dr2 * dt + 3.0 * FC1333 * (dr1 + dr2) * dts)
+		* ROHI2;
 	    f3 = f3 + (4.0 * FC1111 * dr2s * dr2 + FC1112 * (3.0 * dr2s + dr1s)
-		       * dr1 + 2.0 * FC1122 * dr1s * dr2 + 3.0 * FC1113 * dr2s * dt
-		       + FC1123 * (2.0 * dr2 + dr1) * dr1 * dt + (2.0 * FC1133 * dr2
-		       + FC1233 * dr1 + FC1333 * dt) * dts) * ROHI2;
+		    * dr1 + 2.0 * FC1122 * dr1s * dr2 + 3.0 * FC1113 * dr2s * dt
+		    + FC1123 * (2.0 * dr2 + dr1) * dr1 * dt + (2.0 * FC1133 * dr2
+			+ FC1233 * dr1 + FC1333 * dt) * dts) * ROHI2;
 
 	    if (WaterMaster.VERBOSE) {
 		System.out.println("f1 = " + (float)f1 + ", f2 = " + (float)f2 + ", f3 = " + (float)f3);
@@ -205,7 +205,7 @@ public class ForcesEnergy implements ConstInterface {
     }
 
     public void interf(MoleculeEnsemble var, double[][][][] allPos, double[][][][] allVal,
-		       int dest, double[] vir, int startMol, int nrmols, int nmol){ //int id mee?
+	    int dest, double[] vir, int startMol, int nrmols, int nmol){ //int id mee?
 
 	/* This routine gets called both from main() and from mdmain().
 	   When called from main(), it is used to estimate the initial
@@ -215,11 +215,11 @@ public class ForcesEnergy implements ConstInterface {
 	   accelerations or the forces. Uses routine UPDATE_FORCES in this
 	   file, and routine c_Shift in file c_Shift.U */
 	/*
-	  .....this routine calculates inter-molecular interaction forces
-	  the distances are arranged in the order  M-M, M-H1, M-H3, H1-M,
-	  H3-M, H1-H3, H1-H1, H3-H1, H3-H3, O-O, O-H1, O-H3, H1-O, H3-O,
-	  where the M are "centers" of the molecules.
-	*/
+	   .....this routine calculates inter-molecular interaction forces
+	   the distances are arranged in the order  M-M, M-H1, M-H3, H1-M,
+	   H3-M, H1-H3, H1-H1, H3-H1, H3-H3, O-O, O-H1, O-H3, H1-O, H3-O,
+	   where the M are "centers" of the molecules.
+	   */
 
 	int mol, comp, dir, icomp, realMol;
 	int compLast, halfMol;
@@ -339,7 +339,7 @@ public class ForcesEnergy implements ConstInterface {
 			offset = 0;
 			if(nmol != nrmols){
 			    cpu += 1;
-	        	    // System.out.println("cpu becomes " + cpu);
+			    // System.out.println("cpu becomes " + cpu);
 			    ub = ubNmol(allPos, cpu);
 			}
 		    }
@@ -363,14 +363,14 @@ public class ForcesEnergy implements ConstInterface {
     }
 
     public void computeDistances(double[][] myAtoms, double[][] farAtoms, double[][] xl,
-				 double boxh, double boxl){
+	    double boxh, double boxl){
 
 	/* compute some relevant distances between the two input molecules to
 	   this routine. if they are greater than the cutoff radius, compute
 	   these distances as if one of the particles were at its mirror image
 	   (periodic boundary conditions).
 	   used by the intermolecular interactions routines
-	*/
+	   */
 
 	double xma, xmb;
 
@@ -447,7 +447,7 @@ public class ForcesEnergy implements ConstInterface {
 	    s = 0.0;
 	    for (int mol = 0; mol < nrmols; mol++) {
 		s += (var.f[VEL][mol][dir][H1] * var.f[VEL][mol][dir][H1]
-		      + var.f[VEL][mol][dir][H2] * var.f[VEL][mol][dir][H2] ) * hmas
+			+ var.f[VEL][mol][dir][H2] * var.f[VEL][mol][dir][H2] ) * hmas
 		    + (var.f[VEL][mol][dir][O] * var.f[VEL][mol][dir][O]) * omas;
 	    }
 	    sum[dir] += s;
@@ -457,7 +457,7 @@ public class ForcesEnergy implements ConstInterface {
     // this routine calculates the potential energy of the system.
     // FC11 ,FC12, FC13, and FC33 are the quardratic force constants
     public void poteng(double[][][][] allPos, double[] pota, double potr[], double ptrf[],
-		       MoleculeEnsemble var, int startMol, int nrmols){
+	    MoleculeEnsemble var, int startMol, int nrmols){
 
 	int comp, compLast, realMol;
 	int half_mol;
@@ -499,7 +499,7 @@ public class ForcesEnergy implements ConstInterface {
 	    r2 = tempa * tempa + tempb * tempb + tempc * tempc;
 
 	    rx = ((var.f[DISP][mol][XDIR][O] - var.f[DISP][mol][XDIR][H1]) *
-		  (var.f[DISP][mol][XDIR][O] - var.f[DISP][mol][XDIR][H2])) +
+		    (var.f[DISP][mol][XDIR][O] - var.f[DISP][mol][XDIR][H2])) +
 		((var.f[DISP][mol][YDIR][O] - var.f[DISP][mol][YDIR][H1]) *
 		 (var.f[DISP][mol][YDIR][O] - var.f[DISP][mol][YDIR][H2])) +
 		((var.f[DISP][mol][ZDIR][O] - var.f[DISP][mol][ZDIR][H1]) *
@@ -518,12 +518,12 @@ public class ForcesEnergy implements ConstInterface {
 	    dts = dt * dt;
 	    lpota += (FC11 * (dr1s + dr2s) + FC33 * dts) * 0.5 + FC12 * dr1 * dr2 + FC13 * drp * dt
 		+(FC111* (dr1s * dr1 + dr2s * dr2) + FC333 * dts * dt + FC112 * drp * dr1 * dr2
-		  + FC113* (dr1s + dr2s) * dt + FC123 * dr1 * dr2 * dt + FC133 * drp * dts)* ROHI;
+			+ FC113* (dr1s + dr2s) * dt + FC123 * dr1 * dr2 * dt + FC133 * drp * dts)* ROHI;
 	    lpota += (FC1111 * (dr1s * dr1s + dr2s * dr2s) + FC3333 * dts * dts +
-		      FC1112 * (dr1s + dr2s) * dr1 * dr2 + FC1122 * dr1s * dr2s +
-		      FC1113 * (dr1s * dr1 + dr2s * dr2) * dt + FC1123 * drp * dr1 * dr2 * dt +
-		      FC1133 * (dr1s + dr2s) * dts + FC1233 * dr1 * dr2 * dts +
-		      FC1333 * drp * dts * dt) * ROHI2;
+		    FC1112 * (dr1s + dr2s) * dr1 * dr2 + FC1122 * dr1s * dr2s +
+		    FC1113 * (dr1s * dr1 + dr2s * dr2) * dt + FC1123 * drp * dr1 * dr2 * dt +
+		    FC1133 * (dr1s + dr2s) * dts + FC1233 * dr1 * dr2 * dts +
+		    FC1333 * drp * dts * dt) * ROHI2;
 
 	    if (WaterMaster.VERBOSE) {
 		System.out.println("Mol = " + mol);
@@ -567,7 +567,7 @@ public class ForcesEnergy implements ConstInterface {
 		comp = icomp;
 		if (comp > (nmol-1)) comp = comp % nmol;  //is dit nog nodig?
 
-				/*  compute some intermolecular distances */
+		/*  compute some intermolecular distances */
 		if(cpu == -1)
 		    computeDistances(var.f[DISP][mol], var.f[DISP][offset], xl, boxh, boxl);
 		else
@@ -592,7 +592,7 @@ public class ForcesEnergy implements ConstInterface {
 			+ QQ/rl[5] + QQ/rl[6] + QQ/rl[7] + QQ/rl[8]
 			+ QQ4/rl[0];
 		    lptrf += - ref2 * rs[0] - ref1 * ((rs[5] + rs[6] + rs[7] + rs[8])*0.5
-				-rs[1] - rs[2] - rs[3] - rs[4]);
+			    -rs[1] - rs[2] - rs[3] - rs[4]);
 		    if (kc <= 0) {
 			for (k = 9; k <  14; k++) {
 			    rl[k] = Math.sqrt(xl[0][k] * xl[0][k] + xl[1][k] * xl[1][k] + xl[2][k] * xl[2][k]);

@@ -1,8 +1,8 @@
 import java.rmi.Remote;
 import java.rmi.RemoteException;
- 
+
 public interface RadixMasterInterface extends Remote{
- 
+
     public int logon(String workerName) throws RemoteException;
     public Job get_Job(int id) throws RemoteException;
     public void sync() throws RemoteException;

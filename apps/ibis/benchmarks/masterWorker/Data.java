@@ -11,13 +11,13 @@ public final class Data implements Serializable {
     float f = (float) -13.4;
     double d = 3.454334783478437834;
 
-//    int[] array = new int[32000];
+    //    int[] array = new int[32000];
 
     Data() {
-//	Random random = new Random();
-//	for (int i = 0; i < array.length; i++) {
-//	    array[i] = random.nextInt();
-//	}
+	//	Random random = new Random();
+	//	for (int i = 0; i < array.length; i++) {
+	//	    array[i] = random.nextInt();
+	//	}
     }
 
     public boolean equals(Object other) {
@@ -29,12 +29,12 @@ public final class Data implements Serializable {
     }
 
     public boolean equals(Data other) {
-//	for (int i = 0; i < array.length; i++) {
-//	    if (array[i] != other.array[i]) {
-//		return false;
-//	    }
-//	}
-//
+	//	for (int i = 0; i < array.length; i++) {
+	//	    if (array[i] != other.array[i]) {
+	//		return false;
+	//	    }
+	//	}
+	//
 
 	return (other.bool = bool
 		&& other.b == b

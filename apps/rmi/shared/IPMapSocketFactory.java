@@ -42,7 +42,7 @@ public class IPMapSocketFactory extends RMISocketFactory {
 	if (toAddr.equals(InetAddress.getLocalHost())) {
 	    if (DEBUG) {
 		System.err.println("Replace " + host + " with "
-				    + myAddr.getHostName());
+			+ myAddr.getHostName());
 	    }
 
 	    try {
@@ -50,7 +50,7 @@ public class IPMapSocketFactory extends RMISocketFactory {
 	    } catch (IOException e) {
 		if (DEBUG) {
 		    System.err.println("Replaced connect fails, try default "
-					+ e);
+			    + e);
 		}
 	    }
 	}

@@ -4,12 +4,12 @@ public class Job implements java.io.Serializable{
     int[] part;
     String[] slaves;
     int ncpus;
-	
+
     Job(){
 	proc = new ProcArg();
 	ncpus = 0;
     }
-	
+
     Job(ProcArg proc, Parts part, String[] slaves, int ncpus){
 
 	this.proc = proc;
@@ -20,5 +20,5 @@ public class Job implements java.io.Serializable{
 	this.slaves = slaves;
 	this.ncpus = ncpus;
     }
-	
+
 }

@@ -9,11 +9,11 @@ final class Main {
     private static long one_way(myServer s, int count, Object data) throws Exception { 
 
 	long start = System.currentTimeMillis();
-		
+
 	for (int i=0;i<count;i++) { 
 	    s.one(data);
 	} 
-		
+
 	long end = System.currentTimeMillis();			
 
 	if (verbose) System.out.println("One way test took " + (end-start) + " milliseconds");
@@ -24,11 +24,11 @@ final class Main {
     private static long two_way(myServer s, int count, Object data) throws Exception { 
 
 	long start = System.currentTimeMillis();
-		
+
 	for (int i=0;i<count;i++) { 
 	    s.two(data);
 	} 
-		
+
 	long end = System.currentTimeMillis();	
 
 	if (verbose) System.out.println("Two way test took " + (end-start) + " milliseconds");
@@ -64,7 +64,7 @@ final class Main {
     private static double tp(int size, long time) { 		
 	return round((1000.0*size / MB) / time);
     } 
-	
+
     public static void main(String [] args) { 	
 
 	try { 
@@ -75,9 +75,9 @@ final class Main {
 	    int arraysize = 16*1024;
 	    int count = 10000;
 	    int retries = 10;
-			
+
 	    String server = info.hostName(1);
-			
+
 	    while (i < args.length) { 
 		if (false) { 
 		} else if (args[i].equals("-array")) { 
@@ -130,33 +130,33 @@ final class Main {
 
 		if (array) { 	
 		    /*
-		      data = new byte[arraysize];								
-		      if (verbose) { 
-		      System.out.println("starting byte[" + arraysize + "] test");
-		      } 
+		       data = new byte[arraysize];								
+		       if (verbose) { 
+		       System.out.println("starting byte[" + arraysize + "] test");
+		       } 
 
-		      time = runTest(s, count, retries, data, one_way);
-		      System.out.println("byte[" + arraysize + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
+		       time = runTest(s, count, retries, data, one_way);
+		       System.out.println("byte[" + arraysize + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
 
-			
-		      int alen = arraysize/4;
-		      data = new int[alen];								
-		      if (verbose) { 
-		      System.out.println("starting int[" + alen + "] test");
-		      } 
 
-		      time = runTest(s, count, retries, data, one_way);
-		      System.out.println("int[" + alen + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
+		       int alen = arraysize/4;
+		       data = new int[alen];								
+		       if (verbose) { 
+		       System.out.println("starting int[" + alen + "] test");
+		       } 
 
-		      alen = arraysize/8;
-		      data = new long[alen];				
-		      if (verbose) { 
-		      System.out.println("starting long[" + alen + "] test");
-		      } 
-				
-		      time = runTest(s, count, retries, data, one_way);
-		      System.out.println("long[" + alen + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
-		    */
+		       time = runTest(s, count, retries, data, one_way);
+		       System.out.println("int[" + alen + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
+
+		       alen = arraysize/8;
+		       data = new long[alen];				
+		       if (verbose) { 
+		       System.out.println("starting long[" + alen + "] test");
+		       } 
+
+		       time = runTest(s, count, retries, data, one_way);
+		       System.out.println("long[" + alen + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
+		       */
 
 		    int alen = arraysize/8;
 		    data = new double[alen];				
@@ -164,7 +164,7 @@ final class Main {
 		    if (verbose) { 
 			System.out.println("starting double[" + alen + "] test");
 		    } 
-				
+
 		    time = runTest(s, count, retries, data, one_way);
 		    System.out.println("double[" + alen + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
 		} 
@@ -212,13 +212,13 @@ final class Main {
 		    if (verbose) { 
 			System.out.println("starting object array[" + len + "] test");
 		    }
-					
+
 		    time = runTest(s, count, retries, temp, one_way);
 		    System.out.println("object[" + len + "] = " + tp(len*count*Data.PAYLOAD, time) + " MBytes/sec.");
 		} 
 
 		if (verbose) System.out.println("Done");
-				
+
 		s.done();
 		System.exit(0);
 	    } else {

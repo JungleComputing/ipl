@@ -1,3 +1,3 @@
 interface AbortTestInterface extends ibis.satin.Spawnable {
-	public void foo();
+    public void foo();
 }

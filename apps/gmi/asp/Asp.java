@@ -20,17 +20,17 @@ class Asp extends GroupMember implements i_Asp {
     i_Asp group;
 
     Asp(int n, int rank, int nodes, boolean print_result) {
-	
+
 	this.n = n;
-	
+
 	this.nodes = nodes;
 	this.rank  = rank;
 	this.print_result    = print_result;
-	
+
 	get_bounds();
 	init_tab();
     }
-    
+
     public void init(i_Asp group) { 
 	this.group = group;
     } 
@@ -43,18 +43,18 @@ class Asp extends GroupMember implements i_Asp {
     public void done() { 
 	// dummy function -> use a combined call as a barrier
     } 
-    
+
     void get_bounds() {
-    
+
 	int nlarge, nsmall;
 	int size_large, size_small;
-	
+
 	nlarge = n % nodes;
 	nsmall = nodes - nlarge;
-	
+
 	size_small = n / nodes;
 	size_large = size_small + 1;
-	
+
 	if (rank < nlarge) {            /* I'll  have a large chunk */
 	    lb = rank * size_large;
 	    ub = lb + size_large;
@@ -63,30 +63,30 @@ class Asp extends GroupMember implements i_Asp {
 	    ub = lb + size_small;
 	}
     }
-    
+
     int owner(int k) {
 	int nlarge, nsmall;
 	int size_large, size_small;
-	
+
 	nlarge = n % nodes;
 	nsmall = nodes - nlarge;
 	size_small = n / nodes;
 	size_large = size_small + 1;
-	
+
 	if ( k < (size_large * nlarge) ){
 	    return (k / size_large);
 	} else {
 	    return (nlarge + (k-(size_large * nlarge))/size_small);
 	}
     }
-    
-    
+
+
     void init_tab() {
 	int i, j;
-	
+
 	tab = new int[n][n];
 	OrcaRandom r = new OrcaRandom();
-	
+
 	for (i = 0; i < n; i++) {
 	    if (lb <= i && i < ub) {   /* my partition */
 		for (j = 0; j < n; j++) {
@@ -97,7 +97,7 @@ class Asp extends GroupMember implements i_Asp {
 	    }
 	}
     }
-    
+
     void bcast(int k, int owner) { 
 	if (rank == owner) { 
 	    group.transfer(tab[k], k);
@@ -116,16 +116,16 @@ class Asp extends GroupMember implements i_Asp {
 
     void do_asp() {
 	int i, j, k, tmp, nrows;
-	
+
 	nrows = ub - lb;
-	
+
 	for (k = 0; k < n; k++) {
-//		if (rank == 0&& (k%100 == 0)) { 
-//			System.out.println("" + k);	
-//		} 
+	    //		if (rank == 0&& (k%100 == 0)) { 
+	    //			System.out.println("" + k);	
+	    //		} 
 
 	    bcast(k, owner(k)); // Owner of k sends tab[k] to al others, 
-	                        // which receive it in tab[k].
+	    // which receive it in tab[k].
 	    for (i = lb; i < ub; i++) {
 		if (i != k) {
 		    for (j = 0; j < n; j++) {
@@ -138,8 +138,8 @@ class Asp extends GroupMember implements i_Asp {
 	    }
 	}
     }
-    
-    
+
+
     void print_table() {
 	for(int i=0; i<n; i++) {
 	    for(int j=0; j<n; j++) {
@@ -148,28 +148,28 @@ class Asp extends GroupMember implements i_Asp {
 	    System.out.println();
 	}
     }
-    
+
     public void start() {
 	long start,end;
-	
+
 	if (rank == 0 ) {
 	    System.out.println("Asp started, n = " + n);
 	}
-	
+
 	start = System.currentTimeMillis();
-	
+
 	do_asp();
 	group.done();
-	
+
 	end = System.currentTimeMillis();
 
 	double time = end - start;
-	
+
 	if (rank == 0) {
 	    System.out.println("\nAsp/gmi took " + (time/1000.0) + " secs.");
-	    
-//	    if(print_result) print_table();
-//	    info.printTime("Asp, " + n + "x" + n, end-start);
+
+	    //	    if(print_result) print_table();
+	    //	    info.printTime("Asp, " + n + "x" + n, end-start);
 	}
 
     }

@@ -1,155 +1,155 @@
 
 class Vector3D implements java.io.Serializable 
 {
-  double x, y, z;
-//  double len;
+    double x, y, z;
+    //  double len;
 
-  Vector3D(double r, 
-	  double g, 
-	  double b)
+    Vector3D(double r, 
+	    double g, 
+	    double b)
     {
-      this.x = r;
-      this.y = g;
-      this.z = b;
+	this.x = r;
+	this.y = g;
+	this.z = b;
     }
-  Vector3D(Vector3D v)
+    Vector3D(Vector3D v)
     {
-      x = v.x;
-      y = v.y;
-      z = v.z;
-    }
-
-  double GetZXAngle()
-    {
-      return (double) Math.atan2(z, x);
+	x = v.x;
+	y = v.y;
+	z = v.z;
     }
 
-  double GetZYAngle()
+    double GetZXAngle()
     {
-      return (double) Math.atan2(z, y);
+	return (double) Math.atan2(z, x);
     }
 
-  double GetXYAngle()
+    double GetZYAngle()
     {
-      return (double) Math.atan2(y, x);
-    }
-      
-public String toString()
-    {
-      return "vx:"+ x +", vy: " + y +", vz: " + z;
+	return (double) Math.atan2(z, y);
     }
 
-  void Print()
+    double GetXYAngle()
     {
-      System.out.println("vx:"+ x +", vy: " + y +", vz: " + z);
-    }
-  
-  double length()
-    {
-      return (double) Math.sqrt((x*x)+(y*y)+(z*z));
-    }
-  Vector3D Invert()
-    {
-      x = - x;
-      y = - y;
-      z = - z;
-      return this;
+	return (double) Math.atan2(y, x);
     }
 
-  static Vector3D ReSize(Vector3D vec, double a)
+    public String toString()
     {
-      return new Vector3D(vec.x * a,
-			  vec.y * a,
-			  vec.z * a);
+	return "vx:"+ x +", vy: " + y +", vz: " + z;
     }
 
-  void InverseScale(double a)
+    void Print()
     {
-      x = x / a;
-      y = y / a;
-      z = z / a;
+	System.out.println("vx:"+ x +", vy: " + y +", vz: " + z);
     }
 
-  double normalize()
+    double length()
     {
-      double len = length();
-      x /= len;
-      y /= len;
-      z /= len;
-      return len;
+	return (double) Math.sqrt((x*x)+(y*y)+(z*z));
     }
-  static double DotProduct(Vector3D v1,
-			  Vector3D v2)
+    Vector3D Invert()
+    {
+	x = - x;
+	y = - y;
+	z = - z;
+	return this;
+    }
+
+    static Vector3D ReSize(Vector3D vec, double a)
+    {
+	return new Vector3D(vec.x * a,
+		vec.y * a,
+		vec.z * a);
+    }
+
+    void InverseScale(double a)
+    {
+	x = x / a;
+	y = y / a;
+	z = z / a;
+    }
+
+    double normalize()
+    {
+	double len = length();
+	x /= len;
+	y /= len;
+	z /= len;
+	return len;
+    }
+    static double DotProduct(Vector3D v1,
+	    Vector3D v2)
     {      
-      return 
-	v1.x * v2.x +
-	v1.y * v2.y +
-	v1.z * v2.z;
+	return 
+	    v1.x * v2.x +
+	    v1.y * v2.y +
+	    v1.z * v2.z;
     }
-  static Vector3D Interpolate(Vector3D v1, 
-			      Vector3D v2,
-			      double w1,
-			      double w2)
-  {
-      return new Vector3D((w1 * v1.x) + (w2 * v2.x),
-			  (w1 * v1.y) + (w2 * v2.y),
-			  (w1 * v1.z) + (w2 * v2.z));
+    static Vector3D Interpolate(Vector3D v1, 
+	    Vector3D v2,
+	    double w1,
+	    double w2)
+    {
+	return new Vector3D((w1 * v1.x) + (w2 * v2.x),
+		(w1 * v1.y) + (w2 * v2.y),
+		(w1 * v1.z) + (w2 * v2.z));
     }
 
-  static Vector3D Substract(Vector3D v1,
-			 Vector3D v2)
+    static Vector3D Substract(Vector3D v1,
+	    Vector3D v2)
     {      
-      return new Vector3D(v1.x - v2.x,
-			  v1.y - v2.y,
-			  v1.z - v2.z);
+	return new Vector3D(v1.x - v2.x,
+		v1.y - v2.y,
+		v1.z - v2.z);
     }
 
-  static Vector3D Multiply(Vector3D v1,
-			   Vector3D v2)
+    static Vector3D Multiply(Vector3D v1,
+	    Vector3D v2)
     {      
-      return new Vector3D(v1.x * v2.x,
-			  v1.y * v2.y,
-			  v1.z * v2.z);
+	return new Vector3D(v1.x * v2.x,
+		v1.y * v2.y,
+		v1.z * v2.z);
     }
-  static Vector3D Add(Vector3D v1,
-		      Vector3D v2)
+    static Vector3D Add(Vector3D v1,
+	    Vector3D v2)
     {      
-      return new Vector3D(v1.x + v2.x,
-			  v1.y + v2.y,
-			  v1.z + v2.z);
+	return new Vector3D(v1.x + v2.x,
+		v1.y + v2.y,
+		v1.z + v2.z);
     }
-  static Vector3D CrossProduct(Vector3D v1,
-			       Vector3D v2)
+    static Vector3D CrossProduct(Vector3D v1,
+	    Vector3D v2)
     {
-      return new Vector3D((v1.y*v2.z) - (v1.z*v2.y),
-			  (v1.z*v2.x) - (v1.x*v2.z),
-			  (v1.x*v2.y) - (v1.y*v2.x));
+	return new Vector3D((v1.y*v2.z) - (v1.z*v2.y),
+		(v1.z*v2.x) - (v1.x*v2.z),
+		(v1.x*v2.y) - (v1.y*v2.x));
     }
-  void RotateZX(double angle)
+    void RotateZX(double angle)
     {
-      double c = (double) Math.cos(angle);
-      double s = (double) Math.sin(angle);
-      double new_x = (x * c) - (s * z);
-      z = (x * s) + (c * z);
-      x = new_x;
-    }
-
-  void RotateZY(double angle)
-    {
-      double c = (double) Math.cos(angle);
-      double s = (double) Math.sin(angle);
-      double new_y = (y * c) - (s * z);
-      z = (y * s) + (c * z);
-      y = new_y;
+	double c = (double) Math.cos(angle);
+	double s = (double) Math.sin(angle);
+	double new_x = (x * c) - (s * z);
+	z = (x * s) + (c * z);
+	x = new_x;
     }
 
-  void RotateXY(double angle)
+    void RotateZY(double angle)
     {
-      double c = (double) Math.cos(angle);
-      double s = (double) Math.sin(angle);
-      double new_y = (x * c) - (s * y);
-      x = (x * s) + (c * y);
-      y = new_y;
+	double c = (double) Math.cos(angle);
+	double s = (double) Math.sin(angle);
+	double new_y = (y * c) - (s * z);
+	z = (y * s) + (c * z);
+	y = new_y;
+    }
+
+    void RotateXY(double angle)
+    {
+	double c = (double) Math.cos(angle);
+	double s = (double) Math.sin(angle);
+	double new_y = (x * c) - (s * y);
+	x = (x * s) + (c * y);
+	y = new_y;
     }
 }
 

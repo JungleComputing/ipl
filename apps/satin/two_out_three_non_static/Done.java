@@ -1,7 +1,7 @@
 class Done extends Exception {
-	int res;
+    int res;
 
-	Done(int res) {
-		this.res = res;
-	}
+    Done(int res) {
+	this.res = res;
+    }
 }

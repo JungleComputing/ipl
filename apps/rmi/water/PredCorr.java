@@ -3,14 +3,14 @@ public class PredCorr implements ConstInterface {
 
     int norder;
     double boxh, boxl;
-	
+
     PredCorr(int norder, double boxh, double boxl){
 
 	this.norder = norder;
 	this.boxh = boxh;
 	this.boxl = boxl;
     }
-	
+
 
     // predicts new values for displacement and its five
     // derivatives 
@@ -45,14 +45,14 @@ public class PredCorr implements ConstInterface {
 	   etc. computed in the interim */
 	/* the predictor-corrector constants */
 	/* NORDER + 1 = 7 for a sixth-order method) */
-	
+
 	/*
-	  .....this routine calculates corrected F(X), F'(X), F"(X), ....
-	  from corrected F(X) = predicted F(X) + PCC(1)*(FR-SD)
-	  where SD is predicted accl. F"(X) and FR is computed 
-	  accl. (force/mass) at predicted position
-	*/
-	
+	   .....this routine calculates corrected F(X), F'(X), F"(X), ....
+	   from corrected F(X) = predicted F(X) + PCC(1)*(FR-SD)
+	   where SD is predicted accl. F"(X) and FR is computed 
+	   accl. (force/mass) at predicted position
+	   */
+
 	double y;
 	for (int mol = 0; mol < nrmols; mol++) {
 	    for (int dir = 0; dir < NDIR; dir++) {

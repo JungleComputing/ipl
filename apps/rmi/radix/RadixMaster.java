@@ -6,7 +6,7 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
 
     static final int MAX_PROCESSORS = 64;
     static final int MAX_RADIX = 4096;
-    
+
     int radix, number_Of_Processors, num_Keys, workers_Assigned;
     boolean doStats, testResult, doPrint;
     Stats stat[];
@@ -23,11 +23,11 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
     private TreeInterface itrees[];
     private int num_parts;
     private PartsInterface iparts[];
-    
+
     RadixMaster(PoolInfo d, int nrkeys, int nworkers, int radix, boolean stats, boolean test, boolean print) throws Exception{
 
 	super();
-    
+
 	this.d = d;
 	System.out.println("nworkers = " + nworkers);
 	this.radix = radix;
@@ -47,7 +47,7 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
 	System.out.println("Bound RadixMaster in registry");
 	create();
     }
-    
+
     public void run(){
 	try{
 	    bar1.sync();
@@ -75,7 +75,7 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
     }
 
     public void create()throws Exception{
-    	int[] sub;
+	int[] sub;
 
 	bar = new Barrier(number_Of_Processors);
 	bar1 = new Barrier(number_Of_Processors + 1);
@@ -87,14 +87,14 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
 	for(int i = 0; i < number_Of_Processors; i++){
 	    sub = key_From.subArray(key_Partition[i], key_Partition[i + 1]);
 	    parts[i] = new Parts(sub);
-			
+
 	}
 	proc = new ProcArg(num_Keys, radix, log2_Radix,  key_Partition);
     }
 
     public void partition(){
 	int quotient = 0, remainder = 0 , sum_i = 0, sum_f = 0, p = 0;
-		
+
 	quotient = num_Keys / number_Of_Processors;
 	remainder = num_Keys % number_Of_Processors;
 	while(sum_i < num_Keys){
@@ -110,33 +110,33 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
 
     public synchronized Job get_Job(int id)throws RemoteException{
 	Job job;
-		
+
 	job = new Job(proc, parts[id], slaves, number_Of_Processors);
 	return job;
     }
 
     public synchronized int logon(String workerName) throws RemoteException{
-        slaves[workers_Assigned] = workerName;
-        workers_Assigned++;
-	
-        return workers_Assigned -1;
+	slaves[workers_Assigned] = workerName;
+	workers_Assigned++;
+
+	return workers_Assigned -1;
     }
 
     public void sync() throws RemoteException{
 	bar.sync();
     }
 
-    
+
     public  void sync2() throws RemoteException{
 	bar1.sync();
     }
-    
+
     public ProcArg params_Init(int id){
 	ProcArg proc;
 	int[] keys;
 	int key_Start = key_Partition[id];
 	int key_Stop = key_Partition[id+1];
-			
+
 	keys = new int[key_Stop - key_Start];
 	for(int i = key_Start; i < key_Stop; i++){
 	    keys[i - key_Start] = key_From.row[i];
@@ -144,13 +144,13 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
 	proc =  new ProcArg(num_Keys, radix, log2_Radix, key_Partition);
 	return proc;
     }
-	
+
     public void reset(){
-        try{
-            RMI_init.unbind("RadixMaster");
-        }catch(Exception e){
-            System.out.println("failed to unbind master" + e.getMessage());
-        }
+	try{
+	    RMI_init.unbind("RadixMaster");
+	}catch(Exception e){
+	    System.out.println("failed to unbind master" + e.getMessage());
+	}
     }
 
     public void check()throws Exception{
@@ -183,13 +183,13 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
     public void printStats(){
 	long maxt, maxHistogram, maxSort, maxPermute, maxMerge;
 	long mint, minHistogram, minSort, minPermute, minMerge;
-			
+
 	maxt = mint =  stat[0].totalTime;
 	maxHistogram = minHistogram =  stat[0].histogramTime;
 	maxSort = minSort = stat[0].sortTime;
 	maxPermute = minPermute=  stat[0].permuteTime;
 	maxMerge = minMerge = stat[0].mergeTime;
-		
+
 	for(int i = 1; i < number_Of_Processors; i++){
 	    if(stat[i].totalTime > maxt){
 		maxt = stat[i].totalTime;
@@ -242,13 +242,13 @@ public class RadixMaster extends UnicastRemoteObject implements RadixMasterInter
 	System.out.println("Max\t" + maxt + "\t  " + maxHistogram + "\t\t  " + maxSort + "\t\t  " + maxMerge + "\t\t  " + maxPermute);
 	d.printTime("Radix, #keys = " + num_Keys, (mint+maxt)/2);
     }
-			
+
     void print(int[] data){
-	
-        int length = data.length;
-        for(int i = 0; i < length; i++){
-            System.out.println(data[i]);
-        }
+
+	int length = data.length;
+	for(int i = 0; i < length; i++){
+	    System.out.println(data[i]);
+	}
     }
 
     public synchronized TreeInterface[] getTrees(TreeInterface tree, int cpunum) throws RemoteException {

@@ -52,13 +52,13 @@ public class Water{
     public void start(String[] args){
 
 	PoolInfo info = null;
-	
+
 	try {
 	    info = PoolInfo.createPoolInfo();
 	} catch(Exception e) {
 	    System.err.println("Oops: " + e);
-            e.printStackTrace();
-            System.err.println("Problem with PoolInfo");
+	    e.printStackTrace();
+	    System.err.println("Problem with PoolInfo");
 	    System.exit(1);
 	}
 
@@ -80,11 +80,11 @@ public class Water{
 	try{
 	    new WaterWorker(hostName, masterName, nHosts).start(info);
 	}catch(Exception e){
-            e.printStackTrace();
-            System.err.println("Problem with WaterWorker");
-        } 
+	    e.printStackTrace();
+	    System.err.println("Problem with WaterWorker");
+	} 
     }
-        
+
     public static void main(String[] args) {
 	new Water().start(args);
 	System.exit(0);

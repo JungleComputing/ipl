@@ -3,7 +3,7 @@
 
 
 
- 
+
 
 
 class Cone3D extends Object3D
@@ -12,11 +12,11 @@ class Cone3D extends Object3D
     float    r1, r2;
 
     Cone3D(World world,
-	   Surface c,
-	   Vector3D p1, 
-	   float    r1,
-	   Vector3D p2,
-	   float    r2)	   
+	    Surface c,
+	    Vector3D p1, 
+	    float    r1,
+	    Vector3D p2,
+	    float    r2)	   
     {
 	super(world, c);
 
@@ -29,7 +29,6 @@ class Cone3D extends Object3D
 
     boolean Intersect(Ray3D Ray)
     {
-	 
 
 
 
@@ -79,8 +78,9 @@ class Cone3D extends Object3D
 
 
 
-	
+
+
 	return false;  
     }
-    
+
 }

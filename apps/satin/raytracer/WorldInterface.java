@@ -1,3 +1,3 @@
 interface WorldInterface extends ibis.satin.Spawnable {
-	public VirtualScreen DivideAndConquer(int x, int y, int w, int h);
+    public VirtualScreen DivideAndConquer(int x, int y, int w, int h);
 }

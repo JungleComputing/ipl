@@ -3,14 +3,14 @@ class Matrix {
     private double[] matrix;
     private int size;
 
-	int cpu; 
+    int cpu; 
 
     Matrix(int cpu, int size) {
 	this.size = size;
-//	matrix = new double[size * size * 2];
+	//	matrix = new double[size * size * 2];
 	this.cpu = cpu;
-//	for (int i = size*size*2-1; i >= 0; i--)
-//	    matrix[i] = 0.0;
+	//	for (int i = size*size*2-1; i >= 0; i--)
+	//	    matrix[i] = 0.0;
     }
 
     double[] getValues() {
@@ -23,18 +23,18 @@ class Matrix {
 
     void copyValues(double[] values) {
 	if (matrix == null) { 
-		matrix = new double[size * size * 2];
+	    matrix = new double[size * size * 2];
 	}
 
 	for (int i = size*size*2-1; i >= 0; i--)
-		matrix[i] = values[i];
+	    matrix[i] = values[i];
 
     }
 
     double[] Copy() {
 	double[] m = new double[size*size*2];
 	for (int i = size*size*2-1; i >= 0; i--)
-		m[i] = matrix[i];
+	    m[i] = matrix[i];
 	return m;
     }
 

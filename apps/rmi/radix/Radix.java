@@ -7,7 +7,7 @@ import ibis.util.PoolInfo;
 import ibis.ipl.IbisException;
 
 public class Radix{
-    
+
     static final int MAX_PROCESSORS = 64;
     static final int MAX_RADIX = 4096;
     static final int DEFAULT_RADIX = 1024;
@@ -23,21 +23,21 @@ public class Radix{
     DataOutputStream output = null;
     PoolInfo d = null;
     String output_file = null;
- 
+
     Radix() throws IbisException {
-        startRMI();
+	startRMI();
 	d = PoolInfo.createPoolInfo();
-        nhosts = d.size();
-        host  = d.rank();
-        hostname = d.hostName(host);
-        mastername = d.hostName(0);
-        registry = null;
-        master = null;
-        radix = DEFAULT_RADIX;
-        num_Keys = DEFAULT_NUMBER_OF_KEYS;
-        log2_Radix = DEFAULT_LOG2;
+	nhosts = d.size();
+	host  = d.rank();
+	hostname = d.hostName(host);
+	mastername = d.hostName(0);
+	registry = null;
+	master = null;
+	radix = DEFAULT_RADIX;
+	num_Keys = DEFAULT_NUMBER_OF_KEYS;
+	log2_Radix = DEFAULT_LOG2;
     }
-    
+
     public void usage(){
 	System.out.println(" Radix <options>");
 	System.out.println(" options are:");
@@ -90,7 +90,7 @@ public class Radix{
 	    }
 	}	
     }
-	
+
     public int log2Radix(){
 	double d1 = Math.log(radix);
 	double d2 = Math.log(2);
@@ -104,73 +104,73 @@ public class Radix{
     }
 
     private void startRMI(){
-        //start registry
-	
+	//start registry
+
 	if (host == 0) {
-            try{
-                registry = LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
-            }catch(RemoteException e){
-                try{
-                    registry = LocateRegistry.getRegistry();
-                }catch (Exception d){
-                    System.out.println("Failed to locate or get registry");
-                    System.exit(1);
-                }	
-            }	
+	    try{
+		registry = LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
+	    }catch(RemoteException e){
+		try{
+		    registry = LocateRegistry.getRegistry();
+		}catch (Exception d){
+		    System.out.println("Failed to locate or get registry");
+		    System.exit(1);
+		}	
+	    }	
 	}
-        //start security manager
-        if(System.getSecurityManager() == null)
-            System.setSecurityManager(new RMISecurityManager());
+	//start security manager
+	if(System.getSecurityManager() == null)
+	    System.setSecurityManager(new RMISecurityManager());
     }
 
- 
+
     private Thread createMaster(){
 	Thread t;
-        try{
-            master = new RadixMaster(d, num_Keys, nhosts, radix, doStats, testResult, doPrint);
-        }catch(Exception e){
-            e.printStackTrace();
-            System.out.println("Failed to create master");
-            System.exit(1);
-        }
+	try{
+	    master = new RadixMaster(d, num_Keys, nhosts, radix, doStats, testResult, doPrint);
+	}catch(Exception e){
+	    e.printStackTrace();
+	    System.out.println("Failed to create master");
+	    System.exit(1);
+	}
 	t = new Thread(master);
 	t.start();
 	return t;
     }
-   
+
     void start(String argv[]){
 	SlaveSort l;
 	Thread masterThread = null;
-        parseCommandLine(argv);
-        if (host == 0) {
+	parseCommandLine(argv);
+	if (host == 0) {
 	    masterThread = createMaster();
 	}
 	else {
 	    try {
-		 Thread.sleep(2000);
+		Thread.sleep(2000);
 	    } catch (Exception e) {
 	    }
 	}
-	
-        //start a slave     
+
+	//start a slave     
 	try{
-            l = new SlaveSort(hostname, mastername, host);
+	    l = new SlaveSort(hostname, mastername, host);
 	    if (host == 0) master.this_cpus_slave = l;
 	    l.start();
-        }catch(Exception e){
-            e.printStackTrace();
-            System.err.println("Problem with RadixWorker");
-        }   
+	}catch(Exception e){
+	    e.printStackTrace();
+	    System.err.println("Problem with RadixWorker");
+	}   
 	if (host == 0) {
 	    try {
-	        masterThread.join(10000);
+		masterThread.join(10000);
 	    } catch (Exception e) {
-            	e.printStackTrace();
-            	System.err.println("Problem with waiting for master");
+		e.printStackTrace();
+		System.err.println("Problem with waiting for master");
 	    }
 	}
     }     
-     
+
     public static void main(String argv[]){
 	try {
 	    new Radix().start(argv);        

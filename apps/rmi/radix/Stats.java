@@ -3,7 +3,7 @@ import java.io.Serializable;
 class Stats implements Serializable {
 
     long sortTime, totalTime, mergeTime, histogramTime, permuteTime;
-    
+
     Stats() {
 	sortTime = 0;
 	totalTime = 0;

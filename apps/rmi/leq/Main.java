@@ -6,96 +6,96 @@ import ibis.util.PoolInfo;
 
 class Main {
 
-	public static final int DEFAULT_N = 180;
-	public static final double BOUND = 0.001;
+    public static final int DEFAULT_N = 180;
+    public static final double BOUND = 0.001;
 
-	static i_BroadcastObject connect(PoolInfo info, int cpu, int num) throws IOException { 		
-		int i = 0;
-		boolean done = false;
-		i_BroadcastObject temp = (i_BroadcastObject) RMI_init.lookup("//" + info.hostName(num) + "/BCAST" + num);
+    static i_BroadcastObject connect(PoolInfo info, int cpu, int num) throws IOException { 		
+	int i = 0;
+	boolean done = false;
+	i_BroadcastObject temp = (i_BroadcastObject) RMI_init.lookup("//" + info.hostName(num) + "/BCAST" + num);
 
-		return temp;
-	}		
+	return temp;
+    }		
 
-	public static void main(String args[]) {
+    public static void main(String args[]) {
 
-		try { 
+	try { 
 
-			int n = DEFAULT_N;
-			int piece, offset, counter;
-			
-			long start, end;
-			
-			switch (args.length) {
-			case 0:
-				n = DEFAULT_N;
-				break;
-			case 1:
-				n = Integer.parseInt(args[0]);
-				break;
-			default:
-				System.err.println("Usage: LEQ <N>");
-				System.exit(1);
-			}
-			
-			offset = n;
-			
-			PoolInfo info = PoolInfo.createPoolInfo();
-			int cpus = info.size();
-			int cpu = info.rank();
-			
-			Registry reg = RMI_init.getRegistry(info.hostName(cpu));
+	    int n = DEFAULT_N;
+	    int piece, offset, counter;
 
-			int size = n / cpus;
-			int leftover = n % cpus;
-			offset = cpu*size;
+	    long start, end;
 
-			if (cpu < leftover) { 
-				offset += cpu;
-				size++;
-			} else { 
-				offset += leftover;
-			}
+	    switch (args.length) {
+	    case 0:
+		n = DEFAULT_N;
+		break;
+	    case 1:
+		n = Integer.parseInt(args[0]);
+		break;
+	    default:
+		System.err.println("Usage: LEQ <N>");
+		System.exit(1);
+	    }
 
-			BroadcastObject b = new BroadcastObject(cpu, cpus);
+	    offset = n;
 
-			i_Central central = null;
+	    PoolInfo info = PoolInfo.createPoolInfo();
+	    int cpus = info.size();
+	    int cpu = info.rank();
 
-			if (cpu == 0) { 
-				Central c = new Central(b, n, cpus);
-				RMI_init.bind("CENTRAL", c);
-				System.out.println(cpu + " bound " + "CENTRAL");
-				//central = c;
-			} //else { 
-				central = (i_Central) RMI_init.lookup("//" + info.hostName(0) + "/CENTRAL");
-//			}
+	    Registry reg = RMI_init.getRegistry(info.hostName(cpu));
 
-			RMI_init.bind("BCAST" + cpu, b);
-			System.out.println(cpu + " bound " + "BCAST" + cpu);
+	    int size = n / cpus;
+	    int leftover = n % cpus;
+	    offset = cpu*size;
 
-			int left = cpu*2+1;
-			int right = cpu*2+2;
+	    if (cpu < leftover) { 
+		offset += cpu;
+		size++;
+	    } else { 
+		offset += leftover;
+	    }
 
-			i_BroadcastObject i_left = null, i_right = null;
+	    BroadcastObject b = new BroadcastObject(cpu, cpus);
 
-			if (left < cpus) { 
-				i_left = connect(info, cpu, left);
-			} 
+	    i_Central central = null;
 
-			if (right < cpus) { 
-				i_right = connect(info, cpu, right);
-			} 
- 
-			b.connect(i_left, i_right);
-								
-			DoubleVector x_val = new DoubleVector(cpu, cpus, n, 0.0, b, central);
-			new LEQ(cpu, cpus, x_val, offset, size, n).start();
+	    if (cpu == 0) { 
+		Central c = new Central(b, n, cpus);
+		RMI_init.bind("CENTRAL", c);
+		System.out.println(cpu + " bound " + "CENTRAL");
+		//central = c;
+	    } //else { 
+	    central = (i_Central) RMI_init.lookup("//" + info.hostName(0) + "/CENTRAL");
+	    //			}
 
-		} catch (Exception e) { 
-			e.printStackTrace();
-		} 
-	
-		System.exit(0);
-	}
+	    RMI_init.bind("BCAST" + cpu, b);
+	    System.out.println(cpu + " bound " + "BCAST" + cpu);
+
+	    int left = cpu*2+1;
+	    int right = cpu*2+2;
+
+	    i_BroadcastObject i_left = null, i_right = null;
+
+	    if (left < cpus) { 
+		i_left = connect(info, cpu, left);
+	    } 
+
+	    if (right < cpus) { 
+		i_right = connect(info, cpu, right);
+	    } 
+
+	    b.connect(i_left, i_right);
+
+	    DoubleVector x_val = new DoubleVector(cpu, cpus, n, 0.0, b, central);
+	    new LEQ(cpu, cpus, x_val, offset, size, n).start();
+
+	} catch (Exception e) { 
+	    e.printStackTrace();
+	} 
+
+	System.exit(0);
+    }
 
 }

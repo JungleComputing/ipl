@@ -3,10 +3,10 @@ import ibis.gmi.FlatInvocationCombiner;
 
 public class MyCombiner extends FlatInvocationCombiner { 
 
-	MyCombiner() { 
-	} 
+    MyCombiner() { 
+    } 
 
-	public void combine(ParameterVector [] in, ParameterVector out) { 
-		// dummy combiner
-	}
+    public void combine(ParameterVector [] in, ParameterVector out) { 
+	// dummy combiner
+    }
 } 

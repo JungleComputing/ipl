@@ -4,7 +4,7 @@ import java.rmi.RemoteException;
 public interface MasterInterface extends Remote {
 
     public SlaveInterface[] table(SlaveInterface me, int node) 
-                throws RemoteException;
+	throws RemoteException;
 
-    void sync() throws RemoteException;
+void sync() throws RemoteException;
 }
