@@ -99,6 +99,8 @@ final class BarnesHut {
 		bodyArray = new Plummer().generate(nBodies);
 		maxLeafBodies = mlb;
 
+		
+		
 		//Plummer should make sure that a body with number x also has index x
 		for (int i = 0; i < nBodies; i++) {
 			if (ASSERTS && bodyArray[i].number != i) {
@@ -157,6 +159,8 @@ final class BarnesHut {
 		double[] accs_z = new double[bodyArray.length];
 
 		BodyCanvas bc = null;
+
+		printBodies();
 
 		if (viz) {
 			bc = visualize();
@@ -485,10 +489,10 @@ final class BarnesHut {
 					.println("               total: " + total / 1000.0 + " s");
 		}
 
-		if (verbose) {
+//		if (verbose) {
 			System.out.println();
 			printBodies();
-		}
+//		}
 	}
 
 	public static void main(String argv[]) {

@@ -52,7 +52,10 @@ final class BodyTreeNode extends ibis.satin.SatinObject implements
 	private double totalMass; //set during CoM computation
 
 	//usual potential softening value, copied from splash2-barnes
-	static final double SOFT_SQ = 0.05 * 0.05;
+//	static final double SOFT_SQ = 0.05 * 0.05;
+
+	// this value is copied from Suel --Rob
+	static final double SOFT_SQ = 0.0000025 * 0.0000025; 
 
 	/**
 	 * creates a totally empty tree. Because the SatinTuple version of barnes
@@ -88,7 +91,8 @@ final class BodyTreeNode extends ibis.satin.SatinObject implements
 		 * make size a little bigger to compensate for very small floating point
 		 * inaccuracy (value copied from splash2-barnes)
 		 */
-		size *= 1.00002;
+// is not present in Suel
+//		size *= 1.00002;
 
 		halfSize = size / 2.0;
 		maxTheta = theta * theta * halfSize * halfSize;

@@ -12,9 +12,9 @@ public final class Body implements Cloneable, Comparable, Serializable {
 
 	// these are only used by calculateNewPosition, which is done at the
 	// main node, so they can be transient
-/*	transient*/ public double vel_x, vel_y, vel_z;
+	transient public double vel_x, vel_y, vel_z;
 
-/*	transient*/ public double oldAcc_x, oldAcc_y, oldAcc_z;
+	transient public double oldAcc_x, oldAcc_y, oldAcc_z;
 
 	// these are used by the stable version to store the calculated acc
 	transient public double acc_x, acc_y, acc_z;
