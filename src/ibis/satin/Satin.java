@@ -1809,7 +1809,7 @@ public final class Satin implements Config, ResizeHandler {
 				System.err.println("Got an exception from exception handler! " + t);
 //						t.printStackTrace();
 				System.err.println("r = " + r);
-				System.err.println("parent = " + r.parent);
+				System.err.println("r.parent = " + r.parent);
 			}
 			if(r.parent == null) {
 				System.err.println("An inlet threw an exception, but there is no parent that handles it." + t);
@@ -1835,6 +1835,12 @@ public final class Satin implements Config, ResizeHandler {
 						System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
 					}
 					sendResult(r.parent, null);
+				} else { // two cases here: empty inlet or normal inlet
+				    if(r.parent.parentLocals == null) { // empty inlet
+					handleEmptyInlet(r.parent);
+				    } else { // normal inlet
+					handleInlet(r.parent);
+				    }
 				}
 			}
 		}
@@ -2309,7 +2315,7 @@ public final class Satin implements Config, ResizeHandler {
 				handleInlet(r);
 			} else {
 				if(INLET_DEBUG) {
-					out.println("SATIN '" + ident.name() + ": impty inlet caused by remote exception: " + r.eek + ", inv = " + r);
+					out.println("SATIN '" + ident.name() + ": empty inlet caused by remote exception: " + r.eek + ", inv = " + r);
 				}
 
 				handleEmptyInlet(r);

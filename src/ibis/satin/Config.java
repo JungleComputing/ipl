@@ -67,8 +67,8 @@ public interface Config {
 	static final boolean SPAWN_DEBUG = false;
 
 	/** Enable or disable debug prints concerning inlets
-	    (exception handling)
-	.**/
+	    (exception handling).
+	**/
 	static final boolean INLET_DEBUG = false;
 
 	/** Enable or disable debug prints concerning aborts. **/

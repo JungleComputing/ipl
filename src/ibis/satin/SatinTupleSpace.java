@@ -38,7 +38,7 @@ public class SatinTupleSpace implements Config {
 		    SUPPORT_TUPLE_MULTICAST &&
 		    satin != null &&
 		    TypedProperties.booleanProperty("satin.tuplespace.ordened");
-		System.out.println("use_seq = " + use_seq);
+//		System.out.println("use_seq = " + use_seq);
 //		newKeys = new ArrayList();
 //		newData = new ArrayList();
 	}
@@ -53,7 +53,7 @@ public class SatinTupleSpace implements Config {
 	use_seq = true;
 
 	satin.enableActiveTupleOrdening();
-	System.out.println("use_seq = " + use_seq);
+//	System.out.println("use_seq = " + use_seq);
     }
 
 
