@@ -25,10 +25,11 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
      * Solve the leaf part of a SAT problem.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
-     * @param level branching level
-     * @param ctx the changable context of the solver
-     * @param var the next variable to assign
-     * @param val the value to assign
+     * @param level The branching level.
+     * @param p The SAT problem to solve.
+     * @param ctx The changable context of the solver.
+     * @param var The next variable to assign.
+     * @param val The value to assign.
      */
     public void leafSolve(
 	int level,
@@ -89,11 +90,11 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
      * The method that implements a Satin task.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
-     * @param level branching level
+     * @param level The branching level.
      * @param p the SAT problem to solve
-     * @param ctx the changable context of the solver
-     * @param var the next variable to assign
-     * @param val the value to assign
+     * @param ctx The changable context of the solver.
+     * @param var The next variable to assign.
+     * @param val The value to assign.
      */
     public void solve(
 	int level,
@@ -103,21 +104,23 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	boolean val
     ) throws SATException
     {
+        SATProblem my_p = p;
+
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 
-        if( p == null ){
-            p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
+        if( my_p == null ){
+            my_p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
         }
 
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	int res;
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var );
+	    res = ctx.propagatePosAssignment( my_p, var );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var );
+	    res = ctx.propagateNegAssignment( my_p, var );
 	}
 	if( res == SATProblem.CONFLICTING ){
 	    // Propagation reveals a conflict.
@@ -133,7 +136,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    if( traceSolver | printSatSolutions ){
 		System.err.println( "s" + level + ": propagation found a solution: " + s );
 	    }
-	    if( !p.isSatisfied( ctx.assignment ) ){
+	    if( !my_p.isSatisfied( ctx.assignment ) ){
 		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
 	    }
 	    throw new SATResultException( s );
@@ -149,6 +152,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	}
 
         boolean firstvar = ctx.posDominant( nextvar );
+
         if( needMoreJobs() ){
 	    DPLLContext firstctx = (DPLLContext) ctx.clone();
 	    solve( level+1, p, firstctx, nextvar, firstvar );
@@ -159,8 +163,8 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	else {
 	    // We're nearly there, use the leaf solver.
 	    DPLLContext subctx = (DPLLContext) ctx.clone();
-	    leafSolve( level+1, p, subctx, nextvar, firstvar );
-	    leafSolve( level+1, p, ctx, nextvar, !firstvar );
+	    leafSolve( level+1, my_p, subctx, nextvar, firstvar );
+	    leafSolve( level+1, my_p, ctx, nextvar, !firstvar );
 	}
     }
 
@@ -173,7 +177,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     static public SATSolution solveSystem( SATProblem p )
     {
 	SATSolution res = null;
-	long startTime = 0;
 
 	if( p.isConflicting() ){
 	    return null;
@@ -220,26 +223,21 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 
 	    DPLLContext negctx = (DPLLContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
-	    startTime = System.currentTimeMillis();
             s.solve( 0, p, negctx, nextvar, firstvar );
             s.solve( 0, p, ctx, nextvar, !firstvar );
             s.sync();
 	}
 	catch( SATResultException r ){
 	    if( r.s == null ){
-		System.err.println( "A null solution thrown???" );
+		System.err.println( "A null result thrown???" );
 	    }
 	    res = r.s;
 	    s.abort();
+            return res;
 	}
         catch( SATException x ){
             System.err.println( "Uncaught " + x + "???" );
         }
-
-	long endTime = System.currentTimeMillis();
-	double time = ((double) (endTime - startTime))/1000.0;
-
-	System.out.println( "Parallel caclulation Time: " + time );
 	return res;
     }
 
@@ -263,6 +261,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	// sequential code.
 	ibis.satin.SatinObject.pause(); 
 
+        System.err.println( "Problem in tuple space: " + problemInTuple );
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );

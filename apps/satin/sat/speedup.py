@@ -18,6 +18,8 @@ logdir = "logs"
 
 defaultProcSet = "2:8"
 
+maxRunTime = "10:00"
+
 results = {}
 
 #problem = "examples/qg/qg6-12.cnf.gz"
@@ -78,7 +80,7 @@ def getCommandOutput( command ):
     return (err, outdata, errdata)
 
 def build_run_command( pno, command, port ):
-    return "prun -1 %s %d %d fs0.das2.cs.vu.nl %s -satin-closed" % (run_ibis, pno, port, command)
+    return "prun -1 -t %s %s %d %d fs0.das2.cs.vu.nl %s -satin-closed" % (maxRunTime, run_ibis, pno, port, command)
 
 def runP( P, command, results ):
     cmd = build_run_command( P, command, nameserverport )
@@ -225,11 +227,12 @@ def usage():
     print "The following options are supported:"
     print "--help\t\t\tShow this help text."
     print "-h\t\t\tShow this help text."
-    print "--logdir [name]\t\tUse the specified log directory."
-    print "--logfile [name]\tUse the specified log file."
+    print "--logdir <name>\t\tUse the specified log directory."
+    print "--logfile <name>\tUse the specified log file."
     print "--parallel\t\tExecute the runs in parallel."
-    print "--port [number]\t\tUse the given nameserver port."
-    print "--procs [spec]\t\tDo runs with the given set of processor numbers (see below)."
+    print "--port <number>\t\tUse the given nameserver port."
+    print "--procs <spec>\t\tDo runs with the given set of processor numbers (see below)."
+    print "--time <time>\t\tMaximal time per run <time> = [hh:]mm:]ss."
     print
     print "The set of processor numbers is given as:"
     print " <minproc>:<maxproc>:<maxstep>"
@@ -244,9 +247,9 @@ def usage():
     print "The default processor set is `" + defaultProcSet + "'."
 
 def main():
-    global ProcNos, nameserverport
+    global ProcNos, nameserverport, maxRunTime
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "parallel", "logfile=", "logdir=", "tag=", "port=", "procs="])
+        opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "parallel", "logfile=", "logdir=", "tag=", "port=", "procs=", "time="])
     except getopt.GetoptError:
         # print help information and exit:
         usage()
@@ -265,6 +268,8 @@ def main():
             sys.exit()
         if o in ("--tag",):
             timingTag = a
+        if o in ("--time",):
+            maxRunTime = a
         if o in ("--logdir",):
             logdir = a
         if o in ("--port",):

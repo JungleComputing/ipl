@@ -21,6 +21,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static final boolean traceNewCode = true;
     private static final boolean traceLearning = false;
     private static final boolean traceRestarts = false;
+    private static final boolean problemInTuple = true;
     private static int label = 0;
     static SATProblem p;
 
@@ -47,11 +48,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * Solve the leaf part of a SAT problem.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
-     * @param level branching level
-     * @param p the SAT problem to solve
-     * @param ctx the changable context of the solver
-     * @param var the next variable to assign
-     * @param val the value to assign
+     * @param level The branching level.
+     * @param ctx The changable context of the solver.
+     * @param var The next variable to assign.
+     * @param val The value to assign.
      */
     public void leafSolve(
 	int level,
@@ -126,11 +126,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * The method that implements a Satin task.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
-     * @param level branching level
-     * @param p the SAT problem to solve
-     * @param ctx the changable context of the solver
-     * @param var the next variable to assign
-     * @param val the value to assign
+     * @param level The branching level.
+     * @param ctx The changable context of the solver.
+     * @param var The next variable to assign.
+     * @param val The value to assign.
      */
     public void solve(
 	int level,
@@ -183,8 +182,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        if( true ){
-        //if( needMoreJobs() ){
+        if( needMoreJobs() ){
             try {
                 // We have variable 'nextvar' to branch on.
                 SATContext firstctx = (SATContext) ctx.clone();
@@ -198,7 +196,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                     if( traceRestarts ){
                         System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
                     }
-                    abort();
                     throw x;
                 }
                 // We have an untried value, wait for that.
@@ -234,8 +231,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      */
     static public SATSolution solveSystem( final SATProblem p )
     {
-        SATSolution res = null;
-	long startTime = 0;
+	SATSolution res = null;
 
 	if( p.isConflicting() ){
 	    return null;
@@ -282,7 +278,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
 
-	    startTime = System.currentTimeMillis();
             s.solve( 0, negctx, nextvar, firstvar );
             s.solve( 0, ctx, nextvar, !firstvar );
             s.sync();
@@ -293,12 +288,12 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    }
 	    res = r.s;
 	    s.abort();
+            return res;
 	}
         catch( SATRestartException x ){
             if( traceRestarts ){
                 System.err.println( "RestartException reaches top level. Waiting for the termination of all jobs." );
             }
-            s.sync();
         }
         catch( SATException x ){
             System.err.println( "Uncaught " + x + "???" );
@@ -306,11 +301,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
 	int newClauseCount = p.getClauseCount();
 	System.err.println( "Learned " + (newClauseCount-oldClauseCount) + " clauses." );
-
-	long endTime = System.currentTimeMillis();
-	double time = ((double) (endTime - startTime))/1000.0;
-
-	System.out.println( "Parallel calculation Time: " + time );
 	return res;
     }
 
@@ -334,6 +324,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	// sequential code.
 	ibis.satin.SatinObject.pause(); 
 
+        System.err.println( "Problem in tuple space: " + problemInTuple );
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );
