@@ -1,0 +1,15 @@
+<project
+    name="ibis.apps.gmi.invocation-gather"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis GMI application build.
+    </description>
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/apps/gmi/build-gmi-app.xml"/>
+
+</project>

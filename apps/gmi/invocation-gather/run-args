@@ -1,0 +1,1 @@
+Main -count 10000 -repeat 10 -bin -group -lat
