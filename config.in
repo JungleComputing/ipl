@@ -140,18 +140,18 @@ PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
 MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
 
-JACKAL_PATCHERS	=
-JACKAL_PATCHERS	+= $(SRC:%.java=diff_patch_%.c)
-JACKAL_PATCHERS	+= $(MAIN:%.java=diff_patch_%.c)
-JACKAL_PATCHERS	+= $(SERIALIZE:%.java=diff_patch_%.c)
-JACKAL_PATCHERS	+= $(SERIALIZABLE_JAD:%.jad=diff_patch_%_jad.c)
+#JACKAL_PATCHERS	=
+#JACKAL_PATCHERS	+= $(SRC:%.java=diff_patch_%.c)
+#JACKAL_PATCHERS	+= $(MAIN:%.java=diff_patch_%.c)
+#JACKAL_PATCHERS	+= $(SERIALIZE:%.java=diff_patch_%.c)
+#JACKAL_PATCHERS	+= $(SERIALIZABLE_JAD:%.jad=diff_patch_%_jad.c)
 
-TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s *.class *.lasm *.d Satin_*_InvocationRecord.java Satin_*_ReturnRecord.java -r LASM_CACHE $(O_FILES) $(PKG_O_FILES) $(JACKAL_PATCHERS) Satin_*
+TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s *.class *.lasm *.d Satin_*_InvocationRecord.java Satin_*_ReturnRecord.java -r LASM_CACHE Satin_* *.jad
 
-TRASH_FILES	+= $(SERIALIZABLE_JAD)
-TRASH_FILES	+= $(SERIALIZABLE_JAD:%.jad=%_jad.java)
+#TRASH_FILES	+= $(SERIALIZABLE_JAD)
+#TRASH_FILES	+= $(SERIALIZABLE_JAD:%.jad=%_jad.java)
 # TRASH_FILES	+= $(SERIALIZABLE_JAD:%.jad=%_ibis_io_Generator.java)
-TRASH_FILES	+= $(SERIALIZABLE_JAD_O)
+#TRASH_FILES	+= $(SERIALIZABLE_JAD_O)
 # TRASH_FILES	+= $(DEPENDENCIES)
 
 

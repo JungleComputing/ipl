@@ -8,6 +8,7 @@ MAIN = Ida.java
 OUT= ida
 
 SERIALIZABLE	=
+SERIALIZABLE	+= Ida.java
 SERIALIZABLE	+= Game.java
 SERIALIZABLE	+= Job.java
 SERIALIZABLE	+= Position.java
@@ -19,10 +20,6 @@ java: $(CLASS_FILES) $(MAIN_CLASS)
 
 satin: java
 	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
-
-satinser: java
-	$(IOC_COMMAND) *.class
-	make satin
 	$(IOC_COMMAND) Satin_*.class
 
 manta: $(MAIN) $(O_FILES)
