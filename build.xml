@@ -660,19 +660,52 @@
 	</delete>
 	<delete dir="bin"/>
 	<delete dir="ant-tasks/tasks"/>
-	<ant dir="${docs}" target="distclean"/>
+	<ant dir="${docs}" inheritAll="false" target="distclean"/>
     </target>
 
     <target name="docs">
-	<ant dir="${docs}" target="api"/>
+	<ant dir="${docs}" inheritAll="false" target="api"/>
     </target>
 
     <target name="developer-docs">
-	<ant dir="${docs}" target="developer-api"/>
+	<ant dir="${docs}" inheritAll="false" target="developer-api"/>
     </target>
 
     <target name="progman">
-	<ant dir="${docs}" target="progman"/>
+	<ant dir="${docs}" inheritAll="false" target="progman"/>
+    </target>
+
+    <property name="distr"        location="${ibis}/ibis-src-distr"/>
+
+    <target name="src-distr">
+	<delete dir="${distr}"/>
+	<mkdir dir="${distr}"/>
+	<cvs command="checkout -P"
+	     cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
+	     cvsRsh="ssh"
+	     package="ibis"
+	     dest="${distr}"
+	     failonerror="true">
+	</cvs>
+	<delete dir="${distr}/ibis/apps/extra"/>
+	<delete dir="${distr}/ibis/apps/io"/>
+	<delete dir="${distr}/ibis/apps/repmi"/>
+	<delete dir="${distr}/ibis/apps/ibis/traffic"/>
+	<delete dir="${distr}/ibis/apps/ibis/benchmarks/new"/>
+	<delete dir="${distr}/ibis/apps/ibis/benchmarks/ping"/>
+	<delete dir="${distr}/ibis/apps/ibis/benchmarks/throughput"/>
+	<delete dir="${distr}/ibis/apps/ibis/benchmarks/timer"/>
+	<delete file="${distr}/ibis/apps/run-all"/>
+	<delete file="${distr}/ibis/apps/get-plot.perl"/>
+	<delete file="${distr}/ibis/apps/get-speedup.perl"/>
+	<delete file="${distr}/ibis/TODO"/>
+	<delete file="${distr}/ibis/DISCUSSION_TOPICS"/>
+	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
+	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
+	<zip destfile="ibis-src-distr.zip"
+	     basedir="${distr}"
+	     excludes="**/CVS/* **/CVS">
+	</zip>
     </target>
 
 </project>
