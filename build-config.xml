@@ -125,8 +125,15 @@
 	</ant>
     </target>
 
+    <property environment="env"/>
 
-    <target name="configure" depends="config-init">
+    <target name="java-home-test" depends="config-init" unless="env.JAVA_HOME">
+	<fail>Environment variable JAVA_HOME is not set!</fail>
+    </target>
+
+    <target name="configure" depends="config-init, java-home-test">
+
+	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
 
 	<input
 		message="Please enter the install directory of gm: [${default.home.gm}] "
@@ -221,6 +228,9 @@
 		<filterreader
 			classname="org.apache.tools.ant.filters.ReplaceTokens">
 		    <param  type="token"
+			    name="JAVA"
+			    value="${JAVA_HOME_ENV}"/>
+		    <param  type="token"
 			    name="IBIS"
 			    value="${config.home.ibis}"/>
 		    <param  type="token"
@@ -263,8 +273,6 @@
 	    Generate configuration.sh
 	-->
 
-	<property environment="env"/>
-	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
 	<condition property="JIT_OPTS" value="${env.JIT_OPTS}">
 	    <isset property="env.JIT_OPTS"/>
 	</condition>
