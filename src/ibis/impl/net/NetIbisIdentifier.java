@@ -43,11 +43,13 @@ public final class NetIbisIdentifier
 				System.exit(1);
 			}
 			name = stream.readUTF();
+			cluster = stream.readUTF();
 			NetIbis.globalIbis.identTable.addIbis(stream, -handle, this);
 		} else {
 			NetIbisIdentifier ident = (NetIbisIdentifier)NetIbis.globalIbis.identTable.getIbis(stream, handle);
 			address = ident.address;
 			name    = ident.name;
+			cluster = ident.cluster;
 		}
 	}
 
@@ -109,6 +111,7 @@ public final class NetIbisIdentifier
 		if (handle < 0) {
 			stream.writeUTF(address.getHostAddress());
 			stream.writeUTF(name);
+			stream.writeUTF(cluster);
 		}
 	}
 }

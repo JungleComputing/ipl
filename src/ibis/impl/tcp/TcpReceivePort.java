@@ -265,7 +265,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return ident;
 	} 
 
-	synchronized void leave(SerializationStreamConnectionHandler leaving, TcpSendPortIdentifier si, int id) {
+	synchronized void leave(SerializationStreamConnectionHandler leaving,
+							TcpSendPortIdentifier si, int id) {
 		boolean found = false;
 		if (DEBUG) { 
 			System.err.println("TcpReceivePort.leave: " + name);
