@@ -549,7 +549,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                 disp.disp("__ Configuration ____");
                 disp.disp("Upcall engine........" + __.state__(useUpcall));
-                disp.disp("Yield................" + __.state__(useUpcall));
+                disp.disp("Yield................" + __.state__(useYield));
                 disp.disp("Blocking poll........" + __.state__(useBlockingPoll));
                 disp.disp("_____________________");
                 log.out();

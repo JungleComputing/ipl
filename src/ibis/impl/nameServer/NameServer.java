@@ -22,7 +22,7 @@ import ibis.ipl.impl.generic.*;
 
 public class NameServer implements NameServerProtocol, PortTypeNameServerProtocol, ReceivePortNameServerProtocol, ElectionProtocol {
 
-	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
+	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9827;
 
 	public static final boolean DEBUG = false;
 	public static final boolean VERBOSE = true;

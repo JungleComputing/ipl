@@ -170,8 +170,6 @@ public class IbisSocketFactory {
 			}
 
 			if(s != null) {
-				s.shutdownInput();
-				s.shutdownOutput();
 				s.close();
 			}
 		} catch (IOException e) {

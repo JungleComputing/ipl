@@ -100,6 +100,8 @@ public abstract class Ibis {
 		return createIbis(name, "ibis.ipl.impl.messagePassing.MPIIbis", r);
 	    } else if (ibisname.startsWith("net.")) {
 		return createIbis(name, "ibis.ipl.impl.net.NetIbis", r);
+	    } else if (ibisname.startsWith("net")) {
+		return createIbis(name, "ibis.ipl.impl.net.NetIbis", r);
 	    } else {
 		// The default: tcp.
 		if (! ibisname.equals("tcp")) {
