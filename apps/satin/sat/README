@@ -12,5 +12,17 @@ solvers.
 
 The variants:
 
-SATSolver.java		Fairly sophisticated solver, mainly sequential.
+SATSolver.java		Most advanced version of the solver.
+SeqSolver.java          Sequential version of the SATSolver.
+DPLLSolver.java         A simple solver variant without a learning mechanism.
+Breeder.java            Genetic optimizer of SAT.
 SimpleSATSolver.java	Simple, highly parallel solver.
+
+All variants except Breeder take exactly one parameter: a SAT problem
+to solve. A large collection is provided in examples.  In particular
+examples/benchmark-suite is useful testing purposes.
+
+The Breeder program takes a list of SAT problems of arbitrary length.
+
+All variants also accept gzip compressed SAT problems, provided that
+they are stored in a file that ends with `.gz'.

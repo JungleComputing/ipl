@@ -77,12 +77,12 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean tracePropagation = false;
     private static final boolean traceLearning = false;
     private static final boolean traceResolutionChain = false;
-    private static final boolean traceRestarts = false;
+    private static final boolean traceJumps = false;
     private static final boolean traceUpdates = false;
 
     private static final boolean doVerification = false;
     private static final boolean doLearning = true;
-    private static final boolean doRestarts = true;
+    private static final boolean doJumps = true;
     private static final boolean propagatePureVariables = true;
 
     /**
@@ -528,6 +528,50 @@ public final class SATContext implements java.io.Serializable {
                 }
             }
         } while( changed );
+        // Now greedily resolve clauses as long as they are smaller.
+        do {
+            changed = false;
+            int arr[] = res.pos;
+            for( int i=0; i<arr.length; i++ ){
+                int v = arr[i];
+                int a = antecedent[v];
+
+                if( a>=0 ){
+                    Clause newres = Clause.resolve( res, p.clauses[a], v );
+                    if( traceLearning ){
+                        System.err.println( "Resolving on v" + v + ":" );
+                        System.err.println( "  " + res );
+                        System.err.println( "  " + p.clauses[a] + " =>" );
+                        System.err.println( "  " + newres );
+                    }
+                    if( res.getTermCount()>newres.getTermCount() ){
+                        changed = true;
+                        anyChange = true;
+                        res = newres;
+                    }
+                }
+            }
+            arr = res.neg;
+            for( int i=0; i<arr.length; i++ ){
+                int v = arr[i];
+                int a = antecedent[v];
+
+                if( a>=0 && a != bestDom ){
+                    Clause newres = Clause.resolve( res, p.clauses[a], v );
+                    if( traceLearning ){
+                        System.err.println( "Resolving on v" + v + ":" );
+                        System.err.println( "  " + res );
+                        System.err.println( "  " + p.clauses[a] + " =>" );
+                        System.err.println( "  " + newres );
+                    }
+                    if( res.getTermCount()>newres.getTermCount() ){
+                        changed = true;
+                        anyChange = true;
+                        res = newres;
+                    }
+                }
+            }
+        } while( changed );
         if( !anyChange ){
             return null;
         }
@@ -601,7 +645,7 @@ public final class SATContext implements java.io.Serializable {
      * @param learnAsTuple Register learned clauses as active tuples?
      */
     private void analyzeConflict( SATProblem p, int cno, int var, int level, boolean learnAsTuple, boolean learn )
-        throws SATRestartException
+        throws SATJumpException
     {
         if( satisfied[cno] ){
             return;
@@ -627,7 +671,7 @@ public final class SATContext implements java.io.Serializable {
             }
         }
 	Clause cc = null;
-	if( (doLearning && learn) || doRestarts ){
+	if( (doLearning && learn) || doJumps ){
 	    cc = buildConflictClause( p, cno, var, level );
 	    if( cc == null ){
 		if( traceLearning ){
@@ -657,15 +701,15 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 
-	    if( doRestarts ){
+	    if( doJumps ){
 		int cl = calculateConflictLevel( p, cc, -1 );
 
 		if( cl>=0 && cl<level ){
-		    if( traceLearning | traceRestarts ){
-			System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
+		    if( traceLearning | traceJumps ){
+			System.err.println( "Jumping at level " + (cl-1) + " (now at " + level + ")" );
 		    }
 		    if( cl<level ){
-			throw new SATRestartException( cl-1 );
+			throw new SATJumpException( cl-1 );
 		    }
 		}
 	    }
@@ -682,7 +726,7 @@ public final class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int propagateUnitClause( SATProblem p, int i, int level, boolean learnAsTuple, boolean learn )
-        throws SATRestartException
+        throws SATJumpException
     {
 	if( satisfied[i] ){
 	    // Not interesting.
@@ -743,7 +787,7 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    public int update( SATProblem p, int level ) throws SATRestartException
+    public int update( SATProblem p, int level ) throws SATJumpException
     {
         int newCount = p.getClauseCount();
         boolean haveUnitClauses = false;
@@ -815,7 +859,7 @@ public final class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int markClauseSatisfied( SATProblem p, int cno, int level, boolean learnAsTuple, boolean learn )
-        throws SATRestartException
+        throws SATJumpException
     {
 	boolean hasPure = false;
 
@@ -911,7 +955,7 @@ public final class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int propagatePosAssignment( SATProblem p, int var, int level, boolean learnAsTuple, boolean learn )
-        throws SATRestartException
+        throws SATJumpException
     {
         if( doVerification ){
             if( assignment[var] == 1 ){
@@ -996,7 +1040,7 @@ public final class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int propagateNegAssignment( SATProblem p, int var, int level, boolean learnAsTuple, boolean learn )
-        throws SATRestartException
+        throws SATJumpException
     {
         if( doVerification ){
             if( assignment[var] == 0 ){
@@ -1143,7 +1187,7 @@ public final class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int optimize( SATProblem p )
-        throws SATRestartException
+        throws SATJumpException
     {
 	// Search for and propagate unit clauses.
 	for( int i=0; i<satisfied.length; i++ ){

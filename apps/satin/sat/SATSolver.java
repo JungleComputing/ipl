@@ -20,7 +20,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static final boolean traceLearning = false;
-    private static final boolean traceRestarts = false;
+    private static final boolean traceJumps = false;
     private static final boolean problemInTuple = true;
     private static int label = 0;
     static SATProblem p = null;
@@ -71,7 +71,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	int var,
 	boolean val,
         boolean learnTuple
-    ) throws SATResultException, SATRestartException
+    ) throws SATResultException, SATJumpException
     {
 	int res = ctx.update( p, level );
 	if( res == SATProblem.CONFLICTING ){
@@ -145,10 +145,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         try {
             leafSolve( level+1, subctx, nextvar, firstvar, learnTuple );
         }
-        catch( SATRestartException x ){
+        catch( SATJumpException x ){
 	    if( x.level<level ){
-                if( traceRestarts ){
-                    System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                if( traceJumps ){
+                    System.err.println( "JumpException passes level " + level + " heading for level " + x.level );
                 }
 		throw x;
 	    }
@@ -256,10 +256,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                 solve( level+1, secondctx, nextvar, !firstvar, learnTuple );
                 sync();
             }
-            catch( SATRestartException x ){
+            catch( SATJumpException x ){
                 if( x.level<level ){
-                    if( traceRestarts ){
-                        System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    if( traceJumps ){
+                        System.err.println( "JumpException passes level " + level + " heading for level " + x.level );
                     }
                     throw x;
                 }
@@ -272,10 +272,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             try {
                 leafSolve( level+1, subctx, nextvar, firstvar, learnTuple );
             }
-            catch( SATRestartException x ){
+            catch( SATJumpException x ){
                 if( x.level<level ){
-                    if( traceRestarts ){
-                        System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    if( traceJumps ){
+                        System.err.println( "JumpException passes level " + level + " heading for level " + x.level );
                     }
                     throw x;
                 }
@@ -354,9 +354,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    }
             return res;
 	}
-        catch( SATRestartException x ){
-            if( traceRestarts ){
-                System.err.println( "RestartException reaches top level, no solutions" );
+        catch( SATJumpException x ){
+            if( traceJumps ){
+                System.err.println( "JumpException reaches top level, no solutions" );
             }
 	    s.abort();
             return null;

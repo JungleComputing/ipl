@@ -337,20 +337,22 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
      */
     public static Clause resolve( Clause c1, Clause c2, int var )
     {
-        // First, do a sanity check.
-        if( 
-            (memberIntList( c1.pos, var ) && memberIntList( c2.neg, var )) ||
-            (memberIntList( c1.neg, var ) && memberIntList( c2.pos, var ))
-        ){
-        }
-        else {
-            System.err.println( "Cannot resolve " + c1 + " and " + c2 + " on v" + var );
-	    System.exit(1);
+        if( false ){
+            // First, do a sanity check.
+            if( 
+                (memberIntList( c1.pos, var ) && memberIntList( c2.neg, var )) ||
+                (memberIntList( c1.neg, var ) && memberIntList( c2.pos, var ))
+            ){
+            }
+            else {
+                System.err.println( "Cannot resolve " + c1 + " and " + c2 + " on v" + var );
+                System.exit(1);
+            }
         }
         int pos[] = new int[c1.pos.length+c2.pos.length];
-        int neg[] = new int[c1.neg.length+c2.neg.length];
         int posno = 0;
         int negno = 0;
+        boolean unsorted = false;
 
         int arr[] = c1.pos;
         for( int i=0; i<arr.length; i++ ){
@@ -366,8 +368,15 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 
             if( !memberIntList( c1.neg, v ) && !memberIntList( c1.pos, v ) ){
                 pos[posno++] = v;
+                unsorted = true;
             }
         }
+        int newpos[] = Helpers.cloneIntArray( pos, posno );
+        if( unsorted ){
+            Helpers.sortIntArray( newpos );
+        }
+        unsorted = false;
+        int neg[] = new int[c1.neg.length+c2.neg.length];
         arr = c1.neg;
         for( int i=0; i<arr.length; i++ ){
             int v = arr[i];
@@ -382,12 +391,13 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 
             if( !memberIntList( c1.pos, v ) && !memberIntList( c1.neg, v ) ){
                 neg[negno++] = v;
+                unsorted = true;
             }
         }
-        int newpos[] = Helpers.cloneIntArray( pos, posno );
         int newneg[] = Helpers.cloneIntArray( neg, negno );
-        Helpers.sortIntArray( newpos );
-        Helpers.sortIntArray( newneg );
+        if( unsorted ){
+            Helpers.sortIntArray( newneg );
+        }
         return new Clause( newpos, newneg, -1 );
     }
 

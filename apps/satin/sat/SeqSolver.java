@@ -19,7 +19,7 @@ public final class SeqSolver {
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static final boolean traceLearning = false;
-    private static final boolean traceRestarts = false;
+    private static final boolean traceJumps = false;
     private static int label = 0;
 
     /** Total number of decisions in all solves. */
@@ -43,7 +43,7 @@ public final class SeqSolver {
 	int var,
 	boolean val,
         boolean learnTuple
-    ) throws SATResultException, SATRestartException
+    ) throws SATResultException, SATJumpException
     {
 	int res = ctx.update( p, level );
 	if( res == SATProblem.CONFLICTING ){
@@ -118,10 +118,10 @@ public final class SeqSolver {
         try {
             leafSolve( level+1, p, subctx, nextvar, firstvar, learnTuple );
         }
-        catch( SATRestartException x ){
+        catch( SATJumpException x ){
 	    if( x.level<level ){
-                if( traceRestarts ){
-                    System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                if( traceJumps ){
+                    System.err.println( "JumpException passes level " + level + " heading for level " + x.level );
                 }
 		throw x;
 	    }
@@ -187,10 +187,10 @@ public final class SeqSolver {
             try {
                 leafSolve( 0, p, negctx, nextvar, firstvar, learnTuple );
             }
-            catch( SATRestartException x ){
+            catch( SATJumpException x ){
                 if( x.level<0 ){
-                    if( traceRestarts ){
-                        System.err.println( "RestartException reaches top level, no solutions" );
+                    if( traceJumps ){
+                        System.err.println( "JumpException reaches top level, no solutions" );
                     }
                     return null;
                 }
@@ -204,9 +204,9 @@ public final class SeqSolver {
 	    }
             return res;
 	}
-        catch( SATRestartException x ){
-            if( traceRestarts ){
-                System.err.println( "RestartException reaches top level, no solutions" );
+        catch( SATJumpException x ){
+            if( traceJumps ){
+                System.err.println( "JumpException reaches top level, no solutions" );
             }
             return null;
         }
