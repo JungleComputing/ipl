@@ -19,20 +19,24 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static int label = 0;
+    final SATProblem p;
+
+    public DPLLSolver( SATProblem p )
+    {
+        this.p = p;
+    }
 
     /**
      * Solve the leaf part of a SAT problem.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
      * @param level branching level
-     * @param p the SAT problem to solve
      * @param ctx the changable context of the solver
      * @param var the next variable to assign
      * @param val the value to assign
      */
-    public static void leafSolve(
+    public void leafSolve(
 	int level,
-	SATProblem p,
 	DPLLContext ctx,
 	int var,
 	boolean val
@@ -79,10 +83,10 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 
 	boolean firstvar = ctx.posDominant( nextvar );
 	DPLLContext subctx = (DPLLContext) ctx.clone();
-	leafSolve( level+1, p, subctx, nextvar, firstvar );
+	leafSolve( level+1, subctx, nextvar, firstvar );
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
-	leafSolve( level+1, p, ctx, nextvar, !firstvar );
+	leafSolve( level+1, ctx, nextvar, !firstvar );
     }
 
     /**
@@ -105,11 +109,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
-
-	// Get the problem from the Satin tuple space.
-	// The leafsolver can just reuse p, the paralllel
-	// solvers have to retrieve it at the beginning of the method.
-	SATProblem p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
 
 	ctx.assignment[var] = val?1:0;
 	int res;
@@ -153,9 +152,9 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    // We're nearly there, use the leaf solver.
 	    // We have variable 'nextvar' to branch on.
 	    DPLLContext subctx = (DPLLContext) ctx.clone();
-	    leafSolve( level+1, p, subctx, nextvar, firstvar );
+	    leafSolve( level+1, subctx, nextvar, firstvar );
 	    subctx = (DPLLContext) ctx.clone();
-	    leafSolve( level+1, p, subctx, nextvar, !firstvar );
+	    leafSolve( level+1, subctx, nextvar, !firstvar );
 	}
 	else {
 	    // We have variable 'nextvar' to branch on.
@@ -184,7 +183,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	if( p.isSatisfied() ){
 	    return new SATSolution( p.buildInitialAssignments() );
 	}
-        DPLLSolver s = new DPLLSolver();
+        DPLLSolver s = new DPLLSolver( p );
 
         // Now recursively try to find a solution.
 	try {
@@ -215,9 +214,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    if( traceSolver ){
 		System.err.println( "Top level: branching on variable " + nextvar );
 	    }
-
-	    // Put the problem in the Satin tuple space.
-	    ibis.satin.SatinTupleSpace.add( "problem",  p );
 
 	    DPLLContext negctx = (DPLLContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );

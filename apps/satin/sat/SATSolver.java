@@ -20,6 +20,11 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static final boolean traceNewCode = true;
     private static final boolean traceRestarts = false;
     private static int label = 0;
+    private final SATProblem p;
+
+    SATSolver( SATProblem p ){
+        this.p = p;
+    }
 
     /**
      * Solve the leaf part of a SAT problem.
@@ -31,9 +36,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * @param var the next variable to assign
      * @param val the value to assign
      */
-    public static void leafSolve(
+    public void leafSolve(
 	int level,
-	SATProblem p,
 	SATContext ctx,
 	int var,
 	boolean val
@@ -81,7 +85,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	boolean firstvar = ctx.posDominant( nextvar );
 	SATContext subctx = (SATContext) ctx.clone();
         try {
-            leafSolve( level+1, p, subctx, nextvar, firstvar );
+            leafSolve( level+1, subctx, nextvar, firstvar );
         }
         catch( SATRestartException x ){
 	    if( x.level<level ){
@@ -98,7 +102,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         // However, we must update the administration with any
         // new clauses that we've learned recently.
         ctx.update( p );
-	leafSolve( level+1, p, ctx, nextvar, !firstvar );
+	leafSolve( level+1, ctx, nextvar, !firstvar );
     }
 
     /**
@@ -121,11 +125,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
-
-	// Get the problem from the Satin tuple space.
-	// The leafsolver can just reuse p, the paralllel
-	// solvers have to retrieve it at the beginning of the method.
-	SATProblem p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
 
 	ctx.assignment[var] = val?1:0;
 	int res;
@@ -171,7 +170,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    // We have variable 'nextvar' to branch on.
 	    SATContext subctx = (SATContext) ctx.clone();
             try {
-                leafSolve( level+1, p, subctx, nextvar, firstvar );
+                leafSolve( level+1, subctx, nextvar, firstvar );
             }
             catch( SATRestartException x ){
                 if( x.level<level ){
@@ -184,7 +183,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             }
 	    subctx = (SATContext) ctx.clone();
             subctx.update( p );
-	    leafSolve( level+1, p, subctx, nextvar, !firstvar );
+	    leafSolve( level+1, subctx, nextvar, !firstvar );
 	}
 	else {
             try {
@@ -228,7 +227,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    return new SATSolution( p.buildInitialAssignments() );
 	}
 	int oldClauseCount = p.getClauseCount();
-        SATSolver s = new SATSolver();
+        SATSolver s = new SATSolver( p );
 
         // Now recursively try to find a solution.
 	try {
