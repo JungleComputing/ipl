@@ -47,7 +47,7 @@ class IbisTypeInfo implements IbisStreamFlags {
 		try {
 		    gen_class = Thread.currentThread().getContextClassLoader()
 				.loadClass(name);
-		} catch(ClassNotFoundException e1) {
+		} catch(Exception e1) {
 		    if (DEBUG) {
 			System.err.println("Class " + name + " not found!");
 		    }
