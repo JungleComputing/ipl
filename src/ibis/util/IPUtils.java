@@ -30,6 +30,7 @@ public class IPUtils {
 
     private static InetAddress localaddress = null;
     private static InetAddress alt_localaddress = null;
+    private static InetAddress detected = null;
 
     private IPUtils() {
     	/* do nothing */
@@ -162,6 +163,10 @@ System.err.println("Specified alt ip addr " + external);
 	    }
 	}
 
+	if (detected != null) {
+	    return detected;
+	}
+
 	Enumeration e = null;
 	try {
 	    e = NetworkInterface.getNetworkInterfaces();
@@ -199,7 +204,7 @@ System.err.println("Specified alt ip addr " + external);
 				   address instanceof Inet4Address) {
 			    // Preference for IPv4
 			    external = address;
-			} else {
+			} else if (DEBUG || (address instanceof Inet4Address)) {
 			    if (first) {
 				first = false;
 				System.err.println("WARNING, this machine has more than one external " +
@@ -242,6 +247,8 @@ System.err.println("Specified alt ip addr " + external);
 		}
 	    }
 	}
+
+	detected = external;
 
 	return external;
     }
