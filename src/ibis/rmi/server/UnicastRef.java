@@ -7,7 +7,7 @@ import java.io.ObjectOutput;
 import ibis.rmi.RemoteException;
 import ibis.rmi.RTS;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
 
 import ibis.ipl.ReceivePortIdentifier;
 

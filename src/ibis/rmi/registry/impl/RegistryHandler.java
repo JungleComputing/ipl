@@ -1,7 +1,7 @@
 package ibis.rmi.registry.impl;
 
-import ibis.rmi.*;
-import ibis.rmi.registry.*;
+import ibis.rmi.RemoteException;
+import ibis.rmi.registry.Registry;
 
 public class RegistryHandler implements ibis.rmi.registry.RegistryHandler {
 

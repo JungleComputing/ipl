@@ -9,7 +9,10 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 
 import ibis.rmi.RTS;
+
 import java.util.Vector;
+
+import java.io.IOException;
 
 public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 
@@ -35,13 +38,13 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 
     public boolean gotConnection(SendPortIdentifier id) {
 	counter++;
-	System.out.println("Skeleton " + this + " got connection, id = " + id);
+	System.out.println("Skeleton " + this + " got connection, id = " + id + ", counter = " + counter);
 	return true;
     }
 
     public void lostConnection(SendPortIdentifier id) {
 	counter--;
-	System.out.println("Skeleton " + this + " lost connection, id = " + id);
+	System.out.println("Skeleton " + this + " lost connection, id = " + id + ", counter = " + counter);
 	if (counter == 0) {
 	    /* No more remote stubs alive now. We can remove the skeleton. */
 	    RTS.removeSkeleton(this);
@@ -100,5 +103,5 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 	receive = null;
     }
 
-    public abstract void upcall(ReadMessage m);
+    public abstract void upcall(ReadMessage m) throws IOException;
 } 

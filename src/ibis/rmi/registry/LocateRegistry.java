@@ -1,6 +1,7 @@
 package ibis.rmi.registry;
 
-import ibis.rmi.*;
+import ibis.rmi.RTS;
+import ibis.rmi.RemoteException;
 
 public final class LocateRegistry
 {

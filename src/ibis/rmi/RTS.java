@@ -1,24 +1,37 @@
 package ibis.rmi;
 
-import ibis.ipl.*;
-import ibis.rmi.server.*;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPort;
+import ibis.ipl.IbisException;
+import ibis.ipl.WriteMessage;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.StaticProperties;
+
+import ibis.rmi.server.Stub;
+import ibis.rmi.server.RemoteStub;
+import ibis.rmi.server.Skeleton;
+import ibis.rmi.server.ExportException;
 
 import java.util.Properties;
 import java.util.ArrayList;
 
 import java.net.InetAddress;
 
-import java.io.IOException;
+import java.util.HashMap;
 
-import java.util.WeakHashMap;
+import java.io.IOException;
 
 public final class RTS {
 
     public final static boolean DEBUG = false;
 
     //keys - impl objects, values - skeletons for those objects
-    private static WeakHashMap skeletons;
-    private static WeakHashMap stubs;
+    private static HashMap skeletons;
+    private static HashMap stubs;
 
     protected static String hostname;
     protected static PortType portType;
@@ -31,8 +44,8 @@ public final class RTS {
 
     static {
 	try {
-	    skeletons = new WeakHashMap();
-	    stubs = new WeakHashMap();
+	    skeletons = new HashMap();
+	    stubs = new HashMap();
 
 	    hostname = InetAddress.getLocalHost().getHostName();
 	    InetAddress adres = InetAddress.getByName(hostname);

@@ -36,7 +36,7 @@ class RMIStubGenerator extends RMIGenerator {
 			} 
 		}
 		
-		output.print(") throws ibis.rmi.RemoteException {\n");
+		output.print(") throws RemoteException {\n");
 	}
 
 	void methodBody(Method m, int number) { 
@@ -77,7 +77,7 @@ class RMIStubGenerator extends RMIGenerator {
 	    output.println("\t\t\tr.finish();");
 
 	    output.println("\t\t} catch (Exception e) {");
-	    output.println("\t\t\tthrow new RemoteException(\"oops\" + e);");
+	    output.println("\t\t\tthrow new RemoteException(\"oops\", e);");
 	    output.println("\t\t}");
 	} 
 
@@ -102,7 +102,6 @@ class RMIStubGenerator extends RMIGenerator {
 
 		output.println("import ibis.rmi.*;");		
 		output.println("import ibis.ipl.*;");			
-		output.println("import ibis.rmi.RemoteException;");			
 		output.println();
 
 		output.print("public final class rmi_stub_" + data.classname + " extends ibis.rmi.server.Stub implements ");		

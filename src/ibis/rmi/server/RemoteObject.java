@@ -1,6 +1,6 @@
 package ibis.rmi.server;
 
-import ibis.rmi.*;
+import ibis.rmi.Remote;
 
 import java.io.Serializable;
 import java.io.ObjectInputStream;

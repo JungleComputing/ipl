@@ -41,49 +41,60 @@ class RMISkeletonGenerator extends RMIGenerator {
 
 	void messageHandler(Vector methods) { 
 
-		output.println("\tpublic final void upcall(ReadMessage r) {");
+		output.println("\tpublic final void upcall(ReadMessage r) throws IOException {");
 		output.println();		
 
-		output.println("\t\ttry {");
-		
 		//gosia
-		output.println("\t\t\tRTS.setClientHost(r.origin().ibis().address());");		
+		output.println("\t\tRTS.setClientHost(r.origin().ibis().address());");		
 		//end gosia
 
-		output.println("\t\t\tException ex = null;");		
-		output.println("\t\t\tint method = r.readInt();");		
-		output.println("\t\t\tint stubID = r.readInt();");		
+		output.println("\t\tException ex = null;");		
+		output.println("\t\tint method = r.readInt();");		
+		output.println("\t\tint stubID = r.readInt();");		
 		output.println();		
 		
-		output.println("\t\t\tswitch(method) {");		
+		output.println("\t\tswitch(method) {");		
 
 		for (int i=0;i<methods.size();i++) { 
 			Method m = (Method) methods.get(i);
 			Type ret = getReturnType(m);
 			Type[] params = getParameterTypes(m);
 			
-			output.println("\t\t\tcase " + i + ":");
-			output.println("\t\t\t{");		       
+			output.println("\t\tcase " + i + ":");
+			output.println("\t\t{");		       
 
-			output.println("\t\t\t\t/* First - Extract the parameters */");		       
+			output.println("\t\t\t/* First - Extract the parameters */");		       
 			
 			for (int j=0;j<params.length;j++) { 
 				Type temp = params[j];
-				output.println(readMessageType("\t\t\t\t", temp + " p" + j, "r", temp));
+				output.println("\t\t\t" + temp + " p" + j + ";");
+			}
+			for (int k=0;k<params.length;k++) { 
+				Type temp = params[k];
+				if (temp instanceof BasicType) {
+				    output.println(readMessageType("\t\t\t", "p" + k, "r", temp));
+				}
+				else {
+				    output.println("\t\t\ttry {");
+				    output.println(readMessageType("\t\t\t\t", "p" + k, "r", temp));
+				    output.println("\t\t\t} catch(ClassNotFoundException e) {");
+				    output.println("\t\t\t\tthrow new RemoteException(\"Class not found\", e);");
+				    output.println("\t\t\t}");
+				}
 			}
 			
 			// we should try to optimize this finish away, to avoid thread cration!!! --Rob
-			output.println("\t\t\t\tr.finish();");
+			output.println("\t\t\tr.finish();");
 			output.println();
 			
-			output.println("\t\t\t\t/* Second - Invoke the method */");		       
+			output.println("\t\t\t/* Second - Invoke the method */");		       
 			
 			if (!ret.equals(Type.VOID)) { 
-				output.println("\t\t\t\t" + getInitedLocal(ret, "result") + ";");
+				output.println("\t\t\t" + getInitedLocal(ret, "result") + ";");
 			}
 
-			output.println("\t\t\t\ttry {");
-			output.print("\t\t\t\t\t");
+			output.println("\t\t\ttry {");
+			output.print("\t\t\t\t");
 		
 			if (!ret.equals(Type.VOID)) { 
 				output.print("result = ");
@@ -99,55 +110,54 @@ class RMISkeletonGenerator extends RMIGenerator {
 				}
 			}
 			output.println(");");	
-			output.println("\t\t\t\t} catch (Exception e) {");
-			output.println("\t\t\t\t\tex = e;");
-			output.println("\t\t\t\t}");
+			output.println("\t\t\t} catch (Exception e) {");
+			output.println("\t\t\t\tex = e;");
+			output.println("\t\t\t}");
 
-			output.println("\t\t\t\tWriteMessage w = stubs[stubID].newMessage();");		
+			output.println("\t\t\tWriteMessage w = stubs[stubID].newMessage();");		
 
-			output.println("\t\t\t\tif (ex != null) {");
-			output.println("\t\t\t\t\tw.writeByte(ibis.rmi.Protocol.EXCEPTION);");
-			output.println("\t\t\t\t\tw.writeObject(ex);");
-			output.println("\t\t\t\t} else {");
-			output.println("\t\t\t\t\tw.writeByte(ibis.rmi.Protocol.RESULT);");
+			output.println("\t\t\tif (ex != null) {");
+			output.println("\t\t\t\tw.writeByte(ibis.rmi.Protocol.EXCEPTION);");
+			output.println("\t\t\t\tw.writeObject(ex);");
+			output.println("\t\t\t} else {");
+			output.println("\t\t\t\tw.writeByte(ibis.rmi.Protocol.RESULT);");
 
 			if (!ret.equals(Type.VOID)) { 
-				output.println(writeMessageType("\t\t\t\t\t", "w", ret, "result"));
+				output.println(writeMessageType("\t\t\t\t", "w", ret, "result"));
 			} 
 
-			output.println("\t\t\t\t}");
-			output.println("\t\t\t\tw.send();");
-			output.println("\t\t\t\tw.finish();");
-					       
-			output.println("\t\t\t\tbreak;");
 			output.println("\t\t\t}");
+			output.println("\t\t\tw.send();");
+			output.println("\t\t\tw.finish();");
+					       
+			output.println("\t\t\tbreak;");
+			output.println("\t\t}");
 			output.println();
 		}
 
-		output.println("\t\t\tcase -1:");
-		output.println("\t\t\t{");		       	
-		output.println("\t\t\t\t/* Special case for new stubs that are connecting */");		       		
-		output.println("\t\t\t\tReceivePortIdentifier rpi = (ReceivePortIdentifier) r.readObject();");		       
-		output.println("\t\t\t\tr.finish();");		       
-		output.println("\t\t\t\tint id = addStub(rpi);");
-		output.println("\t\t\t\tWriteMessage w = stubs[id].newMessage();");
-		output.println("\t\t\t\tw.writeInt(id);");
-		output.println("\t\t\t\tw.writeObject(stubType);");
-		output.println("\t\t\t\tw.send();");
-		output.println("\t\t\t\tw.finish();");
-		output.println("\t\t\t\tbreak;");		       
-		output.println("\t\t\t}");		       
+		output.println("\t\tcase -1:");
+		output.println("\t\t{");		       	
+		output.println("\t\t\t/* Special case for new stubs that are connecting */");		       		
+		output.println("\t\t\tReceivePortIdentifier rpi;");
+		output.println("\t\t\ttry {");
+		output.println("\t\t\t\trpi = (ReceivePortIdentifier) r.readObject();");
+		output.println("\t\t\t} catch(ClassNotFoundException e) {");
+		output.println("\t\t\t\tthrow new Error(\"while reading ReceivePortIdentifier\", e);");
+		output.println("\t\t\t}");
+		output.println("\t\t\tr.finish();");		       
+		output.println("\t\t\tint id = addStub(rpi);");
+		output.println("\t\t\tWriteMessage w = stubs[id].newMessage();");
+		output.println("\t\t\tw.writeInt(id);");
+		output.println("\t\t\tw.writeObject(stubType);");
+		output.println("\t\t\tw.send();");
+		output.println("\t\t\tw.finish();");
+		output.println("\t\t\tbreak;");		       
+		output.println("\t\t}");		       
 		output.println();
 
-		output.println("\t\t\tdefault:");
-		output.println("\t\t\t\tSystem.err.println(\"OOPS: group_skeleton got illegal method number!\");");
-		output.println("\t\t\t\tSystem.exit(1);");
-		output.println("\t\t\t\tbreak;");
+		output.println("\t\tdefault:");
+		output.println("\t\t\tthrow new Error(\"illegal method number\");");
 		
-		output.println("\t\t\t}");
-		output.println("\t\t} catch (IOException ie) {");
-		output.println("\t\t\tSystem.err.println(\"EEK: got exception in upcall \" + ie);");
-		output.println("\t\t\tie.printStackTrace();");
 		output.println("\t\t}");
 
 		output.println("\t}");

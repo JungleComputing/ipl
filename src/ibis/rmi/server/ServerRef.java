@@ -1,6 +1,7 @@
 package ibis.rmi.server;
 
-import ibis.rmi.*;
+import ibis.rmi.Remote;
+import ibis.rmi.RemoteException;
 
 public interface ServerRef extends RemoteRef {
 
