@@ -24,8 +24,6 @@ class Main {
             System.out.println( "ITERATIONS    : ( int ). Number of iterations to calculate. 0 means dynamic termination detection." );
             System.out.println( "options:" );
             System.out.println( "-async: use split phase optimization and asynchronous sends." );
-            System.out.println( "-viz: support visualization, computation does not wait for external viz client." );
-            System.out.println( "-asyncViz: support visualization, computation is done in lockstep with external viz client." );
             System.out.println( "\noptions you gave: " );
 
             for( int i=0;i<args.length;i++ ) {
@@ -45,20 +43,11 @@ class Main {
         /* set up problem size */
         int nrow = 1000, ncol = 1000, nit = 50;
         boolean sync = true;
-        boolean visualization = false;
-        boolean asyncVisualization = false;
         int optionCount = 0;
 
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-async" ) ) {
                 sync = false;
-            }
-            else if( args[i].equals( "-viz" ) ) {
-                visualization = true;
-            }
-            else if( args[i].equals( "-asyncViz" ) ) {
-                visualization = true;
-                asyncVisualization = true;
             }
             else {
                 if( optionCount == 0 ) {
@@ -112,18 +101,6 @@ class Main {
                     System.out.println( "Matrix size   : " + nrow + "x" + ncol );
                     System.out.println( "Iterations    : " + ( ( nit == 0 ) ? "dynamic" : ( "" + nit ) ) );
                     System.out.println( "Calculation   : " + ( ( sync == SOR.SYNC_SEND ) ? "one-phase"   : "split-phase" ) );
-                    System.out.print( "Visualization : " );
-                    if( visualization ){
-                        if( asyncVisualization ) {
-                            System.out.println( "enabled, asynchronous" );
-                        }
-                        else {
-                            System.out.println( "enabled, synchronous" );
-                        }
-                    }
-                    else {
-                        System.out.println( "disabled" );
-                    }
 
                     System.out.println();
 
@@ -154,7 +131,7 @@ class Main {
                     }
                 }
 
-                local = new SOR( nrow, ncol, nit, sync, global, visualization );
+                local = new SOR( nrow, ncol, nit, sync, global );
 
                 table = global.table( (SORInterface) local, info.rank() );
                 local.setTable( table );

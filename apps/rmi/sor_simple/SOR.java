@@ -62,17 +62,15 @@ class SOR extends UnicastRemoteObject implements SORInterface {
     int prevIndex, nextIndex;
     int nit;
     boolean sync;
-    boolean visualization;
 
     WaitingSendThread prevSender, nextSender;
 
-    SOR( int nrow, int ncol, int nit, boolean sync, GlobalDataInterface global, boolean visualization ) throws RemoteException {
+    SOR( int nrow, int ncol, int nit, boolean sync, GlobalDataInterface global ) throws RemoteException {
         this.nrow = nrow; // Add two rows to borders.
         this.ncol = ncol; // Add two columns to borders.
         this.nit  = nit;
-        this.visualization = visualization;
 
-        this.sync       = sync;
+        this.sync = sync;
 
         this.global = global;
 
@@ -312,10 +310,6 @@ class SOR extends UnicastRemoteObject implements SORInterface {
                         }
                 }
                 */
-
-                if( visualization ) {
-                        ( ( GlobalData )global ).putMatrix( g );
-                }
 
                 diff = 0.0;
 
