@@ -717,7 +717,7 @@ class OpenCell1D implements OpenConfig {
                 i++;
                 boardsize = Integer.parseInt( args[i] );
             }
-            else if( args[i].equals( "-stat" ) ){
+            else if( args[i].equals( "-stats" ) ){
                 collectStatistics = true;
             }
             else {
@@ -825,6 +825,7 @@ class OpenCell1D implements OpenConfig {
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     rightNeighbourIdle = false;
                 }
+                population[generation] = p.firstNoColumn-p.firstColumn;
                 long startComputeTime = System.currentTimeMillis();
                 computeNextGeneration( p );
                 long endComputeTime = System.currentTimeMillis();
