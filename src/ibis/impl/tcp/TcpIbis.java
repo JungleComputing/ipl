@@ -127,7 +127,7 @@ public final class TcpIbis extends Ibis {
 
 		try {
 			ident = new TcpIbisIdentifier();
-			ident.address = InetAddress.getLocalHost().getHostAddress();
+			ident.address = InetAddress.getLocalHost();
 			ident.name = name;
 		} catch (UnknownHostException e) {
 			throw new IbisIOException("cannot get ip of local host", e);

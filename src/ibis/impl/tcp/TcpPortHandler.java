@@ -2,7 +2,6 @@ package ibis.ipl.impl.tcp;
 
 import java.net.Socket;
 import java.net.ServerSocket;
-import java.net.InetAddress;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -90,7 +89,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 			boolean reuse_connection = false;
 
 //			System.out.println("Creating socket for connection to " + receiver);
-			s = TcpIbisSocketFactory.createSocket(InetAddress.getByName(receiver.ibis.address), SYSTEMPORT, true);
+			s = TcpIbisSocketFactory.createSocket(receiver.ibis.address, SYSTEMPORT, true);
 
 //			System.out.println("Getting streams from socket");
 			InputStream sin = s.getInputStream();
@@ -185,7 +184,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 
 	void quit() { 
 		try { 
-			Socket s = TcpIbisSocketFactory.createSocket(InetAddress.getByName(me.address), SYSTEMPORT, true);
+			Socket s = TcpIbisSocketFactory.createSocket(me.address, SYSTEMPORT, true);
 			OutputStream sout = s.getOutputStream();
 			sout.write(FREE);
 			sout.flush();
