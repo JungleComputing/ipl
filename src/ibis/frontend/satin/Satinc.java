@@ -395,6 +395,17 @@ public final class Satinc {
 	
     }
 
+    static String patch_dollar(String str) {
+	StringBuffer s = new StringBuffer(str);
+	for (int i = 0; i < s.length(); i++) {
+	    if (s.charAt(i) == '$') {
+		s.setCharAt(i, '.');
+		break;
+	    }
+	}
+	return s.toString();
+    }
+    
     static String do_mangle(String name, String sig) {
 	StringBuffer s = new StringBuffer(sig);
 
@@ -414,6 +425,9 @@ public final class Satinc {
 	int i = 0;
 	while (i < s.length()) {
 	    switch(s.charAt(i)) {
+		// Fix for nested classes:
+	    case '$':
+
 	    case '.':
 	    case '/':
 		s.setCharAt(i, '_');
@@ -1738,9 +1752,53 @@ System.out.println("findMethod: could not find method " + name + sig);
 	
 	    Runtime r = Runtime.getRuntime();
 	    Process p = r.exec(command);
+
+	    java.io.InputStream o = p.getInputStream();
+	    java.io.InputStream e = p.getErrorStream();
+	    byte[] ob = new byte[4096];
+	    byte[] eb = new byte[4096];
+	    byte[] dummy = new byte[4096];
+
+	    int oc = 0;
+	    int ec = 0;
+
+	    boolean must_read;
+
+	    do {
+		must_read = false;
+
+		int ro = 0;
+		if (oc < ob.length) {
+		    ro = o.read(ob, oc, ob.length - oc);
+		    if (ro != -1) {
+			oc += ro;
+		    }
+		}
+		else {
+		    ro = o.read(dummy);
+		}
+		int re = 0;
+		if (ec < eb.length) {
+		    re = e.read(eb, ec, eb.length - ec);
+		    if (re != -1) {
+			ec += re;
+		    }
+		}
+		else {
+		    re = e.read(dummy);
+		}
+
+		if (re >= 0 || ro >= 0) {
+		    must_read = true;
+		}
+
+	    } while (must_read);
+
 	    int res = p.waitFor();
 	    if (res != 0) {
 		System.err.println("Error compiling generated code (" + className + ").");
+		System.err.write(eb, 0, ec);
+		System.err.println("");
 		System.exit(1);
 	    }
 	    if (verbose) {
@@ -2016,6 +2074,11 @@ System.out.println("findMethod: could not find method " + name + sig);
 	PrintStream out = new PrintStream(b);
 	//		PrintStream out = System.err;
 	Type[] params = mtab.typesOfParamsNoThis(m);
+	String[] params_types_as_names = new String[params.length];
+
+	for (int i = 0; i < params.length; i++) {
+	    params_types_as_names[i] = patch_dollar(params[i].toString());
+	}
 
 	Type returnType = getReturnType(m);
 
@@ -2024,8 +2087,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	// fields 
 	out.println("    " + classname + " self;");
-	for (int i=0; i<params.length; i++) {
-	    out.println("    " + params[i] + " param" + i + ";");
+	for (int i=0; i<params_types_as_names.length; i++) {
+	    out.println("    " + params_types_as_names[i] + " param" + i + ";");
 	}
 
 	// result 
@@ -2043,14 +2106,14 @@ System.out.println("findMethod: could not find method " + name + sig);
 	// ctor 
 	out.print("    " + name + "(");
 	out.print(classname + " self, ");
-	for (int i=0; i<params.length; i++) {
-	    out.print(params[i] + " param" + i + ", ");
+	for (int i=0; i<params_types_as_names.length; i++) {
+	    out.print(params_types_as_names[i] + " param" + i + ", ");
 	}
 	out.println("SpawnCounter s, InvocationRecord next, int storeId, int spawnId, LocalRecord parentLocals) {");
 	out.println("        super(s, next, storeId, spawnId, parentLocals);");
 	out.println("        this.self = self;");
 
-	for (int i=0; i<params.length; i++) {
+	for (int i=0; i<params_types_as_names.length; i++) {
 	    out.println("        this.param" + i + " = param" + i + ";");
 	}
 
@@ -2059,8 +2122,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	// getNew method 
 	out.print("    static " + name + " getNew(");
 	out.print(classname + " self, ");
-	for (int i=0; i<params.length; i++) {
-	    out.print(params[i] + " param" + i + ", ");
+	for (int i=0; i<params_types_as_names.length; i++) {
+	    out.print(params_types_as_names[i] + " param" + i + ", ");
 	}
 	out.println("SpawnCounter s, InvocationRecord next, int storeId, int spawnId, LocalRecord parentLocals) {");
 
@@ -2068,7 +2131,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("        if (invocationRecordCache == null) {");
 	}
 	out.print("            return new " + name + "(self, ");
-	for (int i=0; i<params.length; i++) {
+	for (int i=0; i<params_types_as_names.length; i++) {
 	    out.print(" param" + i + ", ");
 	}
 	out.println("s, next, storeId, spawnId, parentLocals);");
@@ -2078,7 +2141,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("        " + name + " res = invocationRecordCache;");
 	    out.println("        invocationRecordCache = (" + name + ") res.cacheNext;");
 	    out.println("        res.self = self;");
-	    for (int i=0; i<params.length; i++) {
+	    for (int i=0; i<params_types_as_names.length; i++) {
 		out.println("        res.param" + i + " = param" + i + ";");
 	    }
 	    out.println("        res.spawnCounter = s;");
@@ -2099,12 +2162,12 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.print("    static " + name + " getNewArray(");
 	    out.print(returnType + "[] array, int index, ");
 	    out.print(classname + " self, ");
-	    for (int i=0; i<params.length; i++) {
-		out.print(params[i] + " param" + i + ", ");
+	    for (int i=0; i<params_types_as_names.length; i++) {
+		out.print(params_types_as_names[i] + " param" + i + ", ");
 	    }
 	    out.println("SpawnCounter s, InvocationRecord next, int storeId, int spawnId, LocalRecord parentLocals) {");
 	    out.print("            " + name + " res = getNew(self, ");
-	    for (int i=0; i<params.length; i++) {
+	    for (int i=0; i<params_types_as_names.length; i++) {
 		out.print(" param" + i + ", ");
 	    }
 	    out.println("s, next, storeId, spawnId, parentLocals);");
