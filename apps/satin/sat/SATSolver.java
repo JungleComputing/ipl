@@ -228,7 +228,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * @param p The problem to solve.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    static public SATSolution solveSystem( final SATProblem p )
+    static SATSolution solveSystem( final SATProblem p )
     {
 	SATSolution res = null;
 

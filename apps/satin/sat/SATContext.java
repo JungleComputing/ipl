@@ -78,6 +78,7 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean traceLearning = false;
     private static final boolean traceResolutionChain = false;
     private static final boolean traceRestarts = true;
+    private static final boolean traceUpdates = false;
 
     private static final boolean doVerification = false;
     private static final boolean doLearning = true;
@@ -713,6 +714,9 @@ public final class SATContext implements java.io.Serializable {
     {
         int newCount = p.getClauseCount();
 
+        if( traceUpdates ){
+            System.err.println( "Updating context with " + (newCount-terms.length) + " new clauses" );
+        }
         if( newCount>terms.length ){
             int oldCount = terms.length;
             // New clauses have been added. Enlarge the arrays related
