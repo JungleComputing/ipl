@@ -2,32 +2,36 @@ package ibis.satin;
 import ibis.ipl.IbisIdentifier;
 //import java.util.ArrayList;
 
-/** An invocation record. */
+/**
+ * An invocation record describes a spawned invocation, including the
+ * parameters of the invocation. The Satin frontend generates a subclass
+ * of this class for each spawnable method.
+ */
 
 public abstract class InvocationRecord implements java.io.Serializable, Config {
 	/* Of all fields, only the owner and the stamp must be sent over the network. Parents too .*/
 
-	public IbisIdentifier owner;
-	public int stamp; /* Used to locate this invocation record, when a remote job result comes in. */
+	protected IbisIdentifier owner;
+	protected int stamp; /* Used to locate this invocation record, when a remote job result comes in. */
 
-	public IbisIdentifier parentOwner;
-	public int parentStamp;
+	protected IbisIdentifier parentOwner;
+	protected int parentStamp;
 
-	public transient InvocationRecord parent;
+	protected transient InvocationRecord parent;
 
 	protected transient SpawnCounter spawnCounter;
-	public transient Throwable eek;
-	public transient InvocationRecord cacheNext; /* Used to link the records in the cache. */
-	public transient boolean aborted;
+	protected transient Throwable eek;
+	protected transient InvocationRecord cacheNext; /* Used to link the records in the cache. */
+	protected transient boolean aborted;
 
 	/* These are used to link the records in the JobQueue. Not needed when Dijkstra is used. */
-	public transient InvocationRecord qprev;
-	public transient InvocationRecord qnext;
+	protected transient InvocationRecord qprev;
+	protected transient InvocationRecord qnext;
 
-	public transient int storeId; /* An id for the store where the result of the spawn must go. */
-	public transient int spawnId; /* An id for the spawn in the code. Needed to run the correct inlet. */
-	public transient LocalRecord parentLocals;
-	public transient IbisIdentifier stealer;
+	protected transient int storeId; /* An id for the store where the result of the spawn must go. */
+	protected transient int spawnId; /* An id for the spawn in the code. Needed to run the correct inlet. */
+	protected transient LocalRecord parentLocals;
+	protected transient IbisIdentifier stealer;
 
 	transient boolean alreadySentExceptionResult;
 	protected transient boolean inletExecuted;
@@ -54,7 +58,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
 //	public abstract void delete();
 
-	final public void clear() {
+	final protected void clear() {
 		owner = null;
 		stamp = -2;
 		spawnCounter = null;
@@ -82,11 +86,23 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		}
 	}
 
-	final public boolean equals(InvocationRecord other) {
+	/**
+	 * Compares this invocation record with another invocation record.
+	 * Returns <code>true</code> if equal.
+	 * @param other the invocation record to compare with.
+	 * @return <code>true</code> if equal, <code>false</code> if not.
+	 */
+	public boolean equals(InvocationRecord other) {
 		if(other == this) return true;
 		return stamp == other.stamp && owner.equals(other.owner);
 	}
 
+	/**
+	 * Compares this invocation record with another object.
+	 * Returns <code>true</code> if equal.
+	 * @param o the object to compare with.
+	 * @return <code>true</code> if equal, <code>false</code> if not.
+	 */
 	final public boolean equals(Object o) {
 		if(o == this) return true;
 		if(o instanceof InvocationRecord) {
@@ -100,10 +116,18 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		}
 	}
 
+	/**
+	 * Returns a hashcode that conforms with the <code>equals</code> method.
+	 * @return a hashcode.
+	 */
 	final public int hashCode() {
 		return stamp;
 	}
 
+	/**
+	 * Returns a string representation of this invocation record.
+	 * @return a string representation of this invocation record.
+	 */
 	public String toString() {
 		String result = "(Invocation record: stamp = " + stamp;
 			result += ", owner = " + (owner == null ? "NULL" : "" + owner);
@@ -117,6 +141,6 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 			return result;
 	}
 
-	public abstract void runLocal();
-	public abstract ReturnRecord runRemote();
+	protected abstract void runLocal();
+	protected abstract ReturnRecord runRemote();
 }

@@ -13,7 +13,7 @@ import java.util.Vector;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
-//import org.apache.bcel.classfile.Field;
+import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ACONST_NULL;
@@ -39,7 +39,7 @@ import org.apache.bcel.generic.FCONST;
 import org.apache.bcel.generic.FLOAD;
 import org.apache.bcel.generic.FRETURN;
 import org.apache.bcel.generic.FSTORE;
-//import org.apache.bcel.generic.FieldGen;
+import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.GOTO;
 import org.apache.bcel.generic.IADD;
 import org.apache.bcel.generic.ICONST;
@@ -238,7 +238,13 @@ public final class Satinc {
     }
 
     boolean isRewritten() {
-	return Repository.implementationOf(c, "ibis.satin.SatinRewritten");
+	Field[] fields = c.getFields();
+	for (int i = 0; i < fields.length; i++) {
+	    if (fields[i].getName().equals("$rewritten$")) {
+		return true;
+	    }
+	}
+	return false;
     }
 
     static boolean isRetIns(Instruction i) {
@@ -303,16 +309,18 @@ public final class Satinc {
 				     Type.VOID,
 				     new Type[] {new ArrayType(Type.STRING, 1)},
 				     Constants.INVOKESPECIAL));
-	il.append(ins_f.createFieldAccess("ibis.satin.Satin",
-					  "master",
-					  Type.BOOLEAN,
-					  Constants.GETFIELD));
+	il.append(ins_f.createInvoke("ibis.satin.Satin",
+				     "isMaster",
+				     Type.BOOLEAN,
+				     Type.NO_ARGS,
+				     Constants.INVOKEVIRTUAL));
 	BranchHandle ifcmp = il.append(new IFEQ(null));
 	il.append(getSatin(ins_f));
-	il.append(ins_f.createFieldAccess("ibis.satin.Satin",
-					  "mainArgs",
-					  new ArrayType(Type.STRING, 1),
-					  Constants.GETFIELD));
+	il.append(ins_f.createInvoke("ibis.satin.Satin",
+				     "getMainArgs",
+				      new ArrayType(Type.STRING, 1),
+				      Type.NO_ARGS,
+				      Constants.INVOKEVIRTUAL));
 	InstructionHandle try_start =
 	    il.append(ins_f.createInvoke(c.getClassName(),
 				     origMain.getName(),
@@ -642,7 +650,6 @@ public final class Satinc {
 	il.insert(pos, new DUP());
 	il.insert(pos, new ASTORE(maxLocals+2));
 
-	// outstandingSpawns = outstandingSpawns.next 
 	il.insert(pos, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
 					       "cacheNext",
 					       irType,
@@ -770,19 +777,21 @@ public final class Satinc {
 	InstructionHandle abo = insertNullReturn(m, il, pos);
 
 	il.insert(abo, getSatin(ins_f));
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-					       "parent",
-					       irType,
-					       Constants.GETFIELD));
+	il.insert(abo, ins_f.createInvoke("ibis.satin.Satin",
+					  "getParent",
+					   irType,
+					   Type.NO_ARGS,
+					   Constants.INVOKEVIRTUAL));
 
 	// test for null (root job)
 	il.insert(abo, new IFNULL(pos));
 
 	il.insert(abo, getSatin(ins_f));
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-					       "parent",
-					       irType,
-					       Constants.GETFIELD));
+	il.insert(abo, ins_f.createInvoke("ibis.satin.Satin",
+					  "getParent",
+					   irType,
+					   Type.NO_ARGS,
+					   Constants.INVOKEVIRTUAL));
 
 	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
 					       "aborted",
@@ -794,20 +803,22 @@ public final class Satinc {
 ////@@@@@@@@@@2 this needs fixing :-(
 	// Test for parent.eek, if non-null, throw it (exception in inlet).
 	il.insert(abo, getSatin(ins_f));
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-					       "parent",
-					       irType,
-					       Constants.GETFIELD));
+	il.insert(abo, ins_f.createInvoke("ibis.satin.Satin",
+					  "getParent",
+					   irType,
+					   Type.NO_ARGS,
+					   Constants.INVOKEVIRTUAL));
 	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
 					       "eek",
 					       new ObjectType("java.lang.Throwable"),
 					       Constants.GETFIELD));
 	il.insert(abo, new IFNULL(abo));
 	il.insert(abo, getSatin(ins_f));
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-					       "parent",
-					       irType,
-					       Constants.GETFIELD));
+	il.insert(abo, ins_f.createInvoke("ibis.satin.Satin",
+					  "getParent",
+					   irType,
+					   Type.NO_ARGS,
+					   Constants.INVOKEVIRTUAL));
 	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
 					       "eek",
 					       new ObjectType("java.lang.Throwable"),
@@ -1907,7 +1918,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	try {
 	    out.println("final class " + name + " extends ibis.satin.LocalRecord {");
-	    out.println("    static " + name + " cache;");
+	    out.println("    private static " + name + " cache;");
+	    out.println("    private " + name + " cacheNext;");
 
 	    String[] allLvs = MethodTable.getAllLocalDecls(m);
 
@@ -1969,7 +1981,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("        }");
 
 	    out.println("        " + name + " result = cache;");
-	    out.println("        cache = (" + name + ") cache.next;");
+	    out.println("        cache = cache.cacheNext;");
 
 	    for (int i=0; i<params.length; i++) {
 		    String paramName = MethodTable.getParamName(m, i);
@@ -1978,7 +1990,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 			    " = " + MethodTable.generatedLocalName(params[i], paramName) + ";");
 	    }
 
-	    out.println("        result.next = null;");
+	    out.println("        result.cacheNext = null;");
 	    out.println("        return result;");
 	    out.println("    }\n");
 
@@ -1995,7 +2007,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		    }
 	    }
 
-	    out.println("        curr.next = cache;");
+	    out.println("        curr.cacheNext = cache;");
 	    out.println("        cache = curr;");
 	    out.println("    }\n");
 
@@ -2252,7 +2264,20 @@ System.out.println("findMethod: could not find method " + name + sig);
 		out.println("(eek, stamp);");
 	    }
 	    out.println("    }");
+
+	    out.print("    public void assignTo(Throwable eek");
+	    if (! returnType.equals(Type.VOID)) {
+		out.print(", " + returnType + " result");
+	    }
+	    out.println(") {");
+	    out.println("	this.eek = eek;");
+	    if (! returnType.equals(Type.VOID)) {
+		out.println("	this.result = result;");
+	    }
+	    out.println("    }");
+
 	    out.println("}");
+
 	} finally {
 	    out.close();
 	}
@@ -2296,10 +2321,11 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("    public void assignTo(InvocationRecord rin) {");
 	    out.println("        " + invocationRecordName(m, classname) + " r = (" +
 		    invocationRecordName(m, classname) + ") rin;");
+	    out.print("	r.assignTo(eek");
 	    if (! returnType.equals(Type.VOID)) {
-		out.println("        r.result = result;");
+		out.print(", result");
 	    }
-	    out.println("        r.eek = eek;");
+	    out.println(");");
 	    out.println("    }");
 	    out.println("}");
 	}
@@ -2388,7 +2414,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	Repository.removeClass(c);
 
-	gen_c.addInterface("ibis.satin.SatinRewritten");
+	gen_c.addField(new FieldGen(Constants.ACC_STATIC, Type.BOOLEAN, "$rewritten$", cpg).getField());
 
 	c = gen_c.getJavaClass();
 

@@ -7,7 +7,12 @@ import java.io.Serializable;
 import java.util.HashMap;
 //import java.util.ArrayList;
 
-/** This class implements an immutable global tupe space. **/
+/** This class implements an immutable global tuple space.
+ * A tuple consists of a key (a String) and its associated data
+ * (a serializable object).
+ * Note that the data is <strong>not</strong> immutable, because
+ * the {@link #get(String) get()} method does not make a copy. 
+ */
 public class SatinTupleSpace implements Config {
 
 	// space must be synchronized, adds and dels arrive asynchronously
@@ -69,7 +74,10 @@ public class SatinTupleSpace implements Config {
 
 	/** Retrieves an element from the tuple space. 
 	    If the element is not in the space yet, 
-	    this operation blocks until the element is inserted. **/
+	    this operation blocks until the element is inserted.
+	    @param key the key of the element retrieved.
+	    @return the data associated with the key.
+	 **/
 	public static Serializable get(String key) {
 		Serializable data = null;
 
@@ -108,7 +116,9 @@ public class SatinTupleSpace implements Config {
 		}
 	}
 
-	/** Remove an element from the tuple space. **/
+	/** Removes an element from the tuple space.
+	 * @param key the key of the tuple to be removed.
+	 **/
 	public static void remove(String key) {
 		synchronized(space) {
 			if(ASSERTS && !space.containsKey(key)) {
