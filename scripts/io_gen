@@ -1,0 +1,2 @@
+JAVACLASSPATH=$IBIS_ROOT:$IBIS_ROOT/ibis:.:$JAVA_ROOT/jre/lib/rt.jar:$JIKES_BT_ROOT/jikesBT
+$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator $@

@@ -1,0 +1,9 @@
+JAVACLASSPATH=$IBIS_ROOT:$IBIS_ROOT/ibis:.:$JAVA_ROOT/jre/lib/rt.jar:$JIKES_BT_ROOT/jikesBT
+LASM_CACHE=$IBIS_ROOT/ibis/LASM_IBIS_CACHE
+MANTACFLAGS="-classpath $JAVACLASSPATH -g -no-shared-link -panda $PANDA_ROOT/panda4.0 -output_cc $LASM_CACHE -user_cc $LASM_CACHE"
+
+MANTAC_COMMAND="$MANTA_ROOT/mantac $MANTACFLAGS"
+
+$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.ibis.Ibisc -compiler  "$JAVAC -g -classpath $JAVACLASSPATH" -mantac "$MANTAC_COMMAND" $@
+
+# we should make a choice between udp/myrinet for the mantac command
