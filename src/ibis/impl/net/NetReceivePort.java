@@ -275,9 +275,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		 */
 		protected void terminate() {
 			stop = true;
-			this.interrupt();
                         try {
                                 serverSocket.close();
+                                this.interrupt();
 				this.join();
 			} catch (Exception e) {
 				__.fwdAbort__(e);
