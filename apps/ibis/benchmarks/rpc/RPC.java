@@ -44,7 +44,6 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 
     private Ibis        myIbis;
     private Registry    registry;
-    private StaticProperties ibisProperties;
 
     private RszHandler	rszHandler;
 
@@ -791,11 +790,6 @@ System.err.println("Poor-man's barrier send finished");
 
 	Properties p = System.getProperties();
 
-	String ser = p.getProperty("ibis.serialization");
-	if (ser != null) {
-	    ibisProperties.add("Serialization", ser);
-	}
-
 	String total = p.getProperty("ibis.pool.total_hosts");
 	if (total != null) {
 	    ncpus = Integer.parseInt(total);
@@ -862,7 +856,7 @@ System.err.println("Poor-man's barrier send finished");
 	    }
 	});
 
-	portType = myIbis.createPortType("test type", ibisProperties);
+	portType = myIbis.createPortType("test type", myIbis.properties());
 // manta.runtime.RuntimeSystem.DebugMe(2, 0);
     }
 
@@ -936,8 +930,6 @@ System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not
 
     RPC(String[] args, RPC client) {
 	try {
-
-	    ibisProperties = new StaticProperties();
 
 	    parseArgs(args);
 	    parseIbisName();

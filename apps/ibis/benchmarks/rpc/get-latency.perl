@@ -22,16 +22,16 @@ while ( <> ) {
 	$n { $ix } ++;
 }
 
-printf "Ibis\t Ser\t average(us)\n";
+printf("%-24s %-8s %-12s\n", "Ibis", "Ser", "average(us)");
 foreach ( @serializations ) {
 	$ser = $_;
 	foreach ( @ibises ) {
 		$ibis = $_;
 		$ix = $ibis . "/" . $ser;
 		if ( $n { $ix } > 0) {
-			printf "$ibis\t $ser\t ";
-			printf $average{ $ix } / $n { $ix };
-			printf "\n";
+			printf("%-24s %-8s %12.1f\n",
+				"$ibis", "$ser", 
+				$average{ $ix } / $n { $ix });
 		}
 	}
 }

@@ -36,7 +36,8 @@ while ( <> ) {
 	$n { $ix } ++;
 }
 
-printf "Ser\t Datatype\t Ibis\t max(MB/s)\t average(MB/s)\n";
+printf("%-8s %-8s %-24s %12s %12s\n",
+	"Ser", "Datatype", "Ibis", "max(MB/s)", "average(MB/s)");
 foreach ( @serializations ) {
 	$ser = $_;
 	foreach ( @datatypes ) {
@@ -45,11 +46,10 @@ foreach ( @serializations ) {
 			$ibis = $_;
 			$ix = $ibis . "/" . $ser . "/" . $datatype;
 			if ( $n { $ix } > 0) {
-				printf "$ser\t $datatype\t $ibis\t ";
-				printf $max_thrp{ $ix };
-				printf "\t ";
-				printf $average{ $ix } / $n { $ix };
-				printf "\n";
+				printf("%-8s %-8s %-24s %12.2f %12.2f\n",
+					"$ser", "$datatype", "$ibis",
+					$max_thrp{ $ix },
+					$average{ $ix } / $n { $ix });
 			}
 		}
 	}
