@@ -10,6 +10,6 @@ manta:
 
 clean:
 	rm -f $(TRASH_FILES)
-	cd rpc; $(MAKE) $(MFLAGS) clean
+#	cd rpc; $(MAKE) $(MFLAGS) clean
 	cd latency; $(MAKE) $(MFLAGS) clean
 	cd throughput; $(MAKE) $(MFLAGS) clean

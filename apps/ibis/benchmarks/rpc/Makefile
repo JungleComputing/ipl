@@ -23,8 +23,8 @@ MANTACFLAGS	+= -S
 # java: $(CLASS_FILES) $(MAIN_CLASS)
 
 manta:
-	@echo Don't make a manta exec here\!
-	cd manta; $(MAKE) $(MFLAGS)
+#	@echo Don't make a manta exec here!
+#	cd manta; $(MAKE) $(MFLAGS)
 
 clean:
 	rm -f $(TRASH_FILES)

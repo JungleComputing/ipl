@@ -14,7 +14,7 @@ class Sender {
 		this.sport = sport;
 	} 
 	
-	void send(int count) throws IbisIOException {
+	void send(int count) throws Exception {
 		// warmup
 		for(int i = 0; i< count; i++) {
 			WriteMessage writeMessage = sport.newMessage();
@@ -211,7 +211,7 @@ class Latency {
 		} while (!success);
 	}
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
+	public static ReceivePortIdentifier lookup(String name) throws Exception { 
 		
 		ReceivePortIdentifier temp = null;
 
@@ -342,7 +342,7 @@ class Latency {
                         rport.free();
 			ibis.end();
 
-		} catch (IbisIOException e) { 
+		} catch (Exception e) { 
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();
