@@ -11,27 +11,30 @@ import java.nio.DoubleBuffer;
 
 import java.nio.BufferUnderflowException;
 
-public final class NioConversion extends Conversion { 
+public final class NioLittleConversion extends SimpleLittleConversion { 
 
-    public final int BUFFER_SIZE = 10 * 1024;
+    public static final int BUFFER_SIZE = 10 * 1024;
 
-    private ByteOrder order;
+    public static final int CHAR_THRESHOLD = 600 / CHAR_SIZE;
+    public static final int SHORT_THRESHOLD = 600 / SHORT_SIZE;
+    public static final int INT_THRESHOLD = 600 / INT_SIZE;
+    public static final int LONG_THRESHOLD = 600 / LONG_SIZE;
+    public static final int FLOAT_THRESHOLD = 60 / FLOAT_SIZE;
+    public static final int DOUBLE_THRESHOLD = 96 / DOUBLE_SIZE;
 
-    private ByteBuffer byteBuffer;
-    private CharBuffer charBuffer;
-    private ShortBuffer shortBuffer;
-    private IntBuffer intBuffer;
-    private LongBuffer longBuffer;
-    private FloatBuffer floatBuffer;
-    private DoubleBuffer doubleBuffer;
+    private final ByteOrder order;
 
-    NioConversion(boolean bigEndian) {
+    private final ByteBuffer byteBuffer;
+    private final CharBuffer charBuffer;
+    private final ShortBuffer shortBuffer;
+    private final IntBuffer intBuffer;
+    private final LongBuffer longBuffer;
+    private final FloatBuffer floatBuffer;
+    private final DoubleBuffer doubleBuffer;
 
-	if(bigEndian) {
-	    order = ByteOrder.BIG_ENDIAN;
-	} else {
-	    order = ByteOrder.LITTLE_ENDIAN;
-	}
+    public NioLittleConversion() {
+	// big/little endian difference one liner
+	order = ByteOrder.LITTLE_ENDIAN;
 
 	byteBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE).order(order);
 
@@ -44,128 +47,12 @@ public final class NioConversion extends Conversion {
 	doubleBuffer = byteBuffer.asDoubleBuffer();
     }
 
-    public boolean bigEndian() {
-	return order == (ByteOrder.BIG_ENDIAN);
-    }
-
-
-    public byte boolean2byte(boolean src) {
-	return (src ? (byte) 1 : (byte) 0);
-    }
-
-    public boolean byte2boolean(byte src) {
-	return (src == 1);
-    }
-
-    public void char2byte(char src, byte[] dst, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.putChar(src);
-	    byteBuffer.flip();
-	    byteBuffer.get(dst, off, CHAR_SIZE);
-    }
-
-    public char byte2char(byte[] src, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.put(src, off, CHAR_SIZE);
-	    byteBuffer.flip();
-	    return byteBuffer.getChar();
-    }
-
-    public void short2byte(short src, byte[] dst, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.putShort(src);
-	    byteBuffer.flip();
-	    byteBuffer.get(dst, off, SHORT_SIZE);
-
-    }
-
-    public short byte2short(byte[] src, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.put(src, off, SHORT_SIZE);
-	    byteBuffer.flip();
-	    return byteBuffer.getShort();
-    }
-
-    public void int2byte(int src, byte[] dst, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.putInt(src);
-	    byteBuffer.flip();
-	    byteBuffer.get(dst, off, INT_SIZE);
-    }
-
-    public int byte2int(byte[] src, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.put(src, off, INT_SIZE);
-	    byteBuffer.flip();
-	    return byteBuffer.getInt();
-    }
-
-    public void long2byte(long src, byte[] dst, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.putLong(src);
-	    byteBuffer.flip();
-	    byteBuffer.get(dst, off, LONG_SIZE);
-    }
-
-    public long byte2long(byte[] src, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.put(src, off, LONG_SIZE);
-	    byteBuffer.flip();
-	    return byteBuffer.getLong();
-    }
-
-    public void float2byte(float src, byte[] dst, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.putFloat(src);
-	    byteBuffer.flip();
-	    byteBuffer.get(dst, off, FLOAT_SIZE);
-    }
-
-    public float byte2float(byte[] src, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.put(src, off, FLOAT_SIZE);
-	    byteBuffer.flip();
-	    return byteBuffer.getFloat();
-    }
-
-    public void double2byte(double src, byte[] dst, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.putDouble(src);
-	    byteBuffer.flip();
-	    byteBuffer.get(dst, off, DOUBLE_SIZE);
-    }
-
-    public double byte2double(byte[] src, int off) {
-	    byteBuffer.clear();
-	    byteBuffer.put(src, off, DOUBLE_SIZE);
-	    byteBuffer.flip();
-	    return byteBuffer.getDouble();
-    }
-
-    public void boolean2byte(boolean[] src, int off, int len, 
-	    byte [] dst, int off2) {
-
-	// booleans aren't supported in nio.
-	for (int i=0;i<len;i++) {                       
-	    dst[off2+i] = (src[off+i] ? (byte)1 : (byte)0);
-	} 
-    }
-
-
-    public void byte2boolean(byte[] src, int index_src, 
-	    boolean[] dst, int index_dst, int len) { 
-
-	// booleans aren't supported in nio.
-	for (int i=0;i<len;i++) {                       
-	    dst[index_dst+i] = (src[index_src + i] == 1);
-	}
-    } 
-
-
     public void char2byte(char[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if(len > (BUFFER_SIZE / 2)) {
+	if (len < CHAR_THRESHOLD) {
+	    super.char2byte(src, off, len, dst, off2);
+	} else if(len > (BUFFER_SIZE / 2)) {
 	    CharBuffer buffer = ByteBuffer.wrap(dst,off2,len * 2).
 		order(order).asCharBuffer();
 	    buffer.put(src,off,len);
@@ -173,7 +60,7 @@ public final class NioConversion extends Conversion {
 	    charBuffer.clear();
 	    charBuffer.put(src, off, len);
 
-	    byteBuffer.position(0).limit(charBuffer.position() * 2);
+	    byteBuffer.position(0).limit(len * 2);
 	    byteBuffer.get(dst, off2, len * 2);
 	}
     }
@@ -181,7 +68,9 @@ public final class NioConversion extends Conversion {
     public void byte2char(byte[] src, int index_src, 
 	    char[] dst, int index_dst, int len) {
 
-	if(len > (BUFFER_SIZE / 2)) {
+	if (len < CHAR_THRESHOLD) {
+	    super.byte2char(src, index_src, dst, index_dst, len);
+	} else if(len > (BUFFER_SIZE / 2)) {
 	    CharBuffer buffer = ByteBuffer.wrap(src,index_src,len * 2).
 		order(order).asCharBuffer();
 	    buffer.get(dst,index_dst,len);
@@ -189,7 +78,7 @@ public final class NioConversion extends Conversion {
 	    byteBuffer.clear();
 	    byteBuffer.put(src, index_src, len * 2);
 
-	    charBuffer.position(0).limit(byteBuffer.position() / 2);
+	    charBuffer.position(0).limit(len);
 	    charBuffer.get(dst, index_dst, len);
 	}
     }
@@ -197,7 +86,9 @@ public final class NioConversion extends Conversion {
     public void short2byte(short[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if(len > (BUFFER_SIZE / 2)) {
+	if (len < SHORT_THRESHOLD) {
+	    super.short2byte(src, off, len, dst, off2);
+	} else if(len > (BUFFER_SIZE / 2)) {
 	    ShortBuffer buffer = ByteBuffer.wrap(dst,off2,len * 2).
 		order(order).asShortBuffer();
 	    buffer.put(src,off,len);
@@ -205,7 +96,7 @@ public final class NioConversion extends Conversion {
 	    shortBuffer.clear();
 	    shortBuffer.put(src, off, len);
 
-	    byteBuffer.position(0).limit(shortBuffer.position() * 2);
+	    byteBuffer.position(0).limit(len * 2);
 	    byteBuffer.get(dst, off2, len * 2);
 	}
     }
@@ -213,7 +104,9 @@ public final class NioConversion extends Conversion {
     public void byte2short(byte[] src, int index_src, 
 	    short[] dst, int index_dst, int len) {
 
-	if(len > (BUFFER_SIZE / 2)) {
+	if (len < SHORT_THRESHOLD) {
+	    super.byte2short(src, index_src, dst, index_dst, len);
+	} else if(len > (BUFFER_SIZE / 2)) {
 	    ShortBuffer buffer = ByteBuffer.wrap(src,index_src,len * 2).
 		order(order).asShortBuffer();
 	    buffer.get(dst,index_dst,len);
@@ -221,7 +114,7 @@ public final class NioConversion extends Conversion {
 	    byteBuffer.clear();
 	    byteBuffer.put(src, index_src, len * 2);
 
-	    shortBuffer.position(0).limit(byteBuffer.position() / 2);
+	    shortBuffer.position(0).limit(len);
 	    shortBuffer.get(dst, index_dst, len);
 	}
 
@@ -229,7 +122,9 @@ public final class NioConversion extends Conversion {
 
     public void int2byte(int[] src, int off, int len, byte [] dst, int off2) {
 
-	if(len > (BUFFER_SIZE / 4)) {
+	if (len < INT_THRESHOLD) {
+	    super.int2byte(src, off, len, dst, off2);
+	} else if(len > (BUFFER_SIZE / 4)) {
 	    IntBuffer buffer = ByteBuffer.wrap(dst,off2,len * 4).
 		order(order).asIntBuffer();
 	    buffer.put(src,off,len);
@@ -237,7 +132,7 @@ public final class NioConversion extends Conversion {
 	    intBuffer.clear();
 	    intBuffer.put(src, off, len);
 
-	    byteBuffer.position(0).limit(intBuffer.position() * 4);
+	    byteBuffer.position(0).limit(len * 4);
 	    byteBuffer.get(dst, off2, len * 4);
 	}
     }
@@ -245,7 +140,9 @@ public final class NioConversion extends Conversion {
     public void byte2int(byte[] src, int index_src, int[] dst, 
 	    int index_dst, int len) {
 
-	if(len > (BUFFER_SIZE / 4)) {
+	if (len < INT_THRESHOLD) {
+	    super.byte2int(src, index_src, dst, index_dst, len);
+	} else if(len > (BUFFER_SIZE / 4)) {
 	    IntBuffer buffer = ByteBuffer.wrap(src,index_src,len * 4).
 		order(order).asIntBuffer();
 	    buffer.get(dst,index_dst,len);
@@ -253,7 +150,7 @@ public final class NioConversion extends Conversion {
 	    byteBuffer.clear();
 	    byteBuffer.put(src, index_src, len * 4);
 
-	    intBuffer.position(0).limit(byteBuffer.position() / 4);
+	    intBuffer.position(0).limit(len);
 	    intBuffer.get(dst, index_dst, len);
 	}
     }
@@ -261,7 +158,9 @@ public final class NioConversion extends Conversion {
     public void long2byte(long[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if(len > (BUFFER_SIZE / 8)) {
+	if (len < LONG_THRESHOLD) {
+	    super.long2byte(src, off, len, dst, off2);
+	} else if(len > (BUFFER_SIZE / 8)) {
 	    LongBuffer buffer = ByteBuffer.wrap(dst,off2,len * 8).
 		order(order).asLongBuffer();
 	    buffer.put(src,off,len);
@@ -269,7 +168,7 @@ public final class NioConversion extends Conversion {
 	    longBuffer.clear();
 	    longBuffer.put(src, off, len);
 
-	    byteBuffer.position(0).limit(longBuffer.position() * 8);
+	    byteBuffer.position(0).limit(len * 8);
 	    byteBuffer.get(dst, off2, len * 8);
 	}
     }
@@ -277,7 +176,9 @@ public final class NioConversion extends Conversion {
     public void byte2long(byte[] src, int index_src, 
 	    long[] dst, int index_dst, int len) { 		
 
-	if(len > (BUFFER_SIZE / 8)) {
+	if (len < LONG_THRESHOLD) {
+	    super.byte2long(src, index_src, dst, index_dst, len);
+	} else if(len > (BUFFER_SIZE / 8)) {
 	    LongBuffer buffer = ByteBuffer.wrap(src,index_src,len * 8).
 		order(order).asLongBuffer();
 	    buffer.get(dst,index_dst,len);
@@ -285,7 +186,7 @@ public final class NioConversion extends Conversion {
 	    byteBuffer.clear();
 	    byteBuffer.put(src, index_src, len * 8);
 
-	    longBuffer.position(0).limit(byteBuffer.position() / 8);
+	    longBuffer.position(0).limit(len);
 	    longBuffer.get(dst, index_dst, len);
 	}
     } 
@@ -293,7 +194,9 @@ public final class NioConversion extends Conversion {
     public void float2byte(float[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if(len > (BUFFER_SIZE / 4)) {
+	if (len < FLOAT_THRESHOLD) {
+	    super.float2byte(src, off, len, dst, off2);
+	} else if(len > (BUFFER_SIZE / 4)) {
 	    FloatBuffer buffer = ByteBuffer.wrap(dst,off2,len * 4).
 		order(order).asFloatBuffer();
 	    buffer.put(src,off,len);
@@ -301,7 +204,7 @@ public final class NioConversion extends Conversion {
 	    floatBuffer.clear();
 	    floatBuffer.put(src, off, len);
 
-	    byteBuffer.position(0).limit(floatBuffer.position() * 4);
+	    byteBuffer.position(0).limit(len * 4);
 	    byteBuffer.get(dst, off2, len * 4);
 	}
     }
@@ -309,7 +212,9 @@ public final class NioConversion extends Conversion {
     public void byte2float(byte[] src, int index_src, 
 	    float[] dst, int index_dst, int len) { 
 
-	if(len > (BUFFER_SIZE / 4)) {
+	if (len < FLOAT_THRESHOLD) {
+	    super.byte2float(src, index_src, dst, index_dst, len);
+	} else if(len > (BUFFER_SIZE / 4)) {
 	    FloatBuffer buffer = ByteBuffer.wrap(src,index_src,len * 4).
 		order(order).asFloatBuffer();
 	    buffer.get(dst,index_dst,len);
@@ -317,7 +222,7 @@ public final class NioConversion extends Conversion {
 	    byteBuffer.clear();
 	    byteBuffer.put(src, index_src, len * 4);
 
-	    floatBuffer.position(0).limit(byteBuffer.position() / 4);
+	    floatBuffer.position(0).limit(len);
 	    floatBuffer.get(dst, index_dst, len);
 	}
     } 
@@ -326,7 +231,9 @@ public final class NioConversion extends Conversion {
     public void double2byte(double[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
-	if (len > (BUFFER_SIZE / 8)) {
+	if (len < DOUBLE_THRESHOLD) {
+	    super.double2byte(src, off, len, dst, off2);
+	} else if (len > (BUFFER_SIZE / 8)) {
 	    DoubleBuffer buffer = ByteBuffer.wrap(dst,off2,len * 8).
 		order(order).asDoubleBuffer();
 	    buffer.put(src,off,len);
@@ -334,7 +241,7 @@ public final class NioConversion extends Conversion {
 	    doubleBuffer.clear();
 	    doubleBuffer.put(src, off, len);
 
-	    byteBuffer.position(0).limit(doubleBuffer.position() * 8);
+	    byteBuffer.position(0).limit(len * 8);
 	    byteBuffer.get(dst, off2, len * 8);
 	}
     }
@@ -343,7 +250,9 @@ public final class NioConversion extends Conversion {
     public void byte2double(byte[] src, int index_src, 
 	    double[] dst, int index_dst, int len) { 
 
-	if (len > (BUFFER_SIZE / 8)) {
+	if (len < DOUBLE_THRESHOLD) {
+	    super.byte2double(src, index_src, dst, index_dst, len);
+	} else if (len > (BUFFER_SIZE / 8)) {
 	    DoubleBuffer buffer = ByteBuffer.wrap(src,index_src,len * 8).
 		order(order).asDoubleBuffer();
 	    buffer.get(dst,index_dst,len);
@@ -351,7 +260,7 @@ public final class NioConversion extends Conversion {
 	    byteBuffer.clear();
 	    byteBuffer.put(src, index_src, len * 8);
 
-	    doubleBuffer.position(0).limit(byteBuffer.position() / 8);
+	    doubleBuffer.position(0).limit(len);
 	    doubleBuffer.get(dst, index_dst, len);
 	}
     }

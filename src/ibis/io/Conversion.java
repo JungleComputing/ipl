@@ -10,6 +10,13 @@ import java.io.ObjectOutputStream;
 
 public abstract class Conversion { 
 
+    /* NOTE: 
+     *  
+     * All conversion methods in this class have the precondition that 
+     * the data actually fits in the destination buffer. The user should 
+     * do the buffering himself.  
+     */
+
     public static Conversion defaultConversion;
 
     // load a SimpleConversion to and from networkorder as default
@@ -22,7 +29,6 @@ public abstract class Conversion {
      * The number of bits in a single 'byte'.
      */
     public final static int	BITS_PER_BYTE = 8;
-
 
     /**
      * The number of bytes in a single 'boolean'.
@@ -89,31 +95,15 @@ public abstract class Conversion {
      */
     public final static int	BITS_PER_DOUBLE = BITS_PER_BYTE * DOUBLE_SIZE;
 
-    /* NOTE: 
-     *  
-     * All conversion methods in this class have the precondition that 
-     * the data actually fits in the destination buffer. The user should 
-     * do the buffering himself.  
-     */
 
     /*
      * Return a conversion, given the class name of it.
      */
-    private static final Conversion loadConversion(String className, 
-	    boolean bigEndian) throws Exception {
-	/* 
-	 * Lot's of code to actually say 
-	 * Conversion result = new Classname(bigEndian);
-	 */
+    private static final Conversion loadConversion(String className)
+	throws Exception {
 
-	Class conversionClass = Class.forName(className);
+	return (Conversion)Class.forName(className).newInstance();
 
-	Class[] parameterClasses = { boolean.class } ;
-	Constructor constructor = conversionClass.
-	    getDeclaredConstructor(parameterClasses);
-
-	Object[] parameters = { new Boolean(bigEndian) };
-	return (Conversion)constructor.newInstance(parameters);
     }
 
     /**
@@ -121,17 +111,21 @@ public abstract class Conversion {
      */
     public static final Conversion loadConversion(boolean bigEndian) {
 
-/*	try {
-	    return loadConversion("ibis.io.NioConversion", bigEndian);
+	try {
+	    if(bigEndian) {
+		return loadConversion("ibis.io.NioBigConversion");
+	    } else {
+		return loadConversion("ibis.io.NioLittleConversion");
+	    }
 	} catch (Exception e) {
 	    // loading of nio conversion failed.
-*/
+
 	    if(bigEndian) {
 		return new SimpleBigConversion();
 	    } else {
 		return new SimpleLittleConversion();
 	    }
-//	}
+	}
     }
 
 

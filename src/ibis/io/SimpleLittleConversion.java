@@ -1,6 +1,6 @@
 package ibis.io;
 
-public final class SimpleLittleConversion extends Conversion { 
+public class SimpleLittleConversion extends Conversion { 
 
     public final boolean bigEndian() {
 	return false;
@@ -86,7 +86,7 @@ public final class SimpleLittleConversion extends Conversion {
 	return Double.longBitsToDouble(byte2long(src, off));
     }
 
-    public void boolean2byte(boolean[] src, int off, int len, 
+    public final void boolean2byte(boolean[] src, int off, int len, 
 	    byte [] dst, int off2) {
 
 	for (int i=0;i<len;i++) { 			
@@ -94,13 +94,17 @@ public final class SimpleLittleConversion extends Conversion {
 	} 
     }
 
-    public void byte2boolean(byte[] src, int index_src, 
+    public final void byte2boolean(byte[] src, int index_src, 
 	    boolean[] dst, int index_dst, int len) { 
 
 	for (int i=0;i<len;i++) { 			
 	    dst[index_dst+i] = (src[index_src + i] == (byte)1);
 	}
     } 
+
+
+    // functions from here to EOF not final so Nio*Conversion can override
+    // them
 
     public void char2byte(char[] src, int off, int len, 
 	    byte [] dst, int off2) {
