@@ -229,7 +229,7 @@ public final class GmOutput extends NetBufferedOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected void flush() throws IOException {
+	public void flush() throws IOException {
 // System.err.println(this + ": flush()");
 // Thread.dumpStack();
 	    flushing++;
