@@ -14,7 +14,7 @@ public class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	
 	public static final boolean DEBUG = false;
 
-	private static final int BUF_SIZE = 32*1024;
+	private static final int BUF_SIZE = 4*1024;
 	
 	private OutputStream out;
 	

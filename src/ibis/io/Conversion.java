@@ -56,18 +56,18 @@ class Conversion {
 
 	public static final void boolean2byte(boolean[] src, int off, int len, byte [] dst, int off2) {
 
-		if (len < BOOLEAN2BYTE_THRESHOLD) { 
+//		if (len < BOOLEAN2BYTE_THRESHOLD) { 
 			for (int i=0;i<len;i++) { 			
 				dst[off2+i] = (byte) (src[off+i] ? 1 : 0);
 			} 
-		} else { 
-			n_boolean2byte(src, off, len, dst, off2);
-		} 
+//		} else { 
+//			n_boolean2byte(src, off, len, dst, off2);
+//		} 
 	}
 
 	public static final void char2byte(char[] src, int off, int len, byte [] dst, int off2) {
 
-		if (len < CHAR2BYTE_THRESHOLD) { 
+//		if (len < CHAR2BYTE_THRESHOLD) { 
 			char temp = 0;
 			int count = off2;
 			
@@ -76,14 +76,14 @@ class Conversion {
 				dst[count++] = (byte) ((temp >> 8)  & 0xff);
 				dst[count++] = (byte) (temp & 0xff);
 			} 
-		} else { 
-			n_char2byte(src, off, len, dst, off2);
-		}
+//		} else { 
+//			n_char2byte(src, off, len, dst, off2);
+//		}
 	}
 
 	public static final void short2byte(short[] src, int off, int len, byte [] dst, int off2) {
 
-		if (len < SHORT2BYTE_THRESHOLD) { 
+//		if (len < SHORT2BYTE_THRESHOLD) { 
 			short temp = 0;
 			int count = off2;
 			
@@ -92,14 +92,14 @@ class Conversion {
 				dst[count++] = (byte) (temp & 0xff);
 				dst[count++] = (byte) ((temp >> 8)  & 0xff);
 			} 
-		} else { 
-			n_short2byte(src, off, len, dst, off2);
-		}
+//		} else { 
+//			n_short2byte(src, off, len, dst, off2);
+//		}
 	}
 
 	public static final void int2byte(int[] src, int off, int len, byte [] dst, int off2) {
 
-		if (len < INT2BYTE_THRESHOLD) { 
+//		if (len < INT2BYTE_THRESHOLD) { 
 		
 			int temp = 0;
 			int count = off2;
@@ -112,14 +112,14 @@ class Conversion {
 				dst[count++] = (byte) ((temp >> 24) & 0xff);
 			} 
 
-		} else { 
-			n_int2byte(src, off, len, dst, off2);
-		}
+//		} else { 
+//			n_int2byte(src, off, len, dst, off2);
+//		}
 	}
 
 	public static final void long2byte(long[] src, int off, int len, byte [] dst, int off2) {
 
-		if (len < LONG2BYTE_THRESHOLD) { 
+//		if (len < LONG2BYTE_THRESHOLD) { 
 
 			long temp = 0;
 			int count = off2;
@@ -135,14 +135,14 @@ class Conversion {
 				dst[count++] = (byte)(0xff & (temp >> 48));
 				dst[count++] = (byte)(0xff & (temp >> 56));
 			} 
-		} else { 
-			n_long2byte(src, off, len, dst, off2);
-		}
+//		} else { 
+//			n_long2byte(src, off, len, dst, off2);
+//		}
 	}
 		
 	public static final void float2byte(float[] src, int off, int len, byte [] dst, int off2) {
 
-		if (len < FLOAT2BYTE_THRESHOLD) { 
+//		if (len < FLOAT2BYTE_THRESHOLD) { 
 
 			int temp = 0;
 			int count = off2;
@@ -154,14 +154,14 @@ class Conversion {
 				dst[count++] = (byte) ((temp >> 16) & 0xff);
 				dst[count++] = (byte) ((temp >> 24) & 0xff);
 			} 
-		} else { 
-			n_float2byte(src, off, len, dst, off2);
-		}			
+//		} else { 
+//			n_float2byte(src, off, len, dst, off2);
+//		}			
 	}
 
 	public static final void double2byte(double[] src, int off, int len, byte [] dst, int off2) {
 
-		if (len < DOUBLE2BYTE_THRESHOLD) { 
+//		if (len < DOUBLE2BYTE_THRESHOLD) { 
 
 			long temp = 0;
 			int count = off2;
@@ -177,53 +177,53 @@ class Conversion {
 				dst[count++] = (byte)(0xff & (temp >> 48));
 				dst[count++] = (byte)(0xff & (temp >> 56));
 			} 
-		} else { 
-			n_double2byte(src, off, len, dst, off2);
-		}
+//		} else { 
+//			n_double2byte(src, off, len, dst, off2);
+//		}
 	}
 
 	public static final void byte2boolean(byte[] src, int index_src, boolean[] dst, int index_dst, int len) { 
 
-		if (len < BYTE2BOOLEAN_THRESHOLD) { 
+//		if (len < BYTE2BOOLEAN_THRESHOLD) { 
 			for (int i=0;i<len;i++) { 			
 				dst[index_dst+i] = (src[i] == 1);
 			}
-		} else { 			
-			n_byte2boolean(src, index_src, dst, index_dst, len);
-		} 
+//		} else { 			
+//			n_byte2boolean(src, index_src, dst, index_dst, len);
+//		} 
 	} 
 
 	public static final void byte2short(byte[] src, int index_src, short[] dst, int index_dst, int len) {
 
-		if (len < BYTE2SHORT_THRESHOLD) { 
+//		if (len < BYTE2SHORT_THRESHOLD) { 
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
 				dst[index_dst+i] = (short) 
 					((short)(src[count++] & 0xff) | 
 					((short)(src[count++] & 0xff) << 8));
 			}
-		} else { 			
-			n_byte2short(src, index_src, dst, index_dst, len);
-		} 
+//		} else { 			
+//			n_byte2short(src, index_src, dst, index_dst, len);
+//		} 
 	}
 
 	public static final void byte2char(byte[] src, int index_src, char[] dst, int index_dst, int len) {
 		
-		if (len < BYTE2CHAR_THRESHOLD) { 
+//		if (len < BYTE2CHAR_THRESHOLD) { 
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
 				dst[index_dst+i] = (char) 
 					 ((char)(src[count++] & 0xff) |
 					 ((char)(src[count++] & 0xff) << 8));
 			}
-		} else { 			
-			n_byte2char(src, index_src, dst, index_dst, len);
-		}
+//		} else { 			
+//			n_byte2char(src, index_src, dst, index_dst, len);
+//		}
 	}
 
 	public static final void byte2int(byte[] src, int index_src, int[] dst, int index_dst, int len) {
 
-		if (len < BYTE2INT_THRESHOLD) { 
+//		if (len < BYTE2INT_THRESHOLD) { 
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
 				dst[index_dst+i] = (int)
@@ -232,14 +232,14 @@ class Conversion {
 					((int)(src[count++] & 0xff) << 16) |
 					((int)(src[count++] & 0xff) << 24));
 			}
-		} else { 			
-			n_byte2int(src, index_src, dst, index_dst, len);
-		}
+//		} else { 			
+//			n_byte2int(src, index_src, dst, index_dst, len);
+//		}
 	}
 
 	public static final void byte2long(byte[] src, int index_src, long[] dst, int index_dst, int len) { 		
 
-		if (len < BYTE2LONG_THRESHOLD) {
+//		if (len < BYTE2LONG_THRESHOLD) {
 			int count = index_src;
 			
 			for (int i=0;i<len;i++) { 			
@@ -253,14 +253,14 @@ class Conversion {
 					 ((long)(src[count++] & 0xff) << 48)  |
 					 ((long)(src[count++] & 0xff) << 56));
 			}
-		} else { 			
-			n_byte2long(src, index_src, dst, index_dst, len);
-		}
+//		} else { 			
+//			n_byte2long(src, index_src, dst, index_dst, len);
+//		}
 	} 
 
 	public static final void byte2float(byte[] src, int index_src, float[] dst, int index_dst, int len) { 
 
-		if (len < BYTE2FLOAT_THRESHOLD) {
+//		if (len < BYTE2FLOAT_THRESHOLD) {
 			int temp = 0;
 			int count = index_src;
 			
@@ -271,14 +271,14 @@ class Conversion {
 					((int)(src[count++] & 0xff) << 24);
 				dst[index_dst+i] = Float.intBitsToFloat(temp);
 			}
-		} else { 
-			n_byte2float(src, index_src, dst, index_dst, len);
-		}
+//		} else { 
+//			n_byte2float(src, index_src, dst, index_dst, len);
+//		}
 	} 
 
 	public static final void byte2double(byte[] src, int index_src, double[] dst, int index_dst, int len) { 
 
-		if (len < BYTE2DOUBLE_THRESHOLD) {
+//		if (len < BYTE2DOUBLE_THRESHOLD) {
 			
 			long temp = 0;
 			int count = index_src;
@@ -294,9 +294,9 @@ class Conversion {
 					((long)(src[count++] & 0xff) << 56));
 				dst[index_dst+i] = Double.longBitsToDouble(temp);
 			}
-		} else { 
-			n_byte2double(src, index_src, dst, index_dst, len);
-		}			
+//		} else { 
+//			n_byte2double(src, index_src, dst, index_dst, len);
+//		}			
 	} 
 } 
 
