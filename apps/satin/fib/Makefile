@@ -23,7 +23,7 @@ manta: $(MAIN) $(O_FILES)
 mantapar: $(O_FILES) satin
 	$(MANTAC_COMMAND) -c Satin_Fib_fib_InvocationRecord.java
 	$(MANTAC_COMMAND) -c Satin_Fib_fib_ReturnRecord.java
-	$(MANTAC_COMMAND) -o $(OUT) $(MAIN_CLASS) *.o $(MANTA_LIB)
+	$(MANTAC_COMMAND) -S -o $(OUT) $(MAIN_CLASS) *.o $(MANTA_LIB)
 
 satinser: java
 	$(IOC_COMMAND) *.class
