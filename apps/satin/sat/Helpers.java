@@ -75,7 +75,7 @@ class Helpers {
     }
 
     /**
-     * Given an int array, sort it.
+     * Given an int array, sorts it in place.
      * @param l The array to sort.
      */
     public static void sortIntArray( int l[] )
@@ -98,6 +98,27 @@ class Helpers {
 	}
     }
 
+    /**
+     * Given an array, returns true iff every element in it is larger
+     * than the ones before it in the array.
+     * @param l The array to test.
+     * @return True iff the array elements are monotonically increasing.
+     */
+    public static boolean isIncreasing( int l[] )
+    {
+	if( l.length == 0 ){
+	    return true;
+	}
+	int prev = l[0];
+
+	for( int i=1; i<l.length; i++ ){
+	    if( l[i]<=prev ){
+		return false;
+	    }
+	    prev = l[i];
+	}
+	return true;
+    }
 
     /**
      * Prints the specified array of assignments to the error stream.

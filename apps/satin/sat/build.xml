@@ -16,6 +16,16 @@
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
+    <target name="test">
+        <junit>
+            <batchtest>
+                <fileset dir=".">
+                    <include name="Tests.java" />
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
     <target name="docs"
         description="Build JavaDoc documentation in `docs' directory">
 	<!-- Create the javadoc directory -->

@@ -25,6 +25,10 @@
 	    name="package.home.bcel"
 	    location="${ibis}/3rdparty/bcel-5.1.jar"/>
 
+    <property
+	    name="package.home.junit"
+	    location="${ibis}/3rdparty/junit.jar"/>
+
 
     <target name="property-init"
 	    unless="property.initialized">
@@ -37,6 +41,7 @@
 	    <pathelement path="${ibisBuild}"/>
 	    <pathelement path="${build}"/>
 	    <pathelement path="${package.home.bcel}"/>
+	    <pathelement path="${package.home.junit}"/>
 	</path>
 
 	<echo	message="Now set default.classpath to ${default.classpath}"

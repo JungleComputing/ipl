@@ -12,7 +12,10 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     private int pos[];	        // Clauses in which this var occurs as a pos.
     private int neg[];	        // Clauses in which this var occurs as a neg.
 
-    /** Constructs a new SATVar with the specified label and index. */
+    /**
+     * Constructs a new SATVar with the specified index and
+     * empty occurence lists.
+     */
     public SATVar( int ix )
     {
 	this.ix = ix;
@@ -38,6 +41,21 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
 	    (int []) pos.clone(),
 	    (int []) neg.clone()
 	);
+    }
+
+    public boolean equals( Object other )
+    {
+        SATVar o = (SATVar) other;
+
+        return o != null &&
+            ix == o.ix &&
+            Helpers.areEqualArrays( pos, o.pos ) && 
+            Helpers.areEqualArrays( neg, o.neg );
+    }
+
+    public int hashCode()
+    {
+	return ix + pos.length + neg.length;
     }
 
     /**

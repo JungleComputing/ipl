@@ -35,11 +35,15 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     {
         Clause o = (Clause) other;
 
-        //return o != null && label == o.label && pos.equals( o.pos ) && neg.equals( o.neg );
         return o != null &&
             label == o.label &&
             Helpers.areEqualArrays( pos, o.pos ) && 
             Helpers.areEqualArrays( neg, o.neg );
+    }
+
+    public int hashCode()
+    {
+	return label + pos.length + neg.length;
     }
 
     /**
@@ -64,9 +68,9 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     /**
      * Returns true iff 'l' contains 'n'.
      * We assume the list is sorted.
-     * @param l the list to search in
-     * @param n the value to search for
-     * @return wether the list contains the element
+     * @param l The list to search in.
+     * @param n The value to search for.
+     * @return Wether the list contains the element.
      */
     static private boolean memberIntList( int l[], int n )
     {
@@ -360,145 +364,91 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
                 System.exit(1);
             }
         }
-        if( false ){
-            int pos[] = new int[c1.pos.length+c2.pos.length];
-            int posno = 0;
-            int negno = 0;
-            boolean unsorted = false;
+	int pos[] = new int[c1.pos.length+c2.pos.length];
+	int neg[] = new int[c1.neg.length+c2.neg.length];
 
-            int arr[] = c1.pos;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
+	int arr1[] = c1.pos;
+	int arr2[] = c2.pos;
+	int posno = 0;
+	int negno = 0;
+	int ix1 = 0;
+	int ix2 = 0;
 
-                if( !memberIntList( c2.neg, v ) ){
-                    pos[posno++] = v;
-                }
-            }
-            arr = c2.pos;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
+	while( ix1<arr1.length || ix2<arr2.length ){
+	    if( ix2>=arr2.length ){
+		pos[posno++] = arr1[ix1];
+		ix1++;
+	    }
+	    else if( (ix1>=arr1.length) || arr1[ix1]>arr2[ix2] ){
+		pos[posno++] = arr2[ix2];
+		ix2++;
+	    }
+	    else if( arr1[ix1]<arr2[ix2] ){
+		pos[posno++] = arr1[ix1];
+		ix1++;
+	    }
+	    else {
+		pos[posno++] = arr1[ix1];
+		ix1++;
+		ix2++;
+	    }
+	}
 
-                if( !memberIntList( c1.neg, v ) && !memberIntList( c1.pos, v ) ){
-                    pos[posno++] = v;
-                    unsorted = true;
-                }
-            }
-            int newpos[] = Helpers.cloneIntArray( pos, posno );
-            if( unsorted ){
-                Helpers.sortIntArray( newpos );
-            }
-            unsorted = false;
-            int neg[] = new int[c1.neg.length+c2.neg.length];
-            arr = c1.neg;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
+	arr1 = c1.neg;
+	arr2 = c2.neg;
+	ix1 = 0;
+	ix2 = 0;
+	while( ix1<arr1.length || ix2<arr2.length ){
+	    if( ix2>=arr2.length ){
+		neg[negno++] = arr1[ix1];
+		ix1++;
+	    }
+	    else if( ix1>=arr1.length || arr1[ix1]>arr2[ix2] ){
+		neg[negno++] = arr2[ix2];
+		ix2++;
+	    }
+	    else if( arr1[ix1]<arr2[ix2] ){
+		neg[negno++] = arr1[ix1];
+		ix1++;
+	    }
+	    else {
+		neg[negno++] = arr1[ix1];
+		ix1++;
+		ix2++;
+	    }
+	}
 
-                if( !memberIntList( c2.pos, v ) ){
-                    neg[negno++] = v;
-                }
-            }
-            arr = c2.neg;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
+	// At this point we have two arrays that are sorted and
+	// without duplicates, but between them there may still be
+	// duplicates. Do a second sweep to remove the duplicates.
 
-                if( !memberIntList( c1.pos, v ) && !memberIntList( c1.neg, v ) ){
-                    neg[negno++] = v;
-                    unsorted = true;
-                }
-            }
-            int newneg[] = Helpers.cloneIntArray( neg, negno );
-            if( unsorted ){
-                Helpers.sortIntArray( newneg );
-            }
-            return new Clause( newpos, newneg, -1 );
-        }
-        else {
-            int pos[] = new int[c1.pos.length+c2.pos.length];
-            int neg[] = new int[c1.neg.length+c2.neg.length];
+	int cipos = 0;
+	int dipos = 0;
+	int cineg = 0;
+	int dineg = 0;
 
-            int arr1[] = c1.pos;
-            int arr2[] = c2.pos;
-            int posno = 0;
-            int negno = 0;
-            int ix1 = 0;
-            int ix2 = 0;
-
-            while( ix1<arr1.length || ix2<arr2.length ){
-                if( ix2>=arr2.length ){
-                    pos[posno++] = arr1[ix1];
-                    ix1++;
-                }
-                else if( (ix1>=arr1.length) || arr1[ix1]>arr2[ix2] ){
-                    pos[posno++] = arr2[ix2];
-                    ix2++;
-                }
-                else if( arr1[ix1]<arr2[ix2] ){
-                    pos[posno++] = arr1[ix1];
-                    ix1++;
-                }
-                else {
-                    pos[posno++] = arr1[ix1];
-                    ix1++;
-                    ix2++;
-                }
-            }
-
-            arr1 = c1.neg;
-            arr2 = c2.neg;
-            ix1 = 0;
-            ix2 = 0;
-            while( ix1<arr1.length || ix2<arr2.length ){
-                if( ix2>=arr2.length ){
-                    neg[negno++] = arr1[ix1];
-                    ix1++;
-                }
-                else if( ix1>=arr1.length || arr1[ix1]>arr2[ix2] ){
-                    neg[negno++] = arr2[ix2];
-                    ix2++;
-                }
-                else if( arr1[ix1]<arr2[ix2] ){
-                    neg[negno++] = arr1[ix1];
-                    ix1++;
-                }
-                else {
-                    neg[negno++] = arr1[ix1];
-                    ix1++;
-                    ix2++;
-                }
-            }
-
-            // At this point we have two arrays that are sorted and
-            // without duplicates, but between them there may still be
-            // duplicates. Do a second sweep to remove the duplicates.
-
-            int cipos = 0;
-            int dipos = 0;
-            int cineg = 0;
-            int dineg = 0;
-
-            while( dipos<posno || dineg<negno ){
-                if( dineg>=negno ){
-                    pos[cipos++] = pos[dipos++];
-                }
-                else if( dipos>=posno ){
-                    neg[cineg++] = neg[dineg++];
-                }
-                else if( pos[dipos] > neg[dineg] ){
-                    neg[cineg++] = neg[dineg++];
-                }
-                else if( pos[dipos] < neg[dineg] ){
-                    pos[cipos++] = pos[dipos++];
-                }
-                else {
-                    // Duplicate, skip.
-                    dipos++;
-                    dineg++;
-                }
-            }
-            int newpos[] = Helpers.cloneIntArray( pos, cipos );
-            int newneg[] = Helpers.cloneIntArray( neg, cineg );
-            return new Clause( newpos, newneg, -1 );
-        }
+	while( dipos<posno || dineg<negno ){
+	    if( dineg>=negno ){
+		pos[cipos++] = pos[dipos++];
+	    }
+	    else if( dipos>=posno ){
+		neg[cineg++] = neg[dineg++];
+	    }
+	    else if( pos[dipos] > neg[dineg] ){
+		neg[cineg++] = neg[dineg++];
+	    }
+	    else if( pos[dipos] < neg[dineg] ){
+		pos[cipos++] = pos[dipos++];
+	    }
+	    else {
+		// Duplicate, skip.
+		dipos++;
+		dineg++;
+	    }
+	}
+	int newpos[] = Helpers.cloneIntArray( pos, cipos );
+	int newneg[] = Helpers.cloneIntArray( neg, cineg );
+	return new Clause( newpos, newneg, -1 );
     }
 
     /**
