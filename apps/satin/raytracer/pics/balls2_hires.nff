@@ -5,7 +5,7 @@ at 0 0 0
 up 0 0 1
 angle 45
 hither 0.01
-resolution 2048x2048
+resolution 4096x4096
 l 4 3 2
 l 1 -4 4
 l -3 1 5
