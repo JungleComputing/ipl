@@ -16,18 +16,18 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     static final boolean printSatSolutions = true;
     static int label = 0;
 
-    public SATSolution solve( SATProblem p, int assignments[], int var )
+    public void solve( SATProblem p, int assignments[], int var ) throws SATResultException
     {
 	if( p.isSatisfied( assignments ) ){
-	    return new SATSolution( assignments );
+	    throw new SATResultException( new SATSolution( assignments ) );
 	}
 	if( p.isConflicting( assignments ) ){
-	    return null;
+	    return;
 	}
 	if( var>=p.getVariableCount() ){
 	    // There are no variables left to assign, clearly there
 	    // isn't a solution.
-	    return null;
+	    return;
 	}
 
 	// We have variable 'var' to branch on.
@@ -35,13 +35,9 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	int negassignments[] = (int []) assignments.clone();
 	posassignments[var] = 1;
 	negassignments[var] = 0;
-	SATSolution posres = solve( p, posassignments, var+1 );
-	SATSolution negres = solve( p, negassignments, var+1 );
+	solve( p, posassignments, var+1 );
+	solve( p, negassignments, var+1 );
 	sync();
-	if( posres != null ){
-	    return posres;
-	}
-	return negres;
     }
 
     // Given a list of symbolic clauses, produce a list of solutions.
@@ -57,10 +53,15 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
         SimpleSATSolver s = new SimpleSATSolver();
 
         // Now recursively try to find a solution.
-	SATSolution res = s.solve( p, assignments, 0 );
-	s.sync();
+	try {
+	    s.solve( p, assignments, 0 );
+	    s.sync();
+	}
+	catch( SATResultException r ){
+	    return r.s;
+	}
 
-	return res;
+	return null;
     }
 
     public static void main( String args[] ) throws java.io.IOException

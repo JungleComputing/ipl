@@ -2,5 +2,5 @@
 
 interface SimpleSATInterface extends ibis.satin.Spawnable
 {
-    SATSolution solve( SATProblem p, int assignments[], int var );
+    void solve( SATProblem p, int assignments[], int var ) throws SATResultException;
 }
