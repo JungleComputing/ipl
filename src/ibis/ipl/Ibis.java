@@ -321,6 +321,15 @@ public abstract class Ibis {
 
 	    sp.addImpliedProperties();
 
+	    try {
+		// See if this Ibis actually exists.
+		Class cl = Class.forName(name,
+					 false,
+					 Ibis.class.getClassLoader());
+	    } catch(ClassNotFoundException e) {
+		return;
+	    }
+
 	    synchronized(Ibis.class) {
 		implList.add(name);
 		implProperties.add(sp);
