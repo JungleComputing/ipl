@@ -1,4 +1,4 @@
-TARGETS = progman.ps progman.pdf
+TARGETS = progman.ps progman.pdf progman.html
 
 all:		$(TARGETS)
 
