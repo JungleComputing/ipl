@@ -64,15 +64,18 @@ public class HostName extends Task {
 	    }
 	}
 
-	if (hostname == null) {
-	    hostname = "(localhost)";
+	if (hostName == null) {
+	    hostName = "(localhost)";
 	}
-	if (domainname == null) {
-	    domainname = "(none)";
+	if (domainName == null) {
+	    domainName = "(none)";
 	}
 
 	addProperty("hostname", hostName);
 	addProperty("domainname", domainName);
+
+	domainname = domainName;
+	hostname = hostName;
     }
 
     private void addProperty(String name, String value) {
