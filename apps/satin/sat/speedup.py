@@ -1,9 +1,12 @@
-import os
-import time
-import popen2
 import fcntl
 import FCNTL
+import os
+import popen2
 import select
+import sys
+import threading
+import time
+import types
 
 ibisdir = "~/ibis"
 
@@ -11,16 +14,63 @@ run_ibis = ibisdir + "/bin/run_ibis"
 
 logdir = "logs"
 
+results = {}
+
+runParallel = 0
+
 #problem = "examples/qg/qg6-12.cnf.gz"
 #problem = "examples/qg/qg3-08.cnf.gz"
 problem = "examples/ais/ais10.cnf.gz"
 
 solver = "DPLLSolver"
 
+#ProcNos = [ 1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40 ]
 #ProcNos = [ 1, 2, 4, 8, 16, 32 ]
 ProcNos = [ 2, 4, 8 ]
 
 nameserverport = 2001
+
+class Thread( threading.Thread ):
+    def  __init__( self, target, args=() ):
+         if type( args ) <> types.TupleType:
+            args = (args,)
+         threading.Thread.__init__( self, target=target, args=args )
+
+class LockedIterator:
+    def __init__( self, iterator ):
+        self._lock     = threading.Lock()
+        self._iterator = iterator
+
+    def __iter__( self ):
+        return self
+
+    def next( self ):
+        try:
+            self._lock.acquire()
+            return self._iterator.next()
+        finally:
+            self._lock.release()
+
+class MultiThread:
+    def __init__( self, function, argsVector, maxThreads=5 ):
+        self._function     = function
+        self._argsIterator = LockedIterator( iter( argsVector ) )
+        self._threadPool   = []
+        for i in range( maxThreads ):
+            self._threadPool.append( Thread( self._tailRecurse ) )
+
+    def _tailRecurse( self ):
+        for args in self._argsIterator:
+            self._function( args ) 
+
+    def start( self ):
+        for thread in self._threadPool:
+            time.sleep( 0 ) # necessary to give other threads a chance to run
+            thread.start()
+
+    def join( self, timeout=None ):
+        for thread in self._threadPool:
+            thread.join( timeout )
 
 def get_time_stamp():
     return time.strftime( "%Y-%m-%d-%H:%M:%S", time.localtime())
@@ -85,8 +135,6 @@ def reportRun( label, data, lf = None ):
     reportTrace( out, label + " output stream", lf )
     reportTrace( err, label + " error stream", lf )
 
-results = {}
-
 def reportedRun( P ):
     cmd = build_run_command( P, solver, problem, nameserverport )
     print "Starting run for P=%d" % P
@@ -100,8 +148,13 @@ def run( solver, problem ):
     report( "Solver: " + solver, lf )
     report( "Problem: " + problem, lf )
 
-    for P in ProcNos:
-        reportedRun( P )
+    if runParallel:
+        mt = MultiThread( reportedRun, ProcNos )
+        mt.start()
+        mt.join()
+    else:
+        for P in ProcNos:
+            reportedRun( P )
     for P in ProcNos:
         reportRun( "P=%d" % P, results[P], lf )
 
