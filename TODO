@@ -1,8 +1,9 @@
 IBIS:
 
-- reverse connection setup if one of the two sites has a firewall,
++ reverse connection setup if one of the two sites has a firewall,
   but the other doesn't  -> much better performance than going
   through a central point
+  Done: use AnyTCP instead of TCPSplice (Ceriel)
 
 - autodetect connection setup mechanism (splicing, reverse, direct, central)
   Ceriel: not so easy. Once you are trying to set up a brokered socket,
@@ -18,7 +19,7 @@ satin:
 	- add comments to abort / inlet machinism
 	+ do not crash on sync without spawn (Ceriel: done)
         - als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
-	- 3x print ibis serialization
+	+ 3x print ibis serialization
 
 
 tcp ibis:
