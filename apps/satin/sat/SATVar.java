@@ -114,7 +114,7 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     static private float getInfo( IntVector v, Clause clauses[] )
     {
         int sz = v.size();
-        int info = 0;
+        float info = 0;
 
         for( int i=0; i<sz; i++ ){
             int cno = v.get( i );
