@@ -35,6 +35,7 @@ public class PoolInfo {
 	int host_number;
 	String [] host_names;
 	InetAddress [] hosts;
+	private String clusterName;
 
 	/**
 	 * Constructs a <code>PoolInfo</code> object.
@@ -52,6 +53,10 @@ public class PoolInfo {
 	 * @exception IbisException is thrown when something is wrong.
 	 */
 	public PoolInfo(boolean forceSequential) throws IbisException {
+		clusterName = TypedProperties.stringPropertyValue("ibis.pool.cluster");
+		if (clusterName == null) {
+		    clusterName = "unknown";
+		}
 		if (forceSequential) {
 			sequentialPool();
 		} else {
@@ -59,6 +64,11 @@ public class PoolInfo {
 		}
 	}
 
+	/**
+	 * Constructor for subclasses.
+	 */
+	protected PoolInfo(int dummy) {
+	}
 
 	private void sequentialPool() {
 		String temp;
@@ -183,9 +193,40 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	public String hostName() {
 		return host_names[host_number];
 	}
+    
+	/**
+	 * Returns the cluster name for the current host.
+	 * @return the cluster name.
+	 */
+	public String clusterName() {
+		return clusterName;
+	}
+
+	/**
+	 * Returns the cluster name for the host specified by the rank number.
+	 * @param rank the rank number.
+	 * @return the cluster name.
+	 */
+	public String clusterName(int rank) {
+		return clusterName;
+	}
+
+	/**
+	 * Returns an array of cluster names, one for each host involved in
+	 * the run.
+	 * @return the cluster names
+	 */
+	public String[] clusterNames() {
+		String[] r = new String[total_hosts];
+		for (int i = 0; i < total_hosts; i++) {
+			r[i] = clusterName;
+		}
+		return r;
+	}
 
 	/**
 	 * Returns the name of the host with the given rank.
+	 * @param rank the rank number.
 	 * @return the name of the host with the given rank.
 	 */
 	public String hostName(int rank) {
@@ -195,6 +236,7 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	/**
 	 * Returns the <code>InetAddress</code> of the host with the given
 	 * rank.
+	 * @param rank the rank number.
 	 * @return the <code>InetAddress</code> of the host with the given
 	 * rank.
 	 */
@@ -245,5 +287,46 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	public void printTime(String id, long time) {
 		System.out.println("Application: " + id + "; Ncpus: " + total_hosts +
 				   "; time: " + time/1000.0 + " seconds\n");
+	}
+
+	/**
+	 * Creates and returns a <code>PoolInfo</code>.
+	 * The parameter indicates wether a pool for a sequential run
+	 * must be created. If not, if the system property
+	 * <code>ibis.pool.host_names</code> is set, a <code>PoolInfo</code>
+	 * is created. If not, a {@link ibis.util.PoolInfoClient PoolInfoClient}
+	 * is created.
+	 * @param forceSeq indicates wether a pool for a sequential run must
+	 * be created.
+	 * @return the resulting <code>PoolInfo</code> object.
+	 * @exception IbisException is thrown when something is wrong.
+	 */
+	public static PoolInfo createPoolInfo(boolean forceSeq)
+			throws IbisException
+	{
+		if (forceSeq) {
+			return new PoolInfo(true);
+		}
+		if (TypedProperties.stringPropertyValue("ibis.pool.host_names") != null) {
+			return new PoolInfo();
+		}
+		try {
+			return PoolInfoClient.create();
+		} catch(Throwable e) {
+			throw new IbisException("Got exception", e);
+		}
+	}
+
+	/**
+	 * Creates and returns a <code>PoolInfo</code>.
+	 * If the system property <code>ibis.pool.host_names</code> is set,
+	 * a <code>PoolInfo</code> is created.
+	 * If not, a {@link ibis.util.PoolInfoClient PoolInfoClient}
+	 * is created.
+	 * @return the resulting <code>PoolInfo</code> object.
+	 * @exception IbisException is thrown when something is wrong.
+	 */
+	public static PoolInfo createPoolInfo() throws IbisException {
+		return createPoolInfo(false);
 	}
 }

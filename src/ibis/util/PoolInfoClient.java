@@ -36,12 +36,8 @@ import java.io.DataOutputStream;
  * One of the two system properties must be defined.
  * <br>
  */
-public class PoolInfoClient {
-
-    private int total_hosts;
-    private int host_number;
+public class PoolInfoClient extends PoolInfo {
     private String [] host_clusters;
-    private InetAddress [] host_addresses;
 
     private static PoolInfoClient instance;
 
@@ -65,15 +61,14 @@ public class PoolInfoClient {
     }
 
     private PoolInfoClient() {
+	super(0);
+
 	InetAddress serverAddress;
-	Socket socket;
-	ObjectInputStream in;
-	DataOutputStream out;
 
 	total_hosts = TypedProperties.intProperty("ibis.pool.total_hosts");
 	String cluster = TypedProperties.stringPropertyValue("ibis.pool.cluster");
 	if (cluster == null) {
-	    System.err.println("Warning: ibis.pool.cluster property not set, using 'unknown'");
+//	    System.err.println("Warning: ibis.pool.cluster property not set, using 'unknown'");
 	    cluster = "unknown";
 	}
 	int serverPort = TypedProperties.intProperty("ibis.pool.server.port",
@@ -89,7 +84,7 @@ public class PoolInfoClient {
 	if (key == null) {
 	    key = TypedProperties.stringPropertyValue("ibis.name_server.key");
 	    if (key == null) {
-		System.err.println("Warning: ibis.pool.key property not set, using 'unknown'");
+		// System.err.println("Warning: ibis.pool.key property not set, using 'unknown'");
 		key = "unknown";
 	    }
 	}
@@ -99,17 +94,23 @@ public class PoolInfoClient {
 	    throw new RuntimeException("cannot get ip of pool server");
 	}
 	try {
-	    socket = new Socket(serverAddress, serverPort);
-	    out = new DataOutputStream(socket.getOutputStream());
+	    Socket socket = new Socket(serverAddress, serverPort);
+	    DataOutputStream out
+		= new DataOutputStream(socket.getOutputStream());
 	    out.writeUTF(key);
 	    out.writeInt(total_hosts);
 	    out.writeUTF(cluster);
 	    out.flush();
 
-	    in = new ObjectInputStream(socket.getInputStream());
+	    ObjectInputStream in
+		= new ObjectInputStream(socket.getInputStream());
 	    host_number = in.readInt();
 	    host_clusters = (String []) in.readObject();
-	    host_addresses = (InetAddress []) in.readObject();
+	    hosts = (InetAddress []) in.readObject();
+	    host_names = new String[total_hosts];
+	    for (int i = 0; i < total_hosts; i++) {
+		host_names[i] = hosts[i].getHostName();
+	    }
 
 	    in.close();
 	    out.close();
@@ -121,57 +122,6 @@ public class PoolInfoClient {
 	if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
 	    throw new RuntimeException("Sanity check on host numbers failed!");
 	}
-    }
-
-    /**
-     * Returns the total number of hosts involved in the run.
-     * @return the total number of hosts.
-     */
-    public int size() {
-	return total_hosts;
-    }
-
-    /**
-     * Returns the rank number of the current host.
-     * @return the rank number.
-     */
-    public int rank() {
-	return host_number;
-    }
-
-    /**
-     * Returns the <code>InetAddress</code> of the current host.
-     * @return the <code>InetAddress</code>.
-     */
-    public InetAddress hostAddress() {
-	return host_addresses[host_number];
-    }
-
-    /**
-     * Returns the <code>InetAddress</code> of the host specified by
-     * the rank number.
-     * @param rank the rank number.
-     * @return the <code>InetAddress</code>.
-     */
-    public InetAddress hostAddress(int rank) {
-	return host_addresses[rank];
-    }
-
-    /**
-     * Returns the name of the current host.
-     * @return the host name.
-     */
-    public String hostName() {
-	return host_addresses[host_number].getHostName();
-    }
-
-    /**
-     * Returns the name of the host specified by the rank number.
-     * @param rank the rank number.
-     * @return the host name.
-     */
-    public String hostName(int rank) {
-	return host_addresses[rank].getHostName();
     }
 
     /**
@@ -192,15 +142,6 @@ public class PoolInfoClient {
     }
 
     /**
-     * Returns an array of host adresses, one for each host involved in
-     * the run.
-     * @return the host adresses.
-     */
-    public InetAddress[] hostAddresses() {
-	return (InetAddress[]) host_addresses.clone();
-    }
-
-    /**
      * Returns an array of cluster names, one for each host involved in
      * the run.
      * @return the cluster names
@@ -214,29 +155,11 @@ public class PoolInfoClient {
      * <code>PoolInfoClient</code>.
      * @return a string representation.
      */
-    /**
-     * Returns an array of host names, one for each host involved in
-     * the run.
-     * @return the host names
-     */
-    public String[] hostNames() {
-	String[] h = new String[total_hosts];
-	for (int i = 0; i < total_hosts; i++) {
-	    h[i] = host_addresses[i].getHostName();
-	}
-	return h;
-    }
-
-    /**
-     * Returns a string representation of the information in this
-     * <code>PoolInfoClient</code>.
-     * @return a string representation.
-     */
     public String toString() {
 	String result = "pool info: size = " + total_hosts +
 	    "; my rank is " + host_number + "; host list:\n";
 	for (int i = 0; i < total_hosts; i++) {
-	    result += i + ": address= " + host_addresses[i] + 
+	    result += i + ": address= " + hosts[i] + 
 		" cluster=" + host_clusters[i] + "\n";
 	}
 	return result;
