@@ -14,7 +14,7 @@ import java.net.DatagramSocket;
 /**
  * The NetIbis UDP driver.
  */
-public class Driver extends NetDriver {
+public final class Driver extends NetDriver {
 
 	/**
 	 * The driver name.

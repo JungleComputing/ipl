@@ -3,7 +3,7 @@ package ibis.ipl.impl.net;
 import java.util.HashMap;
 import java.util.Random;
 
-public class NetBank {
+public final class NetBank {
 	HashMap map = null;
 	Random  rnd = null;
 	

@@ -25,7 +25,7 @@ import java.util.Hashtable;
 /**
  * The TCP input implementation (block version).
  */
-public class TcpInput extends NetBufferedInput {
+public final class TcpInput extends NetBufferedInput {
 
 	/**
 	 * The connection socket.
@@ -41,7 +41,7 @@ public class TcpInput extends NetBufferedInput {
 	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
-	private Integer               rpn  	      = null;
+	private Integer               spn  	      = null;
 
 	/**
 	 * The communication input stream.
@@ -71,6 +71,11 @@ public class TcpInput extends NetBufferedInput {
 	 */
 	private int                   rmtu            =   0;
 
+        private byte []               hdr             = new byte[4];
+        private NetReceiveBuffer      buf             = null;
+        private UpcallThread          upcallThread    = null;
+        private NetMutex              upcallEnd       = new NetMutex(true);
+
 	/**
 	 * Constructor.
 	 *
@@ -85,20 +90,45 @@ public class TcpInput extends NetBufferedInput {
 		headerLength = 4;
 	}
 
+        private final class UpcallThread extends Thread {
+                
+                public void run() {
+                        while (true) {
+                                try {
+                                        buf = receiveByteBuffer(0);
+                                        if (buf == null)
+                                                break;
+
+                                        activeNum = spn;
+                                        initReceive();
+                                        upcallFunc.inputUpcall(TcpInput.this, activeNum);
+                                        activeNum = null;
+                                } catch (Exception e) {
+                                        throw new Error(e);
+                                }
+                        }
+
+                        upcallEnd.unlock();
+                }
+        }
 
 	/*
 	 * Sets up an incoming TCP connection.
 	 *
-	 * @param rpn {@inheritDoc}
+	 * @param spn {@inheritDoc}
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
+	public void setupConnection(Integer            spn,
 				    ObjectInputStream  is,
 				    ObjectOutputStream os,
                                     NetServiceListener nls)
 		throws IbisIOException {
-		this.rpn = rpn;
+                if (this.spn != null) {
+                        throw new Error("connection already established");
+                }
+                
+		this.spn = spn;
 		 
 		try {
 			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
@@ -125,6 +155,9 @@ public class TcpInput extends NetBufferedInput {
 
 		mtu       = Math.min(lmtu, rmtu);
 		allocator = new NetAllocator(mtu);
+                if (upcallFunc != null) {
+                        (upcallThread = new UpcallThread()).start();
+                }
 	}
 
 	/**
@@ -139,14 +172,14 @@ public class TcpInput extends NetBufferedInput {
 	public Integer poll() throws IbisIOException {
 		activeNum = null;
 
-		if (rpn == null) {
+		if (spn == null) {
 			return null;
 		}
 
                 //System.err.println("tcp_blk: poll -->");
 		try {
 			if (tcpIs.available() > 0) {
-				activeNum = rpn;
+				activeNum = spn;
                                 initReceive();
 			}
 		} catch (IOException e) {
@@ -166,22 +199,43 @@ public class TcpInput extends NetBufferedInput {
 	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
 		throws IbisIOException {
+                if (buf != null) {
+                        NetReceiveBuffer temp = buf;
+                        buf = null;
+                        return temp;
+                }
+
 		byte [] b = allocator.allocate();
 		int     l = 0;
 
 		try {
 			int offset = 0;
 
-			do {
-				offset += tcpIs.read(b, offset, 4);
-			} while (offset < 4);
+                        do {
+                                int result = tcpIs.read(b, offset, 4);
+                                if (result == -1) {
+                                        if (offset != 0) {
+                                                throw new Error("broken pipe");
+                                        }
+                                        
+                                        return null;
+                                }
+                                
+                                offset += result;
+                        } while (offset < 4);
 
-			l = NetConvert.readInt(b, 0);
-
+                        l = NetConvert.readInt(b);
+                        //System.err.println("received "+l+" bytes");    
+                        
 			do {
-				offset += tcpIs.read(b, offset, l - offset);
+				int result = tcpIs.read(b, offset, l - offset);
+                                if (result == -1) {
+                                        throw new Error("broken pipe");
+                                }                                
+                                offset += result;
 			} while (offset < l);
-
+                } catch (SocketException e) {
+                        return null;
 		} catch (IOException e) {
 			throw new IbisIOException(e.getMessage());
 		} 
@@ -202,6 +256,12 @@ public class TcpInput extends NetBufferedInput {
 				tcpIs.close();
 			}
 
+                        if (upcallThread != null) {
+                                upcallThread.interrupt();
+                                upcallEnd.lock();
+                                upcallThread = null;
+                        }
+
 			if (tcpSocket != null) {
                                 tcpSocket.close();
 			}
@@ -209,12 +269,6 @@ public class TcpInput extends NetBufferedInput {
 			if (tcpServerSocket != null) {
                                 tcpServerSocket.close();
 			}
-
-			tcpSocket       = null;
-			tcpServerSocket = null;
-			rpn             = null;
-			tcpIs           = null;
-			tcpOs           = null;
 		}
 		catch (Exception e) {
 			throw new IbisIOException(e);

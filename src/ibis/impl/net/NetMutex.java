@@ -3,7 +3,7 @@ package ibis.ipl.impl.net;
 /**
  * Provides a synchronization mutex.
  */
-public class NetMutex {
+public final class NetMutex {
 
 	/**
 	 * The mutex value, which cannot be negative.

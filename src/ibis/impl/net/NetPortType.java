@@ -7,14 +7,14 @@ import ibis.ipl.PortType;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 import ibis.ipl.Upcall;
 import ibis.util.Input;
 
 import java.util.Enumeration;
 import java.util.HashMap;
 
-public class NetPortType implements PortType {
+public final class NetPortType implements PortType {
 	private String 		 name 	     	   = null;
 	private StaticProperties staticProperties  = null;
 	private NetIbis          ibis              = null;
@@ -157,6 +157,10 @@ public class NetPortType implements PortType {
 	 */
 	public SendPort createSendPort(Replacer r) throws IbisIOException {
 		return new NetSendPort(this, r);
+	}
+
+	public SendPort createSendPort(String name, Replacer r) throws IbisIOException {
+		return new NetSendPort(this, r, name);
 	}
 
 	/**

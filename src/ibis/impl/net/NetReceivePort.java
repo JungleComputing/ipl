@@ -29,17 +29,19 @@ import java.util.Hashtable;
  * Provides an implementation of the {@link ReceivePort} and {@link
  * ReadMessage} interfaces of the IPL.
  */
-public final class NetReceivePort implements ReceivePort, ReadMessage {
+public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputUpcall {
 	
-        final private boolean            streamChecking      = false;
-
 	/**
 	 * Flag indicating whether the port use a polling thread.
 	 */
-	private boolean                  usePollingThread    = false;
+        private boolean                  useUpcallThreadPool = true;
+
+	private boolean                  usePollingThread    = true;
 
 
 	private boolean                  useUpcallThread     = true;
+
+	private boolean                  useUpcall           = true;
 
 	/**
 	 * Flag indicating whether unsuccessful active polling should be followed by
@@ -170,6 +172,124 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 */
 	private boolean               	 emptyMsg     	     = 	true;
 
+        private NetMutex                 finishMutex         =  null;
+        private volatile boolean         finishNotify        =  false;
+        private volatile boolean         pollingNotify       =  false;
+        private volatile Runnable        currentThread       =  null;
+        private final int                threadStackSize     = 256;
+        private int                      threadStackPtr      = 0;
+        private UpcallThread[]           threadStack         = new UpcallThread[threadStackSize];
+
+        private final class UpcallThread extends Thread {
+                private NetMutex         sleep = new NetMutex(true);
+                private ReadMessage      rm    = null;
+                private volatile boolean end   = false;
+
+                
+                public UpcallThread() {
+                        super();
+                        start();
+                }
+                
+                public void run() {
+                        while (!end) {
+                                try {
+                                        sleep.ilock();
+                                } catch (InterruptedException e) {
+                                        continue;
+                                }
+                                
+                                upcall.upcall(rm);
+
+                                if (currentThread == this) {
+                                        try {
+                                                //System.err.println("finish was not called");
+                                                finish();
+                                        } catch (Exception e) {
+                                                throw new Error(e.getMessage());
+                                        }
+                                }
+
+                                synchronized (threadStack) {
+                                        if (threadStackPtr < threadStackSize) {
+                                                threadStack[threadStackPtr++] = this;
+                                        }
+                                        else
+                                                return;
+                                }
+                        }
+                }
+
+                public void exec(ReadMessage rm) {
+                        this.rm = rm;
+                        sleep.unlock();
+                }
+                
+        }
+        
+
+	/* --- Upcall from main input object -- */
+        public synchronized void inputUpcall(NetInput input, Integer spn) {
+                //System.err.println("inputUpcall["+this+"]-->");
+                if (this.input == null) {
+                        __.warning__("message lost");
+                        return;
+                }
+
+                activeSendPortNum = spn;
+                if (upcall != null && upcallsEnabled) {
+                        final ReadMessage rm = _receive();
+                        if (!useUpcallThread) {
+                                upcall.upcall(rm);
+                        } else {
+                                finishNotify = true;
+
+                                if (!useUpcallThreadPool) {
+                                        Runnable r = new Runnable() {
+                                                        public void run() {
+                                                                upcall.upcall(rm);
+
+                                                                if (currentThread == this) {
+                                                                        try {
+                                                                                finish();
+                                                                        } catch (Exception e) {
+                                                                                throw new Error(e.getMessage());
+                                                                        }
+                                                                }
+                                                        }
+                                                };
+
+                                        currentThread = r;
+                                        (new Thread(r)).start();
+                                                
+                                        finishMutex.lock();
+
+                                } else {
+                                        UpcallThread ut = null;
+                                        
+                                        synchronized(threadStack) {
+                                                if (threadStackPtr > 0) {
+                                                        ut = threadStack[--threadStackPtr];
+                                                } else {
+                                                        ut = new UpcallThread();
+                                                }        
+                                        }
+
+                                        currentThread = ut;
+                                        ut.exec(rm);
+                                        finishMutex.lock();
+                                }
+                        }
+                } else {
+                        finishNotify = true;
+                        polledLock.unlock();
+                        finishMutex.lock();
+                }
+                //System.err.println("inputUpcall["+this+"]<--");
+        }
+        
+
+
 	/* --- incoming connection manager thread -- */
 
 	/**
@@ -224,7 +344,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			connect_loop:
 				while (!stop) {
 					try {
-                                                //System.err.println("NetReceivePort: <accept>-->");
 						connectionLock.ilock();
 						inputLock.lock();
 						sendPortIdentifiers.put(spn, spi);
@@ -234,7 +353,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
                                                 NetServiceListener nls = new NetServiceListener(is);
                                                 sendPortNLS.put(spn, nls);
 
-						input.setupConnection(spn, is, os, nls);	
+                                                if (useUpcall || (upcall != null && !usePollingThread)) {
+                                                        input.setupConnection(spn, is, os, nls, NetReceivePort.this);
+                                                } else {
+                                                        input.setupConnection(spn, is, os, nls, null);
+                                                } 
+                                                
                                                 nls.start();
                                                 
 						/*
@@ -253,7 +377,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 						}
 						inputLock.unlock();
 						connectionLock.unlock();
-                                        //System.err.println("NetReceivePort: <accept><--");
 					} catch (InterruptedException e) {
                                                 System.err.println("Accept thread interrupted");
                                                 
@@ -299,6 +422,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			while (!stop) {
 				try {
 					pollingLock.ilock();
+                                        pollingNotify = true;
+                                        
 					inputLock.lock();
 					activeSendPortNum = input.poll();
 					inputLock.unlock();
@@ -309,24 +434,43 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 							yield();
 						continue polling_loop;
 					}
-                                        //System.err.println("NetReceivePort: polling success");
+
 					if (upcallsEnabled && upcall != null) {
-                                                //System.err.println("NetReceivePort: upcall-->");
-                                                //System.err.println("NetReceivePort["+identifier+"] - "+Thread.currentThread()+": poll success");
                                                 final ReadMessage rm = _receive();
 
                                                 if (!useUpcallThread) {
                                                         upcall.upcall(rm);
                                                 } else {
-                                                        Runnable r = new Runnable() {
-                                                                        public void run() {
-                                                                                upcall.upcall(rm);
-                                                                        }
-                                                                };
-                                                        (new Thread(r)).start();
-                                                }
-                                                
-                                                //System.err.println("NetReceivePort: upcall<--");
+                                                        if (!useUpcallThreadPool) {
+                                                                Runnable r = new Runnable() {
+                                                                                public void run() {
+                                                                                        upcall.upcall(rm);
+                                                                                        if (currentThread == this) {
+                                                                                                try {
+                                                                                                        finish();
+                                                                                                } catch (Exception e) {
+                                                                                                        throw new Error(e.getMessage());
+                                                                                                }
+                                                                                        }
+                                                                                }
+                                                                        };
+                                                                currentThread = r;
+                                                                (new Thread(r)).start();
+                                                        } else {
+                                                                UpcallThread ut = null;
+                                        
+                                                                synchronized(threadStack) {
+                                                                        if (threadStackPtr > 0) {
+                                                                                ut = threadStack[--threadStackPtr];
+                                                                        } else {
+                                                                                ut = new UpcallThread();
+                                                                        }        
+                                                                }
+
+                                                                currentThread = ut;
+                                                                ut.exec(rm);
+                                                        }
+                                                }                                                
 					} else {
 						polledLock.unlock();
 					}
@@ -394,6 +538,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		pollingLock    	       = new NetMutex(false);
 		connectionLock 	       = new NetMutex(true);
 		inputLock      	       = new NetMutex(false);
+		finishMutex 	       = new NetMutex(true);
 
 		NetIbis ibis           = type.getIbis();
 
@@ -411,8 +556,19 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
                 }
                 
 		input                  = driver.newInput(type, null, null);
-		usePollingThread       = (type.getBooleanStringProperty(null, "UsePollingThread", new Boolean(usePollingThread))).booleanValue();
-		useYield               = (type.getBooleanStringProperty(null, "UseYield",         new Boolean(useYield))).booleanValue();
+
+		usePollingThread       = (type.getBooleanStringProperty(null, "UsePollingThread",     new Boolean(usePollingThread))).booleanValue();
+		useUpcallThread        = (type.getBooleanStringProperty(null, "UseUpcallThread",      new Boolean(useUpcallThread))).booleanValue();
+		useUpcallThreadPool    = (type.getBooleanStringProperty(null, "UseUpcallThreadPool",  new Boolean(useUpcallThreadPool))).booleanValue();
+		useYield               = (type.getBooleanStringProperty(null, "UseYield",             new Boolean(useYield))).booleanValue();
+		useUpcall              = (type.getBooleanStringProperty(null, "UseUpcall",            new Boolean(useUpcall))).booleanValue();
+
+                if (usePollingThread) {
+                        useUpcall = false;
+                }
+                else if (!useUpcall && upcall != null) {
+                        useUpcall = true;
+                }
 
 		try {
 			serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost());
@@ -452,22 +608,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		if (activeSendPortNum == null) {
 			return false;
 		}
-				
-		if (upcallsEnabled && upcall != null) {
-                        final ReadMessage rm = _receive();
-
-                        if (useUpcallThread) {
-                                upcall.upcall(rm);
-                        } else {
-                                Runnable r = new Runnable() {
-                                                public void run() {
-                                                        upcall.upcall(rm);
-                                                }
-                                        };
-                                (new Thread(r)).start();
-                        }
-			return false;
-		}
 
 		return true;
 	}
@@ -475,7 +615,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	/**
 	 * Internally initializes a new reception.
 	 */
-	private ReadMessage _receive() throws IbisIOException {
+	private ReadMessage _receive() {
 		emptyMsg   = true;
 		return this;
 	}
@@ -489,7 +629,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 * @return A {@link ReadMessage} instance.
 	 */
 	public ReadMessage receive() throws IbisIOException {
-		if (usePollingThread) {
+		if (usePollingThread || useUpcall || upcall != null) {
 			polledLock.lock();
 		} else {
 			if (useYield) {
@@ -523,7 +663,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 * was unsuccessful.
 	 */
 	public ReadMessage poll()  throws IbisIOException {
-		if (usePollingThread) {
+		if (usePollingThread || useUpcall || upcall != null) {
 			if (!polledLock.trylock())
 				return null;
 		} else {
@@ -592,16 +732,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void enableUpcalls() {
-                //System.err.println("NetReceivePort: enabling upcalls");
+	public synchronized void enableUpcalls() {
 		upcallsEnabled = true;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void disableUpcalls() {
-                //System.err.println("NetReceivePort: disabling upcalls");
+	public synchronized void disableUpcalls() {
 		upcallsEnabled = false;
 	}
 
@@ -616,128 +754,131 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 * Note: the function prints a warning if it detects that an
 	 * incoming message was ignored.
 	 */
-	public synchronized void free() {
-                //System.err.println("NetReceivePort: free-->");
-		try {
-                        int i = 0;
+	public void free() {
+                //System.err.println("NetReceivePort["+this+"]: free-->");
+                synchronized(this) {
+                        try {
+                                int i = 0;
 
-			disableConnections();
+                                disableConnections();
 
-			if (usePollingThread) {
-				if (polledLock != null
-				    &&
-				    pollingLock != null)
-					{
-						boolean polled  = false;
-						boolean polling = false;
+                                if (usePollingThread) {
+                                        if (polledLock != null
+                                            &&
+                                            pollingLock != null)
+                                                {
+                                                        boolean polled  = false;
+                                                        boolean polling = false;
 						
-						do {
-							polled  = polledLock.trylock();
-							polling = pollingLock.trylock();
-						} while (!(polled|polling));
+                                                        do {
+                                                                polled  = polledLock.trylock();
+                                                                polling = pollingLock.trylock();
+                                                        } while (!(polled|polling));
 
-						if (polled) {
-							__.warning__("incoming message ignored");
-						}
-					}
-				else if (polledLock != null
-					 ||
-					 pollingLock != null) {
-					__.abort__("invalid state");
-				}
-			}
+                                                        if (polled) {
+                                                                __.warning__("incoming message ignored");
+                                                        }
+                                                }
+                                        else if (polledLock != null
+                                                 ||
+                                                 pollingLock != null) {
+                                                __.abort__("invalid state");
+                                        }
+                                }
 
-			if (inputLock != null) {
-				inputLock.lock();
-			}
+                                if (inputLock != null) {
+                                        inputLock.lock();
+                                }
 
-			if (acceptThread != null) {
-				acceptThread.terminate();
-			}
+                                if (acceptThread != null) {
+                                        acceptThread.terminate();
+                                }
 
-			if (pollingThread != null) {
-				pollingThread.terminate();
-			}
+                                if (pollingThread != null) {
+                                        pollingThread.terminate();
+                                }
 
-			if (input != null) {
-				input.free();
-			}
+                                if (input != null) {
+                                        input.free();
+                                }
 
-			if (serverSocket != null) {
-				serverSocket.close();
-			}
+                                if (serverSocket != null) {
+                                        serverSocket.close();
+                                }
 
-			if (sendPortNLS != null) {
-				Enumeration e = sendPortNLS.keys();
+                                if (sendPortNLS != null) {
+                                        Enumeration e = sendPortNLS.keys();
 
-				while (e.hasMoreElements()) {
-					Object             key   = e.nextElement();
-					Object             value = sendPortNLS.remove(key);
-					NetServiceListener nls   = (NetServiceListener)value;
+                                        while (e.hasMoreElements()) {
+                                                Object             key   = e.nextElement();
+                                                Object             value = sendPortNLS.remove(key);
+                                                NetServiceListener nls   = (NetServiceListener)value;
 
-                                        nls.free();
-				}	
-			}		
+                                                nls.free();
+                                        }	
+                                }		
 			
-			if (sendPortOs != null) {
-				Enumeration e = sendPortOs.keys();
+                                if (sendPortOs != null) {
+                                        Enumeration e = sendPortOs.keys();
 
-				while (e.hasMoreElements()) {
-					Object             key   = e.nextElement();
-					Object             value = sendPortOs.remove(key);
-					ObjectOutputStream os    = (ObjectOutputStream)value;
-					os.close();
-				}	
-			}
+                                        while (e.hasMoreElements()) {
+                                                Object             key   = e.nextElement();
+                                                Object             value = sendPortOs.remove(key);
+                                                ObjectOutputStream os    = (ObjectOutputStream)value;
+                                                os.close();
+                                        }	
+                                }
 		
-			if (sendPortIs != null) {
-				Enumeration e = sendPortIs.keys();
+                                if (sendPortIs != null) {
+                                        Enumeration e = sendPortIs.keys();
 
-				while (e.hasMoreElements()) {
-					Object            key   = e.nextElement();
-					Object            value = sendPortIs.remove(key);
-					ObjectInputStream is    = (ObjectInputStream)value;
-					is.close();
-				}	
-			}
+                                        while (e.hasMoreElements()) {
+                                                Object            key   = e.nextElement();
+                                                Object            value = sendPortIs.remove(key);
+                                                ObjectInputStream is    = (ObjectInputStream)value;
+                                                is.close();
+                                        }	
+                                }
 
-			if (sendPortSockets != null) {
-				Enumeration e = sendPortSockets.keys();
+                                if (sendPortSockets != null) {
+                                        Enumeration e = sendPortSockets.keys();
 
-				while (e.hasMoreElements()) {
-					Object key   = e.nextElement();
-					Object value = sendPortSockets.remove(key);
-					Socket s     = (Socket)value;
+                                        while (e.hasMoreElements()) {
+                                                Object key   = e.nextElement();
+                                                Object value = sendPortSockets.remove(key);
+                                                Socket s     = (Socket)value;
 
-                                        s.close();
-				}	
-			}
+                                                s.close();
+                                        }	
+                                }
 
-			name          	    =  null;
-			type          	    =  null;
-			upcallsEnabled      = false;
-			upcall        	    =  null;
-			identifier    	    =  null;
-			driver        	    =  null;
-			input        	    =  null;
-			acceptThread  	    =  null;
-			pollingThread       =  null;
-			pollingLock         =  null;
-			polledLock          =  null;
-			connectionLock      =  null;
-			inputLock           =  null;
-			serverSocket        =  null;
-			activeSendPortNum   =  null;
-			nextSendPortNum     =  null;
-			sendPortIdentifiers =  null;
-                        sendPortNLS         =  null;
-			sendPortSockets     =  null;
-			sendPortIs          =  null;
-			sendPortOs          =  null;
-		} catch (Exception e) {
-			__.fwdAbort__(e);
-		}
-                //System.err.println("NetReceivePort: free<--");
+                                name          	    =  null;
+                                type          	    =  null;
+                                upcallsEnabled      = false;
+                                upcall        	    =  null;
+                                identifier    	    =  null;
+                                driver        	    =  null;
+                                input        	    =  null;
+                                acceptThread  	    =  null;
+                                pollingThread       =  null;
+                                pollingLock         =  null;
+                                polledLock          =  null;
+                                connectionLock      =  null;
+                                inputLock           =  null;
+                                serverSocket        =  null;
+                                activeSendPortNum   =  null;
+                                nextSendPortNum     =  null;
+                                sendPortIdentifiers =  null;
+                                sendPortNLS         =  null;
+                                sendPortSockets     =  null;
+                                sendPortIs          =  null;
+                                sendPortOs          =  null;
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                                __.fwdAbort__(e);
+                        }
+                }
+                //System.err.println("NetReceivePort["+this+"]: free<--");
 	}
 	
 	protected void finalize()
@@ -748,14 +889,27 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 	/* --- ReadMessage Part --- */
 	public void finish() throws IbisIOException {
+                //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish-->");
                 //System.err.println("NetReceivePort["+identifier+"]: finish-->");
 		if (emptyMsg) {
 			readByte();
 		}
 		activeSendPortNum = null;
 		input.finish();
-		pollingLock.unlock();
+                currentThread = null;
+                
+                if (finishNotify) {
+                        finishNotify = false;
+                        finishMutex.unlock();
+                }
+
+                if (pollingNotify) {
+                        pollingNotify = false;
+                        pollingLock.unlock();
+                }
+
                 //System.err.println("NetReceivePort["+identifier+"]: finish<--");
+                //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish<--");
 	}
 
 	public long sequenceNumber() {
@@ -772,500 +926,171 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	public boolean readBoolean() throws IbisIOException {
 		emptyMsg = false;
 		boolean v = input.readBoolean();
-                if (streamChecking) {
-                        debugReadBoolean(v);
-                }
                 return v;
 	}
 	
 	public byte readByte() throws IbisIOException {
 		emptyMsg = false;
 		byte v = input.readByte();
-                if (streamChecking) {
-                        debugReadByte(v);
-                }
                 return v;
 	}
 	
 	public char readChar() throws IbisIOException {
 		emptyMsg = false;
 		char v = input.readChar();
-                if (streamChecking) {
-                        debugReadChar(v);
-                }
                 return v;
 	}
 	
 	public short readShort() throws IbisIOException {
 		emptyMsg = false;
 		short v = input.readShort();
-                if (streamChecking) {
-                        debugReadShort(v);
-                }
                 return v;
 	}
 	
 	public int readInt() throws IbisIOException {
 		emptyMsg = false;
 		int v = input.readInt();
-                if (streamChecking) {
-                        debugReadInt(v);
-                }
                 return v;
 	}
 	
 	public long readLong() throws IbisIOException {
 		emptyMsg = false;
 		long v = input.readLong();
-                if (streamChecking) {
-                        debugReadLong(v);
-                }
                 return v;
 	}
 	
 	public float readFloat() throws IbisIOException {
 		emptyMsg = false;
 		float v = input.readFloat();
-                if (streamChecking) {
-                        debugReadFloat(v);
-                }
                 return v;
 	}
 	
 	public double readDouble() throws IbisIOException {
 		emptyMsg = false;
 		double v = input.readDouble();
-                if (streamChecking) {
-                        debugReadDouble(v);
-                }
                 return v;
 	}
 	
 	public String readString() throws IbisIOException {
 		emptyMsg = false;
 		String v = input.readString();
-                if (streamChecking) {
-                        debugReadString(v);
-                }
                 return v;
 	}
 	
 	public Object readObject()
 		throws IbisIOException {
 		Object v = input.readObject();
-                if (streamChecking) {
-                        debugReadObject(v);
-                }
                 return v;
 	}
 	
 
-	public void readArrayBoolean(boolean [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
+	public void readArrayBoolean(boolean [] b) throws IbisIOException {
+		readArraySliceBoolean(b, 0, b.length);
+	}
+
+	public void readArrayByte(byte [] b) throws IbisIOException {
+                readArraySliceByte(b, 0, b.length);
+	}
+
+	public void readArrayChar(char [] b) throws IbisIOException {
+		readArraySliceChar(b, 0, b.length);
+	}
+
+	public void readArrayShort(short [] b) throws IbisIOException {
+		readArraySliceShort(b, 0, b.length);
+	}
+
+	public void readArrayInt(int [] b) throws IbisIOException {
+		readArraySliceInt(b, 0, b.length);
+	}
+
+	public void readArrayLong(long [] b) throws IbisIOException {
+                readArraySliceLong(b, 0, b.length);
+	}
+
+	public void readArrayFloat(float [] b) throws IbisIOException {
+                readArraySliceFloat(b, 0, b.length);
+	}
+
+	public void readArrayDouble(double [] b) throws IbisIOException {
+		readArraySliceDouble(b, 0, b.length);
+	}
+
+	public void readArrayObject(Object [] b) throws IbisIOException {
+		readArraySliceObject(b, 0, b.length);
+	}
+
+
+	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-		input.readArrayBoolean(userBuffer);
-                if (streamChecking) {
-                        debugReadArrayBoolean(userBuffer);
-                }
+		input.readArraySliceBoolean(b, o, l);
 	}
 
-	public void readArrayByte(byte [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
-			return;
-
-                emptyMsg = false;
-                input.readArrayByte(userBuffer);
-                if (streamChecking) {
-                        debugReadArrayByte(userBuffer);
-                }
-	}
-
-	public void readArrayChar(char [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
+	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-		input.readArrayChar(userBuffer);
-                if (streamChecking) {
-                        debugReadArrayChar(userBuffer);
-                }
+                input.readArraySliceByte(b, o, l);
 	}
 
-	public void readArrayShort(short [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
+	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-		input.readArrayShort(userBuffer);
-                if (streamChecking) {
-                        debugReadArrayShort(userBuffer);
-                }
+		input.readArraySliceChar(b, o, l);
 	}
 
-	public void readArrayInt(int [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
+	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-		input.readArrayInt(userBuffer);
-                if (streamChecking) {
-                        debugReadArrayInt(userBuffer);
-                }
+		input.readArraySliceShort(b, o, l);
 	}
 
-	public void readArrayLong(long [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
+	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-                input.readArrayLong(userBuffer);
-                if (streamChecking) {
-                        debugReadArrayLong(userBuffer);
-                }
+		input.readArraySliceInt(b, o, l);
 	}
 
-	public void readArrayFloat(float [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
+	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-                input.readArrayFloat(userBuffer);
-                if (streamChecking) {
-                        debugReadArrayFloat(userBuffer);
-                }
+		input.readArraySliceLong(b, o, l);
 	}
 
-	public void readArrayDouble(double [] userBuffer) throws IbisIOException {
-		if (userBuffer.length == 0)
+	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-		input.readArrayDouble(userBuffer);
-                if (streamChecking) {
-                        debugReadArrayDouble(userBuffer);
-                }
+		input.readArraySliceFloat(b, o, l);
 	}
 
-
-	public void readSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
-		if (length == 0)
+	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-		input.readSubArrayBoolean(userBuffer, offset, length);
-                if (streamChecking) {
-                        debugReadSubArrayBoolean(userBuffer, offset, length);
-                }
+		input.readArraySliceDouble(b, o, l);
 	}
 
-	public void readSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-		if (length == 0)
+	public void readArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+		if (l == 0)
 			return;
 
 		emptyMsg = false;
-                input.readSubArrayByte(userBuffer, offset, length);
-                if (streamChecking) {
-                        debugReadSubArrayByte(userBuffer, offset, length);
-                }
-	}
-
-	public void readSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
-		if (length == 0)
-			return;
-
-		emptyMsg = false;
-		input.readSubArrayChar(userBuffer, offset, length);
-                if (streamChecking) {
-                        debugReadSubArrayChar(userBuffer, offset, length);
-                }
-	}
-
-	public void readSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
-		if (length == 0)
-			return;
-
-		emptyMsg = false;
-		input.readSubArrayShort(userBuffer, offset, length);
-                if (streamChecking) {
-                        debugReadSubArrayShort(userBuffer, offset, length);
-                }
-	}
-
-	public void readSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
-		if (length == 0)
-			return;
-
-		emptyMsg = false;
-		input.readSubArrayInt(userBuffer, offset, length);
-                if (streamChecking) {
-                        debugReadSubArrayInt(userBuffer, offset, length);
-                }
-	}
-
-	public void readSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
-		if (length == 0)
-			return;
-
-		emptyMsg = false;
-		input.readSubArrayLong(userBuffer, offset, length);
-                if (streamChecking) {
-                        debugReadSubArrayLong(userBuffer, offset, length);
-                }
-	}
-
-	public void readSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
-		if (length == 0)
-			return;
-
-		emptyMsg = false;
-		input.readSubArrayFloat(userBuffer, offset, length);
-                if (streamChecking) {
-                        debugReadSubArrayFloat(userBuffer, offset, length);
-                }
-	}
-
-	public void readSubArrayDouble(double [] userBuffer, int offset, int length)
-		throws IbisIOException {
-		if (length == 0)
-			return;
-
-		emptyMsg = false;
-		input.readSubArrayDouble(userBuffer, offset, length);
-                if (streamChecking) {
-                        debugReadSubArrayDouble(userBuffer, offset, length);
-                }
+		input.readArraySliceObject(b, o, l);
 	}
 	
-        /*
-         * - Debug section -
-         */
-	public void debugReadBoolean(boolean v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        boolean _v = is.readBoolean();
-                        if (v != _v) {
-                                 throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-
-	public void debugReadByte(byte v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        byte _v = is.readByte();
-                        if (v != _v) {
-                                throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-
-	public void debugReadChar(char v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        char _v = is.readChar();
-                        if (v != _v) {
-                                throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-
-	public void debugReadShort(short v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        short _v = is.readShort();
-                        if (v != _v) {
-                                throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-
-	public void debugReadInt(int v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        int _v = is.readInt();
-                        if (v != _v) {
-                                throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-
-	public void debugReadLong(long v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        long _v = is.readLong();
-                        if (v != _v) {
-                                throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-	
-	public void debugReadFloat(float v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        float _v = is.readFloat();
-                        if (v != _v) {
-                                throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-
-	public void debugReadDouble(double v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        double _v = is.readDouble();
-                        if (v != _v) {
-                                throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-
-	public void debugReadString(String v) throws IbisIOException {
-                ObjectInputStream is = (ObjectInputStream)sendPortIs.get(activeSendPortNum);
-                try {
-                        String _v = is.readUTF();
-                        if (!v.equals(_v)) {
-                                throw new Error("data mismatch: "+v+", should be:"+_v);
-                        }
-
-                } catch(Exception x) {
-                        throw new Error(x.getMessage());
-                }
-
-	}
-
-	public void debugReadObject(Object v) throws IbisIOException {
-                System.err.println("debugReadObject:"+v.getClass().getName());
-                debugReadString(v.getClass().getName());
-	}
-
-	public void debugReadArrayBoolean(boolean [] b) throws IbisIOException {
-		debugReadSubArrayBoolean(b, 0, b.length);
-	}
-	
-	public void debugReadArrayByte(byte [] b) throws IbisIOException {
-		debugReadSubArrayByte(b, 0, b.length);
-	}
-	
-	public void debugReadArrayChar(char [] b) throws IbisIOException {
-                debugReadSubArrayChar(b, 0, b.length);
-	}
-	
-	public void debugReadArrayShort(short [] b) throws IbisIOException {
-                debugReadSubArrayShort(b, 0, b.length);
-	}
-	
-	public void debugReadArrayInt(int [] b) throws IbisIOException {
-                debugReadSubArrayInt(b, 0, b.length);
-	}
-	
-	public void debugReadArrayLong(long [] b) throws IbisIOException {
-                debugReadSubArrayLong(b, 0, b.length);
-	}
-	
-	public void debugReadArrayFloat(float [] b) throws IbisIOException {
-                debugReadSubArrayFloat(b, 0, b.length);
-	}
-	
-	public void debugReadArrayDouble(double [] b) throws IbisIOException {
-                debugReadSubArrayDouble(b, 0, b.length);
-	}
-	
-
-	public void debugReadSubArrayBoolean(boolean [] b, int o, int l) throws IbisIOException {
-                debugReadInt(l);
-                for (int i = 0; i < l; i++) {
-                        debugReadBoolean(b[o+i]);
-                }
-
-	}
-	
-	public void debugReadSubArrayByte(byte [] b, int o, int l) throws IbisIOException {
-                debugReadInt(l);
-                for (int i = 0; i < l; i++) {
-                        debugReadByte(b[o+i]);
-                }
-
-	}
-	
-	public void debugReadSubArrayChar(char [] b, int o, int l) throws IbisIOException {
-                debugReadInt(l);
-                for (int i = 0; i < l; i++) {
-                        debugReadChar(b[o+i]);
-                }
-
-	}
-	
-	public void debugReadSubArrayShort(short [] b, int o, int l) throws IbisIOException {
-                debugReadInt(l);
-                for (int i = 0; i < l; i++) {
-                        debugReadShort(b[o+i]);
-                }
-
-	}
-	
-	public void debugReadSubArrayInt(int [] b, int o, int l) throws IbisIOException {
-                debugReadInt(l);
-                for (int i = 0; i < l; i++) {
-                        debugReadInt(b[o+i]);
-                }
-
-	}
-	
-	public void debugReadSubArrayLong(long [] b, int o, int l) throws IbisIOException {
-                debugReadInt(l);
-                for (int i = 0; i < l; i++) {
-                        debugReadLong(b[o+i]);
-                }
-
-	}
-	
-	public void debugReadSubArrayFloat(float [] b, int o, int l) throws IbisIOException {
-                debugReadInt(l);
-                for (int i = 0; i < l; i++) {
-                        debugReadFloat(b[o+i]);
-                }
-
-	}
-	
-	public void debugReadSubArrayDouble(double [] b, int o, int l) throws IbisIOException {
-                debugReadInt(l);
-                for (int i = 0; i < l; i++) {
-                        debugReadDouble(b[o+i]);
-                }
-
-        }
 } 

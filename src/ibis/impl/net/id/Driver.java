@@ -18,7 +18,7 @@ import java.net.DatagramSocket;
  * The goal of this driver is to provide a starting point for implementing
  * other virtual drives.
  */
-public class Driver extends NetDriver {
+public final class Driver extends NetDriver {
 
 	/**
 	 * The driver name.

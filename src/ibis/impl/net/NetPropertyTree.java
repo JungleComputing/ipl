@@ -3,7 +3,7 @@ package ibis.ipl.impl.net;
 import java.util.HashMap;
 import java.util.Vector;
 
-public class NetPropertyTree {
+public final class NetPropertyTree {
 
         private HashMap valueMap = null;
         private HashMap levelMap = null;
@@ -14,7 +14,7 @@ public class NetPropertyTree {
                 levelMap = new HashMap();
         }
 
-        private class Found extends Throwable {
+        private final class Found extends Throwable {
                 //
         }
 

@@ -21,7 +21,7 @@ import java.util.Hashtable;
  *
  * <BR><B>Note</B>: this first implementation does not use UDP broadcast capabilities.
  */
-public class UdpOutput extends NetBufferedOutput {
+public final class UdpOutput extends NetBufferedOutput {
 
 	/**
 	 * The UDP socket.
@@ -96,6 +96,10 @@ public class UdpOutput extends NetBufferedOutput {
 				    ObjectOutputStream os,
                                     NetServiceListener nls)
 		throws IbisIOException {
+                if (this.rpn != null) {
+                        throw new Error("connection already established");
+                }                
+
 		this.rpn = rpn;
 	
 		try {

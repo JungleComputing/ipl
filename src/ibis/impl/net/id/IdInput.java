@@ -11,7 +11,7 @@ import java.io.ObjectOutputStream;
 /**
  * The ID input implementation.
  */
-public class IdInput extends NetInput {
+public final class IdInput extends NetInput {
 
 	/**
 	 * The driver used for the 'real' input.
@@ -43,7 +43,7 @@ public class IdInput extends NetInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public void setupConnection(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
 			if (subDriver == null) {
@@ -55,8 +55,22 @@ public class IdInput extends NetInput {
 			this.subInput = subInput;
 		}
 		
-		subInput.setupConnection(rpn, is, os, nls);
+                if (upcallFunc != null) {
+                        subInput.setupConnection(spn, is, os, nls, this);
+                } else {
+                        subInput.setupConnection(spn, is, os, nls, null);
+                }
 	}
+
+        public synchronized void inputUpcall(NetInput input, Integer spn) {
+                activeNum = spn;
+
+                // Note: the IdInput instance is bypassed during upcall reception
+                upcallFunc.inputUpcall(input, spn);
+
+                activeNum = null;
+        }
+
 
 	/**
 	 * {@inheritDoc}
@@ -160,84 +174,48 @@ public class IdInput extends NetInput {
                 return subInput.readObject();
         }
 
-	public void readArrayBoolean(boolean [] userBuffer) throws IbisIOException {
-                subInput.readArrayBoolean(userBuffer);
+
+	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceBoolean(b, o, l);
         }
 
 
-	public void readArrayByte(byte [] userBuffer) throws IbisIOException {
-                subInput.readArrayByte(userBuffer);
+	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceByte(b, o, l);
         }
 
 
-	public void readArrayChar(char [] userBuffer) throws IbisIOException {
-                subInput.readArrayChar(userBuffer);
+	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceChar(b, o, l);
         }
 
 
-	public void readArrayShort(short [] userBuffer) throws IbisIOException {
-                subInput.readArrayShort(userBuffer);
+	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceShort(b, o, l);
         }
 
 
-	public void readArrayInt(int [] userBuffer) throws IbisIOException {
-                subInput.readArrayInt(userBuffer);
+	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceInt(b, o, l);
         }
 
 
-	public void readArrayLong(long [] userBuffer) throws IbisIOException {
-                subInput.readArrayLong(userBuffer);
+	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceLong(b, o, l);
         }
 
 
-	public void readArrayFloat(float [] userBuffer) throws IbisIOException {
-                subInput.readArrayFloat(userBuffer);
+	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceFloat(b, o, l);
         }
 
 
-	public void readArrayDouble(double [] userBuffer) throws IbisIOException {
-                subInput.readArrayDouble(userBuffer);
+	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceDouble(b, o, l);
         }
 
-
-
-	public void readSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
-                subInput.readSubArrayBoolean(userBuffer, offset, length);
-        }
-
-
-	public void readSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-                subInput.readSubArrayByte(userBuffer, offset, length);
-        }
-
-
-	public void readSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
-                subInput.readSubArrayChar(userBuffer, offset, length);
-        }
-
-
-	public void readSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
-                subInput.readSubArrayShort(userBuffer, offset, length);
-        }
-
-
-	public void readSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
-                subInput.readSubArrayInt(userBuffer, offset, length);
-        }
-
-
-	public void readSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
-                subInput.readSubArrayLong(userBuffer, offset, length);
-        }
-
-
-	public void readSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
-                subInput.readSubArrayFloat(userBuffer, offset, length);
-        }
-
-
-	public void readSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
-                subInput.readSubArrayDouble(userBuffer, offset, length);
+	public void readArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+                subInput.readArraySliceObject(b, o, l);
         }
 
 }

@@ -19,7 +19,7 @@ import java.util.Hashtable;
 /**
  * The TCP output implementation (block version).
  */
-public class TcpOutput extends NetBufferedOutput {
+public final class TcpOutput extends NetBufferedOutput {
 
 	/**
 	 * The communication socket.
@@ -81,6 +81,10 @@ public class TcpOutput extends NetBufferedOutput {
 				    ObjectOutputStream os,
                                     NetServiceListener nls)
 		throws IbisIOException {
+                if (this.rpn != null) {
+                        throw new Error("connection already established");
+                }
+                
 		this.rpn = rpn;
 	
 		Hashtable   rInfo = receiveInfoTable(is);
@@ -108,12 +112,22 @@ public class TcpOutput extends NetBufferedOutput {
 		mtu = Math.min(lmtu, rmtu);
 	}
 
+        public void finish() throws IbisIOException {
+                super.finish();
+ 		try {
+ 			tcpOs.flush();
+ 		} catch (IOException e) {
+ 			throw new IbisIOException(e.getMessage());
+ 		} 
+	}
+                
 
 	/*
 	 * {@inheritDoc}
          */
 	public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
  		try {
+                        //System.err.println("sending "+b.length+" bytes");    
  			NetConvert.writeInt(b.length, b.data, 0);
  			tcpOs.write(b.data, 0, b.length);
  		} catch (IOException e) {

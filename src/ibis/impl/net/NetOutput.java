@@ -225,11 +225,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-        private final void defaultWriteSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
+        private final void defaultWriteArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
                 try {
                         checkConvertStream();
-                        while (length-- > 0) {
-                                _outputConvertStream.writeBoolean(userBuffer[offset++]);
+                        while (l-- > 0) {
+                                _outputConvertStream.writeBoolean(b[o++]);
                         }
                         _outputConvertStream.flush();
                 } catch (IOException e) {
@@ -237,11 +237,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-        private final void defaultWriteSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
+        private final void defaultWriteArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
                 try {
                         checkConvertStream();
-                        while (length-- > 0) {
-                                _outputConvertStream.writeByte(userBuffer[offset++]);
+                        while (l-- > 0) {
+                                _outputConvertStream.writeByte(b[o++]);
                                 _outputConvertStream.flush();
                         }
                         // _outputConvertStream.flush();
@@ -250,11 +250,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
         
-        private final void defaultWriteSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
+        private final void defaultWriteArraySliceChar(char [] b, int o, int l) throws IbisIOException {
                 try {
                         checkConvertStream();
-                        while (length-- > 0) {
-                                _outputConvertStream.writeChar(userBuffer[offset++]);
+                        while (l-- > 0) {
+                                _outputConvertStream.writeChar(b[o++]);
                         }
                         _outputConvertStream.flush();
                 } catch (IOException e) {
@@ -262,11 +262,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-        private final void defaultWriteSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
+        private final void defaultWriteArraySliceShort(short [] b, int o, int l) throws IbisIOException {
                 try {
                         checkConvertStream();
-                        while (length-- > 0) {
-                                _outputConvertStream.writeShort(userBuffer[offset++]);
+                        while (l-- > 0) {
+                                _outputConvertStream.writeShort(b[o++]);
                         }
                         _outputConvertStream.flush();
                 } catch (IOException e) {
@@ -274,11 +274,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-        private final void defaultWriteSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
+        private final void defaultWriteArraySliceInt(int [] b, int o, int l) throws IbisIOException {
                 try {
                         checkConvertStream();
-                        while (length-- > 0) {
-                                _outputConvertStream.writeInt(userBuffer[offset++]);
+                        while (l-- > 0) {
+                                _outputConvertStream.writeInt(b[o++]);
                         }
                         _outputConvertStream.flush();
                 } catch (IOException e) {
@@ -286,11 +286,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-        private final void defaultWriteSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
+        private final void defaultWriteArraySliceLong(long [] b, int o, int l) throws IbisIOException {
                 try {
                         checkConvertStream();
-                        while (length-- > 0) {
-                                _outputConvertStream.writeLong(userBuffer[offset++]);
+                        while (l-- > 0) {
+                                _outputConvertStream.writeLong(b[o++]);
                         }
                         _outputConvertStream.flush();
                 } catch (IOException e) {
@@ -298,11 +298,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-        private final void defaultWriteSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
+        private final void defaultWriteArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
                 try {
                         checkConvertStream();
-                        while (length-- > 0) {
-                                _outputConvertStream.writeFloat(userBuffer[offset++]);
+                        while (l-- > 0) {
+                                _outputConvertStream.writeFloat(b[o++]);
                         }
                         _outputConvertStream.flush();
                 } catch (IOException e) {
@@ -310,11 +310,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-        private final void defaultWriteSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
+        private final void defaultWriteArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
                 try {
                         checkConvertStream();
-                        while (length-- > 0) {
-                                _outputConvertStream.writeDouble(userBuffer[offset++]);
+                        while (l-- > 0) {
+                                _outputConvertStream.writeDouble(b[o++]);
                         }
                         _outputConvertStream.flush();
                 } catch (IOException e) {
@@ -322,8 +322,22 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
-        public abstract void writeByteBuffer(NetSendBuffer buffer) throws IbisIOException;
-        
+        private final void defaultWriteArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+                try {
+                        checkConvertStream();
+                        while (l-- > 0) {
+                                _outputConvertStream.writeObject(b[o++]);
+                        }
+                        _outputConvertStream.flush();
+                } catch (IOException e) {
+                        throw new IbisIOException(e.getMessage());
+                }
+        }
+
+        public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
+                defaultWriteInt(b.length);
+                defaultWriteArraySliceByte(b.data, 0, b.length);
+        }
 
         /**
 	 * Writes a boolean value to the message.
@@ -404,72 +418,80 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 defaultWriteObject(value);
         }
 
-        public void writeArrayBoolean(boolean [] userBuffer) throws IbisIOException {
-                defaultWriteSubArrayBoolean(userBuffer, 0, userBuffer.length);
+        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceBoolean(b, o, l);
         }
 
-        public void writeArrayByte(byte [] userBuffer) throws IbisIOException {
-                defaultWriteSubArrayByte(userBuffer, 0, userBuffer.length);
+        public void writeArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceByte(b, o, l);
+        }
+        public void writeArraySliceChar(char [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceChar(b, o, l);
         }
 
-        public void writeArrayChar(char [] userBuffer) throws IbisIOException {
-                defaultWriteSubArrayChar(userBuffer, 0, userBuffer.length);
+        public void writeArraySliceShort(short [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceShort(b, o, l);
         }
 
-        public void writeArrayShort(short [] userBuffer) throws IbisIOException {
-                defaultWriteSubArrayShort(userBuffer, 0, userBuffer.length);
+        public void writeArraySliceInt(int [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceInt(b, o, l);
         }
 
-        public void writeArrayInt(int [] userBuffer) throws IbisIOException {
-                defaultWriteSubArrayInt(userBuffer, 0, userBuffer.length);
+        public void writeArraySliceLong(long [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceLong(b, o, l);
         }
 
-
-        public void writeArrayLong(long [] userBuffer) throws IbisIOException {
-                defaultWriteSubArrayLong(userBuffer, 0, userBuffer.length);
+        public void writeArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceFloat(b, o, l);
         }
 
-        public void writeArrayFloat(float [] userBuffer) throws IbisIOException {
-                defaultWriteSubArrayFloat(userBuffer, 0, userBuffer.length);
+        public void writeArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceDouble(b, o, l);
         }
 
-        public void writeArrayDouble(double [] userBuffer) throws IbisIOException {
-                defaultWriteSubArrayDouble(userBuffer, 0, userBuffer.length);
-        }
-
-        public void writeSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
-                defaultWriteSubArrayBoolean(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-                defaultWriteSubArrayByte(userBuffer, offset, length);
-        }
-        public void writeSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
-                defaultWriteSubArrayChar(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
-                defaultWriteSubArrayShort(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
-                defaultWriteSubArrayInt(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
-                defaultWriteSubArrayLong(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
-                defaultWriteSubArrayFloat(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
-                defaultWriteSubArrayDouble(userBuffer, offset, length);
+        public void writeArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+                defaultWriteArraySliceObject(b, o, l);
         }
 
 
-        private class DummyOutputStream extends OutputStream {
+        public final void writeArrayBoolean(boolean [] b) throws IbisIOException {
+                writeArraySliceBoolean(b, 0, b.length);
+        }
+
+        public final void writeArrayByte(byte [] b) throws IbisIOException {
+                writeArraySliceByte(b, 0, b.length);
+        }
+
+        public final void writeArrayChar(char [] b) throws IbisIOException {
+                writeArraySliceChar(b, 0, b.length);
+        }
+
+        public final void writeArrayShort(short [] b) throws IbisIOException {
+                writeArraySliceShort(b, 0, b.length);
+        }
+
+        public final void writeArrayInt(int [] b) throws IbisIOException {
+                writeArraySliceInt(b, 0, b.length);
+        }
+
+
+        public final void writeArrayLong(long [] b) throws IbisIOException {
+                writeArraySliceLong(b, 0, b.length);
+        }
+
+        public final void writeArrayFloat(float [] b) throws IbisIOException {
+                writeArraySliceFloat(b, 0, b.length);
+        }
+
+        public final void writeArrayDouble(double [] b) throws IbisIOException {
+                writeArraySliceDouble(b, 0, b.length);
+        }
+
+        public final void writeArrayObject(Object [] b) throws IbisIOException {
+                writeArraySliceObject(b, 0, b.length);
+        }
+
+        private final class DummyOutputStream extends OutputStream {
                 private long seq = 0;
                 public void write(int b) throws IOException {
                         try {

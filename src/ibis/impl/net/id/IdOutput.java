@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 /**
  * The ID output implementation.
  */
-public class IdOutput extends NetOutput {
+public final class IdOutput extends NetOutput {
 
 	/**
 	 * The driver used for the 'real' output.
@@ -102,147 +102,118 @@ public class IdOutput extends NetOutput {
         }
 
         /**
-	 * Writes a boolean value to the message.
-	 * @param     value             The boolean value to write.
+	 * Writes a boolean v to the message.
+	 * @param     v             The boolean v to write.
 	 */
-        public void writeBoolean(boolean value) throws IbisIOException {
-                subOutput.writeBoolean(value);
+        public void writeBoolean(boolean v) throws IbisIOException {
+                subOutput.writeBoolean(v);
         }
 
         /**
-	 * Writes a byte value to the message.
-	 * @param     value             The byte value to write.
+	 * Writes a byte v to the message.
+	 * @param     v             The byte v to write.
 	 */
-        public void writeByte(byte value) throws IbisIOException {
-                subOutput.writeByte(value);
+        public void writeByte(byte v) throws IbisIOException {
+                subOutput.writeByte(v);
         }
         
         /**
-	 * Writes a char value to the message.
-	 * @param     value             The char value to write.
+	 * Writes a char v to the message.
+	 * @param     v             The char v to write.
 	 */
-        public void writeChar(char value) throws IbisIOException {
-                subOutput.writeChar(value);
+        public void writeChar(char v) throws IbisIOException {
+                subOutput.writeChar(v);
         }
 
         /**
-	 * Writes a short value to the message.
-	 * @param     value             The short value to write.
+	 * Writes a short v to the message.
+	 * @param     v             The short v to write.
 	 */
-        public void writeShort(short value) throws IbisIOException {
-                subOutput.writeShort(value);
+        public void writeShort(short v) throws IbisIOException {
+                subOutput.writeShort(v);
         }
 
         /**
-	 * Writes a int value to the message.
-	 * @param     value             The int value to write.
+	 * Writes a int v to the message.
+	 * @param     v             The int v to write.
 	 */
-        public void writeInt(int value) throws IbisIOException {
-                subOutput.writeInt(value);
+        public void writeInt(int v) throws IbisIOException {
+                subOutput.writeInt(v);
         }
 
 
         /**
-	 * Writes a long value to the message.
-	 * @param     value             The long value to write.
+	 * Writes a long v to the message.
+	 * @param     v             The long v to write.
 	 */
-        public void writeLong(long value) throws IbisIOException {
-                subOutput.writeLong(value);
+        public void writeLong(long v) throws IbisIOException {
+                subOutput.writeLong(v);
         }
 
         /**
-	 * Writes a float value to the message.
-	 * @param     value             The float value to write.
+	 * Writes a float v to the message.
+	 * @param     v             The float v to write.
 	 */
-        public void writeFloat(float value) throws IbisIOException {
-                subOutput.writeFloat(value);
+        public void writeFloat(float v) throws IbisIOException {
+                subOutput.writeFloat(v);
         }
 
         /**
-	 * Writes a double value to the message.
-	 * @param     value             The double value to write.
+	 * Writes a double v to the message.
+	 * @param     v             The double v to write.
 	 */
-        public void writeDouble(double value) throws IbisIOException {
-                subOutput.writeDouble(value);
-        }
-
-        /**
-	 * Writes a Serializable object to the message.
-	 * @param     value             The object value to write.
-	 */
-        public void writeString(String value) throws IbisIOException {
-                subOutput.writeString(value);
+        public void writeDouble(double v) throws IbisIOException {
+                subOutput.writeDouble(v);
         }
 
         /**
 	 * Writes a Serializable object to the message.
-	 * @param     value             The object value to write.
+	 * @param     v             The object v to write.
 	 */
-        public void writeObject(Object value) throws IbisIOException {
-                subOutput.writeObject(value);
+        public void writeString(String v) throws IbisIOException {
+                subOutput.writeString(v);
         }
 
-        public void writeArrayBoolean(boolean [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayBoolean(userBuffer);
+        /**
+	 * Writes a Serializable object to the message.
+	 * @param     v             The object v to write.
+	 */
+        public void writeObject(Object v) throws IbisIOException {
+                subOutput.writeObject(v);
         }
 
-        public void writeArrayByte(byte [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayByte(userBuffer);
+        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceBoolean(b, o, l);
         }
 
-        public void writeArrayChar(char [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayChar(userBuffer);
+        public void writeArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceByte(b, o, l);
+        }
+        public void writeArraySliceChar(char [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceChar(b, o, l);
         }
 
-        public void writeArrayShort(short [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayShort(userBuffer);
+        public void writeArraySliceShort(short [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceShort(b, o, l);
         }
 
-        public void writeArrayInt(int [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayInt(userBuffer);
+        public void writeArraySliceInt(int [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceInt(b, o, l);
         }
 
-
-        public void writeArrayLong(long [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayLong(userBuffer);
+        public void writeArraySliceLong(long [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceLong(b, o, l);
         }
 
-        public void writeArrayFloat(float [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayFloat(userBuffer);
+        public void writeArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceFloat(b, o, l);
         }
 
-        public void writeArrayDouble(double [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayDouble(userBuffer);
-        }
+        public void writeArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceDouble(b, o, l);
+        }	
 
-        public void writeSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayBoolean(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayByte(userBuffer, offset, length);
-        }
-        public void writeSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayChar(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayShort(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayInt(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayLong(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayFloat(userBuffer, offset, length);
-        }
-
-        public void writeSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayDouble(userBuffer, offset, length);
+        public void writeArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceObject(b, o, l);
         }	
 }

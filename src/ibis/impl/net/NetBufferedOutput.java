@@ -154,18 +154,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 		//System.err.println("writebyte <--");
 	}
 
-	/**
-	 * Appends a byte array to the current message.
-	 *
-	 * Note: this function might block.
-	 *
-	 * @param userBuffer the byte array to append to the message.
-	 */
-	public void writeArrayByte(byte [] userBuffer) throws IbisIOException {
-		writeSubArrayByte(userBuffer, 0, userBuffer.length);
-	}
-
-	public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
+	public void writeArraySliceByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
 		//System.err.println("write: "+offset+", "+length);
 		if (length == 0)
 			return;

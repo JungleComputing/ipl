@@ -8,7 +8,7 @@ import java.util.Hashtable;
 /**
  * Provides an identifier for a {@link NetReceivePort}.
  */
-public class NetReceivePortIdentifier
+public final class NetReceivePortIdentifier
 	implements ReceivePortIdentifier, java.io.Serializable {
 
 	/**
@@ -29,8 +29,7 @@ public class NetReceivePortIdentifier
 	/**
 	 * Set of connection data.
 	 */
-	Hashtable         connectionInfo = null;
-
+        byte []           infoBytes      = null;
 
 	/**
 	 * Constructor.
@@ -47,7 +46,11 @@ public class NetReceivePortIdentifier
 		this.name	    = name;
 		this.type	    = type;
 		this.ibis	    = ibis;
-		this.connectionInfo = connectionInfo;
+                try {
+                        this.infoBytes = NetConvert.object2bytes(connectionInfo);
+                } catch (Exception e) {
+                        throw new Error(e.getMessage());
+                }
 	}
 
 	
@@ -56,17 +59,20 @@ public class NetReceivePortIdentifier
 	 *
 	 * @return The equality result.
 	 */
-	public boolean equals(NetReceivePortIdentifier other) { 		
+	public boolean equals(NetReceivePortIdentifier other) {
 		if (other == null) { 
 			return false;
-		} else { 			
+		} else {
+                        Object o1 = this.connectionInfo();
+                        Object o2 = other.connectionInfo();
+
 			return (type.equals(other.type)
 				&&
 				ibis.equals(other.ibis)
 				&&
 				name.equals(other.name)
 				&&
-				connectionInfo == other.connectionInfo);
+				o1 == o2);
 		}		
 	}
 
@@ -101,7 +107,6 @@ public class NetReceivePortIdentifier
 	public String type() {
 		return type;
 	}
-
 	
 	/**
 	 * Returns the Ibis instance identifier.
@@ -118,7 +123,11 @@ public class NetReceivePortIdentifier
 	 * @return A reference the {@link #connectionInfo} table.
 	 */
 	public Hashtable connectionInfo() {
-		return connectionInfo;
+                try {
+                        return (Hashtable)NetConvert.bytes2object(infoBytes);
+                } catch (Exception e) {
+                        throw new Error(e.getMessage());
+                }
 	}
 
 	/*
@@ -134,7 +143,7 @@ public class NetReceivePortIdentifier
 			", " +
 			"ibis = " + ibis +
 			", " +
-			"info = " + connectionInfo +
+			"info = " + connectionInfo() +
 			")");
 	}
 

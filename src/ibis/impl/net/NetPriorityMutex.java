@@ -1,6 +1,6 @@
 package ibis.ipl.impl.net;
 
-public class NetPriorityMutex {
+public final class NetPriorityMutex {
 
 	private int lockvalue     = 1;
 	private int priorityvalue = 0;

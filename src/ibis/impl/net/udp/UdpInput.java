@@ -21,14 +21,7 @@ import java.io.ObjectOutputStream;
 import java.util.Hashtable;
 
 
-/**
- * The UDP input implementation.
- *
- * <BR><B>Note</B>: this first implementation allocate one receive socket per
- * input. It could be interesting to experiment with an implementation
- * using one socket per poller instead.
- */
-public class UdpInput extends NetBufferedInput {
+public final class UdpInput extends NetBufferedInput {
 
 	/**
 	 * The default polling timeout in milliseconds.
@@ -58,106 +51,65 @@ public class UdpInput extends NetBufferedInput {
 	 */
 	private int                   receiveTimeout = defaultReceiveTimeout; // milliseconds
 
-	/**
-	 * The UDP socket.
-	 */
 	private DatagramSocket 	      socket 	     = null;
-
-	/**
-	 * The UDP message wrapper.
-	 */
 	private DatagramPacket 	      packet 	     = null;
-
-	/**
-	 * The UDP driver instance.
-	 */
 	private Driver         	      driver 	     = null;
-
-	/**
-	 * The local socket IP address.
-	 */
 	private InetAddress    	      laddr  	     = null;
-
-	/**
-	 * The local socket IP port.
-	 */
 	private int            	      lport  	     =    0;
-
-	/**
-	 * The local MTU.
-	 */
 	private int            	      lmtu   	     =    0;
-
-	/**
-	 * The remote socket IP address.
-	 */
 	private InetAddress    	      raddr  	     = null;
-
-	/**
-	 * The remote socket IP port.
-	 */
 	private int            	      rport  	     =    0;
-
-	/**
-	 * The remote MTU.
-	 */
 	private int            	      rmtu   	     =    0;
-
-	/**
-	 * The current reception byte array.
-	 */
 	private byte []               data           = null;
-
-	/**
-	 * The current reception buffer.
-	 */
 	private NetReceiveBuffer      buffer 	     = null;
-
-	/**
-	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
-	 * local number.
-	 */
-	private Integer               rpn    	     = null;
-
-	/**
-	 * The buffer block allocator.
-	 */
+	private Integer               spn    	     = null;
 	private NetAllocator          allocator      = null;
-
-	/**
-	 * The current socket timeout.
-	 */
 	private int                   socketTimeout  =    0;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the TCP driver instance.
-	 * @param input the controlling input.
-	 */
 	UdpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
 		super(pt, driver, up, context);
 	}
 
-	/*
-	 * Sets up an incoming UDP connection.
-	 *
-	 * <BR><B>Note</B>: this function also negociate the mtu.
-	 * <BR><B>Note</B>: the current UDP mtu is arbitrarily fixed at 32kB.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
-	 */
-	public void setupConnection(Integer            rpn,
+        private final class UpcallThread extends Thread {
+                
+                public void run() {
+                        while (true) {
+                                if (data != null) {
+                                        throw new Error("invalid state");
+                                }
+                                        
+                                data = allocator.allocate();
+                                packet.setData(data, 0, data.length);
+                                
+                                try {
+                                        setReceiveTimeout(0);
+                                        socket.receive(packet);
+                                        buffer    = new NetReceiveBuffer(data, packet.getLength(), allocator);
+                                        data      = null;
+                                        activeNum = spn;
+                                        UdpInput.super.initReceive();
+                                        upcallFunc.inputUpcall(UdpInput.this, activeNum);
+                                        activeNum = null;
+                                } catch (InterruptedIOException e) {
+                                        // Nothing
+                                } catch (Exception e) {
+                                        throw new Error(e);
+                                }
+                        }
+                }
+        }
+
+	public void setupConnection(Integer            spn,
 				    ObjectInputStream  is,
 				    ObjectOutputStream os,
                                     NetServiceListener nls)
 		throws IbisIOException {
-		this.rpn = rpn;
+                if (this.spn != null) {
+                        throw new Error("connection already established");
+                }
+                
+		this.spn = spn;
 		 
 		try {
 			socket = new DatagramSocket(0, InetAddress.getLocalHost());
@@ -194,6 +146,9 @@ public class UdpInput extends NetBufferedInput {
 		}
 
 		setReceiveTimeout(receiveTimeout);
+                if (upcallFunc != null) {
+                        (new UpcallThread()).start();
+                }
 	}
 
 	/**
@@ -208,7 +163,7 @@ public class UdpInput extends NetBufferedInput {
 	public Integer poll() throws IbisIOException {
 		activeNum = null;
 
-		if (rpn == null) {
+		if (spn == null) {
 			return null;
 		}
 
@@ -221,7 +176,7 @@ public class UdpInput extends NetBufferedInput {
 			socket.receive(packet);
 			buffer    = new NetReceiveBuffer(data, packet.getLength(), allocator);
 			data      = null;
-			activeNum = rpn;
+			activeNum = spn;
                         super.initReceive();
 		} catch (InterruptedIOException e) {
 			// Nothing
@@ -342,7 +297,7 @@ public class UdpInput extends NetBufferedInput {
 		rport  =    0;
 		rmtu   =    0;
 		buffer = null;
-		rpn    = null;
+		spn    = null;
 
 		super.free();
 	}

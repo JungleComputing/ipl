@@ -1,8 +1,5 @@
 package ibis.ipl.impl.net.bytes;
 
-import ibis.io.ArrayOutputStream;
-import ibis.io.MantaOutputStream;
-
 import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
@@ -13,7 +10,7 @@ import java.io.ObjectOutputStream;
 /**
  * The byte conversion output implementation.
  */
-public class BytesOutput extends NetOutput {
+public final class BytesOutput extends NetOutput {
 
 	/**
 	 * The driver used for the 'real' output.
@@ -117,84 +114,84 @@ public class BytesOutput extends NetOutput {
         }
 
         /**
-	 * Writes a boolean value to the message.
-	 * @param     value             The boolean value to write.
+	 * Writes a boolean v to the message.
+	 * @param     v             The boolean v to write.
 	 */
-        public void writeBoolean(boolean value) throws IbisIOException {
-                subOutput.writeByte(NetConvert.boolean2byte(value));
+        public void writeBoolean(boolean v) throws IbisIOException {
+                subOutput.writeByte(NetConvert.boolean2byte(v));
         }
 
         /**
-	 * Writes a byte value to the message.
-	 * @param     value             The byte value to write.
+	 * Writes a byte v to the message.
+	 * @param     v             The byte v to write.
 	 */
-        public void writeByte(byte value) throws IbisIOException {
-                subOutput.writeByte(value);                
+        public void writeByte(byte v) throws IbisIOException {
+                subOutput.writeByte(v);                
         }
         
         /**
-	 * Writes a char value to the message.
-	 * @param     value             The char value to write.
+	 * Writes a char v to the message.
+	 * @param     v             The char v to write.
 	 */
-        public void writeChar(char value) throws IbisIOException {
+        public void writeChar(char v) throws IbisIOException {
                 byte [] b = a2.allocate();
-                NetConvert.writeChar(value, b);
+                NetConvert.writeChar(v, b);
                 subOutput.writeArrayByte(b);
                 a2.free(b);
         }
 
         /**
-	 * Writes a short value to the message.
-	 * @param     value             The short value to write.
+	 * Writes a short v to the message.
+	 * @param     v             The short v to write.
 	 */
-        public void writeShort(short value) throws IbisIOException {
+        public void writeShort(short v) throws IbisIOException {
                 byte [] b = a2.allocate();
-                NetConvert.writeShort(value, b);
+                NetConvert.writeShort(v, b);
                 subOutput.writeArrayByte(b);
                 a2.free(b);                
         }
 
         /**
-	 * Writes a int value to the message.
-	 * @param     value             The int value to write.
+	 * Writes a int v to the message.
+	 * @param     v             The int v to write.
 	 */
-        public void writeInt(int value) throws IbisIOException {
+        public void writeInt(int v) throws IbisIOException {
                 byte [] b = a4.allocate();
-                NetConvert.writeInt(value, b);
+                NetConvert.writeInt(v, b);
                 subOutput.writeArrayByte(b);
                 a4.free(b);                
         }
 
 
         /**
-	 * Writes a long value to the message.
-	 * @param     value             The long value to write.
+	 * Writes a long v to the message.
+	 * @param     v             The long v to write.
 	 */
-        public void writeLong(long value) throws IbisIOException {
+        public void writeLong(long v) throws IbisIOException {
                 byte [] b = a8.allocate();
-                NetConvert.writeLong(value, b);
+                NetConvert.writeLong(v, b);
                 subOutput.writeArrayByte(b);
                 a8.free(b);                
         }
 
         /**
-	 * Writes a float value to the message.
-	 * @param     value             The float value to write.
+	 * Writes a float v to the message.
+	 * @param     v             The float v to write.
 	 */
-        public void writeFloat(float value) throws IbisIOException {
+        public void writeFloat(float v) throws IbisIOException {
                 byte [] b = a4.allocate();
-                NetConvert.writeFloat(value, b);
+                NetConvert.writeFloat(v, b);
                 subOutput.writeArrayByte(b);
                 a4.free(b);                
         }
 
         /**
-	 * Writes a double value to the message.
-	 * @param     value             The double value to write.
+	 * Writes a double v to the message.
+	 * @param     v             The double v to write.
 	 */
-        public void writeDouble(double value) throws IbisIOException {
+        public void writeDouble(double v) throws IbisIOException {
                 byte [] b = a8.allocate();
-                NetConvert.writeDouble(value, b);
+                NetConvert.writeDouble(v, b);
                 subOutput.writeArrayByte(b);
                 a8.free(b);                
         }
@@ -202,204 +199,117 @@ public class BytesOutput extends NetOutput {
         /**
 	 * Writes a Serializable string to the message.
          * Note: uses writeObject to send the string.
-	 * @param     value             The string value to write.
+	 * @param     v             The string v to write.
 	 */
-        public void writeString(String value) throws IbisIOException {
-                subOutput.writeString(value);
+        public void writeString(String v) throws IbisIOException {
+                subOutput.writeString(v);
         }
 
         /**
 	 * Writes a Serializable object to the message.
-	 * @param     value             The object value to write.
+	 * @param     v             The object v to write.
 	 */
-        public void writeObject(Object value) throws IbisIOException {
-                subOutput.writeObject(value);                
+        public void writeObject(Object v) throws IbisIOException {
+                subOutput.writeObject(v);                
         }
 
-        public void writeArrayBoolean(boolean [] userBuffer) throws IbisIOException {
-                if (userBuffer.length <= anThreshold) {
+
+        public void writeArraySliceBoolean(boolean [] ub, int o, int l) throws IbisIOException {
+                if (l <= anThreshold) {
                         byte [] b = an.allocate();
-                        NetConvert.writeArrayBoolean(userBuffer, b);
-                        subOutput.writeSubArrayByte(b, 0, userBuffer.length);
+                        NetConvert.writeArraySliceBoolean(ub, o, l, b);
+                        subOutput.writeArraySliceByte(b, 0, l);
                         an.free(b);
                 } else {
-                        subOutput.writeArrayByte(NetConvert.writeArrayBoolean(userBuffer));
+                        subOutput.writeArrayByte(NetConvert.writeArraySliceBoolean(ub, o, l));
                 }                
         }
 
-        public void writeArrayByte(byte [] userBuffer) throws IbisIOException {
-                subOutput.writeArrayByte(userBuffer);
+        public void writeArraySliceByte(byte [] ub, int o, int l) throws IbisIOException {
+                subOutput.writeArraySliceByte(ub, o, l);                
         }
 
-        public void writeArrayChar(char [] userBuffer) throws IbisIOException {
+        public void writeArraySliceChar(char [] ub, int o, int l) throws IbisIOException {
                 final int f = 2;
 
-                if (userBuffer.length*f <= anThreshold) {
+                if ((l*f) <= anThreshold) {
                         byte [] b = an.allocate();
-                        NetConvert.writeArrayChar(userBuffer, b);
-                        subOutput.writeSubArrayByte(b, 0, userBuffer.length*f);
+                        NetConvert.writeArraySliceChar(ub, o, l, b);
+                        subOutput.writeArraySliceByte(b, 0, l*f);
                         an.free(b);
                 } else {
-                        subOutput.writeArrayByte(NetConvert.writeArrayChar(userBuffer));
-                }                
+                        subOutput.writeArrayByte(NetConvert.writeArraySliceChar(ub, o, l));
+                }
         }
 
-        public void writeArrayShort(short [] userBuffer) throws IbisIOException {
+        public void writeArraySliceShort(short [] ub, int o, int l) throws IbisIOException {
                 final int f = 2;
 
-                if (userBuffer.length*f <= anThreshold) {
+                if ((l*f) <= anThreshold) {
                         byte [] b = an.allocate();
-                        NetConvert.writeArrayShort(userBuffer, b);
-                        subOutput.writeSubArrayByte(b, 0, userBuffer.length*f);
+                        NetConvert.writeArraySliceShort(ub, o, l, b);
+                        subOutput.writeArraySliceByte(b, 0, l*f);
                         an.free(b);
                 } else {
-                        subOutput.writeArrayByte(NetConvert.writeArrayShort(userBuffer));
-                }                
+                        subOutput.writeArrayByte(NetConvert.writeArraySliceShort(ub, o, l));
+                }
         }
 
-        public void writeArrayInt(int [] userBuffer) throws IbisIOException {
+        public void writeArraySliceInt(int [] ub, int o, int l) throws IbisIOException {
                 final int f = 4;
 
-                if (userBuffer.length*f <= anThreshold) {
+                if ((l*f) <= anThreshold) {
                         byte [] b = an.allocate();
-                        NetConvert.writeArrayInt(userBuffer, b);
-                        subOutput.writeSubArrayByte(b, 0, userBuffer.length*f);
+                        NetConvert.writeArraySliceInt(ub, o, l, b);
+                        subOutput.writeArraySliceByte(b, 0, l*f);
                         an.free(b);
                 } else {
-                        subOutput.writeArrayByte(NetConvert.writeArrayInt(userBuffer));
-                }                
+                        subOutput.writeArrayByte(NetConvert.writeArraySliceInt(ub, o, l));
+                }
         }
 
-        public void writeArrayLong(long [] userBuffer) throws IbisIOException {
+        public void writeArraySliceLong(long [] ub, int o, int l) throws IbisIOException {
                 final int f = 8;
 
-                if (userBuffer.length*f <= anThreshold) {
+                if ((l*f) <= anThreshold) {
                         byte [] b = an.allocate();
-                        NetConvert.writeArrayLong(userBuffer, b);
-                        subOutput.writeSubArrayByte(b, 0, userBuffer.length*f);
+                        NetConvert.writeArraySliceLong(ub, o, l, b);
+                        subOutput.writeArraySliceByte(b, 0, l*f);
                         an.free(b);
                 } else {
-                        subOutput.writeArrayByte(NetConvert.writeArrayLong(userBuffer));
-                }                
+                        subOutput.writeArrayByte(NetConvert.writeArraySliceLong(ub, o, l));
+                }
         }
 
-        public void writeArrayFloat(float [] userBuffer) throws IbisIOException {
+        public void writeArraySliceFloat(float [] ub, int o, int l) throws IbisIOException {
                 final int f = 4;
 
-                if (userBuffer.length*f <= anThreshold) {
+                if ((l*f) <= anThreshold) {
                         byte [] b = an.allocate();
-                        NetConvert.writeArrayFloat(userBuffer, b);
-                        subOutput.writeSubArrayByte(b, 0, userBuffer.length*f);
+                        NetConvert.writeArraySliceFloat(ub, o, l, b);
+                        subOutput.writeArraySliceByte(b, 0, l*f);
                         an.free(b);
                 } else {
-                        subOutput.writeArrayByte(NetConvert.writeArrayFloat(userBuffer));
-                }                
+                        subOutput.writeArrayByte(NetConvert.writeArraySliceFloat(ub, o, l));
+                }
         }
 
-        public void writeArrayDouble(double [] userBuffer) throws IbisIOException {
+        public void writeArraySliceDouble(double [] ub, int o, int l) throws IbisIOException {
                 final int f = 8;
 
-                if (userBuffer.length*f <= anThreshold) {
+                if ((l*f) <= anThreshold) {
                         byte [] b = an.allocate();
-                        NetConvert.writeArrayDouble(userBuffer, b);
-                        subOutput.writeSubArrayByte(b, 0, userBuffer.length*f);
+                        NetConvert.writeArraySliceDouble(ub, o, l, b);
+                        subOutput.writeArraySliceByte(b, 0, l*f);
                         an.free(b);
                 } else {
-                        subOutput.writeArrayByte(NetConvert.writeArrayDouble(userBuffer));
-                }                
-        }
-
-        public void writeSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
-                if (length <= anThreshold) {
-                        byte [] b = an.allocate();
-                        NetConvert.writeSubArrayBoolean(userBuffer, offset, length, b);
-                        subOutput.writeSubArrayByte(b, 0, length);
-                        an.free(b);
-                } else {
-                        subOutput.writeArrayByte(NetConvert.writeSubArrayBoolean(userBuffer, offset, length));
-                }                
-        }
-
-        public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-                subOutput.writeSubArrayByte(userBuffer, offset, length);                
-        }
-
-        public void writeSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
-                final int f = 2;
-
-                if ((length*f) <= anThreshold) {
-                        byte [] b = an.allocate();
-                        NetConvert.writeSubArrayChar(userBuffer, offset, length, b);
-                        subOutput.writeSubArrayByte(b, 0, length*f);
-                        an.free(b);
-                } else {
-                        subOutput.writeArrayByte(NetConvert.writeSubArrayChar(userBuffer, offset, length));
-                }
-        }
-
-        public void writeSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
-                final int f = 2;
-
-                if ((length*f) <= anThreshold) {
-                        byte [] b = an.allocate();
-                        NetConvert.writeSubArrayShort(userBuffer, offset, length, b);
-                        subOutput.writeSubArrayByte(b, 0, length*f);
-                        an.free(b);
-                } else {
-                        subOutput.writeArrayByte(NetConvert.writeSubArrayShort(userBuffer, offset, length));
-                }
-        }
-
-        public void writeSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
-                final int f = 4;
-
-                if ((length*f) <= anThreshold) {
-                        byte [] b = an.allocate();
-                        NetConvert.writeSubArrayInt(userBuffer, offset, length, b);
-                        subOutput.writeSubArrayByte(b, 0, length*f);
-                        an.free(b);
-                } else {
-                        subOutput.writeArrayByte(NetConvert.writeSubArrayInt(userBuffer, offset, length));
-                }
-        }
-
-        public void writeSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
-                final int f = 8;
-
-                if ((length*f) <= anThreshold) {
-                        byte [] b = an.allocate();
-                        NetConvert.writeSubArrayLong(userBuffer, offset, length, b);
-                        subOutput.writeSubArrayByte(b, 0, length*f);
-                        an.free(b);
-                } else {
-                        subOutput.writeArrayByte(NetConvert.writeSubArrayLong(userBuffer, offset, length));
-                }
-        }
-
-        public void writeSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
-                final int f = 4;
-
-                if ((length*f) <= anThreshold) {
-                        byte [] b = an.allocate();
-                        NetConvert.writeSubArrayFloat(userBuffer, offset, length, b);
-                        subOutput.writeSubArrayByte(b, 0, length*f);
-                        an.free(b);
-                } else {
-                        subOutput.writeArrayByte(NetConvert.writeSubArrayFloat(userBuffer, offset, length));
-                }
-        }
-
-        public void writeSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
-                final int f = 8;
-
-                if ((length*f) <= anThreshold) {
-                        byte [] b = an.allocate();
-                        NetConvert.writeSubArrayDouble(userBuffer, offset, length, b);
-                        subOutput.writeSubArrayByte(b, 0, length*f);
-                        an.free(b);
-                } else {
-                        subOutput.writeArrayByte(NetConvert.writeSubArrayDouble(userBuffer, offset, length));
+                        subOutput.writeArrayByte(NetConvert.writeArraySliceDouble(ub, o, l));
                 }
         }	
 
+        public void writeArraySliceObject(Object [] ub, int o, int l) throws IbisIOException {
+                for (int i = 0; i < l; i++) {
+                        writeObject(ub[o+i]);
+                }
+        }
 }

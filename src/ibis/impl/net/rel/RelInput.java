@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 /**
  * The REL input implementation.
  */
-public class RelInput extends NetBufferedInput {
+public final class RelInput extends NetBufferedInput {
 
 	/**
 	 * The driver used for the 'real' input.

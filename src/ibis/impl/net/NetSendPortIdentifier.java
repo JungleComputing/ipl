@@ -6,7 +6,7 @@ import ibis.ipl.SendPortIdentifier;
 /**
  * Provides an identifier for a {@link NetSendPort}.
  */
-public class NetSendPortIdentifier
+public final class NetSendPortIdentifier
 	implements SendPortIdentifier, java.io.Serializable {
 
 	/**

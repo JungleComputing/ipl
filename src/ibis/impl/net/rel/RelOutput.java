@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 /**
  * The REL output implementation.
  */
-public class RelOutput extends NetBufferedOutput {
+public final class RelOutput extends NetBufferedOutput {
 
 	/**
 	 * The driver used for the 'real' output.

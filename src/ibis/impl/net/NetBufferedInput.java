@@ -162,12 +162,7 @@ public abstract class NetBufferedInput extends NetInput {
 		return value;
 	}
 	
-	public void readArrayByte(byte [] userBuffer)
-		throws IbisIOException {
-		readSubArrayByte(userBuffer, 0, userBuffer.length);
-	}
-
-	public void readSubArrayByte(byte [] userBuffer,
+	public void readArraySliceByte(byte [] userBuffer,
 				     int     offset,
 				     int     length)
 		throws IbisIOException {

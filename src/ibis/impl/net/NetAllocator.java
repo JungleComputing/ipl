@@ -5,7 +5,7 @@ import ibis.ipl.impl.net.__;
 /**
  * Provides cached fixed-size memory block allocation.
  */
-public class NetAllocator {
+public final class NetAllocator {
 
 	/**
 	 * The default size of the cache.

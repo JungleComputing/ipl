@@ -5,7 +5,7 @@ import ibis.ipl.impl.net.*;
 /**
  * The NetIbis TCP driver with pipelined block transmission.
  */
-public class Driver extends NetDriver {
+public final class Driver extends NetDriver {
 
 	/**
 	 * The driver name.

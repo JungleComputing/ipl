@@ -5,7 +5,7 @@ import ibis.ipl.IbisIOException;
 /**
  * The primitive to byte conversion driver.
  */
-public class Driver extends NetDriver {
+public final class Driver extends NetDriver {
 
 	/**
 	 * The driver name.

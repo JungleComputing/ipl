@@ -13,7 +13,7 @@ import java.util.Hashtable;
 /**
  * The DEF output implementation.
  */
-public class DefOutput extends NetOutput {
+public final class DefOutput extends NetOutput {
 
 	/**
 	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
@@ -45,6 +45,10 @@ public class DefOutput extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+                if (this.rpn != null) {
+                        throw new Error("connection already established");
+                }                
+
 		this.rpn = rpn;
 	
 		Hashtable remoteInfo = receiveInfoTable(is);
@@ -213,7 +217,7 @@ public class DefOutput extends NetOutput {
 		}
         }
 
-        public void writeSubArrayBoolean(boolean [] b, int o, int l) throws IbisIOException {
+        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
                 synchronized(defOs) {
                         try {
                                 defOs.writeInt(nlsId);
@@ -227,7 +231,7 @@ public class DefOutput extends NetOutput {
 		}
         }
 
-        public void writeSubArrayByte(byte [] b, int o, int l) throws IbisIOException {
+        public void writeArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
                 synchronized(defOs) {
                         try {
                                 defOs.writeInt(nlsId);
@@ -240,7 +244,7 @@ public class DefOutput extends NetOutput {
                         }
 		}
         }
-        public void writeSubArrayChar(char [] b, int o, int l) throws IbisIOException {
+        public void writeArraySliceChar(char [] b, int o, int l) throws IbisIOException {
                 synchronized(defOs) {
                         try {
                                 defOs.writeInt(nlsId);
@@ -254,7 +258,7 @@ public class DefOutput extends NetOutput {
 		}
         }
 
-        public void writeSubArrayShort(short [] b, int o, int l) throws IbisIOException {
+        public void writeArraySliceShort(short [] b, int o, int l) throws IbisIOException {
                 synchronized(defOs) {
                         try {
                                 defOs.writeInt(nlsId);
@@ -268,7 +272,7 @@ public class DefOutput extends NetOutput {
 		}
         }
 
-        public void writeSubArrayInt(int [] b, int o, int l) throws IbisIOException {
+        public void writeArraySliceInt(int [] b, int o, int l) throws IbisIOException {
                 synchronized(defOs) {
                         try {
                                 defOs.writeInt(nlsId);
@@ -282,7 +286,7 @@ public class DefOutput extends NetOutput {
 		}
         }
 
-        public void writeSubArrayLong(long [] b, int o, int l) throws IbisIOException {
+        public void writeArraySliceLong(long [] b, int o, int l) throws IbisIOException {
                 synchronized(defOs) {
                         try {
                                 defOs.writeInt(nlsId);
@@ -296,7 +300,7 @@ public class DefOutput extends NetOutput {
 		}
         }
 
-        public void writeSubArrayFloat(float [] b, int o, int l) throws IbisIOException {
+        public void writeArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
                 synchronized(defOs) {
                         try {
                                 defOs.writeInt(nlsId);
@@ -310,7 +314,7 @@ public class DefOutput extends NetOutput {
 		}
         }
 
-        public void writeSubArrayDouble(double [] b, int o, int l) throws IbisIOException {
+        public void writeArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
                 synchronized(defOs) {
                         try {
                                 defOs.writeInt(nlsId);
@@ -324,39 +328,19 @@ public class DefOutput extends NetOutput {
 		}
         }
 
-        public void writeArrayBoolean(boolean [] b) throws IbisIOException {
-                writeSubArrayBoolean(b, 0, b.length);
+        public void writeArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+                synchronized(defOs) {
+                        try {
+                                defOs.writeInt(nlsId);
+                                for (int i = 0; i < l; i++) {
+                                        writeObject(b[o+i]);
+                                }
+                                defOs.flush();
+                        } catch (IOException e) {
+                                throw new IbisIOException(e);
+                        }
+		}
         }
-
-        public void writeArrayByte(byte [] b) throws IbisIOException {
-                writeSubArrayByte(b, 0, b.length);
-        }
-
-        public void writeArrayChar(char [] b) throws IbisIOException {
-                writeSubArrayChar(b, 0, b.length);
-        }
-
-        public void writeArrayShort(short [] b) throws IbisIOException {
-                writeSubArrayShort(b, 0, b.length);
-        }
-
-        public void writeArrayInt(int [] b) throws IbisIOException {
-                writeSubArrayInt(b, 0, b.length);
-        }
-
-
-        public void writeArrayLong(long [] b) throws IbisIOException {
-                writeSubArrayLong(b, 0, b.length);
-        }
-
-        public void writeArrayFloat(float [] b) throws IbisIOException {
-                writeSubArrayFloat(b, 0, b.length);
-        }
-
-        public void writeArrayDouble(double [] b) throws IbisIOException {
-                writeSubArrayDouble(b, 0, b.length);
-        }
-        
 
 	/**
 	 * {@inheritDoc}

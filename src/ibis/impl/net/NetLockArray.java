@@ -1,7 +1,7 @@
 package ibis.ipl.impl.net;
 
 
-public class NetLockArray {
+public final class NetLockArray {
 
         /**
          * Array of lock values.

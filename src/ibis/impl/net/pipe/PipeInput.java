@@ -12,52 +12,54 @@ import java.io.PipedInputStream;
 
 import java.util.Hashtable;
 
-/**
- * The PIPE input implementation.
- */
-public class PipeInput extends NetBufferedInput {
+public final class PipeInput extends NetBufferedInput {
+	private int              defaultMtu   = 512;
+	private Integer          spn          = null;
+	private PipedInputStream pipeIs       = null;
+	private NetAllocator     allocator    = null;
+        private NetReceiveBuffer buf          = null;
+        private boolean          upcallMode   = false;
+        private UpcallThread     upcallThread = null;
+        private NetMutex         upcallEnd    = new NetMutex(true);
 
-	/**
-	 * Default MTU of the pipe.
-	 */
-	private int              defaultMtu = 512;
-
-	/**
-	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
-	 * local number.
-	 */
-	private Integer          rpn       = null;
-
-	/**
-	 * The communication input stream.
-	 */
-	private PipedInputStream pipeIs    = null;
-
-	/**
-	 * The buffer block allocator.
-	 */
-	private NetAllocator     allocator = null;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the PIPE driver instance.
-	 * @param input the controlling input.
-	 */
 	PipeInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
 		super(pt, driver, up, context);
 		headerLength = 4;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
-		this.rpn = rpn;
+        private final class UpcallThread extends Thread {
+                
+                public void run() {
+                        while (true) {
+                                try {
+                                        buf = receiveByteBuffer(0);
+                                        if (buf == null)
+                                                break;
+                                        
+                                        activeNum = spn;
+                                        initReceive();
+                                        upcallFunc.inputUpcall(PipeInput.this, activeNum);
+                                        activeNum = null;
+                                } catch (Exception e) {
+                                        throw new Error(e);
+                                }
+                        }
+
+                        upcallEnd.unlock();
+                }
+        }
+
+	public void setupConnection(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+                if (this.spn != null) {
+                        throw new Error("connection already established");
+                }
+                
+		this.spn = spn;
 		mtu      = defaultMtu;
 		 
+                if (upcallFunc != null) {
+                        upcallMode = true;
+                }
 		try {
 			pipeIs = new PipedInputStream();
 			
@@ -66,10 +68,9 @@ public class PipeInput extends NetBufferedInput {
 			bank.put(key, pipeIs);
 			
 			Hashtable info = new Hashtable();
-			info.put("pipe_mtu",       new Integer(mtu));
+			info.put("pipe_mtu",         new Integer(mtu));
 			info.put("pipe_istream_key", key);
-			key = null;
-
+			info.put("pipe_upcall_mode", new Boolean(upcallMode));
 			sendInfoTable(os, info);
 			int ack = is.read();
 		} catch (IOException e) {
@@ -77,27 +78,21 @@ public class PipeInput extends NetBufferedInput {
 		}
 
 		allocator = new NetAllocator(mtu);
+                if (upcallFunc != null) {
+                        (upcallThread = new UpcallThread()).start();
+                }
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: This PIPE polling implementation uses the
-	 * {@link java.io.InputStream#available()} function to test whether at least one
-	 * data byte may be extracted without blocking.
-	 *
-	 * @return {@inheritDoc}
-	 */
 	public Integer poll() throws IbisIOException {
 		activeNum = null;
 
-		if (rpn == null) {
+		if (spn == null) {
 			return null;
 		}
 
 		try {
 			if (pipeIs.available() > 0) {
-				activeNum = rpn;
+				activeNum = spn;
                                 initReceive();
 			}
 		} catch (IOException e) {
@@ -107,37 +102,54 @@ public class PipeInput extends NetBufferedInput {
 		return activeNum;
 	}	
 
-
-	/*
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
-        */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
 		throws IbisIOException {
+                if (buf != null) {
+                        NetReceiveBuffer temp = buf;
+                        buf = null;
+                        return temp;
+                }
+                
+                final boolean upcallMode = this.upcallMode;
 		byte [] b = allocator.allocate();
 		int     l = 0;
 		
 		try {
 			int offset = 0;
 			do {
-				while (pipeIs.available() < 4) {
-					Thread.currentThread().yield();
-				}
+                                if (!upcallMode) {
+                                        while (pipeIs.available() < 4) {
+                                                Thread.currentThread().yield();
+                                        }
+                                }
 				
-				offset += pipeIs.read(b, offset, 4);
+                                int result = pipeIs.read(b, offset, 4);
+                                if (result == -1) {
+                                        if (offset != 0) {
+                                                throw new Error("broken pipe");
+                                        }
+                                        
+                                        return null;
+                                }
+                                
+				offset += result;
 			} while (offset < 4);
 
 			l = NetConvert.readInt(b, 0);
 			
 			do {
-				while (pipeIs.available() < (l - offset)) {
-					Thread.currentThread().yield();
-				}
+                                if (!upcallMode) {
+                                        while (pipeIs.available() < (l - offset)) {
+                                                Thread.currentThread().yield();
+                                        }
+                                }
+                                
 				
-				offset += pipeIs.read(b, offset, l - offset);
+				int result = pipeIs.read(b, offset, l - offset);
+                                if (result == -1) {
+                                        throw new Error("broken pipe");
+                                }                                
+                                offset += result;
 			} while (offset < l);
 		} catch (Exception e) {
 			throw new IbisIOException(e);
@@ -146,17 +158,16 @@ public class PipeInput extends NetBufferedInput {
 		return new NetReceiveBuffer(b, l, allocator);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void free() throws IbisIOException {
 		try {
 			if (pipeIs != null) {
 				pipeIs.close();
-				pipeIs = null;
 			}
-
-			rpn = null;
+                        if (upcallThread != null) {
+                                upcallThread.interrupt();
+                                upcallEnd.lock();
+                                upcallThread = null;
+                        }
 		}
 		catch (Exception e) {
 			throw new IbisIOException(e);

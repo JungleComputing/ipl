@@ -12,31 +12,11 @@ import java.io.PipedOutputStream;
 
 import java.util.Hashtable;
 
-/**
- * The PIPE output implementation.
- */
-public class PipeOutput extends NetBufferedOutput {
+public final class PipeOutput extends NetBufferedOutput {
+	private Integer           rpn        = null;
+	private PipedOutputStream pipeOs     = null;
+        private boolean           upcallMode = false;
 
-	/**
-	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
-	 * local number.
-	 */
-	private Integer           rpn    = null;
-
-	/**
-	 * The communication output stream.
-	 */
-	private PipedOutputStream pipeOs = null;
-
-
-	/**
-	 * Constructor.
-	 *
-	 * @param sp the properties of the output's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the PIPE driver instance.
-	 * @param output the controlling output.
-	 */
 	PipeOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
 		super(pt, driver, up, context);
 		headerLength = 4;
@@ -46,13 +26,20 @@ public class PipeOutput extends NetBufferedOutput {
 	 * {@inheritDoc}
 	 */
 	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+                if (this.rpn != null) {
+                        throw new Error("connection already established");
+                }
+                
 		this.rpn = rpn;
 	
 		try {
 			Hashtable info = receiveInfoTable(is);
-			mtu  	       = ((Integer) info.get("pipe_mtu")).intValue();
+			mtu  	       = ((Integer)info.get("pipe_mtu")).intValue();
+                        upcallMode     = ((Boolean)info.get("pipe_upcall_mode")).booleanValue();
+
 			NetBank          bank   = driver.getIbis().getBank();
 			Long             key    = (Long)info.get("pipe_istream_key");
+                        
 			PipedInputStream pipeIs = (PipedInputStream)bank.discardKey(key);
 
 			pipeOs = new PipedOutputStream(pipeIs);
@@ -67,7 +54,10 @@ public class PipeOutput extends NetBufferedOutput {
 		try {
 			NetConvert.writeInt(b.length, b.data, 0);
 			pipeOs.write(b.data, 0, b.length);
-			Thread.currentThread().yield();
+                        if (!upcallMode) {
+                                Thread.currentThread().yield();
+                        }
+                        
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 

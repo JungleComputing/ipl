@@ -14,43 +14,54 @@ import java.util.Hashtable;
 /**
  * The DEF input implementation.
  */
-public class DefInput extends NetInput {
-	/**
-	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
-	 * local number.
-	 */
-	private Integer           rpn    = null;
-
-	/**
-	 * The communication input stream.
-	 */
-	private ObjectInputStream defIs  = null;
-
+public final class DefInput extends NetInput {
+	private Integer            spn   = null;
+	private ObjectInputStream  defIs = null;
         private NetServiceListener nls   = null;
         private int                nlsId =    0;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param sp the properties of the input's 
-	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param driver the DEF driver instance.
-	 * @param input the controlling input.
-	 */
+        
 	DefInput(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
 		super(pt, driver, up, context);
 	}
 
+        private final class UpcallThread extends Thread {
+                public void run() {
+                        while (true) {
+                                lock();
+                                activeNum = spn;
+                                unlock();
+                                upcallFunc.inputUpcall(DefInput.this, activeNum);
+                                activeNum = null;
+                        }
+                }
+        }
+        
+        private void lock() {
+                nls.acquire(nlsId);
+        }
+
+        private boolean trylock() {
+                return nls.tryAcquire(nlsId);
+        }
+
+        private void unlock() {
+                nls.release();
+        }
+        
 	/*
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
+	public void setupConnection(Integer            spn,
 				    ObjectInputStream  is,
 				    ObjectOutputStream os,
                                     NetServiceListener nls)
 		throws IbisIOException {
-		this.rpn = rpn;
+                if (this.spn != null) {
+                        throw new Error("connection already established");
+                }                
+
+		this.spn = spn;
                 this.nls = nls;
                 defIs    = is;
                 nlsId     = nls.getId();
@@ -58,6 +69,9 @@ public class DefInput extends NetInput {
                 Hashtable info    = new Hashtable();
                 info.put("def_nls_id", new Integer(nlsId));
                 sendInfoTable(os, info);
+                if (upcallFunc != null) {
+                        (new UpcallThread()).start();
+                }
 	}
 
 	/**
@@ -66,13 +80,13 @@ public class DefInput extends NetInput {
 	public Integer poll() throws IbisIOException {
 		activeNum = null;
 
-		if (rpn == null) {
+		if (spn == null) {
 			return null;
 		}
 
-                if (nls.tryAcquire(nlsId)) {
-                        activeNum = rpn;
-                        nls.release();
+                if (trylock()) {
+                        activeNum = spn;
+                        unlock();
                 }
 
 		return activeNum;
@@ -83,14 +97,6 @@ public class DefInput extends NetInput {
                 activeNum = null;
         }
 
-        private void lock() {
-                nls.acquire(nlsId);
-        }
-
-        private void unlock() {
-                nls.release();
-        }
-        
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws IbisIOException {
                 NetReceiveBuffer b = new NetReceiveBuffer(new byte[expectedLength], 0);
                 
@@ -279,7 +285,7 @@ public class DefInput extends NetInput {
         }
         
         
-	public void readSubArrayBoolean(boolean [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
@@ -293,7 +299,7 @@ public class DefInput extends NetInput {
         }
 
 
-	public void readSubArrayByte(byte [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
@@ -307,7 +313,7 @@ public class DefInput extends NetInput {
         }
 
 
-	public void readSubArrayChar(char [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceChar(char [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
@@ -321,7 +327,7 @@ public class DefInput extends NetInput {
         }
 
 
-	public void readSubArrayShort(short [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceShort(short [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
@@ -335,7 +341,7 @@ public class DefInput extends NetInput {
         }
 
 
-	public void readSubArrayInt(int [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceInt(int [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
@@ -349,7 +355,7 @@ public class DefInput extends NetInput {
         }
 
 
-	public void readSubArrayLong(long [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceLong(long [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
@@ -363,7 +369,7 @@ public class DefInput extends NetInput {
         }
 
 
-	public void readSubArrayFloat(float [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
@@ -377,7 +383,7 @@ public class DefInput extends NetInput {
         }
 
 
-	public void readSubArrayDouble(double [] b, int o, int l) throws IbisIOException {
+	public void readArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
                 try {
                         lock();
                         for (int i = 0; i < l; i++) {
@@ -390,45 +396,18 @@ public class DefInput extends NetInput {
                 }
         }
 
-	public void readArrayBoolean(boolean [] b) throws IbisIOException {
-                readSubArrayBoolean(b, 0, b.length);
+	public void readArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
+                try {
+                        lock();
+                        for (int i = 0; i < l; i++) {
+			        b[o+i] = defIs.readObject();
+                        }
+		} catch (Exception e) {
+			throw new IbisIOException(e);
+		} finally {
+                        unlock();
+                }
         }
-
-
-	public void readArrayByte(byte [] b) throws IbisIOException {
-                readSubArrayByte(b, 0, b.length);
-        }
-
-
-	public void readArrayChar(char [] b) throws IbisIOException {
-                readSubArrayChar(b, 0, b.length);
-        }
-
-
-	public void readArrayShort(short [] b) throws IbisIOException {
-                readSubArrayShort(b, 0, b.length);
-        }
-
-
-	public void readArrayInt(int [] b) throws IbisIOException {
-                readSubArrayInt(b, 0, b.length);
-        }
-
-
-	public void readArrayLong(long [] b) throws IbisIOException {
-                readSubArrayLong(b, 0, b.length);
-        }
-
-
-	public void readArrayFloat(float [] b) throws IbisIOException {
-                readSubArrayFloat(b, 0, b.length);
-        }
-
-
-	public void readArrayDouble(double [] b) throws IbisIOException {
-                readSubArrayDouble(b, 0, b.length);
-        }
-        
 
 
 	/**
@@ -436,7 +415,7 @@ public class DefInput extends NetInput {
 	 */
 	public void free() throws IbisIOException {
                 nls = null;
-                rpn = null;
+                spn = null;
 		super.free();
 	}
 }

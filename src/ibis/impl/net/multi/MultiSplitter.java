@@ -16,7 +16,7 @@ import java.util.Hashtable;
 /**
  * Provides a generic multiple network output poller.
  */
-public class MultiSplitter extends NetOutput {
+public final class MultiSplitter extends NetOutput {
 
 	// These fields are 'protected' instead of 'private' to allow the
 	// class to be used as a base class for other splitters.
@@ -247,251 +247,194 @@ public class MultiSplitter extends NetOutput {
         }
 
         /**
-	 * Writes a boolean value to the message.
-	 * @param     value             The boolean value to write.
+	 * Writes a boolean v to the message.
+	 * @param     v             The boolean v to write.
 	 */
-        public void writeBoolean(boolean value) throws IbisIOException {
+        public void writeBoolean(boolean v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeBoolean(value);
+			no.writeBoolean(v);
 		} while (i.hasNext());
         }
 
         /**
-	 * Writes a byte value to the message.
-	 * @param     value             The byte value to write.
+	 * Writes a byte v to the message.
+	 * @param     v             The byte v to write.
 	 */
-        public void writeByte(byte value) throws IbisIOException {
+        public void writeByte(byte v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeByte(value);
+			no.writeByte(v);
 		} while (i.hasNext());
         }
         
         /**
-	 * Writes a char value to the message.
-	 * @param     value             The char value to write.
+	 * Writes a char v to the message.
+	 * @param     v             The char v to write.
 	 */
-        public void writeChar(char value) throws IbisIOException {
+        public void writeChar(char v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeChar(value);
+			no.writeChar(v);
 		} while (i.hasNext());
         }
 
         /**
-	 * Writes a short value to the message.
-	 * @param     value             The short value to write.
+	 * Writes a short v to the message.
+	 * @param     v             The short v to write.
 	 */
-        public void writeShort(short value) throws IbisIOException {
+        public void writeShort(short v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeShort(value);
+			no.writeShort(v);
 		} while (i.hasNext());
         }
 
         /**
-	 * Writes a int value to the message.
-	 * @param     value             The int value to write.
+	 * Writes a int v to the message.
+	 * @param     v             The int v to write.
 	 */
-        public void writeInt(int value) throws IbisIOException {
+        public void writeInt(int v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeInt(value);
+			no.writeInt(v);
 		} while (i.hasNext());
         }
 
 
         /**
-	 * Writes a long value to the message.
-	 * @param     value             The long value to write.
+	 * Writes a long v to the message.
+	 * @param     v             The long v to write.
 	 */
-        public void writeLong(long value) throws IbisIOException {
+        public void writeLong(long v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeLong(value);
+			no.writeLong(v);
 		} while (i.hasNext());
         }
 
         /**
-	 * Writes a float value to the message.
-	 * @param     value             The float value to write.
+	 * Writes a float v to the message.
+	 * @param     v             The float v to write.
 	 */
-        public void writeFloat(float value) throws IbisIOException {
+        public void writeFloat(float v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeFloat(value);
+			no.writeFloat(v);
 		} while (i.hasNext());
         }
 
         /**
-	 * Writes a double value to the message.
-	 * @param     value             The double value to write.
+	 * Writes a double v to the message.
+	 * @param     v             The double v to write.
 	 */
-        public void writeDouble(double value) throws IbisIOException {
+        public void writeDouble(double v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeDouble(value);
-		} while (i.hasNext());
-        }
-
-        /**
-	 * Writes a Serializable object to the message.
-	 * @param     value             The object value to write.
-	 */
-        public void writeString(String value) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeString(value);
+			no.writeDouble(v);
 		} while (i.hasNext());
         }
 
         /**
 	 * Writes a Serializable object to the message.
-	 * @param     value             The object value to write.
+	 * @param     v             The object v to write.
 	 */
-        public void writeObject(Object value) throws IbisIOException {
+        public void writeString(String v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeObject(value);
+			no.writeString(v);
 		} while (i.hasNext());
         }
 
-        public void writeArrayBoolean(boolean [] userBuffer) throws IbisIOException {
+        /**
+	 * Writes a Serializable object to the message.
+	 * @param     v             The object v to write.
+	 */
+        public void writeObject(Object v) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArrayBoolean(userBuffer);
+			no.writeObject(v);
 		} while (i.hasNext());
         }
 
-        public void writeArrayByte(byte [] userBuffer) throws IbisIOException {
+        public void writeArraySliceBoolean(boolean [] b, int o, int l) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArrayByte(userBuffer);
+			no.writeArraySliceBoolean(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArrayChar(char [] userBuffer) throws IbisIOException {
+        public void writeArraySliceByte(byte [] b, int o, int l) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArrayChar(userBuffer);
+			no.writeArraySliceByte(b, o, l);
+		} while (i.hasNext());
+        }
+        public void writeArraySliceChar(char [] b, int o, int l) throws IbisIOException {
+                Iterator i = outputVector.listIterator();
+		do {
+			NetOutput no = (NetOutput)i.next();
+			no.writeArraySliceChar(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArrayShort(short [] userBuffer) throws IbisIOException {
+        public void writeArraySliceShort(short [] b, int o, int l) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArrayShort(userBuffer);
+			no.writeArraySliceShort(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArrayInt(int [] userBuffer) throws IbisIOException {
+        public void writeArraySliceInt(int [] b, int o, int l) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArrayInt(userBuffer);
+			no.writeArraySliceInt(b, o, l);
 		} while (i.hasNext());
         }
 
-
-        public void writeArrayLong(long [] userBuffer) throws IbisIOException {
+        public void writeArraySliceLong(long [] b, int o, int l) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArrayLong(userBuffer);
+			no.writeArraySliceLong(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArrayFloat(float [] userBuffer) throws IbisIOException {
+        public void writeArraySliceFloat(float [] b, int o, int l) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArrayFloat(userBuffer);
+			no.writeArraySliceFloat(b, o, l);
 		} while (i.hasNext());
         }
 
-        public void writeArrayDouble(double [] userBuffer) throws IbisIOException {
+        public void writeArraySliceDouble(double [] b, int o, int l) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeArrayDouble(userBuffer);
+			no.writeArraySliceDouble(b, o, l);
 		} while (i.hasNext());
-        }
+        }	
 
-        public void writeSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
+        public void writeArraySliceObject(Object [] b, int o, int l) throws IbisIOException {
                 Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
-			no.writeSubArrayBoolean(userBuffer, offset, length);
-		} while (i.hasNext());
-        }
-
-        public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeSubArrayByte(userBuffer, offset, length);
-		} while (i.hasNext());
-        }
-        public void writeSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeSubArrayChar(userBuffer, offset, length);
-		} while (i.hasNext());
-        }
-
-        public void writeSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeSubArrayShort(userBuffer, offset, length);
-		} while (i.hasNext());
-        }
-
-        public void writeSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeSubArrayInt(userBuffer, offset, length);
-		} while (i.hasNext());
-        }
-
-        public void writeSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeSubArrayLong(userBuffer, offset, length);
-		} while (i.hasNext());
-        }
-
-        public void writeSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeSubArrayFloat(userBuffer, offset, length);
-		} while (i.hasNext());
-        }
-
-        public void writeSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
-                Iterator i = outputVector.listIterator();
-		do {
-			NetOutput no = (NetOutput)i.next();
-			no.writeSubArrayDouble(userBuffer, offset, length);
+			no.writeArraySliceObject(b, o, l);
 		} while (i.hasNext());
         }	
 }
