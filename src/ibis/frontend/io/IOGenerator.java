@@ -616,7 +616,7 @@ public class IOGenerator {
 	    write_il.append(new ALOAD(5));
 	    write_il.append(new ALOAD(0));
 	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getShort", Type.SHORT, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
-	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeShort", Type.VOID, new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeShort", Type.VOID, new Type[] { Type.SHORT }, Constants.INVOKEVIRTUAL));
 	    write_il.append(gotos[6]);
 
 	    case_handles[7] = write_il.append(new ALOAD(1));
@@ -1546,7 +1546,7 @@ public class IOGenerator {
 
 	primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo("writeBoolean", "readBoolean", "readFieldBoolean", Type.BOOLEAN, Type.BOOLEAN, true));
 
-	primitiveSerialization.put(Type.BYTE, new SerializationInfo("writeByte", "readByte", "readFieldByte", Type.BYTE, Type.INT, true));
+	primitiveSerialization.put(Type.BYTE, new SerializationInfo("writeByte", "readByte", "readFieldByte", Type.BYTE, Type.BYTE, true));
 
 	primitiveSerialization.put(Type.SHORT, new SerializationInfo("writeShort", "readShort", "readFieldShort", Type.SHORT, Type.INT, true));
 
