@@ -1540,7 +1540,7 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 
     md_putDoubleArray       = (*env)->GetMethodID(env,
 						cls_DataAllocator,
-						"putDoubleArray", "([B)V");
+						"putDoubleArray", "([D)V");
     if (md_putDoubleArray == NULL) {
 	ibmp_error(env, "Cannot find method putDoubleArray([B)V\n");
     }
