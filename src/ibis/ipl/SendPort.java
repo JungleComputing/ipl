@@ -79,10 +79,10 @@ public interface SendPort {
 	*/
 	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IOException;
 
-	/** 
-	   Free the resources held by the SendPort.
-	   Even if this call throws an exception, the connection cannot be
-	   used anymore.
+	/** Free the resources held by the SendPort.
+	    If a free is attempted when a message is still alive, an exception will be thrown. 
+	    Even if this call throws an exception, the connection cannot be
+	    used anymore.
 	   @exception IOException in case of trouble.
 	**/
 	public void free() throws IOException;

@@ -3,12 +3,12 @@ package ibis.ipl.impl.net;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.InterruptedIOException;
 
 import ibis.ipl.Ibis;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.EOFException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -220,8 +220,9 @@ pollSuccess++;
                                                         throw new Error(e);
                                                 }
                                         } catch (IOException e) {
-					    System.err.println("PooledUpcallThread + doPoll throws IOException. Shouldn't I quit??? " + e);
-                                                throw new Error(e);
+//					    System.err.println("PooledUpcallThread + doPoll throws IOException. Shouldn't I quit??? " + e);
+//                                                throw new Error(e);
+						return;
                                         }
 
                                         try {
@@ -235,8 +236,9 @@ pollSuccess++;
                                                 end = true;
                                                 return;
                                         } catch (IOException e) {
-						System.err.println("PooledUpcallThread.inputUpcall() throws IOException. Shouldn't I quit??? " + e);
-                                                throw new Error(e);
+//						System.err.println("PooledUpcallThread.inputUpcall() throws IOException. Shouldn't I quit??? " + e);
+//                                                throw new Error(e);
+						return;
                                         }
 // System.err.println(this + ": upcallSpawnMode " + upcallSpawnMode + " activeThread " + activeThread + " this " + this);
 
@@ -260,8 +262,9 @@ pollingThreads--;
                                                 try {
                                                         implicitFinish();
                                                 } catch (Exception e) {
-					    System.err.println("PooledUpcallThread,implicitFinish() throws IOException. Shouldn't I quit??? " + e);
-                                                        throw new Error(e);
+//					    System.err.println("PooledUpcallThread,implicitFinish() throws IOException. Shouldn't I quit??? " + e);
+//                                                        throw new Error(e);
+							return;
                                                 }
                                                 log.disp("reusing thread");
                                                 utStat.addReuse();
@@ -387,7 +390,7 @@ private int pollSuccess;
 				try {
 					wait();
 				} catch (InterruptedException e) {
-					throw Ibis.createInterruptedIOException(e);
+					throw new InterruptedIOException(e);
 				} finally {
 					pollWaiters--;
 				}

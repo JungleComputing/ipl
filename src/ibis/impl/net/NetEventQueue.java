@@ -5,7 +5,7 @@ import ibis.ipl.Ibis;
 import java.util.Vector;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
+import ibis.ipl.InterruptedIOException;
 
 /**
  * Provide a general purpose {@linkplain NetEvent event} FIFO.
@@ -52,7 +52,7 @@ public class NetEventQueue {
 			try {
 				wait();
 			} catch (InterruptedException e) {
-				throw Ibis.createInterruptedIOException(e);
+				throw new InterruptedIOException(e);
 			}
                 }
 

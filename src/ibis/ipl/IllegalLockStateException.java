@@ -17,13 +17,13 @@ public class IllegalLockStateException extends java.lang.RuntimeException {
     }
 
     public IllegalLockStateException(String name, Throwable cause) {
-	super(name);
-	initCause(cause);
+	super(name + cause);
+//	initCause(cause);
     }
 
     public IllegalLockStateException(Throwable cause) {
-	super();
-	initCause(cause);
+	super("" + cause);
+//	initCause(cause);
     }
 
 }

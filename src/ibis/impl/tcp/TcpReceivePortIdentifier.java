@@ -27,15 +27,16 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 	public boolean equals(TcpReceivePortIdentifier other) { 		
 		if (other == null) { 
 			return false;
-		} else { 			
+		} else if(other == this) {
+			return true;
+		} else {
 			return (type().equals(other.type()) && ibis.equals(other.ibis) && name().equals(other.name()) && port == other.port);
 		}		
 	}
 
+
 	public boolean equals(Object other) { 
-
 		if (other == null) return false;
-
 		if (other instanceof TcpReceivePortIdentifier) { 
 			return equals((TcpReceivePortIdentifier) other);
 		} else { 

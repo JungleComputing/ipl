@@ -1,27 +1,27 @@
-package ibis.ipl;
+package ibis.io;
 
-public class IbisException extends java.lang.Exception {
-	// this space was intensionally left blank, but is now taken...
-
+public class SerializationError extends Error {
 	Throwable cause = null;
 
-	public IbisException() {
+	public SerializationError() {
 		super();
 	}
 
-	public IbisException(String name) {
-		super(name);
+	public SerializationError(String message) {
+		super(message);
 	}
 
-	public IbisException(String name, Throwable cause) {
-		super(name);
-		initCause(cause);
+	
+	public SerializationError(String message, Throwable cause) {
+		super(message);
+		this.cause = cause;
 	}
 
-	public IbisException(Throwable cause) {
+	public SerializationError(Throwable cause) {
 		super();
-		initCause(cause);
+		this.cause = cause;
 	}
+
 
 	public Throwable initCause(Throwable t) {
 		return cause = t;

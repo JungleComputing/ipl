@@ -1,6 +1,6 @@
 package ibis.rmi;
 
-public class NotBoundException extends Exception
+public class NotBoundException extends ibis.ipl.IbisException
 {
     public NotBoundException() {
 	super();

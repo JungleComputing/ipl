@@ -1,6 +1,6 @@
 package ibis.rmi;
 
-public class AlreadyBoundException extends Exception
+public class AlreadyBoundException extends ibis.ipl.IbisException
 {
     public AlreadyBoundException() {
 	super();

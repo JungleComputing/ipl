@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisIOException;
 
 /**
  * The multieric splitter/poller virtual driver.
@@ -71,7 +72,7 @@ public final class Driver extends NetDriver {
 
                                 plugin = (MultiPlugin)cons.newInstance(null);
 			} catch (Exception e) {
-				throw Ibis.createIOException(e);
+				throw new IbisIOException(e);
 			}
 
 			pluginTable.put(name, plugin);

@@ -33,7 +33,8 @@ public interface ReceivePort {
 	   not correct to put it in a global variable / queue.
 	 **/
 
-	/** explicit receive. When an receiveport is configured to generate upcalls, this is NOT allowed; in that case a PortConfigurationException is thrown **/
+	/** explicit receive. When an receiveport is configured to generate upcalls, 
+	    this is NOT allowed; in that case a PortConfigurationException is thrown **/
 	public ReadMessage receive() throws IOException;
 
 	/** Utility function.
@@ -71,11 +72,15 @@ public interface ReceivePort {
 	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IOException;
 
 	/** Asynchronous receive. Return immediately when no message is available. 
-	 Also works for upcalls, then it is a normal poll. **/
+	    Also works for upcalls, then it is a normal poll: it will always return null,
+	    but it might generate an upcall.
+	**/
 	public ReadMessage poll() throws IOException;
 
 	/** Asynchronous receive, as above, but free an old message.
-	    Also works for upcalls, then it is a normal poll. **/
+	    Also works for upcalls, then it is a normal poll: it will always return null,
+	    but it might generate an upcall.
+	**/
 	public ReadMessage poll(ReadMessage finishMe) throws IOException;
 
 	public DynamicProperties properties();

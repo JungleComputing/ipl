@@ -7,7 +7,7 @@ import java.io.IOException;
  * <code>ConnectionRefusedException</code> is thrown to indicate
  * that a sendport connect was refused.
  */
-public class ConnectionRefusedException extends IOException {
+public class ConnectionRefusedException extends IbisIOException {
 
     /**
      * Constructs a <code>ConnectionRefusedException</code> with
@@ -35,7 +35,7 @@ public class ConnectionRefusedException extends IOException {
      * @param cause	the cause
      */
     public ConnectionRefusedException(String name, Throwable cause) {
-	super(name);
+	super(name, cause);
 	initCause(cause);
     }
 
@@ -46,7 +46,7 @@ public class ConnectionRefusedException extends IOException {
      * @param cause	the cause
      */
     public ConnectionRefusedException(Throwable cause) {
-	super();
+	super("", cause);
 	initCause(cause);
     }
 }

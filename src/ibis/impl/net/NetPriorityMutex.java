@@ -1,8 +1,8 @@
 package ibis.ipl.impl.net;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 
+import ibis.ipl.InterruptedIOException;
 import ibis.ipl.Ibis;
 
 /**
@@ -69,7 +69,7 @@ public final class NetPriorityMutex {
 							// notifyAll();
 						}
                                         }
-                                        throw Ibis.createInterruptedIOException(e);
+                                        throw new InterruptedIOException(e);
                                 }
                         }
                         priorityvalue--;
@@ -79,7 +79,7 @@ public final class NetPriorityMutex {
 				try {
 					wait();
 				} catch (InterruptedException e) {
-					throw Ibis.createInterruptedIOException(e);
+					throw new InterruptedIOException(e);
 				} finally {
 					waiters--;
 				}
@@ -113,7 +113,7 @@ public final class NetPriorityMutex {
                                         wait();
 					waiters--;
 				} catch (InterruptedException e) {
-					throw Ibis.createInterruptedIOException(e);
+					throw new InterruptedIOException(e);
                                 } finally {
                                         synchronized(this) {
                                                 priorityvalue--;
@@ -132,7 +132,7 @@ public final class NetPriorityMutex {
 				try {
 					wait();
 				} catch (InterruptedException e) {
-					throw Ibis.createInterruptedIOException(e);
+					throw new InterruptedIOException(e);
 				} finally {
 					waiters--;
 				}

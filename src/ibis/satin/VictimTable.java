@@ -109,6 +109,28 @@ final class VictimTable implements Config {
 		return (SendPort) victimsHash.get(ident);
 	}
 
+
+	Victim getMasterVictim() {
+		Victim v = null;
+
+		if(ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
+		try {
+			v = ((Victim)victims.get(0));
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+
+		if(ASSERTS && v == null) {
+			System.err.println("EEK, v is null");
+			System.exit(1);
+		}
+
+		return v;
+	}
+
 	Victim getRandomVictim() {
 		Victim v = null;
 		int index;

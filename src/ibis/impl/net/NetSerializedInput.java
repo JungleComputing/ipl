@@ -9,6 +9,7 @@ import ibis.io.SerializationInputStream;
 
 import ibis.ipl.impl.net.*;
 import ibis.ipl.Ibis;
+import ibis.ipl.InterruptedIOException;
 
 
 
@@ -129,7 +130,7 @@ public abstract class NetSerializedInput extends NetInput {
                                 try {
                                         wait();
                                 } catch (InterruptedException e) {
-                                        throw Ibis.createInterruptedIOException(e);
+                                        throw new InterruptedIOException(e);
 				} finally {
 					waiters--;
                                 }

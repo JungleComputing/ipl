@@ -1,9 +1,9 @@
 package ibis.satin;
 
-final class RandomWorkStealing implements Algorithm {
+final class MasterWorker implements Algorithm {
 	Satin satin;
 
-	RandomWorkStealing(Satin s) {
+	MasterWorker(Satin s) {
 		this.satin = s;
 	}
 
@@ -19,7 +19,7 @@ final class RandomWorkStealing implements Algorithm {
 			/* We are idle. There is no work in the queue, and we are
 			   not running Java code. Try to steal a job. */
 			synchronized(satin) {
-				v = satin.victims.getRandomVictim();
+				v = satin.victims.getMasterVictim();
 			}
 			satin.stealJob(v);
 //		}

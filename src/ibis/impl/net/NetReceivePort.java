@@ -10,6 +10,7 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.InterruptedIOException;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -17,7 +18,6 @@ import java.net.Socket;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;

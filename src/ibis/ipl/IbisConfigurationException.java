@@ -5,8 +5,7 @@ package ibis.ipl;
  * <code>IbisConfigurationException</code> is thrown to indicate
  * that there is something wrong in the way Ibis was configured.
  */
-public class IbisConfigurationException extends RuntimeException {
-
+public class IbisConfigurationException extends IbisRuntimeException {
     /**
      * Constructs a <code>IbisConfigurationException</code> with
      * <code>null</code> as its error detail message.

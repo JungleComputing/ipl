@@ -10,7 +10,7 @@ import java.io.PrintWriter;
  * that an input or output operation has been terminated because
  * the connection was broken.
  */
-public class ConnectionClosedException extends IOException {
+public class ConnectionClosedException extends IbisIOException {
 
     /**
      * Constructs a <code>ConnectionClosedException</code> with

@@ -5,6 +5,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.ReadMessage;
+import ibis.ipl.IbisError;
 import ibis.rmi.RTS;
 
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class Stub extends RemoteStub {
 	    try {
 		String stubType = (String) rm.readObject();
 	    } catch(ClassNotFoundException e) {
-		throw new Error("Class String not found", e);
+		throw new IbisError("Class String not found", e);
 	    }
 	    rm.finish();		
 

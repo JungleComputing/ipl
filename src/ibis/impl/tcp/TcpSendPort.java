@@ -29,30 +29,36 @@ final class TcpSendPort implements SendPort, Config {
 	private boolean aMessageIsAlive = false;
 	SerializationStreamSender sender;
 	Replacer replacer = null;
+	TcpIbis ibis;
 
-	TcpSendPort(TcpPortType type) throws IOException {
-		this(type, null, null);
+	TcpSendPort(TcpIbis ibis, TcpPortType type) throws IOException {
+		this(ibis, type, null, null);
 	}
 
-	TcpSendPort(TcpPortType type, Replacer r) throws IOException {
-		this(type, r, null);
+	TcpSendPort(TcpIbis ibis, TcpPortType type, Replacer r) throws IOException {
+		this(ibis, type, r, null);
 	}
 
-	TcpSendPort(TcpPortType type, String name) throws IOException {
-		this(type, null, name);
+	TcpSendPort(TcpIbis ibis, TcpPortType type, String name) throws IOException {
+		this(ibis, type, null, name);
 	}
 
-	TcpSendPort(TcpPortType type, Replacer r, String name) throws IOException {
+	TcpSendPort(TcpIbis ibis, TcpPortType type, Replacer r, String name) throws IOException {
 		this.name = name;
 		this.type = type;
 		this.replacer = r;
+		this.ibis = ibis;
 		ident = new TcpSendPortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
 		sender = new SerializationStreamSender(this);
 	}
 
-	// @@@ add sanity check: no message should be alive.
-	void connect(TcpReceivePortIdentifier ri, OutputStream sout, int id) throws IOException { 
-		sender.connect(ri, sout, id);
+	// called by ConnectionHandler
+	void connect(TcpReceivePortIdentifier ri, OutputStream sout) throws IOException {
+		if(aMessageIsAlive) {
+			throw new IOException("A message was alive while adding a new connection");
+		}
+
+		sender.connect(ri, sout);
 	}
 
 	public void connect(ReceivePortIdentifier receiver) throws IOException {
@@ -68,7 +74,7 @@ final class TcpSendPort implements SendPort, Config {
 
 		TcpReceivePortIdentifier ri = (TcpReceivePortIdentifier) receiver;
 
-		if (!TcpIbis.tcpPortHandler.connect(this, ri)) { 
+		if (!ibis.tcpPortHandler.connect(this, ri)) { 
 			throw new ConnectionRefusedException("Could not connect");
 		} 
 		
@@ -127,11 +133,9 @@ final class TcpSendPort implements SendPort, Config {
 		return ident;
 	}
 	
-	public void free() {
-		if(ASSERTS) {
-			if(aMessageIsAlive) {
-				System.err.println("Trying to free a sendport port while a message is alive!");
-			}
+	public void free() throws IOException {
+		if(aMessageIsAlive) {
+			throw new IOException("Trying to free a sendport port while a message is alive!");
 		}
 
 		if(DEBUG) {
@@ -148,9 +152,9 @@ final class TcpSendPort implements SendPort, Config {
 		}
 	}
 
-	void release(TcpReceivePortIdentifier ri, int id) { 
-		TcpIbis.tcpPortHandler.releaseOutput(ri, id);
-	} 
+	void release(TcpReceivePortIdentifier ri, OutputStream out) {
+		ibis.tcpPortHandler.releaseOutput(ri, out);
+	}
 
 	void reset() throws IOException {
 	    sender.reset();

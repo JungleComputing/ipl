@@ -1,7 +1,6 @@
 package ibis.ipl.impl.net;
 
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -21,6 +20,7 @@ import java.net.SocketTimeoutException;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.InterruptedIOException;
 
 
 /**
@@ -192,7 +192,7 @@ public final class NetServiceLink {
 			    System.err.println(this + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
 			}
                 } catch (SocketException e) {
-                        throw Ibis.createInterruptedIOException(e);
+                        throw new InterruptedIOException(e);
                 } catch (SocketTimeoutException e) {
                         throw new ConnectionTimedOutException(e);
                 }
@@ -880,7 +880,7 @@ public final class NetServiceLink {
                                                 return -1;
                                         }
                                 } catch (InterruptedException e) {
-                                        throw Ibis.createInterruptedIOException(e);
+                                        throw new InterruptedIOException(e);
                                 }
                         }
 
@@ -925,7 +925,7 @@ public final class NetServiceLink {
                                                         break;
                                                 }
                                         } catch (InterruptedException e) {
-                                                throw Ibis.createInterruptedIOException(e);
+                                                throw new InterruptedIOException(e);
                                         }
                                 }
 

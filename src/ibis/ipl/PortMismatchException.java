@@ -15,13 +15,13 @@ public class PortMismatchException extends java.io.IOException {
     }
 
     public PortMismatchException(String name, Throwable cause) {
-	super(name);
-	initCause(cause);
+	super(name + cause);
+//	initCause(cause);
     }
 
     public PortMismatchException(Throwable cause) {
-	super();
-	initCause(cause);
+	super("" + cause);
+//	initCause(cause);
     }
 
 }

@@ -1,24 +1,22 @@
 package ibis.ipl;
 
-public class IbisException extends java.lang.Exception {
-	// this space was intensionally left blank, but is now taken...
-
+public class IbisError extends Error {
 	Throwable cause = null;
 
-	public IbisException() {
+	public IbisError() {
 		super();
 	}
 
-	public IbisException(String name) {
+	public IbisError(String name) {
 		super(name);
 	}
 
-	public IbisException(String name, Throwable cause) {
+	public IbisError(String name, Throwable cause) {
 		super(name);
 		initCause(cause);
 	}
 
-	public IbisException(Throwable cause) {
+	public IbisError(Throwable cause) {
 		super();
 		initCause(cause);
 	}

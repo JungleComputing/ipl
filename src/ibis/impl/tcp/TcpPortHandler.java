@@ -1,9 +1,12 @@
+/** 
+    This class handles all incoming connection requests.
+ **/
 package ibis.ipl.impl.tcp;
 
 import java.net.Socket;
 import java.net.ServerSocket;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 import java.io.PrintStream;
 import java.io.OutputStream;
@@ -15,26 +18,18 @@ import java.io.DataInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 
-// import ibis.ipl.*;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.impl.generic.*;
 
 final class TcpPortHandler implements Runnable, TcpProtocol, Config { 
-
-	private FileWriter f;
-//	private PrintWriter print;
-
 	private ServerSocket systemServer;
-	private Hashtable others;
-	private Vector receivePorts;
+//	private HashMap others;
+	private ConnectionCache connectionCache = new ConnectionCache();
+	private ArrayList receivePorts;
 	private TcpIbisIdentifier me;
 	private int port;
 
 	TcpPortHandler(TcpIbisIdentifier me) throws IOException { 
-		
-//		f = new FileWriter(me.name + ".TcpPortHandler");
-//		print = new PrintWriter(f);
-		
 		this.me = me;
 
 		systemServer = IbisSocketFactory.createServerSocket(0, me.address(), true);
@@ -44,50 +39,27 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			System.out.println("PORTHANDLER: port = " + port);
 		}
 
-		others = new Hashtable();
-		receivePorts = new Vector();
-		
+//		others = new HashMap();
+		receivePorts = new ArrayList();
+	
 		ThreadPool.createNew(this);
 	}
 
-	int register(TcpReceivePort p) {
+	synchronized int register(TcpReceivePort p) {
 		if(DEBUG) {
 			System.err.println("TcpPortHandler registered " + p.name);
 		}
 		receivePorts.add(p);
-		//receivePorts.put(p.identifier(), p);
 		return port;
-	} 
-
-	private synchronized Peer getPeer(TcpIbisIdentifier ibis) { 
-		Peer p = (Peer) others.get(ibis);
-
-		if (p == null) { 					
-			p = new Peer(ibis);
-			others.put(ibis, p);
-		} 
-
-		return p;
-	} 
-
-	void releaseOutput(TcpReceivePortIdentifier ri, int id) {
-		Peer p = getPeer(ri.ibis);
-
-		if (p == null || !p.releaseOutput(id)) { 
-			System.err.println("EEEK : releasing an unknown connection!!!");
-			new Exception().printStackTrace();
-		}
 	}
 
-	void releaseInput(TcpSendPortIdentifier si, int id) {
-		Peer p = getPeer(si.ibis);
-
-		if (p == null || !p.releaseInput(id)) { 
-			System.err.println("EEEK : releasing an unknown connection!!!");
-			new Exception().printStackTrace();			
-		}	
+	void releaseOutput(TcpReceivePortIdentifier ri, OutputStream out) {
+		connectionCache.releaseOutput(ri.ibis, out);
 	}
 
+	void releaseInput(TcpSendPortIdentifier si, InputStream in) {
+		connectionCache.releaseInput(si.ibis, in);
+	}
 
 	boolean connect(TcpSendPort sp, TcpReceivePortIdentifier receiver) throws IOException { 
 		Socket s = null;
@@ -96,7 +68,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			boolean reuse_connection = false;
 
 			if (DEBUG) {
-			    System.err.println("Creating socket for connection to " + receiver);
+				System.err.println("Creating socket for connection to " + receiver);
 			}
 			s = IbisSocketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), 0 /* retry */);
 
@@ -115,71 +87,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
 			int result = data_in.readByte();
 
-			if (result == RECEIVER_ACCEPTED) {
-				if(DEBUG) {
-					System.err.println("Sender Accepted"); 
-				}
-
-				/* the other side accepts the connection, finds the correct 
-				   stream */
-
-				Peer p = getPeer(receiver.ibis);
-
-				result = data_in.readByte();
-
-				Connection c = null;
-
-				if (result == NEW_CONNECTION) { 
-					/* no unused stream found, so reuse current one */						
-					c = new Connection(s, sin, sout);					
-					reuse_connection = true;
-					c.local_id = p.getID();
-
-					obj_out.writeInt(c.local_id);
-					obj_out.flush();
-					obj_out.close();
-
-					c.remote_id = data_in.readInt();
-					data_in.close();
-					
-					p.addFreeInput(c);
-
-					if(DEBUG) {
-						System.err.println("Created new connection to " + receiver);
-					}
-				} else { 
-					int remote_id = data_in.readInt();
-					int local_id = data_in.readInt();
-
-					data_in.close();
-					obj_out.flush();
-					obj_out.close();
-
-					c = p.findFreeOutput(local_id, remote_id);
-					p.addUsed(c);					
-					if(DEBUG) {
-						System.err.println("Reused connection to " + receiver);
-					}
-				} 
-
-				if(DEBUG) {
-					System.err.println("Found output " + c);
-				}
-
-				sp.connect(receiver, c.out, c.local_id);	
-
-				if(DEBUG) {
-					System.err.println("connection to " + receiver + " done");
-				}
-
-				if (!reuse_connection) { 
-					sin.close();
-					sout.close();
-					s.close();
-				}
-
-				return true;
-			} else { 
+			if (result != RECEIVER_ACCEPTED) {
 				obj_out.flush();
 				obj_out.close();
 				data_in.close();
@@ -187,6 +95,67 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 				sout.close();
 				s.close();	
 				return false;
+			} 
+
+			if(DEBUG) {
+				System.err.println("Sender Accepted"); 
+			}
+
+			/* the other side accepts the connection, finds the correct 
+			   stream */
+
+			result = data_in.readByte();
+
+//			Peer p = getPeer(receiver.ibis);
+			Connection c = null;
+
+			if (result == NEW_CONNECTION) { 
+				/* no unused stream found, so reuse current one */
+				c = connectionCache.newConnection(receiver.ibis, s, sin, sout);
+				reuse_connection = true;
+
+				obj_out.writeInt(c.local_id);
+				obj_out.flush();
+				obj_out.close();
+
+				c.remote_id = data_in.readInt();
+				data_in.close();
+					
+				connectionCache.addFreeInput(receiver.ibis, c);
+
+				if(DEBUG) {
+					System.err.println("Created new connection to " + receiver);
+				}
+				sp.connect(receiver, c.out);
+
+				if(DEBUG) {
+					System.err.println("connection to " + receiver + " done");
+				}
+				return true;
+			} else { 
+				int remote_id = data_in.readInt();
+				int local_id = data_in.readInt();
+
+				data_in.close();
+				obj_out.flush();
+				obj_out.close();
+				
+				c = connectionCache.findFreeOutput(receiver.ibis, local_id, remote_id);
+				connectionCache.addUsed(receiver.ibis, c);
+//				c = p.findFreeOutput(local_id, remote_id);
+//				p.addUsed(c);					
+				if(DEBUG) {
+					System.err.println("Reused connection to " + receiver);
+				}
+				sp.connect(receiver, c.out);	
+					
+				if(DEBUG) {
+					System.err.println("connection to " + receiver + " done");
+				}
+				sin.close();
+				sout.close();
+				s.close();
+				return true;
 			} 
 		} catch (IOException e) {
 			try {
@@ -202,206 +171,218 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 		try { 
 			Socket s = IbisSocketFactory.createSocket(me.address(), port, me.address(), 0 /* retry */);
 			OutputStream sout = s.getOutputStream();
-			sout.write(FREE);
+			sout.write(QUIT_IBIS);
 			sout.flush();
 			sout.close();			
 		} catch (Exception e) { 
 			// Ignore
 		}
-	} 
+	}
+
+	private synchronized TcpReceivePort findReceivePort(TcpReceivePortIdentifier ident) {
+		TcpReceivePort rp = null;
+		int i = 0;
+
+		while (rp == null && i < receivePorts.size()) { 
+						
+			TcpReceivePort temp = (TcpReceivePort) receivePorts.get(i);
+						
+			if (ident.equals(temp.identifier())) {
+				if (DEBUG) {
+					System.err.println("findRecPort found " + ident + " == " + 
+							   temp.identifier());
+				}
+				rp = temp;
+			}
+			i++;
+		}
+
+		return rp;
+	}
+
+	/* returns: was it a close i.e. do we need to exit this thread */
+	private boolean handleRequest(Socket s) throws Exception {
+		if (DEBUG) { 
+			System.err.println("portHandler on " + me + " got new connection from " + 
+					   s.getInetAddress() + ":" + s.getPort() + 
+					   " on local port " + s.getLocalPort());
+		}
+
+		OutputStream out = s.getOutputStream();
+		InputStream in   = s.getInputStream();
+
+		if (DEBUG) {
+			System.err.println("Getting streams DONE"); 
+		}
+
+		if (in.read() == QUIT_IBIS) { 
+			if (DEBUG) {
+				System.err.println("it is a quit"); 
+			}
+
+			systemServer.close();
+			s.close();
+			if (DEBUG) {
+				System.err.println("it is a quit: RETURN"); 
+			}
+
+			return true;
+		}
+
+		if (DEBUG) {
+			System.err.println("it isn't a quit"); 
+		}
+				
+		ObjectInputStream obj_in  = new ObjectInputStream(new DummyInputStream(in));
+		DataOutputStream data_out = new DataOutputStream(new DummyOutputStream(out));
+
+		if (DEBUG) {
+			System.err.println("S Reading Data"); 
+		}
+
+		TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in.readObject();
+		TcpSendPortIdentifier send       = (TcpSendPortIdentifier) obj_in.readObject();
+		TcpIbisIdentifier ibis           = send.ibis;
+					
+		if (DEBUG) {
+			System.err.println("S finding RP"); 
+		}
+					
+		/* First, try to find the receive port this message is for... */
+		TcpReceivePort rp = findReceivePort(receive);
+
+		if (DEBUG) {
+			System.err.println("S  RP = " + (rp == null ? "not found" : rp.identifier().toString() )); 
+		}
+					
+		if (rp == null || !rp.connectionAllowed(send)) {
+			/* If we cannot find it, return access denied */
+			data_out.writeByte(RECEIVER_DENIED);
+			data_out.flush();
+			data_out.close();
+			obj_in.close();	
+			out.close();
+			in.close();
+			s.close();
+			return false;
+		}
+
+		/* It accepts the connection, now we try to find an unused stream 
+		   originating at the sending machine */ 
+		if (DEBUG) {
+			System.err.println("S getting peer");
+		}
+
+//		Peer p = getPeer(ibis);
+		Connection c = connectionCache.findFreeInput(ibis);
+
+		if (DEBUG) {
+			System.err.println("S found connection " + c);
+		}
+				
+		if (c == null) { 
+			/* no unused stream found, so reuse current socket */
+			c = connectionCache.newConnection(ibis, s, in, out);
+
+			data_out.writeByte(RECEIVER_ACCEPTED);
+			data_out.writeByte(NEW_CONNECTION);
+			data_out.writeInt(c.local_id);
+			data_out.flush();
+			data_out.close();
+
+			c.remote_id = obj_in.readInt();
+			obj_in.close();
+			// do not close s here, we just reused it :-)
+
+			connectionCache.addFreeOutput(ibis, c);
+		} else { 
+			data_out.writeByte(RECEIVER_ACCEPTED);
+			data_out.writeByte(EXISTING_CONNECTION);
+			data_out.writeInt(c.local_id);
+			data_out.writeInt(c.remote_id);
+			data_out.flush();
+			data_out.close();
+			obj_in.close();						
+			out.close();
+			in.close();
+			s.close();
+
+			connectionCache.addUsed(ibis, c);
+		}
+							
+		if (DEBUG) {
+			System.err.println("S connected " + c);
+		}
+							
+		/* add the connection to the receiveport. */
+		rp.connect(send, c.in, c.local_id);
+
+		if (DEBUG) {
+			System.err.println("S connect done ");
+		}
+		
+		return false;
+	}
 
 	public void run() { 
-		PrintStream print = System.err;
-
 		/* this thread handles incoming connection request from the connect(TcpSendPort) call */
 
 		if(DEBUG) {
 			System.err.println("TcpPortHandler running");
 		}
-				
-		while (true) {
 
-			boolean reuse_connection = false;			
-			TcpReceivePort rp = null;
+		while (true) {
 			Socket s = null;
 		
-			try { 
-				if (DEBUG) { 
-					System.err.println("PortHandler on " + me + " doing new accept()");
-				}
-
-				s = IbisSocketFactory.accept(systemServer);
-
-//				System.err.println("********************** Accepted Socket from " + s.getInetAddress() + "*****************************");
-
-				if (DEBUG) { 
-					System.err.println("portHandler on " + me + " got new connection from " + s.getInetAddress() + ":" + s.getPort() + " on local port " + s.getLocalPort());
-				}
-
-
-				if (DEBUG) {
-					print.println("Getting streams"); 
-				}
-     				OutputStream out = s.getOutputStream();
-				InputStream in   = s.getInputStream();
-
-				if (DEBUG) {
-					print.println("Getting streams DONE"); 
-				}
-				if (in.read() == FREE) { 
-					if (DEBUG) {
-						print.println("it is a free"); 
-					}
-
-					systemServer.close();
-					s.close();
-					if (DEBUG) {
-						print.println("it is a free: RETURN"); 
-					}
-
-					return;
-				} else { 
-					if (DEBUG) {
-						print.println("it isn't a free"); 
-					}
-				
-					ObjectInputStream obj_in  = new ObjectInputStream(new DummyInputStream(in));
-					DataOutputStream data_out = new DataOutputStream(new DummyOutputStream(out));
-
-					if (DEBUG) {
-						print.println("S Reading Data"); 
-					}
-					
-					TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in.readObject();
-					TcpSendPortIdentifier send       = (TcpSendPortIdentifier) obj_in.readObject();
-					TcpIbisIdentifier ibis           = send.ibis;
-					
-					if (DEBUG) {
-						print.println("S finding RP"); 
-					}
-					
-				        /* First, try to find the receive port this message is for... */
-					int i = 0;
-					
-					while (rp == null && i < receivePorts.size()) { 
-						
-						TcpReceivePort temp = (TcpReceivePort) receivePorts.get(i);
-						
-						if (receive.equals(temp.identifier())) {
-							if (DEBUG) {
-								print.println("TcpPortHandler found " + receive + " == " + 
-									      temp.identifier());
-							}
-							rp = temp;
-						}
-						i++;
-					}
-					
-					if (DEBUG) {
-						print.println("S  RP = " + (rp == null ? "not found" : rp.identifier().toString() )); 
-					}
-					
-//				TcpReceivePort rp = (TcpReceivePort) receivePorts.get(receive);
-					
-					if (rp == null) { 					
-						/* If we cannot find it */
-						data_out.writeByte(RECEIVER_DENIED);
-						data_out.flush();
-						data_out.close();
-						obj_in.close();	
-					} else { 
-						if (DEBUG) {
-							print.println("S testing RP.may_connect()");
-						}
-						
-						if (rp.setupConnection(send)) { 							
-							/* It accepts the connection, now we try to find an unused stream 
-							   originating at the sending machine */ 
-							
-							if (DEBUG) {
-								print.println("S getting peer");
-							}
-							
-							Peer p = getPeer(ibis);
-							
-							Connection c = p.findFreeInput();
-							
-							if (DEBUG) {
-								print.println("S found connection " + c);
-							}
-				
-							if (c == null) { 
-								/* no unused stream found, so reuse current one */
-								c = new Connection(s, in, out);
-								reuse_connection = true;
-								c.local_id = p.getID();
-								
-								data_out.writeByte(RECEIVER_ACCEPTED);
-								data_out.writeByte(NEW_CONNECTION);
-								data_out.writeInt(c.local_id);
-								data_out.flush();
-								data_out.close();
-								
-								c.remote_id = obj_in.readInt();
-								obj_in.close();
-								
-								p.addFreeOutput(c);
-							} else { 
-								data_out.writeByte(RECEIVER_ACCEPTED);
-								data_out.writeByte(EXISTING_CONNECTION);
-								data_out.writeInt(c.local_id);
-								data_out.writeInt(c.remote_id);
-								data_out.flush();
-								data_out.close();
-								obj_in.close();						
-								
-								p.addUsed(c);
-							}
-							
-							if (DEBUG) {
-								print.println("S connected " + c);
-							}
-							
-							/* add the connection to the receiveport. */
-							rp.connect(send, c.in, c.local_id);			
-						
-							if (DEBUG) {
-								print.println("S connect done ");
-								print.flush();
-							}
-						} else { 	
-							if (DEBUG) {
-								print.println("TcpPortHandler: receiveport denied the connection");
-							}
-							data_out.writeByte(RECEIVER_DENIED);
-							data_out.flush();
-							data_out.close();
-							obj_in.close();	
-						}
-					}
-					
-					if (!reuse_connection) { 
-						out.close();
-						in.close();
-						s.close();
-					}
-					
-//				}						
-				}
-			} catch (Exception e ) { 
-				try { 
-					System.err.println("EEK: TcpPortHandler:run: got exception: " + e);
-					systemServer.close();
-					s.close();
-				} catch (Exception e1) { 						
-					e.printStackTrace();	
-					e1.printStackTrace();	
-				}
-				return;
-
-//				e.printStackTrace();
-//				System.exit(1);
+			if (DEBUG) { 
+				System.err.println("PortHandler on " + me + " doing new accept()");
 			}
-		}			
-	}			
-} 
+
+			try {
+				s = IbisSocketFactory.accept(systemServer);
+			} catch (Exception e ) {
+				/* if the accept itself fails, we have a fatal problem.
+				   Close this receiveport.
+				   @@@ needs fixing, probably report error to user,
+				   and cleanup the ReceivePort state. --Rob
+				*/
+				try {
+					System.err.println("EEK: TcpPortHandler:run: got exception in accept ReceivePort closing!: " + e);
+					e.printStackTrace();
+					if(s != null) s.close();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+
+				cleanup();
+				return;
+			}
+
+			boolean exit = false;
+			try {
+				exit = handleRequest(s);
+			} catch (Exception e) { 
+				try {
+					System.err.println("EEK: TcpPortHandler:run: got exception (closing this socket only: " + e);
+					if(s != null) s.close();
+				} catch (Exception e1) {
+					e.printStackTrace();
+					e1.printStackTrace();
+				}
+			}
+			if(exit) {
+				cleanup();
+				return;
+			}
+		}
+	}
+
+	private void cleanup() {
+		try {
+			if(systemServer != null) systemServer.close();
+			systemServer = null;
+		} catch (Exception e) {
+			// Ignore
+		}
+	}
+}

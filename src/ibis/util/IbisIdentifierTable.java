@@ -5,7 +5,7 @@ import java.util.HashMap;
 import ibis.ipl.*;
 
 final class SendNode {
-	IbisSerializationOutputStream outStream;
+	Object outStream;
 	IbisIdentifier ident;
 	int handle;
 
@@ -21,7 +21,7 @@ final class SendNode {
 }
 
 final class ReceiveNode {
-	IbisSerializationInputStream inStream;
+	Object inStream;
 	IbisIdentifier ident;
 	int handle;
 
@@ -44,11 +44,11 @@ final public class IbisIdentifierTable {
 	int handleCounter = 1;
 	SendNode tmpSendNode = new SendNode();
 	ReceiveNode tmpReceiveNode = new ReceiveNode();
-//	int cachehits=0;
+	int cachehits=0;
 
 	// returns -handle for never sent before, or +handle.
-	public synchronized int getHandle(IbisSerializationOutputStream stream,
-									  IbisIdentifier ident) {
+	public synchronized int getHandle(Object stream,
+					  IbisIdentifier ident) {
 		tmpSendNode.ident = ident;
 		tmpSendNode.outStream = stream;
 
@@ -67,7 +67,7 @@ final public class IbisIdentifierTable {
 		return n.handle;
 	}
 
-	public synchronized void addIbis(IbisSerializationInputStream stream, int handle, IbisIdentifier ident) {
+	public synchronized void addIbis(Object stream, int handle, IbisIdentifier ident) {
 		ReceiveNode n = new ReceiveNode();
 		n.inStream = stream;
 		n.handle = handle;
@@ -77,7 +77,7 @@ final public class IbisIdentifierTable {
 // System.out.println("added ibis " + ident + " with handle " + n.handle + " to rectable");
 	}
 
-	public synchronized IbisIdentifier getIbis(IbisSerializationInputStream stream, int handle) {
+	public synchronized IbisIdentifier getIbis(Object stream, int handle) {
 		tmpReceiveNode.handle = handle;
 		tmpReceiveNode.inStream = stream;
 
@@ -88,11 +88,12 @@ final public class IbisIdentifierTable {
 //		}
 
 // System.out.println("found cached ibis " + res.ident + " handle was " + handle + " in rectable");
-//		cachehits++;
+		cachehits++;
 		return res.ident;
 	}
-
-//	protected void finalize() throws Throwable {
-//		System.out.println("hits: " + cachehits);
-//	}
+	/*
+	protected void finalize() throws Throwable {
+		System.out.println("hits: " + cachehits);
+	}
+	*/
 }

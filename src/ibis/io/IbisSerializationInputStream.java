@@ -511,7 +511,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classBooleanArray, len);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("require boolean[]", e);
+	    throw new SerializationError("require boolean[]", e);
 	}
 	in.readArray(ref, off, len);
     }
@@ -523,7 +523,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classByteArray, len);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("require byte[]", e);
+	    throw new SerializationError("require byte[]", e);
 	}
 	in.readArray(ref, off, len);
     }
@@ -535,7 +535,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classCharArray, len);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("require char[]", e);
+	    throw new SerializationError("require char[]", e);
 	}
 	in.readArray(ref, off, len);
     }
@@ -547,7 +547,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classShortArray, len);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("require short[]", e);
+	    throw new SerializationError("require short[]", e);
 	}
 	in.readArray(ref, off, len);
     }
@@ -559,7 +559,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classIntArray, len);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("require int[]", e);
+	    throw new SerializationError("require int[]", e);
 	}
 	in.readArray(ref, off, len);
     }
@@ -571,7 +571,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classLongArray, len);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("require long[]", e);
+	    throw new SerializationError("require long[]", e);
 	}
 	in.readArray(ref, off, len);
     }
@@ -583,7 +583,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classFloatArray, len);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("require float[]", e);
+	    throw new SerializationError("require float[]", e);
 	}
 	in.readArray(ref, off, len);
     }
@@ -595,7 +595,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classDoubleArray, len);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("require double[]", e);
+	    throw new SerializationError("require double[]", e);
 	}
 	in.readArray(ref, off, len);
     }
@@ -1273,7 +1273,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    t = readType(handle & TYPE_MASK);
 	} catch (ClassNotFoundException e) {
-	    throw new Error("Cannot find class java.lang.String?", e);
+	    throw new SerializationError("Cannot find class java.lang.String?", e);
 	}
 
 	String s = readUTF();

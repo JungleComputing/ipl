@@ -1,7 +1,7 @@
 package ibis.ipl.impl.net;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
+import ibis.ipl.InterruptedIOException;
 
 /**
  * Provide a thread dedicated to extract and dispatch {@linkplain

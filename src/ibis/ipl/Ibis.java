@@ -31,6 +31,8 @@ public abstract class Ibis {
 	protected ResizeHandler resizeHandler;
 	protected static Vector implList; /* string vector */
 	protected static Vector implProperties; /* StaticProperties vector */
+	private static Vector loadedIbises = new Vector();
+
 
 	static {
 		readGlobalProperties();
@@ -83,11 +85,32 @@ public abstract class Ibis {
 		} catch (IOException e3) {
 			throw new IbisException("Could not initialize Ibis", e3);
 		}
-	
-System.err.println("Create Ibis " + impl);
+
+//System.err.println("Create Ibis " + impl);
+
+		synchronized(Ibis.class) {
+			loadedIbises.add(impl);
+		}
 
 		return impl;
 	}
+
+	/** Return a list of all Ibis implementations that are currently loaded.
+	    When no Ibises are loaded, this method returns null
+	**/
+	public static synchronized Ibis[] loadedIbises() {
+		if(loadedIbises == null || loadedIbises.size() == 0) {
+			return null;
+		}
+
+		Ibis[] res = new Ibis[loadedIbises.size()];
+		for(int i=0; i<res.length; i++) {
+			res[i] = (Ibis) loadedIbises.elementAt(i);
+		}
+
+		return res;
+	}
+
 
 	/** Create a new Ibis instance, based on the property ibis.name.
 	    The currently recognized Ibis names are:
@@ -211,8 +234,8 @@ System.err.println("Create Ibis " + impl);
 		}
 		if(!in.eof()) in.readln();
 
-		implList.add(name);
-		implProperties.add(sp);
+		implList.addElement(name);
+		implProperties.addElement(sp);
 	}
 
 	private static void readProperties(Input in, StaticProperties sp) {
@@ -308,7 +331,7 @@ System.err.println("Create Ibis " + impl);
 	public static String[] list() {
 		String[] res = new String[implList.size()];
 		for(int i=0; i<res.length; i++) {
-			res[i] = (String) implList.get(i);
+			res[i] = (String) implList.elementAt(i);
 		}
 
 		return res;
@@ -317,7 +340,7 @@ System.err.println("Create Ibis " + impl);
 	/** Return the static properties for a certain implementation. **/
 	public static StaticProperties staticProperties(String implName) {
 		int index = implList.indexOf(implName);
-		return (StaticProperties) implProperties.get(index);
+		return (StaticProperties) implProperties.elementAt(index);
 	}
 
 	/** After openWorld, join and leave calls may be received. **/
@@ -384,33 +407,4 @@ System.err.println("Create Ibis " + impl);
 	/* Used by the nameserver, do not call from outside Ibis */
 	public abstract void join(IbisIdentifier joinIdent);
 	public abstract void leave(IbisIdentifier leaveIdent);
-
-
-	/**
-	 * Utility methods to create exceptions with the desired cause,
-	 * for those exceptions that do not (yet) have such a constructor
-	 */
-	public static IOException createIOException(String message,
-						    Throwable cause) {
-	    IOException e = new IOException(message);
-	    e.initCause(cause);
-	    return e;
-	}
-
-	public static IOException createIOException(Throwable cause) {
-	    return createIOException(null, cause);
-	}
-
-	public static InterruptedIOException
-		createInterruptedIOException(String message, Throwable cause) {
-	    InterruptedIOException e = new InterruptedIOException(message);
-	    e.initCause(cause);
-	    return e;
-	}
-
-	public static InterruptedIOException
-		createInterruptedIOException(Throwable cause) {
-	    return createInterruptedIOException(null, cause);
-	}
-
 } 

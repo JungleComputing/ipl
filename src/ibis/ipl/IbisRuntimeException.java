@@ -1,24 +1,22 @@
 package ibis.ipl;
 
-public class IbisException extends java.lang.Exception {
-	// this space was intensionally left blank, but is now taken...
-
+public class IbisRuntimeException extends RuntimeException {
 	Throwable cause = null;
 
-	public IbisException() {
+	public IbisRuntimeException() {
 		super();
 	}
 
-	public IbisException(String name) {
+	public IbisRuntimeException(String name) {
 		super(name);
 	}
 
-	public IbisException(String name, Throwable cause) {
+	public IbisRuntimeException(String name, Throwable cause) {
 		super(name);
 		initCause(cause);
 	}
 
-	public IbisException(Throwable cause) {
+	public IbisRuntimeException(Throwable cause) {
 		super();
 		initCause(cause);
 	}

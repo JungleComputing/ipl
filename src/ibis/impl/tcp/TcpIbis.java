@@ -31,11 +31,8 @@ import java.io.DataOutputStream;
 
 public final class TcpIbis extends Ibis implements Config {
 
-	static TcpIbis globalIbis;
-
-	IbisIdentifierTable identTable = new IbisIdentifierTable();
-
 	private TcpIbisIdentifier ident;
+	private InetAddress myAddress;
 
 	protected NameServerClient        tcpIbisNameServerClient;
 	protected PortTypeNameServerClient    tcpPortTypeNameServerClient;
@@ -58,14 +55,9 @@ public final class TcpIbis extends Ibis implements Config {
 
 	private final StaticProperties systemProperties = new StaticProperties();	
 
-	static TcpPortHandler tcpPortHandler;
+	TcpPortHandler tcpPortHandler;
 
 	public TcpIbis() throws IbisException {
-
-		if (globalIbis == null) {
-			globalIbis = this;
-		}
-
 		// Set my properties.
 		systemProperties.add("reliability", "true");
 		systemProperties.add("multicast", "true") ;
@@ -77,7 +69,7 @@ public final class TcpIbis extends Ibis implements Config {
 	public PortType createPortType(String name, StaticProperties p)
 		    throws IOException, IbisException {
 
-		TcpPortType resultPort = new TcpPortType(this, name, p);		
+		TcpPortType resultPort = new TcpPortType(this, name, p);
 		p = resultPort.properties();
 
 		PortTypeNameServerClient temp = tcpIbisNameServerClient.portTypeNameServerClient;
@@ -142,14 +134,15 @@ public final class TcpIbis extends Ibis implements Config {
 
 		String myIp = p.getProperty("ip_address");
 		if (myIp == null) {
-			ident = new TcpIbisIdentifier(name, InetAddress.getLocalHost());
+			myAddress = InetAddress.getLocalHost();
 		} else {
-			ident = new TcpIbisIdentifier(name, InetAddress.getByName(myIp));
+			myAddress = InetAddress.getByName(myIp);
 		}
+		ident = new TcpIbisIdentifier(name, myAddress);
 
 		if(DEBUG) {
 			System.err.println("Made IbisIdentifier " + ident);
-
+/*
 			InetAddress[] res = InetAddress.getAllByName(myIp);
 			for(int i=0; i<res.length; i++) {
 				System.err.println("IP: " + res[i] + 
@@ -159,9 +152,10 @@ public final class TcpIbis extends Ibis implements Config {
 				    (res[i].isAnyLocalAddress() ? " ANYL" : " !ANYL") + 
 				    (res[i].isMulticastAddress() ? " MULTI" : " !MULTI"));
 			}
+*/
 		}
 
-		tcpIbisNameServerClient = new NameServerClient(this, ident, nameServerPool, nameServerInet, 
+		tcpIbisNameServerClient = new NameServerClient(this, myAddress, ident, nameServerPool, nameServerInet, 
 							       nameServerPort);
 		tcpPortTypeNameServerClient = tcpIbisNameServerClient.portTypeNameServerClient;
 		tcpReceivePortNameServerClient = tcpIbisNameServerClient.receivePortNameServerClient;

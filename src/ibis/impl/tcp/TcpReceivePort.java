@@ -17,40 +17,34 @@ import java.io.*;
 import java.util.ArrayList;
 
 final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
-	private int sequenceNr = 0;
 	protected TcpPortType type;
 	private TcpReceivePortIdentifier ident;
 	private int sequenceNumber = 0;
 	private int connectCount = 0;
 	String name; // needed to unbind
-
 	private SerializationStreamConnectionHandler [] connections;
-	private int connectionsSize;
 	private int connectionsIndex;
-
 	private volatile boolean stop = false;
-
 	boolean allowUpcalls = false;
 	Upcall upcall;
 	ReceivePortConnectUpcall connUpcall;
-	
 	private boolean started = false;
 	private boolean connection_setup_present = false;
-
 	private SerializationStreamReadMessage m = null;
+	private TcpIbis ibis;
 	protected boolean shouldLeave;
 
-	TcpReceivePort(TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IOException {
+	TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IOException {
 		this.type   = type;
 		this.name   = name;
 		this.upcall = upcall;
 		this.connUpcall = connUpcall;
+		this.ibis = ibis;
 
 		connections = new SerializationStreamConnectionHandler[2];
-		connectionsSize = 2;
 		connectionsIndex = 0;
 
-		int port = TcpIbis.tcpPortHandler.register(this);
+		int port = ibis.tcpPortHandler.register(this);
 		ident = new TcpReceivePortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier(), port);
 	}
 
@@ -58,13 +52,13 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private boolean doUpcall(SerializationStreamReadMessage m) throws IOException {
 	        synchronized (this) {
 				// Wait until the previous message was finished.
-				while(this.m != null) {
-					try {
-						wait();
-					} catch (InterruptedException e) {
-						// Ignore.
-					}
+			while(this.m != null) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					// Ignore.
 				}
+			}
 
 			this.m = m;
 		}
@@ -82,16 +76,15 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return true;
 	}
 
-	synchronized void finishMessage() {
+	synchronized void finishMessage() throws IOException {
 		SerializationStreamReadMessage old = m;
 
 		if(m.isFinished) {
-			System.err.println("warning: finished is called twice on this message, port = " + name);
+			throw new IOException("Finish is called twice on this message, port = " + name);
 		}
 
 		m.isFinished = true;
 		m = null;
-// System.err.print("x");
 		notifyAll();
 
 		if(upcall != null) {
@@ -99,9 +92,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	void startNewHandlerThread(SerializationStreamReadMessage old) {
+	private void startNewHandlerThread(SerializationStreamReadMessage old) {
 		SerializationStreamConnectionHandler h = old.getHandler();
-		h.createNewMessage();
+//		h.createNewMessage();
 //		new Thread(h, "TCP Connection Handler").start();
 		ThreadPool.createNew(h);
 	}
@@ -140,15 +133,18 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	synchronized SerializationStreamReadMessage getMessage() {
+	private synchronized SerializationStreamReadMessage getMessage(long timeout) {
 		while(m == null && ! shouldLeave) {
 			try {
-				wait();
+				if(timeout > 0) {
+					wait(timeout);
+				} else {
+					wait();
+				}
 			} catch (Exception e) {
 				// Ignore.
 			}
 		}
-// System.err.print("^");
 
 		return m;
 	}
@@ -172,11 +168,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		started = false;
 	}
 
-	public synchronized boolean setupConnection(TcpSendPortIdentifier id) { 
-//		System.err.println("setupConnection"); System.err.flush();
+	synchronized boolean connectionAllowed(TcpSendPortIdentifier id) { 
 		if (started) { 
 			if (connUpcall != null && ! connUpcall.gotConnection(id)) {
-			    return false;
+				return false;
 			}
 			connection_setup_present = true;
 			notifyAll();
@@ -185,7 +180,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			return false;
 		}
 	} 
-
 
 	public synchronized void enableUpcalls() {
 		allowUpcalls = true;
@@ -196,33 +190,29 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		allowUpcalls = false;
 	}
 
-	synchronized int getSequenceNr() {
-		return sequenceNr++;
-	}
-
 	public ReadMessage poll() throws IOException {
 		if(upcall != null) {
 			Thread.yield();
 			return null;
 		}
 /* For some reason, the available call seems to block for sun serialziation! Check this!! --Rob @@@ 
-		while(true) {
-			boolean success = false;
-			synchronized(this) {
-				for (int i=0; i<connectionsIndex; i++) { 
-					if(connections[i].m.available() > 0) {
-						success = true;
-						break;
-					}
-				}
-			}
+   while(true) {
+   boolean success = false;
+   synchronized(this) {
+   for (int i=0; i<connectionsIndex; i++) { 
+   if(connections[i].m.available() > 0) {
+   success = true;
+   break;
+   }
+   }
+   }
 
-			if(success) {
-				Thread.yield();
-			} else {
-				return null;
-			}
-		}
+   if(success) {
+   Thread.yield();
+   } else {
+   return null;
+   }
+   }
 */
 		// Blocking receive...
 		synchronized (this) { // must this be synchronized? --Rob
@@ -239,10 +229,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	public ReadMessage receive() throws IOException { 
 		if(upcall != null) {
-			throw new IOException("upcall receive config, downcall not allowed");
+			throw new IOException("Configured Receiveport for upcalls, downcall not allowed");
 		}
 
-		ReadMessage m = getMessage();
+		ReadMessage m = getMessage(-1);
 
 		if (m == null) {
 		    throw new IOException("receive port closed");
@@ -258,52 +248,64 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return receive();
 	}
 
-
 	public ReadMessage receive(long timeoutMillis) throws IOException {
-		System.err.println("receive with timeout not implemented!");
-		return null;
+		if(upcall != null) {
+			throw new IOException("Configured Receiveport for upcalls, downcall not allowed");
+		}
+
+		return getMessage(timeoutMillis);
 	}
 
 	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IOException {
-		System.err.println("receive with timeout not implemented!");
+		if (finishMe != null) {
+			finishMe.finish();
+		}
+
+		return receive(timeoutMillis);
+	}
+
+	public DynamicProperties properties() {
 		return null;
 	}
 
-	public DynamicProperties properties() { 
-		return null;
-	}
-
-	public ReceivePortIdentifier identifier() { 
+	public ReceivePortIdentifier identifier() {
 		return ident;
-	} 
+	}
 
-	synchronized void leave(SerializationStreamConnectionHandler leaving,
-							TcpSendPortIdentifier si, int id) {
-		boolean found = false;
-		if (DEBUG) { 
-			System.err.println("TcpReceivePort.leave: " + name);
-		}
-		for (int i=0;i<connectionsIndex; i++) { 
-			if (connections[i] == leaving) { 
-				connections[i] = connections[connectionsIndex-1];
-				connections[connectionsIndex-1] = null;
-				connectionsIndex--;
-				found = true;
-				break;
-			} 
+	void leave(SerializationStreamConnectionHandler leaving,
+		   TcpSendPortIdentifier si, InputStream in) {
+		synchronized(this) {
+			boolean found = false;
+			if (DEBUG) {
+				System.err.println("TcpReceivePort.leave: " + name);
+			}
+			for (int i=0;i<connectionsIndex; i++) {
+				if (connections[i] == leaving) {
+					connections[i] = connections[connectionsIndex-1];
+					connections[connectionsIndex-1] = null;
+					connectionsIndex--;
+					found = true;
+					break;
+				}
+			}
+
+			if(!found) {
+				System.err.println("EEEK, connection handler not found in leave");
+				System.exit(1);
+			}
+
+			ibis.tcpPortHandler.releaseInput(si, in);
 		}
 
-		if(!found) {
-			System.err.println("EEEK, connection handler not found in leave");
-			System.exit(1);
-		}
-
-		TcpIbis.tcpPortHandler.releaseInput(si, id);
+		// Don't hold the lock when calling user upcall functions. --Rob
 		if (connUpcall != null) {
-		    connUpcall.lostConnection(si);
+			connUpcall.lostConnection(si);
 		}
-		shouldLeave = true;
-		notifyAll();
+
+		synchronized(this) {
+			shouldLeave = true;
+			notifyAll();
+		}
 	}
 
 	public synchronized void free() {
@@ -369,31 +371,23 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	static int counter = 0;
-
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in, int id) {	
 		try {
-// System.out.println(name + ": ADDING CONNECTION");			
+			SerializationStreamConnectionHandler con = 
+				new SerializationStreamConnectionHandler(origin, this, in, id);
 
-			SerializationStreamConnectionHandler con = new SerializationStreamConnectionHandler(origin, this, in, id);
-
-			if (connectionsSize == connectionsIndex) { 
-				SerializationStreamConnectionHandler [] temp = new SerializationStreamConnectionHandler[2*connectionsSize];
+			if (connections.length == connectionsIndex) { 
+				SerializationStreamConnectionHandler [] temp = 
+					new SerializationStreamConnectionHandler[2*connections.length];
 				for (int i=0;i<connectionsIndex;i++) { 
 					temp[i] = connections[i];
 				}
 				
 				connections = temp;
-				connectionsSize = 2*connectionsSize;
 			} 
 
 			connections[connectionsIndex++] = con;
-
-//			if (upcall != null) {
-//				System.out.println("Creating new connection handler thread: " + (counter+1));
-//				new Thread(con, "SerializationStreamConnection Handler " + ++counter).start();
-				ThreadPool.createNew(con);
-//			}
+			ThreadPool.createNew(con);
 
 			connection_setup_present = false;
 			notifyAll();

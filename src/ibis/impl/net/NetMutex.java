@@ -2,7 +2,7 @@ package ibis.ipl.impl.net;
 
 import ibis.ipl.Ibis;
 
-import java.io.InterruptedIOException;
+import ibis.ipl.InterruptedIOException;
 
 /**
  * Provide a synchronization mutex.
@@ -66,7 +66,7 @@ public final class NetMutex {
 			try {
 				wait();
 			} catch (InterruptedException e) {
-				throw Ibis.createInterruptedIOException(e);
+				throw new InterruptedIOException(e);
 			} finally {
 				waiters--;
 			}
@@ -94,7 +94,7 @@ public final class NetMutex {
 			try {
 				wait();
 			} catch (InterruptedException e) {
-				throw Ibis.createInterruptedIOException(e);
+				throw new InterruptedIOException(e);
 			} finally {
 				waiters--;
 			}

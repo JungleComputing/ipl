@@ -4,8 +4,8 @@ import ibis.ipl.impl.generic.Monitor;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 
+import ibis.ipl.InterruptedIOException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IllegalLockStateException;
 
@@ -226,7 +226,7 @@ public final class NetLockArray {
 		try {
 		    lock[id].cv.cv_wait();
 		} catch (InterruptedException e) {
-		    throw Ibis.createInterruptedIOException(e);
+		    throw new InterruptedIOException(e);
 		} finally {
 		    unregisterWaitingOn(id, id);
 		}
@@ -272,7 +272,7 @@ public final class NetLockArray {
 		try {
 		    lock[id].cv.cv_wait();
 		} catch (InterruptedException e) {
-		    throw Ibis.createInterruptedIOException(e);
+		    throw new InterruptedIOException(e);
 		} finally {
 		    unregisterWaitingOn(id, id);
 		}
@@ -406,7 +406,7 @@ public final class NetLockArray {
 // System.err.println("lockFirst wait(" + wait_id + ")");
 		    lock[wait_id].cv.cv_wait();
 		} catch (InterruptedException e) {
-		    throw Ibis.createInterruptedIOException(e);
+		    throw new InterruptedIOException(e);
 		} finally {
 		    for (int i = 0; i < ids.length; i++) {
 			unregisterWaitingOn(ids[i], wait_id);
@@ -468,7 +468,7 @@ public final class NetLockArray {
 		try {
 		    lock[wait_id].cv.cv_wait();
 		} catch (InterruptedException e) {
-		    throw Ibis.createInterruptedIOException(e);
+		    throw new InterruptedIOException(e);
 		} finally {
 		    for (int i = 0; i < ids.length; i++) {
 			unregisterWaitingOn(ids[i], wait_id);

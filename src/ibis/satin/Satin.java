@@ -59,7 +59,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private IbisIdentifier masterIdent;
 
 	/* My scheduling algorithm. */
-	protected Algorithm algorithm;
+	protected final Algorithm algorithm;
 
 	volatile int exitReplies = 0;
 
@@ -106,7 +106,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	long stolenJobs = 0; // used in messageHandler
 	long stealRequests = 0; // used in messageHandler
-	boolean upcalls = true;
+	protected final boolean upcalls;
 
 	long interClusterMessages = 0;
 	long intraClusterMessages = 0;
@@ -129,7 +129,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	Timer abortTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer idleTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer pollTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
-	long prevPoll = 0;
+	private long prevPoll = 0;
 //	float MHz = Timer.getMHz();
 
 	java.io.PrintStream out = System.err;
@@ -142,15 +142,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(stealTimer == null) stealTimer = Ibis.newTimer("ibis.util.Timer");
 		if(handleStealTimer == null) handleStealTimer =
-										 Ibis.newTimer("ibis.util.Timer");
+						     Ibis.newTimer("ibis.util.Timer");
 		if(abortTimer == null) abortTimer = Ibis.newTimer("ibis.util.Timer");
 		if(idleTimer == null) idleTimer = Ibis.newTimer("ibis.util.Timer");
 		if(pollTimer == null) pollTimer = Ibis.newTimer("ibis.util.Timer");
 
-		init(args);
-	}
-
-	private void init(String[] args) {
 		Properties p = System.getProperties();
 		String hostName = null;
 		String alg = null;
@@ -164,6 +160,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.err.println("SATIN:init: Cannot get ip of local host: " + e);
 			System.exit(1);
 		}
+
+		boolean doUpcalls = true;
 
 		/* Parse commandline parameters. Remove everything that starts
 		   with satin. */
@@ -183,7 +181,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			} else if(args[i].equals("-satin-ibis")) {
 				ibisSerialization = true;
 			} else if(args[i].equals("-satin-no-upcalls")) {
-				upcalls = false;
+				doUpcalls = false;
 			} else if(args[i].equals("-satin-upcall-polling")) {
 				upcallPolling = true;
 			} else if(args[i].equals("-satin-alg")) {
@@ -193,6 +191,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				tempArgs.add(args[i]);
 			}
 		}
+
+		upcalls = doUpcalls; // upcalls is final for performance reasons :-)
+
 		mainArgs = new String[tempArgs.size()];
 		for(int i=0; i<tempArgs.size(); i++) {
 			mainArgs[i] = (String) tempArgs.get(i);
@@ -336,9 +337,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			algorithm = new RandomWorkStealing(this);
 		} else if(alg.equals("CRS")) {
 			algorithm = new ClusterAwareRandomWorkStealing(this);
+		} else if(alg.equals("MW")) {
+			algorithm = new MasterWorker(this);
 		} else {
 			System.err.println("SATIN '" + hostName + "': satin_algorithm '"
 							   + alg + "' unknown");
+			algorithm = null;
 			System.exit(1);
 		}
 
@@ -1294,6 +1298,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 	public void spawn(InvocationRecord r) {
+		if(ASSERTS) {
+			if(algorithm instanceof MasterWorker) {
+				if(!ident.equals(victims.getMasterVictim())) {
+					System.err.println("with the master/worker algorithm, work can only be spawned on the master!");
+					System.exit(1);
+				}
+			}
+		}
+
 		if(SPAWN_STATS) {
 			spawns++;
 		}
@@ -1429,15 +1442,16 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		//pollAsyncResult(); // for CRS
 
-		if(upcalls && upcallPolling) {
+		if(SUPPORT_UPCALL_POLLING && upcalls && upcallPolling) {
 			satinPoll();
 		}
 
-		if (s.value == 0) { // sync is poll
-			if(!upcalls) satinPoll();
+		if ((ABORTS || POLL_FREQ > 0) && s.value == 0) { // sync is poll
+			if(POLL_FREQ > 0 && !upcalls) satinPoll();
 			if(ABORTS && gotAborts) handleAborts();
 			if(ABORTS && gotExceptions) handleExceptions();
 		}
+
 		while(s.value > 0) {
 			if (ASSERTS && exiting) {
 				System.err.println("Satin: EEK! got exit msg while syncing!");
@@ -1451,11 +1465,17 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						   "': Sync, counter = " + s.value);
 			}
 
-			if(!upcalls) satinPoll();
+			if(POLL_FREQ > 0 && !upcalls) satinPoll();
 			if(ABORTS && gotAborts) handleAborts();
 			if(ABORTS && gotExceptions) handleExceptions();
 
-			algorithm.clientIteration();
+
+			r = q.getFromHead(); // Try the local queue
+			if(r != null) {
+				callSatinFunction(r);
+			} else {
+				algorithm.clientIteration();
+			}
 		}
 	}
 

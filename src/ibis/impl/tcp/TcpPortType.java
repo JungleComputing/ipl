@@ -79,7 +79,7 @@ class TcpPortType implements PortType, Config {
 	public SendPort createSendPort() throws IOException {
 		SendPort s;
 
-		s = new TcpSendPort(this);
+		s = new TcpSendPort(ibis, this);
 
 		if(DEBUG) {
 			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
@@ -91,7 +91,7 @@ class TcpPortType implements PortType, Config {
 	public SendPort createSendPort(Replacer r) throws IOException {
 		SendPort s;
 
-		s = new TcpSendPort(this, r);
+		s = new TcpSendPort(ibis, this, r);
 
 		if(DEBUG) {
 			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
@@ -103,7 +103,7 @@ class TcpPortType implements PortType, Config {
 	public SendPort createSendPort(String portname, Replacer r) throws IOException {
 		SendPort s;
 
-		s = new TcpSendPort(this, r, portname);
+		s = new TcpSendPort(ibis, this, r, portname);
 
 		if(DEBUG) {
 			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
@@ -115,7 +115,7 @@ class TcpPortType implements PortType, Config {
 	public SendPort createSendPort(String portname) throws IOException {
 		SendPort s;
 
-		s = new TcpSendPort(this, portname);
+		s = new TcpSendPort(ibis, this, portname);
 
 		if(DEBUG) {
 			System.out.println(ibis.name() + ": Sendport '" + portname + "' created of of type '" + this.name + "'");
@@ -156,7 +156,7 @@ class TcpPortType implements PortType, Config {
 
 
 	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU)  throws IOException { 
-		TcpReceivePort p = new TcpReceivePort(this, name, u, cU);
+		TcpReceivePort p = new TcpReceivePort(ibis, this, name, u, cU);
 
 		if(DEBUG) {
 			System.out.println(ibis.name() + ": Receiveport created name = '" + name() + "'");

@@ -3,13 +3,13 @@ package ibis.ipl.impl.net;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.HashMap;
 
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.InterruptedIOException;
 import ibis.ipl.Ibis;
 
 /**
@@ -249,7 +249,7 @@ nCurrent++;
                                                         NetPoller.this.wait();
 							waitingThreads--;
                                                 } catch (InterruptedException e) {
-                                                        throw Ibis.createInterruptedIOException(e);
+                                                        throw new InterruptedIOException(e);
                                                 }
                                         }
                                 }
@@ -331,7 +331,7 @@ nCurrent++;
                         try {
                                 wait();
                         } catch (InterruptedException e) {
-                                throw Ibis.createInterruptedIOException(e);
+                                throw new InterruptedIOException(e);
                         } finally {
 				upcallWaiters--;
 			}
@@ -374,7 +374,7 @@ nCurrent++;
                 try {
                         wait();
                 } catch (InterruptedException e) {
-                        throw Ibis.createInterruptedIOException(e);
+                        throw new InterruptedIOException(e);
                 } finally {
 			waitingThreads--;
 		}

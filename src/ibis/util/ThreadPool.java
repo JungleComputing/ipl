@@ -1,67 +1,70 @@
 package ibis.ipl.impl.generic;
 
 class PoolThread extends Thread {
-    Queue q;
-	
-    PoolThread(Queue q) {
-	this.q = q;
-	synchronized(q) {
-	    if (ThreadPool.DEBUG) {
-		System.out.println("Create new poolthread, numthreads = " + ThreadPool.numthreads);
-	    }
-	    ThreadPool.numthreads++;
-	}
-	setName("Pool thread");
-    }
+	Queue q;
 
-    public void run() {
-	while(true) {
-	    Runnable target = null;
-	    synchronized(q) {
-		if (q.size() == 0) {
-		    ThreadPool.ready++;
-		    if (2 * ThreadPool.ready > ThreadPool.numthreads) {
+	PoolThread(Queue q) {
+		this.q = q;
+		synchronized(q) {
 			if (ThreadPool.DEBUG) {
-			    System.out.println("Poolthread exits, numthreads = " + ThreadPool.numthreads);
+				System.out.println("Create new poolthread, numthreads = " +
+						   ThreadPool.numthreads);
 			}
-			ThreadPool.numthreads--;
-			ThreadPool.ready--;
-			return;
-		    }
-		    target = (Runnable) q.dequeue();
-		    ThreadPool.ready--;
+			ThreadPool.numthreads++;
 		}
-		else {
-		    target = (Runnable) q.dequeue();
-		}
-	    }
-
-	    try {
-		target.run();
-	    } catch(Throwable e) {
-		System.out.println("EEK: daemon thread caught throwable: " + e);
-		e.printStackTrace();
-	    }
+		setName("Pool thread");
 	}
-    }
+
+	public void run() {
+		while(true) {
+			Runnable target = null;
+			synchronized(q) {
+				if (q.size() == 0) {
+					ThreadPool.ready++;
+					if (2 * ThreadPool.ready > ThreadPool.numthreads) {
+						if (ThreadPool.DEBUG) {
+							System.out.println("Poolthread exits, numthreads = " + ThreadPool.numthreads);
+						}
+						ThreadPool.numthreads--;
+						ThreadPool.ready--;
+						return;
+					}
+					target = (Runnable) q.dequeue();
+					ThreadPool.ready--;
+				} else {
+					target = (Runnable) q.dequeue();
+				}
+			}
+
+			// catch and print all user exceptions.
+			// I've seen it happen that a thread was throwing an exception that is not caught here
+			// Next, the counters in the queue are not correct anymore -> havoc --Rob 
+			try {
+				target.run();
+			} catch (Throwable t) {
+				System.err.println("got exception in pool thread (continuing): " + t);
+				t.printStackTrace();
+			}
+		}
+	}
 }
 
 public final class ThreadPool {
-    static final boolean DEBUG = false;
+	static final boolean DEBUG = false;
 
-    static int numthreads = 0;
-    static int ready = 0;
+	static int numthreads = 0;
+	static int ready = 0;
 
-    static Queue q = new Queue();
+	static Queue q = new Queue();
 
-    public static void createNew(Runnable r) {
-	synchronized(q) {
-	    q.enqueue(r);
-	    if (ready == 0) {
-		PoolThread p = new PoolThread(q);
-		p.setDaemon(true);
-		p.start();
-	    }
+	public static void createNew(Runnable r) {
+		synchronized(q) {
+			q.enqueue(r);
+			if (ready == 0) {
+				PoolThread p = new PoolThread(q);
+				p.setDaemon(true);  // @@@ This is a Bug --Rob
+				p.start();
+			}
+		}
 	}
-    }
 }

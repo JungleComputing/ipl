@@ -30,9 +30,11 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	class IbisInfo { 		
 		IbisIdentifier identifier;
 		int ibisNameServerport;
+		InetAddress ibisNameServerAddress;
 
-		IbisInfo(IbisIdentifier identifier, int ibisNameServerport) {
+		IbisInfo(IbisIdentifier identifier, InetAddress ibisNameServerAddress, int ibisNameServerport) {
 			this.identifier = identifier;
+			this.ibisNameServerAddress = ibisNameServerAddress;
 			this.ibisNameServerport = ibisNameServerport; 
 		} 
 
@@ -92,10 +94,10 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	private void forwardJoin(IbisInfo dest, IbisIdentifier id) throws IOException { 
 
 		if (DEBUG) { 
-			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + ", dest port: " + dest.ibisNameServerport);
+			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.ibisNameServerAddress + ", dest port: " + dest.ibisNameServerport);
 		}
 
-		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), dest.ibisNameServerport, null, 0 /* retry */);
+		Socket s = IbisSocketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, 0 /* retry */);
 
 		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
@@ -111,6 +113,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	private void handleIbisJoin() throws IOException, ClassNotFoundException { 
 		String key = (String) in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
+		InetAddress address = (InetAddress) in.readObject();
 		int port = in.readInt();
 
 		if (DEBUG) {
@@ -118,7 +121,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			System.err.println(" requested by " + id.toString());
 		}
 
-		IbisInfo info = new IbisInfo(id, port);
+		IbisInfo info = new IbisInfo(id, address, port);
 		RunInfo p = (RunInfo) pools.get(key);
 
 		if (p == null) { 
@@ -158,7 +161,6 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			for (int i=0;i<p.pool.size();i++) { 
 				IbisInfo temp = (IbisInfo) p.pool.get(i);
 				forwardJoin(temp, id);
-//				forwardJoin(info, temp.identifier);
 			}
 
 			p.pool.add(info);
@@ -168,13 +170,14 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		System.out.println("JOIN: pool " + key + " now contains " + p.pool.size() + " nodes");
 	}	
 
+
 	private void forwardLeave(IbisInfo dest, IbisIdentifier id) throws IOException { 
 		if (DEBUG) { 
 			System.err.println("NameServer: forwarding leave of " + 
 					   id.toString() + " to " + dest.identifier.toString());
 		}
 
-		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), 
+		Socket s = IbisSocketFactory.createSocket(dest.ibisNameServerAddress,
 							     dest.ibisNameServerport, null, 0 /* retry */);
 		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));

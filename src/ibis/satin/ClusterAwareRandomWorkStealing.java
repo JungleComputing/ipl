@@ -4,7 +4,7 @@ class ClusterAwareRandomWorkStealing implements Algorithm, Protocol, Config {
 	Satin satin;
 
 	boolean gotAsyncStealReply = false;
-    InvocationRecord asyncStolenJob = null;
+	InvocationRecord asyncStolenJob = null;
 
 	private long asyncStealAttempts = 0;
 	private long asyncStealSuccess = 0;
@@ -34,11 +34,12 @@ class ClusterAwareRandomWorkStealing implements Algorithm, Protocol, Config {
 			}
 		}
 		
-		todo = satin.q.getFromHead(); //try the local queue
-		if (todo != null) {
-			satin.callSatinFunction(todo);
-			return;
-		} else if (asyncQ != null) { //try a saved async job
+//		todo = satin.q.getFromHead(); //try the local queue
+//		if (todo != null) {
+//			satin.callSatinFunction(todo);
+//			return;
+//		} else 
+		if (asyncQ != null) { //try a saved async job
 
 			/**
 			 * When we select a job to be run, it must be removed from any
@@ -78,7 +79,7 @@ class ClusterAwareRandomWorkStealing implements Algorithm, Protocol, Config {
 
 				if (ASSERTS && !asyncStealInProgress) {
 					System.err.println("CRS: EEK! I'm idle and no steal reqs" +
-								   " have been sent");
+							   " have been sent");
 				}
 				
 				synchronized(this) {
@@ -144,17 +145,17 @@ class ClusterAwareRandomWorkStealing implements Algorithm, Protocol, Config {
 			}
 			if (ASSERTS && asyncStolenJob != null) {
 				System.err.println("Satin: CRS: EEK, stole async job " +
-								   "after exiting!");
+						   "after exiting!");
 			}
 		}
 	}
 
 	public void printStats(java.io.PrintStream out) {
 		out.println("SATIN '" + satin.ident.name() + 
-					"': ASYNC STEAL_STATS: attempts = " +asyncStealAttempts +
-					" success = " +	asyncStealSuccess + " (" +
-				(((double) asyncStealSuccess / asyncStealAttempts) * 100.0)
-					+ " %)");
+			    "': ASYNC STEAL_STATS: attempts = " +asyncStealAttempts +
+			    " success = " +	asyncStealSuccess + " (" +
+			    (((double) asyncStealSuccess / asyncStealAttempts) * 100.0)
+			    + " %)");
 
 	}		
 }

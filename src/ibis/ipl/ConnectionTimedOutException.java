@@ -7,7 +7,7 @@ import java.io.IOException;
  * <code>ConnectionTimedOutException</code> is thrown to indicate
  * that a sendport connect timed out.
  */
-public class ConnectionTimedOutException extends IOException {
+public class ConnectionTimedOutException extends IbisIOException {
 
     /**
      * Constructs a <code>ConnectionTimedOutException</code> with
@@ -34,9 +34,8 @@ public class ConnectionTimedOutException extends IOException {
      * @param s		the detail message
      * @param cause	the cause
      */
-    public ConnectionTimedOutException(String s, Throwable cause) {
-	super(s);
-	initCause(cause);
+    public ConnectionTimedOutException(String name, Throwable cause) {
+	super(name, cause);
     }
 
     /**
@@ -46,7 +45,7 @@ public class ConnectionTimedOutException extends IOException {
      * @param cause	the cause
      */
     public ConnectionTimedOutException(Throwable cause) {
-	super();
+	super("", cause);
 	initCause(cause);
     }
 }

@@ -63,15 +63,17 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * @exception <code>IOException</code> is thrown on an IO error.
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
-	    /* So no cycle detection is used ... */
+		// So no cycle detection is used ...
 	    writeUnshared(ref);
 	}
 	else {
+*/
 	    boolean[] temp = new boolean[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**
@@ -79,14 +81,15 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
 	else {
-	    byte[] temp = new byte[len];
+*/	    byte[] temp = new byte[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**
@@ -94,14 +97,16 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
 	else {
+*/
 	    short[] temp = new short[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**
@@ -109,14 +114,16 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
 	else {
+*/
 	    char[] temp = new char[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**
@@ -124,14 +131,16 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
 	else {
+*/
 	    int[] temp = new int[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**
@@ -139,14 +148,16 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
 	else {
+*/
 	    long[] temp = new long[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**
@@ -154,14 +165,16 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
 	else {
+*/
 	    float[] temp = new float[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**
@@ -169,14 +182,16 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
 	else {
+*/
 	    double[] temp = new double[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**
@@ -184,14 +199,16 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(Object[] ref, int off, int len) throws IOException {
+/*
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
 	else {
+*/
 	    Object[] temp = new Object[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-	}
+//	}
     }
 
     /**

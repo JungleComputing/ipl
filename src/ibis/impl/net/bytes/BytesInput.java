@@ -5,7 +5,7 @@ import ibis.ipl.Ibis;
 import ibis.ipl.impl.net.*;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
+import ibis.ipl.InterruptedIOException;
 
 import java.util.HashMap;
 
@@ -146,7 +146,7 @@ public final class BytesInput extends NetInput implements Settings {
                                         wait();
 					waiters--;
                                 } catch (InterruptedException e) {
-                                        throw Ibis.createInterruptedIOException(e);
+                                        throw new InterruptedIOException(e);
                                 }
                         }
 

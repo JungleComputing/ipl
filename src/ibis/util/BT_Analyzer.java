@@ -44,6 +44,7 @@ public class BT_Analyzer {
                                 return true;
                         }
                 }
+
                 return false;
 	}
 	
