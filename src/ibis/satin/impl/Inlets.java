@@ -67,7 +67,7 @@ public abstract class Inlets extends Aborts {
 			}
 			if (r.parent == null) {
 				System.err
-						.println("An inlet threw an exception, but there is no parent that handles it."
+						.println("An inlet threw an exception, but there is no parent that handles it: "
 								+ t);
 //				t.printStackTrace();
 				throw new Error(t);
