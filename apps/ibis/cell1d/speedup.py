@@ -293,7 +293,7 @@ def main():
         if o in ("--logfile",):
             logfile = a
     ProcNos = genps( procSet )
-    ProcNos.reverse()
+    # ProcNos.reverse()
     run( string.join( args, ' ' ), logfile, runParallel )
 
 if __name__ == "__main__":
