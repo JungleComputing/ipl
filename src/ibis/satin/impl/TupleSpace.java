@@ -71,8 +71,10 @@ public abstract class TupleSpace extends Communication {
         if (!initialized) {
             initTupleSpace();
         }
-        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                + ": added key " + key);
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                    + ": added key " + key);
+        }
 
         if (this_satin != null) { // can happen with sequential versions of
             // Satin
@@ -90,8 +92,10 @@ public abstract class TupleSpace extends Communication {
             }
         }
 
-        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                + ": adding of key " + key + " done");
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                    + ": adding of key " + key + " done");
+        }
     }
 
     /**
@@ -109,8 +113,10 @@ public abstract class TupleSpace extends Communication {
             initTupleSpace();
         }
 
-        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                    + ": peek key " + key);
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                        + ": peek key " + key);
+        }
 
         synchronized (space) {
             data = (Serializable) space.get(key);
@@ -134,21 +140,29 @@ public abstract class TupleSpace extends Communication {
             initTupleSpace();
         }
 
-        tupleLogger.debug("SATIN '" + this_satin.ident.name() + ": get key "
-                + key);
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + this_satin.ident.name() + ": get key "
+                    + key);
+        }
 
         synchronized (space) {
             while (data == null) {
                 data = (Serializable) space.get(key);
                 if (data == null) {
                     try {
-                        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                                + ": get key " + key + " waiting");
+                        if (tupleLogger.isDebugEnabled()) {
+                            tupleLogger.debug("SATIN '"
+                                    + this_satin.ident.name()
+                                    + ": get key " + key + " waiting");
+                        }
 
                         space.wait();
 
-                        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                                + ": get key " + key + " waiting DONE");
+                        if (tupleLogger.isDebugEnabled()) {
+                            tupleLogger.debug("SATIN '" 
+                                    + this_satin.ident.name()
+                                    + ": get key " + key + " waiting DONE");
+                        }
 
                     } catch (Exception e) {
                         // Ignore.
@@ -156,8 +170,10 @@ public abstract class TupleSpace extends Communication {
                 }
             }
 
-            tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                    + ": get key " + key + " DONE");
+            if (tupleLogger.isDebugEnabled()) {
+                tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                        + ": get key " + key + " DONE");
+            }
 
             return data;
         }
@@ -175,12 +191,16 @@ public abstract class TupleSpace extends Communication {
             initTupleSpace();
         }
 
-        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                + ": removed key " + key);
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                    + ": removed key " + key);
+        }
         if (this_satin != null) {
             this_satin.broadcastRemoveTuple(key);
-            tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                    + ": bcast remove key " + key + " done");
+            if (tupleLogger.isDebugEnabled()) {
+                tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                        + ": bcast remove key " + key + " done");
+            }
         }
         if (!use_seq || this_satin == null) {
             synchronized (space) {
@@ -204,8 +224,10 @@ public abstract class TupleSpace extends Communication {
         if (!initialized) {
             initTupleSpace();
         }
-        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                + ": remote add of key " + key);
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                    + ": remote add of key " + key);
+        }
 
         synchronized (space) {
             space.put(key, data);
@@ -213,16 +235,20 @@ public abstract class TupleSpace extends Communication {
             // newData.add(data);
             space.notifyAll();
         }
-        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                + ": remote add of key " + key + " DONE");
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                    + ": remote add of key " + key + " DONE");
+        }
     }
 
     public static void remoteDel(String key) {
         if (!initialized) {
             initTupleSpace();
         }
-        tupleLogger.debug("SATIN '" + this_satin.ident.name()
-                + ": remote del of key " + key);
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + this_satin.ident.name()
+                    + ": remote del of key " + key);
+        }
         synchronized (space) {
             space.remove(key);
 
@@ -269,8 +295,10 @@ public abstract class TupleSpace extends Communication {
         long count = 0;
         int size = 0;
 
-        tupleLogger.debug("SATIN '" + ident.name() + "': bcasting tuple "
-                + key);
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + ident.name() + "': bcasting tuple "
+                    + key);
+        }
 
         synchronized (this) {
             size = victims.size();
@@ -359,8 +387,10 @@ public abstract class TupleSpace extends Communication {
             tupleTimer.stop();
         }
 
-        tupleLogger.debug("SATIN '" + ident.name() + "': bcasting tuple "
-                + key + " DONE");
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + ident.name() + "': bcasting tuple "
+                    + key + " DONE");
+        }
     }
 
     private void connectTuplePort() {
@@ -387,8 +417,10 @@ public abstract class TupleSpace extends Communication {
         long count = 0;
         int size = 0;
 
-        tupleLogger.debug("SATIN '" + ident.name()
-                + "': bcasting remove tuple" + key);
+        if (tupleLogger.isDebugEnabled()) {
+            tupleLogger.debug("SATIN '" + ident.name()
+                    + "': bcasting remove tuple" + key);
+        }
 
         synchronized (this) {
             size = victims.size();
@@ -497,8 +529,10 @@ public abstract class TupleSpace extends Communication {
                 // do upcall
                 key = (String) activeTupleKeyList.remove(0);
                 data = (ActiveTuple) activeTupleDataList.remove(0);
-                tupleLogger.debug("calling active tuple key = " + key
-                        + " data = " + data);
+                if (tupleLogger.isDebugEnabled()) {
+                    tupleLogger.debug("calling active tuple key = " + key
+                            + " data = " + data);
+                }
             }
 
             try {

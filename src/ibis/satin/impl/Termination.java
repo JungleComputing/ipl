@@ -40,9 +40,11 @@ public abstract class Termination extends Initialization {
                 try {
                     WriteMessage writeMessage;
                     synchronized (this) {
-                        commLogger.debug("SATIN '" + ident.name()
-                                + "': sending exit message to "
-                                + victims.getIdent(i));
+                        if (commLogger.isDebugEnabled()) {
+                            commLogger.debug("SATIN '" + ident.name()
+                                    + "': sending exit message to "
+                                    + victims.getIdent(i));
+                        }
 
                         //System.err.println("victims size: " + victims.size()
                         // + ",i: " + i);
@@ -86,8 +88,10 @@ public abstract class Termination extends Initialization {
 
             try {
                 WriteMessage writeMessage;
-                commLogger.debug("SATIN '" + ident.name()
-                        + "': sending exit ACK message to " + masterIdent);
+                if (commLogger.isDebugEnabled()) {
+                    commLogger.debug("SATIN '" + ident.name()
+                            + "': sending exit ACK message to " + masterIdent);
+                }
 
                 writeMessage = mp.newMessage();
                 writeMessage.writeByte(Protocol.EXIT_REPLY);
@@ -133,9 +137,11 @@ public abstract class Termination extends Initialization {
 
                     s = victims.getPort(0);
 
-                    commLogger.debug("SATIN '" + ident.name()
-                            + "': freeing sendport to "
-                            + victims.getIdent(0));
+                    if (commLogger.isDebugEnabled()) {
+                        commLogger.debug("SATIN '" + ident.name()
+                                + "': freeing sendport to "
+                                + victims.getIdent(0));
+                    }
                     victims.remove(0);
                 }
 
@@ -143,7 +149,6 @@ public abstract class Termination extends Initialization {
                     s.close();
                 }
 
-                // commLogger.debug(" DONE");
             } catch (Throwable e) {
                 System.err.println("port.close() throws " + e);
             }
@@ -174,7 +179,9 @@ public abstract class Termination extends Initialization {
             System.err.println("ibis.end throws " + e);
         }
 
-        commLogger.debug("SATIN '" + ident.name() + "': exited");
+        if (commLogger.isDebugEnabled()) {
+            commLogger.debug("SATIN '" + ident.name() + "': exited");
+        }
 
         // Do a gc, and run the finalizers. Useful for printing statistics in
         // Satin applications.

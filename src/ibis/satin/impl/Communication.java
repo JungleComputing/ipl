@@ -20,8 +20,10 @@ public abstract class Communication extends SpawnSync {
                 s.connect(ident);
                 success = true;
             } catch (IOException e) {
-                grtLogger.info("IOException in connect to " + ident + ": "
-                        + e, e);
+                if (grtLogger.isInfoEnabled()) {
+                    grtLogger.info("IOException in connect to " + ident + ": "
+                            + e, e);
+                }
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
@@ -40,8 +42,10 @@ public abstract class Communication extends SpawnSync {
                 s.connect(ident, timeoutMillis);
                 success = true;
             } catch (IOException e) {
-                grtLogger.info("IOException in connect to " + ident + ": "
-                        + e, e);
+                if (grtLogger.isInfoEnabled()) {
+                    grtLogger.info("IOException in connect to " + ident + ": "
+                            + e, e);
+                }
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
@@ -67,9 +71,11 @@ public abstract class Communication extends SpawnSync {
         do {
             s = victims.getReplyPort(id);
             if (s == null) {
-                commLogger.debug("SATIN '" + this.ident.name()
-                        + "': could not get reply port to " + id.name()
-                        + ", retrying");
+                if (commLogger.isDebugEnabled()) {
+                    commLogger.debug("SATIN '" + this.ident.name()
+                            + "': could not get reply port to " + id.name()
+                            + ", retrying");
+                }
                 try {
                     wait();
                 } catch (Exception e) {
@@ -202,7 +208,9 @@ public abstract class Communication extends SpawnSync {
 
     /* Only allowed when not stealing. */
     void barrier() {
-        commLogger.debug("SATIN '" + ident.name() + "': barrier start");
+        if (commLogger.isDebugEnabled()) {
+            commLogger.debug("SATIN '" + ident.name() + "': barrier start");
+        }
 
         // Close the world, no more join and leave upcalls will be received.
         if (!closed) {
@@ -271,6 +279,8 @@ public abstract class Communication extends SpawnSync {
             ibis.enableResizeUpcalls();
         }
 
-        commLogger.debug("SATIN '" + ident.name() + "': barrier DONE");
+        if (commLogger.isDebugEnabled()) {
+            commLogger.debug("SATIN '" + ident.name() + "': barrier DONE");
+        }
     }
 }

@@ -26,12 +26,16 @@ public abstract class Aborts extends WorkStealing {
         // it is just used for assigning results.
         // get the lock, so no-one can steal jobs now, and no-one can change my
         // tables.
-        abortLogger.debug("q " + q.size() + ", s " + onStack.size() + ", o "
-                + outstandingJobs.size());
+        if (abortLogger.isDebugEnabled()) {
+            abortLogger.debug("q " + q.size() + ", s " + onStack.size() + ", o "
+                    + outstandingJobs.size());
+        }
         try {
-            abortLogger.debug("SATIN '" + ident.name()
-                    + "': Abort, outstanding = " + outstandingSpawns
-                    + ", thrower = " + exceptionThrower);
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + ident.name()
+                        + "': Abort, outstanding = " + outstandingSpawns
+                        + ", thrower = " + exceptionThrower);
+            }
             if (SPAWN_STATS) {
                 aborts++;
             }
@@ -39,8 +43,10 @@ public abstract class Aborts extends WorkStealing {
             if (exceptionThrower != null) { // can be null if root does an
                 // abort.
                 // kill all children of the parent of the thrower.
-                abortLogger.debug("killing children of "
-                        + exceptionThrower.parentStamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("killing children of "
+                            + exceptionThrower.parentStamp);
+                }
                 killChildrenOf(exceptionThrower.parentStamp,
                         exceptionThrower.parentOwner);
             }
@@ -54,11 +60,15 @@ public abstract class Aborts extends WorkStealing {
                     stamp = outstandingSpawns.parent.stamp;
                 }
 
-                abortLogger.debug("killing children of my own: " + stamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("killing children of my own: " + stamp);
+                }
                 killChildrenOf(stamp, ident);
             }
 
-            abortLogger.debug("SATIN '" + ident.name() + "': Abort DONE");
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + ident.name() + "': Abort DONE");
+            }
         } catch (Exception e) {
             abortLogger.warn("GOT EXCEPTION IN RTS!: " + e, e);
         }
@@ -152,9 +162,11 @@ public abstract class Aborts extends WorkStealing {
      * unlikely that one node stole more than one job from me
      */
     void sendAbortMessage(InvocationRecord r) {
-        abortLogger.debug("SATIN '" + ident.name()
-                + ": sending abort message to: " + r.stealer + " for job "
-                + r.stamp);
+        if (abortLogger.isDebugEnabled()) {
+            abortLogger.debug("SATIN '" + ident.name()
+                    + ": sending abort message to: " + r.stealer + " for job "
+                    + r.stamp);
+        }
 
         if (deadIbises.contains(r.stealer)) {
             /* don't send abort and store messages to crashed ibises */
@@ -195,7 +207,9 @@ public abstract class Aborts extends WorkStealing {
         if (ASSERTS) {
             assertLocked(this);
         }
-        abortLogger.debug("SATIN '" + ident.name() + ": got abort message");
+        if (abortLogger.isDebugEnabled()) {
+            abortLogger.debug("SATIN '" + ident.name() + ": got abort message");
+        }
         abortList.add(stamp, owner);
         gotAborts = true;
     }
@@ -214,9 +228,11 @@ public abstract class Aborts extends WorkStealing {
                 return;
             }
 
-            abortLogger.debug("SATIN '" + ident.name()
-                    + ": handling abort message: stamp = " + stamp
-                    + ", owner = " + owner);
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + ident.name()
+                        + ": handling abort message: stamp = " + stamp
+                        + ", owner = " + owner);
+            }
 
             if (ABORT_STATS) {
                 aborts++;
@@ -224,9 +240,11 @@ public abstract class Aborts extends WorkStealing {
 
             killChildrenOf(stamp, owner);
 
-            abortLogger.debug("SATIN '" + ident.name()
-                    + ": handling abort message: stamp = " + stamp
-                    + ", owner = " + owner + " DONE");
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + ident.name()
+                        + ": handling abort message: stamp = " + stamp
+                        + ", owner = " + owner + " DONE");
+            }
         }
     }
 }

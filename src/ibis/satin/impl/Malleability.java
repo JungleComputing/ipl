@@ -18,9 +18,11 @@ public abstract class Malleability extends FaultTolerance {
 
             if (FAULT_TOLERANCE) {
                 if (!connect(s, r, connectTimeout)) {
-                    commLogger.debug("SATIN '" + ident.name()
-                            + "': unable to connect to " + joiner.name()
-                            + ", might have crashed");
+                    if (commLogger.isDebugEnabled()) {
+                        commLogger.debug("SATIN '" + ident.name()
+                                + "': unable to connect to " + joiner.name()
+                                + ", might have crashed");
+                    }
                     return;
                 }
             } else {
@@ -35,8 +37,10 @@ public abstract class Malleability extends FaultTolerance {
                 notifyAll();
             }
 
-            commLogger.debug("SATIN '" + ident.name() + "': " + joiner.name()
-                    + " JOINED");
+            if (commLogger.isDebugEnabled()) {
+                commLogger.debug("SATIN '" + ident.name() + "': "
+                        + joiner.name() + " JOINED");
+            }
         } catch (Exception e) {
             System.err.println("SATIN '" + ident
                     + "': got an exception in Satin.join: " + e);
@@ -60,9 +64,11 @@ public abstract class Malleability extends FaultTolerance {
             return;
         }
 
-        commLogger.debug("SATIN '" + ident.name() + "': '" + joiner.name()
-                + "' from cluster '" + joiner.cluster()
-                + "' is trying to join");
+        if (commLogger.isDebugEnabled()) {
+            commLogger.debug("SATIN '" + ident.name() + "': '" + joiner.name()
+                    + "' from cluster '" + joiner.cluster()
+                    + "' is trying to join");
+        }
         // if (!victims.contains(joiner)) {
         handleJoin(joiner);
 
@@ -83,8 +89,10 @@ public abstract class Malleability extends FaultTolerance {
             return;
         }
 
-        commLogger.debug("SATIN '" + ident.name() + "': " + leaver.name()
-                + " left");
+        if (commLogger.isDebugEnabled()) {
+            commLogger.debug("SATIN '" + ident.name() + "': " + leaver.name()
+                    + " left");
+        }
 
         Victim v;
 

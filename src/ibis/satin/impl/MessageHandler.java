@@ -310,9 +310,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     }
                 }
 
-                stealLogger.debug("SATIN '" + satin.ident.name()
-                        + "': sending FAILED back to "
-                        + ident.ibis().name() + " DONE");
+                if (stealLogger.isDebugEnabled()) {
+                    stealLogger.debug("SATIN '" + satin.ident.name()
+                            + "': sending FAILED back to "
+                            + ident.ibis().name() + " DONE");
+                }
 
             } catch (IOException e) {
                 stealLogger.warn("SATIN '" + satin.ident.name()
@@ -486,9 +488,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
         switch (opcode) {
         case BARRIER_REPLY:
-            commLogger.debug("SATIN '" + satin.ident.name()
-                    + "': got barrier reply message from "
-                    + ident.ibis().name());
+            if (commLogger.isDebugEnabled()) {
+                commLogger.debug("SATIN '" + satin.ident.name()
+                        + "': got barrier reply message from "
+                        + ident.ibis().name());
+            }
 
             synchronized (satin) {
                 if (ASSERTS && satin.gotBarrierReply) {
@@ -787,8 +791,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
             m.finish();
 
-            // grtLogger.info("SATIN '" + satin.ident.name()
-            //         + "': got result request " + key + " from " + ident);
+            // if (grtLogger.isInfoEnabled()) {
+            //     grtLogger.info("SATIN '" + satin.ident.name()
+            //             + "': got result request " + key + " from " + ident);
+            // }
 
             synchronized (satin) {
                 value = satin.globalResultTable.lookup(key, false);
@@ -824,8 +830,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 s = satin.getReplyPortNoWait(ident);
             }
             if (s == null) {
-                commLogger.debug("SATIN '" + satin.ident.name()
-                        + "': the node requesting a result died");
+                if (commLogger.isDebugEnabled()) {
+                    commLogger.debug("SATIN '" + satin.ident.name()
+                            + "': the node requesting a result died");
+                }
                 if (GRT_TIMING) {
                     handleLookupTimer.stop();
                     satin.handleLookupTimer.add(handleLookupTimer);
@@ -857,8 +865,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
     private void handleResultPush(ReadMessage m) {
 
-        grtLogger.info("SATIN '" + satin.ident.name()
-                + ": handle result push");
+        if (grtLogger.isInfoEnabled()) {
+            grtLogger.info("SATIN '" + satin.ident.name()
+                    + ": handle result push");
+        }
 
         try {
 
@@ -879,8 +889,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     e);
         }
 
-        grtLogger.info("SATIN '" + satin.ident.name()
-                + ": handle result push finished");
+        if (grtLogger.isInfoEnabled()) {
+            grtLogger.info("SATIN '" + satin.ident.name()
+                    + ": handle result push finished");
+        }
 
     }
 
@@ -888,8 +900,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
         SendPortIdentifier ident = m.origin();
 
-        commLogger.debug("SATIN '" + satin.ident.name()
-                + "': got exit ACK message from " + ident.ibis().name());
+        if (commLogger.isDebugEnabled()) {
+            commLogger.debug("SATIN '" + satin.ident.name()
+                    + "': got exit ACK message from " + ident.ibis().name());
+        }
 
         if (satin.stats) {
             try {
@@ -922,9 +936,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
             switch (opcode) {
             case EXIT:
-                commLogger.debug("SATIN '" + satin.ident.name()
-                        + "': got exit message from "
-                        + ident.ibis().name());
+                if (commLogger.isDebugEnabled()) {
+                    commLogger.debug("SATIN '" + satin.ident.name()
+                            + "': got exit message from "
+                            + ident.ibis().name());
+                }
                 m.finish();
                 satin.exiting = true;
                 synchronized (satin) {
@@ -943,9 +959,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 if (commLogger.isDebugEnabled() &&
                         (opcode == STEAL_AND_TABLE_REQUEST
                             || opcode == ASYNC_STEAL_AND_TABLE_REQUEST)) {
-                    commLogger.debug("SATIN '" + satin.ident.name()
-                            + "': got table request from "
-                            + ident.ibis().name());
+                    if (commLogger.isDebugEnabled()) {
+                        commLogger.debug("SATIN '" + satin.ident.name()
+                                + "': got table request from "
+                                + ident.ibis().name());
+                    }
                 }
                 m.finish(); // must finish, we will send back a reply.
                 handleStealRequest(ident, opcode);
@@ -963,9 +981,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 break;
             case JOB_RESULT_NORMAL:
             case JOB_RESULT_EXCEPTION:
-                stealLogger.debug("SATIN '" + satin.ident.name()
-                        + "': got job result message from "
-                        + ident.ibis().name());
+                if (stealLogger.isDebugEnabled()) {
+                    stealLogger.debug("SATIN '" + satin.ident.name()
+                            + "': got job result message from "
+                            + ident.ibis().name());
+                }
 
                 handleJobResult(m, opcode);
                 break;

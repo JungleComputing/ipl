@@ -2028,6 +2028,8 @@ public final class Satinc {
         PrintStream out = new PrintStream(b2);
 
         try {
+            out.println("import ibis.satin.impl.*;");
+
             out.println("final class " + name
                     + " extends ibis.satin.impl.LocalRecord {");
             out.println("    private static " + name + " cache;");
@@ -2135,10 +2137,12 @@ public final class Satinc {
             out.println("    public void handleException(int spawnId, "
                     + "Throwable t, ibis.satin.impl.InvocationRecord parent) "
                     + "throws Throwable {");
-            out.println("        ibis.satin.impl.Config.inletLogger.debug("
+            out.println("        if (Config.inletLogger.isDebugEnabled()) {");
+            out.println("            Config.inletLogger.debug("
                     + "\"handleE: spawnId = \" + spawnId + "
                     + "\", t = \" + t + \", parent = \" + parent + \", "
                     + "this = \" + this);");
+            out.println("        }");
             // This will later be replaced with call to exception handler
             out.println("    }");
 
@@ -2369,23 +2373,32 @@ public final class Satinc {
             out.println(");");
             out.println("            } catch (Throwable e) {");
             out.println(
-                    "                ibis.satin.impl.Config.inletLogger.debug("
+                    "            if (Config.inletLogger.isDebugEnabled()) {");
+            out.println(
+                    "                    Config.inletLogger.debug("
                     + "\"caught exception in runlocal: "
                     + "\" + e, e);");
+            out.println("                }");
             out.println("                eek = e;");
             out.println("            }");
 
             out.println("            if (eek != null && !inletExecuted) {");
             out.println(
-                    "                ibis.satin.impl.Config.inletLogger.debug("
+                    "            if (Config.inletLogger.isDebugEnabled()) {");
+            out.println(
+                    "                    Config.inletLogger.debug("
                     + "\"runlocal: calling inlet for: "
                     + "\" + this);");
+            out.println("                }");
             out.println("                if(parentLocals != null)");
             out.println("                    parentLocals"
                     + ".handleException(spawnId, eek, this);");
-            out.println("                ibis.satin.impl.Config"
+            out.println(
+                    "            if (Config.inletLogger.isDebugEnabled()) {");
+            out.println("                    Config"
                     + ".inletLogger.debug(\"runlocal: "
                     + "calling inlet for: \" + this + \" DONE\");");
+            out.println("                }");
             out.println("                if(parentLocals == null)");
             out.println("                    throw eek;");
             out.println("            }");

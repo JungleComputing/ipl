@@ -126,8 +126,10 @@ final class IRVector implements Config {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
                 curr.aborted = true;
-                abortLogger.debug("found stolen child: " + curr.stamp
-                        + ", it depends on " + targetStamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("found stolen child: " + curr.stamp
+                            + ", it depends on " + targetStamp);
+                }
                 if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
@@ -171,8 +173,10 @@ final class IRVector implements Config {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
                 curr.aborted = true;
-                abortLogger.debug("found stolen child: " + curr.stamp
-                        + ", it depends on " + targetStamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("found stolen child: " + curr.stamp
+                            + ", it depends on " + targetStamp);
+                }
                 if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
@@ -217,8 +221,10 @@ final class IRVector implements Config {
                     || curr.owner.equals(targetOwner)) {
                 //this shouldnt happen, actually
                 curr.aborted = true;
-                abortLogger.debug("found stolen child: " + curr.stamp
-                        + ", it depends on " + targetOwner);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("found stolen child: " + curr.stamp
+                            + ", it depends on " + targetOwner);
+                }
                 if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {

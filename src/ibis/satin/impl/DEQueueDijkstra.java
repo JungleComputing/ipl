@@ -33,7 +33,9 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 
     void addToHead(InvocationRecord r) {
         if (head == size) {
-            spawnLogger.debug("doubling DEq, new size = " + (size*2));
+            if (spawnLogger.isDebugEnabled()) {
+                spawnLogger.debug("doubling DEq, new size = " + (size*2));
+            }
 
             synchronized (satin) {
                 size *= 2;
@@ -118,8 +120,10 @@ final class DEQueueDijkstra extends DEQueue implements Config {
         for (int i = tail; i < head; i++) {
             InvocationRecord curr = l[i];
             if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
-                abortLogger.debug("found local child: " + curr.stamp
-                        + ", it depends on " + targetStamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("found local child: " + curr.stamp
+                            + ", it depends on " + targetStamp);
+                }
 
                 curr.aborted = true;
                 if (ABORT_STATS) {

@@ -248,8 +248,10 @@ public class GlobalResultTable implements Upcall, Config {
                 }
                 satin.updatesToSend = true;
             } else {
-                grtLogger.info("SATIN '" + satin.ident.name()
-                        + "': sending update: " + key + "," + value);
+                if (grtLogger.isInfoEnabled()) {
+                    grtLogger.info("SATIN '" + satin.ident.name()
+                            + "': sending update: " + key + "," + value);
+                }
 
                 //send an update message
                 Iterator sendIter = sends.entrySet().iterator();
@@ -292,10 +294,12 @@ public class GlobalResultTable implements Upcall, Config {
                     try {
                         size = m.finish();
 
-                        grtLogger.debug("SATIN '" + satin.ident.name()
-                                + "': " + size + " sent in "
-                                + satin.tableSerializationTimer.lastTimeVal()
-                                + " to " + entry.getKey());
+                        if (grtLogger.isDebugEnabled()) {
+                            grtLogger.debug("SATIN '" + satin.ident.name()
+                                    + "': " + size + " sent in "
+                                    + satin.tableSerializationTimer.lastTimeVal()
+                                    + " to " + entry.getKey());
+                        }
 
                     } catch (IOException e) {
                         //always happens after a crash
@@ -316,8 +320,10 @@ public class GlobalResultTable implements Upcall, Config {
                  *     //always happens after the crash
                  * }
                  */
-                grtLogger.info("SATIN '" + satin.ident.name()
-                        + "': update sent: " + key + "," + value);
+                if (grtLogger.isInfoEnabled()) {
+                    grtLogger.info("SATIN '" + satin.ident.name()
+                            + "': update sent: " + key + "," + value);
+                }
             }
 
         }
@@ -329,8 +335,10 @@ public class GlobalResultTable implements Upcall, Config {
                 numLockUpdates++;
             }
         }
-        grtLogger.debug("SATIN '" + satin.ident.name()
+        if (grtLogger.isDebugEnabled()) {
+            grtLogger.debug("SATIN '" + satin.ident.name()
                 + "': update complete: " + key + "," + value);
+        }
 
         if (GRT_TIMING) {
             updateTimer.stop();
@@ -424,10 +432,12 @@ public class GlobalResultTable implements Upcall, Config {
             try {
                 long size = m.finish();
 
-                grtLogger.debug("SATIN '" + satin.ident.name() + "': "
-                        + size + " sent in "
-                        + satin.tableSerializationTimer.lastTimeVal()
-                        + " to " + entry.getKey());
+                if (grtLogger.isDebugEnabled()) {
+                    grtLogger.debug("SATIN '" + satin.ident.name() + "': "
+                            + size + " sent in "
+                            + satin.tableSerializationTimer.lastTimeVal()
+                            + " to " + entry.getKey());
+                }
 
             } catch (IOException e) {
                 //always happens after a crash
@@ -482,7 +492,9 @@ public class GlobalResultTable implements Upcall, Config {
             Satin.assertLocked(satin);
         }
 
-        grtLogger.debug("adding contents");
+        if (grtLogger.isDebugEnabled()) {
+            grtLogger.debug("adding contents");
+        }
 
         entries.putAll(contents);
 

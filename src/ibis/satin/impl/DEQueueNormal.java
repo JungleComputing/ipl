@@ -139,8 +139,10 @@ final class DEQueueNormal extends DEQueue implements Config {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 
-                abortLogger.debug("found local child: " + curr.stamp
-                        + ", it depends on " + targetStamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("found local child: " + curr.stamp
+                            + ", it depends on " + targetStamp);
+                }
 
                 if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);

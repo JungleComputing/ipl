@@ -75,8 +75,10 @@ final class IRStack implements Config {
                 curr.aborted = true;
                 s.abortedJobs++;
 
-                abortLogger.debug("found child on the stack: "
-                        + curr.stamp + ", it depends on " + targetStamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("found child on the stack: "
+                            + curr.stamp + ", it depends on " + targetStamp);
+                }
             }
         }
     }
@@ -99,8 +101,10 @@ final class IRStack implements Config {
                 curr.aborted = true;
                 s.abortedJobs++;
 
-                abortLogger.debug("found child on the stack: "
-                        + curr.stamp + ", it depends on " + targetStamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("found child on the stack: "
+                            + curr.stamp + ", it depends on " + targetStamp);
+                }
             }
         }
     }

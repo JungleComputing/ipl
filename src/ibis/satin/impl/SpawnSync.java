@@ -112,9 +112,11 @@ public abstract class SpawnSync extends Termination {
 
         if ((ABORTS || FAULT_TOLERANCE) && r.parent != null
                 && r.parent.aborted) {
-            abortLogger.debug("SATIN '" + ident.name()
-                + ": spawning job, parent was aborted! job = " + r
-                + ", parent = " + r.parent);
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + ident.name()
+                    + ": spawning job, parent was aborted! job = " + r
+                    + ", parent = " + r.parent);
+            }
             if (spawnLogger.isDebugEnabled()) {
                 r.spawnCounter.decr(r);
             } else {
@@ -214,8 +216,10 @@ public abstract class SpawnSync extends Termination {
             }
 
         } else {
-            stealLogger.debug("SATIN '" + ident.name()
-                    + "': RUNNING REMOTE CODE!");
+            if (stealLogger.isDebugEnabled()) {
+                stealLogger.debug("SATIN '" + ident.name()
+                        + "': RUNNING REMOTE CODE!");
+            }
             ReturnRecord rr = null;
             if (ABORTS) {
                 if (SPAWN_STATS) {
@@ -238,13 +242,15 @@ public abstract class SpawnSync extends Termination {
                 }
                 rr = r.runRemote();
             }
-            if (r.eek != null) {
-                stealLogger.debug("SATIN '" + ident.name()
-                        + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek,
-                        r.eek);
-            } else {
-                stealLogger.debug("SATIN '" + ident.name()
-                        + "': RUNNING REMOTE CODE DONE!");
+            if (stealLogger.isDebugEnabled()) {
+                if (r.eek != null) {
+                    stealLogger.debug("SATIN '" + ident.name()
+                            + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek,
+                            r.eek);
+                } else {
+                    stealLogger.debug("SATIN '" + ident.name()
+                            + "': RUNNING REMOTE CODE DONE!");
+                }
             }
 
             // send wrapper back to the owner
@@ -252,8 +258,10 @@ public abstract class SpawnSync extends Termination {
                 sendResult(r, rr);
             }
 
-            stealLogger.debug("SATIN '" + ident.name()
-                    + "': REMOTE CODE SEND RESULT DONE!");
+            if (stealLogger.isDebugEnabled()) {
+                stealLogger.debug("SATIN '" + ident.name()
+                        + "': REMOTE CODE SEND RESULT DONE!");
+            }
         }
 
         if (ABORTS || FAULT_TOLERANCE) {
@@ -274,8 +282,10 @@ public abstract class SpawnSync extends Termination {
             }
         }
 
-        spawnLogger.debug("SATIN '" + ident.name()
-                + "': call satin func done!");
+        if (spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident.name()
+                    + "': call satin func done!");
+        }
     }
 
     /**
@@ -361,10 +371,12 @@ public abstract class SpawnSync extends Termination {
 
         algorithm.jobAdded();
 
-        spawnLogger.debug("SATIN '" + ident.name() + "': Spawn, counter = "
-                + r.spawnCounter.value + ", stamp = " + r.stamp
-                + ", parentStamp = " + r.parentStamp + ", owner = "
-                + r.owner + ", parentOwner = " + r.parentOwner);
+        if (spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident.name() + "': Spawn, counter = "
+                    + r.spawnCounter.value + ", stamp = " + r.stamp
+                    + ", parentStamp = " + r.parentStamp + ", owner = "
+                    + r.owner + ", parentOwner = " + r.parentOwner);
+        }
     }
 
     /**
@@ -394,8 +406,10 @@ public abstract class SpawnSync extends Termination {
             //     exit();
             // }
 
-            spawnLogger.debug("SATIN '" + ident.name() + "': Sync, counter = "
-                    + s.value);
+            if (spawnLogger.isDebugEnabled()) {
+                spawnLogger.debug("SATIN '" + ident.name()
+                        + "': Sync, counter = " + s.value);
+            }
 
             satinPoll();
             handleDelayedMessages();
@@ -450,7 +464,9 @@ public abstract class SpawnSync extends Termination {
      */
     public void client() {
 
-        spawnLogger.debug("SATIN '" + ident.name() + "': starting client!");
+        if (spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident.name() + "': starting client!");
+        }
 
         while (!exiting) {
             // steal and run jobs

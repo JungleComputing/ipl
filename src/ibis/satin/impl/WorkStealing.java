@@ -23,9 +23,12 @@ public abstract class WorkStealing extends Stats {
             System.exit(1);
         }
 
-        stealLogger.debug("SATIN '" + ident.name() + "': sending job result to "
-                + r.owner.name() + ", exception = "
-                + (r.eek == null ? "null" : ("" + r.eek)));
+        if (stealLogger.isDebugEnabled()) {
+            stealLogger.debug("SATIN '" + ident.name()
+                    + "': sending job result to " + r.owner.name()
+                    + ", exception = "
+                    + (r.eek == null ? "null" : ("" + r.eek)));
+        }
 
         SendPort s = null;
 
@@ -43,8 +46,10 @@ public abstract class WorkStealing extends Stats {
                     System.exit(1);
                 }
                 r.owner = value.sendTo;
-                grtLogger.info("SATIN '" + ident.name()
-                        + "': storing an orphan");
+                if (grtLogger.isInfoEnabled()) {
+                    grtLogger.info("SATIN '" + ident.name()
+                            + "': storing an orphan");
+                }
                 globalResultTable.storeResult(r);
             }
             s = getReplyPortNoWait(r.owner);
@@ -54,8 +59,10 @@ public abstract class WorkStealing extends Stats {
             //probably crashed..
             if (FAULT_TOLERANCE && !FT_NAIVE && !r.orphan) {
                 synchronized (this) {
-                    grtLogger.info("SATIN '" + ident.name()
-                            + "': a job became an orphan??");
+                    if (grtLogger.isInfoEnabled()) {
+                        grtLogger.info("SATIN '" + ident.name()
+                                + "': a job became an orphan??");
+                    }
                     globalResultTable.storeResult(r);
                 }
             }
@@ -168,7 +175,7 @@ public abstract class WorkStealing extends Stats {
                         if (clusterCoordinator && getTable) {
                             opcode = Protocol.ASYNC_STEAL_AND_TABLE_REQUEST;
                         } else {
-                            if (getTable) {
+                            if (grtLogger.isInfoEnabled() && getTable) {
                                 grtLogger.info("SATIN '" + ident.name()
                                         + ": EEEK sending async steal message "
                                         + "while waiting for table!!");
@@ -259,8 +266,10 @@ public abstract class WorkStealing extends Stats {
                         if (FAULT_TOLERANCE) {
                             if (currentVictimCrashed) {
                                 currentVictimCrashed = false;
-                                ftLogger.debug("SATIN '" + ident.name()
-                                         + "': current victim crashed");
+                                if (ftLogger.isDebugEnabled()) {
+                                    ftLogger.debug("SATIN '" + ident.name()
+                                             + "': current victim crashed");
+                                }
                                 if (gotStealReply == false) {
                                     if (STEAL_TIMING) {
                                         stealTimer.stop();
@@ -347,9 +356,11 @@ public abstract class WorkStealing extends Stats {
             if (TUPLE_TIMING) {
                 tupleOrderingWaitTimer.start();
             }
-            tupleLogger.debug("SATIN '" + ident.name()
-                        + "': steal reply seq nr = " + stealReplySeqNr
-                        + ", my seq nr = " + expected_seqno);
+            if (tupleLogger.isDebugEnabled()) {
+                tupleLogger.debug("SATIN '" + ident.name()
+                            + "': steal reply seq nr = " + stealReplySeqNr
+                            + ", my seq nr = " + expected_seqno);
+            }
             while (stealReplySeqNr > expected_seqno) {
                 handleDelayedMessages();
             }
@@ -418,8 +429,10 @@ public abstract class WorkStealing extends Stats {
             }
         } else {
             if (ABORTS || FAULT_TOLERANCE) {
-                abortLogger.debug("SATIN '" + ident.name()
-                        + "': got result for aborted job, ignoring.");
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("SATIN '" + ident.name()
+                            + "': got result for aborted job, ignoring.");
+                }
             } else {
                 stealLogger.fatal("SATIN '" + ident.name()
                         + "': got result for unknown job!");

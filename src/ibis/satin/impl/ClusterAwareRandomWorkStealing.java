@@ -124,8 +124,10 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
     public void exit() {
         //wait for a pending async steal reply
         if (asyncStealInProgress) {
-            stealLogger.info("waiting for a pending async steal reply from "
-                    + asyncCurrentVictim);
+            if (stealLogger.isInfoEnabled()) {
+                stealLogger.info("waiting for a pending async steal reply from "
+                        + asyncCurrentVictim);
+            }
             synchronized (satin) {
                 while (!gotAsyncStealReply) {
                     try {
