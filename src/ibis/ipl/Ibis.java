@@ -725,7 +725,7 @@ public abstract class Ibis {
 	}
 	if (combinedprops.find("verbose") != null) {
 	    System.out.println("Creating port type " + name +
-				" with properties " + p);
+				" with properties\n" + p);
 	}
 	return newPortType(name, p);
     }
