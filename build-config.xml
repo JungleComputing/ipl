@@ -14,13 +14,13 @@
 	    if="config.os-is-unix">
 	<property
 		name="default.home.bcel"
-		location="/home2/ceriel/bcel-5.1"/>
+		location="/home2/ceriel/bcel-5.1/bcel-5.1.jar"/>
 	<property
 		name="default.home.ant-contrib"
-		location="/usr/local/ant/ant-contrib/lib"/>
+		location="/usr/local/ant/ant-contrib/lib/ant-contrib-0.4.jar"/>
 	<property
 		name="default.home.ant-cpptasks"
-		location="/usr/local/ant/ant-cpptasks/cpptasks-1.0b1"/>
+		location="/usr/local/ant/ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
 
 	<property
 		name="default.home.panda"
@@ -44,13 +44,13 @@
 	    if="config.os-is-windows">
 	<property
 		name="default.home.bcel"
-		location="../bcel/bcel-5.1"/>
+		location="../bcel/bcel-5.1/bcel-5.1.jar"/>
 	<property
 		name="default.home.ant-contrib"
-		location="../ant-contrib/lib"/>
+		location="../ant-contrib/lib/ant-contrib-0.4.jar"/>
 	<property
 		name="default.home.ant-cpptasks"
-		location="../ant-cpptasks/cpptasks-1.0b1"/>
+		location="../ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
 
 	<property
 		name="default.home.panda"
@@ -93,7 +93,7 @@
     <target name="configure" depends="config-init">
 
 	<input
-		message="Please enter the install directory of BCEL: [${default.home.bcel}] "
+		message="Please enter the jar of BCEL: [${default.home.bcel}] "
 		addproperty="install.home.bcel"/>
 	<!--
 	<input
@@ -105,10 +105,10 @@
 		location="${ibis}/bcel-additions"/>
 
 	<input
-		message="Please enter the install directory of ant-contrib: [${default.home.ant-contrib}] "
+		message="Please enter the jar of ant-contrib: [${default.home.ant-contrib}] "
 		addproperty="install.home.ant-contrib"/>
 	<input
-		message="Please enter the install directory of ant-cpptasks: [${default.home.ant-cpptasks}] "
+		message="Please enter the jar of ant-cpptasks: [${default.home.ant-cpptasks}] "
 		addproperty="install.home.ant-cpptasks"/>
 
 	<input
@@ -239,6 +239,7 @@
 	</echo>
 	-->
 
+	<property name="ibis.super" location="${config.home.ibis}/.."/>
 	<copy
 		overwrite="true"
 		file="${ibis}/build-properties.in"
@@ -285,6 +286,160 @@
 		flags="g"
 		match="\${file.separator}"
 		replace="/"/>
+
+
+	<!--
+	==============================================================
+	    Generate configuration.sh
+	-->
+
+	<property environment="env"/>
+	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
+	<echo
+		file="${ibis}/configuration.sh">#!/bin/bash
+# Shell variables to describe Ibis configuration
+
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">JAVA_ROOT=${JAVA_HOME_ENV}
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">JAVAC=/bin/javac
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">IBIS_ROOT=${ibis.super}
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">MANTA_ROOT=/usr/local/VU/manta
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">PANDA_ROOT=${config.home.panda}
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">LFC_ROOT=${config.home.lfc}
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">GM_ROOT=${config.home.gm}
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">DAS_LIB=${config.home.daslib}/lib/i386_Linux/libdas.a
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">PANDA_NETWORK=lfc
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh">BCEL_ROOT=${config.home.bcel}
+</echo>
+
+	<!-- Concat the stuff in scripts to the bin directory -->
+	<concat destfile="${ibis}/bin/ibisc">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/ibisc" />
+	</concat>
+	<chmod file="${ibis}/bin/ibisc" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/io_gen">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/io_gen" />
+	</concat>
+	<chmod file="${ibis}/bin/io_gen" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/ibis_nameserver">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/ibis_nameserver" />
+	</concat>
+	<chmod file="${ibis}/bin/ibis_nameserver" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/jdis">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/jdis" />
+	</concat>
+	<chmod file="${ibis}/bin/jdis" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/jp">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/jp" />
+	</concat>
+	<chmod file="${ibis}/bin/jp" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/satinc">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/satinc" />
+	</concat>
+	<chmod file="${ibis}/bin/satinc" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/run_ibis">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/run_ibis" />
+	</concat>
+	<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/extract_jars">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/extract_jars" />
+	</concat>
+	<chmod file="${ibis}/bin/extract_jars" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/tree_ioc">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/tree_ioc" />
+	</concat>
+	<chmod file="${ibis}/bin/tree_ioc" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/run_ibis_wide_area">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/run_ibis_wide_area" />
+	</concat>
+	<chmod file="${ibis}/bin/run_ibis_wide_area" perm="+x"/>
+
+	<concat destfile="${ibis}/globus/grun">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/grun" />
+	</concat>
+	<chmod file="${ibis}/globus/grun" perm="+x"/>
+
+	<concat destfile="${ibis}/globus/pprun">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/pprun" />
+	</concat>
+	<chmod file="${ibis}/globus/pprun" perm="+x"/>
+
+	<concat destfile="${ibis}/globus/frun">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/frun" />
+	</concat>
+	<chmod file="${ibis}/globus/frun" perm="+x"/>
+
+	<copy
+		overwrite="true"
+		file="${ibis}/bin/cluster_wrapper.in"
+		tofile="${ibis}/bin/cluster_wrapper">
+	    <filterchain>
+		<filterreader
+			classname="org.apache.tools.ant.filters.ReplaceTokens">
+		    <param  type="token"
+			    name="IBIS_INSTALL_PATH"
+			    value="${ibis.super}"/>
+		    <param  type="token"
+			    name="JAVA"
+			    value="${JAVA_HOME_ENV}"/>
+		</filterreader>
+	    </filterchain>
+	</copy>
+	<replaceregexp
+		file="${ibis}/bin/cluster_wrapper"
+		flags="g"
+		match="\${file.separator}"
+		replace="/"/>
+	<chmod file="${ibis}/bin/cluster_wrapper" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/csim_run_ibis">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/csim_run_ibis" />
+	</concat>
+	<chmod file="${ibis}/bin/csim_run_ibis" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/csim_run_ibis_tcp">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/csim_run_ibis_tcp" />
+	</concat>
+	<chmod file="${ibis}/bin/csim_run_ibis_tcp" perm="+x"/>
+
     </target>
 
 </project>

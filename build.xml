@@ -42,6 +42,12 @@
 	<echo message="package.home.ant-contrib    = ${package.home.ant-contrib}"/>
 	<echo message="package.home.ant-cpptasks   = ${package.home.ant-cpptasks}"/>
 	<mkdir dir="${build}"/>
+
+	<!--
+	==============================================================
+	    'sed' InstallConfiguration.java.in to InstallConfiguration.
+	-->
+
 	<!-- On M$ Windows, the path separator is '\'. Now, this happens
 	    to be the escape character within Java strings. To get it
 	    into the string, '\' itself must be escaped.
@@ -71,6 +77,7 @@
 		</filterreader>
 	    </filterchain>
 	</copy>
+
     </target>
 
 
