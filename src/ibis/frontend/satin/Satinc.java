@@ -986,22 +986,22 @@ public final class Satinc {
 	int storeId = allocateId(storeIns, loadIns, target, cl);
 
 	// push spawn counter 
-	il.insert(i, new ALOAD(maxLocals));
+	i.setInstruction(new ALOAD(maxLocals));
 
 	// push outstandingSpawns 
-	il.insert(i, new ALOAD(maxLocals+1));
+	i = il.append(i, new ALOAD(maxLocals+1));
 
 	// push storeId 
-	il.insert(i, new BIPUSH((byte)storeId));
+	i = il.append(i, new BIPUSH((byte)storeId));
 
 	// push spawnId 
-	il.insert(i, new BIPUSH((byte)spawnId));
+	i = il.append(i, new BIPUSH((byte)spawnId));
 
 	// push parentLocals 
 	if (getExceptionHandler(m, i) != null) {
-	    il.insert(i, new ALOAD(maxLocals-1));
+	    i = il.append(i, new ALOAD(maxLocals-1));
 	} else {
-	    il.insert(i, new ACONST_NULL());
+	    i = il.append(i, new ACONST_NULL());
 	}
 
 	// Call getNewInvocationRecord 
@@ -1030,11 +1030,11 @@ public final class Satinc {
 	parameters[ix++] = Type.INT;
 	parameters[ix++] = new ObjectType("ibis.satin.LocalRecord");
 	
-	i.setInstruction(ins_f.createInvoke(invocationRecordName(target, classname),
-				     methodName,
-				     new ObjectType(invocationRecordName(target, classname)),
-				     parameters,
-				     Constants.INVOKESTATIC));
+	i = il.append(i, ins_f.createInvoke(invocationRecordName(target, classname),
+					     methodName,
+					     new ObjectType(invocationRecordName(target, classname)),
+					     parameters,
+					     Constants.INVOKESTATIC));
 
 	// Store result in outstandingSpawns 
 	i = il.append(i, new ASTORE(maxLocals+1));
