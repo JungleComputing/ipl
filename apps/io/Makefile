@@ -19,5 +19,5 @@ clean:
 	cd new && $(MAKE) $(MFLAGS) clean
 	cd nocom && $(MAKE) $(MFLAGS) clean
 	cd sockets_MantaStream && $(MAKE) $(MFLAGS) clean
-	cd sockets_MantaTypedStream && $(MAKE) $(MFLAGS) java
+	cd sockets_MantaTypedStream && $(MAKE) $(MFLAGS) clean
 	cd sockets_ObjectStream && $(MAKE) $(MFLAGS) clean
