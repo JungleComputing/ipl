@@ -19,7 +19,7 @@
 	<!-- Create the javadoc directory -->
 	<delete dir="docs"/>
 	<mkdir dir="docs"/>
-	<javadoc destdir="docs" author="true" version="true" use="true" windowtitle="SAT solver documentation" doctitle="SAT Solver Documentation" bottom="The Ibis project">
+	<javadoc destdir="docs" sourcepath="${ibis}/src" author="true" version="true" use="true" windowtitle="SAT solver documentation" doctitle="SAT Solver Documentation" bottom="The Ibis project">
 	<FileSet file="*.java"/>
 	<classpath refid="default.classpath"/>
 	</javadoc>
