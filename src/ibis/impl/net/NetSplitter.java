@@ -223,11 +223,11 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     public long getCount()
     {
         if (singleton != null) {
-            System.out.println("NetSplitter.getCount(): singleton");
+            // System.out.println("NetSplitter.getCount(): singleton");
             return singleton.getCount();
         } else {
             // Give bytecount of first network output
-            System.out.println("NetSplitter.getCount(): non-singleton");
+            // System.out.println("NetSplitter.getCount(): non-singleton");
             Iterator i = outputMap.values().iterator();
             if (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
@@ -241,11 +241,11 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     public void resetCount()
     {
         if (singleton != null) {
-            System.out.println("NetSplitter.resetCount(): singleton");
+            // System.out.println("NetSplitter.resetCount(): singleton");
             singleton.resetCount();
         } else {
             // Reset all network outputs
-            System.out.println("NetSplitter.resetCount(): non-singleton");
+            // System.out.println("NetSplitter.resetCount(): non-singleton");
 
             Iterator i = outputMap.values().iterator();
             while (i.hasNext()) {
