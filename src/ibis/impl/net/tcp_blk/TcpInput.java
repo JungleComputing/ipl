@@ -225,6 +225,10 @@ public final class TcpInput extends NetBufferedInput {
 					return null;
 				}
 				buf = receive();
+                                if (buf == null) {
+                                        return null;
+                                }
+
                                 return spn;
 			} else if (tcpIs.available() > 0) {
                                 return spn;
