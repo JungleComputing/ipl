@@ -154,7 +154,6 @@
 	</antcall>
     </target>
 
-
     <target name="rmi" depends="init">
 	<patternset id="build.sources.rmi">
 	    <include name="ibis/rmi/**/*.java"/>
@@ -162,6 +161,7 @@
 	<antcall inheritAll="true" inheritRefs="true" target="compile">
 	    <reference refid="build.sources.rmi" torefid="build.sources"/>
 	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
     </target>
 
     <target name="ipl" depends="init">
@@ -322,14 +322,14 @@
     -->
     <target name="build-tcp"
 	    description="Build TCP Ibis">
-	<patternset id="build.sources.tcp">
+	<patternset id="build.sources-tcp">
 	    <include name="**/*.java"/>
 	    <exclude name="ibis/impl/net/**/*.java"/>
 	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
 	<antcall inheritAll="true" inheritRefs="true" target="compile">
-	    <reference refid="build.sources.tcp" torefid="build.sources"/>
+	    <reference refid="build.sources-tcp" torefid="build.sources"/>
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
 	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
@@ -341,14 +341,14 @@
     -->
     <target name="build-net"
 	    description="Build NetIbis">
-	<patternset id="build.sources.net">
+	<patternset id="build.sources-net">
 	    <include name="**/*.java"/>
 	    <exclude name="ibis/impl/tcp/**/*.java"/>
 	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
 	<antcall inheritAll="true" inheritRefs="true" target="compile">
-	    <reference refid="build.sources.net" torefid="build.sources"/>
+	    <reference refid="build.sources-net" torefid="build.sources"/>
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
 	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
@@ -361,7 +361,7 @@
     -->
     <target name="build-mp"
 	    description="Build messagePassing Ibis">
-	<patternset id="build.sources.mp">
+	<patternset id="build.sources-mp">
 	    <include name="**/*.java"/>
 	    <exclude name="ibis/impl/tcp/**/*.java"/>
 	    <exclude name="ibis/impl/net/**/*.java"/>
@@ -369,7 +369,7 @@
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
 	<antcall inheritAll="true" inheritRefs="true" target="compile">
-	    <reference refid="build.sources.mp" torefid="build.sources"/>
+	    <reference refid="build.sources-mp" torefid="build.sources"/>
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
 	<antcall inheritAll="true" inheritRefs="true" target="javah"/>

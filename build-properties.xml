@@ -51,9 +51,6 @@
 
 	<property file="${ibis}/build-properties"/>
 
-	<property environment="env"/>
-	<property name="JAVA_HOME"    value="${env.JAVA_HOME}"/>
-
 	<property name="ibisBuild"   location="${ibis}/build"/>
     </target>
 
