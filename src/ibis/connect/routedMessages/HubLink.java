@@ -23,16 +23,41 @@ public class HubLink extends Thread
 {
     private HubProtocol.HubWire wire;
     public final String localHostName;
+    public final int    localPort;
 
     private boolean hubRunning = true;
 
-    private int serverPortCounter = 1;
     private Map serverSockets    = new Hashtable();
     private Map connectedSockets = new Hashtable();
+    private boolean newPortBusy = false;
+    private int portnum = -2;
 
-    protected synchronized int newPort() {
-	serverPortCounter++;
-	return serverPortCounter;
+    protected synchronized int newPort(int port) throws IOException {
+	while (newPortBusy) {
+	    try {
+		wait();
+	    } catch(Exception e) {
+	    }
+	}
+	newPortBusy = true;
+
+	sendPacket("", 0, new HubProtocol.HubPacketGetPort(port));
+
+	while (portnum == -2) {
+	    try {
+		wait();
+	    } catch(Exception e) {
+	    }
+	}
+
+	if (portnum == -1) {
+	    throw new IOException("Port number already in use");
+	}
+	port = portnum;
+	portnum = -2;
+	newPortBusy = false;
+	notifyAll();
+	return port;
     }
 
     /* ServerSocket list management
@@ -73,6 +98,7 @@ public class HubLink extends Thread
 	Socket s = new Socket(host, port);
 	wire = new HubProtocol.HubWire(s);
 	localHostName = wire.getLocalName();
+	localPort = wire.getLocalPort();
 	MyDebug.out.println("# HubLink() done.");
     }
 
@@ -86,9 +112,9 @@ public class HubLink extends Thread
 	}
     }
 
-    protected synchronized void sendPacket(String destHost, HubProtocol.HubPacket packet)
+    protected synchronized void sendPacket(String destHost, int destPort, HubProtocol.HubPacket packet)
 	throws IOException {
-	wire.sendMessage(destHost, packet);
+	wire.sendMessage(destHost, destPort, packet);
     }
 
     public void run()
@@ -97,27 +123,16 @@ public class HubLink extends Thread
 	    try {
 		HubProtocol.HubPacket packet = wire.recvPacket();
 		int action      = packet.getType();
-		String destHost = packet.getHost();
-		if(!destHost.equals(localHostName))
-		    {
-			System.out.println("# HubLink.run()- received wrong data (host="+destHost+")");
-			throw new Error("HubLink: bad data");
-		    }
 		switch(action) {
 		case HubProtocol.CONNECT:
 		    {
 			HubProtocol.HubPacketConnect p = (HubProtocol.HubPacketConnect)packet;
-			MyDebug.out.println("# HubLink.run()- Received CONNECT for host="+p.destHost+"; port="+p.serverPort+
-					    "; from host="+p.clientHost+"; port="+p.clientPort);
+			MyDebug.out.println("# HubLink.run()- Received CONNECT for host="+localHostName+":" + localPort + "; port="+p.serverPort+
+					    "; from host="+p.getHost()+"; port="+p.clientPort);
 			RMServerSocket s = resolveServer(p.serverPort);
-			boolean accepted = false;
 			if(s != null) {  // AD: TODO- investigate concurrency in CONNECT/ACCEPT
-			    accepted = s.enqueueConnect(p.clientHost, p.clientPort);
-			}
-			if(!accepted) {
-			    HubProtocol.HubPacketReject pr =
-				new HubProtocol.HubPacketReject(p.clientPort, localHostName);
-			    wire.sendMessage(p.clientHost, pr);
+					 // Ceriel: Done.
+			    s.enqueueConnect(p.getHost(), p.clientPort, p.getPort());
 			}
 		    }
 		    break;
@@ -127,7 +142,7 @@ public class HubLink extends Thread
 			MyDebug.out.println("# HubLink.run()- Received ACCEPT for clientPort="+p.clientPort+" from serverHost="+p.serverHost+"; servantPort="+p.servantPort);
 			try {
 			    RMSocket s = resolveSocket(p.clientPort);
-			    s.enqueueAccept(p.servantPort);
+			    s.enqueueAccept(p.servantPort, p.getPort());
 			} catch(Exception e) {
 			    /* Exception may be discarded (socket has been closed while the 
 			     * CONNECT/ACCEPT were on the wire). Trace it anyway for pathologic
@@ -162,10 +177,20 @@ public class HubLink extends Thread
 		    {
 			HubProtocol.HubPacketClose p = (HubProtocol.HubPacketClose)packet;
 			try {
-			    RMSocket s = resolveSocket(p.port);
-			    MyDebug.out.println(" HubLink.run()- Received CLOSE for port = "+p.port);
+			    RMSocket s = resolveSocket(p.closePort);
+			    MyDebug.out.println(" HubLink.run()- Received CLOSE for port = "+p.closePort);
 			    s.enqueueClose();
 			} catch(IOException e) { /* ignore */ }
+		    }
+		    break;
+		case HubProtocol.PUTPORT:
+		    {
+			HubProtocol.HubPacketPutPort p = (HubProtocol.HubPacketPutPort)packet;
+			synchronized(this) {
+			    MyDebug.out.println(" HubLink.run()- Received PUTPORT = "+p.resultPort);
+			    portnum = p.resultPort;
+			    notifyAll();
+			}
 		    }
 		    break;
 		default:

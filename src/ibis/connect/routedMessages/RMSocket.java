@@ -18,6 +18,7 @@ public class RMSocket extends Socket
     private HubLink hub = null;
     private String  remoteHostname = null;
     private int     remotePort = -1;
+    private int	    remoteHostPort = -1;
     private int     localPort  = -1;
     private RMInputStream  in  = null;
     private RMOutputStream out = null;
@@ -39,9 +40,10 @@ public class RMSocket extends Socket
 	incomingFragments.addLast(b);
 	this.notifyAll();
     }
-    protected synchronized void enqueueAccept(int servantPort) {
+    protected synchronized void enqueueAccept(int servantPort, int hport) {
 	MyDebug.out.println("# RMSocket.enqueueAccept()- servantPort="+servantPort);
 	state = state_ACCEPTED;
+	remoteHostPort = hport;
 	remotePort = servantPort;
 	this.notifyAll();
     }
@@ -72,12 +74,13 @@ public class RMSocket extends Socket
     }
 
     // Incoming links constructor - reserved to RMServerSocket
-    protected RMSocket(String rHost, int rPort, int lPort)
+    protected RMSocket(String rHost, int rPort, int lPort, int hport)
     {
 	MyDebug.out.println("# RMSocket()");
 	commonInit(rHost);
 	remotePort = rPort;
 	localPort = lPort;
+	remoteHostPort = hport;
 	state = state_CONNECTED;
 	hub.addSocket(this, localPort);
     }
@@ -88,12 +91,12 @@ public class RMSocket extends Socket
     {
 	MyDebug.out.println("# RMSocket("+rAddr+", "+rPort+")");
 	commonInit(rAddr.getCanonicalHostName());
-	localPort = hub.newPort();
+	localPort = hub.newPort(0);
 	hub.addSocket(this, localPort);
 
 	MyDebug.out.println("# RMSocket()- sending CONNECT");
 	state = state_CONNECTING;
-	hub.sendPacket(remoteHostname, new HubProtocol.HubPacketConnect(rPort, hub.localHostName, localPort));
+	hub.sendPacket(remoteHostname, -1, new HubProtocol.HubPacketConnect(rPort, localPort));
 	synchronized(this)
 	    {
 		while(state == state_CONNECTING)
@@ -125,7 +128,7 @@ public class RMSocket extends Socket
     {
 	MyDebug.out.println("# RMSocket.close()");
 	state = state_CLOSED;
-	hub.sendPacket(remoteHostname, new HubProtocol.HubPacketClose(remotePort));
+	hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketClose(remotePort));
 	hub.removeSocket(localPort);
     }
 
@@ -272,8 +275,10 @@ public class RMSocket extends Socket
 	private void checkOpen()
 	    throws IOException
 	{
-	    if(!open || state != state_CONNECTED)
+	    if(!open || state != state_CONNECTED) {
+		MyDebug.out.println("# checkOpen: open="+open+"; state="+state);
 		throw new EOFException();
+	    }
 	}
 	public RMOutputStream(RMSocket s)
 	{
@@ -288,14 +293,14 @@ public class RMSocket extends Socket
 	    byte[] b = new byte[1];
 	    b[0] = (byte)v;
 	    MyDebug.out.println("# RMOutputStream: writing- port="+socket.remotePort+" size=1");
-	    hub.sendPacket(remoteHostname, new HubProtocol.HubPacketData(remotePort, b));
+	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, b));
 	}
 	public void write(byte[] b)
 	    throws IOException
 	{
 	    checkOpen();
 	    MyDebug.out.println("# RMOutputStream: writing- port="+socket.remotePort+" size="+b.length);
-	    hub.sendPacket(remoteHostname, new HubProtocol.HubPacketData(remotePort, b));
+	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, b));
 	}
 	public void write(byte[] b, int off, int len)
 	    throws IOException
@@ -304,7 +309,7 @@ public class RMSocket extends Socket
 	    byte[] a = new byte[len];
 	    System.arraycopy(b, off, a, 0, len);
 	    MyDebug.out.println("# RMOutputStream: writing- port="+socket.remotePort+" size="+len+" offset="+off);
-	    hub.sendPacket(remoteHostname, new HubProtocol.HubPacketData(remotePort, a));
+	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, a));
 	}
 	public void flush()
 	    throws IOException

@@ -13,6 +13,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.BufferedInputStream;
 
+import java.util.ArrayList;
+
 import ibis.connect.util.MyDebug;
 
 public class RMServerSocket extends ServerSocket
@@ -20,22 +22,29 @@ public class RMServerSocket extends ServerSocket
     private HubLink hub = null;
     private int serverPort = -1;
     
-    private int     requestPort  = -1;
-    private String  requestHost  = null;
     private boolean socketOpened = false;
+    private ArrayList requests = new ArrayList();
+
+    private static class Request {
+	int requestPort;
+	String requestHost;
+	int requestHubPort;
+
+	Request(int clientPort, String clientHost, int clienthubport) {
+	    requestPort = clientPort;
+	    requestHost = clientHost;
+	    requestHubPort = clienthubport;
+	}
+    }
 
     public RMServerSocket(int port, int backlog, InetAddress addr)
 	throws IOException
     {
 	hub = HubLinkFactory.getHubLink();
-	if(port == 0) {
-		serverPort = hub.newPort();
-	} else {
-	    serverPort = port;
-	}
+	serverPort = hub.newPort(port);
 	socketOpened = true;
 	hub.addServer(this, serverPort);
-	MyDebug.out.println("# RMServerSocket() addr="+addr+"; port="+port);
+	MyDebug.out.println("# RMServerSocket() addr="+addr+"; port="+serverPort);
     }
 
     public InetAddress getInetAddress()
@@ -57,9 +66,10 @@ public class RMServerSocket extends ServerSocket
 	Socket s = null;
 	MyDebug.out.println("# RMServerSocket.accept()- waiting...");
 	hub = HubLinkFactory.getHubLink();
+	Request r = null;
 	synchronized(this)
 	    {
-		while(requestHost == null)
+		while(requests.size() == 0)
 		    {
 			if(!socketOpened)
 			    throw new SocketException();
@@ -67,16 +77,15 @@ public class RMServerSocket extends ServerSocket
 			    this.wait();
 			} catch(InterruptedException e) { /* ignore */ }
 		    }
-		
-		int localPort = hub.newPort();
-		MyDebug.out.println("# RMServerSocket.accept()- unlocked; from port="+requestPort+
-				   "; host="+requestHost);
-		s = new RMSocket(requestHost, requestPort, localPort);
-		MyDebug.out.println("# RMServerSocket.accept()- new RMSocket created on port="+localPort+"- Sending ACK.");
-		hub.sendPacket(requestHost, new HubProtocol.HubPacketAccept(requestPort, hub.localHostName, localPort));
-		requestHost = null;
-		requestPort = -1;
+		r = (Request) requests.remove(0);
 	    }
+
+	int localPort = hub.newPort(0);
+	MyDebug.out.println("# RMServerSocket.accept()- unlocked; from port="
+			    +r.requestPort+ "; host="+r.requestHost);
+	s = new RMSocket(r.requestHost, r.requestPort, localPort, r.requestHubPort);
+	MyDebug.out.println("# RMServerSocket.accept()- new RMSocket created on port="+localPort+"- Sending ACK.");
+	hub.sendPacket(r.requestHost, r.requestHubPort, new HubProtocol.HubPacketAccept(r.requestPort, hub.localHostName, localPort));
 	return s;
     }
 
@@ -92,15 +101,11 @@ public class RMServerSocket extends ServerSocket
     /* Method for the HubLink to feed us with new incoming connections
      * returns: true=ok; false=connection refused
      */
-    protected synchronized boolean enqueueConnect(String clientHost, int clientPort)
+    protected synchronized void enqueueConnect(String clientHost, int clientPort, int clienthubport)
     {
-	boolean accepted = (requestHost == null);
-	if(accepted) {
-	    requestPort = clientPort;
-	    requestHost = clientHost;
-	    accepted = true;
+	requests.add(new Request(clientPort, clientHost, clienthubport));
+	if (requests.size() == 1) {
 	    this.notify();
 	}
-	return accepted;
     }
 }
