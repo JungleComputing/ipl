@@ -163,7 +163,7 @@ public class StaticProperties {
 	    String prop = sysprops.getProperty(name);
 
 	    name = name.toLowerCase();
-	    if (name.substring(0,5).equals("ibis.")) {
+	    if (name.length() >= 5 && name.substring(0,5).equals("ibis.")) {
 		String n = name.substring(5);
 
 		if (category_names.contains(n) ||
