@@ -1,6 +1,7 @@
-package ibis.util;
+package ibis.impl.util;
 
 import ibis.connect.socketFactory.ExtSocketFactory;
+
 import ibis.ipl.ConnectionTimedOutException;
 
 import java.io.IOException;

@@ -1,7 +1,7 @@
 package ibis.impl.tcp;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.util.IbisIdentifierTable;
+import ibis.impl.util.IbisIdentifierTable;
 
 import java.io.IOException;
 import java.net.InetAddress;

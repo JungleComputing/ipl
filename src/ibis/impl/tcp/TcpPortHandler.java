@@ -6,8 +6,8 @@ import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisError;
-import ibis.util.DummyInputStream;
-import ibis.util.DummyOutputStream;
+import ibis.io.DummyInputStream;
+import ibis.io.DummyOutputStream;
 import ibis.util.IbisSocketFactory;
 import ibis.util.ThreadPool;
 

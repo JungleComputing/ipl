@@ -1,28 +1,45 @@
 package ibis.util;
 
+/**
+ * An <code>IllegalLockStateException</code> is thrown to indicate that a
+ * thread has attempted to lock, unlock, wait, or notify a {@link Monitor}
+ * that it does not own, or that has been cleaned up.
+ */
 public class IllegalLockStateException extends ibis.ipl.IbisRuntimeException {
 
     /**
-     * Thrown to indicate that a thread has attempted to lock, unlcok, wait,
-     * or notify an nternal Ibis lock that it does not own, or that has
-     * been cleaned up.
+     * Constructs a <code>AlreadyConnectedException</code> with
+     * <code>null</code> as its error detail message.
      */
-
     public IllegalLockStateException() {
 	super();
     }
 
-    public IllegalLockStateException(String name) {
-	super(name);
+    /**
+     * Constructs a <code>IllegalLockStateException</code> with
+     * the specified detail message.
+     * @param s         the detail message
+     */
+    public IllegalLockStateException(String s) {
+	super(s);
     }
 
-    public IllegalLockStateException(String name, Throwable cause) {
-	super(name);
-	initCause(cause);
+    /**
+     * Constructs a <code>IllegalLockStateException</code> with
+     * the specified detail message and cause
+     * @param s         the detail message
+     * @param cause     the cause
+     */
+    public IllegalLockStateException(String s, Throwable cause) {
+	super(s, cause);
     }
 
+    /**
+     * Constructs a <code>IllegalLockStateException</code> with
+     * the specified cause
+     * @param cause     the cause
+     */
     public IllegalLockStateException(Throwable cause) {
-	super();
-	initCause(cause);
+	super(cause);
     }
 }

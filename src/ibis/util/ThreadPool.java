@@ -55,6 +55,10 @@ class PoolThread extends Thread {
 	}
 }
 
+/**
+ * The <code>ThreadPool</code> class maintains a pool of daemon threads that
+ * can be used to run any {@link Runnable}.
+ */
 public final class ThreadPool {
 	static final boolean DEBUG = false;
 
@@ -63,6 +67,20 @@ public final class ThreadPool {
 
 	static Queue q = new Queue();
 
+	/**
+	 * To prevent creation of a threadpool object.
+	 */
+	private ThreadPool() {
+	}
+
+	/**
+	 * Associates a thread from the <code>ThreadPool</code> with the
+	 * specified {@link Runnable}. If no thread is available, a new one
+	 * is created. When the {@link Runnable} is finished, the thread is
+	 * added to the pool of available threads, or, if enough threads are
+	 * available, it is discarded.
+	 * @param r the <code>Runnable</code> to be executed.
+	 */
 	public static void createNew(Runnable r) {
 		synchronized(q) {
 			q.enqueue(r);

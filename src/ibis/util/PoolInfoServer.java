@@ -112,12 +112,10 @@ public class PoolInfoServer extends Thread {
      * Main program of the <code>PoolInfoServer</code>. 
      * The parameters accepted are:
      * <br>
-     * <pre>-single</pre>
-     * <br>
+     * <code>-single</code>&nbsp&nbsp&nbsp
      * a "single" run: exit as soon as no key is being processed anymore.
      * <br>
-     * <pre>-port</pre> <i>portnum</i>
-     * <br>
+     * <code>-port</code> <i>portnum</i>&nbsp&nbsp&nbsp
      * accept connections on port <i>portnum</i> instead of on the default port.
      */
     public static void main(String [] argv) {

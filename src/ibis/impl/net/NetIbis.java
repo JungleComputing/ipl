@@ -115,7 +115,7 @@ public final class NetIbis extends Ibis {
 	public static ibis.util.PoolInfo poolInfo;
 	static {
 	    try {
-		poolInfo = new ibis.util.PoolInfo();
+		poolInfo = ibis.util.PoolInfo.createPoolInfo();
 		hostName = poolInfo.hostName();
 	    } catch (ibis.ipl.IbisException e) {
 		// OK, no pool, so this better not be closed world

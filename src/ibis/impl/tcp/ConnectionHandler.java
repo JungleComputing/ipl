@@ -14,7 +14,7 @@ import ibis.io.SerializationInputStream;
 import ibis.io.SunSerializationInputStream;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
-import ibis.util.DummyInputStream;
+import ibis.io.DummyInputStream;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

@@ -21,7 +21,7 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream 
 
     /**
      * Constructor with an <code>Accumulator</code>.
-     * @param out		the underlying <code>Accumulator</code>
+     * @param accumulator	the underlying <code>Accumulator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public NioDataSerializationOutputStream(Accumulator accumulator) 

@@ -10,7 +10,7 @@ package ibis.util;
  * ConditionVariable.
  *
  * A thread that calls <code>cv_wait</code>, <code>cv_signal</code> or
- * <code>cv_bcast<code> must have locked the {@link Monitor} that owns this
+ * <code>cv_bcast</code> must have locked the {@link Monitor} that owns this
  * ConditionVariable.
  *
  * Condition Variables can be <code>interruptible</code>. For interruptible
@@ -18,6 +18,9 @@ package ibis.util;
  * is waiting on this Condition Variable causes the waiting thread to return
  * with an {@link InterruptedException}. Non-interruptible Condition Variables
  * ignore <code>Thread.interrupt</code>.
+ *
+ * A Condition variable is created by means of the {@link Monitor#createCV()}
+ * or the {@link Monitor#createCV(boolean)} method.
  */
 final public class ConditionVariable {
 
@@ -41,6 +44,13 @@ final public class ConditionVariable {
     }
 
 
+    /**
+     * Waits until the thread is signalled (by means of {@link #cv_signal()}
+     * or {@link #cv_bcast}).
+     * @exception InterruptedException is thrown when the condition variable
+     * was created with interrupts enabled, and {@link Thread#interrupt()}
+     * was invoked on the current thread.
+     */
     final public void cv_wait() throws InterruptedException {
 	lock.checkImOwner();
 	if (Monitor.STATISTICS) {
@@ -66,6 +76,15 @@ final public class ConditionVariable {
     }
 
 
+    /**
+     * Waits until the thread is signalled (by means of {@link #cv_signal()}
+     * or {@link #cv_bcast}), or the specified timeout expires.
+     * @param timeout the specified timeout.
+     * @exception InterruptedException is thrown when the condition variable
+     * was created with interrupts enabled, and {@link Thread#interrupt()}
+     * was invoked on the current thread.
+     * @return <code>true</code> when this method returns because the timeout expired.
+     */
     final public boolean cv_wait(long timeout) throws InterruptedException {
 	lock.checkImOwner();
 	if (Monitor.STATISTICS) {
@@ -97,6 +116,9 @@ final public class ConditionVariable {
     }
 
 
+    /**
+     * Signals a single thread that is waiting on this condition variable.
+     */
     final public void cv_signal() {
 	lock.checkImOwner();
 	if (Monitor.STATISTICS) {
@@ -109,6 +131,9 @@ final public class ConditionVariable {
     }
 
 
+    /**
+     * Signals all threads that are waiting on this condition variable.
+     */
     final public void cv_bcast() {
 	lock.checkImOwner();
 	if (Monitor.STATISTICS) {
@@ -120,6 +145,10 @@ final public class ConditionVariable {
 	}
     }
 
+    /**
+     * When statistics are enabled, prints them on the specified stream.
+     * @param out the stream to print on.
+     */
     static public void report(java.io.PrintStream out) {
 	if (Monitor.STATISTICS) {
 	    out.println("Condition variables: wait " + waits +
@@ -128,5 +157,4 @@ final public class ConditionVariable {
 			" bcast " + bcasts);
 	}
     }
-
 }

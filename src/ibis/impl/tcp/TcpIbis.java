@@ -61,7 +61,6 @@ public final class TcpIbis extends Ibis implements Config {
 	}
 
 	public TcpIbis() throws IbisException {
-		// this is a 1.4 method.
 		try {
 			Runtime.getRuntime().addShutdownHook(new TcpShutdown());
 		} catch (Exception e) {

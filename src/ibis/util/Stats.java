@@ -6,6 +6,12 @@ package ibis.util;
 public final class Stats {
 
     /**
+     * Prevent anyone from creating a <code>Stats</code> object.
+     */
+    private Stats() {
+    }
+
+    /**
      * Calculates the mean of an array of numbers.
      * @param data the numbers to calculate the mean of.
      * @return the mean.

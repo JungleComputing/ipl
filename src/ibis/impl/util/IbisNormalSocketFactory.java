@@ -1,6 +1,7 @@
-package ibis.util;
+package ibis.impl.util;
 
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.util.IbisSocketFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -9,35 +10,6 @@ import java.net.Socket;
 import java.util.Properties;
 
 public class IbisNormalSocketFactory extends IbisSocketFactory {
-	boolean firewall = false;
-	int portNr = 0;
-	int startRange = 0;
-	int endRange = 0;
-
-	public IbisNormalSocketFactory() {
-		Properties p = System.getProperties();
-		String range = p.getProperty("firewall_range");
-		if(range != null) {
-			int pos = range.indexOf('-');
-			if(pos < 0) {
-				System.err.println("Specify a firewall range in this format: 3000-4000.");
-				System.exit(1);
-			} else {
-				String from = range.substring(0, pos);
-				String to = range.substring(pos+1, range.length());
-
-				try {
-					startRange = Integer.parseInt(from);
-					endRange = Integer.parseInt(to);
-					firewall = true;
-					portNr = startRange;
-				} catch (Exception e) {
-					System.err.println("Specify a firewall range in this format: 3000-4000.");
-					System.exit(1);
-				}
-			}
-		}
-	}
 
     /** Simple ServerSocket factory
      */
@@ -56,19 +28,6 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 	s = new Socket(rAddr, rPort);
 	return s;
     }
-
-	public synchronized int allocLocalPort() {
-		if(firewall) {
-			int res = portNr++;
-			if(portNr >= endRange) {
-				portNr = startRange;
-				System.err.println("WARNING, used more ports than available within firewall range. Wrapping around");
-			}
-			return res;
-		} else {
-			return 0; /* any free port */
-		}
-	}
 
         /** 
 	    A host can have multiple local IPs (sierra)
@@ -190,7 +149,7 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
                                 connected = true;
                         } catch (IOException e1) {
 				if (!retry) {
-					throw new IOException("" + e1);
+					throw e1;
 				} else {         
 					if (DEBUG) { 
 						System.err.println("ServerSocket connect to " + port + " failed: " + e1 + "; retrying");

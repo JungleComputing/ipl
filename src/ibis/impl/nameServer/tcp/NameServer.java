@@ -2,8 +2,8 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.connect.controlHub.ControlHub;
 import ibis.ipl.IbisIdentifier;
-import ibis.util.DummyInputStream;
-import ibis.util.DummyOutputStream;
+import ibis.io.DummyInputStream;
+import ibis.io.DummyOutputStream;
 import ibis.util.PoolInfoServer;
 
 import java.io.BufferedInputStream;

@@ -7,9 +7,13 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
-import ibis.util.Input;
 
 import java.io.IOException;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
@@ -19,6 +23,204 @@ import java.util.Set;
  * Provide a NetIbis'specific implementation of the {@link PortType} interface.
  */
 public final class NetPortType extends PortType {
+
+	/** Stripped down Input.java ...
+	 *  Code and dutch comments are by Matty Huntjens.
+	 */
+	static class Input extends BufferedInputStream {
+	
+	    protected static final int END_OF_FILE = -1,
+				       CODE_NULL_CHARACTER = 0;
+	
+	    protected String lineSeparator;
+	    protected int lengthLineSeparator;
+	    protected boolean endOfFile;
+	
+	                           /* CONSTRUCTORS */
+	
+	    // Deze constructor initialiseert het Input object als lezende van
+	    // de InputStream in.
+	    public Input (InputStream in) {
+		super(in);
+	        lineSeparator = try_getProperty("line.separator");
+	        lengthLineSeparator = lineSeparator.length();
+	        endOfFile = false;
+	    }
+	
+	
+	    // Deze constructor initialiseert het Input object als lezende van
+	    // standard input.
+	    public Input () {
+		this(System.in);
+	    }
+	
+	
+	    // Deze constructor initialiseert het Input object als lezende van
+	    // de file met naam "name".
+	    public Input (String name) throws FileNotFoundException {
+	        this(new FileInputStream(name));
+	    }
+	
+	                           /* FINALIZE */
+	
+	    protected void finalize () {
+		try_close(in);
+	        try_finalize();
+	    }
+	
+	                           /* CLASS METHODS */
+	
+	    // retourneert het aantal characters in een number
+	    // Deze methode moet static zijn om in de constante declaraties gebruikt
+	    // te kunnen worden.
+	    protected static int length (long i) {
+	        return String.valueOf(i).length();
+	    }
+	
+	
+	                   /* METHODS TO HIDE TRY STATEMENTS */
+	
+	    protected void try_close (InputStream in) {
+	        try {
+	           close();
+	        } catch (IOException e) {
+	            throw new Error("I/O error\n" + e);
+	        }
+	    }
+	
+	
+	    protected void try_finalize () {
+	        try {
+	           super.finalize();
+	        } catch (Throwable e) {
+	            throw new Error("throwable thrown\n" + e);
+	        }
+	    }
+	
+	
+	    protected String try_getProperty (String key) {
+	        try {
+	            return System.getProperty(key);
+	        } catch (SecurityException e) {
+	            throw new Error("security exception\n" + e);
+	        }
+	    }
+	
+	
+	    protected void try_reset () {
+	        try {
+	            reset();
+	        } catch (IOException e) {
+	            throw new Error("IO exception\n" + e);
+	        }
+	    }
+	
+	
+	    protected boolean bufEmpty () {
+		return pos >= count;
+	    }
+	
+	
+	    protected int try_read () {
+		/* N.B. Als de methode read() de waarde END_OF_FILE retourneert, zal,
+			bij inlezen van standaard invoer (het toetsenbord), een tweede 
+			aanroep van read() niet tot gevolg hebben dat er weer de waarde
+			END_OF_FILE geretourneerd wordt, maar dat er gewacht zal worden
+			op invoer.
+			Om dit te voorkomen is de boolean endOfFile ingevoerd.
+		*/
+	        try {
+		    int charCode = bufEmpty() && endOfFile? CODE_NULL_CHARACTER: read();
+		    if (charCode == END_OF_FILE) {
+			endOfFile = true;
+			charCode = CODE_NULL_CHARACTER;
+		    }
+		    return charCode;
+	        } catch (IOException e) {
+	            throw new Error("IO exception\n" + e);
+	        }
+	    }
+	
+	                   /* BASIC INPUT METHODS */
+	
+	    // Indien readChar() wordt aangeroepen bij end-of-file,
+	    // leidt dit tot een foutmelding en een crash.
+	    // Anders leest readChar() een char in en retourneert dit.
+	    public char readChar () {
+		if (eof()) {
+		    throw new Error("end-of-file error");
+	        }
+	
+	        return (char) try_read();
+	    }
+	
+	
+	    public char nextChar () {
+	        return nextNCharacters(1).charAt(0);
+	    }
+	
+	
+	    protected String nextNCharacters (int n) {
+	        StringBuffer s = new StringBuffer();
+		int codeChar;
+	
+		mark(n);
+	        for (int i = 0; i < n; i++) {
+		    s.append((char) try_read());
+	        }
+	        try_reset();
+	
+	        return s.toString();
+	    }
+	
+	
+	    public boolean eoln () {
+	        return nextNCharacters(lengthLineSeparator).equals(lineSeparator);
+	    }
+	
+	
+	    public boolean eof () {
+		if (! bufEmpty()) {
+		    return false;
+		}
+	
+		// de buffer is leeg
+	
+		if (endOfFile) {
+		    return true;
+		}
+	
+	        mark(1);
+		try_read();	// try_read() zet endOfFile op true indien end-of-file
+		try_reset();
+	
+	        return endOfFile;
+	    }
+	
+	
+	    public void readln () {
+	        // Skip alle characters voor de end-of-line.
+	        while (! eoln()) {
+	           readChar();
+	        }
+	
+	        // Skip de end-of-line.
+		skipCharacters(lengthLineSeparator);
+	    }
+	
+	    public void skipWhiteSpace () {
+	        while (!eof() && Character.isWhitespace(nextChar())) {
+	            readChar();
+	        }
+	    }
+	
+	    protected void skipCharacters (int n) {
+	        for (int i = 0; i < n; i++) {
+	           readChar();
+	        }
+	    }
+	}
+
 
         /**
          * Store the type name.

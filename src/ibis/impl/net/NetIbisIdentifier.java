@@ -2,7 +2,7 @@ package ibis.impl.net;
 
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
-import ibis.util.IbisIdentifierTable;
+import ibis.impl.util.IbisIdentifierTable;
 
 import java.io.IOException;
 import java.net.InetAddress;

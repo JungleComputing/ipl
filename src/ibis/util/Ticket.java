@@ -206,14 +206,14 @@ public class Ticket {
     private Bucket [] buckets;
 
     /**
-     * Constructor. Creates the initial data structure for <code>INIT_SIZE</code> tickets.
+     * Creates the initial data structure for <code>INIT_SIZE</code> tickets.
      */
     public Ticket() { 
 	this(INIT_SIZE);
     }
 
     /**
-     * Constructor. Creates the initial data structure for <code>initialSize</code> tickets.
+     * Creates the initial data structure for <code>initialSize</code> tickets.
      *
      * @param initialSize the initial number of tickets.
      */

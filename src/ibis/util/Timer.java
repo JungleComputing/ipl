@@ -13,6 +13,12 @@ public class Timer implements java.io.Serializable {
     private long lastTime = 0;
 
     /**
+     * Constructs a <code>Timer</code>.
+     */
+    public Timer() {
+    }
+
+    /**
      * Returns implementation name of this timer ("e.g., "javaTimer").
      * @return the implementation name.
      */

@@ -1,4 +1,4 @@
-package ibis.util;
+package ibis.io;
 
 import java.io.IOException;
 import java.io.InputStream;

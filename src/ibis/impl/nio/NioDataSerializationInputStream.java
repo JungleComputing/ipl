@@ -24,7 +24,7 @@ public class NioDataSerializationInputStream
 
     /**
      * Constructor with an <code>Dissipator</code>.
-     * @param in		the underlying <code>Dissipator</code>
+     * @param dissipator	the underlying <code>Dissipator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public NioDataSerializationInputStream(Dissipator dissipator) throws IOException {

@@ -3,8 +3,9 @@ package ibis.impl.messagePassing;
 import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 import ibis.util.ConditionVariable;
-import ibis.util.IbisIdentifierTable;
 import ibis.util.Monitor;
+
+import ibis.impl.util.IbisIdentifierTable;
 
 import java.io.IOException;
 import java.util.Hashtable;

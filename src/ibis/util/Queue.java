@@ -1,7 +1,11 @@
 package ibis.util;
 
+/**
+ * A simple queue class. Objects can be enqueued, dequeued, or dequeued
+ * with a deadline.
+ */
 public class Queue {
-	class QueueNode {
+	static class QueueNode {
 		QueueNode next;
 		Object data;
 	}
@@ -9,6 +13,17 @@ public class Queue {
 	QueueNode head, tail;
 	int size;
 
+	/**
+	 * Constructs a new queue.
+	 */
+	public Queue() {
+	}
+
+	/**
+	 * Enqueues the specified object, and notifies: if there
+	 * are threads waiting, a single one is notified.
+	 * @param o the object to be enqueued.
+	 */
 	public synchronized void enqueue(Object o) {
 		QueueNode node = new QueueNode();
 		node.data = o;
@@ -24,21 +39,14 @@ public class Queue {
 		notify();
 	}
 
+	/**
+	 * Dequeues the head of the queue. If the queue is empty it
+	 * will wait until something is added to the queue.
+	 *
+	 * @return the dequeued object.
+	 */
 	public synchronized Object dequeue() {
-		while(head == null) {
-			try {
-				wait();
-			} catch (Exception e) {
-				// Ignore.
-			}
-		}
-
-		QueueNode result = head;
-		head = result.next;
-		if(head == null) tail = null;
-		size--;
-
-		return result.data;
+		return dequeue(0L);
 	}
 
 	/**
@@ -86,6 +94,10 @@ public class Queue {
 		return result.data;
 	}
 
+	/**
+	 * Returns the length of the queue.
+	 * @return the length of the queue.
+	 */
 	public synchronized int size() {
 		return size;
 	}

@@ -7,6 +7,8 @@ import ibis.io.IbisSerializationOutputStream;
 import ibis.io.NoSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 import ibis.io.SunSerializationOutputStream;
+import ibis.io.DummyOutputStream;
+import ibis.io.OutputStreamSplitter;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.DynamicProperties;
@@ -18,8 +20,6 @@ import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
-import ibis.util.DummyOutputStream;
-import ibis.util.OutputStreamSplitter;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;

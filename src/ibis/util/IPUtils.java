@@ -3,12 +3,24 @@ package ibis.util;
 import java.net.InetAddress;
 import java.util.Properties;
 
+/**
+ * Some utilities that deal with IPv4 addresses.
+ */
 public class IPUtils {
 
 	static final boolean DEBUG = false;
 
 	private static InetAddress localaddress = null;
+
+	private IPUtils() {
+	}
 	
+	/**
+	 * Returns true if the specified address is a loopback address.
+	 * Loopback means in the 127.*.*.* range.
+	 * @param addr the specified address.
+	 * @return <code>true</code> if <code>addr</code> is a loopback address.
+	 */
 	public static boolean isLoopbackAddress(InetAddress addr) {
 		byte[] a = addr.getAddress();
 
@@ -20,6 +32,12 @@ public class IPUtils {
 		return a[0] == 127;
 	}
 
+	/**
+	 * Returns true if the specified address is a link local address.
+	 * Link local means in the 169.254.*.* range.
+	 * @param addr the specified address.
+	 * @return <code>true</code> if <code>addr</code> is a link local address.
+	 */
 	public static boolean isLinkLocalAddress(InetAddress addr) {
 		byte[] a = addr.getAddress();
 
@@ -35,6 +53,12 @@ public class IPUtils {
 			(address >>> 16 & 0xff) == 254;
 	}
 
+	/**
+	 * Returns true if the specified address is a site local address.
+	 * Site local means in the 10.*.*.*, or the 172.[16-32].*.*, or the 192.168.*.* range.
+	 * @param addr the specified address.
+	 * @return <code>true</code> if <code>addr</code> is a site local address.
+	 */
 	public static boolean isSiteLocalAddress(InetAddress addr) {
 		byte[] a = addr.getAddress();
 
@@ -51,6 +75,12 @@ public class IPUtils {
 			(address >>> 24 & 0xff) == 192 && (address >>> 16 & 0xff) == 168;
 	}
 
+	/**
+	 * Returns true if the specified address is an external address.
+	 * External means not a site local, link local, or loopback address.
+	 * @param addr the specified address.
+	 * @return <code>true</code> if <code>addr</code> is an external address.
+	 */
 	public static boolean isExternalAddress(InetAddress addr) {
 		if(isLoopbackAddress(addr)) return false;
 		if(isSiteLocalAddress(addr)) return false;
@@ -59,6 +89,10 @@ public class IPUtils {
 		return true;
 	}
 	
+	/**
+	 * Returns the {@link java.net.InetAddress} associated with the
+	 * local host.
+	 */
 	public static InetAddress getLocalHostAddress() {
 		if (localaddress == null) {
 		    localaddress = doWorkGetLocalHostAddress();

@@ -1,8 +1,8 @@
 package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.util.DummyInputStream;
-import ibis.util.DummyOutputStream;
+import ibis.io.DummyInputStream;
+import ibis.io.DummyOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

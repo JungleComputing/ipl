@@ -7,62 +7,152 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Abstract socket factory class for creating client and server sockets.
+ * An implementation can be chosen by means of the
+ * <code>ibis.socketfactory</code> system property. If not set,
+ * a default implementation is chosen.
+ */
 public abstract class IbisSocketFactory {
 
-    private static String DEFAULT_SOCKET_FACTORY = "ibis.util.IbisConnectSocketFactory";
+    private static String DEFAULT_SOCKET_FACTORY = "ibis.impl.util.IbisConnectSocketFactory";
     private static String socketFactoryName;
 
-    static final boolean DEBUG = false;
+    protected static final boolean DEBUG = false;
+
+    static boolean firewall = false;
+    static int portNr = 0;
+    static int startRange = 0;
+    static int endRange = 0;
 
     static {
 	String sfClass = System.getProperty("ibis.socketfactory");
+	String range = System.getProperty("ibis.port.range");
         if (sfClass != null) {
 	    socketFactoryName = sfClass;
         } else {
 	    socketFactoryName = DEFAULT_SOCKET_FACTORY;
         }
+	if(range != null) {
+	    int pos = range.indexOf('-');
+	    if(pos < 0) {
+		System.err.println("Specify a port range in this format: 3000-4000.");
+		System.exit(1);
+	    } else {
+		String from = range.substring(0, pos);
+		String to = range.substring(pos+1, range.length());
+
+		try {
+		    startRange = Integer.parseInt(from);
+		    endRange = Integer.parseInt(to);
+		    firewall = true;
+		    portNr = startRange;
+		} catch (Exception e) {
+		    System.err.println("Specify a port range in this format: 3000-4000.");
+		    System.exit(1);
+		}
+	    }
+	}
     }
     
+    protected IbisSocketFactory() {
+    }
     
-    /** Simple ServerSocket factory
+    /** 
+     * Simple ServerSocket creator method.
+     * Creates a server socket that will accept connections on the specified port,
+     * with the specified listen backlog, on the specified local address.
+     * @param port the local TCP port
+     * @param backlog the listen backlog
+     * @param addr the local Inetaddress the server will bind to
+     * @return the server socket created.
+     * @exception IOException when the socket could not be created for some reason.
      */
     public abstract ServerSocket createServerSocket(int port,
 						    int backlog,
 						    InetAddress addr) 
 	throws IOException;
 
-    /** Simple client Socket factory
+    /**
+     * Simple client Socket creator method.
+     * Creates a client socket and connects it to the the specified Inetaddress
+     * and port.
+     * @param rAddr the IP address
+     * @param rPort the port
+     * @exception IOException when the socket could not be created for some reason.
      */
     public abstract Socket createSocket(InetAddress rAddr, int rPort) 
 	throws IOException;
 
-    public abstract int allocLocalPort();
 
-    /** 
-	A host can have multiple local IPs (sierra)
-	if localIP is null, try to bind to the first of this machine's IP addresses.
+    /**
+     * Returns a port number.
+     * The system property <code>ibis.port.range</code> can be used to specify a
+     * port range, for instance 3000-4000. This can be used to choose port numbers
+     * that are for instance not protected by a firewall. If such a range is not
+     * given, 0 is returned.
+     * @return a port number, or 0, which means that any free port will do.
+     */
+    public synchronized int allocLocalPort() {
+	if(firewall) {
+	    int res = portNr++;
+	    if(portNr >= endRange) {
+		portNr = startRange;
+		System.err.println("WARNING, used more ports than available within specified range. Wrapping around");
+	    }
+	    return res;
+	} else {
+	    return 0; /* any free port */
+	}
+    }
 
-	timeoutMillis < 0  means do not retry, throw exception on failure.
-	timeoutMillis == 0 means retry until success.
-	timeoutMillis > 0  means block at most for timeoutMillis milliseconds, then return. 
-	An IOException is thrown when the socket was not properly created within this time.
-    **/
+    /**
+     * client Socket creator method with a timeout.
+     * Creates a client socket and connects it to the the specified Inetaddress
+     * and port. Some hosts have multiple local IP addresses. If the specified
+     * <code>localIP</code> address is <code>null</code>, this method tries to
+     * bind to the first of this machine's IP addresses. Otherwise, it uses the
+     * specified address.
+     * @param dest the IP address
+     * @param port the port
+     * @param localIP the local IP address, or <code>null</code>
+     * @param timeoutMillis if < 0, throw exception on failure. If 0, retry until success.
+     * if > 0, block at most <code>timeoutMillis</code> milliseconds.
+     * @exception IOException is thrown when the socket was not properly created
+     * within this time.
+     * @return the socket created.
+     */
     public abstract Socket createSocket(InetAddress dest,
 					int port,
 					InetAddress localIP,
 					long timeoutMillis)
 	    throws IOException;
-    
-	
-    /** A host can have multiple local IPs (sierra).
-	If localIP is null, try to bind to the first of this machine's
-	IP addresses. Port of 0 means choose a free port **/
+
+
+    /** 
+     * Simple ServerSocket creator method.
+     * Creates a server socket that will accept connections on the specified port,
+     * on the specified local address. If the specified address is <code>null</code>,
+     * the first of this machine's IP addresses is chosen.
+     * @param port the local TCP port, or 0, in which case a free port is chosen.
+     * @param localAddress the local Inetaddress the server will bind to, or <code>null</code>.
+     * @param retry when <code>true</code>, the method blocks until the socket is
+     * successfuly created.
+     * @return the server socket created.
+     * @exception IOException when the socket could not be created for some reason.
+     */
     public abstract ServerSocket createServerSocket(int port,
 						    InetAddress localAddress,
 						    boolean retry)
 	    throws IOException;
 
-    /** Use this to accept, it sets the socket parameters. **/
+    /**
+     * Accepts a connection to the specified server socket, and returns
+     * the resulting socket.
+     * @param a the server socket
+     * @return the resulting socket
+     * @exception IOException is thrown when the accept fails for some reason.
+     */
     public Socket accept(ServerSocket a) throws IOException {
 	Socket s;
 	s = a.accept();
@@ -74,7 +164,14 @@ public abstract class IbisSocketFactory {
 	return s;
     }
 
-    /** Use this to close sockets, it nicely shuts down the streams, etc. **/
+    /**
+     * Closes a socket and streams that are associated with it.
+     * These streams are given as separate parameters, because they may be
+     * streams that are built on top of the actual socket streams.
+     * @param in the inputstream ot be closed
+     * @param out the outputstream to be closed
+     * @param s the socket to be closed
+     */
     public void close(InputStream in, OutputStream out, Socket s) {
 	if(out != null) {
 	    try {
@@ -106,18 +203,27 @@ public abstract class IbisSocketFactory {
 	}
     }
 
+    /**
+     * Hook for shutdown of socket factory. The default implementation does
+     * nothing.
+     */
     public void shutdown() {
     }
 
+    /**
+     * Creates an <code>IbisSocketFactory</code>.
+     * An implementation can be chosen by means of the
+     * <code>ibis.socketfactory</code> system property. If not set,
+     * a default implementation is chosen.
+     * @return the created socket factory, or <code>null</code> if it
+     * could not be found.
+     */
     public static IbisSocketFactory createFactory() {
-	return initFactory();
-    }
-    
-    private synchronized static IbisSocketFactory initFactory() {
 	try {
 	    Class classDefinition = Class.forName(socketFactoryName);
 	    return (IbisSocketFactory) classDefinition.newInstance();
 	} catch (Exception e) {
+	    System.err.println("Could not create an instance of " + socketFactoryName);
 	    e.printStackTrace();
 	}
 	return null;

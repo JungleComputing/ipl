@@ -1,7 +1,7 @@
 package ibis.impl.messagePassing;
 
 import ibis.io.Conversion;
-import ibis.util.IbisIdentifierTable;
+import ibis.impl.util.IbisIdentifierTable;
 
 import java.io.IOException;
 import java.io.StreamCorruptedException;

@@ -6,6 +6,12 @@ package ibis.util;
 public class TypedProperties {
 
     /**
+     * Prevent construction ...
+     */
+    private TypedProperties() {
+    }
+
+    /**
      * Returns true if property <code>name</code> is defined and has a value
      * that is conventionally associated with 'true' (as in Ant): any of
      * 1, on, true, yes.
