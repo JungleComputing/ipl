@@ -115,13 +115,11 @@ final class ByteOutputStream
     }
 
     void setAllocator(DataAllocator allocator) {
-	if (TypedProperties.booleanProperty(MPProps.s_alloc, false)) {
-	    if (Ibis.myIbis.myCpu == 0 && ! warningPrinted) {
-		System.err.println(this + ": set allocator " + allocator);
-		warningPrinted = true;
-	    }
-	    this.allocator = allocator;
+	if (Ibis.myIbis.myCpu == 0 && ! warningPrinted && allocator != null) {
+	    System.err.println(this + ": set allocator " + allocator);
+	    warningPrinted = true;
 	}
+	this.allocator = allocator;
     }
 
 
@@ -248,64 +246,35 @@ final class ByteOutputStream
 
 
     private native void		releaseCachedBuffers();
-    private native byte[]	getCachedByteBuffer();
-    private native char[]	getCachedCharBuffer();
-    private native short[]	getCachedShortBuffer();
-    private native int[]	getCachedIntBuffer();
-    private native long[]	getCachedLongBuffer();
-    private native float[]	getCachedFloatBuffer();
-    private native double[]	getCachedDoubleBuffer();
+    private native Object	getCachedBuffer();
     private native void		clearGlobalRefs();
 
 
-    private int releaseBuffers(boolean recycle) {
+    private int releaseBuffers() {
 	Ibis.myIbis.checkLockOwned();
-
-	if (! recycle) {
-	    // Hand them to the GC and clear the global refs
-	    releaseCachedBuffers();
-
-	    return 0;
-	}
 
 	int returned = 0;
 
 // System.err.println("Try to release cached bufs.. nativeByteOs " + Integer.toHexString(nativeByteOS));
-	byte[] byteBuffer;
-	while ((byteBuffer = getCachedByteBuffer()) != null) {
-	    allocator.putByteArray(byteBuffer);
-	    returned++;
-	}
-	char[] charBuffer;
-	while ((charBuffer = getCachedCharBuffer()) != null) {
-	    allocator.putCharArray(charBuffer);
-	    returned++;
-	}
-	short[] shortBuffer;
-	while ((shortBuffer = getCachedShortBuffer()) != null) {
-// System.err.println("put ShortArray " + shortBuffer);
-	    allocator.putShortArray(shortBuffer);
-	    returned++;
-	}
-	int[] intBuffer;
-	while ((intBuffer = getCachedIntBuffer()) != null) {
-// System.err.println("put IntArray " + intBuffer);
-	    allocator.putIntArray(intBuffer);
-	    returned++;
-	}
-	long[] longBuffer;
-	while ((longBuffer = getCachedLongBuffer()) != null) {
-	    allocator.putLongArray(longBuffer);
-	    returned++;
-	}
-	float[] floatBuffer;
-	while ((floatBuffer = getCachedFloatBuffer()) != null) {
-	    allocator.putFloatArray(floatBuffer);
-	    returned++;
-	}
-	double[] doubleBuffer;
-	while ((doubleBuffer = getCachedDoubleBuffer()) != null) {
-	    allocator.putDoubleArray(doubleBuffer);
+
+	Object buffer;
+
+	while ((buffer = getCachedBuffer()) != null) {
+	    if (buffer instanceof byte[]) {
+		allocator.putByteArray((byte[]) buffer);
+	    } else if (buffer instanceof char[]) {
+		allocator.putCharArray((char[]) buffer);
+	    } else if (buffer instanceof short[]) {
+		allocator.putShortArray((short[]) buffer);
+	    } else if (buffer instanceof int[]) {
+		allocator.putIntArray((int[]) buffer);
+	    } else if (buffer instanceof long[]) {
+		allocator.putLongArray((long[]) buffer);
+	    } else if (buffer instanceof float[]) {
+		allocator.putFloatArray((float[]) buffer);
+	    } else if (buffer instanceof double[]) {
+		allocator.putDoubleArray((double[]) buffer);
+	    }
 	    returned++;
 	}
 
@@ -328,10 +297,9 @@ final class ByteOutputStream
 		Ibis.myIbis.pollLocked();
 	    }
 	    boolean anyOutstandingFrags = (outstandingFrags > 0);
-	    returned = releaseBuffers(anyOutstandingFrags);
+	    returned = releaseBuffers();
 	    return ! anyOutstandingFrags
 		&& returned == 0
-		// && allocator == null
 		;
 	} finally {
 	    Ibis.myIbis.unlock();

@@ -11,7 +11,6 @@ class MPProps {
     static final String s_polls_optim = PROPERTY_PREFIX + "polls.optimistic";
     static final String s_polls_yield = PROPERTY_PREFIX + "polls.yield";
     static final String s_intr_dis_multi = PROPERTY_PREFIX + "intr.disable.multifragment";
-    static final String s_alloc =  PROPERTY_PREFIX + "allocator";
     static final String s_election = PROPERTY_PREFIX + "election";
     static final String s_elect_debug = PROPERTY_PREFIX + "elect.debug";
     static final String s_debug = PROPERTY_PREFIX + "debug";
@@ -27,7 +26,6 @@ class MPProps {
 	s_polls_optim,
 	s_polls_yield,
 	s_intr_dis_multi,
-	s_alloc,
 	s_election,
 	s_elect_debug,
 	s_debug,

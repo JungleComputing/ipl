@@ -112,6 +112,7 @@ typedef struct RELEASE {
     void	       *array;
     void	       *buf;
     jprim_type_t	type;
+    int			must_release;
 } release_t, *release_p;
 
 
@@ -131,6 +132,7 @@ struct IBMP_BUFFER_CACHE {
     void	       *array;
     void	       *buf;
     ibmp_buffer_cache_p next;
+    int			must_release;
 };
 
 
@@ -192,7 +194,7 @@ ibmp_msg_freelist_verify(JNIEnv *env, int line, ibmp_byte_os_p byte_os)
 	}
 	assert(scan->outstanding_send == 0);
 	if (scan->state != MSG_STATE_UNTOUCHED) {
-	    IBP_VPRINTF(1, env, ("scan %p ->state = %d\n", scan, scan->state));
+	    IBP_VPRINTF(2, env, ("scan %p ->state = %d\n", scan, scan->state));
 	}
 	assert(scan->state == MSG_STATE_UNTOUCHED);
 	size++;
@@ -356,45 +358,17 @@ Java_ibis_impl_messagePassing_ByteOutputStream_clearGlobalRefs(
 #define RELEASE_ARRAY(JType, jtype) \
 \
 static void \
-release_ ## JType ## _array(JNIEnv *env, jtype ## Array array, jtype *buf) \
+release_ ## JType ## _array(JNIEnv *env, jtype ## Array array, jtype *buf, int must_release) \
 { \
     IBP_VPRINTF(800, NULL, ("%s: Now release type %s array %p buf %p\n", \
 		ibmp_currentThread(env), #JType, array, buf)); \
-    (*env)->Release ## JType ## ArrayElements(env, array, buf, JNI_ABORT); \
+    if (must_release) { \
+	(*env)->Release ## JType ## ArrayElements(env, array, buf, JNI_ABORT); \
+    } \
     IBP_VPRINTF(300, env, ("Now delete global ref %p\n", array)); \
     (*env)->DeleteGlobalRef(env, array); \
     IBMP_GLOBAL_REF_DEC(); \
     IBP_VPRINTF(755, env, ("Now deleted global ref %p\n", array)); \
-} \
-\
-\
-JNIEXPORT jtype ## Array JNICALL \
-Java_ibis_impl_messagePassing_ByteOutputStream_getCached ## JType ## Buffer( \
-	JNIEnv *env, jobject this) \
-{ \
-    jint	byteOS = (*env)->GetIntField(env, this, fld_nativeByteOS); \
-    ibmp_byte_os_p byte_os = (ibmp_byte_os_p)byteOS; \
-    ibmp_buffer_cache_p c; \
-    \
-    assert(byte_os != NULL); \
-    c = byte_os->buffer_cache[jprim_ ## JType]; \
-    if (c == NULL) { \
-	return NULL; \
-    } \
-    \
-    byte_os->buffer_cache[jprim_ ## JType] = c->next; \
-    \
-    IBP_VPRINTF(800, NULL, ("%s: Now release type %s array %p buf %p\n", \
-		ibmp_currentThread(env), #JType, c->array, c->buf)); \
-    (*env)->Release ## JType ## ArrayElements(env, \
-		    c->array, c->buf, JNI_ABORT); \
-    \
-    /* Enqueue in the list of global refs to be cleared. We can clear the \
-     * global ref only *after* it has been returned to Java space. */ \
-    c->next = byte_os->global_refs; \
-    byte_os->global_refs = c; \
-    \
-    return c->array; \
 }
 
 RELEASE_ARRAY(Boolean, jboolean)
@@ -405,6 +379,48 @@ RELEASE_ARRAY(Int, jint)
 RELEASE_ARRAY(Long, jlong)
 RELEASE_ARRAY(Float, jfloat)
 RELEASE_ARRAY(Double, jdouble)
+
+JNIEXPORT jobject JNICALL
+Java_ibis_impl_messagePassing_ByteOutputStream_getCachedBuffer(
+	JNIEnv *env, jobject this)
+{
+    jint	byteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
+    ibmp_byte_os_p byte_os = (ibmp_byte_os_p)byteOS;
+    ibmp_buffer_cache_p c;
+
+    assert(byte_os != NULL);
+
+#define CACHED_ARRAY(JType, jtype) \
+    c = byte_os->buffer_cache[jprim_ ## JType]; \
+    if (c != NULL) { \
+	byte_os->buffer_cache[jprim_ ## JType] = c->next; \
+	\
+	IBP_VPRINTF(1, NULL, ("%s: Now release type %s array %p buf %p\n", \
+		    ibmp_currentThread(env), #JType, c->array, c->buf)); \
+	if (c->must_release) { \
+	    (*env)->Release ## JType ## ArrayElements(env, \
+			    c->array, c->buf, JNI_ABORT); \
+	    \
+	} \
+	/* Enqueue in the list of global refs to be cleared. We can clear the \
+	 * global ref only *after* it has been returned to Java space. */ \
+	c->next = byte_os->global_refs; \
+	byte_os->global_refs = c; \
+	\
+	return (jobject) (c->array); \
+    }
+
+CACHED_ARRAY(Boolean, jboolean)
+CACHED_ARRAY(Byte, jbyte)
+CACHED_ARRAY(Char, jchar)
+CACHED_ARRAY(Short, jshort)
+CACHED_ARRAY(Int, jint)
+CACHED_ARRAY(Long, jlong)
+CACHED_ARRAY(Float, jfloat)
+CACHED_ARRAY(Double, jdouble)
+
+    return NULL;
+}
 
 #undef RELEASE_ARRAY
 
@@ -422,7 +438,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_releaseCachedBuffers(
 #define RELEASE_ARRAY(JType) \
     while ((c = byte_os->buffer_cache[jprim_ ## JType]) != NULL) { \
 	byte_os->buffer_cache[jprim_ ## JType] = c->next; \
-	release_ ## JType ## _array(env, c->array, c->buf); \
+	release_ ## JType ## _array(env, c->array, c->buf, c->must_release); \
 	ibmp_buffer_cache_put(c); \
     }
 
@@ -479,7 +495,8 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 		    case jprim_ ## JType: \
 			release_ ## JType ## _array(env, \
 						    msg->release[i].array, \
-						    msg->release[i].buf); \
+						    msg->release[i].buf, \
+						    msg->release[i].must_release); \
 			break; 
 
 		    RELEASE_ARRAY(Boolean)
@@ -500,7 +517,7 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 		    ibmp_buffer_cache_p c = ibmp_buffer_cache_get();
 		    ibmp_byte_os_p byte_os = msg->byte_os;
 
-		    IBP_VPRINTF(280, env, ("enqueue array%d %p byte_os %p for reuse\n",
+		    IBP_VPRINTF(1, env, ("enqueue array%d %p byte_os %p for reuse\n",
 				msg->release[i].type, msg->release[i].array,
 				byte_os));
 		    c->next = byte_os->buffer_cache[msg->release[i].type];
@@ -508,6 +525,7 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 
 		    c->array = msg->release[i].array;
 		    c->buf = msg->release[i].buf;
+		    c->must_release = msg->release[i].must_release;
 #ifndef NDEBUG
 		    msg->release[i].array = NULL;
 #endif
@@ -694,7 +712,7 @@ sent_upcall(void *arg)
 {
     ibmp_msg_p msg = arg;
     msg->outstanding_send--;
-    IBP_VPRINTF(1, NULL, (" SEND ) async upcall msg %p outstanding := %d, missing := %d\n", msg, msg->outstanding_send, --ibmp_sent_msg_out));
+    IBP_VPRINTF(2, NULL, (" SEND ) async upcall msg %p outstanding := %d, missing := %d\n", msg, msg->outstanding_send, --ibmp_sent_msg_out));
 #if 0 && defined IBP_VERBOSE
     {
 	int i;
@@ -1173,7 +1191,7 @@ ibmp_bcast_home_ack(ibmp_byte_stream_hdr_p hdr)
     ibmp_msg_p msg = hdr->home_msg;
 
     msg->outstanding_send--;
-    IBP_VPRINTF(1, NULL, ("bcast sent upcall msg %p group %d outstanding := %d, missing := %d\n", msg, hdr->group, msg->outstanding_send, --ibmp_sent_msg_out));
+    IBP_VPRINTF(2, NULL, ("bcast sent upcall msg %p group %d outstanding := %d, missing := %d\n", msg, hdr->group, msg->outstanding_send, --ibmp_sent_msg_out));
 }
 
 
@@ -1341,12 +1359,10 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
     jtype      *buf; \
     int		sz = len * sizeof(jtype); \
     \
-    if (! msg->copy && sz >= COPY_THRESHOLD) { \
-	b = (*env)->NewGlobalRef(env, b); \
-	IBMP_GLOBAL_REF_INC(); \
-	IBP_VPRINTF(800, env, ("%s: Now create global ref %p\n", \
-		    ibmp_currentThread(env), b)); \
-    } \
+    b = (*env)->NewGlobalRef(env, b); \
+    IBMP_GLOBAL_REF_INC(); \
+    IBP_VPRINTF(1, env, ("%s: Now create global ref %p\n", \
+		ibmp_currentThread(env), b)); \
     if (msg->copy) { \
 	ibmp_lock(env); \
 	iovec_grow(env, msg, 1); \
@@ -1355,6 +1371,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 	msg->iov[msg->iov_len].data = buf; \
 	msg->iov[msg->iov_len].len = sz; \
 	(*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) buf); \
+	msg->release[msg->iov_len].must_release = 0; \
     } else { \
 	iovec_grow(env, msg, 0); \
 	if (sz < COPY_THRESHOLD) { \
@@ -1363,17 +1380,18 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 	    msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]); \
 	    msg->buf_len += incr; \
 	    msg->iov[msg->iov_len].len  = sz; \
-	    msg->release[msg->iov_len].type  = jprim_n_types; \
+	    msg->release[msg->iov_len].must_release = 0; \
 	} \
 	else { \
 	    jtype *a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
 	    msg->iov[msg->iov_len].data = a + off; \
 	    msg->iov[msg->iov_len].len  = sz; \
-	    msg->release[msg->iov_len].array = b; \
 	    msg->release[msg->iov_len].buf   = a; \
-	    msg->release[msg->iov_len].type  = jprim_ ## JType; \
+	    msg->release[msg->iov_len].must_release = 1; \
 	} \
     } \
+    msg->release[msg->iov_len].array = b; \
+    msg->release[msg->iov_len].type  = jprim_ ## JType; \
     IBP_VPRINTF(300, env, ("Now push ByteOS %p msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n", \
 		msg->byte_os->byte_output_stream, msg, #JType, b, msg->iov[msg->iov_len].data, \
 		msg->iov[msg->iov_len].len, msg->iov_len, ibmp_iovec_len(msg->iov, msg->iov_len + 1), msg->iov[0].len, msg->iov[1].len, msg->iov[2].len, msg->iov[3].len)); \
