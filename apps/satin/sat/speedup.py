@@ -18,17 +18,22 @@ results = {}
 
 runParallel = 0
 
+
 #problem = "examples/qg/qg6-12.cnf.gz"
-#problem = "examples/qg/qg3-08.cnf.gz"
-problem = "examples/ais/ais10.cnf.gz"
+problem = "examples/qg/qg3-09.cnf.gz"
+#problem = "examples/ais/ais10.cnf.gz"
 
 solver = "DPLLSolver"
 
 #ProcNos = [ 1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40 ]
-#ProcNos = [ 1, 2, 4, 8, 16, 32 ]
-ProcNos = [ 2, 4, 8 ]
+ProcNos = [ 1, 2, 4, 8, 16, 32 ]
+#ProcNos = [ 2, 4, 8 ]
+#ProcNos = [ 2 ]
 
 nameserverport = 2001
+
+# The timing result line starts with this string
+timingTag = "ExecutionTime:"
 
 class Thread( threading.Thread ):
     def  __init__( self, target, args=() ):
@@ -113,51 +118,79 @@ def getCommandOutput( command ):
 def build_run_command( pno, solver, problem, port ):
     return "prun -1 %s %d %d fs0.das2.cs.vu.nl %s %s -satin-closed" % (run_ibis, pno, port, solver, problem )
 
-def report( msg, lf = None ):
-    print msg
-    if( lf != None ):
-        print >> lf, msg
-
-def reportTrace( txt, label, lf = None ):
-    if txt == '':
-        return
-    report( "---- start of " + label + " ----", lf )
-    l = txt.split( '\n' )
-    for e in l:
-        if e != '':
-            report( e, lf )
-    report( "---- end of " + label + " ----", lf )
-
-def reportRun( label, data, lf = None ):
-    (exitcode, out, err) = data
-    if exitcode != 0:
-        print "Command failed: exit code %d" % exitcode
-    reportTrace( out, label + " output stream", lf )
-    reportTrace( err, label + " error stream", lf )
-
-def reportedRun( P ):
+def runP( P ):
     cmd = build_run_command( P, solver, problem, nameserverport )
     print "Starting run for P=%d" % P
     data = getCommandOutput( cmd )
     results[P] = data
     print "Finished run for P=%d" % P
 
+def report( msg, clients ):
+    for f in clients:
+        print >> f, msg
+
+def reportTrace( txt, label, clients ):
+    if txt == '':
+        return
+    report( "---- start of " + label + " ----", clients )
+    l = txt.split( '\n' )
+    for e in l:
+        if e != '':
+            report( e, clients )
+    report( "---- end of " + label + " ----", clients )
+
+def reportRun( label, data, clients ):
+    (exitcode, out, err) = data
+    if exitcode != 0:
+        print "Command failed: exit code %d" % exitcode
+    reportTrace( out, label + " output stream", clients )
+    reportTrace( err, label + " error stream", clients )
+
+# Given a line of the output, extract the execution time, or
+# Null if it doesn't occur in this line.
+def extractResultLine( l ):
+    sz = len( timingTag )
+    if l[0:sz] == timingTag:
+       return l[sz:].strip()
+    return None
+
+# Given a results tuple, extract the execution time
+def extractResult( data ):
+    (exitcode, out, err) = data
+    if exitcode != 0:
+        # Run failed, no result.
+        return None
+    l = out.split( '\n' )
+    for e in l:
+       res = extractResultLine( e )
+       if res != None:
+           return res
+    return None
+
 def run( solver, problem ):
-    logfile = logdir + "/log-" + get_time_stamp()
+    logfile = logdir + "/" + solver + "-" + get_time_stamp()
     lf = open( logfile, "w" )
-    report( "Solver: " + solver, lf )
-    report( "Problem: " + problem, lf )
+    logstreams = [lf]
+    allstreams = [lf,sys.stdout]
+    report( "Solver: " + solver, allstreams )
+    report( "Problem: " + problem, allstreams )
+    report( "Logfile: " + logfile, allstreams )
 
     if runParallel:
-        mt = MultiThread( reportedRun, ProcNos )
+        mt = MultiThread( runP, ProcNos )
         mt.start()
         mt.join()
     else:
         for P in ProcNos:
-            reportedRun( P )
+            runP( P )
+    report( " P time", allstreams )
     for P in ProcNos:
-        reportRun( "P=%d" % P, results[P], lf )
+        res = extractResult( results[P] )
+        report( "%2d %s" % (P, res), allstreams )
+    for P in ProcNos:
+        reportRun( "P=%d" % P, results[P], logstreams )
+    lf.close()
 
-#reportedRun( "test", "ls" )
 if __name__=="__main__":
     run( solver, problem )
+#print extractResult( (0,"bla\ndiebla\n" + timingTag + " bla\nZwoing\n","") )

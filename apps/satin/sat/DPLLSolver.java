@@ -273,7 +273,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
-	System.out.println( "Time: " + time );
+	System.out.println( "ExecutionTime: " + time );
 	if( res == null ){
 	    System.out.println( "There are no solutions" );
 	}
