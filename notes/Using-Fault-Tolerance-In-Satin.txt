@@ -48,26 +48,7 @@
  How to use fault tolerance:
  
  STEP 1 ----------------------------------------------------------------- 
- enable fault tolerance
-
- 1A ---------------------------
- in ibis.satin.impl.Config.java set
- 
-	FAULT_TOLERANCE = true;
-	
- and recompile Satin (go to main ibis directory ant type ./ant)
-
- 1B ----------------------------    	 
- in build.xml in the application directory set -fault-tolerance as one of 
- the Satinc flags: add the following line to build.xml
- 
-	<property name="satinc-flags" value="-fault-tolerance"/>
-
- or combine it with other Satinc flags, for example:
-
-	<property name="satinc-flags" value="-no-aborts -fault-tolerance"/>
-	
- and recompile the application (type ant in the application directory)
+ enable fault tolerance, by passing the flag -Dibis.satin.ft=true to java.
 
  STEP 2 ------------------------------------------------------------------
  chose the flavour
@@ -95,38 +76,31 @@
  Travelling Salesman Problem (tsp): the same as problem size
  
  2B ----------------------------
- to use replicated Global Result Table, set
-    
-	GLOBAL_RESULT_TABLE_REPLICATED = true;
-    
- in ibis.satin.impl.Config.java
+ to use replicated Global Result Table, pass the following flag to java:
+	
+	-Dibis.satin.ft.grt.replicated=true
  
- to use distributed Global Result Table, set
+ to use distributed Global Result Table, pass the following flag to java:
     
-	GLOBAL_RESULT_TABLE_REPLICATED = false;
+	-Dibis.satin.ft.grt.replicated=true
+ (this is the default).
 	
  2C ----------------------------
- to use the "with aborts" version, set
+ to use the "with aborts" version, pass the following flag to java:
  
-	FT_WITHOUT_ABORTS = false;
+	-Dibis.satin.ft.noAborts=true
+ (this is the default).
+ 
+ to use the "without aborts" version, pass the following flag to java:
 
- in ibis.satin.impl.Config.java
- 
- to use the "without aborts" version, set
- 
-	FT_WITHOUT_ABORTS = true;
+	-Dibis.satin.ft.noAborts=true
+	
  
  2D -----------------------------
- to use the naive version, set
+ to use the naive version, pass the following flag to java:
  
-	FT_NAIVE = true;
-	FT_WITHOUT_ABORTS = false;
-	
- in ibis.satin.impl.Config.java
- 
- 
- after choosing the flavour, recompile Satin
- 
+	-Dibis.satin.ft.noTable=true -Dibis.satin.ft.noAborts=false
+
  
  STEP 3 -----------------------------------------------------------------
  run the application (see Running-Satin-Applications.txt) and try to kill
@@ -134,5 +108,5 @@
  commit a suicide by specifying
  
 	-satin-kill <time>
-	
+
  
