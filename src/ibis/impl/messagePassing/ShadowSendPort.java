@@ -28,7 +28,7 @@ class ShadowSendPort extends SendPort {
 	rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortBuf);
 	sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortBuf);
 
-	PortType portType = (PortType)Ibis.myIbis.getPortType(sId.type);
+	PortType portType = Ibis.myIbis.getPortTypeLocked(sId.type);
 // System.err.println("Sender port type " + sId.type + " = " + portType);
 	int serializationType = portType.serializationType;
 	if (Ibis.DEBUG) {

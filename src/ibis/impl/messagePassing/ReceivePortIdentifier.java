@@ -32,16 +32,6 @@ final class ReceivePortIdentifier
     }
 
 
-    static ReceivePortIdentifier createReceivePortIdentifier(byte[] serialForm)
-	    throws IbisIOException {
-	ReceivePortIdentifier id = null;
-	id = (ReceivePortIdentifier)SerializeBuffer.readObject(serialForm);
-	id.serialForm = serialForm;
-
-	return id;
-    }
-
-
     private void makeSerialForm() throws IbisIOException {
 	serialForm = SerializeBuffer.writeObject(this);
     }

@@ -16,13 +16,14 @@ final class ReceivePortNameServer implements
     native void bind_reply(int ret, int tag, int client);
 
     /* Called from native */
-    private void bind(byte[] serialForm, int tag, int client)
+    private void bind(String name, byte[] serialForm, int tag, int client)
 	    throws IbisIOException {
 	// Ibis.myIbis.checkLockOwned();
 	ReceivePortIdentifier ri = null;
 	try {
 	    ri = (ReceivePortIdentifier)SerializeBuffer.readObject(serialForm);
 	} catch (IbisIOException e) {
+	    System.err.println("Cannot deserialize ReceivePortId to be bound");
 	    bind_reply(PORT_REFUSED, tag, client);
 	    return;
 	}
@@ -34,11 +35,11 @@ final class ReceivePortNameServer implements
 	ReceivePortIdentifier storedId;
 
 	/* Check wheter the name is in use.*/
-	storedId = (ReceivePortIdentifier)ports.get(ri.name);
+	storedId = (ReceivePortIdentifier)ports.get(name);
 
 	if (storedId != null) {
 	    if (ReceivePortNameServerProtocol.DEBUG) {
-		System.err.println(Thread.currentThread() + "Don't bind existing port name \"" + ri.name + "\"");
+		System.err.println(Thread.currentThread() + "Don't bind existing port name \"" + ri.name + "\", currently bound to \"" + storedId.name + "\"");
 	    }
 	    bind_reply(PORT_REFUSED, tag, client);
 	} else {
@@ -46,7 +47,7 @@ final class ReceivePortNameServer implements
 		System.err.println(Thread.currentThread() + "Bound new port name \"" + ri.name + "\"" + " ibis " + ri.ibis().name());
 	    }
 	    bind_reply(PORT_ACCEPTED, tag, client);
-	    ports.put(ri.name, ri);
+	    ports.put(name, ri);
 	}
     }
 
@@ -81,6 +82,10 @@ final class ReceivePortNameServer implements
     /* Called from native */
     private void unbind(String name) throws ClassNotFoundException {
 	// Ibis.myIbis.checkLockOwned();
+
+	if (ReceivePortNameServerProtocol.DEBUG) {
+	    System.err.println(Thread.currentThread() + "" + this + ": unbind receive port \"" + name + "\"");
+	}
 	ports.remove(name);
     }
 

@@ -16,7 +16,11 @@ int		ibmp_ns_server = 0;
 
 
 void
-ibmp_receive_port_ns_bind(JNIEnv *env, jbyteArray id, jint sender, jint client)
+ibmp_receive_port_ns_bind(JNIEnv *env,
+			  jstring name,
+			  jbyteArray id,
+			  jint sender,
+			  jint client)
 {
     IBP_VPRINTF(50, env, ("Do java call NameServer.bind this = %p client = 0x%x = %d\n",
 		obj_Ibis_nameServer, (int)client, (int)client));
@@ -26,6 +30,7 @@ ibmp_receive_port_ns_bind(JNIEnv *env, jbyteArray id, jint sender, jint client)
     (*env)->CallVoidMethod(env,
 			   obj_Ibis_nameServer,
 			   md_NameServer_bind,
+			   name,
 			   id,
 			   sender,
 			   client);
@@ -121,7 +126,7 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     md_NameServer_bind = (*env)->GetMethodID(env,
 					     cls_ns,
 					     "bind",
-					     "([BII)V");
+					     "(Ljava/lang/String;[BII)V");
     if (md_NameServer_bind == NULL) {
 	fprintf(stderr, "%s.%d Cannot find method bind([BII)V\n", __FILE__, __LINE__);
 	abort();

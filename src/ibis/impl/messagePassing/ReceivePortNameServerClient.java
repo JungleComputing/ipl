@@ -93,7 +93,7 @@ final class ReceivePortNameServerClient
 		    Thread.dumpStack();
 		}
 
-		ns_bind(id.getSerialForm());
+		ns_bind(name, id.getSerialForm());
 // System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
 
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
@@ -103,7 +103,9 @@ final class ReceivePortNameServerClient
 		    }
 		}
 		Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
-// System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up" + this);
+		if (ReceivePortNameServerProtocol.DEBUG) {
+		    System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up" + this);
+		}
 
 		ns_busy = false;
 		ns_free.cv_signal();
@@ -117,12 +119,14 @@ final class ReceivePortNameServerClient
     /* Called from native */
     private void bind_reply() {
 	// Ibis.myIbis.checkLockOwned();
-// System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
+	if (ReceivePortNameServerProtocol.DEBUG) {
+	    System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
+	}
 	bind.bound = true;
 	bind.ns_done.cv_signal();
     }
 
-    native void ns_bind(byte[] recvPortId);
+    native void ns_bind(String name, byte[] recvPortId);
 
     Bind bind = new Bind();
 
@@ -213,35 +217,39 @@ final class ReceivePortNameServerClient
 		}
 		if (now - last_try >= BACKOFF_MILLIS) {
 		    Ibis.myIbis.lock();
-// System.err.println("Got lock ...");
+		    if (ReceivePortNameServerProtocol.DEBUG) System.err.println("Got lock ...");
 		    try {
 			ri = null;
 			ns_lookup(name);
 
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + ns_done);
+			if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + ns_done);
 			Ibis.myIbis.waitPolling(this, BACKOFF_MILLIS, Poll.PREEMPTIVE);
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri.cpu = " + ri.cpu + " ns_done = " + ns_done);
+			if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri = " + ri + " ns_done = " + ns_done);
 
 			if (ri != null && ri.cpu != -1) {
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: clear lookup.ns_busy" + this);
+			    if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: clear lookup.ns_busy" + this);
 			    ns_busy = false;
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: signal potential waiters");
+			    if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: signal potential waiters");
 			    ns_free.cv_signal();
 			    return ri;
 			}
 		    } finally {
-// System.err.println("Releasing lock ...");
+			if (ReceivePortNameServerProtocol.DEBUG) System.err.println("Releasing lock ...");
 			Ibis.myIbis.unlock();
-// System.err.println("Released lock ...");
+			if (ReceivePortNameServerProtocol.DEBUG) System.err.println("Released lock ...");
 		    }
 		    last_try = System.currentTimeMillis();
 		}
 		/* Thread.yield(); */
 
-		try {
-		    Thread.sleep(BACKOFF_MILLIS);
-		} catch (InterruptedException e) {
-		    // Well, if somebody interrupts us, would there be news?
+		if (false) {
+		    // I don't see why I should sleep here, when waitPolling
+		    // also takes a timeout argument
+		    try {
+			Thread.sleep(BACKOFF_MILLIS);
+		    } catch (InterruptedException e) {
+			// Well, if somebody interrupts us, would there be news?
+		    }
 		}
 	    }
 	}
@@ -252,7 +260,7 @@ final class ReceivePortNameServerClient
     /* Called from native */
     private void lookup_reply(byte[] rcvePortId) {
 	// Ibis.myIbis.checkLockOwned();
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: lookup reply " + ri + " " + lookup.ns_done);
+	if (ReceivePortNameServerProtocol.DEBUG) System.err.println(Thread.currentThread() + "ReceivePortNSClient: lookup reply " + rcvePortId + " " + lookup.ns_done);
 	lookup.ri = null;
 	if (rcvePortId != null) {
 	    try {
@@ -283,6 +291,9 @@ final class ReceivePortNameServerClient
 
     void unbind(String name) {
 	Ibis.myIbis.lock();
+	if (ReceivePortNameServerProtocol.DEBUG) {
+	    System.err.println(Ibis.myIbis.myCpu + ": Do an UNBIND of \"" + name + "\"");
+	}
 	ns_unbind(name);
 	Ibis.myIbis.unlock();
     }

@@ -101,12 +101,14 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    synchronized
     public ibis.ipl.PortType createPortType(String name,
-				   StaticProperties p) throws IbisException {
+					    StaticProperties p)
+	    throws IbisException {
 
+	myIbis.lock();
 	PortType tp = new PortType(this, name, p);
 	portTypeList.put(name, tp);
+	myIbis.unlock();
 
 	return tp;
     }
@@ -371,10 +373,16 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    synchronized
+    PortType getPortTypeLocked(String name) {
+	return (PortType)portTypeList.get(name);
+    }
+
+
     public ibis.ipl.PortType getPortType(String name) {
-	Object tp = portTypeList.get(name);
-	return (ibis.ipl.PortType)tp;
+	myIbis.lock();
+	PortType tp = (PortType)getPortTypeLocked(name);
+	myIbis.unlock();
+	return tp;
     }
 
 

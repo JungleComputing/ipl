@@ -30,6 +30,7 @@ static int	ibp_ns_bind_proto_start;
 static int	ibp_ns_bind_proto_size;
 
 typedef struct IBP_NS_BIND_HDR {
+    int		name_length;
     int		id_length;
     jint	client;
 } ibp_ns_bind_hdr_t, *ibp_ns_bind_hdr_p;
@@ -45,15 +46,17 @@ void
 Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
 	JNIEnv *env,
 	jobject this,
+	jstring name,
 	jbyteArray portId)
 {
     void       *proto = ibp_proto_create(ibp_ns_bind_proto_size);
     ibp_ns_bind_hdr_p hdr = ibp_ns_bind_hdr(proto);
-    pan_iovec_t	iov[1];
+    pan_iovec_t	iov[2];
     jobject	client = (*env)->NewGlobalRef(env, this);
 
-    hdr->id_length = ibp_byte_array_push(env, portId, &iov[0]);
-    assert(hdr->id_length == iov[0].len);
+    hdr->name_length = ibp_string_push(env, name, &iov[0]);
+    hdr->id_length = ibp_byte_array_push(env, portId, &iov[1]);
+    assert(hdr->id_length == iov[1].len);
 
     hdr->client = (jint)client;
 
@@ -65,7 +68,8 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
 
     ibp_proto_clear(proto);
 
-    (*env)->ReleaseByteArrayElements(env, portId, iov[0].data, JNI_ABORT);
+    (*env)->ReleaseStringUTFChars(env, name, iov[0].data);
+    (*env)->ReleaseByteArrayElements(env, portId, iov[1].data, JNI_ABORT);
 }
 
 
@@ -75,10 +79,12 @@ ibp_ns_bind_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     ibp_ns_bind_hdr_p	hdr = ibp_ns_bind_hdr(proto);
     jint	sender = (jint)ibp_msg_sender(msg);
     jbyteArray	portId;
+    jstring	name;
 
+    name = ibp_string_consume(env, msg, hdr->name_length);
     portId = ibp_byte_array_consume(env, msg, hdr->id_length);
 
-    ibmp_receive_port_ns_bind(env, portId, sender, hdr->client);
+    ibmp_receive_port_ns_bind(env, name, portId, sender, hdr->client);
     IBP_VPRINTF(50, env, ("In rp-ns bind: made new ReceivePortId for client 0x%x = %d\n", (int)hdr->client, (int)hdr->client));
     IBP_VPRINTF(50, env, ("Exit rp-ns bind\n"));
 
