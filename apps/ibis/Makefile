@@ -11,3 +11,4 @@ manta:
 clean:
 	rm -f $(TRASH_FILES)
 	cd benchmarks; $(MAKE) $(MFLAGS) clean
+	cd tp-JavaGrande02; $(MAKE) $(MFLAGS) clean
