@@ -520,4 +520,43 @@ public class SATContext implements java.io.Serializable {
     {
         return (posclauses[var]>negclauses[var]);
     }
+
+    /**
+     * Optimize the problem by searching for and propagating all unit
+     * clauses and unipolar variables that we can find.
+     * @param p The SAT problem this is the context for.
+     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
+     */
+    public int optimize( SATProblem p )
+    {
+	// Search for and propagate unit clauses.
+	for( int i=0; i<terms.length; i++ ){
+	    if( terms[i] == 1 ){
+		int res = propagateUnitClause( p, i );
+		if( res != 0 ){
+		    return res;
+		}
+	    }
+	}
+	// Search for and propagate unipolar variables.
+	for( int i=0; i<assignments.length; i++ ){
+	    if( assignments[i] != -1 || (posclauses[i] == 0 && negclauses[i] == 0) ){
+		// Unused variable, not interesting.
+		continue;
+	    }
+	    if( posclauses[i] == 0 ){
+		int res = propagateNegAssignment( p, i );
+		if( res != 0 ){
+		    return res;
+		}
+	    }
+	    else if( negclauses[i] == 0 ){
+		int res = propagatePosAssignment( p, i );
+		if( res != 0 ){
+		    return res;
+		}
+	    }
+	}
+	return 0;
+    }
 }

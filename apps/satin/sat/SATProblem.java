@@ -452,7 +452,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /** Builds the variable use administration. */
-    private void buildAdministration()
+    public void buildAdministration()
     {
 	for( int ix=0; ix<variables.length; ix++ ){
 	    SATVar v = variables[ix];
@@ -836,7 +836,6 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	if( res.clauseCount+res.deletedClauseCount<promisedClauseCount ){
 	    System.out.println( "There are only " +  (res.clauseCount+res.deletedClauseCount) + " clauses, although " + promisedClauseCount + " were promised" );
 	}
-	res.optimize();
 	return res;
     }
 

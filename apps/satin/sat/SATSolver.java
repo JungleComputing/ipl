@@ -127,6 +127,14 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 
 	    ctx.assignments = p.buildInitialAssignments();
 
+	    int r = ctx.optimize( p );
+	    if( r == 1 ){
+		return new SATSolution( ctx.assignments );
+	    }
+	    if( r == -1 ){
+		return null;
+	    }
+
 	    int nextvar = ctx.getDecisionVariable();
 	    if( nextvar<0 ){
 		// There are no variables left to assign, clearly there
@@ -174,6 +182,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
+	p.buildAdministration();
 	p.report( System.out );
 	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );

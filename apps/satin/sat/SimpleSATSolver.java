@@ -223,6 +223,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
+	p.optimize();
 	p.report( System.out );
 	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );

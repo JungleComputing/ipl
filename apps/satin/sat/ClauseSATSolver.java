@@ -418,6 +418,7 @@ public class ClauseSATSolver {
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
+	p.optimize();
 	p.report( System.out );
 
 	long startTime = System.currentTimeMillis();
