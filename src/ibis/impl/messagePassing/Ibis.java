@@ -304,15 +304,15 @@ public class Ibis extends ibis.ipl.Ibis {
 	    throws IbisIOException {
 	switch (type.serializationType) {
         case PortType.SERIALIZATION_NONE:
-	    System.err.println("MSG: NO SER, name = " + name);
+// System.err.println("MSG: NO SER, name = " + name);
 	    return new SendPort(type, name, new OutputConnection());
 
 	case PortType.SERIALIZATION_SUN:
-	    System.err.println("MSG: SUN SER, name = " + name);
+// System.err.println("MSG: SUN SER, name = " + name);
 	    return new SerializeSendPort(type, name, new OutputConnection(), r);
 
 	case PortType.SERIALIZATION_IBIS:
-	    System.err.println("MSG: IBIS SER, name = " + name);
+// System.err.println("MSG: IBIS SER, name = " + name);
 	    return new IbisSendPort(type, name, new OutputConnection(), r);
 
 	default:
