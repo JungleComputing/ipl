@@ -18,6 +18,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             str.print( ' ' );
         }
     }
+
     // Given a byte array, build an array of backreferences. That is,
     // construct an array that at each text position gives the index
     // of the previous occurence of that hash code, or -1 if there is none.
