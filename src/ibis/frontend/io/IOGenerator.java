@@ -348,7 +348,7 @@ public class IOGenerator {
 	    JavaClass newclazz = gen.getJavaClass();
 
 	    if (target_classes.remove(clazz)) {
-		Repository.removeClass(classname);
+		Repository.removeClass(clazz);
 		Repository.addClass(newclazz);
 		target_classes.add(newclazz);
 	    }
@@ -1732,11 +1732,17 @@ public class IOGenerator {
 	    }
 
 	    if (clazz != null) {
-		if (! isIbisSerializable(clazz)) {
-		    addClass(clazz);
-		} else {
-		    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
+		if (isSerializable(clazz)) {
+		    if (! isIbisSerializable(clazz)) {
+			addClass(clazz);
+		    } else {
+			if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
+		    }
 		}
+		else {
+		    if (verbose) System.out.println(clazz.getClassName() + " is not serializable");
+		}
+		Repository.removeClass(clazz);
 	    }
 	}
 
