@@ -62,6 +62,10 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			throw new IbisConfigurationException("property ibis.name_server.host is not specified");
 		}
 
+		if (server.equals("localhost")) {
+		    server = myAddress.getHostName();
+		}
+
 		poolName = p.getProperty("ibis.name_server.key");
 		if (poolName == null) {
 			throw new IbisConfigurationException("property ibis.name_server.key is not specified");
