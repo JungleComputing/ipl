@@ -107,6 +107,10 @@ public class NetPoller extends NetInput {
 				    NetInput ni)
 		throws NetIbisException {
 
+		if (singleton != null) {
+		    System.err.println("Race between NetPoller.connect and poll(block = true). Repair by having one lock :-(");
+		}
+
                 log.in();
                 /*
                  * Because a blocking poll can be pending while we want
@@ -423,6 +427,9 @@ nCurrent++;
 // System.err.print("[");
 		    if (singleton != null) {
 			/* Do we actually require synchronized here?
+			 * Arrgghhhh --- we cannot really block here because
+			 * we must release the lock to allow for connections.
+			 * Arrrghhhh ----
 			 * Usually not :-) */
 			if ((spn = singleton.poll(block)) != null) {
 			    activeQueue = singleton;
@@ -493,9 +500,8 @@ nCurrent++;
                                         }
                                 }
 
+				blockReceiver();
 			    }
-
-			    blockReceiver();
                         }
                 }
 // System.err.print("]");
