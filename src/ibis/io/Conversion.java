@@ -163,10 +163,10 @@ public final class Conversion {
 		if (! USE_NATIVE_CONVERSION) {
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
-				 dst[index_dst+i] = (((src[count+0] & 0xff) << 24)   | 
-						     ((src[count+1] & 0xff) << 16) |
-						     ((src[count+2] & 0xff) << 8)  | 
-						      (src[count+3] & 0xff));
+				 dst[index_dst+i] = (((src[count+3] & 0xff) <<  0) | 
+						     ((src[count+2] & 0xff) <<  8) |
+						     ((src[count+1] & 0xff) << 16) | 
+						     ((src[count+0] & 0xff) << 24));
 				 count += 4;
 			}
 		} else { 			
