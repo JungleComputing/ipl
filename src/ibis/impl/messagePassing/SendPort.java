@@ -48,7 +48,7 @@ public class SendPort implements ibis.ipl.SendPort {
 
     protected SendPortIdentifier ident;
 
-    protected ReceivePortIdentifier[] splitter;
+    protected ReceivePortIdentifier[] splitter = new ReceivePortIdentifier[0];
 
     private int[] connectedCpu;
 
@@ -139,11 +139,7 @@ public class SendPort implements ibis.ipl.SendPort {
 
         int my_split;
 
-        if (splitter == null) {
-            my_split = 0;
-        } else {
-            my_split = splitter.length;
-        }
+        my_split = splitter.length;
 
         ReceivePortIdentifier[] v = new ReceivePortIdentifier[my_split + 1];
         for (int i = 0; i < my_split; i++) {
@@ -507,10 +503,6 @@ public class SendPort implements ibis.ipl.SendPort {
     public void disconnect(ibis.ipl.ReceivePortIdentifier r)
             throws IOException {
 
-        if (splitter == null) {
-            throw new IOException("disconnect: no connections");
-        }
-
         Ibis.myIbis.lock();
         try {
             int n = splitter.length;
@@ -550,15 +542,13 @@ public class SendPort implements ibis.ipl.SendPort {
         }
 
         try {
-            if (splitter != null) {
-                byte[] sf = ident.getSerialForm();
-                for (int i = 0; i < splitter.length; i++) {
-                    ReceivePortIdentifier rid = splitter[i];
-                    ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, null,
-                            messageCount);
-                }
-                splitter = null;
+            byte[] sf = ident.getSerialForm();
+            for (int i = 0; i < splitter.length; i++) {
+                ReceivePortIdentifier rid = splitter[i];
+                ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, null,
+                        messageCount);
             }
+            splitter = new ReceivePortIdentifier[0];
         } finally {
             Ibis.myIbis.unregisterSendPort(this);
         }

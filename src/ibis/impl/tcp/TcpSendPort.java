@@ -96,6 +96,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         splitter = new OutputStreamSplitter(connectionAdministration);
 
         bufferedStream = new BufferedArrayOutputStream(splitter);
+
+        out = SerializationBase.createSerializationOutput(type.ser,
+                bufferedStream);
+        message = new TcpWriteMessage(this, out, connectionAdministration);
     }
 
     public long getCount() {
@@ -145,17 +149,14 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             System.err.println(name + " adding Connection to " + ri);
         }
 
-        if (out != null) {
-            out.writeByte(NEW_RECEIVER);
+        out.writeByte(NEW_RECEIVER);
 
-            if (DEBUG) {
-                System.err.println(name + " Sending NEW_RECEIVER " + ri);
-                out.writeObject(ri);
-            }
-
-            out.flush();
-            out.close();
+        if (DEBUG) {
+            System.err.println(name + " Sending NEW_RECEIVER");
         }
+
+        out.flush();
+        out.close();
 
         receivers.add(c);
         splitter.add(c.out);
@@ -176,9 +177,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     public synchronized void setReplacer(Replacer r) throws IOException {
         replacer = r;
-        if (out != null) {
-            out.setReplacer(r);
-        }
+        out.setReplacer(r);
     }
 
     public void connect(ReceivePortIdentifier receiver) throws IOException {
@@ -204,10 +203,6 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                     + " since we are not connectted with it");
         }
 
-        if (out == null) {
-            throw new IbisError("no outputstream found on disconnect");
-        }
-
         //close 
         out.writeByte(CLOSE_ONE_CONNECTION);
 
@@ -228,9 +223,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         TcpWriteMessage res = null;
 
         synchronized (this) {
-            if (receivers.size() == 0) {
-                throw new IbisIOException("port is not connected");
-            }
+            // if (receivers.size() == 0) {
+            //     throw new IbisIOException("port is not connected");
+            // }
 
             while (aMessageIsAlive) {
                 try {
@@ -287,12 +282,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         }
 
         try {
-            if (out != null) {
-                out.writeByte(CLOSE_ALL_CONNECTIONS);
-                out.reset();
-                out.flush();
-                out.close();
-            }
+            out.writeByte(CLOSE_ALL_CONNECTIONS);
+            out.reset();
+            out.flush();
+            out.close();
         } catch (IOException e) {
             // System.err.println("Error in TcpSendPort.free: " + e);
             // e.printStackTrace();

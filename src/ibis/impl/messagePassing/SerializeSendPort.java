@@ -54,7 +54,7 @@ final public class SerializeSendPort extends SendPort {
 
         try {
 
-            if (splitter != null && splitter.length > 0) {
+            if (splitter.length > 0) {
 
                 Ibis.myIbis.unlock();
                 // Reset all our previous connections so the

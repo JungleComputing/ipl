@@ -120,14 +120,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
             switch (opcode) {
             case NEW_RECEIVER:
                 if (DEBUG) {
-                    try {
-                        TcpReceivePortIdentifier x
-                                = (TcpReceivePortIdentifier) in.readObject();
-                        System.out.println(port.name + ": Got a NEW_RECEIVER "
-                                + x + " from " + origin);
-                    } catch (ClassNotFoundException e) {
-                        throw new IbisIOException(e);
-                    }
+                    System.out.println(port.name + ": Got a NEW_RECEIVER");
                 }
                 in.close();
                 createNewStream();

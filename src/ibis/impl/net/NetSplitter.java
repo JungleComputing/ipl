@@ -161,15 +161,15 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.initSend();
         } else {
             Iterator i = outputMap.values().iterator();
-            boolean empty = true;
-            do {
-                empty = false;
+            // boolean empty = true;
+            while (i.hasNext()) {
+            //     empty = false;
                 NetOutput no = (NetOutput) i.next();
                 no.initSend();
-            } while (i.hasNext());
-            if (empty) {
-                throw new Error(this + ": initSend without subOutputs");
             }
+            // if (empty) {
+            //     throw new Error(this + ": initSend without subOutputs");
+            // }
         }
         super.initSend();
         log.out();
@@ -182,10 +182,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.send();
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.send();
-            } while (i.hasNext());
+            }
         }
         log.out();
 
@@ -204,7 +204,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             boolean first = true;
 
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 long newcount = no.finish();
 
@@ -212,7 +212,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
                     count = newcount;
                     first = false;
                 }
-            } while (i.hasNext());
+            }
         }
         log.out();
 
@@ -302,11 +302,11 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             bo.flushBuffer();
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 NetBufferedOutputSupport bo = (NetBufferedOutputSupport) no;
                 bo.flushBuffer();
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -323,11 +323,11 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             bo.writeBuffered(data, offset, length);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 NetBufferedOutputSupport bo = (NetBufferedOutputSupport) no;
                 bo.writeBuffered(data, offset, length);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -342,10 +342,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
                 buffer.ownershipClaimed = true;
             }
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeByteBuffer(buffer);
-            } while (i.hasNext());
+            }
             if (mine) {
                 buffer.free();
             }
@@ -363,10 +363,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeBoolean(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeBoolean(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -381,10 +381,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeByte(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeByte(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -399,10 +399,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeChar(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeChar(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -417,10 +417,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeShort(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeShort(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -435,10 +435,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeInt(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeInt(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -453,10 +453,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeLong(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeLong(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -471,10 +471,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeFloat(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeFloat(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -489,10 +489,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeDouble(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeDouble(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -507,10 +507,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeString(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeString(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -525,10 +525,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeObject(v);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeObject(v);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -539,10 +539,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -553,10 +553,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -567,10 +567,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -581,10 +581,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -595,10 +595,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -609,10 +609,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -623,10 +623,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -637,10 +637,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
@@ -651,10 +651,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
             singleton.writeArray(b, o, l);
         } else {
             Iterator i = outputMap.values().iterator();
-            do {
+            while (i.hasNext()) {
                 NetOutput no = (NetOutput) i.next();
                 no.writeArray(b, o, l);
-            } while (i.hasNext());
+            }
         }
         log.out();
     }
