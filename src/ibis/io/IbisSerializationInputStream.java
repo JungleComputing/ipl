@@ -594,6 +594,49 @@ public final class IbisSerializationInputStream
     private native void setFieldBoolean(Object ref, String fieldname, boolean b);
     private native void setFieldObject(Object ref, String fieldname, String osig, Object o);
     
+    /** For IOGenerator: needed when assigning final fields of an object that is rewritten,
+        but super is not, and super is serializable.
+    */
+    public void read_field_double(Object ref, String fieldname) throws IOException {
+	setFieldDouble(ref, fieldname, readDouble());
+    }
+
+    public void read_field_long(Object ref, String fieldname) throws IOException {
+	setFieldLong(ref, fieldname, readLong());
+    }
+
+    public void read_field_float(Object ref, String fieldname) throws IOException {
+	setFieldFloat(ref, fieldname, readFloat());
+    }
+
+    public void read_field_int(Object ref, String fieldname) throws IOException {
+	setFieldInt(ref, fieldname, readInt());
+    }
+
+    public void read_field_short(Object ref, String fieldname) throws IOException {
+	setFieldShort(ref, fieldname, readShort());
+    }
+
+    public void read_field_char(Object ref, String fieldname) throws IOException {
+	setFieldChar(ref, fieldname, readChar());
+    }
+
+    public void read_field_byte(Object ref, String fieldname) throws IOException {
+	setFieldByte(ref, fieldname, readByte());
+    }
+
+    public void read_field_boolean(Object ref, String fieldname) throws IOException {
+	setFieldBoolean(ref, fieldname, readBoolean());
+    }
+
+    public void read_field_UTF(Object ref, String fieldname) throws IOException {
+	setFieldObject(ref, fieldname, "Ljava/lang/String;", readUTF());
+    }
+
+    public void read_field_object(Object ref, String fieldname, String fieldsig) throws IOException, ClassNotFoundException {
+	setFieldObject(ref, fieldname, fieldsig, readObject());
+    }
+
     private void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref) throws IOException {
 		int temp = 0;
 		try {
@@ -749,6 +792,27 @@ public final class IbisSerializationInputStream
     }
 
     private native Object createUninitializedObject(Class type, Class non_serializable_super);
+
+    public Object create_uninitialized_object(String classname) throws IOException {
+	Class clazz = null;
+	try {
+	    clazz = Class.forName(classname);
+	} catch (ClassNotFoundException e) {
+	    throw new IOException("class " + classname + " not found");
+	}
+
+	Class t2 = clazz;
+	while (Serializable.class.isAssignableFrom(t2)) {
+	    /* Find first non-serializable super-class. */
+	    t2 = t2.getSuperclass();
+	}
+	// Calls constructor for non-serializable superclass.
+	Object obj = createUninitializedObject(clazz, t2);
+
+	addObjectToCycleCheck(obj);
+
+	return obj;
+    }
 
     public void push_current_object(Object ref, int level) {
 		if (stack_size >= max_stack_size) {
