@@ -147,7 +147,7 @@ class Main {
 
 			}
 	    
-			local = new SOR(nrow, ncol, nit, sync, global);	    
+			local = new SOR(nrow, ncol, nit, sync, global, visualization);	    
 
 			table = global.table((i_SOR) local, info.rank());
 			local.setTable(table);
@@ -159,6 +159,7 @@ class Main {
 				// Give the other nodes a chance to exit.
 				// before cleaning up the GlobalData object.
 			}
+			System.exit(0);
 		} catch (Exception e) {
 			System.err.println("OOPS: " + e);
 			e.printStackTrace();

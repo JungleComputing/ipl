@@ -62,13 +62,15 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	int prevIndex, nextIndex;
 	int nit;
 	boolean sync;
+	boolean visualization;
 
 	WaitingSendThread prevSender, nextSender;
 
-	SOR(int nrow, int ncol, int nit, boolean sync, i_GlobalData global) throws RemoteException {
+	SOR(int nrow, int ncol, int nit, boolean sync, i_GlobalData global, boolean visualization) throws RemoteException {
 		this.nrow = nrow; // Add two rows to borders.
 		this.ncol = ncol; // Add two columns to borders.
 		this.nit  = nit;
+		this.visualization = visualization;
 
 		this.sync       = sync;
 
@@ -181,7 +183,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	}
 
 
-	public synchronized void putCol(boolean sender, int index, double[] col) throws RemoteException{
+	public synchronized void putCol(boolean sender, int index, double[] col) throws RemoteException {
 
 		if(sender == PREV) {
 
@@ -302,7 +304,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		iteration = 0;
 
 		do {
-			
+			/*
 			  // insert a source
 			for(int i=0; i<50; i++) {
 				for(int j=0; j<50; j++) {
@@ -318,9 +320,11 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 					g[g.length-i-50][g[0].length-j-50] = 0.0;
 				}
 			}
-			
+			*/
 
-			((GlobalData)global).putMatrix(g);
+			if(visualization) {
+				((GlobalData)global).putMatrix(g);
+			}
 
 			diff = 0.0;
 		
