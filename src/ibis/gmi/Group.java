@@ -536,6 +536,7 @@ public final class Group {
 				for (int i=1;i<tokens-1;i++) { 
 				    classname += "." + s.nextToken();
 				}
+				classname += ".";
 			    } 		
 			    
 			    classname += "group_stub_" + s.nextToken();
