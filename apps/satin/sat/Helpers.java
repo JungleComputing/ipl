@@ -83,7 +83,7 @@ class Helpers {
      */
     public static void dumpAssignments( String label, int assignment[] )
     {
-	System.err.print( label + ": " );
+	System.err.print( label + ":" );
 	for( int j=0; j<assignment.length; j++ ){
 	    int v = assignment[j];
 	    

@@ -47,6 +47,21 @@ public final class SATContext implements java.io.Serializable {
     /** The number of unsatisfied clauses. */
     public int unsatisfied;
 
+    // One step in the chain of resolutions that help to construct
+    // a good conflict clause.
+    private final class Resolution {
+        Resolution next;        // The next one in the chain.
+        int cno;                // The clause to resolve with.
+        int var;                // The variable to resolve on.
+
+        Resolution( Resolution next, int cno, int var )
+        {
+            this.next = next;
+            this.cno = cno;
+            this.var = var;
+        }
+    }
+
     /**
      * Constructs a Context with the specified elements.
      */
@@ -75,8 +90,10 @@ public final class SATContext implements java.io.Serializable {
     }
 
     private static final boolean tracePropagation = false;
-    private static final boolean traceLearning = false;
+    private static final boolean traceLearning = true;
+    private static final boolean traceResolutionChain = false;
     private static final boolean doVerification = false;
+    private static final boolean propagatePureVariables = false;
 
     /**
      * Constructs a SAT context based on the given SAT problem.
@@ -280,10 +297,11 @@ public final class SATContext implements java.io.Serializable {
      * computes the first clause thas dominates the conflict in the
      * deductions at this level. Returns the index if this clause.
      */
-    int registerDistance( SATProblem p, int cno, int level, int dist[], int d )
+    int registerDistance( SATProblem p, int cno, int level, int dist[], Resolution chain[], int d )
     {
         Clause c = p.clauses[cno];
         int res = -1;
+        int impliedVariable = -1;
 
         if( dist[cno] != 0 && dist[cno]<=d ){
             // In our walk back over the deductions, we come across
@@ -309,12 +327,18 @@ public final class SATContext implements java.io.Serializable {
                 if( a>=0 ){
                     // The variable is not a decision variable, we're
                     // still interested.
-                    if( a != cno ){
+                    if( a == cno ){
+                        impliedVariable = v;
+                    }
+                    else {
                         // Variable is not implied by this clause, we're
                         // still interested.
-                        int res1 = registerDistance( p, a, level, dist, d+1 );
-                        if( res == -1 || ((res1!=-1) && dist[res1]<dist[res]) ){
-                            res = res1;
+                        int res1 = registerDistance( p, a, level, dist, chain, d+1 );
+                        if( res1 != -1 ){
+                            if( res == -1 || dist[res1]<dist[res] ){
+                                res = res1;
+                                chain[cno] = new Resolution( chain[res], cno, -1 );
+                            }
                         }
                     }
                 }
@@ -332,16 +356,25 @@ public final class SATContext implements java.io.Serializable {
                 if( a>=0 ){
                     // The variable is not a decision variable, we're
                     // still interested.
-                    if( a != cno ){
+                    if( a == cno ){
+                        impliedVariable = v;
+                    }
+                    else {
                         // Variable is not implied by this clause, we're
                         // still interested.
-                        int res1 = registerDistance( p, a, level, dist, d+1 );
-                        if( res == -1 || ((res1!=-1) && dist[res1]<dist[res]) ){
-                            res = res1;
+                        int res1 = registerDistance( p, a, level, dist, chain, d+1 );
+                        if( res1 != -1 ){
+                            if( res == -1 || dist[res1]<dist[res] ){
+                                res = res1;
+                                chain[cno] = new Resolution( chain[res], cno, -1 );
+                            }
                         }
                     }
                 }
             }
+        }
+        if( chain[cno] != null ){
+            chain[cno].var = impliedVariable;
         }
         if( dist[cno] != 0 ){
             // Someone has been here before. Return this one as
@@ -359,14 +392,19 @@ public final class SATContext implements java.io.Serializable {
      * compute the first variable thas dominates the conflict in the
      * deductions at this level.
      */
-    int computeDominantClause( SATProblem p, int cno, int level )
+    Resolution computeResolutionChain( SATProblem p, int cno, int level )
     {
         // The distance of each clause to the conflicting clause. The 
         // conflicting clause itself gets distance 1, so that we can use
         // the default value 0
         // as indication that we haven't considered this clause yet.
         int dist[] = new int[satisfied.length];
-        return registerDistance( p, cno, level, dist, 1 );
+        Resolution chain[] = new Resolution[satisfied.length];
+        int cc = registerDistance( p, cno, level, dist, chain, 1 );
+        if( cc<0 ){
+            return null;
+        }
+        return chain[cno].next;
     }
 
     /**
@@ -440,19 +478,26 @@ public final class SATContext implements java.io.Serializable {
 	else {
 	    int a = antecedent[var];
 
-            int domclause = computeDominantClause( p, cno, level );
+            Resolution chain = computeResolutionChain( p, cno, level );
+            if( chain == null ){
+                // No interesting clause to learn.
+                return null;
+            }
             if( traceLearning ){
-                if( domclause>=0 ){
-                    System.err.println( "Dominant clause: " + p.clauses[domclause] );
-                }
-                else {
-                    System.err.println( "There is no dominant clause" );
+                System.err.println( "Resolution chain:" );
+                Resolution r = chain;
+                while( r != null ){
+                    System.err.println( "-- Resolve v" + r.var + " on " + p.clauses[r.cno] );
+                    r = r.next;
                 }
             }
-	    if( a>=0 ){
-		return Clause.resolve( p.clauses[cno], p.clauses[a], var );
-	    }
-	    return null;
+            Resolution r = chain;
+            Clause res = p.clauses[cno];
+            while( r != null ){
+		res = Clause.resolve( res, p.clauses[r.cno], r.var );
+                r = r.next;
+            }
+	    return res;
 	}
     }
 
@@ -466,10 +511,12 @@ public final class SATContext implements java.io.Serializable {
     private void analyzeConflict( SATProblem p, int cno, int var, int level )
         throws SATRestartException
     {
-        if( tracePropagation | traceLearning ){
+        if( tracePropagation | traceLearning | traceResolutionChain ){
             System.err.println( "Clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
             dumpAssignments();
-            dumpAntecedents( "", p, cno );
+            if( traceResolutionChain ){
+                dumpAntecedents( "", p, cno );
+            }
         }
         Clause cc = buildConflictClause( p, cno, var, level );
         if( traceLearning ){
@@ -642,7 +689,7 @@ public final class SATContext implements java.io.Serializable {
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
                         // adminstration is inconsistent at the moment.
-                        hasPure = true;
+                        hasPure = propagatePureVariables;
                     }
 		}
 	    }
@@ -664,7 +711,7 @@ public final class SATContext implements java.io.Serializable {
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
                         // adminstration is inconsistent at the moment.
-                        hasPure = true;
+                        hasPure = propagatePureVariables;
                     }
 		}
 	    }
