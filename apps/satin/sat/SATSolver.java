@@ -164,6 +164,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
      * @param level The branching level.
+     * @param localLevel The number of generations on this processor.
      * @param ctx The changable context of the solver.
      * @param var The next variable to assign.
      * @param val The value to assign.
@@ -171,12 +172,17 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      */
     public void solve(
 	int level,
+        int localLevel,
 	SATContext ctx,
 	int var,
 	boolean val,
         boolean learnTuple
     ) throws SATException
     {
+        if( !localJob() ){
+            // This job was stolen, reset the local generations counter.
+            localLevel = 0;
+        }
 	int res = ctx.update( p, level );
 	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){
@@ -247,14 +253,13 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        //if( needMoreJobs() ){
-        if( true ){
+        if( localLevel<10 ){
             try {
                 // We have variable 'nextvar' to branch on.
                 SATContext firstctx = (SATContext) ctx.clone();
-                solve( level+1, firstctx, nextvar, firstvar, learnTuple );
+                solve( level+1, localLevel+1, firstctx, nextvar, firstvar, learnTuple );
                 SATContext secondctx = (SATContext) ctx.clone();
-                solve( level+1, secondctx, nextvar, !firstvar, learnTuple );
+                solve( level+1, localLevel+1, secondctx, nextvar, !firstvar, learnTuple );
                 sync();
             }
             catch( SATJumpException x ){
@@ -343,8 +348,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
 
-            s.solve( 0, negctx, nextvar, firstvar, learnTuple );
-            s.solve( 0, ctx, nextvar, !firstvar, learnTuple );
+            s.solve( 0, 0, negctx, nextvar, firstvar, learnTuple );
+            s.solve( 0, 0, ctx, nextvar, !firstvar, learnTuple );
             s.sync();
 	}
 	catch( SATResultException r ){
