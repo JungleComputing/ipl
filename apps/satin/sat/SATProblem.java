@@ -625,7 +625,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     {
         int res[] = new int[vars];
 
-	for( int ix=0; ix<res.length; ix++ ){
+	for( int ix=0; ix<vars; ix++ ){
 	    res[ix] = variables[ix].getAssignment();
 	}
 	return res;
@@ -641,6 +641,34 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 
 	for( int i=0; i<clauseCount; i++ ){
 	    res[i] = clauses[i].getTermCount();
+	}
+	return res;
+    }
+
+    /**
+     * Returns a new array that contains the number of clauses in which
+     * a variable occurs positively.
+     */
+    int [] buildPosClauses()
+    {
+        int res[] = new int[vars];
+
+	for( int ix=0; ix<vars; ix++ ){
+	    res[ix] = variables[ix].getPosCount();
+	}
+	return res;
+    }
+
+    /**
+     * Returns a new array that contains the number of clauses in which
+     * a variable occurs negatively.
+     */
+    int [] buildNegClauses()
+    {
+        int res[] = new int[vars];
+
+	for( int ix=0; ix<vars; ix++ ){
+	    res[ix] = variables[ix].getNegCount();
 	}
 	return res;
     }

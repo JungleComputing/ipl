@@ -150,6 +150,16 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    }
 	    throw new SATResultException( s );
 	}
+	varix++;
+	// Search for an unassigned variable.
+	while( varix<ctx.varlist.length ){
+	    int nextvar = ctx.varlist[varix];
+
+	    if( ctx.assignments[nextvar] == -1 ){
+		break;
+	    }
+	    varix++;
+	}
 	if( varix>=ctx.varlist.length ){
 	    // There are no variables left to assign, clearly there
 	    // is no solution.
@@ -161,14 +171,14 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 
 	// We have variable 'var' to branch on.
 	if( varix+leafVariables>=ctx.varlist.length ){
-	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, varix+1, false );
-	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, varix+1, true );
+	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, varix, false );
+	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, varix, true );
 	}
 	else {
 	    SATContext negctx = (SATContext) ctx.clone();
 	    SATContext posctx = (SATContext) ctx.clone();
-	    solve( level+1, p, negctx, varix+1, false );
-	    solve( level+1, p, posctx, varix+1, true );
+	    solve( level+1, p, negctx, varix, false );
+	    solve( level+1, p, posctx, varix, true );
 	    sync();
 	}
     }
@@ -237,7 +247,9 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    // a bit more subtle.
 	    SATContext ctx = new SATContext(
 	        p.getClauseCount(),
-		p.buildTermCounts()
+		p.buildTermCounts(),
+		p.buildPosClauses(),
+		p.buildNegClauses()
 	    );
 
 	    ctx.varlist = p.buildOrderedVarList();
@@ -297,7 +309,9 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 		// a bit more subtle.
 		SATContext ctx = new SATContext(
 		    p.getClauseCount(),
-		    p.buildTermCounts()
+		    p.buildTermCounts(),
+		    p.buildPosClauses(),
+		    p.buildNegClauses()
 		);
 
 		ctx.varlist = p.buildOrderedVarList();

@@ -82,6 +82,18 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     /** Returns the number of clauses that this variable is used in. */
     int getUseCount() { return pos.size() + neg.size(); }
 
+    /**
+     * Returns the number of clauses that this variable is used in
+     * as a positive term.
+     */
+    int getPosCount() { return pos.size(); }
+
+    /**
+     * Returns the number of clauses that this variable is used in
+     * as a negative term.
+     */
+    int getNegCount() { return neg.size(); }
+
     public String toString()
     {
         return "(" + label + ")";
