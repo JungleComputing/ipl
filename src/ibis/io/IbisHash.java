@@ -107,7 +107,9 @@ final class IbisHash {
 
 
     final int find(Object ref) {
-	return find(ref, ref.hashCode());
+	// Don't call hashCode on the object. Some objects behave very strange :-)
+	// If you don't understand this, think "ProActive".
+	return find(ref, System.identityHashCode(ref));
     }
 
 
@@ -194,7 +196,7 @@ final class IbisHash {
 
 
     final void put(Object ref, int handle) {
-	put(ref, handle, ref.hashCode());
+	put(ref, handle, System.identityHashCode(ref));
     }
 
 
