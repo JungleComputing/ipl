@@ -1,0 +1,7 @@
+ibis.ipl.impl.messagePassing.panda.PandaIbis
+ipl/impl/messagePassing/panda/properties
+system_panda_properties
+
+ibis.ipl.impl.tcp.TcpIbis
+ipl/impl/tcp/properties
+system_tcp_properties
