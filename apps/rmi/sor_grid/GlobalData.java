@@ -3,6 +3,12 @@ import java.rmi.server.UnicastRemoteObject;
 
 import ibis.util.PoolInfo;
 
+/**
+ * Data buffer class for visualisation tool
+ *
+ * @author Rob van Nieuwpoort?
+ * @author Rutger Hofman
+ */
 class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 
 	private int total_num;
@@ -21,6 +27,7 @@ class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 	private int width, height;
 	private float[][] rawData;
 	private boolean newDataAvailable = false;
+	private int dataWritten = 0;
 	private boolean synchronous = false;
 	private boolean doScaling = true;
 
@@ -46,7 +53,7 @@ System.err.println(this + ": in ctor");
 		else while (num_nodes < total_num) {
 			try {
 				wait();
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
 				throw new RemoteException(e.toString());
 			}
 		} 
@@ -59,7 +66,7 @@ System.err.println(this + ": in ctor");
 		while (!ready) {
 			try {
 				wait();
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
 				throw new RemoteException(e.toString());
 			}
 		}
@@ -81,7 +88,7 @@ System.err.println(this + ": in ctor");
 		else while (ready) {
 			try {
 				wait();
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
 				throw new RemoteException(e.toString());
 			}
 		}
@@ -189,38 +196,96 @@ public synchronized void sync() throws RemoteException {
     }
 }
 	// used for visualization
-	public void setRawDataSize(int width, int height) throws RemoteException {
+	public synchronized void setRawDataSize(int width, int height) throws RemoteException {
 System.err.println(this + ": setRawDataSize " + width + " x " + height);
 		this.width = width;
 		this.height = height;
 		rawData = new float[height][width];
+		notifyAll();
+	}
+
+	// Used for visualization, downsample/enlarge to the given size.
+	public synchronized int getRawDataWidth() {
+	    while (rawData == null) {
+		try {
+		    wait();
+		} catch (InterruptedException e) {
+		    // Go ahead waiting
+		}
+	    }
+	    return width;
+	}
+
+	// Used for visualization, downsample/enlarge to the given size.
+	public synchronized int getRawDataHeight() {
+	    while (rawData == null) {
+		try {
+		    wait();
+		} catch (InterruptedException e) {
+		    // Go ahead waiting
+		}
+	    }
+	    return height;
 	}
 
 	public synchronized float[][] getRawData() throws RemoteException {
 		// never send the same data twice...
 System.err.println(this + ": attempt to collect RawData");
-		while(!newDataAvailable) {
+		while(dataWritten < total_num) {
 			try {
 				wait();
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
 				System.err.println("eek: " + e);
 			}
 		}
 
 		newDataAvailable = false;
+		dataWritten = 0;
 		notifyAll();
 System.err.println(this + ": collected RawData");
 
 		return rawData;
 	}
 
-	public synchronized void putMatrix(double[][] m)  throws RemoteException{
+
+	public static float[][] createDownsampledCanves(double[][] m, int width, int height) {
+	    // create the result matrix, downsample m.
+	    int ci = m.length / height;
+	    float[][] canvas = new float[ci][];
+
+	    for (int i=0; i<height; i++) {
+		int ypos = i * m.length / height;
+		if (m[ypos] != null) {
+		    int cj = m[ypos].length / width;
+		    canvas[i] = new float[cj];
+		}
+	    }
+
+	    return canvas;
+	}
+
+
+	public static void downsample(double[][] m, float[][] canvas, int width, int height) {
+	    for (int i=0; i<height; i++) {
+		for (int j=0; j<width; j++) {
+		    int ypos = i * m.length / height;
+		    if (m[ypos] != null) {
+			int xpos = j * m[j].length / width;
+
+			canvas[i][j] = (float) m[ypos][xpos];
+		    }
+		}
+	    }
+	}
+
+
+	public synchronized void putMatrix(float[][] m)  throws RemoteException{
 
 		if(synchronous) {
 			while(newDataAvailable) {
 				try {
 					wait();
-				} catch (Exception e) {
+				} catch (InterruptedException e) {
 					System.err.println("eek: " + e);
 				}
 			}
@@ -228,42 +293,16 @@ System.err.println(this + ": collected RawData");
 			if(newDataAvailable) return;
 		}
 
-		double min = 1000;
-		double max = -1000;
-
-		for(int i=0; i<m.length; i++) {
-			for (int j=0; j<m[i].length; j++) {
-				if(m[i][j] < min) {
-					min = m[i][j];
-				}
-				if(m[i][j] > max) {
-					max = m[i][j];
-				}
-			}
+		for (int i = 0; i < height; i++) {
+		    if (m[i] != null) {
+			System.arraycopy(m[i], 0, rawData[i], 0, m[i].length);
+		    }
 		}
 
-		// create the result matrix, downsample m.
-		for(int i=0; i<height; i++) {
-			for (int j=0; j<width; j++) {
-				int xpos = j * m[0].length / width;
-				int ypos = i * m.length / height;
-				float val;
-
-				if(!doScaling) {
-					val = (float) (m[ypos][xpos] / 20.0); // floats between 0.0 and 1.0
-				} else {
-					if(min >= 0.0) {
-						val = (float) ((m[ypos][xpos] + min) / (max-min));
-					} else {
-						val = (float) ((m[ypos][xpos] - min) / (max-min));
-					}
-				}
-				rawData[i][j] = val;
-			}
+		dataWritten++;
+		if (dataWritten == total_num) {
+		    notifyAll();
 		}
-
-		newDataAvailable = true;
-		notifyAll();
 System.err.println(this + ": deposited matrix[" + height + "][" + width + "]");
 	}
 }

@@ -37,9 +37,28 @@ class SORCanvas extends Canvas {
 	public synchronized void paint(Graphics g) {
 		if (data == null) return;
 
+		float min = Float.MAX_VALUE;
+		float max = Float.MIN_VALUE;
+		for (int i = 0; i < height; i++) {
+		    for (int j = 0; j<width; j++) {
+			if (data[i][j] > max) {
+			    max = data[i][j];
+			} else if (data[i][j] < min) {
+			    min = data[i][j];
+			}
+		    }
+		}
+
+		float scale = 1.0F;
+		if (min == Float.MIN_VALUE) {
+		    min = max;
+		} else {
+		    scale = 255 / (max - min);
+		}
+
 		for (int i = 0; i < height; i++) {
 			for(int j = 0; j<width; j++) {
-				int rgb = (int) (data[i][j] * 255); // one byte for red, one for green and one for blue
+				int rgb = (int) ((data[i][j] - min) * scale); // one byte for red, one for green and one for blue
 				if(rgb > 255 || rgb < 0) {
 					System.err.println("rgb = " + rgb + ", val was " + data[i][j]);
 					if(rgb > 255) {

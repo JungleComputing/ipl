@@ -14,7 +14,13 @@ interface i_GlobalData extends Remote {
 	public void setRawDataSize(int width, int height) throws RemoteException;
 
 	// Used for visualization, downsample/enlarge to the given size.
+	public int getRawDataWidth() throws RemoteException;
+
+	// Used for visualization, downsample/enlarge to the given size.
+	public int getRawDataHeight() throws RemoteException;
+
+	// Used for visualization, downsample/enlarge to the given size.
 	public float[][] getRawData() throws RemoteException;
 
-	public void putMatrix(double[][] m) throws RemoteException;
+	public void putMatrix(float[][] m) throws RemoteException;
 }

@@ -342,6 +342,15 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 			System.out.println("");
 		} 
 
+		int width = 0;
+		int height = 0;
+		float[][] canvas = null;
+		if(visualization) {
+		    width = global.getRawDataWidth();
+		    height = global.getRawDataHeight();
+		    canvas = GlobalData.createDownsampledCanves(g, width, height);
+		}
+
 		/* now do the "real" computation */
 		t_start = System.currentTimeMillis();
 
@@ -372,7 +381,8 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 			*/
 
 			if(visualization) {
-				global.putMatrix(g);
+				GlobalData.downsample(g, canvas, width, height);
+				global.putMatrix(canvas);
 			}
 
 			diff = 0.0;
