@@ -7,8 +7,8 @@ import ibis.ipl.IbisIOException;
 
 /**
  *
- * Extends OutputStream with write of array of primitives and writeSingleInt
- */
+ * Extends OutputStream with write of array of primitives and writeSingleInt.
+ **/
 
 public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	
@@ -47,17 +47,17 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 
 	private final void flush(int incr, boolean always) throws IbisIOException {
 
-//		System.out.println("flush(" + incr + " " + always + ") : " + " " + (index + incr >= BUF_SIZE) + " "  + (index) + ")");
+//		System.err.println("flush(" + incr + " " + always + ") : " + " " + (index + incr >= BUF_SIZE) + " "  + (index) + ")");
 
 		try {				
 			if (always) { 
 				bytes += index;
 
-//				System.out.print("fflushing [");
+//				System.err.print("fflushing [");
 //				for (int i=0;i<index;i++) { 
-//					System.out.print(buffer[i] + ",");
+//					System.err.print(buffer[i] + ",");
 //				}
-//				System.out.println("] " + bytes);
+//				System.err.println("] " + bytes);
 
 				out.write(buffer, 0, index);
 				index = 0;
@@ -66,11 +66,11 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 				if (index + incr >= BUF_SIZE) { 
 					bytes += index;
 
-//					System.out.print("nflushing [");
+//					System.err.print("nflushing [");
 //					for (int i=0;i<index;i++) { 
-//						System.out.print(buffer[i] + ",");
+//						System.err.print(buffer[i] + ",");
 //					}
-//					System.out.println("] " + bytes);
+//					System.err.println("] " + bytes);
 
 					out.write(buffer, 0, index);
 					index = 0;
@@ -83,7 +83,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 /*
 	    if (always || index + incr >= BUF_SIZE) {
 		try {			
-			System.out.println("Writing " + index + " bytes");
+			System.err.println("Writing " + index + " bytes");
 		    out.write(buffer, 0, index);
 		} catch (IOException e) {
 		    throw new IbisIOException(e);
@@ -109,7 +109,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	public void writeArray(boolean[] a, int off, int len) throws IbisIOException {
 
 		if (DEBUG) { 
-			System.out.println("writeArray(boolean[" + off + " ... " + (off+len) + "])");
+			System.err.println("writeArray(boolean[" + off + " ... " + (off+len) + "])");
 		}			
 
 		int size;
@@ -132,11 +132,11 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	public void writeArray(byte[] a, int off, int len) throws IbisIOException {
 
 		if (DEBUG) { 
-			System.out.print("writeArray(byte[");
+			System.err.print("writeArray(byte[");
 			for (int i=0;i<len;i++) { 
-				System.out.print(a[off+i] + ",");
+				System.err.print(a[off+i] + ",");
 			}
-			System.out.println("]");
+			System.err.println("]");
 
 		}			
 	    
@@ -164,11 +164,11 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	public void writeArray(short[] a, int off, int len) throws IbisIOException {
 
 		if (DEBUG) { 
-			System.out.print("writeArray(short " + (W++) + " [");
+			System.err.print("writeArray(short " + (W++) + " [");
 			for (int i=0;i<len;i++) { 
-				System.out.print(a[off+i] + ",");
+				System.err.print(a[off+i] + ",");
 			}
-			System.out.println("]");
+			System.err.println("]");
 		}			
 
 		int size;
@@ -178,7 +178,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 
 			size = min((BUF_SIZE-index)/SIZEOF_SHORT, len);
 
-//			System.out.println("Room to write " + size + " shorts");
+//			System.err.println("Room to write " + size + " shorts");
 			
 			Conversion.short2byte(a, off, size, buffer, index);
 			
@@ -186,7 +186,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 			len   -= size;
 			index += size*SIZEOF_SHORT;
 
-//			System.out.println("Len = " + len + " index = " + index);
+//			System.err.println("Len = " + len + " index = " + index);
 			
 		} while (len != 0);	
 	}
@@ -194,7 +194,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	public void writeArray(char[] a, int off, int len) throws IbisIOException {
 
 		if (DEBUG) { 
-			System.out.println("writeArray(char[" + off + " ... " + (off+len) + "])");
+			System.err.println("writeArray(char[" + off + " ... " + (off+len) + "])");
 		}			
 
 		int size;
@@ -217,12 +217,12 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	public void writeArray(int[] a, int off, int len) throws IbisIOException {
 		
 		if (DEBUG) { 
-			System.out.println("writeArray(int[" + off + " ... " + (off+len) + "])");
-//      		System.out.println("writeArray(int[");
+			System.err.println("writeArray(int[" + off + " ... " + (off+len) + "])");
+//      		System.err.println("writeArray(int[");
 //			for (int i=0;i<len;i++) { 
-//				System.out.print(a[off+i] + ",");
+//				System.err.print(a[off+i] + ",");
 //			}
-//			System.out.println("]");
+//			System.err.println("]");
 		}			
 
 		int size;
@@ -232,7 +232,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 			
 			size = min((BUF_SIZE-index)/SIZEOF_INT, len);
 
-//			System.out.println("Room to write " + size + " ints");
+//			System.err.println("Room to write " + size + " ints");
 			
 			Conversion.int2byte(a, off, size, buffer, index);
 				
@@ -240,7 +240,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 			len   -= size;
 			index += size*SIZEOF_INT;
 			
-//			System.out.println("Len = " + len + " index = " + index);
+//			System.err.println("Len = " + len + " index = " + index);
 
 		} while (len != 0);	 
 	}
@@ -249,7 +249,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	public void writeArray(long[] a, int off, int len) throws IbisIOException {
 
 		if (DEBUG) { 
-			System.out.println("writeArray(long[" + off + " ... " + (off+len) + "])");
+			System.err.println("writeArray(long[" + off + " ... " + (off+len) + "])");
 		}			
 
 		int size;
@@ -290,7 +290,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	public void writeArray(double[] a, int off, int len) throws IbisIOException {
 
 		if (DEBUG) { 
-			System.out.println("writeArray(double[" + off + " ... " + (off+len) + "])");
+			System.err.println("writeArray(double[" + off + " ... " + (off+len) + "])");
 		}			
 
 		int size;
@@ -310,11 +310,19 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 	}
 
 
-	public final void flush(boolean lastFrag) throws IbisIOException {
+	public final void flush() throws IbisIOException {
 	    flush(0, true);
 	}
 
 
 	public final void finish() throws IbisIOException {
+	}
+
+	public void close() throws IbisIOException {
+		try {
+			out.close();
+		} catch (Exception e) {
+			throw new IbisIOException(e);
+		}
 	}
 }

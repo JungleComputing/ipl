@@ -5,10 +5,10 @@ import ibis.ipl.IbisIOException;
 /**
  *
  * Extends OutputStream with write of array of primitives and writeSingleInt
- */
+ **/
 
 public abstract class ArrayOutputStream
-	implements TypeSize, MantaStreamFlags {
+	implements TypeSize, IbisStreamFlags {
 
     /* protected */ public byte[]   byte_buffer   = new byte[BYTE_BUFFER_SIZE];
     /* protected */ public char[]   char_buffer   = new char[CHAR_BUFFER_SIZE];
@@ -80,14 +80,14 @@ public abstract class ArrayOutputStream
 	indices_short[TYPE_DOUBLE]  = (short) double_index;
 	indices_short[TYPE_HANDLE]  = (short) handle_index;
 /*
-	System.out.println("flushing bytes " + byte_index);
-	System.out.println("flushing char " + char_index);
-	System.out.println("flushing short " + short_index);
-	System.out.println("flushing int " + int_index);
-	System.out.println("flushing long " + long_index);
-	System.out.println("flushing float " + float_index);
-	System.out.println("flushing double " + double_index);
-	System.out.println("flushing handle " + handle_index);
+	System.err.println("flushing bytes " + byte_index);
+	System.err.println("flushing char " + char_index);
+	System.err.println("flushing short " + short_index);
+	System.err.println("flushing int " + int_index);
+	System.err.println("flushing long " + long_index);
+	System.err.println("flushing float " + float_index);
+	System.err.println("flushing double " + double_index);
+	System.err.println("flushing handle " + handle_index);
 */
 //    indices_short[PRIMITIVE_TYPES] = (short)  (eof ? 1 : 0);
 
@@ -106,8 +106,11 @@ public abstract class ArrayOutputStream
 //System.err.println("Sure, reset them indeces");
     }
 
-    /* protected */ public abstract void flush(boolean lastFrag) throws IbisIOException;
+    public abstract void flush() throws IbisIOException;
+
+//    /* protected */ public abstract void flush(boolean lastFrag) throws IbisIOException;
 
     /* protected */ public abstract void finish() throws IbisIOException;
 
+    public abstract void close() throws IbisIOException;
 }

@@ -1,5 +1,5 @@
 package ibis.io;
 
 public interface Serializable { 
-	public void generated_WriteObject(MantaOutputStream out) throws ibis.ipl.IbisIOException;
+	public void generated_WriteObject(IbisSerializationOutputStream out) throws ibis.ipl.IbisIOException;
 } 

@@ -203,17 +203,17 @@ final class AlternativeTypeInfo {
 			} 
 
 /*
-			System.out.println("Class " + clazz.getName() + " contains " + size + " serializable fields :");
+			System.err.println("Class " + clazz.getName() + " contains " + size + " serializable fields :");
 			
 			int temp = 0;
-			for (int i=0;i<double_count;i++)    System.out.println("double " + serializable_fields[temp++].getName());
-			for (int i=0;i<long_count;i++)      System.out.println("long " + serializable_fields[temp++].getName());
-			for (int i=0;i<float_count;i++)     System.out.println("float " + serializable_fields[temp++].getName());
-			for (int i=0;i<int_count;i++)       System.out.println("int " + serializable_fields[temp++].getName());
-			for (int i=0;i<short_count;i++)     System.out.println("short " + serializable_fields[temp++].getName());
-			for (int i=0;i<char_count;i++)      System.out.println("char " + serializable_fields[temp++].getName());
-			for (int i=0;i<boolean_count;i++)   System.out.println("boolean " + serializable_fields[temp++].getName());
-			for (int i=0;i<reference_count;i++) System.out.println("reference " + serializable_fields[temp++].getName());
+			for (int i=0;i<double_count;i++)    System.err.println("double " + serializable_fields[temp++].getName());
+			for (int i=0;i<long_count;i++)      System.err.println("long " + serializable_fields[temp++].getName());
+			for (int i=0;i<float_count;i++)     System.err.println("float " + serializable_fields[temp++].getName());
+			for (int i=0;i<int_count;i++)       System.err.println("int " + serializable_fields[temp++].getName());
+			for (int i=0;i<short_count;i++)     System.err.println("short " + serializable_fields[temp++].getName());
+			for (int i=0;i<char_count;i++)      System.err.println("char " + serializable_fields[temp++].getName());
+			for (int i=0;i<boolean_count;i++)   System.err.println("boolean " + serializable_fields[temp++].getName());
+			for (int i=0;i<reference_count;i++) System.err.println("reference " + serializable_fields[temp++].getName());
 */
 		} catch (Exception e) {
 			System.err.println("Cannot initialize serialization info for " + clazz.getName() +" : " + e);

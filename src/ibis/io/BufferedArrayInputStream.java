@@ -21,7 +21,7 @@ public final class BufferedArrayInputStream
 
     private InputStream in;
 
-    private static final int BUF_SIZE = 16*1024;
+    private static final int BUF_SIZE = 8*1024;
     private byte [] buffer;
     private int index, buffered_bytes;
 
@@ -53,10 +53,10 @@ public final class BufferedArrayInputStream
 
 	    try {
 		while ((buffered_bytes) < len) {
-//			System.out.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
+//			System.err.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
 			buffered_bytes += in.read(buffer, index + buffered_bytes, BUF_SIZE-(index+buffered_bytes));
 		}
-//		System.out.println(buffered_bytes + " in buffer");
+//		System.err.println(buffered_bytes + " in buffer");
 	    } catch (IOException e) {
 		throw new IbisIOException(e);
 	    }
@@ -74,7 +74,7 @@ public final class BufferedArrayInputStream
 		throws IbisIOException {
 
 		if (DEBUG) {
-			System.out.println("readArray(boolean[" + off + " ... " + (off+len) + "])");
+			System.err.println("readArray(boolean[" + off + " ... " + (off+len) + "])");
 		}
 
 		int useable, converted;
@@ -122,35 +122,35 @@ public final class BufferedArrayInputStream
 		throws IbisIOException {
 
 		if (DEBUG) {
-			System.out.println("readArray(byte[" + off + " ... " + (off+len) + "])");
+			System.err.println("readArray(byte[" + off + " ... " + (off+len) + "])");
 		}
 
 		if (buffered_bytes >= len) {
 
-//System.out.println("IN BUF");
+//System.err.println("IN BUF");
 
 			// data is already in the buffer.
-//			System.out.println("Data is in buffer -> copying " + index + " ... " + (index+len) + " to " + off);
+//			System.err.println("Data is in buffer -> copying " + index + " ... " + (index+len) + " to " + off);
 
 			System.arraycopy(buffer, index, a, off, len);
 			index += len;
 			buffered_bytes -= len;
 
-//System.out.println("DONE");
+//System.err.println("DONE");
 
 		} else {
 		    try {
 			if (buffered_bytes == 0) {
-//System.out.println("EEK2");
-//System.out.println("NOT IN BUF");
+//System.err.println("EEK2");
+//System.err.println("NOT IN BUF");
 				int rd = 0;
 				index = 0;
 				do {
 					rd += in.read(a, off + rd, len - rd);
 				} while (rd < len);
 			} else {
-//System.out.println("PARTLY IN BUF " + buffered_bytes + " " + len);
-//System.out.println("EEK3");
+//System.err.println("PARTLY IN BUF " + buffered_bytes + " " + len);
+//System.err.println("EEK3");
 				// first, copy the data we do have to 'a' .
 				System.arraycopy(buffer, index, a, off, buffered_bytes);
 				index = 0;
@@ -168,11 +168,11 @@ public final class BufferedArrayInputStream
 		    }
 		}
 
-//		System.out.print("result -> byte[");
+//		System.err.print("result -> byte[");
 //		for (int i=0;i<len;i++) { 
-//			System.out.print(a[off+i] + ",");
+//			System.err.print(a[off+i] + ",");
 //		}
-//		System.out.println("]");
+//		System.err.println("]");
 	}
 
 
@@ -221,11 +221,12 @@ public final class BufferedArrayInputStream
 		index += to_convert;
 
 		if (DEBUG) {
-//			System.out.print("readArray(short " + (R++) + " [");
+			System.err.print("readArray(short[");
 			for (int i=0;i<len;i++) {
-				System.out.print(a[off+i] + ",");
+				System.err.print(a[off+i] + ",");
 			}
-			System.out.println("]");
+			System.err.println("]");
+			System.err.flush();
 		}
 	}
 
@@ -233,7 +234,7 @@ public final class BufferedArrayInputStream
 		throws IbisIOException {
 
 		if (DEBUG) {
-			System.out.println("readArray(char[" + off + " ... " + (off+len) + "])");
+			System.err.println("readArray(char[" + off + " ... " + (off+len) + "])");
 		}
 
 		int useable, converted;
@@ -279,14 +280,14 @@ public final class BufferedArrayInputStream
 		throws IbisIOException {
 
 		if (DEBUG) {
-			System.out.println("readArray(int[" + off + " ... " + (off+len) + "])");
+			System.err.println("readArray(int[" + off + " ... " + (off+len) + "])");
 		}
 
 		int useable, converted;
 		int to_convert = len * SIZEOF_INT;
 
-//		System.out.println("To convert " + to_convert);
-//		System.out.println("Buffered " + buffered_bytes);
+//		System.err.println("To convert " + to_convert);
+//		System.err.println("Buffered " + buffered_bytes);
 
 		while (buffered_bytes < to_convert) {
 			// not enough data in the buffer
@@ -298,7 +299,7 @@ public final class BufferedArrayInputStream
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_INT;
 
-//				System.out.println("converting " + useable + " ints from " + off);
+//				System.err.println("converting " + useable + " ints from " + off);
 				Conversion.byte2int(buffer, index, a, off, useable);
 
 				len -= useable;
@@ -309,7 +310,7 @@ public final class BufferedArrayInputStream
 				buffered_bytes -= converted;
 				to_convert -= converted;
 
-//				System.out.println("Leftover " + len + " ints to convert, " + buffered_bytes + " bytes buffered" + 
+//				System.err.println("Leftover " + len + " ints to convert, " + buffered_bytes + " bytes buffered" + 
 //						   to_convert + " bytes to convert");
 
 				// second, copy the leftovers to the start of the buffer.
@@ -324,13 +325,13 @@ public final class BufferedArrayInputStream
 		}
 
 		// enough data in the buffer
-//		System.out.println("converting " + len + " ints from " + index + " to " + off);
+//		System.err.println("converting " + len + " ints from " + index + " to " + off);
 	
 		Conversion.byte2int(buffer, index, a, off, len);
 		buffered_bytes -= to_convert;
 		index += to_convert;
 
-	//	System.out.println("Done converting int [], buffer contains " + buffered_bytes + " bytes (starting at " + index + ")");
+	//	System.err.println("Done converting int [], buffer contains " + buffered_bytes + " bytes (starting at " + index + ")");
 
 
 	}
@@ -339,7 +340,7 @@ public final class BufferedArrayInputStream
 		throws IbisIOException {
 
 		if (DEBUG) {
-			System.out.println("readArray(long[" + off + " ... " + (off+len) + "])");
+			System.err.println("readArray(long[" + off + " ... " + (off+len) + "])");
 		}
 
 		int useable, converted;
@@ -385,7 +386,7 @@ public final class BufferedArrayInputStream
 	public void readArray(float[] a, int off, int len)
 		throws IbisIOException {
 		if (DEBUG) {
-			System.out.println("readArray(float[" + off + " ... " + (off+len) + "])");
+			System.err.println("readArray(float[" + off + " ... " + (off+len) + "])");
 		}
 
 		int useable, converted;
@@ -431,7 +432,7 @@ public final class BufferedArrayInputStream
 		throws IbisIOException {
 
 		if (DEBUG) {
-			System.out.println("readArray(double[" + off + " ... " + (off+len) + "])");
+			System.err.println("readArray(double[" + off + " ... " + (off+len) + "])");
 		}
 
 		int useable, converted;
