@@ -507,7 +507,7 @@ public final class Group implements GroupProtocol {
 			try {
 			    ibis.end();
 			} catch (IOException e) {
-			    throw new Error(e);
+			    throw new ibis.ipl.IbisError(e);
 			}
 			ibis = null;
 		    }
