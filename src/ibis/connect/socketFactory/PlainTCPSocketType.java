@@ -1,5 +1,7 @@
 package ibis.connect.socketFactory;
 
+import ibis.util.IPUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -42,7 +44,7 @@ public class PlainTCPSocketType extends SocketType
     {
 	Socket s = null;
 	if(hintIsServer) {
-	    ServerSocket server = this.createServerSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
+	    ServerSocket server = this.createServerSocket(new InetSocketAddress(IPUtils.getLocalHostAddress(), 0), 1);
 	    ObjectOutputStream os = new ObjectOutputStream(out);
 	    os.writeObject(server.getInetAddress());
 	    os.writeInt(server.getLocalPort());
