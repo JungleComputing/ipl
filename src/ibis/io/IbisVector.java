@@ -2,7 +2,7 @@ package ibis.io;
 
 public final class IbisVector { 
 
-	public static final int INIT_SIZE = 16;
+	public static final int INIT_SIZE = 64;
 
 	private Object [] array;
 	private int current_size;
@@ -18,14 +18,15 @@ public final class IbisVector {
 		maxfill = 0;
 	} 
 
-	private void double_array() { 
+	private final void double_array() { 
 		Object [] temp = new Object[current_size*4];
+//		System.arraycopy(array, 0, temp, 0, current_size);
 		System.arraycopy(array, 0, temp, 0, maxfill);
 		array = temp;
 		current_size *= 4;
 	} 
 
-	public void add(int index, Object data) { 
+	public final void add(int index, Object data) { 
 //		System.err.println("objects.add: index = " + index + " data = " + (data == null ? "NULL" : data.getClass().getName()));
 
 		while (index >= current_size) { 
@@ -35,11 +36,11 @@ public final class IbisVector {
 		if (index >= maxfill) maxfill = index+1;
 	} 
 
-	public Object get(int index) { 
+	public final Object get(int index) { 
 		return array[index];
 	} 
 
-	public void clear() { 
+	public final void clear() { 
 		for (int i=0;i<maxfill;i++) { 
 			array[i] = null;
 		}

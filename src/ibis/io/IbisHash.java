@@ -12,7 +12,7 @@ final class IbisHash {
 
     static final boolean STATS = false;
 
-    static final int MIN_BUCKETS = 128;
+    static final int MIN_BUCKETS = 32;
     // static final int SHIFT1  = 5;
     // static final int SHIFT2  = 16;
     static final int SHIFT1  = 4;
@@ -40,7 +40,8 @@ final class IbisHash {
 	if (b == null) {
 	    b = new Bucket();
 	    if (STATS) new_buckets++;
-	} else {
+	}
+	else {
 	    cache = b.next;
 	}
 
@@ -50,13 +51,15 @@ final class IbisHash {
 
     private final void putBucket(Bucket b) {
 	b.next = cache;
+	b.data = null;
 	cache = b;
     }
 
 
-    private static final int hash_first(int b) {
+    private static final int hash_first(int b, int size) {
 	// return ((b >>> SHIFT1) ^ (b >>> SHIFT2));
-	return (b >>> SHIFT3) ^ (b & ((1 << SHIFT3) - 1));
+	// return ((b >>> SHIFT1) ^ (b & ((1 << SHIFT3) - 1))) & (size-1);
+	return ((b >>> SHIFT3) ^ (b & ((1 << SHIFT3) - 1))) & (size-1);
     }
 
 
@@ -77,17 +80,19 @@ final class IbisHash {
 
 	if (STATS) finds++;
 
-	int h0 = mod(hash_first(h), size);
+	int h0 = hash_first(h, size);
+
+	Bucket b = bucket[h0 + offset];
+	
+	if (b == null) return 0;
+	if (b.data == ref) return b.handle;
+
 	int h1 = hash_second(h);
 
-	Bucket b = null;
-	while (true) {
-	    b = bucket[h0 + offset];
-	    if (b == null || b.data == ref) {
-		break;
-	    }
+	do {
 	    h0 = mod(h0 + h1, size);
-	}
+	    b = bucket[h0 + offset];
+	} while (b != null && b.data != ref);
 
 	return b == null ? 0 : b.handle;
     }
@@ -123,11 +128,13 @@ final class IbisHash {
 	    Bucket b = bucket[i + offset];
 	    if (b != null) {
 		int h = b.hashCode;
-		int h0 = mod(hash_first(h), n);
-		int h1 = hash_second(h);
+		int h0 = hash_first(h, n);
 		while (new_bucket[h0 + new_offset] != null) {
-		    h0 = mod(h0 + h1, n);
-		    if (STATS) rebuild_collisions++;
+		    int h1 = hash_second(h);
+		    do {
+			h0 = mod(h0 + h1, n);
+			if (STATS) rebuild_collisions++;
+		    } while (new_bucket[h0 + new_offset] != null);
 		}
 		new_bucket[h0 + new_offset] = b;
 		bucket[i + offset] = null;
@@ -145,31 +152,23 @@ final class IbisHash {
     // synchronized
     final void put(Object ref, int handle, int h) {
 
-	int h0 = mod(hash_first(h), size);
-	int h1 = 0;
+	int h0 = hash_first(h, size);
 
-	boolean collision = false;
+	Bucket b = bucket[h0 + offset];
 
-	Bucket b = null;
-	while (true) {
-	    b = bucket[h0 + offset];
-	    if (b == null) {
-		/* Found an empty slot. Use it */
-		break;
-	    } else if (b.data == ref) {
-		break;
-	    }
-	    if (! collision) {
-		collision = true;
-		h1 = hash_second(h);
-	    }
-	    h0 = mod(h0 + h1, size);
-	    if (STATS) collisions++;
+	if (b != null && b.data != ref) {
+	    int h1 = hash_second(h);
+	    do {
+		h0 = mod(h0 + h1, size);
+		if (STATS) collisions++;
+		b = bucket[h0 + offset];
+	    } while (b != null && b.data != ref);
 	}
 
 	if (b == null) {
 	    b = getBucket();
 	}
+
 	b.data     = ref;
 	b.handle   = handle;
 	b.hashCode = h;
