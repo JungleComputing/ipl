@@ -9,6 +9,7 @@ class ReceivePort
     implements ibis.ipl.ReceivePort, Protocol, Runnable, PollClient {
 
     private static final boolean DEBUG = false;
+    private static final int max_sleepers = 8;
 
     private static int livingPorts = 0;
     private static Syncer portCounter = new Syncer();
@@ -43,6 +44,9 @@ class ReceivePort
 
     Vector connections = new Vector();
     ConditionVariable disconnected = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
+
+    private int sleeping_receivers = 0;
+    ConditionVariable sleepers = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 
     private long upcall_poll;
 
@@ -155,7 +159,13 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
 
     private void createNewUpcallThread() {
-	new Thread(this).start();
+	if (sleeping_receivers > 0) {
+	    System.err.println(Thread.currentThread() + "(actually woke up a sleeping one)");
+	    sleepers.cv_signal();
+	}
+	else {
+	    new Thread(this).start();
+	}
     }
 
 
@@ -213,8 +223,8 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	    if (ibis.ipl.impl.messagePassing.Ibis.STATISTICS) {
 		upcall_msgs++;
 	    }
-	    if (handlingReceive == 0) {
-System.err.println("Create another UpcallThread because the previous one didn't terminate");
+	    if (handlingReceive == 0 && ! aMessageIsAlive) {
+System.err.println("enqueue: Create another UpcallThread because the previous one didn't terminate");
 		createNewUpcallThread();
 	    }
 	}
@@ -257,13 +267,15 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 	if (liveWaiters > 0) {
 	    messageHandled.cv_signal();
 	}
-	if (queueFront != null && arrivedWaiters > 0) {
-	    messageArrived.cv_signal();
-	}
 
-	if (queueFront != null && handlingReceive == 0) {
-System.err.println("Create another UpcallThread because the previous one didn't terminate");
+	if (queueFront != null) {
+	    if (arrivedWaiters > 0) {
+		messageArrived.cv_signal();
+	    }
+	    else if (handlingReceive == 0) {
+System.err.println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
 		createNewUpcallThread();
+	    }
 	}
 
 	ssp.tickReceive();
@@ -382,9 +394,9 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 	// long t = Ibis.currentTime();
 
 // if (upcall != null) System.err.println("Hit receive() in an upcall()");
-for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
-ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
-}
+// for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
+// ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
+// }
 
 	if (queueFront == null) {
 	    if (DEBUG) {
@@ -524,6 +536,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 
 	messageHandled.cv_bcast();
 	messageArrived.cv_bcast();
+	sleepers.cv_bcast();
 
 	if (DEBUG) {
 	    System.out.println(Thread.currentThread() + name + ": Enter shutdown.waitPolling; connections = " + connectionToString());
@@ -611,18 +624,28 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 
 	try {
 	    while (true) {
-		ibis.ipl.ReadMessage msg;
+		ibis.ipl.ReadMessage msg = null;
 		
-		msg = null;
-
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+
 		try {
-		    if (stop || handlingReceive > 0) {
+		    if (stop || (handlingReceive > 0 && sleeping_receivers >= max_sleepers)) {
 			if (DEBUG) {
 			    System.err.println(Thread.currentThread() + "Receive port daemon " + this +
 					       " upcall thread polls " + upcall_poll);
 			}
 			break;
+		    }
+
+		    if (handlingReceive > 0) {
+			if (DEBUG) {
+			    System.err.println(Thread.currentThread() + "Receive port daemon " + this +
+					       " upcall thread polls " + upcall_poll + " goes to sleep");
+			}
+			sleeping_receivers++;
+			sleepers.cv_wait();
+			sleeping_receivers--;
+			continue;
 		    }
 
 		    /* Avoid waiting threads in waitPolling. Having too many
