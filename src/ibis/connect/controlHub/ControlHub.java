@@ -35,7 +35,7 @@ class NodeManager extends Thread
 	hostname = wire.getPeerName();
     }
     protected void sendPacket(HubProtocol.HubPacket p) 
-	throws IOException{
+	throws IOException {
 	wire.sendMessage(hostname, p);
     }
     public void run() {
@@ -47,19 +47,11 @@ class NodeManager extends Thread
 		int      action = packet.getType();
 		String destHost = packet.getHost();
 		NodeManager  node = (NodeManager)ControlHub.resolveNode(destHost);
-
-		if(action == HubProtocol.DESTROY) {
-		    /* packet for the hub itself */
-		    nodeRunning = false;
+		if(node == null) {
+		  System.err.println("# ControlHub: node not found: "+destHost);
 		} else {
-		    /* packet to forward */
-		    if(node == null) {
-			System.err.println("# ControlHub: node not found: "+destHost);
-		    } else {
-			node.sendPacket(packet);
-		    }
+		  node.sendPacket(packet);
 		}
-
 	    } catch(EOFException e) {
 		System.err.println("# ControlHub: EOF detected for "+hostname);
 		nodeRunning = false;

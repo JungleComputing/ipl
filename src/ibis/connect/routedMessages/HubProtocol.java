@@ -21,12 +21,6 @@ public class HubProtocol
     public static final int REJECT  = 3; // notification for a refused connection
     public static final int DATA    = 4; // data packet
     public static final int CLOSE   = 5; // notification for socket close
-    public static final int DESTROY = 6; // destroy the hub
-    public static final int GETADDR = 7; 
-
-    public static class WireException extends IOException {
-	public WireException() { super(); }
-    }
 
     public static class HubWire
     {
