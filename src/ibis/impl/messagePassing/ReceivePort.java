@@ -46,6 +46,11 @@ class ReceivePort
 
     private long upcall_poll;
 
+    // STATISTICS
+    private int enqueued_msgs;
+    private int upcall_msgs;
+    private int dequeued_msgs;
+
     static {
 	if (DEBUG) {
 	    System.err.println("Turn on ReceivePort.DEBUG");
@@ -151,6 +156,7 @@ class ReceivePort
     private ibis.ipl.impl.messagePassing.ReadMessage locate(ShadowSendPort ssp,
 							    int msgSeqno) {
 	if (ssp.msgSeqno > msgSeqno) {
+	    System.err.println("This is a SERIOUS BUG: the msgSeqno goes BACK!!!!!!!!!");
 	    ssp.msgSeqno = msgSeqno;
 	    return null;
 	}
@@ -163,8 +169,8 @@ class ReceivePort
 	ibis.ipl.impl.messagePassing.ReadMessage scan;
 	for (scan = queueFront;
 		scan != null &&
-		    scan.shadowSendPort != ssp &&
-		    scan.msgSeqno != msgSeqno;
+		    (scan.shadowSendPort != ssp ||
+		     scan.msgSeqno != msgSeqno);
 		scan = scan.next) {
 	}
 
@@ -185,14 +191,20 @@ class ReceivePort
 	queueTail = msg;
 	msg.next = null;
 
+	if (ibis.ipl.impl.messagePassing.Ibis.STATISTICS) {
+	    enqueued_msgs++;
+	}
+
 	if (arrivedWaiters > 0) {
 	    messageArrived.cv_signal();
 	}
 
 	if (upcall != null) {
-// System.err.println("Notify this ReceivePort upcall, this " + this + " queueFront " + queueFront + " msg " + msg + " msgHandle " + Integer.toHexString(msg.msgHandle));
 	    wakeup();
 
+	    if (ibis.ipl.impl.messagePassing.Ibis.STATISTICS) {
+		upcall_msgs++;
+	    }
 	    if (handlingReceive == 0) {
 		createNewUpcallThread();
 	    }
@@ -207,9 +219,11 @@ class ReceivePort
 	if (msg != null) {
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 		System.err.println("Now dequeue msg " + msg);
-		System.err.println("Now dequeue msg " + msg + " msgHandle " + Integer.toHexString(msg.fragmentFront.msgHandle) + " for ReadMessage " + this + " queueFront := " + msg.next);
 	    }
 	    queueFront = msg.next;
+	    if (ibis.ipl.impl.messagePassing.Ibis.STATISTICS) {
+		dequeued_msgs++;
+	    }
 	}
 
 	return msg;

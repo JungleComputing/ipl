@@ -82,8 +82,14 @@ class Ibisc {
 
 	void mantaCompile(String target, boolean link) {
 		try {
+			if (link) {
+				System.out.println("Temporarily skip link phase");
+				System.out.println(mantac + " -o " + exeName + " " + target + ".class and all other class files");
+				return;
+			}
+
 			String command = mantac + (link ? " " : " -c ") + 
-				(exeName == null ? " " : "-o " + exeName + " ") +
+				(! link || exeName == null ? " " : "-o " + exeName + " ") +
 				target + ".class";
 
 			if(verbose) {

@@ -29,6 +29,12 @@ struct IBP_MSG {
 };
 
 
+typedef enum IBMPI_PROTO_STATUS {
+    PROTO_IN_USE	= 33,
+    PROTO_FREE		= 107
+} ibmpi_proto_status_t;
+
+
 typedef struct IBMPI_PROTO ibmpi_proto_t, *ibmpi_proto_p;
 
 struct IBMPI_PROTO {
@@ -39,6 +45,10 @@ struct IBMPI_PROTO {
     int		port;
     int		msg_id;
     int		proto_size;
+#ifndef NDEBUG
+    ibmpi_proto_status_t	status;
+    int		seqno;
+#endif
 };
 
 

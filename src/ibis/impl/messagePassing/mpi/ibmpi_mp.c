@@ -36,6 +36,8 @@ static int		ibmpi_msg_count;
 static int		ibmpi_n_upcall = 0;
 static int	     (**ibmpi_upcall)(JNIEnv *, ibp_msg_p, void *) = NULL;
 
+static int		ibmpi_unused_port;
+
 
 static int		ibmpi_msg_cache_size = RCVE_PROTO_CACHE_SIZE;
 static ibp_msg_p	ibmpi_msg_freelist;
@@ -46,6 +48,11 @@ static das_time_t	t_rcve_poll;
 static int		n_rcve_poll;
 static das_time_t	t_send_poll;
 static int		n_send_poll;
+
+#ifndef NDEBUG
+static int	       *ibmpi_send_seqno;
+static int	       *ibmpi_rcve_seqno;
+#endif
 
 
 static ibp_msg_p
@@ -125,7 +132,9 @@ ibmpi_mp_upcall(JNIEnv *env, MPI_Status *status)
 	ibmp_error(env, "Cannot successfully receive protocol msg");
     }
     msg->start = proto->proto_size;
+    assert(proto->seqno == ibmpi_rcve_seqno[status->MPI_SOURCE]++);
 
+    assert(proto->port != ibmpi_unused_port);
     if (! ibmpi_upcall[proto->port](env, msg, proto)) {
 	ibp_msg_clear(env, msg);
     }
@@ -186,7 +195,7 @@ finished_allocate(void)
 {
 #define FINISHED_INCR	32
     int	i;
-    int	n = finished_max + FINISHED_INCR;
+    int	n = finished_alloc + FINISHED_INCR;
 
     finished_req = realloc(finished_req, n * sizeof(*finished_req));
     finished_index = realloc(finished_index, n * sizeof(*finished_index));
@@ -227,6 +236,7 @@ ibmpi_finished_get(void)
 
     if (i > finished_max) {
 	finished_max = i;
+fprintf(stderr, "%d: finished_max := %d\n", ibmp_me, i);
     }
 
     f->status = IBMPI_allocated;
@@ -248,18 +258,19 @@ ibmpi_finished_put(ibmpi_finished_p f)
     if (finished_max == f->index) {
 	int	i;
 
-	for (i = finished_max - 1; i >= 0; i++) {
+	for (i = finished_max - 1; i >= 0; i--) {
 	    if (finished[i].status != IBMPI_free) {
-		finished_max = i;
 		break;
 	    }
 	}
+fprintf(stderr, "%d: finished_max := %d\n", ibmp_me, i);
+	finished_max = i;
     }
 }
 
 
 static int
-ibmpi_finished_poll(void)
+ibmpi_finished_poll(JNIEnv *env)
 {
     int		i;
     int		x;
@@ -272,17 +283,20 @@ ibmpi_finished_poll(void)
 	return 0;
     }
 
-    MPI_Testsome(finished_max + 1,
-		 finished_req,
-		 &hits,
-		 finished_index,
-		 finished_status);
+    if (MPI_Testsome(finished_max + 1,
+		     finished_req,
+		     &hits,
+		     finished_index,
+		     finished_status) != MPI_SUCCESS) {
+	ibmp_error(env, "MPI_Testsome fais\n");
+    }
 
     assert(hits != MPI_UNDEFINED);
 
     for (i = 0; i < hits; i++) {
 	x = finished_index[i];
 	f = &finished[x];
+fprintf(stderr, "Testsome says [%d] = [[%d]] completed, finished= %p\n", x, i, f);
 	f->callback(f->arg);
 	if (f->to_free != NULL) {
 	    free(f->to_free);
@@ -320,7 +334,7 @@ ibmpi_mp_poll(JNIEnv *env)
 	t_rcve_poll +=  stop - start;
 	n_rcve_poll++;
 	das_time_get(&start);
-	if (ibmpi_finished_poll() > 0) {
+	if (ibmpi_finished_poll(env) > 0) {
 	    ibmpi_upcall_done = 0;
 	}
 	das_time_get(&stop);
@@ -346,6 +360,10 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
     proto->proto_size = proto_size;
     proto->msg_id = ibmpi_msg_count++;
     proto->port = port;
+    assert(port != ibmpi_unused_port);
+#ifndef NDEBUG
+    proto->seqno = ibmpi_send_seqno[cpu]++;
+#endif
 
     len += proto_size;
     if (len > SEND_PROTO_CACHE_SIZE) {
@@ -391,6 +409,10 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
     proto->proto_size = proto_size;
     proto->msg_id = ibmpi_msg_count++;
     proto->port = port;
+    assert(port != ibmpi_unused_port);
+#ifndef NDEBUG
+    proto->seqno = ibmpi_send_seqno[cpu]++;
+#endif
 
     f->callback = sent_upcall;
     f->arg      = arg;
@@ -437,7 +459,8 @@ static int
 no_such_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     fprintf(stderr, "%2d: receive a Ibis/MPI MP message for a port already cleared\n", ibmp_me);
-    return 0;
+
+    abort();
 }
 
 
@@ -458,6 +481,11 @@ void
 ibp_mp_init(JNIEnv *env)
 {
     ibmp_poll_register(ibmpi_mp_poll);
+    ibmpi_unused_port = ibp_mp_port_register(no_such_upcall);
+#ifndef NDEBUG
+    ibmpi_send_seqno = calloc(ibmp_nr, sizeof(*ibmpi_send_seqno));
+    ibmpi_rcve_seqno = calloc(ibmp_nr, sizeof(*ibmpi_send_seqno));
+#endif
 }
 
 

@@ -2,12 +2,24 @@ APP_OPTIONS = 47
 
 TEST_IBIS=
 
+MAIN		= Fib.java
+INNER_CLASS	=
+INNER_CLASS	+= FibInterface.class
+
+# SATIN		=
+# SATIN		+= Fib.java
+# SATIN_METHODS	= Fib.fib
+
 OUT= fib
+
+MP_MODE		= panda
+# MP_MODE		= mpi
+MPI_MODE	= gm
+
+MANTACFLAGS	+= -v
 
 include ../../../config.mk
 include ../config.mk
-
-MAIN=Fib.java
 
 java: 
 	$(JAVAC_COMMAND) $(MAIN)
@@ -15,8 +27,33 @@ java:
 satin:
 	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
-manta:
-	$(IBISC_COMMAND) -no-aborts -manta -o $(OUT) $(MAIN) -v
+INVOCATIONS	=
+INVOCATIONS	+= Satin_Fib_fib_InvocationRecord.o
+
+RETURNS		=
+RETURNS		+= Satin_Fib_fib_ReturnRecord.o
+
+O_FILES		+= $(INVOCATIONS) $(RETURNS)
+
+INVOCATION_CLASS	= $(INVOCATIONS:%.o=%.class)
+RETURN_CLASS		= $(RETURNS:%.o=%.class)
+
+manta:	$(O_FILES) manta_ibisc
+	# $(IBISC_COMMAND) -no-aborts -manta -o $(OUT) $(MAIN) -v
+
+Satin_Fib_fib_InvocationRecord.class Satin_Fib_fib_ReturnRecord.class: Fib.class
+	$(IOC_COMMAND) $<
+
+Fib.class:	Fib.java
+	$(JAVAC_COMMAND) $*.java
+	$(SATINC_COMMAND) $*
+	$(IOC_COMMAND) $*.class
+
+FibInterface.class:	Fib.class
+	$(SATINC_COMMAND) $*
+	$(IOC_COMMAND) $*.class
+
+manta_ibisc:	$(O_FILES) $(OUT)
 
 test:
 	../../../bin/ibis_nameserver -single &

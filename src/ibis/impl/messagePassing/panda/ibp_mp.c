@@ -50,11 +50,19 @@ static int	ibp_mp_proto_start;
 static int	ibp_mp_proto_top;
 static int	ibp_mp_port;
 
+#ifndef NDEBUG
+static int     *ibp_send_seqno;
+static int     *ibp_rcve_seqno;
+#endif
+
 
 typedef struct IBP_MP_HDR ibp_mp_hdr_t, *ibp_mp_hdr_p;
 
 struct IBP_MP_HDR {
     int			port;
+#ifndef NDEBUG
+    int			seqno;
+#endif
 };
 
 static ibp_mp_hdr_p
@@ -90,6 +98,7 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
     //    }
 
     assert(ibp_JNIEnv != NULL);
+    assert(hdr->seqno == ibp_rcve_seqno[pan_msg_sender(msg)]++);
 
     IBP_VPRINTF(200, ibp_JNIEnv,
 		     ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
@@ -155,6 +164,9 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
 {
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
+#ifndef NDEBUG
+    hdr->seqno = ibp_send_seqno[cpu]++;
+#endif
     ibp_set_JNIEnv(env);
     IBP_VPRINTF(200, env, ("Do a Panda MP send %d to %d size %d env %p\n",
 		mp_sends[cpu]++, cpu, ibmp_iovec_len(iov, iov_size), env));
@@ -173,6 +185,9 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
 {
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
+#ifndef NDEBUG
+    hdr->seqno = ibp_send_seqno[cpu]++;
+#endif
     ibp_set_JNIEnv(env);
     IBP_VPRINTF(200, env, ("Do a Panda MP send %d async to %d size %d\n",
 		mp_sends[cpu]++, cpu, ibmp_iovec_len(iov, iov_size)));
@@ -208,6 +223,10 @@ ibp_mp_init(JNIEnv *env)
     // ibmp_lock_check_owned(env);
     mp_upcalls = calloc(pan_nr_processes(), sizeof(*mp_upcalls));
     mp_sends = calloc(pan_nr_processes(), sizeof(*mp_sends));
+#endif
+#ifndef NDEBUG
+    ibp_send_seqno = calloc(pan_nr_processes(), sizeof(*ibp_send_seqno));
+    ibp_rcve_seqno = calloc(pan_nr_processes(), sizeof(*ibp_rcve_seqno));
 #endif
 }
 

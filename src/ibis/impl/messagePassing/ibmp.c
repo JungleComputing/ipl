@@ -342,7 +342,6 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
 	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/Ibis\n");
     }
     ibmp_cls_Ibis = (jclass)(*env)->NewGlobalRef(env, (jobject)ibmp_cls_Ibis);
-fprintf(stderr, "%s.%d: ibmp_cls_Ibis = %p\n", __FILE__, __LINE__, ibmp_cls_Ibis);
 
     fld_Ibis_ibis = (*env)->GetStaticFieldID(env, ibmp_cls_Ibis, "myIbis", "Libis/ipl/impl/messagePassing/Ibis;");
     if (fld_Ibis_ibis == NULL) {

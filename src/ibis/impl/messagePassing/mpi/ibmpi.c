@@ -69,12 +69,16 @@ ibp_proto_create(unsigned int size)
 	if (p == NULL) {
 	    p = malloc(SEND_PROTO_CACHE_SIZE);
 	} else {
+	    assert(p->status == PROTO_FREE);
 	    proto_freelist = p->sn.next;
 	}
     } else {
 	p = malloc(size);
     }
     p->sn.size = size;
+#ifndef NDEBUG
+    p->status = PROTO_IN_USE;
+#endif
 	
     return p;
 }
@@ -85,6 +89,10 @@ ibp_proto_clear(void *proto)
 {
     ibmpi_proto_p p = proto;
 
+    assert(p->status == PROTO_IN_USE);
+#ifndef NDEBUG
+    p->status = PROTO_FREE;
+#endif
     if (p->sn.size <= SEND_PROTO_CACHE_SIZE) {
 	p->sn.next = proto_freelist;
 	proto_freelist = p;

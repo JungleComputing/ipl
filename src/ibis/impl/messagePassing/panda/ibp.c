@@ -91,7 +91,8 @@ Java_ibis_ipl_impl_messagePassing_Ibis_t2d(JNIEnv *env, jclass c, jlong l)
     } lt;
 
     lt.l = l;
-   return (jdouble)pan_time_t2d(&lt.t);
+
+    return (jdouble)pan_time_t2d(&lt.t);
 }
 
 

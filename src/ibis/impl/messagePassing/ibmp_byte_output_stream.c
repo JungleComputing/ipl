@@ -371,7 +371,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 //    pan_time_get(&st.t);
 
     if (msg == NULL || (! (lastFrag && msg->firstFrag) && msg->iov_len == 0)) {
-	IBP_VPRINTF(250, env, ("Skip send of an empty non-single fragment\n"));
+	IBP_VPRINTF(250, env, ("Skip send of an empty non-single fragment msg seqno %d\n", msgSeqno));
 
 	if (msg != NULL && lastFrag && lastSplitter) {
 	    msg->firstFrag = 1;	/* Reset for next time round */
@@ -405,14 +405,14 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 	    ! pan_thread_nonblocking() &&
 	    len < ibmp_send_sync) {
 	/* Wow, we're allowed to do a sync send! */
-	IBP_VPRINTF(250, env, ("ByteOS %p Do this send in sync fashion; lastFrag=%s data size %d iov_size %d\n", this, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+	IBP_VPRINTF(250, env, ("ByteOS %p Do this send in sync fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", this, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
 	ibp_mp_send_sync(env, (int)cpu, ibmp_byte_stream_port,
 			 msg->iov, msg->iov_len,
 			 msg->proto, ibmp_byte_stream_proto_size);
 	return JNI_FALSE;
     }
 
-    IBP_VPRINTF(250, env, ("ByteOS %p Do this send in Async fashion msg %p; lastFrag=%s data size %d iov_size %d\n", this, msg, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+    IBP_VPRINTF(250, env, ("ByteOS %p Do this send in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", this, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
     msg->outstanding_send++;
     msg->outstanding_final = lastFrag;
     ibmp_msg_freelist_verify();

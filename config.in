@@ -3,6 +3,22 @@
 # When using javac or jikes, set these values correctly and use "make"
 # or "make java". (Also make sure that your CLASSPATH is set correctly).     
 
+# The Ibis Makefiles assume definitions of the following variables:
+# SRC		= List of .java files that must be compiled
+# INNER_CLASS	= List of Bla.class files whose source file is not Bla.java
+#		  but some other .java file
+#
+# MAIN		= Name of .java file that contains main class for application
+# OUT		= Name of executable
+#
+# NATIVE_SRC	= List of .java files that have native methods
+# C_SRC		= List of .c files that contain native code
+# PACKAGE	= package in . notation
+# SO_LIB	= libbla.so for jit builds. Otherwise, the default
+#		  Ibis library (IBISROOT/ibis/lib/libibis.a) is used.
+#
+# All these must be specified *before* inclusion of config.mk!
+
 .PHONY:		manta
 .PHONY:		java
 
@@ -47,12 +63,15 @@ export LD_LIBRARY_PATH
 LD_ASSUME_KERNEL	= 2.2.5
 export LD_ASSUME_KERNEL
 
+PANDA_THREADS	= ot
+# PANDA_THREADS	= pthreads
+
 IBERTY	        = $(MYRINET_ROOT)/libiberty.a
 BFD		= $(MYRINET_ROOT)/libbfd.a
 LANAIDEVICE	= $(MYRINET_ROOT)/libLanaiDevice.a
 DPI		= $(MYRINET_ROOT)/libDpi.a
 ENS		= /usr/proj/FastSockets/enameserver/enameserver-0.13/libens.a
-ifeq ($(OPTIMIZE), 1)
+ifeq (1, $(OPTIMIZE))
 LFC	        = $(LFC_ROOT)/lib/optimized/liblfc.a
 PANDA_LIB	= $(PANDA)/panda4.0/lib/i386_linux/$(PANDA_NETWORK)/no_threads/optimized/libpanda.a
 else
@@ -84,20 +103,26 @@ ifeq (, $(PANDA_NETWORK))
 PANDA_NETWORK	= udp
 endif
 
-CFLAGS		=
-MANTACFLAGS	=
-
-ifeq ($(OPTIMIZE), 1)
+ifeq (1, $(OPTIMIZE))
+JAVAOPTFLAGS	+= -O
 CFLAGS		+= -O3 -DNDEBUG
 else
 MANTACFLAGS	+= -no-opt-comm
 MANTACFLAGS	+= -no-inline -g
 endif
-ifeq ($(PROFILE), 1)
+ifeq (1, $(PROFILE))
 CFLAGS		+= -pg
 # CFLAGS		+= -fno-inline-functions
 MANTACFLAGS	+= -pg
 endif
+
+ifeq (1, $(BUILD_MANTA))
+CFLAGS	+= -I$(MANTA)
+CFLAGS	+= -I$(MANTA)/include/shared/jni
+else
+CFLAGS	+= -I$(JPATH)/include -I$(JPATH)/include/linux
+endif
+CFLAGS	+= -g -Wall -Wmissing-prototypes -Wstrict-prototypes -MD
 
 ifeq (,$(PACKAGE))
 PACKAGEDOT	:= ""
@@ -152,7 +177,9 @@ PKG_O_DOLLAR	:= $(subst $$,\$$,$(PKG_O_FILES))
 
 MANTA_LIB	= $(IBIS_ROOT)/ibis/lib/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
-MANTA_LDLIBS	= $(MANTA_LIB)
+MANTA_LDLIBS	=
+MANTA_LDLIBS	+= -$(PANDA_THREADS)
+MANTA_LDLIBS	+= $(MANTA_LIB)
 
 ifeq (gm, $(MPI_MODE))
     MPI		= /usr/local/mpich/mpich-gm
@@ -303,8 +330,24 @@ endif
 # Invoke mantac on the class files
 #
 .PHONY:	manta_lib
-manta_lib:	$(PKG_O_FILES) $(C_OBJ)
+manta_lib:	$(PKG_O_FILES) $(C_OBJ) $(SO_LIB)
 	$(AR) ru $(MANTA_LIB) $(PKG_O_DOLLAR) $(C_OBJ)
+
+# Shared support for native code
+#
+H_FILES		= $(NATIVE_SRC:%.java=$(PACKAGE_MANGLE)_%.h)
+
+h_files:	$(H_FILES)
+
+$(PACKAGE_MANGLE)_%.h:	%.java
+	$(JAVAH_COMMAND) -jni $(PACKAGE).$(basename $*)
+	touch $@
+
+C_OBJ		= $(C_SRC:%.c=%.o)
+
+$(SO_LIB):	h_files $(C_LIB) $(C_OBJ)
+	$(LDSO) -o $@ $(C_OBJ)
+	cp $(SO_LIB) $(IBIS_ROOT)/ibis/lib
 
 
 $(LASM_CACHE):
@@ -333,4 +376,4 @@ run:
 #
 .PHONY:	prun
 prun:
-	@echo "prun IBP_SEND_SYNC=100 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 CLASSPATH=$(CLASSPATH) -no-panda $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"
+	@echo "prun IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_INTR=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. CLASSPATH=$(CLASSPATH) -no-panda $(JPATH)/bin/java 'hosts' $(JAVACFLAGS) $(MAIN:%.java=%) 'args ...'"
