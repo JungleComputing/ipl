@@ -40,34 +40,38 @@ public class Stub extends RemoteStub {
 
     public final void initSend() throws IOException {
 	if (! initialized) {
-	    if (send == null) {
+	    synchronized(this) {
+		if (! initialized) {
+		    if (send == null) {
 // System.out.println("Setting up connection for " + this);
-		send = RTS.getSendPort(skeletonPortId);
-		reply = RTS.getReceivePort();
-	    }
-	    WriteMessage wm = send.newMessage();
-	    wm.writeInt(-1);
-	    wm.writeInt(0);
-	    wm.writeObject(reply.identifier());
-	    wm.send();
-	    wm.finish();
+			send = RTS.getSendPort(skeletonPortId);
+			reply = RTS.getReceivePort();
+		    }
+		    WriteMessage wm = send.newMessage();
+		    wm.writeInt(-1);
+		    wm.writeInt(0);
+		    wm.writeObject(reply.identifier());
+		    wm.send();
+		    wm.finish();
 
-	    ReadMessage rm = reply.receive();
-	    stubID = rm.readInt();
-	    try {
-		String stubType = (String) rm.readObject();
-	    } catch(ClassNotFoundException e) {
-		throw new IbisError("Class String not found", e);
-	    }
-	    rm.finish();
+		    ReadMessage rm = reply.receive();
+		    stubID = rm.readInt();
+		    try {
+			String stubType = (String) rm.readObject();
+		    } catch(ClassNotFoundException e) {
+			throw new Error("Class String not found", e);
+		    }
+		    rm.finish();		
 
-	    initialized = true;
+		    initialized = true;
+		}
+	    }
 	}
     }
 
     protected void finalize() {
 	// Give up resources.
-// System.out.println("Finalize stub: " + this);
+System.out.println("Finalize stub: " + this);
 	try {
 	    /* if (send != null) send.free(); */
 	    if (reply != null) {

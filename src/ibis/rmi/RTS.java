@@ -491,7 +491,7 @@ System.out.println("removeSkeleton called!");
 	return s;
     }
 
-    public static ReceivePort getReceivePort()
+    public static synchronized ReceivePort getReceivePort()
 	throws IOException
     {
 	ReceivePort r;
@@ -500,20 +500,20 @@ System.out.println("removeSkeleton called!");
 	if (len > 0) {
 	    r = (ReceivePort) receiveports.remove(len-1);
 	    if (DEBUG) {
-		System.out.println(hostname + ": Reuse receiveport: " + r);
+		System.out.println(hostname + ": Reuse receiveport: " + r.identifier());
 	    }
 	}
 	else {
 	    r = portType.createReceivePort("//" + hostname + "/rmi_stub" + (new java.rmi.server.UID()).toString());
 	    if (DEBUG) {
-		System.out.println(hostname + ": New receiveport: " + r);
+		System.out.println(hostname + ": New receiveport: " + r.identifier());
 	    }
 	}
 	r.enableConnections();
 	return r;
     }
 
-    public static void putReceivePort(ReceivePort r) {
+    public static synchronized void putReceivePort(ReceivePort r) {
 	r.disableConnections();
 	if (DEBUG) {
 	    System.out.println(hostname + ": receiveport returned");
