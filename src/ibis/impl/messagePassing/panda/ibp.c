@@ -616,7 +616,7 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 	ibmp_error(env, "Cannot get hostname");
     }
 
-    env_host_id = getenv("PRUN_HOST_INDEX");
+    env_host_id = getenv("PRUN_CPU_RANK");
     if (env_host_id == NULL) {
 	me = -1;
 	for (i = 0; i < fs_nhosts; i++) {
