@@ -1,7 +1,8 @@
 package ibis.ipl;
 
 /**
- * Connection upcall interface for sendports.
+ * Connection upcall interface for sendports. An Ibis implementation may
+ * choose to block while processing this upcall.
  */
 public interface SendPortConnectUpcall {
     /**
