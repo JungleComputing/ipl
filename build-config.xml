@@ -338,7 +338,7 @@ to the command line.
 
 	<!--
 	==============================================================
-	    Generate configuration.sh
+	    Generate configuration.sh, on windows too, for it could be Cygwin.
 	-->
 
 	<condition property="JIT_OPTS" value="${env.JIT_OPTS}">
@@ -353,14 +353,8 @@ to the command line.
 	<property name="config.javac" location="${JAVA_HOME_ENV}/bin/javac"/>
 
 	<mkdir dir="${ibis}/bin"/>
-
-	<if>
-	    <not>
-		<os family="windows"/>
-	    </not>
-	    <then>
-		<echo
-			file="${ibis}/configuration.sh">#!/bin/bash
+	<echo
+		file="${ibis}/configuration.sh">#!/bin/bash
 # Shell variables to describe Ibis configuration
 JAVA_ROOT=${JAVA_HOME_ENV}
 # JAVA_ROOT=/usr/local/ibm-java/IBMJava2-141
@@ -376,14 +370,12 @@ IBIS_CONFIG_SEEN=1
 </echo>
 
 
-		<copy
-			file="${ibis}/src/scripts/ns-env.in"
-			tofile="${ibis}/bin/ns-env"/>
-		<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_PORT@" value="9826"/>
-		<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="${hostname}"/>
-		<chmod file="${ibis}/bin/ns-env" perm="+x"/>
-	    </then>
-	</if>
+	<copy
+		file="${ibis}/src/scripts/ns-env.in"
+		tofile="${ibis}/bin/ns-env"/>
+	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_PORT@" value="9826"/>
+	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="${hostname}"/>
+	<chmod file="${ibis}/bin/ns-env" perm="+x"/>
 
 	<if>
 	    <os family="windows"/>

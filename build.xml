@@ -56,8 +56,12 @@
 	</antcall>
     </target>
 
-    <target name="build-unix-bin"
+    <target name="build-unix-bin">
+    <!--
+	    Commented out so that unix scripts get installed on Cygwin
+	    (and on windows, but who cares ...)
 	    unless="config.os-is-windows">
+    -->
 	<mkdir dir="${ibis}/bin"/>
 	<copy
 	    file="${ibis}/src/scripts/ibisc"
