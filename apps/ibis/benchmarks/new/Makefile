@@ -1,12 +1,5 @@
 include ../../../../config.mk
 
-CVS
-Makefile
-arrays
-list
-object
-tree
-
 java:
 	cd arrays && $(MAKE) $(MFLAGS) java
 	cd list && $(MAKE) $(MFLAGS) java
