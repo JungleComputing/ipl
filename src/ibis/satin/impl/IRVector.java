@@ -40,6 +40,9 @@ final class IRVector implements Config {
 	}
 
 	int numOf(ibis.ipl.IbisIdentifier owner) {
+		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}
 		int c = 0;
 		for (int i = 0; i < count; i++) {
 			if (l[i].stealer.equals(owner))
@@ -296,33 +299,59 @@ final class IRVector implements Config {
 	 * Used for fault tolerance remove all the jobs stolen by targetOwner and
 	 * put them back in the taskQueue
 	 */
-	void redoStolenBy(IbisIdentifier targetOwner) {
+	void redoStolenByWorkQueue(IbisIdentifier crashedIbis) {
 
 		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
 		for (int i = count - 1; i >= 0; i--) {
-			if (targetOwner.equals(l[i].stealer)) {
-				if (FAULT_TOLERANCE) {
-					l[i].reDone = true;
-				}
+			if (crashedIbis.equals(l[i].stealer)) {
+				l[i].reDone = true;
 				l[i].stealer = null;
 				satin.q.addToTail(l[i]);
+				if (FT_STATS) {
+					satin.restartedJobs++;
+				}				
 				count--;
-				ParameterRecord pr = l[i].getParameterRecord();
+				l[i] = l[count];
+
+			}
+		}
+	}
+	
+	/**
+	 * Used for fault tolerance; remove all the jobs stolen by crashedIbis
+	 * and attach them to their parents
+	 */
+	void redoStolenByAttachToParents(IbisIdentifier crashedIbis) {
+
+		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
+		for (int i = count - 1; i >= 0; i--) {
+			if (crashedIbis.equals(l[i].stealer)) {
+				l[i].reDone = true;
+				l[i].stealer = null;
+				satin.attachToParent(l[i]);
+				if (FT_STATS) {
+					satin.restartedJobs++;
+				}
+				count--;
 				l[i] = l[count];
 
 			}
 		}
 	}
 
-	void print(java.io.PrintStream out) {
-		if (ASSERTS) {
-			Satin.assertLocked(satin);
-		}
 
-		out.println("==============IRVector:=============");
+	void print(java.io.PrintStream out) {
+/*		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}*/
+
+		out.println("=IRVector " + satin.ident.name() + ":=============");
 		for (int i = 0; i < count; i++) {
 			ParameterRecord pr = l[i].getParameterRecord();
 			out.println("outjobs [" + i + "] = " + pr + ","

@@ -38,17 +38,25 @@ public abstract class WorkStealing extends Stats {
 
 		synchronized (this) {
 
-			/*
-			 * if (FAULT_TOLERANCE) { if (GRT_TIMING) { updateTimer.start(); }
-			 * globalResultTable.updateInvocationRecord(r);
-			 * 
-			 * if (GRT_TIMING) { updateTimer.stop(); } }
-			 */
+			 if (FAULT_TOLERANCE && !FT_NAIVE && r.orphan) { 
+				GlobalResultTable.Value value = globalResultTable.lookup(r, false);
+				if (ASSERTS && value == null) {
+					System.err.println("SATIN '" + ident.name() + "': orphan not locked in the table");
+					System.exit(1);
+				}
+				r.owner = value.sendTo;
+				globalResultTable.storeResult(r);
+			}
 			s = getReplyPortNoWait(r.owner);
 		}
 
 		if (s == null) {
 			//probably crashed..
+			if (FAULT_TOLERANCE && !FT_NAIVE && !r.orphan) {
+				synchronized (this) {
+					globalResultTable.storeResult(r);
+				}
+			}
 			return;
 		}
 
@@ -131,7 +139,7 @@ public abstract class WorkStealing extends Stats {
 				if (blocking) {
 					opcode = Protocol.BLOCKING_STEAL_REQUEST;
 				} else {
-					if (FAULT_TOLERANCE) {
+					if (FAULT_TOLERANCE && !FT_NAIVE) {
 						synchronized (this) {
 							if (getTable) {
 								opcode = Protocol.STEAL_AND_TABLE_REQUEST;
@@ -144,7 +152,7 @@ public abstract class WorkStealing extends Stats {
 					}
 				}
 			} else {
-				if (FAULT_TOLERANCE) {
+				if (FAULT_TOLERANCE && !FT_NAIVE) {
 					synchronized (this) {
 						if (clusterCoordinator && getTable) {
 							opcode = Protocol.ASYNC_STEAL_AND_TABLE_REQUEST;
@@ -225,7 +233,8 @@ public abstract class WorkStealing extends Stats {
 				}
 			} else {
 				synchronized (this) {
-					while (!gotStealReply) {
+					//remove before commit
+					while (!gotStealReply /*quick hack around some nasty bug*/&& !exiting) {
 
 						if (FAULT_TOLERANCE) {
 							if (currentVictimCrashed) {
@@ -385,27 +394,29 @@ public abstract class WorkStealing extends Stats {
 			}
 		}
 	}
-
+	
 	synchronized void handleResults() {
 		while (true) {
 			InvocationRecord r = resultList.removeIndex(0);
 			if (r == null)
 				break;
-
-			if (r.eek != null) {
-				handleInlet(r);
-			}
-
-			r.spawnCounter.value--;
-
+			
 			if (FAULT_TOLERANCE) {
-				//add the finished job to children list
-				if (r.parent != null) {
-					r.sibling = r.parent.child;
-					r.parent.child = r;
+				r.spawnCounter.value--;
+				if (!FT_WITHOUT_ABORTS && !FT_NAIVE) {
+					attachToParent(r);
 				}
+			} else {
+
+				if (r.eek != null) {
+				    handleInlet(r);
+				}
+
+				r.spawnCounter.value--;
 			}
-			if (ASSERTS && r.spawnCounter.value < 0) {
+
+			
+			if (ASSERTS && r.spawnCounter!=null && r.spawnCounter.value < 0) {
 				out.println("Just made spawncounter < 0");
 				new Exception().printStackTrace();
 				System.exit(1);

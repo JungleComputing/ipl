@@ -12,11 +12,88 @@ import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
 public class GlobalResultTable implements Upcall, Config {
+
+	static class Key implements java.io.Serializable {
+		int stamp;
+		ParameterRecord parameters;
+		
+		Key(InvocationRecord r) {
+			if (Satin.this_satin.branchingFactor > 0) {
+				this.stamp = r.stamp;
+				this.parameters = null;
+			} else {
+				this.stamp = -1;
+				this.parameters = r.getParameterRecord();
+			}
+		}
+		
+		public boolean equals(Object other) {
+			Key otherKey = (Key) other;
+			if (Satin.this_satin.branchingFactor > 0) {
+				return this.stamp == otherKey.stamp;
+			} else {
+				if (other == null) return false;
+				return this.parameters.equals(otherKey.parameters);
+			}
+		}
+		
+		public int hashCode() {
+			if (Satin.this_satin.branchingFactor > 0) {
+				return this.stamp;
+			} else {
+				return this.parameters.hashCode();
+			}
+		} 
+		
+		public String toString() {
+			if (Satin.this_satin.branchingFactor > 0) {
+				return Integer.toString(stamp);
+			} else {
+				return parameters.toString();
+			}
+		}
+	}
+	
+	static class Value implements java.io.Serializable {
+		static final int TYPE_LOCK	= 0;
+		static final int TYPE_RESULT	= 1;
+		static final int TYPE_POINTER	= 2;
+		int type;		    
+		transient IbisIdentifier sendTo;
+		transient ReturnRecord result;
+		IbisIdentifier owner;
+		
+		Value(int type, InvocationRecord r) {
+			this.type = type;
+			this.owner = Satin.this_satin.ident;
+			if (type == TYPE_RESULT) {
+				result = r.getReturnRecord();
+			}
+		}
+		
+		public String toString() {
+			String str = "";
+			switch (type) {
+				case TYPE_LOCK:
+					str += "(LOCK,sendTo:" + sendTo + ")";
+					break;
+				case TYPE_RESULT:
+					str += "(RESULT,result:" + result + ")";
+					break;
+				case TYPE_POINTER:
+					str += "(POINTER,owner:" + owner + ")";
+					break;
+				default:
+					System.err.println("SATIN '" + Satin.this_satin.ident.name() + "': illegal type in value");
+			}
+			return str;
+		}
+	}
 
 	private Satin satin;
 
@@ -28,30 +105,29 @@ public class GlobalResultTable implements Upcall, Config {
 	private ReceivePort receive;
 
 	//a quick net ibis bug fix
-	private Map sends = new HashMap();
+	private Map sends = new Hashtable();
 
 	private int numReplicas = 0;
 
-	public int numUpdates = 0;
-
-	public int numTryUpdates = 0;
-
+	public int numResultUpdates = 0;
+	public int numLockUpdates = 0;	
 	public int numLookups = 0;
-
 	public int numLookupsSucceded = 0;
 
 	public int maxNumEntries = 0;
 
 	public int numRemoteLookups = 0;
-
+	
 	public final static int max = 20;
 
 	private PortType portType;
+	
+	private Value pointerValue = new Value(Value.TYPE_POINTER, null);
 
 	GlobalResultTable(Satin sat) {
 
 		satin = sat;
-		entries = new HashMap();
+		entries = new Hashtable();
 		try {
 			StaticProperties s = new StaticProperties();
 			s.add("Serialization", "ibis");
@@ -79,40 +155,73 @@ public class GlobalResultTable implements Upcall, Config {
 		}
 	}
 
-	Object lookupInvocationRecord(InvocationRecord r) {
-		Object key = null;
-		if (GLOBALLY_UNIQUE_STAMPS && satin.branchingFactor > 0) {
-			key = new Integer(r.stamp);
-		} else {
-			key = r.getParameterRecord();
-		}
-		return lookup(key);
+	Value lookup(InvocationRecord r, boolean stats) {
+		Key key = new Key(r);
+		return lookup(key, stats);
 	}
-
-	void updateInvocationRecord(InvocationRecord r) {
-		Object key = null;
-		if (GLOBALLY_UNIQUE_STAMPS && satin.branchingFactor > 0) {
-			key = new Integer(r.stamp);
-		} else {
-			key = r.getParameterRecord();
+	
+	Value lookup(Key key, boolean stats) {
+		if (GRT_TIMING) {
+			satin.lookupTimer.start();
 		}
-		ReturnRecord value = r.getReturnRecord();
+	
+		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+		
+		Value value = (Value) entries.get(key);
+
+		if (GRT_DEBUG) {
+			if (value != null) {
+				System.err.println("SATIN '" + satin.ident.name()
+						+ "': lookup successful " + key);
+			}
+		}			
+		if (GRT_STATS && stats) {
+			if (value != null) {
+				if (value.type == Value.TYPE_POINTER) {
+					if (!satin.deadIbises.contains(value.owner)) {
+						numLookupsSucceded++;
+						numRemoteLookups++;
+					}
+				} else {
+					numLookupsSucceded++;
+				}
+			}
+			numLookups++;
+		}
+		
+		if (GRT_TIMING) {
+			satin.lookupTimer.stop();
+		}
+		
+		return value;
+	}
+	
+	
+	void storeResult(InvocationRecord r) {
+		Key key = new Key(r);
+		Value value = new Value(Value.TYPE_RESULT, r);
 		update(key, value);
 	}
+		
+	void storeLock(InvocationRecord r) {
+		Key key = new Key(r);
+		Value value = new Value(Value.TYPE_LOCK, null);
+		update(key, value);
+	}
+	
 
-	void update(Object key, Object value) {
+	void update(Key key, Value value) {
+	
+		if (GRT_TIMING) {
+			satin.updateTimer.start();
+		}
 
 		if (ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
-		if (GRT_STATS) {
-			numTryUpdates++;
-		}
-		if (GRT_DEBUG) {
-			System.out.println("SATIN '" + satin.ident.name()
-					+ "': job updated by me: " + key + "," + value);
-		}
 		Object oldValue = entries.get(key);
 		/* if (entries.size() < max) */entries.put(key, value);
 		if (GRT_STATS) {
@@ -120,26 +229,33 @@ public class GlobalResultTable implements Upcall, Config {
 				maxNumEntries = entries.size();
 		}
 
-		/* don't update if the result of this job was already in the table */
 		if (numReplicas > 0 && oldValue == null) {
 			if (GRT_DEBUG) {
 				System.err.println("SATIN '" + satin.ident.name()
 						+ "': sending update: " + key + "," + value);
 			}
-
+			
 			//send an update message
 			Iterator sendIter = sends.values().iterator();
 			while (sendIter.hasNext()) {
 				try {
 					SendPort send = (SendPort) sendIter.next();
+					if (GRT_TIMING) {
+						satin.tableSerializationTimer.start();
+					}
 					WriteMessage m = send.newMessage();
 					m.writeObject(key);
 					if (GLOBAL_RESULT_TABLE_REPLICATED) {
-						m.writeObject(value);
+						m.writeObject(value);						
 					} else {
+						//m.writeObject(pointerValue);
 						m.writeObject(satin.ident);
 					}
 					m.finish();
+					if (GRT_TIMING) {
+						satin.tableSerializationTimer.stop();
+					}
+					
 				} catch (IOException e) {
 					//always happens after a crash
 				}
@@ -151,35 +267,31 @@ public class GlobalResultTable implements Upcall, Config {
 			 * m.writeObject(value); m.finish(); } catch (IOException
 			 * e) { //always happens after the crash }
 			 */
-			if (GRT_STATS) {
-				numUpdates++;
+			if (GRT_DEBUG) {
+				System.err.println("SATIN '" + satin.ident.name()
+					+ "': update sent: " + key + "," + value);
+			}
+			 
+		}
+		if (GRT_STATS) {
+			if (value.type == Value.TYPE_RESULT) {
+				numResultUpdates++;
+			}
+			if (value.type == Value.TYPE_LOCK) {
+				numLockUpdates++;
 			}
 		}
 		if (GRT_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name()
-					+ "': update sent: " + key + "," + value);
+				+ "': update complete: " + key + "," + value);
 		}
+		
+		if (GRT_TIMING) {
+			satin.updateTimer.stop();
+		}		
+		
 	}
 
-	Object lookup(Object key) {
-		if (ASSERTS) {
-			Satin.assertLocked(satin);
-		}
-
-		Object value = entries.get(key);
-		if (GRT_STATS) {
-			if (value != null) {
-				System.err.println("SATIN '" + satin.ident.name()
-						+ "': lookup successful " + key);
-				numLookupsSucceded++;
-				if (value instanceof IbisIdentifier) {
-					numRemoteLookups++;
-				}
-			}
-			numLookups++;
-		}
-		return value;
-	}
 
 	//returns ready to send contents of the table
 	Map getContents() {
@@ -188,15 +300,15 @@ public class GlobalResultTable implements Upcall, Config {
 		}
 
 		if (GLOBAL_RESULT_TABLE_REPLICATED) {
-			return (Map) ((HashMap) entries).clone();
+			return (Map) ((Hashtable) entries).clone();
 		} else {
-			//replace "real" results with our ibis identifier
-			Map newEntries = (Map) ((HashMap) entries).clone();
+			//replace "real" results with pointer values
+			Map newEntries = (Map) ((Hashtable) entries).clone();
 			Iterator iter = entries.entrySet().iterator();
 			while (iter.hasNext()) {
 				Map.Entry element = (Map.Entry) iter.next();
 				if (!(element.getValue() instanceof IbisIdentifier)) {
-					newEntries.put(element.getKey(), satin.ident);
+					newEntries.put(element.getKey(), pointerValue);
 				}
 			}
 			return newEntries;
@@ -276,8 +388,19 @@ public class GlobalResultTable implements Upcall, Config {
 			satin.handleUpdateTimer.start();
 		}
 		try {
-			Object key = m.readObject();
-			Object value = m.readObject();
+			
+			if (GRT_TIMING) {
+				satin.tableDeserializationTimer.start();
+			}
+			Key key = (Key) m.readObject();
+			//Value value = (Value) m.readObject();
+			IbisIdentifier ident = (IbisIdentifier) m.readObject();
+			Value value = new Value(Value.TYPE_POINTER, null);
+			value.owner = ident;
+			if (GRT_TIMING) {
+				satin.tableDeserializationTimer.stop();
+			}
+
 
 			synchronized (satin) {
 				/* if (entries.size() < max) */entries.put(key, value);
@@ -289,7 +412,7 @@ public class GlobalResultTable implements Upcall, Config {
 
 			if (GRT_DEBUG) {
 				System.err.println("SATIN '" + satin.ident.name()
-						+ "': upcall finished" + key + "," + value);
+						+ "': upcall finished:" + key + "," + value + "," + entries.size());
 			}
 
 		} catch (IOException e) {
@@ -306,18 +429,18 @@ public class GlobalResultTable implements Upcall, Config {
 		}
 	}
 
-	public void print() {
+	public void print(java.io.PrintStream out) {
 		synchronized (satin) {
-			System.out.println("=GRT: " + satin.ident.name() + "=");
+			out.println("=GRT: " + satin.ident.name() + "=");
 			int i = 0;
 			Iterator iter = entries.entrySet().iterator();
 			while (iter.hasNext()) {
 				Map.Entry entry = (Map.Entry) iter.next();
-				System.out.println("GRT[" + i + "]= " + entry.getKey() + ";"
+				out.println("GRT[" + i + "]= " + entry.getKey() + ";"
 						+ entry.getValue());
 				i++;
 			}
-			System.out.println("=end of GRT " + satin.ident.name() + "=");
+			out.println("=end of GRT " + satin.ident.name() + "=");
 		}
 	}
 }

@@ -28,7 +28,9 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 	protected transient InvocationRecord parent;
 
 	/**
-	 * List of finished children, used for fault tolerance
+	 * List of children, used for fault tolerance
+	 * In the algorithm with aborts used for storing finished children
+	 * In the algorithm without abourts used for storing children that need to be restarted
 	 */
 	public transient InvocationRecord child;
 
@@ -80,7 +82,12 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 	 * Used for fault tolerance True means, that the job is being redone after a
 	 * crash
 	 */
-	public boolean reDone = false;
+	public boolean reDone = false;	
+	/** 
+	 * Used for fault tolerance
+	 * True means, that the job is an orphan
+	 **/
+	public boolean orphan = false; 		
 
 	transient boolean alreadySentExceptionResult;
 
@@ -139,10 +146,12 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		}
 
 		if (FAULT_TOLERANCE) {
+			numSpawned = 0;
 			reDone = false;
 		}
 		if (FAULT_TOLERANCE) {
 			child = null;
+			sibling = null;
 		}
 
 	}

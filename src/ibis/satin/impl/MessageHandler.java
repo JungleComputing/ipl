@@ -27,13 +27,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			stamp = m.readInt();
 			owner = (IbisIdentifier) m.readObject();
 			//			m.finish();
-		} catch (IOException e) {
-			System.err.println("SATIN '" + satin.ident.name()
+		} catch (IOException e) {		
+			System.err.println("blablaSATIN '" + satin.ident.name()
 					+ "': got exception while reading job result: " + e);
+			e.printStackTrace();
 			System.exit(1);
 		} catch (ClassNotFoundException e1) {
-			System.err.println("SATIN '" + satin.ident.name()
+			System.err.println("blablaSATIN '" + satin.ident.name()
 					+ "': got exception while reading job result: " + e1);
+			e1.printStackTrace();
 			System.exit(1);
 		}
 		synchronized (satin) {
@@ -83,12 +85,14 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 			//			m.finish();
 		} catch (IOException e) {
-			System.err.println("SATIN '" + satin.ident.name()
-					+ "': got exception while reading job result: " + e);
+			System.err.println("blablaSATIN '" + satin.ident.name()
+					+ "': got exception while reading job result: " + e + opcode);
+			e.printStackTrace();
 			System.exit(1);
 		} catch (ClassNotFoundException e1) {
-			System.err.println("SATIN '" + satin.ident.name()
-					+ "': got exception while reading job result: " + e1);
+			System.err.println("blablaSATIN '" + satin.ident.name()
+					+ "': got exception while reading job result: " + e1 + opcode);
+			e1.printStackTrace();
 			System.exit(1);
 		}
 
@@ -182,8 +186,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				}
 			}
 
-			if (FAULT_TOLERANCE
-					&& (opcode == STEAL_AND_TABLE_REQUEST || opcode == ASYNC_STEAL_AND_TABLE_REQUEST)) {
+			if (FAULT_TOLERANCE && !FT_NAIVE &&
+			(opcode == STEAL_AND_TABLE_REQUEST || opcode == ASYNC_STEAL_AND_TABLE_REQUEST)) {
 				if (!satin.getTable) {
 					table = satin.globalResultTable.getContents();
 				}
@@ -666,29 +670,46 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 	private void handleResultRequest(ReadMessage m) {
 		SendPort s = null;
-		Object value = null;
+		GlobalResultTable.Value value = null;
 		try {
 			if (GRT_TIMING) {
 				satin.handleLookupTimer.start();
 			}
-			Object key = m.readObject();
+			
+			GlobalResultTable.Key key = (GlobalResultTable.Key) m.readObject();
+			
 			int stamp = m.readInt();
+			
+			//leave it out if you make globally unique stamps
 			IbisIdentifier owner = (IbisIdentifier) m.readObject(); 
-                        //leave it out if you make globally unique stamps
+			
 			IbisIdentifier ident = m.origin().ibis();
+			
+			m.finish();
 
 			synchronized (satin) {
-				value = satin.globalResultTable.lookup(key);
-				if (value == null) {
+				value = satin.globalResultTable.lookup(key, false);
+				if (value == null && ASSERTS) {
 					System.err.println("SATIN '" + satin.ident.name()
 							+ "': EEK!!! no requested result in the table: "
 							+ key);
 				}
-				if (value instanceof IbisIdentifier) {
+				if (value.type == GlobalResultTable.Value.TYPE_POINTER && ASSERTS) {
 					System.err.println("SATIN '" + satin.ident.name()
 							+ "': EEK!!! the requested result: " + key
 							+ " is stored on another node: " + value);
 				}
+				    
+				if (FT_WITHOUT_ABORTS) {
+					if (value.type == GlobalResultTable.Value.TYPE_LOCK) {
+						//job not finished yet, set the owner of the job
+						//to the sender of this message and return
+						//i'm writing an invocation record here, is that ok?
+						value.sendTo = ident;
+						return;
+					}
+				}
+				
 
 				s = satin.getReplyPortNoWait(ident);
 			}
@@ -699,12 +720,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				}
 				return;
 			}
-			((ReturnRecord) value).stamp = stamp;
+			value.result.stamp = stamp;
 			WriteMessage w = s.newMessage();
 			w.writeByte(Protocol.JOB_RESULT_NORMAL);
 			w.writeObject(owner); //leave it out if you make globally unique
 			// stamps
-			w.writeObject(value);
+			w.writeObject(value.result);
 			w.finish();
 			if (GRT_TIMING) {
 				satin.handleLookupTimer.stop();
@@ -712,9 +733,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': trying to send result back, but got exception: " + e);
+			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': trying to send result back, but got exception: " + e);
+			e.printStackTrace();
 		}
 
 	}
@@ -822,7 +845,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				handleTupleDel(m);
 				break;
 			case RESULT_REQUEST:
-				m.finish(); // must finish, we send a reply back.
 				handleResultRequest(m);
 				break;
 			default:

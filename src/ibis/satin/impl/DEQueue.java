@@ -19,4 +19,6 @@ abstract class DEQueue implements Config {
 	abstract void killSubtreeOf(ibis.ipl.IbisIdentifier targetOwner);
 
 	abstract int size();
+	
+	abstract void print(java.io.PrintStream out);
 }

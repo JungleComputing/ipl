@@ -168,6 +168,9 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 			}
 		}
 	}
+	
+	void print(java.io.PrintStream out) {
+	}
 
 }
 

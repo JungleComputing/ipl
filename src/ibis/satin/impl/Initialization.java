@@ -164,7 +164,9 @@ public abstract class Initialization extends SatinBase {
 				} catch (NumberFormatException e) {
 					System.err.println("SATIN: invalid branching factor");
 				}
-			} else {
+			} else if (args[i].equals("-satin-dump")) {
+				dump = true; 			
+			}else {
 				tempArgs.add(args[i]);
 			}
 		}

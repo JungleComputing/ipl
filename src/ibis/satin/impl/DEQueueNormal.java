@@ -117,18 +117,6 @@ final class DEQueueNormal extends DEQueue implements Config {
 		}
 	}
 
-	private void print(java.io.PrintStream out) {
-		if (ASSERTS) {
-			Satin.assertLocked(satin);
-		}
-
-		out.println("work queue: " + length + " elements");
-		InvocationRecord curr = head;
-		while (curr != null) {
-			out.println("    " + curr);
-			curr = curr.qnext;
-		}
-	}
 
 	void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
 		if (ASSERTS) {
@@ -158,7 +146,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 				if (ABORT_STATS) {
 					satin.abortedJobs++;
 				}
-				if (FT_ABORT_STATS) {
+				if (FT_STATS) {
 					satin.killedOrphans++;
 				}
 				curr.aborted = true;
@@ -202,7 +190,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 					System.exit(1);
 				}
 				curr.aborted = true;
-				if (FT_ABORT_STATS) {
+				if (FT_STATS) {
 					satin.killedOrphans++;
 				}
 				removeElement(curr);
@@ -211,5 +199,20 @@ final class DEQueueNormal extends DEQueue implements Config {
 			curr = curr.qprev;
 		}
 	}
+	
+	void print(java.io.PrintStream out) {
+/*		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}*/
+
+		out.println("=Q " + satin.ident.name() + ":=======================");
+		InvocationRecord curr = head;
+		while (curr != null) {
+			out.println("    " + curr);
+			curr = curr.qnext;
+		}
+		out.println("=end of Q=======================");
+	}
+	
 }
 

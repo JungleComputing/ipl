@@ -47,7 +47,7 @@ public abstract class SpawnSync extends Termination {
 		IbisIdentifier oldParentOwner;
 
 		handleDelayedMessages();
-
+		
 		if (ABORTS || FAULT_TOLERANCE) {
 			oldParent = parent;
 			oldParentStamp = parentStamp;
@@ -92,11 +92,9 @@ public abstract class SpawnSync extends Termination {
 
 				if (ABORTS && r.parent == null && parentOwner.equals(ident)
 						&& r.parentStamp != -1) {
-					out
-							.println("SATIN '"
-									+ ident.name()
-									+ ": parent is null for non-root, should not happen here! job = "
-									+ r);
+					out.println("SATIN '" + ident.name()
+							      + ": parent is null for non-root, should not happen here! job = "
+							      + r);
 					System.exit(1);
 				}
 			}
@@ -194,12 +192,9 @@ public abstract class SpawnSync extends Termination {
 					out.println(" DONE with exception: " + r.eek);
 				}
 			}
-			if (FAULT_TOLERANCE) {
-				//add the finished job to children list
-				if (r.parent != null && !r.aborted) {
-					r.sibling = r.parent.child;
-					r.parent.child = r;
-				}
+			if (FAULT_TOLERANCE && !FT_WITHOUT_ABORTS) {
+				//job is finished
+				attachToParent(r);
 			}
 
 		} else {
@@ -258,11 +253,6 @@ public abstract class SpawnSync extends Termination {
 			onStack.pop();
 		}
 
-		if (FAULT_TOLERANCE) {
-			//remove its children list, will anyone ever look at it?
-			r.child = null;
-		}
-
 		if (ABORT_DEBUG && r.aborted) {
 			System.err.println("Job on the stack was aborted: " + r.stamp
 					+ " EEK = " + (r.eek == null ? "null" : ("" + r.eek)));
@@ -300,20 +290,16 @@ public abstract class SpawnSync extends Termination {
 
 		r.spawnCounter.value++;
 
-		if (GLOBALLY_UNIQUE_STAMPS) {
+		if (branchingFactor > 0) {
 			//globally unique stamps start from 1 (root job)
-			if (branchingFactor > 0) {
 
-				if (parentStamp > 0) {
-					r.stamp = branchingFactor * parentStamp
+			if (parentStamp > 0) {
+				r.stamp = branchingFactor * parentStamp
 							+ parent.numSpawned++;
-				} else {
-					//parent is the root
-					r.stamp = branchingFactor + rootNumSpawned++;
-				}
 			} else {
-				r.stamp = stampCounter++;
-			}
+				//parent is the root
+				r.stamp = branchingFactor + rootNumSpawned++;
+				}
 		} else {
 			r.stamp = stampCounter++;
 		}
@@ -335,11 +321,21 @@ public abstract class SpawnSync extends Termination {
 			 */
 		}
 
-		if (FAULT_TOLERANCE) {
+		if (FAULT_TOLERANCE && !FT_NAIVE) {
 			if (parent != null && parent.reDone || parent == null && restarted) {
 				r.reDone = true;
 			}
+
 		}
+		
+		if (FAULT_TOLERANCE && !FT_NAIVE) {
+			if (r.reDone) {
+				if (globalResultTableCheck(r)) {
+					return;
+				}
+			}
+		}
+
 
 		q.addToHead(r);
 
@@ -364,7 +360,6 @@ public abstract class SpawnSync extends Termination {
 	public void sync(SpawnCounter s) {
 		InvocationRecord r;
 
-		//		System.err.println("SATIN " + ident.name() + ": sync() started");
 
 		if (SPAWN_STATS) {
 			syncs++;
@@ -392,31 +387,53 @@ public abstract class SpawnSync extends Termination {
 
 			r = q.getFromHead(); // Try the local queue
 			if (r != null) {
-				if (FAULT_TOLERANCE) {
-					if (r.reDone) {
-						if (globalResultTableCheck(r)) {
-							continue;
-						}
-					}
-				}
 				callSatinFunction(r);
 			} else {
-				r = algorithm.clientIteration();
-				if (r != null) {
-					callSatinFunction(r);
+				if (FAULT_TOLERANCE && FT_WITHOUT_ABORTS) {
+				    //before you steal, check if kids need
+				    //to be restarted					
+					InvocationRecord curr = null;					
+					if (parent != null) {
+						curr = parent.child;
+						parent.child = null;
+					} else {
+						curr =  rootChild;
+						rootChild = null;
+					}
+					if (curr != null) {
+						int i = 0;
+						while (curr != null) {
+							//is it really necessary??
+							if (!globalResultTableCheck(curr)) {
+								q.addToTail(curr);
+							}
+							InvocationRecord tmp = curr;
+							curr = curr.sibling;
+							tmp.sibling = null;
+							i++;
+						}
+					} else {
+						r = algorithm.clientIteration();
+						if (r != null) {
+							callSatinFunction(r);
+						}
+					}
+
+				} else {
+					r = algorithm.clientIteration();
+					if (r != null) {
+						callSatinFunction(r);
+					}
 				}
 			}
 		}
 
-		//		System.err.println("SATIN " + ident.name() + ": sync() done");
 	}
 
 	/**
 	 * Implements the main client loop: steal jobs and execute them.
 	 */
 	public void client() {
-
-		//		System.err.println("SATIN " + ident.name() + ": starting client()");
 
 		if (SPAWN_DEBUG) {
 			out.println("SATIN '" + ident.name() + "': starting client!");
@@ -437,6 +454,5 @@ public abstract class SpawnSync extends Termination {
 				return;
 		}
 
-		//		System.err.println("SATIN " + ident.name() + ": client() done");
 	}
 }

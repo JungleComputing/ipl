@@ -114,20 +114,14 @@ final class IRStack implements Config {
 					continue;
 
 				curr.aborted = true;
-				if (FT_ABORT_STATS) {
+				if (FT_STATS) {
 					s.killedOrphans++;
 				}
 				//update the global result table
 				InvocationRecord child = curr.child;
 				while (child != null) {
-					if (GRT_TIMING) {
-						s.updateTimer.start();
-					}
-					s.globalResultTable.updateInvocationRecord(child);
+					s.globalResultTable.storeResult(child);
 					child = child.sibling;
-					if (GRT_TIMING) {
-						s.updateTimer.stop();
-					}
 				}
 
 			}
@@ -177,25 +171,45 @@ final class IRStack implements Config {
 					continue;
 
 				curr.aborted = true;
-				if (FT_ABORT_STATS) {
+				if (FT_STATS) {
 					s.killedOrphans++;
 				}
 				//update the global result table
 				InvocationRecord child = curr.child;
 				while (child != null) {
-					if (GRT_TIMING) {
-						s.updateTimer.start();
-					}
-					s.globalResultTable.updateInvocationRecord(child);
+					s.globalResultTable.storeResult(child);
 					child = child.sibling;
-					if (GRT_TIMING) {
-						s.updateTimer.stop();
-					}
 				}
 
 			}
 		}
 	}
+	
+	
+	/* Used for fault tolerance.
+	 * Stores pointers to the invocation records of orphan jobs in the
+	 * global result table
+	 **/
+	void storeOrphansOf(IbisIdentifier crashedIbis) {
+		if (ASSERTS) {
+			s.assertLocked(s);
+		}
+		
+		InvocationRecord curr;
+		
+		for (int i=0; i<count; i++) {
+			curr = l[i];
+			
+			if (curr.owner != null && 
+			    curr.owner.equals(crashedIbis) &&
+			    !curr.orphan) {
+				s.globalResultTable.storeLock(curr);
+				curr.orphan = true;
+				
+			}
+		}
+	}
+								
 
 	/**
 	 * Used for malleability. After receiving a delete() signal, store all the
@@ -209,14 +223,8 @@ final class IRStack implements Config {
 			curr = l[i];
 			child = curr.child;
 			while (child != null) {
-				if (GRT_TIMING) {
-					s.updateTimer.start();
-				}
-				s.globalResultTable.updateInvocationRecord(child);
+				s.globalResultTable.storeResult(child);
 				child = child.sibling;
-				if (GRT_TIMING) {
-					s.updateTimer.stop();
-				}
 			}
 		}
 	}
@@ -228,7 +236,7 @@ final class IRStack implements Config {
 	}
 
 	void print(java.io.PrintStream out) {
-		out.println("==============IRStack:=============");
+		out.println("=IRStack " + s.ident.name() + ":=============");
 		for (int i = 0; i < count; i++) {
 			ParameterRecord pr = l[i].getParameterRecord();
 			out.println("stack [" + i + "] = " + pr);

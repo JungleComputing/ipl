@@ -33,6 +33,10 @@ public abstract class Stats extends TupleSpace {
 			handleUpdateTimer = new Timer();
 		if (handleLookupTimer == null)
 			handleLookupTimer = new Timer();
+		if (tableSerializationTimer == null)
+			tableSerializationTimer = new Timer();
+		if (tableDeserializationTimer == null) 
+			tableDeserializationTimer = new Timer();
 		if (crashTimer == null)
 			crashTimer = new Timer();
 		if (redoTimer == null)
@@ -80,20 +84,21 @@ public abstract class Stats extends TupleSpace {
 
 		//fault tolerance
 		if (FAULT_TOLERANCE) {
-			s.tableUpdates = globalResultTable.numUpdates;
-			//each remote lookup == 2 lookups in table (local & remote) -- must
-			// clean up this code later
-			s.tableLookups = globalResultTable.numLookups
-					- globalResultTable.numRemoteLookups;
-			s.tableSuccessfulLookups = globalResultTable.numLookupsSucceded
-					- globalResultTable.numRemoteLookups;
+			s.tableResultUpdates = globalResultTable.numResultUpdates;
+			s.tableLockUpdates = globalResultTable.numLockUpdates;
+			s.tableLookups = globalResultTable.numLookups;
+			s.tableSuccessfulLookups = globalResultTable.numLookupsSucceded;
 			s.tableRemoteLookups = globalResultTable.numRemoteLookups;
 			s.killedOrphans = killedOrphans;
+			s.restartedJobs = restartedJobs;
 
 			s.tableLookupTime = lookupTimer.totalTimeVal();
 			s.tableUpdateTime = updateTimer.totalTimeVal();
 			s.tableHandleUpdateTime = handleUpdateTimer.totalTimeVal();
 			s.tableHandleLookupTime = handleLookupTimer.totalTimeVal();
+			s.tableSerializationTime = tableSerializationTimer.totalTimeVal();
+			s.tableDeserializationTime = tableDeserializationTimer.totalTimeVal();
+			s.tableCheckTime = redoTimer.totalTimeVal();
 			s.crashHandlingTime = crashTimer.totalTimeVal();
 			s.addReplicaTime = addReplicaTimer.totalTimeVal();
 		}
@@ -169,17 +174,20 @@ public abstract class Stats extends TupleSpace {
 		}
 
 		if (GRT_STATS) {
-			out.println("SATIN: GLOBAL_RESULT_TABLE: updates "
-					+ nf.format(totalStats.tableUpdates) + ",lookups "
+			out.println("SATIN: GLOBAL_RESULT_TABLE: result updates "
+					+ nf.format(totalStats.tableResultUpdates) + ",lock updates "
+					+ nf.format(totalStats.tableLockUpdates) + ",lookups "
 					+ nf.format(totalStats.tableLookups) + ",successful "
 					+ nf.format(totalStats.tableSuccessfulLookups) + ",remote "
 					+ nf.format(totalStats.tableRemoteLookups));
 		}
 
-		if (FT_ABORT_STATS) {
-			out.println("SATIN: ORPHAN JOBS: killed orphans "
+		if (FT_STATS) {
+			out.println("SATIN: FAULT_TOLERANCE: killed orphans "
 					+ nf.format(totalStats.killedOrphans));
-		}
+			out.println("SATIN: FAULT_TOLERANCE: restarted jobs "
+					+ nf.format(totalStats.restartedJobs));
+		}			
 
 		out
 				.println("-------------------------------SATIN TOTAL TIMES-------------------------------");
@@ -238,7 +246,8 @@ public abstract class Stats extends TupleSpace {
 					+ Timer.format(totalStats.tableUpdateTime)
 					+ " time/update "
 					+ Timer.format(totalStats.tableUpdateTime
-							/ totalStats.tableUpdates));
+							/ (totalStats.tableResultUpdates 
+							+ totalStats.tableLockUpdates)));
 			out.println("SATIN: GRT_LOOKUP_TIME:		  total "
 					+ Timer.format(totalStats.tableLookupTime)
 					+ " time/lookup "
@@ -248,12 +257,22 @@ public abstract class Stats extends TupleSpace {
 					+ Timer.format(totalStats.tableHandleUpdateTime)
 					+ " time/handle "
 					+ Timer.format(totalStats.tableHandleUpdateTime
-							/ totalStats.tableUpdates * (size - 1)));
+							/ totalStats.tableResultUpdates * (size - 1)));
 			out.println("SATIN: GRT_HANDLE_LOOKUP_TIME: 	  total "
 					+ Timer.format(totalStats.tableHandleLookupTime)
 					+ " time/handle "
 					+ Timer.format(totalStats.tableHandleLookupTime
 							/ totalStats.tableRemoteLookups));
+			out.println("SATIN: GRT_SERIALIZATION_TIME: 	  total "
+					+ Timer.format(totalStats.tableSerializationTime));
+			out.println("SATIN: GRT_DESERIALIZATION_TIME:	  total "
+					+ Timer.format(totalStats.tableDeserializationTime));
+			out.println("SATIN: GRT_CHECK_TIME: 		  total "
+					+ Timer.format(totalStats.tableCheckTime)
+					+ " time/check "
+					+ Timer.format(totalStats.tableCheckTime
+							/ totalStats.tableLookups));
+		
 		}
 
 		if (CRASH_TIMING) {
@@ -302,6 +321,12 @@ public abstract class Stats extends TupleSpace {
 		double tableHandleLookupTime = totalStats.tableHandleLookupTime / size;
 		double tableHandleLookupPerc = tableHandleLookupTime
 				/ totalTimer.totalTimeVal() * 100.0;
+		double tableSerializationTime = totalStats.tableSerializationTime / size;
+		double tableSerializationPerc = tableSerializationTime
+				/ totalTimer.totalTimeVal() * 100;
+		double tableDeserializationTime = totalStats.tableDeserializationTime / size;
+		double tableDeserializationPerc = tableDeserializationTime
+				/ totalTimer.totalTimeVal() * 100;
 		double crashHandlingTime = totalStats.crashHandlingTime / size;
 		double crashHandlingPerc = crashHandlingTime
 				/ totalTimer.totalTimeVal() * 100.0;
@@ -310,7 +335,8 @@ public abstract class Stats extends TupleSpace {
 				* 100.0;
 
 		double totalOverhead = lbTime + serTime + abortTime + tupleTime
-				+ tupleWaitTime + pollTime;
+				+ tupleWaitTime + pollTime + tableUpdateTime + tableLookupTime
+				+ tableHandleUpdateTime + tableHandleLookupTime;
 		double totalPerc = totalOverhead / totalTimer.totalTimeVal() * 100.0;
 		double appTime = totalTimer.totalTimeVal() - totalOverhead;
 		if (appTime < 0.0)
@@ -371,6 +397,17 @@ public abstract class Stats extends TupleSpace {
 							+ Timer.format(tableHandleLookupTime)
 							+ " ("
 							+ pf.format(tableHandleLookupPerc) + " %)");
+			out
+					.println("SATIN: GRT_SERIALIZATION_TIME:       avg. per machine "
+							+ Timer.format(tableSerializationTime)
+							+ " ("
+							+ pf.format(tableSerializationPerc) + " %)");
+			out
+					.println("SATIN: GRT_DESERIALIZATION_TIME:       avg. per machine "
+							+ Timer.format(tableDeserializationTime)
+							+ " ("
+							+ pf.format(tableDeserializationPerc) + " %)");
+
 		}
 
 		if (CRASH_TIMING) {
@@ -511,8 +548,11 @@ public abstract class Stats extends TupleSpace {
 		if (FAULT_TOLERANCE) {
 			if (GRT_STATS) {
 				out.println("SATIN '" + ident.name() + "': "
-						+ globalResultTable.numUpdates
-						+ " updates of the table.");
+						+ globalResultTable.numResultUpdates
+						+ " result updates of the table.");
+				out.println("SATIN '" + ident.name() + "': "
+						+ globalResultTable.numLockUpdates
+						+ " lock updates of the table.");
 				out.println("SATIN '" + ident.name() + "': "
 						+ globalResultTable.numLookupsSucceded
 						+ " lookups succeded, of which:");
@@ -558,9 +598,11 @@ public abstract class Stats extends TupleSpace {
 
 			}
 
-			if (FT_ABORT_STATS) {
+			if (FT_STATS) {
 				out.println("SATIN '" + ident.name() + "': " + killedOrphans
 						+ " orphans killed");
+				out.println("SATIN '" + ident.name() + "': " + restartedJobs
+						+ " jobs restarted");
 			}
 		}
 	}

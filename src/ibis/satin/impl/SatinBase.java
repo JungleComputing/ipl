@@ -35,9 +35,10 @@ public abstract class SatinBase implements Config {
 
 	protected int deleteTime = 0;
 
-	int branchingFactor = 0; //if > 0 and GLOBALLY_UNIQUE_STAMPS is set, it is
-
-	// used for generating globally unique stamps
+	int branchingFactor = 0; //if > 0, it is used for generating globally unique stamps
+	
+	protected boolean dump = false; //true if the node should dump its datastructures during shutdown
+				       //done by registering DumpThread as a shutdown hook
 
 	boolean getTable = true; //true if the node needs to download the contents
 
@@ -162,6 +163,8 @@ public abstract class SatinBase implements Config {
 	protected long tupleBytes = 0;
 
 	long killedOrphans = 0;
+	
+	long restartedJobs = 0;
 
 	long stolenJobs = 0; // used in messageHandler
 
@@ -177,6 +180,7 @@ public abstract class SatinBase implements Config {
 
 	StatsMessage totalStats; // used in messageHandler
 
+	/* Variables that contain data of the current job*/
 	protected int parentStamp = -1;
 
 	protected IbisIdentifier parentOwner = null;
@@ -217,6 +221,8 @@ public abstract class SatinBase implements Config {
 	//no node can execute the root job twice, so this counter does not have to
 	// be set to 0 after root crash
 	int rootNumSpawned = 0;
+	//list of children of the root node (which doesn't have and invocation record)
+	InvocationRecord rootChild;
 
 	//for debugging ft
 	boolean del = false;
@@ -261,6 +267,10 @@ public abstract class SatinBase implements Config {
 	Timer handleUpdateTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	Timer handleLookupTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	
+	Timer tableSerializationTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	
+	Timer tableDeserializationTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	Timer crashTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
@@ -357,4 +367,6 @@ public abstract class SatinBase implements Config {
 	abstract SendPort getReplyPortWait(IbisIdentifier ident);
 
 	abstract void addToExceptionList(InvocationRecord r);
+	
+	abstract void attachToParent(InvocationRecord r);
 }

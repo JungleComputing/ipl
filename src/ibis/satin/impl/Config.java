@@ -16,14 +16,14 @@ public interface Config {
 	/** Enable or disable statistics for aborts. * */
 	static final boolean ABORT_STATS = true;
 
-	/** Enable or disable statistics for aborts done for fault-tolerance. * */
-	static final boolean FT_ABORT_STATS = true;
+	/** Enable or disable statistics for aborts/restarts done for fault-tolerance. * */
+	static final boolean FT_STATS = false;
 
 	/** Enable or disable statistics for the tuple space. * */
 	static final boolean TUPLE_STATS = true;
 
 	/** Enable or disable statistics for the global result table. * */
-	static final boolean GRT_STATS = true;
+	static final boolean GRT_STATS = false;
 
 	/** Enable or disable steal timings. * */
 	static final boolean STEAL_TIMING = true;
@@ -38,16 +38,13 @@ public interface Config {
 	static final boolean POLL_TIMING = false;
 
 	//used for fault tolerance with global result table
-	static final boolean GRT_TIMING = true;
-
-	static final boolean CRASH_TIMING = true;
-
+	static final boolean GRT_TIMING = false;
+	static final boolean CRASH_TIMING = false;
 	static final boolean TABLE_CHECK_TIMING = false;
-
-	static final boolean ADD_REPLICA_TIMING = true;
+	static final boolean ADD_REPLICA_TIMING = false;
 
 	/** Enable or disable tuple space timing. * */
-	static final boolean TUPLE_TIMING = true;
+	static final boolean TUPLE_TIMING = false;
 
 	/**
 	 * The poll frequency in nanoseconds. A frequency of 0 means do not poll. A
@@ -64,24 +61,29 @@ public interface Config {
 	/** Enable or disable asserts. * */
         static final boolean ASSERTS = true;
 
-	/* Enable or disable aborts and inlets. */
-	static final boolean ABORTS = true;
+	/** Enable or disable aborts and inlets. */
+	static final boolean ABORTS = false;
 
-	/* Enable fault tolerance. */
+	/** Enable fault tolerance. */
 	static final boolean FAULT_TOLERANCE = false;
-
-	/*
+	/**
 	 * If true, the global result table is replicated if false, the table is
 	 * distributed
 	 */
 	static final boolean GLOBAL_RESULT_TABLE_REPLICATED = false;
-
-	/*
-	 * If true, and if the maximal branching factor of the execution tree is
-	 * specified and > 0, globally unique stamps will be generated for jobs and
-	 * used as keys in the global result table (instead of the parameters)
+	/** 
+	 *If true, orphan jobs are not aborted. Pointers are stored immediately
+	 * after crashes and results later. Jobs stolen by crashed processors
+	 * are not put back into the work queue. The are marked as dead and 
+	 * redone when their parent is on the top of the stack.
+	 * Do not use with replicated table
 	 */
-	static final boolean GLOBALLY_UNIQUE_STAMPS = true;
+	static final boolean FT_WITHOUT_ABORTS = false;
+	
+	/**
+	 * Fault tolerance with restarting crashed jobs, but without the table
+	 */
+	static final boolean FT_NAIVE = false;
 
 	/** Enable or disable an optimization for handling delayed messages. */
 	static final boolean HANDLE_MESSAGES_IN_LATENCY = false;

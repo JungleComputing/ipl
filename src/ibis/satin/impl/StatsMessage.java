@@ -66,7 +66,9 @@ class StatsMessage implements java.io.Serializable {
 	long tupleSeqCount;
 
 	//fault tolerance
-	long tableUpdates;
+	long tableResultUpdates;
+
+	long tableLockUpdates;
 
 	long tableLookups;
 
@@ -75,6 +77,8 @@ class StatsMessage implements java.io.Serializable {
 	long tableRemoteLookups;
 
 	long killedOrphans;
+	
+	long restartedJobs;
 
 	double tableLookupTime;
 
@@ -83,6 +87,12 @@ class StatsMessage implements java.io.Serializable {
 	double tableHandleUpdateTime;
 
 	double tableHandleLookupTime;
+	
+	double tableSerializationTime;
+	
+	double tableDeserializationTime;
+	
+	double tableCheckTime;
 
 	double crashHandlingTime;
 
@@ -125,16 +135,21 @@ class StatsMessage implements java.io.Serializable {
 		tupleSeqCount += s.tupleSeqCount;
 
 		//fault tolerance
-		tableUpdates += s.tableUpdates;
+		tableResultUpdates += s.tableResultUpdates;
+		tableLockUpdates += s.tableLockUpdates;
 		tableLookups += s.tableLookups;
 		tableSuccessfulLookups += s.tableSuccessfulLookups;
 		tableRemoteLookups += s.tableRemoteLookups;
 		killedOrphans += s.killedOrphans;
+		restartedJobs += s.restartedJobs;
 
 		tableLookupTime += s.tableLookupTime;
 		tableUpdateTime += s.tableUpdateTime;
 		tableHandleUpdateTime += s.tableHandleUpdateTime;
 		tableHandleLookupTime += s.tableHandleLookupTime;
+		tableSerializationTime += s.tableSerializationTime;
+		tableDeserializationTime += s.tableDeserializationTime;
+		tableCheckTime += s.tableCheckTime;
 		crashHandlingTime += s.crashHandlingTime;
 		addReplicaTime += s.addReplicaTime;
 	}

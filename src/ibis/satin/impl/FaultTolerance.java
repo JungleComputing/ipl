@@ -35,7 +35,9 @@ public abstract class FaultTolerance extends Inlets {
 						.checkAsyncVictimCrash(ident);
 			}
 
-			globalResultTable.removeReplica(id);
+			if (!FT_NAIVE) {
+				globalResultTable.removeReplica(id);
+			}
 
 			if (id.equals(masterIdent)) {
 				//master has crashed, let's elect a new one
@@ -78,6 +80,25 @@ public abstract class FaultTolerance extends Inlets {
 				}
 				restarted = true;
 			}
+			
+			if (id.equals(clusterCoordinatorIdent)) {
+				try {
+					Registry r = ibis.registry();
+					clusterCoordinatorIdent = (IbisIdentifier) r.reelect("satin " + ident.cluster() + " cluster coordinator",
+							ident, id); //implement it!
+					if (masterIdent.equals(ident)) {
+						master = true;
+					}
+				} catch (IOException e) {
+					System.err.println("SATIN '" + ident.name()
+							+ "' :exception while electing a new cluster coordinator "
+							+ e.getMessage());
+				} catch (ClassNotFoundException e) {
+					System.err.println("SATIN '" + ident.name()
+							+ "' :exception while electing a new cluster coordinator "
+							+ e.getMessage());
+				}
+			}
 
 			/*
 			 * if (NUM_CRASHES > 0) { for (int i=1; i <NUM_CRASHES+1 && i
@@ -85,9 +106,16 @@ public abstract class FaultTolerance extends Inlets {
 			 * allIbises.get(i); if (id1.equals(ident)) { return; } } }
 			 */
 
-			//abort all jobs stolen from id or descendants of jobs stolen from
-			// id
-			killAndStoreSubtreeOf(id);
+			if (!FT_NAIVE) {
+				if (FT_WITHOUT_ABORTS) {
+					//store orphans in the table
+					onStack.storeOrphansOf(id);
+				} else {
+					//abort all jobs stolen from id or descendants of jobs stolen from
+					// id
+					killAndStoreSubtreeOf(id);
+				}
+			}
 
 			//if using CRS, remove the asynchronously stolen job if it is owned
 			// by a
@@ -96,8 +124,11 @@ public abstract class FaultTolerance extends Inlets {
 				((ClusterAwareRandomWorkStealing) algorithm).killOwnedBy(id);
 			}
 
-			//redo all jobs stolen by id (put them back in the task queue)
-			redoStolenBy(id);
+			if (FT_WITHOUT_ABORTS) {
+			    outstandingJobs.redoStolenByAttachToParents(id);
+			} else {
+			    outstandingJobs.redoStolenByWorkQueue(id);
+			}
 
 			//for debugging
 			crashedIbis = id;
@@ -117,6 +148,11 @@ public abstract class FaultTolerance extends Inlets {
 
 	// Used for fault tolerance
 	void sendAbortAndStoreMessage(InvocationRecord r) {
+		if (ASSERTS) {
+			assertLocked(this);
+		}
+	
+	
 		if (ABORT_DEBUG) {
 			out.println("SATIN '" + ident.name()
 					+ ": sending abort and store message to: " + r.stealer
@@ -156,10 +192,45 @@ public abstract class FaultTolerance extends Inlets {
 		}
 	}
 
-	//used for fault tolerance
-	void redoStolenBy(IbisIdentifier targetOwner) {
-		outstandingJobs.redoStolenBy(targetOwner);
+	
+	void killAndStoreChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+		if (ASSERTS) {
+			assertLocked(this);
+		}
+		
+		//try work queue, outstanding jobs and jobs on the stack
+		//but try stack first, many jobs in q are children of stack jobs
+		onStack.killAndStoreChildrenOf(targetStamp, targetOwner);
+		q.killChildrenOf(targetStamp, targetOwner);
+		outstandingJobs.killAndStoreChildrenOf(targetStamp, targetOwner);
 	}
+	
+	void killAndStoreSubtreeOf(IbisIdentifier targetOwner) {
+		onStack.killAndStoreSubtreeOf(targetOwner);
+		q.killSubtreeOf(targetOwner);
+		outstandingJobs.killAndStoreSubtreeOf(targetOwner);
+	}
+	
+	/**
+	  * Attach a child to its parent's children list
+	  * unless the parent is on another machine
+	  */
+	void attachToParent(InvocationRecord r) {
+		if (r.parent != null) {
+		    r.sibling = r.parent.child;
+		    r.parent.child = r;
+		} else if (r.owner.equals(ident)) {
+		    if (ASSERTS && !r.owner.equals(ident)) {
+			    System.err.println("SATIN '" + ident.name() + "': parent of a restarted job on another machine!");
+			    System.exit(1);
+		    }	
+		    r.sibling = rootChild;
+		    rootChild = r;
+		}
+		//remove the job's children list
+		r.child = null;
+	}
+		
 
 	//connect upcall functions
 	public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
@@ -168,6 +239,33 @@ public abstract class FaultTolerance extends Inlets {
 		return true;
 	}
 
+
+	synchronized void handleLostConnection(IbisIdentifier dead) {
+		if (!deadIbises.contains(dead)) {
+			if (master) {
+				System.err.println(dead.name() + " has crashed");
+			}		
+			crashedIbises.add(dead);
+			deadIbises.add(dead);
+			if (dead.equals(currentVictim)) {
+			    	currentVictimCrashed = true;
+			}
+			gotCrashes = true;
+			Victim v = victims.remove(dead);
+			notifyAll();
+			if (v != null && v.s != null) {
+				try {
+					v.s.close();
+				} catch (IOException e) {
+					System.err.println("port.free() throws exception "
+						+ e.getMessage());
+				}
+			}
+
+		}
+	}
+	
+	
 	public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe,
 			Exception reason) {
 		if (COMM_DEBUG) {
@@ -176,28 +274,8 @@ public abstract class FaultTolerance extends Inlets {
 		}
 		if (connectionUpcallsDisabled)
 			return;
-		IbisIdentifier ident = johnDoe.ibis();
 		if (FAULT_TOLERANCE) {
-			synchronized (this) {
-				crashedIbises.add(ident);
-				deadIbises.add(ident);
-				if (ident.equals(currentVictim)) {
-					currentVictimCrashed = true;
-				}
-				gotCrashes = true;
-				Victim v = victims.remove(ident);
-				notifyAll();
-				if (v != null && v.s != null) {
-					try {
-						v.s.close();
-					} catch (IOException e) {
-						System.err.println("port.free() throws exception "
-								+ e.getMessage());
-					}
-				}
-
-			}
-
+			handleLostConnection(johnDoe.ibis());
 		}
 	}
 
@@ -210,28 +288,8 @@ public abstract class FaultTolerance extends Inlets {
 		}
 		if (connectionUpcallsDisabled)
 			return;
-		IbisIdentifier ident = johnDoe.ibis();
 		if (FAULT_TOLERANCE) {
-			synchronized (this) {
-				crashedIbises.add(ident);
-				deadIbises.add(ident);
-				if (ident.equals(currentVictim)) {
-					currentVictimCrashed = true;
-				}
-
-				gotCrashes = true;
-				Victim v = victims.remove(ident);
-				notifyAll();
-				if (v != null && v.s != null) {
-					try {
-						v.s.close();
-					} catch (IOException e) {
-						System.err.println("port.free() throws exception "
-								+ e.getMessage());
-					}
-				}
-
-			}
+			handleLostConnection(johnDoe.ibis());
 		}
 	}
 
@@ -248,21 +306,10 @@ public abstract class FaultTolerance extends Inlets {
 			redoTimer.start();
 		}
 
-		synchronized (this) {
-
-			if (GRT_TIMING) {
-				lookupTimer.start();
-			}
-
-			Object key = null;
-			if (GLOBALLY_UNIQUE_STAMPS && branchingFactor > 0) {
-				key = new Integer(r.stamp);
-			} else {
-				key = r.getParameterRecord();
-			}
-			Object value = globalResultTable.lookup(key);
-			if (GRT_TIMING) {
-				lookupTimer.stop();
+			GlobalResultTable.Key key = new GlobalResultTable.Key(r);
+			GlobalResultTable.Value value = null;
+			synchronized (this) {
+				value = globalResultTable.lookup(key, true);
 			}
 
 			if (value == null) {
@@ -274,7 +321,7 @@ public abstract class FaultTolerance extends Inlets {
 
 			if (GLOBAL_RESULT_TABLE_REPLICATED) {
 
-				ReturnRecord rr = (ReturnRecord) value;
+				ReturnRecord rr = value.result;
 				rr.assignTo(r);
 				r.spawnCounter.value--;
 				if (TABLE_CHECK_TIMING) {
@@ -284,10 +331,22 @@ public abstract class FaultTolerance extends Inlets {
 
 			} else {
 				//distributed table
-				if (value instanceof IbisIdentifier) {
+				if (value.type == GlobalResultTable.Value.TYPE_POINTER) {
 					//remote result
+										
+					SendPort s = null;
+					synchronized (this) {
+						if (deadIbises.contains(value.owner)) {
+							//the one who's got the result has crashed
+							if (TABLE_CHECK_TIMING) {
+								redoTimer.stop();
+							}							
+							return false;
+						}
 
-					SendPort s = getReplyPortNoWait((IbisIdentifier) value);
+						s = getReplyPortNoWait(value.owner);
+					}
+					
 					if (s == null) {
 						if (TABLE_CHECK_TIMING) {
 							redoTimer.stop();
@@ -295,8 +354,10 @@ public abstract class FaultTolerance extends Inlets {
 						return false;
 					}
 					//put the job in the stolen jobs list
-					r.stealer = (IbisIdentifier) value;
-					addToOutstandingJobList(r);
+					r.stealer = value.owner;
+					synchronized (this) {
+						addToOutstandingJobList(r);
+					}
 					//send a request to the remote node
 					try {
 						WriteMessage m = s.newMessage();
@@ -309,31 +370,42 @@ public abstract class FaultTolerance extends Inlets {
 						// complicated..
 						m.finish();
 					} catch (IOException e) {
-						System.err
-								.println("SATIN '"
+						System.err.println("SATIN '"
 										+ ident.name()
 										+ "': trying to send RESULT_REQUEST but got exception: "
 										+ e.getMessage());
-						outstandingJobs.remove(r);
+						synchronized (this) {
+							outstandingJobs.remove(r);
+						}
 						return false;
 					}
 					if (TABLE_CHECK_TIMING) {
 						redoTimer.stop();
 					}
 					return true;
+				}
+				
+				if (FT_WITHOUT_ABORTS && ASSERTS) {
+					if (value.type == GlobalResultTable.Value.TYPE_LOCK) {
+						//i don't think that should happen
+						System.err.println("SATIN '" + ident.name() + "': found local unfinished job in the table!! " + key);
+						System.exit(1);
+					}
+				}
 
-				} else {
+				if (value.type == GlobalResultTable.Value.TYPE_RESULT) {
 					//local result, handle normally
-					ReturnRecord rr = (ReturnRecord) value;
-					rr.assignTo(r);
-					r.spawnCounter.value--;
+					ReturnRecord rr = value.result;
+					rr.assignTo(r);	
+					r.spawnCounter.value--;				
 					if (TABLE_CHECK_TIMING) {
 						redoTimer.stop();
 					}
 					return true;
 				}
 			}
-		}
+		
+		return false;
 
 	}
 
@@ -376,8 +448,6 @@ public abstract class FaultTolerance extends Inlets {
 	}
 
 	public void delete(IbisIdentifier id) {
-		//	    System.out.println("SATIN '" + ident.name() + "': got delete " +
-		// id.address());
 
 		if (ident.equals(id)) {
 			gotDelete = true;

@@ -152,13 +152,15 @@ public final class Satin extends APIMethods implements ResizeHandler,
 			}
 
 			if (FAULT_TOLERANCE) {
-				clusterCoordinatorIdent = (IbisIdentifier) r.elect("satin "
+				if (algorithm instanceof ClusterAwareRandomWorkStealing) {
+					clusterCoordinatorIdent = (IbisIdentifier) r.elect("satin "
 						+ ident.cluster() + " cluster coordinator", ident);
-				if (clusterCoordinatorIdent.equals(ident)) {
-					/* I am the cluster coordinator */
-					clusterCoordinator = true;
-					System.out.println("cluster coordinator for cluster "
+					if (clusterCoordinatorIdent.equals(ident)) {
+						/* I am the cluster coordinator */
+						clusterCoordinator = true;
+						System.out.println("cluster coordinator for cluster "
 							+ ident.cluster() + " is " + hostName);
+					}
 				}
 			}
 
@@ -237,7 +239,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
 		if (master) {
 			if (closed) {
-				System.err.println("SATIN '" + hostName
+				System.out.println("SATIN '" + hostName
 						+ "': running with closed world, " + poolSize
 						+ " host(s)");
 			} else {
@@ -262,7 +264,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
 		if (FAULT_TOLERANCE) {
 			globalResultTable = new GlobalResultTable(this);
 			abortAndStoreList = new StampVector();
-
 			if (master) {
 				getTable = false;
 			}
@@ -311,6 +312,12 @@ public final class Satin extends APIMethods implements ResizeHandler,
 				addReplicaTimer.start();
 			}
 		}
+		
+		if (dump) {
+			DumpThread dumpThread = new DumpThread(this);
+			Runtime.getRuntime().addShutdownHook(dumpThread);
+		}
+		
 		totalTimer.start();
 	}
 

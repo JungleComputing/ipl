@@ -117,7 +117,10 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
 	}
 
 	public void exit() {
-		//wait for a pending async steal reply
+		//quick hack around some nasty bug -- don't wait
+		//remove before commit
+	
+/*		//wait for a pending async steal reply
 		if (asyncStealInProgress) {
 			System.err.println("waiting for a pending async steal reply...");
 			synchronized (satin) {
@@ -133,7 +136,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
 				System.err.println("Satin: CRS: EEK, stole async job "
 						+ "after exiting!");
 			}
-		}
+		}*/
 	}
 
 	public void printStats(java.io.PrintStream out) {

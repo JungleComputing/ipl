@@ -33,7 +33,7 @@ public abstract class Malleability extends FaultTolerance {
 			}
 
 			synchronized (this) {
-				if (FAULT_TOLERANCE) {
+				if (FAULT_TOLERANCE && !FT_NAIVE) {
 					globalResultTable.addReplica(joiner);
 				}
 				victims.add(joiner, s);
@@ -56,7 +56,7 @@ public abstract class Malleability extends FaultTolerance {
 
 		if (joiner.name().equals("ControlCentreIbis"))
 			return;
-		//		allIbises.add(joiner);
+		allIbises.add(joiner);
 		if (joiner.equals(ident))
 			return;
 
@@ -81,7 +81,7 @@ public abstract class Malleability extends FaultTolerance {
 		Victim v;
 
 		synchronized (this) {
-			if (FAULT_TOLERANCE) {
+			if (FAULT_TOLERANCE && !FT_NAIVE) {
 				globalResultTable.removeReplica(leaver);
 			}
 			v = victims.remove(leaver);

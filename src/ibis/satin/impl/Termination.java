@@ -168,7 +168,7 @@ public abstract class Termination extends Initialization {
 			System.err.println("port.close() throws " + e);
 		}
 
-		if (FAULT_TOLERANCE) {
+		if (FAULT_TOLERANCE && !FT_NAIVE) {
 			globalResultTable.exit();
 		}
 

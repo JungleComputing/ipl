@@ -103,22 +103,6 @@ public abstract class Aborts extends WorkStealing {
 		}
 	}
 
-	/* Used for fault tolerance */
-	protected void killAndStoreChildrenOf(int targetStamp,
-			IbisIdentifier targetOwner) {
-
-		if (ASSERTS) {
-			assertLocked(this);
-		}
-
-		// try work queue, outstanding jobs and jobs on the stack
-		// but try stack first, many jobs in q are children of stack jobs.
-		onStack.killAndStoreChildrenOf(targetStamp, targetOwner);
-		q.killChildrenOf(targetStamp, targetOwner);
-		outstandingJobs.killAndStoreChildrenOf(targetStamp, targetOwner);
-
-	}
-
 	//abort every job that was spawned on targetOwner
 	//or is a child of a job spawned on targetOwner
 	//used for fault tolerance
@@ -126,13 +110,6 @@ public abstract class Aborts extends WorkStealing {
 		onStack.killSubtreeOf(targetOwner);
 		q.killSubtreeOf(targetOwner);
 		outstandingJobs.killSubtreeOf(targetOwner);
-	}
-
-	//used for fault tolerance
-	protected void killAndStoreSubtreeOf(IbisIdentifier targetOwner) {
-		onStack.killAndStoreSubtreeOf(targetOwner);
-		q.killSubtreeOf(targetOwner);
-		outstandingJobs.killAndStoreSubtreeOf(targetOwner);
 	}
 
 	static boolean isDescendentOf(InvocationRecord child, int targetStamp,
