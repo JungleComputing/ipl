@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ParallelStreams
 {
@@ -69,6 +70,22 @@ public class ParallelStreams
 	    sockets[i] = s;
 	    ins[i] = s.getInputStream();
 	    outs[i] = s.getOutputStream();
+	}
+    }
+
+    void setReceiveBufferSize(int n) throws SocketException {
+	for (int i = 0; i < numWays; i++) {
+	    if (sockets[i] != null) {
+		sockets[i].setReceiveBufferSize(n);
+	    }
+	}
+    }
+
+    void setSendBufferSize(int n) throws SocketException {
+	for (int i = 0; i < numWays; i++) {
+	    if (sockets[i] != null) {
+		sockets[i].setSendBufferSize(n);
+	    }
 	}
     }
 

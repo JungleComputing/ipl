@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 
 public class PSSocket extends Socket
@@ -36,6 +37,14 @@ public class PSSocket extends Socket
 	throws IOException
     {
 	return in;
+    }
+
+    public void setSendBufferSize(int n) throws SocketException {
+	ps.setSendBufferSize(n);
+    }
+
+    public void setReceiveBufferSize(int n) throws SocketException {
+	ps.setReceiveBufferSize(n);
     }
 
     public void close()
