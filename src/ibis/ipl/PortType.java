@@ -138,15 +138,15 @@ public abstract class PortType {
 				   boolean connectionDowncalls)
 	    throws IOException {
 	if (cU != null) {
-	    if (! properties().isProp("communication", "ConnectionDowncalls")) {
-		throw new IbisConfigurationException(
-			"no connection downcalls requested for this port type");
-	    }
-	}
-	if (connectionDowncalls) {
 	    if (! properties().isProp("communication", "ConnectionUpcalls")) {
 		throw new IbisConfigurationException(
 			"no connection upcalls requested for this port type");
+	    }
+	}
+	if (connectionDowncalls) {
+	    if (! properties().isProp("communication", "ConnectionDowncalls")) {
+		throw new IbisConfigurationException(
+			"no connection downcalls requested for this port type");
 	    }
 	}
 	if (name == null) {
@@ -343,15 +343,15 @@ public abstract class PortType {
     {
 	StaticProperties p = properties();
 	if (cU != null) {
-	    if (! p.isProp("communication", "ConnectionDowncalls")) {
-		throw new IbisConfigurationException(
-			"no connection downcalls requested for this port type");
-	    }
-	}
-	if (connectionDowncalls) {
 	    if (! p.isProp("communication", "ConnectionUpcalls")) {
 		throw new IbisConfigurationException(
 			"no connection upcalls requested for this port type");
+	    }
+	}
+	if (connectionDowncalls) {
+	    if (! p.isProp("communication", "ConnectionDowncalls")) {
+		throw new IbisConfigurationException(
+			"no connection downcalls requested for this port type");
 	    }
 	}
 	if (u != null) {
