@@ -325,73 +325,73 @@ public final class Driver extends NetDriver {
 
 	    try {
 		result = gmLockArray.ilockFirst(lockIds);
+
+		if (Driver.TIMINGS) {
+		    t_lock.stop();
+		}
+
+		long start = -1;
+
+		if (result == lockIds.length - 1) {
+pollers++;
+		    /* got GM main lock, let's pump */
+		    // We are NOT interested in lockIds[lockIds.length - 1], but
+		    // luckily we already got that, so no fear that we
+		    // get it again.
+		    try {
+			boolean locked;
+			int pollsBeforeYield = POLLS_BEFORE_YIELD;	    
+
+			do {
+// System.err.print(">");
+			    if (Driver.TIMINGS) Driver.t_native_poll.start();
+			    nGmThread();
+			    if (Driver.TIMINGS) Driver.t_native_poll.stop();
+// System.err.print("<");
+
+			    if (interrupts != Driver.interrupts) {
+				throw new InterruptedIOException("got interrupted, Driver.interrupts " + Driver.interrupts + " was " + interrupts);
+			    }
+
+			    if (lockId == -1) {
+				result = gmLockArray.trylockFirst(lockIds);
+				locked = (result != -1);
+			    } else {
+				locked = gmLockArray.trylock(lockId);
+			    }
+			    if (locked) {
+				break;
+			    } else if (pollsBeforeYield-- == 0) {
+				yields++;
+yielders++;
+				gmAccessLock.unlock();
+				NetIbis.yield();
+				gmAccessLock.lock(false);
+				pollsBeforeYield = POLLS_BEFORE_YIELD;
+yielders--;
+			    }
+			} while (true);
+
+		    } finally {
+pollers--;
+			/* request completed, release GM main lock */
+			gmLockArray.unlock(0);
+		    }
+
+		} else if (result > lockIds.length - 1) {
+		    throw new Error("invalid state");
+		}
+		/* else: request already completed */
+// else System.err.print("A(" + result + ")");
+
+// System.err.println(Thread.currentThread() + ": blockingPump: return " + result);
 	    } catch (ibis.util.IllegalLockStateException e) {
 		if (DEBUG) {
-		    System.err.println("On ilockFirst[" + lockIds[0] + "]: catch IllegalLockStateException; Driver.interrupts " + interrupts + " was " + interrupts);
+		    System.err.println("catch IllegalLockStateException; Driver.interrupts " + interrupts + " was " + interrupts);
 		    System.err.println("Presume our channel was closed under our hands");
 		}
 		throw new ConnectionClosedException(e);
 	    }
-
-	    if (Driver.TIMINGS) {
-		t_lock.stop();
-	    }
-
-	    long start = -1;
-
-	    if (result == lockIds.length - 1) {
-pollers++;
-		/* got GM main lock, let's pump */
-		// We are NOT interested in lockIds[lockIds.length - 1], but
-		// luckily we already got that, so no fear that we
-		// get it again.
-		try {
-		    boolean locked;
-		    int pollsBeforeYield = POLLS_BEFORE_YIELD;	    
-
-		    do {
-// System.err.print(">");
-			if (Driver.TIMINGS) Driver.t_native_poll.start();
-			nGmThread();
-			if (Driver.TIMINGS) Driver.t_native_poll.stop();
-// System.err.print("<");
-
-			if (interrupts != Driver.interrupts) {
-			    throw new InterruptedIOException("got interrupted, Driver.interrupts " + Driver.interrupts + " was " + interrupts);
-			}
-
-			if (lockId == -1) {
-			    result = gmLockArray.trylockFirst(lockIds);
-			    locked = (result != -1);
-			} else {
-			    locked = gmLockArray.trylock(lockId);
-			}
-			if (locked) {
-			    break;
-			} else if (pollsBeforeYield-- == 0) {
-			    yields++;
-yielders++;
-			    gmAccessLock.unlock();
-			    NetIbis.yield();
-			    gmAccessLock.lock(false);
-			    pollsBeforeYield = POLLS_BEFORE_YIELD;
-yielders--;
-			}
-		    } while (true);
-
-		} finally {
-pollers--;
-			/* request completed, release GM main lock */
-		    gmLockArray.unlock(0);
-		}
-
-	    } else if (result > lockIds.length - 1) {
-		throw new Error("invalid state");
-	    }
-	    /* else: request already completed */
-// else System.err.print("A(" + result + ")");
-
-// System.err.println(Thread.currentThread() + ": blockingPump: return " + result);
 
 	    if (Driver.TIMINGS) {
 		t_poll.stop();
@@ -420,6 +420,7 @@ pollers--;
 
 	/* Must hold gmAccessLock on entry/exit */
         protected static int tryPump(int []lockIds) throws IOException {
+	    try {
                 int result = gmLockArray.trylockFirst(lockIds);
 
                 if (result == lockIds.length - 1) {
@@ -440,11 +441,19 @@ pollers--;
                 } else {
                         return result;
                 }
+	    } catch (ibis.util.IllegalLockStateException e) {
+		if (DEBUG) {
+		    System.err.println("catch IllegalLockStateException; Driver.interrupts " + interrupts + " was " + interrupts);
+		    System.err.println("Presume our channel was closed under our hands");
+		}
+		throw new ConnectionClosedException(e);
+	    }
         }
 
 
 	/* Must hold gmAccessLock on entry/exit */
         protected static boolean tryPump(int lockId, int []lockIds) throws IOException {
+	    try {
                 int result = gmLockArray.trylockFirst(lockIds);
 
                 if (result == -1) {
@@ -468,6 +477,13 @@ pollers--;
                 } else {
                         throw new Error("invalid state");
                 }
+	    } catch (ibis.util.IllegalLockStateException e) {
+		if (DEBUG) {
+		    System.err.println("catch IllegalLockStateException; Driver.interrupts " + interrupts + " was " + interrupts);
+		    System.err.println("Presume our channel was closed under our hands");
+		}
+		throw new ConnectionClosedException(e);
+	    }
         }
 
 
