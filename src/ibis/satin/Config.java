@@ -45,5 +45,5 @@ public interface Config {
 	static final boolean SPAWN_DEBUG = false;
 	static final boolean INLET_DEBUG = false;
 	static final boolean ABORT_DEBUG = false;
-	static final boolean TUPLE_DEBUG = true;
+	static final boolean TUPLE_DEBUG = false;
 }

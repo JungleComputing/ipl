@@ -766,7 +766,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			assertLocked(this);
 		}
 		activeTupleKeyList.add(key);
-		activeTupleKeyList.add(data);
+		activeTupleDataList.add(data);
 	}
 
 	// hold the lock when calling this
@@ -1702,9 +1702,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		while(true) {
 			if(activeTupleKeyList.size() > 0) {
 				// do upcall
-				String key = (String) activeTupleKeyList.remove(0);
-				ActiveTuple data = (ActiveTuple) activeTupleDataList.remove(0);
-				data.handleTuple(key);
+				try {
+					String key = (String) activeTupleKeyList.remove(0);
+					ActiveTuple data = (ActiveTuple) activeTupleDataList.remove(0);
+					System.err.println("calling active tuple key = " + 
+							   key + "data = " + data);
+					data.handleTuple(key);
+				} catch (Throwable t) {
+					System.err.println("WARNING: active tuple threw exception: " + t);
+				}
 			} else {
 				gotActiveTuples = false;
 				return;
@@ -2035,7 +2041,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(TUPLE_TIMING) {
 			tupleTimer.stop();
-			System.err.println("SATIN '" + ident.name() + ": bcast of " + count + " bytes took: " + tupleTimer.lastTime());
+//			System.err.println("SATIN '" + ident.name() + ": bcast of " + count + " bytes took: " + tupleTimer.lastTime());
 		}
 	}
 
@@ -2102,7 +2108,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(TUPLE_TIMING) {
 			tupleTimer.stop();
-			System.err.println("SATIN '" + ident.name() + ": bcast of " + count + " bytes took: " + tupleTimer.lastTime());
+//			System.err.println("SATIN '" + ident.name() + ": bcast of " + count + " bytes took: " + tupleTimer.lastTime());
 		}
 	}
 

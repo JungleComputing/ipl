@@ -88,7 +88,7 @@ public class SatinTupleSpace implements Config {
 	}
 
 	/** Remove an element from the tuple space. **/
-	public static void remove(String key) throws IOException {
+	public static void remove(String key) {
 		synchronized(space) {
 			if(ASSERTS && !space.containsKey(key)) {
 				throw new IbisError("Key " + key + " is not in the tuple space");
