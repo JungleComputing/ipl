@@ -15,6 +15,15 @@ class ByteBuffer implements java.io.Serializable {
         this( 1000 );
     }
 
+    /** Returns a byte array containing the current text in the buffer. */
+    byte [] getText()
+    {
+        byte res[] = new byte[sz];
+
+        System.arraycopy( buf, 0, res, 0, sz );
+        return res;
+    }
+
     void append( byte b )
     {
         if( sz>=buf.length ){

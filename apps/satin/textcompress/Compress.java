@@ -8,6 +8,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
     static final boolean traceLookahead = false;
     static int max_shortening = Configuration.MAX_SHORTENING;
     static int lookahead_depth = Configuration.LOOKAHEAD_DEPTH;
+    static boolean doVerification = false;
 
     private static void generateIndent( java.io.PrintStream str, int n )
     {
@@ -355,7 +356,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
     static void usage()
     {
-        System.err.println( "Usage: [-short <n>] [-depth <n>] <text> <compressedtext>" );
+        System.err.println( "Usage: [-verify] [-short <n>] [-depth <n>] <text> <compressedtext>" );
     }
 
     /**
@@ -368,7 +369,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 	File outfile = null;
 
         for( int i=0; i<args.length; i++ ){
-            if( args[i].equals( "-short" ) ){
+            if( args[i].equals( "-verify" ) ){
+                doVerification = true;
+            }
+            else if( args[i].equals( "-short" ) ){
                 i++;
                 max_shortening = Integer.parseInt( args[i] );
             }
@@ -407,5 +411,21 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
 	System.out.println( "ExecutionTime: " + time );
         System.out.println( "In: " + text.length + " bytes, out: " + buf.sz + " bytes." );
+        if( doVerification ){
+            byte ct[] = buf.getText();
+            ByteBuffer debuf = Decompress.decompress( ct );
+            byte nt[] = debuf.getText();
+
+            if( nt.length != text.length ){
+                System.out.println( "Error: decompressed text has different length from original. Original is " + text.length + " bytes, decompression is " + nt.length + " bytes" );
+                System.exit( 1 );
+            }
+            for( int i=0; i<nt.length; i++ ){
+                if( nt[i] != text[i] ){
+                    System.out.println( "Error: decompressed text differs from original at position " + i );
+                    System.exit( 1 );
+                }
+            }
+        }
     }
 }
