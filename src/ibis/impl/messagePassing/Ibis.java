@@ -86,7 +86,8 @@ public class Ibis extends ibis.ipl.Ibis {
 	    System.err.println("Turn on Ibis.DEBUG");
 	}
 
-	ibis.io.Conversion.classInit();
+//      the message passing version doesn't use conversions --Rob
+//	ibis.io.Conversion.classInit();
 
 	/*
 	 * This is an 1.3 feature; cannot we use it please?

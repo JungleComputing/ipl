@@ -8,7 +8,7 @@ public final class OutputStreamSplitter extends OutputStream {
 	static final int START_SIZE = 128;
 	private OutputStream [] out;
 	private int size, index;
-	static final boolean DEBUG = false;
+	private static final boolean DEBUG = false;
 
 	public OutputStreamSplitter() { 
 		out = new OutputStream[START_SIZE];
@@ -148,5 +148,3 @@ public final class OutputStreamSplitter extends OutputStream {
 		}
 	}
 }
-
-
