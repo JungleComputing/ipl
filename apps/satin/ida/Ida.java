@@ -4,7 +4,7 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		NSQRT		= 4,
 		NPUZZLE		= NSQRT * NSQRT - 1,
 	        BRANCH_FACTOR	= 4, // first move may be in four directions!
-	        THRESHOLD       = 10; // Spawn the top n levels. Higher is more spawns.
+	        THRESHOLD       = 12; // Spawn the top n levels. Higher is more spawns.
 	
 	static void Move(Job j, int dx, int dy, Game puzzle) {
 		int x, y, v;

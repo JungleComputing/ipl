@@ -86,7 +86,6 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 		return result;
 	}
 
-
 	private static void putmin(double[] prio, int[] a, int[] b, int pos) {
 		int minpos = pos;
 		double min = Integer.MAX_VALUE;

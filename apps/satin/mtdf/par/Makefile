@@ -1,4 +1,5 @@
-APP_OPTIONS = 22
+#APP_OPTIONS = 19
+APP_OPTIONS = 17
 
 OUT= awari
 

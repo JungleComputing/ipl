@@ -1,7 +1,9 @@
 public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface, java.io.Serializable {
 	static final int INF = 10000;
 	static TranspositionTable tt = new TranspositionTable();
-	
+	static final boolean BEST_FIRST = true;
+	static final boolean DO_ABORT = true;
+
 	public void spawn_depthFirstSearch(NodeType node, int pivot, int depth, short currChild) throws Done {
 		depthFirstSearch(node, pivot, depth);
 		throw new Done(node.score, currChild);
@@ -11,7 +13,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 		NodeType children[];
 		short bestChild = 0;
 		TranspositionTableEntry e;
-		short[] order;
+		short currChild = 0;
 
 		tt.visited++;
 
@@ -23,7 +25,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 		e = tt.lookup(node.signature);
 		if(e != null && node.signature == e.tag) {
 			tt.sorts++;
-			if(e.depth >= depth) {
+			if(e.depth >= depth) { // watch out with equal sign!
 				if((e.lowerBound ? e.value >= pivot : e.value < pivot)) {
 					tt.hits++;
 					node.score = e.value;
@@ -31,73 +33,51 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 				}
 			}
 			
-			order = new short[children.length];
-			order[0] = e.bestChild;
-			for(short i=0; i<e.bestChild; i++) {
-				order[i+1] = i;
-			}
-			for(short i=(short) (e.bestChild+1); i<children.length; i++) {
-				order[i] = i;
-			}
-		} else {
-			order = new short[children.length];
-			for(short i=0; i<children.length; i++) {
-				order[i] = i;
-			}
+			currChild = e.bestChild;
 		}
 
 		node.score = -INF;
+		if(BEST_FIRST) {
+			// do first child myself, if it generates a cut-off, stop.
+			depthFirstSearch(children[currChild], 1-pivot, depth - 1);
 
-		// do first child myself, if it generates a cut-off, stop.
-		boolean cutOff = false;
-		short currChild = order[0];
-
-		depthFirstSearch(children[currChild], 1-pivot, depth - 1);
-
-		if (-children[currChild].score > node.score) {
-			tt.scoreImprovements++;
-			bestChild = currChild;
-			node.score = (short) -children[currChild].score;
-			
-			if (node.score >= pivot) {
-				cutOff = true;
-				tt.aborts++;
-			}
-		}
-
-		if(!cutOff) {
-//			for (short i = 1; i < children.length; i++) {
-			for (short i = (short)(children.length-1); i >= 1; i--) {
-				currChild = order[i];
-				try {
-					spawn_depthFirstSearch(children[currChild], 1-pivot, depth - 1, currChild);
-				} catch (Done d) {
-//					System.out.println("in catch, my score = " + node.score + ", spawned score = " + d.score);
-					if (-d.score > node.score) {
-						tt.scoreImprovements++;
-						bestChild = d.currChild;
-						node.score = (short) -d.score;
-						
-						if (node.score >= pivot) {
-							tt.aborts++;
-							abort();
-						}
-					}
-					return null;
+			if (-children[currChild].score > node.score) {
+				tt.scoreImprovements++;
+				bestChild = currChild;
+				node.score = (short) -children[currChild].score;
+				
+				if (node.score >= pivot) {
+					tt.cutOffs++;
+				// update transposition table
+					tt.store(node.signature, node.score, currChild, (byte)depth, node.score >= pivot);
+					return children[currChild];
 				}
 			}
-			sync();
 		}
 
+		for (short i = (short)(children.length-1); i >= 0; i--) {
+			if(BEST_FIRST && i == currChild) continue;
+
+			try {
+				spawn_depthFirstSearch(children[i], 1-pivot, depth - 1, i);
+			} catch (Done d) {
+				if (-d.score > node.score) {
+					tt.scoreImprovements++;
+					bestChild = d.currChild;
+					node.score = (short) -d.score;
+					
+					if (DO_ABORT && node.score >= pivot) {
+						abort();
+					}
+				}
+				return null;
+			}
+		}
+
+		sync();
+
 		// update transposition table
-		e = new TranspositionTableEntry();
-		e.tag = node.signature;
-		e.value = node.score;
-		e.bestChild = bestChild;
-		e.depth = (byte) depth;
-		e.lowerBound = node.score >= pivot;
-		tt.store(e);
-		
+		tt.store(node.signature, node.score, bestChild, (byte)depth, node.score >= pivot);
 		return children[bestChild];
 	}
 
