@@ -109,7 +109,7 @@ foreach ( @ibises ) {
 $sequential = $min_sequential;
 
 printf("*** PARALLEL ***\n");
-printf("%-4s %-24s %-8s %-4s %8s %8s %8s %8s\n",
+printf("%-4s %-28s %-8s %-4s %7s %7s %7s %7s\n",
 	"N", "Ibis", "Ser", "cpus", "min(us)", "av.(us)", "speedup", "eff.");
 foreach ( @ibises ) {
     $ibis = $_;
@@ -121,7 +121,7 @@ foreach ( @ibises ) {
 	    if ($node != 1) {
 		if ( $n { $ix } > 0) {
 		    $speedup = $sequential / $min_lat { $ix };
-		    printf("%-4d %-24s %-8s %-4d %8.1f %8.1f %8.3f %8.3f\n",
+		    printf("%-4d %-28s %-8s %-4d %7.1f %7.1f %7.3f %7.3f\n",
 			    $n { $ix },
 			    "$ibis", "$ser", 
 			    $node,

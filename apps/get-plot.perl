@@ -8,7 +8,7 @@ while ( <> ) {
     chomp;
     # printf "current $_\n";
     ( $runs, $ibis, $ser, $node, $min, $av, $speedup, $eff ) = split;
-    # printf ( "Runs $runs Ibis $ibis Serialization $ser Nodes $node\n");
+    # printf ( "Runs $runs Ibis $ibis Serialization $ser Nodes $node speedup $speedup\n");
 
     $ibis =~ s/\//-/g;
 
@@ -19,6 +19,10 @@ while ( <> ) {
 	$n { $ix } ++;
 	$archx = $ibis . "/" . $ser;
 	$archn { $archx } ++;
+
+	if ($node > $max_node) {
+	    $max_node = $node;
+	}
 
 	$found = 0;
 	foreach ( @serializations ) {
@@ -56,6 +60,12 @@ while ( <> ) {
     }
 }
 
+{
+$axis_round = 5;
+use integer;
+$max_node = $axis_round * ( ($max_node + $axis_round - 1) / $axis_round );
+}
+
 mkdir "plots" or printf "Warning: directory plots exists; will overwrite\n";
 
 foreach ( "tcp", "myrinet" ) {
@@ -63,14 +73,13 @@ foreach ( "tcp", "myrinet" ) {
     open PLOT, ">plots/plot-$network.plot" or die "Cannot open/w 'plot-$network.plot'";
     printf PLOT ("set terminal postscript color 18\n");
     printf PLOT ("set output \"plot-$network.ps\"\n");
-    printf PLOT ("set xrange \[0:35\]\n");
-    printf PLOT ("set yrange \[0:35\]\n");
+    printf PLOT ("set xrange \[0:$max_node\]\n");
+    printf PLOT ("set yrange \[0:$max_node\]\n");
     printf PLOT ("set key reverse left Left\n");
     printf PLOT ("set xlabel \"processors\"\n");
     printf PLOT ("set ylabel \"speedup\"\n");
-    printf PLOT ("plot f(x) = x, f(x) title \"perfect\", \\\n");
+    printf PLOT ("plot f(x) = x, f(x) title \"perfect\" \\\n");
     # printf PLOT ("plot \\\n");
-    $my_first = 1;
     foreach ( @serializations ) {
 	$ser = $_;
 	foreach ( @ibises ) {
@@ -80,13 +89,7 @@ foreach ( "tcp", "myrinet" ) {
 		if ( ( $network eq "tcp" && $ibis =~ /(tcp|sun)/ ) ||
 		     ( $network ne "tcp" && $ibis !~ /(tcp|sun)/ ) ) {
 		    $name = "plots/plot-$ibis-$ser.data";
-		    if ($my_first) {
-			$my_first = 0;
-			printf PLOT "	";
-		    } else {
-			printf PLOT "	, ";
-		    }
-		    printf PLOT "\'$name\' with linespoints \\\n";
+		    printf PLOT "	, \'$name\' with linespoints \\\n";
 		    open DATA, ">$name" or die "Cannot open '$name'";
 		    foreach ( @nodes ) {
 			$node = $_;

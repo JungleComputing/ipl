@@ -1,6 +1,8 @@
 #!/bin/bash
 
-IBIS=/home/rutger/ibis
+d=`dirname $0`
+IBIS=`cd $d/.. ; pwd`
+echo IBIS $IBIS
 
 main=`cat run-args`
 # options="22 -warmup 4"
@@ -18,10 +20,11 @@ runs=10
 
 sers="ibis sun"
 
-ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
+ibises="tcp net.multi.bytes.gen.tcp_blk panda net.multi.gm"
 
 sequential=0
 parallel=1
+options=""
 
 while [ $# -gt 0 ] ; do
     qarg="'"$1"'"
@@ -77,6 +80,10 @@ while [ $# -gt 0 ] ; do
     esac
     shift
 done
+
+if [ "$options" != "" ] ; then
+	main=
+fi
 
 prun_options="IBP_SEND_SYNC=0 $reserve $timeout"
 
