@@ -1,8 +1,12 @@
-package ibis.ipl.impl.net;
+package ibis.ipl.impl.net.gen;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
+
+import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetOutput;
+import ibis.ipl.impl.net.NetSendBuffer;
 
 import java.net.Socket;
 
@@ -19,7 +23,7 @@ import java.util.Vector;
 /**
  * Provides a generic multiple network output poller.
  */
-public class NetSplitter extends NetOutput {
+public class GenSplitter extends NetOutput {
 
 	/**
 	 * The set of outputs.
@@ -49,7 +53,7 @@ public class NetSplitter extends NetOutput {
 	 * @param driver the driver of this poller.
 	 * @param output  the controlling output.
 	 */
-	public NetSplitter (StaticProperties staticProperties,
+	public GenSplitter (StaticProperties staticProperties,
 			    NetDriver 	     driver,
 			    NetOutput 	     output) {
 		super(staticProperties, driver, output);

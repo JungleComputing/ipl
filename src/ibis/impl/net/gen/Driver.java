@@ -7,9 +7,7 @@ import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetIbis;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetPoller;
 import ibis.ipl.impl.net.NetReceivePortIdentifier;
-import ibis.ipl.impl.net.NetSplitter;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -56,7 +54,7 @@ public class Driver extends NetDriver {
 	public NetInput newInput(StaticProperties sp,
 				 NetInput	  input)
 		throws IbisIOException {
-		return new NetPoller(sp, this, input);
+		return new GenPoller(sp, this, input);
 	}
 
 	/**
@@ -70,6 +68,6 @@ public class Driver extends NetDriver {
 	public NetOutput newOutput(StaticProperties sp,
 				   NetOutput        output)
 		throws IbisIOException {
-		return new NetSplitter(sp, this, output);
+		return new GenSplitter(sp, this, output);
 	}
 }

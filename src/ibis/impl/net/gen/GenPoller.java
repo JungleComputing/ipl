@@ -1,8 +1,12 @@
-package ibis.ipl.impl.net;
+package ibis.ipl.impl.net.gen;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
+
+import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetInput;
+import ibis.ipl.impl.net.NetReceiveBuffer;
 
 import java.net.InetAddress;
 import java.net.Socket;
@@ -18,7 +22,7 @@ import java.util.Vector;
 /**
  * Provides a generic multiple network input poller.
  */
-public class NetPoller extends NetInput {
+public class GenPoller extends NetInput {
 
 	/**
 	 * The set of inputs.
@@ -52,7 +56,7 @@ public class NetPoller extends NetInput {
 	 * @param driver the driver of this poller.
 	 * @param input  the controlling input.
 	 */
-	public NetPoller(StaticProperties staticProperties,
+	public GenPoller(StaticProperties staticProperties,
 			 NetDriver 	  driver,
 			 NetInput  	  input) {
 		super(staticProperties, driver, input);
