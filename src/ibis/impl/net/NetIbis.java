@@ -71,8 +71,7 @@ public final class NetIbis extends Ibis {
 	/**
 	 * Stores the Ibis Name Server IP port.
 	 */
-	private   int               nameServerPort   =
-		NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+	private   int               nameServerPort   = 0;
 
 	/**
 	 * Stores the NetIbis instance's Name Server client.
@@ -246,17 +245,29 @@ public final class NetIbis extends Ibis {
 			Properties p = System.getProperties();
 		
 			nameServerName = p.getProperty("name_server");
+                        if (nameServerName == null) {
+                                throw new IbisException("property name_server is not specified");
+                        }
+
 			nameServerPool = p.getProperty("name_server_pool");
+                        if (nameServerPool == null) {
+                                throw new IbisException("property name_server_pool is not specified");
+                        }
+
+                        String nameServerPortString = p.getProperty("name_server_port");
+
+                        if (nameServerPortString == null) {
+                                nameServerPort = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+                        } else {
+                                try {
+                                        nameServerPort = Integer.parseInt(nameServerPortString);
+                                } catch (Exception e) {
+                                        System.err.println("illegal nameserver port: " + nameServerPortString + ", using default");
+                                        nameServerPort = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+                                }
+                        }
 		}
 		
-		if (nameServerName == null) {
-			throw new IbisException("property name_server is not specified");
-		}
-
-		if (nameServerPool == null) {
-			throw new IbisException("property name_server_pool is not specified");
-		}
-
 		try {
 			nameServerInet = InetAddress.getByName(nameServerName);
 		} catch (UnknownHostException e) {
