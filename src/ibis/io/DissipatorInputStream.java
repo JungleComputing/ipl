@@ -50,7 +50,7 @@ public final class DissipatorInputStream extends InputStream {
      */
     public int read(byte[] b, int off, int len) throws IOException {
 	in.readArray(b, off, len);
-	return b.length;
+	return len;
     }
 
     /**
