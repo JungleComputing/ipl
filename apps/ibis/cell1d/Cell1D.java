@@ -47,7 +47,7 @@ class Sender implements Config
 
     void send( int count, int repeat ) throws Exception
     {
-        for ( int r=0; r<repeat; r++ ) {
+        for( int r=0; r<repeat; r++ ) {
             long time = System.currentTimeMillis();
 
             for( int i = 0; i< count; i++ ) {
@@ -82,7 +82,7 @@ class Receiver implements Config {
 	}
 
 	void receive( int count, int repeat ) throws IOException {
-            for ( int r=0; r<repeat; r++ ) {
+            for( int r=0; r<repeat; r++ ) {
                 for( int i = 0; i< count; i++ ) {
                     if( DEBUG ) {
                         System.out.println( "LAT: in receive" );
@@ -186,10 +186,10 @@ class Cell1D implements Config {
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
             s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
-            s.add( "worldmodel", "open" );
+            s.add( "worldmodel", "closed" );
             ibis = Ibis.createIbis( s, rszHandler );
 
-            ibis.openWorld();
+            // ibis.openWorld();
 
             registry = ibis.registry();
 
