@@ -10,6 +10,7 @@ include ../../../../config.mk
 java:	java_local
 	(cd verifier/structurals && make java)
 	(cd verifier/statics && make java)
+	(cd classfile && make java)
 
 java_local:	$(CLASS_FILES) $(MAIN_CLASS)
 
@@ -19,5 +20,6 @@ clean:
 	rm -f $(TRASH_FILES) *.so *.a
 	(cd verifier/structurals && make clean)
 	(cd verifier/statics && make clean)
+	(cd classfile && make clean)
 
 distclean:	clean
