@@ -6,26 +6,70 @@ import ibis.util.DummyOutputStream;
 import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.OutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Hashtable;
+import java.util.HashMap;
 
 class PortTypeNameServer extends Thread implements Protocol {
+
+	/**
+	 * The <code>Sequencer</code> class provides a global numbering.
+	 * This can be used, for instance, for global ordering of messages.
+	 * A sender must then first obtain a sequence number from the sequencer,
+	 * and tag the message with it. The receiver must then handle the messages
+	 * in the "tag" order.
+	 * <p>
+	 * A Sequencer associates a numbering scheme with a name, so the user can
+	 * associate different sequences with different names.
+	 */
+	private static class Sequencer {
+	    private HashMap counters;
+
+	    private static class LongObject {
+		long val;
+		LongObject(long v) {
+		    val = v;
+		}
+	    }
+
+	    Sequencer() {
+		counters = new HashMap();
+	    }
+
+	    /**
+	     * Returns the next sequence number associated with the specified name.
+	     * @param name the name of the sequence.
+	     * @return the next sequence number
+	     * @exception IOException gets thrown in case of trouble
+	     */
+	    public synchronized long getSeqno(String name) throws IOException {
+		LongObject i = (LongObject) counters.get(name);
+		if (i == null) {
+		    i = new LongObject(ibis.impl.nameServer.NameServer.INIT_SEQNO);
+		    counters.put(name, i);
+		}
+		return i.val++;
+	    }
+	}
 
 	private Hashtable portTypes;
 	private ServerSocket serverSocket;
 
-	private	ObjectInputStream in;
-	private	OutputStream out;
+	private	DataInputStream in;
+	private	DataOutputStream out;
+	private Sequencer seq;
 
 	PortTypeNameServer() throws IOException { 
 		portTypes = new Hashtable();
 
 		serverSocket = IbisSocketFactory.createServerSocket(0, null, true);
 		setName("PortType Name Server");
+		seq = new Sequencer();
 		start();
 	} 
 
@@ -51,17 +95,27 @@ class PortTypeNameServer extends Thread implements Protocol {
 
 		if (temp == null) { 
 			portTypes.put(name, p);
-			out.write(PORTTYPE_ACCEPTED);
+			out.writeByte(PORTTYPE_ACCEPTED);
 		} else { 			
 			if (temp.equals(p)) {
-				out.write(PORTTYPE_ACCEPTED);
+				out.writeByte(PORTTYPE_ACCEPTED);
 			} else { 
-				out.write(PORTTYPE_REFUSED);
+				out.writeByte(PORTTYPE_REFUSED);
 				System.err.println("PortTypeNameServer: PortType " + name + " refused because of incompatible properties\n" + 
 						   temp + "----\n" + p);				
 			}
 		}
 	} 
+
+
+	private void handleSeqno() throws IOException {
+		String name = (String) in.readUTF();
+
+		long l = seq.getSeqno(name);
+		out.writeLong(l);
+		out.flush();
+	}
+
 
 	public void run() {
 		
@@ -78,9 +132,10 @@ class PortTypeNameServer extends Thread implements Protocol {
 
 			try {
 				DummyInputStream di = new DummyInputStream(s.getInputStream());
-				in  = new ObjectInputStream(new BufferedInputStream(di));
+				in  = new DataInputStream(new BufferedInputStream(di));
+				DummyOutputStream dout = new DummyOutputStream(s.getOutputStream());
 
-				out = new DummyOutputStream(s.getOutputStream());
+				out = new DataOutputStream(new BufferedOutputStream(dout));
 
 				opcode = in.readByte();
 
@@ -91,6 +146,9 @@ class PortTypeNameServer extends Thread implements Protocol {
 				case (PORTTYPE_EXIT):
 					IbisSocketFactory.close(in, out, s);
 					return;
+				case (SEQNO):
+					handleSeqno();
+					break;
 				default: 
 					System.err.println("PortTypeNameServer: got an illegal opcode " + opcode);					
 				}

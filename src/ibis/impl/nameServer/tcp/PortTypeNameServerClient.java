@@ -6,9 +6,10 @@ import ibis.util.DummyOutputStream;
 import ibis.util.IbisSocketFactory;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataOutputStream;
+import java.io.DataInputStream;
 import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -30,13 +31,13 @@ class PortTypeNameServerClient implements Protocol {
 	public boolean newPortType(String name, StaticProperties p) throws IOException { 
 
 		Socket s = null;
-		ObjectOutputStream out;
-		InputStream in;
+		DataOutputStream out;
+		DataInputStream in;
 		int result, type;
 
 		s = IbisSocketFactory.createSocket(server, port, localAddress, 0 /* retry */);
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-		out = new ObjectOutputStream(new BufferedOutputStream(dos));
+		out = new DataOutputStream(new BufferedOutputStream(dos));
 
 		out.writeByte(PORTTYPE_NEW);
 		out.writeUTF(name);
@@ -57,8 +58,8 @@ class PortTypeNameServerClient implements Protocol {
 		
 		out.flush();
 
-		in = new DummyInputStream(s.getInputStream());
-		result = in.read();
+		in = new DataInputStream(new DummyInputStream(s.getInputStream()));
+		result = in.readByte();
 
 		IbisSocketFactory.close(in, out, s);
 
@@ -69,4 +70,25 @@ class PortTypeNameServerClient implements Protocol {
 			throw new StreamCorruptedException("PortTypeNameServer: got illegal opcode");
 		}
 	}
+
+	public long getSeqno(String name) throws IOException { 
+		Socket s = IbisSocketFactory.createSocket(server, port, localAddress, 0 /* retry */);
+		
+		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(dos));
+
+		out.writeByte(SEQNO);
+		out.writeUTF(name);
+		out.flush();
+
+		DummyInputStream di = new DummyInputStream(s.getInputStream());
+		DataInputStream in  = new DataInputStream(new BufferedInputStream(di));
+		
+		long temp = in.readLong();
+
+		IbisSocketFactory.close(in, out, s);
+
+		return temp;
+	} 
+
 }

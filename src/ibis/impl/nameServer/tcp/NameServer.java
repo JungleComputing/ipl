@@ -10,14 +10,13 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Hashtable;
-import java.util.HashMap;
 import java.util.Properties;
 import java.util.Vector;
-import java.util.ArrayList;
 
 public class NameServer implements Protocol {
 
@@ -25,47 +24,6 @@ public class NameServer implements Protocol {
 
 	public static final boolean DEBUG = false;
 	public static final boolean VERBOSE = true;
-
-	/**
-	 * The <code>Sequencer</code> class provides a global numbering.
-	 * This can be used, for instance, for global ordering of messages.
-	 * A sender must then first obtain a sequence number from the sequencer,
-	 * and tag the message with it. The receiver must then handle the messages
-	 * in the "tag" order.
-	 * <p>
-	 * A Sequencer associates a numbering scheme with a name, so the user can
-	 * associate different sequences with different names.
-	 */
-	private static class Sequencer {
-	    /** The first sequence number that gets given out. */
-	    private HashMap counters;
-
-	    private static class LongObject {
-		long val;
-		LongObject(long v) {
-		    val = v;
-		}
-	    }
-
-	    Sequencer() {
-		counters = new HashMap();
-	    }
-
-	    /**
-	     * Returns the next sequence number associated with the specified name.
-	     * @param name the name of the sequence.
-	     * @return the next sequence number
-	     * @exception IOException gets thrown in case of trouble
-	     */
-	    public synchronized long getSeqno(String name) throws IOException {
-		LongObject i = (LongObject) counters.get(name);
-		if (i == null) {
-		    i = new LongObject(ibis.impl.nameServer.NameServer.INIT_SEQNO);
-		    counters.put(name, i);
-		}
-		return i.val++;
-	    }
-	}
 
 	static class IbisInfo { 		
 		IbisIdentifier identifier;
@@ -97,14 +55,12 @@ public class NameServer implements Protocol {
 		PortTypeNameServer    portTypeNameServer;   
 		ReceivePortNameServer receivePortNameServer;   
 		ElectionServer electionServer;   
-		Sequencer seq;
 
 		RunInfo() throws IOException { 
 			pool = new Vector();
 			portTypeNameServer    = new PortTypeNameServer();
 			receivePortNameServer = new ReceivePortNameServer();
 			electionServer = new ElectionServer();
-			seq = new Sequencer();
 		}
 	}
 
@@ -250,7 +206,7 @@ public class NameServer implements Protocol {
 							  p.portTypeNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 
-		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(d));
 		out.writeByte(PORTTYPE_EXIT);
 		IbisSocketFactory.close(null, out, s);
 
@@ -270,16 +226,6 @@ public class NameServer implements Protocol {
 		IbisSocketFactory.close(null, out3, s3);
 	}
 
-	private void handleSeqno() throws IOException {
-		String key = (String) in.readUTF();
-		String name = (String) in.readUTF();
-
-		RunInfo p = (RunInfo) pools.get(key);
-
-		long l = p.seq.getSeqno(name);
-		out.writeLong(l);
-		out.flush();
-	}
 	
 	private void handleIbisLeave() throws IOException, ClassNotFoundException {
 		String key = (String) in.readUTF();
@@ -382,9 +328,6 @@ public class NameServer implements Protocol {
 					if (singleRun && pools.size() == 0) { 
 						stop = true;
 					}
-					break;
-				case (SEQNO):
-					handleSeqno();
 					break;
 				default: 
 					System.err.println("NameServer got an illegal opcode: " + opcode);
