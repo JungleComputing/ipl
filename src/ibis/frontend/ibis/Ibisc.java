@@ -193,7 +193,7 @@ class Ibisc {
 	    System.out.println("running io generator on all files");
 	}
 
-	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, iogenVerify).scanClass(factory.getList());
+	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, iogenVerify, false).scanClass(factory.getList());
 	
 	if (verbose) {
 	    System.out.println(" Done");

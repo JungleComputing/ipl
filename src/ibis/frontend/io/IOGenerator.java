@@ -1792,6 +1792,7 @@ public class IOGenerator {
     boolean file = false;
     boolean force_generated_calls = false;
     boolean verify = false;
+    boolean silent = false;
 
     HashMap primitiveSerialization;
     SerializationInfo referenceSerialization;
@@ -1800,7 +1801,7 @@ public class IOGenerator {
     HashMap arguments;
 
 
-    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify) {
+    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify, boolean silent) {
 	ObjectType tp;
 
 	this.verbose = verbose;
@@ -1808,6 +1809,7 @@ public class IOGenerator {
 	this.file = file;
 	this.force_generated_calls = force_generated_calls;
 	this.verify = verify;
+	this.silent = silent;
 	// this.verify = true;
 	if (force_generated_calls && verify) {
 	    System.err.println("Warning: cannot have both -force and -verify");
@@ -2111,7 +2113,7 @@ public class IOGenerator {
 	for (int i=0;i<target_classes.size();i++) {
 	    JavaClass clazz = (JavaClass)target_classes.get(i);
 	    if (! clazz.isInterface()) {
-		if (verbose) System.out.println("  Rewrite class : " + clazz.getClassName());
+		if (! silent) System.out.println("  Rewrite class : " + clazz.getClassName());
 		new CodeGenerator(clazz).generateCode();
 	    }
 	}
@@ -2152,6 +2154,7 @@ public class IOGenerator {
 	boolean file = false;
 	boolean force_generated_calls = false;
 	boolean verify = false;
+	boolean silent = false;
 	Vector files = new Vector();
 	String pack = null;
 
@@ -2170,6 +2173,8 @@ public class IOGenerator {
 		local = true;
 	    } else if (args[i].equals("-file")) {
 		file = true;
+	    } else if (args[i].equals("-silent")) {
+		silent = true;
 	    } else if (args[i].equals("-force")) {
 		force_generated_calls = true;
 	    } else if (args[i].equals("-verify")) {
@@ -2218,7 +2223,7 @@ public class IOGenerator {
 	    }
 	}
 
-	new IOGenerator(verbose, local, file, force_generated_calls, verify).scanClass(newArgs);
+	new IOGenerator(verbose, local, file, force_generated_calls, verify, silent).scanClass(newArgs);
     }
 
     private static void processDirectory(File f, Vector args, String name) {
