@@ -1028,7 +1028,7 @@ public final class SATContext implements java.io.Serializable {
 	}
 	// Deduct this variable from all clauses that contain this as a
 	// negative term.
-	int[] neg = p.getNegClauses( var );
+	int neg[] = p.getNegClauses( var );
 	for( int i=0; i<neg.length; i++ ){
 	    int cno = neg[i];
 
@@ -1052,7 +1052,7 @@ public final class SATContext implements java.io.Serializable {
 
 	// Mark all clauses that contain this variable as a positive
 	// term as satisfied.
-	int[] pos = p.getPosClauses( var );
+	int pos[] = p.getPosClauses( var );
 	for( int i=0; i<pos.length; i++ ){
 	    int cno = pos[i];
 
@@ -1201,7 +1201,6 @@ public final class SATContext implements java.io.Serializable {
                 }
             }
         }
-	//System.err.println( "Best var: v" + bestvar + " has info " + bestinfo );
         return bestvar;
     }
 

@@ -109,6 +109,11 @@ public final class DPLLContext implements java.io.Serializable {
     {
 	int termcount = 0;
 
+        int newCount = p.getClauseCount();
+        if( newCount != satisfied.length ){
+            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + satisfied.length );
+            return;
+        }
         if( satisfied[cno] ){
 	    // We don't care.
 	    return;
@@ -122,7 +127,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    int v = arr[j];
 
 	    if( assignment[v] == 1 ){
-		int[] pos = p.getPosClauses( v );
+		int pos[] = p.getPosClauses( v );
 		boolean verdict = Helpers.contains( pos, cno );
 
 		System.err.println( "Error: positive variable " + v + " of clause " + c + " has positive assignment, but clause is not satisfied"  );
@@ -152,6 +157,8 @@ public final class DPLLContext implements java.io.Serializable {
 	}
 	if( termcount != terms[cno] ){
 	    System.err.println( "Error: I count " + termcount + " unassigned variables in clause " + c + " but the administration says " + terms[cno] );
+            dumpAssignments();
+            terms[cno] = termcount;
 	}
     }
 
@@ -165,6 +172,11 @@ public final class DPLLContext implements java.io.Serializable {
 	int poscount = 0;
 	int negcount = 0;
 
+        int newCount = p.getClauseCount();
+        if( newCount != satisfied.length ){
+            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + satisfied.length );
+            return;
+        }
 	// Count the positive clauses
 	int pos[] = p.getPosClauses( var );
 	for( int i=0; i<pos.length; i++ ){
@@ -185,7 +197,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    }
 	}
 	if( posclauses[var] != poscount || negclauses[var] != negcount ){
-	    System.err.println( "Error: clause count of v" + var + " says (" + posclauses[var] + "," + negclauses[var] + "), not (" + poscount + "," + negcount + ")" );
+	    System.err.println( "Error: clause count of v" + var + " says (" + posclauses[var] + "," + negclauses[var] + "), but I count (" + poscount + "," + negcount + ")" );
 	    posclauses[var] = poscount;
 	    negclauses[var] = negcount;
 	}
@@ -208,8 +220,8 @@ public final class DPLLContext implements java.io.Serializable {
 
     /**
      * Propagates the specified unit clause.
-     * @param p the SAT problem to solve
-     * @param i the index of the unit clause
+     * @param p The SAT problem to solve.
+     * @param i The index of the unit clause.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int propagateUnitClause( SATProblem p, int i )
@@ -229,6 +241,7 @@ public final class DPLLContext implements java.io.Serializable {
 	if( tracePropagation ){
 	    System.err.println( "Propagating unit clause " + c );
 	}
+
 	// Now search for the variable that isn't satisfied.
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
@@ -238,12 +251,7 @@ public final class DPLLContext implements java.io.Serializable {
 		if( tracePropagation ){
 		    System.err.println( "Propagating positive unit variable " + v + " from clause " + c );
 		}
-		int res = propagatePosAssignment( p, v );
-		if( (res != 0) || !doVerification ){
-		    // The problem is now conflicting/satisfied, we're
-		    // done.
-		    return res;
-		}
+		return propagatePosAssignment( p, v );
 	    }
 	}
 
@@ -256,12 +264,7 @@ public final class DPLLContext implements java.io.Serializable {
 		if( tracePropagation ){
 		    System.err.println( "Propagating negative unit variable " + v + " from clause " + c );
 		}
-		int res = propagateNegAssignment( p, v );
-		if( (res != 0) || !doVerification ){
-		    // The problem is now conflicting/satisfied, we're
-		    // done.
-		    return res;
-		}
+		return propagateNegAssignment( p, v );
 	    }
 	}
 	return SATProblem.UNDETERMINED;
@@ -299,7 +302,7 @@ public final class DPLLContext implements java.io.Serializable {
 		if( assignment[var] == UNASSIGNED ){
                     if( negclauses[var] != 0 ){
                         if( tracePropagation ){
-                            System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
+                            System.err.println( "v" + var + " only occurs negatively (0," + negclauses[var] + ")"  );
                         }
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
@@ -321,7 +324,7 @@ public final class DPLLContext implements java.io.Serializable {
 		if( assignment[var] == UNASSIGNED ){
                     if( posclauses[var] != 0 ){
                         if( tracePropagation ){
-                            System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
+                            System.err.println( "v" + var + " only occurs positively (" + posclauses[var] + ",0)"  );
                         }
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
@@ -338,7 +341,7 @@ public final class DPLLContext implements java.io.Serializable {
 
 		if( assignment[var] == UNASSIGNED && posclauses[var] == 0 && negclauses[var] != 0 ){
 		    int res = propagateNegAssignment( p, var );
-		    if( res != 0 ){
+		    if( res != SATProblem.UNDETERMINED ){
 			return res;
 		    }
 		}
@@ -348,7 +351,7 @@ public final class DPLLContext implements java.io.Serializable {
 
 		if( assignment[var] == UNASSIGNED && negclauses[var] == 0 && posclauses[var] != 0 ){
 		    int res = propagatePosAssignment( p, var );
-		    if( res != 0 ){
+		    if( res != SATProblem.UNDETERMINED ){
 			return res;
 		    }
 		}
@@ -368,33 +371,45 @@ public final class DPLLContext implements java.io.Serializable {
      */
     public int propagatePosAssignment( SATProblem p, int var )
     {
+        if( doVerification ){
+            if( assignment[var] == 1 ){
+                System.err.println( "Error: new assignment v" + var + "=1 is already in place"  );
+                dumpAssignments();
+                return SATProblem.UNDETERMINED;
+            }
+            if( assignment[var] == 0 ){
+                System.err.println( "Error: new assignment v" + var + "=1 conflicts with current assignment" );
+                dumpAssignments();
+                return SATProblem.UNDETERMINED;
+            }
+        }
         assignment[var] = 1;
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
 	    System.err.println( "Propagating assignment v" + var + "=1" );
 	}
-	// Deduct this clause from all clauses that contain this as a
+	// Deduct this variable from all clauses that contain this as a
 	// negative term.
 	int neg[] = p.getNegClauses( var );
 	for( int i=0; i<neg.length; i++ ){
 	    int cno = neg[i];
 
             // Deduct the old info of this clause.
-            posinfo[var] -= p.reviewer.info( terms[cno] );
+            neginfo[var] -= p.reviewer.info( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
                 analyzeConflict( p, cno, var );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
-		// Remember that we saw a unit clause, but don't
-		// propagate it yet, since the administration is inconsistent.
+		// Remember that we saw a unit clause, but don't propagate
+                // it yet, since the administration is currently inconsistent.
 		hasUnitClauses = true;
 	    }
             else {
                 // Add the new information of this clause.
-                posinfo[var] += p.reviewer.info( terms[cno] );
+                neginfo[var] += p.reviewer.info( terms[cno] );
             }
 	}
 
@@ -439,13 +454,25 @@ public final class DPLLContext implements java.io.Serializable {
      */
     public int propagateNegAssignment( SATProblem p, int var )
     {
+        if( doVerification ){
+            if( assignment[var] == 0 ){
+                System.err.println( "Error: new assignment v" + var + "=0 is already in place"  );
+                dumpAssignments();
+                return SATProblem.UNDETERMINED;
+            }
+            if( assignment[var] == 1 ){
+                System.err.println( "Error: new assignment v" + var + "=0 conflicts with current assignment" );
+                dumpAssignments();
+                return SATProblem.UNDETERMINED;
+            }
+        }
         assignment[var] = 0;
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
 	    System.err.println( "Propagating assignment v" + var + "=0" );
 	}
-	// Deduct this clause from all clauses that contain this as a
+	// Deduct this variable from all clauses that contain this as a
 	// Positive term.
 	int pos[] = p.getPosClauses( var );
 	for( int i=0; i<pos.length; i++ ){
@@ -459,8 +486,8 @@ public final class DPLLContext implements java.io.Serializable {
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
-		// Remember that we saw a unit clause, but don't
-		// propagate it yet, since the administration is inconsistent.
+		// Remember that we saw a unit clause, but don't propagate
+                // it yet, since the administration is currently inconsistent.
 		hasUnitClauses = true;
 	    }
             else {
@@ -572,7 +599,7 @@ public final class DPLLContext implements java.io.Serializable {
     public int optimize( SATProblem p )
     {
 	// Search for and propagate unit clauses.
-	for( int i=0; i<terms.length; i++ ){
+	for( int i=0; i<satisfied.length; i++ ){
 	    if( terms[i] == 1 ){
 		int res = propagateUnitClause( p, i );
 		if( res != 0 ){
