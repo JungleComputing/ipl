@@ -41,7 +41,7 @@ strictfp class Plummer {
 		Body[] bodies = new Body[numBodies];
 		for (i = 0; i < numBodies; i++) {
 			bodies[i] = new Body();
-			bodies[i].weight = 100;
+			//bodies[i].weight = 100; we don't use weight - Maik
 		}
 
 		rsc = 9.0 * Math.PI / 16.0;

@@ -124,9 +124,13 @@ strictfp public final class Vec3 implements Serializable {
 	*/
 
 	public String toString() {
-		String xstr = new Double(x).toString().substring(0,6);
-		String ystr = new Double(y).toString().substring(0,6);
-		String zstr = new Double(z).toString().substring(0,6);
-		return "(" + xstr + ", " + ystr + ", " + zstr + ")";
+		String xstr = new Double(x).toString();
+		String ystr = new Double(y).toString();
+		String zstr = new Double(z).toString();
+		int xlen = Math.min(xstr.length(), 6);
+		int ylen = Math.min(ystr.length(), 6);
+		int zlen = Math.min(zstr.length(), 6);
+		return "(" + xstr.substring(0, xlen) + ", " +
+			ystr.substring(0, ylen) + ", " + zstr.substring(0, zlen) + ")";
 	}
 }

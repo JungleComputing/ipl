@@ -11,8 +11,21 @@ strictfp public final class Body implements Serializable, Cloneable {
 	public Vec3 acc;
 	public Vec3 oldAcc;
 	public double mass; 
-	public int weight; 
 
+	/* this field counts the number of interactions with this body
+	   were done in the *previous) iteration, we don't need it with satin */
+	//public int weight; 
+
+	void initialize() {
+		pos = new Vec3();
+		vel = new Vec3();
+		acc = new Vec3();
+		oldAcc = new Vec3();
+		mass = 1.0;
+		number = 0;
+
+		//InstanceCount++;
+	}
 
 	Body() {
 		initialize();
@@ -25,17 +38,39 @@ strictfp public final class Body implements Serializable, Cloneable {
 		pos.z = z;
 	}
 
-	void initialize() {
-
-		pos = new Vec3();
-		vel = new Vec3();
-		acc = new Vec3();
-		oldAcc = new Vec3();
-		mass = 1.0;
-		number = 0;
-
-		//InstanceCount++;
+	Body(double x, double y, double z, double vx, double vy, double vz) {
+		this(x, y, z);
+		vel.x = vx;
+		vel.y = vy;
+		vel.z = vz;
 	}
+
+	//copied from the rmi implementation
+	public void computeNewPosition(boolean useOldAcc, double dt) {
+		Vec3 v;
+
+		if (useOldAcc) {
+			v = new Vec3(acc); //vel += (acc-oldacc) * DT_HALF
+			v.sub(oldAcc);
+			v.mul(dt / 2.0);
+			vel.add(v);
+		}
+
+		v = new Vec3(acc); //pos += (acc * DT_HALF + vel) * DT
+		v.mul(dt /2.0);
+		v.add(vel);
+		v.mul(dt);
+		pos.add(v);
+
+		v = new Vec3(acc); //vel += acc * DT
+		v.mul(dt);
+		vel.add(v);
+
+		oldAcc = acc;
+
+		//prepare for next call of BodyTreeNode.barnes()
+		acc = new Vec3(0.0, 0.0, 0.0);
+	}			
 
 	static BodyCanvas visualizeArray(Body[] bodies) {
 		JFrame.setDefaultLookAndFeelDecorated(true);

@@ -7,6 +7,7 @@ import java.io.*;
  * - a leaf node, with a body              (children == null)
  *   In this case the body field can still be null. This indicates an
  *   empty tree.
+ * The 'children' field must be used to distinguish between the two modes.
  */
 
 /* TODO:
@@ -20,11 +21,18 @@ import java.io.*;
 
 class BodyTreeNode implements Serializable {
 
+	//#ifdef DEBUG
+	private static transient BodyTreeNode root; //VERY useful for debugging
+	//#endif
+
 	/* The part of space this node represents.
 	   Leaf nodes also need this, to find out if a body has moved out of
 	   the represented part */
-	private Vec3 center;
-	private double halfSize;
+	final private Vec3 center;
+	final private double halfSize;
+
+	public static final double SOFT_SQ = 0.00000000000625;
+	public final double maxTheta;
 
 	private Vec3 centerOfMass;
 	private double totalMass;
@@ -34,30 +42,32 @@ class BodyTreeNode implements Serializable {
 	private BodyTreeNode children[];
 	private Body body;
 
-	//#ifdef DEBUG
-	private static transient BodyTreeNode root; //VERY useful for debugging
-	//#endif
-
 	//constructor to create an empty tree
-	public BodyTreeNode() {
-		center = new Vec3(0.0, 0.0, 0.0);
-		halfSize = 0.0;
+	public BodyTreeNode(Vec3 center, double halfSize, double theta) {
 		if (BarnesHut.DEBUG) root = this;
+		this.center = new Vec3(center);
+		this.halfSize = halfSize;
+
+		maxTheta = theta * theta * halfSize * halfSize;
+
+		//children and body are null by default
 	}
 
 	/**
 	 * Generates a new tree with the specified bodies, with dimensions
 	 * exactly large enough to contain all bodies
 	 */
-	public BodyTreeNode ( Body[] bodies ) {
+	public BodyTreeNode ( Body[] bodies, double theta ) {
 		int i;
 		Vec3 max, min;
+		double size;
 
 		if (BarnesHut.DEBUG) root = this;
 
 		if (bodies.length == 0) {
 			center = new Vec3(0.0, 0.0, 0.0);
 			halfSize = 0.0;
+			maxTheta = theta * theta * halfSize * halfSize;
 			return;
 		}
 
@@ -71,24 +81,28 @@ class BodyTreeNode implements Serializable {
 
 		center = new Vec3( (max.x+min.x) / 2.0, (max.y+min.y) / 2.0,
 						   (max.z+min.z) / 2.0 );
-		halfSize = Math.max(max.x - min.x, max.y - min.y);
-		halfSize = Math.max(halfSize, max.z - min.z) / 2.0;
+		size = Math.max(max.x - min.x, max.y - min.y);
+		size = Math.max(size, max.z - min.z);
 
-		/* make halfSize a little bigger to compensate for very small
+		/* make size a little bigger to compensate for very small
 		   floating point inaccuracy */
-		halfSize *= 1.000001;
+		size *= 1.000001;
+		halfSize = size / 2.0;
+
+		//some magic copied from the RMI version...
+		maxTheta = theta * theta * halfSize * halfSize;
 
 		body = bodies[0]; //the first one is easy :-)
 		for (i = 1; i < bodies.length; i++) {
 			addBodyNoChecks(bodies[i]);
 		}
-
 	}
 
 	//constructor to create a leaf node
-	private BodyTreeNode(Vec3 center, double halfSize, Body b) {
+	private BodyTreeNode(Vec3 center, double halfSize, Body b, double mT) {
 		this.center = new Vec3(center);
 		this.halfSize = halfSize;
+		this.maxTheta = mT;
 
 		if (BarnesHut.DEBUG && outOfRange(b.pos)) {
 			System.err.println("EEK! Trying to construct an incorrect " +
@@ -208,10 +222,23 @@ class BodyTreeNode implements Serializable {
 			   childIndex, but with a large tree we'd have to do it at
 			   every depth we pass while adding the node.. */
 			newCenter = computeChildCenter(index);
-			children[index] = new BodyTreeNode(newCenter, halfSize / 2.0, b);
+			children[index] = new BodyTreeNode(newCenter, halfSize / 2.0, b,
+											   maxTheta / 4.0);
 		} else {
 			children[index].addBodyNoChecks(b);
 		}
+	}
+
+	public int bodyCount() {
+		int i, bodies = 0;
+		if (children == null) {
+			if (body != null) return 1; else return 0;
+		} else {
+			for (i = 0; i < 8; i++) {
+				if (children[i] != null) bodies += children[i].bodyCount();
+			}
+		}
+		return bodies;
 	}
 
 	public void print(PrintStream out) {
@@ -234,7 +261,7 @@ class BodyTreeNode implements Serializable {
 				//empty tree
 				out.println("empty tree");
 			} else {
-				out.println("body at: " + body.pos);
+				out.println("body at: " + body.pos + ", vel: " + body.vel);
 			}
 		} else {
 			for (i = 0; i < 8; i++) {
@@ -245,6 +272,73 @@ class BodyTreeNode implements Serializable {
 					children[i].printRecursive(out, depth + 1);
 				}
 			}
+		}
+	}
+
+	public void computeCentersOfMass() {
+		int i;
+		if (children == null && body != null) {
+			// leaf node
+			/* these values could also be set at tree building time
+			   CONS: - setting them at tree building time wouldn't be
+			           efficient because when a leaf is converted to a
+                       child it the new leaf has to set the values again
+			   PROS: - The tree is (now) built every iteration, if this
+			           wasn't the case it would only have to be done at
+					   the first iteration */
+			centerOfMass = new Vec3(body.pos);
+			totalMass = body.mass;
+		} else {
+			//cell node
+			centerOfMass = new Vec3();
+			totalMass = 0.0;
+			for (i = 0; i < 8; i++) {
+				if (children[i] != null) {
+					children[i].computeCentersOfMass();
+					centerOfMass.x +=
+						children[i].centerOfMass.x * children[i].totalMass;
+					centerOfMass.y +=
+						children[i].centerOfMass.y * children[i].totalMass;
+					centerOfMass.z +=
+						children[i].centerOfMass.z * children[i].totalMass;
+					totalMass += children[i].totalMass;
+				}
+			}
+			centerOfMass.mul(1.0 / totalMass);
+		}
+	}
+
+	//b.acc should be made (0.0, 0.0, 0.0) before calling this!
+	//I did that in Body.computeNewPosition()
+	public void barnes( Body b ) {
+		Vec3 diff;
+		double dist, distsq, factor;
+		int i;
+
+		diff = new Vec3(centerOfMass);
+		diff.sub(b.pos);
+
+		distsq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+
+		if (children == null || distsq >= maxTheta) {
+
+			/* We are calculating a body <> body interaction, or the
+			   distance was large enough to use the treenode instead
+			   of iterating all children */
+			distsq += SOFT_SQ;
+			dist = Math.sqrt(distsq);
+			factor = totalMass / (distsq * dist);
+
+			diff.mul(factor);
+			b.acc.add(diff);
+
+		} else {
+
+			// We are a cell node and the distance was too small
+			for (i = 0; i< 8; i++) {
+				if (children[i] != null) children[i].barnes( b );
+			}
+
 		}
 	}
 }
