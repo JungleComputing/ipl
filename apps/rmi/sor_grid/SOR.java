@@ -24,7 +24,8 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	static final boolean PREV = true;
 	static final boolean NEXT = false;
 
-	static final boolean   SYNC_SEND = true;
+	static final int    SYNC_SEND = 0;
+	static final int   ASYNC_SEND = 1;
 
 	i_GlobalData global;
 
@@ -48,7 +49,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 
 	int prevIndex, nextIndex;
 	int nit;
-	boolean sync;
+	int sync;
 	boolean visualization;
 
 	WaitingSendThread prevSender, nextSender;
@@ -59,7 +60,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 
 	PoolInfo info;
 
-	SOR(int nrow, int ncol, int nit, boolean sync, i_GlobalData global, boolean visualization, PoolInfo info) throws RemoteException {
+	SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, boolean visualization, PoolInfo info) throws RemoteException {
 		this.nrow = nrow; // Add two rows to borders.
 		this.ncol = ncol; // Add two columns to borders.
 		this.nit  = nit;
@@ -80,11 +81,9 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		    this.nodeSpeed[i] = 1.0;
 		}
     
-		if (!SYNC_SEND) { 
-
+		if (sync == ASYNC_SEND) {
 			prevSender = new WaitingSendThread();
 			nextSender = new WaitingSendThread();
-
 			prevSender.start();
 			nextSender.start();
 		}
@@ -295,19 +294,28 @@ System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 	private void send(boolean i_am, int index, double[] col) throws RemoteException {
 		/* Two cases here: sync and async */
 		if (i_am == NEXT) {
-
-			if(sync) {
+			switch(sync) {
+			case SYNC_SEND:
 				// System.out.println("sending row to " + (rank-1));
 				table[rank-1].putCol(NEXT, index, col);
-			} else {
+				break;
+			case ASYNC_SEND:
 				nextSender.put(table[rank-1], NEXT, index, col);
+				break;
+			default:
+				System.err.println(rank + " Check out send!");
 			} 
 		} else {
-			if(sync) {
+			switch(sync) {
+			case SYNC_SEND:
 				// System.out.println("sending row to " + (rank+1));
 				table[rank+1].putCol(PREV, index, col);
-			} else {
+				break;
+			case ASYNC_SEND:
 				prevSender.put(table[rank+1], PREV, index, col);				
+				break;
+			default:
+				System.err.println(rank + " Check out send!");
 			} 
 		}	
 	}
@@ -386,7 +394,8 @@ System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 					send(PREV, ub-1, g[ub-1]);
 				}
 
-				if(sync) {
+				switch(sync) {
+				case SYNC_SEND:
 					if(rank != 0) {
 						// System.out.println("Getting row from " + (rank-1));
 						recCol(PREV);
@@ -400,7 +409,8 @@ System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 					}
 					
 					diff = compute(phase, diff, lb, ub);
-				} else {
+					break;
+				case ASYNC_SEND:
 					diff = compute(phase, diff, lb+1, ub-1);
 
 					if(rank != 0) {
@@ -415,6 +425,7 @@ System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 				
 					diff = compute(phase, diff, lb, lb+2);
 					diff = compute(phase, diff, ub-2, ub);
+					break;
 				}
 			}
 

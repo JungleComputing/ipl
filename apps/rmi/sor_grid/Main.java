@@ -19,14 +19,16 @@ class Main {
 
     private static void usage(String[] args) {
 
-	System.out.println("Usage: sor [options] <NROW> <NCOL> <ITERATIONS>");
+	System.out.println("Usage: sor [options] [ <NROW> [ <NCOL> [ <ITERATIONS> ] ] ] [ <COMMUNICATION> [ <THREAD> ] ] <args>*");
 	System.out.println("");
 	System.out.println("NROW NCOL   : (int, int). Problem matrix size");
 	System.out.println("ITERATIONS    : (int). Number of iterations to calculate. 0 means dynamic termination detection.");
-	System.out.println("options:");
-	System.out.println("-async: use split phase optimization and asynchronous sends.");
+	System.out.println("COMMUNICATION : ( \"sync\", \"async\"). Communication type. \"async\" = always split phase calculation.");
+	System.out.println("THREAD        : communication thread type. Only legal value is \"wait\", a single thread is reused");
+	System.out.println("args:");
 	System.out.println("-viz: support visualization, computation does not wait for external viz client.");
 	System.out.println("-asyncViz: support visualization, computation is done in lockstep with external viz client.");
+	System.out.println("-var-cpu: determine relative processor speed first, to divide work better");
 	System.out.println("\noptions you gave: ");
 
 	for (int i=0;i<args.length;i++) {
@@ -47,15 +49,20 @@ class Main {
 
 	    /* set up problem size */
 	    int nrow = 1000, ncol = 1000, nit = 50;
-	    boolean sync = true;
+	    int sync = SOR.ASYNC_SEND;
 	    boolean visualization = false;
 	    boolean hetero_speed = false;
 	    boolean asyncVisualization = false;
 	    int optionCount = 0;
 
 	    for(int i=0; i<args.length; i++) {
-		if(args[i].equals("-async")) {
-		    sync = false;
+		if (false) {
+		} else if(args[i].equals("async")) {
+		    sync = SOR.ASYNC_SEND;
+		} else if(args[i].equals("sync")) {
+		    sync = SOR.SYNC_SEND;
+		} else if(args[i].equals("wait")) {
+		    // Now default and only option, but still recognized.
 		} else if (args[i].equals("-viz")) {
 		    visualization = true;
 		} else if (args[i].equals("-var-cpu")) {
