@@ -53,18 +53,16 @@ public final class SATContext implements java.io.Serializable {
         Resolution next;        // The next one in the chain.
         int cno;                // The clause to resolve with.
         int var;                // The variable to resolve on.
-        int distToDom;          // The distance to the Dominator.
 
-        Resolution( Resolution next, int cno, int var, int d )
+        Resolution( Resolution next, int cno, int var )
         {
             this.next = next;
             this.cno = cno;
             this.var = var;
-            this.distToDom = d;
         }
         public String toString()
         {
-            return "[(" + cno + "),v" + var + ",d=" + distToDom + "]";
+            return "[(" + cno + "),v" + var + "]";
         }
     }
 
@@ -96,8 +94,8 @@ public final class SATContext implements java.io.Serializable {
     }
 
     private static final boolean tracePropagation = false;
-    private static final boolean traceLearning = true;
-    private static final boolean traceResolutionChain = true;
+    private static final boolean traceLearning = false;
+    private static final boolean traceResolutionChain = false;
     private static final boolean doVerification = false;
     private static final boolean propagatePureVariables = false;
 
@@ -388,14 +386,14 @@ public final class SATContext implements java.io.Serializable {
     /**
      * Given a link in the resolution chain, print that chain.
      */
-    static void dumpResolutionChain( Resolution p )
+    static void dumpResolutionChain( Clause cl[], Resolution p )
     {
         if( p == null ){
             return;
         }
         System.err.print( "Resolution chain: " );
         while( p != null ){
-            System.err.print( "(" + p.cno + ") on v" + p.var );
+            System.err.print( "(" + cl[p.cno].label + ") on v" + p.var );
             if( p.next != null ){
                 System.err.print( " -> " );
             }
@@ -482,7 +480,7 @@ public final class SATContext implements java.io.Serializable {
                         if( dist1 != -1 ){
                             if( bestDist > dist1 ){
                                 bestDist = dist1;
-                                chain[cno] = new Resolution( chain[a], cno, -1, bestDist );
+                                chain[cno] = new Resolution( chain[a], cno, -1 );
                             }
                         }
                     }
@@ -515,7 +513,7 @@ public final class SATContext implements java.io.Serializable {
                         if( dist1 != -1 ){
                             if( bestDist > dist1 ){
                                 bestDist = dist1;
-                                chain[cno] = new Resolution( chain[a], cno, -1, bestDist );
+                                chain[cno] = new Resolution( chain[a], cno, -1 );
                             }
                         }
                     }
@@ -535,7 +533,7 @@ public final class SATContext implements java.io.Serializable {
         dist[cno] = distFromConflict;
         if( traceResolutionChain ){
             System.err.println( "Clause " + c + " has the closest dominator at distance " + bestDist );
-            dumpResolutionChain( chain[cno] );
+            dumpResolutionChain( p.clauses, chain[cno] );
         }
         if( bestDist == -1 ){
             return bestDist;
@@ -584,7 +582,8 @@ public final class SATContext implements java.io.Serializable {
         if( bestDom == null ){
             return null;
         }
-        return new Resolution( bestDom, cno, bestVar, bestDom.distToDom+1 );
+        bestDom.var = bestVar;
+        return new Resolution( bestDom, cno, -1 );
     }
 
     /**
@@ -605,7 +604,7 @@ public final class SATContext implements java.io.Serializable {
             if( traceResolutionChain ){
                 System.err.println( "We cross an earlier path with clause " + c + " in it: dominator" );
             }
-            return new Resolution( null, cno, -1, 0 );
+            return new Resolution( null, cno, -1 );
         }
         dist[cno] = distFromConflict;
         Resolution bestDom;
@@ -653,15 +652,13 @@ public final class SATContext implements java.io.Serializable {
             }
             else {
                 System.err.println( "Nearest dominator is " + p.clauses[bestDom.cno] + " at distance " + dist[bestDom.cno] );
-                dumpResolutionChain( bestDom );
+                dumpResolutionChain( p.clauses, bestDom );
             }
         }
-        Resolution chain[] = new Resolution[satisfied.length];
-        int cc = updateResolutionChain( p, cno, level, dist, chain, 1 );
-        if( cc<0 ){
+        if( bestDom == null ){
             return null;
         }
-        return chain[cno];
+        return bestDom.next;
     }
 
     /**
@@ -776,6 +773,7 @@ public final class SATContext implements java.io.Serializable {
             }
         }
         Clause cc = buildConflictClause( p, cno, var, level );
+        //Clause cc = null;
         if( traceLearning ){
             if( cc == null ){
                 System.err.println( "No interesting conflict clause could be constructed" );
