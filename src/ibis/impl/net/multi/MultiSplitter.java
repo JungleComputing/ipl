@@ -24,19 +24,22 @@ public class MultiSplitter extends NetOutput {
 	/**
 	 * The set of outputs.
 	 */
-	protected Vector    outputVector = null;
+	protected Vector    outputVector       = null;
 
 	/**
 	 * The set of incoming TCP service connections
 	 */
-	protected Vector    isVector     = null;
+	protected Vector    isVector           = null;
 
 	/**
 	 * The set of outgoing TCP service connections
 	 */
-	protected Vector    osVector     = null;
+	protected Vector    osVector           = null;
 
-        protected Hashtable outputTable = null;
+	protected Vector    nlsVector          = null;
+	protected Vector    localNlsIdVector   = null;
+	protected Vector    remoteNlsIdVector  = null;
+        protected Hashtable outputTable        = null;
 
 	/**
 	 * Constructor.
@@ -47,34 +50,13 @@ public class MultiSplitter extends NetOutput {
 	 */
 	public MultiSplitter(NetPortType pt, NetDriver driver, NetIO up, String context) throws IbisIOException {
 		super(pt, driver, up, context);
-		outputVector = new Vector();
-		isVector     = new Vector();
-		osVector     = new Vector();
-                outputTable  = new Hashtable();
-	}
-
-	/**
-	 * Adds a new input to the output set.
-	 *
-	 * The MTU and the header offset is updated by this function.
-	 *
-	 * @param output the output.
-	 */
-	private void addOutput(Integer   rpn,
-			       NetOutput output) {
-		int _mtu = output.getMaximumTransfertUnit();
-
-		if (mtu == 0  ||  mtu > _mtu) {
-			mtu = _mtu;
-		}
-
-		int _headersLength = output.getHeadersLength();
-
-		if (headerOffset < _headersLength) {
-			headerOffset = _headersLength;
-		}
-
-		outputVector.add(output);
+		outputVector      = new Vector();
+		isVector          = new Vector();
+		osVector          = new Vector();
+                nlsVector         = new Vector();
+                localNlsIdVector  = new Vector();
+                remoteNlsIdVector = new Vector();
+                outputTable       = new Hashtable();
 	}
 
 	/**
@@ -142,10 +124,68 @@ public class MultiSplitter extends NetOutput {
                                 NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
                                 no                      = newSubOutput(subDriver, subContext);
                                 outputTable.put(subContext, no);
-                                addOutput(rpn, no);
+                                outputVector.add(no);
                         }
                         
                         no.setupConnection(rpn, is, os, nls);
+
+                        {
+                                boolean update = false;
+                
+                                int _mtu = no.getMaximumTransfertUnit();
+
+                                if (mtu == 0  ||  mtu > _mtu) {
+                                        update = true;
+                                        mtu    = _mtu;
+                                }
+
+                                int _headersLength = no.getHeadersLength();
+
+                                if (headerOffset < _headersLength) {
+                                        update       = true;
+                                        headerOffset = _headersLength;
+                                }
+
+                                os.writeInt(mtu);
+                                os.writeInt(headerOffset);
+                                os.flush();
+
+                                if (update) {
+                                        int s = osVector.size();
+
+                                        // Pass 1
+                                        for (int i = 0; i < s; i++) {
+                                                ObjectOutputStream _os          = (ObjectOutputStream)osVector.elementAt(i);
+                                                int                _remoteNlsId = ((Integer)remoteNlsIdVector.elementAt(i)).intValue();
+                                                synchronized(os) {
+                                                        _os.writeInt(_remoteNlsId);
+                                                        _os.writeInt(mtu);
+                                                        _os.writeInt(headerOffset);
+                                                }
+                                        }
+
+                                        // Pass 2
+                                        for (int i = 0; i < s; i++) {
+                                                ObjectInputStream  _is         = (ObjectInputStream)isVector.elementAt(i);
+                                                NetServiceListener _nls        = (NetServiceListener)nlsVector.elementAt(i);
+                                                int                _localNlsId = ((Integer)localNlsIdVector.elementAt(i)).intValue();
+
+                                                _nls.acquire(_localNlsId);
+                                                _is.readInt();
+                                                _nls.release();
+                                        }
+                                }
+                        }
+
+                        osVector.add(os);
+                        isVector.add(is);
+                        nlsVector.add(nls);
+                        int localNlsId = nls.getId();
+                        localNlsIdVector.add(new Integer(localNlsId));
+                        os.writeInt(localNlsId);
+                        os.flush();
+                        int remoteNlsId = is.readInt();
+                        remoteNlsIdVector.add(new Integer(remoteNlsId));
                 } catch (Exception e) {
                         e.printStackTrace();
                         throw new IbisIOException(e);

@@ -9,9 +9,10 @@ import java.io.ObjectOutputStream;
 
 import java.net.InetAddress;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.Hashtable;
 
 /**
  * Provides a generic multiple network input poller.
@@ -21,24 +22,27 @@ public class MultiPoller extends NetInput {
 	/**
 	 * The set of inputs.
 	 */
-	protected Vector    inputVector = null;
+	protected Vector    inputVector       = null;
 
 	/**
 	 * The set of incoming TCP service connections
 	 */
-	protected Vector    isVector    = null;
+	protected Vector    isVector          = null;
 
 	/**
 	 * The set of outgoing TCP service connections
 	 */
-	protected Vector    osVector    = null;
+	protected Vector    osVector          = null;
 
 	/**
 	 * The input that was last sucessfully polled, or <code>null</code>.
 	 */
-	protected NetInput  activeInput = null;
+	protected NetInput  activeInput       = null;
 
-        protected Hashtable inputTable = null;
+        protected Hashtable inputTable        = null;
+        protected Hashtable headerLengthTable = null;
+        protected Hashtable mtuTable          = null;
+        protected Hashtable serviceTable      = null;
 
 	/**
 	 * Constructor.
@@ -50,25 +54,73 @@ public class MultiPoller extends NetInput {
 	public MultiPoller(NetPortType pt, NetDriver driver, NetIO up, String context)
 		throws IbisIOException {
 		super(pt, driver, up, context);
-		inputVector = new Vector();
-		isVector    = new Vector();
-		osVector    = new Vector();
-                inputTable = new Hashtable();
+		inputVector       = new Vector();
+		isVector          = new Vector();
+		osVector          = new Vector();
+                inputTable        = new Hashtable();
+                headerLengthTable = new Hashtable();
+                mtuTable          = new Hashtable();
+                serviceTable      = new Hashtable();
 	}
 
-	/**
-	 * Adds a new input to the input set.
-	 *
-	 * @param input the input.
-	 */
-	private void addInput(NetInput input) {
-		inputVector.add(input);
-	}
+        public class ServiceThread extends Thread {
+                private NetServiceListener nls         =  null;
+                private int                localNlsId  =    -1;
+                private int                remoteNlsId =    -1;
+                private Integer            spn         =  null;
+                private boolean            exit        = false;
+                private ObjectInputStream  is          =  null;
+                private ObjectOutputStream os          =  null;
 
+                public ServiceThread(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+                        this.spn = spn;
+                        this.os  = os;
+                        this.is  = is;
+                        this.nls = nls;
+
+                        try {
+                                remoteNlsId = is.readInt();
+                                localNlsId  = nls.getId();
+                                os.writeInt(localNlsId);
+                                os.flush();
+                        } catch (Exception e) {
+                                throw new IbisIOException(e.getMessage());
+                        }
+                }
+                
+                public void run() {
+                        while (!exit) {
+                                try {
+                                        nls.iacquire(localNlsId);
+                                        int newMtu          = is.readInt();
+                                        int newHeaderLength = is.readInt();
+                                        nls.release();
+
+                                        mtuTable.put(spn, new Integer(newMtu));
+                                        headerLengthTable.put(spn, new Integer(newHeaderLength));
+                                        synchronized(os) {
+                                                os.writeInt(remoteNlsId);
+                                                os.writeInt(1);
+                                                os.flush();
+                                        }
+                                } catch (InterruptedException e) {
+                                        exit = true;
+                                } catch (Exception e) {
+                                        throw new Error(e.getMessage());
+                                }
+                        }
+                }
+
+                public void end() {
+                        exit = true;
+                        this.interrupt();
+                }
+        }
+        
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+	public void setupConnection(Integer spn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
                 try {
                         NetIbisIdentifier localId  = (NetIbisIdentifier)driver.getIbis().identifier();
                         NetIbisIdentifier remoteId = (NetIbisIdentifier)is.readObject();
@@ -121,7 +173,6 @@ public class MultiPoller extends NetInput {
                                         }
                                 }
                         }
-                
                         
                         NetInput  ni = (NetInput)inputTable.get(subContext);
 
@@ -130,10 +181,23 @@ public class MultiPoller extends NetInput {
                                 NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
                                 ni                      = newSubInput(subDriver, subContext);
                                 inputTable.put(subContext, ni);
-                                addInput(ni);
+                                inputVector.add(ni);
                         }
 
-                        ni.setupConnection(rpn, is, os, nls);
+                        ni.setupConnection(spn, is, os, nls);
+
+                        {
+                                int mtu          = is.readInt();
+                                mtuTable.put(spn, new Integer(mtu));
+                                int headerLength = is.readInt();
+                                headerLengthTable.put(spn, new Integer(headerLength));
+                        }
+
+                        {
+                                ServiceThread st = new ServiceThread(spn, is, os, nls);
+                                serviceTable.put(spn, st);
+                                st.start();
+                        }                        
                 } catch (Exception e) {
                         e.printStackTrace();
                         throw new IbisIOException(e);
@@ -159,8 +223,8 @@ public class MultiPoller extends NetInput {
 			if ((num = ni.poll()) != null) {
 				activeInput  = ni;
 				activeNum    = num;
-                                mtu          = activeInput.getMaximumTransfertUnit();
-                                headerOffset = activeInput.getHeadersLength();
+                                mtu          = ((Integer)mtuTable.get(activeNum)).intValue();
+                                headerOffset = ((Integer)headerLengthTable.get(activeNum)).intValue();
 				break polling_loop;
 			}
 		}
@@ -193,9 +257,25 @@ public class MultiPoller extends NetInput {
 			inputVector = null;
 		}
 		
-		isVector    = null;
-		osVector    = null;
-		activeInput =  null;
+                inputTable  = null;
+                
+                if (serviceTable != null) {
+                        Enumeration e = serviceTable.keys();
+                        while (e.hasMoreElements()) {
+                                Object key   = e.nextElement();
+                                Object value = serviceTable.remove(key);
+                                ServiceThread st = (ServiceThread)value;
+                                st.end();
+                        }
+
+                        serviceTable = null;
+                }
+                
+                headerLengthTable = null;
+                mtuTable          = null;
+		isVector          = null;
+		osVector          = null;
+		activeInput       = null;
 
 		super.free();
 	}
