@@ -194,6 +194,10 @@ if (finishedUpcallThreads > 1) {
                                         log.disp("was interrupted...");
                                         end = true;
                                         return;
+
+                                } catch (Throwable e) {
+                                        System.err.println("Sleeping upcall thread catches " + e);
+					break;
                                 }
 
 				utStat.addPoll();
@@ -233,6 +237,11 @@ pollSuccess++;
 						System.err.println("PooledUpcallThread + doPoll throws IOException. Should I quit??? " + e);
 //                                                throw new Error(e);
 						return;
+
+					} catch (Throwable e) {
+						System.err.println(this + ": Polling upcall thread catches " + e + "; end = " + end);
+						e.printStackTrace();
+						break;
                                         }
 
                                         try {
@@ -252,6 +261,10 @@ pollSuccess++;
 //                                                throw new Error(e);
 						end = true;
 						return;
+
+					} catch (Throwable e) {
+						System.err.println("Upcall in upcall thread catches " + e);
+						break;
                                         }
 // System.err.println(this + ": upcallSpawnMode " + upcallSpawnMode + " activeThread " + activeThread + " this " + this);
 
@@ -289,7 +302,7 @@ finishedUpcallThreads--;
                                                 try {
                                                         threadStackLock.lock();
                                                 } catch (InterruptedIOException e) {
-                                                        if (end != true) {
+                                                        if (! end) {
                                                                 throw new Error(e);
                                                         }
                                                         return;

@@ -821,7 +821,7 @@ nCurrent++;
     }
 
 
-    public synchronized final void doClose(Integer num) throws IOException {
+    protected synchronized void doClose(Integer num) throws IOException {
 	log.in();
 	if (inputMap != null) {
 	    Object       key = getKey(num);

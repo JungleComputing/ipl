@@ -37,6 +37,8 @@ public final class GmPoller extends NetPoller {
 
     int			blockers;
 
+    private boolean	ended = false;
+
     /**
      * Constructor.
      *
@@ -153,12 +155,15 @@ public final class GmPoller extends NetPoller {
 // System.err.println("Somebody polling concurrently with me!!!");
 // }
 		    try {
-			result = gmDriver.blockingPump(gmDriver.interrupts(),
-						       lockIds);
+			result = gmDriver.blockingPump(lockIds);
 // System.err.print("B");
 // for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
 // System.err.print("]=" + result);
 		    } catch (InterruptedIOException e) {
+			if (ended) {
+			    return null;
+			}
+
 			// try once more
 			interrupted = true;
 			if (Driver.VERBOSE_INTPT) {
@@ -211,6 +216,18 @@ public final class GmPoller extends NetPoller {
 // System.err.println(Thread.currentThread() + ": " + this + ": return " + spn[result] + " = spn[" + result +"]");
 
 	    return spn[result];
+	}
+    }
+
+    protected void doClose(Integer num) throws IOException {
+	super.doClose(num);
+	ended = true;
+
+	Driver.gmAccessLock.lock();
+	try {
+	    gmDriver.interruptPump(lockIds);
+	} finally {
+	    Driver.gmAccessLock.unlock();
 	}
     }
 

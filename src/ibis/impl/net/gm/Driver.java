@@ -188,15 +188,12 @@ public final class Driver extends NetDriver {
 	}
 
 
-	int interrupts() {
-	    return interrupts;
-	}
-
-
 	/* Must hold gmAccessLock on entry/exit */
-        private int pump(int interrupts, int lockId, int[] lockIds)
+        private int pump(int lockId, int[] lockIds)
 		throws IOException {
 	    int result;
+	    int interrupts = this.interrupts;
+
 	    if (DEBUG) {
 		System.err.print(NetIbis.hostName() + " "
 				  + Thread.currentThread() + " [b");
@@ -272,16 +269,16 @@ public final class Driver extends NetDriver {
 
 
 	/* Must hold gmAccessLock on entry/exit */
-        protected int blockingPump(int interrupts, int[] lockIds)
+        protected int blockingPump(int[] lockIds)
 	    	throws IOException {
-	    return pump(interrupts, -1, lockIds);
+	    return pump(-1, lockIds);
 	}
 
 
 	/* Must hold gmAccessLock on entry/exit */
-        protected void blockingPump(int interrupts, int lockId, int[] lockIds)
+        protected void blockingPump(int lockId, int[] lockIds)
 	    	throws IOException {
-	    pump(interrupts, lockId, lockIds);
+	    pump(lockId, lockIds);
 	}
 
 

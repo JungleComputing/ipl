@@ -210,7 +210,7 @@ public final class GmOutput extends NetBufferedOutput {
 	    boolean interrupted;
 	    do {
 		try {
-		    gmDriver.blockingPump(gmDriver.interrupts(), lockId, lockIds);
+		    gmDriver.blockingPump(lockId, lockIds);
 		    interrupted = false;
 		} catch (InterruptedIOException e) {
 		    // try once more
@@ -327,7 +327,7 @@ public final class GmOutput extends NetBufferedOutput {
                         nSendBuffer(outputHandle, b.data, b.base, b.length);
 
                         /* Wait for 'buffer' send completion */
-                        gmDriver.blockingPump(gmDriver.interrupts(), lockId, lockIds);
+                        gmDriver.blockingPump(lockId, lockIds);
 // System.err.print("]");
 
                 } else {

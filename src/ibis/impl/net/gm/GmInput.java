@@ -231,9 +231,8 @@ public final class GmInput extends NetBufferedInput {
 	    boolean interrupted;
 	    do {
 		try {
-		    int interrupts = gmDriver.interrupts();
 		    int[] lockIds = this.lockIds;
-		    gmDriver.blockingPump(interrupts, lockId, lockIds);
+		    gmDriver.blockingPump(lockId, lockIds);
 		    interrupted = false;
 		} catch (InterruptedIOException e) {
 		    // try once more
