@@ -60,7 +60,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	IbisIdentifier ident; // used in messageHandler
 
 	/* Options. */
-	private boolean closed = false;
+	boolean closed = false; // used in TupleSpace
 	private boolean stats = false;
 	private boolean panda = false;
 	private boolean mpi = false;

@@ -18,9 +18,9 @@ public class SatinTupleSpace implements Config {
 
 	static {
 		satin = Satin.this_satin;
-		if(satin == null) {
-			throw new IbisError("Internal error: Satin not initialized");
-		}
+//		if(satin == null) {
+//			throw new IbisError("Internal error: Satin not initialized");
+//		}
 
 		space = new HashMap();
 //		newKeys = new ArrayList();
@@ -31,14 +31,21 @@ public class SatinTupleSpace implements Config {
 	    The key must be unique. **/
 	public static void add(String key, Serializable data) {
 		synchronized(space) {
-			if(ASSERTS && space.containsKey(key)) {
-				throw new IbisError("Key " + key + " is already in the tuple space");
+			if(ASSERTS) {
+				if(space.containsKey(key)) {
+					throw new IbisError("Key " + key + " is already in the tuple space");
+				}
+				if(satin != null && !satin.closed) {
+					throw new IbisError("The tuple space currently only works with a closed world. Try running with -satin-closed");
+				}
 			}
 
 			space.put(key, data);
 //			newKeys.add(key);
 //			newData.add(data);
 		}
+
+		if(satin == null) return;
 
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": added key " + key);
@@ -125,21 +132,21 @@ public class SatinTupleSpace implements Config {
 	    not been retrieved with a getNew call before on this
 	    machine.
 	    This call does not work for active tuples.
-	 **/
+	**/
 /*
-	public static Tuple getNew() {
-		synchronized(space) {
-			if(newKeys.size() == 0) {
-				return null;
-			}
+  public static Tuple getNew() {
+  synchronized(space) {
+  if(newKeys.size() == 0) {
+  return null;
+  }
 
-			Tuple res = new Tuple();
-			res.key = (String ) newKeys.remove(0);
-			res.data = (Serializable) newData.remove(0);
+  Tuple res = new Tuple();
+  res.key = (String ) newKeys.remove(0);
+  res.data = (Serializable) newData.remove(0);
 
-			return res;
-		}
-	}
+  return res;
+  }
+  }
 */
 	protected static void remoteAdd(String key, Serializable data) {
 		if(TUPLE_DEBUG) {

@@ -169,7 +169,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					  " back to " + ident.ibis().name());
 		}
 
-
 		try {
 			WriteMessage m = s.newMessage();
 			if(opcode == STEAL_REQUEST) {
