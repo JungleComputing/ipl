@@ -140,8 +140,8 @@ goto cont
 
 :nextarg
 
-    shift
-    goto arguments
+shift
+goto arguments
 
 :cont
 
