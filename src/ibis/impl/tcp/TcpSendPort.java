@@ -123,7 +123,9 @@ final class TcpSendPort implements SendPort, Config {
 			System.err.println(type.ibis.name() + ": SendPort.free start");
 		}
 
-		sender.free();
+		if(sender != null) {
+			sender.free();
+		}
 		ident = null;
 
 		if(DEBUG) {
