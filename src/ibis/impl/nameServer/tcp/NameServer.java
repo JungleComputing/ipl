@@ -4,6 +4,7 @@ import ibis.connect.controlHub.ControlHub;
 import ibis.ipl.IbisIdentifier;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
+import ibis.util.PoolInfoServer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -127,8 +128,9 @@ public class NameServer implements Protocol {
 		int port = in.readInt();
 
 //		if (DEBUG) {
-			System.err.println("NameServer: join to pool " + key);
-			System.err.println(" requested by " + id.toString());
+			System.err.print("NameServer: join to pool " + key);
+			System.err.print(" requested by " + id.toString());
+			System.err.println(", port " + port);
 //		}
 
 		IbisInfo info = new IbisInfo(id, address, port);
@@ -184,7 +186,7 @@ public class NameServer implements Protocol {
 			p.pool.add(info);
 			System.out.println(id.name() + " JOINS  pool " + key + " (" + p.pool.size() + " nodes)");
 		}
-			
+
 		out.flush();
 	}	
 
@@ -508,6 +510,7 @@ public class NameServer implements Protocol {
 	public static void main(String [] args) { 
 		boolean single = false;
 		boolean control_hub = false;
+		boolean pool_server = true;
 		NameServer ns = null;
 		int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 		ControlHub h = null;
@@ -534,8 +537,23 @@ public class NameServer implements Protocol {
 					System.err.println("invalid port");
 					System.exit(1);
 				}
+			} else if (args[i].equals("-poolport")) {
+				i++;
+				try {
+					int n  = Integer.parseInt(args[i]);
+					System.setProperty("ibis.pool.server.port", args[i]);
+				} catch (Exception e) {
+					System.err.println("invalid port");
+					System.exit(1);
+				}
 			} else if (args[i].equals("-controlhub")) {
 				control_hub = true;
+			} else if (args[i].equals("no-controlhub")) {
+				control_hub = false;
+			} else if (args[i].equals("-poolserver")) {
+				pool_server = true;
+			} else if (args[i].equals("-no-poolserver")) {
+				pool_server = false;
 			} else if (args[i].equals("-debug")) {
 				// Accepted and ignored.
 			} else {
@@ -548,6 +566,12 @@ public class NameServer implements Protocol {
 		    h = new ControlHub();
 		    h.setDaemon(true);
 		    h.start();
+		}
+
+		if (pool_server) {
+		    PoolInfoServer p = new PoolInfoServer(single);
+		    p.setDaemon(true);
+		    p.start();
 		}
 
 		if(!single) {

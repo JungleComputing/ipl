@@ -13,6 +13,8 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.*;
 
+import ibis.util.PoolInfoClient;
+
 class SOR extends UnicastRemoteObject implements i_SOR {
 
 	static final double TOLERANCE = 0.001;         /* termination criterion */
