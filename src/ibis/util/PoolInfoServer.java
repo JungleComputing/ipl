@@ -32,9 +32,9 @@ public class PoolInfoServer extends Thread {
      * Default port on which the <code>PoolInfoServer</code> is accepting
      * connections.
      */
-    public static final int POOL_INFO_PORT = 9828;
+    public static final int POOL_INFO_PORT = 9827;
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = TypedProperties.booleanProperty("ibis.pool.debug", false);
 
     static class RunInfo {
         int total_hosts;
@@ -138,6 +138,7 @@ public class PoolInfoServer extends Thread {
     private ServerSocket serverSocket;
 
     private boolean singleRun;
+    private int port;
 
     /**
      * Main program of the <code>PoolInfoServer</code>. 
@@ -181,6 +182,7 @@ public class PoolInfoServer extends Thread {
      */
     public PoolInfoServer(int port, boolean single) {
         singleRun = single;
+        this.port = port;
         try {
             serverSocket = new ServerSocket(port);
         } catch (IOException e) {
@@ -219,7 +221,8 @@ public class PoolInfoServer extends Thread {
             while (!stop) {
                 if (DEBUG) {
                     System.err.println("PoolInfoServer: starting run, "
-                            + "waiting for a host to connect...");
+                            + "listening on port " + port
+                            + " waiting for a host to connect...");
                 }
                 socket = serverSocket.accept();
                 in = new DataInputStream(socket.getInputStream());

@@ -143,7 +143,8 @@ public class PoolInfoClient extends PoolInfo {
             } catch (Exception e) {
                 if (cnt == 60) {
                     System.err.println("Could not connect to PoolInfoServer "
-                            + "after 60 seconds; giving up ...");
+                            + "on " + serverAddress + ":" + serverPort
+                            + " after 60 seconds; giving up ...");
                     throw new RuntimeException("Got exception: " + e);
                 }
                 try {
