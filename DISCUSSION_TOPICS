@@ -31,3 +31,43 @@ build.xml	The build system has a few problems:
 		- no "ant dist" => binairy-distro.tar.gz
 		- no way of building entiry tree (including apps) from root
 		- no support for automatic testing/benchmarking
+
+Multicast	Mathijs's multicast work should be integrated in the Ibis IPL.
+		IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
+
+Abstract IPL	Most classes in the IPL should be abstract and include
+		generic implementations whenever possible.
+		- Connection management
+		- Serialization stream selection / implementation
+		- Compression
+		- Encryption
+		- Coordinator/Nameserver client code
+		- Multicast
+		- ?
+
+Tcp connect	NioIbis should have support for the tcp connect stuff
+		need connect support for channels.
+
+rmi helper class
+		Would it be possible to write a small "helper" class to get
+		people started with RMI. It could handle registry creation,
+		initialize ibis, offer a nice interface for binding and such.
+
+Ibis coordinator
+		expand and formalize the nameserver interface. give it a
+		better name (coordinator?) and use it in every Ibis
+		implementation. New functionalty includes:
+		- selection of ibis implementation.
+		- management (tell an Ibis to leave)
+		- ?
+
+*ibis		(pronounced multi Ibis). An Ibis designed to use other,
+		possibly multiple, ibisses to actually communicate. Needs to
+		be able to dynamicly add/remove ibis implementations.
+
+p2p coordinator	
+		alternative coordinator implementation which has support for
+		using Ibis in an p2p envoronment. Has some sort of scheduler,
+		file transfer support, and such. Forks new virtual machines
+		to run an app in.
+		
