@@ -33,7 +33,8 @@ class TcpPortType implements PortType, Config {
 
 		String ser = p.find("Serialization");
 		if(ser == null) {
-			p.add("Serialization", "sun");
+			this.p = new StaticProperties(p);
+			this.p.add("Serialization", "sun");
 			serializationType = SERIALIZATION_SUN;
 		} else {
 			if (ser.equals("sun")) {

@@ -133,32 +133,12 @@ public final class RTS {
 	    reqprops.add("worldmodel", "open");
 	    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceive");
 
-	    // @@@ start of horrible code
-	    //			System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
-	    //			new Exception().printStackTrace();
-	    // But HOW??? --Ceriel
-
 	    try {
 		ibis = Ibis.createIbis(reqprops, null);
 	    } catch(NoMatchingIbisException e) {
 		System.err.println("Could not find an Ibis that can run this RMI implementation");
 		System.exit(1);
 	    }
-
-	    Properties p = System.getProperties();
-	    String ibis_serialization = p.getProperty("ibis.serialization");
-
-	    StaticProperties s = new StaticProperties();
-
-	    if (ibis_serialization != null) {
-		System.out.println("Setting Serialization to " + ibis_serialization);
-		s.add("Serialization", ibis_serialization);
-	    } else {
-		System.out.println("Setting Serialization to ibis");
-		s.add("Serialization", "ibis");
-	    }
-
-	    // @@@ end of horrible code
 
 	    if (DEBUG) {
 		System.out.println(hostname + ": ibis created");
@@ -167,7 +147,8 @@ public final class RTS {
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 
-	    portType = ibis.createPortType("RMI", s);
+	    portType = ibis.createPortType("RMI",
+					   StaticProperties.userProperties());
 
 	    skeletonReceivePort = portType.createReceivePort("//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString(), upcallHandler);
 	    skeletonReceivePort.enableConnections();

@@ -360,18 +360,8 @@ public final class Group implements GroupProtocol {
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 	    
-	    Properties p = System.getProperties();
-	    StaticProperties s = new StaticProperties();
-
-	    String ibis_serialization = p.getProperty("ibis.serialization");
-	    if (ibis_serialization != null) {
-		s.add("Serialization", ibis_serialization);
-	    }
-	    else {
-		s.add("Serialization", "ibis");
-	    }
-
-	    portType = ibis.createPortType("GMI", s);
+	    portType = ibis.createPortType("GMI",
+					   StaticProperties.userProperties());
 	               
 	    groupCallHandler = new GroupCallHandler();
 

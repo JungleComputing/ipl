@@ -65,10 +65,8 @@ public final class RTS {
                         ibisRegistry = ibis.registry();
 //                      ibis.start);
 
-                        StaticProperties s = new StaticProperties();
-//                        s.add("Serialization", "ibis");
-
-                        portType = ibis.createPortType("RepMI", s);
+                        portType = ibis.createPortType("RepMI",
+						       StaticProperties.userProperties());
                        
                         ch = new CallHandler();
 

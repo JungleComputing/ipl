@@ -205,7 +205,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		/* Parse commandline parameters. Remove everything that starts
 		   with satin. */
 		Vector tempArgs = new Vector();
-		StaticProperties newprops = new StaticProperties(reqprops);
 		for(int i=0; i<args.length; i++) {
 			if(args[i].equals("-satin-closed")) {/* Closed world assumption. */
 				closed = true;
@@ -213,8 +212,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				reqprops.add("name", "panda");
 			} else if(args[i].equals("-satin-mpi")) {
 				reqprops.add("name", "mpi");
-			} else if(args[i].equals("-satin-net")) {
-				reqprops.add("name", "net");
+			} else if(args[i].startsWith("-satin-net")) {
+				reqprops.add("name", args[i].substring(7));
 			} else if(args[i].equals("-satin-nio")) {
 				reqprops.add("name", "nio");
 			} else if(args[i].equals("-satin-tcp")) {
@@ -243,6 +242,38 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			} else {
 				tempArgs.add(args[i]);
 			}
+		}
+
+		// Combine old-style arguments with new style properties.
+
+		StaticProperties userprops = StaticProperties.userProperties();
+		String str = userprops.getProperty("worldmodel");
+		if (str != null) {
+		    if (closed && ! str.equals("closed")) {
+			System.err.println("Inconsistent options: -satin-closed and -Dibis.worldmodel=" + str);
+			System.exit(1);
+		    }
+		    if (str.equals("closed")) {
+			closed = true;
+		    }
+		}
+		str = userprops.getProperty("name");
+		if (str != null) {
+		    String s2 = reqprops.getProperty("name");
+		    if (s2 != null && ! s2.equals(str)) {
+			System.err.println("Inconsistent options: -satin-" + s2 + " and -Dibis.name=" + str);
+			System.exit(1);
+		    }
+		}
+		str = userprops.getProperty("serialization");
+		if (str != null) {
+		    if (ibisSerialization && ! str.equals("ibis")) {
+			System.err.println("Inconsistent options: -satin-ibis and -Dibis.serialization=" + str);
+			System.exit(1);
+		    }
+		    if (str.equals("ibis")) {
+			ibisSerialization = true;
+		    }
 		}
 
 		if (closed) {

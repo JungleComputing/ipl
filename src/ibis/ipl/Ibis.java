@@ -220,7 +220,6 @@ public abstract class Ibis {
 				  ResizeHandler r)
 	throws IbisException
     {
-	Properties p = System.getProperties();
 	String hostname;
 
 	try {
@@ -235,16 +234,14 @@ public abstract class Ibis {
 
 	String implementationname = null;
 
-	String ibisname = p.getProperty("ibis.name");
+	StaticProperties combinedprops =
+		StaticProperties.combineWithUserProps(reqprop);
 
-	if (ibisname == null) {
-	    if (reqprop == null) {
-		// default Ibis
-		ibisname = "tcp";
-	    }
-	    else {
-		ibisname = reqprop.find("name");
-	    }
+	String ibisname = combinedprops.find("name");
+
+	if (ibisname == null && reqprop == null) {
+	    // default Ibis
+	    ibisname = "tcp";
 	}
 
 	if (ibisname == null) {
@@ -252,7 +249,7 @@ public abstract class Ibis {
 	    for (int i = 0; i < impls.length; i++) {
 		StaticProperties ibissp = staticProperties(impls[i]);
 //		    System.out.println("try " + impls[i]);
-		if (reqprop.matchProperties(ibissp)) {
+		if (combinedprops.matchProperties(ibissp)) {
 //			System.out.println("match!");
 		    implementationname = impls[i];
 		    break;

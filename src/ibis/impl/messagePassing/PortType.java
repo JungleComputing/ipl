@@ -3,12 +3,13 @@ package ibis.impl.messagePassing;
 import ibis.ipl.IbisException;
 import ibis.ipl.Replacer;
 import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 
 public class PortType implements ibis.ipl.PortType {
 
-    private ibis.ipl.StaticProperties p;
+    private StaticProperties p;
     private String name;
 
     public static final byte SERIALIZATION_NONE = 0;
@@ -18,13 +19,14 @@ public class PortType implements ibis.ipl.PortType {
     public byte serializationType = SERIALIZATION_SUN;
 
     PortType(String name,
-	     ibis.ipl.StaticProperties p) throws IbisException {
+	     StaticProperties p) throws IbisException {
 	this.name = name;
 	this.p = p;
 
 	String ser = p.find("Serialization");
 	if (ser == null) {
-	    p.add("Serialization", "sun");
+	    this.p = new StaticProperties(p);
+	    this.p.add("Serialization", "sun");
 	    serializationType = SERIALIZATION_SUN;
 	} else if (ser.equals("none")) {
 	    serializationType = SERIALIZATION_NONE;
@@ -63,7 +65,7 @@ public class PortType implements ibis.ipl.PortType {
 	return name.hashCode();
     }
 
-    public ibis.ipl.StaticProperties properties() {
+    public StaticProperties properties() {
 	return p;
     }
 

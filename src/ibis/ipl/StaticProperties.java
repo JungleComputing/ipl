@@ -139,9 +139,7 @@ public class StaticProperties extends Properties {
 	    if (name.substring(0,5).equals("ibis.")) {
 		String n = name.substring(5);
 
-		if (categories.containsKey(n)) {
-		    user_properties.add(n, prop);
-		}
+		user_properties.add(n, prop);
 	    }
 	}
     }
@@ -176,7 +174,7 @@ public class StaticProperties extends Properties {
      * @param sp the static properties
      * @return the combined static properties.
      */
-    private static StaticProperties combineWithUserProps(StaticProperties sp) {
+    static StaticProperties combineWithUserProps(StaticProperties sp) {
 	StaticProperties combined = new StaticProperties(sp);
 	StaticProperties u = userProperties();
 
@@ -192,19 +190,11 @@ public class StaticProperties extends Properties {
     }
 
     /**
-     * Returns a summary of the specified properties, including possible
-     * user-overrides.
+     * Returns a summary of the specified properties.
      * @param sp the static properties.
-     * @param allow_overrides if set, allows for overrides.
      * @return the properties, as an int.
      */
-    private static long[] getSummary(StaticProperties sp,
-				     boolean allow_overrides) {
-
-	if (allow_overrides) {
-	    sp = combineWithUserProps(sp);
-	}
-
+    private static long[] getSummary(StaticProperties sp) {
 	int len = category_names.size();
 	long [] retval = new long[len];
 	for (int i = 0; i < len; i++) {
@@ -234,8 +224,8 @@ public class StaticProperties extends Properties {
      */
     public boolean matchProperties(StaticProperties sp) {
 	// Maybe build a cache of computed summaries?
-	long[] props = getSummary(sp, false);
-	long[] mysummary = getSummary(this, true);
+	long[] props = getSummary(sp);
+	long[] mysummary = getSummary(this);
 
 	for (int i = 0; i < props.length; i++) {
 	    if ((mysummary[i] & props[i]) != mysummary[i]) {
