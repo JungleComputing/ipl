@@ -12,7 +12,7 @@
 
     <property name="satinc-flags" value="-keep"/>
 
-    <property name="satin-main-class" value="SimpleSATSolver DPLLSolver SATSolver"/>
+    <property name="satin-main-class" value="Breeder SimpleSATSolver DPLLSolver SATSolver"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 

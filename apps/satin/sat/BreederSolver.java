@@ -14,14 +14,36 @@
  */
 
 import java.io.File;
+import ibis.satin.SatinTupleSpace;
+
+final class CutoffUpdater implements ibis.satin.ActiveTuple {
+    int limit;
+
+    CutoffUpdater( int v ){
+        limit = v;
+    }
+
+    public void handleTuple( String key ){
+        if( limit<BreederSolver.cutoff ){
+            BreederSolver.cutoff = limit;
+        }
+    }
+}
 
 public final class BreederSolver {
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = false;
     private static final boolean traceNewCode = true;
     private static int label = 0;
+
+    /** Total number of decisions in all solves. */
     private int decisions = 0;
-    private int maxDecisions;
+
+    /** Maximal number decisions allowed before we give up. Can
+     * be updated by the CutoffUpdater class above.
+     */
+
+    static int cutoff = Integer.MAX_VALUE;
     private static final int GENECOUNT = 8;
 
     /**
@@ -81,7 +103,7 @@ public final class BreederSolver {
 	    return;
 	}
         decisions++;
-	if( decisions>maxDecisions ){
+	if( decisions>cutoff ){
 	    throw new SATCutoffException();
 	}
 
@@ -113,11 +135,10 @@ public final class BreederSolver {
      * @param cutoff The maximum number of decisions to try.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    protected SATSolution solveSystem( final SATProblem p, int cutoff )
+    protected SATSolution solveSystem( final SATProblem p )
 	throws SATCutoffException
     {
 	SATSolution res = null;
-	maxDecisions = cutoff;
 
 	if( p.isConflicting() ){
 	    return null;
@@ -223,7 +244,7 @@ public final class BreederSolver {
 	SATProblem p = (SATProblem) p_in.clone();
 	p.reviewer = new GeneticClauseReviewer( genes.floats );
 	try {
-	    s.solveSystem( p, cutoff );
+	    s.solveSystem( p );
 	}
 	catch( SATCutoffException x ){
 	    return -1;
@@ -240,13 +261,15 @@ public final class BreederSolver {
 
 	    if( d<0 ){
 		// Over the budget, we're done.
-		System.err.print( "** " );
 		return d;
 	    }
-	    System.err.print( d + " " );
 	    total += d;
-	    cutoff -= d;	// Deduct our expenses from the limit.
 	}
+        int newCutoff = (3*total)/2;
+        if( cutoff>newCutoff ){
+            // We may have a new cutoff value, broadcast it.
+            SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
+        }
 	return total;
     }
 }

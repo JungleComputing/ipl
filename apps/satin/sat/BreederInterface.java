@@ -7,5 +7,5 @@
  */
 interface BreederInterface extends ibis.satin.Spawnable
 {
-    public void solve( int level, SATContext ctx, int varix, boolean val ) throws SATException;
+    public int run( SATProblem pl[], Genes genes, int bestD );
 }
