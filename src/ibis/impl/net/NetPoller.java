@@ -3,6 +3,7 @@ package ibis.ipl.impl.net;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Hashtable;
 
@@ -30,21 +31,26 @@ public abstract class NetPoller extends NetInput {
 	/**
 	 * Count the number of application threads that are blocked in a poll
 	 */
-	protected int		waitingThreads;
+	protected int		waitingThreads = 0;
 
 
 	/**
 	 * Upcall thread
 	 */
-	private UpcallThread	upcallThread;
+	private UpcallThread	upcallThread = null;
 
+
+        /**
+         * The first queue that should be poll first next time we have to poll the queues.
+         */
+        private int             firstToPoll  = 0;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param staticProperties the port's properties.
-	 * @param driver the driver of this poller.
-	 * @param input  the controlling input.
+	 * @param pt      the port type.
+	 * @param driver  the driver of this poller.
+	 * @param context the context string.
 	 */
 	public NetPoller(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
@@ -215,12 +221,12 @@ public abstract class NetPoller extends NetInput {
 
 	protected class ReceiveQueue extends Thread {
 
-                public NetInput	input;
+                public  NetInput	input     = null;
 
-                boolean		stopped;
-                Integer		spn;
-                Integer		activeNum;
-                boolean		finished;
+                private boolean		stopped   = false;
+                private Integer		spn       = null;
+                private Integer		activeNum = null;
+                private boolean		finished  = false;
 
                 ReceiveQueue(NetInput input, Integer spn) {
                         this.input = input;
@@ -255,6 +261,8 @@ public abstract class NetPoller extends NetInput {
                                                 finished = false;
                                         }
                                 } catch (NetIbisException e) {
+                                        //
+                                        disp.disp(e.getMessage());
                                 }
                         }
                         log.out();
@@ -350,27 +358,62 @@ public abstract class NetPoller extends NetInput {
                         throw new NetIbisException("Call message.finish before calling Net.poll");
                 }
 
-                /* ToDo: fairness in the order in which the queues are polled
-                 */
                 synchronized (this) {
                         while (true) {
-                                Iterator i = inputTable.values().iterator();
-                                while (i.hasNext()) {
-                                        ReceiveQueue ni = (ReceiveQueue)i.next();
-                                        log.disp("inspect ReceiveQueue " + ni + " has activeNum " + ni.activeNum);
+                                final Collection c = inputTable.values();
+                                final int        s = c.size();
+                                firstToPoll %= s;
 
-                                        Integer spn;
-                                        if ((spn = ni.poll()) != null) {
-                                                log.disp("inspect ReceiveQueue " + ni + " has activeNum " + spn);
+                                // The pair of loops is used to implement
+                                // some kind of fairness in ReceiveQueue polling.
+                        dummy:
+                                do {
+                                        Iterator i = null;
+                                        int      j =    0;
+                                
+                                // first pass
+                                        i = c.iterator();
+                                        j = 0;
+                                        while (i.hasNext()) {
+                                                ReceiveQueue rq  = (ReceiveQueue)i.next();
+                                                if (j++ < firstToPoll)
+                                                        continue;
+                                        
+                                                Integer      spn = null;
 
-                                                activeQueue = ni;
-                                                activeNum   = spn;
+                                                if ((spn = rq.poll()) != null) {
+                                                        activeQueue = rq;
+                                                        activeNum   = spn;
 
-                                                selectConnection(ni);
-                                                break;
+                                                        selectConnection(rq);
+                                                        break dummy;
+                                                }
                                         }
-                                }
 
+                                // second pass
+                                        i = c.iterator();
+                                        j = 0;
+                                        while (i.hasNext()) {
+                                                if (j++ >= firstToPoll)
+                                                        break;
+                                        
+                                                ReceiveQueue rq  = (ReceiveQueue)i.next();
+                                                Integer      spn = null;
+
+                                                if ((spn = rq.poll()) != null) {
+                                                        activeQueue = rq;
+                                                        activeNum   = spn;
+
+                                                        selectConnection(rq);
+                                                        break dummy;
+                                                }
+                                        }
+
+                                } while (false);
+
+                                
+                                firstToPoll++;
+                                
                                 if (activeNum != null) {
                                         log.out();
                                         return activeNum;

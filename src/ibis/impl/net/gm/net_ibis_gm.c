@@ -213,6 +213,8 @@ static int 	      initialized              =    0;
 /* Flag indicating whether the initialization of GM was successful. */
 static int 	      successfully_initialized =    0;
 
+static volatile int   success_flag             =    0;
+
 /* Driver's own data structure.  */
 static struct s_drv * volatile _p_drv = NULL;
 
@@ -1074,6 +1076,8 @@ ni_gm_callback(struct gm_port *port,
         struct s_port    *p_port = NULL;
         
         __in__();
+        success_flag = 1;
+
         p_rq         = ptr;
         p_rq->status = gms;
         p_port       = p_rq->p_port;
@@ -2599,6 +2603,8 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_cl
         _current_env = env;
 
         __in__();
+        success_flag = 0;
+
         for (;;) {
                 struct s_port   *p_port  = NULL;
                 gm_recv_event_t *p_event = NULL;
@@ -2616,7 +2622,10 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_cl
 
                 if (next_dev >= p_drv->nb_dev) {
                         next_dev = 0;
-                        break;
+
+                        if (success_flag) {
+                                break;
+                        }
                 }      
                 
                 dev     = next_dev++;
@@ -2624,12 +2633,14 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_cl
                 p_port  = p_dev->p_port;
                 //p_event = gm_receive(p_port->p_gm_port);
                 p_event = gm_blocking_receive(p_port->p_gm_port);
+                //p_event = gm_blocking_receive_no_spin(p_port->p_gm_port);
                 
                 switch (gm_ntohc(p_event->recv.type)) {
                         
                 case GM_FAST_HIGH_PEER_RECV_EVENT:
                 case GM_FAST_HIGH_RECV_EVENT:
                         {
+                                success_flag = 1;
                                 if (ni_gm_process_fast_high_recv_event(p_port, p_event))
                                         goto error;
                         }                        
@@ -2638,6 +2649,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_cl
                 case GM_HIGH_PEER_RECV_EVENT:
                 case GM_HIGH_RECV_EVENT:
                         {
+                                success_flag = 1;
                                 if (ni_gm_process_high_recv_event(p_port, p_event))
                                         goto error;
                         }                        
@@ -2646,6 +2658,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_cl
                 case GM_PEER_RECV_EVENT: 
                 case GM_RECV_EVENT:
                         {
+                                success_flag = 1;
                                 if (ni_gm_process_recv_event(p_port, p_event))
                                         goto error;
                         }

@@ -11,7 +11,7 @@ import ibis.ipl.Timer;
  */
 public final class NetLog {
 
-        private static  final   boolean human           = true;
+        private static  final   boolean human           = false;
 
 
         private                 String  logName         = null;
