@@ -125,6 +125,7 @@ public final class GmOutput extends NetBufferedOutput {
                 this.rpn = cnx.getNum();
 
                 mtu = 2*1024*1024;
+
                 log.out();
         }
 

@@ -398,6 +398,11 @@ public class NetBufferFactory {
                                         buffer.next = freeList.buffer;
                                         freeList.buffer = buffer;
                                         freeList.nb++;
+                                } else {
+                                        if (buffer.allocator != null) {
+                                                buffer.allocator.free(buffer.data);
+                                                buffer.data = null;
+                                        }
                                 }
                         }
                 } else {
