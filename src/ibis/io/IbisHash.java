@@ -103,8 +103,16 @@ final class IbisHash {
 	    t_clear = Timer.createTimer();
 	    t_delete = Timer.createTimer();
 	}
-    }
 
+	
+	if (STATS || TIMINGS) {
+	    Runtime.getRuntime().addShutdownHook(new Thread("DataAllocator ShutdownHook") {
+		public void run() {
+		    statistics();
+		}
+		});
+	}
+    }
 
     private void newBucketSet(int size) {
 	dataBucket = new Object[size];
@@ -359,6 +367,9 @@ final class IbisHash {
 	}
 
 	if (lazy && b != null) {
+	    if (TIMINGS) {
+		t_insert.stop();
+	    }
 	    return handleBucket[h0 + offset];
 	}
 
@@ -507,8 +518,8 @@ final class IbisHash {
 
     final void statistics() {
 	if (STATS) {
-	    System.err.println(this + ": " +
-		    //  "buckets     = " + size +
+	    System.err.println(this + ":" +
+		    " alloc_size " + alloc_size +
 		    " contains " + contains +
 		    " finds " + finds +
 		    " rebuilds " + rebuilds +
@@ -518,17 +529,17 @@ final class IbisHash {
 		    ")");
 	}
 	if (TIMINGS) {
-	    System.err.println(this + ": per insert: " +
+	    System.err.println(this + 
 		" insert(" + t_insert.nrTimes() + ") " +
-		Timer.format(t_insert.totalTimeVal() / t_insert.nrTimes()) +
+		Timer.format(t_insert.totalTimeVal()) +
 		" find(" + t_find.nrTimes() + ") " +
-		Timer.format(t_find.totalTimeVal() / t_insert.nrTimes()) +
+		Timer.format(t_find.totalTimeVal()) +
 		" rebuild(" + t_rebuild.nrTimes() + ") " +
-		Timer.format(t_rebuild.totalTimeVal() / t_insert.nrTimes()) +
+		Timer.format(t_rebuild.totalTimeVal()) +
 		" clear(" + t_clear.nrTimes() + ") " +
-		Timer.format(t_clear.totalTimeVal() / t_insert.nrTimes()) +
+		Timer.format(t_clear.totalTimeVal()) +
 		" delete(" + t_delete.nrTimes() + ") " +
-		Timer.format(t_delete.totalTimeVal() / t_insert.nrTimes()));
+		Timer.format(t_delete.totalTimeVal()));
 	}
     }
 }

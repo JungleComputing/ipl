@@ -352,8 +352,15 @@ to the command line.
 
 	<property name="config.javac" location="${JAVA_HOME_ENV}/bin/javac"/>
 
-	<echo
-		file="${ibis}/configuration.sh">#!/bin/bash
+	<mkdir dir="${ibis}/bin"/>
+
+	<if>
+	    <not>
+		<os family="windows"/>
+	    </not>
+	    <then>
+		<echo
+			file="${ibis}/configuration.sh">#!/bin/bash
 # Shell variables to describe Ibis configuration
 JAVA_ROOT=${JAVA_HOME_ENV}
 # JAVA_ROOT=/usr/local/ibm-java/IBMJava2-141
@@ -368,8 +375,21 @@ KARMI=${karmi}
 IBIS_CONFIG_SEEN=1
 </echo>
 
-	<echo
-		file="${ibis}/configuration.bat">@rem Windows cmd variables to describe Ibis configuration
+
+		<copy
+			file="${ibis}/src/scripts/ns-env.in"
+			tofile="${ibis}/bin/ns-env"/>
+		<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_PORT@" value="9826"/>
+		<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="${hostname}"/>
+		<chmod file="${ibis}/bin/ns-env" perm="+x"/>
+	    </then>
+	</if>
+
+	<if>
+	    <os family="windows"/>
+	    <then>
+		<echo
+		    file="${ibis}/configuration.bat">@rem Windows cmd variables to describe Ibis configuration
 @set JAVA_ROOT=${JAVA_HOME_ENV}
 @rem JAVA_ROOT=/usr/local/ibm-java/IBMJava2-141
 @rem JAVA_ROOT=/usr/local/sun-java/jdk1.4
@@ -383,28 +403,23 @@ IBIS_CONFIG_SEEN=1
 @set IBIS_CONFIG_SEEN=1
 </echo>
 
-	<mkdir dir="${ibis}/bin"/>
-
-	<copy
-		file="${ibis}/src/scripts/ns-env.in"
-		tofile="${ibis}/bin/ns-env"/>
-	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_PORT@" value="9826"/>
-	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="${hostname}"/>
-	<chmod file="${ibis}/bin/ns-env" perm="+x"/>
-
-	<copy
-		file="${ibis}/bin/ns-env"
-		tofile="${ibis}/bin/ns-env.bat">
-	</copy>
-	<replaceregexp
-	    file="${ibis}/bin/ns-env.bat"
-		flags="g"
-		match="export (.*)="
-		replace="set \1="/>
-	<replace
-	    file="${ibis}/bin/ns-env.bat"
-		token="#"
-		value="rem "/>
+		<copy
+			file="${ibis}/src/scripts/ns-env.in"
+			tofile="${ibis}/bin/ns-env.bat">
+		</copy>
+		<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
+		<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="${hostname}"/>
+		<replaceregexp
+		    file="${ibis}/bin/ns-env.bat"
+			flags="g"
+			match="export (.*)="
+			replace="set \1="/>
+		<replace
+		    file="${ibis}/bin/ns-env.bat"
+			token="#"
+			value="rem "/>
+	    </then>
+	</if>
 
 	<echo message="Now invoke ant java_wrapper"/>
 	<antcall target="java_wrapper"/>

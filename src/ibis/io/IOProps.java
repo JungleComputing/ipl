@@ -15,6 +15,7 @@ class IOProps {
     static final String s_timer_in = PROPERTY_PREFIX + "serialization.timer.input";
     static final String s_timer_out = PROPERTY_PREFIX + "serialization.timer.output";
     static final String s_conversion = PROPERTY_PREFIX + "conversion";
+    static final String s_cache = PROPERTY_PREFIX + "allocator";
     static final String s_cache_max = PROPERTY_PREFIX + "allocator.size";
     static final String s_cache_stats = PROPERTY_PREFIX + "allocator.statistics";
     static final String s_dbg = PROPERTY_PREFIX + "debug";
@@ -31,6 +32,7 @@ class IOProps {
 	s_timer_in,
 	s_timer_out,
 	s_conversion,
+	s_cache,
 	s_cache_max,
 	s_cache_stats,
 	s_hash_asserts,

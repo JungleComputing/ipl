@@ -12,7 +12,7 @@ import types
 
 ibisdir = "~/ibis"
 
-run_ibis = os.path.join( ibisdir, "bin", "run-ibis" )
+run_ibis = os.path.join( ibisdir, "bin", "ibis-prun" )
 
 logdir = "logs"
 

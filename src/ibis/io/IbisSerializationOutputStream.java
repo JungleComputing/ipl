@@ -143,10 +143,8 @@ public class IbisSerializationOutputStream
     /**
      * Hash table for keeping references to objects already written.
      */
-    private IbisHash references  = new IbisHash(2048);
-    // private IbisHash references  = new IbisHash(65536);
-    // private IbisHash references  = new IbisHash(131200);
-    // private IbisHash references  = new IbisHash(256);
+    private NewHash references  = new NewHash(2048);
+    // private IbisHash references  = new IbisHash(2048);
 
     /**
      * Remember when a reset must be sent out.

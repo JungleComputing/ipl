@@ -17,7 +17,7 @@ set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\build;%IBI
 
 
 set LFC_INTR_FIRST=100
-set IBP_SEND_SYNC=10000 
+set IBP_SEND_SYNC=100 
 set PAN_COMM_NO_IDLE_POLL=1
 
 rem
@@ -77,20 +77,17 @@ if "%1"=="-nhosts" (
     shift
     goto nextarg
 )
+if "%1"=="-hosts" (
+    set HOSTS="%2"
+    shift
+    goto nextarg
+)
 if "%1"=="-jdb" (
     set JAVA_EXEC=jdb
     goto nextarg
 )
 if "%1"=="-no-jit" (
     set noJIT=1
-    goto nextarg
-)
-if "%1"=="-no-jit" (
-    set noJIT=1
-    goto nextarg
-)
-if "%1"=="-no-pool" (
-    set no_pool=1
     goto nextarg
 )
 if "%1"=="-n" (
@@ -138,16 +135,6 @@ goto cont
 
 :cont
 
-rem
-rem if no_pool is set, kill all pool info
-rem
-
-if "%no_pool%"=="1" (
-    set Dpool_total=
-    set Dpool_host_num=
-    set Dpool_host_names=
-)
-
 if "%noJIT%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE
 )
@@ -182,28 +169,32 @@ rem and for NT handling to skip to.
 
 :doneStart
 
-%action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
+if not "%HOSTS%"=="" (
+    %action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% -Dpool_host_names="%HOSTS%" %Dns_pool% %Dns_port% %Dns_server% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
+) else (
+    %action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dns_pool% %Dns_port% %Dns_server% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
+)
 
 goto end
 
 :usage
     echo Usage:
-    echo     run-ibis ^<run-ibis params^> ^<jvm params^> ^<classname^> ^<application params^>
-    echo The first parameter that is not recognized as an option to run-ibis
-    echo terminates the run-ibis parameters.
-    echo The run-ibis options are:
+    echo     ibis-run ^<ibis-run params^> ^<jvm params^> ^<classname^> ^<application params^>
+    echo The first parameter that is not recognized as an option to ibis-run
+    echo terminates the ibis-run parameters.
+    echo The ibis-run options are:
     echo -attach
     echo     set jvm parameters so that jdb can attach to the running process
     echo -nhosts ^<nhosts^>
     echo     specifies the total number of hosts involved in this run
     echo -hostno ^<hostno^>
     echo     specifies the rank number of this host (0 .. ^<nhosts^>-1)
+    echo -hosts ^<list of hostnames^>
+    echo     specifies the host names for this run.
     echo -jdb
     echo     execute jdb instead of java
     echo -no-jit
     echo     disable just-in-time compiling
-    echo -no-pool
-    echo     don't pass on any node-pool information to the application
     echo -n
     echo     only print the run command, don't actually execute it
     echo -ns ^<nameserver^>
@@ -219,8 +210,8 @@ goto end
     echo -?
     echo     print this message
     echo --
-    echo     terminates the parameters for run-ibis; following parameters are passed
-    echo     on to java, even if they would be acceptable to run-ibis
+    echo     terminates the parameters for ibis-run; following parameters are passed
+    echo     on to java, even if they would be acceptable to ibis-run
 
 :end
 

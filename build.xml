@@ -56,23 +56,28 @@
 	</antcall>
     </target>
 
-    <target name="build-bin">
+    <target name="build-unix-bin"
+	    unless="config.os-is-windows">
 	<mkdir dir="${ibis}/bin"/>
 	<copy
 	    file="${ibis}/src/scripts/ibisc"
 	    tofile="${ibis}/bin/ibisc"/>
 
 	<copy
+	    file="${ibis}/src/scripts/ibis-run"
+	    tofile="${ibis}/bin/ibis-run"/>
+
+	<copy
 	    file="${ibis}/src/scripts/io_gen"
 	    tofile="${ibis}/bin/io_gen"/>
 
 	<copy
-	    file="${ibis}/src/scripts/ibis_nameserver"
-	    tofile="${ibis}/bin/ibis_nameserver"/>
+	    file="${ibis}/src/scripts/ibis-nameserver"
+	    tofile="${ibis}/bin/ibis-nameserver"/>
 
 	<copy
-	    file="${ibis}/src/scripts/ibis_controlhub"
-	    tofile="${ibis}/bin/ibis_controlhub"/>
+	    file="${ibis}/src/scripts/ibis-controlhub"
+	    tofile="${ibis}/bin/ibis-controlhub"/>
 
 	<copy
 	    file="${ibis}/src/scripts/jdis"
@@ -91,8 +96,8 @@
 	    tofile="${ibis}/bin/satinc"/>
 
 	<copy
-	    file="${ibis}/src/scripts/run-ibis"
-	    tofile="${ibis}/bin/run-ibis"/>
+	    file="${ibis}/src/scripts/ibis-run"
+	    tofile="${ibis}/bin/ibis-run"/>
 
 	<copy
 	    file="${ibis}/src/scripts/extract_jars"
@@ -108,6 +113,24 @@
 		<copy
 		    file="${ibis}/src/scripts/run_ibis"
 		    tofile="${ibis}/bin/run_ibis"/>
+	    </then>
+	</if>
+
+	<if>
+	    <available file="src/scripts/ibis_nameserver"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/ibis_nameserver"
+		    tofile="${ibis}/bin/ibis_nameserver"/>
+	    </then>
+	</if>
+
+	<if>
+	    <available file="src/scripts/ibis-prun"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/ibis-prun"
+		    tofile="${ibis}/bin/ibis-prun"/>
 	    </then>
 	</if>
 
@@ -156,6 +179,16 @@
 	    </then>
 	</if>
 
+	<copy
+	    file="${ibis}/src/scripts/ip_map.perl"
+	    tofile="${ibis}/bin/ip_map.perl"/>
+
+	<chmod file="${ibis}/bin/*" perm="+x"/>
+
+    </target>
+
+    <target name="build-windows-bin"
+	    if="config.os-is-windows">
 	<if>
 	    <available file="src/scripts/run_ibis.bat"/>
 	    <then>
@@ -166,24 +199,25 @@
 	</if>
 
 	<copy
-	    file="${ibis}/src/scripts/run-ibis.bat"
-	    tofile="${ibis}/bin/run-ibis.bat"/>
+	    file="${ibis}/src/scripts/ibis-run.bat"
+	    tofile="${ibis}/bin/ibis-run.bat"/>
 
 	<copy
 	    file="${ibis}/src/scripts/ant.bat"
 	    tofile="${ibis}/bin/ant.bat"/>
 
 	<copy
-	    file="${ibis}/src/scripts/ibis_nameserver.bat"
-	    tofile="${ibis}/bin/ibis_nameserver.bat"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ip_map.perl"
-	    tofile="${ibis}/bin/ip_map.perl"/>
+	    file="${ibis}/src/scripts/ibis-nameserver.bat"
+	    tofile="${ibis}/bin/ibis-nameserver.bat"/>
 
 	<chmod file="${ibis}/bin/*" perm="+x"/>
 
     </target>
+
+    <target name="build-bin"
+	    depends="config-set-os, build-unix-bin, build-windows-bin">
+    </target>
+
     <!--
 	Compile, run IOGenerator, compile native code for the whole of Ibis
     -->
@@ -867,6 +901,8 @@
 	<delete file="${distr}/ibis/src/scripts/run_ibis.bat"/>
 	<delete file="${distr}/ibis/src/scripts/run_ibis_wide_area"/>
 	<delete file="${distr}/ibis/src/scripts/run-das"/>
+	<delete file="${distr}/ibis/src/scripts/ibis-prun"/>
+	<delete file="${distr}/ibis/src/scripts/ibis_nameserver"/>
 	<delete file="${distr}/ibis/src/scripts/cluster_wrapper"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>

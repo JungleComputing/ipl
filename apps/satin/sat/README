@@ -41,7 +41,7 @@ $ ant clean compile
 
 compiles a sequential version that can be executed with:
 
-$ ~/ibis/bin/run-ibis SATSolver examples/benchmark-suite/qg5-10.cnf
+$ ~/ibis/bin/ibis-run SATSolver examples/benchmark-suite/qg5-10.cnf
 
 or simpler, run with:
 
@@ -53,7 +53,7 @@ $ ant clean build
 
 To execute it, you need to first start an ibis name server with:
 
-$ ~/ibis/bin/ibis_nameserver [-port NAMESERVER_PORT]
+$ ~/ibis/bin/ibis-nameserver [-port NAMESERVER_PORT]
 
 where NAMESERVER_PORT is an arbitrary port number (it is wise to choose
 something over 1000).
@@ -61,11 +61,11 @@ something over 1000).
 After the name server has been started you can run it on just your
 local processor with:
 
-$ ~/ibis/bin/run-ibis [-ns-port NAMESERVER_PORT] -ns NAMESERVER_HOSTNAME -nhosts 1 -Dsatin.tuplespace.numbered=true SATSolver examples/benchmark-suite/qg5-10.cnf -satin-closed
+$ ~/ibis/bin/ibis-run [-ns-port NAMESERVER_PORT] -ns NAMESERVER_HOSTNAME -nhosts 1 -Dsatin.tuplespace.numbered=true SATSolver examples/benchmark-suite/qg5-10.cnf -satin-closed
 
-To run it in parallel on the DAS2 you need to start the ibis_nameserver
+To run it in parallel on the DAS2 you need to start the ibis-nameserver
 on the DAS2 fs0 processor (see above), and you can submit a job with:
 
-$ prun -1 -v ~/ibis/bin/run-ibis [-ns-port NAMESERVER_PORT] -ns NAMESERVER_HOSTNAME -Dsatin.tuplespace.numbered=true SATSolver examples/benchmark-suite/qg5-10.cnf -satin-closed
+$ prun -1 -v ~/ibis/bin/ibis-prun [-ns-port NAMESERVER_PORT] -ns NAMESERVER_HOSTNAME -Dsatin.tuplespace.numbered=true SATSolver examples/benchmark-suite/qg5-10.cnf -satin-closed
 
 Where `2' is the number of processors for this particular job.

@@ -118,7 +118,7 @@ goto end
 :usage
 
     echo Usage:
-    echo   ibis_nameserver ^<nameserver parameters^>
+    echo   ibis-nameserver ^<nameserver parameters^>
     echo 
     echo The nameserver parameters are:
     echo -single

@@ -16,41 +16,41 @@
 		Set parameter:
 		runjob		main class name and arguments
 		java-args	flags for java
-		run-ibis-args	flags for run-ibis
+		ibis-run-args	flags for ibis-run
 
 	run2	run the application as a parallel program,
 		with two instances, using TCP ibis.
 		Set parameter:
 		runjob		main class name and arguments
 		java-args	flags for java
-		run-ibis-args	flags for run-ibis
+		ibis-run-args	flags for ibis-run
 
 	runseq	run the application as a sequential program.
 		Set parameter:
 		runjob		main class name and arguments
 		java-args	flags for java
-		run-ibis-args	flags for run-ibis
+		ibis-run-args	flags for ibis-run
 
     </description>
 
-    <property name="run-ibis-args" value=""/>
+    <property name="ibis-run-args" value=""/>
     <property name="java-args" value=""/>
 
     <target name="run2">
 	<exec dir="${basedir}"
-	      executable="${ibis}/bin/run-ibis"
+	      executable="${ibis}/bin/ibis-run"
 	      vmlauncher="false"
 	      spawn="true">
-	      <arg line="-ns localhost -ns-port 4567 -hostno 1 -nhosts 2 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
 	      <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
-	      executable="${ibis}/bin/run-ibis"
+	      executable="${ibis}/bin/ibis-run"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 2 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
 	      <arg line="${java-args} ${runjob}"/>
 	</exec>
@@ -58,11 +58,11 @@
 
     <target name="run1">
 	<exec dir="${basedir}"
-	      executable="${ibis}/bin/run-ibis"
+	      executable="${ibis}/bin/ibis-run"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 1 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
 	      <arg line="${java-args} ${runjob}"/>
 	</exec>
@@ -70,11 +70,11 @@
 
     <target name="runseq">
 	<exec dir="${basedir}"
-	      executable="${ibis}/bin/run-ibis"
+	      executable="${ibis}/bin/ibis-run"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="${run-ibis-args} -- ${java-args} ${runjob}"/>
+	      <arg line="${ibis-run-args} -- ${java-args} ${runjob}"/>
 	</exec>
     </target>
 

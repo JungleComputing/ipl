@@ -995,13 +995,13 @@ in Section \ref{PoolInfo}.
 
 \mysubsection{Running an Ibis Application}
 
-An Ibis instance is started with the \texttt{run-ibis} script which
-lives in the Ibis \texttt{bin} directory.  This \texttt{run-ibis}
+An Ibis instance is started with the \texttt{ibis-run} script which
+lives in the Ibis \texttt{bin} directory.  This \texttt{ibis-run}
 script is called as follows:
 \begin{center}
-\texttt{run-ibis} \emph{run-ibis-flags java-flags class ...}
+\texttt{ibis-run} \emph{ibis-run-flags java-flags class ...}
 \end{center}
-The most important \emph{run-ibis-flags} are explained below:
+The most important \emph{ibis-run-flags} are explained below:
 \begin{description}
 \item{--nhosts \emph{nhosts}}
 specifies the total number of Ibis instances involved in this run.
@@ -1024,7 +1024,7 @@ specifies the application class name.
 specifies the application parameters.
 \end{description}
 
-The \texttt{run-ibis} script uses these parameters to set the following
+The \texttt{ibis-run} script uses these parameters to set the following
 system properties (see also Section \ref{PoolInfo}):
 \begin{description}
 \item{ibis.pool.host\_number}

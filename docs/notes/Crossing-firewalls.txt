@@ -70,7 +70,7 @@ Alternatively, configure your application to use TCPIbis.
 -- Step 3- start the Ibis name server on a machine visible from every 
 computing node, with the -controlhub flag, e.g.:
 
-fs0:~% ibis_nameserver -controlhub
+fs0:~% ibis-nameserver -controlhub
 
 If you want a specific port number for the control hub, you can use
 the "-hubport <portnum>" flag.

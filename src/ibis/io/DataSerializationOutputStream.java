@@ -1,12 +1,15 @@
 package ibis.io;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 
 
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
  * for data serialization. With data serialization, you can only write
- * basic types and arrays of basic types.
+ * basic types and arrays of basic types. It also serves as a base type
+ * for Ibis serialization.
  */
 public class DataSerializationOutputStream
 	extends SerializationOutputStream
@@ -729,8 +732,12 @@ public class DataSerializationOutputStream
 	for (int i = 0; i < ARRAY_BUFFER_SIZE; i++) {
 	    array[i] = new ArrayDescriptor();
 	}
-	// allocator = new DataAllocator();
-	allocator = new DummyAllocator();
+	if (TypedProperties.booleanProperty(IOProps.s_cache, false)) {
+	    allocator = new DataAllocator();
+	}
+	else {
+	    allocator = new DummyAllocator();
+	}
 
 	indices_short  = allocator.getIndexArray();
 	byte_buffer    = allocator.getByteArray();

@@ -1,0 +1,182 @@
+#!/bin/sh
+
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+. $dir/../configuration.sh
+
+JAVACLASSPATH=$CLASSPATH:$IBIS_ROOT/build:
+
+has_enable=0
+has_hubport=0
+has_hubhost=0
+Ddefines=
+
+# Ibis Hub controller
+if [ "x$IBIS_HUB" != "x" ]; then
+  # decode Ibis control hub reference
+  HUB_HOST=`echo $IBIS_HUB|cut -f 1 -d :`
+  HUB_PORT=`echo $IBIS_HUB|cut -f 2 -d :`
+  echo "Name service will connect to Ibis hub:"
+  echo "  ${HUB_HOST}:${HUB_PORT}"
+  Ddefines="-Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.connect.hub_host=$HUB_HOST -Dibis.connect.hub_port=$HUB_PORT -Dibis.name_server.host=`hostname -f`"
+  has_enable=1
+  has_hubport=1
+  has_hubhost=1
+fi
+
+args=
+javaargs=
+
+function usage () {
+    cat << 'EOF'
+Usage:
+  ibis-nameserver <nameserver parameters>
+
+The nameserver parameters are:
+-single
+    make the nameserver only serve a single Ibis run. (In fact, it will
+    server more than one run, but will exit as soon as no more runs are
+    active).
+-port <portno>
+    make the nameserver listen to port number <portno>. The default
+    port number is 9826.
+-poolserver
+    make the nameserver start a pool server (see ibis.util.PoolInfo in the
+    Ibis API). This is the default.
+-no-poolserver
+    with this option, the nameserver does not start a pool server.
+-poolport <poolportno>
+    make the poolserver listen to port number <poolportno>. The default
+    port number is the nameserver port number + 1.
+-controlhub
+    make the nameserver start a controlhub
+    (see ibis/docs/notes/Crossing-firewalls.txt). Note that this
+    option also makes the nameserver use communication that goes through
+    this controlhub.
+-no-controlhub
+    don't make the nameserver start a controlhub. This is the default.
+-hubport <hubportno>
+    make the controlhub listen to port number <hubportno>. The default port
+    number is the nameserver port number + 2. If the -controlhub flag is not
+    given, it is assumed that one is already listening on port <hubportno>.
+    Anyway, the nameserver will use communication that goes through a
+    controlhub.
+-hubhost <hubhostname>
+    specifies the hostname with the controlhub that is to be used by the
+    nameserver. All communication with the nameserver will go through this
+    controlhub.
+-v
+    make the nameserver more verbose.
+-d
+    enable debugging prints in the nameserver.
+-hubdebug
+    enable debugging prints of communication with the controlhub (extremely
+    verbose).
+-?
+    print this message
+-h
+    print this message
+
+Unrecognized options are passed on to java.
+
+EOF
+    exit 1
+}
+
+while [ $# -gt 0 ]
+do
+    case "$1" in
+    -\?|-h)
+	usage
+	;;
+    -hubdebug)
+	Ddefines="$Ddefines -Dibis.connect.debug=true -Dibis.connect.verbose=true"
+	;;
+    -poolserver|-no-poolserver|-single|-no-controlhub)
+	args="$args $1"
+	;;
+    -controlhub)
+	# Note: ibis.connect.data_links must be set or ibis.connect does not
+	# work. However, the nameserver only uses control_links, so the
+	# contents for data_links does not really matter, as long as the
+	# socket type exists.
+	if [ "x$IBIS_HUB" != "x" ]; then
+		echo "You cannot use both -controlhub and the IBIS_HUB environment variable" 1>&2
+		exit 1
+	fi
+	if [ $has_enable -eq 0 ]; then
+	    Ddefines="$Ddefines -Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+	    has_enable=1
+	fi
+	if [ $has_hubhost -eq 0 ]; then
+	    has_hubhost=1
+	    Ddefines="$Ddefines -Dibis.connect.hub_host=`hostname -f`"
+	fi
+	args="$args -controlhub"
+	;;
+    -port)
+	shift
+	Ddefines="$Ddefines -Dibis.name_server.port=$1"
+	;;
+    -poolport)
+	shift
+	Ddefines="$Ddefines -Dibis.pool.server.port=$1"
+	;;
+    -hubport)
+	shift
+	if [ "x$IBIS_HUB" != "x" ]; then
+		echo "You cannot use both -hubport and the IBIS_HUB environment variable" 1>&2
+		exit 1
+	fi
+	if [ $has_hubport -eq 0 ]; then
+	    has_hubport=1
+	    Ddefines="$Ddefines -Dibis.connect.hub_port=$1"
+	fi
+	if [ $has_enable -eq 0 ]; then
+	    has_enable=1
+	    Ddefines="$Ddefines -Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+	fi
+	;;
+    -hubhost)
+	shift
+	if [ "x$IBIS_HUB" != "x" ]; then
+		echo "You cannot use both -hubhost and the IBIS_HUB environment variable" 1>&2
+		exit 1
+	fi
+	if [ $has_hubhost -eq 0 ]; then
+	    has_hubhost=1
+	    Ddefines="$Ddefines -Dibis.connect.hub_host=$1"
+	fi
+	if [ $has_enable -eq 0 ]; then
+	    has_enable=1
+	    Ddefines="$Ddefines -Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+	fi
+	;;
+    -v)
+	Ddefines="$Ddefines -Dibis.name_server.verbose=true"
+	;;
+    -d)
+	Ddefines="$Ddefines -Dibis.name_server.debug=true"
+	;;
+    *)
+	javaargs="$javaargs $1"
+	;;
+    esac
+    shift
+done
+
+$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH $Ddefines $javaargs ibis.impl.nameServer.tcp.NameServer $args

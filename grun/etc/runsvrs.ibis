@@ -29,7 +29,7 @@ case $name in
 	    ;;
     *)	    opts="$opts -no-poolserver"
     esac
-    $IBIS_ROOT/bin/ibis_nameserver		\
+    $IBIS_ROOT/bin/ibis-nameserver		\
     	 -port "$name"				\
 	$opts					\
     	 -single &
