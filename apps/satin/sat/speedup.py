@@ -1,8 +1,10 @@
 import fcntl
 import FCNTL
+import getopt
 import os
 import popen2
 import select
+import string
 import sys
 import threading
 import time
@@ -10,24 +12,19 @@ import types
 
 ibisdir = "~/ibis"
 
-run_ibis = ibisdir + "/bin/run_ibis"
+run_ibis = os.path.join( ibisdir, "bin", "run_ibis" )
 
 logdir = "logs"
 
 results = {}
 
-runParallel = 0
-
-
 #problem = "examples/qg/qg6-12.cnf.gz"
 problem = "examples/qg/qg3-09.cnf.gz"
 #problem = "examples/ais/ais10.cnf.gz"
 
-solver = "DPLLSolver"
-
 #ProcNos = [ 1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40 ]
-ProcNos = [ 1, 2, 4, 8, 16, 32 ]
-#ProcNos = [ 2, 4, 8 ]
+#ProcNos = [ 1, 2, 4, 8, 16, 32 ]
+ProcNos = [ 2, 4, 8 ]
 #ProcNos = [ 2 ]
 
 nameserverport = 2001
@@ -115,11 +112,11 @@ def getCommandOutput( command ):
     err = child.wait()
     return (err, outdata, errdata)
 
-def build_run_command( pno, solver, problem, port ):
-    return "prun -1 %s %d %d fs0.das2.cs.vu.nl %s %s -satin-closed" % (run_ibis, pno, port, solver, problem )
+def build_run_command( pno, command, port ):
+    return "prun -1 %s %d %d fs0.das2.cs.vu.nl %s -satin-closed" % (run_ibis, pno, port, command)
 
-def runP( P ):
-    cmd = build_run_command( P, solver, problem, nameserverport )
+def runP( P, command ):
+    cmd = build_run_command( P, command, nameserverport )
     print "Starting run for P=%d" % P
     data = getCommandOutput( cmd )
     results[P] = data
@@ -167,22 +164,23 @@ def extractResult( data ):
            return res
     return None
 
-def run( solver, problem ):
-    logfile = logdir + "/" + solver + "-" + get_time_stamp()
+def run( command, logfile, runParallel ):
+    if logfile == None:
+        logfile = os.path.join( logdir, "log-" + get_time_stamp() )
     lf = open( logfile, "w" )
     logstreams = [lf]
     allstreams = [lf,sys.stdout]
-    report( "Solver: " + solver, allstreams )
-    report( "Problem: " + problem, allstreams )
+    report( "Command: " + command, allstreams )
     report( "Logfile: " + logfile, allstreams )
+    report( "Tag: '" + timingTag + "'", allstreams )
 
-    if runParallel:
+    if runParallel != 0:
         mt = MultiThread( runP, ProcNos )
         mt.start()
         mt.join()
     else:
         for P in ProcNos:
-            runP( P )
+            runP( P, command )
     report( " P time", allstreams )
     for P in ProcNos:
         res = extractResult( results[P] )
@@ -191,6 +189,40 @@ def run( solver, problem ):
         reportRun( "P=%d" % P, results[P], logstreams )
     lf.close()
 
-if __name__=="__main__":
-    run( solver, problem )
-#print extractResult( (0,"bla\ndiebla\n" + timingTag + " bla\nZwoing\n","") )
+def usage():
+    print "Construct a table of execution times for different numbers of processors."
+    print "Usage: python speedup.py [options] [program] [parameter...parameter]"
+    print "The following options are supported:"
+    print "--help\t\t\tShow this help text"
+    print "-h\t\t\tShow this help text"
+    print "-P\t\t\tExecute the runs in parallel"
+    print "--logfile [name]\tUse the specified logfile"
+    print "--logdir [name]\tUse the specified log directory"
+
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hP", ["help", "logfile=", "logdir=", "tag="])
+    except getopt.GetoptError:
+        # print help information and exit:
+        usage()
+        sys.exit(2)
+    logfile = None
+    runParallel = 0
+    for o, a in opts:
+        #print "Option [%s][%s]" % (o, a)
+        if o in ("-P", ):
+            runParallel = 1
+        if o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        if o in ("--tag",):
+            timingTag = a
+        if o in ("--logdir",):
+            logdir = a
+        if o in ("--logfile",):
+            logfile = a
+    run( string.join( args, ' ' ), logfile, runParallel )
+
+if __name__ == "__main__":
+    main()
+

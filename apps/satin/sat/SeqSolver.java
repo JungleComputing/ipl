@@ -198,7 +198,7 @@ public final class SeqSolver {
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
-	System.out.println( "Time: " + time );
+	System.out.println( "ExecutionTime: " + time );
         System.out.println( "Decisions: " + s.decisions );
 	if( res == null ){
 	    System.out.println( "There are no solutions" );

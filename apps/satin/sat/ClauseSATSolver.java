@@ -426,7 +426,7 @@ public class ClauseSATSolver {
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
-	System.out.println( "Time: " + time );
+	System.out.println( "ExecutionTime: " + time );
 	if( res.length == 1 ){
 	    System.out.println( "There is 1 solution:" );
 	}
