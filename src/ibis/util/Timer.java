@@ -9,13 +9,13 @@ public class Timer implements java.io.Serializable {
 	 */
 	protected int count;
 
-	private long time = 0;
+	protected long time = 0;
 
-	private long lastTime = 0;
+	protected long lastTime = 0;
 
-	private long t_start = 0;
+	protected long t_start = 0;
 
-	private boolean started = false;
+	protected boolean started = false;
 
 	/**
 	 * Constructs a <code>Timer</code>.
@@ -31,6 +31,11 @@ public class Timer implements java.io.Serializable {
 	public String implementationName() {
 		return "ibis.util.Timer";
 	}
+
+    public synchronized void add(Timer t) {
+	time += t.time;
+	count += t.count;
+    }
 
 	/**
 	 * Returns accuracy of this timer in seconds.

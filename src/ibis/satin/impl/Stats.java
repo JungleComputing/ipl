@@ -173,7 +173,7 @@ public abstract class Stats extends TupleSpace {
 					+ nf.format(totalStats.interClusterBytes) + " bytes");
 		}
 
-		if (GRT_STATS) {
+		if (FAULT_TOLERANCE && GRT_STATS) {
 			out.println("SATIN: GLOBAL_RESULT_TABLE: result updates "
 					+ nf.format(totalStats.tableResultUpdates) + ",lock updates "
 					+ nf.format(totalStats.tableLockUpdates) + ",lookups "
@@ -182,7 +182,7 @@ public abstract class Stats extends TupleSpace {
 					+ nf.format(totalStats.tableRemoteLookups));
 		}
 
-		if (FT_STATS) {
+		if (FAULT_TOLERANCE && FT_STATS) {
 			out.println("SATIN: FAULT_TOLERANCE: killed orphans "
 					+ nf.format(totalStats.killedOrphans));
 			out.println("SATIN: FAULT_TOLERANCE: restarted jobs "
@@ -240,7 +240,7 @@ public abstract class Stats extends TupleSpace {
 					+ Timer.format(totalStats.pollTime / totalStats.pollCount));
 		}
 
-		if (GRT_TIMING) {
+		if (FAULT_TOLERANCE && GRT_TIMING) {
 			out.println("SATIN: GRT_UPDATE_TIME:          total "
 					+ Timer.format(totalStats.tableUpdateTime)
 					+ " time/update "
@@ -274,12 +274,12 @@ public abstract class Stats extends TupleSpace {
 		
 		}
 
-		if (CRASH_TIMING) {
+		if (FAULT_TOLERANCE && CRASH_TIMING) {
 			out.println("SATIN: CRASH_HANDLING_TIME:      total "
 					+ Timer.format(totalStats.crashHandlingTime));
 		}
 
-		if (ADD_REPLICA_TIMING) {
+		if (FAULT_TOLERANCE && ADD_REPLICA_TIMING) {
 			out.println("SATIN: ADD_REPLICA_TIME:         total "
 					+ Timer.format(totalStats.addReplicaTime));
 		}
@@ -375,7 +375,7 @@ public abstract class Stats extends TupleSpace {
 					+ (pollPerc < 10 ? " " : "") + pf.format(pollPerc) + " %)");
 		}
 
-		if (GRT_TIMING) {
+		if (FAULT_TOLERANCE && GRT_TIMING) {
 			out
 			                .println("SATIN: GRT_UPDATE_TIME:          avg. per machine "
 							+ Timer.format(tableUpdateTime)
@@ -408,13 +408,13 @@ public abstract class Stats extends TupleSpace {
 
 		}
 
-		if (CRASH_TIMING) {
+		if (FAULT_TOLERANCE && CRASH_TIMING) {
 			out.println("SATIN: CRASH_HANDLING_TIME:      avg. per machine "
 					+ Timer.format(crashHandlingTime) + " ("
 					+ pf.format(crashHandlingPerc) + " %)");
 		}
 
-		if (ADD_REPLICA_TIMING) {
+		if (FAULT_TOLERANCE && ADD_REPLICA_TIMING) {
 			out.println("SATIN: ADD_REPLICA_TIME:         avg. per machine "
 					+ Timer.format(addReplicaTime) + " ("
 					+ pf.format(addReplicaPerc) + " %)");

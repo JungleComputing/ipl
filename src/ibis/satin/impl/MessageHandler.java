@@ -7,6 +7,7 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 import ibis.satin.ActiveTuple;
+import ibis.util.Timer;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -120,30 +121,43 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		SendPort s = null;
 		Map table = null;
 		Map tupleSpace = null;
+		Timer handleStealTimer = null;
+		Timer invocationRecordWriteTimer = null;
+		
+		// This upcall may run in parallel with other upcalls.
+		// Therefore, we cannot directly use the handleSteal timer in Satin.
+		// Use our own local timer, and add the result to the global timer later.
 
 		if (STEAL_TIMING) {
-			satin.handleStealTimer.start();
+		     handleStealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		     invocationRecordWriteTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		     if(handleStealTimer == null) {
+			 handleStealTimer = new Timer();
+			 invocationRecordWriteTimer = new Timer();
+		     }
+
+		     handleStealTimer.start();
 		}
 
 		if (STEAL_STATS) {
 			satin.stealRequests++;
 		}
-		if (STEAL_DEBUG && opcode == STEAL_REQUEST) {
+
+		if(STEAL_DEBUG) {
+		    if (opcode == STEAL_REQUEST) {
 			satin.out.println("SATIN '" + satin.ident.name()
-					+ "': got steal request from " + ident.ibis().name());
-		}
-		if (STEAL_DEBUG && opcode == ASYNC_STEAL_REQUEST) {
+					  + "': got steal request from " + ident.ibis().name());
+		    } else if (opcode == ASYNC_STEAL_REQUEST) {
 			satin.out.println("SATIN '" + satin.ident.name()
-					+ "': got ASYNC steal request from " + ident.ibis().name());
-		}
-		if (STEAL_DEBUG && opcode == STEAL_AND_TABLE_REQUEST) {
+					  + "': got ASYNC steal request from " + ident.ibis().name());
+		    } else if (opcode == STEAL_AND_TABLE_REQUEST) {
 			satin.out.println("SATIN '" + satin.ident.name()
-					+ "': got steal and table request from "
-					+ ident.ibis().name());
-		}
-		if (STEAL_DEBUG && opcode == ASYNC_STEAL_AND_TABLE_REQUEST) {
+					  + "': got steal and table request from "
+					  + ident.ibis().name());
+		    } else if (opcode == ASYNC_STEAL_AND_TABLE_REQUEST) {
 			satin.out.println("SATIN '" + satin.ident.name()
-					+ "': got ASYNC steal and table request from " + ident.ibis().name());
+					  + "': got ASYNC steal and table request from " + ident.ibis().name());
+		    }
 		}
 
 		InvocationRecord result = null;
@@ -156,6 +170,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				//is it anyhow possible?
 				satin.out.println("SATIN '" + satin.ident.name() 
 						+ "': EEK!! got steal request from a dead ibis: " + ident.ibis().name());
+				if (STEAL_TIMING) {
+				    handleStealTimer.stop();
+				    satin.handleStealTimer.add(handleStealTimer);
+				}
 				return;
 			}
 
@@ -190,10 +208,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					//temporary
 //					tupleSpace = satin.getContents();
 				}
-				
-				
 			}
-
 		}
 
 		if (result == null) {
@@ -246,6 +261,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 							.println("UNHANDLED opcode in handleStealRequest");
 					System.exit(1);
 				}
+
 				long cnt = m.finish();
 				if (STEAL_STATS) {
 					if (satin.inDifferentCluster(ident.ibis())) {
@@ -255,10 +271,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 						satin.intraClusterMessages++;
 						satin.intraClusterBytes += cnt;
 					}
-				}
-
-				if (STEAL_TIMING) {
-					satin.handleStealTimer.stop();
 				}
 
 				if (STEAL_DEBUG) {
@@ -272,6 +284,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 						+ "': trying to send FAILURE back, but got exception: "
 						+ e);
 			}
+
+			if (STEAL_TIMING) {
+			    handleStealTimer.stop();
+			    satin.handleStealTimer.add(handleStealTimer);
+			}
+
 			return;
 		}
 
@@ -302,12 +320,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			satin.out.println("SATIN '" + satin.ident.name()
 					+ "': sending SUCCESS_TABLE back to " + ident.ibis().name());
 		}
-		
-		
 
 		try {
 			if (STEAL_TIMING) {
-				satin.invocationRecordWriteTimer.start();
+				invocationRecordWriteTimer.start();
 			}
 			WriteMessage m = s.newMessage();
 			if (opcode == STEAL_REQUEST || opcode == BLOCKING_STEAL_REQUEST) {
@@ -354,9 +370,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 
 			m.writeObject(result);
+
 			long cnt = m.finish();
 			if (STEAL_TIMING) {
-				satin.invocationRecordWriteTimer.stop();
+				invocationRecordWriteTimer.stop();
+				satin.invocationRecordWriteTimer.add(invocationRecordWriteTimer);
 			}
 			if (STEAL_STATS) {
 				if (satin.inDifferentCluster(ident.ibis())) {
@@ -367,17 +385,18 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					satin.intraClusterBytes += cnt;
 				}
 			}
-
-			if (STEAL_TIMING) {
-				satin.handleStealTimer.stop();
-			}
-			return;
 		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': trying to send a job back, but got exception: " + e);
 		}
+
+		if (STEAL_TIMING) {
+		    handleStealTimer.stop();
+		    satin.handleStealTimer.add(handleStealTimer);
+		}
 	}
 
+        // Here, the timing code is OK, the upcall cannot run in paralllel (readmessage is not finished).
 	void handleReply(ReadMessage m, int opcode) {
 		SendPortIdentifier ident;
 		InvocationRecord tmp = null;
@@ -731,8 +750,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			
 			int stamp = m.readInt();
 			
-			
-			
 			//leave it out if you make globally unique stamps
 			IbisIdentifier owner = (IbisIdentifier) m.readObject(); 
 			
@@ -774,6 +791,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				if (COMM_DEBUG) {
 					System.err.println("SATIN '" + satin.ident.name()
 							+ "': the node requesting a result died");
+				}
+				if (GRT_TIMING) {
+				    satin.handleLookupTimer.stop();
 				}
 				return;
 			}

@@ -1,21 +1,18 @@
 package ibis.util.nativeCode;
 
 public final class Rdtsc extends ibis.util.Timer {
-	private long time;
 	// We often seem to meet overflow problems.
 	// For that, we don't just do time -= rdtsc() at start and
 	// time += rdtsc() at finish, but time += rdtsc() - t_start
 	// at finish.
-	private long t_start;
-	private long lastTime;
+
+        private static boolean loaded = false;
+
 	private static final float MHz;
 	private static final float GHz;
 
-	private boolean started;
-
 	public static native long rdtsc();
 	private static native float getMHz();
-        private static boolean loaded = false;
 
 	static {
 		try {
