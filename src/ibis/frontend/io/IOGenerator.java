@@ -102,7 +102,7 @@ public class IOGenerator {
 	    }
 
 	    try {
-		Class	cl = Class.forName(classname);
+		Class	cl = Class.forName(classname, false, null);
 		java.io.ObjectStreamClass ocl = java.io.ObjectStreamClass.lookup(cl);
 		if (ocl == null) {
 		    System.err.println("IOGenerator attempts to rewrite non-Serializable class " + classname + " -- ignore");
