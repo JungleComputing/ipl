@@ -1,6 +1,5 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 
@@ -124,7 +123,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 
                 public void report() {
                         if (on) {
-System.err.println(this + ".poll: Success " + pollSuccess + " Fail " + pollFail);
+// System.err.println(this + ".poll: Success " + pollSuccess + " Fail " + pollFail);
                                 System.err.println();
                                 System.err.println("Upcall thread allocation stats for module "+moduleName + " " + NetInput.this);
                                 System.err.println("------------------------------------");
@@ -170,8 +169,8 @@ sleeps++;
 // if (livingUpcallThreads - waitingUpcallThreads > 0)
 // System.err.println(Thread.currentThread() + ": UpcallThreads waiting " + waitingUpcallThreads + " living " + livingUpcallThreads);
 waitingUpcallThreads--;
-if (activeThread != null && activeThread != this)
-System.err.println(this + ": want to become activeThread; but activeThread is " + activeThread);
+// if (activeThread != null && activeThread != this)
+// System.err.println(this + ": want to become activeThread; but activeThread is " + activeThread);
                                         activeThread = this;
 
                                         if (activeNum != null) {
@@ -199,8 +198,8 @@ if (finishedUpcallThreads > 1) {
                                 log.disp("just woke up, polling...");
                                 while (!end) {
 pollingThreads++;
-if (pollingThreads > 1)
-System.err.println("pollingThreads " + pollingThreads);
+// if (pollingThreads > 1)
+// System.err.println("pollingThreads " + pollingThreads);
                                         try {
 polls++;
                                                 Integer num = doPoll(true);
@@ -295,8 +294,8 @@ finishedUpcallThreads--;
                                         }
                                 }
                         }
-livingUpcallThreads--;
-System.err.println(Thread.currentThread() + ": call it quits");
+// livingUpcallThreads--;
+// System.err.println(Thread.currentThread() + ": call it quits");
                         log.out();
                 }
 
@@ -309,7 +308,7 @@ System.err.println(Thread.currentThread() + ": call it quits");
                 public void end() {
                         log.in();
                         end = true;
-System.err.println(this + ": polls " + pollSuccess  + " (of " + polls + ") sleeps " + sleeps);
+// System.err.println(this + ": polls " + pollSuccess  + " (of " + polls + ") sleeps " + sleeps);
                         this.interrupt();
                         log.out();
                 }
@@ -471,8 +470,8 @@ pollFail++;
 
         protected final void startUpcallThread() throws NetIbisException {
                 log.in();
-System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
-Thread.dumpStack();
+// System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
+// Thread.dumpStack();
                 threadStackLock.lock();
                 if (upcallFunc != null && upcallThreadNotStarted) {
                         upcallThreadNotStarted = false;
@@ -525,7 +524,7 @@ Thread.dumpStack();
 	}
 
         public final  void close(Integer num) throws NetIbisException {
-System.err.println("********************** NetInput.close");
+// System.err.println("********************** NetInput.close");
                 log.in();
                 synchronized(this) {
                         doClose(num);
@@ -688,8 +687,8 @@ pollingThreads--;
                                 utStat.addReuse();
                         } else {
                                 ut = new PooledUpcallThread("no "+upcallThreadNum++);
-System.err.println(this + ": msg.finish creates another PooledUpcallThread[" + livingUpcallThreads + "] " + threadStackPtr + "; sleepingThreads " + waitingUpcallThreads + " finishedUpcallThreads " + finishedUpcallThreads);
-Thread.dumpStack();
+// System.err.println(this + ": msg.finish creates another PooledUpcallThread[" + livingUpcallThreads + "] " + threadStackPtr + "; sleepingThreads " + waitingUpcallThreads + " finishedUpcallThreads " + finishedUpcallThreads);
+// Thread.dumpStack();
                                 ut.start();
                                 utStat.addAllocation();
                         }

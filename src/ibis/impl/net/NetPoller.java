@@ -120,7 +120,7 @@ public class NetPoller extends NetInput {
                         if (q == null) {
                                 q = new ReceiveQueue(ni);
                                 inputMap.put(key, q);
-System.err.println(this + ": add subInput " + ni + "; key " + key + "; upcallFunc " + upcallFunc);
+// System.err.println(this + ": add subInput " + ni + "; key " + key + "; upcallFunc " + upcallFunc);
 				setSingleton();
                         }
 
@@ -549,8 +549,8 @@ nCurrent++;
 	public void doFree() throws NetIbisException {
                 log.in();trace.in();
                 trace.disp("0, ", this);
-// if (singleton != null)
-System.err.println(this + ": singleton = " + singleton + " nCurrent " + nCurrent);
+// // if (singleton != null)
+// System.err.println(this + ": singleton = " + singleton + " nCurrent " + nCurrent);
 		if (inputMap != null) {
 			Iterator i = inputMap.values().iterator();
 

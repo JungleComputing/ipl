@@ -1,7 +1,6 @@
 package ibis.ipl.impl.net;
 
 import ibis.ipl.DynamicProperties;
-import ibis.ipl.IbisException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;

@@ -1,6 +1,5 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.PortType;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.SendPort;
