@@ -36,8 +36,9 @@ final class Problem implements OpenConfig {
 
     public Problem( int boardsize, int firstCol, int firstNoCol )
     {
-        // We allocate one column extra to allow a more efficient computational
-        // loop. The last element will always be null, though.
+        // We use a null column as guard element for the righthand border
+        // of the columns of each processor. To provide room for this guard
+        // column for the last processor, we allocate one extra column.
         board = new byte[boardsize+1][];
         updatecol = new byte[boardsize+2];
         nextupdatecol = new byte[boardsize+2];
