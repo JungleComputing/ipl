@@ -348,6 +348,27 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
         return pos.length+neg.length;
     }
 
+    /** Returns the total number of unassigned terms in the specified list. */
+    private static int unassignedCount( int l[], int assignment[] )
+    {
+        int res = 0;
+
+        for( int i=0; i<l.length; i++ ){
+            int v = l[i];
+
+            if( assignment[v] == -1 ){
+                res++;
+            }
+        }
+        return res;
+    }
+
+    /** Returns the total number of unassigned terms in this clause. */
+    public int getTermCount( int assignment[] )
+    {
+        return unassignedCount( pos, assignment )+unassignedCount( neg, assignment );
+    }
+
     /**
      * If this clause is not a positive unit clause, return -1,
      * else return the variable that constitutes this clause.
@@ -397,7 +418,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
         ){
         }
         else {
-            System.err.println( "Cannot resolve " + c1 + " and " + c2 + " + on v" + var );
+            System.err.println( "Cannot resolve " + c1 + " and " + c2 + " on v" + var );
         }
         int pos[] = new int[c1.pos.length+c2.pos.length];
         int neg[] = new int[c1.neg.length+c2.neg.length];
@@ -466,19 +487,6 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	return true;
     }
 
-    private static int countUnset( int l[], int assignment[] )
-    {
-        int res = 0;
-        for( int ix=0; ix<l.length; ix++ ){
-            int v = l[ix];
-
-            if( assignment[v] != -1 ){
-                res++;
-            }
-        }
-        return res;
-    }
-
     private static void registerInfo( int l[], float info[], float val )
     {
         for( int ix=0; ix<l.length; ix++ ){
@@ -491,12 +499,12 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     /**
      * Given positive and negative info, updates the
      * counts with the info of this clause.
-     * @param posclauses The positive clause count.
-     * @param negclauses The negative clause count.
+     * @param assignment The assignment of each variable.
+     * @param posinfo The information of a positive assignment of each variable.
+     * @param neginfo The information of a negative assignment of each variable.
      */
-    public void registerInfo( int assignment[], float posinfo[], float neginfo[] )
+    public void registerInfo( int assignment[], float posinfo[], float neginfo[], int n )
     {
-        int n = countUnset( pos, assignment ) + countUnset( neg, assignment );
         float info = Helpers.information( n );
         registerInfo( pos, posinfo, info );
         registerInfo( neg, neginfo, info );

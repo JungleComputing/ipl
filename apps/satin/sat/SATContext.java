@@ -285,7 +285,7 @@ public class SATContext implements java.io.Serializable {
     private Clause buildConflictClause( SATProblem p, int cno, int level )
     {
         Clause c = p.clauses[cno];
-        Clause res = (Clause) c.clone();
+        Clause res = c;
 
 	int arr[] = c.pos;
         for( int i=0; i<arr.length; i++ ){
@@ -445,13 +445,17 @@ public class SATContext implements java.io.Serializable {
             for( int i=oldCount; i<newCount; i++ ){
                 Clause cl = p.clauses[i];
 
-                terms[i] = cl.getTermCount();
+                int nterm = cl.getTermCount( assignment );
+                terms[i] = nterm;
                 boolean issat = cl.isSatisfied( assignment );
                 if( !issat ){
                     unsatisfied++;
-                    cl.registerInfo( assignment, posinfo, neginfo );
+                    cl.registerInfo( assignment, posinfo, neginfo, nterm );
                 }
                 cl.registerVariableCounts( posclauses, negclauses );
+                if( doVerification ){
+                    verifyTermCount( p, i );
+                }
             }
         }
     }
@@ -751,7 +755,7 @@ public class SATContext implements java.io.Serializable {
                     continue;
                 }
                 if( doVerification ){
-                    if( posinfo[i]<0.01 || neginfo[i]<0.01 ){
+                    if( posinfo[i]<-0.01 || neginfo[i]<-0.01 ){
                         System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
                     }
                 }
