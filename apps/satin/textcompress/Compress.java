@@ -398,8 +398,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
     static void usage()
     {
-        System.err.println( "Usage: [-quiet] [-verify] [-short <n>] [-depth <n>] <text> <compressedtext>" );
-        System.err.println( "   or: [-quiet] [-verify] [-short <n>] [-depth <n>] -string <str> <compressedtext>" );
+        System.err.println( "Usage: [-quiet] [-verify] [-short <n>] [-depth <n>] <text-file> <compressed-file>" );
+        System.err.println( "   or: [-quiet] [-verify] [-short <n>] [-depth <n>] -string <text-string> <compressed-file>" );
     }
 
     /**
