@@ -10,7 +10,6 @@ final public class SerializeSendPort extends SendPort {
 
     ibis.io.SunSerializationOutputStream obj_out;
 
-
     SerializeSendPort() {
     }
 
@@ -28,21 +27,21 @@ final public class SerializeSendPort extends SendPort {
 			int timeout)
 	    throws IbisIOException {
 
+	// Reset all our previous connections so the
+	// ObjectStream(BufferedStream()) may go through a stop/restart.
+	if (obj_out != null) {
+	    try {
+		obj_out.reset();
+	    } catch (java.io.IOException e) {
+		throw new IbisIOException(e);
+	    }
+	}
+
 	Ibis.myIbis.lock();
 	try {
 
 	    // Add the new receiver to our tables.
 	    int my_split = addConnection((ReceivePortIdentifier)receiver);
-
-	    // Reset all our previous connections so the
-	    // ObjectStream(BufferedStream()) may go through a stop/restart.
-	    if (obj_out != null) {
-		try {
-		    obj_out.close();
-		} catch (java.io.IOException e) {
-		    throw new IbisIOException(e);
-		}
-	    }
 
 	    byte[] sf = ident.getSerialForm();
 	    for (int i = 0; i < my_split; i++) {

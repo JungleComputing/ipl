@@ -662,6 +662,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	}
 	try {
 	    while (connections.size() > 0) {
+// System.out.println(connectionToString());
 		Ibis.myIbis.waitPolling(shutdown, 0, Poll.NON_PREEMPTIVE);
 	    }
 	} catch (IbisIOException e) {

@@ -120,6 +120,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	Ibis.myIbis.lock();
 	try {
 	    ReceivePortIdentifier rid = (ReceivePortIdentifier)receiver;
+// System.out.println("Connecting to " + rid);
 
 	    // Add the new receiver to our tables.
 	    int my_split = addConnection(rid);

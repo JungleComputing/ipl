@@ -468,6 +468,8 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     pan_time_get(&st.t);
 #endif
 
+    IBP_VPRINTF(100, env, ("msg_send: %d port %d seqno %d, lastSplitter %s\n", cpu, port, msgSeqno, lastSplitter ? "yes" : "no"));
+
     if (! ibmp_byte_output_stream_alive) {
 	(*env)->ThrowNew(env, cls_IbisIOException, "Ibis MessagePassing ByteOutputStream closed");
 	return JNI_FALSE;
@@ -588,8 +590,10 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
      * so let's check */
     if (msg->outstanding_send == 0) {
 	(*env)->DeleteGlobalRef(env, msg->byte_output_stream);
-	ibmp_msg_release_iov(env, msg);
 	ibmp_msg_deq(msg);
+	if (lastSplitter) {
+	    ibmp_msg_release_iov(env, msg);
+	}
 	return JNI_FALSE;
     }
 
