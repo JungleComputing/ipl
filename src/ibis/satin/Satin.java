@@ -1731,6 +1731,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
         /* ------------------- tuple space stuff ---------------------- */
 
 	protected synchronized void broadcastTuple(String key, Serializable data) {
+		long count = 0;
 
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + ident.name() + 
@@ -1754,7 +1755,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 				if(TUPLE_STATS) {
 					tupleMsgs++;
-					tupleBytes += writeMessage.getCount();
+					count += writeMessage.getCount();
 				}
 
 			} catch (IOException e) {
@@ -1775,7 +1776,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 					if(TUPLE_STATS && i == 0) {
 						tupleMsgs++;
-						tupleBytes += writeMessage.getCount();
+						count += writeMessage.getCount();
 					}
 
 				} catch (IOException e) {
@@ -1786,14 +1787,17 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 		}
 
+		tupleBytes += count;
+
 		if(TUPLE_TIMING) {
 			tupleTimer.stop();
-			System.err.println("bcast took: " + tupleTimer.lastTime());
+			System.err.println("SATIN '" + ident.name() + ": bcast of " + count + " bytes took: " + tupleTimer.lastTime());
 		}
 	}
 
 	protected synchronized void broadcastRemoveTuple(String key) {
-
+		long count = 0;
+		
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + ident.name() + 
 					   "': bcasting remove tuple" + key);
@@ -1815,7 +1819,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 				if(TUPLE_STATS) {
 					tupleMsgs++;
-					tupleBytes += writeMessage.getCount();
+					count += writeMessage.getCount();
 				}
 
 			} catch (IOException e) {
@@ -1835,7 +1839,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 					if(TUPLE_STATS && i == 0) {
 						tupleMsgs++;
-						tupleBytes += writeMessage.getCount();
+						count += writeMessage.getCount();
 					}
 
 				} catch (IOException e) {
@@ -1846,9 +1850,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 		}
 
+		tupleBytes += count;
+
 		if(TUPLE_TIMING) {
 			tupleTimer.stop();
-			System.err.println("bcast took: " + tupleTimer.lastTime());
+			System.err.println("SATIN '" + ident.name() + ": bcast of " + count + " bytes took: " + tupleTimer.lastTime());
 		}
 	}
 }
