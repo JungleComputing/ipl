@@ -203,6 +203,14 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
+     * Debugging print.
+     * @param s	the string to be printed.
+     */
+    private void dbPrint(String s) {
+	IbisSerializationInputStream.debuggerPrint(this + ": " + s);
+    }
+
+    /**
      * Initializes the type hash by adding arrays of primitive types.
      */
     private void types_clear() {
@@ -231,19 +239,20 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     public void reset() throws IOException {
 	if (next_handle > CONTROL_HANDLES) {
 	    if(DEBUG) {
-		System.err.println("OUT(" + this + ") reset: next handle = " + next_handle + ".");
+		dbPrint("reset: next handle = " + next_handle + ".");
 	    }
 	    references.clear();
-	    // writeInt(RESET_HANDLE);
-	    // write out the reset handle immediately, so that the input side can cleanup.
-	    // This is important, because otherwise stubs will be kept alive for too long,
-	    // and thus, connections will be kept for too long.
-	    // No, the other side is not expecting this! This must be solved in another way.
-	    resetPending = true; /* remember we need to send out a reset */
+	    /* We cannot send out the reset immediately, because the
+	     * reader side only accepts a reset when it is expecting a
+	     * handle. So, instead, we remember that we need to send
+	     * out a reset, and send before sending the next handle.
+	     */
+	    resetPending = true;
 	    next_handle = CONTROL_HANDLES;
 	}
 	// types_clear();
-	// There is no need to clear the type table. It can be reused after a reset.
+	// There is no need to clear the type table.
+	// It can be reused after a reset.
     }
 
     /**
@@ -281,14 +290,14 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @inheritDoc
      */
     public void writeUTF(String str) throws IOException {
-	// System.out.println("WriteUTF: " + str);
+	// dbPrint("writeUTF: " + str);
 	if(str == null) {
 	    writeInt(-1);
 	    return;
 	}
 
 	if(DEBUG) {
-	    System.err.println("write string " + str);
+	    dbPrint("write UTF " + str);
 	}
 	int len = str.length();
 
@@ -310,15 +319,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		b[bn++] = (byte)(0x80 | (0x3f & (c >>  6)));
 		b[bn++] = (byte)(0x80 | (0x3f & c));
 	    }
-	}
-
-	if(DEBUG) {
-	    System.err.print("Write UTF[" + bn + "] \"");
-	    for (int i = 0; i < bn; i++) {
-		System.err.print((char)b[i]);
-	    }
-	    System.err.println("\"");
-	    System.err.flush();
 	}
 
 	writeInt(bn);
@@ -376,8 +376,8 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing array " + ref + " offset: " 
-		    + offset + " len: " + len + " type " + type );
+	    dbPrint("writeArray: " + ref + " offset: " 
+		    + offset + " len: " + len + " type: " + type);
 	}
 	array[array_index].type   = type;
 	array[array_index].offset = offset;
@@ -391,20 +391,10 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @exception IOException on an IO error.
      */
     public void flush() throws IOException {
-/*
-	if (array_index == 0 &&
-	    byte_index == 0 &&
-	    char_index == 0 &&
-	    short_index == 0 &&
-	    int_index == 0 &&
-	    long_index == 0 &&
-	    float_index == 0 &&
-	    double_index == 0) {
 
-	    return;
+	if (DEBUG) {
+	    dbPrint("doing a flush()");
 	}
-*/
-
 	flushBuffers();
 
 	/* Retain the order in which the arrays were pushed. This 
@@ -495,13 +485,13 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	indices_short[TYPE_DOUBLE]  = (short) double_index;
 
 	if (DEBUG) {
-	    System.out.println("writing bytes " + byte_index);
-	    System.out.println("writing chars " + char_index);
-	    System.out.println("writing shorts " + short_index);
-	    System.out.println("writing ints " + int_index);
-	    System.out.println("writing longs " + long_index);
-	    System.out.println("writing floats " + float_index);
-	    System.out.println("writing doubles " + double_index);
+	    dbPrint("writing bytes " + byte_index);
+	    dbPrint("writing chars " + char_index);
+	    dbPrint("writing shorts " + short_index);
+	    dbPrint("writing ints " + int_index);
+	    dbPrint("writing longs " + long_index);
+	    dbPrint("writing floats " + float_index);
+	    dbPrint("writing doubles " + double_index);
 	}
 
 	out.writeArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
@@ -548,7 +538,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing boolean " + value);
+	    dbPrint("wrote boolean " + value);
 	}
 	byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
     }
@@ -564,7 +554,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing byte " + value);
+	    dbPrint("wrote byte " + value);
 	}
 	byte_buffer[byte_index++] = (byte) value;
     }
@@ -579,7 +569,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing char " + value);
+	    dbPrint("wrote char " + value);
 	}
 	char_buffer[char_index++] = value;
     }
@@ -594,7 +584,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing short " + value);
+	    dbPrint("wrote short " + value);
 	}
 	short_buffer[short_index++] = (short) value;
     }
@@ -609,7 +599,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing int[HEX] " + value + "[" +
+	    dbPrint("wrote int[HEX] " + value + "[0x" +
 		    Integer.toHexString(value) + "]");
 	}
 	int_buffer[int_index++] = value;
@@ -625,7 +615,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing long " + value);
+	    dbPrint("wrote long " + value);
 	}
 	long_buffer[long_index++] = value;
     }
@@ -640,7 +630,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing float " + value);
+	    dbPrint("wrote float " + value);
 	}
 	float_buffer[float_index++] = value;
     }
@@ -655,7 +645,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    flush();
 	}
 	if (DEBUG) {
-	    System.out.println(" Writing double " + value);
+	    dbPrint("wrote double " + value);
 	}
 	double_buffer[double_index++] = value;
     }
@@ -669,11 +659,17 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     private void writeHandle(int v) throws IOException {
         if (resetPending) {
                 writeInt(RESET_HANDLE);
+		if (DEBUG) {
+		    dbPrint("wrote a RESET");
+		}
                 resetPending = false;
         }
 
         // treating handles as normal int's --N
         writeInt(v);
+	if (DEBUG) {
+	    dbPrint("wrote handle " + v);
+	}
     }
 
     /**
@@ -796,10 +792,10 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * associated with it, and <code>false</code> is returned.
      *
      * @param ref		the object that is going to be put on the stream
-     * @param type		the <code>Class</code> representing the type of <code>ref</code>
+     * @param clazz		the <code>Class</code> representing the type of <code>ref</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    private boolean writeTypeHandle(Object ref, Class type) throws IOException {
+    private boolean writeTypeHandle(Object ref, Class clazz) throws IOException {
 	int handle = references.find(ref);
 
 	if (handle != 0) {
@@ -807,12 +803,12 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    return true;
 	}
 
-	writeType(type);
+	writeType(clazz);
 
 	handle = next_handle++;
 	references.put(ref, handle);
 	if (DEBUG) {
-	    System.out.println("writeTypeHandle: references[" + handle + "] = " + (ref == null ? "null" : ref));
+	    dbPrint("writeTypeHandle: references[" + handle + "] = " + (ref == null ? "null" : ref));
 	}
 
 	return false;
@@ -848,6 +844,10 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 
 	writeInt(len);
+
+	if (DEBUG) {
+	    dbPrint("writeArrayHeader " + clazz.getName() + " length = " + len);
+	}
 	return true;
     }
 
@@ -909,14 +909,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		writeArray(a, 0, len, TYPE_FLOAT);
 	    }
 	} else {
-	    if(ASSERTS) {
-		if (! (ref instanceof Object[])) {
-		    System.err.println("What's up NOW!");
-		}
-	    }
-	    if(DEBUG) {
-		System.err.println("Writing array " + ref.getClass().getName());
-	    }
 	    Object[] a = (Object[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
@@ -928,45 +920,44 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * Adds the type represented by <code>type</code> to the type
+     * Adds the type represented by <code>clazz</code> to the type
      * table and returns its number.
-     * @param type	represents the type to be added
+     * @param clazz	represents the type to be added
      * @return		the type number.
      */
-    private int newType(Class type) {
+    private int newType(Class clazz) {
 	int type_number = next_type++;
 
 	type_number = (type_number | TYPE_BIT);
-	types.put(type, type_number);
+	types.put(clazz, type_number);
 
 	return type_number;
     }
 
     /**
      * Writes a type number, and, when new, a type name to the output stream.
-     * @param type		the type to be written.
+     * @param clazz		the clazz to be written.
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    private void writeType(Class type) throws IOException {
-	int type_number = types.find(type);
+    private void writeType(Class clazz) throws IOException {
+	int type_number = types.find(clazz);
 
 	if (type_number != 0) {
 	    writeHandle(type_number);	// TYPE_BIT is set, receiver sees it
 
 	    if(DEBUG) {
-		System.err.println("Write type number " +
-					Integer.toHexString(type_number));
+		dbPrint("wrote type number 0x" + Integer.toHexString(type_number));
 	    }
 	    return;
 	}
 
-	type_number = newType(type);
+	type_number = newType(clazz);
 	writeHandle(type_number);	// TYPE_BIT is set, receiver sees it
 	if(DEBUG) {
-	    System.err.println("Write NEW type " + type.getName()
-			+ " number " + Integer.toHexString(type_number));
+	    dbPrint("wrote NEW type number 0x"
+		    + Integer.toHexString(type_number) + " type " + clazz.getName());
 	}
-	writeUTF(type.getName());
+	writeUTF(clazz.getName());
     }
 
     /**
@@ -986,17 +977,18 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	int handle = references.find(ref);
 
 	if (handle == 0) {
+	    Class clazz = ref.getClass();
 	    handle = next_handle++;
-	    references.put(ref, handle);
 	    if(DEBUG) {
-		System.err.println("writeKnownObjectHeader -> references[" + handle + "] = " + (ref == null ? "null" : ref));
+		dbPrint("writeKnownObjectHeader -> writing NEW object, class = " + clazz.getName());
 	    }
-	    writeHandle(handle | TYPE_BIT);
+	    references.put(ref, handle);
+	    writeType(clazz);
 	    return 1;
 	}
 
 	if(DEBUG) {
-	    System.err.println("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+	    dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
 	}
 	writeHandle(handle);
 	return -1;
@@ -1016,6 +1008,9 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	int temp = 0;
 	int i;
 
+	if (DEBUG) {
+	    dbPrint("alternativeDefaultWriteObject, class = " + t.clazz.getName());
+	}
 	for (i=0;i<t.double_count;i++)    writeDouble(t.serializable_fields[temp++].getDouble(ref));
 	for (i=0;i<t.long_count;i++)      writeLong(t.serializable_fields[temp++].getLong(ref));
 	for (i=0;i<t.float_count;i++)     writeFloat(t.serializable_fields[temp++].getFloat(ref));
@@ -1046,15 +1041,22 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	if (t.hasWriteObject) {
 	    current_level = t.level;
 	    try {
+		if (DEBUG) {
+		    dbPrint("invoking writeObject() of class " + t.clazz.getName());
+		}
 		t.invokeWriteObject(ref, this);
+		if (DEBUG) {
+		    dbPrint("done with writeObject() of class " + t.clazz.getName());
+		}
 	    } catch (java.lang.reflect.InvocationTargetException e) {
+		if (DEBUG) {
+		    dbPrint("Caught exception: " + e);
+		    e.printStackTrace();
+		    dbPrint("now rethrow as IllegalAccessException ...");
+		}
 		throw new IllegalAccessException("writeObject method: " + e);
 	    }
 	    return;
-	}
-
-	if(DEBUG) {
-	    System.err.println("Using alternative writeObject for " + ref.getClass().getName());
 	}
 
 	alternativeDefaultWriteObject(t, ref);
@@ -1112,12 +1114,22 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @exception IOException	gets thrown on IO error
      */
     public void writeSerializableObject(Object ref, String classname) throws IOException {
-	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+	AlternativeTypeInfo t;
+	try {
+	    t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+	} catch(ClassNotFoundException e) {
+	    throw new SerializationError("Internal error", e);
+	}
 	try {
 	    push_current_object(ref, 0);
 	    alternativeWriteObject(t, ref);
 	    pop_current_object();
 	} catch (IllegalAccessException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as java.io.NotSerializableException ...");
+	    }
 	    throw new java.io.NotSerializableException("Serializable failed for : " + classname);
 	}
     }
@@ -1137,6 +1149,11 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    alternativeWriteObject(t, ref);
 	    pop_current_object();
 	} catch (IllegalAccessException e) {
+		if (DEBUG) {
+		    dbPrint("Caught exception: " + e);
+		    e.printStackTrace();
+		    dbPrint("now rethrow as java.io.NotSerializableException ...");
+		}
 	    throw new java.io.NotSerializableException("Serializable failed for : " + clazz.getName());
 	}
     }
@@ -1151,7 +1168,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     public void writeString(String ref) throws IOException {
 	if (ref == null) {
 	    if (DEBUG) {
-		System.out.println("writeString: --> null");
+		dbPrint("writeString: --> null");
 	    }
 	    writeHandle(NUL_HANDLE);
 	    return;
@@ -1163,12 +1180,12 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    references.put(ref, handle);
 	    writeType(java.lang.String.class);
 	    if (DEBUG) {
-		System.out.println("writeString: " + ref);
+		dbPrint("writeString: " + ref);
 	    }
 	    writeUTF(ref);
 	} else {
 	    if (DEBUG) {
-		System.out.println("writeString: found handle " + handle);
+		dbPrint("writeString: duplicate handle " + handle + " string = " + ref);
 	    }
 	    writeHandle(handle);
 	}
@@ -1212,41 +1229,41 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	int handle = references.find(ref);
 
 	if (handle == 0) {
-	    Class type = ref.getClass();
+	    Class clazz = ref.getClass();
 	    if(DEBUG) {
-		System.err.println("Write object " + ref + " of class " + type + " handle = " + next_handle);
+		dbPrint("start writeObject of class " + clazz.getName() + " handle = " + next_handle);
 	    }
 
-	    if (type.isArray()) {
-		writeArray(ref, type, false);
+	    if (clazz.isArray()) {
+		writeArray(ref, clazz, false);
 	    } else {
 		handle = next_handle++;
 		references.put(ref, handle);
-		if (DEBUG) {
-		    System.out.println("writeObjectOverride: references[" + handle + "] = " + (ref == null ? "null" : ref));
-		}
-		writeType(type);
-		if (type == java.lang.String.class) {
+		writeType(clazz);
+		if (clazz == java.lang.String.class) {
 		    /* EEK this is not nice !! */
 		    writeUTF((String)ref);
-		} else if (type == java.lang.Class.class) {
+		} else if (clazz == java.lang.Class.class) {
 		    /* EEK this is not nice !! */
 		    writeUTF(((Class)ref).getName());
-		} else if (IbisSerializationInputStream.isIbisSerializable(type)) {
+		} else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
 		    ((ibis.io.Serializable)ref).generated_WriteObject(this);
 		} else if (ref instanceof java.io.Externalizable) {
 		    push_current_object(ref, 0);
 		    ((java.io.Externalizable) ref).writeExternal(this);
 		    pop_current_object();
 		} else if (ref instanceof java.io.Serializable) {
-		    writeSerializableObject(ref, type);
+		    writeSerializableObject(ref, clazz);
 		} else { 
-		    throw new java.io.NotSerializableException("Not Serializable : " + type.toString());
+		    throw new java.io.NotSerializableException("Not Serializable : " + clazz.getName());
 		}
+	    }
+	    if (DEBUG) {
+		dbPrint("finished writeObject of class " + clazz.getName());
 	    }
 	} else {
 	    if(DEBUG) {
-		System.err.println("Write duplicate handle " + handle + " class = " + ref.getClass());
+		dbPrint("writeObject: duplicate handle " + handle + " class = " + ref.getClass());
 	    }
 	    writeHandle(handle);
 	}
@@ -1267,32 +1284,35 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	   Note that the needed info is available in AlternativeTypeInfo,
 	   but we don't want to use that when we have ibis.io.Serializable.
 	*/
-	Class type = ref.getClass();
+	Class clazz = ref.getClass();
 	if(DEBUG) {
-	    System.err.println("Write object " + ref + " of class " + type + " handle = " + next_handle);
+	    dbPrint("start writeUnshared of class " + clazz.getName() + " handle = " + next_handle);
 	}
 
-	if (type.isArray()) {
-	    writeArray(ref, type, true);
+	if (clazz.isArray()) {
+	    writeArray(ref, clazz, true);
 	} else {
-	    writeType(type);
-	    if (type == java.lang.String.class) {
+	    writeType(clazz);
+	    if (clazz == java.lang.String.class) {
 		/* EEK this is not nice !! */
 		writeUTF((String)ref);
-	    } else if (type == java.lang.Class.class) {
+	    } else if (clazz == java.lang.Class.class) {
 		/* EEK this is not nice !! */
 		writeUTF(((Class)ref).getName());
 	    } else if (ref instanceof java.io.Externalizable) {
 		push_current_object(ref, 0);
 		((java.io.Externalizable) ref).writeExternal(this);
 		pop_current_object();
-	    } else if (IbisSerializationInputStream.isIbisSerializable(type)) {
+	    } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
 		((ibis.io.Serializable)ref).generated_WriteObject(this);
 	    } else if (ref instanceof java.io.Serializable) {
-		writeSerializableObject(ref, type);
+		writeSerializableObject(ref, clazz);
 	    } else {
-		throw new RuntimeException("Not Serializable : " + type.toString());
+		throw new RuntimeException("Not Serializable : " + clazz.getName());
 	    }
+	}
+	if(DEBUG) {
+	    dbPrint("finished writeUnshared of class " + clazz.getName() + " handle = " + next_handle);
 	}
     }
 
@@ -1347,8 +1367,8 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    if (current_object == null) {
 		throw new NotActiveException("not in writeObject");
 	    }
-	    Class type = current_object.getClass();
-	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+	    Class clazz = current_object.getClass();
+	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 	    current_putfield = new ImplPutField(t);
 	}
 	return current_putfield;
@@ -1463,8 +1483,8 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public void defaultWriteSerializableObject(Object ref, int depth) throws IOException {
-	Class type = ref.getClass();
-	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+	Class clazz = ref.getClass();
+	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
 	/*  Find the type info corresponding to the current invocation.
 	    See the invokeWriteObject invocation in alternativeWriteObject.
@@ -1475,6 +1495,11 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	try {
 	    alternativeDefaultWriteObject(t, ref);
 	} catch(IllegalAccessException e) {
+		if (DEBUG) {
+		    dbPrint("Caught exception: " + e);
+		    e.printStackTrace();
+		    dbPrint("now rethrow as NotSerializableException ...");
+		}
 	    throw new NotSerializableException("illegal access" + e);
 	}
     }
@@ -1488,20 +1513,19 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 
 	Object ref = current_object;
-	Class type = ref.getClass();
+	Class clazz = ref.getClass();
 
-	if(DEBUG) {
-	    System.err.println("Default write object " + ref);
-	}
-
-	if (IbisSerializationInputStream.isIbisSerializable(type)) {
+	if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
 	    /* Note that this will take the generated_DefaultWriteObject of the
 	       dynamic type of ref. The current_level variable actually indicates
 	       which instance of generated_DefaultWriteObject should do some work.
 	       */
+	    if (DEBUG) {
+		dbPrint("generated_DefaultWriteObject, class = " + clazz.getName() + ", level = " + current_level);
+	    }
 	    ((ibis.io.Serializable)ref).generated_DefaultWriteObject(this, current_level);
 	} else if (ref instanceof java.io.Serializable) {
-	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
 	    /*	Find the type info corresponding to the current invocation.
 		See the invokeWriteObject invocation in alternativeWriteObject.
@@ -1512,10 +1536,15 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    try {
 		alternativeDefaultWriteObject(t, ref);
 	    } catch(IllegalAccessException e) {
+		if (DEBUG) {
+		    dbPrint("Caught exception: " + e);
+		    e.printStackTrace();
+		    dbPrint("now rethrow as NotSerializableException ...");
+		}
 		throw new NotSerializableException("illegal access" + e);
 	    }
 	} else { 
-	    throw new java.io.NotSerializableException("Not Serializable : " + type.toString());
+	    throw new java.io.NotSerializableException("Not Serializable : " + clazz.getName());
 	}
     }
 }

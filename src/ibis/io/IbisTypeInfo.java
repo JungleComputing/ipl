@@ -49,7 +49,7 @@ class IbisTypeInfo implements IbisStreamFlags {
 				.loadClass(name);
 		} catch(ClassNotFoundException e1) {
 		    if (DEBUG) {
-			System.out.println("Class " + name + " not found!");
+			System.err.println("Class " + name + " not found!");
 		    }
 		}
 	    }
@@ -74,9 +74,7 @@ class IbisTypeInfo implements IbisStreamFlags {
 	try {
 	    c = Class.forName(n);
 	} catch(ClassNotFoundException e) {
-	    System.err.println("Could not load primitive array type " + n);
-	    e.printStackTrace();
-	    System.exit(1);
+	    throw new SerializationError("Internal error: could not load primitive array type " + n, e);
 	}
 	return c;
     }

@@ -219,22 +219,14 @@ final class AlternativeTypeInfo {
      * @param classname the name of the requested type.
      * @return the <code>AlternativeTypeInfo</code> structure for this type.
      */
-    public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(String classname) { 
+    public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(String classname)
+	    throws ClassNotFoundException { 
 	Class type = null;
 
 	try {
 	    type = Class.forName(classname);
-	} catch(Exception e) {
-	    try {
-		type = Thread.currentThread().getContextClassLoader().loadClass(classname);
-	    } catch(Exception e2) {
-		/* Serious trouble ...
-		 * Still, is this the way to deal with it??? (TODO).
-		 */
-		System.err.println("OOPS: cannot load class " + classname + ": "  + e2);
-		e2.printStackTrace();
-		System.exit(1);
-	    }
+	} catch (ClassNotFoundException e) {
+	    type = Thread.currentThread().getContextClassLoader().loadClass(classname);
 	}
 
 	return getAlternativeTypeInfo(type);
@@ -559,25 +551,8 @@ final class AlternativeTypeInfo {
 	    } else { 
 		serializable_fields = null;
 	    }
-
-
-/*
-	    System.err.println("Class " + clazz.getName() + " contains " + size + " serializable fields :");
-	    
-	    int temp = 0;
-	    for (int i=0;i<double_count;i++)    System.err.println("double " + serializable_fields[temp++].getName());
-	    for (int i=0;i<long_count;i++)      System.err.println("long " + serializable_fields[temp++].getName());
-	    for (int i=0;i<float_count;i++)     System.err.println("float " + serializable_fields[temp++].getName());
-	    for (int i=0;i<int_count;i++)       System.err.println("int " + serializable_fields[temp++].getName());
-	    for (int i=0;i<short_count;i++)     System.err.println("short " + serializable_fields[temp++].getName());
-	    for (int i=0;i<char_count;i++)      System.err.println("char " + serializable_fields[temp++].getName());
-	    for (int i=0;i<boolean_count;i++)   System.err.println("boolean " + serializable_fields[temp++].getName());
-	    for (int i=0;i<reference_count;i++) System.err.println("reference " + serializable_fields[temp++].getName());
-*/
 	} catch (Exception e) {
-	    System.err.println("Cannot initialize serialization info for " + clazz.getName() +" : " + e);
-	    e.printStackTrace();
-	    System.exit(1);
+	    throw new SerializationError("Cannot initialize serialization info for " + clazz.getName(), e);
 	} 			 
     }
 
@@ -612,11 +587,10 @@ final class AlternativeTypeInfo {
      */
     private Field findField(ObjectStreamField of) {
 	try {
-	    Field f = clazz.getDeclaredField(of.getName());
+	    return clazz.getDeclaredField(of.getName());
 	} catch(NoSuchFieldException e) {
 	    return null;
 	}
-	return null;
     }
 
     /**

@@ -2,7 +2,7 @@ package ibis.io;
 
 public interface IbisStreamFlags { 
     public static final boolean DEBUG = false;
-    public static final boolean ASSERTS = true;
+    public static final boolean ASSERTS = false;
 
     public static final int BUFFER_SIZE = 2*1024;
     public static final int ARRAY_BUFFER_SIZE	= 1024;

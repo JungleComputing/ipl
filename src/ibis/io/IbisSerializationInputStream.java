@@ -27,7 +27,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /**
      * First free object index.
      */
-    int next_object;
+    int next_handle;
 
     /**
      * The underlying <code>IbisDissipator</code>.
@@ -249,6 +249,18 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
+     * Debugging print.
+     * @param s	the string to be printed.
+     */
+    private void dbPrint(String s) {
+	debuggerPrint(this + ": " + s);
+    }
+
+    public synchronized static void debuggerPrint(String s) {
+	System.err.println(s);
+    }
+
+    /**
      * Initializes the <code>objects</code> and <code>types</code> fields, including
      * their indices.
      *
@@ -271,7 +283,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    next_type = PRIMITIVE_TYPES;
 	}
 
-	clear();
+	objects.clear();
+	next_handle = CONTROL_HANDLES;
     }
 
     /**
@@ -286,8 +299,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      */
     private void do_reset() {
 	if (DEBUG) {
-	    System.err.println("IN(" + this + ") do_reset: next handle = " +
-			       next_object + ".");
+	    dbPrint("received reset: next handle = " + next_handle + ".");
 	}
 	init(false);
     }
@@ -296,8 +308,10 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @inheritDoc
      */
     public void clear() {
-	objects.clear();
-	next_object = CONTROL_HANDLES;
+	if (DEBUG) {
+	    dbPrint("explicit clear: next handle = " + next_handle + ".");
+	}
+	init(false);
     }
 
     /**
@@ -389,7 +403,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      */
     public final void receive() throws IOException {
 	if (DEBUG) {
-	    System.err.println("handler " + this + " is doing a receive()");
+	    dbPrint("doing a receive()");
 	}
 	if(ASSERTS) {
 	    int sum = (max_byte_index - byte_index) + 
@@ -400,17 +414,16 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		    (max_float_index - float_index) + 
 		    (max_double_index - double_index);
 	    if (sum != 0) { 
-		System.err.println("EEEEK : receiving while there is data in buffer !!!");
-		System.err.println("byte_index "   + (max_byte_index - byte_index));
-		System.err.println("char_index "   + (max_char_index - char_index));
-		System.err.println("short_index "  + (max_short_index -short_index));
-		System.err.println("int_index "    + (max_int_index - int_index));
-		System.err.println("long_index "   + (max_long_index -long_index));
-		System.err.println("double_index " + (max_double_index -double_index));
-		System.err.println("float_index "  + (max_float_index - float_index));
+		dbPrint("EEEEK : receiving while there is data in buffer !!!");
+		dbPrint("byte_index "   + (max_byte_index - byte_index));
+		dbPrint("char_index "   + (max_char_index - char_index));
+		dbPrint("short_index "  + (max_short_index -short_index));
+		dbPrint("int_index "    + (max_int_index - int_index));
+		dbPrint("long_index "   + (max_long_index -long_index));
+		dbPrint("double_index " + (max_double_index -double_index));
+		dbPrint("float_index "  + (max_float_index - float_index));
 
-		new Exception().printStackTrace();
-		System.exit(1);
+		throw new SerializationError("Internal error!");
 	    }
 	}
 
@@ -433,13 +446,13 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	max_double_index  = indices_short[TYPE_DOUBLE];
 
 	if(DEBUG) {
-	    System.err.println("reading bytes " + max_byte_index);
-	    System.err.println("reading char " + max_char_index);
-	    System.err.println("reading short " + max_short_index);
-	    System.err.println("reading int " + max_int_index);
-	    System.err.println("reading long " + max_long_index);
-	    System.err.println("reading float " + max_float_index);
-	    System.err.println("reading double " + max_double_index);
+	    dbPrint("reading bytes " + max_byte_index);
+	    dbPrint("reading char " + max_char_index);
+	    dbPrint("reading short " + max_short_index);
+	    dbPrint("reading int " + max_int_index);
+	    dbPrint("reading long " + max_long_index);
+	    dbPrint("reading float " + max_float_index);
+	    dbPrint("reading double " + max_double_index);
 	}
 
 	if (max_byte_index > 0) {
@@ -473,8 +486,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    receive();
 	}
 	if (DEBUG) {
-	    System.out.println(" Read boolean: " + 
-	      ((byte_buffer[byte_index]) != (byte)0));
+	    dbPrint("read boolean: " + ((byte_buffer[byte_index]) != (byte)0));
 	}
 	return (byte_buffer[byte_index++] != (byte)0);
     }
@@ -487,8 +499,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    receive();
 	}
 	if (DEBUG) {
-	    System.out.println(" Read byte: " + 
-	      byte_buffer[byte_index]);
+	    dbPrint("read byte: " + byte_buffer[byte_index]);
 	}
 	return byte_buffer[byte_index++];
     }
@@ -501,8 +512,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    receive();
 	}
 	if (DEBUG) {
-	    System.out.println(" Read char: " + 
-	      char_buffer[char_index]);
+	    dbPrint("read char: " + char_buffer[char_index]);
 	}
 	return char_buffer[char_index++];
     }
@@ -515,8 +525,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    receive();
 	}
 	if (DEBUG) {
-	    System.out.println(" Read short: " + 
-	      short_buffer[short_index]);
+	    dbPrint("read short: " + short_buffer[short_index]);
 	}
 	return short_buffer[short_index++];
     }
@@ -529,9 +538,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    receive();
 	}
 	if (DEBUG) {
-	    System.out.println(" Read int[HEX]: " + 
-	      int_buffer[int_index] + "[" +
-	      Integer.toHexString(int_buffer[int_index]) + "]");
+	    dbPrint("read int[HEX]: " + int_buffer[int_index] + "[0x" + Integer.toHexString(int_buffer[int_index]) + "]");
 	}
 	return int_buffer[int_index++];
     }
@@ -544,8 +551,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    receive();
 	}
 	if (DEBUG) {
-	    System.out.println(" Read long: " + 
-	      long_buffer[long_index]);
+	    dbPrint("read long: " + long_buffer[long_index]);
 	}
 	return long_buffer[long_index++];
     }
@@ -558,8 +564,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    receive();
 	}
 	if (DEBUG) {
-	    System.out.println(" Read float: " + 
-	      float_buffer[float_index]);
+	    dbPrint("read float: " + float_buffer[float_index]);
 	}
 	return float_buffer[float_index++];
     }
@@ -572,8 +577,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    receive();
 	}
 	if (DEBUG) {
-	    System.out.println(" Read double: " + 
-	      double_buffer[double_index]);
+	    dbPrint("read double: " + double_buffer[double_index]);
 	}
 	return double_buffer[double_index++];
     }
@@ -613,14 +617,14 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	   everywhere else. --N */
 	while(handle == RESET_HANDLE) {
 	    if (DEBUG) {
-		System.err.println("received a RESET");
+		dbPrint("received a RESET");
 	    }
 	    do_reset();
 	    handle = readInt();
 	}
 
 	if (DEBUG) {
-	    System.err.println("read handle " + handle);
+	    dbPrint("read handle " + handle);
 	}
 
 	return handle;
@@ -633,7 +637,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	int bn = readInt();
 
 	if (DEBUG) {
-	    System.err.println("readUTF: len = " + bn);
+	    dbPrint("readUTF: len = " + bn);
 	}
 
 	if (bn == -1) {
@@ -668,10 +672,10 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
 
 	String s = new String(c, 0, len);
-	// System.out.println("readUTF: " + s);
+	// dbPrint("readUTF: " + s);
 
 	if (DEBUG) {
-	    System.err.println("read string "  + s);
+	    dbPrint("read string "  + s);
 	}
 	return s;
     }
@@ -694,7 +698,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    Class o = (Class) objects.get(handle);
 
 	    if (DEBUG) {
-		System.err.println("readobj: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
+		dbPrint("readobj: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
 	    }
 	    return o;
 	}
@@ -720,7 +724,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	throws IOException, ClassNotFoundException {
 
 	if (DEBUG) {
-	    System.err.println("readArrayHeader: class = " + clazz + " len = " + len);
+	    dbPrint("readArrayHeader: class = " + clazz.getName() + " len = " + len);
 	}
 	int type = readHandle();
 
@@ -774,6 +778,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classBooleanArray, len);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("require boolean[]", e);
 	}
 	in.readArray(ref, off, len);
@@ -786,6 +795,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classByteArray, len);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("require byte[]", e);
 	}
 	in.readArray(ref, off, len);
@@ -798,6 +812,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classCharArray, len);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("require char[]", e);
 	}
 	in.readArray(ref, off, len);
@@ -810,6 +829,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classShortArray, len);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("require short[]", e);
 	}
 	in.readArray(ref, off, len);
@@ -822,6 +846,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classIntArray, len);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("require int[]", e);
 	}
 	in.readArray(ref, off, len);
@@ -834,6 +863,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classLongArray, len);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("require long[]", e);
 	}
 	in.readArray(ref, off, len);
@@ -846,6 +880,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classFloatArray, len);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("require float[]", e);
 	}
 	in.readArray(ref, off, len);
@@ -858,6 +897,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    readArrayHeader(classDoubleArray, len);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("require double[]", e);
 	}
 	in.readArray(ref, off, len);
@@ -880,13 +924,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @param o		the object to be added
      */
     public void addObjectToCycleCheck(Object o) {
-	objects.add(next_object, o);
-	/* No print here. The object may not have been completely initialized yet, so a toString may fail.
-	   if (DEBUG) {
-	   System.out.println("objects[" + next_object + "] = " + (o == null ? "null" : o));
-	   }
-	*/
-	next_object++;
+	objects.add(next_handle, o);
+	next_handle++;
     }
 
     /**
@@ -900,7 +939,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 	/* No print here. The object may not have been completely initialized yet, so a toString may fail.
 	   if (DEBUG) {
-	   System.err.println("getfromcycle: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
+	   dbPrint("getfromcycle: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
 	   }
 	*/
 
@@ -915,26 +954,31 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @return	0 for a null object, -1 for a new object, and the handle for an
      * 		object already in the object table.
      */
-    public final int readKnownTypeHeader() throws IOException {
+    public final int readKnownTypeHeader() throws IOException, ClassNotFoundException {
 	int handle_or_type = readHandle();
 
 	if ((handle_or_type & TYPE_BIT) == 0) {
 	    // Includes NUL_HANDLE.
 	    if (DEBUG) {
 		if (handle_or_type == NUL_HANDLE) {
-		    System.err.println("readKnownTypeHeader -> read NUL_HANDLE");
+		    dbPrint("readKnownTypeHeader -> read NUL_HANDLE");
 		}
 		else {
-		    System.err.println("readKnownTypeHeader -> read OLD HANDLE " +
-				       (handle_or_type - CONTROL_HANDLES));
+		    dbPrint("readKnownTypeHeader -> read OLD HANDLE " +
+				       handle_or_type);
 		}
 	    }
 	    return handle_or_type;
 	}
 
+	handle_or_type &= TYPE_MASK;
+	if (handle_or_type >= next_type) {
+	    readType(handle_or_type);
+	}
 	if (DEBUG) {
-	    System.err.println("readKnownTypeHeader -> read NEW HANDLE " +
-			       ((handle_or_type & TYPE_MASK) - CONTROL_HANDLES));
+	    IbisTypeInfo t = (IbisTypeInfo) types.get(handle_or_type);
+	    dbPrint("readKnownTypeHeader -> reading NEW object, class = " +
+			       t.clazz.getName());
 	}
 	return -1;
     }
@@ -943,7 +987,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * Reads an array from the stream.
      * The handle and type have already been read.
      *
-     * @param arrayClass	the type of the array to be read
+     * @param clazz		the type of the array to be read
      * @param type		an index in the types table, but
      * 				also an indication of the base type of
      * 				the array
@@ -954,12 +998,12 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      *
      * @return the array read.
      */
-    private Object readArray(Class arrayClass, int type)
+    private Object readArray(Class clazz, int type)
 	throws IOException, ClassNotFoundException {
 	int len = readInt();
 
 	if (DEBUG) {
-	    System.err.println("Read array " + arrayClass + " length " + len);
+	    dbPrint("readArray " + clazz.getName() + " length " + len + " type " + type);
 	}
 
 	switch (type) {
@@ -1004,17 +1048,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    addObjectToCycleCheck(temp8);
 	    return temp8;
 	default:
-	    if (DEBUG) {
-		System.err.println("Read an array " + arrayClass + " of len " + len);
-	    }
-	    Object ref = java.lang.reflect.Array.newInstance(arrayClass.getComponentType(), len);
+	    Object ref = java.lang.reflect.Array.newInstance(clazz.getComponentType(), len);
 	    addObjectToCycleCheck(ref);
 
 	    for (int i = 0; i < len; i++) {
 		Object o = readObject();
-		if (DEBUG) {
-		    System.err.println("Read array[" + i + "] = " + (o == null ? "<null>" : o.getClass().getName()));
-		}
 		((Object[])ref)[i] = o;
 	    }
 
@@ -1042,20 +1080,20 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	} catch (ClassNotFoundException e) {
 	    try {
 		if (DEBUG) {
-		    System.out.println("Could not load class " + typeName + " using Class.forName(), trying Thread.currentThread().getContextClassLoader().loadClass()");
-		    System.out.println("Default class loader is " +
-				       this.getClass().getClassLoader());
-		    System.out.println("now trying " +
-				       Thread.currentThread().getContextClassLoader());
+		    dbPrint("Could not load class " + typeName + " using Class.forName(), trying Thread.currentThread().getContextClassLoader().loadClass()");
+		    dbPrint("Default class loader is " +
+			    this.getClass().getClassLoader());
+		    dbPrint("now trying " +
+			    Thread.currentThread().getContextClassLoader());
 		}
 		return Thread.currentThread().getContextClassLoader().loadClass(typeName);
 	    } catch (ClassNotFoundException e2) {
 		int dim = 0;
 
-				/* Some classloaders are not able to load array classes.
-				 * Therefore, if the name
-				 * describes an array, try again with the base type.
-				 */
+		/* Some classloaders are not able to load array classes.
+		 * Therefore, if the name
+		 * describes an array, try again with the base type.
+		 */
 		if (typeName.length() > 0 && typeName.charAt(0) == '[') {
 		    char[] s = typeName.toCharArray();
 		    while (dim < s.length && s[dim] == '[') {
@@ -1095,25 +1133,22 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @return the <code>IbisTypeInfo</code> for <code>type</code>.
      */
     private IbisTypeInfo readType(int type) throws IOException, ClassNotFoundException {
-	if (DEBUG) {
-	    System.err.println("Read type_number " + Integer.toHexString(type) + ", next = " + Integer.toHexString(next_type));
-	}
 	if (type < next_type) {
+	    if (DEBUG) {
+		dbPrint("read type number 0x" + Integer.toHexString(type));
+	    }
 	    return (IbisTypeInfo) types.get(type);
 	}
 
 	if (next_type != type) {
-	    System.err.println("type = " + type + ", next_type = " + next_type);
-	    System.err.println("EEK: readType: next_type != type");
-	    System.exit(1);
+	    throw new SerializationError("Internal error: next_type != type");
 	}
 
-	if (DEBUG) {
-	    System.err.println("NEW TYPE: reading utf");
-	}
 	String typeName = readUTF();
+
 	if (DEBUG) {
-	    System.err.println("New type " + typeName);
+	    dbPrint("read NEW type number 0x" + Integer.toHexString(type) +
+		    " type " + typeName);
 	}
 
 	Class clazz = getClassFromName(typeName);
@@ -1245,6 +1280,9 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      */
     private void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref) throws ClassNotFoundException, IllegalAccessException, IOException {
 	int temp = 0;
+	if (DEBUG) {
+	    dbPrint("alternativeDefaultReadObject, class = " + t.clazz.getName());
+	}
 	for (int i=0;i<t.double_count;i++) {
 	    if (t.fields_final[temp]) {
 		setFieldDouble(ref, t.serializable_fields[temp].getName(), readDouble());
@@ -1327,8 +1365,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		    fieldtype = "L" + fieldtype.replace('.', '/') + ";";
 		}
 
-				// System.out.println("fieldname = " + fieldname);
-				// System.out.println("signature = " + fieldtype);
+				// dbPrint("fieldname = " + fieldname);
+				// dbPrint("signature = " + fieldtype);
 
 		setFieldObject(ref, fieldname, fieldtype, readObject());
 	    }
@@ -1336,11 +1374,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		Object o = readObject();
 		if (DEBUG) {
 		    if (o == null) {
-			System.out.println("Assigning null to field " +
+			dbPrint("Assigning null to field " +
 					   t.serializable_fields[temp].getName());
 		    }
 		    else {
-			System.out.println("Assigning an object of type " +
+			dbPrint("Assigning an object of type " +
 					   o.getClass().getName() + " to field " +
 					   t.serializable_fields[temp].getName());
 		    }
@@ -1365,9 +1403,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     private void alternativeReadObject(AlternativeTypeInfo t, Object ref)
 	throws ClassNotFoundException, IllegalAccessException, IOException {
 
-	if (DEBUG) {
-	    System.err.println("alternativeReadObject " + t);
-	}
 	if (t.superSerializable) {
 	    alternativeReadObject(t.alternativeSuperInfo, ref);
 	}
@@ -1375,17 +1410,23 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	if (t.hasReadObject) {
 	    current_level = t.level;
 	    try {
+		if (DEBUG) {
+		    dbPrint("invoking readObject() of class " + t.clazz.getName());
+		}
 		t.invokeReadObject(ref, this);
+		if (DEBUG) {
+		    dbPrint("done with readObject() of class " + t.clazz.getName());
+		}
 	    } catch (java.lang.reflect.InvocationTargetException e) {
+		if (DEBUG) {
+		    dbPrint("Caught exception: " + e);
+		    e.printStackTrace();
+		    dbPrint("now rethrow as IllegalAccessException ...");
+		}
 		throw new IllegalAccessException("readObject method: " + e);
 	    }
 	    return;
 	}
-
-	if (DEBUG) {
-	    System.err.println("Using alternative readObject for " + ref.getClass().getName());
-	}
-
 	alternativeDefaultReadObject(t, ref);
     }
 
@@ -1407,6 +1448,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    alternativeReadObject(t, ref);
 	} catch (IllegalAccessException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as NotSerializableException ...");
+	    }
 	    throw new NotSerializableException(classname + " " + e);
 	}
 	pop_current_object();
@@ -1438,6 +1484,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    alternativeDefaultReadObject(t, ref);
 	} catch (IllegalAccessException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as NotSerializableException ...");
+	    }
 	    throw new NotSerializableException(type + " " + e);
 	}
     }
@@ -1527,7 +1578,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 	if (handle == NUL_HANDLE) {
 	    if (DEBUG) {
-		System.out.println("readString: --> null");
+		dbPrint("readString: --> null");
 	    }
 	    return null;
 	}
@@ -1537,7 +1588,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    String o = (String) objects.get(handle);
 
 	    if (DEBUG) {
-		System.err.println("readString: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
+		dbPrint("readString: duplicate handle = " + handle + " string = " + o);
 	    }
 	    return o;
 	}
@@ -1546,12 +1597,17 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	try {
 	    t = readType(handle & TYPE_MASK);
 	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
 	    throw new SerializationError("Cannot find class java.lang.String?", e);
 	}
 
 	String s = readUTF();
 	if (DEBUG) {
-	    System.out.println("readString returns " + s);
+	    dbPrint("readString returns " + s);
 	}
 	addObjectToCycleCheck(s);
 	return s;
@@ -1588,16 +1644,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    Object o = objects.get(handle_or_type);
 
 	    if (DEBUG) {
-		try {
-		    System.err.println("readobj: handle = " +
-				       (handle_or_type - CONTROL_HANDLES) +
-				       " obj = " + o);
-		} catch (Exception e) {
-		    System.out.println("Object print got an exception:" + e);
-		    System.out.println("Stacktrace: ------------");
-		    e.printStackTrace();
-		    System.out.println("------------------------");
-		}
+		dbPrint("readObject: duplicate handle " + handle_or_type +
+			" class = " + o.getClass());
 	    }
 	    return o;
 	}
@@ -1606,15 +1654,10 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	IbisTypeInfo t = readType(type);
 
 	if (DEBUG) {
-	    System.err.println("read type " + t.clazz +
-			       " isarray " + t.isArray);
+	    dbPrint("start readObject of class " + t.clazz.getName() + " handle = " + next_handle);
 	}
 
 	Object obj;
-
-	if (DEBUG) {
-	    System.err.println("t = "  + t);
-	}
 
 	if (t.isArray) {
 	    obj = readArray(t.clazz, type);
@@ -1629,10 +1672,14 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    obj = t.gen.generated_newInstance(this);
 	} else if (Externalizable.class.isAssignableFrom(t.clazz)) {
 	    try {
-				// TODO: is this correct? I guess it is, when accessibility
-				// is fixed.
+		/* Also calls parameter-less constructor */
 		obj = t.clazz.newInstance();
 	    } catch(Exception e) {
+		if (DEBUG) {
+		    dbPrint("Caught exception: " + e);
+		    e.printStackTrace();
+		    dbPrint("now rethrow as ClassNotFound ...");
+		}
 		throw new ClassNotFoundException("Could not instantiate" + e);
 	    }
 	    addObjectToCycleCheck(obj);
@@ -1653,10 +1700,20 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    try {
 		alternativeReadObject(t.altInfo, obj);
 	    } catch (IllegalAccessException e) {
+		if (DEBUG) {
+		    dbPrint("Caught exception: " + e);
+		    e.printStackTrace();
+		    dbPrint("now rethrow as NotSerializableException ...");
+		}
 		throw new NotSerializableException(type + " " + e);
 	    }
 	    pop_current_object();
 	}
+
+	if (DEBUG) {
+	    dbPrint("finished readObject of class " + t.clazz.getName());
+	}
+
 	return obj;
     }
 
@@ -1805,6 +1862,9 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	Class type = ref.getClass();
 
 	if (isIbisSerializable(type)) {
+	    if (DEBUG) {
+		dbPrint("generated_DefaultReadObject, class = " + type + ", level = " + current_level);
+	    }
 	    ((ibis.io.Serializable)ref).generated_DefaultReadObject(this, current_level);
 	} else if (ref instanceof java.io.Serializable) {
 	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
@@ -1818,6 +1878,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    try {
 		alternativeDefaultReadObject(t, ref);
 	    } catch (IllegalAccessException e) {
+		if (DEBUG) {
+		    dbPrint("Caught exception: " + e);
+		    e.printStackTrace();
+		    dbPrint("now rethrow as NotSerializableException ...");
+		}
 		throw new NotSerializableException(type + " " + e);
 	    }
 	} else {

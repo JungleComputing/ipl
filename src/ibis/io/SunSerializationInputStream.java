@@ -80,7 +80,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'boolean[]' not found" + f);
+	    throw new SerializationError("class 'boolean[]' not found", f);
 	}
     }
 
@@ -96,7 +96,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'byte[]' not found" + f);
+	    throw new SerializationError("class 'byte[]' not found", f);
 	}
     }
 
@@ -112,7 +112,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'char[]' not found" + f);
+	    throw new SerializationError("class 'char[]' not found", f);
 	}
     }
 
@@ -128,7 +128,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'short[]' not found" + f);
+	    throw new SerializationError("class 'short[]' not found", f);
 	}
     }
 
@@ -144,7 +144,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'int[]' not found" + f);
+	    throw new SerializationError("class 'int[]' not found", f);
 	}
     }
 
@@ -160,7 +160,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'long[]' not found" + f);
+	    throw new SerializationError("class 'long[]' not found", f);
 	}
     }
 
@@ -176,7 +176,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'float[]' not found" + f);
+	    throw new SerializationError("class 'float[]' not found", f);
 	}
     }
 
@@ -192,7 +192,7 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
-	    throw new SerializationError("class 'double[]' not found" + f);
+	    throw new SerializationError("class 'double[]' not found", f);
 	}
     }
 
