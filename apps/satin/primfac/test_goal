@@ -1,1 +1,4 @@
-application result (19678904) = |3 times factor 2|1 times factor 7|1 times factor 127|1 times factor 2767
+application result (19678904) = application result |3 times factor 2
+application result |1 times factor 7
+application result |1 times factor 127
+application result |1 times factor 2767

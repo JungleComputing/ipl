@@ -36,7 +36,7 @@ public final class PrimFac extends ibis.satin.SatinObject implements PrimFacInte
 							nn /= i;
 							f++;
 						}
-						System.out.print("|" + f + " times factor " + i);
+						System.out.println("application result |" + f + " times factor " + i);
 					}
 				}
 			}

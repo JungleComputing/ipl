@@ -49,6 +49,12 @@ test_par:
 		(cd $$p && \
 		$(MAKE) $(MFLAGS) test_par) \
 	done)
+
+test_par_net:
+	(for p in $(APPS); do \
+		(cd $$p && \
+		$(MAKE) $(MFLAGS) test_par_net) \
+	done)
 # this only works when the classlibs have been rewritten
 #	cd mtdf/par && make do_test_par
 

@@ -13,6 +13,10 @@ public class SplitterException extends IOException {
 	}
 
 	public void add(OutputStream s, Exception e) {
+	    if(streams.contains(s)) {
+		System.err.println("AAA, stream was already in splitter exception");
+	    }
+
 		streams.add(s);
 		exceptions.add(e);
 	}

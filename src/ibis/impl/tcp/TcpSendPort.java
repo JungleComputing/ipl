@@ -79,7 +79,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 						  (TcpIbisIdentifier) type.ibis.identifier());
 
                 // if we keep administration, close connections when exception occurs.
-		splitter = new OutputStreamSplitter(connectionAdministration); 
+		splitter = new OutputStreamSplitter(connectionAdministration);
 
 		switch(type.serializationType) {
 		case TcpPortType.SERIALIZATION_SUN:
@@ -372,6 +372,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			}
 
 			if(rec == null) {
+			    // strange, we can't seem to find the connection in the connection list.
+			    // maybe we already reported the error?
 				throw new IbisError("could not find connection in lostConnection");
 			}
 			if(report && connectUpcall == null) {
