@@ -27,11 +27,12 @@ import ibis.ipl.NoMatchingIbisException;
 import ibis.util.PoolInfo;
 import ibis.util.Timer;
 import ibis.util.nativeCode.Rdtsc;
+import ibis.util.TypedProperties;
 
 public class SOR {
 
-    private static final boolean USE_O_N_BROADCAST = ibis.util.TypedProperties.booleanProperty("bcast.O_n", false);
-    private static final boolean REDUCE_ON_FIXED = ibis.util.TypedProperties.booleanProperty("reduce", true);
+    private static final boolean USE_O_N_BROADCAST = TypedProperties.booleanProperty("bcast.O_n", false);
+    private static final boolean REDUCE_ON_FIXED = TypedProperties.booleanProperty("reduce", true);
 
     private static final double TOLERANCE = 0.00001;         /* termination criterion */
     private static final double LOCAL_STEPS = 0;
@@ -70,8 +71,8 @@ public class SOR {
     private SendPort reduceSbcast;
     private ReceivePort reduceRbcast;
 
-    private final static boolean TIMINGS = ibis.util.TypedProperties.booleanProperty("timing", false);
-    private final static boolean TIMINGS_SUB_REDUCE = ibis.util.TypedProperties.booleanProperty("timing.reduce", false);
+    private final static boolean TIMINGS = TypedProperties.booleanProperty("timing", false);
+    private final static boolean TIMINGS_SUB_REDUCE = TypedProperties.booleanProperty("timing.reduce", false);
     private final static String timerName = "ibis.util.nativeCode.Rdtsc";
     private Timer t_compute        = Timer.newTimer(timerName);
     private Timer t_communicate    = Timer.newTimer(timerName);
