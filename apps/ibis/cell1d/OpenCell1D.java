@@ -975,9 +975,6 @@ class OpenCell1D implements OpenConfig {
             }
 
             while( generation<count ){
-                if( false && DISTURBANCE>0 && me == 2 && generation>=DISTURBANCE_START ){
-                    Thread.sleep( DISTURBANCE );
-                }
                 long startLoopTime = System.currentTimeMillis();
                 if( rightNeighbour != null && rightReceivePort == null ){
                     // We now have a right neightbour. Set up communication
@@ -1031,6 +1028,13 @@ class OpenCell1D implements OpenConfig {
                     }
                     evaluateStealRequests( p, lcol, rcol );
                 }
+
+                // Now exchange data. We can't let all nodes do their
+                // communication in the same order, since that would mean
+                // they would all try to receive before sending, or send
+                // before receiving. Instead, all nodes with odd processor
+                // numbers do one thing, and nodes with even processor numbers
+                // do another.
                 if( (me % 2) == 0 ){
                     if( !rightNeighbourIdle ){
                         sendToRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
