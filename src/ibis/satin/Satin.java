@@ -10,6 +10,8 @@ import java.net.UnknownHostException;
 import java.util.Vector;
 import java.util.Enumeration;
 
+//@@@ because a method has an outstandingSpawns list, the spawn counter is no longer needed!
+
 /* 
    One important invariant: there is only one thread per machine that spawns work.
    Another: there is only one lock: the global satin object.
@@ -56,8 +58,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private String alg;
 
 	// WARNING: dijkstra does not work in combination with aborts.
-//	DEQueueDijkstra q = new DEQueueDijkstra(this);
-	DEQueue q = new DEQueue(this);
+	DEQueueDijkstra q = new DEQueueDijkstra(this);
+//	DEQueue q = new DEQueue(this);
 	private PortType portType;
 	private ReceivePort receivePort;
 	private ReceivePort barrierReceivePort; /* Only for the master. */
@@ -667,8 +669,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(upcalls) {
 			if(HANDLE_ABORTS_IN_LATENCY) {
 				while(true) {
-					if(ABORTS && gotAborts) {System.err.print("a");handleAborts();}
-					if(ABORTS && gotExceptions) {System.err.print("e");handleExceptions();}
+					if(ABORTS && gotAborts) handleAborts();
+					if(ABORTS && gotExceptions) handleExceptions();
 					synchronized(this) {
 						if(gotStealReply) {
 							/* Imediately reset gotStealReply, we know that a reply has arrived. */

@@ -1,0 +1,3 @@
+JAVACLASSPATH=$IBIS_ROOT/ibis/classlibs:$IBIS_ROOT:.:$JAVA_ROOT/jre/lib/rt.jar
+
+export LD_ASSUME_KERNEL=2.2.5 ; $JAVA_ROOT/bin/java -Dsun.boot.library.path=$IBIS_ROOT/ibis/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386 -Dpool_host_number=$1 -Dibis.property.file=$IBIS_ROOT/ibis/properties -Dpool_total_hosts=$3 -Dname_server_pool=$4 -Dname_server_port=$5 -Dname_server=$6 -Dhosts="$HOSTS" -Xmx400M -Xbootclasspath:$JAVACLASSPATH -classpath $JAVACLASSPATH $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15} ${16} ${17} ${18} ${19} ${20}

@@ -46,6 +46,7 @@ public final class TcpIbis extends Ibis implements Config {
 	private String nameServerName;
 	private String nameServerPool;
 	private InetAddress nameServerInet;
+	private int nameServerPort;
 
 	private int poolSize;
 
@@ -67,8 +68,8 @@ public final class TcpIbis extends Ibis implements Config {
 
 		// Set my properties.
 		systemProperties.add("reliability", "true");
-		systemProperties.add("multicast", "false") ;
-		systemProperties.add("totally ordered", "false") ;
+		systemProperties.add("multicast", "true") ;
+		systemProperties.add("totally ordered multicast", "false") ;
 
 		ibis.io.Conversion.classInit();
 	}
@@ -123,6 +124,18 @@ public final class TcpIbis extends Ibis implements Config {
 			throw new IbisException("property name_server_pool is not specified");
 		}
 
+		String nameServerPortString = p.getProperty("name_server_port");
+		if (nameServerPortString == null) {
+			nameServerPort = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+		} else {
+			try {
+				nameServerPort = Integer.parseInt(nameServerPortString);
+				System.err.println("Using nameserver port: " + nameServerPort);
+			} catch (Exception e) {
+				System.err.println("illegal nameserver port: " + nameServerPortString + ", using default");
+			}
+		}
+
 		try {
 			nameServerInet = InetAddress.getByName(nameServerName);
 		} catch (UnknownHostException e) {
@@ -143,7 +156,7 @@ public final class TcpIbis extends Ibis implements Config {
 
 		try { 
 			tcpIbisNameServerClient = new NameServerClient(this, ident, nameServerPool, nameServerInet, 
-									      NameServer.TCP_IBIS_NAME_SERVER_PORT_NR);
+									      nameServerPort);
 			tcpPortTypeNameServerClient = tcpIbisNameServerClient.tcpPortTypeNameServerClient;
 			tcpReceivePortNameServerClient = tcpIbisNameServerClient.tcpReceivePortNameServerClient;
 			tcpElectionClient = tcpIbisNameServerClient.tcpElectionClient;

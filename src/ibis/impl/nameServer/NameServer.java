@@ -69,8 +69,9 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	private	ObjectOutputStream out;
 
 	private boolean singleRun;
+	private int port;
 
-	private NameServer(boolean singleRun) throws IbisIOException {
+	private NameServer(boolean singleRun, int port) throws IbisIOException {
 
 		this.singleRun = singleRun;
 
@@ -79,7 +80,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		}
 
 		// Create a server socket.
-		serverSocket = IbisSocketFactory.createServerSocket(TCP_IBIS_NAME_SERVER_PORT_NR, false);
+		serverSocket = IbisSocketFactory.createServerSocket(port, false);
        		       
 		pools = new Hashtable();
 
@@ -220,7 +221,6 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	}
 	
 	private void handleIbisLeave() throws IbisIOException, ClassNotFoundException {
-
 		try {
 		    String key = (String) in.readUTF();
 		    IbisIdentifier id = (IbisIdentifier) in.readObject();
@@ -235,7 +235,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			    // new run
 			    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
 			    return;				
-		    } else { 
+		    } else {
 			    int index = -1;
 
 			    for (int i=0;i<p.pool.size();i++) { 				
@@ -244,7 +244,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 					    index = i;
 					    break;
 				    }
-			    } 
+			    }
 
 			    if (index != -1) { 
 				    // found it.
@@ -317,7 +317,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 					if (singleRun && pools.size() == 0) { 
 						stop = true;
 					}
-					break;					
+					break;
 				default: 
 					System.err.println("NameServer got an illegal opcode: " + opcode);
 				}
@@ -350,11 +350,21 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	public static void main(String [] args) { 
 		boolean single = false;
 		NameServer ns = null;
+		int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
 		for (int i = 0; i < args.length; i++) {
 			if (false) {
 			} else if (args[i].equals("-single")) {
 				single = true;
+			} else if (args[i].equals("-port")) {
+				i++;
+				try {
+					port = Integer.parseInt(args[i]);
+				} catch (Exception e) {
+					System.err.println("invalid port");
+					System.exit(1);
+				}
+								
 			} else {
 				System.err.println("No such option: " + args[i]);
 				System.exit(1);
@@ -370,7 +380,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 
 		while (true) {
 			try { 
-				ns = new NameServer(single);
+				ns = new NameServer(single, port);
 				break;
 			} catch (Exception e) { 
 				System.err.println("Main got " + e + ", rety in 1 second");
