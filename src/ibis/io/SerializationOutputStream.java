@@ -29,7 +29,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
      *
      * @exception <code>IOException</code> is thrown on an IO error.
      */
-    SerializationOutputStream() throws IOException {
+    protected SerializationOutputStream() throws IOException {
 	super();
     }
 
@@ -39,7 +39,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
      * @param s the <code>OutputStream</code> to be used
      * @exception <code>IOException</code> is thrown on an IO error.
      */
-    SerializationOutputStream(OutputStream s) throws IOException {
+    protected SerializationOutputStream(OutputStream s) throws IOException {
 	super(s);
     }
 

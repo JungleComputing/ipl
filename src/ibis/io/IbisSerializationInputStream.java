@@ -277,7 +277,7 @@ public class IbisSerializationInputStream
     /**
      * {@inheritDoc}
      */
-    public final boolean readBoolean() throws IOException {
+    public boolean readBoolean() throws IOException {
 	while(byte_index == max_byte_index) {
 	    receive();
 	}
@@ -290,7 +290,7 @@ public class IbisSerializationInputStream
     /**
      * {@inheritDoc}
      */
-    public final byte readByte() throws IOException {
+    public byte readByte() throws IOException {
 	while (byte_index == max_byte_index) {
 	    receive();
 	}
@@ -303,7 +303,7 @@ public class IbisSerializationInputStream
     /**
      * {@inheritDoc}
      */
-    public final char readChar() throws IOException {
+    public char readChar() throws IOException {
 	while (char_index == max_char_index) {
 	    receive();
 	}
@@ -316,7 +316,7 @@ public class IbisSerializationInputStream
     /**
      * {@inheritDoc}
      */
-    public final short readShort() throws IOException {
+    public short readShort() throws IOException {
 	while (short_index == max_short_index) {
 	    receive();
 	}
@@ -329,7 +329,7 @@ public class IbisSerializationInputStream
     /**
      * {@inheritDoc}
      */
-    public final int readInt() throws IOException {
+    public int readInt() throws IOException {
 	while (int_index == max_int_index) {
 	    receive();
 	}
@@ -343,7 +343,7 @@ public class IbisSerializationInputStream
     /**
      * {@inheritDoc}
      */
-    public final long readLong() throws IOException {
+    public long readLong() throws IOException {
 	while (long_index == max_long_index) {
 	    receive();
 	}
@@ -356,7 +356,7 @@ public class IbisSerializationInputStream
     /**
      * {@inheritDoc}
      */
-    public final float readFloat() throws IOException {
+    public float readFloat() throws IOException {
 	while (float_index == max_float_index) {
 	    receive();
 	}
@@ -369,7 +369,7 @@ public class IbisSerializationInputStream
     /**
      * {@inheritDoc}
      */
-    public final double readDouble() throws IOException {
+    public double readDouble() throws IOException {
 	while (double_index == max_double_index) {
 	    receive();
 	}

@@ -26,7 +26,7 @@ public abstract class SerializationInputStream extends ObjectInputStream {
      *
      * @exception IOException is thrown on an IO error.
      */
-    SerializationInputStream() throws IOException {
+    protected SerializationInputStream() throws IOException {
 	super();
     }
 

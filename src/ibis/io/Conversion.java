@@ -17,7 +17,7 @@ public abstract class Conversion {
      * do the buffering himself.  
      */
 
-    public static Conversion defaultConversion;
+    public static final Conversion defaultConversion;
 
     // load a SimpleConversion to and from networkorder as default
     static {
