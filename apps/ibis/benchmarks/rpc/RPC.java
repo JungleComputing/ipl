@@ -708,6 +708,11 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	for (int i = 0; i < clients; i++) {
 	    ReceivePortIdentifier rp = registry.lookupReceivePort("client port " + i);
 	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " connect to \"client port " + i + "\"");
+	    try {
+		Thread.sleep(100);
+	    } catch (InterruptedException e) {
+		// Give up
+	    }
 	    sport.connect(rp);
 	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " Server: connected to \"client port " + i + "\"");
 	}
