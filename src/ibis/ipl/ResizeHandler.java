@@ -31,12 +31,17 @@ public interface ResizeHandler {
 
     /**
      * Upcall generated when an Ibis has to leave the current run.
-     * @param ident the ibis identifier of the Ibis that has to leave the current run.
+     * This upcall is the result of a {@link ibis.ipl.Ibis#sendDelete
+     * sendDelete} call by one of the Ibis-es in the current run.
+     * @param ident the ibis identifier of the Ibis that has to leave the
+     * current run.
      */    
     public void delete(IbisIdentifier ident);
     
     /**
      * Upcall generated when the application has to reconfigure.
+     * This upcall is the result of a {@link ibis.ipl.Ibis#sendReconfigure
+     * sendReconfigure} call by one of the Ibis-es in the current run.
      */    
     public void reconfigure();
 }

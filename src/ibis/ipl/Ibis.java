@@ -723,17 +723,17 @@ public abstract class Ibis {
     public abstract Registry registry();
     
     /** 
-     * Notifies the application that ibis 'ident' has to leave the computation
+     * Notifies the specified ibis that it has to leave the computation
+     * @param ident the ibis that has to leave.
+     * @exception IOException is thrown when a communication error occurs.
      */
     public abstract void sendDelete(IbisIdentifier ident) throws IOException;
 	
     /**
-     * Notifies the application that it has to reconfigure
+     * Notifies all ibises in the run that they have to reconfigure.
+     * @exception IOException is thrown when a communication error occurs.
      */
     public abstract void sendReconfigure() throws IOException;
-    
-    
-    
 
     /**
      * Returns the properties of this Ibis implementation.
