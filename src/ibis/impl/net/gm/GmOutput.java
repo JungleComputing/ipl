@@ -10,6 +10,8 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
 
+import ibis.util.ConditionVariable;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -40,6 +42,9 @@ public final class GmOutput extends NetBufferedOutput {
     private boolean    mustFlush;
     private int		toFlush;
     private int        flushing;
+
+    private boolean	closing = false;
+    private ConditionVariable flushFinished = Driver.gmAccessLock.createCV();
 
 
     native long nInitOutput(long deviceHandle) throws IOException;
@@ -239,6 +244,10 @@ public final class GmOutput extends NetBufferedOutput {
 	toFlush = 0;
 	/* Wait for buffer send completion */
 	pump();
+
+	if (closing) {
+	    flushFinished.cv_signal();
+	}
     }
 
     /**
@@ -253,6 +262,10 @@ public final class GmOutput extends NetBufferedOutput {
 	flushAllBuffers();
 	Driver.gmAccessLock.unlock();
 	flushing--;
+
+	if (closing) {
+	    flushFinished.cv_signal();
+	}
     }
 
 
@@ -265,13 +278,17 @@ public final class GmOutput extends NetBufferedOutput {
 	Driver.gmAccessLock.lock();
 	flushAllBuffers();
 	flushing--;
+
+	if (closing) {
+	    flushFinished.cv_signal();
+	}
     }
 
 
     /* Must hold gmAccessLock on entry/exit */
     private boolean tryFlush(int length) throws IOException {
 	if (outputHandle == 0) {
-	    throw new Error("Output handle cleared while a send is going on");
+	    throw new ibis.ipl.ConnectionClosedException("Output handle cleared while a send is going on");
 	}
 	boolean mustFlush = (toFlush + length + available()
 			      + ibis.io.Conversion.INT_SIZE > Driver.packetMTU);
@@ -288,6 +305,10 @@ public final class GmOutput extends NetBufferedOutput {
 	    flushAllBuffers();
 	} else {
 	    flushBufferLocked();
+	}
+
+	if (outputHandle == 0) {
+	    throw new ibis.ipl.ConnectionClosedException("Output handle cleared while a send is going on");
 	}
 
 // System.err.print("[");
@@ -370,6 +391,16 @@ public final class GmOutput extends NetBufferedOutput {
 	log.in();
 	if (rpn == num) {
 	    Driver.gmAccessLock.lock();
+	    closing = true;
+if (false)
+	    while (toFlush > 0 || flushing > 0) {
+		try {
+		    flushFinished.cv_wait();
+		} catch (InterruptedException e) {
+		    // Ignore
+		}
+	    }
+
 	    Driver.gmLockArray.deleteLock(lockId);
 
 	    if (outputHandle != 0) {

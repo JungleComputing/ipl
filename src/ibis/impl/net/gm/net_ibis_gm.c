@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include <unistd.h>
 #include <assert.h>
 
 #include "java_properties.h"
@@ -15,6 +16,7 @@
 #define GM_ENABLE_HERALDS	1	/* 1 */
 
 #include <gm.h>
+extern const char *_gm_recv_event_name(int i);
 
 #define HOSTNAMELEN	1024
 
@@ -234,6 +236,10 @@ __error__(const char *s, ...)
 #endif
 
 
+static int		NET_GM_STATISTICS = 0;
+static unsigned		net_gm_events[256];
+
+
 /*
  *  Constants
  */
@@ -283,6 +289,8 @@ ni_gm_msg_type(ni_gm_msg_type_t type)
 	return "NI_GM_MSG_TYPE_RENDEZ_VOUS_DATA";
     case NI_GM_MSG_TYPE_N:
 	return "NI_GM_MSG_TYPE_N";
+    default:
+	return "*** NO SUCH MSG TYPE ***";
     }
 }
 
@@ -444,6 +452,8 @@ ni_gm_sender_state(ni_gm_send_state_t state)
 	    return "NI_GM_SENDER_SENDING_RNDZVS_ACK";
 	case NI_GM_SENDER_STATES:
 	    return "NI_GM_SENDER_STATES";
+	default:
+	    return "*** NO SUCH SENDER STATE ***";
     }
 }
 
@@ -524,8 +534,6 @@ static int		initialized              =    0;
 
 /* Flag indicating whether the initialization of GM was successful. */
 static int		successfully_initialized =    0;
-
-static volatile int	success_flag             =    0;
 
 /* Driver's own data structure.  */
 static struct s_drv    *volatile ni_gm_p_drv = NULL;
@@ -1053,6 +1061,8 @@ ni_gm_jni_init(JNIEnv *env)
 
     md_lock     = ni_getStaticMethod(env, cls_Driver, "lock", "()V");
     md_unlock   = ni_getStaticMethod(env, cls_Driver, "unlock", "()V");
+
+    return 0;
 }
 
 
@@ -2585,7 +2595,6 @@ ni_gm_output_flow_control(JNIEnv *env,
                           unsigned char   *msg,
                           unsigned char   *packet) {
         struct s_output *p_out          = NULL;
-        int              len            =    0;
         int              mux_id         =    0;
 	ni_gm_hdr_p	hdr;
 
@@ -2628,7 +2637,6 @@ ni_gm_input_flow_control(JNIEnv *env,
 			 int            packet_length) {
         struct s_input  *p_in     = NULL;
         struct s_packet *p_packet = p_port->packet_head;
-        int              len            =    0;
         int              mux_id         =    0;
 	ni_gm_hdr_p	hdr;
 
@@ -3511,11 +3519,8 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## BufferIntoRequest( \
     pend(SEND_BUFFER_REQ); \
     __out__(); \
     return p_out->offset - NI_GM_PACKET_HDR_LEN; \
-    \
-error: \
-    __err__(); \
-    return -1; \
 } \
+ \
  \
 /* Send the data part of a rendez-vous message */ \
  \
@@ -3589,7 +3594,7 @@ SEND_BUFFER(E_DOUBLE,  jdouble,  j_double,  Double)
  * See comments in the Java code.
  */
 JNIEXPORT
-int
+jint
 JNICALL
 Java_ibis_impl_net_gm_GmOutput_nSendBufferIntoRequest(
 		JNIEnv     *env,
@@ -3649,6 +3654,7 @@ Java_ibis_impl_net_gm_GmOutput_nSendBufferIntoRequest(
 
 error:
     __err__();
+    return -1;
 }
 
 JNIEXPORT
@@ -3682,7 +3688,6 @@ Java_ibis_impl_net_gm_GmInput_nPost ## Jtype ## Buffer(JNIEnv     *env, \
                                               jint        len) \
 { \
     struct s_input *p_in = NULL; \
-    jtype          *buffer; \
     int             result = 0; \
     \
     __in__(); \
@@ -3736,7 +3741,6 @@ Java_ibis_impl_net_gm_GmInput_nPostBuffer(JNIEnv    *env,
 					  jint       len)
 {
     struct s_input *p_in = NULL;
-    jbyte          *buffer;
     int             result = 0;
 
     __in__();
@@ -3834,11 +3838,8 @@ mtu_init(JNIEnv *env)
 		hostname, ni_gm_copy_get_elts ? "a" : "no");
 
         __out__();
-	return 0;
 
- error:
-        __err__();
-        return -1;
+	return 0;
 }
 
 
@@ -3888,38 +3889,6 @@ attach_sigthread(void)
 static void
 ni_gm_intr_handle(JNIEnv *env, struct gm_port *p_gm_port)
 {
-    if (1) {
-	static long long last_intr = -1;
-	long long int now = __RDTSC__;
-	jint pollers  = (*env)->GetStaticIntField(env, cls_Driver, fld_pollers);
-	jint yielders = (*env)->GetStaticIntField(env, cls_Driver, fld_yielders);
-
-
-	if (last_intr == -1) {
-	    last_intr = __RDTSC__;
-	}
-	if (pollers > 0 || (now - ni_gm_poll_start) / CPU_MHZ < NI_GM_INTR_FIRST / 2) {
-	    buf_printf(
-		    "X t=%06Ld thread=0x%x last=%s Oho -- get an interrupt while pollers %d, yielders %d delay %Ld us; last intr at %6Ld GM ptr %p\n",
-		    (now - ni_gm_poll_start) / CPU_MHZ,
-		    pthread_self(),
-		    ni_gm_last_poll_is_intr ? "intr" : "downcall",
-		    pollers, yielders, (now - poll_tick) / CPU_MHZ,
-		    (now - last_intr) / CPU_MHZ,
-		    p_gm_port);
-	} else {
-	    buf_printf(
-		    "X t=%06Ld thread=0x%x last=%s (%Ld us) last intr %6Ld GM ptr %p\n",
-		    (now - ni_gm_poll_start) / CPU_MHZ,
-		    pthread_self(),
-		    ni_gm_last_poll_is_intr ? "intr" : "downcall",
-		    (now - poll_tick) / CPU_MHZ,
-		    (now - last_intr) / CPU_MHZ,
-		    p_gm_port);
-	}
-	last_intr = now;
-    }
-
     STATINCN(native, -1);
     while (ni_gm_poll(env, JNI_TRUE)) {
 	// poll
@@ -3943,8 +3912,6 @@ sigthread(void *arg)
     pthread_cond_signal(&ni_gm_sigthread_awake);
     pthread_mutex_unlock(&ni_gm_sigthread_lock);
 
-    ni_gm_poll_start = __RDTSC__;
-
     env = attach_sigthread();
 
     ni_gm_access_lock_lock(env);
@@ -3961,14 +3928,15 @@ sigthread(void *arg)
 	evt = gm_wake_when_no_herald(p_port->p_gm_port, NI_GM_INTR_FIRST);
 	evt_type = (gm_ntohc(evt->recv.type) & 0xFF);
 
+	if (NET_GM_STATISTICS) {
+	    net_gm_events[evt_type]++;
+	}
+
 	if (evt_type == _GM_SLEEP_EVENT) {
 	    ni_gm_sigthread_running--;
 	    ni_gm_access_lock_unlock(env);
 		// fprintf(stderr, "NetGM: intr thread sleeps\n");
-{ long long start = __RDTSC__;
 	    gm_unknown(p_port->p_gm_port, evt);
-		// fprintf(stderr, "NetGM: intr thread wakes up, evt %d %s intr_disabled %d NI_GM_INTR_FIRST %d GM ptr %p sleep %Ld\n", evt_type, _gm_recv_event_name(evt_type), p_dev->intr_disabled, NI_GM_INTR_FIRST, p_port->p_gm_port, (__RDTSC__ - start) / CPU_MHZ);
-}
 	    ni_gm_access_lock_lock(env);
 	    ni_gm_sigthread_running++;
 	    STATINC(intr);
@@ -4324,8 +4292,12 @@ dump_monitors(env);
 	    p_port  = p_dev->p_port;
 	    p_event = gm_receive(p_port->p_gm_port);
 	    evt_type = gm_ntohc(p_event->recv.type) & 0xFF;
+
+	    if (NET_GM_STATISTICS) {
+		net_gm_events[evt_type]++;
+	    }
+
 #if GM_ENABLE_HERALDS
-	    poll_tick = __RDTSC__;
 	    if (intr) {
 		buf_printf("  t=%06Ld Intr event %2d %-30s GM ptr %p\n", (poll_tick - ni_gm_poll_start) / CPU_MHZ, evt_type, _gm_recv_event_name(evt_type), p_port->p_gm_port);
 	    } else if (evt_type != GM_NO_RECV_EVENT && evt_type != GM_SENDS_FAILED_EVENT) {
@@ -4391,6 +4363,7 @@ dump_monitors(env);
         __err__();
         ni_gm_current_env = NULL;
 fprintf(stderr, "Oho -- error in nGmThread\n");
+	return JNI_FALSE;
 }
 
 
@@ -4526,6 +4499,14 @@ Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
     if (buf_print_buffer != buf_print_start) {
 	fprintf(stderr, "strlen(buf_print_buffer) %d\n", strlen(buf_print_buffer));
 	fputs(buf_print_buffer, stderr);
+    }
+
+    if (NET_GM_STATISTICS) {
+	int i;
+
+	for (i = 0; i < sizeof(net_gm_events) / sizeof(net_gm_events[0]); i++) {
+	    fprintf(stderr, "%s: %s: %u\n", hostname, _gm_recv_event_name(i), net_gm_events[i]);
+	}
     }
 }
 

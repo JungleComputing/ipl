@@ -518,6 +518,7 @@ rcvd++;
 
 			int result;
 			if (Driver.TIMINGS) Driver.t_native_post.start();
+if (b == null) throw new Error("Cannot read into a null buffer");
                         result = nPostShortBuffer(inputHandle, b, o, _l);
 			if (Driver.TIMINGS) Driver.t_native_post.stop();
 // System.err.println(Thread.currentThread() + ": receive chunk of short, result " + result);
