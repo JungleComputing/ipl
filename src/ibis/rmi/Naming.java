@@ -152,12 +152,15 @@ public final class Naming {
 	throws RemoteException, java.net.MalformedURLException
     {
 	ParsedNamingURL parsed = parseURL(name);
+// System.err.println("Naming.rebind: parsed = " + parsed);
 	Registry registry = getRegistry(parsed);
+// System.err.println("Naming.rebind: registry = " + registry);
 
 	if (obj == null)
 	    throw new NullPointerException("cannot bind to null");
 
 	registry.rebind(parsed.name, obj);
+// System.err.println("Naming.rebind: done");
     }
 
     /**
