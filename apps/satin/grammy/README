@@ -1,5 +1,8 @@
-This directory contains a simple text compressor that uses backreferences
-to previous text as compression method. It looks ahead for a number of
+This directory contains a grammar-based text compressor. Given a text,
+it constructs a set of grammar rules that produce one sentence: the
+input text.
+
+It looks ahead for a number of
 compression steps to select the best sequence of backreferences.
 
 usage:
@@ -12,15 +15,17 @@ Decompress <input-file> <output-file>
 
 The program takes the following command-line options:
 
-    -depth <n>  The number of levels of look-ahead used to determine the
-                best way to compress the text.
+  -lookahead <n> The number of levels of look-ahead used to determine the
+                 best way to compress the text.
 
-    -short <n>  Consider shortening the text by at most <n> bytes to
-                get a better subsequent backreference.
+  -top <n>       For each compression step, consider the best <n> choices.
 
-    -verify     After compressing the text, decompress it again, and compare
-                against the original to make sure the compressor was correct.
+  -verify        After compressing the text, decompress it again, and compare
+                 against the original to make sure the compressor was correct.
 
-Beware that some types of text (e.g. source code) may cause a much larger
-number of possibilities.
 
+Defaults are -lookahead 2 -top 2.
+
+Note that larger parameters for lookahead and top can quickly lead to
+very large execution times. Grammar-based compression is time-consuming,
+lookahead makes it even more so.
