@@ -8,31 +8,41 @@ import java.io.IOException;
 interface Config {
     static final boolean tracePortCreation = true;
     static final boolean traceCommunication = true;
+    static final boolean traceClusterResizing = true;
 }
 
-class RszHandler implements ResizeHandler {
+class RszHandler implements Config, ResizeHandler {
     int members = 0;
 
     public void join( IbisIdentifier id )
     {
-        System.err.println( "Join of " + id.name() );
+        if( traceClusterResizing ){
+            System.err.println( "Join of " + id.name() );
+        }
         members++;
     }
 
     public void leave( IbisIdentifier id )
     {
-        System.err.println( "Leave of " + id.name() );
+        if( traceClusterResizing ){
+            System.err.println( "Leave of " + id.name() );
+        }
         members--;
     }
 
     public void delete( IbisIdentifier id )
     {
-        System.err.println( "Delete of " + id );
+        if( traceClusterResizing ){
+            System.err.println( "Delete of " + id );
+        }
+        members--;
     }
 
     public void reconfigure()
     {
-        System.err.println( "Reconfigure" );
+        if( traceClusterResizing ){
+            System.err.println( "Reconfigure" );
+        }
     }
 }
 
