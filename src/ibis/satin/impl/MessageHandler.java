@@ -880,7 +880,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 		}
 
-		m.finish();
+		try {
+		    m.finish();
+		} catch(Exception e) {
+		}
 
 		synchronized(satin) {
 		    satin.exitReplies++;
