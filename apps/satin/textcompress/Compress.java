@@ -202,7 +202,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             }
         }
 
-        if( !haveAlternatives ){
+        //if( !haveAlternatives ){
+        if( false ){
             // The only possible move is a copy.
             if( mv != null && depth>0 && depth<lookahead_depth ){
                 // It is permitted and useful to evaluate the copy move
@@ -269,7 +270,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             }
             sync();
             int bestGain = -1;
-            if( mv != null ){
+            if( mv != null && mv1 != null ){
                 bestGain = mv1.getGain();
                 mv.addGain( bestGain );
             }
