@@ -25,6 +25,18 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static int label = 0;
     static SATProblem p = null;
 
+    final static class ProblemAssigner implements ibis.satin.ActiveTuple {
+        SATProblem p;
+
+        ProblemAssigner( SATProblem p ){
+            this.p = p;
+        }
+
+        public void handleTuple( String key ){
+	    SATSolver.p = this.p;
+        }
+    }
+
     final static class ProblemUpdater implements ibis.satin.ActiveTuple {
         Clause cl;
 
@@ -89,6 +101,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    if( !p.isSatisfied( ctx.assignment ) ){
 		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
 	    }
+	    System.err.println("THROW RESULT");
 	    throw new SATResultException( s );
 	}
 	int nextvar = ctx.getDecisionVariable();
@@ -137,9 +150,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	boolean val
 	) throws SATException
     {
-        if( p == null ){
-            p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
-        }
+//        if( p == null ){
+//            p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
+//        }
 
         ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
@@ -170,6 +183,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    if( !p.isSatisfied( ctx.assignment ) ){
 		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
 	    }
+	    System.err.println("THROW RESULT");
 	    throw new SATResultException( s );
 	}
 	int nextvar = ctx.getDecisionVariable();
@@ -195,16 +209,15 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                 sync();
             }
             catch( SATRestartException x ){
+		System.err.println("IN RESTART INLET");
                 if( x.level<level ){
                     if( traceRestarts ){
                         System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
                     }
+		    System.err.println("IN RESTART INLET, throwing further");
                     throw x;
                 }
             }
-	    catch (SATResultException y) {
-		throw y;
-	    }
 	}
 	else {
 	    // We're nearly there, use the leaf solver.
@@ -277,7 +290,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    }
 
 	    // Put the problem in the Satin tuple space.
-	    ibis.satin.SatinTupleSpace.add( "problem",  p );
+	    ProblemAssigner a = new ProblemAssigner(p);
+	    ibis.satin.SatinTupleSpace.add( "problem",  a );
 
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
@@ -287,6 +301,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             s.sync();
 	}
 	catch( SATResultException r ){
+	    System.err.println("IN ROOT RESULT INLET");
 	    res = r.s;
 	    s.abort();
 	    if( res == null ){
@@ -295,6 +310,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             return res;
 	}
         catch( SATRestartException x ){
+	    System.err.println("IN ROOT RESTART INLET");
             if( traceRestarts ){
                 System.err.println( "RestartException reaches top level. Waiting for the termination of all jobs." );
             }

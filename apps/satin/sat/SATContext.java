@@ -609,6 +609,7 @@ public final class SATContext implements java.io.Serializable {
 	    }
 	    else {
 		ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
+
 		int cl = calculateConflictLevel( p, cc, -1, level );
                 if( cl>=0 && cl<level ){
                     if( traceLearning | traceRestarts ){

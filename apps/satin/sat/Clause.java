@@ -345,6 +345,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
         }
         else {
             System.err.println( "Cannot resolve " + c1 + " and " + c2 + " on v" + var );
+	    System.exit(1);
         }
         int pos[] = new int[c1.pos.length+c2.pos.length];
         int neg[] = new int[c1.neg.length+c2.neg.length];
