@@ -57,6 +57,7 @@ public class TypedProperties {
 
 	return prop.equals("1")
 	    || prop.equals("on")
+	    || prop.equals("")
 	    || prop.equals("true")
 	    || prop.equals("yes");
     }
