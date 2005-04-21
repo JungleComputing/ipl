@@ -549,6 +549,18 @@ public class IbisSerializationOutputStream
         return "ibis";
     }
 
+    // Needed or else IOGenerator must be changed, but then code generated
+    // by older IOGenerator does not work anymore.
+    public void writeByte(int b) throws IOException {
+        super.writeByte((byte) b);
+    }
+
+    // Needed or else IOGenerator must be changed, but then code generated
+    // by older IOGenerator does not work anymore.
+    public void writeShort(int b) throws IOException {
+        super.writeShort((short) b);
+    }
+
     public void statistics() {
         if (false) {
             System.err.print("IbisOutput: references -> ");
