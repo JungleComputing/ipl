@@ -17,5 +17,6 @@ import java.io.IOException;
  */
 public abstract class Generator {
     public abstract Object generated_newInstance(
-            IbisSerializationInputStream in) throws IOException;
+            IbisSerializationInputStream in)
+                    throws IOException, ClassNotFoundException;
 }
