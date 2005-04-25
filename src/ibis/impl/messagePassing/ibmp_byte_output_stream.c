@@ -247,8 +247,8 @@ ibmp_msg_get(JNIEnv *env, ibmp_byte_os_p byte_os)
 
     if (msg == NULL) {
 	static int live_msgs;
-
 	msg = pan_malloc(sizeof(*msg));
+
 	msg->split_count = 0;
 	msg->proto = NULL;
 	splitter_increase(msg, 1);
@@ -576,11 +576,11 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
 
     }
 
-    IBP_VPRINTF(300, env, ("Here...\n"));
+    // IBP_VPRINTF(300, env, ("Here...\n"));
 
     handle = byte_os->msg;
 
-    // IBP_VPRINTF(300, env, ("Here... handle %x\n", handle));
+    IBP_VPRINTF(300, env, ("Here... handle %x\n", handle));
     if (handle == NULL) {
 	/**
 	 * Ensure that there is a msg ready for a push/send for the next
@@ -615,9 +615,9 @@ ibmp_msg_q_poll(JNIEnv *env)
     if (0 && msg != NULL) {
 	fprintf(stderr, "Queue { ");
 	for (next = msg; next != NULL; next = next->next) {
-	    fprintf(stderr, "%p[%d] ", msg, msg->outstanding_send);
+	    fprintf(stderr, "%p[%d] ", next, next->outstanding_send);
 	}
-	fprintf(stderr, " } ");
+	fprintf(stderr, " }\n");
     }
 
     while (msg != NULL) {
@@ -770,6 +770,11 @@ ibmp_msg_check(JNIEnv *env,
     ibmp_msg_freelist_verify(env, __LINE__, byte_os);
 
     msg = ibmp_msg_get(env, byte_os);
+    // There is a race here, because ibmp_msg_get may poll, and thus set
+    // byte_os->msg.
+    if (byte_os->msg != NULL) {
+	ibmp_msg_put(env, byte_os, byte_os->msg);
+    }
     byte_os->msg = msg;
     ibmp_msg_freelist_verify(env, __LINE__, byte_os);
     if (! locked) {
