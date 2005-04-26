@@ -153,7 +153,7 @@ public class IbisSerializationOutputStream
             return (x & (size - 1));
         }
 
-        public final int getHashCode(Object ref) {
+        private static final int getHashCode(Object ref) {
             int h = System.identityHashCode(ref);
             return ((h >>> 16) ^ (h & ((1 << 16) - 1)));
         }
@@ -305,8 +305,28 @@ public class IbisSerializationOutputStream
         }
 
         public final void clear() {
-            init(initSize);
-            if (STATS) {
+
+           // Check if the table has grown. If not, we 
+           // can reuse the existing arrays.
+
+	   if (size < initSize) {
+
+	       for (int i=0;i<map.length;i++) { 
+                   map[i] = 0;
+               }
+ 
+               for (int i=0;i<size;i++) { 
+                   nextBucket[i] = 0;
+                   dataBucket[i] = null;
+               }
+
+               size = 1;
+               present = 0;
+	    } else {  
+               init(initSize);
+            } 
+	 
+	    if (STATS) {
                 // finds = 0;
             }
         }
