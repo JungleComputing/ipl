@@ -206,10 +206,24 @@ final class ByteInputStream extends ibis.io.DataInputStream implements
     }
 
     public void readArray(byte b[], int off, int len) throws IOException {
-        while (len > 0) {
-            int rd = read(b, off, len);
-            len -= rd;
-            off += rd;
+        Ibis.myIbis.lock();
+        try {
+            while (len > 0) {
+                if (msgSize == 0) {
+                    msg.nextFragment();
+                }
+                int rd = readByteArray(b, off, len, msgHandle);
+                msgSize -= rd * SIZEOF_BYTE;
+                msgCount += rd * SIZEOF_BYTE;
+                if (Ibis.DEBUG && msgSize < 0) {
+                    throw new ArrayIndexOutOfBoundsException(
+                            "readArray(byte[]): insufficient data");
+                }
+                len -= rd;
+                off += rd;
+            }
+        } finally {
+            Ibis.myIbis.unlock();
         }
     }
 
