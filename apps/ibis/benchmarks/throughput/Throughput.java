@@ -98,7 +98,12 @@ class Throughput extends Thread {
         try {
             ReceivePortIdentifier ident;
 
-            Ibis ibis = Ibis.createIbis(null, null);
+            StaticProperties s = new StaticProperties();
+            s.add("Serialization", "object");
+            s.add("WorldModel", "open");
+            s.add("Communication", "OneToOne, Reliable, ExplicitReceipt");
+                                                                                            Ibis ibis = Ibis.createIbis(s, null);
+
             Registry r = ibis.registry();
 
             IbisIdentifier master = r.elect("throughput");
@@ -113,7 +118,8 @@ class Throughput extends Thread {
                 System.err.println(">>>>>>>> Righto, I'm the slave");
             }
 
-            PortType t = ibis.createPortType("test type", null);
+
+            PortType t = ibis.createPortType("test type", s);
             rport = t.createReceivePort("test port " + rank);
             rport.enableConnections();
             sport = t.createSendPort();
