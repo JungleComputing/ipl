@@ -760,10 +760,18 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     }
 
     public ibis.ipl.SendPortIdentifier[] connectedTo() {
-        int n = connections.size();
-        ibis.ipl.SendPortIdentifier[] s = new ibis.ipl.SendPortIdentifier[n];
-        for (int i = 0; i < n; i++) {
-            s[i] = ((SendPort) connections.elementAt(i)).identifier();
+
+        ibis.ipl.SendPortIdentifier[] s = null;
+
+        Ibis.myIbis.lock();
+        try {
+            int n = connections.size();
+            s = new ibis.ipl.SendPortIdentifier[n];
+            for (int i = 0; i < n; i++) {
+                s[i] = ((SendPort) connections.elementAt(i)).identifier();
+            }
+        } finally {
+            Ibis.myIbis.unlock();
         }
         return s;
     }

@@ -488,10 +488,17 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connectedTo() {
-        ibis.ipl.ReceivePortIdentifier[] r
-            = new ibis.ipl.ReceivePortIdentifier[splitter.length];
-        for (int i = 0; i < splitter.length; i++) {
-            r[i] = splitter[i];
+        ibis.ipl.ReceivePortIdentifier[] r = null;
+
+        Ibis.myIbis.lock();
+
+        try {
+            r = new ibis.ipl.ReceivePortIdentifier[splitter.length];
+            for (int i = 0; i < splitter.length; i++) {
+                r[i] = splitter[i];
+            }
+        } finally {
+            Ibis.myIbis.unlock();
         }
         return r;
     }
