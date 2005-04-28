@@ -58,7 +58,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         }
 
         receivePorts = new ArrayList();
-        ThreadPool.createNew(this);
+        ThreadPool.createNew(this, "TcpPortHandler");
     }
 
     synchronized int register(TcpReceivePort p) {

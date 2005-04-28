@@ -60,7 +60,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
         receivePorts = new ArrayList();
 
-        ThreadPool.createNew(this);
+        ThreadPool.createNew(this, "TcpChannelFactory");
     }
 
     /**

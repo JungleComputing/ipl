@@ -41,7 +41,7 @@ final class SendReceiveThread implements Runnable, Config {
 
     SendReceiveThread() throws IOException {
         selector = Selector.open();
-        ThreadPool.createNew(this);
+        ThreadPool.createNew(this, "SendReceiveThread");
 
         readyWriteKeys = new SelectionKey[INITIAL_ARRAY_SIZE];
         readyReadKeys = new SelectionKey[INITIAL_ARRAY_SIZE];

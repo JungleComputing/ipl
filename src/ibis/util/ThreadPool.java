@@ -151,19 +151,6 @@ public final class ThreadPool {
      * available, it is discarded.
      *
      * @param r the <code>Runnable</code> to be executed.
-     */
-    public static void createNew(Runnable r) {
-        createNew(r, "Anonymous pool thread");
-    }
-
-    /**
-     * Associates a thread from the <code>ThreadPool</code> with the
-     * specified {@link Runnable}. If no thread is available, a new one
-     * is created. When the {@link Runnable} is finished, the thread is
-     * added to the pool of available threads, or, if enough threads are
-     * available, it is discarded.
-     *
-     * @param r the <code>Runnable</code> to be executed.
      * @param name set the thread name for the duration of this run
      */
     public static void createNew(Runnable r, String name) {

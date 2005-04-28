@@ -83,7 +83,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         dummy = new NioReadMessage(null, null, -1);
 
         if (upcall != null) {
-            ThreadPool.createNew(this);
+            ThreadPool.createNew(this, "NioReceivePort with upcall");
         }
 
     }
@@ -291,7 +291,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         if (upcall != null) {
             // this finish was called from an upcall! Create a new thread to
             // fetch the next message (this upcall might not exit for a while)
-            ThreadPool.createNew(this);
+            ThreadPool.createNew(this, "NioReceivePort with upcall");
         }
 
         if (logger.isDebugEnabled()) {
@@ -321,7 +321,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         } else {
             // this finish was called from an upcall! Create a new thread to
             // fetch the next message (this upcall might not exit for a while)
-            ThreadPool.createNew(this);
+            ThreadPool.createNew(this, "NioReceivePort with upcall");
         }
     }
 

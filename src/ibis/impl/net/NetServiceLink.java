@@ -817,7 +817,7 @@ public final class NetServiceLink {
                             requestSubstreamId(name);
                         }
                     };
-                    ThreadPool.createNew(r);
+                    ThreadPool.createNew(r, "SubstreamIdRequester");
                 }
                 break;
 
@@ -829,7 +829,7 @@ public final class NetServiceLink {
                             receiveSubstreamId(id);
                         }
                     };
-                    ThreadPool.createNew(r);
+                    ThreadPool.createNew(r, "SubstreamIdReceiver");
                 }
                 break;
 

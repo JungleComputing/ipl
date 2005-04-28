@@ -168,7 +168,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
              */
             ConnectionHandler h = old.getHandler();
             h.m = new TcpReadMessage(old);
-            ThreadPool.createNew(h);
+            ThreadPool.createNew(h, "Readnessage handler");
         }
     }
 
@@ -512,7 +512,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
             connections[connectionsIndex++] = con;
             if (!no_connectionhandler_thread) {
-                ThreadPool.createNew(con);
+                ThreadPool.createNew(con, "Connection Handler");
             }
 
             connection_setup_present = false;
