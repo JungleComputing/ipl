@@ -1,8 +1,14 @@
-ibis:
-After distribution:
+ipl:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
-    After distribution.
-
+- inconsistent createIbis deprecated
+- createReceivePort javadoc: 
+	- anonymous receiveport possible by giving "null" as a name
+	- uniqueness name not spefied
+- "upcall" should be "messageupcall" wherever relevant (mostly in properties)
+- add receiveports local to an ibis:
+	- PortType.createReceivePort(..., ..., ..., boolean local); ??
+	- Registry.lookupReceivePort(Ibis ibis, String name)
+	
 rmi:
 - check Ibis RMI registry:
   - you don't have to actually start one;
@@ -15,12 +21,20 @@ satin:
 - add comments to abort / inlet machinism
 - als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
 - rob (na distro): check satin caches.
+- shutdownhook -> System.exit
+
+implementations:
+- ibisses use shutdown hooks (should only be done in runtime/ipl app)
+- default serialization Ibis instead of Sun for all implementations
+- sending from a never connected sendport should be possible
+- PandaIbis connection management broken (e.g. connectedTo())
+
 
 general:
-- IBISC maken / fixen
-    after distribution.
+- ibisc
 - run central nameserver on fs0
-
-- System.exit werkt niet goed vanuit Satin.
-  ShutdownHook -> colission met ibis shutdownhook...
-
+- set log4j default log level to "warn" instead of "off"
+- threadpool now fixed size, should be dynamic
+- anonymous threadpool thread creation should not be allowed
+- ant -> ant clean build
+- put ccgrid paper on website

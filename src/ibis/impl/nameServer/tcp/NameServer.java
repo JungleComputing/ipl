@@ -643,8 +643,12 @@ public class NameServer extends Thread implements Protocol {
 
         logger.info("NameServer: exit");
     }
+    
+    public int port() {
+        return serverSocket.getLocalPort();
+    }
 
-    static synchronized NameServer createNameServer(boolean singleRun,
+    public static synchronized NameServer createNameServer(boolean singleRun,
             boolean retry, boolean poolserver, boolean controlhub) {
         if (nameServerCreated) {
             return null;
