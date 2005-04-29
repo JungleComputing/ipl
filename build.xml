@@ -1,11 +1,15 @@
 <project
     name="ibis"
-    default="build"
+    default="default"
     basedir=".">
 
     <description>
 	Top-level Ibis build.
     </description>
+
+    <target name="default"
+	    depends="clean,build">
+    </target>
 
     <target name="usage"
 	    description="Print this message">
@@ -18,7 +22,7 @@
     <property name="ibis"        location="."/>
 
     <property name="ibis-major" value="1"/>
-    <property name="ibis-minor" value="0"/>
+    <property name="ibis-minor" value="1"/>
 
     <property name="ibis-version" value="ibis-${ibis-major}.${ibis-minor}"/>
     <property name="ibis-tag" value="ibis-${ibis-major}-${ibis-minor}"/>
@@ -551,7 +555,6 @@
 	    <fileset dir="${ibis}">
 		<include name="ibis-sys-props"/>
 		<include name="ibis-properties"/>
-		<include name="log4j.properties"/>
 		<include name="properties"/>
 	    </fileset>
 	</copy>
@@ -588,7 +591,7 @@
 	<echo level="verbose" message="basename = ${package-basename}"/>
 	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
 		basedir="${ibis}/build"
-		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties log4j.properties ibis-properties ibis-sys-props VERSION"/>
+		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties ibis-properties ibis-sys-props VERSION"/>
     </target>
 
     <target name="jars"
@@ -598,7 +601,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
-		includes="**/*.class **/properties log4j.properties properties ibis-properties ibis-sys-props VERSION"/>
+		includes="**/*.class **/properties properties ibis-properties ibis-sys-props VERSION"/>
     </target>
 
     <target name="ibis-package-jars">
@@ -886,6 +889,54 @@
 	     cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
 	     cvsRsh="ssh"
 	     tag="${ibis-tag}"
+	     package="ibis"
+	     dest="${distr}"
+	     failonerror="true">
+	</cvs>
+	<delete dir="${distr}/ibis/apps/extra"/>
+	<delete dir="${distr}/ibis/apps/io"/>
+	<delete dir="${distr}/ibis/apps/repmi"/>
+	<delete dir="${distr}/ibis/apps/ibis/traffic"/>
+	<delete dir="${distr}/ibis/apps/ibis/benchmarks/new"/>
+	<delete dir="${distr}/ibis/apps/ibis/benchmarks/ping"/>
+	<delete dir="${distr}/ibis/apps/ibis/benchmarks/throughput"/>
+	<delete dir="${distr}/ibis/apps/ibis/benchmarks/timer"/>
+	<delete file="${distr}/ibis/apps/run-all"/>
+	<delete file="${distr}/ibis/apps/get-plot.perl"/>
+	<delete file="${distr}/ibis/apps/get-speedup.perl"/>
+	<delete file="${distr}/ibis/TODO"/>
+	<delete file="${distr}/ibis/DISCUSSION_TOPICS"/>
+	<delete file="${distr}/ibis/src/scripts/csim_run_ibis"/>
+	<delete file="${distr}/ibis/src/scripts/csim_run_ibis_tcp"/>
+	<delete file="${distr}/ibis/src/scripts/run_ibis"/>
+	<delete file="${distr}/ibis/src/scripts/run_ibis_wide_area"/>
+	<delete file="${distr}/ibis/src/scripts/run-das"/>
+	<delete file="${distr}/ibis/src/scripts/ibis-prun"/>
+	<delete file="${distr}/ibis/src/scripts/ibis_nameserver"/>
+	<delete file="${distr}/ibis/src/scripts/cluster_wrapper"/>
+	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
+	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
+	<move todir="${distr}/${ibis-version}">
+	    <fileset dir="${distr}/ibis">
+	    </fileset>
+	</move>
+	<!--
+	  Cannot use the zip task: it strips file permissions.
+	<zip destfile="${ibis-version}-src-distr.zip"
+	</zip>
+	-->
+	<exec executable="/usr/bin/zip"
+	      dir="${distr}">
+	    <arg line="-qr ${ibis}/${ibis-version}-src-distr.zip ${ibis-version}"/>
+	</exec>
+    </target>
+
+    <target name="test-distr">
+	<delete dir="${distr}"/>
+	<mkdir dir="${distr}"/>
+	<cvs command="checkout -P"
+	     cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
+	     cvsRsh="ssh"
 	     package="ibis"
 	     dest="${distr}"
 	     failonerror="true">

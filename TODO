@@ -1,10 +1,5 @@
 ipl:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
-- inconsistent createIbis deprecated
-- createReceivePort javadoc: 
-	- anonymous receiveport possible by giving "null" as a name
-	- uniqueness name not spefied
-- "upcall" should be "messageupcall" wherever relevant (mostly in properties)
 - add receiveports local to an ibis:
 	- PortType.createReceivePort(..., ..., ..., boolean local); ??
 	- Registry.lookupReceivePort(Ibis ibis, String name)
@@ -25,16 +20,11 @@ satin:
 
 implementations:
 - ibisses use shutdown hooks (should only be done in runtime/ipl app)
-- default serialization Ibis instead of Sun for all implementations
-- sending from a never connected sendport should be possible
 - PandaIbis connection management broken (e.g. connectedTo())
-
+  (who reported this? Please check if this is still actual ... I placed locks
+   in them .... Ceriel)
 
 general:
 - ibisc
 - run central nameserver on fs0
-- set log4j default log level to "warn" instead of "off"
 - threadpool now fixed size, should be dynamic
-- anonymous threadpool thread creation should not be allowed
-- ant -> ant clean build
-- put ccgrid paper on website
