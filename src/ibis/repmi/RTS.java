@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 
 public final class RTS {
 
-    public static Logger logger = Logger.getLogger(RTS.class.getName());
+    public static Logger logger = ibis.util.GetLogger.getLogger(RTS.class.getName());
 
     public static int _rank;
 

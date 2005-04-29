@@ -33,7 +33,7 @@ public class IPUtils {
 
     private static InetAddress detected = null;
 
-    static Logger logger = Logger.getLogger(IPUtils.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(IPUtils.class.getName());
 
     private IPUtils() {
         /* do nothing */

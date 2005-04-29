@@ -130,7 +130,8 @@ public class NameServer extends Thread implements Protocol {
 
     private static ControlHub h = null;
 
-    static Logger logger = Logger.getLogger(NameServer.class.getName());
+    static Logger logger = 
+            ibis.util.GetLogger.getLogger(NameServer.class.getName());
 
     private NameServer(boolean singleRun, boolean poolserver,
             boolean controlhub) throws IOException {

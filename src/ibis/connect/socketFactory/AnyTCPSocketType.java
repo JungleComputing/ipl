@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
 public class AnyTCPSocketType extends SocketType implements
         BrokeredSocketFactory {
 
-    static Logger logger = Logger.getLogger(AnyTCPSocketType.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(AnyTCPSocketType.class.getName());
 
     private static class ServerInfo implements Runnable {
         ServerSocket server;

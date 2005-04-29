@@ -18,6 +18,7 @@ import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
 import ibis.util.Ticket;
 import ibis.util.TypedProperties;
+import ibis.util.GetLogger;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -33,7 +34,8 @@ import org.apache.log4j.Logger;
  */
 public final class Group implements GroupProtocol {
 
-    public static Logger logger = Logger.getLogger(Group.class.getName());
+    public static Logger logger
+            = GetLogger.getLogger(Group.class.getName());
      
     /** Ibis rank number in this run. */
     static int _rank;

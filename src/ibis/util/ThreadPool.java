@@ -37,7 +37,7 @@ public final class ThreadPool {
     // pool we are going to need a separate lock
     private static final Object lock = new Object();
 
-    static Logger logger = Logger.getLogger(ThreadPool.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(ThreadPool.class.getName());
 
     /**
      * Double the pool size. Currently unused, but if we ever want to make a

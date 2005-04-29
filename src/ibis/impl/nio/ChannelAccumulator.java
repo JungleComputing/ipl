@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
  */
 public final class ChannelAccumulator extends DataOutputStream {
 
-    private static Logger logger = Logger.getLogger(ChannelAccumulator.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(ChannelAccumulator.class);
 
     public static final int SIZEOF_BYTE = 1;
 

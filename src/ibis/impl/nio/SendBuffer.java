@@ -67,7 +67,7 @@ final class SendBuffer implements Config {
 
     static int cacheSize = 0;
 
-    private static Logger logger = Logger.getLogger(SendBuffer.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(SendBuffer.class);
 
     /**
      * Static method to get a sendbuffer out of the cache

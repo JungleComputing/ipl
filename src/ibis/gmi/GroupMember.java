@@ -17,7 +17,7 @@ public class GroupMember {
     public int groupID;
 
     protected static Logger logger
-            = Logger.getLogger(GroupMember.class.getName());
+            = ibis.util.GetLogger.getLogger(GroupMember.class.getName());
 
     /** Skeleton identifications of all group members. */
     public int[] memberSkels;

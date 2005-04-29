@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
  */
 public class HubLink extends Thread {
 
-    static Logger logger = Logger.getLogger(HubLink.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(HubLink.class.getName());
 
     private HubProtocol.HubWire wire;
 

@@ -12,7 +12,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 
     static final int LOST_CONNECTION_SIZE = 8;
 
-    private static Logger logger = Logger.getLogger(ThreadNioAccumulator.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(ThreadNioAccumulator.class);
 
     NioSendPort port;
 

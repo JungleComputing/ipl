@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         Protocol {
 
-    private static Logger logger = Logger.getLogger(NioReceivePort.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(NioReceivePort.class);
 
     protected NioPortType type;
 

@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 class NioAccumulatorConnection implements Config {
     static final int MAX_SEND_BUFFERS = 32;
 
-    private static Logger logger = Logger
+    private static Logger logger = ibis.util.GetLogger
             .getLogger(NioAccumulatorConnection.class);
 
     GatheringByteChannel channel;

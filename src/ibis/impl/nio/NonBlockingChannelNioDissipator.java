@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 final class NonBlockingChannelNioDissipator extends NioDissipator implements
         Config {
 
-    private static Logger logger = Logger
+    private static Logger logger = ibis.util.GetLogger
             .getLogger(NonBlockingChannelNioDissipator.class);
 
     Selector selector;

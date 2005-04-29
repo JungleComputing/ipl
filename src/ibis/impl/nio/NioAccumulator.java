@@ -40,7 +40,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
 
     static final int INITIAL_CONNECTIONS_SIZE = 8;
 
-    private static Logger logger = Logger.getLogger(NioAccumulator.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(NioAccumulator.class);
 
     private SendBuffer buffer;
 

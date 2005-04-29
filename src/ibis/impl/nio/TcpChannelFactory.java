@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
  */
 class TcpChannelFactory implements ChannelFactory, Protocol {
 
-    private static Logger logger = Logger.getLogger(TcpChannelFactory.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(TcpChannelFactory.class);
 
     // Server socket Channel we listen for new connection on
     private ServerSocketChannel ssc;

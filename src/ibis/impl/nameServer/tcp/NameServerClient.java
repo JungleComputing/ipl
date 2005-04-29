@@ -60,7 +60,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     static IbisSocketFactory socketFactory = IbisSocketFactory.createFactory();
 
     private static Logger logger
-            = Logger.getLogger(NameServerClient.class.getName());
+            = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
 
     static Socket nsConnect(InetAddress dest, int port, InetAddress me,
             boolean verbose, int timeout) throws IOException {

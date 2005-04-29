@@ -21,7 +21,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
         Config {
     static final int INITIAL_DISSIPATOR_SIZE = 8;
 
-    private static Logger logger = Logger
+    private static Logger logger = ibis.util.GetLogger
             .getLogger(BlockingChannelNioReceivePort.class);
 
     private BlockingChannelNioDissipator[] connections;

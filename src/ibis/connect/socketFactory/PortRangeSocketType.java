@@ -21,7 +21,7 @@ public class PortRangeSocketType extends SocketType implements
         ClientServerSocketFactory, BrokeredSocketFactory {
 
     static Logger logger
-            = Logger.getLogger(PortRangeSocketType.class.getName());
+            = ibis.util.GetLogger.getLogger(PortRangeSocketType.class.getName());
 
     private static int portNumber;
 

@@ -37,7 +37,7 @@ public class PoolInfoServer extends Thread {
      */
     public static final int POOL_INFO_PORT = 9827;
 
-    static Logger logger = Logger.getLogger(PoolInfoServer.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(PoolInfoServer.class.getName());
 
     static class RunInfo {
         int total_hosts;

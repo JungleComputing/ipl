@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 
 final class BlockingChannelNioAccumulator extends NioAccumulator {
 
-    private static Logger logger = Logger
+    private static Logger logger = ibis.util.GetLogger
             .getLogger(BlockingChannelNioAccumulator.class);
 
     private final NioSendPort port;

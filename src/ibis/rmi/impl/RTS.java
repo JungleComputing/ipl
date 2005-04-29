@@ -25,6 +25,7 @@ import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
 import ibis.util.IPUtils;
+import ibis.util.GetLogger;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
 
@@ -43,7 +44,7 @@ public final class RTS {
 
     static final String[] props = { s_timer };
 
-    public static Logger logger = Logger.getLogger(RTS.class.getName());
+    public static Logger logger = GetLogger.getLogger(RTS.class.getName());
 
     /** Sent when a remote invocation resulted in an exception. */
     public final static byte EXCEPTION = 0;

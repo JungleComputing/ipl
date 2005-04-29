@@ -32,7 +32,7 @@ public final class NioIbis extends Ibis implements Config {
 
     static final String[] unchecked = { s_spi + ".", s_rpi + "." };
 
-    private static Logger logger = Logger.getLogger(NioIbis.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(NioIbis.class);
 
     private NioIbisIdentifier identifier;
 

@@ -41,7 +41,7 @@ class NioPortType extends PortType implements Config {
     static final String[] IMPLEMENTATION_NAMES = { "Blocking", "Non Blocking",
             "Thread" };
 
-    private static Logger logger = Logger.getLogger(NioPortType.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(NioPortType.class);
 
     byte sendPortImplementation;
 

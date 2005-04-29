@@ -21,7 +21,7 @@ final class SendReceiveThread implements Runnable, Config {
 
     static final int INITIAL_ARRAY_SIZE = 8;
 
-    private static Logger logger = Logger.getLogger(SendReceiveThread.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(SendReceiveThread.class);
 
     private ArrayList pendingChannels = new ArrayList();
 

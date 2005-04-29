@@ -65,7 +65,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
 
     protected static final int SIZEOF_HEADER = 16;
 
-    private static Logger logger = Logger.getLogger(NioDissipator.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(NioDissipator.class);
 
     /**
      * Circular buffer used for holding data. It contains "currently in use" (by

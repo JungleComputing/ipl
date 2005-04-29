@@ -18,7 +18,7 @@ import java.net.Socket;
 import org.apache.log4j.Logger;
 
 public class Splice {
-    static Logger logger = Logger.getLogger(Splice.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(Splice.class.getName());
 
     static int serverPort = TypedProperties.intProperty(ConnectionProperties.splice_port,
             20246);

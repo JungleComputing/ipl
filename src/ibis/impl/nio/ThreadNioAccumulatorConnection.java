@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
         implements Config {
 
-    private static Logger logger = Logger
+    private static Logger logger = ibis.util.GetLogger
             .getLogger(ThreadNioAccumulatorConnection.class);
 
     boolean sending = false;

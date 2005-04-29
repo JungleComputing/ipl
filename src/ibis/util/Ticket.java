@@ -22,7 +22,7 @@ public class Ticket {
      */
     private final static int INIT_SIZE = 16;
 
-    static Logger logger = Logger.getLogger(Ticket.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(Ticket.class.getName());
 
     /**
      * Bucket associated with a ticket. It contains room for the object

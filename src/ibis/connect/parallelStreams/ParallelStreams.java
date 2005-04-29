@@ -21,7 +21,7 @@ public class ParallelStreams {
 
     public static final int defaultBlockSize = 1460;
 
-    static Logger logger = Logger.getLogger(ParallelStreams.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(ParallelStreams.class.getName());
 
     private int numWays = -1;
 

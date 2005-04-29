@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 public class HubLinkFactory {
     private static HubLink hub = null;
 
-    static Logger logger = Logger.getLogger(HubLinkFactory.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(HubLinkFactory.class.getName());
 
     private static boolean closed = false;
 

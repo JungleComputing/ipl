@@ -34,7 +34,7 @@ public abstract class IbisSocketFactory {
             outbufsize, rng };
 
     protected static Logger logger
-            = Logger.getLogger(IbisSocketFactory.class.getName());
+            = ibis.util.GetLogger.getLogger(IbisSocketFactory.class.getName());
 
     private static String DEFAULT_SOCKET_FACTORY
             = "ibis.impl.util.IbisConnectSocketFactory";

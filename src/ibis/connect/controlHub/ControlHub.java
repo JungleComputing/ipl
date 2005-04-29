@@ -185,7 +185,7 @@ public class ControlHub extends Thread {
 
     private static Map portNodeMap = new Hashtable();
 
-    public static Logger logger = Logger.getLogger(ControlHub.class.getName());
+    public static Logger logger = ibis.util.GetLogger.getLogger(ControlHub.class.getName());
 
     private static int nodesNum = 0;
 

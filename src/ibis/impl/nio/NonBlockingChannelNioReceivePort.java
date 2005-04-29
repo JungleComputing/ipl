@@ -22,7 +22,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
         Config {
     static final int INITIAL_ARRAY_SIZE = 8;
 
-    private static Logger logger = Logger
+    private static Logger logger = ibis.util.GetLogger
             .getLogger(NonBlockingChannelNioReceivePort.class);
 
     private NonBlockingChannelNioDissipator[] connections;

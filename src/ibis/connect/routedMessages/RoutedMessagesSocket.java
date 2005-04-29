@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 public class RoutedMessagesSocket extends IbisSocket {
 
     static Logger logger
-            = Logger.getLogger(RoutedMessagesSocket.class.getName());
+            = ibis.util.GetLogger.getLogger(RoutedMessagesSocket.class.getName());
 
     HubLink hub = null;
 

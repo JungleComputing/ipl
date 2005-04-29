@@ -19,7 +19,7 @@ public class RegistryImpl implements Registry {
 
     static int port = 0;
 
-    static Logger logger = Logger.getLogger(RegistryImpl.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(RegistryImpl.class.getName());
 
     private String localhostName() {
         String hostname = null;

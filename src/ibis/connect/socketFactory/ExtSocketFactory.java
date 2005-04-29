@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
  -- brokered connections through a control link
  */
 public class ExtSocketFactory {
-    static Logger logger = Logger.getLogger(ExtSocketFactory.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(ExtSocketFactory.class.getName());
 
     /** Vector of SocketTypes in the order of preference
      * for the current strategy.

@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 
 public final class NioSendPort implements SendPort, Config, Protocol {
 
-    private static Logger logger = Logger.getLogger(NioSendPort.class);
+    private static Logger logger = ibis.util.GetLogger.getLogger(NioSendPort.class);
 
     final NioPortType type;
 

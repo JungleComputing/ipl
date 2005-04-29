@@ -30,7 +30,7 @@ class ReceivePortNameServerClient implements Protocol {
     InetAddress localAddress;
 
     private static Logger logger
-            = Logger.getLogger(ReceivePortNameServerClient.class.getName());
+            = ibis.util.GetLogger.getLogger(ReceivePortNameServerClient.class.getName());
 
     ReceivePortNameServerClient(InetAddress localAddress, InetAddress server,
             int port) {

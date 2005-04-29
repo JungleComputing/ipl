@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
 final class GroupRegistry implements GroupProtocol {
 
     private static Logger logger
-            = Logger.getLogger(GroupRegistry.class.getName());
+            = ibis.util.GetLogger.getLogger(GroupRegistry.class.getName());
 
     /** Hash table for the groups. */
     private Hashtable groups;

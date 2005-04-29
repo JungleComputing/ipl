@@ -24,7 +24,7 @@ public class TCPSpliceSocketType extends SocketType implements
         BrokeredSocketFactory {
 
     static Logger logger
-            = Logger.getLogger(TCPSpliceSocketType.class.getName());
+            = ibis.util.GetLogger.getLogger(TCPSpliceSocketType.class.getName());
 
     public TCPSpliceSocketType() {
         super("TCPSplice");

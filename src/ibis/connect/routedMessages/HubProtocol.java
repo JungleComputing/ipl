@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
  * manager and the ControlHub itself.
  */
 public class HubProtocol {
-    static Logger logger = Logger.getLogger(HubProtocol.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(HubProtocol.class.getName());
 
     /** Connection request. */
     public static final int CONNECT = 1;
@@ -58,7 +58,7 @@ public class HubProtocol {
     }
 
     public static class HubWire {
-        static Logger logger = Logger.getLogger(HubWire.class.getName());
+        static Logger logger = ibis.util.GetLogger.getLogger(HubWire.class.getName());
         
         private Socket socket;
 
