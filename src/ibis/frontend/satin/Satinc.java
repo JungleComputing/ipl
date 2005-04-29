@@ -135,6 +135,8 @@ public final class Satinc {
 
     String classname;
 
+    String packageName;
+
     Object compiler;
 
     boolean inletOpt;
@@ -255,6 +257,8 @@ public final class Satinc {
             System.out.println("class " + classname + " not found");
             System.exit(1);
         }
+
+        packageName = c.getPackageName();
 
         gen_c = new ClassGen(c);
         cpg = gen_c.getConstantPool();
@@ -2030,7 +2034,7 @@ public final class Satinc {
         try {
             out.println("import ibis.satin.impl.*;");
 
-            out.println("final class " + name
+            out.println("public final class " + name
                     + " extends ibis.satin.impl.LocalRecord {");
             out.println("    private static " + name + " cache;");
             out.println("    private " + name + " cacheNext;");
@@ -2047,7 +2051,7 @@ public final class Satinc {
             Type[] params = mtab.typesOfParams(m);
 
             // ctor 
-            out.print("    " + name + "(");
+            out.print("    public " + name + "(");
 
             for (int i = 0; i < params.length; i++) {
                 String paramName = MethodTable.getParamName(m, i);
@@ -2073,7 +2077,7 @@ public final class Satinc {
             out.println("    }\n");
 
             // cache
-            out.print("    static " + name + " getNew(");
+            out.print("    public static " + name + " getNew(");
 
             for (int i = 0; i < params.length; i++) {
                 String paramName = MethodTable.getParamName(m, i);
@@ -2117,7 +2121,7 @@ public final class Satinc {
             out.println("    }\n");
 
             // delete
-            out.println("    static void delete(" + name + " curr) {");
+            out.println("    public static void delete(" + name + " curr) {");
 
             // wipe fields for gc
             Type[] ltypes = MethodTable.getAllLocalTypes(m);
@@ -2203,7 +2207,7 @@ public final class Satinc {
 
             out.println("import ibis.satin.impl.*;\n");
             out.println("import ibis.satin.*;\n");
-            out.println("final class " + name + " extends InvocationRecord {");
+            out.println("public final class " + name + " extends InvocationRecord {");
 
             // fields 
             out.println("    " + clname + " self;");
@@ -2214,9 +2218,9 @@ public final class Satinc {
 
             // result 
             if (!returnType.equals(Type.VOID)) {
-                out.println("    transient " + returnType + " result;");
-                out.println("    transient int index;");
-                out.println("    transient " + returnType + "[] array;");
+                out.println("    public transient " + returnType + " result;");
+                out.println("    public transient int index;");
+                out.println("    public transient " + returnType + "[] array;");
             }
 
             if (invocationRecordCache) {
@@ -2225,7 +2229,7 @@ public final class Satinc {
             out.println();
 
             // ctor 
-            out.print("    " + name + "(");
+            out.print("    public " + name + "(");
             out.print(clname + " self, ");
             for (int i = 0; i < params_types_as_names.length; i++) {
                 out.print(params_types_as_names[i] + " param" + i + ", ");
@@ -2243,7 +2247,7 @@ public final class Satinc {
             out.println("    }\n");
 
             // getNew method 
-            out.print("    static " + name + " getNew(");
+            out.print("    public static " + name + " getNew(");
             out.print(clname + " self, ");
             for (int i = 0; i < params_types_as_names.length; i++) {
                 out.print(params_types_as_names[i] + " param" + i + ", ");
@@ -2291,7 +2295,7 @@ public final class Satinc {
 
             // getNew method for arrays 
             if (!returnType.equals(Type.VOID)) {
-                out.print("    static " + name + " getNewArray(");
+                out.print("    public static " + name + " getNewArray(");
                 out.print(returnType + "[] array, int index, ");
                 out.print(clname + " self, ");
                 for (int i = 0; i < params_types_as_names.length; i++) {
@@ -2313,7 +2317,7 @@ public final class Satinc {
             }
 
             // static delete method 
-            out.println("    static void delete(" + name + " w) {");
+            out.println("    public static void delete(" + name + " w) {");
             if (invocationRecordCache) {
                 if (!returnType.equals(Type.VOID)) {
                     out.println("        w.array = null;");
@@ -2579,13 +2583,13 @@ public final class Satinc {
 
             out.println("import ibis.satin.*;\n");
             out.println("import ibis.satin.impl.*;\n");
-            out.println("final class " + name + " extends ReturnRecord {");
+            out.println("public final class " + name + " extends ReturnRecord {");
             if (!returnType.equals(Type.VOID)) {
                 out.println("    " + returnType + " result;\n");
             }
 
             // ctor 
-            out.print("    " + name + "(");
+            out.print("    public " + name + "(");
             if (!returnType.equals(Type.VOID)) {
                 out.println(returnType
                         + " result, Throwable eek, int stamp) {");
@@ -2636,7 +2640,7 @@ public final class Satinc {
 
         out.println("import ibis.satin.*;\n");
         out.println("import ibis.satin.impl.*;\n");
-        out.println("final class " + name
+        out.println("public final class " + name
                 + " extends ibis.satin.impl.ParameterRecord {");
 
         //fields
@@ -2647,7 +2651,7 @@ public final class Satinc {
         out.println();
 
         //constructor
-        out.print("    " + name + "(");
+        out.print("    public " + name + "(");
         for (int i = 0; i < params.length - 1; i++) {
             out.print(params_types_as_names[i] + " param" + i + ",");
         }
@@ -2846,7 +2850,7 @@ public final class Satinc {
         out.println("import ibis.satin.*;\n");
         out.println("import ibis.satin.impl.*;\n");
      
-        out.println("final class " + name
+        out.println("public final class " + name
                 + " extends ibis.satin.impl.ResultRecord {");
         if (! returnType.equals(Type.VOID)) {
             out.println("    " + returnType + " result;\n");
