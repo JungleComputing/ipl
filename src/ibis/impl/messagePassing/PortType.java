@@ -39,7 +39,7 @@ public class PortType extends ibis.ipl.PortType {
             this.p.add("Serialization", "bytes");
             serializationType = SERIALIZATION_NONE;
         } else if (ser.equals("object")) {
-            serializationType = SERIALIZATION_SUN;
+            serializationType = SERIALIZATION_IBIS;
         } else if (ser.equals("byte")) {
             serializationType = SERIALIZATION_NONE;
         } else if (ser.equals("sun")) {

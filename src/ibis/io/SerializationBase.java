@@ -118,11 +118,11 @@ public class SerializationBase {
      * @return the implementation name.
      */
     private static String implName(String name) {
-        if (name == null || name.equals("sun") || name.equals("object")) {
-            return "ibis.io.SunSerialization";
-        }
-        if (name.equals("ibis")) {
+        if (name == null || name.equals("ibis") || name.equals("object")) {
             return "ibis.io.IbisSerialization";
+        }
+        if (name.equals("sun")) {
+            return "ibis.io.SunSerialization";
         }
         if (name.equals("data")) {
             return "ibis.io.DataSerialization";
