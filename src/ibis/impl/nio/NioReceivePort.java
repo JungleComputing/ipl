@@ -12,6 +12,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
+import ibis.util.GetLogger;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -24,7 +25,7 @@ import org.apache.log4j.Logger;
 abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         Protocol {
 
-    private static Logger logger = ibis.util.GetLogger.getLogger(NioReceivePort.class);
+    private static Logger logger = GetLogger.getLogger(NioReceivePort.class);
 
     protected NioPortType type;
 

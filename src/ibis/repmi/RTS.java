@@ -10,6 +10,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.util.GetLogger;
 import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
 
@@ -20,7 +21,7 @@ import org.apache.log4j.Logger;
 
 public final class RTS {
 
-    public static Logger logger = ibis.util.GetLogger.getLogger(RTS.class.getName());
+    public static Logger logger = GetLogger.getLogger(RTS.class.getName());
 
     public static int _rank;
 

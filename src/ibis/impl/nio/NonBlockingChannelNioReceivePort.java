@@ -7,6 +7,7 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
+import ibis.util.GetLogger;
 
 import java.io.IOException;
 import java.nio.channels.Channel;
@@ -22,7 +23,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
         Config {
     static final int INITIAL_ARRAY_SIZE = 8;
 
-    private static Logger logger = ibis.util.GetLogger
+    private static Logger logger = GetLogger
             .getLogger(NonBlockingChannelNioReceivePort.class);
 
     private NonBlockingChannelNioDissipator[] connections;

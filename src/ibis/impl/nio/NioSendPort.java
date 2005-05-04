@@ -12,6 +12,7 @@ import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
+import ibis.util.GetLogger;
 
 import java.io.IOException;
 import java.nio.channels.Channel;
@@ -22,7 +23,7 @@ import org.apache.log4j.Logger;
 
 public final class NioSendPort implements SendPort, Config, Protocol {
 
-    private static Logger logger = ibis.util.GetLogger.getLogger(NioSendPort.class);
+    private static Logger logger = GetLogger.getLogger(NioSendPort.class);
 
     final NioPortType type;
 

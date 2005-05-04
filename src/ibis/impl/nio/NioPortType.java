@@ -16,6 +16,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
+import ibis.util.GetLogger;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -41,7 +42,7 @@ class NioPortType extends PortType implements Config {
     static final String[] IMPLEMENTATION_NAMES = { "Blocking", "Non Blocking",
             "Thread" };
 
-    private static Logger logger = ibis.util.GetLogger.getLogger(NioPortType.class);
+    private static Logger logger = GetLogger.getLogger(NioPortType.class);
 
     byte sendPortImplementation;
 
