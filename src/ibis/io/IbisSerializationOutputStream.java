@@ -644,7 +644,7 @@ public class IbisSerializationOutputStream
             }
             return;
         }
-        int hashCode = references.getHashCode(ref);
+        int hashCode = HandleHash.getHashCode(ref);
         int handle = references.find(ref, hashCode);
         if (handle == 0) {
             handle = next_handle++;
@@ -1385,7 +1385,7 @@ public class IbisSerializationOutputStream
         if (replacer != null) {
             ref = replacer.replace(ref);
         }
-        int hashCode = references.getHashCode(ref);
+        int hashCode = HandleHash.getHashCode(ref);
         int handle = references.find(ref, hashCode);
 
         if (handle == 0) {

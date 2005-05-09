@@ -13,8 +13,6 @@ import ibis.io.Conversion;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;
 import ibis.ipl.IbisError;
-import ibis.ipl.IbisIOException;
-
 import java.io.IOException;
 import java.io.InputStream;
 

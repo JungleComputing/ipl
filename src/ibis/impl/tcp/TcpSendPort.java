@@ -11,7 +11,6 @@ import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Replacer;

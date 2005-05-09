@@ -17,7 +17,6 @@ import ibis.ipl.WriteMessage;
 import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
 import ibis.util.Ticket;
-import ibis.util.TypedProperties;
 import ibis.util.GetLogger;
 
 import java.io.IOException;
