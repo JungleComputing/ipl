@@ -31,11 +31,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
             owner = (IbisIdentifier) m.readObject();
             // m.finish();
         } catch (IOException e) {
-            abortLogger.fatal("blablaSATIN '" + satin.ident
+            abortLogger.fatal("SATIN '" + satin.ident
                     + "': got exception while reading job result: " + e, e);
             System.exit(1);
         } catch (ClassNotFoundException e1) {
-            abortLogger.fatal("blablaSATIN '" + satin.ident
+            abortLogger.fatal("SATIN '" + satin.ident
                     + "': got exception while reading job result: " + e1, e1);
             System.exit(1);
         }
@@ -99,12 +99,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
             }
             // m.finish();
         } catch (IOException e) {
-            spawnLogger.fatal("blablaSATIN '" + satin.ident
+            spawnLogger.fatal("SATIN '" + satin.ident
                     + "': got exception while reading job result: " + e
                     + opcode, e);
             System.exit(1);
         } catch (ClassNotFoundException e1) {
-            spawnLogger.fatal("blablaSATIN '" + satin.ident
+            spawnLogger.fatal("SATIN '" + satin.ident
                     + "': got exception while reading job result: " + e1
                     + opcode, e1);
             System.exit(1);
