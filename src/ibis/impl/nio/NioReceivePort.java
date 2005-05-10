@@ -231,13 +231,13 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             synchronized (this) {
                 m = null; // give up the lock
             }
-            logger.error("!timeout while waiting on dissipator with message");
+            logger.debug("timeout while waiting on dissipator with message");
             throw e;
         } catch (ConnectionClosedException e) {
             synchronized (this) {
                 m = null; // give up the lock
             }
-            logger.error("receiveport closed while waiting on message");
+            logger.debug("receiveport closed while waiting on message");
             throw e;
         }
 
