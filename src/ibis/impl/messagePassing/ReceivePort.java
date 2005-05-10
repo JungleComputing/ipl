@@ -657,6 +657,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
                     + "******** enter ReceivePort.receive()" + ident);
         }
         while (aMessageIsAlive && !stop) {
+            if (! block) {
+                return null;
+            }
             liveWaiters++;
             if (DEBUG) {
                 System.err.println(Thread.currentThread()
@@ -686,6 +689,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
         while (queueFront == null) {
             if (!block) {
+                aMessageIsAlive = false;
                 return null;
             }
 
