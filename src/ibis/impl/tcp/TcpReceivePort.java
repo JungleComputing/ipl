@@ -326,7 +326,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         allowUpcalls = false;
     }
 
-    public ReadMessage poll() {
+    public ReadMessage poll() throws IOException {
+        if (! type.p.isProp("communication", "Poll")) {
+            throw new IOException("Receiveport not configured for polls");
+        }
         if (upcall != null) {
             Thread.yield();
             return null;
