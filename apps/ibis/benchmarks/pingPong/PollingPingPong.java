@@ -123,7 +123,7 @@ static class ExplicitReceiver  {
                 s.add("Serialization", "ibis");
 
             s.add("Communication",
-                    "OneToOne, Reliable, ExplicitReceipt");
+                    "Poll, OneToOne, Reliable, ExplicitReceipt");
             s.add("worldmodel", "closed");
             ibis = Ibis.createIbis(s, null);
 
