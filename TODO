@@ -19,10 +19,12 @@ satin:
 - shutdownhook -> System.exit
 
 implementations:
-- ibisses use shutdown hooks (should only be done in runtime/ipl app)
 - PandaIbis connection management broken (e.g. connectedTo())
   (who reported this? Please check if this is still actual ... I placed locks
    in them .... Ceriel)
+- nameserver: should not be a daemon thread, but then, if it is not, shutdown
+  hooks don't get executed. Rather, nameserver should be a separate process,
+  not just a thread.
 
 general:
 - ibisc

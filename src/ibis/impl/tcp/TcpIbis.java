@@ -65,11 +65,13 @@ public final class TcpIbis extends Ibis implements Config {
     }
 
     public TcpIbis() {
+        /*
         try {
             Runtime.getRuntime().addShutdownHook(new TcpShutdown());
         } catch (Exception e) {
             System.err.println("Warning: could not register tcp shutdown hook");
         }
+        */
     }
 
     protected PortType newPortType(String nm, StaticProperties p)

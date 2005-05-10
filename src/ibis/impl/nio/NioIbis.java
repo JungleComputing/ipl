@@ -60,11 +60,13 @@ public final class NioIbis extends Ibis implements Config {
 
     public NioIbis() throws IbisException {
         TypedProperties.checkProperties(prefix, properties, unchecked);
+        /*
         try {
             Runtime.getRuntime().addShutdownHook(new NioShutdown());
         } catch (Exception e) {
             logger.error("could not register nio shutdown hook");
         }
+        */
     }
 
     synchronized protected PortType newPortType(String name, StaticProperties p)

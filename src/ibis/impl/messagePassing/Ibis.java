@@ -219,7 +219,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
         /*
          * This is an 1.3 feature; cannot we use it please?
-         */
         Runtime.getRuntime().addShutdownHook(
                 new Thread("MP Ibis ShutdownHook") {
                     public void run() {
@@ -231,7 +230,7 @@ public class Ibis extends ibis.ipl.Ibis {
                         }
                     }
                 });
-        /* */
+        */
 
         ident = new IbisIdentifier(name + "@" + myCpu, myCpu);
 
