@@ -744,6 +744,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     }
 
     public ibis.ipl.ReadMessage poll() throws IOException {
+        if (! type.properties().isProp("communication", "Poll")) {
+            throw new IOException("ReceivePort not configured for poll");
+        }
         return receive(false);
     }
 
