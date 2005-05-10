@@ -239,9 +239,9 @@ public final class GmPoller extends NetPoller {
             } while (interrupted);
 
             if (result == -1) {
-                if (block) {
-                    System.err.println("poll failed");
-                }
+//                if (block) {
+//                    System.err.println("poll failed");
+//                }
                 return null;
             }
 

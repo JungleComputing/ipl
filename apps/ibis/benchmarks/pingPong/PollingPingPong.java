@@ -33,6 +33,7 @@ static class Sender {
 		    readMessage = rport.poll();
 		}
                 readMessage.finish();
+//		System.err.print(".");
             }
 
             time = System.currentTimeMillis() - time;
