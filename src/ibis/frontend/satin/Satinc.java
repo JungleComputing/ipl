@@ -1367,7 +1367,9 @@ public final class Satinc {
             }
         }
 
-        initSpawnTargets(il);
+        if (! mtab.containsInlet(m)) {
+            initSpawnTargets(il);
+        }
     }
 
     InstructionHandle pushParams(InstructionList il, Method m) {
