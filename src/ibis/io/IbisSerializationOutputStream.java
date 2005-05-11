@@ -649,6 +649,9 @@ public class IbisSerializationOutputStream
         if (handle == 0) {
             handle = next_handle++;
             references.put(ref, handle, hashCode);
+            if (DEBUG) {
+                dbPrint("writeClass: references[" + handle + "] = " + ref);
+            }
             writeType(java.lang.Class.class);
             writeUTF(ref.getName());
         } else {
@@ -1400,6 +1403,9 @@ public class IbisSerializationOutputStream
             } else {
                 handle = next_handle++;
                 references.put(ref, handle, hashCode);
+                if (DEBUG) {
+                    dbPrint("doWriteObject: references[" + handle + "] = " + ref);
+                }
                 writeType(clazz);
                 if (clazz == java.lang.String.class) {
                     /* EEK this is not nice !! */

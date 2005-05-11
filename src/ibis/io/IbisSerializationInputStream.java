@@ -1495,6 +1495,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         Object o = t.newInstance();
 
         if (o != null) {
+            addObjectToCycleCheck(o);
             return o;
         }
 
@@ -1709,7 +1710,6 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             // obj = t.clazz.newInstance(); Not correct:
             // calls wrong constructor.
             obj = create_uninitialized_object(t.clazz);
-            addObjectToCycleCheck(obj);
             push_current_object(obj, 0);
             try {
                 alternativeReadObject(t.altInfo, obj);
