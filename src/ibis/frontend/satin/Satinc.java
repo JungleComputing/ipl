@@ -171,7 +171,7 @@ public final class Satinc {
     }
 
     private static class StoreClass {
-        Instruction store;
+        InstructionList store;
 
         InstructionList load; // for putfield 
 
@@ -179,7 +179,7 @@ public final class Satinc {
 
         JavaClass cl;
 
-        StoreClass(Instruction store, InstructionList load, Method target,
+        StoreClass(InstructionList store, InstructionList load, Method target,
                 JavaClass cl) {
             this.store = store;
             this.target = target;
@@ -566,7 +566,7 @@ public final class Satinc {
         return i;
     }
 
-    int allocateId(Instruction storeIns, InstructionList loadIns,
+    int allocateId(InstructionList storeIns, InstructionList loadIns,
             Method target, JavaClass cl) {
         StoreClass s = new StoreClass(storeIns, loadIns, target, cl);
 
@@ -579,7 +579,7 @@ public final class Satinc {
         return id;
     }
 
-    Instruction getStoreIns(int id) {
+    InstructionList getStoreIns(int id) {
         return ((StoreClass) idTable.get(id)).store;
     }
 
@@ -735,44 +735,44 @@ public final class Satinc {
             il.insert(pos, new ALOAD(maxLocals + 2));
             il.insert(pos, ins_f.createCheckCast(new ObjectType(invClass)));
             // store to variable that is supposed to contain result 
-            if (isArrayStore(getStoreIns(k))) {
-                // array, maxLocals+3 = temp, cast to correct
-                // invocationRecord type
-                il.insert(pos, new DUP());
-                il.insert(pos, new DUP());
-                il.insert(pos, new ASTORE(maxLocals + 3));
-                il.insert(pos,
-                        ins_f.createFieldAccess(invClass, "array",
-                                new ArrayType(target_returntype, 1),
-                                Constants.GETFIELD));
+            InstructionList storeIns = getStoreIns(k);
 
-                il.insert(pos, new ALOAD(maxLocals + 3));
-                il.insert(pos, ins_f.createFieldAccess(invClass, "index",
-                        Type.INT, Constants.GETFIELD));
-                il.insert(pos, new ALOAD(maxLocals + 3));
-                il.insert(pos, ins_f.createFieldAccess(invClass, "result",
-                        target_returntype, Constants.GETFIELD));
-                il.insert(pos, getStoreIns(k));
-            } else { // not an array. field or local.
-                if (getStoreIns(k) != null) { // local
-                    if (getLoadIns(k) == null) {
-                        il.insert(pos, new DUP());
-                        il.insert(pos,
-                                ins_f.createFieldAccess(invClass, "result",
-                                        target_returntype, Constants.GETFIELD));
-                        il.insert(pos, getStoreIns(k));
-                    } else {
-                        // we have a putfield, maxLocals+3 = temp, cast to
-                        // correct invocationRecord type
-                        il.insert(pos, new ASTORE(maxLocals + 3));
-                        il.insert(pos, getLoadIns(k));
-                        il.insert(pos, new ALOAD(maxLocals + 3));
-                        il.insert(pos,
-                                ins_f.createFieldAccess(invClass, "result",
-                                        target_returntype, Constants.GETFIELD));
-                        il.insert(pos, getStoreIns(k));
-                        il.insert(pos, new ALOAD(maxLocals + 3));
-                    }
+            if (storeIns != null) {
+                if (isArrayStore(storeIns.getStart())) {
+                    // array, maxLocals+3 = temp, cast to correct
+                    // invocationRecord type
+                    il.insert(pos, new DUP());
+                    il.insert(pos, new DUP());
+                    il.insert(pos, new ASTORE(maxLocals + 3));
+                    il.insert(pos,
+                            ins_f.createFieldAccess(invClass, "array",
+                                    new ArrayType(target_returntype, 1),
+                                    Constants.GETFIELD));
+
+                    il.insert(pos, new ALOAD(maxLocals + 3));
+                    il.insert(pos, ins_f.createFieldAccess(invClass, "index",
+                            Type.INT, Constants.GETFIELD));
+                    il.insert(pos, new ALOAD(maxLocals + 3));
+                    il.insert(pos, ins_f.createFieldAccess(invClass, "result",
+                            target_returntype, Constants.GETFIELD));
+                    il.insert(pos, storeIns.copy());
+                } else if (getLoadIns(k) == null) {
+                    il.insert(pos, new DUP());
+                    il.insert(pos,
+                            ins_f.createFieldAccess(invClass, "result",
+                                    target_returntype, Constants.GETFIELD));
+                    il.insert(pos, storeIns.copy());
+                } else {
+                    // we have a putfield, maxLocals+3 = temp, cast to
+                    // correct invocationRecord type
+                    il.insert(pos, new ASTORE(maxLocals + 3));
+                    il.insert(pos, getLoadIns(k).copy());
+                    il.insert(pos, new ALOAD(maxLocals + 3));
+                    il.insert(pos,
+                            ins_f.createFieldAccess(invClass, "result",
+                                    target_returntype, Constants.GETFIELD));
+                    il.insert(pos, storeIns.copy());
+                    il.insert(pos, new ALOAD(maxLocals + 3));
                 }
             }
 
@@ -975,15 +975,38 @@ public final class Satinc {
         return result;
     }
 
-    boolean isArrayStore(Instruction ins) {
+    InstructionList getAndRemoveStoreIns(InstructionList il,
+            InstructionHandle i) {
+
+        int netto_stack_inc = 0;
+        InstructionHandle storeStart = i;
+
+        do {
+            int inc = i.getInstruction().produceStack(cpg)
+                    - i.getInstruction().consumeStack(cpg);
+            netto_stack_inc += inc;
+            i = i.getNext();
+        } while (netto_stack_inc >= 0);
+
+        InstructionList result = new InstructionList();
+        InstructionHandle ip = storeStart;
+
+        do {
+            result.append(ip.getInstruction());
+            ip = ip.getNext();
+        } while (ip != i);
+
+        deleteIns(il, storeStart, ip.getPrev(), ip);
+
+        return result;
+    }
+
+    boolean isArrayStore(InstructionHandle ins) {
         if (ins == null) {
             return false;
         }
-        if (ins instanceof ArrayInstruction && ins instanceof StackConsumer) {
-            return true;
-        }
-
-        return false;
+        Instruction i = ins.getInstruction();
+        return (i instanceof ArrayInstruction && i instanceof StackConsumer);
     }
 
     void rewriteSpawn(MethodGen m, InstructionList il, Method target,
@@ -995,8 +1018,9 @@ public final class Satinc {
                     + ", sig = " + target.getSignature());
         }
 
-        Instruction storeIns = null;
+        Instruction store = null;
         InstructionList loadIns = null;
+        InstructionList storeIns = null;
 
         // A spawned method invocation. Target and parameters are already on
         // the stack.
@@ -1012,15 +1036,15 @@ public final class Satinc {
         Type returnType = target.getReturnType();
 
         if (!returnType.equals(Type.VOID)) {
-            storeIns = i.getNext().getInstruction();
-            if (storeIns instanceof PUTFIELD) {
+            store = i.getNext().getInstruction();
+            storeIns = getAndRemoveStoreIns(il, i.getNext());
+            if (store instanceof PUTFIELD) {
                 loadIns = getAndRemoveLoadIns(il, i);
-            } else if (storeIns instanceof ReturnInstruction) {
+            } else if (store instanceof ReturnInstruction) {
                 System.err.println("\"return <spawnable method>\" is not "
                         + "allowed");
                 System.exit(1);
             }
-            deleteIns(il, i.getNext(), i.getNext().getNext());
         }
 
         int storeId = allocateId(storeIns, loadIns, target, cl);
@@ -1049,7 +1073,7 @@ public final class Satinc {
         Type parameters[];
         int ix = 0;
 
-        if (storeIns != null && isArrayStore(storeIns)) {
+        if (storeIns != null && isArrayStore(storeIns.getStart())) {
             methodName = "getNewArray";
             parameters = new Type[params.length + 8];
             parameters[ix++] = new ArrayType(returnType, 1);
@@ -1133,15 +1157,17 @@ public final class Satinc {
 
     void initSpawnTargets(InstructionList il) {
         for (int i = 0; i < idTable.size(); i++) {
-            Instruction store = getStoreIns(i);
+            InstructionList storeIns = getStoreIns(i);
 
-            if (store == null) {
+            if (storeIns == null) {
                 continue;
             }
 
-            if (isArrayStore(store)) {
+            if (isArrayStore(storeIns.getStart())) {
                 continue;
             }
+
+            Instruction store = storeIns.getStart().getInstruction();
 
             if (store instanceof LSTORE) {
                 il.insert(new LCONST(0));
@@ -1161,6 +1187,8 @@ public final class Satinc {
             } else if (store instanceof PUTFIELD) {
                 // no need to init.
             } else if (store instanceof PUTSTATIC) {
+                // no need to init.
+            } else if (store instanceof ALOAD) {
                 // no need to init.
             } else {
                 System.err.println("WARNING: Unhandled store instruction in "
