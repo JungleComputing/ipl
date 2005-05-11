@@ -124,12 +124,12 @@ public class IOGenerator {
         boolean primitive;
 
         SerializationInfo(String wn, String rn, String frn, Type t,
-                Type param_tp, boolean primitive) {
+                boolean primitive) {
             this.write_name = wn;
             this.read_name = rn;
             this.final_read_name = frn;
             this.tp = t;
-            this.param_tp_arr = new Type[] { param_tp };
+            this.param_tp_arr = new Type[] { t };
             this.primitive = primitive;
         }
     }
@@ -2155,43 +2155,37 @@ public class IOGenerator {
 
         primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo(
                 "writeBoolean", "readBoolean", "readFieldBoolean",
-                Type.BOOLEAN, Type.BOOLEAN, true));
+                Type.BOOLEAN, true));
 
         primitiveSerialization.put(Type.BYTE, new SerializationInfo(
-                "writeByte", "readByte", "readFieldByte", Type.BYTE, Type.INT,
-                true));
+                "writeByte", "readByte", "readFieldByte", Type.BYTE, true));
 
         primitiveSerialization.put(Type.SHORT, new SerializationInfo(
-                "writeShort", "readShort", "readFieldShort", Type.SHORT,
-                Type.INT, true));
+                "writeShort", "readShort", "readFieldShort", Type.SHORT, true));
 
         primitiveSerialization.put(Type.CHAR, new SerializationInfo(
-                "writeChar", "readChar", "readFieldChar", Type.CHAR, Type.CHAR,
-                true));
+                "writeChar", "readChar", "readFieldChar", Type.CHAR, true));
 
         primitiveSerialization.put(Type.INT, new SerializationInfo("writeInt",
-                "readInt", "readFieldInt", Type.INT, Type.INT, true));
+                "readInt", "readFieldInt", Type.INT, true));
         primitiveSerialization.put(Type.LONG, new SerializationInfo(
-                "writeLong", "readLong", "readFieldLong", Type.LONG, Type.LONG,
-                true));
+                "writeLong", "readLong", "readFieldLong", Type.LONG, true));
 
         primitiveSerialization.put(Type.FLOAT, new SerializationInfo(
-                "writeFloat", "readFloat", "readFieldFloat", Type.FLOAT,
-                Type.FLOAT, true));
+                "writeFloat", "readFloat", "readFieldFloat", Type.FLOAT, true));
 
         primitiveSerialization.put(Type.DOUBLE, new SerializationInfo(
                 "writeDouble", "readDouble", "readFieldDouble", Type.DOUBLE,
-                Type.DOUBLE, true));
+                true));
         primitiveSerialization.put(Type.STRING, new SerializationInfo(
                 "writeString", "readString", "readFieldString", Type.STRING,
-                Type.STRING, true));
+                true));
         primitiveSerialization.put(java_lang_class_type, new SerializationInfo(
                 "writeClass", "readClass", "readFieldClass",
-                java_lang_class_type, java_lang_class_type, true));
+                java_lang_class_type, true));
 
         referenceSerialization = new SerializationInfo("writeObject",
-                "readObject", "readFieldObject", Type.OBJECT,
-                Type.OBJECT, false);
+                "readObject", "readFieldObject", Type.OBJECT, false);
     }
 
     SerializationInfo getSerializationInfo(Type tp) {
