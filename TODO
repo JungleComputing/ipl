@@ -23,7 +23,7 @@ satin:
 implementations:
 - PandaIbis connection management broken (e.g. connectedTo())
   (who reported this? Please check if this is still actual ... I placed locks
-   in them .... Ceriel)
+   in them .... Ceriel) I did, I'll check :-) --Rob
 - nameserver: should not be a daemon thread, but then, if it is not, shutdown
   hooks don't get executed. Rather, nameserver should be a separate process,
   not just a thread.
