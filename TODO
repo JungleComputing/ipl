@@ -3,6 +3,7 @@ ipl:
 - add receiveports local to an ibis:
 	- PortType.createReceivePort(..., ..., ..., boolean local); ??
 	- Registry.lookupReceivePort(Ibis ibis, String name)
+- make classes in ipl abstract as much as possible
 	
 rmi:
 - check Ibis RMI registry:
@@ -27,8 +28,17 @@ implementations:
 - nameserver: should not be a daemon thread, but then, if it is not, shutdown
   hooks don't get executed. Rather, nameserver should be a separate process,
   not just a thread.
+- NetIbis: 
+    * fix performance issues in net.gm (e.g.  mpj+javagrande benchmarks)
+    * make it possible to make ipl classes used abstract.
+    * remove dependancy on "local" gm version in default set-up
 
 general:
 - ibisc
+- load ibisses dynamically from jar files (like JavaGAT)
 - run central nameserver on fs0
 - threadpool now fixed size, should be dynamic
+- split up ibis.jar in multiple files (in a sane manner)
+- use a $IBIS_HOME variable instead of explicit paths in build files of
+  applications
+- make javadoc available in a file for eclipse somehow
