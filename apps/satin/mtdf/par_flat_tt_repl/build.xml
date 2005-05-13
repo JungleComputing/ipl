@@ -9,8 +9,8 @@
     <property name="main-class" value="Mtdf"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
-    <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-rmi-app.xml"/>
 
     <target name="build"
 	    depends="init"

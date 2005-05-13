@@ -13,7 +13,7 @@
     <property name="test-par-run" value="Knapsack -satin-closed"/>
     <property name="test-seq-run" value="Knapsack -satin-closed"/>
 
-    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
 </project>
 

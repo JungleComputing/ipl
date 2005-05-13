@@ -15,7 +15,7 @@
     <property name="test-par-run" value="Radix -t"/>
     <property name="test-seq-run" value="Radix -t"/>
 
-    <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-rmi-app.xml"/>
 
 </project>
 

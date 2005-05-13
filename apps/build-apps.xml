@@ -17,7 +17,7 @@
 
     <property name="ibis"        location="../.."/>
 
-    <import file="${ibis}/build-properties.xml"/>
+    <import file="${ibis}/build-files/build-properties.xml"/>
 
     <target name="-list-build-files">
 	<if>

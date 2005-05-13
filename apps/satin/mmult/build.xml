@@ -13,7 +13,7 @@
     <property name="test-par-run" value="Mmult -satin-closed 4 0 32"/>
     <property name="test-seq-run" value="Mmult -satin-closed 4 0 32"/>
 
-    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
 </project>
 

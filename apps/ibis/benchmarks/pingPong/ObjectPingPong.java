@@ -10,6 +10,7 @@ import java.io.IOException;
 class ObjectPingPong {
 
 static class Aap implements java.io.Serializable {
+    byte b;
 }
 
 static class Sender {

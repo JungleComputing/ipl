@@ -16,6 +16,6 @@
     <property name="test-seq-java-args" value="-Xmx128M"/>
     <property name="test-seq-run" value="Main 20"/>
 
-    <import file="${ibis}/apps/gmi/build-gmi-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-gmi-app.xml"/>
 
 </project>

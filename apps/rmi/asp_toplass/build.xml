@@ -12,7 +12,7 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-rmi-app.xml"/>
 
 </project>
 

@@ -11,7 +11,7 @@
 
     <property name="satinc-flags" value="-keep"/>
 
-    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
     <target name="run"
 	    depends="build"

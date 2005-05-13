@@ -13,6 +13,6 @@
     <property name="test-par-run" value="SpawnTest -satin-closed"/>
     <property name="test-seq-run" value="SpawnTest -satin-closed"/>
 
-    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
 </project>

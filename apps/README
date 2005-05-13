@@ -16,5 +16,3 @@ build.xml	Ant build file for building Ibis applications.
 		what "ant build" made.
     
 build-apps.xml	Ant build file used internally for building Ibis applications.
-
-build-run.xml	Ant build file supporting local application runs.

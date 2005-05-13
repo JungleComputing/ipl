@@ -123,6 +123,3 @@ build.xml
     "ant build" (or simply: "ant") will build all applications that
     are present in this directory. "ant clean" will remove
     what "ant build" made.
-    
-build-satin-app.xml
-    Ant build file used internally for building Satin applications.

@@ -9,7 +9,7 @@
     <property name="main-class" value="Checkers"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
 </project>
 
