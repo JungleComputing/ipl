@@ -10,7 +10,7 @@
     <property name="main-class" value="NQueens"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="-Dibis.io.debug NQueens -satin-closed 14"/>
+    <property name="test-par-run" value="NQueens -satin-closed 14"/>
     <property name="test-seq-run" value="NQueens -satin-closed 14"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
