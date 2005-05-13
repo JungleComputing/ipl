@@ -1,0 +1,94 @@
+<project
+    name="satin-app"
+    default="build"
+    basedir=".">
+
+    <import file="${ibis}/build-files/build-properties.xml"/>
+    <import file="${ibis}/build-files/build-iogen.xml"/>
+    <import file="${ibis}/build-files/build-native.xml"/>
+    <import file="${ibis}/build-files/apps/build-run.xml"/>
+
+    <description>
+	Ibis satin application build
+    </description>
+
+    <target name="property-satin-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="satin-init"
+	    depends="property-satin-build,property-init"/>
+
+    <target name="satin"
+	    depends="satin-init">
+	    <!-- Commented out description
+	    description="Preprocess all classes in the build tree for Satin"
+	    -->
+	<if>
+	    <isset property="satinc-flags"/>
+	    <then>
+		<property name="satinc-flags.value" value="${satinc-flags}"/>
+	    </then>
+	    <else>
+		<property name="satinc-flags.value" value=""/>
+	    </else>
+	</if>
+
+	<java	classname="ibis.frontend.satin.Satinc"
+		taskname="Satinc"
+		dir="${build}"
+		failonerror="true"
+		fork="true">
+		<arg line="-javahome '${JAVA_HOME}' ${satinc-flags.value} ${satin-main-class}"/>
+		<classpath refid="default.classpath"/>
+	</java>
+
+    </target>
+
+    <target name="init">
+	<tstamp/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile"
+	    depends="init,property-init"
+	    description="Compile Satin application for sequential execution">
+	<if>
+	    <isreference refid="src.excludes-ref"/>
+	    <then>
+		<property name="pwd" location="."/>
+		<pathconvert pathsep="${line.separator}" property="src.excludes" refid="src.excludes-ref">
+		    <map from="${pwd}${file.separator}" to=""/>
+		</pathconvert>
+		<echo message="${src.excludes}" file="${build}/excludes"/>
+	    </then>
+	</if>
+
+	<javac  destdir="${build}"
+		debug="${java.debug.value}"
+		includes="**/*.java"
+		excludes="${build}/*.java"
+		srcdir=".">
+	    <classpath refid="default.classpath"/>
+	    <excludesfile name="${build}/excludes" if="src.excludes"/>
+	</javac>
+    </target>
+
+    <target name="build-no-satin">
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+    </target>
+
+    <target name="build"
+	    description="Compile Satin application for parallel execution">
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="satin"/>
+	<antcall inheritRefs="true" target="iogen"/>
+    </target>
+
+    <target name="clean">
+	<delete dir="${build}"/>
+    </target>
+
+</project>

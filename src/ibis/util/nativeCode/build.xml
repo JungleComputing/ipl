@@ -25,7 +25,7 @@
     <property name="ibis" location="../../../.."/>
     -->
 
-    <import file="${ibis}/build-properties.xml"/>
+    <import file="${ibis}/build-files/build-properties.xml"/>
 
     <property name="local.lib" value="Rdtsc"/>
 
@@ -41,7 +41,7 @@
 	    libs="OTTimer"
 	    if="os-is-mac"/>
 
-    <import file="${ibis}/build-native.xml"/>
+    <import file="${ibis}/build-files/build-native.xml"/>
 
     <target name="build">
 	<antcall inheritRefs="true" target="native-compile"/>

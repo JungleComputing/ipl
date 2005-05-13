@@ -14,6 +14,6 @@
 
     <property name="test-par-run" value="Example"/>
 
-    <import file="${ibis}/apps/ibis/build-ibis-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-ibis-app.xml"/>
 
 </project>

@@ -16,8 +16,8 @@
     <property name="native.dir" location="."/>
     <property name="local.lib" value="OTTimer"/>
 
-    <import file="${ibis}/build-properties.xml"/>
-    <import file="${ibis}/build-native.xml"/>
+    <import file="${ibis}/build-files/build-properties.xml"/>
+    <import file="${ibis}/build-files/build-native.xml"/>
 
     <target name="compile" depends="property-init" if="os-is-mac">
 	<path id="omni-includes-ref">

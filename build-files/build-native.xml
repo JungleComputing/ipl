@@ -10,7 +10,7 @@
     <!--
 	Target definition for javah.
 
-	Requires prior inclusion of ${ibis}/ibis/build-properties.xml
+	Requires prior inclusion of ${ibis}/build-files/build-properties.xml
 
 	Requires definition of the following properties:
 	build                  the root of the build tree to be javah'd

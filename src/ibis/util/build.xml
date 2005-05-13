@@ -23,8 +23,8 @@
 
     <property name="ibis" location="../../.."/>
 
-    <import file="${ibis}/build-properties.xml"/>
-    <import file="${ibis}/build-native.xml"/>
+    <import file="${ibis}/build-files/build-properties.xml"/>
+    <import file="${ibis}/build-files/build-native.xml"/>
 
     <target name="build"
 	    depends="native-compile">

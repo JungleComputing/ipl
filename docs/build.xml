@@ -10,7 +10,7 @@
     <property name="ibis"        location=".."/>
     <property name="src"         location="${ibis}/src"/>
 
-    <import file="${ibis}/build-properties.xml"/>
+    <import file="${ibis}/build-files/build-properties.xml"/>
 
     <target name="api">
 	<!-- Create the javadoc directory -->
