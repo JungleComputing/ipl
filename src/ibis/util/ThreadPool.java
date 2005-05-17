@@ -1,146 +1,139 @@
-/* $Id$ */
-
 package ibis.util;
+
+import ibis.ipl.IbisError;
+
+import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
 
 /**
- * The <code>ThreadPool</code> class maintains a pool of daemon threads that
- * can be used to run any {@link Runnable}.
+ * @author Niels Drost
+ * 
+ * Threadpool which uses timeouts to determine the number of threads...
+ * There is no maximum number of threads in this pool, to prevent deadlocks.
  *
- * @author Rob van Nieuwpoort
- * @author Ceriel Jacobs did debugging I think
- * @author Rutger Hofman new implementation without Queue but with an array.
- * 	   This makes adding Thread.name easy: the Queue would have to
- * 	   manipulate tuples => even more GC overhead.
- * 	   Also make PoolThread a static inner class.
  */
 public final class ThreadPool {
 
-    // static int		numthreads = 0;
-    // static int		ready = 0;
+    static final Logger logger = GetLogger.getLogger(ThreadPool.class);
 
-    // index of next available pool thread
-    private static int poolPtr = 0;
+    private static final class PoolThread extends Thread {
 
-    private static final int minPoolSize = 4;
+        private static final int TIMEOUT = 30 * 1000; //30 seconds 
 
-    private static int poolSize
-            = TypedProperties.intProperty("ibis.pool.total_hosts", 28)
-                + minPoolSize;
+        Runnable work = null;
 
-    // dequeue from N - 1 downwards
-    // Do lazy creation of pool threads, but bound fixed at poolSize.
-    private static PoolThread[] pool = new PoolThread[poolSize];
+        String name = null;
 
-    // Might also synchronize on pool but if we ever want to make a flexy-size
-    // pool we are going to need a separate lock
-    private static final Object lock = new Object();
+        boolean expired = false;
 
-    static Logger logger = ibis.util.GetLogger.getLogger(ThreadPool.class.getName());
+        private static int nrOfThreads = 0;
 
-    /**
-     * Double the pool size. Currently unused, but if we ever want to make a
-     * flexy-size pool..
-     */
-    private static void grow() {
-        synchronized (lock) {
-            int newPoolSize = 2 * poolSize;
-            PoolThread[] newPool = new PoolThread[newPoolSize];
-            System.arraycopy(pool, 0, newPool, 0, poolSize);
-            poolSize = newPoolSize;
-            pool = newPool;
+        private static synchronized void newThread() {
+            nrOfThreads++;
+            logger.debug("new thread. Threadcount: " + nrOfThreads);
         }
-    }
 
-    /**
-     * Halve the pool size. Currently unused, but if we ever want to make a
-     * flexy-size pool..
-     */
-    private static void shrink() {
-        synchronized (lock) {
-            poolSize = poolSize / 2;
+        private static synchronized void threadGone() {
+            nrOfThreads--;
+            logger.debug("thread gone. Threadcount: " + nrOfThreads);
         }
-    }
 
-    private static class PoolThread extends Thread {
+        private PoolThread() {
+            //DO NOT USE
+        }
 
-        private Runnable runnable;
+        PoolThread(Runnable runnable, String name) {
+            this.work = runnable;
+            this.name = name;
 
-        PoolThread() {
-            // numthreads++;
+             if (logger.isDebugEnabled()) {
+                 newThread();
+             }
+        }
+
+        synchronized boolean issue(Runnable newWork, String newName) {
+            if (expired) {
+                logger.debug("issue(): thread has expired");
+                return false;
+            }
+
+            if (this.work != null) {
+                throw new IbisError("tried to issue work to already running"
+                        + " poolthread");
+            }
+
+            work = newWork;
+            name = newName;
+
+            notifyAll();
+            return true;
         }
 
         public void run() {
+
             while (true) {
-                Runnable runnable;
+                Runnable currentWork;
+                String currentName;
 
                 synchronized (this) {
-                    while (this.runnable == null) {
+                    if (this.work == null) {
+                        waiting(this);
                         try {
-                            wait();
+                            wait(TIMEOUT);
                         } catch (InterruptedException e) {
+                            expired = true;
+                            if (logger.isDebugEnabled()) {
+                                threadGone();
+                            }
                             return;
                         }
                     }
-
-                    runnable = this.runnable;
-                    this.runnable = null;
-                }
-
-                try {
-                    // Perform the task we were assigned
-                    runnable.run();
-                } catch (Throwable t) {
-                    /* Is this still true with the pool[] implementation?
-                     * 						RFHH */
-                    // catch and print all user exceptions.
-                    // I've seen it happen that a thread was throwing an
-                    // exception that is not caught here. Next, the counters
-                    // in the queue are not correct anymore -> havoc
-                    // --Rob 
-                    System.err.println(
-                            "exception in pool thread (continuing): " + t);
-                    t.printStackTrace();
-                }
-
-                synchronized (lock) {
-                    // ready++;
-                    if (
-                    // This is Rob's heuristics. I am afraid I don't
-                    // understand. What if ready=1 and numthreads=1?
-                    // q.size() == 0 && 2 * ready > numthreads
-                    poolPtr == poolSize - 1) {
-                        // ready--;
-                        // numthreads--;
-
-                        logger.debug("Poolthread exits");
-
-                        /* No afterlife for me, too many ready threads */
+                    if (this.work == null) {
+                        //still no work, exit
+                        expired = true;
+                        if (logger.isDebugEnabled()) {
+                            threadGone();
+                        }
                         return;
                     }
-
-                    /* Enqueue us in the pool for the next spawn */
-                    pool[poolPtr] = this;
-                    poolPtr++;
-                    setName("Sleeping pool thread");
+                    currentWork = this.work;
+                    currentName = this.name;
+                }
+                try {
+                    setName(currentName);
+                    currentWork.run();
+                } catch (Throwable t) {
+                    String errorString = "caught exception in pool thread "
+                        + currentName + ": " + t + "\n Stacktrace: \n";
+                        
+                    StackTraceElement e[] = t.getStackTrace();
+                    for(int i = 0; i < e.length; i++) {
+                        errorString = errorString + "\t\t" + e.toString() + "\n";
+                    }
+                    
+                    logger.error(errorString);
+                }
+                synchronized (this) {
+                    this.work = null;
+                    this.name = null;
                 }
             }
         }
-
-        synchronized void spawn(Runnable r, String name) {
-            setName(name);
-            runnable = r;
-            notify();
-        }
-
     }
+
+    //list of waiting Poolthreads
+    private static final LinkedList threadPool = new LinkedList();
 
     /**
      * Prevent creation of a threadpool object.
      */
     private ThreadPool() {
-        /* do nothing */
+        //DO NOT USE
+    }
+
+    static synchronized void waiting(PoolThread thread) {
+        threadPool.add(thread);
     }
 
     /**
@@ -153,19 +146,29 @@ public final class ThreadPool {
      * @param r the <code>Runnable</code> to be executed.
      * @param name set the thread name for the duration of this run
      */
-    public static void createNew(Runnable r, String name) {
-        PoolThread t;
-        synchronized (lock) {
-            if (poolPtr == 0 || pool[poolPtr] == null) {
-                t = new PoolThread();
-                t.setDaemon(true);
-                t.start();
-            } else {
-                --poolPtr;
-                t = pool[poolPtr];
+    public static synchronized void createNew(Runnable runnable, String name) {
+        PoolThread poolThread;
+
+        if (!threadPool.isEmpty()) {
+            poolThread = (PoolThread) threadPool.removeLast();
+            if (poolThread.issue(runnable, name)) {
+                //issue of work succeeded, return
+                return;
             }
+            //shortest waiting poolThread in list timed out, 
+            //assume all threads timed out
+            if (logger.isDebugEnabled()) {
+                logger.debug("clearing thread pool of size "
+                        + threadPool.size());
+            }
+            threadPool.clear();
+
         }
-        t.spawn(r, name);
+
+        //no usable thread found, create a new thread
+        poolThread = new PoolThread(runnable, name);
+        poolThread.setDaemon(true);
+        poolThread.start();
     }
 
 }

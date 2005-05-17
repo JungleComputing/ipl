@@ -148,6 +148,8 @@ public final class RunProcess {
 
         Proc stdoutreader = new Proc(proc_out);
         Proc errorreader = new Proc(proc_err);
+        stdoutreader.setDaemon();
+        errorreader.setDaemon();
         stdoutreader.start();
         errorreader.start();
 

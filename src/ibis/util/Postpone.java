@@ -44,8 +44,13 @@ public class Postpone {
         try {
             cl = Class.forName(args[1]);
         } catch (ClassNotFoundException e) {
-            System.out.println("Could not load class " + args[1]);
-            System.exit(1);
+            try {
+                cl = Thread.currentThread().getContextClassLoader()
+                        .loadClass(args[1]);
+            } catch(ClassNotFoundException e2) {
+                System.out.println("Could not load class " + args[1]);
+                System.exit(1);
+            }
         }
 
         // Find the "main" method.
