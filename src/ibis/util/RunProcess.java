@@ -4,6 +4,7 @@ package ibis.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
 
 /**
  * Utility to run a process and read its output in a separate thread.
@@ -128,6 +129,32 @@ public final class RunProcess {
 
         try {
             p = r.exec(command, env);
+        } catch (Exception e) {
+            // Should not happen. At least there is a non-zero exit status.
+            String cmd = "";
+            for (int i = 0; i < command.length; i++) {
+                cmd = cmd + command[i] + " ";
+            }
+            proc_err = new buf(("Could not execute cmd: " + cmd).getBytes());
+            return;
+        }
+
+        dealWithResult();
+    }
+
+    /**
+     * Runs the command as specified.
+     * Blocks until the command is finished.
+     * @param command the specified command and arguments.
+     * @param env the environment.
+     * @param dir dir - the working directory of the command, or <code>null</code> for the working directory of this process.
+     */
+    public RunProcess(String[] command, String env[],File dir) {
+
+        exitstatus = -1;
+
+        try {
+            p = r.exec(command, env,dir);
         } catch (Exception e) {
             // Should not happen. At least there is a non-zero exit status.
             String cmd = "";
