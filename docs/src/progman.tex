@@ -1,4 +1,3 @@
-% @@@ also use ibis-run for the other examples
 \documentclass[10pt]{article}
 
 \usepackage{html}
@@ -1729,7 +1728,20 @@ $ java \
 \end{verbatim}
 \noindent
 in two seperate shells. The application should now run ``in parallel''
-on the local machine.  
+on the local machine. Alternatively, you can use the \emph{ibis-run} script:
+
+\begin{verbatim}
+$ $IBIS_HOME/bin/ibis-run -nhosts 2 -hostno 0 Server table_15.1
+\end{verbatim}
+
+\noindent
+in the first shell, and
+
+\begin{verbatim}
+$ $IBIS_HOME/bin/ibis-run -nhosts 2 -hostno 1 Server table_15.1
+\end{verbatim}
+
+\noindent in the second.
 
 The TSP application uses the \texttt{PoolInfo}
 class that comes with Ibis. This utility class can be used both with
@@ -1760,10 +1772,8 @@ $ java \
 \noindent
 
 This should produce the same result as the Sun RMI test.
-See Section \ref{Compiling and Running an Ibis Application} for
-details on how to run the application with the \texttt{ibis-run}
-script.
-
+If you want to run the application with the \texttt{ibis-run} script,
+you can use the same commandline as with the Sun RMI test.
 
 \mysection{The GMI (Group Method Invocation) System}
 \label{gmi-sec}
