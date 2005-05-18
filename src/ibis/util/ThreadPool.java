@@ -140,8 +140,7 @@ public final class ThreadPool {
      * Associates a thread from the <code>ThreadPool</code> with the
      * specified {@link Runnable}. If no thread is available, a new one
      * is created. When the {@link Runnable} is finished, the thread is
-     * added to the pool of available threads, or, if enough threads are
-     * available, it is discarded.
+     * added to the pool of available threads.
      *
      * @param runnable the <code>Runnable</code> to be executed.
      * @param name set the thread name for the duration of this run
