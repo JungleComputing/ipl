@@ -1,5 +1,4 @@
-% @@@ TODO: add log4j.jar to all commandlines
-% and also use ibis-run for the other examples
+% @@@ also use ibis-run for the other examples
 \documentclass[10pt]{article}
 
 \usepackage{html}
@@ -49,7 +48,7 @@ actually compile and run this program.
 We also built several systems on top of Ibis.
 Section \ref{The Satin Divide-and-Conquer System}
 gives an overview of the Satin divide-and-conquer
-system, and Section \ref{The GMI System} discusses GMI
+system, and Section~\ref{gmi-sec} discusses GMI
 (Group Method Invocation),
 a flexible group communication system.
 We also built a RMI (Remote Method Invocation)
@@ -191,11 +190,14 @@ Portability Layer) package, which lives in
 \texttt{ibis.ipl}.
 We recommend that you simply import all \texttt{ibis.ipl} classes with
 one import line:
+
 \begin{quote}
 \begin{verbatim}
 import ibis.ipl.*;
 \end{verbatim}
 \end{quote}
+
+\noindent
 Of course it is also possible to import only the needed classes, but
 this tends to result in a list of 10 or more \texttt{import}s.
 
@@ -346,7 +348,7 @@ Ibis serialization is supported.
 This is the fastest object serialization supported in Ibis. Its drawback
 is that it requires identical Java implementations on sender and
 receiver side 
-%@@@ huh? what does this mean? why? --Rob @@@
+%@@@ huh? what does this mean? why? --Rob
 ; it also requires user-defined
 \texttt{writeObject()}/\texttt{readObject()} methods to be symmetrical, that is,
 each write in \texttt{writeObject()} must have a corresponding read
@@ -940,8 +942,6 @@ or by installing an upcall handler for the incoming message.
 
 \mysection{Compiling and Running an Ibis Application}
 
-% @@@ use environtment vars to get ibis location here --Rob @@@
-
 Before running an Ibis application it must be compiled.  Using
 \emph{ant}, this is quite easy. Assuming that the environment variable
 \texttt{IBIS\_HOME} reflects the location of your Ibis installation,
@@ -1084,7 +1084,6 @@ running Ibis applications on a Globus-based grid. See the
 \texttt{grun/doc} subdirectory for more information.
 
 \mysubsection{Running the example}
-% @@@ Use $IBIS_HOME here ? --Rob @@@
 In order to run the example, we first have to compile it.
 Please go to the example directory and type:
 \noindent
@@ -1122,7 +1121,7 @@ If you don't use the ibis-run script, you have to set several properties.
 In both shells, type:
 \begin{verbatim}
 $ java \
-    -cp ../build/ibis.jar:../3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_HOME/build/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
     Example
@@ -1179,10 +1178,10 @@ Since a SatinObject is serializable, all its subclasses are
 serializable as well. This restriction ensures that a Satin job can be
 stored and moved from one processor to another.
 
+\begin{figure}[t!]
+\small{
 \begin{quote}
 \begin{verbatim}
-Listing 3. Parallel search with Satin
-
 import ibis.satin.SatinObject;
 
 class SearchImpl1 extends SatinObject implements Searcher {
@@ -1223,28 +1222,31 @@ class SearchImpl1 extends SatinObject implements Searcher {
 }
 \end{verbatim}
 \end{quote}
-\noindent
+}
+\caption{Parallel search with Satin.}
+\label{satin-search-fig}
+\end{figure}
 
-As an example, Listing 3 shows an implementation of the search
+As an example, Figure~\ref{satin-search-fig} shows an implementation of the search
 method. It just looks at a range of elements of the passed array, and
 tries if one of the elements equals val. If so, it returns the index
 of the element. If no matching element was found, -1 is returned.
-Now, we can invoke search as is shown in the main method of Listing
-3. In this case, we call search twice, once for the first half of the
+Now, we can invoke search as is shown in the main method of Figure~\ref{satin-search-fig}.
+In this case, we call search twice, once for the first half of the
 array, and once for the second half. If we compile the program with
 javac, the two search invocations will be done sequentially. The sync
 method in SatinObject does nothing. So we can run the program normally
 on any JVM.  If we modify the class files using the Satin bytecode
 rewriter, however, the program will be converted to a parallel
-program.  The two calls to search in the main class of Listing 3 will
+program.  The two calls to search in the main class of Figure~\ref{satin-search-fig} will
 be executed in parallel if two JVMs are available. To run the code on
 more JVMs, the array can be split into more chunks. In general, an
 arbitrary number of invocations to Satin job methods may be done.
 
+\begin{figure}[t!]
+\small{
 \begin{quote}
 \begin{verbatim}
-Listing 4. Divide-and-conquer parallel search with Satin
-
 import ibis.satin.SatinObject;
 
 class SearchImpl2 extends SatinObject implements Searcher {
@@ -1264,14 +1266,17 @@ class SearchImpl2 extends SatinObject implements Searcher {
       return (res1 >= 0) ? res1 : res2;
    }
 
-   // main method as in Listing 3
+   // main method as in previous figure
 }
 \end{verbatim}
 \end{quote}
-\noindent
+}
+\caption{Divide-and-conquer parallel search with Satin.}
+\label{satin-par-search-fig}
+\end{figure}
 
 It is also allowed to recursively invoke job methods from job methods,
-as is shown in Listing 4. Here the search is recursively divided into
+as is shown in Figure~\ref{satin-par-search-fig}. Here the search is recursively divided into
 smaller problems until a problem remains that is trivially
 handled. This model of programming is called divide-and-conquer. Satin
 has special grid-aware load-balancing algorithms built-in to run such
@@ -1292,13 +1297,13 @@ can inhibit the generation of a stack trace, which is an expensive
 operation. The stack trace is usually not useful in the Satin context,
 because the exception is not an error, it is used to steer the
 search. Extending Inlet is optional, regular exceptions can also be
-used. Listing 5 changes the search algorithm we used in the previous
+used. Figures~\ref{satin-spec-search-fig1} and~\ref{satin-spec-search-fig2} change the search algorithm we used in the previous
 examples to use exceptions.
 
+\begin{figure}[t!]
+\small{
 \begin{quote}
 \begin{verbatim}
-Listing 5. Speculative parallel search with Satin
-
 import ibis.satin.SatinObject;
 import ibis.satin.Inlet;
 
@@ -1337,6 +1342,20 @@ class SearchImpl3 extends SatinObject implements Searcher3 {
       sync();
    }
 
+   ...
+\end{verbatim}
+\end{quote}
+}
+\caption{Speculative parallel search with Satin.}
+\label{satin-spec-search-fig1}
+\end{figure}
+
+\begin{figure}[t!]
+\small{
+\begin{quote}
+\begin{verbatim}
+   ...
+
    public static void main(String[] args) {
       SearchImpl3 s = new SearchImpl3();
       int a[] = new int[200];
@@ -1372,7 +1391,10 @@ class SearchImpl3 extends SatinObject implements Searcher3 {
 }
 \end{verbatim}
 \end{quote}
-\noindent
+}
+\caption{Speculative parallel search with Satin.}
+\label{satin-spec-search-fig2}
+\end{figure}
 
 Note that in this version the search method doesn't return a value. It
 will throw a SearchResultFound object containing the result if the
@@ -1385,7 +1407,7 @@ exception is caught, and the other search jobs can then be
 terminated. They have become useless, because the element has already
 been found in the array. The parallel search can thus be stopped. We
 call the catch block in the main method that handles the result of the
-search an inlet.  The way of searching in Listing 5 is called
+search an inlet.  The way of searching in Figures~\ref{satin-spec-search-fig1} and~\ref{satin-spec-search-fig2} is called
 speculative parallelism: the search speculatively starts on both two
 parts of the array simultaneously, even though we know from the start
 that a part of the search may be terminated as soon as the element is
@@ -1604,7 +1626,7 @@ See Section \ref{Compiling and Running an Ibis Application} for details.
 
 Java applications typically consist of one or more threads that
 manipulate a collection of objects by invoking methods on these
-objects. Figure 3 shows an example, where a single application thread
+objects. Figure~\ref{normal-fig} shows an example, where a single application thread
 has a reference to some interface which represents an object. The
 thread and object are located in the same Java Virtual Machine (JVM),
 and the thread can use normal method invocations on the interface to
@@ -1612,7 +1634,7 @@ manipulate the state of the object.
 
 \begin{figure}[t]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{../normal.eps}
+\includegraphics[width=0.7\textwidth]{normal.eps}
 \end{center}
 \caption{A normal invocation.}
 \label{normal-fig}
@@ -1629,7 +1651,7 @@ shown in Figure~\ref{rmi-fig}.
 
 \begin{figure}[t]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{../rmi-abstract..eps}
+\includegraphics[width=0.7\textwidth]{rmi-abstract.eps}
 \end{center}
 \caption{A remote invocation with RMI.}
 \label{rmi-fig}
@@ -1706,9 +1728,9 @@ Now, this example application will be compiled with Sun RMI.
 Running the TSP example with Sun RMI can be done as follows. Run the command
 \begin{verbatim}
 $ java \
-    -cp $IBIS_HOME/build/ibis.jar:build \
+    -cp $IBIS_HOME/build/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
-    Server table_15.1 
+    Server table_15.1
 \end{verbatim}
 \noindent
 in two seperate shells. The application should now run ``in parallel''
@@ -1735,7 +1757,7 @@ $ ../../../ant clean build
 Now we can run it by typing the following command in two seperate shells:
 \begin{verbatim}
 $ java \
-    -cp $IBIS_HOME/build/ibis.jar:build \
+    -cp $IBIS_HOME/build/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
     Server table_15.1 
@@ -1749,6 +1771,7 @@ script.
 
 
 \mysection{The GMI (Group Method Invocation) System}
+\label{gmi-sec}
 
 For many parallel and distributed applications, the simple synchronous
 unicast communication model (one-to-one communication with a reply)
@@ -1784,13 +1807,17 @@ The GMI model generalizes the RMI model in three ways. First, it
 introduces the notion of a 'group', a set of objects which all
 implement the same interface. The objects in a group may be
 distributed over a number of JVMs. A group can be addressed using a
-single 'group reference'. An example is shown in Figure 5, where an
+single 'group reference'. An example is shown in Figure~\ref{gmi-fig}, where an
 application thread uses a single group reference to address a group of
 two objects (on different JVMs).
 
-<<graphic file\_name=gmi-abstract.tif/>>
-Figure 5. A group invocation with GMI
-
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.7\textwidth]{gmi-abstract.eps}
+\end{center}
+\caption{A group invocation with GMI.}
+\label{gmi-fig}
+\end{figure}
 
 Like RMI, GMI uses compiler generated stub and skeleton objects which
 implement the necessary communication code. The application programmer
@@ -1868,10 +1895,10 @@ the ibis.gmi.GroupMember object, which contains some basic
 functionality needed to be part of a group (this is similar to the
 UnicastRemoteObject used in RMI).
 
+\begin{figure}[t!]
+\small{
 \begin{quote}
 \begin{verbatim}
-Listing 1. Implementing a group object with GMI
-
 import ibis.gmi.GroupMember;
 
 class Implementation extends GroupMember implements Example {
@@ -1892,21 +1919,24 @@ class Implementation extends GroupMember implements Example {
 }
 \end{verbatim}
 \end{quote}
-\noindent
+}
+\caption{Implementing a group object with GMI.}
+\label{gmi-1}
+\end{figure}
 
-In this implementation, shown in Listing 1, the put method stores the
+In this implementation, shown in Figure~\ref{gmi-1}, the put method stores the
 string it receives in the object, from where it can be retrieved using
 the get method. The standard synchronization primitives synchronized,
 wait, and notify are used to prevent the get from returning before the
 string is available.  Next, we will create an simple example
 application, BroadcastExample, which will use the group object. The
-source code is shown in Listing 2. This application is parallel; it is
+source code is shown in Figure~\ref{gmi-2}. This application is parallel; it is
 designed to be started simultaneously on multiple JVMs.
 
+\begin{figure}[t!]
+\small{
 \begin{quote}
 \begin{verbatim}
-Listing 2. An example GMI application that uses a group object
-
 import ibis.gmi.*;
 
 class BroadcastExample {
@@ -1948,7 +1978,10 @@ class BroadcastExample {
 } 
 \end{verbatim}
 \end{quote}
-\noindent
+}
+\caption{An example GMI application that uses a group object.}
+\label{gmi-2}
+\end{figure}
 
 The main method of the application starts by invoking Group.size and
 Group.rank, two utility methods of GMI which can be used to find out

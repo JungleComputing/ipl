@@ -24,6 +24,18 @@
 		file="progman.tex"
 		tofile="${build}/progman.tex">
 	    </copy>
+	    <copy
+		file="normal.eps"
+		tofile="${build}/normal.eps">
+	    </copy>
+	    <copy
+		file="rmi-abstract.eps"
+		tofile="${build}/rmi-abstract.eps">
+	    </copy>
+	    <copy
+		file="gmi-abstract.eps"
+		tofile="${build}/gmi-abstract.eps">
+	    </copy>
     </target>
 
     <target name="dvi"
