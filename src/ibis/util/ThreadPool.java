@@ -143,7 +143,7 @@ public final class ThreadPool {
      * added to the pool of available threads, or, if enough threads are
      * available, it is discarded.
      *
-     * @param r the <code>Runnable</code> to be executed.
+     * @param runnable the <code>Runnable</code> to be executed.
      * @param name set the thread name for the duration of this run
      */
     public static synchronized void createNew(Runnable runnable, String name) {
