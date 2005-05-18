@@ -109,7 +109,7 @@ public final class ThreadPool {
                         
                     StackTraceElement e[] = t.getStackTrace();
                     for(int i = 0; i < e.length; i++) {
-                        errorString = errorString + "\t\t" + e.toString() + "\n";
+                        errorString = errorString + "\t\t" + e[i].toString() + "\n";
                     }
                     
                     logger.error(errorString);
