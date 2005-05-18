@@ -37,7 +37,7 @@ rem
 set attach=0
 set noJIT=0
 set no_pool=0
-set portno_specified=0
+set ns_specified=0
 set JIT_OPTS=
 
 set JAVA_EXEC=java
@@ -51,7 +51,6 @@ rem
 
 call "%IBIS_ROOT%\bin\ns-env"
 
-set Dns_server="-Dibis.name_server.host=%IBIS_NAMESERVER_HOST%"
 set Dns_port="-Dibis.name_server.port=%IBIS_NAMESERVER_PORT%"
 set Dns_pool="-Dibis.name_server.key=no_key_supplied"
 
@@ -96,6 +95,7 @@ if "%1"=="-n" (
 )
 if "%1"=="-ns" (
     set Dns_server="-Dibis.name_server.host=%2"
+    set ns_specified=1
     shift
     goto nextarg
 )
@@ -147,6 +147,10 @@ goto arguments
 
 if "%noJIT%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE
+)
+if "%ns_specified%"=="0" (
+    echo ibis-run: warning: no nameserver host specified, assuming localhost
+    set Dns_server="-Dibis.name_server.host=localhost"
 )
 if "%attach%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -Djava.compiler=NONE

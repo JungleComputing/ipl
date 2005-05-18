@@ -321,6 +321,9 @@ then
 	    Dns_server="-Dibis.name_server.host=$i"
 	    break
 	done
+    else
+	echo "ibis-run: warning: no nameserver host specified, assuming localhost" 1>&2
+	Dns_server="-Dibis.name_server.host=localhost"
     fi
 fi
 
