@@ -37,7 +37,6 @@ general:
 - ibisc
 - load ibisses dynamically from jar files (like JavaGAT)
 - run central nameserver on fs0
-- threadpool now fixed size, should be dynamic
 - split up ibis.jar in multiple files (in a sane manner)
 - use a $IBIS_HOME variable instead of explicit paths in build files of
   applications
