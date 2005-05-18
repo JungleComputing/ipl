@@ -87,7 +87,7 @@ public interface SerializationInput extends DataInput {
      * @exception ClassNotFoundException is thrown when the class of a
      * serialized object is not found.
      */
-    public void readArray(Object[] dest)
+    public void readArray(Object[] ref)
             throws IOException, ClassNotFoundException;
 
     /**
