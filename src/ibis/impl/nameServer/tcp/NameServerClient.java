@@ -15,6 +15,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.IbisSocketFactory;
+import ibis.util.RunProcess;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -100,6 +101,33 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         /* do nothing */
     }
 
+    void runNameServer(int port) {
+        String javadir = System.getProperty("java.home");
+        String javapath = System.getProperty("java.class.path");
+        String filesep = System.getProperty("file.separator");
+        String pathsep = System.getProperty("path.separator");
+
+        final String[] cmd = new String[] {
+                javadir + filesep + "bin" + filesep + "java",
+                "-classpath",
+                javapath + pathsep,
+                "-Dibis.name_server.port="+port,
+                "ibis.impl.nameServer.tcp.NameServer",
+                "-single",
+                "-no-retry",
+                "-silent",
+                "-no-poolserver"};
+
+        Thread p = new Thread("NameServer starter") {
+            public void run() {
+                RunProcess p = new RunProcess(cmd, new String[0]);
+            }
+        };
+
+        p.setDaemon(true);
+        p.start();
+    }
+
     protected void init(Ibis ibis) throws IOException,
             IbisConfigurationException {
         this.ibisImpl = ibis;
@@ -141,12 +169,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         if (myAddress.equals(serverAddress)) {
             // Try and start a nameserver ...
-            NameServer n
-                    = NameServer.createNameServer(true, false, true, false);
-            if (n != null) {
-                n.setDaemon(true);
-                n.start();
-            }
+            runNameServer(port);
         }
 
         logger.debug("Found nameServerInet " + serverAddress);
@@ -293,8 +316,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     }
 
     public void leave() {
-        logger.debug("NS client: leave");
         Socket s;
+        logger.debug("NS client: leave");
 
         try {
             s = socketFactory.createSocket(serverAddress, port, myAddress,
