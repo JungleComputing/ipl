@@ -64,7 +64,11 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * Initializes the <code>cluster</code> field.
      */
     protected void init_cluster() {
-        cluster = System.getProperty("cluster");
+        cluster = System.getProperty("ibis.pool.cluster");
+        if (cluster == null) {
+            // Backwards compatibility, will be deprecated.
+            cluster = System.getProperty("cluster");
+        }
         if (cluster == null) {
             cluster = "unknown";
         }
