@@ -92,15 +92,16 @@ if [ -z "$IBIS_POOLSVR_HOST" ]; then
     # use default poolserver:
     IBIS_POOLSVR_HOST=$IBIS_NAMESVR_HOST
 fi
+if [ -z "$IBIS_POOLSVR_PORT" ]; then
+    IBIS_POOLSVR_PORT_OPT=""
+else
+    IBIS_POOLSVR_PORT_OPT="-Dibis.pool.server.port=$IBIS_POOLSVR_PORT"
+fi
 
 if [ "$GRUN_PHASE" = run ]; then
     if [ -z "$IBIS_NAMESVR_PORT" ]; then
         echo "$PROG: No IBIS_NAMESVR_PORT in environment" >&2; exit 1
     fi
-    # The following is only necessary for closed-world apps, so check disabled
-    # if [ -z "$IBIS_POOLSVR_PORT" ]; then
-    #     echo "$PROG: No IBIS_POOLSVR_PORT in environment" >&2; exit 1
-    # fi
 
     # run-phase specific argument processing:
     while [ $# -gt 2 ]; do
@@ -226,6 +227,9 @@ if [ "$GRUN_PHASE" = run ]; then
     if [ -z "$IBIS_NAMESVR_KEY" ]; then
 	IBIS_NAMESVR_KEY="key$GRUN_TOKEN"
     fi
+    if [ -z "$IBIS_POOLSVR_KEY" ]; then
+	IBIS_POOLSVR_KEY="key$GRUN_TOKEN"
+    fi
     case "$IBIS_NETWORK" in
     new_firewall|firewall|routedmsg)
 	if [ -z "$IBIS_HUB_PORT" ]; then
@@ -254,8 +258,9 @@ if [ "$GRUN_PHASE" = run ]; then
 	-Dibis.name_server.key=$IBIS_NAMESVR_KEY			      \
 	-Dibis.pool.total_hosts=$GRUN_NUMNODES				      \
 	-Dibis.pool.server.host=$IBIS_POOLSVR_HOST			      \
-	-Dibis.pool.server.port=$IBIS_POOLSVR_PORT			      \
+	$IBIS_POOLSVR_PORT_OPT						      \
 	-Dibis.pool.cluster=$GRUN_CLUSTER				      \
+	-Dibis.pool.key=$IBIS_POOLSVR_KEY				      \
 	-Dcluster=$GRUN_CLUSTER						      \
 	$IBIS_CONN_OPTS							      \
 	$IBIS_JAVA_OPTS							      \

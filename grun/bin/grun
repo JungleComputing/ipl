@@ -54,10 +54,15 @@ def new_job_number():
 # Globals/options put in a separate class for clarity
 class Global:
     app             = "grun"
+    grun_home       = "/usr/local/package/grun"
+    if "GRUN_HOME" in os.environ.keys():
+        grun_home = os.environ["GRUN_HOME"]
     def_cpucount    = 0 # defaults to 1, unless hostcount is set
     def_hostcount   = 0 # defaults to 1, unless cpucount is set
     environment     = []
     jobnumber       = new_job_number()  # was: os.getpid()
+    jobtry          = 0
+    maxretry        = 5
     out_on          = 1
     extern_out      = 0
     command_list    = []
@@ -79,6 +84,10 @@ class Global:
     timed_out       = 0
     interrupted     = 0
     interrupt_ack   = 0
+
+def new_job_token():
+    Global.jobtry += 1
+    Global.jobtoken = "%d-%d" % (Global.jobnumber, Global.jobtry)
 
 def loginfo(string):
     msg = "%s: %s" % (Global.app, string)
@@ -287,7 +296,7 @@ def job_cancel(job):
     state = job.get_state()
     if job.gc != None and job.jobcontact != None and \
        state != JOB_STATE_FAILED and state != JOB_STATE_DONE:
-        job.cmd.info("Cancelling %s" % job.jobcontact)
+        job.cmd.debug("Cancelling %s" % job.jobcontact)
         try:
             job.gc.cancel_job(job.jobcontact)
         except GramClientException, ex:
@@ -337,19 +346,19 @@ def run_commands(cmdlist, phase,
         fullrsl = cmd.rsl
 
         # Host/cpu count
+	countrsl = None
         if cmd.cpucount > 0:
             countrsl = "(count=%d)" % cmd.cpucount
             fullrsl += countrsl
         if cmd.hostcount > 0:
+	    if countrsl == None:
+                # Also use regular "count", or it may be assumed 1
+                fullrsl += "(count=%d)" % cmd.hostcount
             # A few sanity checks before actually using RSL "hostCount"
             # since only few jobmanager seem to implement it correctly..
-            if cmd.site != None and cmd.site.usehostcount and \
+            if (cmd.site == None or cmd.site.usehostcount) and \
                cmd.rsrc != "jobmanager-fork":
-                countrsl = "(hostCount=%d)" % cmd.hostcount
-            else:
-                # use regular "count"
-                countrsl = "(count=%d)" % cmd.hostcount
-            fullrsl += countrsl
+                fullrsl += "(hostCount=%d)" % cmd.hostcount
         # if neither cpucount nor hostcount is set, 1 process is started
 
         # Check for site-specific RSL extension (e.g., non-default queue):
@@ -367,11 +376,14 @@ def run_commands(cmdlist, phase,
         # Environment
         envrsl = "(environment="
         envlist = Global.environment + cmd.env
+        if cmd.site != None and cmd.site.env != None:
+            envlist += cmd.site.env
         for e in envlist:
             varval = string.split(e, "=", 1)
-            envrsl += '(%s "%s")' % (varval[0], varval[1])
+            if len(varval) == 2:
+                envrsl += '(%s "%s")' % (varval[0], varval[1])
         envrsl += "(GRUN_NUMNODES %d)" % total
-        envrsl += "(GRUN_TOKEN %03d)" % Global.jobnumber
+        envrsl += "(GRUN_TOKEN %s)" % Global.jobtoken
         envrsl += "(GRUN_PHASE %s)" % phase
         envrsl += "(GRUN_SANDBOX %s)" % sandbox
         envrsl += "(GRUN_CLUSTER %s)" % cmd.task.host
@@ -379,18 +391,20 @@ def run_commands(cmdlist, phase,
             envrsl += "(GRUN_GASS %s)" % cmd.task.iosvr
             if cmd.task.outdir != None:
                 envrsl += "(GRUN_GASS_DIR %s)" % cmd.task.outdir
-        envrsl += ")"
-        fullrsl += envrsl
 
         # File staging
         stagelist = cmd.stage_in + stage_in_all
+        stageinenv = ""
+        stageoutenv = ""
+        fullstagersl = ""
         if stagelist != []:
             stage_rsl = "(file_stage_in="
             for stage in stagelist:
                 stage_rsl += "(@GRUN_GASS@/./%s %s)" % \
                              (stage[1], stage[0])
+                stageinenv += "%s:" % stage[0]
             stage_rsl += ")"
-            fullrsl += stage_rsl
+            fullstagersl += stage_rsl
 
         stagelist = cmd.stage_in_shared + stage_in_shared_all
         if stagelist != []:
@@ -398,8 +412,9 @@ def run_commands(cmdlist, phase,
             for stage in stagelist:
                 stage_rsl += "(@GRUN_GASS@/./%s %s)" % \
                              (stage[1], stage[0])
+                stageinenv += "%s:" % stage[0]
             stage_rsl += ")"
-            fullrsl += stage_rsl
+            fullstagersl += stage_rsl
 
         stagelist = cmd.stage_out + stage_out_all
         if stagelist != []:
@@ -407,9 +422,19 @@ def run_commands(cmdlist, phase,
             for stage in stagelist:
                 stage_rsl += "(%s @GRUN_GASS@/./%s/%s)" % \
                              (stage[1], cmd.task.outdir, stage[0])
+                stageoutenv += "%s:" % stage[0]
             stage_rsl += ")"
-            fullrsl += stage_rsl
+            fullstagersl += stage_rsl
             
+        if stageinenv != "":
+            envrsl += "(GRUN_STAGEDINFILES %s)" % stageinenv
+        if stageoutenv != "":
+            envrsl += "(GRUN_STAGEDOUTFILES %s)" % stageoutenv
+        envrsl += ")"
+        fullrsl += envrsl
+
+        fullrsl += fullstagersl
+
         # I/O
         if cmd.task.iosvr != None:
             outrsl = "(stdout=%s/dev/stdout)(stderr=%s/dev/stderr)" % \
@@ -418,10 +443,6 @@ def run_commands(cmdlist, phase,
 
             # expand GRUN_GASS (needed for file/executable staging)
             fullrslnew = string.replace(fullrsl, "@GRUN_GASS@",
-                                        cmd.task.iosvr)
-            fullrsl = fullrslnew
-            # some backward compatibility:
-            fullrslnew = string.replace(fullrsl, "$(GRUN_GASS)",
                                         cmd.task.iosvr)
             fullrsl = fullrslnew
             fullrslnew = string.replace(fullrsl, "@GRUN_SANDBOX@", sandbox)
@@ -504,11 +525,9 @@ class Watchdog(Thread):
         self.first_finished()
         self.startup_finished()
 
-    def cancel_after_timeout(self):
-        err = 3
-        Global.exitcode = err
+    def cancel(self):
+        Global.exitcode = 3
         cancel_jobs(self.cmdlist)
-        timedout(err)
         
     def run(self):
         # Startup timer:
@@ -522,7 +541,8 @@ class Watchdog(Thread):
             if pending > 0:
                 loginfo("%d of %d jobs pending after %d sec: ABORT" %
                         (pending, numjobs, self.startup_timeout))
-                self.cancel_after_timeout()
+                self.cancel()
+                timedout(Global.exitcode)
                 return
             logdebug("all %d jobs started within %d sec" %
                      (numjobs, self.startup_timeout))
@@ -533,7 +553,8 @@ class Watchdog(Thread):
                 # Cancel all pending or running subjobs:
                 loginfo("jobs hit wall timeout after %d sec: ABORT" %
                         self.wall_timeout)
-                self.cancel_after_timeout()
+                self.cancel()
+                terminate(Global.exitcode)
                 return
 
         # Exit timer:
@@ -543,7 +564,8 @@ class Watchdog(Thread):
                 # Cancel all pending or running subjobs:
                 loginfo("jobs hit exit timeout after %d sec: ABORT" %
                         self.exit_timeout)
-                self.cancel_after_timeout()
+                self.cancel()
+                terminate(Global.exitcode)
                 return
         
 
@@ -616,6 +638,11 @@ Options:
         Should precede subjob(s) specified with -m option.
         Use    -c '@GRUN_GASS@/./<script> <args>' to transfer file
         <script> from local directory to remote system and run it there.
+    -C '<cmdline>'
+        A convenience version of the -c option: the commandline is assumed to
+        start with a shell script on the local system, which is transferred,
+        made executable, and run from the default Grun file staging script
+        during the run phase.
     -r <rsl>
         Same as '-c' option, only specifies grid job using Globus RSL syntax.
         Example:   -r '(executable=/bin/uname)(arguments=-a)'
@@ -656,6 +683,9 @@ Options:
         other subjobs have to complete termination after the first subjob
         exits.  After that, remaining subjobs are cancelled explicitly.
         The default is 3 minutes.
+    -X <maxretry>
+        Set maximum retry count for failed job submissions due to timeout.
+        The default is 5 retries.
     --pre '<cmdline>'
         Specifies grid job pre-execution command line to be used,
         that are used to stage files in, and possibly do additional
@@ -720,15 +750,39 @@ def check_preceeding_cmd(cmd, option):
         logerror("option %s: no preceeding command" % option)
         usage()
 
-def stage_arg(stagelist, a, option, argdescr):
+def get_stage_arg(a, option, argdescr):
     args = string.split(a, "=", 1)
     if len(args) == 1:
-        stagelist.append((args[0], args[0]))
+        # "filename" is shortcut for "lastcomponent=filename"
+        filename = args[0]
+	slash = string.rfind(filename, "/")
+        if slash > 0:
+            dest = filename[slash + 1:]
+            if dest == "":
+                logerror("option %s requires %s arg" % (option, argdescr))
+                usage()
+        else:
+            dest = filename
+        return (dest, filename)
     elif len(args) == 2:
-        stagelist.append((args[0], args[1]))
+        return (args[0], args[1])
     else:
         logerror("option %s requires %s arg" % (option, argdescr))
         usage()
+        return None
+
+def stage_arg(stagelist, a, option, argdescr):
+    stage = get_stage_arg(a, option, argdescr)
+    if stage != None:
+        if not os.path.isfile(stage[1]):
+            logerror("option %s: %s not a file" % (option, stage[1]))
+            usage()
+        stagelist.append(stage)
+
+def stage_out_arg(stagelist, a, option, argdescr):
+    stage = get_stage_arg(a, option, argdescr)
+    if stage != None:
+        stagelist.append(stage)
 
 def int_arg(arg, option):
     try:
@@ -743,17 +797,32 @@ def cmd_to_rsl(cmdline):
     if len(cmdargs) == 2:
         # need escapes for certain characters in RSL:
         args = ""
-        # TODO: don't yet handle the case where a STARTS with
-        # funny character.  In that case the "#" approach fails..
+	first = 1
+	ind = 0
         for a in cmdargs[1]:
+	    ind += 1;
+	    last = (ind == len(cmdargs[1]))
             if a == '"':
-                a = "#'%s'#" % a
+		if not first:
+		    a = "#'%s'" % a
+		else:
+	            a = "'%s'" % a
+	        # a = "#'%s'#" % a
+		if not last:
+		    a = "%s#" % a
             else:
-                for i in "[^\v\n+&|()=<>!'^$]":
+                for i in "[^\v\n+&|()=<>!'^$]*":
                     if a == i:
-                        a = '#"%s"#' % a
+			if not first:
+		    	    a = '#"%s"' % a
+			else:
+		            a = '"%s"' % a
+                        # a = '#"%s"#' % a
+			if not last:
+		    	    a = "%s#" % a
                         break
             args += a
+	    first = 0
         rsl += "(arguments=%s)" % args
     return rsl
 
@@ -765,7 +834,7 @@ def getArgs():
         opts, args = \
           getopt.getopt(
             sys.argv[1:],
-            "c:e:E:g:h:H:I:n:N:l:Lm:opPr:s:t:T:vx:",
+            "c:C:e:E:g:h:H:I:n:N:l:Lm:opPr:s:t:T:vx:X:",
             ["help", "version", "pre=", "pre-all=", "post=", "post-all=",
              "stage-in=", "stage-in-all=", "stage-in-shared=",
              "stage-in-shared-all=", "stage-out=", "stage-out-all=",
@@ -824,9 +893,21 @@ def getArgs():
                 cur_rm = None
                 cur_cmd.site = cur_site
                 cur_site = None
-        elif o == "-c" or o == "-r":
+        elif o == "-c" or o == "-C" or o == "-r":
             if o == "-c":
                 cur_rsl = cmd_to_rsl(a)
+            elif o == "-C":
+                cmdlist = string.split(a)
+                cmd = cmdlist[0]
+                stage = get_stage_arg(cmd, o, "<command>")
+                if not os.path.isfile(cmd):
+                    logerror("option %s: %s not a file" % (option, cmd))
+                    usage()
+                Global.stage_in.append(stage)
+                # cmd might be path, so replace it by staged version:
+                newcmdline = "@GRUN_GASS@/./%s/etc/stage %s%s" % \
+                    (Global.grun_home, stage[0], a[len(cmd):])
+                cur_rsl = cmd_to_rsl(newcmdline)
             else:
                 cur_rsl = a
             cur_cmd_list = Global.command_list
@@ -843,6 +924,8 @@ def getArgs():
             Global.wall_time = int_arg(a, o)
         elif o == "-x":
             Global.exit_time = int_arg(a, o)
+        elif o == "-X":
+            Global.maxretry = int_arg(a, o)
         elif o == "-p":
             prerun_all = "default"
         elif o == "-P":
@@ -879,9 +962,9 @@ def getArgs():
                       "<remotefile>=<localfile>")
         elif o == "--stage-out":
             check_preceeding_cmd(cur_cmd, o)
-            stage_arg(cur_cmd.stage_out, a, o, "<localfile>=<remotefile>")
+            stage_out_arg(cur_cmd.stage_out, a, o, "<localfile>=<remotefile>")
         elif o == "--stage-out-all":
-            stage_arg(Global.stage_out,   a, o, "<localfile>=<remotefile>")
+            stage_out_arg(Global.stage_out,   a, o, "<localfile>=<remotefile>")
         elif o == "-L":
             Global.logger_on = 1
         elif o == "-v":
@@ -1006,7 +1089,7 @@ def check_interrupt():
     else:
         return 0
         
-def run_main():
+def run_main_prepare():
     # set up error logging first
     if Global.logger_on:
         Global.logger = logging.getLogger("grun")
@@ -1022,36 +1105,18 @@ def run_main():
 
     loginfo("starting job %03d" % Global.jobnumber)
 
-    # TODO: we start the preexecution command only once, but suppose
-    # co-allocation has to be retried?  Currently assumes that
-    # connecting to, e.g., the Ibis nameserver/poolserver is idempotent,
-    # which is rather optimistic..  Or should the startup script itself
-    # implement a two-phase commit to prevent this?
+    # We start the preexecution command only once.  When co-allocation
+    # is retried we supply a new GRUN_TOKEN, so any servers started
+    # can differentiate between two sessions.
+    # In cases where this isn't possible, the startup script should
+    # implement a startup barrier.
     if Global.preexec_command != None:
-        os.system(Global.preexec_command)
+	os.system(Global.preexec_command)
+	Global.preexec_done = 1
 
+def run_main():
     start = time.time()
-    
-    if Global.out_on:
-        # Note: also create job/site dirs when not starting separate
-        # I/O servers, since the remote commands may still want
-        # to use the single GASS server, and also the job id needs to
-        # be reserved.
-        create_site_dirs(Global.command_list)
-        if not Global.extern_out:
-            # Start a single GASS server that redirects stdout/err
-            # of all subjobs.  Appears this has to be done HERE,
-            # and not in a subfunction to keep it alive?!
-            ioserver = GassServerEZ(STDOUT_ENABLE | STDERR_ENABLE |
-                                    READ_ENABLE | WRITE_ENABLE)
-            ioUrl = ioserver.getURL()
-            for cmd in Global.command_list:
-                cmd.task.iosvr = ioUrl
-        else:
-            start_io_servers(Global.command_list)
-
-    if check_interrupt():
-        return
+    new_job_token()
 
     stage_in_all = Global.stage_in
     stage_in_shared_all = Global.stage_in_shared
@@ -1066,25 +1131,23 @@ def run_main():
     stage_out_all = []
     if Global.postcommand_list == []:
         stage_out_all = Global.stage_out
-
     run_commands_sync(Global.command_list, "run",
                       stage_in_all, stage_in_shared_all, stage_out_all)
     # It's sometimes useful to pick up results of (partially) failed runs,
     # so we don't check must_quit() here
-
     if Global.postcommand_list != []:
         run_commands_sync(Global.postcommand_list, "stageout",
                           [], [], Global.stage_out)
-        if check_interrupt():
-            return
+    if check_interrupt():
+        return
 
     stop = time.time()
     loginfo("Total running time: %.1f sec" % (stop - start))
     if Global.exitcode == 0:
-        loginfo("job %03d done" % Global.jobnumber)
+        loginfo("job %03d try %d done" % (Global.jobnumber, Global.jobtry))
     else:
-        loginfo("job %03d failed (exit code %d)" %
-                (Global.jobnumber, Global.exitcode))
+        loginfo("job %03d try %d failed (exit code %d)" %
+                (Global.jobnumber, Global.jobtry, Global.exitcode))
     logging.shutdown()
 
     if Global.out_on:
@@ -1104,12 +1167,45 @@ class StarterThread(Thread):
         self._finished.set()
 
     def run(self):
-        run_main()
-        return
+        run_main_prepare()
+
+	if Global.out_on:
+            # Note: also create job/site dirs when not starting separate
+            # I/O servers, since the remote commands may still want
+            # to use the single GASS server, and also the job id needs to
+            # be reserved.
+            create_site_dirs(Global.command_list)
+            if not Global.extern_out:
+                # Start a single GASS server that redirects stdout/err
+                # of all subjobs.   HACK: to keep this server alive, it
+                # appears this has to be done HERE, and not in subfunction?!
+                ioserver = GassServerEZ(STDOUT_ENABLE | STDERR_ENABLE |
+                                        READ_ENABLE | WRITE_ENABLE)
+                ioUrl = ioserver.getURL()
+                for cmd in Global.command_list:
+                    cmd.task.iosvr = ioUrl
+            else:
+                start_io_servers(Global.command_list)
+
+        while not (Global.terminated or Global.interrupted):
+            run_main()
+            # See if we may still retry:
+            if Global.timed_out:
+                if Global.jobtry <= Global.maxretry:
+                    Global.timed_out = 0
+                    Global.exitcode  = 0
+                else:
+                    terminate(Global.exitcode)
 
 def main():
     # Python having problems writing to pipe?
     signal.signal(signal.SIGPIPE, signal.SIG_IGN)
+    # Move ourselves to new process group so that we can easily terminate
+    # all children, but not the shell invoking us.
+    oldgroup = posix.getpgrp()
+    group = posix.getpid()
+    # print "Old group %d, new group %d" % (oldgroup, group)
+    posix.setpgid(0, group)
 
     griddefs.sitedefs()
     getArgs()
@@ -1117,7 +1213,12 @@ def main():
     starter.start()
 
     try:
-        while not must_quit():
+        # After having started the subprocesses, move back to original group
+        # to handle ctrl-C
+        time.sleep(2)
+        posix.setpgid(0, oldgroup)
+        # Don't check Global.timed_out here, since jobs may be retried
+        while not (Global.terminated or Global.interrupted):
             time.sleep(1)
     except KeyboardInterrupt:
         print "Interrupted: cancelling jobs; please wait.."
@@ -1130,9 +1231,11 @@ def main():
     # kill process group in case external servers don't go away by themselves;
     # but don't kill ourselves in the process:
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
-    group = posix.getpgrp()
-    logdebug("Killing process group %d" % group)
-    posix.kill(-group, signal.SIGTERM)
+    try:
+        posix.kill(-group, signal.SIGTERM)
+    except OSError:
+        # Maybe we didn't started any subprocesses, or they already exited
+        pass
     sys.exit(Global.exitcode)
 
 if __name__ == "__main__":
