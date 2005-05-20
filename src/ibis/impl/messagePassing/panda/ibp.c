@@ -147,7 +147,9 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
     extern int pan_msg_sane(pan_msg_p);
 
     if (! pan_msg_sane((pan_msg_p)msg)) {
-	ibmp_error(env, "This seems an insane msg: %p\n", msg);
+	char buf[256];
+	sprintf(buf, "This seems an insane msg: %p\n", msg);
+	ibmp_error(env, buf);
     }
 #endif
 
@@ -629,7 +631,7 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
     for (i = 0; i < fs_nhosts; i++) {
 	h = gethostbyname(fs_host[i]);
 	if (h == NULL) {
-	    ibmp_error(env, "gethostbyname fails");
+	    ibmp_error(env, "gethostbyname fails\n");
 	    return;
 	}
 	if (h->h_length != sizeof(fs_host_inet)) {
@@ -649,12 +651,13 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
     argc = *java_argc + 3;
 
     if (gethostname(hostname, 256) == -1) {
-	ibmp_error(env, "Cannot get hostname");
+	ibmp_error(env, "Cannot get hostname\n");
 	return;
     }
 
     env_host_id = getenv("PRUN_CPU_RANK");
     if (env_host_id == NULL) {
+	char buf[256];
 	me = -1;
 	for (i = 0; i < fs_nhosts; i++) {
 	    if (hostname_equal(fs_host[i], hostname)) {
@@ -663,17 +666,21 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 	    }
 	}
 	if (i == fs_nhosts) {
-	    ibmp_error(env, "Host name %s does not occur in HOSTS env var %s\n",
+	    sprintf(buf, "Host name %s does not occur in HOSTS env var %s\n",
 			hostname, orig_hosts);
+	    ibmp_error(env, buf);
 	    return;
 	}
     } else {
+	char buf[256];
 	if (sscanf(env_host_id, "%d", &me) != 1) {
-	    ibmp_error(env, "Host id is not a number: %s\n", env_host_id);
+	    sprintf(buf, "Host id is not a number: %s\n", env_host_id);
+	    ibmp_error(env, buf);
 	    return;
 	}
 	if (me < 0 || me >= fs_nhosts) {
-	    ibmp_error(env, "Host id is out of range: %d\n", me);
+	    sprintf(buf, "Host id is out of range: %d\n", me);
+	    ibmp_error(env, buf);
 	    return;
 	}
     }

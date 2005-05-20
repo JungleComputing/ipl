@@ -1540,7 +1540,7 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 	    				"FIRST_FRAG_BIT",
 					"I");
     if (fld == NULL) {
-	ibmp_error(env, "Cannot find static field FIRST_FRAG_BIT");
+	ibmp_error(env, "Cannot find static field FIRST_FRAG_BIT\n");
     }
     IBMP_FIRST_FRAG_BIT = (*env)->GetStaticIntField(env, cls_ByteOutputStream, fld);
 
@@ -1548,26 +1548,26 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 	    				"LAST_FRAG_BIT",
 					"I");
     if (fld == NULL) {
-	ibmp_error(env, "Cannot find static field LAST_FRAG_BIT");
+	ibmp_error(env, "Cannot find static field LAST_FRAG_BIT\n");
     }
 
     fld = (*env)->GetStaticFieldID(env, cls_ByteOutputStream,
 	    				"SEQNO_FRAG_BITS",
 					"I");
     if (fld == NULL) {
-	ibmp_error(env, "Cannot find static field SEQNO_FRAG_BITS");
+	ibmp_error(env, "Cannot find static field SEQNO_FRAG_BITS\n");
     }
     IBMP_SEQNO_FRAG_BITS = (*env)->GetStaticIntField(env, cls_ByteOutputStream, fld);
 
     cls_SendPort = (*env)->FindClass(env, "ibis/impl/messagePassing/SendPort");
     if (cls_SendPort == NULL) {
-	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/SendPort");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/SendPort\n");
     }
     fld = (*env)->GetStaticFieldID(env, cls_SendPort,
 	    				"NO_BCAST_GROUP",
 					"I");
     if (fld == NULL) {
-	ibmp_error(env, "Cannot find static field NO_BCAST_GROUP");
+	ibmp_error(env, "Cannot find static field NO_BCAST_GROUP\n");
     }
     ibmp_byte_stream_NO_BCAST_GROUP =
 	(*env)->GetStaticIntField(env, cls_SendPort, fld);

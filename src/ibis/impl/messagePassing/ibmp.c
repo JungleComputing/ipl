@@ -103,23 +103,14 @@ ibmp_stderr_printf(char *fmt, ...)
 
 
 void
-ibmp_error_printf(JNIEnv *env, const char *fmt, ...)
+ibmp_error_printf(JNIEnv *env, const char *file, int line, const char *fmt)
 {
-    va_list	ap;
     char	msg[1024];
 
-    va_start(ap, fmt);
-    fprintf(stderr, "%2d: Fatal Ibis/MessagePassing error: ", ibmp_me);
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
-    fprintf(stderr, "\n");
-
-    va_start(ap, fmt);
-    sprintf(msg, "%2d: Fatal Ibis/MessagePassing error: ", ibmp_me);
-    vsprintf(strchr(msg, '\0'), fmt, ap);
-    va_end(ap);
+    sprintf(msg, "%s.%d: %2d: Fatal Ibis/MessagePassing error: %s", file, line, ibmp_me, fmt);
 
     if (ibmp_core_on_error) {
+	fprintf(stderr, msg);
 	abort();
     } else {
 	int v = (*env)->ThrowNew(env, cls_java_io_IOException, msg);
@@ -372,7 +363,7 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
     getName = (*env)->GetMethodID(env, (jobject)classClass, "getName", "()Ljava/lang/String;");
     if (getName == NULL) {
 	IBP_VPRINTF(2000, env, ("here...\n"));
-	ibmp_error(env, "Cannot find method java.lang.Class.getName()Ljava/lang/String;");
+	ibmp_error(env, "Cannot find method java.lang.Class.getName()Ljava/lang/String;\n");
     }
     IBP_VPRINTF(2000, env, ("here...\n"));
     s = (jstring)(*env)->CallObjectMethod(env, (jobject)c, getName);
@@ -380,8 +371,10 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
     class_name = (*env)->GetStringUTFChars(env, s, NULL);
     IBP_VPRINTF(2000, env, ("here...\n"));
     if (strcmp(class_name, name) != 0) {
+	char buf[1024];
 	IBP_VPRINTF(2000, env, ("here...\n"));
-	ibmp_error(env, "Linked %s native lib with %s Ibis", name, class_name);
+	sprintf(buf, "Linked %s native lib with %s Ibis\n", name, class_name);
+	ibmp_error(env, buf);
     }
     IBP_VPRINTF(2000, env, ("here...\n"));
     (*env)->ReleaseStringUTFChars(env, s, class_name);

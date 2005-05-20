@@ -114,7 +114,7 @@ ibmpi_mp_upcall(JNIEnv *env, MPI_Status *status)
     assert(ibmpi_alive);
 
     if (MPI_Get_count(status, MPI_PACKED, &size) != MPI_SUCCESS) {
-	ibmp_error(env, "Cannot successfully query message size");
+	ibmp_error(env, "Cannot successfully query message size\n");
     }
     msg = ibmpi_msg_create(status->MPI_SOURCE, size);
     proto = (ibmpi_proto_p)(msg + 1);
@@ -133,7 +133,7 @@ ibmpi_mp_upcall(JNIEnv *env, MPI_Status *status)
     if (MPI_Recv(proto, size, MPI_PACKED,
 		 status->MPI_SOURCE, status->MPI_TAG,
 		 MPI_COMM_WORLD, &rcve_status) != MPI_SUCCESS) {
-	ibmp_error(env, "Cannot successfully receive protocol msg");
+	ibmp_error(env, "Cannot successfully receive protocol msg\n");
     }
     msg->start = proto->proto_size;
     assert(proto->seqno == ibmpi_rcve_seqno[status->MPI_SOURCE]++);

@@ -111,9 +111,9 @@ ibmp_iovec_len(pan_iovec_p iov, int n)
 
 
 #include <stdio.h>
-#define ibmp_error	\
-	fprintf(stderr, "%s.%d: ", __FILE__, __LINE__); ibmp_error_printf
-void ibmp_error_printf(JNIEnv *env, const char *fmt, ...);
+#define ibmp_error(e, s)	\
+	ibmp_error_printf(e, __FILE__, __LINE__, s)
+void ibmp_error_printf(JNIEnv *env, const char *file, int line, const char *fmt);
 
 void ibmp_init(JNIEnv *env, jobject this);
 void ibmp_end(JNIEnv *env, jobject this);

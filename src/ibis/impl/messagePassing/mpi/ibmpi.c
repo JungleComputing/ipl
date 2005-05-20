@@ -141,7 +141,7 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
 
 	if (MPI_Recv(buf, len, MPI_PACKED, msg->sender, msg->send_port_id,
 		     MPI_COMM_WORLD, &status) != MPI_SUCCESS) {
-	    ibmp_error(env, "MPI_Recv of blast message fails");
+	    ibmp_error(env, "MPI_Recv of blast message fails\n");
 	}
     } else {
 	if (len > msg->size - msg->start) {

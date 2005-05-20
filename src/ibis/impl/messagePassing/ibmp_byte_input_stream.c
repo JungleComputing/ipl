@@ -404,17 +404,17 @@ ibmp_byte_input_stream_init(JNIEnv *env)
 
     fld_msgHandle = (*env)->GetFieldID(env, cls_PandaByteInputStream, "msgHandle", "I");
     if (fld_msgHandle == NULL) {
-	ibmp_error(env, "Cannot find field PandaByteInputStream.msgHandle:I");
+	ibmp_error(env, "Cannot find field PandaByteInputStream.msgHandle:I\n");
     }
 
     cls_SendPort = (*env)->FindClass(env,
 	    "ibis/impl/messagePassing/SendPort");
     if (cls_SendPort == NULL) {
-	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/SendPort");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/SendPort\n");
     }
     fld_hasHomeBcast = (*env)->GetStaticFieldID(env, cls_SendPort, "hasHomeBcast", "[Z");
     if (fld_hasHomeBcast == NULL) {
-	ibmp_error(env, "Cannot find field FindClass.hasHomeBcast");
+	ibmp_error(env, "Cannot find field FindClass.hasHomeBcast\n");
     }
 
 }

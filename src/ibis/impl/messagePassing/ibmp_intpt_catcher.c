@@ -26,7 +26,7 @@ init_fields(JNIEnv *env)
 
     cls_InterruptCatcher = (*env)->FindClass(env, "ibis/impl/messagePassing/InterruptCatcher");
     if (cls_InterruptCatcher == NULL) {
-	ibmp_error(env, "Cannot finr class ibis/impl/messagePassing/InterruptCatcher");
+	ibmp_error(env, "Cannot finr class ibis/impl/messagePassing/InterruptCatcher\n");
     }
 
     fld_signo = (*env)->GetFieldID(env, cls_InterruptCatcher, "signo", "I");
