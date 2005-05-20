@@ -61,7 +61,7 @@ Section \ref{Ibis RMI} briefly discusses the Ibis RMI implementation.
 \mysubsection{The Ibis Portability Layer}
 
 An important part of the Ibis system consists of the Ibis Portability Layer (IPL).
-The IPL consists of a set of Java interfaces that define how an Ibis application
+The IPL consists of a set of Java interfaces and classes that define how an Ibis application
 can make use of the Ibis components.
 The Ibis application does not need to know which specific Ibis implementations are
 available.
@@ -346,9 +346,9 @@ serialization, and not care if it is Ibis or Sun serialization.
 Ibis serialization is supported.
 This is the fastest object serialization supported in Ibis. Its drawback
 is that it requires identical Java implementations on sender and
-receiver side 
+receiver side; 
 %@@@ huh? what does this mean? why? --Rob
-; it also requires user-defined
+it also requires user-defined
 \texttt{writeObject()}/\texttt{readObject()} methods to be symmetrical, that is,
 each write in \texttt{writeObject()} must have a corresponding read
 in \texttt{readObject()} (and vice versa).
@@ -456,8 +456,8 @@ boolean iAmServer = server.equals(me);
 \end{verbatim}
 \end{quote}
 
-In our example one instance of the program is the server, and all
-others are clients.  Of course, the client and the server can also
+In our example, one instance of the program is the server and all
+other instances are clients.  Of course, the client and the server can also
 be different programs altogether.
 
 The \texttt{ResizeHandler}, as discussed in Section
@@ -1005,14 +1005,14 @@ The port number of this socket can be specified using a command line
 option to the \texttt{ibis-nameserver} script. This script recognizes
 the following options:
 \begin{description}
-\item{-single}
+\item{\texttt{-single}}
 specifies that the nameserver should only serve a single Ibis run
 and then exit.
-\item{-port \emph{portno}}
+\item{\texttt{-port} \emph{portno}}
 specifies the port number of the nameserver socket.
 A port number must be between 0 and 65535, inclusive. Usually,
 port numbers below 1024 are reserved for other purposes.
-\item{-poolport \emph{poolportno}}
+\item{\texttt{-poolport} \emph{poolportno}}
 specifies the port number of the \texttt{PoolInfoServer} mentioned
 in Section \ref{PoolInfo}.
 \end{description}
@@ -1027,20 +1027,20 @@ script is called as follows:
 \end{center}
 The most important \emph{ibis-run-flags} are explained below:
 \begin{description}
-\item{\texttt{--nhosts} \emph{nhosts}}
+\item{\texttt{-nhosts} \emph{nhosts}}
 specifies the total number of Ibis instances involved in this run.
-\item{\texttt{--hostno} \emph{hostno}}
+\item{\texttt{-hostno} \emph{hostno}}
 specifies the rank number of this Ibis instance within this run,
 so its range is $0 ... \emph{nhosts}-1$.
-\item{\texttt{--key} \emph{id}}
+\item{\texttt{-key} \emph{id}}
 specifies the identifier used to identify the run to the nameserver.
-\item{\texttt{--ns} \emph{nameserverhost}}
+\item{\texttt{-ns} \emph{nameserverhost}}
 specifies the hostname of the machine where the Ibis nameserver runs.
 If the hostname refers to a machine that also participates in the run,
 Ibis will start the nameserver itself.
-\item{\texttt{--ns-port} \emph{port}}
+\item{\texttt{-ns-port} \emph{port}}
 specifies the port number on which the nameserver is listening.
-\item{\texttt{--?}}
+\item{\texttt{-?}}
 gives a description of all options.
 \item{\emph{javaflags}}
 are any flags that need to be passed on to java.
@@ -1053,15 +1053,15 @@ specifies the optional application parameters.
 The \texttt{ibis-run} script uses these parameters to set the following
 system properties (see also Section \ref{PoolInfo}):
 \begin{description}
-\item{ibis.pool.host\_number}
+\item{\texttt{ibis.pool.host\_number}}
 the rank number of this Ibis instance.
-\item{ibis.pool.total\_hosts}
+\item{\texttt{ibis.pool.total\_hosts}}
 the total number of Ibis instances.
-\item{ibis.name\_server.key}
+\item{\texttt{ibis.name\_server.key}}
 identifies the run to the nameserver.
-\item{ibis.name\_server.port}
+\item{\texttt{ibis.name\_server.port}}
 the nameserver port.
-\item{ibis.name\_server.host}
+\item{\texttt{ibis.name\_server.host}}
 the nameserver hostname.
 \end{description}
 
@@ -1084,26 +1084,20 @@ running Ibis applications on a Globus-based grid. See the
 
 \mysubsection{Running the example}
 In order to run the example, we first have to compile it.
-Please go to the example directory and type:
+Please go to the \emph{example} directory and type:
 \noindent
 \begin{verbatim}
 $ ../ant
 \end{verbatim}
 \noindent
 After a couple of seconds, the example should be compiled.
-You can run the example both with and without the ibis-run script.
+You can run the example both with and without the \texttt{ibis-run} script.
 Because we run the example on a single machine, we do not need to start a seperate nameserver.
-If you want to use the script:
-In shell 1 type:
+To run the application, we first need to start to shells.
+Then, in both shells type:
 \begin{verbatim}
 $ $IBIS_HOME/bin/ibis-run \
-    -nhosts 2 -hostno 0 Example
-\end{verbatim}
-\noindent
-In shell 2 type:
-\begin{verbatim}
-$ $IBIS_HOME/bin/ibis-run \
-    -nhosts 2 -hostno 1 Example
+    -nhosts 2 -ns localhost Example
 \end{verbatim}
 \noindent
 Now, it should run and print:
@@ -1111,26 +1105,28 @@ Now, it should run and print:
 Test succeeded!
 \end{verbatim}
 \noindent
-If you don't use the ibis-run script, you have to set several properties.
+If you don't use the \texttt{ibis-run} script, you have to set several properties.
 In both shells, type:
 \begin{verbatim}
 $ java \
     -cp $IBIS_HOME/build/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
-    -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
-    -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
+    -Dibis.pool.total_hosts=2 -Dibis.name_server.host=localhost \
+    -Dibis.name_server.key=bla \
     Example
 \end{verbatim}
 \noindent
-The \texttt{name\_server.key} value can be any random string, it identifiers
-your run. This is done because one nameserver can serve multiple
-runs. For this test, we need to provide Ibis with the total numer of
+The \texttt{ibis.name\_server.key} value can be any random string.
+It identifies your run.
+This is done because one nameserver can serve multiple
+runs. For this test, we need to provide Ibis with the total number of
 CPUs in the run, because it is a closed-world test. Ibis waits until
-both processors have joined the computation. Both the
-\texttt{ibis.pool.server.host} and the \texttt{ibis.name\_server.host} properties should
+both processors have joined the computation.
+The \texttt{ibis.name\_server.host} property should
 be set to the machine you run the nameserver on.  In this case, we use
-\texttt{localhost}. Because we also run the application on \texttt{localhost}, Ibis will
+\texttt{localhost}.
+Because we also run the application on \texttt{localhost}, Ibis will
 automatically start a nameserver. If you provide a hostname where the
-Ibis applicaiton does not run, you will have to start a nameserver
+Ibis application does not run, you will have to start a nameserver
 yourself.
 
 \mysection{The Satin Divide-and-Conquer System}
@@ -1286,11 +1282,12 @@ throw exceptions in the usual way. This can be used to rapidly
 terminate a large set of jobs, e.g., when a search result was
 found. Terminating jobs that are no longer useful can be done with the
 abort method from the SatinObject class.  Satin has its own exception
-type: ibis.satin.Inlet.  By extending the Inlet class, the programmer
-can inhibit the generation of a stack trace, which is an expensive
-operation. The stack trace is usually not useful in the Satin context,
+type: \texttt{ibis.satin.Inlet}.  By extending the \texttt{Inlet} class,
+the programmer can inhibit the generation of a stack trace,
+which is an expensive operation.
+The stack trace is usually not useful in the Satin context,
 because the exception is not an error, it is used to steer the
-search. Extending Inlet is optional, regular exceptions can also be
+search. Extending \texttt{Inlet} is optional, regular exceptions can also be
 used. Figures~\ref{satin-spec-search-fig1} and~\ref{satin-spec-search-fig2} change the search algorithm we used in the previous
 examples to use exceptions.
 
@@ -1470,38 +1467,38 @@ The Satin system accepts the following arguments. They are
 filtered out from the program arguments, leaving the application's
 arguments:
 \begin{description}
-\item{\texttt{--satin-closed}}
+\item{\texttt{-satin-closed}}
 Only use the initial set of hosts for the computation; do not allow
 further hosts to join the computation later on.
-\item{\texttt{--satin-stats}}
+\item{\texttt{-satin-stats}}
 Display some statistics at the end of the Satin run. This is the default.
-\item{\texttt{--satin-detailed-stats}}
+\item{\texttt{-satin-detailed-stats}}
 Display detailed statistics for every member at the end of the Satin run.
-\item{\texttt{--satin-no-stats}}
+\item{\texttt{-satin-no-stats}}
 Don't display statistics at the end of the Satin run.
-\item{\texttt{--satin-panda}}
+\item{\texttt{-satin-panda}}
 Use the Panda version of Ibis.
-\item{\texttt{--satin-mpi}}
+\item{\texttt{-satin-mpi}}
 Use the MPI version of Ibis.
-\item{\texttt{--satin-net}}
+\item{\texttt{-satin-net}}
 Use NetIbis.
-\item{\texttt{--satin-nio}}
+\item{\texttt{-satin-nio}}
 Use NIO Ibis.
-\item{\texttt{--satin-tcp}}
+\item{\texttt{-satin-tcp}}
 Use the TCP version of Ibis.
-\item{\texttt{--satin-ibis}}
+\item{\texttt{-satin-ibis}}
 Use Ibis serialization. When no serialization is specified,
 the object serialization used is determined by Ibis itself.
-\item{\texttt{--satin-sun}}
+\item{\texttt{-satin-sun}}
 Use Sun serialization.
-\item{\texttt{--satin-upcalls}}
+\item{\texttt{-satin-upcalls}}
 Use upcalls for receiving messages. This is the default.
-\item{\texttt{--satin-no-upcalls}}
+\item{\texttt{-satin-no-upcalls}}
 Use explicit receipt for receiving messages.
-\item{\texttt{--satin-upcall-polling}}
+\item{\texttt{-satin-upcall-polling}}
 Use upcalls for receiving messages, but Satin must explicitly poll to get
 upcalls.
-\item{\texttt{--satin-alg} \emph{algorithm}}
+\item{\texttt{-satin-alg} \emph{algorithm}}
 Specify the load-balancing algorithm to use. The possible values for
 \emph{algorithm} are: RS for random work-stealing, CRS for cluster-aware
 random-work stealing, and MW for master-worker
@@ -1751,8 +1748,8 @@ and the ranks of the participating processors. Because this class
 comes with Ibis, \texttt{ibis.jar} has to be in the classpath, even
 when running with Sun RMI.  The \texttt{PoolInfo} class needs the
 \texttt{ibis.pool.total\_hosts} and \texttt{ibis.pool.server.host}
-properties in order to be able to assign ranks to processors. The RMI
-pool server is statred automatically when you start an ibis nameserver
+properties in order to be able to assign ranks to processors. The
+pool server is started automatically when you start an ibis nameserver
 with the \texttt{ibis-namesever} script (in the case of this example, this is done automatically).
 
 Now, we can run the same application with Ibis RMI as follows.
@@ -1841,36 +1838,56 @@ time, the communication behavior of the application can easily be
 adapted to changing requirements.
 
 The following types of method invocation forwarding are currently
-supported by GMI: single invocation: The method invocation is
+supported by GMI:
+\begin{itemize}
+\item{single invocation:}
+The method invocation is
 forwarded to a single object of the group, identified via a rank.
-group invocation: The invocation is forwarded to every object in the
-group.  personalized group invocation: The invocation is forwarded to
+\item{group invocation:}
+The invocation is forwarded to every object in the
+group.
+\item{personalized group invocation:}
+The invocation is forwarded to
 every object in the group, while the parameters are personalized for
-each destination using a user-defined method.  combined invocation:
+each destination using a user-defined method.
+\item{combined invocation:}
 Multiple application threads (possibly on multiple JVMs) invoke the
 same method on the same group. These invocations are combined into a
 single invocation using a user-defined method. This single invocation
 is forwarded to the group using one of the three other forwarding
 schemes.
+\end{itemize}
 
 The following types of method result handling are currently supported
-by GMI: discard results: No results are returned at all (including
-exceptions).  return one result: A single result is returned,
-preselected via a rank if neccesary.  forward results: All results are
+by GMI:
+\begin{itemize}
+\item{discard results:}
+No results are returned at all (including
+exceptions).
+\item{return one result:}
+A single result is returned,
+preselected via a rank if neccesary.
+\item{forward results:}
+All results are
 returned, but they are forwarded to a user-defined object rather than
-being returned to the invoking thread.  combine results: Combine all
+being returned to the invoking thread.
+\item{combine results:}
+Combine all
 results into a single one using a user-defined method. The combined
-result is returned to the invoker.  personalize result: A result
+result is returned to the invoker.
+\item{personalize result:}
+A result
 produced by one of the other result handling schemes is personalized
 using a user-defined method before being returned to each of the
 invokers (this is useful when a combined invocation is used).  The
 four different forwarding schemes and five different result handling
 schemes can be combined orthogonally, resulting in a wide variety of
 useful communication patterns.  
+\end{itemize}
 
 \mysubsection{Hello world in GMI}
 
- We will now show a
+We will now show a
 step by step example of how a GMI application can be written. The
 first step is to create an interface which will define the methods
 which can be invoked on the group of objects. Like in RMI, we use a
@@ -2064,13 +2081,13 @@ The Ibis web page
 {\latex {http://www.cs.vu.nl/ibis/publications.html}}
 contains links to various Ibis papers.
 The best starting point might be \\
-{\html {\htmladdnormallink{http://www.cs.vu.nl/~rob/papers/cpe03.ps.gz} {http://www.cs.vu.nl/~rob/papers/cpe03.ps.gz}}}
-{\latex {http://www.cs.vu.nl/~rob/papers/cpe03.ps.gz}}, which gives a high-level description of the stucture of the Ibis system.
+{\html {\htmladdnormallink{http://www.cs.vu.nl/~rob/papers/cpe03.ps.gz} {http://www.cs.vu.nl/\~{}rob/papers/cpe03.ps.gz}}}
+{\latex {http://www.cs.vu.nl/\~{}rob/papers/cpe03.ps.gz}}, which gives a high-level description of the stucture of the Ibis system.
 It also gives some low-level and high-level benchmarks of the different Ibis implementations.
 
 The \emph{docs/api} subdirectory of the Ibis installation provides
 documentation for each class and method in the Ibis API (point your favorite
-HTML viewer to docs/api/index.html file of the Ibis installation).
+HTML viewer to docs/api/index.html in the Ibis installation).
 The Ibis API is also available
 \html{\htmladdnormallink{on-line}{http://www.cs.vu.nl/ibis/api/index.html}.}
 \latex{on-line at http://www.cs.vu.nl/ibis/api/index.html.}
