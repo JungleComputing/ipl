@@ -292,14 +292,14 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         return portTypeNameServerClient.getSeqno(name);
     }
 
-    public void leave() throws IOException {
+    public void leave() {
         logger.debug("NS client: leave");
         Socket s;
 
         try {
             s = socketFactory.createSocket(serverAddress, port, myAddress,
                     5000);
-        } catch (ConnectionTimedOutException e) {
+        } catch (IOException e) {
             // Apparently, the nameserver left.
             return;
         }

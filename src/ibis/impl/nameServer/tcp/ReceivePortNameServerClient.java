@@ -176,30 +176,34 @@ class ReceivePortNameServerClient implements Protocol {
 
     //end gosia
 
-    public void unbind(String name) throws IOException {
+    public void unbind(String name) {
 
-        Socket s = null;
-        ObjectOutputStream out;
-        ObjectInputStream in;
+        try {
+            Socket s = null;
+            ObjectOutputStream out;
+            ObjectInputStream in;
 
-        s = NameServerClient.nsConnect(server, port, localAddress, false, 5);
+            s = NameServerClient.nsConnect(server, port, localAddress, false, 5);
 
-        DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-        out = new ObjectOutputStream(new BufferedOutputStream(dos));
+            DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+            out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
-        // request a new Port.
-        out.writeByte(PORT_FREE);
-        out.writeUTF(name);
-        out.flush();
+            // request a new Port.
+            out.writeByte(PORT_FREE);
+            out.writeUTF(name);
+            out.flush();
 
-        DummyInputStream di = new DummyInputStream(s.getInputStream());
-        in = new ObjectInputStream(new BufferedInputStream(di));
+            DummyInputStream di = new DummyInputStream(s.getInputStream());
+            in = new ObjectInputStream(new BufferedInputStream(di));
 
-        byte temp = in.readByte();
-        NameServerClient.socketFactory.close(in, out, s);
-        if (temp != 0) {
-            throw new BindingException("Port name \"" + name
-                    + "\" is not bound!");
+            byte temp = in.readByte();
+            NameServerClient.socketFactory.close(in, out, s);
+            if (temp != 0) {
+                throw new BindingException("Port name \"" + name
+                        + "\" is not bound!");
+            }
+        } catch(Exception e) {
+            logger.info("unbind of " + name + " failed");
         }
     }
 
