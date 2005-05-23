@@ -138,7 +138,8 @@ public class SOR {
             }
             System.exit(1);
         }
-        if (maxIters < 0 && !reduceAlways) {
+        if (maxIters ==
+            0 && !reduceAlways) {
             if (info.rank() == 0) {
                 System.out.println("Need to specify maxIters if -Dreduce=off");
             }
@@ -180,7 +181,7 @@ public class SOR {
             System.out.println("CPUs          : " + size);
             System.out.println("Matrix size   : " + nrow + "x" + ncol);
             System.out.println("Iterations    : "
-                    + (maxIters >= 0 ? ("" + maxIters) : "dynamic"));
+                    + (maxIters > 0 ? ("" + maxIters) : "dynamic"));
             System.out.println("Reduce        : "
                     + (clusterReduce ? "cluster"
                             : (reduceAlways ? "on" : "off")));
@@ -637,7 +638,7 @@ public class SOR {
             }
             // System.err.print(rank + " ");
 
-            if (size > 1 && (maxIters < 0 || reduceAlways)
+            if (size > 1 && (maxIters == 0 || reduceAlways)
                     && ((iteration + 1) % itersPerReduce == 0)) {
 
                 if (TIMINGS)
@@ -658,7 +659,7 @@ public class SOR {
 
             iteration++;
 
-        } while ((maxIters >= 0) ? (iteration < maxIters)
+        } while ((maxIters > 0) ? (iteration < maxIters)
                 : (maxdiff > stopdiff));
 
         // Another barrier for simultaneous finish
