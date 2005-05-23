@@ -4,7 +4,7 @@ ipl:
 	- PortType.createReceivePort(..., ..., ..., boolean local); ??
 	- Registry.lookupReceivePort(Ibis ibis, String name)
 - make classes in ipl abstract as much as possible
-	
+
 rmi:
 - check Ibis RMI registry:
   - you don't have to actually start one;
@@ -25,12 +25,9 @@ implementations:
 - PandaIbis connection management broken (e.g. connectedTo())
   (who reported this? Please check if this is still actual ... I placed locks
    in them .... Ceriel) I did, I'll check :-) --Rob
-- nameserver: should not be a daemon thread, but then, if it is not, shutdown
-  hooks don't get executed. Rather, nameserver should be a separate process,
-  not just a thread.
 - NetIbis: 
     * fix performance issues in net.gm (e.g.  mpj+javagrande benchmarks)
-    * make it possible to make ipl classes used abstract.
+    * make it possible to make ipl classes use abstract.
     * remove dependancy on "local" gm version in default set-up
 
 general:
@@ -41,7 +38,6 @@ general:
 - use a $IBIS_HOME variable instead of explicit paths in build files of
   applications
 - make javadoc available in a file for eclipse somehow
-
 
 future:
 - add out-of-band communication support to the Nameserver interface
