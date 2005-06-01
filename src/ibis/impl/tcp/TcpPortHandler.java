@@ -75,7 +75,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         }
         if (!receivePorts.remove(p)) {
             throw new IbisError(
-                    "Tcpporthandler: trying to remove unknown reveiveport");
+                    "Tcpporthandler: trying to remove unknown receiveport");
         }
     }
 
