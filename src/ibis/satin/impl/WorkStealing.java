@@ -102,9 +102,15 @@ public abstract class WorkStealing extends Stats {
                 }
             }
         } catch (IOException e) {
-            stealLogger.fatal("SATIN '" + ident
-                    + "': Got Exception while sending steal request: " + e, e);
-            System.exit(1);
+            if (! FAULT_TOLERANCE) {
+                stealLogger.fatal("SATIN '" + ident
+                        + "': Got Exception while sending result of stolen job", e);
+                System.exit(1);
+            } else {
+                ftLogger.info("SATIN '" + ident
+                        + "': Got Exception while sending result of stolen job", e);
+            }
+
         }
     }
 

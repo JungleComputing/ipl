@@ -408,6 +408,7 @@ public class GlobalResultTable implements Upcall, Config {
             try {
                 m = send.newMessage();
             } catch (IOException e) {
+                grtLogger.info("Got exception in newMessage()");
                 continue;
                 //always happens after a crash
             }
@@ -421,6 +422,7 @@ public class GlobalResultTable implements Upcall, Config {
                 m.writeObject(toSend);
 
             } catch (IOException e) {
+                grtLogger.info("Got exception in writeObject()");
                 //always happens after a crash
             }
 
@@ -440,6 +442,7 @@ public class GlobalResultTable implements Upcall, Config {
                 }
 
             } catch (IOException e) {
+                grtLogger.info("Got exception in finish()");
                 //always happens after a crash
             }
 
