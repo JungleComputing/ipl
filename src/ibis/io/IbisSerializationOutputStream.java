@@ -1140,6 +1140,9 @@ public class IbisSerializationOutputStream
                 if (cause instanceof RuntimeException) {
                     throw (RuntimeException) cause;
                 }
+                if (cause instanceof IOException) {
+                    throw (IOException) cause;
+                }
                 if (DEBUG) {
                     dbPrint("now rethrow as IllegalAccessException ...");
                 }

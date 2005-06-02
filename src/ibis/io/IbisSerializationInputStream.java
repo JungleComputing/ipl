@@ -1374,6 +1374,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 if (cause instanceof RuntimeException) {
                     throw (RuntimeException) cause;
                 }
+                if (cause instanceof IOException) {
+                    throw (IOException) cause;
+                }
+                if (cause instanceof ClassNotFoundException) {
+                    throw (ClassNotFoundException) cause;
+                }
 
                 if (DEBUG) {
                     dbPrint("now rethrow as IllegalAccessException ...");
@@ -1659,7 +1665,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
 
             if (o == null) {
                 throw new InvalidObjectException(
-                        "readObject got handle to unshared object");
+                        "readObject got handle " + handle_or_type + " to unshared object");
             }
             return o;
         }
