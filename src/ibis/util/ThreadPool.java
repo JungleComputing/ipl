@@ -104,15 +104,7 @@ public final class ThreadPool {
                     setName(currentName);
                     currentWork.run();
                 } catch (Throwable t) {
-                    String errorString = "caught exception in pool thread "
-                        + currentName + ": " + t + "\n Stacktrace: \n";
-                        
-                    StackTraceElement e[] = t.getStackTrace();
-                    for(int i = 0; i < e.length; i++) {
-                        errorString = errorString + "\t\t" + e[i].toString() + "\n";
-                    }
-                    
-                    logger.error(errorString);
+                    logger.error("caught exception in pool thread " + currentName, t);
                 }
                 synchronized (this) {
                     this.work = null;
