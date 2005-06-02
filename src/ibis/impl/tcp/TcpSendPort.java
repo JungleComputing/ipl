@@ -337,7 +337,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                 }
             }
 
-            if (rec == null) {
+            if (rec == null && report) {
                 // Strange, we can't seem to find the connection in the
                 // connection list.
                 // Maybe we already reported the error?
