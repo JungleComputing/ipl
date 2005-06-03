@@ -771,7 +771,11 @@ public class NameServer extends Thread implements Protocol {
         ns = createNameServer(single, retry, pool_server, control_hub, silent);
 
         try {
-            ns.run();
+            if (ns == null) {
+                logger.error("No nameserver created");
+            } else {
+                ns.run();
+            }
             System.exit(0);
         } catch (Throwable t) {
             if (! silent) {
