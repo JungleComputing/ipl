@@ -102,30 +102,46 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     }
 
     void runNameServer(int port) {
-        String javadir = System.getProperty("java.home");
-        String javapath = System.getProperty("java.class.path");
-        String filesep = System.getProperty("file.separator");
-        String pathsep = System.getProperty("path.separator");
-
-        final String[] cmd = new String[] {
-                javadir + filesep + "bin" + filesep + "java",
-                "-classpath",
-                javapath + pathsep,
-                "-Dibis.name_server.port="+port,
-                "ibis.impl.nameServer.tcp.NameServer",
-                "-single",
-                "-no-retry",
-                "-silent",
-                "-no-poolserver"};
-
-        Thread p = new Thread("NameServer starter") {
-            public void run() {
-                RunProcess p = new RunProcess(cmd, new String[0]);
+        if (System.getProperty("os.name").matches(".*indows.*")) {
+            // The code below does not work for windows2000, don't know why ...
+            NameServer n = NameServer.createNameServer(true, false, false,
+                    false, false);
+            if (n != null) {
+                n.setDaemon(true);
+                n.start();
             }
-        };
+        } else {
+            // Start the nameserver in a separate jvm, so that it can keep
+            // on running if this particular ibis instance dies.
+            String javadir = System.getProperty("java.home");
+            String javapath = System.getProperty("java.class.path");
+            String filesep = System.getProperty("file.separator");
+            String pathsep = System.getProperty("path.separator");
 
-        p.setDaemon(true);
-        p.start();
+            if (javadir.endsWith("jre")) {
+                javadir = javadir.substring(0, javadir.length()-4);
+            }
+
+            final String[] cmd = new String[] {
+                    javadir + filesep + "bin" + filesep + "java",
+                    "-classpath",
+                    javapath + pathsep,
+                    "-Dibis.name_server.port="+port,
+                    "ibis.impl.nameServer.tcp.NameServer",
+                    "-single",
+                    "-no-retry",
+                    "-silent",
+                    "-no-poolserver"};
+
+            Thread p = new Thread("NameServer starter") {
+                public void run() {
+                    RunProcess p = new RunProcess(cmd, new String[0]);
+                }
+            };
+
+            p.setDaemon(true);
+            p.start();
+        }
     }
 
     protected void init(Ibis ibis) throws IOException,
