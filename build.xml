@@ -247,7 +247,6 @@
 	<if>
 	    <istrue value="${config.is-das}"/>
 	    <then>
-		<antcall inheritAll="true" inheritRefs="true" target="javah"/>
 		<antcall inheritAll="true" inheritRefs="true" target="natives"/>
 	    </then>
 	</if>
@@ -538,7 +537,8 @@
     </target>
 
     <target name="natives"
-	    depends="natives.misc,
+	    depends="javah,
+		     natives.misc,
 	    	     natives.mp,
 		     natives.net,
 		     proprietary-tasks"/>
