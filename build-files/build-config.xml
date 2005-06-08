@@ -195,23 +195,22 @@ Now, your Ibis build is being configured under ${ibis}.
 
 If you don't have any fast local networks for which a special
 Ibis module is required, you may skip the following message
-by just hitting the 'enter' key.
+by just waiting for 30 seconds, after which the build will continue.
 
 If you wish to configure Ibis modules for fast local networks,
-you have to do some extra configuration. To do so, type:
+you have to do some extra configuration. To do so,
+first interrupt this build, and then type:
   ant configure
 to the command line, and answer questions.
-If you don't know the answer, or don't have the native modules
-that the fast local network module depends on, just hitting
-the 'enter' key is usually OK.
 After you did this optional configuration, you must again type:
   ant
 to the command line.
+If you don't know the answer, or don't have the native modules
+that the fast local network module depends on, just waiting for
+30 seconds is usually OK.
 ----------------------------------------------------------------
 </echo>
-		<input
-			message="Hit the 'enter' key to continue"
-			addproperty="answer.config.continue"/>
+		<sleep seconds="30"/>
 	    </else>
 	</if>
 
