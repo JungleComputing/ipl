@@ -294,6 +294,15 @@ public abstract class WorkStealing extends Stats {
                         } catch (InterruptedException e) {
                             throw new IbisError(e);
                         }
+                        if (exiting) {
+                            if (STEAL_TIMING) {
+                                stealTimer.stop();
+                            }
+                            if (IDLE_TIMING) {
+                                idleTimer.stop();
+                            }
+                            return null;
+                        }
 
                     }
                     /*
@@ -320,6 +329,15 @@ public abstract class WorkStealing extends Stats {
                         }
                         break;
                     }
+                }
+                if (exiting) {
+                    if (STEAL_TIMING) {
+                        stealTimer.stop();
+                    }
+                    if (IDLE_TIMING) {
+                        idleTimer.stop();
+                    }
+                    return null;
                 }
 
             }
