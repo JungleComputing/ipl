@@ -38,11 +38,11 @@ public final class BufferedArrayInputStream extends DataInputStream
     }
 
     public long bytesRead() {
-        return bytes;
+        return bytes - buffered_bytes;
     }
 
     public void resetBytesRead() {
-        bytes = 0;
+        bytes = buffered_bytes;
     }
 
     private static final int min(int a, int b) {
@@ -172,6 +172,7 @@ public final class BufferedArrayInputStream extends DataInputStream
                     throw new java.io.EOFException("EOF encountered");
                 }
                 rd += n;
+                bytes += n;
             } while (rd < len);
 
             buffered_bytes = 0;
@@ -584,6 +585,7 @@ public final class BufferedArrayInputStream extends DataInputStream
                 }
                 else {
                     rd += n;
+                    bytes += n;
                 }
             } while (rd < len);
 
