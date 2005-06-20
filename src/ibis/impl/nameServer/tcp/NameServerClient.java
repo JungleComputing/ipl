@@ -339,7 +339,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             s = socketFactory.createSocket(serverAddress, port, myAddress,
                     5000);
         } catch (IOException e) {
-            // Apparently, the nameserver left.
+            logger.debug("leave: connect got exception", e);
             return;
         }
 
@@ -362,7 +362,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             logger.debug("NS client: leave ack received");
             socketFactory.close(in, out, s);
         } catch (IOException e) {
-            // ignored
+            logger.debug("leave got exception", e);
         }
 
         logger.debug("NS client: leave DONE");
