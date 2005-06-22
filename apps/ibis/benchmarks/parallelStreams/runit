@@ -1,0 +1,46 @@
+#!/bin/sh
+
+server_host=localhost
+nameserver_port=21826
+poolserver_port=21894
+hub_port=21837
+nameserver_key=tp_test
+total_hosts=2
+
+#classpath=.:$(echo $HOME/jar/*.jar | sed -e 's/ /:/g'):$CLASSPATH
+classpath=$HOME/contrib/eclipse/workspace/ibis/build/ibis.jar:$HOME/contrib/eclipse/workspace/ibis/3rdparty/log4j-1.2.9.jar:build:.
+cluster=$(hostname -f)
+
+if [ "$1" = "ns" -a "$cluster" = "$server_host" ]; then
+    $HOME/contrib/eclipse/workspace/ibis/bin/ibis-nameserver \
+     -port $nameserver_port \
+	 -controlhub -hubport $hub_port \
+	 -poolport $poolserver_port
+	exit;
+fi
+
+cmd="/home/rob/jdk1.5.0_02/bin/java \
+	-Xbootclasspath/p:$classpath \
+	-classpath $classpath \
+	-Dibis.verbose \
+	-Dibis.name_server.impl=ibis.impl.nameServer.tcp.NameServerClient \
+	-Dibis.name_server.host=$server_host \
+	-Dibis.name_server.port=$nameserver_port \
+	-Dibis.name_server.key=$nameserver_key \
+	-Dibis.pool.total_hosts=$total_hosts \
+	-Dibis.pool.server.host=$server_host \
+	-Dibis.pool.server.port=$poolserver_port \
+	-Dibis.pool.cluster=$cluster \
+	-Dcluster=$cluster \
+	-Dibis.library.path=~/lib \
+	-Dibis.tcp.cache=false \
+	-Dibis.connect.hub.host=$server_host \
+	-Dibis.connect.hub.port=$hub_port \
+	-Dibis.connect.control_links=PlainTCP \
+	-Dibis.connect.data_links=NIOParallelStreams,NIOTCP \
+	-Dibis.connect.verbose=false \
+	-Dibis.connect.debug=false \
+	-Xmx800m \
+	ParTest $*"
+
+$cmd

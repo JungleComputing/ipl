@@ -30,6 +30,12 @@ implementations:
     * make it possible to make ipl classes use abstract.
     * remove dependancy on "local" gm version in default set-up
 
+connect stuff:
+- Rob: Update manual and readme files to reflect new structure.
+       But, first test it :-)
+- Rob: allow user to load socket types per *connection* use the 
+       property map for this
+
 general:
 - ibisc
 - load ibisses dynamically from jar files (like JavaGAT)

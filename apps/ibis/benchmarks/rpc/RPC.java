@@ -1,6 +1,5 @@
 /* $Id$ */
 
-
 import java.util.Properties;
 import java.util.Hashtable;
 import java.io.IOException;
@@ -17,7 +16,6 @@ import ibis.ipl.WriteMessage;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.Upcall;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.DynamicProperties;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.ResizeHandler;
@@ -26,6 +24,7 @@ import ibis.ipl.IbisException;
 import ibis.util.TypedProperties;
 import ibis.util.Timer;
 import ibis.util.PoolInfo;
+import java.util.HashMap;
 
 class RszHandler implements ResizeHandler {
 
@@ -627,14 +626,10 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall,
             sport = requestPortType.createSendPort("latency-client");
         }
         if (BUFSIZ != 0) {
-            DynamicProperties dp = sport.properties();
-            try {
-                dp.set("InputBufferSize", new Integer(BUFSIZ));
-                dp.set("OutputBufferSize", new Integer(BUFSIZ));
-            } catch (IbisException e) {
-                System.out.println("Something wrong in dynamic properties");
-                e.printStackTrace();
-            }
+            HashMap dp = new HashMap();
+            dp.put("InputBufferSize", new Integer(BUFSIZ));
+            dp.put("OutputBufferSize", new Integer(BUFSIZ));
+            sport.setProperties(dp);
         }
 
         myIbis.enableResizeUpcalls();
@@ -648,14 +643,10 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall,
         // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + "  created \"client port " + rank + "\"");
 
         if (BUFSIZ != 0) {
-            DynamicProperties dp = rport.properties();
-            try {
-                dp.set("InputBufferSize", new Integer(BUFSIZ));
-                dp.set("OutputBufferSize", new Integer(BUFSIZ));
-            } catch (IbisException e) {
-                System.out.println("Something wrong in dynamic properties");
-                e.printStackTrace();
-            }
+            HashMap dp = new HashMap();
+            dp.put("InputBufferSize", new Integer(BUFSIZ));
+            dp.put("OutputBufferSize", new Integer(BUFSIZ));
+            rport.setProperties(dp);
         }
         rport.enableConnections();
 
@@ -714,14 +705,10 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall,
         }
 
         if (BUFSIZ != 0) {
-            DynamicProperties dp = sport.properties();
-            try {
-                dp.set("InputBufferSize", new Integer(BUFSIZ));
-                dp.set("OutputBufferSize", new Integer(BUFSIZ));
-            } catch (IbisException e) {
-                System.out.println("Something wrong in dynamic properties");
-                e.printStackTrace();
-            }
+            HashMap dp = new HashMap();
+            dp.put("InputBufferSize", new Integer(BUFSIZ));
+            dp.put("OutputBufferSize", new Integer(BUFSIZ));
+            sport.setProperties(dp);
         }
 
         myIbis.enableResizeUpcalls();
@@ -746,14 +733,10 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall,
         }
         // System.err.println(rank + ": created \"server port " + (rank - clients) + "\"");
         if (BUFSIZ != 0) {
-            DynamicProperties dp = rport.properties();
-            try {
-                dp.set("InputBufferSize", new Integer(BUFSIZ));
-                dp.set("OutputBufferSize", new Integer(BUFSIZ));
-            } catch (IbisException e) {
-                System.out.println("Something wrong in dynamic properties");
-                e.printStackTrace();
-            }
+            HashMap dp = new HashMap();
+            dp.put("InputBufferSize", new Integer(BUFSIZ));
+            dp.put("OutputBufferSize", new Integer(BUFSIZ));
+            rport.setProperties(dp);
         }
 
         rport.enableConnections();

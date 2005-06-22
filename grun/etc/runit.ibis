@@ -241,7 +241,7 @@ if [ "$GRUN_PHASE" = run ]; then
 	firewall)  IBIS_DATA_LINK=TCPSplice;;
 	routedmsg) IBIS_DATA_LINK=RoutedMessages;;
 	esac
-	IBIS_CONN_OPTS="-Dibis.connect.enable -Dibis.connect.control_links=$IBIS_CONTROL_LINK -Dibis.connect.data_links=$IBIS_DATA_LINK -Dibis.connect.hub_port=$IBIS_HUB_PORT"
+	IBIS_CONN_OPTS="-Dibis.connect.enable -Dibis.connect.control_links=$IBIS_CONTROL_LINK -Dibis.connect.data_links=$IBIS_DATA_LINK -Dibis.connect.hub.port=$IBIS_HUB_PORT"
 	;;
     default|*)
 	IBIS_CONN_OPTS=""
