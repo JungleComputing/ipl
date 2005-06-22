@@ -30,7 +30,7 @@ class ElectionServer extends Thread implements Protocol {
         elections = new HashMap();
 
         serverSocket = NameServerClient.socketFactory.createServerSocket(0,
-                null, true /* retry */);
+                null, true /* retry */, null);
         setName("NameServer ElectionServer");
         start();
     }
@@ -81,7 +81,7 @@ class ElectionServer extends Thread implements Protocol {
         while (!stop) {
 
             try {
-                s = NameServerClient.socketFactory.accept(serverSocket);
+                s = serverSocket.accept();
             } catch (Exception e) {
                 throw new IbisRuntimeException("ElectionServer: got an error",
                         e);
@@ -104,7 +104,7 @@ class ElectionServer extends Thread implements Protocol {
                     handleKill();
                     break;
                 case (ELECTION_EXIT):
-                    NameServerClient.socketFactory.close(in, out, s);
+                    NameServer.closeConnection(in, out, s);
                     serverSocket.close();
                     return;
                 default:
@@ -112,7 +112,7 @@ class ElectionServer extends Thread implements Protocol {
                             + opcode);
                 }
 
-                NameServerClient.socketFactory.close(in, out, s);
+                NameServer.closeConnection(in, out, s);
             } catch (Exception e1) {
                 System.err.println("Got an exception in ElectionServer.run "
                         + e1);

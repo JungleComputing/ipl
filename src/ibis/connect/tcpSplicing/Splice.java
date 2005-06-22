@@ -2,7 +2,9 @@
 
 package ibis.connect.tcpSplicing;
 
-import ibis.connect.util.ConnectionProperties;
+import ibis.connect.ConnectionProperties;
+import ibis.connect.IbisSocket;
+import ibis.connect.plainSocketFactories.PlainTCPSocket;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
@@ -14,27 +16,21 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 public class Splice {
     static Logger logger = ibis.util.GetLogger.getLogger(Splice.class.getName());
 
-    static int serverPort = TypedProperties.intProperty(ConnectionProperties.splice_port,
-            20246);
+    static int serverPort = TypedProperties.intProperty(
+            ConnectionProperties.SPLICE_PORT, 20246);
 
     static int hintPort = serverPort + 1;
 
-    private static final int defaultSendBufferSize = 64 * 1024;
-
-    private static final int defaultRecvBufferSize = 64 * 1024;
-
     private static NumServer server;
 
-    private static final boolean setBufferSizes
-            = !TypedProperties.booleanProperty(ConnectionProperties.sizes);
-
-    private Socket socket = null;
+    private IbisSocket socket = null;
 
     private String localHost = null;
 
@@ -42,13 +38,14 @@ public class Splice {
 
     private InetSocketAddress localAddr;
 
+    private Map p;
+    
     /**
-     * A little server that takes care of assigning port numbers.
-     * Such a server is needed when more than one JVM is running on the
-     * same host and trying to set up TCPSplice connections. When this
-     * is the case, there is a race when the same range of port numbers is used.
-     * See the comment in the connectSplice routine.
-     * The NumServer solves that.
+     * A little server that takes care of assigning port numbers. Such a server
+     * is needed when more than one JVM is running on the same host and trying
+     * to set up TCPSplice connections. When this is the case, there is a race
+     * when the same range of port numbers is used. See the comment in the
+     * connectSplice routine. The NumServer solves that.
      */
     private static class NumServer extends Thread {
         ServerSocket srvr;
@@ -103,12 +100,11 @@ public class Splice {
         server.start();
     }
 
-    public Splice() throws IOException {
-        socket = new Socket();
-        if (setBufferSizes) {
-            socket.setSendBufferSize(defaultSendBufferSize);
-            socket.setReceiveBufferSize(defaultRecvBufferSize);
-        }
+    public Splice(Map p) throws IOException {
+        this.p = p;
+        socket = new PlainTCPSocket(p);
+        socket.setSendBufferSize(ConnectionProperties.outputBufferSize);
+        socket.setReceiveBufferSize(ConnectionProperties.inputBufferSize);
         try {
             localHost = IPUtils.getLocalHostAddress().getCanonicalHostName();
         } catch (Exception e) {
@@ -123,8 +119,8 @@ public class Splice {
     private int newPort() {
         try {
             Socket s = new Socket(IPUtils.getLocalHostAddress(), serverPort);
-            DataInputStream in = new DataInputStream(
-                    new BufferedInputStream(s.getInputStream()));
+            DataInputStream in = new DataInputStream(new BufferedInputStream(s
+                    .getInputStream()));
             int port = in.readInt();
             in.close();
             s.close();
@@ -165,7 +161,7 @@ public class Splice {
         }
     }
 
-    public Socket connectSplice(String rHost, int rPort) {
+    public IbisSocket connectSplice(String rHost, int rPort) {
         int i = 0;
         boolean connected = false;
 
@@ -183,7 +179,7 @@ public class Splice {
             } catch (IOException e) {
                 try {
                     socket.close();
-                } catch (IOException dummy) { /*ignore */
+                } catch (IOException dummy) { /* ignore */
                 }
                 // There is a race here, if two JVM's running on the
                 // same node are both creating spliced sockets.
@@ -193,12 +189,12 @@ public class Splice {
                 i++;
                 // re-init the socket
                 try {
-                    socket = new Socket();
+                    socket = new PlainTCPSocket(p);
                     socket.setReuseAddress(true);
-                    if (setBufferSizes) {
-                        socket.setSendBufferSize(defaultSendBufferSize);
-                        socket.setReceiveBufferSize(defaultRecvBufferSize);
-                    }
+                    socket
+                            .setSendBufferSize(ConnectionProperties.outputBufferSize);
+                    socket
+                            .setReceiveBufferSize(ConnectionProperties.inputBufferSize);
                     socket.bind(localAddr);
                 } catch (IOException f) {
                     throw new Error(f);

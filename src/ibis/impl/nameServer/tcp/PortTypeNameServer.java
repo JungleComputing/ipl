@@ -81,7 +81,7 @@ class PortTypeNameServer extends Thread implements Protocol {
         portTypes = new Hashtable();
 
         serverSocket = NameServerClient.socketFactory.createServerSocket(0,
-                null, true);
+                null, true, null);
         setName("PortType Name Server");
         seq = new Sequencer();
         start();
@@ -138,7 +138,7 @@ class PortTypeNameServer extends Thread implements Protocol {
         while (true) {
 
             try {
-                s = NameServerClient.socketFactory.accept(serverSocket);
+                s = serverSocket.accept();
             } catch (Exception e) {
                 throw new IbisRuntimeException(
                         "PortTypeNameServer: got an error ", e);
@@ -159,7 +159,7 @@ class PortTypeNameServer extends Thread implements Protocol {
                     handlePortTypeNew();
                     break;
                 case (PORTTYPE_EXIT):
-                    NameServerClient.socketFactory.close(in, out, s);
+                    NameServer.closeConnection(in, out, s);
                     serverSocket.close();
                     return;
                 case (SEQNO):
@@ -169,7 +169,7 @@ class PortTypeNameServer extends Thread implements Protocol {
                     System.err.println("PortTypeNameServer: got an illegal "
                             + "opcode " + opcode);
                 }
-                NameServerClient.socketFactory.close(in, out, s);
+                NameServer.closeConnection(in, out, s);
             } catch (Exception e1) {
                 System.err.println("Got an exception in PortTypeNameServer.run "
                                 + e1);

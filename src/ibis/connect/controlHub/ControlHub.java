@@ -2,8 +2,8 @@
 
 package ibis.connect.controlHub;
 
+import ibis.connect.ConnectionProperties;
 import ibis.connect.routedMessages.HubProtocol;
-import ibis.connect.util.ConnectionProperties;
 import ibis.util.TypedProperties;
 
 import java.io.EOFException;
@@ -20,8 +20,8 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-/** Incarnates a thread dedicated to HubWire management 
- * towards a given node.
+/**
+ * Incarnates a thread dedicated to HubWire management towards a given node.
  */
 class NodeManager extends Thread {
     private String hostname;
@@ -34,8 +34,8 @@ class NodeManager extends Thread {
 
     private int[] nmessages;
 
-    private static final boolean STATS
-            = TypedProperties.booleanProperty(ConnectionProperties.hub_stats);
+    private static final boolean STATS = TypedProperties
+            .booleanProperty(ConnectionProperties.HUB_STATS);
 
     private static final int np = HubProtocol.getNPacketTypes();
 
@@ -72,8 +72,7 @@ class NodeManager extends Thread {
                 switch (action) {
                 case HubProtocol.GETPORT: {
                     /* packet for the hub itself: obtain port number. */
-                    HubProtocol.HubPacketGetPort p 
-                            = (HubProtocol.HubPacketGetPort) packet;
+                    HubProtocol.HubPacketGetPort p = (HubProtocol.HubPacketGetPort) packet;
                     if (p.proposedPort != 0) {
                         int prt = ControlHub.checkPort(hostname, hostport,
                                 p.proposedPort);
@@ -90,8 +89,7 @@ class NodeManager extends Thread {
 
                 case HubProtocol.PORTSET: {
                     /* packet for the hub itself: release port numbers. */
-                    HubProtocol.HubPacketPortSet p
-                            = (HubProtocol.HubPacketPortSet) packet;
+                    HubProtocol.HubPacketPortSet p = (HubProtocol.HubPacketPortSet) packet;
                     ControlHub.removePort(hostname, hostport, p.portset);
                     send = false;
                 }
@@ -99,8 +97,7 @@ class NodeManager extends Thread {
 
                 case HubProtocol.CONNECT: {
                     /* need to figure out a destPort. */
-                    HubProtocol.HubPacketConnect p
-                            = (HubProtocol.HubPacketConnect) packet;
+                    HubProtocol.HubPacketConnect p = (HubProtocol.HubPacketConnect) packet;
                     destPort = ControlHub.resolvePort(destHost, p.serverPort);
                     if (destPort == -1) {
                         sendPacket(destHost, destPort,
@@ -119,9 +116,9 @@ class NodeManager extends Thread {
                             destHost, destPort);
                     /* packet to forward */
                     if (node == null) {
-                        ControlHub.logger.error(
-                                "# ControlHub: node not found: " + destHost
-                                + ":" + destPort);
+                        ControlHub.logger
+                                .error("# ControlHub: node not found: "
+                                        + destHost + ":" + destPort);
                     } else {
                         /* replaces the destination with the sender. */
                         node.sendPacket(hostname, hostport, packet);
@@ -197,7 +194,7 @@ public class ControlHub extends Thread {
         int port = defaultPort;
         try {
             Properties p = System.getProperties();
-            String portString = p.getProperty(ConnectionProperties.hub_port);
+            String portString = p.getProperty(ConnectionProperties.HUB_PORT);
             if (portString != null) {
                 port = Integer.parseInt(portString);
             } else {
@@ -317,8 +314,7 @@ public class ControlHub extends Thread {
         }
     }
 
-    public static void removePort(String hostname, int hostport,
-            ArrayList ports) {
+    public static void removePort(String hostname, int hostport, ArrayList ports) {
         hostname = hostname.toLowerCase();
         synchronized (portNodeMap) {
             Object o = portNodeMap.get(hostname);
@@ -353,8 +349,8 @@ public class ControlHub extends Thread {
                     h.remove(i);
                 }
             }
-            logger.debug("# ControlHub: removing hostport " + hostport
-                    + " of " + hostname);
+            logger.debug("# ControlHub: removing hostport " + hostport + " of "
+                    + hostname);
         }
     }
 

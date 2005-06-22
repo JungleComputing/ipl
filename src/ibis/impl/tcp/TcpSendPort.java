@@ -9,9 +9,9 @@ import ibis.io.SerializationBase;
 import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
 import ibis.ipl.PortMismatchException;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
@@ -20,13 +20,16 @@ import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     private static class Conn {
         OutputStream out;
-
+        Socket s;
         TcpReceivePortIdentifier ident;
 
         public boolean equals(Object o) {
@@ -44,7 +47,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         }
     }
 
-    private TcpPortType type;
+    TcpPortType type;
 
     private TcpSendPortIdentifier ident;
 
@@ -58,7 +61,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     private SerializationOutput out;
 
-    private ArrayList receivers = new ArrayList();
+    private ArrayList receivers = new ArrayList(); /* a list of Conn objects */
 
     private TcpWriteMessage message;
 
@@ -66,16 +69,16 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     private SendPortConnectUpcall connectUpcall = null;
 
-    private ArrayList lostConnections = new ArrayList();
+    private ArrayList lostConnections = new ArrayList(); /* a list of TcpReceivePortIdentifier objects */
 
     private Replacer replacer;
-
-    private DynamicProperties props = new TcpDynamicProperties();
 
     BufferedArrayOutputStream bufferedStream;
 
     long count;
 
+    private java.util.Map props = new HashMap();
+    
     TcpSendPort(TcpIbis ibis, TcpPortType type, String name,
             boolean connectionAdministration, SendPortConnectUpcall cU) {
 
@@ -99,6 +102,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         out = SerializationBase.createSerializationOutput(type.ser,
                 bufferedStream);
         message = new TcpWriteMessage(this, out, connectionAdministration);
+    }
+
+    /** returns the type that was used to create this port */
+    public PortType getType() {
+        return type;
     }
 
     public long getCount() {
@@ -137,12 +145,12 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                     "This sendport was already connected to " + receiver);
         }
 
-        OutputStream res = ibis.tcpPortHandler.connect(this, ri, timeoutMillis);
-        if (res == null) {
+        c.s = ibis.tcpPortHandler.connect(this, ri, (int) timeoutMillis);
+        if (c.s == null) {
             throw new ConnectionRefusedException("Could not connect");
         }
-
-        c.out = res;
+        
+        c.out = c.s.getOutputStream();
 
         if (DEBUG) {
             System.err.println(name + " adding Connection to " + ri);
@@ -253,10 +261,22 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         notifyAll();
     }
 
-    public DynamicProperties properties() {
+    public Map properties() {
         return props;
     }
 
+    public Object getProperty(String key) {
+        return props.get(key);
+    }
+
+    public void setProperties(Map properties) {
+        props = properties;
+    }
+    
+    public void setProperty(String key, Object val) {
+        props.put(key, val);
+    }
+    
     public String name() {
         return name;
     }
@@ -292,7 +312,12 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         for (int i = 0; i < receivers.size(); i++) {
             Conn c = (Conn) receivers.get(i);
-            ibis.tcpPortHandler.releaseOutput(c.ident, c.out);
+            try {
+                c.s.close();
+            } catch (Exception x) {
+                // ignore
+            }
+            //ibis.tcpPortHandler.releaseOutput(c.ident, c.out);
         }
 
         receivers = null;

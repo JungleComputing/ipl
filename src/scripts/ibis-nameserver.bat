@@ -91,28 +91,28 @@ if "%1"=="-pool-port" (
 )
 
 if "%1"=="-hubport" (
-    set Dhubport="-Dibis.connect.hub_port=%2"
+    set Dhubport="-Dibis.connect.hub.port=%2"
     set Dhub=%ConnectHub%
     shift
     goto nextarg
 )
 
 if "%1"=="-hub-port" (
-    set Dhubport="-Dibis.connect.hub_port=%2"
+    set Dhubport="-Dibis.connect.hub.port=%2"
     set Dhub=%ConnectHub%
     shift
     goto nextarg
 )
 
 if "%1"=="-hubhost" (
-    set Dhubhost="-Dibis.connect.hub_host=%2"
+    set Dhubhost="-Dibis.connect.hub.host=%2"
     set Dhub=%ConnectHub%
     shift
     goto nextarg
 )
 
 if "%1"=="-hub-host" (
-    set Dhubhost="-Dibis.connect.hub_host=%2"
+    set Dhubhost="-Dibis.connect.hub.host=%2"
     set Dhub=%ConnectHub%
     shift
     goto nextarg

@@ -3,6 +3,7 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
@@ -13,8 +14,10 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -146,6 +149,12 @@ public final class NetSendPort extends NetPort implements SendPort,
      */
     private NetMutex outputLock = null;
 
+    /**
+     * The dynamic properties of the port.
+     */
+    protected Map props = new HashMap();
+
+    
     /* ................................................................. */
 
     /* ___ NET EVENT QUEUE CONSUMER RELATED FUNCTIONS __________________ */
@@ -253,6 +262,11 @@ public final class NetSendPort extends NetPort implements SendPort,
         ibis.register(this);
     }
 
+    /** returns the type that was used to create this port */
+    public PortType getType() {
+        return type;
+    }
+
     /* ----- CLEAN-UP __________________________________________________ */
 
     /**
@@ -328,11 +342,27 @@ public final class NetSendPort extends NetPort implements SendPort,
      */
     private void initPassiveState() throws IOException {
         log.in();
-        props = new NetDynamicProperties();
         initIdentifier();
         log.out();
     }
 
+    public Object getProperty(String key) {
+        return props.get(key);
+    }
+    
+    public Map properties() {
+        return props;
+    }
+    
+    public void setProperties(Map properties) {
+        props = properties;
+    }
+    
+    public void setProperty(String key, Object val) {
+        props.put(key, val);
+    }
+
+    
     /* ----- ACTIVE STATE INITIALIZATION _______________________________ */
 
     /**

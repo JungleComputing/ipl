@@ -29,8 +29,8 @@ class ReceivePortNameServerClient implements Protocol {
 
     InetAddress localAddress;
 
-    private static Logger logger
-            = ibis.util.GetLogger.getLogger(ReceivePortNameServerClient.class.getName());
+    private static Logger logger = ibis.util.GetLogger
+            .getLogger(ReceivePortNameServerClient.class.getName());
 
     ReceivePortNameServerClient(InetAddress localAddress, InetAddress server,
             int port) {
@@ -65,24 +65,24 @@ class ReceivePortNameServerClient implements Protocol {
         switch (result) {
         case PORT_UNKNOWN:
             logger.debug("Port " + name + ": PORT_UNKNOWN");
-            NameServerClient.socketFactory.close(in, out, s);
+            NameServer.closeConnection(in, out, s);
             throw new ConnectionTimedOutException("could not connect");
         case PORT_KNOWN:
             logger.debug("Port " + name + ": PORT_KNOWN");
             try {
                 id = (ReceivePortIdentifier) in.readObject();
             } catch (ClassNotFoundException e) {
-                NameServerClient.socketFactory.close(in, out, s);
+                NameServer.closeConnection(in, out, s);
                 throw new IOException("Unmarshall fails " + e);
             }
             break;
         default:
-            NameServerClient.socketFactory.close(in, out, s);
+            NameServer.closeConnection(in, out, s);
             throw new StreamCorruptedException(
                     "Registry: lookup got illegal opcode " + result);
         }
 
-        NameServerClient.socketFactory.close(in, out, s);
+        NameServer.closeConnection(in, out, s);
 
         return id;
     }
@@ -120,7 +120,7 @@ class ReceivePortNameServerClient implements Protocol {
         in = new ObjectInputStream(new BufferedInputStream(di));
         result = in.readByte();
 
-        NameServerClient.socketFactory.close(in, out, s);
+        NameServer.closeConnection(in, out, s);
 
         switch (result) {
         case PORT_REFUSED:
@@ -161,7 +161,7 @@ class ReceivePortNameServerClient implements Protocol {
         in = new ObjectInputStream(new BufferedInputStream(di));
         result = in.readByte();
 
-        NameServerClient.socketFactory.close(in, out, s);
+        NameServer.closeConnection(in, out, s);
 
         switch (result) {
         case PORT_ACCEPTED:
@@ -183,7 +183,8 @@ class ReceivePortNameServerClient implements Protocol {
             ObjectOutputStream out;
             ObjectInputStream in;
 
-            s = NameServerClient.nsConnect(server, port, localAddress, false, 5);
+            s = NameServerClient
+                    .nsConnect(server, port, localAddress, false, 5);
 
             DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
             out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -197,12 +198,12 @@ class ReceivePortNameServerClient implements Protocol {
             in = new ObjectInputStream(new BufferedInputStream(di));
 
             byte temp = in.readByte();
-            NameServerClient.socketFactory.close(in, out, s);
+            NameServer.closeConnection(in, out, s);
             if (temp != 0) {
                 throw new BindingException("Port name \"" + name
                         + "\" is not bound!");
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             logger.info("unbind of " + name + " failed");
         }
     }
@@ -234,7 +235,7 @@ class ReceivePortNameServerClient implements Protocol {
             result[i] = in.readUTF();
         }
 
-        NameServerClient.socketFactory.close(in, out, s);
+        NameServer.closeConnection(in, out, s);
 
         return result;
 

@@ -266,7 +266,7 @@ public final class NetServiceLink {
                     + " NetServiceLink outgoing socket - try to connect to "
                     + raddr + "/" + rport);
         }
-        socket = NetIbis.socketFactory.createSocket(raddr, rport);
+        socket = NetIbis.socketFactory.createClientSocket(raddr, rport, null);
         // Else, I fear the read() would appear high up in the profile:
         socket.setSoTimeout(0);
         if (DEBUG) {

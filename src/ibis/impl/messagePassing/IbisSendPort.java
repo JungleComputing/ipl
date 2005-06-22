@@ -2,8 +2,8 @@
 
 package ibis.impl.messagePassing;
 
-import ibis.io.IbisSerializationOutputStream;
 import ibis.io.DataSerializationOutputStream;
+import ibis.io.IbisSerializationOutputStream;
 import ibis.ipl.Replacer;
 
 import java.io.IOException;

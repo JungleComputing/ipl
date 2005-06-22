@@ -2,8 +2,8 @@
 
 package ibis.impl.tcp;
 
-import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -14,8 +14,10 @@ import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 // why was shouldLeave here?
 // If I create a receiveport, do a receive, and someone leaves, 
@@ -61,7 +63,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
     private boolean no_connectionhandler_thread = false;
 
-    private DynamicProperties props = new TcpDynamicProperties();
+    private Map props = new HashMap();
 
     long count = 0;
 
@@ -91,6 +93,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
                 && !type.p.isProp("communication", "ReceiveTimeout")) {
             no_connectionhandler_thread = true;
         }
+    }
+
+    /** returns the type that was used to create this port */
+    public PortType getType() {
+        return type;
     }
 
     // returns:  was the message already finised?
@@ -369,10 +376,22 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         return getMessage(timeoutMillis);
     }
 
-    public DynamicProperties properties() {
+    public Map properties() {
         return props;
     }
 
+    public Object getProperty(String key) {
+        return props.get(key);
+    }
+    
+    public void setProperties(Map properties) {
+        props = properties;
+    }
+    
+    public void setProperty(String key, Object val) {
+        props.put(key, val);
+    }
+    
     public String name() {
         return name;
     }
@@ -498,10 +517,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         }
     }
 
-    synchronized void connect(TcpSendPortIdentifier origin, InputStream in) {
+    synchronized void connect(TcpSendPortIdentifier origin, Socket s) {
         try {
-            ConnectionHandler con = new ConnectionHandler(ibis, origin, this,
-                    in);
+            ConnectionHandler con = new ConnectionHandler(ibis, origin, this, s);
 
             if (connections.length == connectionsIndex) {
                 ConnectionHandler[] temp

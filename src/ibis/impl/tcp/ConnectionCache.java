@@ -138,8 +138,8 @@ class ConnectionCache implements Config {
             connections.add(c);
             notifyAll();
             if (DEBUG) {
-                System.err.println(
-                        "CONNECTION(" + c + ") ADDED TO  FREEOUTPUT");
+                System.err
+                        .println("CONNECTION(" + c + ") ADDED TO  FREEOUTPUT");
             }
         }
 
@@ -198,8 +198,8 @@ class ConnectionCache implements Config {
                 // not found. Wait until it is added
                 try {
                     if (DEBUG) {
-                        System.err.println(
-                                "WAITING FOR CONNECTION TO BE ADDED");
+                        System.err
+                                .println("WAITING FOR CONNECTION TO BE ADDED");
                     }
                     wait();
                 } catch (InterruptedException e) {
@@ -226,16 +226,17 @@ class ConnectionCache implements Config {
     }
 
     OutputStream getFreeOutput(TcpIbisIdentifier ibis) {
+        if (!CONNECTION_CACHE)
+            return null;
         Peer p = getPeer(ibis);
         return p.getFreeOutput();
     }
 
     InputStream getFreeInput(TcpIbisIdentifier ibis) {
-        if (CONNECTION_CACHE) {
-            Peer p = getPeer(ibis);
-            return p.getFreeInput();
-        }
-        return null;
+        if (!CONNECTION_CACHE)
+            return null;
+        Peer p = getPeer(ibis);
+        return p.getFreeInput();
     }
 
     void releaseOutput(TcpIbisIdentifier ibis, OutputStream out) {

@@ -66,7 +66,7 @@ class PortTypeNameServerClient implements Protocol {
         in = new DataInputStream(new DummyInputStream(s.getInputStream()));
         result = in.readByte();
 
-        NameServerClient.socketFactory.close(in, out, s);
+        NameServer.closeConnection(in, out, s);
 
         switch (result) {
         case PORTTYPE_ACCEPTED:
@@ -96,7 +96,7 @@ class PortTypeNameServerClient implements Protocol {
 
         long temp = in.readLong();
 
-        NameServerClient.socketFactory.close(in, out, s);
+        NameServer.closeConnection(in, out, s);
 
         return temp;
     }

@@ -18,7 +18,7 @@ interface Config {
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
 
     static final boolean CONNECTION_CACHE = TypedProperties.booleanProperty(
-            s_cache, true);
+            s_cache, false); // @@@@ used to be true, but the cache does not work with NIO --Rob
 
     static final String[] sysprops = { s_debug, s_stats, s_cache };
 }

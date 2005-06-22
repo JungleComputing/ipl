@@ -2,7 +2,6 @@
 
 package ibis.impl.net.tcp;
 
-import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
@@ -15,7 +14,6 @@ import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceivePort;
 import ibis.impl.net.NetSendPort;
 import ibis.ipl.ConnectionClosedException;
-import ibis.ipl.DynamicProperties;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -26,6 +24,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Map;
 
 public final class TcpInput extends NetInput {
     private Socket tcpSocket = null;
@@ -66,7 +65,7 @@ public final class TcpInput extends NetInput {
                 this, "tcp_brokering");
         NetPort port = cnx.getPort();
 
-        final DynamicProperties p;
+        final Map p;
         if (port != null) {
             if (port instanceof NetReceivePort) {
                 p = ((NetReceivePort) port).properties();
@@ -80,20 +79,9 @@ public final class TcpInput extends NetInput {
         }
 
         final NetIO nn = this;
-        ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
-            public String getProperty(String name) {
-                if (p != null) {
-                    String result = (String) p.find(name);
-                    if (result != null) {
-                        return result;
-                    }
-                }
-                return nn.getProperty(name);
-            }
-        };
 
         tcpSocket = NetIbis.socketFactory.createBrokeredSocket(brokered_in,
-                brokered_out, true, props);
+                brokered_out, true, p);
 
         brokered_in.close();
         brokered_out.close();

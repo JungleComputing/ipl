@@ -2,7 +2,7 @@
 
 package ibis.connect.routedMessages;
 
-import ibis.connect.socketFactory.IbisSocket;
+import ibis.connect.IbisSocket;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -52,10 +53,12 @@ public class RoutedMessagesSocket extends IbisSocket {
 
     int state;
 
-    /* misc methods for the HubLink to feed us
+    /*
+     * misc methods for the HubLink to feed us
      */
     protected synchronized void enqueueFragment(byte[] b) {
-        logger.debug("# RoutedMessagesSocket.enqueueFragment, size = " + b.length);
+        logger.debug("# RoutedMessagesSocket.enqueueFragment, size = "
+                + b.length);
         incomingFragments.addLast(b);
         this.notifyAll();
     }
@@ -76,8 +79,8 @@ public class RoutedMessagesSocket extends IbisSocket {
     }
 
     protected synchronized void enqueueClose() {
-        logger.debug("# RoutedMessagesSocket.enqueueClose()- port = " + localPort
-                + ", remotePort = " + remotePort);
+        logger.debug("# RoutedMessagesSocket.enqueueClose()- port = "
+                + localPort + ", remotePort = " + remotePort);
         state = state_CLOSED;
         if (localPort != -1) {
             hub.removeSocket(localPort);
@@ -87,7 +90,8 @@ public class RoutedMessagesSocket extends IbisSocket {
         this.notifyAll();
     }
 
-    /* Initialization
+    /*
+     * Initialization
      */
     private void commonInit(String rHost) {
         try {
@@ -103,7 +107,8 @@ public class RoutedMessagesSocket extends IbisSocket {
     }
 
     // Incoming links constructor - reserved to RoutedMessagesServerSocket
-    protected RoutedMessagesSocket(String rHost, int rPort, int lPort, int hport) {
+    protected RoutedMessagesSocket(String rHost, int rPort, int lPort, int hport, Map p) throws IOException {
+        super(p);
         logger.debug("# RoutedMessagesSocket()");
         commonInit(rHost);
         remotePort = rPort;
@@ -114,7 +119,9 @@ public class RoutedMessagesSocket extends IbisSocket {
     }
 
     // Outgoing links constructor - public
-    public RoutedMessagesSocket(InetAddress rAddr, int rPort) throws IOException {
+    public RoutedMessagesSocket(InetAddress rAddr, int rPort, Map p)
+            throws IOException {
+        super(p);
         logger.debug("# RoutedMessagesSocket(" + rAddr + ", " + rPort + ")");
         commonInit(rAddr.getHostName());
         localPort = hub.newPort(0);
@@ -126,7 +133,8 @@ public class RoutedMessagesSocket extends IbisSocket {
                 rPort, localPort));
         synchronized (this) {
             while (state == state_CONNECTING) {
-                logger.debug("# RoutedMessagesSocket()- waiting for ACCEPTED port = "
+                logger
+                        .debug("# RoutedMessagesSocket()- waiting for ACCEPTED port = "
                                 + localPort);
                 try {
                     this.wait();
@@ -197,7 +205,8 @@ public class RoutedMessagesSocket extends IbisSocket {
         remotePort = -1;
     }
 
-    /* InputStream for RoutedMessagesSocket
+    /*
+     * InputStream for RoutedMessagesSocket
      */
     private class RMInputStream extends InputStream {
         private RoutedMessagesSocket socket = null;
@@ -206,8 +215,8 @@ public class RoutedMessagesSocket extends IbisSocket {
 
         private void checkOpen() throws IOException {
             if ((!open || state != state_CONNECTED)
-                    && (socket.currentArray == null
-                        && socket.incomingFragments.isEmpty())) {
+                    && (socket.currentArray == null && socket.incomingFragments
+                            .isEmpty())) {
                 logger.debug("# Detected EOF! open=" + open + "; state="
                         + state + "; socket.currentArray="
                         + socket.currentArray + "; incomingFragment: "
@@ -226,8 +235,8 @@ public class RoutedMessagesSocket extends IbisSocket {
                         /* ignored */
                     }
                 }
-                socket.currentArray
-                        = (byte[]) socket.incomingFragments.removeFirst();
+                socket.currentArray = (byte[]) socket.incomingFragments
+                        .removeFirst();
                 socket.currentIndex = 0;
             }
         }
@@ -326,7 +335,8 @@ public class RoutedMessagesSocket extends IbisSocket {
         }
     }
 
-    /* OutputStream for RoutedMessagesSocket
+    /*
+     * OutputStream for RoutedMessagesSocket
      */
     private class RMOutputStream extends OutputStream {
         private RoutedMessagesSocket socket;
@@ -335,8 +345,7 @@ public class RoutedMessagesSocket extends IbisSocket {
 
         private void checkOpen() throws IOException {
             if (!open || state != state_CONNECTED) {
-                logger.debug("# checkOpen: open=" + open + "; state="
-                        + state);
+                logger.debug("# checkOpen: open=" + open + "; state=" + state);
                 throw new EOFException();
             }
         }
@@ -351,16 +360,16 @@ public class RoutedMessagesSocket extends IbisSocket {
             checkOpen();
             byte[] b = new byte[1];
             b[0] = (byte) v;
-            logger.debug("# RMOutputStream: writing- port="
-                    + socket.remotePort + " size=1");
+            logger.debug("# RMOutputStream: writing- port=" + socket.remotePort
+                    + " size=1");
             hub.sendPacket(remoteHostname, remoteHostPort,
                     new HubProtocol.HubPacketData(remotePort, b, localPort));
         }
 
         public void write(byte[] b) throws IOException {
             checkOpen();
-            logger.debug("# RMOutputStream: writing- port="
-                    + socket.remotePort + " size=" + b.length);
+            logger.debug("# RMOutputStream: writing- port=" + socket.remotePort
+                    + " size=" + b.length);
             hub.sendPacket(remoteHostname, remoteHostPort,
                     new HubProtocol.HubPacketData(remotePort, b, localPort));
         }
@@ -369,8 +378,8 @@ public class RoutedMessagesSocket extends IbisSocket {
             checkOpen();
             byte[] a = new byte[len];
             System.arraycopy(b, off, a, 0, len);
-            logger.debug("# RMOutputStream: writing- port="
-                    + socket.remotePort + " size=" + len + " offset=" + off);
+            logger.debug("# RMOutputStream: writing- port=" + socket.remotePort
+                    + " size=" + len + " offset=" + off);
             hub.sendPacket(remoteHostname, remoteHostPort,
                     new HubProtocol.HubPacketData(remotePort, a, localPort));
         }

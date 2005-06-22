@@ -4,6 +4,7 @@ package ibis.impl.net;
 
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -20,8 +21,10 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -367,6 +370,11 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     private int upcallsPending = 0;
 
     /**
+     * The dynamic properties of the port.
+     */
+    protected Map props = new HashMap();
+
+    /**
      * Make a fast path for the (frequent) case that there is only one
      * connection
      */
@@ -568,6 +576,11 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
         start();
     }
 
+    /** returns the type that was used to create this port */
+    public PortType getType() {
+        return type;
+    }
+
     private void initDebugStreams() {
         receivePortMessageId = receivePortCount++;
         receivePortMessageRank = ((NetIbis) type.getIbis()).closedPoolRank();
@@ -597,7 +610,6 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
         connectionLock = new NetMutex(true);
         inputLock = new ibis.util.Monitor();
         finishMutex = new NetMutex(true);
-        props = new NetDynamicProperties();
         log.out();
     }
 
@@ -643,7 +655,7 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     private void initServerSocket() throws IOException {
         log.in();
         serverSocket = NetIbis.socketFactory.createServerSocket(0, 0,
-                IPUtils.getLocalHostAddress());
+                IPUtils.getLocalHostAddress(), properties());
         log.out();
     }
 
@@ -1124,6 +1136,22 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
     public void resetCount() {
         // TODO
+    }
+
+    public Object getProperty(String key) {
+        return props.get(key);
+    }
+    
+    public Map properties() {
+        return props;
+    }
+    
+    public void setProperties(Map properties) {
+        props = properties;
+    }
+    
+    public void setProperty(String key, Object val) {
+        props.put(key, val);
     }
 
     /* --- ReadMessage Part --- */

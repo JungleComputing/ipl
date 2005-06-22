@@ -2,7 +2,7 @@
 
 package ibis.connect.routedMessages;
 
-import ibis.connect.util.ConnectionProperties;
+import ibis.connect.ConnectionProperties;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -21,8 +21,8 @@ public class HubLinkFactory {
     static {
         try {
             Properties p = System.getProperties();
-            String host = p.getProperty(ConnectionProperties.hub_host);
-            String portString = p.getProperty(ConnectionProperties.hub_port);
+            String host = p.getProperty(ConnectionProperties.HUB_HOST);
+            String portString = p.getProperty(ConnectionProperties.HUB_PORT);
 
             int port;
 
@@ -49,10 +49,9 @@ public class HubLinkFactory {
                 hub.start();
                 enabled = true;
             } else {
-                logger.info(
-                        "# HubLinkFactory: 'hub' properties not set");
-                logger.info(
-                        "# (ibis.connect.hub_host or ibis.name_server.host).");
+                logger.info("# HubLinkFactory: 'hub' properties not set");
+                logger
+                        .info("# (ibis.connect.hub.host or ibis.name_server.host).");
                 logger.info("# Not creating wire to hub.");
             }
         } catch (Exception e) {

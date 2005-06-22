@@ -2,8 +2,7 @@
 
 package ibis.impl.net.tcp_splice;
 
-import ibis.connect.socketFactory.ConnectionPropertiesProvider;
-import ibis.connect.socketFactory.ExtSocketFactory;
+import ibis.connect.IbisSocketFactory;
 import ibis.impl.net.NetBuffer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
@@ -11,9 +10,12 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetInputUpcall;
+import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+import ibis.impl.net.NetReceivePort;
+import ibis.impl.net.NetSendPort;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionClosedException;
 
@@ -27,6 +29,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * The TCP input implementation (block version).
@@ -145,19 +148,30 @@ public final class TcpInput extends NetBufferedInput {
         }
 
         {
+            
+            NetPort port = cnx.getPort();
+
+            final Map p;
+            if (port != null) {
+                if (port instanceof NetReceivePort) {
+                    p = ((NetReceivePort) port).properties();
+                } else if (port instanceof NetSendPort) {
+                    p = ((NetSendPort) port).properties();
+                } else {
+                    p = null;
+                }
+            } else {
+                p = null;
+            }
+
             // Socket creation
             final NetIO nn = this;
-            ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
-                public String getProperty(String name) {
-                    return nn.getProperty(name);
-                }
-            };
             OutputStream os = cnx.getServiceLink().getOutputSubStream(this,
                     "tcp_splice");
             InputStream is = cnx.getServiceLink().getInputSubStream(this,
                     "tcp_splice");
-            tcpSocket = ExtSocketFactory.createBrokeredSocket(is, os, true,
-                    props);
+            tcpSocket = IbisSocketFactory.getFactory().createBrokeredSocket(is, os, true,
+                    p);
             is.close();
             os.close();
         }

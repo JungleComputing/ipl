@@ -4,7 +4,6 @@ package ibis.impl.messagePassing;
 
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.DynamicProperties;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.Replacer;
 import ibis.ipl.StaticProperties;
@@ -12,6 +11,7 @@ import ibis.util.ConditionVariable;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * messagePassing implementation of SendPort. Does only Byte serialization.
@@ -111,6 +111,11 @@ public class SendPort implements ibis.ipl.SendPort {
         portIsFree = Ibis.myIbis.createCV();
         out = new ByteOutputStream(this);
         count = 0;
+    }
+
+    /** returns the type that was used to create this port */
+    public ibis.ipl.PortType getType() {
+        return type;
     }
 
     public void setReplacer(Replacer r) throws IOException {
@@ -475,8 +480,18 @@ public class SendPort implements ibis.ipl.SendPort {
         }
     }
 
-    public DynamicProperties properties() {
-        return DynamicProperties.NoDynamicProperties;
+    public Object getProperty(String key) {
+        return null;
+    }
+    
+    public Map properties() {
+        return null;
+    }
+    
+    public void setProperties(Map properties) {
+    }
+    
+    public void setProperty(String key, Object val) {
     }
 
     public String name() {

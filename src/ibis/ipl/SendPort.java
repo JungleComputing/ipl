@@ -3,6 +3,7 @@
 package ibis.ipl;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Maintains connections to one or more receive ports.
@@ -33,6 +34,10 @@ import java.io.IOException;
  * blocked until the live message is finished.
  */
 public interface SendPort {
+
+    /** returns the type that was used to create this port */
+    PortType getType();
+
     /**
      * Requests a new message from this sendport.
      * It is allowed to get a message for a sendport that is not connected.
@@ -54,14 +59,37 @@ public interface SendPort {
     public void setReplacer(Replacer r) throws IOException;
 
     /**
-     * Returns the {@link ibis.ipl.DynamicProperties DynamicProperties} of
+     * Returns the dynamic properties of
      * this port. The user can set some implementation-specific dynamic
      * properties of the port, by means of the
-     * {@link ibis.ipl.DynamicProperties#set(String, Object)
-     * DynamicProperties.set} method.
+     * {@link ibis.ipl.SendPort#setProperty(String, Object)
+     * setProperty} method.
      */
-    public DynamicProperties properties();
+    public Map properties();
 
+    /**
+     * Sets a number of dynamic properties of
+     * this port. The user can set some implementation-specific dynamic
+     * properties of the port.
+     */
+    public void setProperties(Map properties); 
+    
+    /**
+     * Returns a dynamic property of
+     * this port. The user can set some implementation-specific dynamic
+     * properties of the port, by means of the
+     * {@link ibis.ipl.SendPort#setProperty(String, Object)
+     * setProperty} method.
+     */
+    public Object getProperty(String key);
+    
+    /**
+     * Sets a dynamic property of
+     * this port. The user can set some implementation-specific dynamic
+     * properties of the port.
+     */
+    public void setProperty(String key, Object val);
+    
     /**
      * Obtains an identification for this sendport.
      * @return the identification.

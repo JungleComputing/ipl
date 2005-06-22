@@ -103,7 +103,7 @@ class ShadowSendPort extends SendPort {
                     + " receive port of different types: " + type + " <-> "
                     + receivePort.identifier().type());
         }
-        this.type = receivePort.type();
+        this.type = receivePort.type;
         this.msgcount = startSeqno;
         this.groupStartSeqno = groupStartSeqno;
 

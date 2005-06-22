@@ -127,7 +127,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      * Enables or disables the singleton fastpath optimization.
      *
      * If on is true and the configuration allows it (i.e. this is a
-     * downcall receive port, and the subinput is Interruptible), enable
+     * downcall receive port, and the subinput is Interruptible), ENABLE
      * the singleton fastpath optimization. Else disable the singleton
      * fastpath optimization.
      *
@@ -175,7 +175,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 
             if (!isSingleton()) {
                 throw new IllegalArgumentException(
-                        "Cannot enable singleton if #connections != 1");
+                        "Cannot ENABLE singleton if #connections != 1");
             }
 
             try {

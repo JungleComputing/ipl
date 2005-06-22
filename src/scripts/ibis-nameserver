@@ -41,7 +41,7 @@ if [ "x$IBIS_HUB" != "x" ]; then
   HUB_PORT=`echo $IBIS_HUB|cut -f 2 -d :`
   echo "Name service will connect to Ibis hub:"
   echo "  ${HUB_HOST}:${HUB_PORT}"
-  Ddefines="-Dibis.connect.hub_host=$HUB_HOST -Dibis.connect.hub_port=$HUB_PORT"
+  Ddefines="-Dibis.connect.hub.host=$HUB_HOST -Dibis.connect.hub.port=$HUB_PORT"
   has_enable=1
   has_hubport=1
   has_hubhost=1
@@ -123,7 +123,7 @@ do
 	has_enable=1
 	if [ $has_hubhost -eq 0 ]; then
 	    has_hubhost=1
-	    Ddefines="$Ddefines -Dibis.connect.hub_host=`hostname -f`"
+	    Ddefines="$Ddefines -Dibis.connect.hub.host=`hostname -f`"
 	fi
 	args="$args -controlhub"
 	;;
@@ -143,7 +143,7 @@ do
 	fi
 	if [ $has_hubport -eq 0 ]; then
 	    has_hubport=1
-	    Ddefines="$Ddefines -Dibis.connect.hub_port=$1"
+	    Ddefines="$Ddefines -Dibis.connect.hub.port=$1"
 	fi
 	has_enable=1
 	;;
@@ -155,7 +155,7 @@ do
 	fi
 	if [ $has_hubhost -eq 0 ]; then
 	    has_hubhost=1
-	    Ddefines="$Ddefines -Dibis.connect.hub_host=$1"
+	    Ddefines="$Ddefines -Dibis.connect.hub.host=$1"
 	fi
 	has_enable=1
 	;;

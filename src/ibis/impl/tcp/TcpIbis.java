@@ -2,6 +2,7 @@
 
 package ibis.impl.tcp;
 
+import ibis.connect.IbisSocketFactory;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
@@ -12,14 +13,12 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
-import ibis.util.IbisSocketFactory;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Properties;
 
 public final class TcpIbis extends Ibis implements Config {
 
@@ -45,23 +44,13 @@ public final class TcpIbis extends Ibis implements Config {
 
     private boolean ended = false;
 
-    private static final boolean use_brokered_links;
-
     private static final IbisSocketFactory socketFactory;
 
     private boolean i_joined = false;
 
     static {
-
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-
-        Properties p = System.getProperties();
-        String dl = p.getProperty("ibis.connect.enable");
-
-        use_brokered_links = dl != null && !dl.equals("false")
-                && !dl.equals("no");
-
-        socketFactory = IbisSocketFactory.createFactory();
+        socketFactory = IbisSocketFactory.getFactory();
     }
 
     public TcpIbis() {
@@ -129,8 +118,7 @@ public final class TcpIbis extends Ibis implements Config {
 
         nameServer = NameServer.loadNameServer(this);
 
-        tcpPortHandler = new TcpPortHandler(ident, use_brokered_links,
-                socketFactory);
+        tcpPortHandler = new TcpPortHandler(ident, socketFactory);
         if (DEBUG) {
             System.err.println("Out of TcpIbis.init()");
         }

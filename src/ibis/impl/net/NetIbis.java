@@ -2,6 +2,7 @@
 
 package ibis.impl.net;
 
+import ibis.connect.IbisSocketFactory;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
@@ -12,7 +13,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
-import ibis.util.IbisSocketFactory;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
 
@@ -73,7 +73,7 @@ public final class NetIbis extends Ibis {
      * The Ibis socket factory
      */
     public static IbisSocketFactory socketFactory
-        = IbisSocketFactory.createFactory();
+        = IbisSocketFactory.getFactory();
 
     /**
      * The driver loading mode.
@@ -655,7 +655,6 @@ public final class NetIbis extends Ibis {
         }
 
         nameServer.leave();
-        socketFactory.shutdown();
     }
 
     public void poll() throws IOException {

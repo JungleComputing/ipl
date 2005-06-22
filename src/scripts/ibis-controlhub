@@ -49,7 +49,7 @@ if [ $# -ge 1 ]; then
 fi
 
 if [ ! -z "${IBIS_HUB_PORT}" ]; then
-  Dhub="-Dibis.connect.hub_port=${IBIS_HUB_PORT}"
+  Dhub="-Dibis.connect.hub.port=${IBIS_HUB_PORT}"
 fi
 
 "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" $Dhub ibis.connect.controlHub.ControlHub

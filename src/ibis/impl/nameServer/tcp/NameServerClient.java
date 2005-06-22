@@ -2,6 +2,7 @@
 
 package ibis.impl.nameServer.tcp;
 
+import ibis.connect.IbisSocketFactory;
 import ibis.impl.nameServer.NSProps;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
@@ -14,7 +15,6 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
-import ibis.util.IbisSocketFactory;
 import ibis.util.RunProcess;
 
 import java.io.BufferedInputStream;
@@ -58,7 +58,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     private InetAddress myAddress;
 
-    static IbisSocketFactory socketFactory = IbisSocketFactory.createFactory();
+    static IbisSocketFactory socketFactory = IbisSocketFactory.getFactory();
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
@@ -70,8 +70,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         while (s == null) {
             try {
                 cnt++;
-                s = socketFactory.createSocket(dest, port, me, -1);
-            } catch (ConnectionTimedOutException e) {
+                s = socketFactory.createClientSocket(dest, port, me, 0, -1, null);
+            } catch (IOException e) {
                 if (cnt == 10 && verbose) {
                     // Rather arbitrary, 10 seconds, print warning
                     System.err.println("Nameserver client failed"
@@ -192,7 +192,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         Socket s = nsConnect(serverAddress, port, myAddress, true, 60);
 
-        serverSocket = socketFactory.createServerSocket(0, myAddress, true);
+        serverSocket = socketFactory.createServerSocket(0, myAddress, 50, true, null);
 
 //	System.err.println("nsclient: serversocket port = " + serverSocket.getLocalPort());
 
@@ -218,7 +218,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         switch (opcode) {
         case IBIS_REFUSED:
-            socketFactory.close(in, out, s);
+            NameServer.closeConnection(in, out, s);
             throw new ConnectionRefusedException("NameServerClient: "
                     + id + " is not unique!");
         case IBIS_ACCEPTED:
@@ -267,13 +267,13 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             // Should we join ourselves?
             ibisImpl.joined(id);
 
-            socketFactory.close(in, out, s);
+            NameServer.closeConnection(in, out, s);
             Thread t = new Thread(this, "NameServerClient accept thread");
             t.setDaemon(true);
             t.start();
             break;
         default:
-            socketFactory.close(in, out, s);
+            NameServer.closeConnection(in, out, s);
 
             throw new StreamCorruptedException(
                     "NameServerClient: got illegal opcode " + opcode);
@@ -283,7 +283,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     public void maybeDead(IbisIdentifier ibisId) throws IOException {
         Socket s;
         try {
-            s = socketFactory.createSocket(serverAddress, port, myAddress, -1);
+            s = socketFactory.createClientSocket(serverAddress, port, myAddress, 0, -1, null);
         } catch (ConnectionTimedOutException e) {
             // Apparently, the nameserver left. Assume dead.
             return;
@@ -299,13 +299,13 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         out.flush();
         logger.debug("NS client: isAlive sent");
 
-        socketFactory.close(null, out, s);
+        NameServer.closeConnection(null, out, s);
     }
 
     public void dead(IbisIdentifier corpse) throws IOException {
         Socket s;
         try {
-            s = socketFactory.createSocket(serverAddress, port, myAddress, -1);
+            s = socketFactory.createClientSocket(serverAddress, port, myAddress, 0, -1, null);
         } catch (ConnectionTimedOutException e) {
             return;
         }
@@ -319,7 +319,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         out.writeObject(corpse);
         logger.debug("NS client: kill sent");
 
-        socketFactory.close(null, out, s);
+        NameServer.closeConnection(null, out, s);
     }
 
     public boolean newPortType(String name, StaticProperties p)
@@ -336,8 +336,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         logger.debug("NS client: leave");
 
         try {
-            s = socketFactory.createSocket(serverAddress, port, myAddress,
-                    5000);
+            s = socketFactory.createClientSocket(serverAddress, port, myAddress, 0, 
+                    5000, null);
         } catch (IOException e) {
             logger.debug("leave: connect got exception", e);
             return;
@@ -360,7 +360,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
             in.readByte();
             logger.debug("NS client: leave ack received");
-            socketFactory.close(in, out, s);
+            NameServer.closeConnection(in, out, s);
         } catch (IOException e) {
             logger.debug("leave got exception", e);
         }
@@ -378,7 +378,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             IbisIdentifier ibisId;
 
             try {
-                s = socketFactory.accept(serverSocket);
+                s = serverSocket.accept();
 
                 logger.debug("NameServerClient: incoming connection "
                         + "from " + s.toString());
@@ -414,19 +414,19 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     DataOutputStream out = new DataOutputStream(
                             new BufferedOutputStream(dos));
                     out.writeUTF(poolName);
-                    socketFactory.close(in, out, s);
+                    NameServer.closeConnection(in, out, s);
                 }
                     break;
                 case (IBIS_JOIN):
                     ibisId = (IbisIdentifier) in.readObject();
-                    logger.debug("NameServerClient: receive join request "
-                            + ibisId);
-                    socketFactory.close(in, null, s);
+                	logger.debug("NameServerClient: receive join request "
+                        + ibisId);
+                    NameServer.closeConnection(in, null, s);
                     ibisImpl.joined(ibisId);
                     break;
                 case (IBIS_LEAVE):
                     ibisId = (IbisIdentifier) in.readObject();
-                    socketFactory.close(in, null, s);
+                	NameServer.closeConnection(in, null, s);
                     if (ibisId.equals(this.id)) {
                         // received an ack from the nameserver that I left.
                         logger.debug("NameServerClient: thread dying");
@@ -436,7 +436,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     break;
                 case (IBIS_DEAD):
                     IbisIdentifier[] ids = (IbisIdentifier[]) in.readObject();
-                    socketFactory.close(in, null, s);
+                	NameServer.closeConnection(in, null, s);
                     ibisImpl.died(ids);
 
                     break;
@@ -453,7 +453,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 e1.printStackTrace();
 
                 if (s != null) {
-                    socketFactory.close(null, null, s);
+                    NameServer.closeConnection(null, null, s);
                 }
 
             }

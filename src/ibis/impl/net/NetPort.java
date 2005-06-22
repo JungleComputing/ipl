@@ -2,8 +2,6 @@
 
 package ibis.impl.net;
 
-import ibis.ipl.DynamicProperties;
-
 import java.util.Hashtable;
 
 /**
@@ -18,11 +16,6 @@ public abstract class NetPort {
      * The {@link ibis.impl.net.NetIbis} instance.
      */
     protected NetIbis ibis = null;
-
-    /**
-     * The dynamic properties of the port.
-     */
-    protected NetDynamicProperties props = null;
 
     /**
      * The name of the port.
@@ -83,10 +76,6 @@ public abstract class NetPort {
 
     public final String name() {
         return name;
-    }
-
-    public final DynamicProperties properties() {
-        return props;
     }
 
     public abstract void closeFromRemote(NetConnection cnx);
