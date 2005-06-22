@@ -42,6 +42,7 @@ class RMISkeletonGenerator extends RMIGenerator {
         output.println("import java.lang.reflect.*;");
         output.println("import ibis.ipl.*;");
         output.println("import java.io.IOException;");
+        output.println("import colobus.Colobus;");
         output.println();
 
         output.println("public final class rmi_skeleton_" + dest_name
@@ -50,6 +51,9 @@ class RMISkeletonGenerator extends RMIGenerator {
         for (int i = 0; i < methods.size(); i++) {
             output.println("\tprivate ibis.util.Timer timer_" + i + ";");
         }
+        output.println();
+
+        output.println("\tprivate static final Colobus colobus = Colobus.getColobus(rmi_skeleton_" + dest_name + ".class.getName());");
         output.println();
     }
 
@@ -127,8 +131,11 @@ class RMISkeletonGenerator extends RMIGenerator {
             boolean has_object_params = false;
             boolean is_simple_method = simpleMethod(m);
 
-            output.println("\t\tcase " + i + ":");
+            output.println("\t\tcase " + i + ": /* method " + m.getName() + " */");
             output.println("\t\t{");
+
+            output.println("\t\t\tlong handle = colobus.fireStartEvent(\"RMI parameter deserialization of method " + m.getName() + "\");");
+
             output.println("\t\t\tRTS.startRMITimer(timer_" + i + ");");
 
             output.println("\t\t\t/* First - Extract the parameters */");
@@ -148,29 +155,37 @@ class RMISkeletonGenerator extends RMIGenerator {
                             temp));
                 }
                 // we should try to optimize this finish away, to avoid 
-                // thread cration!!! --Rob
+                // thread creation!!! --Rob
                 // We can do this if
                 // - the method does not have loops
                 // - the method does not do any other method invocations.
                 // - no synchronization
                 // (Ceriel)
+                output.println("\t\t\tcolobus.fireStopEvent(handle, \"RMI parameter deserialization of method " + m.getName() + "\");");
+
                 if (!is_simple_method) {
                     output.println("\t\t\t\tr.finish();");
                 }
                 if (has_object_params) {
                     output.println("\t\t\t} catch(ClassNotFoundException e) {");
+                    output.println("\t\t\tcolobus.fireStopEvent(handle, \"RMI parameter deserialization of method " + m.getName() + "\");");
                     output.println("\t\t\t\tthrow new "
                             + "ibis.rmi.UnmarshalException("
                             + "\"error unmarshalling arguments\", e);");
                 }
                 output.println("\t\t\t} catch(IOException e) {");
+                output.println("\t\t\tcolobus.fireStopEvent(handle, \"RMI parameter deserialization of method " + m.getName() + "\");");
                 output.println("\t\t\t\tthrow new "
                         + "ibis.rmi.UnmarshalException("
                         + "\"error unmarshalling arguments\", e);");
                 output.println("\t\t\t}");
+            } else {
+                output.println("\t\t\tcolobus.fireStopEvent(handle, \"RMI parameter deserialization of method " + m.getName() + "\");");
             }
-
+            
             output.println();
+
+            output.println("\t\t\thandle = colobus.fireStartEvent(\"RMI user method invocation of method " + m.getName() + "\");");
 
             output.println("\t\t\t/* Second - Invoke the method */");
 
@@ -213,6 +228,10 @@ class RMISkeletonGenerator extends RMIGenerator {
 
             output.println("\t\t\tRTS.stopRMITimer(timer_" + i + ");");
 
+            output.println("\t\t\tcolobus.fireStopEvent(handle, \"RMI user method invocation of method " + m.getName() + "\");");
+
+            output.println("\t\t\thandle = colobus.fireStartEvent(\"RMI reply message of method " + m.getName() + "\");");
+
             output.println("\t\t\ttry {");
             output.println("\t\t\t\tWriteMessage w = "
                     + "stubs[stubID].newMessage();");
@@ -231,9 +250,11 @@ class RMISkeletonGenerator extends RMIGenerator {
             output.println("\t\t\t\t}");
             output.println("\t\t\t\tw.finish();");
             output.println("\t\t\t} catch(IOException e) {");
+            output.println("\t\t\t\tcolobus.fireStopEvent(handle, \"RMI reply message of method " + m.getName() + "\");");
             output.println("\t\t\t\tthrow new ibis.rmi.MarshalException("
                     + "\"error marshalling return\", e);");
             output.println("\t\t\t}");
+            output.println("\t\t\tcolobus.fireStopEvent(handle, \"RMI reply message of method " + m.getName() + "\");");
 
             output.println("\t\t\tbreak;");
             output.println("\t\t}");

@@ -13,7 +13,7 @@ set NHOSTS=1
 
 if ""%1""=="""" goto usage
 
-set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\build;%IBIS_ROOT%\3rdparty\junit.jar;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;.;
+set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\build;%IBIS_ROOT%\3rdparty\junit.jar;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\3rdparty\colobus;.;
 
 
 set LFC_INTR_FIRST=100

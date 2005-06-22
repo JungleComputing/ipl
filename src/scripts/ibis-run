@@ -137,7 +137,7 @@ esac
 libpath="$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:"
 ibislib="$IBIS_ROOT/build/lib"
 
-JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:.:"
+JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:$IBIS_ROOT/3rdparty/colobus.jar:.:"
 
 
 #

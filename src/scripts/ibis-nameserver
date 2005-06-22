@@ -21,11 +21,11 @@ dir=`cd "$dir" && pwd`
 case "`uname`" in
 CYGWIN*)
     IBIS_ROOT=`cygpath --unix "$IBIS_ROOT"`
-    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:"
+    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:$IBIS_ROOT/3rdparty/colobus.jar:"
     JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
     ;;
 *)
-    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:"
+    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:$IBIS_ROOT/3rdparty/colobus:"
     ;;
 esac
 

@@ -175,7 +175,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
              */
             ConnectionHandler h = old.getHandler();
             h.m = new TcpReadMessage(old);
-            ThreadPool.createNew(h, "Readmessage handler");
+            ThreadPool.createNew(h, "ConnectionHandler");
         }
     }
 
