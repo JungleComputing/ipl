@@ -161,12 +161,19 @@ public class Splice {
         }
     }
 
-    public IbisSocket connectSplice(String rHost, int rPort) {
+    /** this returns null after a minute. If it takes longer, splicaing makes no sense. **/
+    IbisSocket connectSplice(String rHost, int rPort) throws IOException {
         int i = 0;
         boolean connected = false;
 
         logger.debug("# Splice: connecting to: " + rHost + ":" + rPort);
+        
+        long start = System.currentTimeMillis();
+        
         while (!connected) {
+            long duration = System.currentTimeMillis() - start;
+            if(duration > 1000 * 60) throw new IOException("splicing timed out");
+                
             try {
                 InetSocketAddress remoteAddr = new InetSocketAddress(rHost,
                         rPort);

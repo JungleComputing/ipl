@@ -5,6 +5,7 @@ package ibis.connect.plainSocketFactories;
 import ibis.connect.BrokeredSocketFactory;
 import ibis.connect.IbisServerSocket;
 import ibis.connect.IbisSocket;
+import ibis.connect.routedMessages.RoutedMessagesSocketFactory;
 import ibis.connect.tcpSplicing.TCPSpliceSocketFactory;
 import ibis.util.IPUtils;
 
@@ -28,7 +29,8 @@ import org.apache.log4j.Logger;
  * reversed connection is tried. The idea is that one end may be behind a
  * firewall and the other not. Firewalls often allow for outgoing connections,
  * so acting as a client may succeed. If that fails as well, a TCPSplice
- * connection is tried.
+ * connection is tried. Finally, if all fails, routed messages is used to make a connection.
+ * This needs a central control hub at a location without a firewall.
  */
 public class AnyBrokeredTCPSocketFactory extends BrokeredSocketFactory {
 
@@ -149,11 +151,15 @@ public class AnyBrokeredTCPSocketFactory extends BrokeredSocketFactory {
         }
 
         logger.debug("AnyBrokeredTCPSocketFactory TCPSplice attempt");
+        try {
+            TCPSpliceSocketFactory tp = new TCPSpliceSocketFactory();       
+            return tp.createBrokeredSocket(in, out, hint, properties);
+        } catch (IOException e) {
+            logger.debug("AnyBrokeredTCPSocketFactory splicing fails");
+        }
 
-        TCPSpliceSocketFactory tp = new TCPSpliceSocketFactory();
-        return tp.createBrokeredSocket(in, out, hint, properties);
-
-        // @@@ maybe also try routed messages? --Rob
+        RoutedMessagesSocketFactory rms = new RoutedMessagesSocketFactory();
+        return rms.createBrokeredSocket(in, out, hint, properties);
     }
 
     private ServerInfo getServerSocket(Map properties) throws IOException {
