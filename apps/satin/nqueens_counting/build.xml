@@ -1,0 +1,26 @@
+<project
+    name="ibis.apps.satin.nqueens"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value="-keep"/>
+    <property name="main-class" value="NQueens"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <property name="test-par-run" value="NQueens -satin-closed 14"/>
+    <property name="test-seq-run" value="NQueens -satin-closed 14"/>
+
+    <fileset dir="." id="src.excludes-ref">
+	<include name="abort/**/*.java"/>
+	<include name="exception_threshold/**/*.java"/>
+	<include name="exceptions/**/*.java"/>
+	<include name="simple_abort/**/*.java"/>
+	<include name="simple_exception/**/*.java"/>
+    </fileset>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>

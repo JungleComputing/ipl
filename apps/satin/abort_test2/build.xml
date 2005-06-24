@@ -1,0 +1,16 @@
+<project
+    name="ibis.apps.satin.abort_test"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       value="build"/>
+
+    <property name="main-class" value="AbortTest"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>
+
+
