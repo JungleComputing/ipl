@@ -26,7 +26,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 public class NIOParallelStreamsSocket extends IbisSocket {
-    static Logger logger = Logger.getLogger(NIOParallelStreamsSocket.class
+    static Logger logger = ibis.util.GetLogger.getLogger(NIOParallelStreamsSocket.class
             .getName());
 
     public static final int BUF_SIZE = 128 * 1024;

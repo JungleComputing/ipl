@@ -3,7 +3,6 @@
 package ibis.connect.tcpSplicing;
 
 import ibis.connect.BrokeredSocketFactory;
-import ibis.connect.IbisServerSocket;
 import ibis.connect.IbisSocket;
 import ibis.connect.plainSocketFactories.PlainTCPSocketFactory;
 
@@ -14,8 +13,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -24,31 +21,11 @@ import org.apache.log4j.Logger;
 // --------------------------------------
 public class TCPSpliceSocketFactory extends BrokeredSocketFactory {
 
-    static Logger logger = Logger.getLogger(TCPSpliceSocketFactory.class
+    static Logger logger = ibis.util.GetLogger.getLogger(TCPSpliceSocketFactory.class
             .getName());
 
     public TCPSpliceSocketFactory() {
 
-    }
-
-    public IbisSocket createClientSocket(InetAddress destAddr, int destPort,
-            InetAddress localAddr, int localPort, int timeout, Map properties)
-            throws IOException {
-        throw new Error("createClientSocket not implemented by "
-                + this.getClass().getName());
-    }
-
-    public IbisSocket createClientSocket(InetAddress addr, int port,
-            Map properties) throws IOException {
-        throw new Error("createClientSocket not implemented by "
-                + this.getClass().getName());
-
-    }
-
-    public IbisServerSocket createServerSocket(InetSocketAddress addr,
-            int backlog, Map properties) throws IOException {
-        throw new Error("createServerSocket not implemented by "
-                + this.getClass().getName());
     }
 
     public IbisSocket createBrokeredSocket(InputStream in, OutputStream out,

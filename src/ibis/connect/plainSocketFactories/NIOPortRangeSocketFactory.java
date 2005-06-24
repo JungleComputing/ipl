@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 // SocketType descriptor for PortRange sockets
 // -------------------------------------------
 public class NIOPortRangeSocketFactory extends BrokeredSocketFactory {
-    static Logger logger = Logger.getLogger(NIOPortRangeSocketFactory.class
+    static Logger logger = ibis.util.GetLogger.getLogger(NIOPortRangeSocketFactory.class
             .getName());
 
     private static int portNumber;

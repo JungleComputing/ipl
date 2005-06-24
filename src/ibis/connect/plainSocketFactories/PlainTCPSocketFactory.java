@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 // -------------------------------------------
 public class PlainTCPSocketFactory extends BrokeredSocketFactory {
 
-    static Logger logger = Logger.getLogger(PlainTCPSocketFactory.class
+    static Logger logger = ibis.util.GetLogger.getLogger(PlainTCPSocketFactory.class
             .getName());
 
     public PlainTCPSocketFactory() {

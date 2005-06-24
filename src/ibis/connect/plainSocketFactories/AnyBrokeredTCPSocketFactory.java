@@ -15,7 +15,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
@@ -23,16 +22,20 @@ import org.apache.log4j.Logger;
 
 /**
  * Socket type that attempts to set up a brokered connection in several ways.
- * First, an ordinary client/server connection is tried. If that fails, a
+ * First, an ordinary client/server connection is tried (taking open port ranges into account).
+ * Even though a port range is defined, it might be incorrect :-( 
+ * If that fails, a
  * reversed connection is tried. The idea is that one end may be behind a
  * firewall and the other not. Firewalls often allow for outgoing connections,
  * so acting as a client may succeed. If that fails as well, a TCPSplice
  * connection is tried.
  */
-public class AnyTCPSocketFactory extends BrokeredSocketFactory {
+public class AnyBrokeredTCPSocketFactory extends BrokeredSocketFactory {
 
-    static Logger logger = Logger
-            .getLogger(AnyTCPSocketFactory.class.getName());
+    static Logger logger = ibis.util.GetLogger
+            .getLogger(AnyBrokeredTCPSocketFactory.class.getName());
+
+    private static PlainTCPSocketFactory plainSocketType = new PortRangeSocketFactory();
 
     private static class ServerInfo implements Runnable {
         IbisServerSocket server;
@@ -42,10 +45,8 @@ public class AnyTCPSocketFactory extends BrokeredSocketFactory {
         boolean present = false;
 
         public ServerInfo(Map properties) throws IOException {
-            server = new PlainTCPServerSocket(properties);
-            server.setReceiveBufferSize(0x10000);
-            server.bind(
-                    new InetSocketAddress(IPUtils.getLocalHostAddress(), 0), 1);
+            server = plainSocketType.createServerSocket(
+                    new InetSocketAddress(IPUtils.getLocalHostAddress(), 0), 1, properties);
             server.setSoTimeout(60000); // one minute
         }
 
@@ -57,8 +58,8 @@ public class AnyTCPSocketFactory extends BrokeredSocketFactory {
             try {
                 accpt = (IbisSocket) server.accept();
             } catch (Exception e) {
-                AnyTCPSocketFactory.logger.debug(
-                        "AnyTCPSocketFactory server accept " + "got exception",
+                AnyBrokeredTCPSocketFactory.logger.debug(
+                        "AnyBrokeredTCPSocketFactory server accept " + "got exception",
                         e);
             }
             if (accpt != null) {
@@ -81,27 +82,7 @@ public class AnyTCPSocketFactory extends BrokeredSocketFactory {
 
     }
 
-    public AnyTCPSocketFactory() {
-
-    }
-
-    public IbisSocket createClientSocket(InetAddress destAddr, int destPort,
-            InetAddress localAddr, int localPort, int timeout, Map properties)
-            throws IOException {
-        throw new Error("createClientSocket not implemented by "
-                + this.getClass().getName());
-    }
-
-    public IbisSocket createClientSocket(InetAddress addr, int port,
-            Map properties) throws IOException {
-        throw new Error("createClientSocket not implemented by "
-                + this.getClass().getName());
-    }
-
-    public IbisServerSocket createServerSocket(InetSocketAddress addr,
-            int backlog, Map properties) throws IOException {
-        throw new Error("createServerSocket not implemented by "
-                + this.getClass().getName());
+    public AnyBrokeredTCPSocketFactory() {
     }
 
     public IbisSocket createBrokeredSocket(InputStream in, OutputStream out,
@@ -114,12 +95,12 @@ public class AnyTCPSocketFactory extends BrokeredSocketFactory {
 
         for (int i = 0; i < 2; i++) {
             if (hint) {
-                logger.debug("AnyTCPSocketFactory server side attempt");
+                logger.debug("AnyBrokeredTCPSocketFactory server side attempt");
                 ServerInfo srv = getServerSocket(properties);
                 String host = srv.server.getInetAddress()
                         .getCanonicalHostName();
                 int port = srv.server.getLocalPort();
-                logger.debug("AnyTCPSocketFactory server side host = " + host
+                logger.debug("AnyBrokeredTCPSocketFactory server side host = " + host
                         + ", port = " + port);
                 os.writeUTF(host);
                 os.writeInt(port);
@@ -132,24 +113,22 @@ public class AnyTCPSocketFactory extends BrokeredSocketFactory {
                 srv.server.close(); // will cause exception in accept
                 // when it is still running.
                 if (success != 0) {
-                    logger.debug("AnyTCPSocketFactory server side succeeds");
+                    logger.debug("AnyBrokeredTCPSocketFactory server side succeeds");
                     tuneSocket(s);
                     return s;
                 }
-                logger.debug("AnyTCPSocketFactory server side fails");
+                logger.debug("AnyBrokeredTCPSocketFactory server side fails");
             } else {
                 String host = is.readUTF();
                 int port = is.readInt();
-                logger.debug("AnyTCPSocketFactory client got host = " + host
+                logger.debug("AnyBrokeredTCPSocketFactory client got host = " + host
                         + ", port = " + port);
                 InetSocketAddress target = new InetSocketAddress(host, port);
-                s = new PlainTCPSocket(properties);
+                
                 try {
-                    s.connect(target, 2000);
-                    // s.connect(target);
-                    // No, a connect without timeout sometimes just hangs.
+                    s = plainSocketType.createClientSocket(target.getAddress(), target.getPort(), IPUtils.getLocalHostAddress(), 0, 2000, properties);
                 } catch (Exception e) {
-                    logger.debug("AnyTCPSocketFactory client got exception", e);
+                    logger.debug("AnyBrokeredTCPSocketFactory client got exception", e);
                     os.writeInt(0); // failure
                     s = null;
                 }
@@ -158,23 +137,22 @@ public class AnyTCPSocketFactory extends BrokeredSocketFactory {
                 }
                 os.flush();
                 if (s != null) {
-                    logger.debug("AnyTCPSocketFactory client side attempt "
+                    logger.debug("AnyBrokeredTCPSocketFactory client side attempt "
                             + "succeeds");
                     tuneSocket(s);
                     return s;
                 }
-                logger.debug("AnyTCPSocketFactory client side attempt fails");
+                logger.debug("AnyBrokeredTCPSocketFactory client side attempt fails");
             }
 
             hint = !hint; // try the other way around
         }
 
-        logger.debug("AnyTCPSocketFactory TCPSplice attempt");
+        logger.debug("AnyBrokeredTCPSocketFactory TCPSplice attempt");
 
         TCPSpliceSocketFactory tp = new TCPSpliceSocketFactory();
         return tp.createBrokeredSocket(in, out, hint, properties);
 
-        // @@@ first try port range sockets
         // @@@ maybe also try routed messages? --Rob
     }
 

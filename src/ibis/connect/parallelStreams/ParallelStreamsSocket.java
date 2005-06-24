@@ -19,7 +19,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 public class ParallelStreamsSocket extends IbisSocket {
-    static Logger logger = Logger.getLogger(ParallelStreamsSocket.class
+    static Logger logger = ibis.util.GetLogger.getLogger(ParallelStreamsSocket.class
             .getName());
 
     public static final int DEFAULT_NUM_WAYS = 4;

@@ -33,13 +33,6 @@ public class RoutedMessagesSocketFactory extends BrokeredSocketFactory {
         HubLinkFactory.destroyHubLink();
     }
 
-    public IbisSocket createClientSocket(InetAddress destAddr, int destPort,
-            InetAddress localAddr, int localPort, int timeout, Map properties)
-            throws IOException {
-        throw new Error("createClientSocket not implemented by "
-                + this.getClass().getName());
-    }
-
     public IbisSocket createClientSocket(InetAddress addr, int port, Map p)
             throws IOException {
         IbisSocket s = new RoutedMessagesSocket(addr, port, p);

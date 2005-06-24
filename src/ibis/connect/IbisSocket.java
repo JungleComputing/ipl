@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class IbisSocket extends Socket {
 
-    static Logger logger = Logger.getLogger(IbisSocket.class
+    static Logger logger = ibis.util.GetLogger.getLogger(IbisSocket.class
             .getName());
 
     Map props;

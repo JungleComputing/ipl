@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 public class IbisSocketFactory {
     private static IbisSocketFactory staticFactory;
 
-    static Logger logger = Logger.getLogger(IbisSocketFactory.class.getName());
+    static Logger logger = ibis.util.GetLogger.getLogger(IbisSocketFactory.class.getName());
 
     /**
      * Map which converts a SocketType nicknames into the class name which
@@ -33,7 +33,7 @@ public class IbisSocketFactory {
 
     private static final String DEFAULT_CLIENT_SERVER = "PlainTCP";
 
-    private static final String DEFAULT_BROKERED = "PlainTCP";
+    private static final String DEFAULT_BROKERED = "AnyTCP";
 
     private static ClientServerSocketFactory clientServerSocketFactory = null;
 
@@ -61,7 +61,7 @@ public class IbisSocketFactory {
                 "ibis.connect.plainSocketFactories.PortRangeSocketFactory");
         declareNickname("SSL", "ibis.connect.plainSocketFactories.SSLSocketType");
         declareNickname("AnyTCP",
-                "ibis.connect.plainSocketFactories.AnyTCPSocketFactory");
+                "ibis.connect.plainSocketFactories.AnyBrokeredTCPSocketFactory");
         // Declare new nicknames here.
 
         String dataLinksProperty = TypedProperties
