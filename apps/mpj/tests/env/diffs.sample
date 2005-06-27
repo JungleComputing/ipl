@@ -1,0 +1,3 @@
+diff initialized.out initialized.out.sample
+diff procname.out procname.out.sample
+diff wtime.out wtime.out.sample

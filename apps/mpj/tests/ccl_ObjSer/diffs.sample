@@ -1,0 +1,13 @@
+diff allgatherO.out allgatherO.out.sample
+diff alltoallO.out alltoallO.out.sample
+diff bcastO.out bcastO.out.sample
+diff gatherO.out gatherO.out.sample
+diff scatterO.out scatterO.out.sample
+diff gathervO.out gathervO.out.sample
+diff allgathervO.out allgathervO.out.sample
+diff scattervO.out scattervO.out.sample
+diff alltoallvO.out alltoallvO.out.sample
+diff reduceO.out reduceO.out.sample
+diff allreduceO.out allreduceO.out.sample
+diff scanO.out scanO.out.sample
+diff reduce_scatterO.out reduce_scatterO.out.sample

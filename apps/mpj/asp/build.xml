@@ -1,0 +1,19 @@
+<project
+    name="ibis.apps.mpj.ASP"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis application build.
+    </description>
+
+    <property name="main-class"  value="asp"/>
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/build-files/apps/build-ibis-app.xml"/>
+
+</project>
+
+

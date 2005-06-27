@@ -1,0 +1,10 @@
+
+MPI.BYTE.Size()    = 1
+MPI.CHAR.Size()    = 1
+MPI.SHORT.Size()   = 1
+MPI.BOOLEAN.Size() = 1
+MPI.INT.Size()     = 1
+MPI.LONG.Size()    = 1
+MPI.FLOAT.Size()   = 1
+MPI.DOUBLE.Size()  = 1
+
