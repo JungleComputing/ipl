@@ -38,6 +38,14 @@ class ElectionClient implements ElectionProtocol {
                 "++++ElectionServer-" + Ibis.myIbis.myCpu + "++++");
         sport = type.createSendPort("election_client");
         sport.connect(server);
+
+        // Read initial message from server. This makes sure that the
+        // server is initialized with respect to this client, so that
+        // this client cannot disappear when the server has not even set
+        // up a connection yet (which gives deadlocks in termination).
+        ibis.ipl.ReadMessage r = rport.receive();
+        r.readInt();
+        r.finish();
     }
 
     void end() throws IOException {

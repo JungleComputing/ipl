@@ -150,6 +150,14 @@ class ElectionServer implements Runnable, ibis.ipl.Upcall {
                 client_port[i].connect(rid);
             }
 
+            for (int i = 0; i < n; i++) {
+                // Send a message so that client can wait until server
+                // is initialized.
+                ibis.ipl.WriteMessage r = client_port[i].newMessage();
+                r.writeInt(0);
+                r.finish();
+            }
+
             synchronized (elections) {
                 started = true;
                 elections.notifyAll();
