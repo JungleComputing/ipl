@@ -168,7 +168,7 @@ public class SOR {
 		}
 		
 		if (rank == 0) {
-			System.err.println("Running " + N + " x " + N + " SOR");
+			System.out.println("Running " + N + " x " + N + " SOR");
 		}
 
 		N += 2; /* add the two border lines */
@@ -274,12 +274,12 @@ public class SOR {
 			double diffTime = (t_end - t_start);
 			DecimalFormat dc = new DecimalFormat("#####0.000");
 		
-			System.err.println("SOR took " + dc.format(diffTime) + " seconds");
+			System.out.println("SOR took " + dc.format(diffTime) + " seconds");
 	
 				
 			DecimalFormat ft = new DecimalFormat("0.000000");
 		
-			System.err.println("Used " + iteration + " iterations, diff is " + ft.format(maxdiff[0]) + ", allowed diff is " + ft.format(stopdiff));
+			System.out.println("Used " + iteration + " iterations, diff is " + ft.format(maxdiff[0]) + ", allowed diff is " + ft.format(stopdiff));
 		
 			if (print) {
 				printGrid(G, N);
