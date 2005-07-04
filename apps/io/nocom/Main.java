@@ -117,8 +117,9 @@ public class Main {
                 }
                 size = Integer.parseInt(args[i]);
             } else {
-                usage();
-                System.exit(1);
+               System.out.println("Unknown option " + args[i]);
+               usage();
+               System.exit(1);
             }
         }
 
