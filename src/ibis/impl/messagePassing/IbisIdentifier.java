@@ -2,6 +2,8 @@
 
 package ibis.impl.messagePassing;
 
+import ibis.ipl.IbisError;
+
 import ibis.impl.util.IbisIdentifierTable;
 import ibis.io.Conversion;
 
@@ -15,11 +17,13 @@ import java.io.StreamCorruptedException;
 // Make this final, make inlining possible
 final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements
         java.io.Serializable {
+    private static final boolean ID_CACHE = false;
 
     private int cpu;
 
     private transient byte[] serialForm;
 
+    // ID_CACHE
     private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
     IbisIdentifier(String name, int cpu) throws IOException {
@@ -47,7 +51,10 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements
     // Do not do a writeObject on it (or a defaultWriteObject of the current object),
     // because InetAddress might not be rewritten as it is in the classlibs --Rob
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        int handle = cache.getHandle(out, this);
+        int handle = -1;
+        if (ID_CACHE) {
+            handle = cache.getHandle(out, this);
+        }
         out.writeInt(handle);
         // Rob, somehow you should tell the partner the CPU number
         // the first time. It is not part of the superclass so you
@@ -63,8 +70,13 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements
         int handle = in.readInt();
         if (handle < 0) {
             in.defaultReadObject();
-            cache.addIbis(in, -handle, this);
+            if (ID_CACHE) {
+                cache.addIbis(in, -handle, this);
+            }
         } else {
+            if (! ID_CACHE) {
+                throw new IbisError("This ibis cannot talk to ibisses or nameservers that do IbisIdentifier caching");
+            }
             IbisIdentifier ident = (IbisIdentifier) cache.getIbis(in, handle);
             name = ident.name;
             cluster = ident.cluster;
@@ -73,7 +85,9 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements
     }
 
     public void free() {
-        cache.removeIbis(this);
+        if (ID_CACHE) {
+            cache.removeIbis(this);
+        }
     }
 
     private void makeSerialForm() throws IOException {

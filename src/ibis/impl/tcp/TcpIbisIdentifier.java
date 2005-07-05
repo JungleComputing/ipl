@@ -4,6 +4,7 @@ package ibis.impl.tcp;
 
 import ibis.impl.util.IbisIdentifierTable;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisError;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -63,10 +64,13 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     // classlibs --Rob
     // Is this still a problem? I don't think so --Ceriel
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        int handle = cache.getHandle(out, this);
+        int handle = -1;
+        if (Config.ID_CACHE) {
+            handle = cache.getHandle(out, this);
+        }
         out.writeInt(handle);
         if (handle < 0) { // First time, send it.
-            out.defaultWriteObject();
+            out.writeUTF(address.getHostAddress());
         }
     }
 
@@ -75,9 +79,20 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
             ClassNotFoundException {
         int handle = in.readInt();
         if (handle < 0) {
-            in.defaultReadObject();
-            cache.addIbis(in, -handle, this);
+            String addr = in.readUTF();
+            try {
+                address = InetAddress.getByName(addr);
+            } catch(Exception e) {
+                throw new IbisError("EEK, could not create an inet address"
+                        + "from a IP address. This shouldn't happen", e);
+            }
+            if (Config.ID_CACHE) {
+                cache.addIbis(in, -handle, this);
+            }
         } else {
+            if (! Config.ID_CACHE) {
+                throw new IbisError("This ibis cannot talk to ibisses or nameservers that do IbisIdentifier caching");
+            }
             TcpIbisIdentifier ident = (TcpIbisIdentifier) cache.getIbis(in,
                     handle);
             address = ident.address;
@@ -87,6 +102,8 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     }
 
     public void free() {
-        cache.removeIbis(this);
+        if (Config.ID_CACHE) {
+            cache.removeIbis(this);
+        }
     }
 }
