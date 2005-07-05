@@ -203,7 +203,33 @@ public class IbisSocketFactory {
     }
 
     /**
-     * client Socket creator method with a timeout. Creates a client socket and
+     * Client Socket creator method with a timeout. Creates a client socket and
+     * connects it to the the specified Inetaddress and port.
+     * 
+     * @param addr
+     *            the IP address
+     * @param port
+     *            the port
+     * @param timeoutMillis
+     *            if < 0, throw exception on failure. If 0, retry until success.
+     *            if > 0, block at most <code>timeoutMillis</code>
+     *            milliseconds.
+     * @param properties
+     *            socket properties.
+     * @exception IOException
+     *                is thrown when the socket was not properly created within
+     *                this time.
+     * @return the socket created.
+     */
+    public IbisSocket createClientSocket(InetAddress addr, int port,
+            Map properties, int timeout) throws IOException {
+        logger.info("create client socket: " + addr + " type = "
+                + clientServerSocketFactory);
+        return createClientSocket(addr, port, null, 0, timeout, properties);
+    }
+
+    /**
+     * Client Socket creator method with a timeout. Creates a client socket and
      * connects it to the the specified Inetaddress and port. Some hosts have
      * multiple local IP addresses. If the specified <code>localIP</code>
      * address is <code>null</code>, this method tries to bind to the first
