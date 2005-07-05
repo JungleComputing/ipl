@@ -208,7 +208,7 @@ public class NameServer extends Thread implements Protocol {
         try {
 
             Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null);
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
 
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
@@ -234,7 +234,7 @@ public class NameServer extends Thread implements Protocol {
     private boolean doPing(IbisInfo dest, String key) {
         try {
             Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null);
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
 
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
@@ -283,6 +283,7 @@ public class NameServer extends Thread implements Protocol {
             for (int j = 0; j < ids.length; j++) {
                 IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
                 ids[j] = temp2.identifier;
+                temp2.identifier.free();
             }
 
             // Pass the dead ones on to the election server ...
@@ -325,7 +326,7 @@ public class NameServer extends Thread implements Protocol {
     private void forwardDead(IbisInfo dest, IbisIdentifier[] ids) {
         try {
             Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null);
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
 
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
@@ -459,7 +460,7 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null);
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
 
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
@@ -478,7 +479,7 @@ public class NameServer extends Thread implements Protocol {
     private void killThreads(RunInfo p) {
         try {
             Socket s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.portTypeNameServer.getPort(), null);
+                    p.portTypeNameServer.getPort(), null, -1);
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             DataOutputStream out1 = new DataOutputStream(
                     new BufferedOutputStream(d));
@@ -490,7 +491,7 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             Socket s2 = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.receivePortNameServer.getPort(), null);
+                    p.receivePortNameServer.getPort(), null, -1);
             DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
                     new BufferedOutputStream(d2));
@@ -523,7 +524,7 @@ public class NameServer extends Thread implements Protocol {
     private void electionKill(RunInfo p, IbisIdentifier[] ids)
             throws IOException {
         Socket s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                p.electionServer.getPort(), null);
+                p.electionServer.getPort(), null, -1);
         DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
         ObjectOutputStream out2 = new ObjectOutputStream(
                 new BufferedOutputStream(d));
