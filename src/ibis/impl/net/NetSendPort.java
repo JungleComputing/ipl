@@ -21,13 +21,57 @@ import java.util.Map;
 import java.util.Vector;
 
 /**
- * Provides an implementation of the {@link SendPort} and {@link
- * WriteMessage} interfaces of the IPL.
+ * Provides an implementation of the {@link SendPort} interface of the IPL.
  */
-public final class NetSendPort extends NetPort implements SendPort,
-        WriteMessage, NetEventQueueConsumer {
+public final class NetSendPort implements SendPort,
+        NetEventQueueConsumer {
 
     /* ___ LESS-IMPORTANT OBJECTS ______________________________________ */
+
+    /**
+     * The {@link ibis.impl.net.NetIbis} instance.
+     */
+    protected NetIbis ibis = null;
+
+    /**
+     * The name of the port.
+     */
+    protected String name = null;
+
+    /**
+     * The type of the port.
+     */
+    protected NetPortType type = null;
+
+    /**
+     * Optional (fine grained) logging object.
+     *
+     * This logging object should be used to display code-level information
+     * like function calls, args and variable values.
+     */
+    protected NetLog log = null;
+
+    /**
+     * Optional (coarse grained) logging object.
+     *
+     * This logging object should be used to display concept-level information
+     * about high-level algorithmic steps (e.g. message send, new connection
+     * initialization.
+     */
+    protected NetLog trace = null;
+
+    /**
+     * Optional (general purpose) logging object.
+     *
+     * This logging object should only be used temporarily for debugging
+     * purpose.
+     */
+    protected NetLog disp = null;
+
+    /**
+     * The topmost network driver.
+     */
+    protected NetDriver driver = null;
 
     /**
      * The port connection identifier.
@@ -58,7 +102,7 @@ public final class NetSendPort extends NetPort implements SendPort,
      * Count how message we send. If we disconnect, the receive port
      * must await this number of messages.
      */
-    private int msgSeqno;
+    int msgSeqno;
 
     private boolean messageInUse = false;
 
@@ -70,9 +114,20 @@ public final class NetSendPort extends NetPort implements SendPort,
     /* ___ IMPORTANT OBJECTS ___________________________________________ */
 
     /**
+     * The table of network {@linkplain ibis.impl.net.NetConnection connections}
+     * indexed by connection identification numbers.
+     */
+    protected Hashtable connectionTable = null;
+
+    /**
      * The topmost network output.
      */
-    private NetOutput output = null;
+    NetOutput output = null;
+
+    /**
+     * The write message of this send port.
+     */
+    private NetWriteMessage writeMessage = null;
 
     /* ___ STATE _______________________________________________________ */
 
@@ -156,6 +211,19 @@ public final class NetSendPort extends NetPort implements SendPort,
 
     
     /* ................................................................. */
+
+    /**
+     * Return the {@linkplain ibis.impl.net.NetPortType port type}.
+     *
+     * @return the {@linkplain ibis.impl.net.NetPortType port type}.
+     */
+    public final NetPortType getPortType() {
+        return type;
+    }
+
+    public final String name() {
+        return name;
+    }
 
     /* ___ NET EVENT QUEUE CONSUMER RELATED FUNCTIONS __________________ */
 
@@ -580,32 +648,24 @@ public final class NetSendPort extends NetPort implements SendPort,
             throw new Error("Can have only one open message at a time");
         }
         messageInUse = true;
-        emptyMsg = true;
-        output.initSend();
-        if (type.numbered()) {
-            long seqno = NetIbis.globalIbis.getSeqno(type.name());
-            // System.err.println(NetIbis.hostName() + " " + this + ": tag msg with seqno " + seqno);
-            emptyMsg = false;
-            output.writeSeqno(seqno);
+        if (writeMessage == null) {
+            writeMessage = new NetWriteMessage(this);
         }
+        writeMessage.fresh();
         if (trace.on()) {
             int rank = ((NetIbis) type.getIbis()).closedPoolRank();
             final String messageId = rank + "-" + sendPortMessageId
                     + "-" + (messageCount++);
             trace.disp(sendPortTracePrefix, "message " + messageId
                     + " send to " + receiversPrefixes + "-->");
-            writeString(messageId);
+            writeMessage.writeString(messageId);
         }
 
         startByteCount = output.getCount();
 
         log.out();
 
-        return this;
-    }
-
-    public SendPort localPort() {
-        return this;
+        return writeMessage;
     }
 
     /**
@@ -794,41 +854,10 @@ public final class NetSendPort extends NetPort implements SendPort,
         log.out();
     }
 
-    /* ----- PUBLIC WriteMessage API ___________________________________ */
-
-    /**
-     * Sends what remains to be sent.
-     */
-    public int send() throws IOException {
-        log.in();
-        int retval = output.send();
-        log.out();
-        return retval;
-    }
-
-    /**
-     * Completes the message transmission.
-     *
-     * Note: if it is detected that the message is actually empty,
-     * a single byte is forced to be sent over the network.
-     */
-    private void _finish() throws IOException {
-        log.in();
-        if (emptyMsg) {
-            output.handleEmptyMsg();
-        }
-        msgSeqno++;
-        log.out();
-    }
-
-    /**
-     * Completes the message transmission and releases the send port.
-     */
-    public long finish() throws IOException {
-        log.in();
+    long finish() throws IOException {
         long l = 0;
+        msgSeqno++;
         try {
-            _finish();
             l = output.finish();
             // NOTE: l is currently ignored
             stat.end();
@@ -837,42 +866,11 @@ public final class NetSendPort extends NetPort implements SendPort,
             messageInUse = false;
             outputLock.unlock();
         }
-
         // We now compute bytes sent in this message by looking
         // at the port transfer statistics.  This is fine since
         // we only have one outstanding message anyway, and avoids
         // having to keep both per-message and per-port stats.
-        l = output.getCount() - startByteCount;
-
-        log.out();
-        return l;
-    }
-
-    public void finish(IOException e) {
-        // What to do here? Rutger?
-        try {
-            finish();
-        } catch (IOException e2) {
-            // Give up
-        }
-    }
-
-    /**
-     * Unconditionnaly completes the message transmission and
-     * releases the send port. The writeMessage is kept by
-     * the application for the next send.
-     */
-    public void reset() throws IOException {
-        log.in();
-        output.reset();
-        log.out();
-    }
-
-    public void sync(int ticket) throws IOException {
-        log.in();
-        output.sync(ticket);
-        emptyMsg = true;
-        log.out();
+        return output.getCount() - startByteCount;
     }
 
     public long getCount() {
@@ -885,257 +883,6 @@ public final class NetSendPort extends NetPort implements SendPort,
     public void resetCount() {
         log.in();
         output.resetCount();
-        log.out();
-    }
-
-    public void writeBoolean(boolean v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addBoolean();
-        output.writeBoolean(v);
-        log.out();
-    }
-
-    public void writeByte(byte v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addByte();
-        output.writeByte(v);
-        log.out();
-    }
-
-    public void writeChar(char v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addChar();
-        output.writeChar(v);
-        log.out();
-    }
-
-    public void writeShort(short v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addShort();
-        output.writeShort(v);
-        log.out();
-    }
-
-    public void writeInt(int v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addInt();
-        output.writeInt(v);
-        log.out();
-    }
-
-    public void writeLong(long v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addLong();
-        output.writeLong(v);
-        log.out();
-    }
-
-    public void writeFloat(float v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addFloat();
-        output.writeFloat(v);
-        log.out();
-    }
-
-    public void writeDouble(double v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addDouble();
-        output.writeDouble(v);
-        log.out();
-    }
-
-    public void writeString(String v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addString();
-        output.writeString(v);
-        log.out();
-    }
-
-    public void writeObject(Object v) throws IOException {
-        log.in();
-        emptyMsg = false;
-        stat.addObject();
-        output.writeObject(v);
-        log.out();
-    }
-
-    public void writeArray(boolean[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(byte[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(char[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(short[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(int[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(long[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(float[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(double[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(Object[] b) throws IOException {
-        log.in();
-        writeArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void writeArray(boolean[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        stat.addBooleanArray(l);
-        emptyMsg = false;
-        output.writeArray(b, o, l);
-        log.out();
-    }
-
-    public void writeArray(byte[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        stat.addByteArray(l);
-        output.writeArray(b, o, l);
-        log.out();
-    }
-
-    public void writeArray(char[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        stat.addCharArray(l);
-        output.writeArray(b, o, l);
-        log.out();
-    }
-
-    public void writeArray(short[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        stat.addShortArray(l);
-        output.writeArray(b, o, l);
-        log.out();
-    }
-
-    public void writeArray(int[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        stat.addIntArray(l);
-        output.writeArray(b, o, l);
-        log.out();
-    }
-
-    public void writeArray(long[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        stat.addLongArray(l);
-        output.writeArray(b, o, l);
-        log.out();
-    }
-
-    public void writeArray(float[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        stat.addFloatArray(l);
-        output.writeArray(b, o, l);
-        log.out();
-    }
-
-    public void writeArray(double[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        stat.addDoubleArray(l);
-        output.writeArray(b, o, l);
-        log.out();
-    }
-
-    public void writeArray(Object[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        stat.addObjectArray(l);
-        output.writeArray(b, o, l);
         log.out();
     }
 }

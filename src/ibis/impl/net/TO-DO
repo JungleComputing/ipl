@@ -4,3 +4,5 @@
   call in the same way as NetSerializationOutput
 - investigate any deadlocks with NetGM rendez-vous (see SOR/IPL with
   async sends)
+- investigate other NetGM deadlocks resulting from lack of flow-control when
+  several nodes are sending to a single node.

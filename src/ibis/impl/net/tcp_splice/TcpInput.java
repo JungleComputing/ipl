@@ -10,7 +10,6 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetInputUpcall;
-import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
@@ -149,20 +148,7 @@ public final class TcpInput extends NetBufferedInput {
 
         {
             
-            NetPort port = cnx.getPort();
-
-            final Map p;
-            if (port != null) {
-                if (port instanceof NetReceivePort) {
-                    p = ((NetReceivePort) port).properties();
-                } else if (port instanceof NetSendPort) {
-                    p = ((NetSendPort) port).properties();
-                } else {
-                    p = null;
-                }
-            } else {
-                p = null;
-            }
+            final Map p = cnx.properties();
 
             // Socket creation
             final NetIO nn = this;

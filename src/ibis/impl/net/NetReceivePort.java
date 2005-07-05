@@ -28,11 +28,10 @@ import java.util.Map;
 import java.util.Vector;
 
 /**
- * Provides an implementation of the {@link ReceivePort} and {@link
- * ReadMessage} interfaces of the IPL.
+ * Provides an implementation of the {@link ReceivePort} interface of the IPL.
  */
-public final class NetReceivePort extends NetPort implements ReceivePort,
-        ReadMessage, NetInputUpcall, NetEventQueueConsumer {
+public final class NetReceivePort implements ReceivePort,
+        NetInputUpcall, NetEventQueueConsumer {
 
     /* ___ INTERNAL CLASSES ____________________________________________ */
 
@@ -124,7 +123,7 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
                             NetConnection cnx = new NetConnection(
                                     NetReceivePort.this, num, spi, identifier,
-                                    link, startSeqno);
+                                    link, startSeqno, null);
 
                             synchronized (connectionTable) {
                                 connectionTable.put(num, cnx);
@@ -215,6 +214,51 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     /* ___ LESS-IMPORTANT OBJECTS ______________________________________ */
 
     /**
+     * The {@link ibis.impl.net.NetIbis} instance.
+     */
+    protected NetIbis ibis = null;
+
+    /**
+     * The name of the port.
+     */
+    protected String name = null;
+
+    /**
+     * The type of the port.
+     */
+    protected NetPortType type = null;
+
+    /**
+     * Optional (fine grained) logging object.
+     *
+     * This logging object should be used to display code-level information
+     * like function calls, args and variable values.
+     */
+    protected NetLog log = null;
+
+    /**
+     * Optional (coarse grained) logging object.
+     *
+     * This logging object should be used to display concept-level information
+     * about high-level algorithmic steps (e.g. message send, new connection
+     * initialization.
+     */
+    protected NetLog trace = null;
+
+    /**
+     * Optional (general purpose) logging object.
+     *
+     * This logging object should only be used temporarily for debugging
+     * purpose.
+     */
+    protected NetLog disp = null;
+
+    /**
+     * The topmost network driver.
+     */
+    protected NetDriver driver = null;
+
+    /**
      * The upcall callback function.
      */
     private Upcall upcall = null;
@@ -248,6 +292,12 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     /* ___ IMPORTANT OBJECTS ___________________________________________ */
 
     /**
+     * The table of network {@linkplain ibis.impl.net.NetConnection connections}
+     * indexed by connection identification numbers.
+     */
+    protected Hashtable connectionTable = null;
+
+    /**
      * Cache a single connection for fast lookup in the frequent case of one
      * connection
      */
@@ -256,7 +306,12 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     /**
      * The port's topmost input.
      */
-    private NetInput input = null;
+    NetInput input = null;
+
+    /**
+     * The read message of this port.
+     */
+    private NetReadMessage readMessage;
 
     /* ___ THREADS _____________________________________________________ */
 
@@ -284,14 +339,6 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     private boolean upcallsEnabled = false;
 
     /**
-     * The empty message detection flag.
-     *
-     * The flag is set on each new {@link #_receive} call and should be
-     * cleared as soon as at least a byte as been added to the living message.
-     */
-    private boolean emptyMsg = true;
-
-    /**
      * Indicate whether {@link #finish} should unlock the {@link #finishMutex}.
      */
     private boolean finishNotify = false;
@@ -311,11 +358,6 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
      * Internal receive port counter, for debugging.
      */
     static private int receivePortCount = 0;
-
-    /**
-     * Seqno for numbered messages
-     */
-    private long messageSeqno = -1;
 
     /**
      * Internal receive port id, for debugging.
@@ -375,6 +417,19 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
     protected Map props = new HashMap();
 
     /**
+     * Return the {@linkplain ibis.impl.net.NetPortType port type}.
+     *
+     * @return the {@linkplain ibis.impl.net.NetPortType port type}.
+     */
+    public final NetPortType getPortType() {
+        return type;
+    }
+
+    public final String name() {
+        return name;
+    }
+
+    /**
      * Make a fast path for the (frequent) case that there is only one
      * connection
      */
@@ -432,17 +487,17 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
         }
 
         if (upcall != null && upcallsEnabled) {
-            final ReadMessage rm = _receive();
+            final NetReadMessage rm = _receive();
             Thread me = Thread.currentThread();
             currentThread = me;
             upcall.upcall(rm);
             if (me == currentThread) {
                 currentThread = null;
 
-                if (emptyMsg) {
+                if (rm.emptyMsg) {
                     input.handleEmptyMsg();
 
-                    emptyMsg = false;
+                    rm.emptyMsg = false;
                 }
 
                 checkClose();
@@ -722,30 +777,25 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
         return true;
     }
 
-    public long sequenceNumber() {
-        return messageSeqno;
-    }
-
     /**
      * Internally initializes a new reception.
      */
-    private ReadMessage _receive() throws IOException {
+    private NetReadMessage _receive() throws IOException {
         log.in();
-        emptyMsg = true;
-        if (type.numbered()) {
-            emptyMsg = false;
-            messageSeqno = input.readSeqno();
-            // System.err.println(NetIbis.hostName() + " " + this + ": receive msg with seqno " + messageSeqno);
+        if (readMessage == null) {
+            readMessage = new NetReadMessage(this);
         }
 
+        readMessage.fresh();
+
         if (trace.on()) {
-            final String messageId = readString();
+            final String messageId = readMessage.readString();
             trace.disp(receivePortTracePrefix, "message receive --> ",
                     messageId);
         }
 
         log.out();
-        return this;
+        return readMessage;
     }
 
     /**
@@ -888,10 +938,6 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
             return t;
         }
-    }
-
-    public ReceivePort localPort() {
-        return this;
     }
 
     public synchronized void enableConnections() {
@@ -1154,13 +1200,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
         props.put(key, val);
     }
 
-    /* --- ReadMessage Part --- */
-    public long finish() throws IOException {
+    long finish() throws IOException {
         log.in();
-        if (emptyMsg) {
-            input.handleEmptyMsg();
-            emptyMsg = false;
-        }
         trace.disp(receivePortTracePrefix, "message receive <--");
 
         NetConnection cnx = checkClose();
@@ -1183,257 +1224,4 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
         // TODO: return byte count of message
         return 0;
     }
-
-    public void finish(IOException e) {
-        // What to do here? Rutger?
-        try {
-            finish();
-        } catch (IOException e2) {
-            // Give up
-        }
-    }
-
-    public SendPortIdentifier origin() {
-        log.in();
-        SendPortIdentifier spi = getActiveSendPortIdentifier();
-        log.out();
-        return spi;
-    }
-
-    public boolean readBoolean() throws IOException {
-        log.in();
-        emptyMsg = false;
-        boolean v = input.readBoolean();
-        log.out();
-        return v;
-    }
-
-    public byte readByte() throws IOException {
-        log.in();
-        emptyMsg = false;
-        byte v = input.readByte();
-        log.out();
-        return v;
-    }
-
-    public char readChar() throws IOException {
-        log.in();
-        emptyMsg = false;
-        char v = input.readChar();
-        log.out();
-        return v;
-    }
-
-    public short readShort() throws IOException {
-        log.in();
-        emptyMsg = false;
-        short v = input.readShort();
-        log.out();
-        return v;
-    }
-
-    public int readInt() throws IOException {
-        log.in();
-        emptyMsg = false;
-        int v = input.readInt();
-        log.out();
-        return v;
-    }
-
-    public long readLong() throws IOException {
-        log.in();
-        emptyMsg = false;
-        long v = input.readLong();
-        log.out();
-        return v;
-    }
-
-    public float readFloat() throws IOException {
-        log.in();
-        emptyMsg = false;
-        float v = input.readFloat();
-        log.out();
-        return v;
-    }
-
-    public double readDouble() throws IOException {
-        log.in();
-        emptyMsg = false;
-        double v = input.readDouble();
-        log.out();
-        return v;
-    }
-
-    public String readString() throws IOException {
-        log.in();
-        emptyMsg = false;
-        String v = input.readString();
-        log.out();
-        return v;
-    }
-
-    public Object readObject() throws IOException, ClassNotFoundException {
-        log.in();
-        emptyMsg = false;
-        Object v = input.readObject();
-        log.out();
-        return v;
-    }
-
-    public void readArray(boolean[] b) throws IOException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(byte[] b) throws IOException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(char[] b) throws IOException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(short[] b) throws IOException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(int[] b) throws IOException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(long[] b) throws IOException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(float[] b) throws IOException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(double[] b) throws IOException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(Object[] b) throws IOException,
-            ClassNotFoundException {
-        log.in();
-        readArray(b, 0, b.length);
-        log.out();
-    }
-
-    public void readArray(boolean[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-    }
-
-    public void readArray(byte[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-    }
-
-    public void readArray(char[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-    }
-
-    public void readArray(short[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-    }
-
-    public void readArray(int[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-    }
-
-    public void readArray(long[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-    }
-
-    public void readArray(float[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-    }
-
-    public void readArray(double[] b, int o, int l) throws IOException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-    }
-
-    public void readArray(Object[] b, int o, int l) throws IOException,
-            ClassNotFoundException {
-        log.in();
-        if (l == 0) {
-            log.out("l = 0");
-            return;
-        }
-
-        emptyMsg = false;
-        input.readArray(b, o, l);
-        log.out();
-    }
-
 }

@@ -8,7 +8,6 @@ import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
-import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceivePort;
@@ -63,20 +62,8 @@ public final class TcpInput extends NetInput {
                 "tcp_brokering");
         OutputStream brokered_out = cnx.getServiceLink().getOutputSubStream(
                 this, "tcp_brokering");
-        NetPort port = cnx.getPort();
 
-        final Map p;
-        if (port != null) {
-            if (port instanceof NetReceivePort) {
-                p = ((NetReceivePort) port).properties();
-            } else if (port instanceof NetSendPort) {
-                p = ((NetSendPort) port).properties();
-            } else {
-                p = null;
-            }
-        } else {
-            p = null;
-        }
+        final Map p = cnx.properties();
 
         final NetIO nn = this;
 

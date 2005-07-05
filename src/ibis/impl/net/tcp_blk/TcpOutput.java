@@ -8,7 +8,6 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
-import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceivePort;
 import ibis.impl.net.NetReceivePortIdentifier;
@@ -103,20 +102,7 @@ public final class TcpOutput extends NetBufferedOutput {
         OutputStream brokering_out = cnx.getServiceLink().getOutputSubStream(
                 this, "tcp_blk_brokering");
 
-        NetPort port = cnx.getPort();
-
-        final Map p;
-        if (port != null) {
-            if (port instanceof NetReceivePort) {
-                p = ((NetReceivePort) port).properties();
-            } else if (port instanceof NetSendPort) {
-                p = ((NetSendPort) port).properties();
-            } else {
-                p = null;
-            }
-        } else {
-            p = null;
-        }
+        final Map p = cnx.properties();
 
         final NetIO nn = this;
 
