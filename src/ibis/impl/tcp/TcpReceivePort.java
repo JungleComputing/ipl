@@ -88,7 +88,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         int port = ibis.tcpPortHandler.register(this);
         ident = new TcpReceivePortIdentifier(name, type.name(),
                 (TcpIbisIdentifier) type.ibis.identifier(), port);
-        if (upcall == null && !type.p.isProp("communication", "ManyToOne")
+        if (upcall == null && connUpcall == null
+                && !type.p.isProp("communication", "ManyToOne")
                 && !type.p.isProp("communication", "Poll")
                 && !type.p.isProp("communication", "ReceiveTimeout")) {
             no_connectionhandler_thread = true;
