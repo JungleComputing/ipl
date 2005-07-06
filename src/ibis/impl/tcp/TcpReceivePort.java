@@ -404,19 +404,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
     // called from the connectionHander.
     void leave(ConnectionHandler leaving, Exception e) {
 
-        // Don't hold the lock when calling user upcall functions. --Rob
-        if (connectionAdministration) {
-            if (connUpcall != null) {
-                Exception x = e;
-                if (x == null) {
-                    x = new Exception("sender closed connection");
-                }
-                connUpcall.lostConnection(this, leaving.origin, x);
-            } else {
-                lostConnections.add(leaving.origin);
-            }
-        }
-
+        // First update connection administration.
         synchronized (this) {
             boolean found = false;
             if (DEBUG) {
@@ -438,6 +426,19 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             }
             // Notify threads that might be blocked in a free
             notifyAll();
+        }
+
+        // Don't hold the lock when calling user upcall functions. --Rob
+        if (connectionAdministration) {
+            if (connUpcall != null) {
+                Exception x = e;
+                if (x == null) {
+                    x = new Exception("sender closed connection");
+                }
+                connUpcall.lostConnection(this, leaving.origin, x);
+            } else {
+                lostConnections.add(leaving.origin);
+            }
         }
     }
 
