@@ -10,8 +10,6 @@ import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
-import ibis.impl.net.NetReceivePort;
-import ibis.impl.net.NetSendPort;
 import ibis.ipl.ConnectionClosedException;
 
 import java.io.DataInputStream;

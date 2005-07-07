@@ -8,8 +8,6 @@ import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
-import ibis.impl.net.NetReceivePort;
-import ibis.impl.net.NetSendPort;
 
 import java.io.IOException;
 import java.io.InputStream;

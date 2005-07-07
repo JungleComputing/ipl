@@ -13,8 +13,6 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-import ibis.impl.net.NetReceivePort;
-import ibis.impl.net.NetSendPort;
 import ibis.impl.net.NetSendPortIdentifier;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionClosedException;
