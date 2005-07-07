@@ -2817,17 +2817,17 @@ ni_gm_input_flow_control(JNIEnv *env,
         __disp__("2");
         p_packet = ni_gm_remove_packet_from_list(&p_port->packet_head);
         p_port->nb_packets--;
+	unsigned char *dmabuf = NULL;
 	if (p_port->num_dma_buffers > MAX_DMA) {
-	    unsigned char *buf = malloc(NI_GM_PACKET_LEN);
-	    if (buf == NULL) {
+	    dmabuf = p_packet->data;
+	    p_packet->data = malloc(packet_length);
+	    if (p_packet->data == NULL) {
 		fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
 			__FILE__, __LINE__);
 		exit(17);
 	    }
-	    memcpy(buf, p_packet->data, NI_GM_PACKET_LEN);
-	    gm_dma_free(p_port->p_gm_port, p_packet->data);
+	    memcpy(p_packet->data, dmabuf, packet_length);
 	    p_packet->copied = 1;
-	    p_packet->data = buf;
 	    p_port->num_dma_buffers--;
 	}
         ni_gm_add_packet_to_list_tail(&p_in->packet_head, p_packet);
@@ -2841,7 +2841,11 @@ ni_gm_input_flow_control(JNIEnv *env,
                 assert(p_packet);
 		__disp__("5");
 
-                p_packet->data = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
+		if (dmabuf != NULL) {
+		    p_packet->data = dmabuf;
+		} else {
+		    p_packet->data = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
+		}
 		p_packet->copied = 0;
 		p_port->num_dma_buffers++;
 		__disp__("6");
