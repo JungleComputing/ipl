@@ -1,0 +1,42 @@
+CODE:
+0
+STDOUT:
+application checkers (7, 8) started
+result:
+ --  --  --  --  --  --  --  -- 
+ --  --  --  --  --  --  --  -- 
+ --  --  --  --  --  --  --  -- 
+ --  --  --  --  --  --  --  -- 
+ --  --  --  --  --  --  --  -- 
+ --  --  --  --  --  --  --  -- 
+ --  --  --  --  --  --  --  -- 
+ --  --  --  --  --  --  --  -- 
+application checkers (7, 8) took 15.09 seconds
+-------------------------------SATIN STATISTICS--------------------------------
+SATIN: SPAWN:       24,351 spawns, 24,351 executed, 8,660 syncs
+SATIN: ABORT:       0 aborts, 0 abort msgs, 0 aborted jobs
+SATIN: TUPLE_SPACE: 0 bcasts, 0 bytes
+SATIN: STEAL:       13,052 attempts, 1,171 successes (8.972 %)
+SATIN: MESSAGES:    intra 27,275 msgs, 4,044,624 bytes; inter 0 msgs, 0 bytes
+-------------------------------SATIN TOTAL TIMES-------------------------------
+SATIN: STEAL_TIME:               total  20.443  s time/req      1.566 ms
+SATIN: HANDLE_STEAL_TIME:        total   2.646  s time/handle 202.707 us
+SATIN: INV SERIALIZATION_TIME:   total 841.410 ms time/write  718.539 us
+SATIN: INV DESERIALIZATION_TIME: total 847.276 ms time/read   723.549 us
+SATIN: RET SERIALIZATION_TIME:   total 826.297 ms time/write  705.634 us
+SATIN: RET DESERIALIZATION_TIME: total   1.269  s time/read     1.083 ms
+SATIN: ABORT_TIME:               total   0.000  s time/abort  �  s
+SATIN: TUPLE_SPACE_BCAST_TIME:   total   0.000  s time/bcast  �  s
+SATIN: TUPLE_SPACE_WAIT_TIME:    total   0.000  s time/bcast  �  s
+-------------------------------SATIN RUN TIME BREAKDOWN------------------------
+SATIN: TOTAL_RUN_TIME:                            15.112  s
+SATIN: LOAD_BALANCING_TIME:      avg. per machine  10.700  s (70.806 %)
+SATIN: (DE)SERIALIZATION_TIME:   avg. per machine   1.892  s (12.518 %)
+SATIN: ABORT_TIME:               avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine   0.000  s ( 0.000 %)
+
+SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine  12.592  s (83.324 %)
+SATIN: USEFUL_APP_TIME:          avg. per machine   2.520  s (16.676 %)
+
+STDERR:
