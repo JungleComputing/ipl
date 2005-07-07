@@ -14,6 +14,8 @@ static int global_refs = 0;
 
 #define DEPRECATED		0
 
+#define MAX_DMA			1024
+
 /* How do we easily configure this in a portable way? */
 #define GM_ENABLE_HERALDS	1	/* 1 */
 
@@ -387,6 +389,7 @@ struct s_packet {
         struct s_packet *next;
         struct s_packet *previous;
 	struct s_output *p_out;
+	int  copied;
 };
 
 /* A NIC port. */
@@ -410,6 +413,7 @@ struct s_port {
 
         struct s_packet  *packet_head;
         int               nb_packets;
+	int		  num_dma_buffers;
         struct s_packet  *send_packet_cache;
 
 	int		ni_gm_send_tokens;
@@ -1529,6 +1533,7 @@ ni_gm_open_port(struct s_dev *p_dev) {
 
         p_port->active_input = NULL;
         p_port->nb_packets   = 0;
+	p_port->num_dma_buffers = 0;
 
         p_port->packet_size   = gm_min_size_for_length(NI_GM_PACKET_LEN);
 
@@ -1536,17 +1541,22 @@ ni_gm_open_port(struct s_dev *p_dev) {
 
         {
                 struct s_packet *p_packet = NULL;
-                const int nb = 16;
-                int i = 0;
+                const int nb = /* gm_num_receive_tokens(p_port->p_gm_port); */
+		    16;
+                int i = 1;
 
+		/*
                 if (ni_gm_check_receive_tokens(p_port)) {
                         goto error;
                 }
+		*/
 
-                p_packet = malloc(sizeof(struct s_request));
+                p_packet = malloc(sizeof(struct s_packet));
                 assert(p_packet);
 
                 p_packet->data      = gm_dma_malloc(p_gm_port, NI_GM_PACKET_LEN);
+		p_packet->copied = 0;
+
 		if (p_packet->data == NULL) {
 		    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
 			    __FILE__, __LINE__);
@@ -1561,11 +1571,13 @@ ni_gm_open_port(struct s_dev *p_dev) {
                                            GM_HIGH_PRIORITY, 1);
                 p_port->nb_packets++;
 
-                while (i++ < nb && gm_num_receive_tokens(p_port->p_gm_port) > 1) {
-                         p_packet = malloc(sizeof(struct s_request));
+
+		for (; i < nb; i++) {
+                         p_packet = malloc(sizeof(struct s_packet));
                          assert(p_packet);
 
                          p_packet->data = gm_dma_malloc(p_gm_port, NI_GM_PACKET_LEN);
+			 p_packet->copied = 0;
 			if (p_packet->data == NULL) {
 			    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
 				    __FILE__, __LINE__);
@@ -1732,6 +1744,7 @@ ni_gm_packet_get(struct s_output *p_out)
     if (packet == NULL) {
 	packet = malloc(sizeof(*packet));
 	packet->data = gm_dma_malloc(port->p_gm_port, NI_GM_PACKET_LEN);
+	packet->copied = 0;
 	if (packet->data == NULL) {
 	    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
 		    __FILE__, __LINE__);
@@ -1783,7 +1796,8 @@ ni_gm_eager_callback(struct gm_port *port,
     assert(!p_rq->p_in);
 
     assert(p_out->state == NI_GM_SENDER_SENDING_EAGER);
-    assert(p_out->p_port->ni_gm_send_tokens++ >= 0);
+    p_out->p_port->ni_gm_send_tokens++;
+    assert(p_out->p_port->ni_gm_send_tokens > 0);
 
     p_out->state = NI_GM_SENDER_IDLE;
     ni_gm_packet_put(p_out->p_port, packet);
@@ -1810,7 +1824,8 @@ ni_gm_rendez_vous_request_callback(struct gm_port *port,
         p_rq->status = gms;
 
 	assert(! p_rq->p_in);
-	assert(p_port->ni_gm_send_tokens++ >= 0);
+	p_port->ni_gm_send_tokens++;
+	assert(p_port->ni_gm_send_tokens > 0);
 
 	VPRINTF(100, ("Receive a ni_gm_rendez_vous_request_callback; p_out %p current state %s tokens := %d\n", p_out, ni_gm_sender_state(p_out->state), p_port->ni_gm_send_tokens));
 
@@ -1852,7 +1867,8 @@ ni_gm_rendez_vous_data_callback(struct gm_port *port,
 
         assert(p_rq->p_out);
 	assert(! p_rq->p_in);
-	assert(p_port->ni_gm_send_tokens++ >= 0);
+	p_port->ni_gm_send_tokens++;
+	assert(p_port->ni_gm_send_tokens > 0);
 
 	VPRINTF(100, ("Receive a ni_gm_rendez_vous_request_callback; p_out %p current state %s tokens := %d\n", p_out, ni_gm_sender_state(p_out->state), p_port->ni_gm_send_tokens));
 
@@ -1891,7 +1907,8 @@ ni_gm_rendez_vous_ack_callback(struct gm_port *port,
 
         assert(! p_rq->p_out);
 	assert(p_rq->p_in);
-	assert(p_port->ni_gm_send_tokens++ >= 0);
+	p_port->ni_gm_send_tokens++;
+	assert(p_port->ni_gm_send_tokens > 0);
 
 	VPRINTF(90, ("Receive a ni_gm_rendez_vous_ack_callback; p_in %p state %s tokens := %d\n", p_in, ni_gm_receiver_state(p_in->state), p_port->ni_gm_send_tokens));
 	if (p_in->state == NI_GM_RECEIVER_SENDING_RNDZVS_ACK) {
@@ -2162,11 +2179,14 @@ ni_gm_output_send_request(JNIEnv *env, struct s_output *p_out) {
         p_rq = &p_out->request;
         p_rq->status = GM_SUCCESS;
 
+	/*
         if (ni_gm_check_send_tokens(p_port)) {
                 goto error;
         }
+	*/
 	VPRINTF(90, ("Send to %s HIGH rendez-vous request seqno %ull p_port %p p_out %p for size %d tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), hdr->seqno, p_port, p_out, p_out->length, p_port->ni_gm_send_tokens));
-	assert(--p_port->ni_gm_send_tokens >= 0);
+	p_port->ni_gm_send_tokens--;
+	assert(p_port->ni_gm_send_tokens >= 0);
 	/* Protect ni_gm_rendez_vous_request_callback */
 	ni_gm_current_env = env;
         gm_send_with_callback(p_port->p_gm_port,
@@ -2234,15 +2254,18 @@ ni_gm_output_flush(JNIEnv *env, struct s_output *p_out)
     p_rq = &p_out->request;
     p_rq->status = GM_SUCCESS;
 
+    /*
     pstart(GM_CHECK_TOKEN);
     if (ni_gm_check_send_tokens(p_port)) {
 	    goto error;
     }
     pend(GM_CHECK_TOKEN);
+    */
 
     pstart(GM_SEND);
     VPRINTF(90, ("Send to %s HIGH data message p_out %p seqno %llu packet %p size %d mux_id %d send tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_out, hdr->seqno, packet, p_out->offset, hdr->mux_id, p_port->ni_gm_send_tokens));
-    assert(--p_port->ni_gm_send_tokens >= 0);
+    p_port->ni_gm_send_tokens--;
+    assert(p_port->ni_gm_send_tokens >= 0);
     /* Protect ni_gm_eager_callback */
     ni_gm_current_env = env;
     gm_send_with_callback(p_port->p_gm_port,
@@ -2298,12 +2321,15 @@ ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) 
         p_rq = &p_out->request;
         p_rq->status = GM_SUCCESS;
 
+	/*
         if (ni_gm_check_send_tokens(p_port)) {
                 goto error;
         }
+	*/
 
 	VPRINTF(90, ("Send to %s LOW rendez-vous data p_port %p p_out %p size %d tokens %d local count %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_port, p_out, len, p_port->ni_gm_send_tokens, p_out->rendez_vous_seqno++));
-	assert(--p_port->ni_gm_send_tokens >= 0);
+	p_port->ni_gm_send_tokens--;
+	assert(p_port->ni_gm_send_tokens >= 0);
 	/* Protect ni_gm_rendez_vous_data_callback */
 	ni_gm_current_env = env;
         gm_send_with_callback(p_port->p_gm_port,
@@ -2336,10 +2362,12 @@ static void ni_gm_throw_exception(JNIEnv *env, char *exc, char *msg);
 static int
 ni_gm_packet_clear(struct s_packet *p_packet, struct s_port *p_port)
 {
-	if (p_port->nb_packets < NI_GM_MAX_PACKETS) {
+	if (! p_packet->copied && p_port->nb_packets < NI_GM_MAX_PACKETS) {
+	    /*
 		if (ni_gm_check_receive_tokens(p_port)) {
 			return 0;
 		}
+	    */
 
 		ni_gm_add_packet_to_list_head(&p_port->packet_head, p_packet);
 		gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
@@ -2348,7 +2376,13 @@ ni_gm_packet_clear(struct s_packet *p_packet, struct s_port *p_port)
 						   GM_HIGH_PRIORITY, 1);
 		p_port->nb_packets++;
 	} else {
-		gm_dma_free(p_port->p_gm_port, p_packet->data);
+		__disp__("F");
+		if (! p_packet->copied) {
+		    gm_dma_free(p_port->p_gm_port, p_packet->data);
+		    p_port->num_dma_buffers--;
+		} else {
+		    free(p_packet->data);
+		}
 		p_packet->data     = NULL;
 		p_packet->previous = NULL;
 		p_packet->next     = NULL;
@@ -2431,9 +2465,11 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
 if (++global_refs > 1000) fprintf(stderr, "%s.%d: Live GlobalRefs %s\n", __FILE__, __LINE__, global_refs); \
     p_in->array        = buffer; \
     p_in->is_copy      = get_region; \
+    /* \
     if (ni_gm_check_receive_tokens(p_port)) { \
 	goto error; \
     } \
+    */ \
     \
     /* Because all LOW packets in this port are shared, we do not support \
      * concurrent rendez-vous receives in one port. It appears safe to do \
@@ -2458,14 +2494,17 @@ if (++global_refs > 1000) fprintf(stderr, "%s.%d: Live GlobalRefs %s\n", __FILE_
     p_rq = &p_in->request; \
     p_rq->status = GM_SUCCESS; \
     \
+    /* \
     if (ni_gm_check_send_tokens(p_port)) { \
 	goto error; \
     } \
+    */ \
     \
     hdr = (ni_gm_hdr_p)p_in->ack_packet; \
     hdr->type = NI_GM_MSG_TYPE_RENDEZ_VOUS_ACK; \
     \
-    assert(--p_port->ni_gm_send_tokens >= 0); \
+    p_port->ni_gm_send_tokens--; \
+    assert(p_port->ni_gm_send_tokens >= 0); \
     /* Protect ni_gm_rendez_vous_ack_callback */ \
     VPRINTF(90, ("Send to %s rendez-vous ack %s p_port %p p_in %p buffer size %d bytes\n", gm_node_id_to_host_name(p_port->p_gm_port, p_in->src_node_id), #Jtype, p_port, p_in, data_size)); \
     ni_gm_current_env = env; \
@@ -2703,9 +2742,11 @@ ni_gm_output_flow_control(JNIEnv *env,
 
         p_out = p_port->local_output_array[mux_id];
 
+	/*
         if (ni_gm_check_receive_tokens(p_port)) {
                 goto error;
         }
+	*/
 
         gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
                                            packet,
@@ -2776,6 +2817,19 @@ ni_gm_input_flow_control(JNIEnv *env,
         __disp__("2");
         p_packet = ni_gm_remove_packet_from_list(&p_port->packet_head);
         p_port->nb_packets--;
+	if (p_port->num_dma_buffers > MAX_DMA) {
+	    unsigned char *buf = malloc(NI_GM_PACKET_LEN);
+	    if (buf == NULL) {
+		fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
+			__FILE__, __LINE__);
+		exit(17);
+	    }
+	    memcpy(buf, p_packet->data, NI_GM_PACKET_LEN);
+	    gm_dma_free(p_port->p_gm_port, p_packet->data);
+	    p_packet->copied = 1;
+	    p_packet->data = buf;
+	    p_port->num_dma_buffers--;
+	}
         ni_gm_add_packet_to_list_tail(&p_in->packet_head, p_packet);
 	VPRINTF(300, ("At insert: p_in %p lockId %d Packet %p type = %s\n",
 			p_in, p_in->p_lock->id, p_packet,
@@ -2783,10 +2837,14 @@ ni_gm_input_flow_control(JNIEnv *env,
 
         __disp__("3");
         if (p_port->nb_packets < NI_GM_MIN_PACKETS) {
-                p_packet = malloc(sizeof(struct s_request));
+                p_packet = malloc(sizeof(struct s_packet));
                 assert(p_packet);
+		__disp__("5");
 
                 p_packet->data = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
+		p_packet->copied = 0;
+		p_port->num_dma_buffers++;
+		__disp__("6");
 		if (p_packet->data == NULL) {
 		    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
 			    __FILE__, __LINE__);
@@ -2798,6 +2856,7 @@ ni_gm_input_flow_control(JNIEnv *env,
                 }
 
                 ni_gm_add_packet_to_list_head(&p_port->packet_head, p_packet);
+		__disp__("7");
                 gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
                                                    p_packet->data,
                                                    p_port->packet_size,
@@ -4443,7 +4502,10 @@ dump_monitors(env);
 	    int              dev;
 	    int              evt_type = GM_NO_RECV_EVENT;
 
+	    VPRINTSTR(1200, ("P"));
+
 	    if (!ni_gm_p_drv->nb_dev) {
+		VPRINTSTR(1200, ("0"));
 		result = JNI_FALSE;
 		break;
 	    }
@@ -4453,7 +4515,7 @@ dump_monitors(env);
 	    p_drv = ni_gm_p_drv;
 
 	    if (next_dev >= p_drv->nb_dev) {
-		VPRINTF(1700, ("%s.%d: here... next_dev %d p_drv->nv_dev %d\n", __FILE__, __LINE__, next_dev, p_drv->nb_dev));
+		VPRINTF(1700, ("%s.%d: here... next_dev %d p_drv->nb_dev %d\n", __FILE__, __LINE__, next_dev, p_drv->nb_dev));
 		VPRINTSTR(1200, ("p"));
 		next_dev = 0;
 		if (1 || ! result) {
@@ -4504,6 +4566,7 @@ dump_monitors(env);
 
 	    case GM_PEER_RECV_EVENT:
 	    case GM_RECV_EVENT:
+		VPRINTSTR(1700, ("R"));
 		if (ni_gm_process_recv_event(env, p_port, p_event)) {
 			goto error;
 		}
@@ -4521,6 +4584,7 @@ dump_monitors(env);
 		break;
 
 	    default:
+		VPRINTSTR(1200, ("U"));
 		gm_unknown(p_port->p_gm_port, p_event);
 		break;
 	    }
@@ -4531,6 +4595,7 @@ dump_monitors(env);
 	    }
 #endif
 	}
+	VPRINTSTR(1200, ("S"));
 
 	pend(GM_THREAD);
         __out__();
@@ -4538,6 +4603,7 @@ dump_monitors(env);
         return result;
 
  error:
+	VPRINTSTR(1200, ("E"));
         __err__();
         ni_gm_current_env = NULL;
 fprintf(stderr, "Oho -- error in nGmThread\n");

@@ -3,7 +3,6 @@
 package ibis.impl.net.gm;
 
 import ibis.impl.net.InterruptedIOException;
-import ibis.impl.net.NetAllocator;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferFactoryImpl;
 import ibis.impl.net.NetBufferedInput;
@@ -46,11 +45,6 @@ public final class GmInput extends NetBufferedInput {
      * local number.
      */
     private Integer spn = null;
-
-    /**
-     * The buffer block allocator.
-     */
-    private NetAllocator allocator = null;
 
     private long deviceHandle = 0;
 
@@ -216,7 +210,6 @@ public final class GmInput extends NetBufferedInput {
 
         mtu = Driver.mtu;
 
-        allocator = new NetAllocator(mtu);
         this.spn = cnx.getNum();
         log.out();
     }
