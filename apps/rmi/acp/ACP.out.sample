@@ -1,0 +1,20 @@
+CODE:
+0
+STDOUT:
+ACP
+Number of variables            2000
+Number of values               150
+Number of connections/variable 150
+Number of relations            5
+Number of relation pairs       1000
+
+time 23958
+
+STDERR:
+Cpu 0 work 1000
+Cpu 1 work 1000
+GetWork called 1 times. (1000)
+GetWork called 2 times. (1000)
+GetWork called 3 times. (992)
+GetWork called 4 times. (979)
+GetWork called 5 times. (214)
