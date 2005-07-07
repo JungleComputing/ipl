@@ -1,0 +1,13 @@
+CODE:
+0
+STDOUT:
+This program tests the MPI_ABORT call, and will generate
+error messages.This program tests the MPI_ABORT call, and will generate
+error messages.
+STDERR:
+Exception in thread "main" ibis.mpj.MPJException: Abort called. Errorcode: 5
+	at ibis.mpj.Comm.abort(Unknown Source)
+	at abort.main(abort.java:64)
+Exception in thread "main" ibis.mpj.MPJException: Abort called. Errorcode: 5
+	at ibis.mpj.Comm.abort(Unknown Source)
+	at abort.main(abort.java:64)
