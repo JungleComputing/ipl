@@ -2,7 +2,6 @@
 
 package ibis.impl.net.tcp_plain;
 
-import ibis.impl.net.NetAllocator;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
@@ -46,11 +45,6 @@ public final class TcpInput extends NetInput {
      * for debugging purpose.
      */
     private OutputStream tcpOs = null;
-
-    /**
-     * The buffer block allocator.
-     */
-    private NetAllocator allocator = null;
 
     private boolean first = false;
 
