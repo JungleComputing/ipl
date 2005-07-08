@@ -1,0 +1,34 @@
+CODE:
+0
+STDOUT:
+tsp 17 seed = 100, bound = 289
+application time tsp (17) took 36.251 s
+application result tsp (17) = 289
+-------------------------------SATIN STATISTICS--------------------------------
+SATIN: SPAWN:       397,613 spawns, 397,613 executed, 32,834 syncs
+SATIN: ABORT:       0 aborts, 0 abort msgs, 0 aborted jobs
+SATIN: TUPLE_SPACE: 2 bcasts, 2,018 bytes
+SATIN: STEAL:       207 attempts, 10 successes (4.831 %)
+SATIN: MESSAGES:    intra 424 msgs, 11,607 bytes; inter 0 msgs, 0 bytes
+-------------------------------SATIN TOTAL TIMES-------------------------------
+SATIN: STEAL_TIME:               total 436.076 ms time/req      2.107 ms
+SATIN: HANDLE_STEAL_TIME:        total 123.006 ms time/handle 594.234 us
+SATIN: INV SERIALIZATION_TIME:   total  19.203 ms time/write    1.920 ms
+SATIN: INV DESERIALIZATION_TIME: total  45.581 ms time/read     4.558 ms
+SATIN: RET SERIALIZATION_TIME:   total   7.778 ms time/write  777.833 us
+SATIN: RET DESERIALIZATION_TIME: total  52.752 ms time/read     5.275 ms
+SATIN: ABORT_TIME:               total   0.000  s time/abort  �  s
+SATIN: TUPLE_SPACE_BCAST_TIME:   total  45.052 ms time/bcast   22.526 ms
+SATIN: TUPLE_SPACE_WAIT_TIME:    total   0.000  s time/bcast  �  s
+-------------------------------SATIN RUN TIME BREAKDOWN------------------------
+SATIN: TOTAL_RUN_TIME:                            36.422  s
+SATIN: LOAD_BALANCING_TIME:      avg. per machine 247.149 ms ( 0.679 %)
+SATIN: (DE)SERIALIZATION_TIME:   avg. per machine  62.657 ms ( 0.172 %)
+SATIN: ABORT_TIME:               avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine  22.526 ms ( 0.062 %)
+SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine   0.000  s ( 0.000 %)
+
+SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine 332.332 ms ( 0.912 %)
+SATIN: USEFUL_APP_TIME:          avg. per machine  36.090  s (99.088 %)
+
+STDERR:
