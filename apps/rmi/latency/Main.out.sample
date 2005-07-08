@@ -1,0 +1,20 @@
+CODE:
+0
+STDOUT:
+Starting process 1 on node016.das2.cs.vu.nl
+creating new test
+Starting process 0 on node050.das2.cs.vu.nl
+creating new test done
+bind done
+null latency (10000) = 317.7 usec/call
+null latency (10000) = 157.4 usec/call
+null latency (10000) = 160.9 usec/call
+null latency (10000) = 160.3 usec/call
+null latency (10000) = 159.8 usec/call
+null latency (10000) = 160.1 usec/call
+null latency (10000) = 156.7 usec/call
+null latency (10000) = 160.1 usec/call
+null latency (10000) = 154.4 usec/call
+null latency (10000) = 158.6 usec/call
+
+STDERR:
