@@ -1,0 +1,70 @@
+CODE:
+0
+STDOUT:
+searching with root: 
++----+----+----+----+----+----+
+|  4 |  4 |  4 |  4 |  4 |  4 |
++----+----+----+----+----+----+
+|  4 |  4 |  4 |  4 |  4 |  4 |
++----+----+----+----+----+----+
+score = 0
+
+depth is now: 1
+[0|1]
+depth is now: 3
+[0|1]
+depth is now: 5
+[0|1]
+depth is now: 7
+[0|-2]
+depth is now: 9
+[0|1]
+depth is now: 11
+[0|1|2|3]
+depth is now: 13
+[0|1]
+depth is now: 15
+[0|-1]
+Best move: 
++----+----+----+----+----+----+
+|  4 |  4 |  4 |  5 |  5 |  5 |
++----+----+----+----+----+----+
+|  4 |  4 |  4 |  4 |    |  5 |
++----+----+----+----+----+----+
+score = 0
+
+application Awari (15,start) took 8.22 seconds
+-------------------------------SATIN STATISTICS--------------------------------
+SATIN: SPAWN:       1,135 spawns, 809 executed, 274 syncs
+SATIN: ABORT:       124 aborts, 9 abort msgs, 456 aborted jobs
+SATIN: TUPLE_SPACE: 7,847 bcasts, 497,041 bytes
+SATIN: STEAL:       1,226 attempts, 46 successes (3.752 %)
+SATIN: MESSAGES:    intra 2,502 msgs, 62,326 bytes; inter 0 msgs, 0 bytes
+-------------------------------SATIN TOTAL TIMES-------------------------------
+SATIN: STEAL_TIME:               total   2.919  s time/req      2.381 ms
+SATIN: HANDLE_STEAL_TIME:        total 761.185 ms time/handle 620.869 us
+SATIN: INV SERIALIZATION_TIME:   total 133.869 ms time/write    2.910 ms
+SATIN: INV DESERIALIZATION_TIME: total 120.862 ms time/read     2.627 ms
+SATIN: RET SERIALIZATION_TIME:   total  54.873 ms time/write    1.338 ms
+SATIN: RET DESERIALIZATION_TIME: total  63.176 ms time/read     1.541 ms
+SATIN: ABORT_TIME:               total   7.404 ms time/abort   59.711 us
+SATIN: TUPLE_SPACE_BCAST_TIME:   total   1.860  s time/bcast  236.993 us
+SATIN: TUPLE_SPACE_WAIT_TIME:    total   0.000  s time/bcast  �  s
+-------------------------------SATIN RUN TIME BREAKDOWN------------------------
+SATIN: TOTAL_RUN_TIME:                             8.274  s
+SATIN: LOAD_BALANCING_TIME:      avg. per machine   1.713  s (20.699 %)
+SATIN: (DE)SERIALIZATION_TIME:   avg. per machine 186.390 ms ( 2.253 %)
+SATIN: ABORT_TIME:               avg. per machine   3.702 ms ( 0.045 %)
+SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine 929.843 ms (11.238 %)
+SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine   0.000  s ( 0.000 %)
+
+SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine   2.833  s (34.234 %)
+SATIN: USEFUL_APP_TIME:          avg. per machine   5.442  s (65.766 %)
+
+STDERR:
+tt: lookups: 448334, hits: 59, sorts: 389, stores: 448272, overwrites: 448170, score incs: 577134, bcasts: 0, cutoffs: 244752, visited: 1023403
+Transposition table size was 24 bits = 16777216 entries
+Replicated depth >= 7
+tt: lookups: 507903, hits: 54, sorts: 640, stores: 507842, overwrites: 507743, score incs: 646027, bcasts: 0, cutoffs: 272868, visited: 1170040
+Transposition table size was 24 bits = 16777216 entries
+Replicated depth >= 7
