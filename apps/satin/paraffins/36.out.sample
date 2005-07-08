@@ -1,0 +1,10 @@
+CODE:
+0
+STDOUT:
+Elapsed Time for radicals 0:6:434
+
+STDERR:
+node023: time left is 0.000 s: timeout expired; kill -SIGINT 0
+node037: time left is 0.000 s: timeout expired; kill -SIGINT 0
+node067: time left is 0.000 s: timeout expired; kill -SIGINT 0
+node032: time left is 0.000 s: timeout expired; kill -SIGINT 0
