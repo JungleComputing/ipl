@@ -1,2 +1,17 @@
-Upper bound/lower bound/extent test passed.
+CODE:
+0
+STDOUT:
+Should be: Extent = 97, lb = 0, ub = 97.
+Is:        Extent = 1, lb = 0, ub = 0
+Should be: Extent = 98, lb = 0, ub = 98.
+Is:        Extent = 1, lb = 0, ub = 0
+Should be: Extent = 91, lb = 3, ub = 94.
+Is:        Extent = 1, lb = 0, ub = 0
+Should be: Extent = 99, lb = -3, ub = 96.
+Is:        Extent = 1, lb = 0, ub = 0
+Should be: Extent = 89, lb = -3, ub = 86.
+Is:        Extent = 1, lb = 0, ub = 0
+ERRORS in bounds/extent test.
 
+
+STDERR:

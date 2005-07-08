@@ -1,10 +1,15 @@
+CODE:
+0
+STDOUT:
 
-MPI.BYTE.Size()    = 1
-MPI.CHAR.Size()    = 1
-MPI.SHORT.Size()   = 1
-MPI.BOOLEAN.Size() = 1
-MPI.INT.Size()     = 1
-MPI.LONG.Size()    = 1
-MPI.FLOAT.Size()   = 1
-MPI.DOUBLE.Size()  = 1
+MPJ.BYTE.size()    = 1
+MPJ.CHAR.size()    = 1
+MPJ.SHORT.size()   = 1
+MPJ.BOOLEAN.size() = 1
+MPJ.INT.size()     = 1
+MPJ.LONG.size()    = 1
+MPJ.FLOAT.size()   = 1
+MPJ.DOUBLE.size()  = 1
 
+
+STDERR:

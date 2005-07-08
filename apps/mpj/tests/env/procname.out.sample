@@ -1,4 +1,9 @@
-Processor name is osprey2.npac.syr.edu
-Processor name is osprey1.npac.syr.eduProcname TEST COMPLETE
+CODE:
+0
+STDOUT:
+Processor name is node033.das2.cs.vu.nl_0
+Processor name is node051.das2.cs.vu.nl_0
+Procname TEST COMPLETE
 
 
+STDERR:
