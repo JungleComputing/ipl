@@ -14,7 +14,7 @@ static int global_refs = 0;
 
 #define DEPRECATED		0
 
-#define MAX_DMA			1024
+#define MAX_DMA			2048
 
 /* How do we easily configure this in a portable way? */
 #define GM_ENABLE_HERALDS	1	/* 1 */
@@ -4758,6 +4758,8 @@ Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
 	    fprintf(stdout, "%s: %s: %u\n", hostname, _gm_recv_event_name(i), net_gm_events[i]);
 	}
     }
+
+    fflush(stdout);
 }
 
 
