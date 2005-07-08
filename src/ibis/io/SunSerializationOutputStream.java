@@ -92,19 +92,12 @@ public final class SunSerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
-
         /*
          * Calling write() and read() here turns out to be much, much faster.
          * So, we go ahead and implement a fast path just for byte[].
          * RFHH
          */
-        if (off == 0 && len == ref.length) {
-            write(ref);
-        } else {
-            byte[] temp = new byte[len];
-            System.arraycopy(ref, off, temp, 0, len);
-            writeObject(temp);
-        }
+        write(ref, off, len);
     }
 
     /**

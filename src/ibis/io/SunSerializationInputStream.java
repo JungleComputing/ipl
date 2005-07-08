@@ -99,24 +99,10 @@ public final class SunSerializationInputStream
          * So, we go ahead and implement a fast path just for byte[].
          * RFHH
          */
-        if (off == 0 && ref.length == len) {
-            int rd = 0;
-            do {
-                rd += read(ref, rd, len - rd);
-            } while (rd < len);
-            return;
-        }
-
-        try {
-            byte[] temp = (byte[]) readObject();
-            if (temp.length != len) {
-                throw new ArrayIndexOutOfBoundsException(
-                        "Received sub array has wrong len");
-            }
-            System.arraycopy(temp, 0, ref, off, len);
-        } catch (ClassNotFoundException f) {
-            throw new SerializationError("class 'byte[]' not found", f);
-        }
+        int rd = 0;
+        do {
+            rd += read(ref, off + rd, len - rd);
+        } while (rd < len);
     }
 
     /**
