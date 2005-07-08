@@ -28,6 +28,10 @@ class IOProps {
 
     static final String s_cache_max = PROPERTY_PREFIX + "allocator.size";
 
+    static final String s_buffer_size = PROPERTY_PREFIX + "buffer.size";
+
+    static final String s_array_buffer = PROPERTY_PREFIX + "array.buffer";
+
     static final String s_cache_stats = PROPERTY_PREFIX
             + "allocator.statistics";
 
@@ -48,7 +52,7 @@ class IOProps {
             s_stats_written, s_classloader, s_timer,
             s_conversion, s_cache, s_cache_max, s_cache_stats, s_dbg,
             s_asserts, s_small_array_bound, s_hash_asserts, s_hash_stats,
-            s_hash_timings };
+            s_hash_timings, s_buffer_size };
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);

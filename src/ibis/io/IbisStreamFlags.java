@@ -15,9 +15,11 @@ public interface IbisStreamFlags {
     public static final int SMALL_ARRAY_BOUND = TypedProperties.intProperty(
             IOProps.s_small_array_bound, 256); // byte
 
-    public static final int BUFFER_SIZE = 2 * 1024;
+    public static final int BUFFER_SIZE = TypedProperties.intProperty(
+            IOProps.s_buffer_size, 2 * 1024);
 
-    public static final int ARRAY_BUFFER_SIZE = 1024;
+    public static final int ARRAY_BUFFER_SIZE = TypedProperties.intProperty(
+            IOProps.s_array_buffer, 1024);
 
     public static final int TYPE_BIT = (1 << 31);
 
