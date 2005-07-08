@@ -62,9 +62,9 @@ SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine   2.571  s (33.501 %)
 SATIN: USEFUL_APP_TIME:          avg. per machine   5.103  s (66.499 %)
 
 STDERR:
-tt: lookups: 408793, hits: 47, sorts: 395, stores: 408742, overwrites: 408653, score incs: 527148, bcasts: 0, cutoffs: 226239, visited: 922779
+//tt: lookups: 408793, hits: 47, sorts: 395, stores: 408742, overwrites: 408653, score incs: 527148, bcasts: 0, cutoffs: 226239, visited: 922779
 Transposition table size was 24 bits = 16777216 entries
 Replicated depth >= 7
-tt: lookups: 498647, hits: 59, sorts: 640, stores: 498585, overwrites: 498497, score incs: 631399, bcasts: 0, cutoffs: 268331, visited: 1148013
+//tt: lookups: 498647, hits: 59, sorts: 640, stores: 498585, overwrites: 498497, score incs: 631399, bcasts: 0, cutoffs: 268331, visited: 1148013
 Transposition table size was 24 bits = 16777216 entries
 Replicated depth >= 7

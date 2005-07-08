@@ -1,7 +1,7 @@
 CODE:
 0
 STDOUT:
-ExecutionTime: 1.527
+ExecutionTime: //1.527
 -------------------------------SATIN STATISTICS--------------------------------
 SATIN: SPAWN:       14 spawns, 14 executed, 8 syncs
 SATIN: ABORT:       0 aborts, 0 abort msgs, 0 aborted jobs

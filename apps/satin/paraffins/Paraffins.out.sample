@@ -1,7 +1,7 @@
 CODE:
 0
 STDOUT:
-Elapsed Time for radicals 0:3:662
+Elapsed Time for radicals //0:3:662
 
 STDERR:
 node068: time left is 0.000 s: timeout expired; kill -SIGINT 0

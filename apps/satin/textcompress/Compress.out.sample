@@ -2,7 +2,7 @@ CODE:
 0
 STDOUT:
 Recursion depth: 6, max. shortening: 20
-ExecutionTime: 13.961
+ExecutionTime: //13.961
 In: 4837 bytes, out: 3319 bytes.
 -------------------------------SATIN STATISTICS--------------------------------
 SATIN: SPAWN:       187,125 spawns, 187,125 executed, 59,870 syncs

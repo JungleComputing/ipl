@@ -2,10 +2,10 @@ CODE:
 0
 STDOUT:
 knapsack started, N = 29
-starttime: 1.120746164477E9
+starttime: //1.120746164477E9
 application time knapsack (29) took 63.093 s
 application result knapsack (29) = max weight 14500 has the value 26810
-endtime: 1.12074622757E9
+endtime: //1.12074622757E9
 ( 230 1518 )
 ( 169 794 )
 ( 171 735 )

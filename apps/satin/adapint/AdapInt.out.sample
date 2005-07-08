@@ -2,7 +2,7 @@ CODE:
 0
 STDOUT:
 Starting integrate, from 0.0 to 250000.0 epsilon = 1.0E-6
-application time integrate (0,250000,1.0E-6) took 90.158 s
+application time integrate (0,250000,1.0E-6) took //90.158 s
 application result integrate (0,250000,1.0E-6) result = 2231.7013284241275
 -------------------------------SATIN STATISTICS--------------------------------
 SATIN: SPAWN:       488,746 spawns, 488,746 executed, 244,373 syncs

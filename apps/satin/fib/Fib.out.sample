@@ -2,7 +2,7 @@ CODE:
 0
 STDOUT:
 Running Fib 40, threshold = 10
-application time fib (40) took 98.778 s
+application time fib (40) took //98.778 s
 application result fib (40) = 102334155
 -------------------------------SATIN STATISTICS--------------------------------
 SATIN: SPAWN:       7,049,155 spawns, 7,049,155 executed, 3,524,578 syncs
