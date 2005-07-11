@@ -99,10 +99,25 @@ public final class SunSerializationInputStream
          * So, we go ahead and implement a fast path just for byte[].
          * RFHH
          */
+        /*
         int rd = 0;
         do {
             rd += read(ref, off + rd, len - rd);
         } while (rd < len);
+
+        No, not good. It is written in such a way that it can be read back
+        with readObject(). (Ceriel)
+        */
+        try {
+            byte[] temp = (byte[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, off, len);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'byte[]' not found", f);
+        }
     }
 
     /**
@@ -226,7 +241,16 @@ public final class SunSerializationInputStream
     }
 
     public void readArray(byte[] ref) throws IOException {
-        readArray(ref, 0, ref.length);
+        try {
+            double[] temp = (double[]) readObject();
+            if (temp.length != ref.length) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received array has wrong len");
+            }
+            System.arraycopy(temp, 0, ref, 0, ref.length);
+        } catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'byte[]' not found", f);
+        }
     }
 
     public void readArray(short[] ref) throws IOException {

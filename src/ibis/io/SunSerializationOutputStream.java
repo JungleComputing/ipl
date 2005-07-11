@@ -97,7 +97,16 @@ public final class SunSerializationOutputStream
          * So, we go ahead and implement a fast path just for byte[].
          * RFHH
          */
-        write(ref, off, len);
+        // write(ref, off, len);
+        // No, we should be able to read the result back with readObject!
+        // (Ceriel)
+        if (off == 0 && len == ref.length) {
+            writeUnshared(ref);
+        } else {
+            byte[] temp = new byte[len];
+            System.arraycopy(ref, off, temp, 0, len);
+            writeObject(temp);
+        }
     }
 
     /**
@@ -199,39 +208,39 @@ public final class SunSerializationOutputStream
     }
 
     public void writeArray(boolean[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeArray(byte[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeArray(short[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeArray(char[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeArray(int[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeArray(long[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeArray(float[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeArray(double[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeArray(Object[] ref) throws IOException {
-        writeArray(ref, 0, ref.length);
+        writeUnshared(ref);
     }
 
     public void writeString(String ref) throws IOException {
