@@ -1,0 +1,54 @@
+CODE:
+0
+STDOUT:
+
+STDERR:
+Usage: prun [options] <executable> [<nhosts>] [args]
+Options:
+    -asocial		: override day time execution limit
+    -no-asocial		: obey day time execution limit (default)
+    			  By default, daytime runs allowed for up to 15 minutes
+    			  Longer runs are moved to nights and weekend times
+    -c <dir>		: application execution from <dir> (default .)
+    -core		: allow application core dumps (default)
+    -no-core		: suppress application core dumps
+    -d <time>		: poll every <time> seconds (default 1)
+    -e <list>		: hosts from <list>
+    -export-env	: export prun's process environment to spawned children (default)
+    -no-export-env	: don't export prun's process environment to spawned children
+    -f <file>		: host list on file <file>
+    -finish-watchit	: watchdog program resets Myrinet LCP (default)
+    -no-finish-watchit	: watchdog program does not reset Myrinet LCP
+    -hand-schedule	: hand schedule within preserve reservations
+    -no-hand-schedule	: automatic schedule within preserve reservations
+    			  (default)
+    -keep		: do not return reservation after execution
+    -no-keep		: return reservation after execution (default)
+    -kill-me-plenty	: allow root to prkill this run
+    -no-kill-me-plenty	: don't allow root to prkill this run (default)
+    -o <file>		: divert output from parallel processes
+    			  to <file>.0, <file>.1, ...
+    -panda		: supply application with Panda host id and
+    			  number of hosts (default)
+    -no-panda		: do not supply application with extra host index parameters
+    -np <nhosts>		: use <nhosts> hosts, and do not supply application with extra host index parameters
+    -pg <dirpref>	: have each process cd to <dirpref>.<procno> (eg. for -pg)
+    -ping		: ping hosts before execution (default)
+    -no-ping		: do not ping hosts before execution
+    -port_id <key>	: key for port server (default automatic)
+    -n			: echo rsh commands, do not execute
+    -reserve <id>	: use reservation id <id>
+    -s <time>		: start at time [[mm-]dd-]hh:mm (default now)
+    -t <time>		: reserve <time> = [[hh:]mm:]ss (default 15 minutes)
+    -tmk		: start application in the Treadmarks manner
+    -sge-script <script>		: start <script> in the SGE manner
+    -native <spec>		:  add <spec> to the SGE job specification
+    			  (implies -no-panda)
+    -v			: report allocation
+    -<number>		: reserve nodes, start <number> processes per node
+    -share		: reserve cpus: share cpus per node
+    <var>=<value>	: add <var>=<value> to application environment
+Current reservations in ~reserve/reserved
+Daytime definition in ~reserve/unreservable
+Prun fatal error: prun: no such option: -e
+
