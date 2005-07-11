@@ -19,8 +19,8 @@ logon: 1
 I am worker 1
 I am worker 0
 Unbinding WaterMaster ...
-fe = ForcesEnergy@57cd58e
-fe = ForcesEnergy@4f4d98cc
+fe = ForcesEnergy@//57cd58e
+fe = ForcesEnergy@//4f4d98cc
 
 1  1.5078633614033539  0.006141476593719546  7.589208510672286
 -0.3564287526002633   8.746784596069096   299.5621877987996   -15.811946197006751

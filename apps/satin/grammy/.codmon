@@ -1,1 +1,1 @@
-3 `cat ../run-args`
+3 Compress -verify ../sample1.txt sample1.xxx 

@@ -206,9 +206,9 @@ Iter 1960 time so far = 112648
 Iter 1970 time so far = 112683
 Iter 1980 time so far = 112721
 Iter 1990 time so far = 112754
-0 done 112791
+//0 done 112791
 time : max = 112791 min = 112704 avg = 112747.5 stddev = 43.5
 time : max = 112791 avg = 112747.5 stddev = 43.5
-1 done 112704
+//1 done 112704
 
 STDERR:
