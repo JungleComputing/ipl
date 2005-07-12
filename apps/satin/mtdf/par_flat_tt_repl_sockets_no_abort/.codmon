@@ -1,1 +1,1 @@
-2 Mtdf -max-mem 524288 
+2 -Xmx800m Mtdf 
