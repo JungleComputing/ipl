@@ -1,0 +1,7 @@
+CODE:
+0
+STDOUT:
+
+STDERR:
+Reservation number 56766: Reserved 3 hosts for 900 seconds 
+Reserve lib error: no callback connection: job terminated

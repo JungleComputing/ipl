@@ -1,0 +1,34 @@
+CODE:
+0
+STDOUT:
+-------------------------------SATIN STATISTICS--------------------------------
+SATIN: SPAWN:       3 spawns, 0 executed, 1 syncs
+SATIN: ABORT:       1 aborts, 0 abort msgs, 3 aborted jobs
+SATIN: TUPLE_SPACE: 0 bcasts, 0 bytes
+SATIN: STEAL:       0 attempts, 0 successes (� %)
+SATIN: MESSAGES:    intra 0 msgs, 0 bytes; inter 0 msgs, 0 bytes
+-------------------------------SATIN TOTAL TIMES-------------------------------
+SATIN: STEAL_TIME:               total   0.000  s time/req    �  s
+SATIN: HANDLE_STEAL_TIME:        total   0.000  s time/handle �  s
+SATIN: INV SERIALIZATION_TIME:   total   0.000  s time/write  �  s
+SATIN: INV DESERIALIZATION_TIME: total   0.000  s time/read   �  s
+SATIN: RET SERIALIZATION_TIME:   total   0.000  s time/write  �  s
+SATIN: RET DESERIALIZATION_TIME: total   0.000  s time/read   �  s
+SATIN: ABORT_TIME:               total 216.102 us time/abort  216.102 us
+SATIN: TUPLE_SPACE_BCAST_TIME:   total   0.000  s time/bcast  �  s
+SATIN: TUPLE_SPACE_WAIT_TIME:    total   0.000  s time/bcast  �  s
+-------------------------------SATIN RUN TIME BREAKDOWN------------------------
+SATIN: TOTAL_RUN_TIME:                            15.873 ms
+SATIN: LOAD_BALANCING_TIME:      avg. per machine   0.000  s ( 0.000 %)
+SATIN: (DE)SERIALIZATION_TIME:   avg. per machine   0.000  s ( 0.000 %)
+SATIN: ABORT_TIME:               avg. per machine 216.102 us ( 1.361 %)
+SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine   0.000  s ( 0.000 %)
+
+SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine 216.102 us ( 1.361 %)
+SATIN: USEFUL_APP_TIME:          avg. per machine  15.657 ms (98.639 %)
+
+STDERR:
+Reservation number 56768: Reserved 1 hosts for 900 seconds 
+Run on 1 hosts for 960 seconds from Tue Jul 12 10:33:02 2005
+: node051/0 
