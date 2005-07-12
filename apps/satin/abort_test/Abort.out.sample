@@ -1,6 +1,0 @@
-CODE:
-0
-STDOUT:
-
-STDERR:
-Exception in thread "main" java.lang.NoClassDefFoundError: Abort

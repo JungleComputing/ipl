@@ -40,4 +40,4 @@ Problem stored in tuple space: true
 Propagated 422 unit clauses
 Propagated 0 pure variables
 Did 4 optimization iterations
-Learned 2796 clauses.
+Learned 1874 clauses.
