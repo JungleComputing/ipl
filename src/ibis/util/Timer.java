@@ -314,6 +314,9 @@ public class Timer implements java.io.Serializable {
      * @return the new Timer instance.
      */
     public static Timer createTimer() {
+        if (nanoMode) {
+            return new Timer();
+        }
         try {
             Class c = Class.forName("ibis.util.nativeCode.Rdtsc");
             return (Timer) c.newInstance();
