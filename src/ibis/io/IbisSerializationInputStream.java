@@ -926,7 +926,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
 
         if (next_type != type) {
-            throw new SerializationError("Internal error: next_type != type");
+            throw new SerializationError("Internal error: next_type = "
+                    + next_type + ", type = " + type);
         }
 
         String typeName = readUTF();

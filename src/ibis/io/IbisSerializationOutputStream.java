@@ -602,7 +602,7 @@ public class IbisSerializationOutputStream
     }
 
     public void reset(boolean cleartypes) {
-        if (next_handle > CONTROL_HANDLES) {
+        if (cleartypes || next_handle > CONTROL_HANDLES) {
             if (DEBUG) {
                 dbPrint("reset: next handle = " + next_handle + ".");
             }
@@ -668,18 +668,19 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown when an IO error occurs.
      */
     private void writeHandle(int v) throws IOException {
-        if (resetPending) {
+        if (clearPending) {
+            writeInt(CLEAR_HANDLE);
+            if (DEBUG) {
+                dbPrint("wrote a CLEAR");
+            }
+            resetPending = false;
+            clearPending = false;
+        } else if (resetPending) {
             writeInt(RESET_HANDLE);
             if (DEBUG) {
                 dbPrint("wrote a RESET");
             }
             resetPending = false;
-        } else if (clearPending) {
-            writeInt(CLEAR_HANDLE);
-            if (DEBUG) {
-                dbPrint("wrote a CLEAR");
-            }
-            clearPending = false;
         }
 
         // treating handles as normal int's --N
