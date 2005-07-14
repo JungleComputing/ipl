@@ -783,10 +783,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         return allocator;
     }
 
-    public void reset() throws IOException {
-        // nothing
-    }
-
     /* This is the data output / object output part */
 
     public void writeString(String str) throws IOException {

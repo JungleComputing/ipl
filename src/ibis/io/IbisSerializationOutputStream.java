@@ -475,6 +475,9 @@ public class IbisSerializationOutputStream
     /** Remember when a reset must be sent out. */
     private boolean resetPending = false;
 
+    /** Remember when a clear must be sent out. */
+    private boolean clearPending = false;
+
     /** The first free type index. */
     private int next_type;
 
@@ -595,6 +598,10 @@ public class IbisSerializationOutputStream
     }
 
     public void reset() {
+        reset(false);
+    }
+
+    public void reset(boolean cleartypes) {
         if (next_handle > CONTROL_HANDLES) {
             if (DEBUG) {
                 dbPrint("reset: next handle = " + next_handle + ".");
@@ -605,12 +612,16 @@ public class IbisSerializationOutputStream
              * handle. So, instead, we remember that we need to send
              * out a reset, and send before sending the next handle.
              */
-            resetPending = true;
+            if (cleartypes) {
+                clearPending = true;
+            } else {
+                resetPending = true;
+            }
             next_handle = CONTROL_HANDLES;
         }
-        // types_clear();
-        // There is no need to clear the type table.
-        // It can be reused after a reset.
+        if (cleartypes) {
+            types_clear();
+        }
     }
 
     /* This is the data output / object output part */
@@ -663,6 +674,12 @@ public class IbisSerializationOutputStream
                 dbPrint("wrote a RESET");
             }
             resetPending = false;
+        } else if (clearPending) {
+            writeInt(CLEAR_HANDLE);
+            if (DEBUG) {
+                dbPrint("wrote a CLEAR");
+            }
+            clearPending = false;
         }
 
         // treating handles as normal int's --N

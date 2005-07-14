@@ -555,7 +555,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
     /**
      * resets the stream, by clearing the object and type table.
      */
-    private void do_reset() {
+    private void do_reset(boolean cleartypes) {
         if (DEBUG) {
             dbPrint("received reset: next handle = " + next_handle + ".");
         }
@@ -587,12 +587,22 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
 
         /* this replaces the checks for the reset handle
          everywhere else. --N */
-        while (handle == RESET_HANDLE) {
-            if (DEBUG) {
-                dbPrint("received a RESET");
+        for (;;) {
+            if (handle == RESET_HANDLE) {
+                if (DEBUG) {
+                    dbPrint("received a RESET");
+                }
+                do_reset(false);
+                handle = readInt();
+            } else if (handle == CLEAR_HANDLE) {
+                if (DEBUG) {
+                    dbPrint("received a CLEAR");
+                }
+                do_reset(true);
+                handle = readInt();
+            } else {
+                break;
             }
-            do_reset();
-            handle = readInt();
         }
 
         if (DEBUG) {

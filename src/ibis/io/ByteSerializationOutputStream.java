@@ -169,6 +169,10 @@ public class ByteSerializationOutputStream extends SerializationBase
         // does nothing.
     }
 
+    public void reset(boolean cleartypes) throws IOException {
+        // does nothing.
+    }
+
     public void flush() throws IOException {
         out.flush();
     }

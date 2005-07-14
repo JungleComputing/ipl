@@ -48,6 +48,11 @@ public final class SunSerializationOutputStream
         flush();
     }
 
+    public void reset(boolean cleartypes) throws IOException {
+        // Sun serialization always clears the type table on a reset.
+        reset();
+    }
+
     /**
      * Returns the name of the current serialization implementation: "sun".
      *

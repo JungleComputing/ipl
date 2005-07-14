@@ -29,6 +29,8 @@ public interface IbisStreamFlags {
 
     public static final int RESET_HANDLE = 1;
 
+    public static final int CLEAR_HANDLE = -1;
+
     public static final int CONTROL_HANDLES = 2;
 
     static final Class classBooleanArray = IbisTypeInfo.getClass("[Z");

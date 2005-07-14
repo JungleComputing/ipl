@@ -36,6 +36,16 @@ public interface SerializationOutput extends DataOutput {
     public void reset() throws IOException;
 
     /**
+     * Resets the state of any objects already written to this output, and
+     * optionally also clears the type table cache.
+     *
+     * @param cleartypes when set, the type table cache is also cleared.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void reset(boolean cleartypes) throws IOException;
+
+    /**
      * Returns true when the stream must be re-initialized when a
      * connection is added.
      * @return true when the stream must be re-initialized when a connection
