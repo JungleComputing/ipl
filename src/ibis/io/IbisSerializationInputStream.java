@@ -559,7 +559,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         if (DEBUG) {
             dbPrint("received reset: next handle = " + next_handle + ".");
         }
-        init(false);
+        init(cleartypes);
     }
 
     public void clear() {
