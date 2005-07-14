@@ -1,0 +1,38 @@
+CODE:
+0
+STDOUT:
+Java 1.4.2 (Sun Microsystems Inc.) on Linux 2.4.21-20.ELcustomsmp (i386)
+Compressing ../sample1.txt
+ExecutionTime: 3.925
+In: 4837 bytes, out: 4016 bytes.
+-------------------------------SATIN STATISTICS--------------------------------
+SATIN: SPAWN:       673 spawns, 673 executed, 337 syncs
+SATIN: ABORT:       0 aborts, 0 abort msgs, 0 aborted jobs
+SATIN: TUPLE_SPACE: 0 bcasts, 0 bytes
+SATIN: STEAL:       3,696 attempts, 174 successes (4.708 %)
+SATIN: MESSAGES:    intra 7,566 msgs, 2,488,776 bytes; inter 0 msgs, 0 bytes
+-------------------------------SATIN TOTAL TIMES-------------------------------
+SATIN: STEAL_TIME:               total   5.184  s time/req      1.403 ms
+SATIN: HANDLE_STEAL_TIME:        total 684.343 ms time/handle 185.158 us
+SATIN: INV SERIALIZATION_TIME:   total 157.439 ms time/write  904.823 us
+SATIN: INV DESERIALIZATION_TIME: total 319.268 ms time/read     1.835 ms
+SATIN: RET SERIALIZATION_TIME:   total 124.152 ms time/write  713.516 us
+SATIN: RET DESERIALIZATION_TIME: total 150.428 ms time/read   864.526 us
+SATIN: ABORT_TIME:               total   0.000  s time/abort  �  s
+SATIN: TUPLE_SPACE_BCAST_TIME:   total   0.000  s time/bcast  �  s
+SATIN: TUPLE_SPACE_WAIT_TIME:    total   0.000  s time/bcast  �  s
+-------------------------------SATIN RUN TIME BREAKDOWN------------------------
+SATIN: TOTAL_RUN_TIME:                             3.989  s
+SATIN: LOAD_BALANCING_TIME:      avg. per machine   1.797  s (45.047 %)
+SATIN: (DE)SERIALIZATION_TIME:   avg. per machine 250.429 ms ( 6.277 %)
+SATIN: ABORT_TIME:               avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine   0.000  s ( 0.000 %)
+
+SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine   2.048  s (51.324 %)
+SATIN: USEFUL_APP_TIME:          avg. per machine   1.942  s (48.676 %)
+
+STDERR:
+Reservation number 62408: Reserved 3 hosts for 900 seconds 
+Run on 3 hosts for 960 seconds from Thu Jul 14 19:01:55 2005
+: node051/0 node053/0 node027/0 
