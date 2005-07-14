@@ -40,6 +40,7 @@
 		taskname="Satinc"
 		dir="${build}"
 		failonerror="true"
+		maxmemory="256M"
 		fork="true">
 		<arg line="-javahome '${JAVA_HOME}' ${satinc-flags.value} ${satin-main-class}"/>
 		<classpath refid="default.classpath"/>
