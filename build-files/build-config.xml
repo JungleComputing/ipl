@@ -162,13 +162,6 @@
 		<include name="java_wrapper.c"/>
 	    </fileset>
 	</cc>
-	<echo message="Now compile this getpid"/>
-	<cc	outfile="${ibis}/bin/getpid"
-		outtype="executable">
-	    <fileset dir="${ibis}/src/ibis/util">
-		<include name="getpid.c"/>
-	    </fileset>
-	</cc>
     </target>
 
     <target name="java_wrapper" depends="config-domainname" if="config.is-das">
