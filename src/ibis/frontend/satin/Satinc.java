@@ -173,17 +173,14 @@ public final class Satinc {
     private static class StoreClass {
         InstructionList store;
 
-        InstructionList load; // for putfield 
-
         Method target;
 
         JavaClass cl;
 
-        StoreClass(InstructionList store, InstructionList load, Method target,
+        StoreClass(InstructionList store, Method target,
                 JavaClass cl) {
             this.store = store;
             this.target = target;
-            this.load = load;
             this.cl = cl;
         }
 
@@ -212,18 +209,7 @@ public final class Satinc {
                 return false;
             }
 
-            // stores are equal, are loads? 
-            if (c.load == null && load == null) {
-                return true;
-            }
-            if (c.load == null) {
-                return false;
-            }
-            if (load == null) {
-                return false;
-            }
-
-            return load.equals(c.load);
+            return true;
         }
 
         /**
@@ -566,9 +552,9 @@ public final class Satinc {
         return i;
     }
 
-    int allocateId(InstructionList storeIns, InstructionList loadIns,
+    int allocateId(InstructionList storeIns,
             Method target, JavaClass cl) {
-        StoreClass s = new StoreClass(storeIns, loadIns, target, cl);
+        StoreClass s = new StoreClass(storeIns, target, cl);
 
         int id = idTable.indexOf(s);
         if (id < 0) {
@@ -581,10 +567,6 @@ public final class Satinc {
 
     InstructionList getStoreIns(int id) {
         return ((StoreClass) idTable.get(id)).store;
-    }
-
-    InstructionList getLoadIns(int id) {
-        return ((StoreClass) idTable.get(id)).load;
     }
 
     Method getStoreTarget(int id) {
@@ -738,10 +720,10 @@ public final class Satinc {
             InstructionList storeIns = getStoreIns(k);
 
             if (storeIns != null) {
+                il.insert(pos, new DUP());
                 if (isArrayStore(storeIns.getStart())) {
                     // array, maxLocals+3 = temp, cast to correct
                     // invocationRecord type
-                    il.insert(pos, new DUP());
                     il.insert(pos, new DUP());
                     il.insert(pos, new ASTORE(maxLocals + 3));
                     il.insert(pos,
@@ -753,27 +735,22 @@ public final class Satinc {
                     il.insert(pos, ins_f.createFieldAccess(invClass, "index",
                             Type.INT, Constants.GETFIELD));
                     il.insert(pos, new ALOAD(maxLocals + 3));
-                    il.insert(pos, ins_f.createFieldAccess(invClass, "result",
-                            target_returntype, Constants.GETFIELD));
-                    il.insert(pos, storeIns.copy());
-                } else if (getLoadIns(k) == null) {
-                    il.insert(pos, new DUP());
-                    il.insert(pos,
-                            ins_f.createFieldAccess(invClass, "result",
-                                    target_returntype, Constants.GETFIELD));
-                    il.insert(pos, storeIns.copy());
-                } else {
+                } else if (isPutField(storeIns.getStart())) {
+                    PUTFIELD pf = (PUTFIELD) storeIns.getStart().getInstruction();
                     // we have a putfield, maxLocals+3 = temp, cast to
                     // correct invocationRecord type
+                    il.insert(pos, new DUP());
                     il.insert(pos, new ASTORE(maxLocals + 3));
-                    il.insert(pos, getLoadIns(k).copy());
-                    il.insert(pos, new ALOAD(maxLocals + 3));
                     il.insert(pos,
-                            ins_f.createFieldAccess(invClass, "result",
-                                    target_returntype, Constants.GETFIELD));
-                    il.insert(pos, storeIns.copy());
+                            ins_f.createFieldAccess(invClass, "ref",
+                                    new ObjectType("java.lang.Object"),
+                                    Constants.GETFIELD));
+                    il.insert(pos, ins_f.createCheckCast(pf.getClassType(cpg)));
                     il.insert(pos, new ALOAD(maxLocals + 3));
                 }
+                il.insert(pos, ins_f.createFieldAccess(invClass, "result",
+                        target_returntype, Constants.GETFIELD));
+                il.insert(pos, storeIns.copy());
             }
 
             il.insert(pos, ins_f.createInvoke(invClass, "delete", Type.VOID,
@@ -948,33 +925,6 @@ public final class Satinc {
         }
     }
 
-    InstructionList getAndRemoveLoadIns(InstructionList il,
-            InstructionHandle i) {
-        InstructionHandle loadEnd = getFirstParamPushPos(i).getPrev();
-        InstructionHandle loadStart = loadEnd;
-
-        int netto_stack_inc = 0;
-
-        do {
-            int inc = loadStart.getInstruction().produceStack(cpg)
-                    - loadStart.getInstruction().consumeStack(cpg);
-            netto_stack_inc += inc;
-            loadStart = loadStart.getPrev();
-        } while (netto_stack_inc <= 0);
-
-        InstructionList result = new InstructionList();
-        InstructionHandle ip = loadStart;
-
-        do {
-            ip = ip.getNext();
-            result.append(ip.getInstruction());
-        } while (ip != loadEnd);
-
-        deleteIns(il, loadStart.getNext(), loadEnd, loadEnd.getNext());
-
-        return result;
-    }
-
     InstructionList getAndRemoveStoreIns(InstructionList il,
             InstructionHandle i) {
 
@@ -1009,6 +959,14 @@ public final class Satinc {
         return (i instanceof ArrayInstruction && i instanceof StackConsumer);
     }
 
+    boolean isPutField(InstructionHandle ins) {
+        if (ins == null) {
+            return false;
+        }
+        Instruction i = ins.getInstruction();
+        return i instanceof PUTFIELD;
+    }
+
     void rewriteSpawn(MethodGen m, InstructionList il, Method target,
             InstructionHandle i, int maxLocals, int spawnId, JavaClass cl) {
         String clname = cl.getClassName();
@@ -1019,7 +977,6 @@ public final class Satinc {
         }
 
         Instruction store = null;
-        InstructionList loadIns = null;
         InstructionList storeIns = null;
 
         // A spawned method invocation. Target and parameters are already on
@@ -1038,16 +995,14 @@ public final class Satinc {
         if (!returnType.equals(Type.VOID)) {
             store = i.getNext().getInstruction();
             storeIns = getAndRemoveStoreIns(il, i.getNext());
-            if (store instanceof PUTFIELD) {
-                loadIns = getAndRemoveLoadIns(il, i);
-            } else if (store instanceof ReturnInstruction) {
+            if (store instanceof ReturnInstruction) {
                 System.err.println("\"return <spawnable method>\" is not "
                         + "allowed");
                 System.exit(1);
             }
         }
 
-        int storeId = allocateId(storeIns, loadIns, target, cl);
+        int storeId = allocateId(storeIns, target, cl);
 
         // push spawn counter 
         i.setInstruction(new ALOAD(maxLocals));
@@ -1078,6 +1033,10 @@ public final class Satinc {
             parameters = new Type[params.length + 8];
             parameters[ix++] = new ArrayType(returnType, 1);
             parameters[ix++] = Type.INT;
+        } else if (storeIns != null && isPutField(storeIns.getStart())) {
+            methodName = "getNewRef";
+            parameters = new Type[params.length + 7];
+            parameters[ix++] = new ObjectType("java.lang.Object");
         } else {
             methodName = "getNew";
             parameters = new Type[params.length + 6];
@@ -2251,6 +2210,9 @@ public final class Satinc {
                 out.println("    public transient " + returnType + " result;");
                 out.println("    public transient int index;");
                 out.println("    public transient " + returnType + "[] array;");
+
+                // For putfield:
+                out.println("    public transient Object ref;");
             }
 
             if (invocationRecordCache) {
@@ -2346,11 +2308,34 @@ public final class Satinc {
                 out.println("    }\n");
             }
 
+            // getNew method for fields 
+            if (!returnType.equals(Type.VOID)) {
+                out.print("    public static " + name + " getNewRef(");
+                out.print("Object ref, ");
+                out.print(clname + " self, ");
+                for (int i = 0; i < params_types_as_names.length; i++) {
+                    out.print(params_types_as_names[i] + " param" + i + ", ");
+                }
+                out.println("SpawnCounter s, InvocationRecord next, "
+                        + "int storeId, int spawnId, "
+                        + "LocalRecord parentLocals) {");
+                out.print("            " + name + " res = getNew(self, ");
+                for (int i = 0; i < params_types_as_names.length; i++) {
+                    out.print(" param" + i + ", ");
+                }
+                out.println("s, next, storeId, spawnId, parentLocals);");
+
+                out.println("        res.ref = ref;");
+                out.println("        return res;");
+                out.println("    }\n");
+            }
+
             // static delete method 
             out.println("    public static void delete(" + name + " w) {");
             if (invocationRecordCache) {
                 if (!returnType.equals(Type.VOID)) {
                     out.println("        w.array = null;");
+                    out.println("        w.ref = null;");
                 }
                 // Set everything to null, don't keep references live for gc. 
                 out.println("        w.clear();");
