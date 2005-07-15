@@ -1,3 +1,46 @@
+serialization selection:
+- test program says: 
+      serialization = sun 
+
+  then when selecting the ibis implementation we get:  
+
+    Looking for an Ibis with properties: 
+    worldmodel = closed
+ -> serialization = sun
+    verbose = 
+    communication = autoupcalls, onetoone, explicitreceipt, reliable
+    name = tcp
+
+  and when creating the port type we get:
+
+    Creating port type test type with properties
+ -> serialization = sun
+    worldmodel = 
+    verbose = 
+    communication = autoupcalls, onetoone, explicitreceipt, reliable
+    name = tcp
+
+  But when I add "-Dibis.serialization=ibis" to the command line I get:
+
+    Looking for an Ibis with properties: 
+ -> serialization = ibis
+    worldmodel = closed
+    verbose = 
+    communication = autoupcalls, onetoone, explicitreceipt, reliable
+    name = tcp
+ 
+  which seems ok, but the port type says: 
+
+    Creating port type test type with properties
+ -> serialization = sun
+    worldmodel = 
+    verbose = 
+    communication = autoupcalls, onetoone, explicitreceipt, reliable
+    name = tcp
+
+  Is that right ?
+
+
 ipl:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 - add receiveports local to an ibis:
