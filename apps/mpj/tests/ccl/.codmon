@@ -1,15 +1,15 @@
-4 allgather
+4 allgather {net.gm}
 2 allgatherv
 2 allreduce
 2 allreduce_maxminloc
-2 alltoall
+2 alltoall {net.gm}
 2 alltoallv
 2 barrier
 4 bcast
 3 gather
 3 gatherv
 2 reduce
-2 reduce_scatter
+2 reduce_scatter {net.gm}
 2 scan
-3 scatter
+3 scatter {net.gm}
 3 scatterv
