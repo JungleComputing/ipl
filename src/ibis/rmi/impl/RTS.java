@@ -2,6 +2,7 @@
 
 package ibis.rmi.impl;
 
+import ibis.connect.IPUtils;
 import ibis.ipl.BindingException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
@@ -24,7 +25,6 @@ import ibis.rmi.server.ExportException;
 import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
-import ibis.util.IPUtils;
 import ibis.util.GetLogger;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;

@@ -2,6 +2,7 @@
 
 package ibis.impl.net;
 
+import ibis.connect.IPUtils;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortType;
@@ -12,7 +13,6 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
-import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

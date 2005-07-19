@@ -2,6 +2,7 @@
 
 package ibis.impl.net.udp;
 
+import ibis.connect.IPUtils;
 import ibis.impl.net.InterruptedIOException;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
@@ -13,7 +14,6 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 import ibis.io.Conversion;
-import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

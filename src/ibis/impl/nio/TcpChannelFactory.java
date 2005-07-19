@@ -2,11 +2,11 @@
 
 package ibis.impl.nio;
 
+import ibis.connect.IPUtils;
 import ibis.connect.IbisSocketFactory;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisError;
-import ibis.util.IPUtils;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;

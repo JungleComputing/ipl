@@ -2,6 +2,7 @@
 
 package ibis.impl.tcp;
 
+import ibis.connect.IPUtils;
 import ibis.connect.IbisSocketFactory;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
@@ -12,7 +13,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
-import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

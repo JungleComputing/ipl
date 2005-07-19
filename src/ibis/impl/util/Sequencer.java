@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util;
+package ibis.impl.util;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;

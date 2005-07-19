@@ -20,6 +20,26 @@ if [ -z "$IBIS_CONFIG_SEEN" ]; then
 . "$dir"/../configuration.sh
 fi
 
+LIBCLASSPATH=""
+
+add_to_libclasspath () {
+	DIRLIBS=${1}/*.jar
+	for i in ${DIRLIBS}
+	do
+		 # if the directory is empty, then it will return the input string
+		 if [ "$i" != "${DIRLIBS}" ] ; then
+			if [ -z "$LIBCLASSPATH" ] ; then
+		LIBCLASSPATH=$i
+			else
+		LIBCLASSPATH="$i":$LIBCLASSPATH
+			fi
+		 fi
+	done
+}
+
+# Add the following dirs to the classpath 
+add_to_libclasspath ${IBIS_ROOT}/3rdparty
+
 Dns_pool=
 HOSTNO=0
 HOSTS=
@@ -137,8 +157,7 @@ esac
 libpath="$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:"
 ibislib="$IBIS_ROOT/build/lib"
 
-JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:$IBIS_ROOT/3rdparty/colobus.jar:.:"
-
+JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 
 #
 # Some defaults ...

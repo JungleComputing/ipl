@@ -2,13 +2,13 @@
 
 package ibis.rmi.registry.impl;
 
+import ibis.connect.IPUtils;
 import ibis.rmi.AlreadyBoundException;
 import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
 import ibis.rmi.impl.RTS;
 import ibis.rmi.registry.Registry;
-import ibis.util.IPUtils;
 
 import java.net.InetAddress;
 

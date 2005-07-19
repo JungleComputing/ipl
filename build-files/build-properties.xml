@@ -36,6 +36,14 @@
 	    name="package.home.colobus"
 	    location="${ibis}/3rdparty/colobus.jar"/>
 
+    <property
+	    name="package.home.ibisUtil"
+	    location="${ibis}/3rdparty/ibis-util.jar"/>
+
+    <property
+	    name="package.home.ibisConnect"
+	    location="${ibis}/3rdparty/ibis-connect.jar"/>
+
     <target name="property-init"
 	    unless="property.initialized">
 	    <!--
@@ -51,7 +59,6 @@
 		    <pathelement path="${build}"/>
 		    <pathelement path="${package.home.bcel}"/>
 		    <pathelement path="${package.home.log4j}"/>
-		    <pathelement path="${package.home.colobus}"/>
 		    <pathelement path="${package.home.junit}"/>
 		    <path refid="extra-classpath"/>
 		</path>
@@ -66,6 +73,8 @@
 		    <pathelement path="${package.home.bcel}"/>
 		    <pathelement path="${package.home.log4j}"/>
 		    <pathelement path="${package.home.colobus}"/>
+		    <pathelement path="${package.home.ibisUtil}"/>
+		    <pathelement path="${package.home.ibisConnect}"/>
 		    <pathelement path="${package.home.junit}"/>
 		</path>
 	    </else>
@@ -167,15 +176,4 @@
 	    <arg line="${ARGS}"/>
 	</java>
     </target>
-
-
-    <!--
-	Auxilliary target to echo a prun command from ant
-    -->
-    <target name="prun" depends="property-init">
-	<echo>
-prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=${ibis}/build/lib:.  CLASSPATH=build:${ibis}/build -no-panda ${ibis}/bin/java_wrapper 2 ${JAVA_HOME}/bin/java  -Xmx400M -Xcomp -Dibis.name_server.host=mercury.cs.vu.nl -Dibis.name_server.port=7654 -Dibis.name_server.key=rutger$$ -Dibis.pool.host_number=%d -Dibis.pool.total_hosts=%n -Dibis.pool.host_names="%h" -Dibis.name=panda MAIN args...
-	</echo>
-    </target>
-
 </project>
