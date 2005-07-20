@@ -60,6 +60,9 @@
 		    <pathelement path="${package.home.bcel}"/>
 		    <pathelement path="${package.home.log4j}"/>
 		    <pathelement path="${package.home.junit}"/>
+		    <pathelement path="${package.home.colobus}"/>
+		    <pathelement path="${package.home.ibisUtil}"/>
+		    <pathelement path="${package.home.ibisConnect}"/>
 		    <path refid="extra-classpath"/>
 		</path>
 		<property name="class-path-3" refid="default.classpath"/>
