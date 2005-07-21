@@ -154,22 +154,6 @@
 	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
     </target>
 
-    <target name="compile.java_wrapper">
-	<echo message="Now compile this java_wrapper"/>
-	<cc	outfile="${ibis}/bin/java_wrapper"
-		outtype="executable">
-	    <fileset dir="${ibis}/src/ibis/util">
-		<include name="java_wrapper.c"/>
-	    </fileset>
-	</cc>
-    </target>
-
-    <target name="java_wrapper" depends="config-domainname" if="config.is-das">
-	<ant target="compile.java_wrapper" inheritAll="false">
-	    <property name="ibis" value="${ibis}"/>
-	</ant>
-    </target>
-
     <property environment="env"/>
 
     <property name="ant.home" location="3rdparty/apache-ant-1.6.1"/>
@@ -428,9 +412,6 @@ IBIS_CONFIG_SEEN=1
 			value="rem "/>
 	    </then>
 	</if>
-
-	<echo message="Now invoke ant java_wrapper"/>
-	<antcall target="java_wrapper"/>
     </target>
 
 
