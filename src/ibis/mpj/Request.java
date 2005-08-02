@@ -64,11 +64,22 @@ public class Request {
 	 */
 	public Status test() throws MPJException {
 		if (ibisMPJComm == null) {
-		    return(null);
+
+			return(null);
+		    
 		}
 		Status status;
 		if (this.ibisMPJComm.isFinished()) {
-			this.ibisMPJCommThread = null;
+			if (ibisMPJCommThread != null) {
+				try {
+					this.ibisMPJCommThread.join();
+				}
+				catch(InterruptedException e) {
+					
+				}
+				this.ibisMPJCommThread = null;
+			}
+			
 			return(this.ibisMPJComm.getStatus());
 		}
 		else {
@@ -174,7 +185,9 @@ public class Request {
 			while (status[i] == null)
 				status[i] = arrayOfRequests[i].test();
 		}
-
+		
+		
+		
 		
 		return(status);
 		

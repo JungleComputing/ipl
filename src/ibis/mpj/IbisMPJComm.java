@@ -13,7 +13,7 @@ import ibis.ipl.*;
 /**
  * Implementation of the basic point-to-point communication modes on top of ibis.
  */
-public class IbisMPJComm implements Runnable {
+public class IbisMPJComm extends Thread {
 	private final boolean DEBUG = false;
 	
 	protected final static int OP_IRECV = 1;
@@ -321,14 +321,14 @@ public class IbisMPJComm implements Runnable {
 					obj = new MPJObject();
 					msg = null;
 					
-					if(!blocking) {
+			/*		if(!blocking) {
 						msg =con.pollForMessage();
 						
 						if (msg==null) continue;
 					}
-					else {
+					else {*/
 						msg = con.getNextMessage();	
-					}
+					//}
 						
 					// 	get message header
 					con.receiveHeader(msg, obj.desc);
