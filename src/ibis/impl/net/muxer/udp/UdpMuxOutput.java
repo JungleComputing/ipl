@@ -2,7 +2,6 @@
 
 package ibis.impl.net.muxer.udp;
 
-import ibis.connect.IPUtils;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
@@ -10,6 +9,7 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.muxer.MuxerKey;
 import ibis.impl.net.muxer.MuxerOutput;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

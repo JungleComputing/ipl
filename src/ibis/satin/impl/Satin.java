@@ -2,7 +2,6 @@
 
 package ibis.satin.impl;
 
-import ibis.connect.IPUtils;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
@@ -12,6 +11,7 @@ import ibis.ipl.Registry;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
+import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
 
 import java.net.InetAddress;

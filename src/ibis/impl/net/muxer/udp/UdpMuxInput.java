@@ -2,7 +2,6 @@
 
 package ibis.impl.net.muxer.udp;
 
-import ibis.connect.IPUtils;
 import ibis.impl.net.InterruptedIOException;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
@@ -13,6 +12,7 @@ import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.muxer.MuxerInput;
 import ibis.impl.net.muxer.MuxerQueue;
 import ibis.ipl.ReceiveTimedOutException;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

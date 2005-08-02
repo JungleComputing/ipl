@@ -2,7 +2,6 @@
 
 package ibis.impl.net.udp;
 
-import ibis.connect.IPUtils;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
@@ -11,6 +10,7 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
 import ibis.io.Conversion;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

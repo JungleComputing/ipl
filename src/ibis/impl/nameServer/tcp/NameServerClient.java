@@ -2,7 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.IPUtils;
 import ibis.connect.IbisSocketFactory;
 import ibis.impl.nameServer.NSProps;
 import ibis.io.DummyInputStream;
@@ -15,6 +14,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
+import ibis.util.IPUtils;
 import ibis.util.RunProcess;
 
 import java.io.BufferedInputStream;

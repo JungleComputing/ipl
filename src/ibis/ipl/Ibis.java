@@ -2,7 +2,7 @@
 
 package ibis.ipl;
 
-import ibis.connect.IPUtils;
+import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
 import java.io.FileInputStream;

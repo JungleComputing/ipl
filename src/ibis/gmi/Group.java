@@ -2,7 +2,6 @@
 
 package ibis.gmi;
 
-import ibis.connect.IPUtils;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
@@ -15,6 +14,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
+import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
 import ibis.util.Ticket;
 import ibis.util.GetLogger;

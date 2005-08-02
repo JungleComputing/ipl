@@ -2,7 +2,6 @@
 
 package ibis.impl.net;
 
-import ibis.connect.IPUtils;
 import ibis.connect.IbisSocketFactory;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
@@ -13,6 +12,7 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
+import ibis.util.IPUtils;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
 
