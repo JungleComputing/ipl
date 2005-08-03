@@ -5,8 +5,8 @@ Sun RMI One Dimensional Fast Fourier Transformation
 M:22 N:4194304 rootN:2048  Running on 2 cpu(s), each having 1024 rows to process
 binding FFT_Master ...
 binding FFT_Master done
-0: Slave has found Master rmi_stub_Master@277ddde1[RemoteReference@2726dde1]
-1: Slave has found Master rmi_stub_Master@61959ce1[RemoteReference@61cb9ce1]
+0: Slave has found Master rmi_stub_Master@//277ddde1[RemoteReference@2726dde1]
+1: Slave has found Master rmi_stub_Master@//61959ce1[RemoteReference@61cb9ce1]
 FFT round 0 time 27.884
 FFT round 1 time 28.082
 FFT round 2 time 27.62
