@@ -135,7 +135,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
             Thread p = new Thread("NameServer starter") {
                 public void run() {
-                    RunProcess p = new RunProcess(cmd, new String[0]);
+                    new RunProcess(cmd, new String[0]);
                 }
             };
 

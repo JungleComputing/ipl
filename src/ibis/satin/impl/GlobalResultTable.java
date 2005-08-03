@@ -72,8 +72,8 @@ public class GlobalResultTable implements Upcall, Config {
         int type;
 
         transient IbisIdentifier sendTo;
-        // @@@ this field is never written --Rob
-        // @@@ yes it is, in MessageHandler.handleResultRequest() --Gosia
+        // this field is never written --Rob
+        // yes it is, in MessageHandler.handleResultRequest() --Gosia
 
         ReturnRecord result;
 
@@ -256,7 +256,7 @@ public class GlobalResultTable implements Upcall, Config {
                 //send an update message
                 Iterator sendIter = sends.entrySet().iterator();
                 long size = 0;
-                int i = 0;
+//                int i = 0;
                 while (sendIter.hasNext()) {
                     Map.Entry entry = (Map.Entry) sendIter.next();
                     SendPort send = (SendPort) entry.getValue();
