@@ -2,7 +2,7 @@
 2 allgatherv
 2 allreduce
 2 allreduce_maxminloc
-2 alltoall {net.gm}
+2 alltoall
 2 alltoallv
 2 barrier
 4 bcast
