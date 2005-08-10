@@ -4,6 +4,7 @@ final class StoreBuffer {
 
     // This is the write part. It's slow, but we don't care
     // (only read part matters).
+    int doubleLen = 0;
 
     boolean[] boolean_store = null;
 
@@ -22,32 +23,6 @@ final class StoreBuffer {
     double[] double_store = null;
 
     public long count = 0;
-
-    public void writeArray(boolean[] a, int off, int len) {
-        if (boolean_store == null) {
-            boolean_store = new boolean[len];
-            System.arraycopy(a, off, boolean_store, 0, len);
-        } else {
-            boolean[] temp = new boolean[boolean_store.length + len];
-            System.arraycopy(boolean_store, 0, temp, 0, boolean_store.length);
-            System.arraycopy(a, off, temp, boolean_store.length, len);
-            boolean_store = temp;
-        }
-        count += len;
-    }
-
-    public void writeArray(byte[] a, int off, int len) {
-        if (byte_store == null) {
-            byte_store = new byte[len];
-            System.arraycopy(a, off, byte_store, 0, len);
-        } else {
-            byte[] temp = new byte[byte_store.length + len];
-            System.arraycopy(byte_store, 0, temp, 0, byte_store.length);
-            System.arraycopy(a, off, temp, byte_store.length, len);
-            byte_store = temp;
-        }
-        count += len;
-    }
 
     public void write(byte[] a, int off, int len) {
         writeArray(a, off, len);
@@ -109,6 +84,32 @@ final class StoreBuffer {
         long[] temp = new long[1];
         temp[0] = b;
         writeArray(temp, 0, 1);
+    }
+
+    public void writeArray(boolean[] a, int off, int len) {
+        if (boolean_store == null) {
+            boolean_store = new boolean[len];
+            System.arraycopy(a, off, boolean_store, 0, len);
+        } else {
+            boolean[] temp = new boolean[boolean_store.length + len];
+            System.arraycopy(boolean_store, 0, temp, 0, boolean_store.length);
+            System.arraycopy(a, off, temp, boolean_store.length, len);
+            boolean_store = temp;
+        }
+        count += len;
+    }
+
+    public void writeArray(byte[] a, int off, int len) {
+        if (byte_store == null) {
+            byte_store = new byte[len];
+            System.arraycopy(a, off, byte_store, 0, len);
+        } else {
+            byte[] temp = new byte[byte_store.length + len];
+            System.arraycopy(byte_store, 0, temp, 0, byte_store.length);
+            System.arraycopy(a, off, temp, byte_store.length, len);
+            byte_store = temp;
+        }
+        count += len;
     }
 
     public void writeArray(short[] a, int off, int len) {
@@ -180,11 +181,18 @@ final class StoreBuffer {
         if (double_store == null) {
             double_store = new double[len];
             System.arraycopy(a, off, double_store, 0, len);
+            doubleLen = len;
         } else {
-            double[] temp = new double[double_store.length + len];
-            System.arraycopy(double_store, 0, temp, 0, double_store.length);
-            System.arraycopy(a, off, temp, double_store.length, len);
-            double_store = temp;
+            if (doubleLen + len < double_store.length) { // it fits
+                System.arraycopy(a, off, double_store, doubleLen, len);
+                doubleLen += len;
+            } else { // it does not fit
+                double[] temp = new double[doubleLen * 2];
+                System.arraycopy(double_store, 0, temp, 0, doubleLen);
+                System.arraycopy(a, off, temp, doubleLen, len);
+                double_store = temp;
+                doubleLen += len;
+            }
         }
         count += len * 8;
     }
