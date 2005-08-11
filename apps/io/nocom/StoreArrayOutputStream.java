@@ -6,8 +6,6 @@ import ibis.io.DataOutputStream;
 
 final class StoreArrayOutputStream extends DataOutputStream {
 
-    long len = 0;
-
     StoreBuffer buf;
 
     public StoreArrayOutputStream(StoreBuffer buf) {
@@ -59,42 +57,34 @@ final class StoreArrayOutputStream extends DataOutputStream {
     }
 
     public void writeArray(boolean[] a, int off, int len) throws IOException {
-        this.len += len;
         buf.writeArray((boolean[]) a, off, len);
     }
 
     public void writeArray(byte[] a, int off, int len) throws IOException {
-        this.len += len;
         buf.writeArray((byte[]) a, off, len);
     }
 
     public void writeArray(short[] a, int off, int len) throws IOException {
-        this.len += 2 * len;
         buf.writeArray((short[]) a, off, len);
     }
 
     public void writeArray(char[] a, int off, int len) throws IOException {
-        this.len += 2 * len;
         buf.writeArray((char[]) a, off, len);
     }
 
     public void writeArray(int[] a, int off, int len) throws IOException {
-        this.len += 4 * len;
         buf.writeArray((int[]) a, off, len);
     }
 
     public void writeArray(long[] a, int off, int len) throws IOException {
-        this.len += 8 * len;
         buf.writeArray((long[]) a, off, len);
     }
 
     public void writeArray(float[] a, int off, int len) throws IOException {
-        this.len += 4 * len;
         buf.writeArray((float[]) a, off, len);
     }
 
     public void writeArray(double[] a, int off, int len) throws IOException {
-        this.len += 8 * len;
         buf.writeArray((double[]) a, off, len);
     }
 
@@ -114,10 +104,10 @@ final class StoreArrayOutputStream extends DataOutputStream {
     }
 
     public long bytesWritten() {
-        return len;
+        return buf.bytesWritten();
     }
 
     public void resetBytesWritten() {
-        len = 0;
+        buf.resetBytesWritten();
     }
 }
