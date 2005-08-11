@@ -87,6 +87,7 @@ general:
 - use a $IBIS_HOME variable instead of explicit paths in build files of
   applications
 - make javadoc available in a file for eclipse somehow
+- move applications to a real tree
 
 future:
 - add out-of-band communication support to the Nameserver interface
