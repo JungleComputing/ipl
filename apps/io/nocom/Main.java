@@ -1,21 +1,18 @@
 /* $Id$ */
 
 
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import java.util.ArrayList;
-
-import ibis.io.DataInputStream;
-import ibis.io.DataOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
+import ibis.io.DataInputStream;
+import ibis.io.DataOutputStream;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.IbisSerializationOutputStream;
-import ibis.io.SunSerializationInputStream;
-import ibis.io.SunSerializationOutputStream;
 import ibis.io.SerializationInput;
 import ibis.io.SerializationOutput;
+import ibis.io.SunSerializationInputStream;
+import ibis.io.SunSerializationOutputStream;
+
+import java.util.ArrayList;
 
 public class Main {
 

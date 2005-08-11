@@ -41,7 +41,6 @@ public final class ArrayContainer implements TestObject {
             break;
         }
         this.type = type;
-        this.len = len;
     }
 
     public int object_size() {
