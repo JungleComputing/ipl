@@ -1,0 +1,17 @@
+<project
+    name="ibis.apps.extra.serializationHashTest"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis application build.
+    </description>
+
+    <property name="main-class"  value="SerializationHashTest"/>
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/build-files/apps/build-extra-app.xml"/>
+
+</project>
