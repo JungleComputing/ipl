@@ -7,7 +7,7 @@ import ibis.util.TypedProperties;
  * A hash table that aims for speed for pairs (Object, int). This one is
  * specially made for (object, handle) pairs.
  */
-final class HandleHash {
+public final class HandleHash {
 
     private static final boolean STATS = TypedProperties
             .booleanProperty(IOProps.s_hash_stats);
