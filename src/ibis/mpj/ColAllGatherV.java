@@ -45,7 +45,7 @@ public class ColAllGatherV {
 		int rank = this.comm.rank();
 		int size = this.comm.size();
 		
-		this.comm.localcopy(sendbuf, sendoffset, sendcount, sendtype, 
+		this.comm.localcopy2types(sendbuf, sendoffset, sendcount, sendtype, 
 							recvbuf, recvoffset + displs[rank] * recvtype.extent(), recvcount[rank], recvtype);
 
 		

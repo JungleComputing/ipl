@@ -11,6 +11,9 @@ import ibis.util.PoolInfo;
  * Main MPJ class.
  */
 public class MPJ {
+	protected static boolean LOCALCOPYIBIS = true;
+
+	
 	
 	private static final boolean DEBUG = false;
 	private static byte[] attachedBuffer;
@@ -212,7 +215,17 @@ public class MPJ {
 	 */
 	public static void init(String[] args) throws MPJException {
 		try {
-			
+
+			int k = 0;
+			while (k < args.length) {
+				if (args[k].equals("mpj.localcopySun")) {
+					MPJ.LOCALCOPYIBIS = false;
+				}
+				else if (args[k].endsWith("mpj.localcopyIbis")) {
+					MPJ.LOCALCOPYIBIS = true;
+				}
+				k++;
+			}
 			
 			info = PoolInfo.createPoolInfo();
             StaticProperties s = new StaticProperties();

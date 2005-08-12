@@ -3,6 +3,7 @@
  */
 package ibis.mpj;
 
+
 /**
  * Implementation of the collective operation: reduce
  */
@@ -63,47 +64,33 @@ public class ColReduce {
 		Object recv = null;
 		if (sendbuf instanceof byte[]) {
 			recv = new byte[((byte[])this.recvbuf).length];
-			System.arraycopy(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count * this.datatype.extent());
 		}
 		else if (sendbuf instanceof char[]) {
 			recv = new char[((char[])this.recvbuf).length];		
-			System.arraycopy(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count * this.datatype.extent());
 		}
 		else if (sendbuf instanceof short[]) {
 			recv = new short[((short[])this.recvbuf).length];		
-			System.arraycopy(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count * this.datatype.extent());
 		}
 		else if (sendbuf instanceof boolean[]) {
 			recv = new boolean[((boolean[])this.recvbuf).length];		
-			System.arraycopy(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count * this.datatype.extent());
 		}
 		else if (sendbuf instanceof int[])  {
 			recv = new int[((int[])this.recvbuf).length];		
-			System.arraycopy(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count * this.datatype.extent());
 		}
 		else if (sendbuf instanceof long[]) {
 			recv = new long[((long[])this.recvbuf).length];		
-			System.arraycopy(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count * this.datatype.extent());
 		}
 		else if (sendbuf instanceof float[]) {
 			recv = new float[((float[])this.recvbuf).length];		
-			System.arraycopy(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count * this.datatype.extent());
 		}
 		else if (sendbuf instanceof double[]) {
 			recv = new double[((double[])this.recvbuf).length];		
-			System.arraycopy(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count * this.datatype.extent());
 		}
 		else {
-
 			recv = new Object[((Object[])this.recvbuf).length];		
-			
-			Object[] obj = (Object[])sendbuf;
-				
-			for (int j = 0; j < this.count * this.datatype.extent(); j++) {
-				((Object[])recvbuf)[j+this.recvOffset] = ((Object)obj[j+this.sendOffset]);
-					
-			}
 		}
+		this.comm.localcopy1type(this.sendbuf, this.sendOffset, this.recvbuf, this.recvOffset, this.count, this.datatype);
+		
 		
 		mask = 1;
 

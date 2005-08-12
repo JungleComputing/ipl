@@ -279,7 +279,8 @@ public class MPJObject implements Serializable {
 			return(0);
 		}
 		else {
-			
+			System.out.println("c: " + count);
+			System.out.println("o: " + offset);
 			if ((offset + count) > ((double[])destBuf).length) {
 				count = ((double[])destBuf).length - offset;
 			}
@@ -287,6 +288,8 @@ public class MPJObject implements Serializable {
 			if ((offset + count) > ((double[])this.buffer).length) {
 				count = ((double[])this.buffer).length - offset;
 			}
+			System.out.println("c: " + count);
+			System.out.println("o: " + offset);
 			System.arraycopy(this.buffer, 0, destBuf, offset, count);
 			
 			return(count);

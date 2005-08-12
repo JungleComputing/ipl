@@ -3,8 +3,6 @@
  */
 package ibis.mpj;
 
-import java.io.*;
-
 
 import ibis.ipl.*;
 
@@ -89,7 +87,7 @@ public class IbisMPJComm extends Thread {
 		MPJObject obj = null;
 		this.status = new Status();
 		ReadMessage msg = null;
-		//boolean DEBUG = true;
+		boolean DEBUG = true;
 
 		
 		
@@ -192,7 +190,7 @@ public class IbisMPJComm extends Thread {
 									
 									con.receiveData(msg, byteBuf, 0, obj.getNumberOfElements());
 									
-									realCount = unBuffer(byteBuf, buf, offset, count * extent);
+									realCount = BufferOps.unBuffer(byteBuf, buf, offset, count * extent);
 								}
 								
 								typeSize = datatype.byteSize;
@@ -228,7 +226,7 @@ public class IbisMPJComm extends Thread {
 							
 						// 	message was buffered -> unbuffer it
 						else {
-							realCount = unBuffer(obj.getObjectData(), buf, offset, count * (extent));
+							realCount = BufferOps.unBuffer(obj.getObjectData(), buf, offset, count * (extent));
 						}
 						msgReceived = true;
 					}
@@ -287,7 +285,7 @@ public class IbisMPJComm extends Thread {
 				obj = null;
 				obj = queue.getObject(contextId, tag);
 				// found the object inside the queue
-				if (obj != null) {
+				if ((obj != null)) {
 					if(DEBUG) {
 						System.out.println("Message was found inside the queue expected -> move out of queue (mytag: " + tag + ")");
 					}
@@ -299,7 +297,7 @@ public class IbisMPJComm extends Thread {
 				
 					// message was buffered -> unbuffer it
 					else {
-						realCount = unBuffer(obj.getObjectData(), buf, offset, count * (extent));
+						realCount = BufferOps.unBuffer(obj.getObjectData(), buf, offset, count * (extent));
 					}
 					if(DEBUG) {
 						System.out.println("recv tag:       " + obj.getTag());
@@ -313,7 +311,7 @@ public class IbisMPJComm extends Thread {
 						System.out.println("supposed count: " + count * datatype.extent());
 					}
 					msgReceived = true;
-			
+					
 				}		
 				// if queue has not the requested object, try to connect to the receiveport
 				else if (obj == null) {
@@ -321,7 +319,7 @@ public class IbisMPJComm extends Thread {
 					obj = new MPJObject();
 					msg = null;
 					
-			/*		if(!blocking) {
+					/*if(!blocking) {
 						msg =con.pollForMessage();
 						
 						if (msg==null) continue;
@@ -385,7 +383,7 @@ public class IbisMPJComm extends Thread {
 							byte[] byteBuf = new byte[obj.getNumberOfElements()];
 
 							con.receiveData(msg, byteBuf, 0, obj.getNumberOfElements());
-							realCount = unBuffer(byteBuf, buf, offset, count * extent);
+							realCount = BufferOps.unBuffer(byteBuf, buf, offset, count * extent);
 						}
 							
 						typeSize = datatype.byteSize;
@@ -411,7 +409,6 @@ public class IbisMPJComm extends Thread {
 				queue.release();
 						
 			}
-		
 			
 		}			
 		
@@ -471,38 +468,7 @@ public class IbisMPJComm extends Thread {
 	
 	
 	
-	private int unBuffer(Object inbuf, Object outbuf, int offset, int count) {
-		if (outbuf instanceof byte[]) {
-			return(unBufferByte((byte[])inbuf, 0, (byte[])outbuf, offset, count));
-		}
-		else if (outbuf instanceof char[]) {
-			return(unBufferChar((byte[])inbuf, 0, (char[])outbuf, offset, count));
-		}
-		else if (outbuf instanceof short[]) {
-			return(unBufferShort((byte[])inbuf, 0, (short[])outbuf, offset, count));
-		}
-		else if (outbuf instanceof boolean[]) {
-			return(unBufferBoolean((byte[])inbuf, 0, (boolean[])outbuf, offset, count));
-		}
-		else if (outbuf instanceof int[]) {
-			return(unBufferInt((byte[])inbuf, 0, (int[])outbuf, offset, count));
-		}
-		else if (outbuf instanceof long[]) {
-			return(unBufferLong((byte[])inbuf, 0, (long[])outbuf, offset, count));
-		}
-		else if (outbuf instanceof float[]) {
-			return(unBufferFloat((byte[])inbuf, 0, (float[])outbuf, offset, count));
-		}
-		else if (outbuf instanceof double[]) {
-			return(unBufferDouble((byte[])inbuf, 0, (double[])outbuf, offset, count));
-		}
-		else {
-			return(unBufferObject((byte[])inbuf, 0, (Object[])outbuf, offset, count));
-			
-		}
-
 	
-	}
 	
 	
 	protected void doIsend() throws MPJException{
@@ -515,7 +481,7 @@ public class IbisMPJComm extends Thread {
 		sendObj.setBuffered(this.buffered);
 
 		
-		Connection con = null;
+		
 		
 		
 		if(DEBUG) {
@@ -528,14 +494,15 @@ public class IbisMPJComm extends Thread {
 
 		try {
 			String mpjHostName = this.comm.group().getMPJHostName(dest);
-			
+			Connection con = MPJ.getConnection(mpjHostName);
 			if (DEBUG) {
 				System.out.println("isend: " + this.comm.rank() + ": " + MPJ.getMyMPJHostName() + ": DEST: " + mpjHostName + "; rank: " + dest + "; tag: " + tag);
 			}
-			con = MPJ.getConnection(mpjHostName);
 			
+
 			con.putMPJObject(sendObj, buf, offset, count * datatype.extent());
 			con.sendMPJObject();
+
 			
 			
 		}
@@ -567,31 +534,31 @@ public class IbisMPJComm extends Thread {
 		if (sendBuf == null) throw new MPJException("No user space buffer attached to MPJ.");
 		
 		if (datatype.type == MPJ.BYTE.type) {
-			realcount = bufferByte(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferByte(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 		else if (datatype.type == MPJ.CHAR.type) {
-			realcount = bufferChar(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferChar(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 		else if (datatype.type == MPJ.SHORT.type) {
-			realcount = bufferShort(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferShort(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 		else if (datatype.type == MPJ.BOOLEAN.type) {
-			realcount = bufferBoolean(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferBoolean(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 		else if (datatype.type == MPJ.INT.type)  {
-			realcount = bufferInt(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferInt(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 		else if (datatype.type == MPJ.LONG.type) {
-			realcount = bufferLong(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferLong(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 		else if (datatype.type == MPJ.FLOAT.type) {				
-			realcount = bufferFloat(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferFloat(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 		else if (datatype.type == MPJ.DOUBLE.type) {
-			realcount = bufferDouble(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferDouble(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 		else {
-			realcount = bufferObject(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
+			realcount = BufferOps.bufferObject(buf, sendBuf, this.offset, this.count * this.datatype.extent(), 0);
 		}
 
 		synchronized (MPJ.bsendCount) {
@@ -872,613 +839,12 @@ public class IbisMPJComm extends Thread {
 				System.exit(-1);
 			}
 		}
-		
+	
 		this.finished = true;
 	}
 	
 	
 	
-	
-	
-	
-	
-	
-	protected static int bufferByte(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((byte[])srcBuf).length) {
-				count = ((byte[])srcBuf).length - offset;
-			}
-			
-			if ((position + count) > destBuf.length ) {
-				int newCount = destBuf.length - position;
-				if (newCount < count) {
-					count = newCount;
-				}
-			}
-			System.arraycopy(srcBuf, offset, destBuf, position, count);
-			
-			return(count+position);
-		}
-		
-		
-	}
-	
-	protected static int bufferChar(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((char[])srcBuf).length) {
-				count = ((char[])srcBuf).length - offset;
-			}
-
-			if ((position + (count * MPJ.CHAR.getByteSize())) > (destBuf.length)) {
-				
-				int newCount = (destBuf.length - position) / MPJ.CHAR.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			
-			for (int i = 0; i < count; i++) {
-				destBuf[position++] = (byte)((((char[])srcBuf)[offset+i] & 0xFF00) >>> 8);
-				destBuf[position++] = (byte)((((char[])srcBuf)[offset+i] & 0x00FF));
-			}
-			return(position);
-		}
-		
-		
-	}
-
-	protected static int bufferShort(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((short[])srcBuf).length) {
-				count = ((short[])srcBuf).length - offset;
-			}
-
-			if ((position + (count * MPJ.SHORT.getByteSize())) > (destBuf.length)) {
-				
-				int newCount = (destBuf.length - position) / MPJ.SHORT.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			
-			for (int i = offset; i < count+offset; i++) {
-				destBuf[position++] = (byte)((((short[])srcBuf)[i] & 0xFF00) >>> 8);
-				destBuf[position++] = (byte)((((short[])srcBuf)[i] & 0x00FF));
-			}
-			return(position);
-		}
-		
-		
-	}
-	
-	protected static int bufferBoolean(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((boolean[])srcBuf).length) {
-				count = ((boolean[])srcBuf).length - offset;
-			}
-			
-			if ((position + (count * MPJ.BOOLEAN.getByteSize())) > (destBuf.length)) {
-				
-				int newCount = (destBuf.length - position) / MPJ.BOOLEAN.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			
-			for (int i = offset; i < count+offset; i++) {
-				if (((boolean[])srcBuf)[i]) {
-					destBuf[position] = 1;
-				}
-				else {
-					destBuf[position] = 0;
-				}
-				position++;
-			}
-			return(position);
-		}
-		
-		
-	}
-	
-	protected static int bufferInt(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((int[])srcBuf).length) {
-				count = ((int[])srcBuf).length - offset;
-			}
-			if ((position + (count * MPJ.INT.getByteSize())) > (destBuf.length)) {
-				
-				int newCount = (destBuf.length - position) / MPJ.INT.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				destBuf[position] = (byte)((((int[])srcBuf)[i] & 0xFF000000) >>> 24);
-				position++;
-				destBuf[position] = (byte)((((int[])srcBuf)[i] & 0x00FF0000) >>> 16);
-				position++;
-				destBuf[position] = (byte)((((int[])srcBuf)[i] & 0x0000FF00) >>> 8);
-				position++;
-				destBuf[position] = (byte)((((int[])srcBuf)[i] & 0x000000FF));
-				position++;
-			}
-			return(position);
-		}
-		
-		
-	}
-	
-	protected static int bufferLong(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((long[])srcBuf).length) {
-				count = ((long[])srcBuf).length - offset;
-			}
-			if ((position + (count * MPJ.LONG.getByteSize())) > (destBuf.length)) {
-				
-				int newCount = (destBuf.length - position) / MPJ.LONG.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				destBuf[position] = (byte)((((long[])srcBuf)[i] & 0xFF00000000000000L) >>> 56);
-				position++;
-				destBuf[position] = (byte)((((long[])srcBuf)[i] & 0x00FF000000000000L) >>> 48);
-				position++;
-				destBuf[position] = (byte)((((long[])srcBuf)[i] & 0x0000FF0000000000L) >>> 40);
-				position++;
-				destBuf[position] = (byte)((((long[])srcBuf)[i] & 0x000000FF00000000L) >>> 32);
-				position++;
-				destBuf[position] = (byte)((((long[])srcBuf)[i] & 0x00000000FF000000L) >>> 24);
-				position++;
-				destBuf[position] = (byte)((((long[])srcBuf)[i] & 0x0000000000FF0000L) >>> 16);
-				position++;
-				destBuf[position] = (byte)((((long[])srcBuf)[i] & 0x000000000000FF00L) >>> 8);
-				position++;
-				destBuf[position] = (byte)((((long[])srcBuf)[i] & 0x00000000000000FFL));
-				position++;
-			}
-			return(position);
-		}
-		
-		
-	}
-	
-	protected static int bufferFloat(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((float[])srcBuf).length) {
-				count = ((float[])srcBuf).length - offset;
-			}
-			
-			if ((position + (count * MPJ.FLOAT.getByteSize())) > (destBuf.length)) {
-				
-				int newCount = (destBuf.length - position) / MPJ.FLOAT.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				int intBits = Float.floatToIntBits(((float[])srcBuf)[i]);
-				destBuf[position] = (byte)((intBits) >>> 24);
-				position++;
-				destBuf[position] = (byte)((intBits) >>> 16);
-				position++;
-				destBuf[position] = (byte)((intBits) >>> 8);
-				position++;
-				destBuf[position] = (byte)((intBits));
-				position++;
-		    }
-			return(position);
-		}
-		
-	}
-	
-	protected static int bufferDouble(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((double[])srcBuf).length) {
-				count = ((double[])srcBuf).length - offset;
-			}
-			
-			if ((position + (count * MPJ.DOUBLE.getByteSize())) > (destBuf.length)) {
-				
-				int newCount = (destBuf.length - position) / MPJ.DOUBLE.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				long longBits = Double.doubleToLongBits(((double[])srcBuf)[i]);
-				destBuf[position] = (byte)((longBits) >>> 56);
-				position++;
-				destBuf[position] = (byte)((longBits) >>> 48);
-				position++;
-				destBuf[position] = (byte)((longBits) >>> 40);
-				position++;
-				destBuf[position] = (byte)((longBits) >>> 32);
-				position++;
-				destBuf[position] = (byte)((longBits) >>> 24);
-				position++;
-				destBuf[position] = (byte)((longBits) >>> 16);
-				position++;
-				destBuf[position] = (byte)((longBits) >>> 8);
-				position++;
-				destBuf[position] = (byte)((longBits));
-				position++;
-		    }
-			return(position);		
-		}
-		
-		
-	}
-	
-	protected static int bufferObject(Object srcBuf, byte[] destBuf, int offset, int count, int position) {
-		
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((Object[])srcBuf).length) {
-				count = ((Object[])srcBuf).length - offset;
-			}
-			try {
-				ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
-				ObjectOutputStream objectOutStream = new ObjectOutputStream(byteOutStream);
-
-				for (int i = offset; i < count+offset; i++) {
-					objectOutStream.writeObject(((Object[])srcBuf)[i]);
-					
-				}
-
-				count = byteOutStream.size();
-				
-				if ((count+position) <= destBuf.length) {
-					System.arraycopy(byteOutStream.toByteArray(), 0, destBuf, position, count);
-				}
-				
-				return(count + position);	
-			} 
-			catch (Exception e) {
-				System.err.println(e.getMessage());
-				e.printStackTrace();
-				return(0);
-			}
-		}
-		
-		
-	}
-	
-	
-	protected static int unBufferByte(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((byte[])destBuf).length) {
-				count = ((byte[])destBuf).length - offset;
-			}
-			
-			if ((count + position) > srcBuf.length) {
-				
-				int newCount = srcBuf.length - position;
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-			System.arraycopy(srcBuf, position, (byte[])destBuf, offset, count);
-			
-			return(count + position);
-		}
-	}
-	
-	protected static int unBufferChar(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((char[])destBuf).length) {
-				count = ((char[])destBuf).length - offset;
-			}
-
-			if ((position + (count * MPJ.CHAR.getByteSize())) > (srcBuf.length)) {
-				
-				int newCount = (srcBuf.length - position)/ MPJ.CHAR.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				
-				((char[])destBuf)[i] = (char)(((srcBuf[position] & 0xFF00) << 8)
-											+(srcBuf[position+1] & 0x00FF));
-				position += MPJ.CHAR.getByteSize();
-			}
-			return(position);
-		}
-		
-		
-	}
-
-
-
-	protected static int unBufferShort(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((short[])destBuf).length) {
-				count = ((short[])destBuf).length - offset;
-			}
-
-			if (((count * MPJ.SHORT.getByteSize()) + position) > (srcBuf.length)) {
-				
-				int newCount = (srcBuf.length -position) / MPJ.SHORT.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				
-				((short[])destBuf)[i] = (short)(((srcBuf[position] & 0xFF00) << 8)
-										      +(srcBuf[position+1] & 0x00FF));
-				position += MPJ.SHORT.getByteSize();
-			}
-			return(position);
-		}
-		
-		
-	}
-
-	
-	
-	
-	protected static int unBufferBoolean(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((boolean[])destBuf).length) {
-				count = ((boolean[])destBuf).length - offset;
-			}
-
-			if (((count * MPJ.BOOLEAN.getByteSize()) + position) > (srcBuf.length)) {
-				
-				int newCount = (srcBuf.length - position) / MPJ.CHAR.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				
-				if (srcBuf[position] != 0) {
-					((boolean[])destBuf)[i] = true;
-				}
-				else {
-					((boolean[])destBuf)[i] = false;
-				}
-				position++;
-			}
-			return(position);
-		}
-		
-		
-	}
-
-	
-	
-	protected static int unBufferInt(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((int[])destBuf).length) {
-				count = ((int[])destBuf).length - offset;
-			}
-
-			if (((count * MPJ.INT.getByteSize()) + position) > (srcBuf.length)) {
-				
-				int newCount = (srcBuf.length - position) / MPJ.INT.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				
-			
-				((int[])destBuf)[i] = (int)(((srcBuf[position]& 0xff) << 24)
-                        				  + ((srcBuf[position+1]& 0xff) << 16)
-										  + ((srcBuf[position+2]& 0xff) << 8)
-										  + ((srcBuf[position+3]& 0xff)));
-				
-				position += MPJ.INT.getByteSize();
-			}
-			return(position);
-		}
-		
-		
-	}
-
-	protected static int unBufferLong(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((long[])destBuf).length) {
-				count = ((long[])destBuf).length - offset;
-			}
-
-			if (((count * MPJ.LONG.getByteSize()) + position) > (srcBuf.length)) {
-				
-				int newCount = (srcBuf.length - position) / MPJ.LONG.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-
-				((long[])destBuf)[i] = (long)(((srcBuf[position]  & 0xff) << 56)
-							   	   	       + ((srcBuf[position+1] & 0xff) << 48)
-										   + ((srcBuf[position+2] & 0xff) << 40)
-										   + ((srcBuf[position+3] & 0xff) << 32)
-				                           + ((srcBuf[position+4] & 0xff) << 24)
-				                           + ((srcBuf[position+5] & 0xff) << 16)
-				                           + ((srcBuf[position+6] & 0xff) << 8)
-										   + ((srcBuf[position+7] & 0xff)));
-				
-				position += MPJ.LONG.getByteSize();
-			}
-			return(position);
-		}
-	}
-
-	
-	
-	
-	protected static int unBufferFloat(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((float[])destBuf).length) {
-				count = ((float[])destBuf).length - offset;
-			}
-
-			if (((count * MPJ.FLOAT.getByteSize()) + position) > (srcBuf.length)) {
-				
-				int newCount = (srcBuf.length - position) / MPJ.FLOAT.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-				int intBits = (int)(((srcBuf[position] & 0xff) << 24)
-                        		+ ((srcBuf[position+1] & 0xff) << 16)
-								+ ((srcBuf[position+2] & 0xff) << 8)
-								+ ((srcBuf[position+3] & 0xff)));
-
-				((float[])destBuf)[i] = (float)Float.intBitsToFloat(intBits);
-				position += MPJ.FLOAT.getByteSize();
-			}
-			return(position);
-		}
-		
-		
-	}
-
-	
-	protected static int unBufferDouble(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-			
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((double[])destBuf).length) {
-				count = ((double[])destBuf).length - offset;
-			}
-
-			if (((count * MPJ.DOUBLE.getByteSize()) + position)> (srcBuf.length)) {
-				
-				int newCount = (srcBuf.length - position) / MPJ.DOUBLE.getByteSize();
-				if ( newCount < count) {
-				    count = newCount;
-				}
-			}
-
-			for (int i = offset; i < count+offset; i++) {
-
-				
-				long longBits = (long)((((long)srcBuf[position] & 0xff) << 56)
-						    	   + (((long)srcBuf[position+1] & 0xff) << 48)
-								   + (((long)srcBuf[position+2] & 0xff) << 40)
-								   + (((long)srcBuf[position+3] & 0xff) << 32)
-				                   + (((long)srcBuf[position+4] & 0xff) << 24)
-				                   + (((long)srcBuf[position+5] & 0xff) << 16)
-				                   + (((long)srcBuf[position+6] & 0xff) << 8)
-								   + (((long)srcBuf[position+7] & 0xff)));
-				
-
-				((double[])destBuf)[i] = (double)Double.longBitsToDouble(longBits);
-				position += MPJ.DOUBLE.getByteSize();
-			}
-			return(position);
-		}
-		
-		
-	}
-
-	
-	
-	protected static int unBufferObject(byte[] srcBuf, int position, Object destBuf, int offset, int count) {
-		if ((count == 0) || (srcBuf == null)) {
-			return(0);
-		}
-		else {
-			if ((offset + count) > ((Object[])destBuf).length) {
-				count = ((Object[])destBuf).length - offset;
-			}
-
-			
-			try {
-				
-				byte[] tmp = new byte[((byte[])srcBuf).length - position];
-				System.arraycopy(srcBuf, position, tmp, 0, tmp.length);
-				
-				ByteArrayInputStream byteInputStream = new ByteArrayInputStream(tmp);
-				ObjectInputStream objectInputStream = new ObjectInputStream(byteInputStream);
-				
-			
-				for (int i=offset; i < count+offset; i++) {
-					((Object[])destBuf)[i] = (Object)objectInputStream.readObject();
-					
-				}
-				position = ((byte[])srcBuf).length - byteInputStream.available();
-				
-				return(position);
-			}
-			catch (Exception e) {
-				System.err.println(e.getMessage());
-				e.printStackTrace();
-				return(0);
-			}
-		}
-	}
-
 
    
 }

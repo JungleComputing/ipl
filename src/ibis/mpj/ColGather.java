@@ -53,14 +53,17 @@ public class ColGather {
 		}
 
 		if (rank == root) {
-			this.comm.send(this.sendbuf, this.sendoffset, this.sendcount, this.sendtype, root, this.tag);
+			this.comm.localcopy2types(sendbuf, sendoffset, sendcount, sendtype,
+								recvbuf, recvoffset + (rank * this.recvcount * recvtype.extent()), recvcount, recvtype);
+			
+			//this.comm.send(this.sendbuf, this.sendoffset, this.sendcount, this.sendtype, root, this.tag);
 			
 			Object recv = null;
 			int position = 0;
 			for (int i=0; i < size; i++) {
 				
-
-				this.comm.recv(recvbuf, this.recvoffset + (i * this.recvcount * recvtype.extent()), this.recvcount, this.recvtype, i, this.tag);
+				if (i != rank)
+				  this.comm.recv(recvbuf, this.recvoffset + (i * this.recvcount * recvtype.extent()), this.recvcount, this.recvtype, i, this.tag);
 			
 			}
 	

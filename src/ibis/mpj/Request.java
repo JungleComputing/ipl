@@ -184,6 +184,7 @@ public class Request {
 			status[i] = null;
 			while (status[i] == null)
 				status[i] = arrayOfRequests[i].test();
+				Thread.yield();
 		}
 		
 		

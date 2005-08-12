@@ -78,7 +78,7 @@ public class ColScan {
 				else {
 					tempBuf = new Object[((Object[])this.recvbuf).length];
 				}  
-				System.arraycopy(this.sendbuf, this.sendoffset, this.recvbuf, this.recvoffset, this.count * datatype.extent());
+				this.comm.localcopy1type(this.sendbuf, this.sendoffset, this.recvbuf, this.recvoffset, this.count, datatype);				
 
 				this.comm.recv(tempBuf, recvoffset, count, datatype, rank - 1, tag);
 			
@@ -91,6 +91,7 @@ public class ColScan {
 			
 			
 			}
+
 		}
 		if (rank < (size - 1)) {
 			this.comm.send(recvbuf, recvoffset, count, datatype, rank + 1, tag);

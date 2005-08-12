@@ -4,6 +4,8 @@
 package ibis.mpj;
 
 
+import ibis.io.*;
+
 import java.io.*;
 import java.util.*;
 
@@ -15,8 +17,8 @@ public class Comm {
 	protected Group group;
 	protected int contextId = MPJ.UNDEFINED;
 	protected boolean isInterComm = false;
-	
-	
+	IbisMPJComm ibisMPJsend = new IbisMPJComm();	
+	IbisMPJComm ibisMPJrecv = new IbisMPJComm();
 	
 	/**
 	 * @throws MPJException
@@ -214,9 +216,28 @@ public class Comm {
 	 * @throws MPJException
 	 */
 	public void send(Object buf, int offset, int count, Datatype datatype, int dest, int tag) throws MPJException {
-		IbisMPJComm ibisMPJ = new IbisMPJComm(this, this.rank(), buf, offset, count, datatype, this.rank(), dest, tag, IbisMPJComm.OP_ISEND);
-		
-		ibisMPJ.doIsend();
+		//ibisMPJ. = setIbisMPJComm(this, this.rank(), buf, offset, count, datatype, this.rank(), dest, tag, );
+
+		ibisMPJsend.buf = buf;
+		ibisMPJsend.offset = offset;
+		ibisMPJsend.count = count;
+		ibisMPJsend.datatype = datatype;
+		ibisMPJsend.dest = dest;
+		ibisMPJsend.source = this.rank();
+		ibisMPJsend.tag = tag;
+		ibisMPJsend.mode = IbisMPJComm.OP_ISEND;
+		ibisMPJsend.comm = this;
+		ibisMPJsend.myRank = this.rank();
+		ibisMPJsend.request = new Request();
+		ibisMPJsend.request.setIbisMPJComm(ibisMPJsend);
+		ibisMPJsend.status = new Status();
+		ibisMPJsend.status.setSource(0);
+		ibisMPJsend.status.setTag(0);
+		ibisMPJsend.status.setCount(0);
+		ibisMPJsend.contextId = this.contextId;
+		ibisMPJsend.finished = false;
+
+		ibisMPJsend.doIsend();
 		
 	}
 	
@@ -235,11 +256,31 @@ public class Comm {
 	 * @throws MPJException
 	 */
 	public Status recv(Object buf, int offset, int count, Datatype datatype, int source, int tag) throws MPJException {
-		IbisMPJComm ibisMPJ = new IbisMPJComm(this, this.rank(), buf, offset, count, datatype, source, this.rank(), tag, IbisMPJComm.OP_IRECV);
+		//IbisMPJComm ibisMPJ = new IbisMPJComm(this, this.rank(), buf, offset, count, datatype, source, this.rank(), tag, IbisMPJComm.OP_IRECV);
 		
-		ibisMPJ.doIrecv(true);
-		return(ibisMPJ.getStatus());
+		ibisMPJrecv.buf = buf;
+		ibisMPJrecv.offset = offset;
+		ibisMPJrecv.count = count;
+		ibisMPJrecv.datatype = datatype;
+		ibisMPJrecv.dest = this.rank();
+		ibisMPJrecv.source = source;
+		ibisMPJrecv.tag = tag;
+		ibisMPJrecv.mode = IbisMPJComm.OP_ISEND;
+		ibisMPJrecv.comm = this;
+		ibisMPJrecv.myRank = this.rank();
+		ibisMPJrecv.request = new Request();
+		ibisMPJrecv.request.setIbisMPJComm(ibisMPJsend);
+		ibisMPJrecv.status = new Status();
+		ibisMPJrecv.status.setSource(0);
+		ibisMPJrecv.status.setTag(0);
+		ibisMPJrecv.status.setCount(0);
+		ibisMPJrecv.contextId = this.contextId;
+		ibisMPJrecv.finished = false;
 		
+		
+		ibisMPJrecv.doIrecv(true);
+		return(ibisMPJrecv.getStatus());
+
 	}
 	
 	
@@ -720,31 +761,31 @@ public class Comm {
 	 */
 	public int pack(Object inbuf, int offset, int incount, Datatype datatype, byte[] outbuf, int position) throws MPJException {
 		if (datatype == MPJ.BYTE) {
-			return(IbisMPJComm.bufferByte(inbuf, outbuf, offset, incount, position));
+			return(BufferOps.bufferByte(inbuf, outbuf, offset, incount, position));
 		}
 		else if (datatype == MPJ.CHAR) {
-			return(IbisMPJComm.bufferChar(inbuf, outbuf, offset, incount, position));
+			return(BufferOps.bufferChar(inbuf, outbuf, offset, incount, position));
 		}
 		else if (datatype == MPJ.SHORT) {
-			return(IbisMPJComm.bufferShort(inbuf, outbuf, offset, incount, position));
+			return(BufferOps.bufferShort(inbuf, outbuf, offset, incount, position));
 		}
 		else if (datatype == MPJ.BOOLEAN) {
-			return(IbisMPJComm.bufferBoolean(inbuf, outbuf, offset, incount, position));
+			return(BufferOps.bufferBoolean(inbuf, outbuf, offset, incount, position));
 		}
 		else if (datatype == MPJ.INT)  {
-			return(IbisMPJComm.bufferInt(inbuf, outbuf, offset, incount, position));
+			return(BufferOps.bufferInt(inbuf, outbuf, offset, incount, position));
 		}
 		else if (datatype == MPJ.LONG) {
-			return(IbisMPJComm.bufferLong(inbuf, outbuf, offset, incount, position));
+			return(BufferOps.bufferLong(inbuf, outbuf, offset, incount, position));
 		}
 		else if (datatype == MPJ.FLOAT) {				
-			return(IbisMPJComm.bufferFloat(inbuf, outbuf, offset, incount, position));			
+			return(BufferOps.bufferFloat(inbuf, outbuf, offset, incount, position));			
 		}
 		else if (datatype == MPJ.DOUBLE) {
-			return(IbisMPJComm.bufferDouble(inbuf, outbuf, offset, incount, position));
+			return(BufferOps.bufferDouble(inbuf, outbuf, offset, incount, position));
 		}
 		else if (datatype == MPJ.OBJECT) {
-			return(IbisMPJComm.bufferObject(inbuf, outbuf, offset, incount, position));
+			return(BufferOps.bufferObject(inbuf, outbuf, offset, incount, position));
 		}
 		return(0);
 	}
@@ -763,39 +804,39 @@ public class Comm {
 		byte[] outbuf = new byte[incount * datatype.getByteSize()];
 		
 		if (datatype == MPJ.BYTE) {
-			IbisMPJComm.bufferByte(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferByte(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		else if (datatype == MPJ.CHAR) {
-			IbisMPJComm.bufferChar(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferChar(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		else if (datatype == MPJ.SHORT) {
-			IbisMPJComm.bufferShort(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferShort(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		else if (datatype == MPJ.BOOLEAN) {
-			IbisMPJComm.bufferBoolean(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferBoolean(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		else if (datatype == MPJ.INT)  {
-			IbisMPJComm.bufferInt(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferInt(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		else if (datatype == MPJ.LONG) {
-			IbisMPJComm.bufferLong(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferLong(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		else if (datatype == MPJ.FLOAT) {				
-			IbisMPJComm.bufferFloat(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferFloat(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		else if (datatype == MPJ.DOUBLE) {
-			IbisMPJComm.bufferDouble(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferDouble(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		else if (datatype == MPJ.OBJECT) {
-			IbisMPJComm.bufferObject(inbuf, outbuf, offset, incount, 0);
+			BufferOps.bufferObject(inbuf, outbuf, offset, incount, 0);
 			return(outbuf);
 		}
 		return(null);
@@ -817,31 +858,31 @@ public class Comm {
 	 */
 	public int unpack(byte[] inbuf, int position, Object outbuf, int offset, int outcount, Datatype datatype) throws MPJException {
 	    if (datatype == MPJ.BYTE) {
-	    	return(IbisMPJComm.unBufferByte(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferByte(inbuf, position, outbuf, offset, outcount));
 	    }
 	    else if (datatype == MPJ.CHAR) {
-	    	return(IbisMPJComm.unBufferChar(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferChar(inbuf, position, outbuf, offset, outcount));
 	    }
 	    else if (datatype == MPJ.SHORT) {
-	    	return(IbisMPJComm.unBufferShort(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferShort(inbuf, position, outbuf, offset, outcount));
 	    }
 	    else if (datatype == MPJ.BOOLEAN) {
-	    	return(IbisMPJComm.unBufferBoolean(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferBoolean(inbuf, position, outbuf, offset, outcount));
 	    }
 	    else if (datatype == MPJ.INT) {
-	    	return(IbisMPJComm.unBufferInt(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferInt(inbuf, position, outbuf, offset, outcount));
 	    }
 	    else if (datatype == MPJ.LONG) {
-	    	return(IbisMPJComm.unBufferLong(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferLong(inbuf, position, outbuf, offset, outcount));
 	    }
 	    else if (datatype == MPJ.FLOAT) {
-	    	return(IbisMPJComm.unBufferFloat(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferFloat(inbuf, position, outbuf, offset, outcount));
 	    }
 	    else if (datatype == MPJ.DOUBLE) {
-	    	return(IbisMPJComm.unBufferDouble(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferDouble(inbuf, position, outbuf, offset, outcount));
 	    }
 	    else if ((datatype == MPJ.OBJECT)) {
-	    	return(IbisMPJComm.unBufferObject(inbuf, position, outbuf, offset, outcount));
+	    	return(BufferOps.unBufferObject(inbuf, position, outbuf, offset, outcount));
 	    }
 	    return(0);
 	}
@@ -893,155 +934,103 @@ public class Comm {
 
 
 
-	public Object copyBuffer(Object inbuf, int offset, int count, Datatype datatype) throws MPJException {
-		count = count * datatype.extent();
-		
+	
+	
+	protected void localcopy1type(Object inbuf, int inoffset, Object outbuf, int outoffset, int count, Datatype datatype) throws MPJException {
 		if (inbuf instanceof byte[]) {
-	    	byte[] ibuf = (byte[])inbuf;
-			byte[] obuf = new byte[count];
+			System.arraycopy(inbuf, inoffset, outbuf, outoffset, count * datatype.extent());
+		}
+		else if (inbuf instanceof char[]) {
+			System.arraycopy(inbuf, inoffset, outbuf, outoffset, count * datatype.extent());
+		}
+		else if (inbuf instanceof short[]) {
+			System.arraycopy(inbuf, inoffset, outbuf, outoffset, count * datatype.extent());
+		}
+		else if (inbuf instanceof boolean[]) {
+			System.arraycopy(inbuf, inoffset, outbuf, outoffset, count * datatype.extent());
+		}
+		else if (inbuf instanceof int[])  {
+			System.arraycopy(inbuf, inoffset, outbuf, outoffset, count * datatype.extent());
+		}
+		else if (inbuf instanceof long[]) {
+			System.arraycopy(inbuf, inoffset, outbuf, outoffset, count * datatype.extent());
+		}
+		else if (inbuf instanceof float[]) {
+			System.arraycopy(inbuf, inoffset, outbuf, outoffset, count * datatype.extent());
+		}
+		else if (inbuf instanceof double[]) {
+			System.arraycopy(inbuf, inoffset, outbuf, outoffset, count * datatype.extent());
+		}
+		else {
 			
-			if ((offset + count) > ((byte[])inbuf).length ) {
-				count = ((byte[])inbuf).length - offset;
-			}
+			if (MPJ.LOCALCOPYIBIS) {
+				StoreBuffer stBuf = new StoreBuffer();
 			
-			for (int i = offset; i<offset+count; i++) {
-				obuf[i-offset] = ibuf[i];
+				StoreArrayInputStream sin = null;
+				SerializationOutput mout = null;
+				SerializationInput min = null;
+
+				StoreOutputStream store_out = new StoreOutputStream(stBuf);
+				StoreInputStream store_in = new StoreInputStream(stBuf);
+           
+				ibis.io.DataOutputStream out = out = new BufferedArrayOutputStream(store_out);
+				ibis.io.DataInputStream in =  in = new BufferedArrayInputStream(store_in);
+           
+				try {
+					mout = new IbisSerializationOutputStream(out);
+					min = new IbisSerializationInputStream(in);
+           
+					int extent = datatype.extent();
+					
+            		mout.writeArray(((Object[])inbuf), inoffset, count * extent);
+					mout.flush();
+					min.readArray((Object[])outbuf, outoffset, count * extent);
+
+				}	
+				catch (ClassNotFoundException e) {
+            		throw new MPJException(e.getMessage());
+            	}
+            
+            	catch (IOException e) {
+            		throw new MPJException(e.getMessage());
+            	}
 			}
+			else {
+				
+				try {
+                    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                    ObjectOutputStream oout = new ObjectOutputStream(bout);
+
+                    int extent = datatype.extent();
+                    
+                    for (int i=0; i < count * extent; i++) {
+						oout.writeObject(((Object[])inbuf)[i+inoffset]);
+					}
+					oout.flush();
+
+					ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
+                    ObjectInputStream oin = new ObjectInputStream(bin);
+
+					for (int i=0; i < count * extent; i++) {
+						((Object[])outbuf)[i+outoffset] = oin.readObject();
+					}
+
+                    System.gc();
+                } catch (Exception e) {
+                    throw new MPJException(e.getMessage());
+                }
+			}
+
 			
-			return(obuf);
-	    }
-	    else if (inbuf instanceof char[]) {
-	    	char[] ibuf = (char[])inbuf;
-			char[] obuf = new char[count];
-
-			if ((offset + count) > ((char[])inbuf).length ) {
-				count = ((char[])inbuf).length - offset;
-			}
-
-			for (int i = offset; i<offset+count; i++) {
-				obuf[i-offset] = ibuf[i];
-			}
-			return(obuf);
-	    }
-	    else if (inbuf instanceof short[]) {
-	    	short[] ibuf = (short[])inbuf;
-			short[] obuf = new short[count];
+		}	
 			
-			if ((offset + count) > ((short[])inbuf).length ) {
-				count = ((short[])inbuf).length - offset;
-			}
-
-			for (int i = offset; i<offset+count; i++) {
-				obuf[i-offset] = ibuf[i];
-			}
-			return(obuf);
-	    }
-	    else if (inbuf instanceof boolean[]) {
-	    	boolean[] ibuf = (boolean[])inbuf;
-			boolean[] obuf = new boolean[count];
-			
-			if ((offset + count) > ((boolean[])inbuf).length ) {
-				count = ((boolean[])inbuf).length - offset;
-			}
-
-			for (int i = offset; i<offset+count; i++) {
-				obuf[i-offset] = ibuf[i];
-			}
-			return(obuf);
-	    }
-	    else if (inbuf instanceof int[]) {
-	    	int[] ibuf = (int[])inbuf;
-			int[] obuf = new int[count];
-			
-			if ((offset + count) > ((int[])inbuf).length ) {
-				count = ((int[])inbuf).length - offset;
-			}
-
-			for (int i = offset; i<offset+count; i++) {
-				obuf[i-offset] = ibuf[i];
-			}
-			return(obuf);
-	    }
-	    else if (inbuf instanceof long[]) {
-	    	long[] ibuf = (long[])inbuf;
-			long[] obuf = new long[count];
-			
-			if ((offset + count) > ((long[])inbuf).length ) {
-				count = ((long[])inbuf).length - offset;
-			}
-
-			for (int i = offset; i<offset+count; i++) {
-				obuf[i-offset] = ibuf[i];
-			}
-			return(obuf);
-	    }
-	    else if (inbuf instanceof float[]) {
-	    	float[] ibuf = (float[])inbuf;
-			float[] obuf = new float[count];
-			
-			if ((offset + count) > ((float[])inbuf).length ) {
-				count = ((float[])inbuf).length - offset;
-			}
-
-			for (int i = offset; i<offset+count; i++) {
-				obuf[i-offset] = ibuf[i];
-			}
-			return(obuf);
-	    }
-	    else if (inbuf instanceof double[]) {
-	    	double[] ibuf = (double[])inbuf;
-			double[] obuf = new double[count];
-			
-			if ((offset + count) > ((double[])inbuf).length ) {
-				count = ((double[])inbuf).length - offset;
-			}
-
-			for (int i = offset; i<offset+count; i++) {
-				obuf[i-offset] = ibuf[i];
-			}
-			return(obuf);
-	    }
-	    else if (datatype == MPJ.OBJECT) {
-
-	    	ByteArrayOutputStream byteStream = null;
-	    	ObjectOutputStream objectStream = null;
-
-	    	Object[] ibuf = (Object[])inbuf;
-
-	    	try {
-	    		byteStream = new ByteArrayOutputStream();
-	    		objectStream = new ObjectOutputStream(byteStream);
-	    	
-				if ((offset + count) > ((Object[])inbuf).length ) {
-					count = ((Object[])inbuf).length - offset;
-				}
-
-	    		
-	    		for (int i = offset; i < (offset + count); i++) {
-	    		    objectStream.writeObject(ibuf[i]);
-	    		}
-	    		
-	    		
-	    		return(byteStream.toByteArray());
-	    	} 
-	    	catch (IOException e) {
-	    		System.err.println(e.getMessage());
-	    		throw new MPJException(e.getMessage());
-	    		
-
-	    	}
-	    }
-	    else {
-	    	throw new MPJException("copyBuffer: Buffer instance type not found.");
-	    }
-		
 		
 	}
+	
+	
 
-
-
-	protected void localcopy(Object inbuf, int inoffset, int incount, Datatype intype, 
-							 Object outbuf, int outoffset, int outcount, Datatype outtype) throws MPJException {
+	protected void localcopy2types(Object inbuf, int inoffset, int incount, Datatype intype, 
+							 	   Object outbuf, int outoffset, int outcount, Datatype outtype) throws MPJException {
 		
 	
 		int inExtent = intype.extent();
@@ -1068,6 +1057,8 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		
 		}
 	
@@ -1091,6 +1082,8 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		}
 		else if (inbuf instanceof char[]) {
 			if (!(outbuf instanceof char[])) {
@@ -1108,6 +1101,8 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		}
 		else if (inbuf instanceof short[]) {
 			if (!(outbuf instanceof short[])) {
@@ -1126,6 +1121,8 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		}
 		else if (inbuf instanceof boolean[]) {
 			if (!(outbuf instanceof boolean[])) {
@@ -1144,6 +1141,8 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		}
 		else if (inbuf instanceof int[])  {
 			if (!(outbuf instanceof int[])) {
@@ -1162,6 +1161,8 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		
 		}
 		else if (inbuf instanceof long[]) {
@@ -1181,6 +1182,8 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		}
 		else if (inbuf instanceof float[]) {
 			if (!(outbuf instanceof float[])) {
@@ -1198,6 +1201,8 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		}
 		else if (inbuf instanceof double[]) {
 			if (!(outbuf instanceof double[])) {
@@ -1215,12 +1220,13 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+			System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
+			System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 		}
 		else {
 			inLength = ((Object[])inbuf).length;
 			outLength = ((Object[])outbuf).length;
 			
-			tmpbuf = new Object[incount * inExtent];
 			while (inLength < inoffset + incount * inExtent) {
 				incount--;
 			}
@@ -1228,10 +1234,72 @@ public class Comm {
 			while (outLength < outoffset + outcount * outExtent) {
 				outcount--;
 			}
+
+			
+			if (MPJ.LOCALCOPYIBIS) {
+				
+				StoreBuffer stBuf = new StoreBuffer();
+			
+				StoreArrayInputStream sin = null;
+				SerializationOutput mout = null;
+				SerializationInput min = null;
+
+				StoreOutputStream store_out = new StoreOutputStream(stBuf);
+				StoreInputStream store_in = new StoreInputStream(stBuf);
+           
+				ibis.io.DataOutputStream out = out = new BufferedArrayOutputStream(store_out);
+				ibis.io.DataInputStream in =  in = new BufferedArrayInputStream(store_in);
+           
+				try {
+					mout = new IbisSerializationOutputStream(out);
+					min = new IbisSerializationInputStream(in);
+           
+					mout.writeArray(((Object[])inbuf), inoffset, incount * inExtent);
+					mout.flush();
+					min.readArray((Object[])outbuf, outoffset, outcount * outExtent);
+
+					mout.realClose();
+					min.realClose();
+            	
+				}	
+				catch (ClassNotFoundException e) {
+					throw new MPJException(e.getMessage());
+				}
+            
+				catch (IOException e) {
+					throw new MPJException(e.getMessage());
+				}
+			}
+			else {
+				
+				try {
+                    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                    ObjectOutputStream oout = new ObjectOutputStream(bout);
+                    
+                    for (int i=0; i < incount * inExtent; i++) {
+						oout.writeObject((Object)((Object[])inbuf)[i+inoffset]);
+                    }
+                    oout.flush();
+
+                    ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
+                    ObjectInputStream oin = new ObjectInputStream(bin);
+
+                    for (int i=0; i < outcount * outExtent; i++) {
+						((Object[])outbuf)[i+outoffset] = oin.readObject();
+					}
+
+                    System.gc();
+                } catch (Exception e) {
+                	e.printStackTrace();
+                	throw new MPJException(e.getMessage());
+                   
+                }
+			}
+
+		
+		
 		}
 
-		System.arraycopy(inbuf, inoffset, tmpbuf, 0, incount * intype.extent());
-		System.arraycopy(tmpbuf, 0, outbuf, outoffset, outcount * outtype.extent());
 
 	}
 
