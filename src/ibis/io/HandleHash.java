@@ -121,7 +121,7 @@ public final class HandleHash {
 
     static final int getHashCode(Object ref) {
         int h = System.identityHashCode(ref);
-        return ((h >>> 16) ^ (h & ((1 << 16) - 1)));
+        return ((h >>> 5) ^ (h & ((1 << 16) - 1)));
     }
 
     public final int find(Object ref) {

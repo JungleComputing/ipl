@@ -37,7 +37,7 @@ final class IbisHash {
     /* Choose this value between 1 and 3 */
     private static final int PRE_ALLOC_FACTOR = 1;
 
-    // private static final int SHIFT1  = 5;
+    private static final int SHIFT1  = 5;
     // private static final int SHIFT1  = 4;
     private static final int SHIFT2 = 16;
 
@@ -142,8 +142,8 @@ final class IbisHash {
     }
 
     private static final int hash_first(int b, int size) {
-        // return ((b >>> SHIFT1) ^ (b & ((1 << SHIFT2) - 1))) & (size-1);
-        return ((b >>> SHIFT2) ^ (b & ((1 << SHIFT2) - 1))) & (size - 1);
+        return ((b >>> SHIFT1) ^ (b & ((1 << SHIFT2) - 1))) & (size-1);
+        // return ((b >>> SHIFT2) ^ (b & ((1 << SHIFT2) - 1))) & (size - 1);
         // This is used in java.util.IdentityHashMap:
         // return ((b << 1) - (b << 8)) & (size - 1);
         // return (b - (b << 7)) & (size - 1);
