@@ -52,6 +52,7 @@ rmi:
 - check Ibis RMI registry:
   - you don't have to actually start one;
   - registers url's, not names.
+- BUGS in rmi stubs (& skeletons?) -> if there is an IOexception, messages are not finished! --Rob
 
 satin:
 - add semantic analysis to the compiler
