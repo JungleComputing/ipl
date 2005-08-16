@@ -5,5 +5,5 @@ This program tests the MPI_ABORT call, and will generate
 error messages.
 STDERR:
 Exception in thread "main" ibis.mpj.MPJException: Abort called. Errorcode: 5
-	at ibis.mpj.Comm.abort(Comm.java:891)
-	at abort.main(abort.java:64)
+	at ibis.mpj.Comm.abort(Comm.java://891)
+	at abort.main(abort.java://64)
