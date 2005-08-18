@@ -2,10 +2,11 @@
 
 package ibis.impl.net;
 
+import ibis.io.Replacer;
+
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;

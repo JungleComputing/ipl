@@ -2,15 +2,18 @@
 
 package ibis.impl.messagePassing;
 
+import ibis.io.Replacer;
+
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
-import ibis.ipl.Replacer;
 import ibis.ipl.StaticProperties;
+
 import ibis.util.ConditionVariable;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+
 import java.util.Map;
 
 /**

@@ -2,7 +2,7 @@
 
 package ibis.impl.net;
 
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

@@ -2,7 +2,6 @@
 
 package ibis.io;
 
-import ibis.ipl.Replacer;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

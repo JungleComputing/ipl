@@ -3,12 +3,12 @@
 package ibis.impl.nio;
 
 import ibis.io.SerializationOutput;
+import ibis.io.Replacer;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;

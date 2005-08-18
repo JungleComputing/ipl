@@ -3,7 +3,7 @@
 package ibis.impl.net;
 
 import ibis.io.SerializationOutput;
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 
 import java.io.IOException;
 

@@ -2,6 +2,8 @@
 
 package ibis.ipl;
 
+import ibis.io.Replacer;
+
 import java.io.IOException;
 import java.util.Map;
 

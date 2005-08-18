@@ -2,7 +2,7 @@
 
 package ibis.rmi.impl;
 
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 import ibis.rmi.Remote;
 import ibis.rmi.server.RemoteStub;
 

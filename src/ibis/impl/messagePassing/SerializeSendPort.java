@@ -2,7 +2,8 @@
 
 package ibis.impl.messagePassing;
 
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
+
 import ibis.util.ConditionVariable;
 
 import java.io.BufferedOutputStream;
