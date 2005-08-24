@@ -44,6 +44,12 @@ public abstract class DataInputStream extends java.io.InputStream
         readArray(source, 0, source.length);
     }
 
+    /* Override the read in java.io.InputStream, it calls read(int) multiple times */
+    public int read(byte[] source, int offset, int length) throws IOException {
+        readArray(source, offset, length);
+        return length;
+    }
+    
     public void readArray(byte[] source) throws IOException {
         readArray(source, 0, source.length);
     }
