@@ -28,8 +28,7 @@ names \
     tcp \
     net \
     nio \
-    mpi \
-    mpirob
+    mpi
 
 default	tcp
 
@@ -38,8 +37,6 @@ tcp	ibis.impl.tcp.TcpIbis
 panda	ibis.impl.messagePassing.PandaIbis
 
 mpi	ibis.impl.messagePassing.MPIIbis
-
-mpirob ibis.impl.mpi.MpiIbis
 
 net	ibis.impl.net.NetIbis
 
@@ -50,9 +47,6 @@ ibis.impl.messagePassing.PandaIbis \
 
 ibis.impl.messagePassing.MPIIbis \
     ibis/impl/messagePassing/mpi/properties
-
-ibis.impl.mpi.MpiIbis \
-    ibis/impl/mpi/properties
 
 ibis.impl.tcp.TcpIbis \
     ibis/impl/tcp/properties
