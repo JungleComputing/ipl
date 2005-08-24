@@ -1,6 +1,8 @@
 general:
 - I cannot add an "external" ibis that ibis does not know about without changing the
   properties file in the original tree. --Rob
+- nameserver needs to know classes of all ibis identifiers. 
+  Not really an option for external ibises --Rob
 
 serialization selection:
 - test program says: 
