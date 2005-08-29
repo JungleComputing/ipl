@@ -1236,8 +1236,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         for (int i = 0; i < t.double_count; i++) {
             if (t.fields_final[temp]) {
-                setFieldDouble(ref, t.serializable_fields[temp].getName(),
-                        readDouble());
+                readFieldDouble(ref, t.serializable_fields[temp].getName());
             } else {
                 t.serializable_fields[temp].setDouble(ref, readDouble());
             }
@@ -1245,8 +1244,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         for (int i = 0; i < t.long_count; i++) {
             if (t.fields_final[temp]) {
-                setFieldLong(ref, t.serializable_fields[temp].getName(),
-                        readLong());
+                readFieldLong(ref, t.serializable_fields[temp].getName());
             } else {
                 t.serializable_fields[temp].setLong(ref, readLong());
             }
@@ -1254,8 +1252,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         for (int i = 0; i < t.float_count; i++) {
             if (t.fields_final[temp]) {
-                setFieldFloat(ref, t.serializable_fields[temp].getName(),
-                        readFloat());
+                readFieldFloat(ref, t.serializable_fields[temp].getName());
             } else {
                 t.serializable_fields[temp].setFloat(ref, readFloat());
             }
@@ -1263,8 +1260,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         for (int i = 0; i < t.int_count; i++) {
             if (t.fields_final[temp]) {
-                setFieldInt(ref, t.serializable_fields[temp].getName(),
-                        readInt());
+                readFieldInt(ref, t.serializable_fields[temp].getName());
             } else {
                 t.serializable_fields[temp].setInt(ref, readInt());
             }
@@ -1272,8 +1268,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         for (int i = 0; i < t.short_count; i++) {
             if (t.fields_final[temp]) {
-                setFieldShort(ref, t.serializable_fields[temp].getName(),
-                        readShort());
+                readFieldShort(ref, t.serializable_fields[temp].getName());
             } else {
                 t.serializable_fields[temp].setShort(ref, readShort());
             }
@@ -1281,8 +1276,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         for (int i = 0; i < t.char_count; i++) {
             if (t.fields_final[temp]) {
-                setFieldChar(ref, t.serializable_fields[temp].getName(),
-                        readChar());
+                readFieldChar(ref, t.serializable_fields[temp].getName());
             } else {
                 t.serializable_fields[temp].setChar(ref, readChar());
             }
@@ -1290,8 +1284,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         for (int i = 0; i < t.byte_count; i++) {
             if (t.fields_final[temp]) {
-                setFieldByte(ref, t.serializable_fields[temp].getName(),
-                        readByte());
+                readFieldByte(ref, t.serializable_fields[temp].getName());
             } else {
                 t.serializable_fields[temp].setByte(ref, readByte());
             }
@@ -1299,8 +1292,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         for (int i = 0; i < t.boolean_count; i++) {
             if (t.fields_final[temp]) {
-                setFieldBoolean(ref, t.serializable_fields[temp].getName(),
-                        readBoolean());
+                readFieldBoolean(ref, t.serializable_fields[temp].getName());
             } else {
                 t.serializable_fields[temp].setBoolean(ref, readBoolean());
             }
@@ -1321,7 +1313,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 // dbPrint("fieldname = " + fieldname);
                 // dbPrint("signature = " + fieldtype);
 
-                setFieldObject(ref, fieldname, fieldtype, doReadObject(false));
+                readFieldObject(ref, fieldname, fieldtype);
             } else {
                 Object o = doReadObject(false);
                 if (DEBUG) {
