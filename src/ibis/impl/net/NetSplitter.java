@@ -56,35 +56,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
         }
     }
 
-    /**
-     * Adds a new output to the output set.
-     *
-     * The MTU and the header offset is updated by this function.
-     *
-     * @param output the output.
-     */
-    private void addOutput(Integer rpn, NetOutput output) {
-        log.in();
-        int _mtu = output.getMaximumTransfertUnit();
-
-        if (mtu == 0 || mtu > _mtu) {
-            mtu = _mtu;
-        }
-
-        int _headersLength = output.getHeadersLength();
-
-        if (headerOffset < _headersLength) {
-            headerOffset = _headersLength;
-        }
-
-        if (outputMap.containsValue(output)) {
-            throw new Error(this + ": attempt to include subOutput " + output
-                    + " twice");
-        }
-        outputMap.put(rpn, output);
-        log.out();
-    }
-
     protected void setWriteBufferedSupported() {
         writeBufferedSupported = false;
         Collection c = outputMap.values();

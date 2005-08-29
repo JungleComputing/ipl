@@ -32,8 +32,6 @@ final class NetEventQueueListener extends Thread {
      */
     private NetEventQueue queue = null;
 
-    private String _name = null;
-
     /**
      * Construct the listener.
      *
@@ -47,8 +45,6 @@ final class NetEventQueueListener extends Thread {
 
         this.cons = cons;
         this.queue = queue;
-
-        _name = "Event queue listener: " + name;
     }
 
     /**

@@ -148,7 +148,7 @@ public final class UdpOutput extends NetBufferedOutput {
         packet = new DatagramPacket(new byte[0], 0, raddr, rport);
 
         /* Wait for the receiver */
-        int ok = is.read();
+        is.read();
         is.close();
         if (Driver.DEBUG) {
             System.err.println(this + ": setupConnection over " + cnx

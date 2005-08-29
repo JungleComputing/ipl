@@ -95,7 +95,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
         long time;
         boolean deadlinePassed = false;
         BlockingChannelNioDissipator dissipator = null;
-        SelectionKey key;
         SelectionKey[] keys = new SelectionKey[0];
 
         synchronized (this) {

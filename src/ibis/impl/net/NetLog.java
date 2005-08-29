@@ -94,22 +94,6 @@ public final class NetLog {
     }
 
     /**
-     *  Generic caller function name retrieval.
-     */
-    private String getLogId() {
-        return getCaller().toString();
-    }
-
-    /**
-     *  Fixed function name retrieval.
-     *
-     * @param frame number of frames to skip.
-     */
-    private String getLogId(int frame) {
-        return getCaller(frame + 1).toString();
-    }
-
-    /**
      * JDK >= 1.4 only
      */
     private final static java.util.regex.Pattern p
@@ -125,14 +109,6 @@ public final class NetLog {
 
     /*
      * To use with JDK < 1.4
-
-     private String getLogId() {
-     return moduleName+".<unknownMethod>";
-     }
-
-     private String getLogId(int frame) {
-     return moduleName+".<unknownMethod>";
-     }
 
      private String cleanFunctionName(String name) {
      return name;

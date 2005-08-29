@@ -156,7 +156,6 @@ public final class NetPortType extends PortType {
 
         protected String nextNCharacters(int n) {
             StringBuffer s = new StringBuffer();
-            int codeChar;
 
             mark(n);
             for (int i = 0; i < n; i++) {

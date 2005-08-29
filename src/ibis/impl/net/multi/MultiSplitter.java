@@ -95,7 +95,6 @@ public final class MultiSplitter extends NetSplitter {
     public synchronized void setupConnection(NetConnection cnx)
             throws IOException {
         log.in();
-        Integer num = cnx.getNum();
         NetServiceLink link = cnx.getServiceLink();
 
         ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(

@@ -38,7 +38,6 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
     }
 
     boolean doSend(SendBuffer buffer) throws IOException {
-        SendBuffer copy;
 
         if (logger.isDebugEnabled()) {
             logger.debug("doing send");

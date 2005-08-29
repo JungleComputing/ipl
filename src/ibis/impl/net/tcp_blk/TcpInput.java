@@ -123,8 +123,6 @@ public final class TcpInput extends NetBufferedInput {
 
         final Map p = cnx.properties();
 
-        final NetIO nn = this;
-
         Socket tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
                 brokered_in, brokered_out, true, p);
 
@@ -327,8 +325,6 @@ public final class TcpInput extends NetBufferedInput {
                      */
                     int result = 0;
                     try {
-                        int readLength = READ_AHEAD ? b.length - offset
-                                : Conversion.INT_SIZE;
                         result = tcpIs.read(b, offset, b.length - offset);
                     } catch (SocketTimeoutException e) {
                         if (interrupted) {

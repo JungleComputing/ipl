@@ -86,8 +86,6 @@ public final class NetReceivePort implements ReceivePort,
                     __.fwdAbort__(e);
                 }
 
-                String peerPrefix = null;
-
                 try {
                     ObjectInputStream is = new ObjectInputStream(
                             link.getInputSubStream("__port__"));
@@ -99,8 +97,6 @@ public final class NetReceivePort implements ReceivePort,
                     trace.disp(receivePortTracePrefix
                             + "New connection from: _s" + rank + "-" + spmid
                             + "_");
-
-                    peerPrefix = "_s" + rank + "-" + spmid + "_";
 
                     is.close();
                     ObjectOutputStream os = new ObjectOutputStream(
@@ -748,8 +744,6 @@ public final class NetReceivePort implements ReceivePort,
         log.out();
     }
 
-    private Thread pollerThread;
-
     /**
      * The internal synchronous polling function.
      *
@@ -760,11 +754,9 @@ public final class NetReceivePort implements ReceivePort,
     private boolean _doPoll(boolean block) throws IOException {
         log.in();
         inputLock.lock();
-        pollerThread = Thread.currentThread();
         try {
             activeSendPortNum = input.poll(block);
         } finally {
-            pollerThread = null;
             inputLock.unlock();
         }
 
@@ -892,10 +884,12 @@ public final class NetReceivePort implements ReceivePort,
         if (cnx == null) {
             throw new Error("no active sendPort");
         }
-        if (cnx.getSendId() == null) {
+
+        NetSendPortIdentifier id = cnx.getSendId();
+
+        if (id == null) {
             throw new Error("invalid state: cnx.getSendId");
         }
-        NetSendPortIdentifier id = cnx.getSendId();
 
         log.out();
         return id;
@@ -1206,7 +1200,6 @@ public final class NetReceivePort implements ReceivePort,
 
         NetConnection cnx = checkClose();
 
-        NetSendPortIdentifier id = cnx.getSendId();
         activeSendPortNum = null;
         currentThread = null;
         input.finish();

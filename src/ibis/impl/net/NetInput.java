@@ -39,8 +39,6 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
 
     private NetThreadStat utStat = null;
 
-    private boolean freeCalled = false;
-
     final private Integer takenNum = new Integer(-1);
 
     private int pollWaiters;
@@ -867,7 +865,6 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
     public void free() throws IOException {
         log.in();
         trace.in("this = ", this);
-        freeCalled = true;
         doFree();
         activeNum = null;
 

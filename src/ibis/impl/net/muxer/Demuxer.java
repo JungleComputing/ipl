@@ -28,8 +28,6 @@ public final class Demuxer extends NetBufferedInput {
 
     private long receiveSeqno; /* For out-of-order debugging */
 
-    private long deliver_seqno; /* For out-of-order debugging */
-
     private static ibis.impl.net.NetDriver subDriver;
 
     private static MuxerInput demux;

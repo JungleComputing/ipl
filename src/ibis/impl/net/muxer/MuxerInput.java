@@ -261,8 +261,6 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
             System.err.println(this + ": poller thread runs");
         }
 
-        Thread me = Thread.currentThread();
-
         while (liveConnections > 0) {
             try {
                 if (Driver.DEBUG) {

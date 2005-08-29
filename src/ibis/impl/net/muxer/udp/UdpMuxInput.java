@@ -45,8 +45,6 @@ public final class UdpMuxInput extends MuxerInput {
 
     private long t_receive_delay;
 
-    private boolean receiverBlocked;
-
     private NetReceiveBuffer buffer;
 
     private Integer spn;

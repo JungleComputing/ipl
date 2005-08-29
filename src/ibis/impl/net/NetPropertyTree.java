@@ -32,7 +32,6 @@ public final class NetPropertyTree {
     /*
      * Provide a replacement implementation of {@link String#split} for
      * JDKs < 1.4.
-     */
     private String[] split(String s, String chars, int n) {
 
         Vector v = new Vector();
@@ -106,6 +105,7 @@ public final class NetPropertyTree {
 
         return result;
     }
+    */
 
     /**
      * Add a property value to the tree.

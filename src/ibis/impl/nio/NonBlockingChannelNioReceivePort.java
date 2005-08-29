@@ -63,7 +63,6 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                     + " creating connection");
         }
 
-        SelectableChannel sh = (SelectableChannel) channel;
         dissipator = new NonBlockingChannelNioDissipator(spi, ident,
                 (ReadableByteChannel) channel, type);
 

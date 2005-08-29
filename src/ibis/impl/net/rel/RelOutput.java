@@ -130,17 +130,6 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
         }
     }
 
-    private void checkUnlocked() {
-        if (DEBUG_LOCK) {
-            try {
-                notify();
-                throw new Error("I shouldn't own the lock but I DO");
-            } catch (IllegalMonitorStateException e) {
-                return;
-            }
-        }
-    }
-
     /**
      * Constructor.
      *
@@ -619,7 +608,6 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
 
     synchronized void handleAck(byte[] data, int offset) throws IOException {
         RelSendBuffer scan;
-        RelSendBuffer prev;
 
         int ackOffset = Conversion.defaultConversion.byte2int(data, offset);
         offset += Conversion.INT_SIZE;

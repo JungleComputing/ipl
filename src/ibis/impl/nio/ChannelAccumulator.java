@@ -10,14 +10,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
 
-import org.apache.log4j.Logger;
-
 /**
  * Writes data to a channel (using big endian byte order)
  */
 public final class ChannelAccumulator extends DataOutputStream {
-
-    private static Logger logger = ibis.util.GetLogger.getLogger(ChannelAccumulator.class);
 
     public static final int SIZEOF_BYTE = 1;
 

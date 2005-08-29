@@ -798,7 +798,10 @@ public final class NetServiceLink {
 
         public void callBack() throws IOException {
             int op = main_ois.readInt();
-            // System.err.println(this + ": msg tag " + _OP_toString(op));
+
+            if (DEBUG) {
+                System.err.println(this + ": msg tag " + _OP_toString(op));
+            }
 
             switch (op) {
 

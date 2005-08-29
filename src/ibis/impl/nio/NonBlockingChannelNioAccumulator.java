@@ -49,7 +49,6 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
      * buffers list, then sends out as much data as possible
      */
     boolean doSend(SendBuffer buffer) throws IOException {
-        SendBuffer copy;
 
         if (logger.isDebugEnabled()) {
             logger.debug("doSend()");

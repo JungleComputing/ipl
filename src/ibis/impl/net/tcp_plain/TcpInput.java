@@ -79,8 +79,6 @@ public final class TcpInput extends NetInput {
 
         final Map p = cnx.properties();
 
-        final NetIO nn = this;
-
         tcpSocket = NetIbis.socketFactory.createBrokeredSocket(brokering_in,
                 brokering_out, true, p);
 

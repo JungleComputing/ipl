@@ -133,15 +133,6 @@ public final class NetSendPort implements SendPort,
     /* ___ STATE _______________________________________________________ */
 
     /**
-     * The empty message detection flag.
-     *
-     * The flag is set on each new {@link #newMessage} call and should
-     * be cleared as soon as at least a byte as been added to the living
-     * message.
-     */
-    private boolean emptyMsg = true;
-
-    /**
      * Internal message counter, for debugging purpose.
      */
     private int messageCount = 0;

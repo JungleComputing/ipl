@@ -52,8 +52,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
     private ArrayList newConnections = new ArrayList();
 
-    private boolean upcallThreadRunning = false;
-
     private NioReadMessage m = null; // only used when upcalls are off
 
     
@@ -212,7 +210,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
      */
     private NioReadMessage getMessage(long deadline) throws IOException {
         NioDissipator dissipator;
-        long time;
         NioReadMessage message;
         long sequencenr = -1;
 
@@ -339,8 +336,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
     public ReadMessage receive(long timeoutMillis) throws IOException {
 
-        long deadline, time;
-        ReadMessage m = null;
+        long deadline;
 
         if (upcall != null) {
             throw new IOException("explicit receive not allowed with upcalls");
@@ -456,7 +452,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
      * closes all connections after waiting for the deadline to pass.
      */
     void doClose(long deadline) throws IOException {
-        ReadMessage m;
         long time;
 
         disableConnections();
@@ -472,7 +467,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
                 }
             }
             try {
-                m = getMessage(deadline);
+                getMessage(deadline);
                 throw new IOException(
                         "message received while closing receiveport");
             } catch (ConnectionClosedException e) {
@@ -594,7 +589,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
             // implicitly finish message
 
-            long messageCount = m.dissipator.bytesRead();
+            // long messageCount = m.dissipator.bytesRead();
             m.dissipator.resetBytesRead();
             m.isFinished = true;
         }

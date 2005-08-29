@@ -57,17 +57,11 @@ public final class UdpInput extends NetBufferedInput {
 
     private DatagramPacket packet = null;
 
-    private Driver driver = null;
-
     private InetAddress laddr = null;
 
     private int lport = 0;
 
     private int lmtu = 0;
-
-    private InetAddress raddr = null;
-
-    private int rport = 0;
 
     private int rmtu = 0;
 
@@ -178,8 +172,6 @@ public final class UdpInput extends NetBufferedInput {
         }
         is.close();
 
-        raddr = (InetAddress) rInfo.get("udp_address");
-        rport = ((Integer) rInfo.get("udp_port")).intValue();
         rmtu = ((Integer) rInfo.get("udp_mtu")).intValue();
 
         mtu = Math.min(lmtu, rmtu);

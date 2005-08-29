@@ -10,20 +10,6 @@ import ibis.util.TypedProperties;
 public final class NetMutex {
 
     /**
-     * Activate the debugging code.
-     */
-    private static final boolean DEBUG
-        = TypedProperties.booleanProperty(NetIbis.mutex_debug);
-
-    /**
-     * Store the current mutex owner when DEBUG is set to
-     * <code>true</code>.
-     */
-    private Thread owner = null;
-
-    private StackTraceElement[] lockerTrace = null;
-
-    /**
      * Store the mutex value, which cannot be negative.
      */
     private int value = 1;
@@ -45,12 +31,6 @@ public final class NetMutex {
      */
     public NetMutex(boolean locked) {
         value = locked ? 0 : 1;
-        if (DEBUG) {
-            if (locked) {
-                owner = Thread.currentThread();
-                lockerTrace = new Throwable().getStackTrace();
-            }
-        }
     }
 
     /**
@@ -76,10 +56,6 @@ public final class NetMutex {
             }
         }
         value--;
-        if (DEBUG) {
-            owner = Thread.currentThread();
-            lockerTrace = new Throwable().getStackTrace();
-        }
     }
 
     /**
@@ -105,10 +81,6 @@ public final class NetMutex {
             }
         }
         value--;
-        if (DEBUG) {
-            owner = Thread.currentThread();
-            lockerTrace = new Throwable().getStackTrace();
-        }
     }
 
     /**
@@ -122,10 +94,6 @@ public final class NetMutex {
             return false;
         } else {
             value--;
-            if (DEBUG) {
-                owner = Thread.currentThread();
-                lockerTrace = new Throwable().getStackTrace();
-            }
             return true;
         }
     }

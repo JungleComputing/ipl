@@ -40,9 +40,6 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
     // list of ReceivePorts we listen for
     private ArrayList receivePorts;
 
-    private static IbisSocketFactory socketFactory
-            = IbisSocketFactory.getFactory();
-
     TcpChannelFactory() throws IOException {
         int port = 0;
         InetAddress localAddress = IPUtils.getLocalHostAddress();
@@ -61,37 +58,6 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
         receivePorts = new ArrayList();
 
         ThreadPool.createNew(this, "TcpChannelFactory");
-    }
-
-    /**
-     * Find the first public ip address for this node
-     */
-    private InetAddress getPublicIP() throws IOException {
-        Enumeration interfaces, addresses;
-        NetworkInterface networkInterface;
-        InetAddress address;
-
-        interfaces = NetworkInterface.getNetworkInterfaces();
-
-        if (interfaces == null) {
-            throw new IOException("no network interfaces found");
-        }
-
-        while (interfaces.hasMoreElements()) {
-            networkInterface = (NetworkInterface) interfaces.nextElement();
-
-            addresses = networkInterface.getInetAddresses();
-
-            while (addresses != null && addresses.hasMoreElements()) {
-                address = (InetAddress) addresses.nextElement();
-
-                if (!(address.isAnyLocalAddress() | address.isLoopbackAddress() | address
-                        .isLinkLocalAddress())) {
-                    return address;
-                }
-            }
-        }
-        throw new IOException("no local network address found");
     }
 
     /**
@@ -388,7 +354,6 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
      */
     public void run() {
         SocketChannel channel = null;
-        boolean exit = false;
 
         Thread.currentThread().setName("ChannelFactory");
 
