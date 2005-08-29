@@ -53,11 +53,6 @@ public abstract class DataOutputStream extends java.io.OutputStream
         // Default implementation does nothing.
     }
 
-    /* Override the write in java.io.OutputStream, it calls write(int) multiple times */
-    public void write(byte[] source, int off, int len) throws IOException {
-        writeArray(source, off, len);
-    }
-    
     public void writeArray(boolean[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
