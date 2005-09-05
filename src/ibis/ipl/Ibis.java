@@ -5,6 +5,7 @@ package ibis.ipl;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -343,6 +344,22 @@ public abstract class Ibis {
                     break;
                 }
             }
+
+            if (implementation_names.size() == 0) {
+                name = System.getProperty("ibis.name");
+                if (name != null) {
+                    try {
+                        String n = addIbis(name, name, null);
+                        if (n != null) {
+                            // Unknown Ibis, but there is one.
+                            implementation_names.add(n);
+                        }
+                    } catch(IOException e) {
+                        // ignored
+                    }
+                }
+            }
+
             if (implementation_names.size() == 0) {
                 System.err.println("Warning: name '" + ibisname
                         + "' not recognized, using " + defaultIbisName);
@@ -447,51 +464,65 @@ public abstract class Ibis {
     /**
      * Reads the properties of an ibis implementation.
      */
-    private static void addIbis(String nickname, Properties p)
+    private static void addIbisNick(String nickname, Properties p)
             throws IOException {
         String name = p.getProperty(nickname);
         if (name == null) {
             throw new IOException("no implementation given for nickname "
                     + nickname);
         }
-        String propertyFiles = p.getProperty(name);
 
-        if (propertyFiles != null) {
-            StaticProperties sp = new StaticProperties();
-            StringTokenizer st = new StringTokenizer(propertyFiles,
-                    " ,\t\n\r\f");
-            while (st.hasMoreTokens()) {
-                String file = st.nextToken();
-                InputStream in = ClassLoader.getSystemClassLoader()
-                        .getResourceAsStream(file);
-                if (in == null) {
-                    System.err.println("could not open " + file);
-                    System.exit(1);
-                }
-                sp.load(in);
-                in.close();
-            }
+        addIbis(nickname, name, p.getProperty(name));
+    }
 
-            sp.addImpliedProperties();
+    private static String addIbis(String nickname, String name,
+            String propertyFiles) throws IOException  {
+        Class cl = null;
 
-            try {
-                // See if this Ibis actually exists.
-                Class.forName(name, false, Ibis.class.getClassLoader());
-            } catch (ClassNotFoundException e) {
-                return;
-            }
-
-            synchronized (Ibis.class) {
-                if (nickname.equals(defaultIbisNickname)) {
-                    defaultIbisName = name;
-                }
-                nicknameList.add(nickname);
-                implList.add(name);
-                implProperties.add(sp);
-            }
-            // System.out.println("Ibis: " + name);
-            // System.out.println(sp.toString());
+        try {
+            // See if this Ibis actually exists.
+            cl = Class.forName(name, false, Ibis.class.getClassLoader());
+        } catch (ClassNotFoundException e) {
+            return null;
         }
+
+        if (nickname == null) {
+            nickname = name;
+        }
+
+        if (propertyFiles == null) {
+            String packagename = cl.getPackage().getName();
+            propertyFiles = packagename.replace('.', File.separatorChar)
+                    + File.separatorChar + "properties";
+        }
+
+        StaticProperties sp = new StaticProperties();
+        StringTokenizer st = new StringTokenizer(propertyFiles,
+                " ,\t\n\r\f");
+        while (st.hasMoreTokens()) {
+            String file = st.nextToken();
+            InputStream in = ClassLoader.getSystemClassLoader()
+                    .getResourceAsStream(file);
+            if (in == null) {
+                System.err.println("could not open " + file);
+                System.exit(1);
+            }
+            sp.load(in);
+            in.close();
+        }
+
+        sp.addImpliedProperties();
+
+        synchronized (Ibis.class) {
+            if (nickname.equals(defaultIbisNickname)) {
+                defaultIbisName = name;
+            }
+            nicknameList.add(nickname);
+            implList.add(name);
+            implProperties.add(sp);
+        }
+
+        return nickname;
     }
 
     /**
@@ -522,7 +553,7 @@ public abstract class Ibis {
         if (order != null) {
             StringTokenizer st = new StringTokenizer(order, " ,\t\n\r\f");
             while (st.hasMoreTokens()) {
-                addIbis(st.nextToken(), p);
+                addIbisNick(st.nextToken(), p);
             }
             if (defaultIbisName == null) {
                 throw new IOException(
