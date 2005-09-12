@@ -95,6 +95,7 @@ final class TranspositionTable {
 
         if (depth >= REPLICATED_DEPTH) {
             TTEntry val = new TTEntry(tag, value, bestChild, depth, lowerBound);
+            bcasts++;
             SatinTupleSpace.add(key, val);
         }
     }
