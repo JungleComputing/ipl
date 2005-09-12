@@ -132,7 +132,6 @@ typedef struct PANDA_MSG_Q {
 static ibmp_msg_q_t	ibmp_msg_q;
 static ibmp_msg_p	ibmp_msg_freelist;
 
-
 static void
 ibmp_msg_q_enq(ibp_msg_p msg, void *proto)
 {
@@ -155,7 +154,6 @@ ibmp_msg_q_enq(ibp_msg_p msg, void *proto)
     }
     ibmp_msg_q.tail = m;
 }
-
 
 static ibp_msg_p
 ibmp_msg_q_deq(void **proto)
@@ -387,10 +385,18 @@ ibmp_byte_stream_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     ibmp_lock_check_owned(env);
 
     ibmp_msg_q_enq(msg, proto);
-
     return 1;
 }
 
+
+int
+ibmp_bcastcp_stream_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
+{
+    ibmp_lock_check_owned(env);
+    msg = ibp_msg_clone(env, msg, &proto);
+    ibmp_msg_q_enq(msg, proto);
+    return 0;
+}
 
 void
 ibmp_byte_input_stream_init(JNIEnv *env)

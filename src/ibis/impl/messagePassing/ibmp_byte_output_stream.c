@@ -34,6 +34,7 @@ static int	ibmp_send_sync = 0;
 
 
 static int	ibmp_byte_stream_port;
+static int	ibmp_bcast_stream_port;
 static int	ibmp_byte_stream_proto_size;
 int	ibmp_byte_stream_proto_start;
 
@@ -59,7 +60,6 @@ static int	bcast_sync = 0;
 unsigned	IBMP_FIRST_FRAG_BIT;
 unsigned	IBMP_LAST_FRAG_BIT;
 unsigned	IBMP_SEQNO_FRAG_BITS;
-
 
 #ifndef NDEBUG
 #define COUNT_GLOBAL_REFS 1
@@ -1126,7 +1126,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     ibmp_msg_freelist_verify(env, __LINE__, byte_os);
     IBP_VPRINTF(450, env, ("Enqueued msg %p object %p\n", msg, byte_os->byte_output_stream));
 
-    ibp_mp_bcast(env, ibmp_byte_stream_port,
+    ibp_mp_bcast(env, ibmp_bcast_stream_port,
 		 msg->iov, msg->iov_len,
 		 msg->proto[0], ibmp_byte_stream_proto_size);
 
@@ -1573,6 +1573,12 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 	(*env)->GetStaticIntField(env, cls_SendPort, fld);
 
     ibmp_byte_stream_port = ibp_mp_port_register(ibmp_byte_stream_handle);
+    if (pan_arg_bool(NULL, NULL, "-ibp-bcast-recv-copy") == 1) {
+	fprintf(stderr, "%2d: Receiver copies bcasts\n", ibmp_me);
+	ibmp_bcast_stream_port = ibp_mp_port_register(ibmp_bcastcp_stream_handle);
+    } else {
+	ibmp_bcast_stream_port = ibmp_byte_stream_port;
+    }
     ibmp_byte_stream_proto_start = align_to(ibp_mp_proto_offset(), ibmp_byte_stream_hdr_t);
     ibmp_byte_stream_proto_size  = ibmp_byte_stream_proto_start + sizeof(ibmp_byte_stream_hdr_t);
 

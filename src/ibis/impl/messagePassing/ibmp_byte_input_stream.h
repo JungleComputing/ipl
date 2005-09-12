@@ -5,6 +5,7 @@
 #include <pan_sys.h>
 
 int ibmp_byte_stream_handle(JNIEnv *env, ibp_msg_p msg, void *proto);
+int ibmp_bcastcp_stream_handle(JNIEnv *env, ibp_msg_p msg, void *proto);
 
 void ibmp_byte_input_stream_init(JNIEnv *env);
 void ibmp_byte_input_stream_end(JNIEnv *env);
