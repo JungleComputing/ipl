@@ -1,6 +1,5 @@
 nameserver:
 - we forget to close connections on errors, see for instance forwardJoin in NameServer.java --Rob
-- remove pool if all nodes left/crashed? --Rob
 
 general:
 - I cannot add an "external" ibis that ibis does not know about without changing the
