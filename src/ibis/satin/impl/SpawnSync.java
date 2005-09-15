@@ -400,9 +400,18 @@ public abstract class SpawnSync extends Termination {
             syncs++;
         }
 
+        if (spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident
+                    + "': Sync, counter = " + s.value);
+        }
+
         if (s.value == 0) { // sync is poll
             satinPoll();
             handleDelayedMessages();
+            if (spawnLogger.isDebugEnabled()) {
+                spawnLogger.debug("SATIN '" + ident
+                        + "': Sync returns");
+            }
             return;
         }
         // int numStealAttempts = 0;
@@ -412,17 +421,21 @@ public abstract class SpawnSync extends Termination {
             //     exit();
             // }
 
-            if (spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident
-                        + "': Sync, counter = " + s.value);
-            }
 
             satinPoll();
             handleDelayedMessages();
 
             r = q.getFromHead(); // Try the local queue
             if (r != null) {
+                if (spawnLogger.isDebugEnabled()) {
+                    spawnLogger.debug("SATIN '" + ident
+                            + "': Sync, start own job");
+                }
                 callSatinFunction(r);
+                if (spawnLogger.isDebugEnabled()) {
+                    spawnLogger.debug("SATIN '" + ident
+                            + "': Sync, finish own job");
+                }
             } else {
                 if (FAULT_TOLERANCE && FT_WITHOUT_ABORTS) {
                     //before you steal, check if kids need
@@ -450,17 +463,38 @@ public abstract class SpawnSync extends Termination {
                     } else {
                         r = algorithm.clientIteration();
                         if (r != null) {
+                            if (spawnLogger.isDebugEnabled()) {
+                                spawnLogger.debug("SATIN '" + ident
+                                        + "': Sync, start stolen job");
+                            }
                             callSatinFunction(r);
+                            if (spawnLogger.isDebugEnabled()) {
+                                spawnLogger.debug("SATIN '" + ident
+                                        + "': Sync, finish stolen job");
+                            }
                         }
                     }
 
                 } else {
                     r = algorithm.clientIteration();
                     if (r != null) {
+                        if (spawnLogger.isDebugEnabled()) {
+                            spawnLogger.debug("SATIN '" + ident
+                                    + "': Sync, start stolen job");
+                        }
                         callSatinFunction(r);
+                        if (spawnLogger.isDebugEnabled()) {
+                            spawnLogger.debug("SATIN '" + ident
+                                    + "': Sync, finish stolen job");
+                        }
                     }
                 }
             }
+        }
+
+        if (spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident
+                    + "': Sync returns");
         }
 
     }
@@ -482,7 +516,15 @@ public abstract class SpawnSync extends Termination {
 
             InvocationRecord r = algorithm.clientIteration();
             if (r != null) {
+                if (spawnLogger.isDebugEnabled()) {
+                    spawnLogger.debug("SATIN '" + ident
+                            + "': client, start stolen job");
+                }
                 callSatinFunction(r);
+                if (spawnLogger.isDebugEnabled()) {
+                    spawnLogger.debug("SATIN '" + ident
+                            + "': client, finish stolen job");
+                }
             }
 
             //for ft
