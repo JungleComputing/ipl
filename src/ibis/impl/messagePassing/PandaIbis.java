@@ -51,7 +51,13 @@ public class PandaIbis extends Ibis {
             i.ibmp_start();
             /* The gateway will block in end() until all other participants have
              * left */
-            i.ibmp_end();
+
+            myIbis.lock();
+            try {
+                i.ibmp_end();
+            } finally {
+                myIbis.unlock();
+            }
             System.exit(0);
         } catch (IbisException e) {
             System.err.println("Ibis.main: " + e);

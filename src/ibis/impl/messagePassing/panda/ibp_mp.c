@@ -113,6 +113,7 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
 #endif
 
     assert(ibp_JNIEnv != NULL);
+    assert(pan_msg_sender(msg) < pan_nr_processes());
     assert(hdr->bcast || hdr->seqno == ibp_rcve_seqno[pan_msg_sender(msg)]++);
     assert(! hdr->bcast || hdr->seqno == ibp_group_rcve_seqno[pan_msg_sender(msg)]++);
 
