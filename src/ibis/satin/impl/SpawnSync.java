@@ -8,6 +8,7 @@ import ibis.ipl.IbisIdentifier;
 public abstract class SpawnSync extends Termination {
 
     private static SpawnCounter spawnCounterCache = null;
+    private boolean idleStarted = false;
 
     /**
      * Obtains a new spawn counter. This does not need to be synchronized, only
@@ -52,6 +53,16 @@ public abstract class SpawnSync extends Termination {
         InvocationRecord oldParent = null;
         int oldParentStamp = 0;
         IbisIdentifier oldParentOwner = null;
+
+        if (idleStarted) {
+            idleStarted = false;
+            if (idleLogger.isDebugEnabled()) {
+                idleLogger.debug("SATIN '" + ident + "': idle stop");
+            }
+            if (IDLE_TIMING) {
+                idleTimer.stop();
+            }
+        }
 
         handleDelayedMessages();
 
@@ -472,6 +483,15 @@ public abstract class SpawnSync extends Termination {
                                 spawnLogger.debug("SATIN '" + ident
                                         + "': Sync, finish stolen job");
                             }
+                        } else if (! idleStarted) {
+                            idleStarted = true;
+                            if (idleLogger.isDebugEnabled()) {
+                                idleLogger.debug("SATIN '" + ident
+                                        + "': sync idle start");
+                            }
+                            if (IDLE_TIMING) {
+                                idleTimer.start();
+                            }
                         }
                     }
 
@@ -487,8 +507,28 @@ public abstract class SpawnSync extends Termination {
                             spawnLogger.debug("SATIN '" + ident
                                     + "': Sync, finish stolen job");
                         }
+                    } else if (! idleStarted) {
+                        idleStarted = true;
+                        if (idleLogger.isDebugEnabled()) {
+                            idleLogger.debug("SATIN '" + ident
+                                    + "': sync idle start");
+                        }
+                        if (IDLE_TIMING) {
+                            idleTimer.start();
+                        }
                     }
                 }
+            }
+        }
+
+        if (idleStarted) {
+            idleStarted = false;
+            if (idleLogger.isDebugEnabled()) {
+                idleLogger.debug("SATIN '" + ident
+                        + "': sync returns; idle stop");
+            }
+            if (IDLE_TIMING) {
+                idleTimer.stop();
             }
         }
 
@@ -524,6 +564,15 @@ public abstract class SpawnSync extends Termination {
                 if (spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': client, finish stolen job");
+                }
+            } else if (! idleStarted) {
+                idleStarted = true;
+                if (idleLogger.isDebugEnabled()) {
+                    idleLogger.debug("SATIN '" + ident
+                            + "': client idle start");
+                }
+                if (IDLE_TIMING) {
+                    idleTimer.start();
                 }
             }
 

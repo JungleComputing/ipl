@@ -234,6 +234,10 @@ public interface Config {
     public static final Logger spawnLogger
             = ibis.util.GetLogger.getLogger("ibis.satin.spawn");
 
+    /** Logger for idle. */
+    public static final Logger idleLogger
+            = ibis.util.GetLogger.getLogger("ibis.satin.idle");
+
     /** Logger for inlets. */
     public static final Logger inletLogger
             = ibis.util.GetLogger.getLogger("ibis.satin.inlet");

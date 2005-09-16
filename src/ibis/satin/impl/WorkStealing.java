@@ -219,10 +219,6 @@ public abstract class WorkStealing extends Stats {
         //     return false;
         // }
 
-        if (IDLE_TIMING) {
-            idleTimer.start();
-        }
-
         // Replaced this wait call, do something useful instead:
         // handleExceptions and aborts.
         if (upcalls) {
@@ -253,9 +249,6 @@ public abstract class WorkStealing extends Stats {
                                     if (STEAL_TIMING) {
                                         stealTimer.stop();
                                     }
-                                    if (IDLE_TIMING) {
-                                        idleTimer.stop();
-                                    }
 
                                     return null;
                                 }
@@ -280,9 +273,6 @@ public abstract class WorkStealing extends Stats {
                                     if (STEAL_TIMING) {
                                         stealTimer.stop();
                                     }
-                                    if (IDLE_TIMING) {
-                                        idleTimer.stop();
-                                    }
                                     return null;
                                 }
                                 break;
@@ -297,9 +287,6 @@ public abstract class WorkStealing extends Stats {
                         if (exiting) {
                             if (STEAL_TIMING) {
                                 stealTimer.stop();
-                            }
-                            if (IDLE_TIMING) {
-                                idleTimer.stop();
                             }
                             return null;
                         }
@@ -322,9 +309,6 @@ public abstract class WorkStealing extends Stats {
                             if (STEAL_TIMING) {
                                 stealTimer.stop();
                             }
-                            if (IDLE_TIMING) {
-                                idleTimer.stop();
-                            }
                             return null;
                         }
                         break;
@@ -334,18 +318,11 @@ public abstract class WorkStealing extends Stats {
                     if (STEAL_TIMING) {
                         stealTimer.stop();
                     }
-                    if (IDLE_TIMING) {
-                        idleTimer.stop();
-                    }
                     return null;
                 }
 
             }
             gotStealReply = false;
-        }
-
-        if (IDLE_TIMING) {
-            idleTimer.stop();
         }
 
         if (STEAL_TIMING) {
