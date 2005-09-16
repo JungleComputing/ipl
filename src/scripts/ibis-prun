@@ -20,9 +20,6 @@ dir=`cd "$dir" && pwd`
 
 . $dir/ns-env
 
-echo "HOSTS = $HOSTS"
-echo "PRUN_HOSTNAMES = $PRUN_HOSTNAMES"
-
 # prun mangles the program name ($0) into something like
 # ./ibis-prun.0.8949.fs0, which does not look nice.
 NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
@@ -107,6 +104,7 @@ cpumask="1"
 dedicated_nameserver=0
 no_pool=0
 ncluster=0
+ibislib=$IBIS_ROOT/build/lib
 
 dir=$PWD
 
@@ -130,6 +128,10 @@ do
 	-ncluster)
 		shift
 		ncluster="$1"
+		;;
+	-ibislib)
+		shift
+		ibislib="$1"
 		;;
         -cpu)
 		shift
@@ -300,6 +302,8 @@ add_to_libclasspath () {
 # Add the following dirs to the classpath 
 add_to_libclasspath ${IBIS_ROOT}/3rdparty
 
+export ibislib
+
 if [ $USE_JAVAWRAPPER -eq 1 ]
 then
 	action="$wrapper_name -cpu $cpumask -cd $dir"
@@ -318,12 +322,11 @@ then
 	export LFC_INTR_FIRST=100
 	$JAVA_ROOT/bin/java \
 		-classpath $JAVACLASSPATH \
-		-Djava.library.path="$IBIS_ROOT/build/lib" \
+		-Dibis.library.path="$ibislib" \
 		ibis.impl.messagePassing.PandaIbis
 else
 	if [ $no_pool -eq 0 ]
 	then
-		echo "hosts = $hosts"
 		. $IBIS_ROOT/bin/ibis-run -action "$action" $args \
 				-key "$key" \
 				-nhosts $NHOSTS \

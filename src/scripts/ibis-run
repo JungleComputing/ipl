@@ -154,8 +154,12 @@ CYGWIN*)
     ;;
 esac
 
-libpath="$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:"
-ibislib="$IBIS_ROOT/build/lib"
+if [ -z "$ibislib" ]
+then
+    ibislib="$IBIS_ROOT/build/lib"
+fi
+
+libpath="$ibislib:.:$LD_LIBRARY_PATH:"
 
 JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 
@@ -365,8 +369,6 @@ fi
 
 if [ $hostnames -eq 1 ]
 then
-    echo "HOSTS=$HOSTS"
-    echo "hosts=$hosts"
     $action "$JAVA_ROOT/bin/$JAVA_EXEC" \
 	$JIT_OPTS \
 	-Djava.library.path="$libpath" \
