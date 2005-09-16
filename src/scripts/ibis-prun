@@ -20,6 +20,9 @@ dir=`cd "$dir" && pwd`
 
 . $dir/ns-env
 
+echo "HOSTS = $HOSTS"
+echo "PRUN_HOSTNAMES = $PRUN_HOSTNAMES"
+
 # prun mangles the program name ($0) into something like
 # ./ibis-prun.0.8949.fs0, which does not look nice.
 NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
@@ -103,6 +106,7 @@ fi
 cpumask="1"
 dedicated_nameserver=0
 no_pool=0
+ncluster=0
 
 dir=$PWD
 
@@ -123,6 +127,10 @@ do
 		shift
 		dir="$1"
                 ;;
+	-ncluster)
+		shift
+		ncluster="$1"
+		;;
         -cpu)
 		shift
 		cpumask="$1"
@@ -253,6 +261,45 @@ then
 	fi
 fi
 
+hosts="$HOSTS"
+
+i_am_cluster_coord=0
+if [ $ncluster -gt 0 ]
+then
+    i=`expr $NHOSTS - $ncluster`
+    while [ $i -lt $NHOSTS ]
+    do
+	hosts=`strip_array $hosts`
+	if [ $PRUN_CPU_RANK -eq $i ]
+	then
+	    i_am_cluster_coord=1
+	fi
+	i=`expr $i + 1`
+    done
+fi
+
+NHOSTS=`expr $NHOSTS - $ncluster`
+
+LIBCLASSPATH=""
+
+add_to_libclasspath () {
+	DIRLIBS=${1}/*.jar
+	for i in ${DIRLIBS}
+	do
+		 # if the directory is empty, then it will return the input string
+		 if [ "$i" != "${DIRLIBS}" ] ; then
+			if [ -z "$LIBCLASSPATH" ] ; then
+		LIBCLASSPATH=$i
+			else
+		LIBCLASSPATH="$i":$LIBCLASSPATH
+			fi
+		 fi
+	done
+}
+
+# Add the following dirs to the classpath 
+add_to_libclasspath ${IBIS_ROOT}/3rdparty
+
 if [ $USE_JAVAWRAPPER -eq 1 ]
 then
 	action="$wrapper_name -cpu $cpumask -cd $dir"
@@ -261,17 +308,26 @@ fi
 if [ $i_am_nameserver -eq 1 ]
 then
 	echo Start run-once name server on `hostname`
-	JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:"
+	JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
 	$JAVA_ROOT/bin/java \
 		-classpath $JAVACLASSPATH \
 		ibis.impl.nameServer.tcp.NameServer -single
+elif [ $i_am_cluster_coord -eq 1 ]
+then
+	JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
+	export LFC_INTR_FIRST=100
+	$JAVA_ROOT/bin/java \
+		-classpath $JAVACLASSPATH \
+		-Djava.library.path="$IBIS_ROOT/build/lib" \
+		ibis.impl.messagePassing.PandaIbis
 else
 	if [ $no_pool -eq 0 ]
 	then
+		echo "hosts = $hosts"
 		. $IBIS_ROOT/bin/ibis-run -action "$action" $args \
 				-key "$key" \
 				-nhosts $NHOSTS \
-				-hosts "$HOSTS" \
+				-hosts "$hosts" \
 				-hostno $PRUN_CPU_RANK -- "$@"
 	else
 		. $IBIS_ROOT/bin/ibis-run -action "$action" $args \

@@ -42,7 +42,7 @@ add_to_libclasspath ${IBIS_ROOT}/3rdparty
 
 Dns_pool=
 HOSTNO=0
-HOSTS=
+export HOSTS="$HOSTS"
 NHOSTS=1
 run_name=$0
 action=
@@ -182,6 +182,7 @@ Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
 Dns_key="-Dibis.name_server.key=no_key_supplied"
 
 dir=$PWD
+export hosts="$HOSTS"
 
 #
 # parse arguments
@@ -210,7 +211,7 @@ do
 		;;
 	-hosts)
 		shift
-		HOSTS="$1"
+		hosts="$1"
 		hostnames=1
 		;;
 	-jdb)
@@ -301,10 +302,10 @@ then
     JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
     # This is required if Sun's RMI is used
     JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
-    if [ ! -z $HOSTS ]
+    if [ ! -z $hosts ]
     then
-	HOSTS="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $HOSTS`"
-	export HOSTS
+	hosts="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $hosts`"
+	export hosts
     fi
     if [ ! -z $PRUN_HOSTNAMES ]
     then
@@ -333,9 +334,9 @@ fi
 
 if [ $nameserver_specified -eq 0 ]
 then
-    if [ ! -z "$HOSTS" ]
+    if [ ! -z "$hosts" ]
     then
-	for i in $HOSTS
+	for i in $hosts
 	do
 	    Dns_server="-Dibis.name_server.host=$i"
 	    break
@@ -364,11 +365,13 @@ fi
 
 if [ $hostnames -eq 1 ]
 then
+    echo "HOSTS=$HOSTS"
+    echo "hosts=$hosts"
     $action "$JAVA_ROOT/bin/$JAVA_EXEC" \
 	$JIT_OPTS \
 	-Djava.library.path="$libpath" \
 	-Dibis.library.path="$ibislib" \
-	$Dpool_host_num $Dpool_total -Dibis.pool.host_names="$HOSTS" \
+	$Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
 	$Dns_key $Dns_port $Dns_server \
 	$Xbootclasspath"$BOOTPATH" \
 	-classpath "$JAVACLASSPATH" \
