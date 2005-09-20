@@ -15,7 +15,6 @@ import ibis.io.SerializationInput;
 import ibis.ipl.IbisError;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Socket;
 
 final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     private static boolean DEBUG = false;
@@ -29,8 +28,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     private SerializationInput in;
 
     private InputStream input;
-    private Socket s;
-    
+
     TcpReadMessage m;
 
     volatile boolean iMustDie = false;
@@ -38,11 +36,10 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     TcpIbis ibis;
 
     ConnectionHandler(TcpIbis ibis, TcpSendPortIdentifier origin,
-            TcpReceivePort port, Socket s) throws IOException {
+            TcpReceivePort port, InputStream input) throws IOException {
         this.port = port;
         this.origin = origin;
-        this.s = s;
-        this.input = s.getInputStream();
+        this.input = input;
         this.ibis = ibis;
 
         bufferedInput = new BufferedArrayInputStream(input);
@@ -66,12 +63,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
             }
         }
         in = null;
-        //ibis.tcpPortHandler.releaseInput(origin, input);
-        try {
-            s.close();
-        } catch (Exception x) {
-            // ignore
-        }
+        ibis.tcpPortHandler.releaseInput(origin, input);
         if (!iMustDie) {
             // if we came in through a forced close, the port already knows
             // that we are gone.

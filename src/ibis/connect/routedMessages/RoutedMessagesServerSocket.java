@@ -2,20 +2,18 @@
 
 package ibis.connect.routedMessages;
 
-import ibis.connect.IbisServerSocket;
-import ibis.connect.IbisSocket;
 import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-public class RoutedMessagesServerSocket extends IbisServerSocket {
+public class RoutedMessagesServerSocket extends ServerSocket {
 
     static Logger logger
             = ibis.util.GetLogger.getLogger(RoutedMessagesServerSocket.class.getName());
@@ -44,9 +42,7 @@ public class RoutedMessagesServerSocket extends IbisServerSocket {
         }
     }
 
-    public RoutedMessagesServerSocket(int port, InetAddress addr, Map p)
-            throws IOException {
-        super(p);
+    public RoutedMessagesServerSocket(int port, InetAddress addr) throws IOException {
         hub = HubLinkFactory.getHubLink();
         serverPort = hub.newPort(port);
         this.addr = addr;
@@ -77,7 +73,7 @@ public class RoutedMessagesServerSocket extends IbisServerSocket {
     }
 
     public Socket accept() throws IOException {
-        IbisSocket s = null;
+        Socket s = null;
         logger.debug("# RoutedMessagesServerSocket.accept()- waiting on port "
                 + serverPort);
         hub = HubLinkFactory.getHubLink();
@@ -100,14 +96,13 @@ public class RoutedMessagesServerSocket extends IbisServerSocket {
                 + serverPort + " unlocked; from port=" + r.requestPort
                 + "; host=" + r.requestHost);
         s = new RoutedMessagesSocket(r.requestHost, r.requestPort, localPort,
-                r.requestHubPort, properties());
+                r.requestHubPort);
         logger.debug("# RoutedMessagesServerSocket.accept()- new "
                 + "RoutedMessagesSocket created on port=" + localPort
                 + "- Sending ACK.");
         hub.sendPacket(r.requestHost, r.requestHubPort,
                 new HubProtocol.HubPacketAccept(r.requestPort,
                         hub.localHostName, localPort));
-        s.tuneSocket();
         return s;
     }
 
@@ -119,9 +114,8 @@ public class RoutedMessagesServerSocket extends IbisServerSocket {
         hub.removeServer(serverPort);
     }
 
-    /*
-     * Method for the HubLink to feed us with new incoming connections returns:
-     * true=ok; false=connection refused
+    /* Method for the HubLink to feed us with new incoming connections
+     * returns: true=ok; false=connection refused
      */
     protected synchronized void enqueueConnect(String clientHost,
             int clientPort, int clienthubport) {
@@ -129,8 +123,7 @@ public class RoutedMessagesServerSocket extends IbisServerSocket {
         logger.debug("# RoutedMessagesServerSocket.enqueueConnect() for port "
                 + serverPort + ", size = " + requests.size());
         if (requests.size() == 1) {
-            logger
-                    .debug("# RoutedMessagesServerSocket.enqueueConnect(): notify");
+            logger.debug("# RoutedMessagesServerSocket.enqueueConnect(): notify");
             this.notify();
         }
     }

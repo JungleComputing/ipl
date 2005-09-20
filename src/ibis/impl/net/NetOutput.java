@@ -5,13 +5,14 @@ package ibis.impl.net;
 import ibis.io.Conversion;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 
 /**
  * Provide an abstraction of a network output.
  */
-public abstract class NetOutput extends NetIO {
+public abstract class NetOutput extends NetIO implements WriteMessage {
 
     /**
      * Check to not _finish twice
@@ -65,6 +66,8 @@ public abstract class NetOutput extends NetIO {
             throws IOException {
         throw new IOException("write buffered byte array not supported");
     }
+
+    /* WriteMessage Interface */
 
     /**
      * Unimplemented.

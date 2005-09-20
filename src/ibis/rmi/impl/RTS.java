@@ -36,8 +36,6 @@ import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
 
-import colobus.Colobus;
-
 public final class RTS {
 
     static final String prefix = "rmi.";
@@ -202,10 +200,8 @@ public final class RTS {
     }
 
     private static class UpcallHandler implements Upcall {
-        private static final Colobus colobus = Colobus.getColobus(UpcallHandler.class.getName());
 
         public void upcall(ReadMessage r) throws IOException {
-            long upcallStartHandle = colobus.fireStartEvent("ibis message upcall");
             Skeleton skel;
             int id = r.readInt();
 
@@ -237,7 +233,6 @@ public final class RTS {
                 // throw et;
                 // }
             }
-            colobus.fireStopEvent(upcallStartHandle, "ibis message upcall");
         }
     }
 

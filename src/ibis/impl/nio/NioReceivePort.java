@@ -3,8 +3,8 @@
 package ibis.impl.nio;
 
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.Channel;
 import java.util.ArrayList;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -56,7 +55,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
     private NioReadMessage m = null; // only used when upcalls are off
 
-    
     /**
      * Fake readmessage used to indicate someone is trying to get a real
      * message. This makes sure only one thread is trying to receive a new
@@ -89,11 +87,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             ThreadPool.createNew(this, "NioReceivePort with upcall");
         }
 
-    }
-
-    /** returns the type that was used to create this port */
-    public PortType getType() {
-        return type;
     }
 
     /**
@@ -374,18 +367,8 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         count = 0;
     }
 
-    public Map properties() {
+    public DynamicProperties properties() {
         return null;
-    }
-    
-    public Object getProperty(String key) {
-        return null;
-    }
-
-    public void setProperties(Map properties) {
-    }
-
-    public void setProperty(String key, Object val) {
     }
 
     public ReceivePortIdentifier identifier() {

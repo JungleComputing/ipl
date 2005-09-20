@@ -32,9 +32,6 @@
 	    name="package.home.log4j"
 	    location="${ibis}/3rdparty/log4j-1.2.9.jar"/>
 
-    <property
-	    name="package.home.colobus"
-	    location="${ibis}/3rdparty/colobus.jar"/>
 
     <target name="property-init"
 	    unless="property.initialized">
@@ -51,7 +48,6 @@
 		    <pathelement path="${build}"/>
 		    <pathelement path="${package.home.bcel}"/>
 		    <pathelement path="${package.home.log4j}"/>
-		    <pathelement path="${package.home.colobus}"/>
 		    <pathelement path="${package.home.junit}"/>
 		    <path refid="extra-classpath"/>
 		</path>
@@ -65,7 +61,6 @@
 		    <pathelement path="${build}"/>
 		    <pathelement path="${package.home.bcel}"/>
 		    <pathelement path="${package.home.log4j}"/>
-		    <pathelement path="${package.home.colobus}"/>
 		    <pathelement path="${package.home.junit}"/>
 		</path>
 	    </else>

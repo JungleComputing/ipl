@@ -7,7 +7,6 @@ import ibis.util.ConditionVariable;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -55,7 +54,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     private static PortCounter portCounter = new PortCounter();
 
-    PortType type;
+    private PortType type;
 
     private ReceivePortIdentifier ident;
 
@@ -163,11 +162,6 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
         } finally {
             Ibis.myIbis.unlock();
         }
-    }
-
-    /** returns the type that was used to create this port */
-    public ibis.ipl.PortType getType() {
-        return type;
     }
 
     /**
@@ -756,25 +750,15 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
         return receive(false);
     }
 
-    public Map properties() {
-        return null;
-    }
-
-    public Object getProperty(String key) {
-        return null;
-    }
-    
-    public void setProperties(Map properties) {
-    }
-    
-    public void setProperty(String key, Object val) {
+    public ibis.ipl.DynamicProperties properties() {
+        return ibis.ipl.DynamicProperties.NoDynamicProperties;
     }
 
     public String name() {
         return name;
     }
 
-    public ibis.ipl.PortType type() {
+    PortType type() {
         return type;
     }
 

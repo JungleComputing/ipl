@@ -2,18 +2,21 @@
 
 package ibis.impl.net.tcp_blk;
 
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
+import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceivePortIdentifier;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisIdentifier;
 import ibis.util.TypedProperties;
 
@@ -23,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Map;
 
 /**
  * The TCP output implementation (block version).
@@ -100,12 +102,30 @@ public final class TcpOutput extends NetBufferedOutput {
         OutputStream brokering_out = cnx.getServiceLink().getOutputSubStream(
                 this, "tcp_blk_brokering");
 
-        final Map p = cnx.properties();
+        NetPort port = cnx.getPort();
+
+        final DynamicProperties p;
+        if (port != null) {
+            p = port.properties();
+        } else {
+            p = null;
+        }
 
         final NetIO nn = this;
+        ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
+            public String getProperty(String name) {
+                if (p != null) {
+                    String result = (String) p.find(name);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+                return nn.getProperty(name);
+            }
+        };
 
         Socket tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
-                brokering_in, brokering_out, false, p);
+                brokering_in, brokering_out, false, props);
 
         brokering_in.close();
         brokering_out.close();

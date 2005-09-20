@@ -4,12 +4,14 @@
  **/
 package ibis.impl.tcp;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
+import ibis.util.IbisSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
@@ -27,6 +29,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private ServerSocket systemServer;
 
+    private ConnectionCache connectionCache = new ConnectionCache();
+
     private ArrayList receivePorts;
 
     private final TcpIbisIdentifier me;
@@ -35,16 +39,18 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private boolean quiting = false;
 
+    private final boolean use_brokered_links;
+
     private final IbisSocketFactory socketFactory;
 
-    TcpPortHandler(TcpIbisIdentifier me, IbisSocketFactory fac)
-            throws IOException {
+    TcpPortHandler(TcpIbisIdentifier me, boolean brokered,
+            IbisSocketFactory fac) throws IOException {
         this.me = me;
 
+        use_brokered_links = brokered;
         socketFactory = fac;
 
-        systemServer = socketFactory
-                .createServerSocket(0, me.address(), true, null /* don't pass properties, this is not a socket that is used for an ibis port */);
+        systemServer = socketFactory.createServerSocket(0, me.address(), true);
         port = systemServer.getLocalPort();
 
         if (DEBUG) {
@@ -73,8 +79,16 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         }
     }
 
-    Socket connect(TcpSendPort sp, TcpReceivePortIdentifier receiver,
-            int timeout) throws IOException {
+    void releaseOutput(TcpReceivePortIdentifier ri, OutputStream out) {
+        connectionCache.releaseOutput(ri.ibis, out);
+    }
+
+    void releaseInput(TcpSendPortIdentifier si, InputStream in) {
+        connectionCache.releaseInput(si.ibis, in);
+    }
+
+    OutputStream connect(TcpSendPort sp, TcpReceivePortIdentifier receiver,
+            long timeout) throws IOException {
         Socket s = null;
 
         long startTime = System.currentTimeMillis();
@@ -86,8 +100,27 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             }
 
             do {
-                s = socketFactory.createClientSocket(receiver.ibis.address(),
-                        receiver.port, me.address(), 0, timeout, sp.properties());
+                s = socketFactory.createSocket(receiver.ibis.address(),
+                        receiver.port, me.address(), timeout);
+
+                if (use_brokered_links) {
+                    ObjectOutputStream obj_out = new ObjectOutputStream(
+                            new DummyOutputStream(s.getOutputStream()));
+                    obj_out.writeObject(receiver);
+                    obj_out.close();
+                    final DynamicProperties p = sp.properties();
+                    ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
+                        public String getProperty(String name) {
+                            return (String) p.find(name);
+                        }
+                    };
+                    Socket s1 = socketFactory.createBrokeredSocket(s, false,
+                            props);
+                    if (s1 != s) {
+                        s.close();
+                        s = s1;
+                    }
+                }
 
                 InputStream sin = s.getInputStream();
                 OutputStream sout = s.getOutputStream();
@@ -100,8 +133,10 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                 obj_out.writeObject(receiver);
                 obj_out.writeObject(sp.identifier());
                 obj_out.flush();
+                // This is a bug: obj_out.close();
 
                 int result = data_in.readByte();
+
                 if (result != RECEIVER_ACCEPTED) {
                     obj_out.flush();
                     obj_out.close();
@@ -123,21 +158,35 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     result = data_in.readByte();
 
                     if (result == NEW_CONNECTION) {
-                        // close the object stream. The underlying stream will not be closed,
-                        // thanks to the dummy stream in between.
                         obj_out.flush();
                         obj_out.close();
                         data_in.close();
 
-                        Socket s1 = socketFactory.createBrokeredSocket(s
-                                .getInputStream(), s.getOutputStream(), false,
-                                sp.properties());
+                        connectionCache.addFreeInput(receiver.ibis, s, sin,
+                                sout);
+
+                        if (DEBUG) {
+                            System.err.println("--> Created new connection to "
+                                    + receiver);
+                        }
+
+                        return sout;
+                    } else if (result == EXISTING_CONNECTION) {
+                        data_in.close();
+                        obj_out.flush();
+                        obj_out.close();
+
+                        OutputStream out
+                                = connectionCache.getFreeOutput(receiver.ibis);
+                        if (DEBUG) {
+                            System.err.println("--> Reused connection to "
+                                    + receiver);
+                        }
 
                         sin.close();
                         sout.close();
                         s.close();
-
-                        return s1;
+                        return out;
                     } else {
                         throw new IbisError(
                                 "Illegal opcode in TcpPortHandler:connect");
@@ -172,8 +221,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             /* Connect to the serversocket, so that the port handler
              * thread wakes up.
              */
-            socketFactory.createClientSocket(me.address(), port, me.address(), 0, 
-                    0, null);
+            socketFactory.createSocket(me.address(), port, me.address(), 0);
         } catch (Exception e) {
             // Ignore
         }
@@ -210,19 +258,19 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     + s.getPort() + " on local port " + s.getLocalPort());
         }
 
-        ObjectInputStream obj_in = new ObjectInputStream(new DummyInputStream(
-                in));
-        DataOutputStream data_out = new DataOutputStream(new DummyOutputStream(
-                out));
+        ObjectInputStream obj_in
+                = new ObjectInputStream(new DummyInputStream(in));
+        DataOutputStream data_out
+                = new DataOutputStream(new DummyOutputStream(out));
 
         if (DEBUG) {
             System.err.println("--> S Reading Data");
         }
 
-        TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in
-                .readObject();
-        TcpSendPortIdentifier send = (TcpSendPortIdentifier) obj_in
-                .readObject();
+        TcpReceivePortIdentifier receive
+                = (TcpReceivePortIdentifier) obj_in.readObject();
+        TcpSendPortIdentifier send
+                = (TcpSendPortIdentifier) obj_in.readObject();
         TcpIbisIdentifier ibis = send.ibis;
 
         if (DEBUG) {
@@ -263,19 +311,45 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             System.err.println("--> S getting peer");
         }
 
-        /* no unused stream found, so reuse current socket */
-        data_out.writeByte(RECEIVER_ACCEPTED);
-        data_out.writeByte(NEW_CONNECTION);
-        data_out.flush();
-        data_out.close();
-        obj_in.close();
+        InputStream cin = connectionCache.getFreeInput(ibis);
 
-        Socket s1 = socketFactory.createBrokeredSocket(s.getInputStream(), s
-                .getOutputStream(), true, rp.properties());
-        s.close();
+        if (DEBUG) {
+            if (cin != null) {
+                System.err.println("--> S found connection " + cin);
+            } else {
+                System.err.println("--> no connection found");
+            }
+        }
+
+        if (cin == null) {
+            /* no unused stream found, so reuse current socket */
+            data_out.writeByte(RECEIVER_ACCEPTED);
+            data_out.writeByte(NEW_CONNECTION);
+            data_out.flush();
+            data_out.close();
+
+            obj_in.close();
+            // do not close s here, we just reused it :-)
+
+            connectionCache.addFreeOutput(ibis, s, in, out);
+            cin = in;
+        } else {
+            data_out.writeByte(RECEIVER_ACCEPTED);
+            data_out.writeByte(EXISTING_CONNECTION);
+            data_out.flush();
+            data_out.close();
+            obj_in.close();
+            out.close();
+            in.close();
+            s.close();
+        }
+
+        if (DEBUG) {
+            System.err.println("--> S connected " + cin);
+        }
 
         /* add the connection to the receiveport. */
-        rp.connect(send, s1);
+        rp.connect(send, cin);
 
         if (DEBUG) {
             System.err.println("--> S connect done ");
@@ -300,22 +374,22 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             }
 
             try {
-                s = systemServer.accept();
+                s = socketFactory.accept(systemServer);
             } catch (Exception e) {
                 /* if the accept itself fails, we have a fatal problem.
                  Close this receiveport.
                  */
                 try {
-                    System.err
-                            .println("EEK: TcpPortHandler:run: got exception "
-                                    + "in accept ReceivePort closing!: " + e);
+                    System.err.println("EEK: TcpPortHandler:run: got exception "
+                            + "in accept ReceivePort closing!: " + e);
                     e.printStackTrace();
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
 
                 cleanup();
-                throw new IbisError("Fatal: PortHandler could not do an accept");
+                throw new IbisError(
+                        "Fatal: PortHandler could not do an accept");
             }
 
             if (DEBUG) {
@@ -338,6 +412,29 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     return;
                 }
 
+                if (use_brokered_links) {
+                    InputStream in = s.getInputStream();
+                    ObjectInputStream obj_in
+                            = new ObjectInputStream(new DummyInputStream(in));
+                    TcpReceivePortIdentifier receive
+                            = (TcpReceivePortIdentifier) obj_in.readObject();
+                    obj_in.close();
+                    TcpReceivePort rp = findReceivePort(receive);
+                    final DynamicProperties p
+                            = rp == null ? null : rp.properties();
+                    ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
+                        public String getProperty(String name) {
+                            return (String) p.find(name);
+                        }
+                    };
+                    Socket s1 = socketFactory.createBrokeredSocket(s, true,
+                            props);
+                    if (s != s1) {
+                        s.close();
+                        s = s1;
+                    }
+                }
+
                 InputStream sin = s.getInputStream();
                 OutputStream sout = s.getOutputStream();
 
@@ -345,9 +442,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
             } catch (Exception e) {
                 try {
-                    System.err
-                            .println("EEK: TcpPortHandler:run: got exception "
-                                    + "(closing this socket only: " + e);
+                    System.err.println("EEK: TcpPortHandler:run: got exception "
+                            + "(closing this socket only: " + e);
                     e.printStackTrace();
                     if (s != null) {
                         s.close();

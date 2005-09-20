@@ -2,8 +2,6 @@
 
 package ibis.rmi.server;
 
-import java.io.IOException;
-
 /**
  * Ibis has no support for RMI socket factories.
  */

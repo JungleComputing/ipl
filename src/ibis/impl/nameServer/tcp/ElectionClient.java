@@ -52,7 +52,7 @@ class ElectionClient implements Protocol {
             in = new ObjectInputStream(new BufferedInputStream(di));
 
             result = in.readObject();
-            NameServer.closeConnection(in, out, s);
+            NameServerClient.socketFactory.close(in, out, s);
             if (result == null) {
                 try {
                     Thread.sleep(1000);

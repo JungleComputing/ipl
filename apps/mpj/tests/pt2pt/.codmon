@@ -21,6 +21,6 @@
 2 testsome
 2 waitall
 2 waitany
-1 waitnull
+//1 waitnull
 2 waitsome
 2 wildcard

@@ -49,16 +49,19 @@ public class ColScatter {
 		}
 		
 		if (rank == root) {
-			int myPosition = 0;
+			
+			
 			for (int i = 0; i < size; i++) {
 				
-				myPosition = this.sendoffset + i * sendcount * sendtype.extent();
 				
-				this.comm.send(sendbuf, myPosition, sendcount, sendtype, i, this.tag);
+				if (i != rank)
+					this.comm.send(sendbuf, this.sendoffset + i * sendcount * sendtype.extent(), sendcount, sendtype, i, this.tag);
 					
 			}
 			
-			this.comm.recv(recvbuf, recvoffset, recvcount, recvtype, root, this.tag);
+			this.comm.localcopy2types(sendbuf, this.sendoffset + rank * sendcount * sendtype.extent(), sendcount, sendtype,
+								recvbuf, recvoffset, recvcount, recvtype); 
+			//this.comm.recv(recvbuf, recvoffset, recvcount, recvtype, root, this.tag);
 		}
 		else {
 			this.comm.recv(recvbuf, recvoffset, recvcount, recvtype, root, this.tag);

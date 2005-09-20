@@ -57,7 +57,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
         ports = new Hashtable();
         requestedPorts = new Hashtable();
         serverSocket = NameServerClient.socketFactory.createServerSocket(0,
-                null, true, null);
+                null, true);
         setName("ReceivePort Name Server");
         start();
     }
@@ -108,7 +108,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
                     PortLookupRequest p = (PortLookupRequest) v.get(i);
                     p.out.writeByte(PORT_KNOWN);
                     p.out.writeObject(id);
-                    NameServer.closeConnection(p.in, p.out, p.s);
+                    NameServerClient.socketFactory.close(p.in, p.out, p.s);
                 }
             }
         }
@@ -161,7 +161,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
                                                     + "got IOException" + e);
                                             e.printStackTrace();
                                         }
-                                        NameServer.closeConnection(
+                                        NameServerClient.socketFactory.close(
                                                 p.in, p.out, p.s);
                                         v.remove(i);
                                     } else if (p.timeout - current < timeout) {
@@ -199,7 +199,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
         if (storedId != null) {
             out.writeByte(PORT_KNOWN);
             out.writeObject(storedId);
-            NameServer.closeConnection(in, out, s);
+            NameServerClient.socketFactory.close(in, out, s);
         } else {
             if (timeout != 0) {
                 timeout += System.currentTimeMillis();
@@ -247,7 +247,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
         while (!stop) {
 
             try {
-                s = serverSocket.accept();
+                s = NameServerClient.socketFactory.accept(serverSocket);
             } catch (Exception e) {
                 throw new IbisRuntimeException(
                         "ReceivePortNameServer: got an error ", e);
@@ -286,7 +286,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
                     handlePortLookup(s);
                     break;
                 case (PORT_EXIT):
-                    NameServer.closeConnection(in, out, s);
+                    NameServerClient.socketFactory.close(in, out, s);
                     synchronized (requestedPorts) {
                         finishSweeper = true;
                         requestedPorts.notifyAll();
@@ -299,13 +299,13 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 }
 
                 if (opcode != PORT_LOOKUP) {
-                    NameServer.closeConnection(in, out, s);
+                    NameServerClient.socketFactory.close(in, out, s);
                 }
             } catch (Exception e1) {
                 System.err.println("Got an exception in "
                         + "ReceivePortNameServer.run " + e1 + ", continuing");
                 // e1.printStackTrace();
-                NameServer.closeConnection(in, out, s);
+                NameServerClient.socketFactory.close(in, out, s);
             }
         }
     }

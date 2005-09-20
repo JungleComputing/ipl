@@ -18,11 +18,7 @@ interface Config {
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
 
     static final boolean CONNECTION_CACHE = TypedProperties.booleanProperty(
-            s_cache, false); // @@@@ used to be true, but the cache does not work with NIO --Rob
-
-    // Not configurable at runtime: too error prone.
-    // Note that the nameserver uses this as well.
-    static final boolean ID_CACHE = false;
+            s_cache, true);
 
     static final String[] sysprops = { s_debug, s_stats, s_cache };
 }

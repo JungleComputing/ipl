@@ -42,11 +42,11 @@ public final class BufferedArrayOutputStream extends DataOutputStream
     }
 
     public long bytesWritten() {
-        return bytes + index;
+        return bytes;
     }
 
     public void resetBytesWritten() {
-        bytes = index;
+        bytes = 0;
     }
 
     /**
@@ -167,12 +167,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream
         if (len > (BUF_SIZE - index)) {
 
             if (index > 0) {
-                bytes += index;
                 out.write(buffer, 0, index);
                 index = 0;
             }
             if (len >= BUF_SIZE) {
-                bytes += len;
                 out.write(ref, off, len);
             } else {
                 System.arraycopy(ref, off, buffer, 0, len);

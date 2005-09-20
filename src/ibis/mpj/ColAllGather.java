@@ -54,7 +54,7 @@ public class ColAllGather {
 		int rounds = (size - 1) / 2;
 		boolean add_half_round = (((size - 1) % 2) != 0);
 
-		this.comm.localcopy(sendbuf, sendoffset, sendcount, sendtype, 
+		this.comm.localcopy2types(sendbuf, sendoffset, sendcount, sendtype, 
 							recvbuf, recvoffset + rank * recvcount * recvtype.extent(), recvcount, recvtype);
 		
 	

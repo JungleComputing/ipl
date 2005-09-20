@@ -80,8 +80,7 @@ final class MethodTable {
                 return used;
             }
 
-            for (InstructionHandle i = catchBlock.getHandlerPC();
-                    i != end && i != null;
+            for (InstructionHandle i = catchBlock.getHandlerPC(); i != null;
                     i = i.getNext()) {
                 Instruction curr = i.getInstruction();
                 if (verbose) {
@@ -107,7 +106,6 @@ final class MethodTable {
                         }
                         return used;
                     }
-                /* No, not good, could be inside a conditional.
                 } else if (curr instanceof ReturnInstruction
                         || curr instanceof ATHROW) {
                     if (verbose) {
@@ -121,7 +119,6 @@ final class MethodTable {
                     }
                     // System.out.println("inlet local opt triggered");
                     return used;
-                */
                 } else if (curr instanceof LocalVariableInstruction) {
                     LocalVariableInstruction l
                             = (LocalVariableInstruction) curr;
@@ -132,6 +129,7 @@ final class MethodTable {
                 }
             }
 
+            System.out.println("HMM");
             return used;
         }
 

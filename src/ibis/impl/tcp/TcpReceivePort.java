@@ -2,8 +2,8 @@
 
 package ibis.impl.tcp;
 
+import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -14,10 +14,8 @@ import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 // why was shouldLeave here?
 // If I create a receiveport, do a receive, and someone leaves, 
@@ -63,7 +61,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
     private boolean no_connectionhandler_thread = false;
 
-    private Map props = new HashMap();
+    private DynamicProperties props = new TcpDynamicProperties();
 
     long count = 0;
 
@@ -88,17 +86,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         int port = ibis.tcpPortHandler.register(this);
         ident = new TcpReceivePortIdentifier(name, type.name(),
                 (TcpIbisIdentifier) type.ibis.identifier(), port);
-        if (upcall == null && connUpcall == null
-                && !type.p.isProp("communication", "ManyToOne")
+        if (upcall == null && !type.p.isProp("communication", "ManyToOne")
                 && !type.p.isProp("communication", "Poll")
                 && !type.p.isProp("communication", "ReceiveTimeout")) {
             no_connectionhandler_thread = true;
         }
-    }
-
-    /** returns the type that was used to create this port */
-    public PortType getType() {
-        return type;
     }
 
     // returns:  was the message already finised?
@@ -176,7 +168,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
              */
             ConnectionHandler h = old.getHandler();
             h.m = new TcpReadMessage(old);
-            ThreadPool.createNew(h, "ConnectionHandler");
+            ThreadPool.createNew(h, "Readmessage handler");
         }
     }
 
@@ -377,22 +369,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         return getMessage(timeoutMillis);
     }
 
-    public Map properties() {
+    public DynamicProperties properties() {
         return props;
     }
 
-    public Object getProperty(String key) {
-        return props.get(key);
-    }
-    
-    public void setProperties(Map properties) {
-        props = properties;
-    }
-    
-    public void setProperty(String key, Object val) {
-        props.put(key, val);
-    }
-    
     public String name() {
         return name;
     }
@@ -404,7 +384,19 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
     // called from the connectionHander.
     void leave(ConnectionHandler leaving, Exception e) {
 
-        // First update connection administration.
+        // Don't hold the lock when calling user upcall functions. --Rob
+        if (connectionAdministration) {
+            if (connUpcall != null) {
+                Exception x = e;
+                if (x == null) {
+                    x = new Exception("sender closed connection");
+                }
+                connUpcall.lostConnection(this, leaving.origin, x);
+            } else {
+                lostConnections.add(leaving.origin);
+            }
+        }
+
         synchronized (this) {
             boolean found = false;
             if (DEBUG) {
@@ -426,19 +418,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             }
             // Notify threads that might be blocked in a free
             notifyAll();
-        }
-
-        // Don't hold the lock when calling user upcall functions. --Rob
-        if (connectionAdministration) {
-            if (connUpcall != null) {
-                Exception x = e;
-                if (x == null) {
-                    x = new Exception("sender closed connection");
-                }
-                connUpcall.lostConnection(this, leaving.origin, x);
-            } else {
-                lostConnections.add(leaving.origin);
-            }
         }
     }
 
@@ -519,9 +498,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         }
     }
 
-    synchronized void connect(TcpSendPortIdentifier origin, Socket s) {
+    synchronized void connect(TcpSendPortIdentifier origin, InputStream in) {
         try {
-            ConnectionHandler con = new ConnectionHandler(ibis, origin, this, s);
+            ConnectionHandler con = new ConnectionHandler(ibis, origin, this,
+                    in);
 
             if (connections.length == connectionsIndex) {
                 ConnectionHandler[] temp

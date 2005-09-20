@@ -309,12 +309,6 @@ public abstract class SpawnSync extends Termination {
             }
         }
 
-        if (ABORTS && parent != null && parent.aborted) {
-            abortLogger.debug("parent " + parent.stamp
-                        + " is aborted, spawn ignored");
-            return;
-        }
-
         if (SPAWN_STATS) {
             spawns++;
         }

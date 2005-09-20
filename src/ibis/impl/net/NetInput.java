@@ -5,6 +5,7 @@ package ibis.impl.net;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 import ibis.util.TypedProperties;
 
@@ -13,7 +14,8 @@ import java.io.IOException;
 /**
  * Provide an abstraction of a network input.
  */
-public abstract class NetInput extends NetIO implements NetInputUpcall {
+public abstract class NetInput extends NetIO implements ReadMessage,
+        NetInputUpcall {
     /**
      * Active {@link ibis.impl.net.NetConnection connection} number or
      * <code>null</code> if no connection is active.
@@ -919,6 +921,8 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
         super.finalize();
         log.out();
     }
+
+    /* ReadMessage Interface */
 
     private final void implicitFinish() throws IOException {
         log.in();

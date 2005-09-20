@@ -3,10 +3,10 @@
 package ibis.impl.nio;
 
 import ibis.io.SerializationOutput;
+import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.PortMismatchException;
-import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.nio.channels.Channel;
 import java.nio.channels.GatheringByteChannel;
 import java.util.ArrayList;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -83,11 +82,6 @@ public final class NioSendPort implements SendPort, Config, Protocol {
         default:
             throw new IbisError("unknown send port implementation type");
         }
-    }
-
-    /** returns the type that was used to create this port */
-    public PortType getType() {
-        return type;
     }
 
     /**
@@ -297,18 +291,8 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
     }
 
-    public Map properties() {
+    public DynamicProperties properties() {
         return null;
-    }
-
-    public Object getProperty(String key) {
-        return null;
-    }
-
-    public void setProperties(Map properties) {
-    }
-
-    public void setProperty(String key, Object val) {
     }
 
     public String name() {

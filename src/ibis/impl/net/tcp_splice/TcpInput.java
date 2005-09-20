@@ -2,7 +2,8 @@
 
 package ibis.impl.net.tcp_splice;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
+import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.impl.net.NetBuffer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
@@ -26,7 +27,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Hashtable;
-import java.util.Map;
 
 /**
  * The TCP input implementation (block version).
@@ -145,17 +145,19 @@ public final class TcpInput extends NetBufferedInput {
         }
 
         {
-            
-            final Map p = cnx.properties();
-
             // Socket creation
             final NetIO nn = this;
+            ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
+                public String getProperty(String name) {
+                    return nn.getProperty(name);
+                }
+            };
             OutputStream os = cnx.getServiceLink().getOutputSubStream(this,
                     "tcp_splice");
             InputStream is = cnx.getServiceLink().getInputSubStream(this,
                     "tcp_splice");
-            tcpSocket = IbisSocketFactory.getFactory().createBrokeredSocket(is, os, true,
-                    p);
+            tcpSocket = ExtSocketFactory.createBrokeredSocket(is, os, true,
+                    props);
             is.close();
             os.close();
         }

@@ -19,30 +19,25 @@ public class ColBarrier {
 	
 	// flat tree algorithm
 	protected void call() throws MPJException {
-		if (this.comm.size() > 1) {
-			for (int i = 0; i < this.comm.size(); i++) {
-				byte[] sendbuf = {0};
-				
-				if (this.comm.rank() != i) {
-					try {
-						this.comm.send(sendbuf, 0, 1, MPJ.BYTE, i, this.tag);
-					}
-					catch (MPJException e) {
-						throw e;
-					}
-				}
-			}
+		int size = this.comm.size();
+		
+		if (size > 1) {
+			int rank = this.comm.rank();
+			byte[] sendbuf = {};
 			
-			for (int i=0; i < this.comm.size(); i++) {
-				byte[] recvbuf = {0};
+			if (rank > 0) {
+				this.comm.send(sendbuf, 0, 0, MPJ.BYTE, 0, this.tag);
 				
-				if (this.comm.rank() != i) {
-					try {
-						this.comm.recv(recvbuf, 0, 1, MPJ.BYTE, i, this.tag);
-					}
-					catch (MPJException e) {
-						throw e;
-					}
+				this.comm.recv(sendbuf, 0, 0, MPJ.BYTE, 0, this.tag);
+			}
+			else {
+			
+				for (int i = 1; i < this.comm.size(); i++) {
+					this.comm.recv(sendbuf, 0, 0, MPJ.BYTE, i, this.tag);
+				}
+				
+				for (int i=1; i < this.comm.size(); i++) {
+					this.comm.send(sendbuf, 0, 0, MPJ.BYTE, i, this.tag);
 				}
 			}
 		}

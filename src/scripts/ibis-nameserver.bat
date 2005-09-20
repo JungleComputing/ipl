@@ -8,7 +8,7 @@ set DIR=%~dp0..
 
 call "%DIR%\configuration"
 
-set JAVACLASSPATH=%CLASSPATH%;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\3rdparty\colobus;%IBIS_ROOT%\build;
+set JAVACLASSPATH=%CLASSPATH%;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\build;
 
 set ConnectHub="-Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP"
 
@@ -91,28 +91,28 @@ if "%1"=="-pool-port" (
 )
 
 if "%1"=="-hubport" (
-    set Dhubport="-Dibis.connect.hub.port=%2"
+    set Dhubport="-Dibis.connect.hub_port=%2"
     set Dhub=%ConnectHub%
     shift
     goto nextarg
 )
 
 if "%1"=="-hub-port" (
-    set Dhubport="-Dibis.connect.hub.port=%2"
+    set Dhubport="-Dibis.connect.hub_port=%2"
     set Dhub=%ConnectHub%
     shift
     goto nextarg
 )
 
 if "%1"=="-hubhost" (
-    set Dhubhost="-Dibis.connect.hub.host=%2"
+    set Dhubhost="-Dibis.connect.hub_host=%2"
     set Dhub=%ConnectHub%
     shift
     goto nextarg
 )
 
 if "%1"=="-hub-host" (
-    set Dhubhost="-Dibis.connect.hub.host=%2"
+    set Dhubhost="-Dibis.connect.hub_host=%2"
     set Dhub=%ConnectHub%
     shift
     goto nextarg

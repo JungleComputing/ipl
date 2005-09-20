@@ -2,11 +2,11 @@
 
 package ibis.impl.nio;
 
-import ibis.connect.IbisSocketFactory;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisError;
 import ibis.util.IPUtils;
+import ibis.util.IbisSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -40,11 +40,11 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
     // list of ReceivePorts we listen for
     private ArrayList receivePorts;
 
-    private static IbisSocketFactory socketFactory
-            = IbisSocketFactory.getFactory();
+    private static IbisSocketFactory socketFactory = IbisSocketFactory
+            .createFactory();
 
     TcpChannelFactory() throws IOException {
-        int port = 0;
+        int port = socketFactory.allocLocalPort();
         InetAddress localAddress = IPUtils.getLocalHostAddress();
 
         // init server socket channel

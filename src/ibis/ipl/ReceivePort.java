@@ -3,7 +3,6 @@
 package ibis.ipl;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * A receiveport maintains connections to one or more sendports.
@@ -40,9 +39,6 @@ import java.util.Map;
  */
 public interface ReceivePort {
 
-    /** returns the type that was used to create this port */
-    public PortType getType();
-    
     /**
      * Explicit blocking receive.
      * This method blocks until a message arrives on this receiveport.
@@ -101,36 +97,14 @@ public interface ReceivePort {
     public void resetCount();
 
     /**
-     * Returns the dynamic properties of
-     * this port. The user can set some implementation-specific dynamic
-     * properties of the port, by means of the
-     * {@link ibis.ipl.ReceivePort#setProperty(String, Object)
-     * setProperty} method.
+     * Returns the {@link ibis.ipl.DynamicProperties DynamicProperties} of
+     * this port.
+     * The user can set some implementation-specific dynamic properties of the
+     * port, by means of the
+     * {@link ibis.ipl.DynamicProperties#set(String, Object)
+     * DynamicProperties.set} method.
      */
-    public Map properties();
-
-    /**
-     * Sets a number of dynamic properties of
-     * this port. The user can set some implementation-specific dynamic
-     * properties of the port.
-     */
-    public void setProperties(Map properties); 
-    
-    /**
-     * Returns a dynamic property of
-     * this port. The user can set some implementation-specific dynamic
-     * properties of the port, by means of the
-     * {@link ibis.ipl.ReceivePort#setProperty(String, Object)
-     * setProperty} method.
-     */
-    public Object getProperty(String key);
-    
-    /**
-     * Sets a dynamic property of
-     * this port. The user can set some implementation-specific dynamic
-     * properties of the port.
-     */
-    public void setProperty(String key, Object val);
+    public DynamicProperties properties();
 
     /**
      * Returns the {@link ReceivePortIdentifier} of this receiveport.

@@ -17,10 +17,8 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -147,14 +145,14 @@ public class NameServer extends Thread implements Protocol {
         myAddress = IPUtils.getAlternateLocalHostAddress();
         myAddress = InetAddress.getByName(myAddress.getHostName());
 
-        String hubPort = System.getProperty("ibis.connect.hub.port");
+        String hubPort = System.getProperty("ibis.connect.hub_port");
         String poolPort = System.getProperty("ibis.pool.server.port");
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
         if (controlhub && !controlHubStarted) {
             if (hubPort == null) {
                 hubPort = Integer.toString(port + 2);
-                System.setProperty("ibis.connect.hub.port", hubPort);
+                System.setProperty("ibis.connect.hub_port", hubPort);
             }
             try {
                 h = new ControlHub();
@@ -189,7 +187,7 @@ public class NameServer extends Thread implements Protocol {
 
         // Create a server socket.
         serverSocket = NameServerClient.socketFactory.createServerSocket(port,
-                null, 50, false, null);
+                null, false);
 
         pools = new Hashtable();
 
@@ -207,15 +205,16 @@ public class NameServer extends Thread implements Protocol {
         }
         try {
 
-            Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+            Socket s = NameServerClient.socketFactory.createSocket(
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null,
+                    -1 /* do not retry */);
 
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
                     new BufferedOutputStream(d));
             out2.writeByte(IBIS_JOIN);
             out2.writeObject(id);
-            closeConnection(null, out2, s);
+            NameServerClient.socketFactory.close(null, out2, s);
 
             if (! silent) {
                 logger.debug("NameServer: forwarding join of "
@@ -233,8 +232,9 @@ public class NameServer extends Thread implements Protocol {
 
     private boolean doPing(IbisInfo dest, String key) {
         try {
-            Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+            Socket s = NameServerClient.socketFactory.createSocket(
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null,
+                    -1 /* do not retry */);
 
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
@@ -245,7 +245,7 @@ public class NameServer extends Thread implements Protocol {
             DataInputStream in2 = new DataInputStream(
                     new BufferedInputStream(i));
             String k = in2.readUTF();
-            closeConnection(in2, out2, s);
+            NameServerClient.socketFactory.close(in2, out2, s);
             if (!k.equals(key)) {
                 return false;
             }
@@ -283,7 +283,6 @@ public class NameServer extends Thread implements Protocol {
             for (int j = 0; j < ids.length; j++) {
                 IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
                 ids[j] = temp2.identifier;
-                temp2.identifier.free();
             }
 
             // Pass the dead ones on to the election server ...
@@ -325,15 +324,16 @@ public class NameServer extends Thread implements Protocol {
 
     private void forwardDead(IbisInfo dest, IbisIdentifier[] ids) {
         try {
-            Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+            Socket s = NameServerClient.socketFactory.createSocket(
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null,
+                    -1 /* do not retry */);
 
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
                     new BufferedOutputStream(d));
             out2.writeByte(IBIS_DEAD);
             out2.writeObject(ids);
-            closeConnection(null, out2, s);
+            NameServerClient.socketFactory.close(null, out2, s);
         } catch (Exception e) {
             if (! silent) {
                 logger.error("Could not forward dead ibises to "
@@ -459,15 +459,16 @@ public class NameServer extends Thread implements Protocol {
         }
 
         try {
-            Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+            Socket s = NameServerClient.socketFactory.createSocket(
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null,
+                    -1 /* do not retry */);
 
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
                     new BufferedOutputStream(d));
             out2.writeByte(IBIS_LEAVE);
             out2.writeObject(id);
-            closeConnection(null, out2, s);
+            NameServerClient.socketFactory.close(null, out2, s);
         } catch (Exception e) {
             if (! silent) {
                 logger.error("Could not forward leave of " + id.toString()
@@ -478,37 +479,37 @@ public class NameServer extends Thread implements Protocol {
 
     private void killThreads(RunInfo p) {
         try {
-            Socket s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.portTypeNameServer.getPort(), null, -1);
+            Socket s = NameServerClient.socketFactory.createSocket(myAddress,
+                    p.portTypeNameServer.getPort(), null, -1 /* no retry */);
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             DataOutputStream out1 = new DataOutputStream(
                     new BufferedOutputStream(d));
             out1.writeByte(PORTTYPE_EXIT);
-            closeConnection(null, out1, s);
+            NameServerClient.socketFactory.close(null, out1, s);
         } catch (IOException e) {
             // Ignore.
         }
 
         try {
-            Socket s2 = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.receivePortNameServer.getPort(), null, -1);
+            Socket s2 = NameServerClient.socketFactory.createSocket(myAddress,
+                    p.receivePortNameServer.getPort(), null, -1 /* no retry */);
             DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
                     new BufferedOutputStream(d2));
             out2.writeByte(PORT_EXIT);
-            closeConnection(null, out2, s2);
+            NameServerClient.socketFactory.close(null, out2, s2);
         } catch (IOException e) {
             // ignore
         }
 
         try {
-            Socket s3 = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.electionServer.getPort(), null);
+            Socket s3 = NameServerClient.socketFactory.createSocket(myAddress,
+                    p.electionServer.getPort(), null, -1 /* do not retry */);
             DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
             ObjectOutputStream out3 = new ObjectOutputStream(
                     new BufferedOutputStream(d3));
             out3.writeByte(ELECTION_EXIT);
-            closeConnection(null, out3, s3);
+            NameServerClient.socketFactory.close(null, out3, s3);
         } catch (IOException e) {
             // ignore
         }
@@ -523,14 +524,14 @@ public class NameServer extends Thread implements Protocol {
      */
     private void electionKill(RunInfo p, IbisIdentifier[] ids)
             throws IOException {
-        Socket s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                p.electionServer.getPort(), null, -1);
+        Socket s = NameServerClient.socketFactory.createSocket(myAddress,
+                p.electionServer.getPort(), null, -1 /* do not retry */);
         DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
         ObjectOutputStream out2 = new ObjectOutputStream(
                 new BufferedOutputStream(d));
         out2.writeByte(ELECTION_KILL);
         out2.writeObject(ids);
-        closeConnection(null, out2, s);
+        NameServerClient.socketFactory.close(null, out2, s);
     }
 
     private void handleIbisLeave() throws IOException, ClassNotFoundException {
@@ -620,7 +621,7 @@ public class NameServer extends Thread implements Protocol {
                 if (! silent) {
                     logger.info("NameServer: accepting incoming connections... ");
                 }
-                s = serverSocket.accept();
+                s = NameServerClient.socketFactory.accept(serverSocket);
 
                 if (! silent) {
                     logger.debug("NameServer: incoming connection from "
@@ -667,13 +668,13 @@ public class NameServer extends Thread implements Protocol {
                     }
                 }
 
-                closeConnection(in, out, s);
+                NameServerClient.socketFactory.close(in, out, s);
             } catch (Exception e1) {
                 if (! silent) {
                     logger.error("Got an exception in NameServer.run", e1);
                 }
                 if (s != null) {
-                    closeConnection(null, null, s);
+                    NameServerClient.socketFactory.close(null, null, s);
                 }
             }
         }
@@ -724,49 +725,6 @@ public class NameServer extends Thread implements Protocol {
         }
         nameServerCreated = true;
         return ns;
-    }
-
-    /**
-     * Closes a socket and streams that are associated with it. These streams
-     * are given as separate parameters, because they may be streams that are
-     * built on top of the actual socket streams.
-     * 
-     * @param in
-     *            the inputstream ot be closed
-     * @param out
-     *            the outputstream to be closed
-     * @param s
-     *            the socket to be closed
-     */
-    static void closeConnection(InputStream in, OutputStream out, Socket s) {
-        if (out != null) {
-            try {
-                out.flush();
-            } catch (Exception e) {
-                // ignore
-            }
-            try {
-                out.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-
-        if (in != null) {
-            try {
-                in.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-
-        if (s != null) {
-            try {
-                s.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
     }
 
     public static void main(String[] args) {

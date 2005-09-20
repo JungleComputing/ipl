@@ -49,12 +49,15 @@ public class ColGatherV {
 		}
 
 		if (rank == root) {
-			this.comm.send(this.sendbuf, this.sendoffset, this.sendcount, this.sendtype, root, this.tag);
+			this.comm.localcopy2types(sendbuf, sendoffset, sendcount, sendtype,
+					recvbuf, recvoffset + (displs[rank] * recvtype.extent()), recvcount[rank], recvtype);
 			
-			Object recv = null;
-			int position = 0;
+			//this.comm.send(this.sendbuf, this.sendoffset, this.sendcount, this.sendtype, root, this.tag);
+			
+		
 			for (int i=0; i < size; i++) {
-				this.comm.recv(recvbuf, this.recvoffset + displs[i] * recvtype.extent(), this.recvcount[i], this.recvtype, i, this.tag);
+				if (i != rank)
+					this.comm.recv(recvbuf, this.recvoffset + displs[i] * recvtype.extent(), this.recvcount[i], this.recvtype, i, this.tag);
 			}
 	
 		}

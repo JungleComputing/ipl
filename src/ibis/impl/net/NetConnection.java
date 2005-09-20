@@ -8,8 +8,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import java.util.Map;
-
 /**
  * Provide set of attributes describing a NetIbis connection.
  */
@@ -18,23 +16,16 @@ public final class NetConnection {
     private final static boolean DEBUG = false;
 
     /**
-     * Reference the {@link ibis.impl.net.NetSendPort}
-     * which created this connection, and from
-     * which the {@link NetPortType} is 'inherited', or <code>null</code>.
+     * Reference the {@link ibis.impl.net.NetSendPort} or {@link
+     * ibis.impl.net.NetReceivePort} which created this connection, and from
+     * which the {@link NetPortType} is 'inherited'.
      */
-    private NetSendPort sendPort = null;
-
-    /**
-     * Reference the or {@link ibis.impl.net.NetReceivePort} which created
-     * this connection, and from which the {@link NetPortType} is 'inherited',
-     * or <code>null</code>.
-     */
-    private NetReceivePort receivePort = null;
+    private NetPort port = null;
 
     /**
      * Store the connection identifier.
      *
-     * This identifier should be unique among the port's connections.
+     * This identifier should be unique among the {@link #port}'s connections.
      */
     private Integer num = null;
 
@@ -85,61 +76,18 @@ public final class NetConnection {
      *
      * The actual network connection must have already been established.
      *
-     * @param port the {@link ibis.impl.net.NetSendPort} that owns this
-     * connection.
+     * @param port the {@link ibis.impl.net.NetSendPort} or the {@link
+     * NetReceivePort} that owns this connection.
      * @param num the connection identifier.
      * @param sendId the send-side port identifier.
      * @param receiveId the receive-side port identifier.
      * @param serviceLink a reference to the connection's service link.
      * @param replacer allows for object replacement before serialization.
      */
-    public NetConnection(NetSendPort port, Integer num,
+    public NetConnection(NetPort port, Integer num,
             NetSendPortIdentifier sendId, NetReceivePortIdentifier receiveId,
             NetServiceLink serviceLink, long startSeqno, Replacer replacer) {
-        this(port, null, num, sendId, receiveId, serviceLink, startSeqno,
-                replacer);
-    }
-
-    /**
-     * Construct the set of connection attributes.
-     *
-     * The actual network connection must have already been established.
-     *
-     * @param port the {@link ibis.impl.net.NetReceivePort} that owns this
-     * connection.
-     * @param num the connection identifier.
-     * @param sendId the send-side port identifier.
-     * @param receiveId the receive-side port identifier.
-     * @param serviceLink a reference to the connection's service link.
-     * @param replacer allows for object replacement before serialization.
-     */
-    public NetConnection(NetReceivePort port, Integer num,
-            NetSendPortIdentifier sendId, NetReceivePortIdentifier receiveId,
-            NetServiceLink serviceLink, long startSeqno, Replacer replacer) {
-        this(null, port, num, sendId, receiveId, serviceLink, startSeqno,
-                replacer);
-    }
-
-    /**
-     * Construct the set of connection attributes.
-     *
-     * The actual network connection must have already been established.
-     *
-     * @param sport the {@link ibis.impl.net.NetSendPort} that owns this
-     * connection, or <code>null</code>.
-     * @param rport the {@link ibis.impl.net.NetReceivePort} that owns this
-     * connection, or <code>null</code>.
-     * @param num the connection identifier.
-     * @param sendId the send-side port identifier.
-     * @param receiveId the receive-side port identifier.
-     * @param serviceLink a reference to the connection's service link.
-     * @param replacer allows for object replacement before serialization.
-     */
-    private NetConnection(NetSendPort sport, NetReceivePort rport, Integer num,
-            NetSendPortIdentifier sendId, NetReceivePortIdentifier receiveId,
-            NetServiceLink serviceLink, long startSeqno, Replacer replacer) {
-        this.sendPort = sport;
-        this.receivePort = rport;
+        this.port = port;
         this.num = num;
         this.sendId = sendId;
         this.receiveId = receiveId;
@@ -159,6 +107,24 @@ public final class NetConnection {
         } catch (IOException e) {
             throw new Error("Cannot establish disconnection streams");
         }
+    }
+
+    /**
+     * Construct the set of connection attributes.
+     *
+     * The actual network connection must have already been established.
+     *
+     * @param port the {@link ibis.impl.net.NetSendPort} or the {@link
+     * NetReceivePort} that owns this connection.
+     * @param num the connection identifier.
+     * @param sendId the send-side port identifier.
+     * @param receiveId the receive-side port identifier.
+     * @param serviceLink a reference to the connection's service link.
+     */
+    public NetConnection(NetPort port, Integer num,
+            NetSendPortIdentifier sendId, NetReceivePortIdentifier receiveId,
+            NetServiceLink serviceLink, long startSeqno) {
+        this(port, num, sendId, receiveId, serviceLink, startSeqno, null);
     }
 
     /**
@@ -183,8 +149,18 @@ public final class NetConnection {
      * connection.
      */
     public NetConnection(NetConnection model, Integer newnum) {
-        this(model.sendPort, model.receivePort, newnum, model.sendId,
-                model.receiveId, model.serviceLink, model.msgSeqno, null);
+        this(model.port, newnum, model.sendId, model.receiveId,
+                model.serviceLink, model.msgSeqno);
+    }
+
+    /**
+     * Return the owner of this connection.
+     *
+     * @return the {@link ibis.impl.net.NetSendPort} or the {@link
+     * ibis.impl.net.NetReceivePort} that owns this connection.
+     */
+    public synchronized NetPort getPort() {
+        return port;
     }
 
     /**
@@ -194,21 +170,6 @@ public final class NetConnection {
      */
     public synchronized Integer getNum() {
         return num;
-    }
-
-    /**
-     * Return the properties of the creating port.
-     *
-     * @return the properties.
-     */
-    public Map properties() {
-        if (sendPort != null) {
-            return sendPort.properties();
-        }
-        if (receivePort != null) {
-            return receivePort.properties();
-        }
-        return null;
     }
 
     /**
@@ -257,12 +218,7 @@ public final class NetConnection {
                 System.err.println(this + ": receive closeSeqno " + closeSeqno);
             }
             // disconnect_is.close();
-            if (sendPort != null) {
-                sendPort.closeFromRemote(NetConnection.this);
-            }
-            if (receivePort != null) {
-                receivePort.closeFromRemote(NetConnection.this);
-            }
+            port.closeFromRemote(NetConnection.this);
         }
 
         public String getName() {
@@ -300,8 +256,7 @@ public final class NetConnection {
             serviceLink.close();
         }
 
-        sendPort = null;
-        receivePort = null;
+        port = null;
         num = null;
         sendId = null;
         receiveId = null;

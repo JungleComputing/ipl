@@ -2,7 +2,8 @@
 
 package ibis.impl.net.tcp_splice;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
+import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
@@ -21,7 +22,6 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Hashtable;
-import java.util.Map;
 
 /**
  * The TCP output implementation (block version).
@@ -123,16 +123,19 @@ public final class TcpOutput extends NetBufferedOutput {
         }
 
         {
-            final Map p = cnx.properties();
-
             // Socket creation
             final NetIO nn = this;
+            ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
+                public String getProperty(String name) {
+                    return nn.getProperty(name);
+                }
+            };
             OutputStream os = cnx.getServiceLink().getOutputSubStream(this,
                     "tcp_splice");
             InputStream is = cnx.getServiceLink().getInputSubStream(this,
                     "tcp_splice");
-            tcpSocket = IbisSocketFactory.getFactory().createBrokeredSocket(is, os, false,
-                    p);
+            tcpSocket = ExtSocketFactory.createBrokeredSocket(is, os, false,
+                    props);
             is.close();
             os.close();
         }

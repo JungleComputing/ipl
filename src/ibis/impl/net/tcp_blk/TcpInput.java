@@ -2,6 +2,7 @@
 
 package ibis.impl.net.tcp_blk;
 
+import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.impl.net.NetBuffer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
@@ -10,12 +11,14 @@ import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInputUpcall;
+import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 import ibis.impl.net.NetSendPortIdentifier;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisIdentifier;
 import ibis.util.TypedProperties;
 
@@ -27,7 +30,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.Map;
 
 /**
  * The TCP input implementation (block version).
@@ -121,12 +123,30 @@ public final class TcpInput extends NetBufferedInput {
         OutputStream brokered_out = cnx.getServiceLink().getOutputSubStream(
                 this, "tcp_blk_brokering");
 
-        final Map p = cnx.properties();
+        NetPort port = cnx.getPort();
+
+        final DynamicProperties p;
+        if (port != null) {
+            p = port.properties();
+        } else {
+            p = null;
+        }
 
         final NetIO nn = this;
+        ConnectionPropertiesProvider props = new ConnectionPropertiesProvider() {
+            public String getProperty(String name) {
+                if (p != null) {
+                    String result = (String) p.find(name);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+                return nn.getProperty(name);
+            }
+        };
 
         Socket tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
-                brokered_in, brokered_out, true, p);
+                brokered_in, brokered_out, true, props);
 
         brokered_in.close();
         brokered_out.close();

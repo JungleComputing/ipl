@@ -11,13 +11,11 @@ import java.net.InetAddress;
 
 public final class NetIbisIdentifier extends IbisIdentifier implements
         java.io.Serializable {
-    private static final boolean ID_CACHE = false;
 
     private static final long serialVersionUID = 9L;
 
     private InetAddress address;
 
-    // ID_CACHE
     private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
     public NetIbisIdentifier(String name, InetAddress address) {
@@ -65,11 +63,7 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
     // classlibs --Rob
     private void writeObject(java.io.ObjectOutputStream out)
             throws IOException {
-        int handle = -1;
-        
-        if (ID_CACHE) {
-            handle = cache.getHandle(out, this);
-        }
+        int handle = cache.getHandle(out, this);
         out.writeInt(handle);
         if (handle < 0) { // First time, send it.
             out.writeUTF(address.getHostAddress());
@@ -90,13 +84,8 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
                         + "from a IP address. This shouldn't happen", e);
             }
 
-            if (ID_CACHE) {
-                cache.addIbis(in, -handle, this);
-            }
+            cache.addIbis(in, -handle, this);
         } else {
-            if (! ID_CACHE) {
-                throw new IbisError("This ibis cannot talk to ibisses or nameservers that do IbisIdentifier caching");
-            }
             NetIbisIdentifier ident = (NetIbisIdentifier) cache.getIbis(in,
                     handle);
             address = ident.address;
@@ -106,8 +95,6 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
     }
 
     public void free() {
-        if (ID_CACHE) {
-            cache.removeIbis(this);
-        }
+        cache.removeIbis(this);
     }
 }
