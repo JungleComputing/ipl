@@ -1103,9 +1103,7 @@ public class IbisSerializationOutputStream
                 } else if (clazz == java.lang.Class.class) {
                     /* EEK this is not nice !! */
                     writeUTF(((Class) ref).getName());
-                } else if (ref instanceof Serializable) {
-                    // } else if (IbisSerializationInputStream
-                    //         .isIbisSerializable(clazz)) {
+                } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
                     ((Serializable) ref).generated_WriteObject(this);
                 } else if (ref instanceof java.io.Externalizable) {
                     push_current_object(ref, 0);
@@ -1206,8 +1204,7 @@ public class IbisSerializationOutputStream
             Object ref = current_object;
             Class clazz = ref.getClass();
 
-            //if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
-            if (ref instanceof Serializable) {
+            if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
                 /* Note that this will take the generated_DefaultWriteObject of the
                  dynamic type of ref. The current_level variable actually
                  indicates which instance of generated_DefaultWriteObject 
@@ -1279,9 +1276,7 @@ public class IbisSerializationOutputStream
                     push_current_object(ref, 0);
                     ((java.io.Externalizable) ref).writeExternal(this);
                     pop_current_object();
-                } else if (ref instanceof Serializable) {
-                    // } else if (IbisSerializationInputStream
-                    //         .isIbisSerializable(clazz)) {
+                } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
                     ((Serializable) ref).generated_WriteObject(ibisStream);
                 } else if (ref instanceof java.io.Serializable) {
                     ibisStream.writeSerializableObject(ref, clazz);

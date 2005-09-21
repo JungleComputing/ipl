@@ -2061,8 +2061,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Object ref = current_object;
             Class type = ref.getClass();
 
-            if (ref instanceof ibis.io.Serializable) {
-                // if (isIbisSerializable(type))
+            if (isIbisSerializable(type)) {
                 if (DEBUG) {
                     dbPrint("generated_DefaultReadObject, class = " + type
                             + ", level = " + current_level);
