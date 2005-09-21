@@ -795,6 +795,8 @@ public class NameServer extends Thread implements Protocol {
                 pool_server = true;
             } else if (args[i].equals("-no-poolserver")) {
                 pool_server = false;
+            } else if (args[i].equals("-verbose") || args[i].equals("-v")) {
+                logger.setLevel(org.apache.log4j.Level.INFO);
             } else {
                 if (! silent) {
                     logger.fatal("No such option: " + args[i]);

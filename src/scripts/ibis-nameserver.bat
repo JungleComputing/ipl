@@ -39,6 +39,16 @@ if "%1"=="-no-poolserver" (
     goto nextarg
 )
 
+if "%1"=="-v" (
+    set NS_ARGS=%NS_ARGS% -verbose
+    goto nextarg
+)
+
+if "%1"=="-verbose" (
+    set NS_ARGS=%NS_ARGS% -verbose
+    goto nextarg
+)
+
 if "%1"=="-no-controlhub" (
     set NS_ARGS=%NS_ARGS% -no-controlhub
     goto nextarg

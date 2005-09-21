@@ -110,6 +110,9 @@ The nameserver parameters are:
     specifies the hostname with the controlhub that is to be used by the
     nameserver. All communication with the nameserver will go through this
     controlhub.
+-v
+-verbose
+    make the nameserver verbose
 -?
 -h
 -help
@@ -130,6 +133,9 @@ do
 	;;
     -poolserver|-no-poolserver|-single|-no-controlhub)
 	args="$args $1"
+	;;
+    -v|-verbose)
+	args="$args -verbose"
 	;;
     -controlhub)
 	# Note: ibis.connect.data_links must be set or ibis.connect does not
