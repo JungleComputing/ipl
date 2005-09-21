@@ -85,9 +85,7 @@
 	    description="Compile Satin application for parallel execution">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="satin"/>
-	<!--
 	<antcall inheritRefs="true" target="iogen"/>
-	-->
     </target>
 
     <target name="clean">
