@@ -89,7 +89,7 @@ class Main {
 
                 BT_Analyzer a = new BT_Analyzer(subject, groupInterface,
                         verbose);
-                a.start();
+                a.start(false);
 
                 if (a.specialInterfaces.size() == 0) {
                     continue;

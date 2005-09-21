@@ -352,7 +352,13 @@ final class MethodTable {
             gen_c.removeMethod(m);
             m = mg.getMethod();
             gen_c.addMethod(m);
-            mg = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
+            // mg = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
+            //
+            if (mg.getName().equals("<clinit>")) {
+                System.out.println("mg: " + mg.getInstructionList());
+                MethodGen clinit = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
+                System.out.println("clinit: " + clinit.getInstructionList());
+            }
             MethodTableEntry e = new MethodTableEntry();
 
             e.nrSpawns = calcNrSpawns(mg);
@@ -501,7 +507,7 @@ final class MethodTable {
         BT_Analyzer b = (BT_Analyzer) analyzers.get(cl);
         if (b == null) {
             b = new BT_Analyzer(cl, spawnableClass, verbose);
-            b.start();
+            b.start(false);
             analyzers.put(cl, b);
             if (b.hasSpecialMethods()) {
                 Satinc.do_satinc(cl);

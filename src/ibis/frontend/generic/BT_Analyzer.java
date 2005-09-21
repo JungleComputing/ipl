@@ -170,13 +170,53 @@ public class BT_Analyzer {
         return si;
     }
 
-    public void start() {
+    void findSpecialInterfaces2(JavaClass inter, Vector si) {
+        boolean result = false;
+
+        JavaClass[] interfaces = inter.getAllInterfaces();
+
+        for (int i = 0; i < interfaces.length; i++) {
+            if (! si.contains(interfaces[i])) {
+                si.addElement(interfaces[i]);
+            }
+        }
+
+        if (! si.contains(inter)) {
+            si.addElement(inter);
+        }
+    }
+
+    Vector findSpecialInterfaces2() {
+        Vector si = new Vector();
+
+        if (!subject.isClass()) {
+            if (subject.implementationOf(specialInterface)) {
+                findSpecialInterfaces2(subject, si);
+            }
+        } else {
+            JavaClass[] interfaces = subject.getInterfaces();
+
+            for (int i = 0; i < interfaces.length; i++) {
+                if (interfaces[i].implementationOf(specialInterface)) {
+                    findSpecialInterfaces2(interfaces[i], si);
+                }
+            }
+        }
+
+        return si;
+    }
+
+    public void start(boolean rmi_like) {
 
         String temp = subject.getClassName();
         packagename = subject.getPackageName();
         classname = temp.substring(temp.lastIndexOf('.') + 1);
 
-        specialInterfaces = findSpecialInterfaces();
+        if (rmi_like) {
+            specialInterfaces = findSpecialInterfaces2();
+        } else {
+            specialInterfaces = findSpecialInterfaces();
+        }
 
         if (specialInterfaces.size() == 0) {
             if (verbose) {

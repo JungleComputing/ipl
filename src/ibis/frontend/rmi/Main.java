@@ -273,8 +273,12 @@ class Main {
                     continue;
                 }
 
+                if (! subject.implementationOf(rmiInterface)) {
+                    continue;
+                }
+
                 BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);
-                a.start();
+                a.start(true);
 
                 if (a.specialInterfaces.size() == 0) {
                     continue;

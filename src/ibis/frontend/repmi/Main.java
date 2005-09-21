@@ -98,7 +98,7 @@ class Main {
 
                 BT_Analyzer a = new BT_Analyzer(subject, repmiInterface,
                         verbose);
-                a.start();
+                a.start(false);
 
                 if (a.subjectSpecialMethods != null) {
                     output = createFile(getFileName(a.packagename, a.classname,
