@@ -58,6 +58,13 @@ public class BT_Analyzer {
         return false;
     }
 
+    public boolean hasSpecialMethods() {
+        if (specialMethods == null) {
+            return false;
+        }
+        return specialMethods.size() > 0;
+    }
+
     private void addSpecialMethod(Vector sm, Method m) {
         for (int i = 0; i < sm.size(); i++) {
             if (compareMethods(m, (Method) sm.get(i))) {

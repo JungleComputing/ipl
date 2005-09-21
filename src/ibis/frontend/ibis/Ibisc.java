@@ -4,6 +4,8 @@ package ibis.frontend.ibis;
 
 import ibis.util.RunProcess;
 
+import ibis.frontend.generic.RunJavac;
+
 import java.io.File;
 import java.util.Vector;
 
@@ -12,29 +14,13 @@ import org.apache.bcel.Repository;
 class Ibisc {
     boolean verbose;
 
-    boolean satinVerbose;
-
-    boolean satinVerify;
-
-    boolean iogenVerbose;
-
-    boolean iogenVerify;
+    boolean verify;
 
     boolean keep;
-
-    boolean print;
 
     boolean invocationRecordCache;
 
     String className;
-
-    String compiler;
-
-    String mantac;
-
-    boolean link;
-
-    boolean doManta;
 
     boolean inletOpt;
 
@@ -48,106 +34,23 @@ class Ibisc {
 
     String packageName;
 
-    String exeName;
-
-    Ibisc(boolean local, boolean verbose, boolean satinVerbose,
-            boolean satinVerify, boolean iogenVerbose, boolean iogenVerify,
-            boolean keep, boolean print, boolean invocationRecordCache,
-            Vector targets, String packageName, String exeName,
-            String compiler, String mantac, boolean link, boolean doManta,
+    Ibisc(boolean local, boolean verbose,
+            boolean verify,
+            boolean keep, boolean invocationRecordCache,
+            Vector targets, String packageName,
             boolean inletOpt, boolean spawnCounterOpt) {
         this.local = local;
         this.verbose = verbose;
-        this.satinVerbose = satinVerbose;
-        this.satinVerify = satinVerify;
-        this.iogenVerbose = iogenVerbose;
-        this.iogenVerify = iogenVerify;
+        this.verify = verify;
         this.keep = keep;
-        this.print = print;
         this.invocationRecordCache = invocationRecordCache;
         this.targets = targets;
-        this.compiler = compiler;
-        this.mantac = mantac;
-        this.link = link;
-        this.doManta = doManta;
         this.inletOpt = inletOpt;
         this.spawnCounterOpt = spawnCounterOpt;
         this.packageName = packageName;
-        this.exeName = exeName;
 
         factory = new IbiscFactory();
         Repository.registerObserver(factory);
-    }
-
-    void compile(String target) {
-        boolean error_exit = false;
-
-        String command = compiler + " " + target;
-        if (verbose) {
-            System.out.println("Running: " + command);
-        }
-
-        try {
-            RunProcess p = new RunProcess(command);
-            int res = p.getExitStatus();
-            if (res != 0) {
-                System.err.println("Error compiling code (" + target + ").");
-                System.err.println("Standard output:");
-                byte[] o = p.getStdout();
-                for (int i = 0; i < o.length; i++) {
-                    System.err.print((char) o[i]);
-                }
-                System.err.println("Error output:");
-                byte[] e = p.getStderr();
-                for (int i = 0; i < e.length; i++) {
-                    System.err.print((char) e[i]);
-                }
-                error_exit = true;
-            }
-            if (verbose) {
-                System.out.println(" Done");
-            }
-        } catch (Exception e) {
-            System.err.println("IO error: " + e);
-            e.printStackTrace();
-            error_exit = true;
-        }
-        if (error_exit) {
-            System.exit(1);
-        }
-    }
-
-    void mantaCompile(String target, boolean mustlink) {
-        try {
-            if (mustlink) {
-                System.out.println("Temporarily skip link phase");
-                System.out.println(mantac + " -o " + exeName + " " + target
-                        + ".class and all other class files");
-                return;
-            }
-            String command = mantac
-                    + (mustlink ? " " : " -c ")
-                    + (!mustlink || exeName == null ? " " : "-o " + exeName
-                            + " ") + target + ".class";
-
-            if (verbose) {
-                System.out.println("Running: " + command);
-            }
-
-            RunProcess p = new RunProcess(command);
-            int res = p.getExitStatus();
-            if (res != 0) {
-                System.err.println("Error compiling code (" + target + ").");
-                System.exit(1);
-            }
-            if (verbose) {
-                System.out.println(" Done");
-            }
-        } catch (Exception e) {
-            System.err.println("IO error: " + e);
-            e.printStackTrace();
-            System.exit(1);
-        }
     }
 
     boolean fileExists(String s) {
@@ -183,16 +86,7 @@ class Ibisc {
             System.exit(1);
         }
 
-        String classFile = javaFile.substring(0, javaFile.length() - 5)
-                + ".class";
-
-        if (!fileExists(classFile) || fileNewer(javaFile, classFile)) {
-            compile(javaFile);
-        } else {
-            if (verbose) {
-                System.err.println("no need to compile " + javaFile);
-            }
-        }
+        RunJavac.runJavac(new String[] {}, javaFile, verbose);
 
         // We should have bytecode now.
         className = javaFile.substring(0, javaFile.length() - 5);
@@ -207,8 +101,8 @@ class Ibisc {
         }
 
         // Run satinc.
-        new ibis.frontend.satin.Satinc(satinVerbose, local, satinVerify, keep,
-                print, invocationRecordCache, className, compiler, inletOpt,
+        new ibis.frontend.satin.Satinc(verbose, local, verify, keep,
+                invocationRecordCache, className, inletOpt,
                 spawnCounterOpt).start();
 
         // Now generate serialization code for all classes, including
@@ -217,24 +111,11 @@ class Ibisc {
             System.out.println("running io generator on all files");
         }
 
-        new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false,
-                iogenVerify, false).scanClass(factory.getList());
+        new ibis.frontend.io.IOGenerator(verbose, local, false, false,
+                verify, false).scanClass(factory.getList());
 
         if (verbose) {
             System.out.println(" Done");
-        }
-
-        // run manta's bytecode compiler on all generated code.
-        // compile main class last.
-        if (doManta) {
-            for (int i = 0; i < factory.getList().size(); i++) {
-                if (!((String) factory.getList().get(i)).equals(className)) {
-                    mantaCompile((String) factory.getList().get(i), false);
-                }
-            }
-
-            // and now main...
-            mantaCompile(className, link);
         }
 
         // for (int i=0; i<factory.getList().size(); i++) {
@@ -243,10 +124,9 @@ class Ibisc {
     }
 
     public static void usage() {
-        System.err.println("Usage : ibisc [-v] [-sv] [-iv] [-keep] [-print] "
-                + "[-irc-off] [-compiler \"your compile command\" ] "
-                + "[-mantac \"your compile command\" ] [-c] [-o outfile] "
-                + "[-manta] [-no-inlet-opt] [-no-sc-opt] [-package] "
+        System.err.println("Usage : ibisc [-v] [-verify] [-keep] "
+                + "[-irc-off] "
+                + "[-no-inlet-opt] [-no-sc-opt] [-package] "
                 + "<java file(s)>");
         System.exit(1);
     }
@@ -254,44 +134,23 @@ class Ibisc {
     public static void main(String[] args) {
         boolean verbose = false;
         boolean keep = false;
-        boolean print = false;
+        boolean verify = false;
         boolean invocationRecordCache = true;
-        String compiler = "javac";
-        String mantac = "mantac";
-        boolean doManta = false;
         boolean inletOpt = true;
         boolean spawnCounterOpt = true;
-        boolean satinVerbose = false;
-        boolean satinVerify = false;
-        boolean iogenVerbose = false;
-        boolean iogenVerify = false;
-        boolean link = true;
         Vector targets = new Vector();
         String packageName = "";
-        String exeName = null;
         boolean local = true;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-v")) {
                 verbose = true;
-            } else if (args[i].equals("-sv")) {
-                satinVerbose = true;
-            } else if (args[i].equals("-sverify")) {
-                satinVerify = true;
-            } else if (args[i].equals("-iv")) {
-                iogenVerbose = true;
-            } else if (args[i].equals("-iverify")) {
-                iogenVerify = true;
+            } else if (args[i].equals("-verify")) {
+                verify = true;
             } else if (!args[i].startsWith("-")) {
                 targets.add(args[i]);
             } else if (args[i].equals("-package")) {
                 packageName = args[i + 1];
-                i++;
-            } else if (args[i].equals("-compiler")) {
-                compiler = args[i + 1];
-                i++;
-            } else if (args[i].equals("-mantac")) {
-                mantac = args[i + 1];
                 i++;
             } else if (args[i].equals("-keep")) {
                 keep = true;
@@ -299,15 +158,6 @@ class Ibisc {
                 local = false;
             } else if (args[i].equals("-local")) {
                 local = true;
-            } else if (args[i].equals("-o")) {
-                exeName = args[i + 1];
-                i++;
-            } else if (args[i].equals("-manta")) {
-                doManta = true;
-            } else if (args[i].equals("-c")) {
-                link = false;
-            } else if (args[i].equals("-print")) {
-                print = true;
             } else if (args[i].equals("-irc-off")) {
                 invocationRecordCache = false;
             } else if (args[i].equals("-no-inlet-opt")) {
@@ -323,9 +173,9 @@ class Ibisc {
             usage();
         }
 
-        new Ibisc(local, verbose, satinVerbose, satinVerify, iogenVerbose,
-                iogenVerify, keep, print, invocationRecordCache, targets,
-                packageName, exeName, compiler, mantac, link, doManta,
+        new Ibisc(local, verbose, verify, 
+                keep, invocationRecordCache, targets,
+                packageName,
                 inletOpt, spawnCounterOpt).start();
     }
 }

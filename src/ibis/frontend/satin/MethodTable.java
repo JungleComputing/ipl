@@ -503,6 +503,9 @@ final class MethodTable {
             b = new BT_Analyzer(cl, spawnableClass, verbose);
             b.start();
             analyzers.put(cl, b);
+            if (b.hasSpecialMethods()) {
+                Satinc.do_satinc(cl);
+            }
         }
         return b;
     }

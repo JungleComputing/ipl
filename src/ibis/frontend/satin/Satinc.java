@@ -3,6 +3,7 @@
 package ibis.frontend.satin;
 
 import ibis.util.RunProcess;
+import ibis.frontend.generic.RunJavac;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -129,15 +130,11 @@ public final class Satinc {
 
     boolean local;
 
-    boolean print;
-
     boolean invocationRecordCache;
 
     String classname;
 
     String packageName;
-
-    Object compiler;
 
     boolean inletOpt;
 
@@ -223,17 +220,15 @@ public final class Satinc {
     private static Vector javalist = new Vector();
 
     public Satinc(boolean verbose, boolean local, boolean verify, boolean keep,
-            boolean print, boolean invocationRecordCache, String classname,
-            Object compiler, boolean inletOpt, boolean spawnCounterOpt) {
+            boolean invocationRecordCache, String classname,
+            boolean inletOpt, boolean spawnCounterOpt) {
 
         this.verbose = verbose;
         this.verify = verify;
         this.keep = keep;
-        this.print = print;
         this.local = local;
         this.invocationRecordCache = invocationRecordCache;
         this.classname = classname;
-        this.compiler = compiler;
         this.inletOpt = inletOpt;
         this.spawnCounterOpt = spawnCounterOpt;
 
@@ -1797,50 +1792,17 @@ public final class Satinc {
         }
     }
 
-    void compileGenerated(String className) {
-        try {
-            RunProcess p;
-            if (compiler instanceof String) {
-                String command = (String) compiler + " " + className + ".java";
-                if (verbose) {
-                    System.out.println("Running: " + command);
-                }
-
-                p = new RunProcess(command);
-            } else {
-                String[] comp = (String[]) compiler;
-                String[] cmd = new String[(comp.length + 1)];
-                for (int i = 0; i < comp.length; i++) {
-                    cmd[i] = comp[i];
-                }
-                cmd[comp.length] = className + ".java";
-
-                if (verbose) {
-                    System.out.print("Running: ");
-                    for (int i = 0; i < cmd.length; i++) {
-                        System.out.print(cmd[i] + " ");
-                    }
-                    System.out.println("");
-                }
-                p = new RunProcess(cmd, new String[0]);
-            }
-            int res = p.getExitStatus();
-            if (res != 0) {
-                System.err.println("Error compiling generated code ("
-                        + className + ").");
-                byte[] err = p.getStderr();
-                System.err.write(err, 0, err.length);
-                System.err.println("");
-                System.exit(1);
-            }
-            if (verbose) {
-                System.out.println("Done");
-            }
-            Repository.lookupClass(className);
-        } catch (Exception e) {
-            System.err.println("IO error: " + e);
-            e.printStackTrace();
+    void compile(String name) {
+        String filename = name + ".java";
+        if (! RunJavac.runJavac(new String[] { "-g" },
+                    filename, verbose)) {
             System.exit(1);
+        }
+
+        Repository.lookupClass(name);
+
+        if (!keep) { // remove generated files 
+            removeFile(filename);
         }
     }
 
@@ -1859,46 +1821,17 @@ public final class Satinc {
                 }
 
                 writeLocalRecord(methods[i]);
-                compileGenerated(localRecordName(methods[i]));
-
-                if (!keep) { // remove generated files 
-                    removeFile(invocationRecordName(methods[i], classname)
-                            + ".java");
-                }
+                compile(localRecordName(methods[i]));
             }
 
             if (mtab.isSpawnable(methods[i], c)) {
                 writeInvocationRecord(methods[i], classname);
                 writeReturnRecord(methods[i], classname);
                 writeParameterRecord(methods[i]);
-                //		writeResultRecord(methods[i], base, classname);
 
-                compileGenerated(invocationRecordName(methods[i], classname));
-                if (!keep) { // remove generated files 
-                    removeFile(invocationRecordName(methods[i], classname)
-                            + ".java");
-                }
-
-                compileGenerated(returnRecordName(methods[i], classname));
-                if (!keep) { // remove generated files 
-                    removeFile(returnRecordName(methods[i], classname)
-                            + ".java");
-                }
-
-                compileGenerated(parameterRecordName(methods[i]));
-                if (!keep) { // remove generated files 
-                    removeFile(parameterRecordName(methods[i]) + ".java");
-                }
-
-                /*
-                compileGenerated(resultRecordName(methods[i], classname));
-                if (!keep) {
-                    // remove generated files 
-                    removeFile(resultRecordName(methods[i], classname)
-                            + ".java");
-                }
-                */
-
+                compile(invocationRecordName(methods[i], classname));
+                compile(returnRecordName(methods[i], classname));
+                compile(parameterRecordName(methods[i]));
             }
         }
     }
@@ -1986,16 +1919,16 @@ public final class Satinc {
                 Repository.removeClass(localRec);
                 Repository.addClass(newclass);
 
-                String dst = "";
+                String clnam = newclass.getClassName();
+                String dst;
+                if (local) {
+                    dst = clnam.substring(clnam.lastIndexOf('.')+1);
+                } else {
+                    dst = clnam.replace('.', java.io.File.separatorChar);
+                }
+                dst = dst + ".class";
 
                 try {
-                    if (local) {
-                        String src = newclass.getSourceFileName();
-                        dst = src.substring(0, src.indexOf(".")) + ".class";
-                    } else {
-                        String clnam = newclass.getClassName();
-                        dst = clnam.replace('.', File.separatorChar) + ".class";
-                    }
                     newclass.dump(dst);
                 } catch (IOException e) {
                     System.out.println("error writing " + dst);
@@ -2972,24 +2905,6 @@ public final class Satinc {
             generateMain(gen_c, main);
         }
 
-        String src = c.getSourceFileName();
-        int index = src.indexOf(".");
-        String dst;
-        String base;
-        if (index != -1) {
-            base = src.substring(0, index);
-            dst = base + ".class";
-        } else {
-            base = classname;
-            index = base.indexOf(".");
-            if (index != -1) {
-                base = base.substring(0, index);
-            }
-            dst = classname;
-            dst = dst.replace('.', File.separatorChar);
-            dst = dst + ".class";
-        }
-
         mtab = new MethodTable(c, gen_c, this, verbose);
 
         if (verbose) {
@@ -3003,6 +2918,7 @@ public final class Satinc {
             System.exit(1);
         }
 
+
         rewriteMethods();
 
         Repository.removeClass(c);
@@ -3015,11 +2931,15 @@ public final class Satinc {
         Repository.addClass(c);
 
         // now overwrite the classfile 
+        String dst;
+        String clnam = c.getClassName();
+        if (local) {
+            dst = clnam.substring(clnam.lastIndexOf('.') + 1);
+        } else {
+            dst = clnam.replace('.', java.io.File.separatorChar);
+        }
+        dst = dst + ".class";
         try {
-            if (!local) {
-                dst = c.getPackageName().replace('.', File.separatorChar)
-                        + File.separator + dst;
-            }
             c.dump(dst);
         } catch (IOException e) {
             System.out.println("Error writing " + dst);
@@ -3038,18 +2958,14 @@ public final class Satinc {
             }
         }
 
-        if (print) {
-            System.out.println(c);
-        }
-
         // Do this before verification, otherwise classes may be missing.
         if (toplevel) {
             toplevel = false;
 
             for (int i = 0; i < javalist.size(); i++) {
                 JavaClass cl = (JavaClass) (javalist.get(i));
-                new Satinc(verbose, local, verify, keep, print,
-                        invocationRecordCache, cl.getClassName(), compiler,
+                new Satinc(verbose, local, verify, keep,
+                        invocationRecordCache, cl.getClassName(),
                         inletOpt, spawnCounterOpt).start();
             }
         }
@@ -3070,9 +2986,8 @@ public final class Satinc {
 
     public static void usage() {
         System.err.println("Usage : java Satinc [[-no]-verbose] [[-no]-keep] "
-                + "[-dir|-local] [[-no]-print] [[-no]-irc] [[-no]-sc-opt]"
-                + "[-javahome \"your java home\" ] "
-                + "[-compiler \"your compile command\" ] [[-no]-inlet-opt] "
+                + "[-dir|-local] [[-no]-irc] [[-no]-sc-opt]"
+                + "[[-no]-inlet-opt] "
                 + "<classname>*");
         System.exit(1);
     }
@@ -3125,19 +3040,10 @@ public final class Satinc {
         boolean verify = false;
         boolean keep = false;
         boolean local = true;
-        boolean print = false;
         boolean invocationRecordCache = false;
-        Object compiler = null;
         boolean inletOpt = true;
         boolean spawnCounterOpt = true;
         Vector list = new Vector();
-
-        // Unfortunately, we need to override this. IBM gives
-        // ..../jre. Use the -javahome option instead!
-        String javadir = System.getProperty("java.home");
-        String javapath = System.getProperty("java.class.path");
-        String filesep = System.getProperty("file.separator");
-        String pathsep = System.getProperty("path.separator");
 
         for (int i = 0; i < args.length; i++) {
             if (!args[i].startsWith("-")) {
@@ -3152,12 +3058,6 @@ public final class Satinc {
                 verify = true;
             } else if (args[i].equals("-no-verify")) {
                 verify = false;
-            } else if (args[i].equals("-compiler")) {
-                compiler = args[i + 1];
-                i++;
-            } else if (args[i].equals("-javahome")) {
-                javadir = args[i + 1];
-                i++;
             } else if (args[i].equals("-keep")) {
                 keep = true;
             } else if (args[i].equals("-no-keep")) {
@@ -3166,10 +3066,6 @@ public final class Satinc {
                 local = false;
             } else if (args[i].equals("-local")) {
                 local = true;
-            } else if (args[i].equals("-print")) {
-                print = true;
-            } else if (args[i].equals("-no-print")) {
-                print = false;
             } else if (args[i].equals("-irc-off")) {
                 invocationRecordCache = false;
             } else if (args[i].equals("-no-irc")) {
@@ -3193,16 +3089,9 @@ public final class Satinc {
             usage();
         }
 
-        if (compiler == null) {
-            String[] cmd = new String[] {
-                    javadir + filesep + "bin" + filesep + "javac", "-g",
-                    "-classpath", javapath + pathsep };
-            compiler = cmd;
-        }
-
         for (int i = 0; i < list.size(); i++) {
-            new Satinc(verbose, local, verify, keep, print,
-                    invocationRecordCache, (String) list.get(i), compiler,
+            new Satinc(verbose, local, verify, keep,
+                    invocationRecordCache, (String) list.get(i),
                     inletOpt, spawnCounterOpt).start();
         }
     }
