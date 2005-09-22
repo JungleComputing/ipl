@@ -79,7 +79,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * <code>IbisIdentifier</code> refers.
      * @return the name of the Ibis instance.
      */
-    public String toString() {
+    public final String toString() {
         return name;
     }
 

@@ -61,10 +61,6 @@ public final class NioIbisIdentifier extends IbisIdentifier implements
         return name.equals(other.name);
     }
 
-    public String toString() {
-        return ("(NioId: " + name + ")");
-    }
-
     public int hashCode() {
         return name.hashCode();
     }

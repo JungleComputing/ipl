@@ -46,13 +46,6 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         return /*address.equals(other.address) &&*/name.equals(other.name);
     }
 
-    public String toString() {
-        String a = (address == null ? "<null>" : address.getHostName() + ", "
-                + address.getHostAddress());
-        String n = (name == null ? "<null>" : name);
-        return ("(TcpId: " + n + " on [" + a + "])");
-    }
-
     public int hashCode() {
         return name.hashCode();
     }
