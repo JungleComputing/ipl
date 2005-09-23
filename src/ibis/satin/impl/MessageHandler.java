@@ -535,6 +535,17 @@ final class MessageHandler implements Upcall, Protocol, Config {
         //fall through
         case STEAL_REPLY_SUCCESS:
         case ASYNC_STEAL_REPLY_SUCCESS:
+
+            if (satin.idleStarted) {
+                satin.idleStarted = false;
+                if (idleLogger.isDebugEnabled()) {
+                    idleLogger.debug("SATIN '" + ident + "': idle stop");
+                }
+                if (IDLE_TIMING) {
+                    satin.idleTimer.stop();
+                }
+            }
+
             try {
                 if (STEAL_TIMING) {
                     satin.invocationRecordReadTimer.start();

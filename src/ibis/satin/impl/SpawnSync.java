@@ -8,7 +8,7 @@ import ibis.ipl.IbisIdentifier;
 public abstract class SpawnSync extends Termination {
 
     private static SpawnCounter spawnCounterCache = null;
-    private boolean idleStarted = false;
+    boolean idleStarted = false;
 
     /**
      * Obtains a new spawn counter. This does not need to be synchronized, only

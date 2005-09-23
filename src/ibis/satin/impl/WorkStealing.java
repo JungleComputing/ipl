@@ -342,6 +342,16 @@ public abstract class WorkStealing extends Stats {
 
         /* I love it when a plan comes together! */
 
+        if (idleStarted) {
+            idleStarted = false;
+            if (idleLogger.isDebugEnabled()) {
+                idleLogger.debug("SATIN '" + ident + "': idle stop");
+            }
+            if (IDLE_TIMING) {
+                idleTimer.stop();
+            }
+        }
+
         if (STEAL_STATS) {
             stealSuccess++;
         }
