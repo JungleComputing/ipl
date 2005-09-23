@@ -895,6 +895,9 @@ public class IbisSerializationOutputStream
         current_object = object_stack[stack_size];
         current_level = level_stack[stack_size];
         current_putfield = putfield_stack[stack_size];
+        // Don't keep references around ...
+        object_stack[stack_size] = null;
+        putfield_stack[stack_size] = null;
     }
 
     /**

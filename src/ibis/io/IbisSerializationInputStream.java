@@ -1561,6 +1561,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         stack_size--;
         current_object = object_stack[stack_size];
         current_level = level_stack[stack_size];
+        // Don't keep references around ...
+        object_stack[stack_size] = null;
     }
 
     /**
