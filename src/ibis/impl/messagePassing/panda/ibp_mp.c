@@ -204,6 +204,7 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
 		 void *proto, int proto_size)
 {
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
+    int ticket;
 
     if (! ibp_mp_alive) {
 	(*env)->ThrowNew(env, cls_java_io_IOException, "Ibis/Panda MP closed");
@@ -217,7 +218,8 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
     IBP_VPRINTF(200, env, ("Do a Panda MP send %d port %d to %d size %d env %p\n",
 		mp_sends[cpu]++, port, cpu, ibmp_iovec_len(iov, iov_size), env));
     hdr->port = port;
-    pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, PAN_MP_DELAYED);
+    ticket = pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, PAN_MP_DELAYED);
+    pan_mp_send_finish(ticket);
     IBP_VPRINTF(800, env, ("Done a Panda MP send\n"));
     assert(ibp_JNIEnv == env);
 }
