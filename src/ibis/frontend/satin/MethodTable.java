@@ -355,9 +355,7 @@ final class MethodTable {
             // mg = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
             //
             if (mg.getName().equals("<clinit>")) {
-                System.out.println("mg: " + mg.getInstructionList());
                 MethodGen clinit = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());
-                System.out.println("clinit: " + clinit.getInstructionList());
             }
             MethodTableEntry e = new MethodTableEntry();
 
