@@ -1700,6 +1700,16 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             addObjectToCycleCheck(obj);
         } else if (t.gen != null) {
             obj = t.gen.generated_newInstance(this);
+        } else if (IbisSerializationOutputStream.enumClass != null
+                 && IbisSerializationOutputStream.enumClass.isAssignableFrom(t.clazz)) {
+            String s = readUTF();
+            try {
+                obj = IbisSerializationOutputStream.enumValueOfMethod.invoke(
+                        null, new Object[] { t.clazz, s});
+            } catch(Exception e) {
+                throw new IOException("Exception while reading enumeration" + e);
+            }
+            addObjectToCycleCheck(obj);
         } else if (Externalizable.class.isAssignableFrom(t.clazz)) {
             try {
                 // Also calls parameter-less constructor

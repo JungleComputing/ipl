@@ -10,6 +10,8 @@ import java.io.NotSerializableException;
 import java.io.ObjectOutput;
 import java.io.ObjectStreamClass;
 
+import java.lang.reflect.Method;
+
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
  * for Ibis serialization.
@@ -33,6 +35,12 @@ public class IbisSerializationOutputStream
     static final int[] statArrayHandle;
 
     static final long[] statArrayLength;
+
+    static Class enumClass;
+
+    static Method enumNameMethod;
+
+    static Method enumValueOfMethod;
 
     static {
         if (STATS_OBJECTS) {
@@ -71,6 +79,27 @@ public class IbisSerializationOutputStream
             statArrayCount = null;
             statArrayLength = null;
             statArrayHandle = null;
+        }
+
+        // Special handling of enumeration type, only we cannot use it because
+        // this should be compilable with 1.4. Introspection ...
+
+        try {
+            enumClass = Class.forName("java.lang.Enum");
+        } catch(ClassNotFoundException e) {
+            // O well
+        }
+
+        if (enumClass != null) {
+            try {
+                enumNameMethod = enumClass.getMethod("name", new Class[] {});
+                enumValueOfMethod = enumClass.getMethod("valueOf",
+                        new Class[] { java.lang.Class.class, java.lang.String.class });
+            } catch(Exception e) {
+                enumClass = null;
+                e.printStackTrace();
+                // O well again ...
+            }
         }
     }
 
@@ -1106,6 +1135,13 @@ public class IbisSerializationOutputStream
                 } else if (clazz == java.lang.Class.class) {
                     /* EEK this is not nice !! */
                     writeUTF(((Class) ref).getName());
+                } else if (enumClass != null && enumClass.isAssignableFrom(clazz)) {
+                    try {
+                        Object o = enumNameMethod.invoke(ref, new Object[] { });
+                        writeUTF((String) o);
+                    } catch(Exception e) {
+                        throw new IOException("Got exception writing enum" + e);
+                    }
                 } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
                     ((Serializable) ref).generated_WriteObject(this);
                 } else if (ref instanceof java.io.Externalizable) {
