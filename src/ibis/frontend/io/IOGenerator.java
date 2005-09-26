@@ -2250,6 +2250,10 @@ public class IOGenerator {
             return;
         }
 
+        if (Repository.instanceOf(clazz, "java.lang.Enum")) {
+            return;
+        }
+
         if (!classes_to_rewrite.contains(clazz)) {
 
             JavaClass super_classes[] = Repository.getSuperClasses(clazz);
