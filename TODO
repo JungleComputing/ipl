@@ -1,3 +1,14 @@
+prun:
+	add readme on how to start ibis with prun for the VU people
+	
+Satin:
+	bug: throws van runtime exception worden niet doorgegooid maar genegeerd.
+	
+IPL change (for ibis 2.0):
+	- receiveports not globally unique, but unique per ibis.
+	- lookup method: recPortIdent lookup (ibisIdent, name)
+	- and: recPortIdent[] lookup(name)
+
 nameserver:
 - we forget to close connections on errors, see for instance forwardJoin in NameServer.java --Rob
 
