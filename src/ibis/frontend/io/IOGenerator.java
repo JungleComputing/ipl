@@ -2250,8 +2250,13 @@ public class IOGenerator {
             return;
         }
 
-        if (Repository.instanceOf(clazz, "java.lang.Enum")) {
-            return;
+        try {
+            if (Repository.instanceOf(clazz, "java.lang.Enum")) {
+                return;
+            }
+        } catch(Exception e) {
+            // Sigh: BCEL throws a NullPointerException if java.lang.Enum
+            // does not exist
         }
 
         if (!classes_to_rewrite.contains(clazz)) {
