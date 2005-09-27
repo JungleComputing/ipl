@@ -161,7 +161,9 @@ GRUN_INFILES=`echo ${GRUN_INFILES:-""} | sed 's/:/ /g'`
 GRUN_STAGEDINFILES=`echo ${GRUN_STAGEDINFILES:-""} | sed 's/:/ /g'`
 GRUN_OUTFILES=`echo ${GRUN_OUTFILES:-""} | sed 's/:/ /g'`
 GRUN_STAGEDOUTFILES=`echo ${GRUN_STAGEDOUTFILES:-""} | sed 's/:/ /g'`
-IBIS_JAVA_OPTS=`echo ${IBIS_JAVA_OPTS:-""} | sed 's/:/ /g'`
+#IBIS_JAVA_OPTS=`echo ${IBIS_JAVA_OPTS:-""} | sed 's/:/ /g'`
+# Hack: allow "::" (or "|") to specify ":", sometimes useful in JAVA_OPTS
+IBIS_JAVA_OPTS=`echo ${IBIS_JAVA_OPTS:-""} | sed 's/::/|/g;s/:/ /g;s/|/:/g'`
 
 if [ "$GRUN_PHASE" = stagein ]; then
     if [ -z "$GRUN_GASS" ]; then
@@ -241,7 +243,7 @@ if [ "$GRUN_PHASE" = run ]; then
 	firewall)  IBIS_DATA_LINK=TCPSplice;;
 	routedmsg) IBIS_DATA_LINK=RoutedMessages;;
 	esac
-	IBIS_CONN_OPTS="-Dibis.connect.enable -Dibis.connect.control_links=$IBIS_CONTROL_LINK -Dibis.connect.data_links=$IBIS_DATA_LINK -Dibis.connect.hub.port=$IBIS_HUB_PORT"
+	IBIS_CONN_OPTS="-Dibis.connect.enable -Dibis.connect.control_links=$IBIS_CONTROL_LINK -Dibis.connect.data_links=$IBIS_DATA_LINK -Dibis.connect.hub_port=$IBIS_HUB_PORT"
 	;;
     default|*)
 	IBIS_CONN_OPTS=""
