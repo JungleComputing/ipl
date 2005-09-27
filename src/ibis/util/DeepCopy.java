@@ -563,15 +563,15 @@ public class DeepCopy {
                     byte_in -= byte_store.length;
                 }
                 byte_len -= sz;
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
 
             if (closed && cnt == 0) {
                 return -1;
             }
 
-            if (out_waiters != 0) {
-                notifyAll();
-            }
 
             return cnt;
         }
@@ -607,9 +607,9 @@ public class DeepCopy {
                     byte_in -= byte_store.length;
                 }
                 byte_len -= sz;
-            }
-            if (out_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -644,9 +644,9 @@ public class DeepCopy {
                     boolean_in -= boolean_store.length;
                 }
                 boolean_len -= sz;
-            }
-            if (out_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -681,9 +681,9 @@ public class DeepCopy {
                     char_in -= char_store.length;
                 }
                 char_len -= sz;
-            }
-            if (out_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -718,9 +718,9 @@ public class DeepCopy {
                     short_in -= short_store.length;
                 }
                 short_len -= sz;
-            }
-            if (out_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -755,9 +755,9 @@ public class DeepCopy {
                     int_in -= int_store.length;
                 }
                 int_len -= sz;
-            }
-            if (out_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -792,9 +792,9 @@ public class DeepCopy {
                     float_in -= float_store.length;
                 }
                 float_len -= sz;
-            }
-            if (out_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -829,9 +829,9 @@ public class DeepCopy {
                     long_in -= long_store.length;
                 }
                 long_len -= sz;
-            }
-            if (out_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -866,9 +866,9 @@ public class DeepCopy {
                     double_in -= double_store.length;
                 }
                 double_len -= sz;
-            }
-            if (out_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && out_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -902,9 +902,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 byte_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -940,9 +940,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 byte_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -977,9 +977,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 boolean_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -1014,9 +1014,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 char_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -1051,9 +1051,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 short_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -1088,9 +1088,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 int_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -1125,9 +1125,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 float_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -1162,9 +1162,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 long_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
@@ -1199,9 +1199,9 @@ public class DeepCopy {
                 len -= sz;
                 off += sz;
                 double_len += sz;
-            }
-            if (in_waiters != 0) {
-                notifyAll();
+                if (sz != 0 && in_waiters != 0) {
+                    notifyAll();
+                }
             }
         }
 
