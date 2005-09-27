@@ -40,15 +40,15 @@ def sitedefs():
     ##########################################################################
     # Sites known to work:
 
-    Grid_site("fs0",       "fs0.das2.cs.vu.nl",            pbs, 1, gass, fork,
+    Grid_site("fs0",       "fs0.das2.cs.vu.nl",            sge, 1, gass, fork,
               [ "JAVA_HOME=/usr/local/sun-java/jdk1.4" ])
-    Grid_site("fs1",       "fs1.das2.liacs.nl",            pbs, 1, gass, fork,
+    Grid_site("fs1",       "fs1.das2.liacs.nl",            sge, 1, gass, fork,
               [ "JAVA_HOME=/usr/local/sun-java/jdk1.4" ])
-    Grid_site("fs2",       "fs2.das2.nikhef.nl",           pbs, 1, gass, fork,
+    Grid_site("fs2",       "fs2.das2.nikhef.nl",           sge, 1, gass, fork,
               [ "JAVA_HOME=/usr/local/sun-java/jdk1.4" ])
-    Grid_site("fs3",       "fs3.das2.ewi.tudelft.nl",      pbs, 1, gass, fork,
+    Grid_site("fs3",       "fs3.das2.ewi.tudelft.nl",      sge, 1, gass, fork,
               [ "JAVA_HOME=/usr/local/sun-java/jdk1.4" ])
-    Grid_site("fs4",       "fs4.das2.phys.uu.nl",          pbs, 1, gass, fork,
+    Grid_site("fs4",       "fs4.das2.phys.uu.nl",          sge, 1, gass, fork,
               [ "JAVA_HOME=/usr/local/sun-java/jdk1.4" ])
 
     # Works with and without hub
