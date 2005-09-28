@@ -1367,10 +1367,10 @@ class SearchImpl3 extends SatinObject implements Searcher3 {
          // Wait for results of the invocations above.
          s.sync();
       } catch (SearchResultFound x) {
-         // We come her only if one of the two jobs found a result.
+         // We come here only if one of the two jobs found a result.
          s.abort(); // kill the other job that might still be running.
          res = x.pos;
-         return;
+         return; // return needed because inlet is handled in separate thread.
       }
 
       if(res >= 0) {
