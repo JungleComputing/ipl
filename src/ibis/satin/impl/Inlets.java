@@ -80,7 +80,7 @@ public abstract class Inlets extends Aborts {
                     RuntimeException tr = (RuntimeException) t;
                     throw tr;
                 }
-                throw new IbisError(t);
+                throw new IbisError("Inlet threw exception: ", t);
                 // System.exit(1);
             }
 
@@ -135,7 +135,8 @@ public abstract class Inlets extends Aborts {
             return;
         }
         if (r.parent == null) {
-            return;
+            // Throw the exception, otherwise it will just disappear ...
+            throw new IbisError("Spawned job threw exception: ", r.eek);
         }
         // if (r.parenLocals != null) {
         //     return;
