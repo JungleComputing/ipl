@@ -3,7 +3,6 @@
 package ibis.gmi;
 
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -63,8 +62,8 @@ public final class Group implements GroupProtocol {
     /** My local ibis. */
     static Ibis ibis;
 
-    /** My local Ibis identifier. */
-    private static IbisIdentifier localID;
+    /** Name of my local Ibis. */
+    private static String localID;
 
     /** Ibis registry, used for setting up stuff. */
     private static Registry ibisRegistry;
@@ -385,7 +384,7 @@ public final class Group implements GroupProtocol {
                 System.exit(1);
             }
             
-            localID = ibis.identifier();
+            localID = ibis.identifier().name();
             ibisRegistry = ibis.registry();
 
             portType = ibis.createPortType("GMI", reqprops);
@@ -491,7 +490,7 @@ public final class Group implements GroupProtocol {
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
-                            + unicast[j].identifier() + " to " + pool[j]);
+                            + unicast[j].name() + " to " + pool[j].name());
                 }
 
                 unicast[j].connect(pool[j]);
@@ -599,7 +598,7 @@ public final class Group implements GroupProtocol {
                     
                     if (logger.isDebugEnabled()) { 
                         logger.debug(_rank + ": Group.getMulticastSendport - " +    
-                                "Connected to " + hosts[i] + ", " + pool[hosts[i]]);
+                                "Connected to " + hosts[i] + ", " + pool[hosts[i]].name());
                     }
                 }
             } catch (IOException e) {
