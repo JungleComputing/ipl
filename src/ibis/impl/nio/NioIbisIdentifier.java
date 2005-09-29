@@ -37,34 +37,6 @@ public final class NioIbisIdentifier extends IbisIdentifier implements
         this.cluster = new String(clusterBytes, "UTF-8");
     }
 
-    public boolean equals(Object o) {
-        if (o == null) {
-            return false;
-        }
-        if (o == this) {
-            return true;
-        }
-        if (o instanceof NioIbisIdentifier) {
-            NioIbisIdentifier other = (NioIbisIdentifier) o;
-            return equals(other);
-        }
-        return false;
-    }
-
-    public boolean equals(NioIbisIdentifier other) {
-        if (other == null) {
-            return false;
-        }
-        if (other == this) {
-            return true;
-        }
-        return name.equals(other.name);
-    }
-
-    public int hashCode() {
-        return name.hashCode();
-    }
-
     /**
      * Writes out this identifier to an accumulator
      */

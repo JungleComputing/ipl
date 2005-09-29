@@ -41,23 +41,27 @@ public abstract class IbisIdentifier implements java.io.Serializable {
 
     /**
      * Compares two Ibis identifiers.
-     * Note: should be redefined by all Ibis implementations.
-     * @exception IbisError is thrown when this method is not redefined
-     * by the ibis implementation.
+     * @return <code>true</code> if equal, <code>false</code> if not.
      */
     public boolean equals(Object o) {
-        throw new IbisError("IbisIdentifier subclass must override equals");
+        if (o == this) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        if (! o.getClass().equals(getClass())) {
+            return false;
+        }
+        return name.equals(((IbisIdentifier) o).name);
     }
 
     /**
      * Computes the hashcode.
-     * Note: should be redefined by all Ibis implementations.
      * @return the hashcode.
-     * @exception IbisError is thrown when this method is not redefined
-     * by the ibis implementation.
      */
     public int hashCode() {
-        throw new IbisError("IbisIdentifier subclass must override hashCode");
+        return name.hashCode();
     }
 
     /**
@@ -75,21 +79,23 @@ public abstract class IbisIdentifier implements java.io.Serializable {
     }
 
     /**
-     * Returns a name uniquely identifying the Ibis instance to which this
-     * <code>IbisIdentifier</code> refers.
-     * @return the name of the Ibis instance.
+     * Returns a string identifying the Ibis instance to which this
+     * <code>IbisIdentifier</code> refers. This method can be overridden
+     * by Ibis implementations to add more information for debugging prints,
+     * and should not be used to create names for receive ports. For that,
+     * {@link #name()} should be used.
+     * @return a string representation of this IbisIdentifier.
      */
-    public final String toString() {
-        return name;
+    public String toString() {
+        return "(IbisId: " + name + ")";
     }
 
     /**
      * Returns a name uniquely identifying the Ibis instance to which this
      * <code>IbisIdentifier</code> refers.
      * @return the name of the Ibis instance.
-     * @deprecated Use {@link #toString()} instead.
      */
-    public String name() {
+    public final String name() {
         return name;
     }
 
@@ -98,7 +104,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * belongs to. If not set in the System property, it is "unknown".
      * @return the cluster name.
      */
-    public String cluster() {
+    public final String cluster() {
         return cluster;
     }
 

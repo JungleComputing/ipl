@@ -27,27 +27,11 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         return address;
     }
 
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o instanceof TcpIbisIdentifier) {
-            TcpIbisIdentifier other = (TcpIbisIdentifier) o;
-            return equals(other);
-        }
-
-        return false;
-    }
-
-    public boolean equals(TcpIbisIdentifier other) {
-        if (other == this) {
-            return true;
-        }
-        return /*address.equals(other.address) &&*/name.equals(other.name);
-    }
-
-    public int hashCode() {
-        return name.hashCode();
+    public String toString() {
+        String a = (address == null ? "<null>" : address.getHostName() + ", "
+                + address.getHostAddress());
+        String n = (name == null ? "<null>" : name);
+        return ("(TcpId: " + n + " on [" + a + "])");
     }
 
     // no need to serialize super class fields, this is done automatically

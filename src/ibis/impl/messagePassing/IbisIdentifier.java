@@ -119,10 +119,6 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements
         return false;
     }
 
-    public String name() {
-        return name;
-    }
-
     public int hashCode() {
         return cpu;
     }
