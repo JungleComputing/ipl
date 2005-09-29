@@ -150,9 +150,9 @@ public class GlobalResultTable implements Upcall, Config {
         try {
             receive = satin.globalResultTablePortType.createReceivePort(
                     "satin global result table receive port on "
-                            + satin.ident, this);
+                            + satin.ident.name(), this);
             // send = portType.createSendPort("satin global result table send "
-            //                "port on " + satin.ident);
+            //                "port on " + satin.ident.name());
             receive.enableUpcalls();
             receive.enableConnections();
 
@@ -517,11 +517,11 @@ public class GlobalResultTable implements Upcall, Config {
         try {
             SendPort send = satin.globalResultTablePortType.createSendPort(
                     "satin global result table send port on "
-                    + satin.ident + System.currentTimeMillis());
+                    + satin.ident.name() + System.currentTimeMillis());
             sends.put(ident, send);
             ReceivePortIdentifier r = null;
             r = satin.lookup("satin global result table receive port on "
-                    + ident);
+                    + ident.name());
             if (Satin.connect(send, r, satin.connectTimeout)) {
                 numReplicas++;
             } else {

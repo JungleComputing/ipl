@@ -72,7 +72,7 @@ public abstract class Communication extends SpawnSync {
             s = victims.getReplyPort(id);
             if (s == null) {
                 if (commLogger.isDebugEnabled()) {
-                    commLogger.debug("SATIN '" + this.ident
+                    commLogger.debug("SATIN '" + ident
                             + "': could not get reply port to " + id
                             + ", retrying");
                 }

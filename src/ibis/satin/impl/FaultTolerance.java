@@ -134,15 +134,15 @@ public abstract class FaultTolerance extends Inlets {
             if (master) {
                 barrierReceivePort = barrierPortType.createReceivePort(
                         "satin barrier receive port on "
-                        + ident);
+                        + ident.name());
                 barrierReceivePort.enableConnections();
             } else {
                 barrierSendPort.close();
                 barrierSendPort = barrierPortType.createSendPort(
-                        "satin barrier send port on " + ident);
+                        "satin barrier send port on " + ident.name());
                 ReceivePortIdentifier barrierIdent = lookup(
                         "satin barrier receive port on "
-                        + masterIdent);
+                        + masterIdent.name());
                 boolean success = connect(barrierSendPort, barrierIdent, 1000);
                 if (!success && ftLogger.isInfoEnabled()) {
                     ftLogger.info("SATIN '" + ident
@@ -259,13 +259,14 @@ public abstract class FaultTolerance extends Inlets {
             r.finishedSibling = r.parent.finishedChild;
             r.parent.finishedChild = r;
         } else if (r.owner.equals(ident)) {
-            if (ASSERTS && !r.owner.equals(ident)) {
+            r.finishedSibling = rootFinishedChild;
+            rootFinishedChild = r;
+        } else {
+            if (ASSERTS) {
                 ftLogger.fatal("SATIN '" + ident
                         + "': parent of a restarted job on another machine!");
                 System.exit(1);
             }
-            r.finishedSibling = rootFinishedChild;
-            rootFinishedChild = r;
         }
         //remove the job's children list
         r.finishedChild = null;
@@ -280,13 +281,14 @@ public abstract class FaultTolerance extends Inlets {
             r.toBeRestartedSibling = r.parent.toBeRestartedChild;
             r.parent.toBeRestartedChild = r;
         } else if (r.owner.equals(ident)) {
-            if (ASSERTS && !r.owner.equals(ident)) {
+            r.toBeRestartedSibling = rootToBeRestartedChild;
+            rootToBeRestartedChild = r;
+        } else {
+            if (ASSERTS) {
                 ftLogger.fatal("SATIN '" + ident
                         + "': parent of a restarted job on another machine!");
                 System.exit(1);
             }
-            r.toBeRestartedSibling = rootToBeRestartedChild;
-            rootToBeRestartedChild = r;
         }
         //remove the job's children list
         r.toBeRestartedChild = null;

@@ -399,7 +399,7 @@ public abstract class TupleSpace extends Communication {
             if (!id.equals(ident)) {
                 ReceivePortIdentifier r;
                 try {
-                    r = lookup("satin tuple port on " + id);
+                    r = lookup("satin tuple port on " + id.name());
                     connect(tuplePort, r);
                 } catch (IOException e) {
                     if (!FAULT_TOLERANCE) {

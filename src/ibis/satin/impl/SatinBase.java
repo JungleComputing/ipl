@@ -21,7 +21,7 @@ public abstract class SatinBase implements Config {
 
     static Satin this_satin = null;
 
-    IbisIdentifier ident = null; // used in messageHandler
+    IbisIdentifier ident = null;        // this ibis
 
     /* Options. */
     boolean closed = false; // used in TupleSpace

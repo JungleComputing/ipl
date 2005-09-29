@@ -154,7 +154,7 @@ public abstract class SpawnSync extends Termination {
         if (spawnLogger.isDebugEnabled()) {
             spawnLogger.debug("SATIN '" + ident
                     + "': callSatinFunc: stamp = " + r.stamp + ", owner = "
-                    + (r.owner.equals(ident) ? "me" : r.owner.toString())
+                    + (r.owner.equals(ident) ? "me" : r.owner.name())
                     + ", parentStamp = " + r.parentStamp + ", parentOwner = "
                     + r.parentOwner);
         }

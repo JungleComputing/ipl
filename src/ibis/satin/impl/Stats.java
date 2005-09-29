@@ -74,6 +74,13 @@ public abstract class Stats extends TupleSpace {
         return s;
     }
 
+    private double perStats(double tm, long cnt) {
+        if (cnt == 0) {
+            return 0.0;
+        }
+        return tm/cnt;
+    }
+
     protected void printStats() {
         int size;
 
@@ -133,8 +140,8 @@ public abstract class Stats extends TupleSpace {
                     + " attempts, "
                     + nf.format(totalStats.stealSuccess)
                     + " successes ("
-                    + pf.format(((double) totalStats.stealSuccess
-                            / totalStats.stealAttempts) * 100.0)
+                    + pf.format(perStats((double) totalStats.stealSuccess,
+                            totalStats.stealAttempts) * 100.0)
                     + " %)");
 
 	    if(totalStats.asyncStealAttempts != 0) {
@@ -143,8 +150,8 @@ public abstract class Stats extends TupleSpace {
 			    + " attempts, "
 			    + nf.format(totalStats.asyncStealSuccess)
 			    + " successes ("
-			    + pf.format(((double) totalStats.asyncStealSuccess
-					 / totalStats.asyncStealAttempts) * 100.0)
+			    + pf.format(perStats((double) totalStats.asyncStealSuccess,
+					 totalStats.asyncStealAttempts) * 100.0)
 			    + " %)");
 	    }
 
@@ -181,88 +188,88 @@ public abstract class Stats extends TupleSpace {
             out.println("SATIN: STEAL_TIME:               total "
                     + Timer.format(totalStats.stealTime)
                     + " time/req    "
-                    + Timer.format(totalStats.stealTime
-                            / totalStats.stealAttempts));
+                    + Timer.format(perStats(totalStats.stealTime,
+                            totalStats.stealAttempts)));
             out.println("SATIN: HANDLE_STEAL_TIME:        total "
                     + Timer.format(totalStats.handleStealTime)
                     + " time/handle "
-                    + Timer.format((totalStats.handleStealTime)
-                            / totalStats.stealAttempts));
+                    + Timer.format(perStats(totalStats.handleStealTime,
+                            totalStats.stealAttempts)));
 
             out.println("SATIN: INV SERIALIZATION_TIME:   total "
                     + Timer.format(totalStats.invocationRecordWriteTime)
                     + " time/write  "
-                    + Timer.format(totalStats.invocationRecordWriteTime
-                            / totalStats.stealSuccess));
+                    + Timer.format(perStats(totalStats.invocationRecordWriteTime,
+                            totalStats.stealSuccess)));
             out.println("SATIN: INV DESERIALIZATION_TIME: total "
                     + Timer.format(totalStats.invocationRecordReadTime)
                     + " time/read   "
-                    + Timer.format(totalStats.invocationRecordReadTime
-                            / totalStats.stealSuccess));
+                    + Timer.format(perStats(totalStats.invocationRecordReadTime,
+                            totalStats.stealSuccess)));
             out.println("SATIN: RET SERIALIZATION_TIME:   total "
                     + Timer.format(totalStats.returnRecordWriteTime)
                     + " time/write  "
-                    + Timer.format(totalStats.returnRecordWriteTime
-                            / totalStats.returnRecordWriteCount));
+                    + Timer.format(perStats(totalStats.returnRecordWriteTime,
+                            totalStats.returnRecordWriteCount)));
             out.println("SATIN: RET DESERIALIZATION_TIME: total "
                     + Timer.format(totalStats.returnRecordReadTime)
                     + " time/read   "
-                    + Timer.format(totalStats.returnRecordReadTime
-                            / totalStats.returnRecordReadCount));
+                    + Timer.format(perStats(totalStats.returnRecordReadTime,
+                            totalStats.returnRecordReadCount)));
         }
 
         if (ABORT_TIMING) {
             out.println("SATIN: ABORT_TIME:               total "
                     + Timer.format(totalStats.abortTime) + " time/abort  "
-                    + Timer.format(totalStats.abortTime / totalStats.aborts));
+                    + Timer.format(perStats(totalStats.abortTime, totalStats.aborts)));
         }
 
         if (TUPLE_TIMING) {
             out.println("SATIN: TUPLE_SPACE_BCAST_TIME:   total "
                     + Timer.format(totalStats.tupleTime) + " time/bcast  "
-                    + Timer.format(totalStats.tupleTime
-                                    / totalStats.tupleMsgs));
+                    + Timer.format(perStats(totalStats.tupleTime,
+                                    totalStats.tupleMsgs)));
             out.println("SATIN: TUPLE_SPACE_WAIT_TIME:    total "
                     + Timer.format(totalStats.tupleWaitTime)
                     + " time/bcast  "
-                    + Timer.format(totalStats.tupleWaitTime
-                            / totalStats.tupleWaitCount));
+                    + Timer.format(perStats(totalStats.tupleWaitTime,
+                            totalStats.tupleWaitCount)));
         }
 
         if (POLL_FREQ != 0 && POLL_TIMING) {
             out.println("SATIN: POLL_TIME:                total "
                     + Timer.format(totalStats.pollTime) + " time/poll "
-                    + Timer.format(totalStats.pollTime / totalStats.pollCount));
+                    + Timer.format(perStats(totalStats.pollTime, totalStats.pollCount)));
         }
 
         if (IDLE_TIMING) {
             out.println("SATIN: IDLE_TIME:                total "
                     + Timer.format(totalStats.idleTime) + " time/idle "
-                    + Timer.format(totalStats.idleTime / totalStats.idleCount));
+                    + Timer.format(perStats(totalStats.idleTime, totalStats.idleCount)));
         }
 
         if (FAULT_TOLERANCE && GRT_TIMING) {
             out.println("SATIN: GRT_UPDATE_TIME:          total "
                     + Timer.format(totalStats.tableUpdateTime)
                     + " time/update "
-                    + Timer.format(totalStats.tableUpdateTime
-                            / (totalStats.tableResultUpdates
-                                    + totalStats.tableLockUpdates)));
+                    + Timer.format(perStats(totalStats.tableUpdateTime,
+                            (totalStats.tableResultUpdates
+                                    + totalStats.tableLockUpdates))));
             out.println("SATIN: GRT_LOOKUP_TIME:          total "
                     + Timer.format(totalStats.tableLookupTime)
                     + " time/lookup "
-                    + Timer.format(totalStats.tableLookupTime
-                            / totalStats.tableLookups));
+                    + Timer.format(perStats(totalStats.tableLookupTime,
+                            totalStats.tableLookups)));
             out.println("SATIN: GRT_HANDLE_UPDATE_TIME:   total "
                     + Timer.format(totalStats.tableHandleUpdateTime)
                     + " time/handle "
-                    + Timer.format(totalStats.tableHandleUpdateTime
-                            / totalStats.tableResultUpdates * (size - 1)));
+                    + Timer.format(perStats(totalStats.tableHandleUpdateTime,
+                            totalStats.tableResultUpdates * (size - 1))));
             out.println("SATIN: GRT_HANDLE_LOOKUP_TIME:   total "
                     + Timer.format(totalStats.tableHandleLookupTime)
                     + " time/handle "
-                    + Timer.format(totalStats.tableHandleLookupTime
-                            / totalStats.tableRemoteLookups));
+                    + Timer.format(perStats(totalStats.tableHandleLookupTime,
+                            totalStats.tableRemoteLookups)));
             out.println("SATIN: GRT_SERIALIZATION_TIME:   total "
                     + Timer.format(totalStats.tableSerializationTime));
             out.println("SATIN: GRT_DESERIALIZATION_TIME: total "
@@ -270,8 +277,8 @@ public abstract class Stats extends TupleSpace {
             out.println("SATIN: GRT_CHECK_TIME:           total "
                     + Timer.format(totalStats.tableCheckTime)
                     + " time/check "
-                    + Timer.format(totalStats.tableCheckTime
-                            / totalStats.tableLookups));
+                    + Timer.format(perStats(totalStats.tableCheckTime,
+                            totalStats.tableLookups)));
 
         }
 
@@ -460,7 +467,7 @@ public abstract class Stats extends TupleSpace {
             out.println("SATIN '" + ident
                     + "': STEAL_STATS 1: attempts = " + stealAttempts
                     + " success = " + stealSuccess + " ("
-                    + (((double) stealSuccess / stealAttempts) * 100.0)
+                    + (perStats((double) stealSuccess, stealAttempts) * 100.0)
                     + " %)");
 
             out.println("SATIN '" + ident

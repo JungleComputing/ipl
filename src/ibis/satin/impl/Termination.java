@@ -90,7 +90,8 @@ public abstract class Termination extends Initialization {
                 WriteMessage writeMessage;
                 if (commLogger.isDebugEnabled()) {
                     commLogger.debug("SATIN '" + ident
-                            + "': sending exit ACK message to " + masterIdent);
+                            + "': sending exit ACK message to "
+                            + masterIdent);
                 }
 
                 writeMessage = mp.newMessage();

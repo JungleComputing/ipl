@@ -14,7 +14,7 @@ public abstract class Malleability extends FaultTolerance {
             ReceivePortIdentifier r = null;
             SendPort s = portType.createSendPort("satin sendport");
 
-            r = lookup("satin port on " + joiner);
+            r = lookup("satin port on " + joiner.name());
 
             if (FAULT_TOLERANCE) {
                 if (!connect(s, r, connectTimeout)) {
@@ -54,7 +54,7 @@ public abstract class Malleability extends FaultTolerance {
         // System.err.println("SATIN '" + ident + "': '" + joiner
         //         + " is joining");
 
-        if (joiner.toString().equals("ControlCentreIbis")) {
+        if (joiner.name().equals("ControlCentreIbis")) {
             return;
         }
 
@@ -85,7 +85,7 @@ public abstract class Malleability extends FaultTolerance {
     }
 
     public void left(IbisIdentifier leaver) {
-        if (leaver.equals(this.ident)) {
+        if (leaver.equals(ident)) {
             return;
         }
 

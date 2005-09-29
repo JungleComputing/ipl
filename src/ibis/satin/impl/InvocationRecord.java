@@ -233,7 +233,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         result += ", stealer = " + stealer;
         result += ", parentStamp = " + parentStamp;
         result += ", parentOwner = "
-                + (parentOwner == null ? "NULL" : "" + parentOwner);
+                + (parentOwner == null ? "NULL" : "" + parentOwner.name());
         result += ", aborted = " + aborted;
         result += ", parent = " + (parent == null ? "NULL" : "" + parent);
         // recursive :-)
