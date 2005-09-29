@@ -219,8 +219,8 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
 		mp_sends[cpu]++, port, cpu, ibmp_iovec_len(iov, iov_size), env));
     hdr->port = port;
     ticket = pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, PAN_MP_DELAYED);
-    // pan_mp_send_finish(ticket);
-    // We should wait here, but this causes deadlocks. Not nice !!!???
+    IBP_VPRINTF(2000, env, ("Before pan_mp_send_finish\n"));
+    pan_mp_send_finish(ticket);
     IBP_VPRINTF(800, env, ("Done a Panda MP send\n"));
     assert(ibp_JNIEnv == env);
 }
