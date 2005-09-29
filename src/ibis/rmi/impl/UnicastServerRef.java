@@ -7,6 +7,8 @@ import ibis.rmi.RemoteException;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.ServerRef;
 
+import java.io.ObjectOutput;
+
 // TODO: implement getClientHost
 
 public class UnicastServerRef extends UnicastRef implements ServerRef,
@@ -24,6 +26,10 @@ public class UnicastServerRef extends UnicastRef implements ServerRef,
         } catch (Exception e) {
             throw new RemoteException(e.getMessage(), e);
         }
+    }
+
+    public String getRefClass(ObjectOutput out) {
+        return "UnicastServerRef";
     }
 
     public String getClientHost() {
