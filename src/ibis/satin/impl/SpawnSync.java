@@ -211,14 +211,16 @@ public abstract class SpawnSync extends Termination {
                 System.exit(1);
             }
 
-            spawnLogger.debug("SATIN '" + ident
-                    + ": callSatinFunc: stamp = " + r.stamp
-                    + ", parentStamp = " + r.parentStamp
-                    + ", parentOwner = " + r.parentOwner
-                    + " spawn counter = " + r.spawnCounter.value + " DONE");
-            if (r.eek != null) {
+            if (spawnLogger.isDebugEnabled()) {
                 spawnLogger.debug("SATIN '" + ident
-                        + ": exception was " + r.eek, r.eek);
+                        + ": callSatinFunc: stamp = " + r.stamp
+                        + ", parentStamp = " + r.parentStamp
+                        + ", parentOwner = " + r.parentOwner
+                        + " spawn counter = " + r.spawnCounter.value + " DONE");
+                if (r.eek != null) {
+                    spawnLogger.debug("SATIN '" + ident
+                            + ": exception was " + r.eek, r.eek);
+                }
             }
 
             if (FAULT_TOLERANCE && !FT_WITHOUT_ABORTS && !FT_NAIVE) {

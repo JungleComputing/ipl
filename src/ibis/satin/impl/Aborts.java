@@ -86,8 +86,10 @@ public abstract class Aborts extends WorkStealing {
          * while(true) {
          *     long abortCount = abortedJobs;
          * 
-         *     abortLogger.debug("killChildrenOf: iter = " + iter 
+         *     if (abortLogger.isDebugEnabled()) {
+         *         abortLogger.debug("killChildrenOf: iter = " + iter 
          *             + " abort cnt = " + abortedJobs);
+         *     }
          */
         // try work queue, outstanding jobs and jobs on the stack
         // but try stack first, many jobs in q are children of stack jobs.
