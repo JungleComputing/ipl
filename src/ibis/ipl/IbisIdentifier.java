@@ -4,9 +4,7 @@ package ibis.ipl;
 
 /**
  * Identifies an Ibis on the network.
- * Be careful, classes implementing this abstract class should override
- * the methods <code>equals</code>() and <code>hashCode</code>().
- * note: if an <code>IbisIdentifier</code> is sent over the network,
+ * Note: if an <code>IbisIdentifier</code> is sent over the network,
  * it is not guaranteed that the object on the remote side will be a new one.
  * This allows the Ibis implementation to cache <code>IbisIdentifier</code>s.
  */
@@ -50,6 +48,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
         if (o == null) {
             return false;
         }
+
         if (! o.getClass().equals(getClass())) {
             return false;
         }
