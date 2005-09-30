@@ -125,15 +125,16 @@ public abstract class WorkStealing extends Stats {
             throw new IbisError(
                     "EEEK, trying to steal while an unhandled stolen job is available.");
         }
-        if (STEAL_TIMING) {
-            stealTimer.start();
-        }
-
-        if (STEAL_STATS) {
-            stealAttempts++;
-        }
 
         if (!exiting) {
+            if (STEAL_TIMING) {
+                stealTimer.start();
+            }
+
+            if (STEAL_STATS) {
+                stealAttempts++;
+            }
+
             sendStealRequest(v, true, blockOnServer);
             return waitForStealReply();
         }
