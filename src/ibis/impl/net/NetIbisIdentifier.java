@@ -8,6 +8,7 @@ import ibis.ipl.IbisIdentifier;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.HashMap;
 
 public final class NetIbisIdentifier extends IbisIdentifier implements
         java.io.Serializable {
@@ -20,6 +21,10 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
     // ID_CACHE
     private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
+    private static HashMap inetAddrMap = new HashMap();
+
+    private transient String toStringCache = null;
+
     public NetIbisIdentifier(String name, InetAddress address) {
         super(name);
         this.address = address;
@@ -30,10 +35,13 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
     }
 
     public String toString() {
-        String a = (address == null ? "<null>" : address.getHostName() + ", "
-                + address.getHostAddress());
-        String n = (name == null ? "<null>" : name);
-        return ("(NetId: " + n + " on [" + a + "])");
+        if (toStringCache == null) {
+            String a = (address == null ? "<null>" : address.getHostName() + ", "
+                    + address.getHostAddress());
+            String n = (name == null ? "<null>" : name);
+            toStringCache = "(NetId: " + n + " on [" + a + "])";
+        }
+        return toStringCache;
     }
 
     // no need to serialize super class fields, this is done automatically
@@ -60,12 +68,16 @@ public final class NetIbisIdentifier extends IbisIdentifier implements
         int handle = in.readInt();
         if (handle < 0) {
             String addr = in.readUTF();
-            try {
-                // this does not do a real lookup
-                address = InetAddress.getByName(addr);
-            } catch (Exception e) {
-                throw new IbisError("EEK, could not create an inet address"
-                        + "from a IP address. This shouldn't happen", e);
+            address = (InetAddress) inetAddrMap.get(addr);
+            if (address == null) {
+                try {
+                    // this does not do a real lookup
+                    address = InetAddress.getByName(addr);
+                } catch (Exception e) {
+                    throw new IbisError("EEK, could not create an inet address"
+                            + "from a IP address. This shouldn't happen", e);
+                }
+                inetAddrMap.put(addr, address);
             }
 
             if (ID_CACHE) {

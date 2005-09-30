@@ -7,6 +7,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisError;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.net.InetAddress;
 
 public final class TcpIbisIdentifier extends IbisIdentifier implements
@@ -18,6 +19,10 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
 
     private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
+    private static HashMap inetAddrMap = new HashMap();
+
+    private transient String toStringCache = null;
+
     public TcpIbisIdentifier(String name, InetAddress address) {
         super(name);
         this.address = address;
@@ -28,10 +33,13 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     }
 
     public String toString() {
-        String a = (address == null ? "<null>" : address.getHostName() + ", "
-                + address.getHostAddress());
-        String n = (name == null ? "<null>" : name);
-        return ("(TcpId: " + n + " on [" + a + "])");
+        if (toStringCache == null) {
+            String a = (address == null ? "<null>" : address.getHostName() + ", "
+                    + address.getHostAddress());
+            String n = (name == null ? "<null>" : name);
+            toStringCache = "(TcpId: " + n + " on [" + a + "])";
+        }
+        return toStringCache;
     }
 
     // no need to serialize super class fields, this is done automatically
@@ -57,11 +65,15 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         int handle = in.readInt();
         if (handle < 0) {
             String addr = in.readUTF();
-            try {
-                address = InetAddress.getByName(addr);
-            } catch(Exception e) {
-                throw new IbisError("EEK, could not create an inet address"
-                        + "from a IP address. This shouldn't happen", e);
+            address = (InetAddress) inetAddrMap.get(addr);
+            if (address == null) {
+                try {
+                    address = InetAddress.getByName(addr);
+                } catch(Exception e) {
+                    throw new IbisError("EEK, could not create an inet address"
+                            + "from a IP address. This shouldn't happen", e);
+                }
+                inetAddrMap.put(addr, address);
             }
             if (Config.ID_CACHE) {
                 cache.addIbis(in, -handle, this);
