@@ -22,6 +22,9 @@ public final class Mtdf extends ibis.satin.SatinObject implements
         TranspositionTableEntry e;
         short currChild = 0;
 
+        // System.out.println("depthFirstSearch: pivot = " + pivot
+        //         + ", depth = " + depth);
+
         tt.visited++;
 
         if (depth == 0 || (children = node.generateChildren()) == null) {
@@ -36,6 +39,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements
                 if ((e.lowerBound ? e.value >= pivot : e.value < pivot)) {
                     tt.hits++;
                     node.score = e.value;
+                    // System.out.println("tt hit: node.score = " + node.score);
                     return children[e.bestChild];
                 }
             }
@@ -72,13 +76,15 @@ public final class Mtdf extends ibis.satin.SatinObject implements
             try {
                 spawn_depthFirstSearch(children[i], 1 - pivot, depth - 1, i);
             } catch (Done d) {
+                // System.out.println("Caught Done, -d.score = " + (-d.score)
+                //         + ", node.score = " + node.score);
                 if (-d.score > node.score) {
                     tt.scoreImprovements++;
                     bestChild = d.currChild;
                     node.score = (short) -d.score;
 
                     if (DO_ABORT && node.score >= pivot) {
-                        System.out.println("Abort ...");
+                        // System.out.println("Abort ...");
                         aborted = true;
                         abort();
                     }

@@ -1,1 +1,1 @@
-2 Mtdf
+2 -Xms256m -Xmx512m Mtdf
