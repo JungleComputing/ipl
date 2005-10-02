@@ -18,7 +18,9 @@ public class MPJObjectQueue {
 		this.lock = false;
 	}
 	
-	
+	protected int size() {
+                return queue.size();
+        }
 	
 	protected synchronized void addObject(MPJObject obj) {
 		queue.add(obj);

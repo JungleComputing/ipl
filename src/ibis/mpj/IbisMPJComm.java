@@ -319,14 +319,22 @@ public class IbisMPJComm extends Thread {
 					obj = new MPJObject();
 					msg = null;
 					
-					/*if(!blocking) {
+					if(!blocking && queue.size() != 0) {
+                                                // We need to give other threads
+                                                // the chance to obtain the
+                                                // message. For instance a program
+                                                // could post an asynchronous receive,
+                                                // and then do a barrier (Ceriel).
 						msg =con.pollForMessage();
 						
-						if (msg==null) continue;
+						if (msg==null) {
+                                                    queue.release();
+                                                    continue;
+                                                }
 					}
-					else {*/
+					else {
 						msg = con.getNextMessage();	
-					//}
+					}
 						
 					// 	get message header
 					con.receiveHeader(msg, obj.desc);
