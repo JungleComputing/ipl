@@ -22,7 +22,7 @@
     <property name="ibis"        location="."/>
 
     <property name="ibis-major" value="1"/>
-    <property name="ibis-minor" value="1"/>
+    <property name="ibis-minor" value="2"/>
 
     <property name="ibis-version" value="ibis-${ibis-major}.${ibis-minor}"/>
     <property name="ibis-tag" value="ibis-${ibis-major}-${ibis-minor}"/>
