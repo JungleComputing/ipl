@@ -20,7 +20,3 @@ Test took 847 ms. = 847.0 micros/call
 0 doing exit
 
 STDERR:
-log4j:WARN No appenders could be found for logger (Test).
-log4j:WARN Please initialize the log4j system properly.
-log4j:WARN No appenders could be found for logger (Test).
-log4j:WARN Please initialize the log4j system properly.
