@@ -1,9 +1,6 @@
 prun:
 	add readme on how to start ibis with prun for the VU people
 	
-Satin:
-	bug: throws van runtime exception worden niet doorgegooid maar genegeerd.
-	
 IPL change (for ibis 2.0):
 	- receiveports not globally unique, but unique per ibis.
 	- lookup method: recPortIdent lookup (ibisIdent, name)
@@ -13,54 +10,11 @@ nameserver:
 - we forget to close connections on errors, see for instance forwardJoin in NameServer.java --Rob
 
 general:
-- I cannot add an "external" ibis that ibis does not know about without changing the
-  properties file in the original tree. --Rob
++ I cannot add an "external" ibis that ibis does not know about without changing the
+  properties file in the original tree. --Rob (Fixed Ceriel)
 - nameserver needs to know classes of all ibis identifiers. 
   Not really an option for external ibises --Rob
-- als ik mijn ibis ident niet herschrijf -> satin crash --Rob
-
-serialization selection:
-- test program says: 
-      serialization = sun 
-
-  then when selecting the ibis implementation we get:  
-
-    Looking for an Ibis with properties: 
-    worldmodel = closed
- -> serialization = sun
-    verbose = 
-    communication = autoupcalls, onetoone, explicitreceipt, reliable
-    name = tcp
-
-  and when creating the port type we get:
-
-    Creating port type test type with properties
- -> serialization = sun
-    worldmodel = 
-    verbose = 
-    communication = autoupcalls, onetoone, explicitreceipt, reliable
-    name = tcp
-
-  But when I add "-Dibis.serialization=ibis" to the command line I get:
-
-    Looking for an Ibis with properties: 
- -> serialization = ibis
-    worldmodel = closed
-    verbose = 
-    communication = autoupcalls, onetoone, explicitreceipt, reliable
-    name = tcp
- 
-  which seems ok, but the port type says: 
-
-    Creating port type test type with properties
- -> serialization = sun
-    worldmodel = 
-    verbose = 
-    communication = autoupcalls, onetoone, explicitreceipt, reliable
-    name = tcp
-
-  Is that right ?
-
++ als ik mijn ibis ident niet herschrijf -> satin crash --Rob (Fixed Ceriel)
 
 ipl:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
@@ -73,16 +27,18 @@ rmi:
 - check Ibis RMI registry:
   - you don't have to actually start one;
   - registers url's, not names.
-- BUGS in rmi stubs (& skeletons?) -> if there is an IOexception, messages are not finished! --Rob
++ BUGS in rmi stubs (& skeletons?) -> if there is an IOexception, messages are not finished! --Rob (Done (Ceriel))
 
 satin:
++ als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
++ bug: throws van runtime exception worden niet doorgegooid maar genegeerd.
+  (Fixed Ceriel)
 - add semantic analysis to the compiler
 - forgotten sync statements
 - make return / throw an implicit sync again?
 - add comments to abort / inlet machinism
 - detection of what is an inlet: now, if the invocation is inside a try-catch
   it is assumed to be an inlet. Is this OK?
-- als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
 - rob (na distro): check satin caches.
 - shutdownhook -> System.exit
 
@@ -91,9 +47,9 @@ implementations:
   (who reported this? Please check if this is still actual ... I placed locks
    in them .... Ceriel) I did, I'll check :-) --Rob
 - NetIbis: 
-    * fix performance issues in net.gm (e.g.  mpj+javagrande benchmarks)
-    * make it possible to make ipl classes use abstract.
-    * remove dependancy on "local" gm version in default set-up
+    - fix performance issues in net.gm (e.g.  mpj+javagrande benchmarks)
+    + make it possible to make ipl classes use abstract. (Done Ceriel)
+    - remove dependancy on "local" gm version in default set-up
 
 connect stuff:
 - Rob: Update manual and readme files to reflect new structure.
