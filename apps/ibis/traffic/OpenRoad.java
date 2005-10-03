@@ -216,8 +216,8 @@ class OpenCell1D implements OpenConfig {
     private static SendPort createNeighbourSendPort( PortType updatePort, IbisIdentifier dest, String prefix )
         throws java.io.IOException
     {
-        String sendportname = prefix + "Send" + myName;
-        String receiveportname = prefix + "Receive" + dest;
+        String sendportname = prefix + "Send" + myName.name();
+        String receiveportname = prefix + "Receive" + dest.name();
 
         SendPort res = updatePort.createSendPort( sendportname );
         if( tracePortCreation ){
@@ -239,7 +239,7 @@ class OpenCell1D implements OpenConfig {
     private static ReceivePort createNeighbourReceivePort( PortType updatePort, String prefix, Upcall up )
         throws java.io.IOException
     {
-        String receiveportname = prefix + "Receive" + myName;
+        String receiveportname = prefix + "Receive" + myName.name();
 
         ReceivePort res;
         if( up == null ){
