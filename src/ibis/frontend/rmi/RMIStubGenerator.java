@@ -76,9 +76,15 @@ class RMIStubGenerator extends RMIGenerator {
 
         output.println("\t\ttry {");
         output.println("\t\t\tException remoteex = null;");
+        output.println("\t\t\tWriteMessage w;");
         output.println("\t\t\ttry {");
         output.println("\t\t\t\tinitSend();");
-        output.println("\t\t\t\tWriteMessage w = newMessage();");
+        output.println("\t\t\t\tw = newMessage();");
+        output.println("\t\t\t} catch(java.io.IOException ioex) {");
+        output.println("\t\t\t\tthrow new RemoteException(\"IO exception\","
+                + " ioex);");
+        output.println("\t\t\t}");
+        output.println("\t\t\ttry {");
         output.println("\t\t\t\tw.writeInt(" + number + ");");
         output.println("\t\t\t\tw.writeInt(stubID);");
 
@@ -89,9 +95,21 @@ class RMIStubGenerator extends RMIGenerator {
 
         output.println("\t\t\t\tRTS.startRMITimer(timer_" + number + ");");
         output.println("\t\t\t\tw.finish();");
+        output.println("\t\t\t} catch(java.io.IOException ioex) {");
+        output.println("\t\t\t\tw.finish(ioex);");
+        output.println("\t\t\t\tthrow new RemoteException(\"IO exception\","
+                + " ioex);");
+        output.println("\t\t\t}");
 
-        output.println("\t\t\t\tReadMessage r = reply.receive();");
-        output.println("\t\t\t\tRTS.stopRMITimer(timer_" + number + ");");
+        output.println("\t\t\tReadMessage r;");
+        output.println("\t\t\ttry {");
+        output.println("\t\t\t\tr = reply.receive();");
+        output.println("\t\t\t} catch(java.io.IOException ioex) {");
+        output.println("\t\t\t\tthrow new RemoteException(\"IO exception\","
+                + " ioex);");
+        output.println("\t\t\t}");
+        output.println("\t\t\tRTS.stopRMITimer(timer_" + number + ");");
+        output.println("\t\t\ttry {");
         output.println("\t\t\t\tif (r.readByte() == RTS.EXCEPTION) {");
         output.println("\t\t\t\t\tremoteex = (Exception) r.readObject();");
         output.println("\t\t\t\t}");
@@ -102,6 +120,7 @@ class RMIStubGenerator extends RMIGenerator {
         output.println("\t\t\t\t}");
         output.println("\t\t\t\tr.finish();");
         output.println("\t\t\t} catch(java.io.IOException ioex) {");
+        output.println("\t\t\t\tr.finish(ioex);");
         output.println("\t\t\t\tthrow new RemoteException(\"IO exception\","
                 + " ioex);");
         output.println("\t\t\t}");
