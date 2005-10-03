@@ -87,7 +87,7 @@ public class IbisMPJComm extends Thread {
 		MPJObject obj = null;
 		this.status = new Status();
 		ReadMessage msg = null;
-		boolean DEBUG = true;
+		// boolean DEBUG = true;
 
 		
 		
