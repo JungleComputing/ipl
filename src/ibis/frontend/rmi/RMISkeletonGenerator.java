@@ -232,10 +232,16 @@ class RMISkeletonGenerator extends RMIGenerator {
 
             output.println("\t\t\thandle = colobus.fireStartEvent(\"RMI reply message of method " + m.getName() + "\");");
 
+            output.println("\t\t\tWriteMessage w;");
             output.println("\t\t\ttry {");
-            output.println("\t\t\t\tWriteMessage w = "
-                    + "stubs[stubID].newMessage();");
+            output.println("\t\t\t\tw = stubs[stubID].newMessage();");
+            output.println("\t\t\t} catch(IOException e) {");
+            output.println("\t\t\t\tcolobus.fireStopEvent(handle, \"RMI reply message of method " + m.getName() + "\");");
+            output.println("\t\t\t\tthrow new ibis.rmi.MarshalException("
+                    + "\"error marshalling return\", e);");
+            output.println("\t\t\t}");
 
+            output.println("\t\t\ttry {");
             output.println("\t\t\t\tif (ex != null) {");
             output.println("\t\t\t\t\tw.writeByte(RTS.EXCEPTION);");
             output.println("\t\t\t\t\tw.writeObject(ex);");
@@ -250,6 +256,7 @@ class RMISkeletonGenerator extends RMIGenerator {
             output.println("\t\t\t\t}");
             output.println("\t\t\t\tw.finish();");
             output.println("\t\t\t} catch(IOException e) {");
+            output.println("\t\t\t\tw.finish(e);");
             output.println("\t\t\t\tcolobus.fireStopEvent(handle, \"RMI reply message of method " + m.getName() + "\");");
             output.println("\t\t\t\tthrow new ibis.rmi.MarshalException("
                     + "\"error marshalling return\", e);");
@@ -272,17 +279,25 @@ class RMISkeletonGenerator extends RMIGenerator {
         output.println("\t\t\t\tthrow new ibis.rmi.UnmarshalException("
                 + "\"while reading ReceivePortIdentifier\", e);");
         output.println("\t\t\t} catch(IOException e) {");
+        output.println("\t\t\t\tr.finish(e);");
         output.println("\t\t\t\tthrow new ibis.rmi.UnmarshalException("
                 + "\"while reading ReceivePortIdentifier\", e);");
         output.println("\t\t\t}");
         output.println("\t\t\tint id = addStub(rpi);");
+        output.println("\t\t\tWriteMessage w;");
         output.println("\t\t\ttry {");
-        output.println("\t\t\t\tWriteMessage w = stubs[id].newMessage();");
+        output.println("\t\t\t\tw = stubs[id].newMessage();");
+        output.println("\t\t\t} catch(IOException e) {");
+        output.println("\t\t\t\tthrow new ibis.rmi.MarshalException("
+                + "\"error sending skeletonId\", e);");
+        output.println("\t\t\t}");
+        output.println("\t\t\ttry {");
         output.println("\t\t\t\tw.writeInt(id);");
         output.println("\t\t\t\tw.writeInt(skeletonId);");
         output.println("\t\t\t\tw.writeObject(destination);");
         output.println("\t\t\t\tw.finish();");
         output.println("\t\t\t} catch(IOException e) {");
+        output.println("\t\t\t\tw.finish(e);");
         output.println("\t\t\t\tthrow new ibis.rmi.MarshalException("
                 + "\"error sending skeletonId\", e);");
         output.println("\t\t\t}");
