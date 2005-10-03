@@ -60,7 +60,7 @@
 	      executable="${ibis}/bin/ibis-run"
 	      vmlauncher="false"
 	      spawn="true">
-	    <arg line="-ns localhost -ns-port 4567 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
+	    <arg line="-ns localhost -ns-port 46789 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
@@ -69,7 +69,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	    <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
+	    <arg line="-ns localhost -ns-port 46789 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
