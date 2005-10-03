@@ -338,12 +338,15 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         if (! type.p.isProp("communication", "Poll")) {
             throw new IOException("Receiveport not configured for polls");
         }
+
+        Thread.yield(); // Give connection handler thread a chance to deliver
+
         if (upcall != null) {
-            Thread.yield();
             return null;
         }
 
         synchronized (this) { // must this be synchronized? --Rob
+                              // Yes, connection handler thread. (Ceriel)
             if (m == null || delivered) {
                 return null;
             }
