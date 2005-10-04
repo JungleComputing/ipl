@@ -134,6 +134,8 @@ public final class Satinc {
 
     String classname;
 
+    String classNameNoPackage;
+
     String packageName;
 
     boolean inletOpt;
@@ -168,17 +170,48 @@ public final class Satinc {
     }
 
     private static class StoreClass {
-        InstructionList store;
+        private InstructionList store;
 
-        Method target;
+        private Method target;
 
-        JavaClass cl;
+        private String className;
+
+        private String packageName;
+
+        private String classNameNoPackage;
 
         StoreClass(InstructionList store, Method target,
                 JavaClass cl) {
             this.store = store;
             this.target = target;
-            this.cl = cl;
+            className = cl.getClassName();
+            packageName = cl.getPackageName();
+
+            if (packageName != null && ! packageName.equals("")) {
+                classNameNoPackage = className.substring(className.lastIndexOf('.')+1, className.length());
+            } else {
+                classNameNoPackage = className;
+            }
+        }
+
+        public InstructionList getStoreIns() {
+            return store;
+        }
+
+        public Method getMethod() {
+            return target;
+        }
+
+        public String getClassName() {
+            return className;
+        }
+
+        public String getClassNameNoPackage() {
+            return classNameNoPackage;
+        }
+
+        public String getPackageName() {
+            return packageName;
         }
 
         public boolean equals(Object o) {
@@ -228,7 +261,6 @@ public final class Satinc {
         this.keep = keep;
         this.local = local;
         this.invocationRecordCache = invocationRecordCache;
-        this.classname = classname;
         this.inletOpt = inletOpt;
         this.spawnCounterOpt = spawnCounterOpt;
 
@@ -239,7 +271,14 @@ public final class Satinc {
             System.exit(1);
         }
 
+        this.classname = c.getClassName();
         packageName = c.getPackageName();
+
+        if (packageName != null && ! packageName.equals("")) {
+            classNameNoPackage = this.classname.substring(this.classname.lastIndexOf('.')+1, this.classname.length());
+        } else {
+            classNameNoPackage = this.classname;
+        }
 
         gen_c = new ClassGen(c);
         cpg = gen_c.getConstantPool();
@@ -249,6 +288,14 @@ public final class Satinc {
         spawnCounterType = new ObjectType("ibis.satin.impl.SpawnCounter");
         irType = new ObjectType("ibis.satin.impl.InvocationRecord");
         satinType = new ObjectType("ibis.satin.impl.Satin");
+    }
+
+    public String getFileBase(String pkg, String name, String pre, String post) {
+        if (!local && pkg != null && !pkg.equals("")) {
+            return pkg.replace('.', File.separatorChar) + File.separator + pre
+                    + name + post;
+        }
+        return pre + name + post;
     }
 
     boolean isSatin() {
@@ -472,37 +519,82 @@ public final class Satinc {
         return do_mangle(m.getName(), m.getSignature());
     }
 
-    String invocationRecordName(Method m, String clnam) {
-        return ("Satin_" + clnam + "_" + do_mangle(m)
-                + "_InvocationRecord").replace('.', '_');
+    String invocationRecordName(Method m, String clnam, String pnam) {
+        if (pnam != null && ! pnam.equals("")) {
+            return pnam + ".Satin_" + clnam
+                    + "_" + do_mangle(m) + "_InvocationRecord";
+        }
+        return "Satin_" + clnam + "_" + do_mangle(m)
+                + "_InvocationRecord";
+    }
+
+    String invocationRecordFileBase(Method m, String clnam, String pnam) {
+        return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_", "_InvocationRecord");
+    }
+
+    String invocationRecordClassName(Method m, String clnam, String pnam) {
+        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_", "_InvocationRecord");
     }
 
     String localRecordName(Method m) {
-        return ("Satin_" + c.getClassName() + "_" + do_mangle(m)
-                + "_LocalRecord").replace('.', '_');
+        if (packageName != null && ! packageName.equals("")) {
+            return packageName + ".Satin_" + classNameNoPackage
+                    + "_" + do_mangle(m) + "_LocalRecord";
+        }
+        return "Satin_" + classNameNoPackage + "_" + do_mangle(m)
+                + "_LocalRecord";
+    }
+
+    String localRecordFileBase(Method m) {
+        return getFileBase(packageName, classNameNoPackage + "_" + do_mangle(m), "Satin_", "_LocalRecord");
+    }
+
+    String localRecordClassName(Method m) {
+        return getFileBase(null, classNameNoPackage + "_" + do_mangle(m), "Satin_", "_LocalRecord");
     }
 
     String localRecordName(MethodGen m) {
-        return ("Satin_" + c.getClassName() + "_" + do_mangle(m)
-                + "_LocalRecord").replace('.', '_');
+        if (packageName != null && ! packageName.equals("")) {
+            return packageName + ".Satin_" + classNameNoPackage
+                    + "_" + do_mangle(m) + "_LocalRecord";
+        }
+        return "Satin_" + classNameNoPackage + "_" + do_mangle(m)
+                + "_LocalRecord";
     }
 
-    String returnRecordName(Method m, String clnam) {
-        return ("Satin_" + clnam + "_" + do_mangle(m)
-                + "_ReturnRecord").replace('.', '_');
+    String returnRecordName(Method m, String clnam, String pnam) {
+        if (pnam != null && ! pnam.equals("")) {
+            return pnam + ".Satin_" + clnam
+                    + "_" + do_mangle(m) + "_ReturnRecord";
+        }
+        return "Satin_" + clnam + "_" + do_mangle(m)
+                + "_ReturnRecord";
+    }
+
+    String returnRecordFileBase(Method m, String clnam, String pnam) {
+        return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_", "_ReturnRecord");
+    }
+
+    String returnRecordClassName(Method m, String clnam, String pnam) {
+        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_", "_ReturnRecord");
     }
 
     String parameterRecordName(Method m) {
-        return ("Satin_" + c.getClassName() + "_" + do_mangle(m)
-                + "_ParameterRecord").replace('.', '_');
+        if (packageName != null && ! packageName.equals("")) {
+            return packageName + ".Satin_" + classNameNoPackage
+                    + "_" + do_mangle(m) + "_ParameterRecord";
+        }
+        return "Satin_" + classNameNoPackage + "_" + do_mangle(m)
+                + "_ParameterRecord";
     }
 
-    /*
-    String resultRecordName(Method m, String classname) {
-        return ("Satin_" + c.getClassName() + "_" + do_mangle(m)
-                + "_ResultRecord").replace('.','_');
+    String parameterRecordFileBase(Method m) {
+        return getFileBase(packageName, classNameNoPackage + "_" + do_mangle(m), "Satin_", "_ParameterRecord");
     }
-    */
+
+    String parameterRecordClassName(Method m) {
+        return getFileBase(null, classNameNoPackage + "_" + do_mangle(m), "Satin_", "_ParameterRecord");
+    }
 
     void insertAllDeleteLocalRecords(MethodGen m) {
         int maxLocals = m.getMaxLocals();
@@ -561,15 +653,19 @@ public final class Satinc {
     }
 
     InstructionList getStoreIns(int id) {
-        return ((StoreClass) idTable.get(id)).store;
+        return ((StoreClass) idTable.get(id)).getStoreIns();
     }
 
     Method getStoreTarget(int id) {
-        return ((StoreClass) idTable.get(id)).target;
+        return ((StoreClass) idTable.get(id)).getMethod();
     }
 
     String getStoreClass(int id) {
-        return ((StoreClass) idTable.get(id)).cl.getClassName();
+        return ((StoreClass) idTable.get(id)).getClassNameNoPackage();
+    }
+
+    String getStorePackage(int id) {
+        return ((StoreClass) idTable.get(id)).getPackageName();
     }
 
     void clearIdTable() {
@@ -684,7 +780,7 @@ public final class Satinc {
         // loop over all ids handed out in this method 
         for (int k = 0; k < idTable.size(); k++) {
             String invClass = invocationRecordName(getStoreTarget(k),
-                    getStoreClass(k));
+                    getStoreClass(k), getStorePackage(k));
             Type target_returntype = getStoreTarget(k).getReturnType();
 
             // Now generate code to test the id, and do the assignment to the
@@ -750,7 +846,7 @@ public final class Satinc {
 
             il.insert(pos, ins_f.createInvoke(invClass, "delete", Type.VOID,
                     new Type[] { new ObjectType(invocationRecordName(
-                            getStoreTarget(k), getStoreClass(k))) },
+                            getStoreTarget(k), getStoreClass(k), getStorePackage(k))) },
                     Constants.INVOKESTATIC));
 
             if (k != idTable.size() - 1) {
@@ -965,6 +1061,10 @@ public final class Satinc {
     void rewriteSpawn(MethodGen m, InstructionList il, Method target,
             InstructionHandle i, int maxLocals, int spawnId, JavaClass cl) {
         String clname = cl.getClassName();
+        String pnam = cl.getPackageName();
+        if (pnam != null && ! pnam.equals("")) {
+            clname = clname.substring(clname.lastIndexOf('.')+1, clname.length());
+        }
 
         if (verbose) {
             System.out.println("rewriting spawn, target = " + target.getName()
@@ -1048,8 +1148,8 @@ public final class Satinc {
         parameters[ix++] = new ObjectType("ibis.satin.impl.LocalRecord");
 
         ih = il.append(ih, ins_f.createInvoke(invocationRecordName(target,
-                clname), methodName, new ObjectType(invocationRecordName(
-                target, clname)), parameters, Constants.INVOKESTATIC));
+                clname, pnam), methodName, new ObjectType(invocationRecordName(
+                target, clname, pnam)), parameters, Constants.INVOKESTATIC));
 
         // Store result in outstandingSpawns 
         ih = il.append(ih, new ASTORE(maxLocals + 1));
@@ -1821,17 +1921,17 @@ public final class Satinc {
                 }
 
                 writeLocalRecord(methods[i]);
-                compile(localRecordName(methods[i]));
+                compile(localRecordFileBase(methods[i]));
             }
 
             if (mtab.isSpawnable(methods[i], c)) {
-                writeInvocationRecord(methods[i], classname);
-                writeReturnRecord(methods[i], classname);
+                writeInvocationRecord(methods[i], classNameNoPackage, packageName);
+                writeReturnRecord(methods[i], classNameNoPackage, packageName);
                 writeParameterRecord(methods[i]);
 
-                compile(invocationRecordName(methods[i], classname));
-                compile(returnRecordName(methods[i], classname));
-                compile(parameterRecordName(methods[i]));
+                compile(invocationRecordFileBase(methods[i], classNameNoPackage, packageName));
+                compile(returnRecordFileBase(methods[i], classNameNoPackage, packageName));
+                compile(parameterRecordFileBase(methods[i]));
             }
         }
     }
@@ -1943,7 +2043,7 @@ public final class Satinc {
     }
 
     void writeLocalRecord(Method m) throws IOException {
-        String name = localRecordName(m);
+        String name = localRecordFileBase(m);
         if (verbose) {
             System.out.println("writing localrecord code to " + name + ".java");
         }
@@ -1954,7 +2054,13 @@ public final class Satinc {
         PrintStream out = new PrintStream(b2);
 
         try {
+            if (packageName != null && ! packageName.equals("")) {
+                out.println("package " + packageName + ";");
+            }
+
             out.println("import ibis.satin.impl.*;");
+
+            name = localRecordClassName(m);
 
             out.println("public final class " + name
                     + " extends ibis.satin.impl.LocalRecord {");
@@ -2078,8 +2184,8 @@ public final class Satinc {
         }
     }
 
-    void writeInvocationRecord(Method m, String clname) throws IOException {
-        String name = invocationRecordName(m, clname);
+    void writeInvocationRecord(Method m, String clname, String pnam) throws IOException {
+        String name = invocationRecordFileBase(m, clname, pnam);
         if (verbose) {
             System.out.println("writing invocationrecord code to " + name
                     + ".java");
@@ -2127,14 +2233,21 @@ public final class Satinc {
                 }
             }
 
+            if (pnam != null && ! pnam.equals("")) {
+                out.println("package " + pnam + ";");
+            }
+
             out.println("import ibis.satin.impl.*;\n");
             out.println("import ibis.satin.*;\n");
+
+            name = invocationRecordClassName(m, clname, pnam);
+
             out.println("public final class " + name + " extends InvocationRecord {");
 
             // fields 
-            out.println("    " + clname + " self;");
+            out.println("    public " + clname + " self;");
             for (int i = 0; i < params_types_as_names.length; i++) {
-                out.println("    " + params_types_as_names[i] + " param" + i
+                out.println("    public " + params_types_as_names[i] + " param" + i
                         + ";");
             }
 
@@ -2399,7 +2512,7 @@ public final class Satinc {
             out.println("                throw new RuntimeException(e);");
             out.println("            }");
             out.println("        }");
-            out.print("        return new " + returnRecordName(m, clname));
+            out.print("        return new " + returnRecordName(m, clname, pnam));
             if (!returnType.equals(Type.VOID)) {
                 out.println("(result, eek, stamp);");
             } else {
@@ -2436,13 +2549,13 @@ public final class Satinc {
             if (returnType.equals(Type.VOID)) {
                 out.println("    public ibis.satin.impl.ReturnRecord "
                         + "getReturnRecord() {");
-                out.println("        return new " + returnRecordName(m, clname)
+                out.println("        return new " + returnRecordName(m, clname, pnam)
                         + "(null, stamp);");
                 out.println("    }\n");
             } else {
                 out.println("    public ibis.satin.impl.ReturnRecord "
                         + "getReturnRecord() {");
-                out.println("        return new " + returnRecordName(m, clname)
+                out.println("        return new " + returnRecordName(m, clname, pnam)
                         + "(result, null, stamp);");
                 out.println("    }\n");
             }
@@ -2514,8 +2627,8 @@ public final class Satinc {
         }
     }
 
-    void writeReturnRecord(Method m, String clname) throws IOException {
-        String name = returnRecordName(m, clname);
+    void writeReturnRecord(Method m, String clname, String pnam) throws IOException {
+        String name = returnRecordFileBase(m, clname, pnam);
         if (verbose) {
             System.out.println(
                     "writing returnrecord code to " + name + ".java");
@@ -2526,9 +2639,14 @@ public final class Satinc {
         DollarFilter b2 = new DollarFilter(b);
         PrintStream out = new PrintStream(b2);
 
+        name = returnRecordClassName(m, clname, pnam);
+
         try {
             Type returnType = m.getReturnType();
 
+            if (pnam != null && ! pnam.equals("")) {
+                out.println("package " + pnam + ";");
+            }
             out.println("import ibis.satin.*;\n");
             out.println("import ibis.satin.impl.*;\n");
             out.println("public final class " + name + " extends ReturnRecord {");
@@ -2553,8 +2671,9 @@ public final class Satinc {
             out.println("    }\n");
 
             out.println("    public void assignTo(InvocationRecord rin) {");
-            out.println("        " + invocationRecordName(m, clname) + " r = ("
-                    + invocationRecordName(m, clname) + ") rin;");
+            out.println("        " + invocationRecordName(m, clname, pnam)
+                    + " r = (" + invocationRecordName(m, clname, pnam)
+                    + ") rin;");
             out.print("	r.assignTo(eek");
             if (!returnType.equals(Type.VOID)) {
                 out.print(", result");
@@ -2568,7 +2687,7 @@ public final class Satinc {
     }
 
     void writeParameterRecord(Method m) throws IOException {
-        String name = parameterRecordName(m);
+        String name = parameterRecordFileBase(m);
         if (verbose) {
             System.out.println("writing parameterrecord code to " + name
                     + ".java");
@@ -2586,14 +2705,18 @@ public final class Satinc {
             params_types_as_names[i] = params[i].toString();
         }
 
+        if (packageName != null && ! packageName.equals("")) {
+            out.println("package " + packageName + ";");
+        }
         out.println("import ibis.satin.*;\n");
         out.println("import ibis.satin.impl.*;\n");
+        name = parameterRecordClassName(m);
         out.println("public final class " + name
                 + " extends ibis.satin.impl.ParameterRecord {");
 
         //fields
         for (int i = 0; i < params.length; i++) {
-            out.println("    " + params_types_as_names[i] + " param" + i + ";");
+            out.println("    public " + params_types_as_names[i] + " param" + i + ";");
         }
 
         out.println();
@@ -2932,7 +3055,7 @@ public final class Satinc {
 
         // now overwrite the classfile 
         String dst;
-        String clnam = c.getClassName();
+        String clnam = classname;
         if (local) {
             dst = clnam.substring(clnam.lastIndexOf('.') + 1);
         } else {
@@ -2953,7 +3076,7 @@ public final class Satinc {
         for (int i = 0; i < methods.length; i++) {
             if (!keep) { // remove generated files 
                 if (mtab.containsInlet(methods[i])) {
-                    removeFile(localRecordName(methods[i]) + ".java");
+                    removeFile(localRecordFileBase(methods[i]) + ".java");
                 }
             }
         }
