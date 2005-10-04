@@ -1895,7 +1895,7 @@ public final class Satinc {
     void compile(String name) {
         String filename = name + ".java";
         if (! RunJavac.runJavac(new String[] { "-g" },
-                    filename, verbose)) {
+                    new String[] {filename}, verbose)) {
             System.exit(1);
         }
 

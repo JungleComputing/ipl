@@ -86,7 +86,7 @@ class Ibisc {
             System.exit(1);
         }
 
-        RunJavac.runJavac(new String[] {}, javaFile, verbose);
+        RunJavac.runJavac(new String[] {}, new String[] {javaFile}, verbose);
 
         // We should have bytecode now.
         className = javaFile.substring(0, javaFile.length() - 5);

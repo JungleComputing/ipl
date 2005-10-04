@@ -31,17 +31,17 @@ public class RunJavac {
      * Runs the Java compiler with the specified options on the specified
      * class.
      * @param options the compiler options
-     * @param filename the Java file to compile
+     * @param files the Java files to compile
      * @param verbose if <code>true</code>, prints the compilation command on
      *   standard output
      * @return <code>true</code> if the exit status of the compiler is 0,
      *   <code>false</code> otherwise.
      */
-    public static boolean runJavac(String[] options, String filename,
+    public static boolean runJavac(String[] options, String[] files,
             boolean verbose) {
         try {
             RunProcess p;
-            String[] cmd = new String[compiler.length + options.length + 1];
+            String[] cmd = new String[compiler.length + options.length + files.length];
             for (int i = 0; i < compiler.length; i++) {
                 cmd[i] = compiler[i];
             }
@@ -49,7 +49,9 @@ public class RunJavac {
                 cmd[compiler.length + i] = options[i];
             }
 
-            cmd[compiler.length + options.length] = filename;
+            for (int i = 0; i < files.length; i++) {
+                cmd[compiler.length + options.length + i] = files[i];
+            }
 
             if (verbose) {
                 System.out.print("Running: ");
