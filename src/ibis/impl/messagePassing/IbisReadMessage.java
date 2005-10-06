@@ -17,8 +17,8 @@ final public class IbisReadMessage extends ReadMessage {
     }
 
     public long finish() throws IOException {
-        long cnt = super.finish();
         obj_in.clear();
+        long cnt = super.finish();
         return cnt;
     }
 
