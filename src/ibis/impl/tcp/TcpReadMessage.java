@@ -79,8 +79,10 @@ final class TcpReadMessage implements ReadMessage {
             port.count += retval;
         }
 
+        in.clear();     // Before finishMessage, or else there is a race here.
+                        // (Ceriel)
+
         port.finishMessage();
-        in.clear();
 
         return retval;
     }
