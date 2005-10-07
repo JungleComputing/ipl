@@ -186,7 +186,7 @@ public interface Config {
 
     /** Enable or disable aborts and inlets. */
     static final boolean ABORTS
-            = TypedProperties.booleanProperty(s_aborts, false);
+            = TypedProperties.booleanProperty(s_aborts, true);
 
     /** Enable fault tolerance. */
     static final boolean FAULT_TOLERANCE
