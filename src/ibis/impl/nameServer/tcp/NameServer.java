@@ -258,13 +258,11 @@ public class NameServer extends Thread implements Protocol {
     private void checkPool(RunInfo p, IbisIdentifier victim, String key) {
 
         Vector deadIbises = new Vector();
-        if (victim != null) {
-            deadIbises.add(victim);
-        }
 
         for (int i = 0; i < p.pool.size(); i++) {
             IbisInfo temp = (IbisInfo) p.pool.get(i);
             if (victim != null && temp.identifier.equals(victim)) {
+                deadIbises.add(temp);
                 continue;
             }
             if (doPing(temp, key)) {
@@ -279,10 +277,12 @@ public class NameServer extends Thread implements Protocol {
             p.pool.removeAll(deadIbises);
 
             // Put the dead ones in an array.
-            IbisIdentifier[] ids = new IbisIdentifier[deadIbises.size()];
+            String[] ids = new String[deadIbises.size()];
+            IbisIdentifier[] ibisIds = new IbisIdentifier[ids.length];
             for (int j = 0; j < ids.length; j++) {
                 IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
-                ids[j] = temp2.identifier;
+                ids[j] = temp2.identifier.name();
+                ibisIds[j] = temp2.identifier;
                 temp2.identifier.free();
             }
 
@@ -295,7 +295,7 @@ public class NameServer extends Thread implements Protocol {
 
             // ... and to all other ibis instances in this pool.
             for (int i = 0; i < p.pool.size(); i++) {
-                forwardDead((IbisInfo) p.pool.get(i), ids);
+                forwardDead((IbisInfo) p.pool.get(i), ibisIds);
             }
         }
 
@@ -521,7 +521,7 @@ public class NameServer extends Thread implements Protocol {
      * @param ids the dead ibis instances
      * @exception IOException is thrown in case of trouble.
      */
-    private void electionKill(RunInfo p, IbisIdentifier[] ids)
+    private void electionKill(RunInfo p, String[] ids)
             throws IOException {
         Socket s = NameServerClient.socketFactory.createClientSocket(myAddress,
                 p.electionServer.getPort(), null, -1);
@@ -570,7 +570,7 @@ public class NameServer extends Thread implements Protocol {
             }
 
             // Let the election server know about it.
-            electionKill(p, new IbisIdentifier[] { id });
+            electionKill(p, new String[] { id.name() });
 
             // Also forward the leave to the requester.
             // It is used as an acknowledgement, and

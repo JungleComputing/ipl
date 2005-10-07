@@ -486,12 +486,12 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     public IbisIdentifier elect(String election) throws IOException,
             ClassNotFoundException {
-        return (IbisIdentifier) electionClient.elect(election, id);
+        return electionClient.elect(election, id);
     }
 
     public IbisIdentifier getElectionResult(String election)
             throws IOException, ClassNotFoundException {
-        return (IbisIdentifier) electionClient.elect(election, null);
+        return electionClient.elect(election, null);
     }
 
     //gosia	

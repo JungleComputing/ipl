@@ -19,6 +19,7 @@ import java.util.Iterator;
 class ElectionServer extends Thread implements Protocol {
 
     private HashMap elections;
+    private HashMap buffers;
 
     private ServerSocket serverSocket;
 
@@ -28,6 +29,7 @@ class ElectionServer extends Thread implements Protocol {
 
     ElectionServer() throws IOException {
         elections = new HashMap();
+        buffers = new HashMap();
 
         serverSocket = NameServerClient.socketFactory.createServerSocket(0,
                 null, true /* retry */, null);
@@ -42,23 +44,30 @@ class ElectionServer extends Thread implements Protocol {
     private void handleElection() throws IOException, ClassNotFoundException {
 
         String election = in.readUTF();
-        Object candidate = in.readObject();
+        String name = (String) in.readObject();
+        byte[] buf = null;
+
+        if (name != null) {
+            buf = (byte[]) in.readObject();
+        }
 
         Object temp = elections.get(election);
 
         if (temp == null) {
-            if (candidate != null) {
-                elections.put(election, candidate);
+            if (name != null) {
+                elections.put(election, name);
+                buffers.put(election, buf);
             }
-            out.writeObject(candidate);
+            out.writeObject(buf);
         } else {
-            out.writeObject(temp);
+            out.writeObject(buffers.get(election));
         }
+        out.flush();
     }
 
     private void handleKill() throws IOException, ClassNotFoundException {
 
-        Object ids[] = (Object[]) in.readObject();
+        String ids[] = (String[]) in.readObject();
         for (Iterator key = elections.keySet().iterator(); key.hasNext();) {
             String election = (String) key.next();
             Object o = elections.get(election);
@@ -67,6 +76,7 @@ class ElectionServer extends Thread implements Protocol {
                     // result of election is dead. Make new election
                     // possible.
                     key.remove();
+                    buffers.remove(election);
                     break;
                 }
             }
