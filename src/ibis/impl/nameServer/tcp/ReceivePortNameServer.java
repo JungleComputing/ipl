@@ -5,7 +5,6 @@ package ibis.impl.nameServer.tcp;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.IbisRuntimeException;
-import ibis.ipl.ReceivePortIdentifier;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -68,13 +67,13 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     private void handlePortNew() throws IOException, ClassNotFoundException {
 
-        ReceivePortIdentifier id, storedId;
+        byte[] id, storedId;
 
         String name = in.readUTF();
-        id = (ReceivePortIdentifier) in.readObject();
+        id = (byte[]) in.readObject();
 
         /* Check wheter the name is in use. */
-        storedId = (ReceivePortIdentifier) ports.get(name);
+        storedId = (byte[]) ports.get(name);
 
         if (storedId != null) {
             out.writeByte(PORT_REFUSED);
@@ -87,17 +86,17 @@ class ReceivePortNameServer extends Thread implements Protocol {
     //gosia
     private void handlePortRebind() throws IOException, ClassNotFoundException {
 
-        ReceivePortIdentifier id;
+        byte[] id;
 
         String name = in.readUTF();
-        id = (ReceivePortIdentifier) in.readObject();
+        id = (byte[]) in.readObject();
 
         /* Don't check whether the name is in use. */
         out.writeByte(PORT_ACCEPTED);
         addPort(name, id);
     }
 
-    private void addPort(String name, ReceivePortIdentifier id)
+    private void addPort(String name, byte[] id)
             throws IOException {
         ports.put(name, id);
         synchronized (requestedPorts) {
@@ -189,12 +188,12 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     private void handlePortLookup(Socket s) throws IOException {
 
-        ReceivePortIdentifier storedId;
+        byte[] storedId;
 
         String name = in.readUTF();
         long timeout = in.readLong();
 
-        storedId = (ReceivePortIdentifier) ports.get(name);
+        storedId = (byte[]) ports.get(name);
 
         if (storedId != null) {
             out.writeByte(PORT_KNOWN);
@@ -221,11 +220,11 @@ class ReceivePortNameServer extends Thread implements Protocol {
     }
 
     private void handlePortFree() throws IOException {
-        ReceivePortIdentifier id;
+        byte[] id;
 
         String name = in.readUTF();
 
-        id = (ReceivePortIdentifier) ports.get(name);
+        id = (byte[]) ports.get(name);
 
         if (id == null) {
             out.writeByte(1);

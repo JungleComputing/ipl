@@ -10,6 +10,8 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -70,7 +72,11 @@ class ReceivePortNameServerClient implements Protocol {
         case PORT_KNOWN:
             logger.debug("Port " + name + ": PORT_KNOWN");
             try {
-                id = (ReceivePortIdentifier) in.readObject();
+                byte[] b = (byte[]) in.readObject();
+                ByteArrayInputStream bais = new ByteArrayInputStream(b);
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                id = (ReceivePortIdentifier) ois.readObject();
+                ois.close();
             } catch (ClassNotFoundException e) {
                 NameServer.closeConnection(in, out, s);
                 throw new IOException("Unmarshall fails " + e);
@@ -113,7 +119,14 @@ class ReceivePortNameServerClient implements Protocol {
         // request a new Port.
         out.writeByte(PORT_NEW);
         out.writeUTF(name);
-        out.writeObject(id);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(id);
+        oos.close();
+
+        byte buf[] = baos.toByteArray();
+        out.writeObject(buf);
         out.flush();
 
         DummyInputStream di = new DummyInputStream(s.getInputStream());
@@ -154,7 +167,13 @@ class ReceivePortNameServerClient implements Protocol {
         // request a rebind
         out.writeByte(PORT_REBIND);
         out.writeUTF(name);
-        out.writeObject(id);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(id);
+        oos.close();
+
+        byte buf[] = baos.toByteArray();
+        out.writeObject(buf);
         out.flush();
 
         DummyInputStream di = new DummyInputStream(s.getInputStream());
