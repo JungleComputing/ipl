@@ -412,6 +412,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             boolean found = false;
             if (DEBUG) {
                 System.err.println("TcpReceivePort.leave: " + name);
+                (new Throwable()).printStackTrace();
             }
             for (int i = 0; i < connectionsIndex; i++) {
                 if (connections[i] == leaving) {
