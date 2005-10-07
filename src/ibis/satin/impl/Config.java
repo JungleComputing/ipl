@@ -221,7 +221,7 @@ public interface Config {
 
     /** Enable or disable shared objects. */
     static final boolean SHARED_OBJECTS
-	= TypedProperties.booleanProperty(s_so, true);
+	= TypedProperties.booleanProperty(s_so, false);
 
     /** Enable or disable an optimization for handling delayed messages. */
     static final boolean HANDLE_MESSAGES_IN_LATENCY
