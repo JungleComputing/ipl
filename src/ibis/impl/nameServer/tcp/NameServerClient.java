@@ -17,6 +17,8 @@ import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.RunProcess;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -203,7 +205,15 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         logger.debug("NameServerClient: contacting nameserver");
         out.writeByte(IBIS_JOIN);
         out.writeUTF(poolName);
-        out.writeObject(id);
+        out.writeUTF(id.name());
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(id);
+        oos.close();
+        byte buf[] = baos.toByteArray();
+    
+        out.writeObject(buf);
         out.writeObject(myAddress);
         out.writeInt(serverSocket.getLocalPort());
         out.flush();
@@ -243,7 +253,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             for (int i = 0; i < poolSize; i++) {
                 IbisIdentifier newid;
                 try {
-                    newid = (IbisIdentifier) in.readObject();
+                    buf = (byte[]) in.readObject();
+                    ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+                    ObjectInputStream ois = new ObjectInputStream(bais);
+                    newid = (IbisIdentifier) ois.readObject();
+                    ois.close();
                 } catch (ClassNotFoundException e) {
                     throw new IOException("Receive IbisIdent of unknown class "
                             + e);
@@ -295,7 +309,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         out.writeByte(IBIS_ISALIVE);
         out.writeUTF(poolName);
-        out.writeObject(ibisId);
+        out.writeUTF(ibisId.name());
         out.flush();
         logger.debug("NS client: isAlive sent");
 
@@ -316,7 +330,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         out.writeByte(IBIS_DEAD);
         out.writeUTF(poolName);
-        out.writeObject(corpse);
+        out.writeUTF(corpse.name());
         logger.debug("NS client: kill sent");
 
         NameServer.closeConnection(null, out, s);
@@ -350,7 +364,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
             out.writeByte(IBIS_LEAVE);
             out.writeUTF(poolName);
-            out.writeObject(id);
+            out.writeUTF(id.name());
             out.flush();
             logger.debug("NS client: leave sent");
 
@@ -403,6 +417,9 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 DummyInputStream di = new DummyInputStream(s.getInputStream());
                 ObjectInputStream in = new ObjectInputStream(
                         new BufferedInputStream(di));
+                byte[] buf;
+                ByteArrayInputStream bais;
+                ObjectInputStream ois;
 
                 opcode = in.readByte();
                 logger.debug("NameServerClient: opcode " + opcode);
@@ -418,15 +435,23 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 }
                     break;
                 case (IBIS_JOIN):
-                    ibisId = (IbisIdentifier) in.readObject();
-                	logger.debug("NameServerClient: receive join request "
+                    buf = (byte[]) in.readObject();
+                    bais = new ByteArrayInputStream(buf);
+                    ois = new ObjectInputStream(bais);
+                    ibisId = (IbisIdentifier) ois.readObject();
+                    ois.close();
+                    logger.debug("NameServerClient: receive join request "
                         + ibisId);
                     NameServer.closeConnection(in, null, s);
                     ibisImpl.joined(ibisId);
                     break;
                 case (IBIS_LEAVE):
-                    ibisId = (IbisIdentifier) in.readObject();
-                	NameServer.closeConnection(in, null, s);
+                    buf = (byte[]) in.readObject();
+                    bais = new ByteArrayInputStream(buf);
+                    ois = new ObjectInputStream(bais);
+                    ibisId = (IbisIdentifier) ois.readObject();
+                    ois.close();
+                    NameServer.closeConnection(in, null, s);
                     if (ibisId.equals(this.id)) {
                         // received an ack from the nameserver that I left.
                         logger.debug("NameServerClient: thread dying");
@@ -435,8 +460,16 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     ibisImpl.left(ibisId);
                     break;
                 case (IBIS_DEAD):
-                    IbisIdentifier[] ids = (IbisIdentifier[]) in.readObject();
-                	NameServer.closeConnection(in, null, s);
+                    byte[][] serializedIds = (byte[][]) in.readObject();
+                    NameServer.closeConnection(in, null, s);
+                    IbisIdentifier[] ids = new IbisIdentifier[serializedIds.length];
+                    for (int i = 0; i < serializedIds.length; i++) {
+                        bais = new ByteArrayInputStream(serializedIds[i]);
+                        ois = new ObjectInputStream(bais);
+                        ids[i] = (IbisIdentifier) ois.readObject();
+                        ois.close();
+                    }
+
                     ibisImpl.died(ids);
 
                     break;
