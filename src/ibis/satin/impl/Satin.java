@@ -13,7 +13,6 @@ import ibis.ipl.ResizeHandler;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
-import ibis.util.PoolInfo;
 import ibis.util.messagecombining.MessageCombiner;
 import ibis.util.messagecombining.MessageSplitter;
 
@@ -87,7 +86,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
         StaticProperties ibisProperties
                 = createIbisProperties(requestedProperties);
 
-        PoolInfo pool = null;
         int poolSize = 0; /* Only used with closed world. */
 
         if (commLogger.isDebugEnabled()) {
@@ -104,9 +102,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
         }
 
         if (closed) {
-            pool = PoolInfo.createPoolInfo();
-
-            poolSize = pool.size();
+            poolSize = ibis.totalNrOfIbisesInPool();
         }
 
         ident = ibis.identifier();
@@ -123,11 +119,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
         try {
             Registry r = ibis.registry();
 
-            if (closed && pool.rank() != 0) {
-                masterIdent = r.getElectionResult("satin master");
-            } else {
-                masterIdent = r.elect("satin master");
-            }
+            masterIdent = r.elect("satin master");
 
             if (masterIdent.equals(ident)) {
                 /* I an the master. */
