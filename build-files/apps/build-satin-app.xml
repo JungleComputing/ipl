@@ -48,6 +48,36 @@
 
     </target>
 
+    <target name="satin-so"
+            description="Generates stubs and skeletons for Satin shared objects">
+            
+	<if>
+	    <isset property="satinsoc-flags"/>
+	    <then>
+		<property name="satinsoc-flags.value" value="${satinsoc-flags}"/>
+	    </then>
+	    <else>
+		<property name="satinsoc-flags.value" value=""/>
+	    </else>
+	</if>
+            
+        
+        <if>
+            <isset property="satin-so-classes"/>
+            <then>
+                <java   classname="ibis.frontend.satin.so.SatinSOc"
+                    taskname="SatinSOc"
+                    dir="${build}"
+                    failonerror="true"
+                    fork="true">          
+                    <arg line="-javahome '${JAVA_HOME}' -dir ${satinsoc-flags.value} ${satin-so-classes}"/>
+                    <classpath refid="default.classpath"/>
+                </java>
+            </then>
+        </if>
+        
+    </target>
+
     <target name="init">
 	<tstamp/>
 	<mkdir dir="${build}"/>
@@ -80,11 +110,30 @@
     <target name="build-no-satin">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
     </target>
+    
+    <target name="build-no-so"
+	    description="Compile Satin application for parallel execution">
+	<if>
+	    <isset property="satinc-flags"/>
+	    <then>
+		<property name="satinc-flags.value" value="${satinc-flags} -no-so"/>
+	    </then>
+	    <else>
+		<property name="satinc-flags.value" value="-no-so"/>
+	    </else>
+	</if>
+	    
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="satin"/>
+    	<antcall inheritRefs="true" target="iogen"/>
+    </target>
+
 
     <target name="build"
 	    description="Compile Satin application for parallel execution">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="satin"/>
+	<antcall inheritRefs="true" target="satin-so"/>
 	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
