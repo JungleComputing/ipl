@@ -678,6 +678,21 @@ public abstract class Ibis {
     }
 
     /**
+     * When running closed-world, returns the total number of Ibis instances
+     * involved in the run.
+     * @return the number of Ibis instances
+     * @exception IbisError is thrown when running open-world.
+     * @exception NumberFormatException is thrown when the property
+     *   ibis.pool.total_hosts is not defined or does not represent a number.
+     */
+    public int totalNrOfIbisesInPool() {
+        if (combinedprops.isProp("worldmodel", "closed")) {
+            return TypedProperties.intProperty("ibis.pool.total_hosts");
+        }
+        throw new IbisError("totalNrOfIbisesInPool() called but open world");
+    }
+
+    /**
      * Allows reception of {@link ibis.ipl.ResizeHandler ResizeHandler}
      * upcalls.
      * If a {@link ibis.ipl.ResizeHandler ResizeHandler} is installed,
