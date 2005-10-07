@@ -248,11 +248,21 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
     public abstract ReturnRecord getReturnRecord();
 
-    /**
-     * checks whether the parameters in this invocation record are the same as
-     * parameters in the given parameter record
-     */
-    public abstract boolean equalsPR(ParameterRecord pr);
+    //used for shared objects
+    /** initializes the references to shared objects inside this
+	invocation record after stealing the job */
+    public abstract void setSOReferences() 
+	throws SOReferenceSourceCrashedException;
+
+    /** returns a list of objectIds of the shared objects, this
+	record holds references of */
+    public abstract java.util.Vector getSOReferences();
+
+    //used for shared objects consistency
+    /** executes the guard function */
+    public boolean guard() {
+	return true;
+    }
 
     protected abstract void runLocal() throws Throwable;
 

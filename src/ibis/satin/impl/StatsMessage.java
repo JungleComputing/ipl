@@ -55,6 +55,8 @@ class StatsMessage implements java.io.Serializable {
 
     double tupleTime;
 
+    double handleTupleTime;
+
     double invocationRecordWriteTime;
 
     long invocationRecordWriteCount;
@@ -78,6 +80,8 @@ class StatsMessage implements java.io.Serializable {
     double tupleSeqTime;
 
     long tupleSeqCount;
+
+    long returnRecordBytes;
 
     //fault tolerance
     long tableResultUpdates;
@@ -114,6 +118,27 @@ class StatsMessage implements java.io.Serializable {
 
     double addReplicaTime;
 
+    //shared objects
+    long soInvocations;
+
+    long soInvocationsBytes;
+
+    long soTransfers;
+
+    long soTransfersBytes;
+
+    double broadcastSOInvocationsTime;
+    
+    double handleSOInvocationsTime;
+
+    double soTransferTime;
+
+    double handleSOTransferTime;
+    
+    double soSerializationTime;
+
+    double soDeserializationTime;
+
     void add(StatsMessage s) {
         spawns += s.spawns;
         jobsExecuted += s.jobsExecuted;
@@ -143,6 +168,7 @@ class StatsMessage implements java.io.Serializable {
         pollTime += s.pollTime;
         pollCount += s.pollCount;
         tupleTime += s.tupleTime;
+	handleTupleTime += s.handleTupleTime;
         invocationRecordWriteTime += s.invocationRecordWriteTime;
         invocationRecordWriteCount += s.invocationRecordWriteCount;
         invocationRecordReadTime += s.invocationRecordReadTime;
@@ -155,6 +181,7 @@ class StatsMessage implements java.io.Serializable {
         tupleWaitCount += s.tupleWaitCount;
         tupleSeqTime += s.tupleSeqTime;
         tupleSeqCount += s.tupleSeqCount;
+	returnRecordBytes += s.returnRecordBytes;
 
         //fault tolerance
         tableResultUpdates += s.tableResultUpdates;
@@ -175,5 +202,17 @@ class StatsMessage implements java.io.Serializable {
         tableCheckTime += s.tableCheckTime;
         crashHandlingTime += s.crashHandlingTime;
         addReplicaTime += s.addReplicaTime;
+
+	//shared objects
+	soInvocations += s.soInvocations;
+	soInvocationsBytes += s.soInvocationsBytes;
+	soTransfers += s.soTransfers;
+	soTransfersBytes += s.soTransfersBytes;
+	broadcastSOInvocationsTime += s.broadcastSOInvocationsTime;
+	handleSOInvocationsTime += s.handleSOInvocationsTime;
+	soTransferTime += s.soTransferTime;
+	handleSOTransferTime += s.handleSOTransferTime;
+	soSerializationTime += s.soSerializationTime;
+	soDeserializationTime += s.soDeserializationTime;
     }
 }

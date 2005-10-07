@@ -29,6 +29,8 @@ public interface Config {
 
     static final String s_stats_grt = PROPERTY_PREFIX + "stats.ft.grt";
 
+    static final String s_stats_so = PROPERTY_PREFIX + "stats.so";
+
     static final String s_timing = PROPERTY_PREFIX + "timing";
 
     static final String s_timing_steal = PROPERTY_PREFIX + "timing.steal";
@@ -49,6 +51,8 @@ public interface Config {
 
     static final String s_timing_repl = PROPERTY_PREFIX + "timing.ft.replica";
 
+    static final String s_timing_so = PROPERTY_PREFIX + "timing.so";
+
     static final String s_poll_freq = PROPERTY_PREFIX + "pollfreq";
 
     static final String s_poll_port = PROPERTY_PREFIX + "pollport";
@@ -66,6 +70,8 @@ public interface Config {
     static final String s_ft_noAborts = PROPERTY_PREFIX + "ft.noAborts";
 
     static final String s_ft_naive = PROPERTY_PREFIX + "ft.noTable";
+
+    static final String s_so = PROPERTY_PREFIX + "so";
 
     static final String s_in_latency = PROPERTY_PREFIX + "messagesInLatency";
 
@@ -87,7 +93,8 @@ public interface Config {
             s_timing_tuple, s_timing_grt, s_timing_crash, s_timing_check,
             s_timing_repl, s_poll_freq, s_poll_port, s_asserts, s_aborts, s_ft,
             s_ft_grt_repl, s_ft_grt_comb, s_ft_noAborts, s_ft_naive,
-            s_in_latency, s_tuple_multi, s_tuple_ordered, s_tuple_numbered};
+            s_in_latency, s_tuple_multi, s_tuple_ordered, s_tuple_numbered,
+            s_timing_so, s_so};
 
     /** Must be enabled or there are no statistics at all. */
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
@@ -118,6 +125,10 @@ public interface Config {
     /** Enable or disable statistics for the global result table. */
     static final boolean GRT_STATS = STATS
             && TypedProperties.booleanProperty(s_stats_grt, true);
+
+    /** Enable of disable statistics for shared objects. */
+    static final boolean SO_STATS = STATS
+	&& TypedProperties.booleanProperty(s_stats_so, true);
 
     /** Must be enabled or there are no timings at all. */
     static final boolean TIMING = TypedProperties.booleanProperty(s_timing,
@@ -156,6 +167,9 @@ public interface Config {
     static final boolean ADD_REPLICA_TIMING = TIMING
             && TypedProperties.booleanProperty(s_timing_repl, true);
 
+    static final boolean SO_TIMING = TIMING
+	&& TypedProperties.booleanProperty(s_timing_so, true);
+
     /**
      * The poll frequency in nanoseconds. A frequency of 0 means do not poll. A
      * frequency smaller than 0 means poll every sync.
@@ -172,7 +186,7 @@ public interface Config {
 
     /** Enable or disable aborts and inlets. */
     static final boolean ABORTS
-            = TypedProperties.booleanProperty(s_aborts, true);
+            = TypedProperties.booleanProperty(s_aborts, false);
 
     /** Enable fault tolerance. */
     static final boolean FAULT_TOLERANCE
@@ -204,6 +218,10 @@ public interface Config {
      */
     static final boolean FT_NAIVE
             = TypedProperties.booleanProperty(s_ft_naive, false);
+
+    /** Enable or disable shared objects. */
+    static final boolean SHARED_OBJECTS
+	= TypedProperties.booleanProperty(s_so, true);
 
     /** Enable or disable an optimization for handling delayed messages. */
     static final boolean HANDLE_MESSAGES_IN_LATENCY

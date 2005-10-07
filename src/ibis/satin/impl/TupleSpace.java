@@ -526,6 +526,10 @@ public abstract class TupleSpace extends Communication {
                     return;
                 }
 
+		/*		if (TUPLE_TIMING) {
+		    handleTupleTimer.start();
+		    }*/
+
                 // do upcall
                 key = (String) activeTupleKeyList.remove(0);
                 data = (ActiveTuple) activeTupleDataList.remove(0);
@@ -533,6 +537,10 @@ public abstract class TupleSpace extends Communication {
                     tupleLogger.debug("calling active tuple key = " + key
                             + " data = " + data);
                 }
+
+		/*		if (TUPLE_TIMING) {
+		    handleTupleTimer.stop();
+		    }*/
             }
 
             try {

@@ -12,7 +12,6 @@ import java.io.IOException;
 
 public abstract class Communication extends SpawnSync {
 
-    //used by GlobalResultTable
     static void connect(SendPort s, ReceivePortIdentifier ident) {
         boolean success = false;
         do {
@@ -42,25 +41,46 @@ public abstract class Communication extends SpawnSync {
                 s.connect(ident, timeoutMillis);
                 success = true;
             } catch (IOException e) {
-                if (grtLogger.isInfoEnabled()) {
+		/*                if (grtLogger.isInfoEnabled()) {
                     grtLogger.info("IOException in connect to " + ident + ": "
-                            + e, e);
-                }
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e2) {
-                    // ignore
-                }
-            }
+		    + e, e);*/
+		    System.err.println("IOEx in connect to " + ident + ": " + e);
+		    try {
+			Thread.sleep(500);
+		    } catch (InterruptedException e2) {
+			// ignore
+		    }
+	    }
         } while (!success
                 && System.currentTimeMillis() - startTime < timeoutMillis);
         return success;
     }
 
-    //used by GlobalResultTable
     ReceivePortIdentifier lookup(String portname) throws IOException {
         return ibis.registry().lookupReceivePort(portname);
     }
+
+    ReceivePortIdentifier lookup_wait(String portname, long timeoutMillis) {
+
+	ReceivePortIdentifier rpi = null;
+	boolean success = false;
+	long startTime = System.currentTimeMillis();
+	do {
+	    try {
+		rpi = ibis.registry().lookupReceivePort(portname);
+		success = true;
+	    } catch (IOException e) {
+		try {
+		    Thread.sleep(500);
+		} catch (InterruptedException e2) {
+		    //ignore
+		}
+	    }
+	} while (!success
+		 && System.currentTimeMillis() - startTime < timeoutMillis);
+	return rpi;
+    }	    	    
+	
 
     SendPort getReplyPortWait(IbisIdentifier id) {
         SendPort s;
@@ -204,6 +224,15 @@ public abstract class Communication extends SpawnSync {
                 }
             }
         }
+
+        if (SHARED_OBJECTS) {
+	    if (gotSOInvocations) {
+		handleSOInvocations();
+	    }
+	    if (soInvocationsDelay > 0) {
+		sendAccumulatedSOInvocations();
+	    }
+	}
     }
 
     /* Only allowed when not stealing. */
@@ -213,9 +242,9 @@ public abstract class Communication extends SpawnSync {
         }
 
         // Close the world, no more join and leave upcalls will be received.
-        if (!closed) {
+	/*        if (!closed) {
             ibis.disableResizeUpcalls();
-        }
+	    }*/
 
         int size;
         synchronized (this) {
@@ -275,9 +304,9 @@ public abstract class Communication extends SpawnSync {
             System.exit(1);
         }
 
-        if (!closed) {
+	/*        if (!closed) {
             ibis.enableResizeUpcalls();
-        }
+	    }*/
 
         if (commLogger.isDebugEnabled()) {
             commLogger.debug("SATIN '" + ident + "': barrier DONE");

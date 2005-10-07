@@ -10,6 +10,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
+import ibis.util.messagecombining.MessageCombiner;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -49,6 +50,11 @@ public abstract class SatinBase implements Config {
     int branchingFactor = 0;
     //if > 0, it is used for generating globally unique stamps
 
+    int soInvocationsDelay = 0;
+    //if > 0, it is used for combining shared objects invocations
+
+    long soInvocationsDelayTimer = -1;
+
     protected boolean dump = false;
     //true if the node should dump its datastructures during shutdown
 
@@ -57,6 +63,9 @@ public abstract class SatinBase implements Config {
     boolean getTable = true;
     //true if the node needs to download the contents of the global result
     //table of the global result table; protected by lock
+
+    boolean initialNode = false;
+    //true if the node takes part in the computation from the beginning
 
     /* Am I the root (the one running main)? */
     boolean master = false;
@@ -104,6 +113,15 @@ public abstract class SatinBase implements Config {
 
     SendPort tuplePort; /* used to bcast tuples */
 
+    PortType soPortType;
+
+    ReceivePort soReceivePort; /* used to receive shared object invocations */
+
+    SendPort soSendPort; /* used to broadcast shared object invocations */
+
+    MessageCombiner soMessageCombiner; /* used to do message combining on soSendPort */
+
+
     //ft
     /**
      * Timeout for connecting to other nodes (in joined()) who might be
@@ -141,7 +159,10 @@ public abstract class SatinBase implements Config {
     protected StampVector abortList = new StampVector();
 
     /** Used for fault tolerance. */
-    protected StampVector abortAndStoreList;
+    protected StampVector abortAndStoreList;    
+
+    /** Used for storing pending shared object invocations (SOInvocationRecords)*/
+    protected Vector soInvocationList = new Vector();
 
     /** Used to store reply messages. */
     volatile boolean gotStealReply = false; // used in messageHandler
@@ -149,6 +170,8 @@ public abstract class SatinBase implements Config {
     volatile boolean gotBarrierReply = false; // used in messageHandler
 
     volatile boolean gotActiveTuples = false; // used in messageHandler
+
+    volatile boolean gotSOInvocations = false;
 
     protected boolean upcalls = true;
 
@@ -198,6 +221,14 @@ public abstract class SatinBase implements Config {
     long interClusterBytes = 0;
 
     long intraClusterBytes = 0;
+
+    long soInvocations = 0;
+
+    long soInvocationsBytes = 0;
+    
+    long soTransfers = 0;
+
+    long soTransfersBytes = 0;
 
     StatsMessage totalStats; // used in messageHandler
 
@@ -286,6 +317,8 @@ public abstract class SatinBase implements Config {
 
     Timer tupleTimer = Timer.createTimer();
 
+    Timer handleTupleTimer = Timer.createTimer();
+
     Timer invocationRecordWriteTimer = Timer.createTimer();
 
     Timer returnRecordWriteTimer = Timer.createTimer();
@@ -313,6 +346,20 @@ public abstract class SatinBase implements Config {
     Timer redoTimer = Timer.createTimer();
 
     Timer addReplicaTimer = Timer.createTimer();
+
+    Timer handleSOInvocationsTimer = Timer.createTimer();
+
+    Timer broadcastSOInvocationsTimer = Timer.createTimer();
+
+    Timer soTransferTimer = Timer.createTimer();
+
+    Timer handleSOTransferTimer = Timer.createTimer();
+
+    Timer soSerializationTimer = Timer.createTimer();
+
+    Timer soDeserializationTimer = Timer.createTimer();
+
+    long returnRecordBytes = 0;
 
     long prevPoll = 0;
 
@@ -382,6 +429,8 @@ public abstract class SatinBase implements Config {
 
     abstract void handleActiveTuples();
 
+    abstract void handleSOInvocations();
+
     abstract void handleCrashes();
 
     abstract void handleAbortsAndStores();
@@ -417,6 +466,15 @@ public abstract class SatinBase implements Config {
     abstract void attachToParentFinished(InvocationRecord r);
 
     abstract void attachToParentToBeRestarted(InvocationRecord r);
+
+    abstract void broadcastSharedObject(ibis.satin.so.SharedObject object);
+
+    abstract void broadcastSOInvocation(SOInvocationRecord r);
+
+    abstract void sendAccumulatedSOInvocations();
+    
+    abstract void executeGuard(InvocationRecord r) 
+	throws SOReferenceSourceCrashedException;
 
     Timer createTimer() {
         return Timer.createTimer();

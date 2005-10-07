@@ -1,4 +1,6 @@
+
 /* $Id$ */
+
 
 package ibis.satin.impl;
 
@@ -11,6 +13,7 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 
 public abstract class WorkStealing extends Stats {
+
 
     protected void sendResult(InvocationRecord r, ReturnRecord rr) {
         if (/* exiting || */r.alreadySentExceptionResult) {
@@ -74,10 +77,10 @@ public abstract class WorkStealing extends Stats {
                 returnRecordWriteTimer.start();
             }
             WriteMessage writeMessage = s.newMessage();
-            if (r.eek == null) {
+	                if (r.eek == null) {
                 writeMessage.writeByte(Protocol.JOB_RESULT_NORMAL);
                 writeMessage.writeObject(r.owner);
-                writeMessage.writeObject(rr);
+                writeMessage.writeObject(rr);		
             } else {
                 if (rr == null) {
                     r.alreadySentExceptionResult = true;
@@ -85,12 +88,15 @@ public abstract class WorkStealing extends Stats {
                 writeMessage.writeByte(Protocol.JOB_RESULT_EXCEPTION);
                 writeMessage.writeObject(r.owner);
                 writeMessage.writeObject(r.eek);
-                writeMessage.writeInt(r.stamp);
-            }
+		writeMessage.writeInt(r.stamp);
+		//writeMessage.writeInt(r.updateCounter.value);
+	    }
+
             long cnt = writeMessage.finish();
             if (STEAL_TIMING) {
                 returnRecordWriteTimer.stop();
             }
+	    returnRecordBytes += cnt;
 
             if (STEAL_STATS) {
                 if (inDifferentCluster(r.owner)) {
@@ -460,27 +466,20 @@ public abstract class WorkStealing extends Stats {
                 break;
             }
 
-            if (FAULT_TOLERANCE) {
-                if (spawnLogger.isDebugEnabled()) {
-                    r.spawnCounter.decr(r);
-                } else {
-                    r.spawnCounter.value--;
-                }
-                if (!FT_WITHOUT_ABORTS && !FT_NAIVE) {
-                    attachToParentFinished(r);
-                }
-            } else {
+	    if (r.eek != null) {
+		handleInlet(r);
+	    }
+	    
+	    if (spawnLogger.isDebugEnabled()) {
+		r.spawnCounter.decr(r);
+	    } else {
+		r.spawnCounter.value--;
+	    }
+	    
+	    if (FAULT_TOLERANCE && !FT_WITHOUT_ABORTS && !FT_NAIVE) {
+		attachToParentFinished(r);
+	    }
 
-                if (r.eek != null) {
-                    handleInlet(r);
-                }
-
-                if (spawnLogger.isDebugEnabled()) {
-                    r.spawnCounter.decr(r);
-                } else {
-                    r.spawnCounter.value--;
-                }
-            }
 
             if (ASSERTS && r.spawnCounter != null && r.spawnCounter.value < 0) {
                 spawnLogger.fatal("Just made spawncounter < 0",

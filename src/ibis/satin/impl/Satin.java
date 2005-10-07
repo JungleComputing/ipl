@@ -3,6 +3,7 @@
 package ibis.satin.impl;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -13,6 +14,8 @@ import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
+import ibis.util.messagecombining.MessageCombiner;
+import ibis.util.messagecombining.MessageSplitter;
 
 import java.net.InetAddress;
 
@@ -96,6 +99,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
         } catch (IbisException e) {
             commLogger.fatal("SATIN '" + hostName
                     + "': Could not start ibis: " + e, e);
+	    e.printStackTrace();
             System.exit(1);
         }
 
@@ -160,10 +164,11 @@ public final class Satin extends APIMethods implements ResizeHandler,
             barrierPortType = createBarrierPortType(requestedProperties);
             globalResultTablePortType
                     = createGlobalResultTablePortType(requestedProperties);
+            soPortType = createSOPortType(requestedProperties);
             // do the same for tuple space @@@@
             // but this needs a seperate receive port... --Rob
 
-            messageHandler = new MessageHandler(this);
+	    MessageHandler messageHandler = new MessageHandler(this);
 
             if (FAULT_TOLERANCE) {
                 if (upcalls) {
@@ -215,9 +220,36 @@ public final class Satin extends APIMethods implements ResizeHandler,
                 tuplePort = tuplePortType.createSendPort("satin tuple port on "
                         + ident.name());
             }
-        } catch (Exception e) {
-            commLogger.fatal("SATIN '" + hostName
-                    + "': Could not start ibis: " + e, e);
+            
+	    if (SHARED_OBJECTS) {
+		SOInvocationHandler soInvocationHandler = new SOInvocationHandler(this);
+		/*soReceivePort 
+		    = soPortType.createReceivePort("satin so receive port on " 
+						   + ident.name(),
+						   soInvocationHandler);*/
+
+		//Create a multicast port to bcast shared object invocations
+		//Connections are established in the join upcall
+		soSendPort = soPortType.createSendPort("satin so port on "
+						       + ident.name());
+		
+		if (soInvocationsDelay > 0) {
+		    StaticProperties s = new StaticProperties();
+		    s.add("serialization", "ibis");  
+		    /*soInvocationHandler.setMessageSplitter(new MessageSplitter(s, soReceivePort));*/
+		    soMessageCombiner = new MessageCombiner(s, soSendPort);
+		}
+
+		/*soReceivePort.enableConnections();
+		  soReceivePort.enableUpcalls();*/
+
+
+	    }
+
+	} catch (Exception e) {
+	    commLogger.fatal("SATIN '" + hostName
+                    + "': Could not start ibis: " + e);
+	    e.printStackTrace();
             System.exit(1);
         }
 
@@ -368,4 +400,10 @@ public final class Satin extends APIMethods implements ResizeHandler,
     public static Satin getSatin() {
         return this_satin;
     }
+    
+    public static IbisIdentifier getSatinIdent() {
+        return this_satin.ident;
+    }
+    
+
 }

@@ -309,6 +309,7 @@ public abstract class FaultTolerance extends Inlets {
             deadIbises.add(dead);
             if (dead.equals(currentVictim)) {
                 currentVictimCrashed = true;
+		currentVictim = null;
             }
             gotCrashes = true;
             Victim v = victims.remove(dead);

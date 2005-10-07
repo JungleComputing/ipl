@@ -30,6 +30,9 @@ public abstract class Malleability extends FaultTolerance {
             }
 
             synchronized (this) {
+		if (SHARED_OBJECTS) {
+		    addSOConnection(joiner);
+		}
                 if (FAULT_TOLERANCE && !FT_NAIVE) {
                     globalResultTable.addReplica(joiner);
                 }

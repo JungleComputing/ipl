@@ -52,5 +52,11 @@ interface Protocol {
     static final byte ASYNC_STEAL_REPLY_SUCCESS_TABLE = 24;
 
     static final byte RESULT_PUSH = 25;
+    
+    static final byte SO_INVOCATION = 26;
+    
+    static final byte SO_REQUEST = 27;
+
+    static final byte SO_TRANSFER = 28;
 
 }

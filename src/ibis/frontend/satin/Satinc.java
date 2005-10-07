@@ -142,6 +142,8 @@ public final class Satinc {
 
     boolean spawnCounterOpt;
 
+    boolean sharedObjects;
+
     boolean errors = false;
 
     MethodTable mtab;
@@ -254,7 +256,8 @@ public final class Satinc {
 
     public Satinc(boolean verbose, boolean local, boolean verify, boolean keep,
             boolean invocationRecordCache, String classname,
-            boolean inletOpt, boolean spawnCounterOpt) {
+            boolean inletOpt, boolean spawnCounterOpt, boolean sharedObjects) {
+
 
         this.verbose = verbose;
         this.verify = verify;
@@ -263,6 +266,7 @@ public final class Satinc {
         this.invocationRecordCache = invocationRecordCache;
         this.inletOpt = inletOpt;
         this.spawnCounterOpt = spawnCounterOpt;
+	this.sharedObjects = sharedObjects;
 
         c = Repository.lookupClass(classname);
 
@@ -490,7 +494,7 @@ public final class Satinc {
         return s.toString();
     }
 
-    static String do_mangle(String name, String sig) {
+   static String do_mangle(String name, String sig) {
         StringBuffer s = new StringBuffer(sig);
         name = do_mangle(new StringBuffer(name));
 
@@ -1446,6 +1450,7 @@ public final class Satinc {
                     rewriteSpawn(m, il, target, i, maxLocals, spawnId, cl);
                     spawnId++;
                 }
+
             }
         }
 
@@ -2184,8 +2189,21 @@ public final class Satinc {
         }
     }
 
+    private boolean isSharedObject(Type t) {
+	if (t instanceof ObjectType) {
+	    ObjectType typ = (ObjectType) t;
+	    if (Repository.instanceOf(typ.getClassName(), 
+				      "ibis.satin.so.SharedObject")) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
+
     void writeInvocationRecord(Method m, String clname, String pnam) throws IOException {
         String name = invocationRecordFileBase(m, clname, pnam);
+
         if (verbose) {
             System.out.println("writing invocationrecord code to " + name
                     + ".java");
@@ -2247,8 +2265,14 @@ public final class Satinc {
             // fields 
             out.println("    public " + clname + " self;");
             for (int i = 0; i < params_types_as_names.length; i++) {
-                out.println("    public " + params_types_as_names[i] + " param" + i
-                        + ";");
+		if (!sharedObjects || !isSharedObject(params[i])) {
+		    out.println("    public " + params_types_as_names[i] + " param" + i
+				+ ";");
+		} else {
+		    /*out.println("    transient " + params_types_as_names[i]
+		      + " param" + i + ";");*/
+		    out.println("    public String satin_so_reference_param" + i + ";");
+		}
             }
 
             // result 
@@ -2279,7 +2303,12 @@ public final class Satinc {
             out.println("        this.self = self;");
 
             for (int i = 0; i < params_types_as_names.length; i++) {
-                out.println("        this.param" + i + " = param" + i + ";");
+		if (!sharedObjects || !isSharedObject(params[i])) {
+		    out.println("        this.param" + i + " = param" + i + ";");
+		} else {
+		    out.println("        this.satin_so_reference_param" + i
+				+ " = param" + i + ".objectId;");
+		}
             }
 
             out.println("    }\n");
@@ -2311,6 +2340,10 @@ public final class Satinc {
                 out.println("        res.self = self;");
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.println("        res.param" + i + " = param" + i + ";");
+		    if (sharedObjects && isSharedObject(params[i])) {
+			out.println("        this.satin_so_reference_param" + i
+				    + " = param" + i + ".objectId;");
+		    }
                 }
                 out.println("        res.spawnCounter = s;");
                 out.println("        res.cacheNext = next;");
@@ -2430,7 +2463,13 @@ public final class Satinc {
             }
             out.print("            self." + m.getName() + "(");
             for (int i = 0; i < params.length; i++) {
-                out.print("param" + i);
+		if (sharedObjects && isSharedObject(params[i])) {
+		    out.print("(" + params_types_as_names[i] + ")"
+			      +"ibis.satin.impl.Satin.getSatin().getSOReference(satin_so_reference_param" 
+			      + i + ")");
+		} else {
+            	    out.print("param" + i);
+		}
                 if (i != params.length - 1) {
                     out.print(", ");
                 }
@@ -2473,7 +2512,13 @@ public final class Satinc {
             }
             out.print("            self." + m.getName() + "(");
             for (int i = 0; i < params.length; i++) {
-                out.print("param" + i);
+		if (sharedObjects && isSharedObject(params[i])) {
+		    out.print("(" + params_types_as_names[i] + ")"
+			      +"ibis.satin.impl.Satin.getSatin().getSOReference(satin_so_reference_param" 
+			      + i + ")");
+		} else {
+		    out.print("param" + i);
+		}
                 if (i != params.length - 1) {
                     out.print(", ");
                 }
@@ -2493,7 +2538,13 @@ public final class Satinc {
             out.print("self." + m.getName() + "(");
 
             for (int i = 0; i < params.length; i++) {
-                out.print("param" + i);
+		if (sharedObjects && isSharedObject(params[i])) {
+		    out.print("(" + params_types_as_names[i] + ")"
+			      +"ibis.satin.impl.Satin.getSatin().getSOReference(satin_so_reference_param" 
+			      + i + ")");
+		} else {	    
+                    out.print("param" + i);
+		}
                 if (i != params.length - 1) {
                     out.print(", ");
                 }
@@ -2537,7 +2588,11 @@ public final class Satinc {
                     + "getParameterRecord() {");
             out.print("        return new " + parameterRecordName(m) + "(");
             for (int i = 0; i < params.length; i++) {
-                out.print("param" + i);
+		if (!sharedObjects || !isSharedObject(params[i])) {
+		    out.print("param" + i);
+		} else {
+		    out.print("satin_so_reference_param" + i);
+		}
                 if (i != params.length - 1) {
                     out.print(", ");
                 }
@@ -2560,66 +2615,81 @@ public final class Satinc {
                 out.println("    }\n");
             }
 
-            //equalsPR method
-            out.println("    public boolean equalsPR("
-                    + "ibis.satin.impl.ParameterRecord pr) {");
-            out.println("        " + parameterRecordName(m) + " pr1 = ("
-                    + parameterRecordName(m) + ") pr;");
-            for (int i = 0; i < params.length; i++) {
-                if (params[i] instanceof ObjectType) {
-                    out.println("        if (!this.param" + i
-                            + ".equals(pr1.param" + i + ")) return false;");
-                } else if (params[i] instanceof ArrayType) {
-                    int dimensions = ((ArrayType) params[i]).getDimensions();
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("        if (this.param" + i);
-                        for (int d = 0; d < dim; d++) {
-                            out.print("[i" + d + "]");
-                        }
-                        out.print(".length != pr1.param" + i);
-                        for (int d = 0; d < dim; d++) {
-                            out.print("[i" + d + "]");
-                        }
-                        out.println(".length) return false;");
-                        out.print("        for (int i" + dim + "=0; i" + dim
-                                + "<param" + i);
-                        for (int d = 0; d < dim; d++) {
-                            out.print("[i" + d + "]");
-                        }
-                        out.println(".length; i" + dim + "++) {");
-                    }
-                    if (((ArrayType) params[i]).getBasicType()
-                            instanceof ObjectType) {
-                        out.print("            if (param" + i);
-                        for (int dim = 0; dim < dimensions; dim++) {
-                            out.print("[i" + dim + "]");
-                        }
-                        out.print(".equals(pr1.param" + i);
-                        for (int dim = 0; dim < dimensions; dim++) {
-                            out.print("[i" + dim + "]");
-                        }
-                        out.println(")) return false;");
-                    } else {
-                        out.print("            if (param" + i);
-                        for (int dim = 0; dim < dimensions; dim++) {
-                            out.print("[i" + dim + "]");
-                        }
-                        out.print(" != pr1.param" + i);
-                        for (int dim = 0; dim < dimensions; dim++) {
-                            out.print("[i" + dim + "]");
-                        }
-                        out.println(") return false;");
-                    }
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.println("        }");
-                    }
-                } else {
-                    out.println("        if (this.param" + i + " != pr1.param"
-                            + i + ") return false;");
-                }
-            }
-            out.println("        return true;");
-            out.println("    }\n");
+	    //setSOReferences method
+	    out.println("    public void setSOReferences()");
+	    out.println("        throws ibis.satin.impl.SOReferenceSourceCrashedException {");
+	    if (!sharedObjects) {
+		out.println("    }\n");
+	    } else {
+		for (int i = 0; i < params.length; i++) {
+		    if(isSharedObject(params[i])) {
+			/*		    out.println("        param" + i + " = "
+					    + "(" + params_types_as_names[i] + ")"
+					    + "satin.getSOReference(satin_so_reference_param"
+					    + i + ", owner);");*/
+			out.println("        ibis.satin.impl.Satin.getSatin().setSOReference(satin_so_reference_param"
+				    + i + ", owner);");
+		    }
+		}
+		out.println("    }\n");
+	    }
+
+	    //getSOReferences method
+	    out.println("    public java.util.Vector getSOReferences() {");
+	    if (!sharedObjects) {
+		out.println("        return new java.util.Vector();");
+		out.println("    }\n");
+	    } else {
+		out.println("        java.util.Vector refs = new java.util.Vector();");
+		for (int i = 0; i < params.length; i++) {
+		    if(isSharedObject(params[i])) {
+			out.println("        refs.add(satin_so_reference_param"
+				    + i + ");");
+		    }
+		}
+		out.println("        return refs;");
+		out.println("    }\n");
+	    }
+	    
+
+	    //guard method
+	    //generate a guard method only if the programmer defined a
+	    // guard_method_name method
+	    if (sharedObjects) {
+		String signature = m.getSignature();
+		String guardSignature = signature.substring(0,signature.indexOf(")")+1)
+		    + "Z";
+		String guardName = "guard_" + m.getName();
+		
+		if (gen_c.containsMethod(guardName, guardSignature) != null) {
+		    System.out.println("Generating a guard function for "
+				       + m.getName());
+		    out.println("    public boolean guard() {");
+		    out.print("        return self.guard_" + m.getName() + "(");
+		    for (int i = 0; i < params.length; i++) {
+			if (isSharedObject(params[i])) {
+			    out.print("(" + params_types_as_names[i] + ")"
+				      +"ibis.satin.impl.Satin.getSatin().getSOReference(satin_so_reference_param" 
+				      + i + ")");
+			} else {
+			    out.print("param" + i);
+			}
+			if (i != params.length - 1) {
+			    out.print(", ");
+			}
+		    }
+		    out.println(");");
+		    out.println("    }\n");
+		} else {
+		    //check if there are some misformed guards
+		    Method[] meth = gen_c.getMethods();
+		    for (int i = 0; i < meth.length; i++) {
+			if (meth[i].getName().startsWith("guard_")) {
+			    System.out.println("Possibly invalid guard function");
+			}
+		    }
+		}
+	    }
 
             out.println("}");
         } finally {
@@ -2716,24 +2786,32 @@ public final class Satinc {
 
         //fields
         for (int i = 0; i < params.length; i++) {
-            out.println("    public " + params_types_as_names[i] + " param" + i + ";");
+	    if (!sharedObjects || !isSharedObject(params[i])) {
+		out.println("    public " + params_types_as_names[i] + " param" + i + ";");
+	    } else {
+		out.println("    public String param" + i + ";");
+	    }
         }
 
         out.println();
 
         //constructor
         out.print("    public " + name + "(");
-        for (int i = 0; i < params.length - 1; i++) {
-            out.print(params_types_as_names[i] + " param" + i + ",");
-        }
-        if (params.length > 0) {
-            out.print(params_types_as_names[params.length - 1] + " param"
-                    + (params.length - 1));
+        for (int i = 0; i < params.length; i++) {
+	    if (!sharedObjects || !isSharedObject(params[i])) {
+		out.print(params_types_as_names[i] + " param" + i);
+	    } else {
+		out.print("String param" + i);
+	    }
+	    if (i < params.length - 1) {
+		out.print(",");
+	    }
+
         }
         out.println(") {");
 
         for (int i = 0; i < params.length; i++) {
-            out.println("        this.param" + i + " = param" + i + ";");
+	    out.println("        this.param" + i + " = param" + i + ";");
         }
         out.println("    }\n");
 
@@ -2746,7 +2824,7 @@ public final class Satinc {
                 out.println("	     if (this.param" + i
                         + "==null && other.param" + i + "==null) return true;");
                 out.println("	     if (this.param" + i
-                        + "==null || other.param" + i + "==null) return true;");
+                        + "==null || other.param" + i + "==null) return false;");
                 //
                 out.println("        if (!this.param" + i
                         + ".equals(other.param" + i + ")) return false;");
@@ -2755,7 +2833,7 @@ public final class Satinc {
                 out.println("	     if (this.param" + i
                         + "==null && other.param" + i + "==null) return true;");
                 out.println("	     if (this.param" + i
-                        + "==null || other.param" + i + "==null) return true;");
+                        + "==null || other.param" + i + "==null) return false;");
                 //
                 int dimensions = ((ArrayType) params[i]).getDimensions();
                 for (int dim = 0; dim < dimensions; dim++) {
@@ -2971,6 +3049,7 @@ public final class Satinc {
         out.println("}");
 
         out.close();
+
     }
     */
 
@@ -3087,9 +3166,10 @@ public final class Satinc {
 
             for (int i = 0; i < javalist.size(); i++) {
                 JavaClass cl = (JavaClass) (javalist.get(i));
+
                 new Satinc(verbose, local, verify, keep,
                         invocationRecordCache, cl.getClassName(),
-                        inletOpt, spawnCounterOpt).start();
+                        inletOpt, spawnCounterOpt, sharedObjects).start();
             }
         }
 
@@ -3166,6 +3246,7 @@ public final class Satinc {
         boolean invocationRecordCache = false;
         boolean inletOpt = true;
         boolean spawnCounterOpt = true;
+	boolean sharedObjects = true;
         Vector list = new Vector();
 
         for (int i = 0; i < args.length; i++) {
@@ -3203,6 +3284,8 @@ public final class Satinc {
                 spawnCounterOpt = false;
             } else if (args[i].equals("-sc-opt")) {
                 spawnCounterOpt = true;
+	    } else if (args[i].equals("-no-so")) {
+		sharedObjects = false;
             } else {
                 usage();
             }
@@ -3215,7 +3298,7 @@ public final class Satinc {
         for (int i = 0; i < list.size(); i++) {
             new Satinc(verbose, local, verify, keep,
                     invocationRecordCache, (String) list.get(i),
-                    inletOpt, spawnCounterOpt).start();
+                    inletOpt, spawnCounterOpt, sharedObjects).start();
         }
     }
 

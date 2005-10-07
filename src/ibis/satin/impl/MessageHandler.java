@@ -9,7 +9,9 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 import ibis.satin.ActiveTuple;
+import ibis.satin.so.SharedObject;
 import ibis.util.Timer;
+import ibis.util.messagecombining.MessageSplitter;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -20,7 +22,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
     Satin satin;
 
     MessageHandler(Satin s) {
-        satin = s;
+	satin = s;
     }
 
     void handleAbort(ReadMessage m) {
@@ -695,6 +697,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
     private void handleTupleAdd(ReadMessage m) {
         long seqno = 0;
+
+	/*	if (TUPLE_TIMING) {
+	    satin.handleTupleTimer.start();
+	    }*/
+
         try {
             if (TupleSpace.use_seq) {
                 seqno = m.sequenceNumber();
@@ -738,6 +745,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
             }
             //happens after crash
         }
+
+	/*	if (TUPLE_TIMING) {
+	    satin.handleTupleTimer.stop();
+	    }*/
     }
 
     private void handleTupleDel(ReadMessage m) {
@@ -939,6 +950,110 @@ final class MessageHandler implements Upcall, Protocol, Config {
         }
     }
 
+    public void handleSORequest(ReadMessage m) {
+	String objid = null;
+	SharedObject so = null;
+	SendPort s = null;	
+	Timer handleSOTransferTimer = null;
+	Timer soSerializationTimer = null;
+	long size = 0;
+	WriteMessage wm = null;
+
+		System.err.println("got so request");
+
+	if (SO_TIMING) {
+	    handleSOTransferTimer = satin.createTimer();
+	    handleSOTransferTimer.start();
+	}
+	
+	try {
+	    objid = m.readString();
+	} catch (IOException e) {
+	    System.err.println("SATIN '" + satin.ident.name() 
+			       + "': got exception while reading"
+			       + " shared object request: " + e.getMessage());
+	}
+
+
+	//	System.err.println("read objid: " + objid);
+	synchronized (satin) {
+	    so = satin.getSOReference(objid);
+	    //System.err.println("got object");
+	    s = satin.getReplyPortWait(m.origin().ibis());
+	    //System.err.println("got reply port");
+       
+	    if (so == null) {
+		System.err.println("SATIN '" + satin.ident.name() 
+				   + "': EEEK, requested shared object: "
+				   + objid
+				   + " not found! Exiting..");
+		System.exit(1);
+	    }
+
+	    if (SO_TIMING) {
+		soSerializationTimer = satin.createTimer();
+		soSerializationTimer.start();
+	    }
+
+	    //we need to hold the lock while writing the object
+	    //otherwise some update might change the state of the object
+	    //what's worse: the update might be executed only partially
+	    //before the object is sent
+	    try {
+		wm = s.newMessage();
+		wm.writeByte(SO_TRANSFER);
+		wm.writeObject(so);
+	    } catch (IOException e) {
+		System.err.println("SATIN '" + satin.ident.name()
+				   + "': got exception while writing"
+				   + " shared object: " + e.getMessage());
+	    }
+	}
+	try {
+	    size = wm.finish();
+	    //	    System.err.println("sent object");
+	} catch (IOException e) {
+	    System.err.println("SATIN '" + satin.ident.name() 
+			       + "': got exception while sending"
+			       + " shared object: " + e.getMessage());
+	}
+	//stats
+	satin.soTransfers++;
+	satin.soTransfersBytes += size;
+	if (SO_TIMING) {
+	    handleSOTransferTimer.stop();
+	    satin.handleSOTransferTimer.add(handleSOTransferTimer);
+	    soSerializationTimer.stop();
+	    satin.soSerializationTimer.add(soSerializationTimer);
+	}
+    }
+
+    public void handleSOTransfer(ReadMessage m) {
+	SharedObject obj = null;
+	Timer soDeserializationTimer = null;
+
+	if (SO_TIMING) {
+	    soDeserializationTimer = satin.createTimer();
+	    soDeserializationTimer.start();
+	}
+	try {
+	    obj = (SharedObject) m.readObject();
+	} catch (IOException e) {
+	    System.err.println("SATIN '" + satin.ident.name() 
+			       + "': got exception while reading"
+			       + " shared object: " + e.getMessage());
+	} catch (ClassNotFoundException e) {
+	    System.err.println("SATIN '" + satin.ident.name() 
+			       + "': got exception while reading"
+			       + " shared object: " + e.getMessage());
+	}
+	if (SO_TIMING) {
+	    soDeserializationTimer.stop();
+	    satin.soDeserializationTimer.add(soDeserializationTimer);
+	}
+	satin.receiveObject(obj);
+    }
+
     public void upcall(ReadMessage m) {
         SendPortIdentifier ident = m.origin();
 
@@ -1018,6 +1133,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
             case RESULT_PUSH:
                 handleResultPush(m);
                 break;
+	    case SO_REQUEST:
+		handleSORequest(m);
+		break;
+	    case SO_TRANSFER:
+		handleSOTransfer(m);
+		break;
             default:
                 commLogger.fatal("SATIN '" + satin.ident
                         + "': Illegal opcode " + opcode + " in MessageHandler");

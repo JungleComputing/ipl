@@ -228,6 +228,7 @@ public abstract class SpawnSync extends Termination {
                 attachToParentFinished(r);
             }
 
+
         } else {
             if (stealLogger.isDebugEnabled()) {
                 stealLogger.debug("SATIN '" + ident
@@ -406,6 +407,7 @@ public abstract class SpawnSync extends Termination {
      * @param s
      *            the spawncounter.
      */
+
     public void sync(SpawnCounter s) {
         InvocationRecord r;
 
@@ -476,6 +478,18 @@ public abstract class SpawnSync extends Termination {
                     } else {
                         r = algorithm.clientIteration();
                         if (r != null) {
+			    if (SHARED_OBJECTS) {
+				//restore shared object references  
+				try {
+				    r.setSOReferences();
+				    executeGuard(r);
+				} catch (SOReferenceSourceCrashedException e) {
+				    //the source has crashed - abort the job
+				    r = null;
+				    continue;
+				}
+				    
+			    }
                             if (spawnLogger.isDebugEnabled()) {
                                 spawnLogger.debug("SATIN '" + ident
                                         + "': Sync, start stolen job");
@@ -500,6 +514,17 @@ public abstract class SpawnSync extends Termination {
                 } else {
                     r = algorithm.clientIteration();
                     if (r != null) {
+			if (SHARED_OBJECTS) {
+			    //restore shared object references
+			    try {
+				r.setSOReferences();
+				executeGuard(r);
+			    } catch (SOReferenceSourceCrashedException e) {
+				//the source has crashed - abort the job
+				r = null;
+				continue;
+			    }
+			}
                         if (spawnLogger.isDebugEnabled()) {
                             spawnLogger.debug("SATIN '" + ident
                                     + "': Sync, start stolen job");
@@ -558,6 +583,17 @@ public abstract class SpawnSync extends Termination {
 
             InvocationRecord r = algorithm.clientIteration();
             if (r != null) {
+		if (SHARED_OBJECTS) {
+		    //restore shared object references
+		    try {			
+			r.setSOReferences();
+			executeGuard(r);
+		    } catch (SOReferenceSourceCrashedException e) {
+			//the source has crashed - abort the job
+			r = null;
+			continue;
+		    }
+		}
                 if (spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': client, start stolen job");

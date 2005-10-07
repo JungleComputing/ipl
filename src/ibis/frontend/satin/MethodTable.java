@@ -231,7 +231,7 @@ final class MethodTable {
     private Vector methodTable; /* a vector of MethodTableEntries */
 
     private JavaClass spawnableClass;
-
+    
     private Satinc self;
 
     private boolean verbose;
@@ -239,7 +239,7 @@ final class MethodTable {
     JavaClass c;
 
     private static HashMap analyzers = new HashMap();
-
+    
     private boolean available_slot(Type[] types, int ind, Type t) {
         Type tp = types[ind];
         if (tp != null) {
@@ -338,7 +338,7 @@ final class MethodTable {
         this.c = c;
 
         spawnableClass = Repository.lookupClass("ibis.satin.Spawnable");
-
+        
         methodTable = new Vector();
 
         Method[] methods = gen_c.getMethods();

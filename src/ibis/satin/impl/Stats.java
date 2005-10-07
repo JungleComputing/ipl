@@ -4,7 +4,7 @@ package ibis.satin.impl;
 
 import ibis.util.Timer;
 
-public abstract class Stats extends TupleSpace {
+public abstract class Stats extends SharedObjects {
 
     protected StatsMessage createStats() {
         StatsMessage s = new StatsMessage();
@@ -35,6 +35,7 @@ public abstract class Stats extends TupleSpace {
         s.pollTime = pollTimer.totalTimeVal();
         s.pollCount = pollTimer.nrTimes();
         s.tupleTime = tupleTimer.totalTimeVal();
+	s.handleTupleTime = handleTupleTimer.totalTimeVal();
         s.tupleWaitTime = tupleOrderingWaitTimer.totalTimeVal();
         s.tupleWaitCount = tupleOrderingWaitTimer.nrTimes();
 
@@ -47,6 +48,8 @@ public abstract class Stats extends TupleSpace {
         s.returnRecordWriteCount = returnRecordWriteTimer.nrTimes();
         s.returnRecordReadTime = returnRecordReadTimer.totalTimeVal();
         s.returnRecordReadCount = returnRecordReadTimer.nrTimes();
+
+	s.returnRecordBytes = returnRecordBytes;
 
         //fault tolerance
         if (FAULT_TOLERANCE) {
@@ -70,6 +73,20 @@ public abstract class Stats extends TupleSpace {
             s.crashHandlingTime = crashTimer.totalTimeVal();
             s.addReplicaTime = addReplicaTimer.totalTimeVal();
         }
+
+	if (SHARED_OBJECTS) {
+	    s.soInvocations = soInvocations;
+	    s.soInvocationsBytes = soInvocationsBytes;
+	    s.soTransfers = soTransfers;
+	    s.soTransfersBytes = soTransfersBytes;
+	    s.handleSOInvocationsTime = handleSOInvocationsTimer.totalTimeVal();
+	    s.broadcastSOInvocationsTime 
+		= broadcastSOInvocationsTimer.totalTimeVal();
+	    s.soTransferTime = soTransferTimer.totalTimeVal();
+	    s.handleSOTransferTime = handleSOTransferTimer.totalTimeVal();
+	    s.soSerializationTime = soSerializationTimer.totalTimeVal();
+	    s.soDeserializationTime = soDeserializationTimer.totalTimeVal();
+	}
 
         return s;
     }
@@ -182,6 +199,18 @@ public abstract class Stats extends TupleSpace {
                     + nf.format(totalStats.restartedJobs));
         }
 
+	if (SHARED_OBJECTS && SO_STATS) {
+            out.println("SATIN: SHARED_OBJECTS: nr invocations "
+			+ nf.format(totalStats.soInvocations)
+			+ ", bytes "
+			+ nf.format(totalStats.soInvocationsBytes)
+			+", object transfers " 
+			+ nf.format(totalStats.soTransfers)
+			+ ", bytes "
+			+ nf.format(totalStats.soTransfersBytes));
+	}
+			
+
         out.println("-------------------------------SATIN TOTAL TIMES"
                 + "-------------------------------");
         if (STEAL_TIMING) {
@@ -285,12 +314,46 @@ public abstract class Stats extends TupleSpace {
         if (FAULT_TOLERANCE && CRASH_TIMING) {
             out.println("SATIN: CRASH_HANDLING_TIME:      total "
                     + Timer.format(totalStats.crashHandlingTime));
-        }
+         }
 
         if (FAULT_TOLERANCE && ADD_REPLICA_TIMING) {
             out.println("SATIN: ADD_REPLICA_TIME:         total "
                     + Timer.format(totalStats.addReplicaTime));
         }
+
+	if (SHARED_OBJECTS && SO_TIMING) {
+	    out.println("SATIN: BROADCAST_SO_INVOCATIONS: total "
+			+ Timer.format(totalStats.broadcastSOInvocationsTime)
+			+ " time/inv "
+			+ Timer.format(perStats(totalStats.broadcastSOInvocationsTime,
+						totalStats.soInvocations)));
+	    out.println("SATIN: HANDLE_SO_INVOCATIONS:    total "
+			+ Timer.format(totalStats.handleSOInvocationsTime)
+			+ " time/inv "
+			+ Timer.format(perStats(totalStats.handleSOInvocationsTime,
+				       totalStats.soInvocations * (size - 1))));
+	    out.println("SATIN: SO_TRANSFERS:             total "
+			+ Timer.format(totalStats.soTransferTime)
+			+ " time/transf "
+			+ Timer.format(perStats(totalStats.soTransferTime,
+				       totalStats.soTransfers)));
+	    out.println("SATIN: HANDLE_SO_TRANSFERS:    total "
+			+ Timer.format(totalStats.handleSOTransferTime)
+			+ " time/transf "
+			+ Timer.format(perStats(totalStats.handleSOTransferTime,
+				       totalStats.soTransfers))); 
+	    out.println("SATIN: SO_SERIALIZATION:       total "
+			+ Timer.format(totalStats.soSerializationTime)
+			+ " time/transf "
+			+ Timer.format(perStats(totalStats.soSerializationTime,
+				       totalStats.soTransfers)));
+	    out.println("SATIN: SO_DESERIALIZATION:     total "
+			+ Timer.format(totalStats.soDeserializationTime)
+			+ " time/transf "
+			+ Timer.format(perStats(totalStats.soDeserializationTime,
+				       totalStats.soTransfers))); 
+	}
+			
 
         out.println("-------------------------------SATIN RUN TIME "
                 + "BREAKDOWN------------------------");
@@ -313,6 +376,8 @@ public abstract class Stats extends TupleSpace {
         double abortPerc = abortTime / totalTimer.totalTimeVal() * 100.0;
         double tupleTime = totalStats.tupleTime / size;
         double tuplePerc = tupleTime / totalTimer.totalTimeVal() * 100.0;
+	double handleTupleTime = totalStats.handleTupleTime / size;
+	double handleTuplePerc = handleTupleTime / totalTimer.totalTimeVal() * 100.0;
         double tupleWaitTime = totalStats.tupleWaitTime / size;
         double tupleWaitPerc = tupleWaitTime / totalTimer.totalTimeVal()
                 * 100.0;
@@ -345,13 +410,36 @@ public abstract class Stats extends TupleSpace {
         double addReplicaTime = totalStats.addReplicaTime / size;
         double addReplicaPerc = addReplicaTime / totalTimer.totalTimeVal()
                 * 100.0;
+	double broadcastSOInvocationsTime = 
+	    totalStats.broadcastSOInvocationsTime / size;
+	double broadcastSOInvocationsPerc = broadcastSOInvocationsTime
+	    / totalTimer.totalTimeVal() * 100;
+	double handleSOInvocationsTime = totalStats.handleSOInvocationsTime 
+	    / size;
+	double handleSOInvocationsPerc = handleSOInvocationsTime
+	    / totalTimer.totalTimeVal() * 100;
+	double soTransferTime = totalStats.soTransferTime / size;
+	double soTransferPerc = soTransferTime / totalTimer.totalTimeVal() * 100;
+	double handleSOTransferTime = totalStats.handleSOTransferTime / size;
+	double handleSOTransferPerc = handleSOTransferTime 
+	    / totalTimer.totalTimeVal() * 100; 
+	double soSerializationTime = totalStats.soSerializationTime / size;
+	double soSerializationPerc = soSerializationTime
+	    / totalTimer.totalTimeVal() * 100;
+	double soDeserializationTime = totalStats.soDeserializationTime / size;
+	double soDeserializationPerc = soDeserializationTime
+	    / totalTimer.totalTimeVal() * 100;
 
-        double totalOverhead = abortTime + tupleTime + tupleWaitTime
-                + pollTime + tableUpdateTime + tableLookupTime
-                + tableHandleUpdateTime + tableHandleLookupTime
-                + (totalStats.stealTime + totalStats.handleStealTime
-                        + totalStats.returnRecordReadTime
-                        + totalStats.returnRecordWriteTime) / size;
+
+	   
+        double totalOverhead = abortTime + tupleTime + handleTupleTime + tupleWaitTime
+	    + pollTime + tableUpdateTime + tableLookupTime
+	    + tableHandleUpdateTime + tableHandleLookupTime
+	    + handleSOInvocationsTime + broadcastSOInvocationsTime
+	    + soTransferTime + handleSOTransferTime 
+	    + (totalStats.stealTime + totalStats.handleStealTime
+	       + totalStats.returnRecordReadTime
+	       + totalStats.returnRecordWriteTime) / size;
         double totalPerc = totalOverhead / totalTimer.totalTimeVal() * 100.0;
         double appTime = totalTimer.totalTimeVal() - totalOverhead;
         if (appTime < 0.0) {
@@ -379,6 +467,10 @@ public abstract class Stats extends TupleSpace {
             out.println("SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine "
                     + Timer.format(tupleTime) + " ("
                     + (tuplePerc < 10 ? " " : "") + pf.format(tuplePerc)
+                    + " %)");
+            out.println("SATIN: TUPLE_SPACE_HANDLE_TIME:   avg. per machine "
+                    + Timer.format(handleTupleTime) + " ("
+                    + (handleTuplePerc < 10 ? " " : "") + pf.format(handleTuplePerc)
                     + " %)");
             out.println("SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine "
                     + Timer.format(tupleWaitTime) + " ("
@@ -425,6 +517,27 @@ public abstract class Stats extends TupleSpace {
                     + Timer.format(addReplicaTime) + " ("
                     + pf.format(addReplicaPerc) + " %)");
         }
+
+	if (SHARED_OBJECTS && SO_TIMING) {
+            out.println("SATIN: BROADCAST_SO_INVOCATIONS: avg. per machine "
+                    + Timer.format(broadcastSOInvocationsTime) + " ("
+                    + pf.format(broadcastSOInvocationsPerc) + " %)");
+            out.println("SATIN: HANDLE_SO_INVOCATIONS:    avg. per machine "
+                    + Timer.format(handleSOInvocationsTime) + " ("
+                    + pf.format(handleSOInvocationsPerc) + " %)");
+            out.println("SATIN: SO_TRANSFERS:             avg. per machine "
+                    + Timer.format(soTransferTime) + " ("
+                    + pf.format(soTransferPerc) + " %)");
+            out.println("SATIN: HANDLE_SO_TRANSFERS:      avg. per machine "
+                    + Timer.format(handleSOTransferTime) + " ("
+                    + pf.format(handleSOTransferPerc) + " %)");
+            out.println("SATIN: SO_SERIALIZATION:         avg. per machine "
+                    + Timer.format(soSerializationTime) + " ("
+                    + pf.format(soSerializationPerc) + " %)");
+            out.println("SATIN: SO_DESERIALIZATION:       avg. per machine "
+                    + Timer.format(soDeserializationTime) + " ("
+                    + pf.format(soDeserializationPerc) + " %)");
+	}
 
         out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine "
                 + Timer.format(totalOverhead) + " ("
@@ -620,6 +733,14 @@ public abstract class Stats extends TupleSpace {
                         + " jobs restarted");
             }
         }
+        if (SHARED_OBJECTS && SO_STATS) {
+	    out.println("SATIN '" + ident.name() + "': "
+                        + soInvocations
+                        + " shared object invocations sent.");
+	    out.println("SATIN '" + ident.name() + "': "
+                        + soTransfers
+                        + " shared objects transfered.");
+	}
     }
 
 }

@@ -193,8 +193,16 @@ public abstract class Initialization extends SatinBase {
                 }
             } else if (args[i].equals("-satin-dump")) {
                 dump = true;
-            } else if (args[i].equals("-satin-initial-cluster")) {
+            } else if (args[i].equals("-satin-initial-node")) {
+		initialNode = true;
                 getTable = false;
+	    } else if (args[i].equals("-satin-so-delay")) {
+		i++;
+		try {
+		    soInvocationsDelay = Integer.parseInt(args[i]);
+		} catch (NumberFormatException e) {
+		    System.err.println("SATIN: invalid so delay");
+		}
             } else {
                 tempArgs.add(args[i]);
             }
@@ -449,6 +457,13 @@ public abstract class Initialization extends SatinBase {
 
         return ibis.createPortType("satin global result table porttype",
                 satinPortProperties);
+    }
+    
+    PortType createSOPortType(StaticProperties reqprops)
+            throws IOException, IbisException {
+            
+        return createGlobalResultTablePortType(reqprops);
+        
     }
 
 }

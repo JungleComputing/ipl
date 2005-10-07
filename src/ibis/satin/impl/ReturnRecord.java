@@ -18,6 +18,10 @@ public abstract class ReturnRecord implements java.io.Serializable {
      */
     public Throwable eek = null;
 
+    /**
+     */
+    protected int updatesSent;
+
     protected ReturnRecord(Throwable eek) {
         this.eek = eek;
     }
