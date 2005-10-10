@@ -2,7 +2,7 @@
 package ibis.frontend.satin.so;
 
 import ibis.frontend.generic.BT_Analyzer;
-import ibis.util.RunProcess;
+import ibis.frontend.generic.RunJavac;
 
 import java.io.*;
 import java.util.Vector;
@@ -24,9 +24,8 @@ class SatinSOc {
     static InstructionFactory insFactory;
     static ConstantPoolGen cpg;
 
-    static boolean verbose = true;
-    static boolean keep = true;
-    static Object compiler = null;
+    static boolean verbose = false;
+    static boolean keep = false;
     static boolean local = true;
 
     // @TODO: add a $rewritten$ field, so that we don't rewrite the 
@@ -37,11 +36,6 @@ class SatinSOc {
         Vector classes = new Vector();
 	Vector classList = new Vector();
 
-        String javadir = System.getProperty("java.home");
-        String javapath = System.getProperty("java.class.path");
-        String filesep = System.getProperty("file.separator");
-        String pathsep = System.getProperty("path.separator");
-
         for (int i = 0; i < args.length; i++) {
             if (!args[i].startsWith("-")) {
                 classList.add(args[i]);
@@ -51,12 +45,6 @@ class SatinSOc {
                 verbose = true;
             } else if (args[i].equals("-no-verbose")) {
                 verbose = false;
-            } else if (args[i].equals("-compiler")) {
-                compiler = args[i + 1];
-                i++;
-            } else if (args[i].equals("-javahome")) {
-                javadir = args[i + 1];
-                i++;
             } else if (args[i].equals("-keep")) {
                 keep = true;
             } else if (args[i].equals("-no-keep")) {
@@ -73,14 +61,6 @@ class SatinSOc {
         if (classList.size() == 0) {
             usage();
         }
-
-        if (compiler == null) {
-            String[] cmd = new String[] {
-                    javadir + filesep + "bin" + filesep + "javac", "-g",
-                    "-classpath", javapath + pathsep };
-            compiler = cmd;
-        }
-
 
         JavaClass writeMethodsInterface = 
 	    Repository.lookupClass("ibis.satin.so.WriteMethodsInterface");
@@ -108,10 +88,6 @@ class SatinSOc {
                 PrintWriter output;
                 JavaClass subjectClass = (JavaClass) classes.get(i);
 
- 		classGen = new ClassGen(subjectClass);
-		insFactory = new InstructionFactory(classGen);
-		cpg = classGen.getConstantPool();
-
                 if (subjectClass.isInterface()) {
                     continue;
                 }
@@ -122,14 +98,25 @@ class SatinSOc {
 		    continue;
 		}
 
-                if (verbose) {
-                    System.out.println("Handling " 
-				       + subjectClass.getClassName());
+                String className = subjectClass.getClassName();
+                String packageName = subjectClass.getPackageName();
+                String classNameNoPackage;
+                if (packageName != null && ! packageName.equals("")) {
+                    classNameNoPackage = className.substring(className.lastIndexOf('.')+1, className.length());
+                } else {
+                    classNameNoPackage = className;
                 }
 
+ 		classGen = new ClassGen(subjectClass);
+		insFactory = new InstructionFactory(classGen);
+		cpg = classGen.getConstantPool();
+
+                if (verbose) {
+                    System.out.println("Handling " + className);
+                }
 
 		if (classGen.containsField("$SOrewritten$")!=null) {
-		    System.err.println("Class " + subjectClass.getClassName() 
+		    System.err.println("Class " + className 
 				       + " is already rewritten");
 		    continue;
 		}
@@ -146,7 +133,6 @@ class SatinSOc {
 		    continue;
 		}
 		    
-
 		//add the $SOrewritten$ field
 		classGen.addField(new FieldGen(Constants.ACC_STATIC, Type.BOOLEAN,
 					    "$SOrewritten$", cpg).getField());		
@@ -169,7 +155,7 @@ class SatinSOc {
 			//create a new methodName with the following body
 			//Satin.getSatin().broadcastSOInvocation(new SOInvRecord())
 			//return so_local_methodName
-			rewriteMethod(method, subjectClass.getClassName());
+			rewriteMethod(method, classNameNoPackage, packageName);
 
 
 		    }
@@ -183,13 +169,13 @@ class SatinSOc {
 		JavaClass newSubjectClass = classGen.getJavaClass();
 		Repository.removeClass(subjectClass);
 		Repository.addClass(newSubjectClass);
+
 		//dump the class
-                String clnam = newSubjectClass.getClassName();
                 String dst;
                 if (local) {
-                    dst = clnam.substring(clnam.lastIndexOf('.')+1);
+                    dst = className.substring(className.lastIndexOf('.')+1);
                 } else {
-                    dst = clnam.replace('.', java.io.File.separatorChar);
+                    dst = className.replace('.', java.io.File.separatorChar);
                 }
                 dst = dst + ".class";
 		newSubjectClass.dump(dst);
@@ -199,16 +185,10 @@ class SatinSOc {
 		    Method method = methods[j];
 		    if (a.isSpecial(method)) {
 			//generate an SOInvocationRecord for this method
-			writeInvocationRecord(method, subjectClass.getClassName());
+			writeSOInvocationRecord(method, classNameNoPackage,
+                                packageName);
 
-			compileGenerated(invocationRecordName(method,
-							      subjectClass.
-							      getClassName()));		 
-			if (!keep) { // remove generated files 
-			    removeFile(invocationRecordName(method, 
-							    subjectClass.getClassName())
-				       + ".java");
-			}
+			compile(SOInvocationRecordFileBase(method, classNameNoPackage, packageName));
 		    }
 		}
 
@@ -225,149 +205,132 @@ class SatinSOc {
 
     public static void usage() {
         System.err.println("Usage : java SatinSOc [[-no]-verbose] [[-no]-keep] "
-			   + "[-javahome \"your java home\" ] "
-			   + "[-compiler \"your compile command\" ] "
 			   + "[-dir|-local] "
 			   + "<classname>*");
         System.exit(1);
     }
 
-    private static void writeInvocationRecord(Method m, String clname) 
-	    throws java.io.IOException {
+    private static void writeSOInvocationRecord(Method m, String clname,
+            String pnam) throws java.io.IOException {
+        String name = SOInvocationRecordFileBase(m, clname, pnam);
+        int i;
 
-	    int i;
-	    String name = invocationRecordName(m, clname);
+        FileOutputStream f = new FileOutputStream(name + ".java");
+        BufferedOutputStream b = new BufferedOutputStream(f);
+        DollarFilter b2 = new DollarFilter(b);
+        PrintStream out = new PrintStream(b2);
 
-	    FileOutputStream f = new FileOutputStream(name + ".java");
-	    BufferedOutputStream b = new BufferedOutputStream(f);
-	    DollarFilter b2 = new DollarFilter(b);
-	    PrintStream out = new PrintStream(b2);
-
-	    System.err.println("Generating inv rec for method: " + m.getName()
+        if (verbose) {
+            System.err.println("Generating inv rec for method: " + m.getName()
 			       + " with signature: " + m.getSignature());
+        }
 
-	    /* Copied from MethodTable.java; I have no clue why
-	       m.getArgumentTypes is not used*/
-	    Type[] params = Type.getArgumentTypes(m.getSignature());
-	    String[] params_types_as_names = new String[params.length];
+        /* Copied from MethodTable.java; I have no clue why
+           m.getArgumentTypes is not used*/
+        Type[] params = Type.getArgumentTypes(m.getSignature());
+        String[] params_types_as_names = new String[params.length];
 
-	    for (i = 0; i < params.length; i++ ) {
-		if (params[i] instanceof ObjectType) {
-		    String clnam = ((ObjectType) params[i]).getClassName();
-		    if (!Repository.implementationOf(clnam, 
-						     "java.io.Serializable")) {
-			System.err.println(clname
-					   + ": write method"
-					   + " with non-serializable parameter type "
-					   + clnam);
-			System.err.println(clname
-					   + ": all parameters of a write method"
-					   + " must be serializable.");
-			System.exit(1);
-		    }
-		}
-		params_types_as_names[i] = params[i].toString();
-	    }
+        for (i = 0; i < params.length; i++ ) {
+            if (params[i] instanceof ObjectType) {
+                String clnam = ((ObjectType) params[i]).getClassName();
+                if (!Repository.implementationOf(clnam, 
+                                                 "java.io.Serializable")) {
+                    System.err.println(clname
+                               + ": write method"
+                               + " with non-serializable parameter type "
+                               + clnam);
+                    System.err.println(clname
+                               + ": all parameters of a write method"
+                               + " must be serializable.");
+                    System.exit(1);
+                }
+            }
+            params_types_as_names[i] = params[i].toString();
+        }
 
-	    out.println("import ibis.satin.so.*;\n");
-            out.println("import ibis.satin.impl.*;\n");
-	    out.println("public final class " + name 
-			+ " extends SOInvocationRecord {");
+        if (pnam != null && ! pnam.equals("")) {
+            out.println("package " + pnam + ";");
+        }
 
-	    //fields
-	    for (i = 0; i < params_types_as_names.length; i++ ) {
-		out.println("\t" + params_types_as_names[i] + " param" 
-			    + i + ";");
-	    }
-	    out.println();
+        out.println("import ibis.satin.so.*;\n");
+        out.println("import ibis.satin.impl.*;\n");
 
-	    //constructor
-	    out.print("\tpublic " + name + "(String objectId, ");
-	    for (i = 0; i < params_types_as_names.length-1; i++) {
-		out.print(params_types_as_names[i] + " param" + i + ", ");
-	    }
-	    out.println(params_types_as_names[i] + " param" + i + ") {");
-	    out.println("\t\tsuper(objectId);");
-	    for (i = 0; i < params_types_as_names.length; i++) {
-		//		if (params[i] instanceof BasicType) {
-		    out.println("\t\tthis.param" + i + " = param" + i + ";");
-		    /*		} else {
-		    //copy the parameter
-		    out.println("\t\tthis.param" + i + " = (" + params_types_as_names[i]
-				+ ") cloneObject(param" + i + ");");
-				}*/
-	    }
-	    out.println("\t}\n");
+        name = SOInvocationRecordClassName(m, clname, pnam);
 
-	    //invoke method
-	    out.println("\tpublic void invoke(SharedObject object) {");
-	    out.println("\t\t" + clname + " obj = (" + clname + ") object;");
-	    out.println("\t\ttry{");
-	    out.print("\t\t\tobj.so_local_" + m.getName() + "(");
-	    for (i = 0; i < params_types_as_names.length-1; i++ ) {
-		out.print("param" + i + ", ");
-	    }
-	    out.println("param" + i + ");");
-	    out.println("\t\t} catch (Throwable t) {");
-	    out.println("\t\t\t/* exceptions will be only thrown at the originating node*/");
-	    out.println("\t\t}");
-	    out.println("\t}");
-	    out.println();
-	    out.println("}");
-	    out.close();
-	}
+        out.println("public final class " + name 
+                + " extends SOInvocationRecord {");
 
-    static String invocationRecordName(Method m, String clnam) {
-        return ("Satin_" + clnam + "_" 
-		+ do_mangle(m.getName(), m.getSignature())
-                + "_SOInvocationRecord").replace('.', '_');
+        //fields
+        for (i = 0; i < params_types_as_names.length; i++ ) {
+            out.println("\t" + params_types_as_names[i] + " param" 
+                        + i + ";");
+        }
+        out.println();
+
+        //constructor
+        out.print("\tpublic " + name + "(String objectId, ");
+        for (i = 0; i < params_types_as_names.length-1; i++) {
+            out.print(params_types_as_names[i] + " param" + i + ", ");
+        }
+        out.println(params_types_as_names[i] + " param" + i + ") {");
+        out.println("\t\tsuper(objectId);");
+        for (i = 0; i < params_types_as_names.length; i++) {
+            //		if (params[i] instanceof BasicType) {
+                out.println("\t\tthis.param" + i + " = param" + i + ";");
+                /*		} else {
+                //copy the parameter
+                out.println("\t\tthis.param" + i + " = (" + params_types_as_names[i]
+                            + ") cloneObject(param" + i + ");");
+                            }*/
+        }
+        out.println("\t}\n");
+
+        //invoke method
+        out.println("\tpublic void invoke(SharedObject object) {");
+        out.println("\t\t" + clname + " obj = (" + clname + ") object;");
+        out.println("\t\ttry{");
+        out.print("\t\t\tobj.so_local_" + m.getName() + "(");
+        for (i = 0; i < params_types_as_names.length-1; i++ ) {
+            out.print("param" + i + ", ");
+        }
+        out.println("param" + i + ");");
+        out.println("\t\t} catch (Throwable t) {");
+        out.println("\t\t\t/* exceptions will be only thrown at the originating node*/");
+        out.println("\t\t}");
+        out.println("\t}");
+        out.println();
+        out.println("}");
+        out.close();
     }
 
-    static void compileGenerated(String className) {
-        try {
-            RunProcess p;
-            if (compiler instanceof String) {
-                String command = (String) compiler + " " + className + ".java";
-                if (verbose) {
-                    System.out.println("Running: " + command);
-                }
-
-                p = new RunProcess(command);
-            } else {
-                String[] comp = (String[]) compiler;
-                String[] cmd = new String[(comp.length + 1)];
-                for (int i = 0; i < comp.length; i++) {
-                    cmd[i] = comp[i];
-                }
-                cmd[comp.length] = className + ".java";
-
-                if (verbose) {
-                    System.out.print("Running: ");
-                    for (int i = 0; i < cmd.length; i++) {
-                        System.out.print(cmd[i] + " ");
-                    }
-                    System.out.println("");
-                }
-                p = new RunProcess(cmd, new String[0]);
-            }
-            int res = p.getExitStatus();
-            if (res != 0) {
-                System.err.println("Error compiling generated code ("
-                        + className + ").");
-                byte[] err = p.getStderr();
-                System.err.write(err, 0, err.length);
-                System.err.println("");
-                System.exit(1);
-            }
-            if (verbose) {
-                System.out.println("Done");
-            }
-            Repository.lookupClass(className);
-        } catch (Exception e) {
-            System.err.println("IO error: " + e);
-            e.printStackTrace();
-            System.exit(1);
+    public static String getFileBase(String pkg, String name, String pre,
+            String post) {
+        if (!local && pkg != null && !pkg.equals("")) {
+            return pkg.replace('.', File.separatorChar) + File.separator + pre
+                    + name + post;
         }
+        return pre + name + post;
+    }
+
+    static String SOInvocationRecordName(Method m, String clnam, String pnam) {
+        if (pnam != null && ! pnam.equals("")) {
+            return pnam + ".Satin_" + clnam
+                    + "_" + do_mangle(m) + "_SOInvocationRecord";
+        }
+        return "Satin_" + clnam + "_" + do_mangle(m)
+                + "_InvocationRecord";
+    }
+
+    static String SOInvocationRecordFileBase(Method m, String clnam,
+            String pnam) {
+        return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_",
+                "_SOInvocationRecord");
+    }
+
+    static String SOInvocationRecordClassName(Method m, String clnam,
+            String pnam) {
+        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_",
+                "_SOInvocationRecord");
     }
 
     static void removeFile(String name) {
@@ -383,8 +346,21 @@ class SatinSOc {
         }
     }
 
+    static void compile(String name) {
+        String filename = name + ".java";
+        if (! RunJavac.runJavac(new String[] { "-g" },
+                    new String[] {filename}, verbose)) {
+            System.exit(1);
+        }
 
-   static void rewriteMethod(Method m, String clnam) {
+        Repository.lookupClass(name);
+
+        if (!keep) { // remove generated files 
+            removeFile(filename);
+        }
+    }
+
+    static void rewriteMethod(Method m, String clnam, String pnam) {
        MethodGen origMethodGen;
        MethodGen newMethodGen;
        InstructionList newMethodInsList;
@@ -393,12 +369,19 @@ class SatinSOc {
        Type returnType;
        int oldAccessFlags;
        int monitorVarAddr;
+       String classname = clnam;
 
-       System.err.println("Rewriting method: " + m.getName() 
-			  + " with signature: " + m.getSignature());
+       if (pnam != null && ! pnam.equals("")) {
+           classname = pnam + "." + clnam;
+       }
+
+       if (verbose) {
+           System.err.println("Rewriting method: " + m.getName() 
+                              + " with signature: " + m.getSignature());
+        }
 
        //prefix the original method name with so_local
-       origMethodGen = new MethodGen(m, clnam, cpg);
+       origMethodGen = new MethodGen(m, classname, cpg);
        origMethodGen.setName("so_local_" + m.getName());
        origMethodGen.setMaxStack();
        origMethodGen.setMaxLocals();
@@ -421,10 +404,10 @@ class SatinSOc {
 						     new ObjectType("ibis.satin.impl.Satin"),
 						     new Type[] {},
 						     Constants.INVOKESTATIC));
-	newMethodInsList.append(insFactory.createNew(invocationRecordName(m, clnam)));
+	newMethodInsList.append(insFactory.createNew(SOInvocationRecordName(m, clnam, pnam)));
 	newMethodInsList.append(insFactory.createDup(1));
 	newMethodInsList.append(new ALOAD(0));
-	newMethodInsList.append(insFactory.createGetField(clnam,
+	newMethodInsList.append(insFactory.createGetField(classname,
 						       "objectId",
 						       Type.STRING));
 	arguments = m.getArgumentTypes();			     
@@ -440,7 +423,7 @@ class SatinSOc {
 	    objectId_and_arguments[k+1] = arguments[k];
 	}
 
-	newMethodInsList.append(insFactory.createInvoke(invocationRecordName(m, clnam), 
+	newMethodInsList.append(insFactory.createInvoke(SOInvocationRecordName(m, clnam, pnam), 
 						   "<init>",
 						   Type.VOID,
 						   objectId_and_arguments,
@@ -472,7 +455,7 @@ class SatinSOc {
 	    k1 += arguments[k].getSize();
 	}
 	returnType = m.getReturnType();
-	newMethodInsList.append(insFactory.createInvoke(clnam,
+	newMethodInsList.append(insFactory.createInvoke(classname,
 						     "so_local_" + m.getName(),
 						     returnType,
 						     arguments,
@@ -494,7 +477,7 @@ class SatinSOc {
 				     arguments,
 				     origMethodGen.getArgumentNames(),
 				     m.getName(),
-				     clnam,
+				     classname,
 				     newMethodInsList,
 				     cpg);
  
@@ -541,7 +524,9 @@ class SatinSOc {
        
    }
 
-    
+    static String do_mangle(Method m) {
+        return do_mangle(m.getName(), m.getSignature());
+    }
 
     static String do_mangle(StringBuffer s) {
         // OK, now sanitize parameters

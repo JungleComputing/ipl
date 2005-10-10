@@ -70,7 +70,7 @@
                     dir="${build}"
                     failonerror="true"
                     fork="true">          
-                    <arg line="-javahome '${JAVA_HOME}' -dir ${satinsoc-flags.value} ${satin-so-classes}"/>
+                    <arg line="-dir ${satinsoc-flags.value} ${satin-so-classes}"/>
                     <classpath refid="default.classpath"/>
                 </java>
             </then>
