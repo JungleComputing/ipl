@@ -1,36 +1,39 @@
 prun:
-	add readme on how to start ibis with prun for the VU people
-	
-IPL change (for ibis 2.0):
-	- receiveports not globally unique, but unique per ibis.
-	- lookup method: recPortIdent lookup (ibisIdent, name)
-	- and: recPortIdent[] lookup(name)
+- add readme on how to start ibis with prun for the VU people
 
 nameserver:
-- we forget to close connections on errors, see for instance forwardJoin in NameServer.java --Rob
+- we forget to close connections on errors, see for instance forwardJoin
+  in NameServer.java --Rob
++ nameserver needs to know classes of all ibis identifiers. 
+  Not really an option for external ibises --Rob
+  (Fixed Ceriel)
+- collect joins and leaves before sending them out to make things more scalable?
 
 general:
-+ I cannot add an "external" ibis that ibis does not know about without changing the
-  properties file in the original tree. --Rob (Fixed Ceriel)
-- nameserver needs to know classes of all ibis identifiers. 
-  Not really an option for external ibises --Rob
++ I cannot add an "external" ibis that ibis does not know about without
+  changing the properties file in the original tree. --Rob (Fixed Ceriel)
+
 + als ik mijn ibis ident niet herschrijf -> satin crash --Rob (Fixed Ceriel)
 
 ipl:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 - add receiveports local to an ibis:
+	- receiveports not globally unique, but unique per ibis.
+	- lookup method: recPortIdent lookup (ibisIdent, name)
+	- and: recPortIdent[] lookup(name)
 	- PortType.createReceivePort(..., ..., ..., boolean local); ??
-	- Registry.lookupReceivePort(Ibis ibis, String name)
 - make classes in ipl abstract as much as possible
 
 rmi:
 - check Ibis RMI registry:
   - you don't have to actually start one;
   - registers url's, not names.
-+ BUGS in rmi stubs (& skeletons?) -> if there is an IOexception, messages are not finished! --Rob (Done (Ceriel))
++ BUGS in rmi stubs (& skeletons?) -> if there is an IOexception, messages
+  are not finished! --Rob (Done (Ceriel))
 
 satin:
-+ als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
++ als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
+  print bij top of the stack.
 + bug: throws van runtime exception worden niet doorgegooid maar genegeerd.
   (Fixed Ceriel)
 - add semantic analysis to the compiler
