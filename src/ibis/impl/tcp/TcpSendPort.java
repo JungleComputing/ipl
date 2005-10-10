@@ -224,6 +224,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         receivers.remove(connection);
         splitter.remove(connection.out);
+        try {
+            connection.s.close();
+        } catch (Exception x) {
+            // ignore
+        }
     }
 
     public ibis.ipl.WriteMessage newMessage() throws IOException {
@@ -317,7 +322,6 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             } catch (Exception x) {
                 // ignore
             }
-            //ibis.tcpPortHandler.releaseOutput(c.ident, c.out);
         }
 
         receivers = null;

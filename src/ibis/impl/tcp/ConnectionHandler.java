@@ -66,7 +66,6 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
             }
         }
         in = null;
-        //ibis.tcpPortHandler.releaseInput(origin, input);
         try {
             s.close();
         } catch (Exception x) {
