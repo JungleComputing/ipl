@@ -133,7 +133,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
             if (canonicalMasterHost == null
                     || canonicalMasterHost.equals(address.getCanonicalHostName())) {
-                System.out.println("I am a masterhost candidate ...");
                 masterIdent = r.elect("satin master");
             } else {
                 masterIdent = r.getElectionResult("satin master");
