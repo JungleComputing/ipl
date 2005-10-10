@@ -118,8 +118,26 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
         try {
             Registry r = ibis.registry();
+            String canonicalMasterHost = null;
 
-            masterIdent = r.elect("satin master");
+            if (MASTER_HOST != null) {
+                try {
+                    InetAddress a = InetAddress.getByName(MASTER_HOST);
+                    canonicalMasterHost = a.getCanonicalHostName();
+                } catch(Exception e) {
+                    commLogger.warn("satin.masterhost is set to an unknown "
+                            + "name: " + MASTER_HOST);
+                    commLogger.warn("continuing with default master election");
+                }
+            }
+
+            if (canonicalMasterHost == null
+                    || canonicalMasterHost.equals(address.getCanonicalHostName())) {
+                System.out.println("I am a masterhost candidate ...");
+                masterIdent = r.elect("satin master");
+            } else {
+                masterIdent = r.getElectionResult("satin master");
+            }
 
             if (masterIdent.equals(ident)) {
                 /* I an the master. */

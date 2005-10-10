@@ -71,6 +71,8 @@ public interface Config {
 
     static final String s_ft_naive = PROPERTY_PREFIX + "ft.noTable";
 
+    static final String s_masterhost = PROPERTY_PREFIX + "masterHost";
+
     static final String s_so = PROPERTY_PREFIX + "so";
 
     static final String s_in_latency = PROPERTY_PREFIX + "messagesInLatency";
@@ -93,8 +95,8 @@ public interface Config {
             s_timing_tuple, s_timing_grt, s_timing_crash, s_timing_check,
             s_timing_repl, s_poll_freq, s_poll_port, s_asserts, s_aborts, s_ft,
             s_ft_grt_repl, s_ft_grt_comb, s_ft_noAborts, s_ft_naive,
-            s_in_latency, s_tuple_multi, s_tuple_ordered, s_tuple_numbered,
-            s_timing_so, s_so};
+            s_masterhost, s_in_latency, s_tuple_multi, s_tuple_ordered,
+            s_tuple_numbered, s_timing_so, s_so};
 
     /** Must be enabled or there are no statistics at all. */
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
@@ -191,6 +193,10 @@ public interface Config {
     /** Enable fault tolerance. */
     static final boolean FAULT_TOLERANCE
             = TypedProperties.booleanProperty(s_ft, false);
+
+    /** Determines master hostname. */
+    static final String MASTER_HOST
+            = TypedProperties.stringProperty(s_masterhost);
 
     /**
      * If true, the global result table is replicated if false, the table is
