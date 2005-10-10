@@ -12,8 +12,10 @@
     <property name="satin-main-class" value="${main-class}"/>
     <property name="satin-so-classes" value="CostArray"/>
 
+    <property name="test-par-java-args" value="-Dsatin.so=true"/>
     <property name="test-par-run"
 	      value="LocusRoute 2 circuits/circuit1 -satin-closed"/>
+    <property name="test-seq-java-args" value="-Dsatin.so=true"/>
     <property name="test-seq-run"
 	      value="LocusRoute 2 circuits/circuit1 -satin-closed"/>
 
