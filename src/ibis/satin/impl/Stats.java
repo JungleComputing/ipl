@@ -468,7 +468,7 @@ public abstract class Stats extends SharedObjects {
                     + Timer.format(tupleTime) + " ("
                     + (tuplePerc < 10 ? " " : "") + pf.format(tuplePerc)
                     + " %)");
-            out.println("SATIN: TUPLE_SPACE_HANDLE_TIME:   avg. per machine "
+            out.println("SATIN: TUPLE_SPACE_HANDLE_TIME:  avg. per machine "
                     + Timer.format(handleTupleTime) + " ("
                     + (handleTuplePerc < 10 ? " " : "") + pf.format(handleTuplePerc)
                     + " %)");
