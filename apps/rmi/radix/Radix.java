@@ -19,7 +19,7 @@ public class Radix {
 
     static final int DEFAULT_LOG2 = 10;
 
-    static final int DEFAULT_NUMBER_OF_KEYS = 1000;
+    static final int DEFAULT_NUMBER_OF_KEYS = 1000000;
 
     int radix, num_Keys, log2_Radix;
 
@@ -180,7 +180,7 @@ public class Radix {
         }
         if (host == 0) {
             try {
-                masterThread.join(10000);
+                masterThread.join();
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("Problem with waiting for master");
@@ -196,6 +196,5 @@ public class Radix {
             e.printStackTrace();
             System.exit(1);
         }
-        System.exit(0);
     }
 }

@@ -9,4 +9,4 @@ The program options are:
     -t      : Check to make sure all keys are sorted.
     -o      : Print out sorted keys.
     -h      : Print out program options.
-The default options are: -r1024 -n1000
+The default options are: -r1024 -n1000000
