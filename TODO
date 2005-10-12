@@ -1,3 +1,9 @@
+connect:
+	- control hub client side always binds to default local ip/port
+	- routed messages logging crashes
+	- use routed messages *while* trying to setup TCP splicing in the background
+	- implement any tcp client-server socket factory (not brokered)
+
 prun:
 - add readme on how to start ibis with prun for the VU people
 
