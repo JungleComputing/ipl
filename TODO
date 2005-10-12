@@ -1,3 +1,7 @@
+IPL:
+	close van poorten (in shutdownhooks)
+	docs vertellen niet dat je niet een close mag doen terwijl een message levend is
+
 connect:
 	- control hub client side always binds to default local ip/port
 	- routed messages logging crashes
