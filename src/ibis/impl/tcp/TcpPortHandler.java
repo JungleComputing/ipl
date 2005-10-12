@@ -11,6 +11,11 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisError;
 import ibis.util.ThreadPool;
+import ibis.io.Conversion;
+
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -91,67 +96,63 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
                 InputStream sin = s.getInputStream();
                 OutputStream sout = s.getOutputStream();
-
-                ObjectOutputStream obj_out = new ObjectOutputStream(
-                        new DummyOutputStream(sout));
+                DataOutputStream data_out = new DataOutputStream(
+                        new BufferedOutputStream(sout));
                 DataInputStream data_in = new DataInputStream(
-                        new DummyInputStream(sin));
+                        new BufferedInputStream(sin));
 
-                obj_out.writeObject(receiver);
-                obj_out.writeObject(sp.identifier());
-                obj_out.flush();
+		byte[] recv = Conversion.object2byte(receiver);
+		byte[] spIdent = Conversion.object2byte(sp.identifier());
+
+		data_out.writeInt(recv.length);
+		data_out.write(recv, 0, recv.length);
+		data_out.writeInt(spIdent.length);
+		data_out.write(spIdent, 0, spIdent.length);
+		data_out.flush();
 
                 int result = data_in.readByte();
-                if (result != RECEIVER_ACCEPTED) {
-                    obj_out.flush();
-                    obj_out.close();
-                    data_in.close();
+
+		switch(result) {
+		case RECEIVER_ACCEPTED:
+		    Socket s1 = socketFactory.createBrokeredSocket(
+			data_in, data_out, false,
+			sp.properties());
+
+		    data_out.close();
+		    data_in.close();
+		    sin.close();
+		    sout.close();
+		    s.close();
+		    return s1;
+		case RECEIVER_DENIED:
+		    data_out.close();
+		    data_in.close();
                     sin.close();
                     sout.close();
                     s.close();
-                    if (result == RECEIVER_DENIED) {
-                        return null;
-                    }
-                } else {
+		    return null;
+		case RECEIVER_DISABLED:
+		    data_out.close();
+		    data_in.close();
+                    sin.close();
+                    sout.close();
+                    s.close();
 
-                    if (DEBUG) {
-                        System.err.println("--> Sender Accepted");
-                    }
-
-                    /* the other side accepts the connection, finds the correct 
-                     stream */
-                    result = data_in.readByte();
-
-                    if (result == NEW_CONNECTION) {
-                        // close the object stream. The underlying stream will not be closed,
-                        // thanks to the dummy stream in between.
-                        obj_out.flush();
-                        obj_out.close();
-                        data_in.close();
-
-                        Socket s1 = socketFactory.createBrokeredSocket(s
-                                .getInputStream(), s.getOutputStream(), false,
-                                sp.properties());
-
-                        sin.close();
-                        sout.close();
-                        s.close();
-
-                        return s1;
-                    } else {
-                        throw new IbisError(
-                                "Illegal opcode in TcpPortHandler:connect");
-                    }
-                }
-                if (timeout > 0
+		    // and try again if we did not reach the timeout...
+		    if (timeout > 0
                         && System.currentTimeMillis() > startTime + timeout) {
-                    throw new ConnectionTimedOutException("could not connect");
-                }
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    // ignore
-                }
+			throw new ConnectionTimedOutException("could not connect");
+		    }
+		    try {
+			Thread.sleep(100);
+		    } catch (InterruptedException e) {
+			// ignore
+		    }
+		    break;
+		default:
+		    throw new IbisError("Illegal opcode in TcpPorthandler.connect");
+		}
+
             } while (true);
         } catch (IOException e) {
             e.printStackTrace();
@@ -210,27 +211,24 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     + s.getPort() + " on local port " + s.getLocalPort());
         }
 
-        ObjectInputStream obj_in = new ObjectInputStream(new DummyInputStream(
-                in));
-        DataOutputStream data_out = new DataOutputStream(new DummyOutputStream(
-                out));
+        DataInputStream data_in = new DataInputStream(new BufferedInputStream(
+	    new DummyInputStream(in)));
+	DataOutputStream data_out = new DataOutputStream(new BufferedOutputStream(
+            new DummyOutputStream(out)));
 
-        if (DEBUG) {
-            System.err.println("--> S Reading Data");
-        }
+	int recvLen = data_in.readInt();
+	byte[] recv = new byte[recvLen];
+	data_in.readFully(recv, 0, recv.length);
+        TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier)
+            Conversion.byte2object(recv);
 
-        TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in
-                .readObject();
-        TcpSendPortIdentifier send = (TcpSendPortIdentifier) obj_in
-                .readObject();
+	int spLen = data_in.readInt();
+	byte[] sp = new byte[spLen];
+	data_in.readFully(sp, 0, sp.length);
+	TcpSendPortIdentifier send = (TcpSendPortIdentifier)
+            Conversion.byte2object(sp);
+
         TcpIbisIdentifier ibis = send.ibis;
-
-        if (DEBUG) {
-            System.out.println("--> got RP " + receive);
-            System.out.println("--> got SP " + send);
-            System.out.println("--> got ibis " + ibis);
-            System.err.println("--> S finding RP");
-        }
 
         /* First, try to find the receive port this message is for... */
         TcpReceivePort rp = findReceivePort(receive);
@@ -246,32 +244,24 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         } else {
             result = rp.connectionAllowed(send);
         }
+
+	data_out.writeByte(result);
+	data_out.flush();
+
         if (result != RECEIVER_ACCEPTED) {
-            data_out.writeByte(result);
-            data_out.flush();
-            data_out.close();
-            obj_in.close();
+	    data_out.close();
+	    data_in.close();
             out.close();
             in.close();
             s.close();
             return;
         }
 
-        /* It accepts the connection, now we try to find an unused stream 
-         originating at the sending machine */
-        if (DEBUG) {
-            System.err.println("--> S getting peer");
-        }
-
-        /* no unused stream found, so reuse current socket */
-        data_out.writeByte(RECEIVER_ACCEPTED);
-        data_out.writeByte(NEW_CONNECTION);
-        data_out.flush();
-        data_out.close();
-        obj_in.close();
-
-        Socket s1 = socketFactory.createBrokeredSocket(s.getInputStream(), s
-                .getOutputStream(), true, rp.properties());
+        Socket s1 = socketFactory.createBrokeredSocket(data_in, data_out, true, rp.properties());
+	data_out.close();
+	data_in.close();
+	out.close();
+	in.close();
         s.close();
 
         /* add the connection to the receiveport. */

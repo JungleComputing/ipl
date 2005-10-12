@@ -712,7 +712,7 @@ public class NameServer extends Thread implements Protocol {
                 if (retry) {
                     if (! silent) {
                         logger.warn("Nameserver: could not create server "
-                                + "socket, retry in 1 second");
+                                + "socket, retry in 1 second, cause = " + e);
                     }
                     try {
                         Thread.sleep(1000);
