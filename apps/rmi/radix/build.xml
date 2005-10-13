@@ -12,8 +12,8 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    <property name="test-par-run" value="Radix -t"/>
-    <property name="test-seq-run" value="Radix -t"/>
+    <property name="test-par-run" value="Radix -t -r64"/>
+    <property name="test-seq-run" value="Radix -t -r64"/>
 
     <import file="${ibis}/build-files/apps/build-rmi-app.xml"/>
 
