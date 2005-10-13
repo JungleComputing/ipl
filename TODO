@@ -1,23 +1,14 @@
-IPL:
-	close van poorten (in shutdownhooks)
-	docs vertellen niet dat je niet een close mag doen terwijl een message levend is
-
-connect:
-	- control hub client side always binds to default local ip/port
-	- routed messages logging crashes
-	- use routed messages *while* trying to setup TCP splicing in the background
-	- implement any tcp client-server socket factory (not brokered)
-
 prun:
 - add readme on how to start ibis with prun for the VU people
 
 nameserver:
-- we forget to close connections on errors, see for instance forwardJoin
-  in NameServer.java --Rob
++ we forget to close connections on errors, see for instance forwardJoin
+  in NameServer.java --Rob (Occurred in many places. Fixed Ceriel)
 + nameserver needs to know classes of all ibis identifiers. 
   Not really an option for external ibises --Rob
   (Fixed Ceriel)
-- collect joins and leaves before sending them out to make things more scalable?
++ collect joins and leaves before sending them out to make things more scalable?
+  (Done Ceriel)
 
 general:
 + I cannot add an "external" ibis that ibis does not know about without
@@ -33,6 +24,9 @@ ipl:
 	- and: recPortIdent[] lookup(name)
 	- PortType.createReceivePort(..., ..., ..., boolean local); ??
 - make classes in ipl abstract as much as possible
+- close van poorten (in shutdownhooks)
+  docs vertellen niet dat je niet een close mag doen terwijl een message
+  levend is
 
 rmi:
 - check Ibis RMI registry:
@@ -69,6 +63,11 @@ connect stuff:
        But, first test it :-)
 - Rob: allow user to load socket types per *connection* use the 
        property map for this
+- control hub client side always binds to default local ip/port
+- routed messages logging crashes
+- use routed messages *while* trying to setup TCP splicing in the background
+- implement any tcp client-server socket factory (not brokered)
+
 
 general:
 - ibisc
