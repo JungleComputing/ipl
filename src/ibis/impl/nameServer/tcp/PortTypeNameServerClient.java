@@ -2,8 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.io.DummyInputStream;
-import ibis.io.DummyOutputStream;
 import ibis.ipl.StaticProperties;
 
 import java.io.BufferedInputStream;
@@ -36,37 +34,39 @@ class PortTypeNameServerClient implements Protocol {
             throws IOException {
 
         Socket s = null;
-        DataOutputStream out;
-        DataInputStream in;
+        DataOutputStream out = null;
+        DataInputStream in = null;
         int result;
 
-        s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
-        DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-        out = new DataOutputStream(new BufferedOutputStream(dos, 4096));
+        try {
+            s = NameServerClient.nsConnect(server, port, localAddress, false,
+                    10);
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream(), 4096));
 
-        out.writeByte(PORTTYPE_NEW);
-        out.writeUTF(name);
+            out.writeByte(PORTTYPE_NEW);
+            out.writeUTF(name);
 
-        Set e = p.propertyNames();
-        Iterator i = e.iterator();
+            Set e = p.propertyNames();
+            Iterator i = e.iterator();
 
-        out.writeInt(p.size());
+            out.writeInt(p.size());
 
-        // Send all properties.
-        while (i.hasNext()) {
-            String key = (String) i.next();
-            out.writeUTF(key);
+            // Send all properties.
+            while (i.hasNext()) {
+                String key = (String) i.next();
+                out.writeUTF(key);
 
-            String value = p.find(key);
-            out.writeUTF(value);
+                String value = p.find(key);
+                out.writeUTF(value);
+            }
+
+            out.flush();
+
+            in = new DataInputStream(s.getInputStream());
+            result = in.readByte();
+        } finally {
+            NameServer.closeConnection(in, out, s);
         }
-
-        out.flush();
-
-        in = new DataInputStream(new DummyInputStream(s.getInputStream()));
-        result = in.readByte();
-
-        NameServer.closeConnection(in, out, s);
 
         switch (result) {
         case PORTTYPE_ACCEPTED:
@@ -80,25 +80,25 @@ class PortTypeNameServerClient implements Protocol {
     }
 
     public long getSeqno(String name) throws IOException {
-        Socket s = NameServerClient.nsConnect(server, port, localAddress,
-                false, 10);
+        Socket s = null;
+        DataOutputStream out = null;
+        DataInputStream in = null;
+        try {
+            s = NameServerClient.nsConnect(server, port, localAddress,
+                    false, 10);
 
-        DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(
-                dos));
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
-        out.writeByte(SEQNO);
-        out.writeUTF(name);
-        out.flush();
+            out.writeByte(SEQNO);
+            out.writeUTF(name);
+            out.flush();
 
-        DummyInputStream di = new DummyInputStream(s.getInputStream());
-        DataInputStream in = new DataInputStream(new BufferedInputStream(di));
+            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
 
-        long temp = in.readLong();
+            return in.readLong();
 
-        NameServer.closeConnection(in, out, s);
-
-        return temp;
+        } finally {
+            NameServer.closeConnection(in, out, s);
+        }
     }
-
 }

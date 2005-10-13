@@ -2,21 +2,18 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.io.DummyInputStream;
-import ibis.io.DummyOutputStream;
 import ibis.ipl.BindingException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.io.Conversion;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -43,52 +40,57 @@ class ReceivePortNameServerClient implements Protocol {
 
     public ReceivePortIdentifier lookup(String name, long timeout)
             throws IOException {
-        ObjectOutputStream out;
-        ObjectInputStream in;
+        DataOutputStream out = null;
+        DataInputStream in = null;
+        Socket s = null;
+
         ReceivePortIdentifier id = null;
         int result;
-        Socket s = NameServerClient.nsConnect(server, port, localAddress,
-                false, 10);
 
-        DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-        out = new ObjectOutputStream(new BufferedOutputStream(dos));
+        try {
+            s = NameServerClient.nsConnect(server, port, localAddress, false,
+                    10);
 
-        // request a new Port.
-        out.writeByte(PORT_LOOKUP);
-        out.writeUTF(name);
-        out.writeLong(timeout);
-        out.flush();
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
-        DummyInputStream di = new DummyInputStream(s.getInputStream());
-        in = new ObjectInputStream(new BufferedInputStream(di));
-        result = in.readByte();
-        logger.debug(this + ": lookup port \"" + name + "\"");
+            // request a new Port.
+            out.writeByte(PORT_LOOKUP);
+            out.writeUTF(name);
+            out.writeLong(timeout);
+            out.flush();
 
-        switch (result) {
-        case PORT_UNKNOWN:
-            logger.debug("Port " + name + ": PORT_UNKNOWN");
-            NameServer.closeConnection(in, out, s);
-            throw new ConnectionTimedOutException("could not connect");
-        case PORT_KNOWN:
-            logger.debug("Port " + name + ": PORT_KNOWN");
-            try {
-                byte[] b = (byte[]) in.readObject();
-                ByteArrayInputStream bais = new ByteArrayInputStream(b);
-                ObjectInputStream ois = new ObjectInputStream(bais);
-                id = (ReceivePortIdentifier) ois.readObject();
-                ois.close();
-            } catch (ClassNotFoundException e) {
-                NameServer.closeConnection(in, out, s);
-                throw new IOException("Unmarshall fails " + e);
+            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+            result = in.readByte();
+            if (logger.isDebugEnabled()) {
+                logger.debug(this + ": lookup port \"" + name + "\"");
             }
-            break;
-        default:
-            NameServer.closeConnection(in, out, s);
-            throw new StreamCorruptedException(
-                    "Registry: lookup got illegal opcode " + result);
-        }
 
-        NameServer.closeConnection(in, out, s);
+            switch (result) {
+            case PORT_UNKNOWN:
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Port " + name + ": PORT_UNKNOWN");
+                }
+                throw new ConnectionTimedOutException("could not connect");
+            case PORT_KNOWN:
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Port " + name + ": PORT_KNOWN");
+                }
+                try {
+                    int len = in.readInt();
+                    byte[] b = new byte[len];
+                    in.readFully(b, 0, len);
+                    id = (ReceivePortIdentifier) Conversion.byte2object(b);
+                } catch (ClassNotFoundException e) {
+                    throw new IOException("Unmarshall fails " + e);
+                }
+                break;
+            default:
+                throw new StreamCorruptedException(
+                        "Registry: lookup got illegal opcode " + result);
+            }
+        } finally {
+            NameServer.closeConnection(in, out, s);
+        }
 
         return id;
     }
@@ -102,38 +104,35 @@ class ReceivePortNameServerClient implements Protocol {
         bind(name, prt.identifier());
     }
 
-    //gosia
     public void bind(String name, ReceivePortIdentifier id) throws IOException {
         Socket s = null;
-        ObjectOutputStream out;
-        ObjectInputStream in;
+        DataOutputStream out = null;
+        DataInputStream in = null;
         int result;
 
-        logger.debug(this + ": bind \"" + name + "\" to " + id);
+        if (logger.isDebugEnabled()) {
+            logger.debug(this + ": bind \"" + name + "\" to " + id);
+        }
 
-        s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
+        try {
+            s = NameServerClient.nsConnect(server, port, localAddress, false,
+                    10);
 
-        DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-        out = new ObjectOutputStream(new BufferedOutputStream(dos));
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
-        // request a new Port.
-        out.writeByte(PORT_NEW);
-        out.writeUTF(name);
+            // request a new Port.
+            out.writeByte(PORT_NEW);
+            out.writeUTF(name);
+            byte[] buf = Conversion.object2byte(id);
+            out.writeInt(buf.length);
+            out.write(buf);
+            out.flush();
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(id);
-        oos.close();
-
-        byte buf[] = baos.toByteArray();
-        out.writeObject(buf);
-        out.flush();
-
-        DummyInputStream di = new DummyInputStream(s.getInputStream());
-        in = new ObjectInputStream(new BufferedInputStream(di));
-        result = in.readByte();
-
-        NameServer.closeConnection(in, out, s);
+            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+            result = in.readByte();
+        } finally {
+            NameServer.closeConnection(in, out, s);
+        }
 
         switch (result) {
         case PORT_REFUSED:
@@ -146,41 +145,41 @@ class ReceivePortNameServerClient implements Protocol {
                     "Registry: bind got illegal opcode " + result);
         }
 
-        logger.debug(this + ": bound \"" + name + "\" to " + id);
-
+        if (logger.isDebugEnabled()) {
+            logger.debug(this + ": bound \"" + name + "\" to " + id);
+        }
     }
 
     public void rebind(String name, ReceivePortIdentifier id)
             throws IOException {
         Socket s = null;
-        ObjectOutputStream out;
-        ObjectInputStream in;
+        DataOutputStream out = null;
+        DataInputStream in = null;
         int result;
 
-        logger.debug(this + ": rebind \"" + name + "\" to " + id);
+        if (logger.isDebugEnabled()) {
+            logger.debug(this + ": rebind \"" + name + "\" to " + id);
+        }
 
-        s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
+        try {
+            s = NameServerClient.nsConnect(server, port, localAddress, false,
+                    10);
 
-        DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-        out = new ObjectOutputStream(new BufferedOutputStream(dos));
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
-        // request a rebind
-        out.writeByte(PORT_REBIND);
-        out.writeUTF(name);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(id);
-        oos.close();
+            // request a rebind
+            out.writeByte(PORT_REBIND);
+            out.writeUTF(name);
+            byte[] buf = Conversion.object2byte(id);
+            out.writeInt(buf.length);
+            out.write(buf);
+            out.flush();
 
-        byte buf[] = baos.toByteArray();
-        out.writeObject(buf);
-        out.flush();
-
-        DummyInputStream di = new DummyInputStream(s.getInputStream());
-        in = new ObjectInputStream(new BufferedInputStream(di));
-        result = in.readByte();
-
-        NameServer.closeConnection(in, out, s);
+            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+            result = in.readByte();
+        } finally {
+            NameServer.closeConnection(in, out, s);
+        }
 
         switch (result) {
         case PORT_ACCEPTED:
@@ -190,74 +189,70 @@ class ReceivePortNameServerClient implements Protocol {
                     "Registry: bind got illegal opcode " + result);
         }
 
-        logger.debug(this + ": rebound \"" + name + "\" to " + id);
+        if (logger.isDebugEnabled()) {
+            logger.debug(this + ": rebound \"" + name + "\" to " + id);
+        }
     }
-
-    //end gosia
 
     public void unbind(String name) {
 
+        Socket s = null;
+        DataOutputStream out = null;
+        DataInputStream in = null;
+
         try {
-            Socket s = null;
-            ObjectOutputStream out;
-            ObjectInputStream in;
+            s = NameServerClient.nsConnect(server, port, localAddress, false,
+                    5);
 
-            s = NameServerClient
-                    .nsConnect(server, port, localAddress, false, 5);
-
-            DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-            out = new ObjectOutputStream(new BufferedOutputStream(dos));
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
             // request a new Port.
             out.writeByte(PORT_FREE);
             out.writeUTF(name);
             out.flush();
 
-            DummyInputStream di = new DummyInputStream(s.getInputStream());
-            in = new ObjectInputStream(new BufferedInputStream(di));
+            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
 
             byte temp = in.readByte();
-            NameServer.closeConnection(in, out, s);
             if (temp != 0) {
                 throw new BindingException("Port name \"" + name
                         + "\" is not bound!");
             }
         } catch (Exception e) {
             logger.info("unbind of " + name + " failed");
+        } finally {
+            NameServer.closeConnection(in, out, s);
         }
     }
 
-    //gosia
     public String[] list(String pattern) throws IOException {
         Socket s = null;
-        ObjectOutputStream out;
-        ObjectInputStream in;
+        DataOutputStream out = null;
+        DataInputStream in = null;
         String[] result;
 
-        s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
+        try {
+            s = NameServerClient.nsConnect(server, port, localAddress, false,
+                    10);
 
-        DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-        out = new ObjectOutputStream(new BufferedOutputStream(dos));
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
-        // request a list of names.
-        out.writeByte(PORT_LIST);
-        out.writeUTF(pattern);
-        out.flush();
+            // request a list of names.
+            out.writeByte(PORT_LIST);
+            out.writeUTF(pattern);
+            out.flush();
 
-        DummyInputStream di = new DummyInputStream(s.getInputStream());
-        in = new ObjectInputStream(new BufferedInputStream(di));
+            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
 
-        byte num = in.readByte();
+            byte num = in.readByte();
 
-        result = new String[num];
-        for (int i = 0; i < num; i++) {
-            result[i] = in.readUTF();
+            result = new String[num];
+            for (int i = 0; i < num; i++) {
+                result[i] = in.readUTF();
+            }
+        } finally {
+            NameServer.closeConnection(in, out, s);
         }
-
-        NameServer.closeConnection(in, out, s);
-
         return result;
-
     }
-    //end gosia
 }

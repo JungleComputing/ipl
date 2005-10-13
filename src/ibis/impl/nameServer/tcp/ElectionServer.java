@@ -2,15 +2,13 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.io.DummyInputStream;
-import ibis.io.DummyOutputStream;
 import ibis.ipl.IbisRuntimeException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -23,13 +21,17 @@ class ElectionServer extends Thread implements Protocol {
 
     private ServerSocket serverSocket;
 
-    private ObjectInputStream in;
+    private DataInputStream in;
 
-    private ObjectOutputStream out;
+    private DataOutputStream out;
 
-    ElectionServer() throws IOException {
+    boolean silent;
+
+    ElectionServer(boolean silent) throws IOException {
         elections = new HashMap();
         buffers = new HashMap();
+
+        this.silent = silent;
 
         serverSocket = NameServerClient.socketFactory.createServerSocket(0,
                 null, true /* retry */, null);
@@ -41,14 +43,17 @@ class ElectionServer extends Thread implements Protocol {
         return serverSocket.getLocalPort();
     }
 
-    private void handleElection() throws IOException, ClassNotFoundException {
+    private void handleElection() throws IOException {
 
         String election = in.readUTF();
-        String name = (String) in.readObject();
+        int candidate = in.readInt();
+        String name = null;
         byte[] buf = null;
-
-        if (name != null) {
-            buf = (byte[]) in.readObject();
+        if (candidate != 0) {
+            name = in.readUTF();
+            int len = in.readInt();
+            buf = new byte[len];
+            in.readFully(buf, 0, len);
         }
 
         Object temp = elections.get(election);
@@ -58,16 +63,22 @@ class ElectionServer extends Thread implements Protocol {
                 elections.put(election, name);
                 buffers.put(election, buf);
             }
-            out.writeObject(buf);
         } else {
-            out.writeObject(buffers.get(election));
+            buf = (byte[])  buffers.get(election);
         }
+        out.writeInt(buf.length);
+        out.write(buf);
         out.flush();
     }
 
-    private void handleKill() throws IOException, ClassNotFoundException {
+    private void handleKill() throws IOException {
 
-        String ids[] = (String[]) in.readObject();
+        int ns = in.readInt();
+        String ids[] = new String[ns];
+        for (int i = 0; i < ns; i++) {
+            ids[i] = in.readUTF();
+        }
+
         for (Iterator key = elections.keySet().iterator(); key.hasNext();) {
             String election = (String) key.next();
             Object o = elections.get(election);
@@ -98,11 +109,8 @@ class ElectionServer extends Thread implements Protocol {
             }
 
             try {
-                DummyInputStream di = new DummyInputStream(s.getInputStream());
-                in = new ObjectInputStream(new BufferedInputStream(di));
-                DummyOutputStream dos
-                        = new DummyOutputStream(s.getOutputStream());
-                out = new ObjectOutputStream(new BufferedOutputStream(dos));
+                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+                out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
                 opcode = in.readByte();
 
@@ -114,26 +122,22 @@ class ElectionServer extends Thread implements Protocol {
                     handleKill();
                     break;
                 case (ELECTION_EXIT):
-                    NameServer.closeConnection(in, out, s);
                     serverSocket.close();
                     return;
                 default:
-                    System.err.println("ElectionServer: got an illegal opcode "
-                            + opcode);
-                }
-
-                NameServer.closeConnection(in, out, s);
-            } catch (Exception e1) {
-                System.err.println("Got an exception in ElectionServer.run "
-                        + e1);
-                e1.printStackTrace();
-                if (s != null) {
-                    try {
-                        s.close();
-                    } catch (IOException e2) {
-                        // don't care.
+                    if (! silent) {
+                        System.err.println("ElectionServer: got an illegal opcode "
+                                + opcode);
                     }
                 }
+            } catch (Exception e1) {
+                if (! silent) {
+                    System.err.println("Got an exception in ElectionServer.run "
+                            + e1);
+                    e1.printStackTrace();
+                }
+            } finally {
+                NameServer.closeConnection(in, out, s);
             }
         }
     }

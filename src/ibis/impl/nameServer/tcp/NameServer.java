@@ -4,9 +4,8 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.connect.controlHub.ControlHub;
 import ibis.impl.nameServer.NSProps;
-import ibis.io.DummyInputStream;
-import ibis.io.DummyOutputStream;
 import ibis.ipl.IbisRuntimeException;
+import ibis.io.Conversion;
 import ibis.util.IPUtils;
 import ibis.util.PoolInfoServer;
 import ibis.util.TypedProperties;
@@ -17,8 +16,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -28,6 +25,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -36,17 +34,19 @@ public class NameServer extends Thread implements Protocol {
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR
             = TypedProperties.intProperty(NSProps.s_port, 9826);
 
-    static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout,
-            60) * 1000; // Property is in seconds, convert to milliseconds.
+    static final int PINGER_TIMEOUT
+        = TypedProperties.intProperty(NSProps.s_timeout, 60) * 1000;
+        // Property is in seconds, convert to milliseconds.
+
+    static int JOINER_INTERVAL
+        = TypedProperties.intProperty(NSProps.s_joiner_interval, 1) * 1000;
 
     InetAddress myAddress;
 
     static class IbisInfo {
         String name;
         byte[] serializedId;
-
         int ibisNameServerport;
-
         InetAddress ibisNameServerAddress;
 
         IbisInfo(String name, byte[] serializedId,
@@ -75,7 +75,11 @@ public class NameServer extends Thread implements Protocol {
     }
 
     static class RunInfo {
-        Vector pool; // a list of IbisInfos
+        ArrayList pool; // a list of IbisInfos
+
+        ArrayList leavers;
+
+        int joinsSent = 0;
 
         Vector toBeDeleted; // a list of ibis names
 
@@ -87,12 +91,13 @@ public class NameServer extends Thread implements Protocol {
 
         long pingLimit;
 
-        RunInfo() throws IOException {
-            pool = new Vector();
+        RunInfo(boolean silent) throws IOException {
+            pool = new ArrayList();
+            leavers = new ArrayList();
             toBeDeleted = new Vector();
-            portTypeNameServer = new PortTypeNameServer();
-            receivePortNameServer = new ReceivePortNameServer();
-            electionServer = new ElectionServer();
+            portTypeNameServer = new PortTypeNameServer(silent);
+            receivePortNameServer = new ReceivePortNameServer(silent);
+            electionServer = new ElectionServer(silent);
             pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
         }
 
@@ -119,9 +124,9 @@ public class NameServer extends Thread implements Protocol {
 
     private ServerSocket serverSocket;
 
-    private ObjectInputStream in;
+    private DataInputStream in;
 
-    private ObjectOutputStream out;
+    private DataOutputStream out;
 
     private boolean singleRun;
 
@@ -184,7 +189,7 @@ public class NameServer extends Thread implements Protocol {
             poolServerStarted = true;
         }
 
-        if (! silent) {
+        if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: singleRun = " + singleRun);
         }
 
@@ -194,62 +199,127 @@ public class NameServer extends Thread implements Protocol {
 
         pools = new Hashtable();
 
-        if (! silent) {
+        Thread p = new Thread("NameServer Upcaller") {
+            public void run() {
+                upcaller();
+            }
+        };
+
+        p.setDaemon(true);
+        p.start();
+
+        if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: created server on " + serverSocket);
         }
     }
 
-    private void forwardJoin(IbisInfo dest, String name, byte[] id) {
-
-        if (! silent) {
-            logger.debug("NameServer: forwarding join of "
-                    + name + " to " + dest.name);
+    private void sendLeavers(RunInfo inf) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("sendLeavers ... size = " + inf.leavers.size());
         }
+        synchronized(inf) {
+            if (inf.leavers.size() != 0) {
+                IbisInfo[] iinf = new IbisInfo[0];
+                iinf = (IbisInfo[]) inf.leavers.toArray(iinf);
+                for (int i = 0; i < inf.pool.size(); i++) {
+                    forwardLeave((IbisInfo) inf.pool.get(i), iinf);
+                }
+                for (int i = 0; i < iinf.length; i++) {
+                    forwardLeave(iinf[i], iinf);
+                }
+                inf.leavers.clear();
+            }
+        }
+    }
+
+    private void upcaller() {
+        for (;;) {
+            try {
+                Thread.sleep(JOINER_INTERVAL);
+            } catch(InterruptedException e) {
+                // ignore
+            }
+            for (Enumeration e = pools.keys(); e.hasMoreElements();) {
+                String key = (String) e.nextElement();
+                RunInfo inf = (RunInfo) pools.get(key);
+                synchronized(inf) {
+                    sendLeavers(inf);
+                    if (inf.joinsSent < inf.pool.size()) {
+                        IbisInfo[] message = new IbisInfo[inf.pool.size() - inf.joinsSent];
+                        for (int i = 0; i < message.length; i++) {
+                            message[i] = (IbisInfo) inf.pool.get(i + inf.joinsSent);
+                        }
+                        for (int i = 0; i < inf.joinsSent; i++) {
+                            forwardJoin((IbisInfo) inf.pool.get(i), message, 0);
+                        }
+
+                        for (int i = inf.joinsSent; i < inf.pool.size(); i++) {
+                            forwardJoin((IbisInfo) inf.pool.get(i), message, i - inf.joinsSent + 1);
+                        }
+                        inf.joinsSent = inf.pool.size();
+                    }
+                }
+            }
+        }
+    }
+
+    private void forwardJoin(IbisInfo dest, IbisInfo[] info, int offset) {
+
+        if (! silent && logger.isDebugEnabled()) {
+            logger.debug("NameServer: forwarding joins to " + dest.name);
+        }
+
+        if (offset >= info.length) {
+            return;
+        }
+
+        Socket s = null;
+        DataOutputStream out2 = null;
+
         try {
-
-            Socket s = NameServerClient.socketFactory.createClientSocket(
+            s = NameServerClient.socketFactory.createClientSocket(
                     dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
-
-            DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-            ObjectOutputStream out2 = new ObjectOutputStream(
-                    new BufferedOutputStream(d));
+            out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(IBIS_JOIN);
-            out2.writeObject(id);
-            closeConnection(null, out2, s);
+            out2.writeInt(info.length - offset);
+            for (int i = offset; i < info.length; i++) {
+                out2.writeInt(info[i].serializedId.length);
+                out2.write(info[i].serializedId);
 
-            if (! silent) {
-                logger.debug("NameServer: forwarding join of "
-                        + name + " to " + dest.name + " DONE");
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("NameServer: forwarding join of "
+                            + info[i].name + " to " + dest.name + " DONE");
+                }
             }
         } catch (Exception e) {
             if (! silent) {
-                logger.error("Could not forward join of " + name
-                        + " to " + name, e);
+                logger.error("Could not forward join to " + dest.name, e);
             }
+        } finally {
+            closeConnection(null, out2, s);
         }
-
     }
 
     private boolean doPing(IbisInfo dest, String key) {
-        try {
-            Socket s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+        Socket s = null;
+        DataOutputStream out2 = null;
+        DataInputStream in2 = null;
 
-            DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-            ObjectOutputStream out2 = new ObjectOutputStream(
-                    new BufferedOutputStream(d));
+        try {
+            s = NameServerClient.socketFactory.createClientSocket(
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+            out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(IBIS_PING);
             out2.flush();
-            DummyInputStream i = new DummyInputStream(s.getInputStream());
-            DataInputStream in2 = new DataInputStream(
-                    new BufferedInputStream(i));
+            in2 = new DataInputStream(new BufferedInputStream(s.getInputStream()));
             String k = in2.readUTF();
-            closeConnection(in2, out2, s);
             if (!k.equals(key)) {
                 return false;
             }
         } catch (Exception e) {
             return false;
+        } finally {
+            closeConnection(in2, out2, s);
         }
         return true;
     }
@@ -258,96 +328,111 @@ public class NameServer extends Thread implements Protocol {
 
         Vector deadIbises = new Vector();
 
-        for (int i = 0; i < p.pool.size(); i++) {
-            IbisInfo temp = (IbisInfo) p.pool.get(i);
-            if (victim != null && temp.name.equals(victim)) {
-                deadIbises.add(temp);
-                continue;
-            }
-            if (doPing(temp, key)) {
-                continue;
-            }
-            deadIbises.add(temp);
-        }
-
-        if (deadIbises.size() != 0) {
-
-            // Remove the dead ones from the pool.
-            p.pool.removeAll(deadIbises);
-
-            // Put the dead ones in an array.
-            String[] ids = new String[deadIbises.size()];
-            byte[][] ibisIds = new byte[ids.length][];
-            for (int j = 0; j < ids.length; j++) {
-                IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
-                ids[j] = temp2.name;
-                ibisIds[j] = temp2.serializedId;
-            }
-
-            // Pass the dead ones on to the election server ...
-            try {
-                electionKill(p, ids);
-            } catch (IOException e) {
-                // ignored
-            }
-
-            // ... and to all other ibis instances in this pool.
+        synchronized(p) {
             for (int i = 0; i < p.pool.size(); i++) {
-                forwardDead((IbisInfo) p.pool.get(i), ibisIds);
+                IbisInfo temp = (IbisInfo) p.pool.get(i);
+                if (victim == null || ! temp.name.equals(victim)) {
+                    if (doPing(temp, key)) {
+                        continue;
+                    }
+                }
+                deadIbises.add(temp);
+                if (p.joinsSent > i) {
+                    p.joinsSent--;
+                }
+                p.pool.remove(i);
             }
-        }
 
-        p.pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
+            if (deadIbises.size() != 0) {
+                // Put the dead ones in an array.
+                String[] ids = new String[deadIbises.size()];
+                byte[][] ibisIds = new byte[ids.length][];
+                for (int j = 0; j < ids.length; j++) {
+                    IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
+                    ids[j] = temp2.name;
+                    ibisIds[j] = temp2.serializedId;
+                }
 
-        if (p.pool.size() == 0) {
-            pools.remove(key);
-            String date = Calendar.getInstance().getTime().toString();
-            if (! silent) {
-                logger.warn(date + " pool " + key + " seems to be dead.");
+                // Pass the dead ones on to the election server ...
+                try {
+                    electionKill(p, ids);
+                } catch (IOException e) {
+                    // ignored
+                }
+
+                // ... and to all other ibis instances in this pool.
+                for (int i = 0; i < p.pool.size(); i++) {
+                    forwardDead((IbisInfo) p.pool.get(i), ibisIds);
+                }
             }
-            killThreads(p);
+
+            p.pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
+
+            if (p.pool.size() == 0) {
+                pools.remove(key);
+                String date = Calendar.getInstance().getTime().toString();
+                if (! silent) {
+                    logger.warn(date + " pool " + key + " seems to be dead.");
+                }
+                killThreads(p);
+            }
         }
     }
 
-    private void handleIbisIsalive(boolean kill) throws IOException,
-            ClassNotFoundException {
+    private void handleIbisIsalive(boolean kill) throws IOException {
         String key = in.readUTF();
         String name = in.readUTF();
 
         RunInfo p = (RunInfo) pools.get(key);
         if (p != null) {
             checkPool(p, kill ? name : null, key);
-
         }
     }
 
     private void forwardDead(IbisInfo dest, byte[][] ids) {
+        Socket s = null;
+        DataOutputStream out2 = null;
+
         try {
-            Socket s = NameServerClient.socketFactory.createClientSocket(
+            s = NameServerClient.socketFactory.createClientSocket(
                     dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
 
-            DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-            ObjectOutputStream out2 = new ObjectOutputStream(
-                    new BufferedOutputStream(d));
+            out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(IBIS_DEAD);
-            out2.writeObject(ids);
-            closeConnection(null, out2, s);
+            out2.writeInt(ids.length);
+            for (int i = 0; i < ids.length; i++) {
+                byte[] buf = ids[i];
+                out2.writeInt(buf.length);
+                out2.write(buf);
+            }
         } catch (Exception e) {
             if (! silent) {
                 logger.error("Could not forward dead ibises to "
                         + dest.name, e);
             }
+        } finally {
+            closeConnection(null, out2, s);
         }
     }
 
-    private void handleIbisJoin() throws IOException, ClassNotFoundException {
+    private void handleIbisJoin() throws IOException {
         String key = in.readUTF();
         String name = in.readUTF();
-        byte[] serializedId = (byte[]) in.readObject();
-        InetAddress address = (InetAddress) in.readObject();
+        int len = in.readInt();
+        byte[] serializedId = new byte[len];
+        in.readFully(serializedId, 0, len);
+        len = in.readInt();
+        byte[] buf = new byte[len];
+        in.readFully(buf, 0, len);
+        InetAddress address = null;
+        try {
+            address = (InetAddress) Conversion.byte2object(buf);
+        } catch(ClassNotFoundException e) {
+            throw new IOException("Could not read InetAddress");
+        }
         int port = in.readInt();
 
-        if (! silent) {
+        if (! silent && logger.isDebugEnabled()) {
             logger.debug("NameServer: join to pool " + key + " requested by "
                     + name +", port " + port);
         }
@@ -357,13 +442,24 @@ public class NameServer extends Thread implements Protocol {
 
         if (p == null) {
             // new run
+            //
+            if (singleRun && joined) {
+                out.writeByte(IBIS_REFUSED);
+
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("NameServer: join to pool " + key + " of ibis "
+                            + name + " refused");
+                }
+                out.flush();
+                return;
+            }
             poolPinger();
-            p = new RunInfo();
+            p = new RunInfo(silent);
 
             pools.put(key, p);
             joined = true;
 
-            if (! silent) {
+            if (! silent && logger.isInfoEnabled()) {
                 logger.info("NameServer: new pool " + key + " created");
             }
         }
@@ -371,48 +467,55 @@ public class NameServer extends Thread implements Protocol {
         if (p.pool.contains(info)) {
             out.writeByte(IBIS_REFUSED);
 
-            if (! silent) {
+            if (! silent && logger.isDebugEnabled()) {
                 logger.debug("NameServer: join to pool " + key + " of ibis "
                         + name + " refused");
             }
             out.flush();
         } else {
+
+            // Handle delayed leave messages before adding new members
+            // to a pool, otherwise new members get leave messages from nodes
+            // that they have never seen.
+            sendLeavers(p);
+
             out.writeByte(IBIS_ACCEPTED);
             out.writeInt(p.portTypeNameServer.getPort());
             out.writeInt(p.receivePortNameServer.getPort());
             out.writeInt(p.electionServer.getPort());
 
-            if (! silent) {
+            if (! silent && logger.isDebugEnabled()) {
                 logger.debug("NameServer: join to pool " + key + " of ibis "
                     + name + " accepted");
             }
 
-            // first send all existing nodes to the new one.
+            synchronized(p) {
+                p.pool.add(info);
+            }
+
+            // first send all existing nodes (including the new one) to the
+            // new one.
             out.writeInt(p.pool.size());
 
             for (int i = 0; i < p.pool.size(); i++) {
                 IbisInfo temp = (IbisInfo) p.pool.get(i);
-                out.writeObject(temp.serializedId);
+                out.writeInt(temp.serializedId.length);
+                out.write(temp.serializedId);
             }
 
             //send all nodes about to leave to the new one
             out.writeInt(p.toBeDeleted.size());
 
             for (int i = 0; i < p.toBeDeleted.size(); i++) {
-                out.writeObject(((IbisInfo) p.toBeDeleted.get(i)).serializedId);
+                IbisInfo temp = (IbisInfo) p.toBeDeleted.get(i);
+                out.writeInt(temp.serializedId.length);
+                out.write(temp.serializedId);
             }
             out.flush();
 
-            for (int i = 0; i < p.pool.size(); i++) {
-                IbisInfo temp = (IbisInfo) p.pool.get(i);
-                forwardJoin(temp, name, serializedId);
-            }
-
-            p.pool.add(info);
-
             String date = Calendar.getInstance().getTime().toString();
 
-            if (! silent) {
+            if (! silent && logger.isInfoEnabled()) {
                 logger.info(date + " " + name + " JOINS  pool " + key
                         + " (" + p.pool.size() + " nodes)");
             }
@@ -420,7 +523,7 @@ public class NameServer extends Thread implements Protocol {
     }
 
     private void poolPinger(String key) {
-        if (! silent) {
+        if (! silent && logger.isDebugEnabled()) {
             logger.debug("NameServer: ping pool " + key);
         }
 
@@ -451,65 +554,78 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private void forwardLeave(IbisInfo dest, String name, byte[] id) {
-        if (! silent) {
-            logger.debug("NameServer: forwarding leave of "
-                    + name + " to " + dest.name);
+    private void forwardLeave(IbisInfo dest, IbisInfo[] info) {
+        if (! silent && logger.isDebugEnabled()) {
+            logger.debug("NameServer: forwarding leaves to " + dest.name);
         }
 
+        Socket s = null;
+        DataOutputStream out2 = null;
+
         try {
-            Socket s = NameServerClient.socketFactory.createClientSocket(
+            s = NameServerClient.socketFactory.createClientSocket(
                     dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
 
-            DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-            ObjectOutputStream out2 = new ObjectOutputStream(
-                    new BufferedOutputStream(d));
+            out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(IBIS_LEAVE);
-            out2.writeObject(id);
-            closeConnection(null, out2, s);
+            out2.writeInt(info.length);
+            for (int i = 0; i < info.length; i++) {
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("NameServer: forwarding leave of "
+                            + info[i].name + " to " + dest.name);
+                }
+                out2.writeInt(info[i].serializedId.length);
+                out2.write(info[i].serializedId);
+            }
         } catch (Exception e) {
             if (! silent) {
-                logger.error("Could not forward leave of " + name
-                        + " to " + dest.name, e);
+                logger.error("Could not forward leave to " + dest.name, e);
             }
+        } finally {
+            closeConnection(null, out2, s);
         }
     }
 
     private void killThreads(RunInfo p) {
+        Socket s = null;
+        Socket s2 = null;
+        Socket s3 = null;
+        DataOutputStream out1 = null;
+        DataOutputStream out2 = null;
+        DataOutputStream out3 = null;
+
         try {
-            Socket s = NameServerClient.socketFactory.createClientSocket(myAddress,
+            s = NameServerClient.socketFactory.createClientSocket(myAddress,
                     p.portTypeNameServer.getPort(), null, -1);
-            DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-            DataOutputStream out1 = new DataOutputStream(
-                    new BufferedOutputStream(d));
+            out1 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out1.writeByte(PORTTYPE_EXIT);
-            closeConnection(null, out1, s);
         } catch (IOException e) {
             // Ignore.
+        } finally {
+            closeConnection(null, out1, s);
+            s = null;
         }
 
         try {
-            Socket s2 = NameServerClient.socketFactory.createClientSocket(myAddress,
+            s2 = NameServerClient.socketFactory.createClientSocket(myAddress,
                     p.receivePortNameServer.getPort(), null, -1);
-            DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
-            ObjectOutputStream out2 = new ObjectOutputStream(
-                    new BufferedOutputStream(d2));
+            out2 = new DataOutputStream(new BufferedOutputStream(s2.getOutputStream()));
             out2.writeByte(PORT_EXIT);
-            closeConnection(null, out2, s2);
         } catch (IOException e) {
             // ignore
+        } finally {
+            closeConnection(null, out2, s2);
         }
 
         try {
-            Socket s3 = NameServerClient.socketFactory.createClientSocket(myAddress,
+            s3 = NameServerClient.socketFactory.createClientSocket(myAddress,
                     p.electionServer.getPort(), null);
-            DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
-            ObjectOutputStream out3 = new ObjectOutputStream(
-                    new BufferedOutputStream(d3));
+            out3 = new DataOutputStream(new BufferedOutputStream(s3.getOutputStream()));
             out3.writeByte(ELECTION_EXIT);
-            closeConnection(null, out3, s3);
         } catch (IOException e) {
             // ignore
+        } finally {
+            closeConnection(null, out3, s3);
         }
     }
 
@@ -522,23 +638,30 @@ public class NameServer extends Thread implements Protocol {
      */
     private void electionKill(RunInfo p, String[] ids)
             throws IOException {
-        Socket s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                p.electionServer.getPort(), null, -1);
-        DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-        ObjectOutputStream out2 = new ObjectOutputStream(
-                new BufferedOutputStream(d));
-        out2.writeByte(ELECTION_KILL);
-        out2.writeObject(ids);
-        closeConnection(null, out2, s);
+        Socket s = null;
+        DataOutputStream out2 = null;
+
+        try {
+            s = NameServerClient.socketFactory.createClientSocket(myAddress,
+                    p.electionServer.getPort(), null, -1);
+            out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out2.writeByte(ELECTION_KILL);
+            out2.writeInt(ids.length);
+            for (int i = 0; i < ids.length; i++) {
+                out2.writeUTF(ids[i]);
+            }
+        } finally {
+            closeConnection(null, out2, s);
+        }
     }
 
-    private void handleIbisLeave() throws IOException, ClassNotFoundException {
+    private void handleIbisLeave() throws IOException {
         String key = in.readUTF();
         String name = in.readUTF();
 
         RunInfo p = (RunInfo) pools.get(key);
 
-        if (! silent) {
+        if (! silent && logger.isDebugEnabled()) {
             logger.debug("NameServer: leave from pool " + key
                     + " requested by " + name);
         }
@@ -566,7 +689,7 @@ public class NameServer extends Thread implements Protocol {
 
         if (iinf != null) {
             // found it.
-            if (! silent) {
+            if (! silent && logger.isDebugEnabled()) {
                 logger.debug("NameServer: leave from pool " + key
                         + " of ibis " + name + " accepted");
             }
@@ -578,23 +701,29 @@ public class NameServer extends Thread implements Protocol {
             // It is used as an acknowledgement, and
             // the leaver is only allowed to exit when it
             // has received its own leave message.
-            for (int i = 0; i < p.pool.size(); i++) {
-                forwardLeave((IbisInfo) p.pool.get(i), name, iinf.serializedId);
+            synchronized(p) {
+                p.leavers.add(iinf);
+                p.toBeDeleted.remove(iinf);
+                p.pool.remove(index);
+                if (p.joinsSent > index) {
+                    p.joinsSent--;
+                }
             }
-            p.toBeDeleted.remove(iinf);
-            p.pool.remove(index);
 
             String date = Calendar.getInstance().getTime().toString();
 
-            if (! silent) {
+            if (! silent && logger.isInfoEnabled()) {
                 logger.info(date + " " + name + " LEAVES pool " + key
                         + " (" + p.pool.size() + " nodes)");
             }
 
             if (p.pool.size() == 0) {
-                if (! silent) {
+                if (! silent && logger.isInfoEnabled()) {
                     logger.info("NameServer: removing pool " + key);
                 }
+
+                // Send leavers before removing this run
+                sendLeavers(p);
 
                 pools.remove(key);
                 killThreads(p);
@@ -602,7 +731,7 @@ public class NameServer extends Thread implements Protocol {
         } else {
             if (! silent) {
                 logger.error("NameServer: unknown ibis " + name
-                        + "/" + key + " tried to leave");
+                    + "/" + key + " tried to leave");
             }
         }
 
@@ -618,12 +747,12 @@ public class NameServer extends Thread implements Protocol {
         while (!stop) {
 
             try {
-                if (! silent) {
+                if (! silent && logger.isInfoEnabled()) {
                     logger.info("NameServer: accepting incoming connections... ");
                 }
                 s = serverSocket.accept();
 
-                if (! silent) {
+                if (! silent && logger.isDebugEnabled()) {
                     logger.debug("NameServer: incoming connection from "
                             + s.toString());
                 }
@@ -635,13 +764,12 @@ public class NameServer extends Thread implements Protocol {
                 continue;
             }
 
-            try {
-                DummyOutputStream dos
-                        = new DummyOutputStream(s.getOutputStream());
-                out = new ObjectOutputStream(new BufferedOutputStream(dos));
+            out = null;
+            in = null;
 
-                DummyInputStream di = new DummyInputStream(s.getInputStream());
-                in = new ObjectInputStream(new BufferedInputStream(di));
+            try {
+                out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
 
                 opcode = in.readByte();
 
@@ -668,14 +796,12 @@ public class NameServer extends Thread implements Protocol {
                     }
                 }
 
-                closeConnection(in, out, s);
             } catch (Exception e1) {
                 if (! silent) {
                     logger.error("Got an exception in NameServer.run", e1);
                 }
-                if (s != null) {
-                    closeConnection(null, null, s);
-                }
+            } finally {
+                closeConnection(in, out, s);
             }
         }
 
@@ -689,7 +815,7 @@ public class NameServer extends Thread implements Protocol {
             h.waitForCount(1);
         }
 
-        if (! silent) {
+        if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: exit");
         }
     }
@@ -699,7 +825,8 @@ public class NameServer extends Thread implements Protocol {
     }
 
     public static synchronized NameServer createNameServer(boolean singleRun,
-            boolean retry, boolean poolserver, boolean controlhub, boolean silent) {
+            boolean retry, boolean poolserver, boolean controlhub,
+            boolean silent) {
         if (nameServerCreated) {
             return null;
         }
@@ -710,6 +837,7 @@ public class NameServer extends Thread implements Protocol {
                 break;
             } catch (Throwable e) {
                 if (retry) {
+                    e.printStackTrace();
                     if (! silent) {
                         logger.warn("Nameserver: could not create server "
                                 + "socket, retry in 1 second, cause = " + e);
@@ -797,7 +925,9 @@ public class NameServer extends Thread implements Protocol {
             } else if (args[i].equals("-no-poolserver")) {
                 pool_server = false;
             } else if (args[i].equals("-verbose") || args[i].equals("-v")) {
-                logger.setLevel(org.apache.log4j.Level.INFO);
+                if (logger.getEffectiveLevel().isGreaterOrEqual(org.apache.log4j.Level.INFO)) {
+                    logger.setLevel(org.apache.log4j.Level.INFO);
+                }
             } else {
                 if (! silent) {
                     logger.fatal("No such option: " + args[i]);
@@ -817,7 +947,9 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             if (ns == null) {
-                logger.error("No nameserver created");
+                if (! silent) {
+                    logger.error("No nameserver created");
+                }
             } else {
                 ns.run();
             }

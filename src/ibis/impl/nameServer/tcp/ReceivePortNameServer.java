@@ -2,15 +2,13 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.io.DummyInputStream;
-import ibis.io.DummyOutputStream;
 import ibis.ipl.IbisRuntimeException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -27,23 +25,25 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     private ServerSocket serverSocket;
 
-    private ObjectInputStream in;
+    private DataInputStream in;
 
-    private ObjectOutputStream out;
+    private DataOutputStream out;
+
+    private boolean silent;
 
     private static class PortLookupRequest {
         Socket s;
 
-        ObjectInputStream in;
+        DataInputStream in;
 
-        ObjectOutputStream out;
+        DataOutputStream out;
 
         String name;
 
         long timeout;
 
-        PortLookupRequest(Socket s, ObjectInputStream in,
-                ObjectOutputStream out, String name, long timeout) {
+        PortLookupRequest(Socket s, DataInputStream in,
+                DataOutputStream out, String name, long timeout) {
             this.s = s;
             this.in = in;
             this.out = out;
@@ -52,9 +52,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
         }
     }
 
-    ReceivePortNameServer() throws IOException {
+    ReceivePortNameServer(boolean silent) throws IOException {
         ports = new Hashtable();
         requestedPorts = new Hashtable();
+        this.silent = silent;
         serverSocket = NameServerClient.socketFactory.createServerSocket(0,
                 null, true, null);
         setName("ReceivePort Name Server");
@@ -65,12 +66,14 @@ class ReceivePortNameServer extends Thread implements Protocol {
         return serverSocket.getLocalPort();
     }
 
-    private void handlePortNew() throws IOException, ClassNotFoundException {
+    private void handlePortNew() throws IOException {
 
         byte[] id, storedId;
 
         String name = in.readUTF();
-        id = (byte[]) in.readObject();
+        int len = in.readInt();
+        id = new byte[len];
+        in.readFully(id, 0, len);
 
         /* Check wheter the name is in use. */
         storedId = (byte[]) ports.get(name);
@@ -84,12 +87,14 @@ class ReceivePortNameServer extends Thread implements Protocol {
     }
 
     //gosia
-    private void handlePortRebind() throws IOException, ClassNotFoundException {
+    private void handlePortRebind() throws IOException {
 
         byte[] id;
 
         String name = in.readUTF();
-        id = (byte[]) in.readObject();
+        int len = in.readInt();
+        id = new byte[len];
+        in.readFully(id, 0, len);
 
         /* Don't check whether the name is in use. */
         out.writeByte(PORT_ACCEPTED);
@@ -105,9 +110,13 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 requestedPorts.remove(name);
                 for (int i = 0; i < v.size(); i++) {
                     PortLookupRequest p = (PortLookupRequest) v.get(i);
-                    p.out.writeByte(PORT_KNOWN);
-                    p.out.writeObject(id);
-                    NameServer.closeConnection(p.in, p.out, p.s);
+                    try {
+                        p.out.writeByte(PORT_KNOWN);
+                        p.out.writeInt(id.length);
+                        p.out.write(id);
+                    } finally {
+                        NameServer.closeConnection(p.in, p.out, p.s);
+                    }
                 }
             }
         }
@@ -156,12 +165,15 @@ class ReceivePortNameServer extends Thread implements Protocol {
                                         try {
                                             p.out.writeByte(PORT_UNKNOWN);
                                         } catch (IOException e) {
-                                            System.out.println("RequestSweeper "
-                                                    + "got IOException" + e);
-                                            e.printStackTrace();
+                                            if (! silent) {
+                                                System.out.println("RequestSweeper "
+                                                        + "got IOException" + e);
+                                                e.printStackTrace();
+                                            }
+                                        } finally {
+                                            NameServer.closeConnection(
+                                                    p.in, p.out, p.s);
                                         }
-                                        NameServer.closeConnection(
-                                                p.in, p.out, p.s);
                                         v.remove(i);
                                     } else if (p.timeout - current < timeout) {
                                         timeout = p.timeout - current;
@@ -186,7 +198,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
         }
     }
 
-    private void handlePortLookup(Socket s) throws IOException {
+    private boolean handlePortLookup(Socket s) throws IOException {
 
         byte[] storedId;
 
@@ -197,26 +209,27 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
         if (storedId != null) {
             out.writeByte(PORT_KNOWN);
-            out.writeObject(storedId);
-            NameServer.closeConnection(in, out, s);
-        } else {
-            if (timeout != 0) {
-                timeout += System.currentTimeMillis();
+            out.writeInt(storedId.length);
+            out.write(storedId);
+            return true;
+        }
+        if (timeout != 0) {
+            timeout += System.currentTimeMillis();
+        }
+        PortLookupRequest p = new PortLookupRequest(s, in, out, name,
+                timeout);
+        synchronized (requestedPorts) {
+            ArrayList v = (ArrayList) requestedPorts.get(name);
+            if (v == null) {
+                v = new ArrayList();
+                requestedPorts.put(name, v);
             }
-            PortLookupRequest p = new PortLookupRequest(s, in, out, name,
-                    timeout);
-            synchronized (requestedPorts) {
-                ArrayList v = (ArrayList) requestedPorts.get(name);
-                if (v == null) {
-                    v = new ArrayList();
-                    requestedPorts.put(name, v);
-                }
-                v.add(p);
-                if (timeout != 0) {
-                    requestedPorts.notify();
-                }
+            v.add(p);
+            if (timeout != 0) {
+                requestedPorts.notify();
             }
         }
+        return false;
     }
 
     private void handlePortFree() throws IOException {
@@ -252,13 +265,14 @@ class ReceivePortNameServer extends Thread implements Protocol {
                         "ReceivePortNameServer: got an error ", e);
             }
 
+            in = null;
+            out = null;
+            boolean mustClose = true;
+
             try {
-                DummyInputStream di = new DummyInputStream(s.getInputStream());
-                in = new ObjectInputStream(new BufferedInputStream(di));
-                DummyOutputStream dos
-                        = new DummyOutputStream(s.getOutputStream());
-                out = new ObjectOutputStream(
-                        new BufferedOutputStream(dos, 4096));
+                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+                out = new DataOutputStream(
+                        new BufferedOutputStream(s.getOutputStream(), 4096));
 
                 opcode = in.readByte();
 
@@ -267,7 +281,6 @@ class ReceivePortNameServer extends Thread implements Protocol {
                     handlePortNew();
                     break;
 
-                //gosia
                 case (PORT_REBIND):
                     handlePortRebind();
                     break;
@@ -275,17 +288,16 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 case (PORT_LIST):
                     handlePortList();
                     break;
-                //end gosia
 
                 case (PORT_FREE):
                     handlePortFree();
                     break;
 
                 case (PORT_LOOKUP):
-                    handlePortLookup(s);
+                    mustClose = handlePortLookup(s);
                     break;
+
                 case (PORT_EXIT):
-                    NameServer.closeConnection(in, out, s);
                     synchronized (requestedPorts) {
                         finishSweeper = true;
                         requestedPorts.notifyAll();
@@ -293,18 +305,21 @@ class ReceivePortNameServer extends Thread implements Protocol {
                     serverSocket.close();
                     return;
                 default:
-                    System.err.println("ReceivePortNameServer: got an illegal "
-                            + "opcode " + opcode);
-                }
-
-                if (opcode != PORT_LOOKUP) {
-                    NameServer.closeConnection(in, out, s);
+                    if (! silent) {
+                        System.err.println("ReceivePortNameServer: got an illegal "
+                                + "opcode " + opcode);
+                    }
                 }
             } catch (Exception e1) {
-                System.err.println("Got an exception in "
-                        + "ReceivePortNameServer.run " + e1 + ", continuing");
-                // e1.printStackTrace();
-                NameServer.closeConnection(in, out, s);
+                if (! silent) {
+                    System.err.println("Got an exception in "
+                            + "ReceivePortNameServer.run " + e1 + ", continuing");
+                    // e1.printStackTrace();
+                }
+            } finally {
+                if (mustClose) {
+                    NameServer.closeConnection(in, out, s);
+                }
             }
         }
     }

@@ -2,8 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.io.DummyInputStream;
-import ibis.io.DummyOutputStream;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.StaticProperties;
 
@@ -77,8 +75,12 @@ class PortTypeNameServer extends Thread implements Protocol {
 
     private Sequencer seq;
 
-    PortTypeNameServer() throws IOException {
+    private boolean silent;
+
+    PortTypeNameServer(boolean silent) throws IOException {
         portTypes = new Hashtable();
+
+        this.silent = silent;
 
         serverSocket = NameServerClient.socketFactory.createServerSocket(0,
                 null, true, null);
@@ -115,9 +117,6 @@ class PortTypeNameServer extends Thread implements Protocol {
                 out.writeByte(PORTTYPE_ACCEPTED);
             } else {
                 out.writeByte(PORTTYPE_REFUSED);
-                // System.err.println("PortTypeNameServer: PortType " + name
-                //         + " refused because of incompatible properties\n"
-                //         + temp + "----\n" + p);
             }
         }
     }
@@ -144,13 +143,12 @@ class PortTypeNameServer extends Thread implements Protocol {
                         "PortTypeNameServer: got an error ", e);
             }
 
-            try {
-                DummyInputStream di = new DummyInputStream(s.getInputStream());
-                in = new DataInputStream(new BufferedInputStream(di));
-                DummyOutputStream dout
-                        = new DummyOutputStream(s.getOutputStream());
+            out = null;
+            in = null;
 
-                out = new DataOutputStream(new BufferedOutputStream(dout));
+            try {
+                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+                out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
                 opcode = in.readByte();
 
@@ -159,28 +157,25 @@ class PortTypeNameServer extends Thread implements Protocol {
                     handlePortTypeNew();
                     break;
                 case (PORTTYPE_EXIT):
-                    NameServer.closeConnection(in, out, s);
                     serverSocket.close();
                     return;
                 case (SEQNO):
                     handleSeqno();
                     break;
                 default:
-                    System.err.println("PortTypeNameServer: got an illegal "
-                            + "opcode " + opcode);
-                }
-                NameServer.closeConnection(in, out, s);
-            } catch (Exception e1) {
-                System.err.println("Got an exception in PortTypeNameServer.run "
-                                + e1);
-                e1.printStackTrace();
-                if (s != null) {
-                    try {
-                        s.close();
-                    } catch (IOException e2) {
-                        // don't care.
+                    if (! silent) {
+                        System.err.println("PortTypeNameServer: got an illegal "
+                                + "opcode " + opcode);
                     }
                 }
+            } catch (Exception e1) {
+                if (! silent) {
+                    System.err.println("Got an exception in PortTypeNameServer.run "
+                                    + e1);
+                    e1.printStackTrace();
+                }
+            } finally {
+                NameServer.closeConnection(in, out, s);
             }
         }
     }
