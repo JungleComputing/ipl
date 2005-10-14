@@ -1,7 +1,16 @@
 prun:
 - add readme on how to start ibis with prun for the VU people
-
+  (students keep complaining about this) --Rob
+  
 nameserver:
++ allow application to specify that it does not want joins. --Rob
++ allow app to specify that it wants joins, but not globally ordered. --Rob
++ nameserver is single threaded: if it cannot forward a join, everything hangs. --Rob
++ enable control hub by default --Rob
++ if a control hub is started, ibises cannot connect to the normal server again? --Rob
++ allow different connection types to nameserver simulaneously: 
+  one ibis should be able to connect with routed messges, while others have a direct connection --Rob
+
 + we forget to close connections on errors, see for instance forwardJoin
   in NameServer.java --Rob (Occurred in many places. Fixed Ceriel)
 + nameserver needs to know classes of all ibis identifiers. 
@@ -63,10 +72,10 @@ connect stuff:
        But, first test it :-)
 - Rob: allow user to load socket types per *connection* use the 
        property map for this
-- control hub client side always binds to default local ip/port
+- control hub client side always binds to default local ip/port (partially fixed, but not fully correct yet --Rob)
 - routed messages logging crashes
 - use routed messages *while* trying to setup TCP splicing in the background
-- implement any tcp client-server socket factory (not brokered)
+- write a good anyTCP for control_links -Rob
 
 
 general:
