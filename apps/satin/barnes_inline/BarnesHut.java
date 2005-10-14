@@ -8,7 +8,7 @@ import java.util.LinkedList;
 
 final class BarnesHut {
 
-	static boolean viz = true;
+	static boolean viz = false;
 
 	static boolean debug = false; //use -(no)debug to modify
 
@@ -16,18 +16,21 @@ final class BarnesHut {
 
 	static final boolean ASSERTS = false; //also used in other barnes classes
 
-	private static final int IMPL_NTC = 1; // -ntc option
+	static final int IMPL_NTC = 1; // -ntc option
 
-	private static final int IMPL_TUPLE = 2; // -tuple option
+	static final int IMPL_TUPLE = 2; // -tuple option
 
-	private static final int IMPL_TUPLE2 = 3; // -tuple2 option
+	static final int IMPL_TUPLE2 = 3; // -tuple2 option
 
-	private static final int IMPL_SEQ = 4; // -seq option
+	static final int IMPL_SEQ = 4; // -seq option
 
-	private static int impl = IMPL_NTC;
+	static int impl = IMPL_NTC;
 
-	//recursion depth at which the ntc/tuple impl work sequentially
-	private static int spawn_threshold = 10; //use -t <threshold> to modify
+	//number of bodies at which the ntc/tuple impl work sequentially
+	private static int spawn_min = 500; //use -min <threshold> to modify
+
+	//number of bodies above which the ntc/tuple impl work sequentially
+	private static int spawn_max = -1; //use -max <threshold> to modify
 
 	//true: Collect statistics about the various phases in each iteration
 	public static boolean phase_timing = true; //use -(no)timing to modify
@@ -39,7 +42,7 @@ final class BarnesHut {
 	private long[] forceCalcTimes;
 
 	//Parameters for the BarnesHut algorithm / simulation
-	private static final double THETA = 5; //cell subdivision tolerance
+	private static final double THETA = 2.0; //cell subdivision tolerance
 
 	//private static final double DT = 0.025; // default integration time-step
 	private static final double DT = 10.5; //integration time-step
@@ -51,9 +54,9 @@ final class BarnesHut {
 
 	static int iterations = -1;
 
-	private static Body[] bodyArray;
+	static Body[] bodyArray;
 
-	private static int maxLeafBodies;
+	static int maxLeafBodies;
 
 	static BodyTreeNode root; //is accessed by BodyTreeNode
 
@@ -70,8 +73,11 @@ final class BarnesHut {
 			 * the tuple2 impl does the initialization at every node when the
 			 * first tuple is broadcast
 			 */
-			Initializer init = new Initializer(n, m);
-			ibis.satin.SatinTupleSpace.add("init", init);
+		    /*Body[] ba = new Plummer().generate(n);
+		    
+		    Initializer1 init = new Initializer1(n, m, ba);*/
+		    Initializer init = new Initializer(n, m);
+		    ibis.satin.SatinTupleSpace.add("init", init);
 		}
 
 		/*
@@ -86,25 +92,26 @@ final class BarnesHut {
 		 * also doesn't include this code, I will omit it. - Maik.
 		 */
 
-		if (iterations == -1) {
+		/*		if (iterations == -1) {
 			iterations = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
-		}
+			}*/
+		iterations = 7;
 
 		forceCalcTimes = new long[iterations];
 	}
 
 	static void initialize(int nBodies, int mlb) {
-		bodyArray = new Plummer().generate(nBodies);
-		maxLeafBodies = mlb;
+	    bodyArray = new Plummer().generate(nBodies);
+	    maxLeafBodies = mlb;
 
-		//Plummer should make sure that a body with number x also has index x
-		for (int i = 0; i < nBodies; i++) {
-			if (ASSERTS && bodyArray[i].number != i) {
-				System.err.println("EEK! Plummer generated an "
-						+ "inconsistent body number");
-				System.exit(1);
-			}
+	    //Plummer should make sure that a body with number x also has index x
+	    for (int i = 0; i < nBodies; i++) {
+		if (ASSERTS && bodyArray[i].number != i) {
+		    System.err.println("EEK! Plummer generated an "
+				       + "inconsistent body number");
+		    System.exit(1);
 		}
+	    }
 	}
 
 	/*
@@ -201,12 +208,8 @@ final class BarnesHut {
 
 			switch (impl) {
 			case IMPL_NTC:
-				result = root.barnesNTC(root, spawn_threshold);
-				root.sync();
-				break;
 			case IMPL_TUPLE:
-				result = dummyNode.barnesTuple(null, rootId, spawn_threshold);
-				dummyNode.sync();
+                                result = root.doBarnes(root, spawn_min, spawn_max, null, rootId);
 				break;
 			case IMPL_SEQ:
 				result = root.barnesSequential(root);
@@ -271,7 +274,7 @@ final class BarnesHut {
 		start = System.currentTimeMillis();
 
 		for (iteration = 0; iteration < iterations; iteration++) {
-			//			System.out.println("Starting iteration " + iteration);
+		    System.out.println("Starting iteration " + iteration);
 
 			//don't measure the first iteration
 			//the body update phase of the first iteration *is* measured ???
@@ -311,8 +314,7 @@ final class BarnesHut {
 			}
 
 			ibis.satin.SatinObject.resume();
-			result = dummyNode.barnesTuple2(null, spawn_threshold);
-			dummyNode.sync();
+                        result = root.doBarnes(root, spawn_min, spawn_max, null, null);
 			ibis.satin.SatinObject.pause();
 
 			processLinkedListResult(result, accs_x, accs_y, accs_z);
@@ -489,10 +491,16 @@ final class BarnesHut {
 			//options
 			if (argv[i].equals("-debug")) {
 				debug = true;
-			} else if (argv[i].equals("-nodebug")) {
+			} else if (argv[i].equals("-no-debug")) {
 				debug = false;
 			} else if (argv[i].equals("-v")) {
 				verbose = true;
+			} else if (argv[i].equals("-no-v")) {
+				verbose = false;
+			} else if (argv[i].equals("-viz")) {
+				viz = true;
+			} else if (argv[i].equals("-no-viz")) {
+				viz = false;
 			} else if (argv[i].equals("-ntc")) {
 				impl = IMPL_NTC;
 			} else if (argv[i].equals("-tuple")) {
@@ -504,19 +512,26 @@ final class BarnesHut {
 
 			} else if (argv[i].equals("-it")) {
 				iterations = Integer.parseInt(argv[++i]);
-				if (iterations < 0)
+				if (iterations < 0) {
 					throw new IllegalArgumentException(
-							"Illegal argument to -t: Spawn threshold must be >= 0 !");
+							"Illegal argument to -it: number of iterations must be >= 0 !");
+                                }
 
-			} else if (argv[i].equals("-t")) {
-				spawn_threshold = Integer.parseInt(argv[++i]);
-				if (spawn_threshold < 0)
+			} else if (argv[i].equals("-min")) {
+				spawn_min = Integer.parseInt(argv[++i]);
+				if (spawn_min < 0) {
 					throw new IllegalArgumentException(
-							"Illegal argument to -t: Spawn threshold must be >= 0 !");
-
+							"Illegal argument to -min: Spawn min threshold must be >= 0 !");
+                                }
+			} else if (argv[i].equals("-max")) {
+				spawn_max = Integer.parseInt(argv[++i]);
+				if (spawn_max < 0) {
+					throw new IllegalArgumentException(
+							"Illegal argument to -max: Spawn max threshold must be >= 0 !");
+                                }
 			} else if (argv[i].equals("-timing")) {
 				phase_timing = true;
-			} else if (argv[i].equals("-no_timing")) {
+			} else if (argv[i].equals("-no-timing")) {
 				phase_timing = false;
 
 			} else if (!nBodiesSeen) {
@@ -547,9 +562,15 @@ final class BarnesHut {
 			nBodies = 100;
 		}
 
+                if (spawn_max < 0) {
+                    spawn_max = nBodies;
+                }
+
 		System.out.println("BarnesHut: simulating " + nBodies + " bodies, "
 				+ mlb + " bodies/leaf node, " + "theta = " + THETA
-				+ ", spawn-threshold = " + spawn_threshold);
+				+ ", spawn-min-threshold = " + spawn_min
+				+ ", spawn-max-threshold = " + spawn_max
+                            );
 		try {
 			new BarnesHut(nBodies, mlb).run();
 		} catch (StackOverflowError e) {
