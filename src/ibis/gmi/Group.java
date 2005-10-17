@@ -624,15 +624,12 @@ public final class Group implements GroupProtocol {
      * @param skel the group skeleton
      * @return the new skeleton identification.
      */
-    protected static int getNewSkeletonID(GroupSkeleton skel) {
+    protected static synchronized int getNewSkeletonID(GroupSkeleton skel) {
 
-        synchronized (skeletons) {
-            int next = skeletons.size();
-
-            skeletons.add(next, skel);
-
-            return next;
-        }
+	int next = skeletons.size();
+	skeletons.add(next, skel);
+	Group.class.notifyAll();
+	return next;
     }
 
     /**
@@ -641,7 +638,7 @@ public final class Group implements GroupProtocol {
      * @param groupID  the group identification
      * @param skeleton the group skeleton to be made available
      */
-    protected static void registerGroupMember(int groupID,
+    protected static synchronized void registerGroupMember(int groupID,
             GroupSkeleton skeleton) {
 
         if (logger.isDebugEnabled()) {
@@ -663,6 +660,7 @@ public final class Group implements GroupProtocol {
             groups = g;
         }
         groups[groupID] = skeleton;
+	Group.class.notifyAll();
     }
 
     /**
@@ -670,8 +668,19 @@ public final class Group implements GroupProtocol {
      * @param skel the local skeleton identification
      * @return the group skeleton.
      */
-    static GroupSkeleton getSkeleton(int skel) {
-        return (GroupSkeleton) skeletons.get(skel);
+    static synchronized GroupSkeleton getSkeleton(int skel) {
+
+	GroupSkeleton tmp = (GroupSkeleton) skeletons.get(skel);
+
+	while (tmp == null) {
+	    try { 
+		Group.class.wait();
+	    } catch (InterruptedException e) { 
+		// ignore
+	    }   
+	}
+
+        return tmp;
     }
 
     /**
@@ -679,7 +688,16 @@ public final class Group implements GroupProtocol {
      * @param groupID the group identification
      * @return the group skeleton
      */
-    static GroupSkeleton getSkeletonByGroupID(int groupID) {
+    static synchronized GroupSkeleton getSkeletonByGroupID(int groupID) {
+
+	while (groupID >= groups_max || groups[groupID] == null) {
+	    try {
+		Group.class.wait();
+	    } catch (InterruptedException e) {
+		// ignore
+	    } 
+	} 
+
         return groups[groupID];
     }
 
