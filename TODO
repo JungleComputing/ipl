@@ -1,3 +1,6 @@
+build system
+- remove stupid hostname stuff. This caused our demo to fail during the tutorial --Rob
+
 prun:
 - add readme on how to start ibis with prun for the VU people
   (students keep complaining about this) --Rob
@@ -10,6 +13,7 @@ nameserver:
 + if a control hub is started, ibises cannot connect to the normal server again? --Rob
 + allow different connection types to nameserver simulaneously: 
   one ibis should be able to connect with routed messges, while others have a direct connection --Rob
++ -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft (niet alleen eerste)...
 
 + we forget to close connections on errors, see for instance forwardJoin
   in NameServer.java --Rob (Occurred in many places. Fixed Ceriel)
