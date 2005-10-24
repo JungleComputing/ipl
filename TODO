@@ -80,7 +80,7 @@ connect stuff:
 - routed messages logging crashes
 - use routed messages *while* trying to setup TCP splicing in the background
 - write a good anyTCP for control_links -Rob
-
+- support universal plug and play
 
 general:
 - ibisc
