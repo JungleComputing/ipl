@@ -49,6 +49,7 @@ rmi:
   are not finished! --Rob (Done (Ceriel))
 
 satin:
++ remove tuple space alltogether now ? --Rob
 + als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
   print bij top of the stack.
 + bug: throws van runtime exception worden niet doorgegooid maar genegeerd.
