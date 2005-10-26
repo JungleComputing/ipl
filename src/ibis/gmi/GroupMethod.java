@@ -2,6 +2,8 @@
 
 package ibis.gmi;
 
+import java.util.Arrays;
+
 import ibis.ipl.SendPort;
 
 /**
@@ -140,8 +142,63 @@ public class GroupMethod {
             }
             
             invocation_mode = invscheme.mode;
-            sendport = Group.getMulticastSendport(parent_stub.multicastHostsID,
-                    parent_stub.multicastHosts);
+
+            int [] targets = ((GroupInvocation) invscheme).targets;
+            
+            if (targets != null) { 
+            
+                int [] multicastHosts = new int[targets.length];
+                boolean [] isset = new boolean[targets.length];
+                
+                Arrays.fill(isset, false);
+                
+                for (int i=0;i<targets.length;i++) { 
+                    
+                    int t = targets[i];
+                    
+                    if (t < 0 || t >= parent_stub.memberRanks.length) { 
+                        throw new ConfigurationException(
+                                "Invalid configuration: invocation target " + t  
+                                + " out of range");                    
+                    }
+                    
+                    // TODO: Maybe we can allow this ?
+                    if (isset[t]) { 
+                        throw new ConfigurationException(
+                                "Invalid configuration: invocation target " + t  
+                                + " used more that once");
+                    }                
+                    
+                    multicastHosts[i] = parent_stub.memberRanks[t];                
+                }
+                
+                // Now sort the target hosts in ascending order ....
+                Arrays.sort(multicastHosts);
+                
+                // ... and generate the multicast ID
+                StringBuffer buf = new StringBuffer("");
+
+                for (int i = 0; i < multicastHosts.length; i++) {
+                    buf.append(multicastHosts[i]);
+                    
+                    if (i != multicastHosts.length-1) { 
+                        buf.append(".");
+                    } 
+                }
+
+                String multicastHostsID = buf.toString();
+                
+                // Finally, create the multicast sendport
+                sendport = MulticastGroups.getMulticastSendport(
+                        multicastHostsID, multicastHosts);
+                                
+            } else {             
+                // send to all in group, so use the pre-defined multicast id                 
+                sendport = MulticastGroups.getMulticastSendport(
+                        parent_stub.multicastHostsID,
+                        parent_stub.multicastHosts);
+            }
+            
             break;
 
         case InvocationScheme.I_PERSONAL:

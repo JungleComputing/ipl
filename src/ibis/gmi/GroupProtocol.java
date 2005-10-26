@@ -35,6 +35,15 @@ public interface GroupProtocol {
     /** Major opcode for a request for a binomial-combined invocation. */
     public static final byte INVOCATION_BINCOMBINE = 7;
 
+    /** Major opcode for a request to create a multicast receiveport */
+    public static final byte CREATE_MULTICAST_PORT = 8;
+    
+    /** Major opcode for a request to create a multicast receiveport */
+    public static final byte CREATE_MULTICAST_PORT_REPLY = 9;
+    
+    
+    
+    
     /** Result of an invocation with a void result. */
     public static final byte RESULT_VOID = 0;
 

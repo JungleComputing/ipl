@@ -303,7 +303,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -399,7 +399,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -494,7 +494,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -588,7 +588,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -683,7 +683,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -778,7 +778,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -874,7 +874,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -970,7 +970,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -1066,7 +1066,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }
@@ -1161,7 +1161,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         if (to_all) {
             if (myGroupRank == lroot) {
                 if (reply_to_all == null) {
-                    reply_to_all = Group.getMulticastSendport(
+                    reply_to_all = MulticastGroups.getMulticastSendport(
                             destination.multicastHostsID,
                             destination.multicastHosts);
                 }

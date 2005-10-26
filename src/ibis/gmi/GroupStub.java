@@ -7,6 +7,7 @@ import ibis.ipl.WriteMessage;
 import ibis.util.Ticket;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 
@@ -112,23 +113,18 @@ public class GroupStub implements GroupInterface, GroupProtocol {
             multicastHosts[i] = mranks[i];
         }
 
-        // sort them low...high (bubble sort)
-        for (int i = 0; i < multicastHosts.length - 1; i++) {
-            for (int j = i + 1; j < multicastHosts.length; j++) {
-                if (multicastHosts[i] > multicastHosts[j]) {
-                    int temp = multicastHosts[i];
-                    multicastHosts[i] = multicastHosts[j];
-                    multicastHosts[j] = temp;
-                }
-            }
-        }
+        // sort them low...high
+        Arrays.sort(multicastHosts);
 
         // create a multicast ID
         StringBuffer buf = new StringBuffer("");
 
         for (int i = 0; i < multicastHosts.length; i++) {
             buf.append(multicastHosts[i]);
-            buf.append(".");
+            
+            if (i != multicastHosts.length-1) { 
+                buf.append(".");
+            } 
         }
 
         multicastHostsID = buf.toString();

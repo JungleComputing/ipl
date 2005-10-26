@@ -3,6 +3,7 @@
 package ibis.gmi;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -11,18 +12,18 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
-import ibis.util.IPUtils;
-import ibis.util.PoolInfo;
-import ibis.util.Ticket;
+
 import ibis.util.GetLogger;
+import ibis.util.IPUtils;
+import ibis.util.Ticket;
 
 import java.io.IOException;
-import java.util.Enumeration;
+
+import java.util.ArrayList;
+
 import java.util.Hashtable;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
@@ -46,10 +47,7 @@ public final class Group implements GroupProtocol {
     
     /** To get tickets from. */
     static Ticket ticketMaster = null;
-
-    /** Unicast send ports, one for each node. */
-    static SendPort[] unicast;
-   
+    
     /** The group registry, only lives on the node elected as the master. */
     static GroupRegistry registry;
 
@@ -68,12 +66,20 @@ public final class Group implements GroupProtocol {
     /** Ibis registry, used for setting up stuff. */
     private static Registry ibisRegistry;
 
-    /** Port type for ports used in GMI. */
-    private static PortType portType;
-
-    /** Port on which group messages are received. */
+    /** Port types for ports used in GMI. */
+    private static PortType portTypeSystem;    
+    private static PortType portTypeManyToOne;
+   // private static PortType portTypeOneToMany;
+      
+    /** Unicast send ports, one for each destination node. */
+    static SendPort[] unicast;
+    
+    /** Port on which unicast messages are received. */
     private static ReceivePort receivePort;
-
+    
+    /** Currently allocated multicast send ports. */
+//    private static Hashtable multicastSendports;
+    
     /** For receiving messages from the GMI master. */
     private static ReceivePort systemIn;
 
@@ -83,23 +89,17 @@ public final class Group implements GroupProtocol {
     /** ReceivePort identifiers, one for each node. */
     private static ReceivePortIdentifier[] pool;
 
-    /** Currently allocated multicast send ports. */
-    private static Hashtable multicastSendports;
-
     /** Upcall handler. */
-    private static GroupCallHandler groupCallHandler;
+  //  private static GroupCallHandler groupCallHandler;
 
     /** Skeletons available through group identification. */
-    private static GroupSkeleton[] groups;
-
-    /** The current number of existing groups. */
-    private static int groups_max;
+    private static ArrayList groups;
 
     /** Skeletons on this node. */
-    private static Vector skeletons;
+    private static ArrayList skeletons;
 
     /** Stubs and stub identifications. */
-    static GroupStub stubIDStack[] = new GroupStub[16];
+    private static ArrayList stubIDStack;
 
     /** The stub counter, used to allocate stubs. */
     static int stubCounter;
@@ -107,7 +107,7 @@ public final class Group implements GroupProtocol {
     /**
      * Container class for group information.
      */
-    static private final class GroupStubData {
+    private static final class GroupStubData {
 
         /** The group name. */
         String groupName;
@@ -130,223 +130,7 @@ public final class Group implements GroupProtocol {
         /** The skeleton identifications for all group members. */
         int[] memberSkels;
 
-        /**
-         * Creates a new stub for the group at hand.
-         *
-         * @return the new stub.
-         */
-        GroupStub newStub() {
-            try {
-                GroupStub s = (GroupStub) stubClass.newInstance();
-                int stubID;
-                synchronized (stubIDStack) {
-                    stubID = stubCounter++;
-                    if (stubID >= stubIDStack.length) {
-                        GroupStub[] temp = new GroupStub[2 * stubID];
-                        for (int i = 0; i < stubIDStack.length; i++) {
-                            temp[i] = stubIDStack[i];
-                        }
-                        temp[stubID] = s;
-                        stubIDStack = temp;
-                    } else {
-                        stubIDStack[stubID] = s;
-                    }
-                }
-                s.init(groupID, memberRanks, memberSkels, stubID);
-                return s;
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(Group._rank
-                        + " GroupStubData.newStub() Failed to create stub of "
-                        + "type " + typeName + " for group " + groupName + " "
-                        + e);
-            }
-        }
-    }
-
-    /**
-     * Handler class for all upcalls.
-     */
-    private static final class GroupCallHandler implements GroupProtocol,
-            Upcall {
-
-        /**
-         * Invocation handler.
-         *
-         * @param r  the message to be read
-         */
-        private void handleInvocation(ReadMessage r) throws Exception {
-
-            int dest = r.readInt();
-            int inv = r.readByte();
-            int res = r.readByte();
-
-            switch (inv) {
-            case InvocationScheme.I_GROUP:
-            case InvocationScheme.I_COMBINED_FLAT_GROUP: {
-                GroupSkeleton s = Group.getSkeletonByGroupID(dest);
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug(Group._rank + 
-                            ": GroupCallHandler.handleInvocation() - "
-                            + "It is a GROUP INVOCATION");
-                    logger.debug(Group._rank + ": skeleton = " + s);
-                }
-
-                s.handleMessage(inv, res, r);
-            }
-                break;
-            default: {
-                GroupSkeleton s = Group.getSkeleton(dest);
-                s.handleMessage(inv, res, r);
-            }
-                break;
-            }
-        }
-
-        /**
-         * Upcall method. Handle the upcall, divide and conquer.
-         *
-         * @param m  the message to be read.
-         */
-        public void upcall(ReadMessage m) {
-
-            int ticket;
-            GroupSkeleton s;
-            byte opcode;
-            byte resultMode;
-
-            try {
-                opcode = m.readByte();
-
-                switch (opcode) {
-                case REGISTRY:
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - "
-                                + "Got a REGISTRY");
-                    }
-
-                    Group.registry.handleMessage(m);
-                    break;
-
-                case INVOCATION:
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - "
-                                + "Got an INVOCATION");
-                    }
-
-                    handleInvocation(m);
-                    break;
-
-                case REGISTRY_REPLY:
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank
-                                + ": GroupCallHandler.upcall() - "
-                                + "Got a REGISTRY_REPLY");
-                    }
-
-                    ticket = m.readInt();
-                    RegistryReply r = (RegistryReply) m.readObject();
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " +
-                                "REGISTRY_REPLY forwarded to ticketMaster (" +
-                                ticket + ")");
-                    }
-
-                    m.finish(); // ticketMaster may block.
-                    logger.debug(Group._rank
-                            + ": REGISTRY_REPLY forwarded to ticketMaster ("
-                            + ticket + ")");
-                    Group.ticketMaster.put(ticket, r);
-                    break;
-
-                case INVOCATION_FLATCOMBINE:
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - "
-                                + "Got a INVOCATION_FLATCOMBINE");
-                    }
-
-                    stubIDStack[m.readInt()].handleFlatInvocationCombineMessage(
-                            m);
-                    break;
-
-                case INVOCATION_BINCOMBINE:
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " +
-                                "Got a INVOCATION_BINCOMBINE");
-                    }
-
-                    stubIDStack[m.readInt()].handleBinInvocationCombineMessage(
-                            m);
-                    break;
-
-                case INVOCATION_REPLY:
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " +
-                                "Got a INVOCATION_REPLY");
-                    }
-
-                    resultMode = m.readByte();
-                    ticket = m.readInt();
-                    int stub = ticket >> 16;
-                    ticket = ticket & 0xFFFF;
-                    
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " +
-                                "INVOCATION_REPLY forwarded to stub (" + 
-                                stub + ", " + ticket + ")");
-                    }
-
-                    stubIDStack[stub].handleResultMessage(m,
-                            ticket, resultMode);
-                    break;
-
-                case COMBINE:
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - "
-                                + "Got a COMBINE");
-                    }
-
-                    s = Group.getSkeleton(m.readInt());
-                    s.handleCombineMessage(m);
-                    break;
-
-                case COMBINE_RESULT:
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - "
-                                + "Got a COMBINE_RESULT");
-                    }
-                    
-                    s = Group.getSkeletonByGroupID(m.readInt());
-                    s.handleCombineMessage(m);
-                    break;
-                default:                    
-                    logger.warn(Group._rank + 
-                            ": GroupCallHandler.upcall() - "
-                            + "Got an illegal opcode !");
-                }
-            } catch (Exception e) {
-                logger.warn(Group._rank + 
-                        ": GroupCallHandler.upcall() - " +
-                        ": Got an exception in GroupCallHandler !", e);                
-            }
-        }
+       
     }
 
     /**
@@ -356,11 +140,12 @@ public final class Group implements GroupProtocol {
     static {
         try {
             ticketMaster = new Ticket();
-            groups = new GroupSkeleton[10];
-            groups_max = 10;
-            skeletons = new Vector();
+            groups = new ArrayList();            
+            skeletons = new ArrayList();
+            stubIDStack = new ArrayList();
+            
             stubclasses = new Hashtable();
-            multicastSendports = new Hashtable();
+ //           multicastSendports = new Hashtable();
 
             name = IPUtils.getLocalHostAddress().getHostName();
 
@@ -387,26 +172,51 @@ public final class Group implements GroupProtocol {
             localID = ibis.identifier().name();
             ibisRegistry = ibis.registry();
 
-            portType = ibis.createPortType("GMI", reqprops);
+            // Create the three port types used in GMI  
 
-            groupCallHandler = new GroupCallHandler();
-
-            receivePort = portType.createReceivePort("GMI port on "
-                    + localID, groupCallHandler);
+            // System port type 
+            StaticProperties props = new StaticProperties();
+            props.add("serialization", "object");
+            props.add("worldmodel", "closed");
+            props.add("communication", "ManyToOne, Reliable, ExplicitReceipt");
+           
+            portTypeSystem = ibis.createPortType("GMI System", props);
+            
+            // Unicast (many to one) port type            
+            props = new StaticProperties();
+            props.add("serialization", "object");
+            props.add("worldmodel", "closed");
+            props.add("communication", "ManyToOne, Reliable, AutoUpcalls");
+            
+            portTypeManyToOne = ibis.createPortType("GMI ManyToOne", props);
+            
+            // Multicast (on to many) port type            
+            props = new StaticProperties();
+            props.add("serialization", "object");
+            props.add("worldmodel", "closed");
+            props.add("communication", "OneToMany, Reliable, AutoUpcalls");
+                       
+            MulticastGroups.init(ibis.createPortType("GMI OneToMany", props));
+                       
+            // Create the unicast receive port
+            receivePort = portTypeManyToOne.createReceivePort("GMI port on "
+                    + localID, new GroupCallHandler());            
             receivePort.enableConnections();
-
-            PoolInfo info = PoolInfo.createPoolInfo();
-
-            if (info.rank() == 0) {
-
+            
+            _size = ibis.totalNrOfIbisesInPool();
+                            
+            IbisIdentifier winner = ibisRegistry.elect("GMI MASTER ELECTION");
+            
+            if (winner.equals(ibis.identifier())) { 
+                // I am the master
+            
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + name +
                             " I am master");
                 }
 
                 registry = new GroupRegistry();
-
-                _size = info.size();
+                
                 _rank = 0;
 
                 pool = new ReceivePortIdentifier[_size];
@@ -414,10 +224,10 @@ public final class Group implements GroupProtocol {
 
                 if (_size > 1) {
 
-                    systemIn = portType.createReceivePort("GMI Master");
+                    systemIn = portTypeSystem.createReceivePort("GMI Master");
                     systemIn.enableConnections();
 
-                    systemOut = portType.createSendPort("GMI Master");
+                    systemOut = portTypeSystem.createSendPort("GMI Master");
 
                     for (int j = 1; j < _size; j++) {
                         ReadMessage r = systemIn.receive();
@@ -441,11 +251,11 @@ public final class Group implements GroupProtocol {
                             name + " I am client");
                 }
 
-                systemIn = portType.createReceivePort("GMI Client "
+                systemIn = portTypeSystem.createReceivePort("GMI Client "
                         + localID);
                 systemIn.enableConnections();
 
-                systemOut = portType.createSendPort("GMI Client "
+                systemOut = portTypeSystem.createSendPort("GMI Client "
                         + localID);
 
                 ReceivePortIdentifier master = ibisRegistry.lookupReceivePort(
@@ -468,11 +278,9 @@ public final class Group implements GroupProtocol {
                 w.finish();
 
                 ReadMessage r = systemIn.receive();
-                pool = (ReceivePortIdentifier[]) r.readObject();
+                pool = (ReceivePortIdentifier []) r.readObject();
                 r.finish();
-
-                _size = pool.length;
-
+                
                 for (int j = 1; j < _size; j++) {
                     if (pool[j].equals(receivePort.identifier())) {
                         _rank = j;
@@ -484,8 +292,8 @@ public final class Group implements GroupProtocol {
             unicast = new SendPort[_size];
 
             for (int j = 0; j < _size; j++) {
-                unicast[j] = portType.createSendPort("Unicast on " + name
-                        + " to " + pool[j].name());
+                unicast[j] = portTypeManyToOne.createSendPort("Unicast on " 
+                        + name + " to " + pool[j].name());
 
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
@@ -559,7 +367,7 @@ public final class Group implements GroupProtocol {
      * @param hosts the target hosts of the multicast
      * @return the multicast send port.
      */
-    public static SendPort getMulticastSendport(String ID, int[] hosts) {
+/*    public static SendPort getMulticastSendport(String ID, int[] hosts) {
 
         // Note: for efficiency the ranks in hosts should be sorted
         // (low->high) !!!
@@ -575,6 +383,8 @@ public final class Group implements GroupProtocol {
 
         SendPort temp = (SendPort) multicastSendports.get(ID);
 
+        System.err.println("Should now create receiveports " + _rank + "-" + ID);
+        
         if (temp == null) {
             // there is no multicast sendport to this combination of hosts yet.
             // so create it and add it to the table.
@@ -582,7 +392,7 @@ public final class Group implements GroupProtocol {
                 logger.debug(_rank + ": Group.getMulticastSendport - " + 
                         "Creating multicast sendport " + ID);
             }
-
+          
             try {
                 temp = portType.createSendPort("Multicast on " + name + " to "
                         + ID);
@@ -617,7 +427,9 @@ public final class Group implements GroupProtocol {
         }
         return temp;
     }
-
+*/
+    
+    
     /**
      * Gets a new (local) skeleton identification.
      *
@@ -626,12 +438,31 @@ public final class Group implements GroupProtocol {
      */
     protected static synchronized int getNewSkeletonID(GroupSkeleton skel) {
 
-	int next = skeletons.size();
-	skeletons.add(next, skel);
-	Group.class.notifyAll();
-	return next;
+        skeletons.add(skel);
+        Group.class.notifyAll();
+        return skeletons.size()-1;
     }
 
+    /**
+     * Gets a skeleton through its local identification.
+     * @param skel the local skeleton identification
+     * @return the group skeleton.
+     */
+    static synchronized GroupSkeleton getSkeleton(int skel) {
+
+        GroupSkeleton tmp = (GroupSkeleton) skeletons.get(skel);
+
+        while (tmp == null) {
+            try { 
+                Group.class.wait();
+            } catch (InterruptedException e) { 
+                // ignore
+            }   
+        }
+
+        return tmp;
+    }
+    
     /**
      * Makes a skeleton available through its group identification.
      *
@@ -646,43 +477,10 @@ public final class Group implements GroupProtocol {
                     "Group.registerGroupMember(" + groupID + " "
                     + skeleton.getClass().getName());
         }
-
-        if (groupID >= groups_max) {
-            int new_max = 2 * groupID + 1;
-            GroupSkeleton[] g = new GroupSkeleton[new_max];
-            for (int i = 0; i < groups_max; i++) {
-                g[i] = groups[i];
-            }
-            for (int i = groups_max; i < new_max; i++) {
-                g[i] = null;
-            }
-            groups_max = new_max;
-            groups = g;
-        }
-        groups[groupID] = skeleton;
-	Group.class.notifyAll();
+        groups.add(groupID, skeleton);        
+        Group.class.notifyAll();
     }
-
-    /**
-     * Gets a skeleton through its local identification.
-     * @param skel the local skeleton identification
-     * @return the group skeleton.
-     */
-    static synchronized GroupSkeleton getSkeleton(int skel) {
-
-	GroupSkeleton tmp = (GroupSkeleton) skeletons.get(skel);
-
-	while (tmp == null) {
-	    try { 
-		Group.class.wait();
-	    } catch (InterruptedException e) { 
-		// ignore
-	    }   
-	}
-
-        return tmp;
-    }
-
+   
     /**
      * Gets a skeleton through its group identification.
      * @param groupID the group identification
@@ -690,15 +488,15 @@ public final class Group implements GroupProtocol {
      */
     static synchronized GroupSkeleton getSkeletonByGroupID(int groupID) {
 
-	while (groupID >= groups_max || groups[groupID] == null) {
-	    try {
-		Group.class.wait();
-	    } catch (InterruptedException e) {
-		// ignore
-	    } 
-	} 
+        while (groupID >= groups.size() || groups.get(groupID) == null) {
+            try {
+                Group.class.wait();
+            } catch (InterruptedException e) {
+                // ignore
+            } 
+        }  
 
-        return groups[groupID];
+        return (GroupSkeleton) groups.get(groupID);
     }
 
     /**
@@ -1106,11 +904,44 @@ public final class Group implements GroupProtocol {
             stubclasses.put(nm, data);
         }
 
-        return data.newStub();
+        return createGroupStub(data);
     }
-
+  
+    /**
+     * Creates a new stub for the group.
+     *
+     * @return the new stub.
+     */    
+    protected static GroupStub createGroupStub(GroupStubData data) { 
+        try {
+            GroupStub s = (GroupStub) data.stubClass.newInstance();
+            int stubID;
+            synchronized (stubIDStack) {
+                stubID = stubIDStack.size();
+                stubIDStack.add(s);
+            }
+            s.init(data.groupID, data.memberRanks, data.memberSkels, stubID);
+            return s;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(Group._rank
+                    + " Group.createGroupStubData: Failed to create stub of "
+                    + "type " + data.typeName + " for group " + data.groupName 
+                    + " " + e);
+        }
+    }
     
-    
+    /**
+     * Finds an existing GroupStub given it's ID.
+     *
+     * @return the stub.
+     */    
+    protected static GroupStub getGroupStub(int stubID) {
+        synchronized (stubIDStack) {
+            return (GroupStub) stubIDStack.get(stubID);
+        }
+    }
+       
     /**
      * Creates a combined invocation info structure by communication with
      * the registry. Note that this method blocks until all invokers involved
@@ -1276,13 +1107,8 @@ public final class Group implements GroupProtocol {
                 unicast[i].close();
             }
 
-            Enumeration hash_elts = multicastSendports.elements();
-
-            while (hash_elts.hasMoreElements()) {
-                SendPort p = (SendPort) (hash_elts.nextElement());
-                p.close();
-            }
-
+            MulticastGroups.exit();
+            
             receivePort.close();
             ibis.end();
             ibis = null;
@@ -1315,5 +1141,7 @@ public final class Group implements GroupProtocol {
         }
         return m;
     }
+ 
+    
 }
 
