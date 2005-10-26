@@ -50,6 +50,8 @@ rmi:
 
 satin:
 + remove tuple space alltogether now ? --Rob
++ add method to make deep copy for objects (use ibis.util.DeepCopy) --Rob
++ make scalable ibis / scalable satin (don't keep sockets open) --Rob
 + als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
   print bij top of the stack.
 + bug: throws van runtime exception worden niet doorgegooid maar genegeerd.
