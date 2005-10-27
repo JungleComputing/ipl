@@ -73,6 +73,17 @@ implementations:
     - fix performance issues in net.gm (e.g.  mpj+javagrande benchmarks)
     + make it possible to make ipl classes use abstract. (Done Ceriel)
     - remove dependancy on "local" gm version in default set-up
+    - connection cache cannot be disabled without triggering a bug:
+      tcp_blk/TcpConnectionCache.java has:
+        synchronized Socket getCachedInput(IbisIdentifier ibis, int port) {
+            if (DISABLED) return null;
+      tcp_blk/Driver.java has:
+        while (true) {
+            Socket s = connectionCache.getCachedInput(ibis, port);
+	    if (s != null) return s;
+	    ... wait ...
+        }
+      so: deadlock if DISABLED==true.
 
 connect stuff:
 - Rob: Update manual and readme files to reflect new structure.
