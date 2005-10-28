@@ -477,7 +477,13 @@ public final class Group implements GroupProtocol {
                     "Group.registerGroupMember(" + groupID + " "
                     + skeleton.getClass().getName());
         }
-        groups.ensureCapacity(groupID);
+        
+        // For some reason, ArrayList does not allow 'empty' slots, so  
+        // explicitly fill them with <null> values.  
+        while (groups.size() <= groupID) { 
+            groups.add(null);
+        }
+        
         groups.add(groupID, skeleton);        
         Group.class.notifyAll();
     }
