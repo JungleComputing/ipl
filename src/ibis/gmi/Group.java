@@ -477,6 +477,7 @@ public final class Group implements GroupProtocol {
                     "Group.registerGroupMember(" + groupID + " "
                     + skeleton.getClass().getName());
         }
+        groups.ensureCapacity(groupID);
         groups.add(groupID, skeleton);        
         Group.class.notifyAll();
     }
