@@ -6,6 +6,7 @@ prun:
   (students keep complaining about this) --Rob
   
 nameserver:
+- print warning if -ns option is not passed to ibis-run (and then do what we do now -> node where this ibis was compiled)
 + allow application to specify that it does not want joins. --Rob
 + allow app to specify that it wants joins, but not globally ordered. --Rob
 + nameserver is single threaded: if it cannot forward a join, everything hangs. --Rob
