@@ -7,7 +7,7 @@ class Main {
 
     static int received;
 
-    public static void inc_count() {
+    public synchronized static void inc_count() {
         received++;
     }
 
