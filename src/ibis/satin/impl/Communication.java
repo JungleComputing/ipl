@@ -60,6 +60,10 @@ public abstract class Communication extends SpawnSync {
         return ibis.registry().lookupReceivePort(portname);
     }
 
+    ReceivePortIdentifier[] lookup(String[] portnames) throws IOException {
+        return ibis.registry().lookupReceivePorts(portnames);
+    }
+
     ReceivePortIdentifier lookup_wait(String portname, long timeoutMillis) {
 
 	ReceivePortIdentifier rpi = null;

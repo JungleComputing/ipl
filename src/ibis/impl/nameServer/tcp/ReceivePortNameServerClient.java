@@ -40,11 +40,31 @@ class ReceivePortNameServerClient implements Protocol {
 
     public ReceivePortIdentifier lookup(String name, long timeout)
             throws IOException {
+        ReceivePortIdentifier[] r = lookup(new String[] {name}, timeout);
+        if (r != null && r.length != 0) {
+            return r[0];
+        }
+        return null;
+    }
+
+    private String namesList(String[] names) {
+        String s = "";
+        for (int i = 0; i < names.length; i++) {
+            s += names[i];
+            if (i < names.length-1) {
+                s += ", ";
+            }
+        }
+        return s;
+    }
+
+    public ReceivePortIdentifier[] lookup(String[] names, long timeout)
+            throws IOException {
         DataOutputStream out = null;
         DataInputStream in = null;
         Socket s = null;
 
-        ReceivePortIdentifier id = null;
+        ReceivePortIdentifier[] ids = null;
         int result;
 
         try {
@@ -55,33 +75,42 @@ class ReceivePortNameServerClient implements Protocol {
 
             // request a new Port.
             out.writeByte(PORT_LOOKUP);
-            out.writeUTF(name);
+            out.writeInt(names.length);
+            for (int i = 0; i < names.length; i++) {
+                out.writeUTF(names[i]);
+            }
             out.writeLong(timeout);
             out.flush();
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
             result = in.readByte();
-            if (logger.isDebugEnabled()) {
-                logger.debug(this + ": lookup port \"" + name + "\"");
-            }
 
             switch (result) {
             case PORT_UNKNOWN:
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Port " + name + ": PORT_UNKNOWN");
+                int cnt = in.readInt();
+                names = new String[cnt];
+                for (int i = 0; i < cnt; i++) {
+                    names[i] = in.readUTF();
                 }
-                throw new ConnectionTimedOutException("could not connect");
+                String list = namesList(names);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Port " + list + ": PORT_UNKNOWN");
+                }
+                throw new ConnectionTimedOutException("could not find some ports: " + list);
             case PORT_KNOWN:
+                ids = new ReceivePortIdentifier[names.length];
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Port " + name + ": PORT_KNOWN");
+                    logger.debug("Port " + namesList(names) + ": PORT_KNOWN");
                 }
-                try {
-                    int len = in.readInt();
-                    byte[] b = new byte[len];
-                    in.readFully(b, 0, len);
-                    id = (ReceivePortIdentifier) Conversion.byte2object(b);
-                } catch (ClassNotFoundException e) {
-                    throw new IOException("Unmarshall fails " + e);
+                for (int i = 0; i < names.length; i++) {
+                    try {
+                        int len = in.readInt();
+                        byte[] b = new byte[len];
+                        in.readFully(b, 0, len);
+                        ids[i] = (ReceivePortIdentifier) Conversion.byte2object(b);
+                    } catch (ClassNotFoundException e) {
+                        throw new IOException("Unmarshall fails " + e);
+                    }
                 }
                 break;
             default:
@@ -92,7 +121,7 @@ class ReceivePortNameServerClient implements Protocol {
             NameServer.closeConnection(in, out, s);
         }
 
-        return id;
+        return ids;
     }
 
     public ReceivePortIdentifier[] query(IbisIdentifier ident) {

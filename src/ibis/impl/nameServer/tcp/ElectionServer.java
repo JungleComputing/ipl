@@ -4,6 +4,8 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.IbisRuntimeException;
 
+import ibis.connect.IbisSocketFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -27,14 +29,15 @@ class ElectionServer extends Thread implements Protocol {
 
     boolean silent;
 
-    ElectionServer(boolean silent) throws IOException {
+    ElectionServer(boolean silent, IbisSocketFactory socketFactory)
+            throws IOException {
         elections = new HashMap();
         buffers = new HashMap();
 
         this.silent = silent;
 
-        serverSocket = NameServerClient.socketFactory.createServerSocket(0,
-                null, true /* retry */, null);
+        serverSocket = socketFactory.createServerSocket(0, null,
+                true /* retry */, null);
         setName("NameServer ElectionServer");
         start();
     }

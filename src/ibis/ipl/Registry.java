@@ -41,6 +41,36 @@ public interface Registry {
             throws IOException;
 
     /**
+     * Locates the {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifiers}
+     * that have been bound to the specified <code>names</code>.
+     * The method blocks until the receiveports with the specified names are
+     * found.
+     *
+     * @param names names of the receiveports.
+     * @return the identifiers.
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
+    public ReceivePortIdentifier[] lookupReceivePorts(String[] names)
+            throws IOException;
+
+    /**
+     * Locates the {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifiers}
+     * that have been bound to the specified <code>names</code>.
+     * The method blocks until the receiveport with the specified names are
+     * found, or the timeout expires.
+     * If timeout is 0, the method behaves as if no timeout was given.
+     *
+     * @param names names of the receiveports.
+     * @param timeout the timeout, in milliseconds.
+     * @return the identifiers.
+     * @exception ConnectionTimedOutException is thrown when the timeout
+     * 	expires.
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
+    public ReceivePortIdentifier[] lookupReceivePorts(String[] names,
+            long timeout) throws IOException;
+
+    /**
      * Locates the {@link ibis.ipl.IbisIdentifier IbisIdentifier}
      * that has been bound to the specified <code>name</code>.
      * The method blocks until an Ibis with the specified

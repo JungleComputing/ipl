@@ -95,9 +95,12 @@ public class NameServer extends Thread implements Protocol {
             pool = new ArrayList();
             leavers = new ArrayList();
             toBeDeleted = new Vector();
-            portTypeNameServer = new PortTypeNameServer(silent);
-            receivePortNameServer = new ReceivePortNameServer(silent);
-            electionServer = new ElectionServer(silent);
+            portTypeNameServer = new PortTypeNameServer(silent,
+                    NameServerClient.socketFactory);
+            receivePortNameServer = new ReceivePortNameServer(silent,
+                    NameServerClient.socketFactory);
+            electionServer = new ElectionServer(silent,
+                    NameServerClient.socketFactory);
             pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
         }
 
@@ -217,17 +220,26 @@ public class NameServer extends Thread implements Protocol {
         if (logger.isDebugEnabled()) {
             logger.debug("sendLeavers ... size = " + inf.leavers.size());
         }
+
+        IbisInfo[] pool = null;
+        IbisInfo[] leavers = null;
+
         synchronized(inf) {
             if (inf.leavers.size() != 0) {
                 IbisInfo[] iinf = new IbisInfo[0];
-                iinf = (IbisInfo[]) inf.leavers.toArray(iinf);
-                for (int i = 0; i < inf.pool.size(); i++) {
-                    forwardLeave((IbisInfo) inf.pool.get(i), iinf);
-                }
-                for (int i = 0; i < iinf.length; i++) {
-                    forwardLeave(iinf[i], iinf);
-                }
+                leavers = (IbisInfo[]) inf.leavers.toArray(iinf);
+                pool = (IbisInfo[]) inf.pool.toArray(iinf);
                 inf.leavers.clear();
+            }
+        }
+        if (pool != null) {
+            for (int i = 0; i < pool.length; i++) {
+                forwardLeave(pool[i], leavers);
+            }
+        }
+        if (leavers != null) {
+            for (int i = 0; i < leavers.length; i++) {
+                forwardLeave(leavers[i], leavers);
             }
         }
     }
@@ -242,8 +254,8 @@ public class NameServer extends Thread implements Protocol {
             for (Enumeration e = pools.keys(); e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 RunInfo inf = (RunInfo) pools.get(key);
+                sendLeavers(inf);
                 synchronized(inf) {
-                    sendLeavers(inf);
                     if (inf.joinsSent < inf.pool.size()) {
                         IbisInfo[] message = new IbisInfo[inf.pool.size() - inf.joinsSent];
                         for (int i = 0; i < message.length; i++) {

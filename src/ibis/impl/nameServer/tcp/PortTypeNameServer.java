@@ -5,6 +5,8 @@ package ibis.impl.nameServer.tcp;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.StaticProperties;
 
+import ibis.connect.IbisSocketFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -77,13 +79,13 @@ class PortTypeNameServer extends Thread implements Protocol {
 
     private boolean silent;
 
-    PortTypeNameServer(boolean silent) throws IOException {
+    PortTypeNameServer(boolean silent, IbisSocketFactory socketFactory)
+            throws IOException {
         portTypes = new Hashtable();
 
         this.silent = silent;
 
-        serverSocket = NameServerClient.socketFactory.createServerSocket(0,
-                null, true, null);
+        serverSocket = socketFactory.createServerSocket(0, null, true, null);
         setName("PortType Name Server");
         seq = new Sequencer();
         start();

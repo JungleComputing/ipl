@@ -71,9 +71,23 @@ class Registry implements ibis.ipl.Registry {
         return lookupReceivePort(name, 0);
     }
 
+    public ibis.ipl.ReceivePortIdentifier[] lookupReceivePorts(String[] names)
+            throws IOException {
+        return lookupReceivePorts(names, 0);
+    }
+
     public ibis.ipl.ReceivePortIdentifier lookupReceivePort(String name,
             long timeout) throws IOException {
         return nameServerClient.lookup(name, timeout);
+    }
+
+    public ibis.ipl.ReceivePortIdentifier[] lookupReceivePorts(String[] names,
+            long timeout) throws IOException {
+        ibis.ipl.ReceivePortIdentifier[] result = new ibis.ipl.ReceivePortIdentifier[names.length];
+        for (int i = 0; i < names.length; i++) {
+            result[i] = lookupReceivePort(names[i], timeout);
+        }
+        return result;
     }
 
     public void unbind(String name) throws IOException {

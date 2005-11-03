@@ -506,6 +506,16 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         return receivePortNameServerClient.lookup(name, timeout);
     }
 
+    public ReceivePortIdentifier[] lookupReceivePorts(String[] names)
+            throws IOException {
+        return lookupReceivePorts(names, 0);
+    }
+
+    public ReceivePortIdentifier[] lookupReceivePorts(String[] names, long timeout)
+            throws IOException {
+        return receivePortNameServerClient.lookup(names, timeout);
+    }
+
     public IbisIdentifier lookupIbis(String name) {
         return lookupIbis(name, 0);
     }
