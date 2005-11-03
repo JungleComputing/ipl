@@ -236,7 +236,6 @@ class ReceivePortNameServer extends Thread implements Protocol {
     private void handlePortLookup(Socket s) throws IOException {
 
         int count = in.readInt();
-        System.out.println("handlePortLookup, count = " + count);
         String[] names = new String[count];
         byte[][] prts = new byte[count][];
         int unknown = 0;
