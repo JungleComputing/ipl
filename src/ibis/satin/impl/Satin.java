@@ -3,9 +3,9 @@
 package ibis.satin.impl;
 
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
@@ -14,7 +14,6 @@ import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.messagecombining.MessageCombiner;
-import ibis.util.messagecombining.MessageSplitter;
 
 import java.net.InetAddress;
 
@@ -231,7 +230,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
             }
             
 	    if (SHARED_OBJECTS) {
-		SOInvocationHandler soInvocationHandler = new SOInvocationHandler(this);
+		/* SOInvocationHandler soInvocationHandler = */ new SOInvocationHandler(this);
 		/*soReceivePort 
 		    = soPortType.createReceivePort("satin so receive port on " 
 						   + ident.name(),

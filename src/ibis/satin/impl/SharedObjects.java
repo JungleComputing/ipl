@@ -1,11 +1,19 @@
 package ibis.satin.impl;
 
-import java.util.*;
-import java.io.*;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPort;
+import ibis.ipl.StaticProperties;
+import ibis.ipl.WriteMessage;
+import ibis.satin.so.SharedObject;
+import ibis.util.messagecombining.MessageSplitter;
 
-import ibis.ipl.*;
-import ibis.satin.so.*;
-import ibis.util.messagecombining.*;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Vector;
 
 public abstract class SharedObjects extends TupleSpace implements Protocol {
 
@@ -154,7 +162,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
     public void broadcastSOInvocation(SOInvocationRecord r) {
 
 	long byteCount = 0;
-	int numToSend;
+//	int numToSend;
 	WriteMessage w = null;
 
 	if (SO_TIMING) {

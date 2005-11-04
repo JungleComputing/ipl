@@ -6,9 +6,8 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 
-import java.util.ArrayList;
-
 import java.io.IOException;
+import java.util.ArrayList;
 
 public abstract class Malleability extends FaultTolerance {
 

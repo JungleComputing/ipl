@@ -1,7 +1,12 @@
 package ibis.satin.impl;
 
-import ibis.satin.so.*;
-import java.io.*;
+import ibis.satin.so.SharedObject;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 public abstract class SOInvocationRecord implements java.io.Serializable {
 

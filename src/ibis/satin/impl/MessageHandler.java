@@ -11,7 +11,6 @@ import ibis.ipl.WriteMessage;
 import ibis.satin.ActiveTuple;
 import ibis.satin.so.SharedObject;
 import ibis.util.Timer;
-import ibis.util.messagecombining.MessageSplitter;
 
 import java.io.IOException;
 import java.io.Serializable;

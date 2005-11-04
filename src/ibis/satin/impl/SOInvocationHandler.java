@@ -1,10 +1,11 @@
 package ibis.satin.impl;
 
-import ibis.satin.so.*;
-import ibis.util.messagecombining.MessageSplitter;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.Upcall;
+import ibis.satin.so.SharedObject;
 import ibis.util.Timer;
+import ibis.util.messagecombining.MessageSplitter;
+
 import java.io.IOException;
 
 
@@ -85,8 +86,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
     }
 
     public void upcall(ReadMessage m) {
-	SOInvocationRecord soir = null;
-	int num = 0;
+//	SOInvocationRecord soir = null;
+//	int num = 0;
 
 	
 	/*	System.err.println("SATIN '" + satin.ident.name()
