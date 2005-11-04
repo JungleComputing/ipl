@@ -11,6 +11,11 @@
 	    depends="clean,build">
     </target>
 
+    <target name="all"
+	    description="Build everything, including native code"
+	    depends="default,natives">
+    </target>
+
     <target name="usage"
 	    description="Print this message">
 	<exec	executable="ant">
