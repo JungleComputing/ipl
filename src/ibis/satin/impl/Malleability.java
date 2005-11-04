@@ -38,7 +38,7 @@ public abstract class Malleability extends FaultTolerance {
                                     + "': unable to connect to " + joiner
                                     + ", might have crashed");
                         }
-                        return;
+                        continue;
                     }
                 } else {
                     connect(s, r[i]);
