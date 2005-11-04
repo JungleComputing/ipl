@@ -386,6 +386,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     }
 
     public synchronized ReceivePortIdentifier[] lostConnections() {
-        return (ReceivePortIdentifier[]) lostConnections.toArray();
+        ReceivePortIdentifier[] result =
+                (ReceivePortIdentifier[]) lostConnections.toArray(new ReceivePortIdentifier[0]);
+        lostConnections.clear();
+        return result;
     }
 }

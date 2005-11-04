@@ -800,12 +800,12 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     }
 
     public ibis.ipl.SendPortIdentifier[] lostConnections() {
-        return null;
+        return new ibis.ipl.SendPortIdentifier[0];
     }
 
     public ibis.ipl.SendPortIdentifier[] newConnections() {
         System.err.println("Do not know how to implement this.");
-        return null;
+        return new ibis.ipl.SendPortIdentifier[0];
     }
 
     private class Shutdown extends Syncer {

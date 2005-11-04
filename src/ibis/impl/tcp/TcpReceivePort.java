@@ -609,7 +609,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
     public synchronized SendPortIdentifier[] lostConnections() {
         SendPortIdentifier[] res
-                = (SendPortIdentifier[]) lostConnections.toArray();
+                = (SendPortIdentifier[]) lostConnections.toArray(new SendPortIdentifier[0]);
         lostConnections.clear();
         return res;
     }

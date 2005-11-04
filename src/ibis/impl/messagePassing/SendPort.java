@@ -522,7 +522,7 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
     public ibis.ipl.ReceivePortIdentifier[] lostConnections() {
-        return null; /* Or should this be an empty array or? */
+        return new ibis.ipl.ReceivePortIdentifier[0];
     }
 
     public void disconnect(ibis.ipl.ReceivePortIdentifier r)

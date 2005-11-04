@@ -215,6 +215,7 @@ public interface ReceivePort {
 
     /**
      * Returns the set of sendports this receiveport is connected to .
+     * When there are no connections, an array with 0 entries is returned.
      * @return the sendport identifiers.
      */
     public SendPortIdentifier[] connectedTo();
@@ -228,7 +229,8 @@ public interface ReceivePort {
      * the port was created.
      * This call only works if this port is configured to maintain
      * connection administration.
-     * If not, <code>null</code> is returned.
+     * If no connections were lost, or connection administration was not
+     * requested, an array with 0 entries is returned.
      * @return the lost connections.
      */
     public SendPortIdentifier[] lostConnections();
@@ -240,7 +242,8 @@ public interface ReceivePort {
      * the port was created.
      * This call only works if this port is configured to maintain 
      * connection administration.
-     * If not, <code>null</code> is returned.
+     * If there are no new connections, or connection administration was not
+     * requested, an array with 0 entries is returned.
      * @return the new connections.
      */
     public SendPortIdentifier[] newConnections();

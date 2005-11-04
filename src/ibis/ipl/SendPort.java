@@ -189,7 +189,9 @@ public interface SendPort {
      * or, if this is the first call, all connections that were lost since
      * the port was created.
      * This call only works if the connectionAdministration parameter was true
-     * when this port was created. Otherwise, null is returned.
+     * when this port was created.
+     * If no connections were lost, or connectionAdministration was not
+     * requested, an array with 0 entries is returned.
      * @return A set of receiveport identifiers to which the connection
      * is lost.
      */

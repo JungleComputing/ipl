@@ -411,7 +411,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
     public synchronized SendPortIdentifier[] lostConnections() {
         SendPortIdentifier[] result;
-        result = (SendPortIdentifier[]) lostConnections.toArray();
+        result = (SendPortIdentifier[]) lostConnections.toArray(new SendPortIdentifier[0]);
 
         lostConnections.clear();
 
@@ -420,7 +420,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
     public synchronized SendPortIdentifier[] newConnections() {
         SendPortIdentifier[] result;
-        result = (SendPortIdentifier[]) newConnections.toArray();
+        result = (SendPortIdentifier[]) newConnections.toArray(new SendPortIdentifier[0]);
 
         newConnections.clear();
 
