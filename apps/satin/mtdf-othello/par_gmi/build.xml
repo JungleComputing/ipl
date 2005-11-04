@@ -3,7 +3,7 @@
     default="build"
     basedir=".">
 
-    <property name="ibis"        location="/home1/dcvmoole/ibis-1.1-GMI-HACK"/>
+    <property name="ibis"        location="../../../.."/>
     <property name="build"       value="build"/>
 
     <property name="main-class" value="Mtdf"/>
