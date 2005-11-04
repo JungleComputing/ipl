@@ -15,9 +15,9 @@
 	<property file="build-properties.cache"/>
     </target>
 
-    <target name="config.das"
+    <target name="config.workstation"
 	    depends="config-set-os"
-	    if="config.is-das">
+	    if="config.is-workstation">
 	<property
 		name="default.home.panda"
 		location="/usr/local/VU/panda/panda4.0"/>
@@ -35,88 +35,24 @@
 		location="/usr/local/gm/current"/>
     </target>
 
-    <target name="config.workstation"
-	    depends="config-set-os"
-	    if="config.is-workstation">
-	<property
-		name="default.home.panda"
-		location="../panda/panda4.0"/>
-	<property
-		name="default.home.daslib"
-		location="../daslib"/>
-	<property
-		name="default.home.lfc"
-		location="../lfc-gm"/>
-	<property
-		name="default.home.mpi"
-		location="/usr/local/mpich/mpich-gm"/>
-	<property
-		name="default.home.gm"
-		location="../GM"/>
-    </target>
-
     <target name="config.mac"
 	    depends="config-set-os"
 	    if="config.os-is-mac">
 	<echo message="Yep, this is a mac"/>
     </target>
 
-    <target name="config-domainname" depends="proprietary-tasks">
-	<hostname hostname="hostname" domainname="domainname"/>
-	<echo message="Hostname ${hostname} domainname ${domainname}"/>
+    <target name="config-workstation">
 	<condition property="config.has-previous">
 	    <available file="build-properties.cache"/>
 	</condition>
-	<condition property="config.is-das">
-	    <and>
-		<not>
-		    <isset property="config.has-previous"/>
-		</not>
-		<or>
-		    <equals arg1="${domainname}" arg2="das2.cs.vu.nl"/>
-		    <!-- <equals arg1="${domainname}" arg2="cs.vu.nl"/> -->
-		    <equals arg1="${domainname}" arg2="das2.liacs.nl"/>
-		    <equals arg1="${domainname}" arg2="das2.nikhef.nl"/>
-		    <equals arg1="${domainname}" arg2="das2.its.tudelft.nl"/>
-		    <equals arg1="${domainname}" arg2="das2.phys.uu.nl"/>
-
-		    <!-- Dunno why but the VU DAS workstations are not in
-			 the DAS domain -->
-		    <equals arg1="${hostname}" arg2="mercury.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="titan.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="venus.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="drum.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="kog.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="swpc429.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc060.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc061.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc062.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc063.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc064.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc065.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc066.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc067.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc068.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="fspc069.cs.vu.nl"/>
-		</or>
-	    </and>
-	</condition>
 	<condition property="config.is-workstation">
-	    <and>
-		<not>
-		    <isset property="config.has-previous"/>
-		</not>
-		<not>
-		    <isset property="config.is-das"/>
-		</not>
-	    </and>
+	    <not>
+		<isset property="config.has-previous"/>
+	    </not>
 	</condition>
-	<!--
-	<echo message="config.is-das = ${config.is-das}"/>
-	-->
     </target>
 
-    <target name="config-set-os" depends="config-domainname">
+    <target name="config-set-os" depends="config-workstation">
 	<condition property="config.os-is-unix"    value="true">
 	    <os family="unix"/>
 	</condition>
@@ -150,7 +86,7 @@
     </target>
 
     <target name="config-init"
-	    depends="java-home-test,java-version-test,config.das,config.workstation,config.mac,config.previous">
+	    depends="java-home-test,java-version-test,config.workstation,config.mac,config.previous">
 	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
     </target>
 
@@ -264,14 +200,6 @@ that the fast local network module depends on, just waiting for
 	<echo	file="build-properties.cache"
 		append="true">default.home.gm     = ${default.home.gm}
 </echo>
-	<if>
-	    <isset property="config.is-das"/>
-	    <then>
-		<echo	file="build-properties.cache"
-			append="true">config.is-das          = true
-</echo>
-	    </then>
-	</if>
 	<replace
 		file="${ibis}/build-properties.cache"
 		token="${file.separator}"
@@ -323,14 +251,6 @@ that the fast local network module depends on, just waiting for
 		file="${ibis}/build-properties"
 		token="${file.separator}"
 		value="/"/>
-	<if>
-	    <isset property="config.is-das"/>
-	    <then>
-		<echo	file="build-properties"
-			append="true">config.is-das          = true
-</echo>
-	    </then>
-	</if>
 
 	<!--
 	==============================================================
@@ -370,7 +290,7 @@ IBIS_CONFIG_SEEN=1
 		file="${ibis}/src/scripts/ns-env.in"
 		tofile="${ibis}/bin/ns-env"/>
 	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_PORT@" value="9826"/>
-	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="${hostname}"/>
+	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="localhost"/>
 	<chmod file="${ibis}/bin/ns-env" perm="+x"/>
 
 	<if>
@@ -396,7 +316,7 @@ IBIS_CONFIG_SEEN=1
 			tofile="${ibis}/bin/ns-env.bat">
 		</copy>
 		<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
-		<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="${hostname}"/>
+		<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
 		<replaceregexp
 		    file="${ibis}/bin/ns-env.bat"
 			flags="g"
@@ -430,22 +350,7 @@ IBIS_CONFIG_SEEN=1
 
 
     <target name="property-init-once"
-	    depends="property-compiler-init,proprietary-tasks">
-    </target>
-
-
-    <target name="proprietary-tasks">
-	<mkdir dir="${ibis}/ant-tasks/tasks"/>
-	<javac
-		srcdir="${ibis}/ant-tasks"
-		destdir="${ibis}/ant-tasks/tasks">
-	    <include name="**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-	<taskdef
-		name="hostname"
-		classname="HostName"
-		classpath="${ibis}/ant-tasks/tasks"/>
+	    depends="property-compiler-init">
     </target>
 
 
@@ -473,5 +378,13 @@ IBIS_CONFIG_SEEN=1
 	<antcall inheritRefs="true" target="-config-build-properties"/>
     </target>
 
-
+    <target name="proprietary-tasks">
+	<mkdir dir="${ibis}/ant-tasks/tasks"/>
+	<javac
+		srcdir="${ibis}/ant-tasks"
+		destdir="${ibis}/ant-tasks/tasks">
+	    <include name="**/*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
 </project>

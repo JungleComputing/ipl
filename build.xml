@@ -244,12 +244,6 @@
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<if>
-	    <istrue value="${config.is-das}"/>
-	    <then>
-		<antcall inheritAll="true" inheritRefs="true" target="natives"/>
-	    </then>
-	</if>
 	<antcall inheritAll="true" inheritRefs="true" target="jars"/>
     </target>
 
@@ -538,10 +532,10 @@
 
     <target name="natives"
 	    depends="javah,
+		     proprietary-tasks,
 		     natives.misc,
 	    	     natives.mp,
-		     natives.net,
-		     proprietary-tasks"/>
+		     natives.net"/>
 
     <target name="copyProperties"
 	    depends="init"
@@ -644,13 +638,6 @@
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<if>
-	    <istrue value="${config.is-das}"/>
-	    <then>
-		<antcall inheritAll="true" inheritRefs="true" target="javah"/>
-		<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
-	    </then>
-	</if>
     </target>
 
     <!--
@@ -670,13 +657,6 @@
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<if>
-	    <istrue value="${config.is-das}"/>
-	    <then>
-		<antcall inheritAll="true" inheritRefs="true" target="javah"/>
-		<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
-	    </then>
-	</if>
     </target>
 
     <!--

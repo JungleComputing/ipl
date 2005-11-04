@@ -139,44 +139,4 @@
 	</if>
     </target>
 
-
-
-    <!--
-	Auxilliary target to run applications from ant
-    -->
-    <target name="run" depends="property-init">
-	<property name="IBIS"      value="panda"/>
-	<property name="SER"       value="ibis"/>
-	<property name="HOSTS"     value="2"/>
-	<property name="HOSTNAMES" value="athlon-win2000 p3"/>
-	<exec outputproperty="hostname" executable="hostname"/>
-	<echo message="My hostname is ${hostname}"/>
-	<if>
-	    <equals arg1="${hostname}" arg2="athlon-win2000"/>
-	    <then>
-		<property name="host.number" value="0"/>
-	    </then>
-	<elseif>
-	    <equals arg1="${hostname}" arg2="p3"/>
-	    <then>
-		<property name="host.number" value="1"/>
-	    </then>
-	</elseif>
-	</if>
-	<java
-		fork="true"
-		classname="${MAIN}"
-		classpath="build:${ibis}/build">
-	    <sysproperty key="java.library.path"      value="${ibis}/build/lib"/>
-	    <sysproperty key="ibis.name_server.host"  value="athlon-win2000"/>
-	    <sysproperty key="ibis.name_server.port"  value="7654"/>
-	    <sysproperty key="ibis.name_server.key"   value="rutger.0001"/>
-	    <sysproperty key="ibis.pool.host_number"  value="${host.number}"/>
-	    <sysproperty key="ibis.pool.total_hosts"  value="${HOSTS}"/>
-	    <sysproperty key="ibis.pool.host_names"   value="${HOSTNAMES}"/>
-	    <sysproperty key="ibis.name"              value="${IBIS}"/>
-	    <sysproperty key="ibis.serialization"     value="${SER}"/>
-	    <arg line="${ARGS}"/>
-	</java>
-    </target>
 </project>
