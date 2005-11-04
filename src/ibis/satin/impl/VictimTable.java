@@ -4,15 +4,16 @@ package ibis.satin.impl;
 
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 
 import java.util.HashMap;
 import java.util.Vector;
 
 final class VictimTable implements Config {
-    private Vector victims = new Vector();
+    private Vector victims = new Vector(); // elements are of type Victim
 
-    private HashMap victimsHash = new HashMap();
+    private HashMap victimsHash = new HashMap(); // elements are of type Victim
 
     // all victims grouped by cluster
     /*
@@ -34,13 +35,14 @@ final class VictimTable implements Config {
         clustersHash.put(s.ident.cluster(), thisCluster);
     }
 
-    void add(IbisIdentifier ident, SendPort port) {
+    void add(IbisIdentifier ident, ReceivePortIdentifier recv, SendPort port) {
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
         }
         Victim v = new Victim();
         v.ident = ident;
         v.s = port;
+        v.r = recv;
         victims.add(v);
         victimsHash.put(ident, port);
 
@@ -114,6 +116,16 @@ final class VictimTable implements Config {
             return null;
         }
         return ((Victim) victims.get(i)).ident;
+    }
+
+    Victim getVictim(int i) {
+        if (ASSERTS) {
+            SatinBase.assertLocked(satin);
+        }
+        if (i < 0 || i >= victims.size()) {
+            return null;
+        }
+        return (Victim) victims.get(i);
     }
 
     SendPort getReplyPort(IbisIdentifier ident) {
@@ -292,5 +304,4 @@ final class VictimTable implements Config {
 
         return victims.contains(ident);
     }
-
 }

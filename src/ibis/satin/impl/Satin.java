@@ -412,6 +412,4 @@ public final class Satin extends APIMethods implements ResizeHandler,
     public static IbisIdentifier getSatinIdent() {
         return this_satin.ident;
     }
-    
-
 }

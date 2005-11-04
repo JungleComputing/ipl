@@ -41,7 +41,7 @@ public abstract class Malleability extends FaultTolerance {
                         continue;
                     }
                 } else {
-                    connect(s, r[i]);
+                    // connect(s, r[i]);
                 }
 
                 synchronized (this) {
@@ -51,7 +51,7 @@ public abstract class Malleability extends FaultTolerance {
                     if (FAULT_TOLERANCE && !FT_NAIVE) {
                         globalResultTable.addReplica(joiner);
                     }
-                    victims.add(joiner, s);
+                    victims.add(joiner, r[i], s);
                     notifyAll();
                 }
 
@@ -74,15 +74,15 @@ public abstract class Malleability extends FaultTolerance {
             joinThreadRunning = true;
             Thread p = new Thread("Join thread") {
                 public void run() {
-                    for (;;) {
-                        IbisIdentifier[] j = new IbisIdentifier[0];
+                    while(true) {
+                        IbisIdentifier[] j = null;
                         synchronized(joiners) {
                             if (joiners.size() != 0) {
-                                j = (IbisIdentifier[]) joiners.toArray(j);
+                                j = (IbisIdentifier[]) joiners.toArray(new IbisIdentifier[0]);
                                 joiners.clear();
                             }
                         }
-                        if (j.length != 0) {
+                        if (j != null && j.length != 0) {
                             handleJoins(j);
                         }
                         try {

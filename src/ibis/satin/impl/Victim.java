@@ -3,12 +3,15 @@
 package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 
 final class Victim {
     IbisIdentifier ident;
 
     SendPort s;
+
+    ReceivePortIdentifier r;
 
     public boolean equals(Object o) {
         if (o == this) {

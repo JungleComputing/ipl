@@ -6,6 +6,7 @@ package ibis.satin.impl;
 
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
@@ -76,6 +77,14 @@ public abstract class WorkStealing extends Stats {
             if (STEAL_TIMING) {
                 returnRecordWriteTimer.start();
             }
+            
+            ReceivePortIdentifier[] receivers = s.connectedTo();
+            if(receivers == null || receivers.length == 0) {
+                // it was not connected yet, do it now
+                Victim v = victims.getVictim(r.owner);
+                connect(s, v.r);
+            }
+            
             WriteMessage writeMessage = s.newMessage();
 	                if (r.eek == null) {
                 writeMessage.writeByte(Protocol.JOB_RESULT_NORMAL);
@@ -163,8 +172,15 @@ public abstract class WorkStealing extends Stats {
 
         try {
             SendPort s = v.s;
-            WriteMessage writeMessage = s.newMessage();
             byte opcode = -1;
+
+            ReceivePortIdentifier[] receivers = s.connectedTo();
+            if(receivers == null || receivers.length == 0) {
+                // it was not connected yet, do it now
+                connect(s, v.r);
+            }
+
+            WriteMessage writeMessage = s.newMessage();
 
             if (synchronous) {
                 if (blocking) {

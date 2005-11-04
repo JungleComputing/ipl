@@ -19,10 +19,9 @@ public abstract class Communication extends SpawnSync {
                 s.connect(ident);
                 success = true;
             } catch (IOException e) {
-                if (grtLogger.isInfoEnabled()) {
-                    grtLogger.info("IOException in connect to " + ident + ": "
-                            + e, e);
-                }
+                commLogger.info("IOException in connect to " + ident + ": " + e, e);
+                System.err.println("IOException in connect to " + ident + ": " + e);
+                e.printStackTrace();
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
@@ -263,11 +262,19 @@ public abstract class Communication extends SpawnSync {
                 }
 
                 for (int i = 0; i < size; i++) {
-                    SendPort s;
+                    
+                    Victim v;
                     synchronized (this) {
-                        s = victims.getPort(i);
+                        v = victims.getVictim(i);
                     }
-                    WriteMessage writeMessage = s.newMessage();
+
+                    ReceivePortIdentifier[] receivers = v.s.connectedTo();
+                    if(receivers == null || receivers.length == 0) {
+                        // it was not connected yet, do it now
+                        connect(v.s, v.r);
+                    }
+                    
+                    WriteMessage writeMessage = v.s.newMessage();
                     writeMessage.writeByte(Protocol.BARRIER_REPLY);
                     writeMessage.finish();
                 }

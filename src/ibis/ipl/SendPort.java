@@ -175,6 +175,7 @@ public interface SendPort {
      */
     public void close() throws IOException;
 
+    // @@@ what is returned if it is not connected ?? --Rob
     /** 
      * Returns the set of receiveports this sendport is connected to.
      * 
