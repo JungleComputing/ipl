@@ -7,15 +7,14 @@ prun:
   
 nameserver:
 - print warning if -ns option is not passed to ibis-run (and then do what we do now -> node where this ibis was compiled)
-+ allow application to specify that it does not want joins. --Rob
-+ allow app to specify that it wants joins, but not globally ordered. --Rob
-+ nameserver is single threaded: if it cannot forward a join, everything hangs. --Rob
-+ enable control hub by default --Rob
-+ if a control hub is started, ibises cannot connect to the normal server again? --Rob
-+ allow different connection types to nameserver simulaneously: 
+- allow application to specify that it does not want joins. --Rob
+- allow app to specify that it wants joins, but not globally ordered. --Rob
+- nameserver is single threaded: if it cannot forward a join, everything hangs. --Rob
+- enable control hub by default --Rob
+- if a control hub is started, ibises cannot connect to the normal server again? --Rob
+- allow different connection types to nameserver simulaneously: 
   one ibis should be able to connect with routed messges, while others have a direct connection --Rob
-+ -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft (niet alleen eerste)...
-
+- -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft (niet alleen eerste)...
 + we forget to close connections on errors, see for instance forwardJoin
   in NameServer.java --Rob (Occurred in many places. Fixed Ceriel)
 + nameserver needs to know classes of all ibis identifiers. 
@@ -50,10 +49,10 @@ rmi:
   are not finished! --Rob (Done (Ceriel))
 
 satin:
-+ remove tuple space alltogether now ? --Rob
-+ add method to make deep copy for objects (use ibis.util.DeepCopy) --Rob
-+ make scalable ibis / scalable satin (don't keep sockets open) --Rob
-+ als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
+- remove tuple space alltogether now ? --Rob
+- add method to make deep copy for objects (use ibis.util.DeepCopy) --Rob
+- make scalable ibis / scalable satin (don't keep sockets open) --Rob
+- als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
   print bij top of the stack.
 + bug: throws van runtime exception worden niet doorgegooid maar genegeerd.
   (Fixed Ceriel)
