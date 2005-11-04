@@ -5,24 +5,20 @@
 package ibis.impl.tcp;
 
 import ibis.connect.IbisSocketFactory;
+import ibis.io.Conversion;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisError;
 import ibis.util.ThreadPool;
-import ibis.io.Conversion;
-
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -228,7 +224,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 	TcpSendPortIdentifier send = (TcpSendPortIdentifier)
             Conversion.byte2object(sp);
 
-        TcpIbisIdentifier ibis = send.ibis;
+//        TcpIbisIdentifier ibis = send.ibis;
 
         /* First, try to find the receive port this message is for... */
         TcpReceivePort rp = findReceivePort(receive);

@@ -171,7 +171,7 @@ public class BT_Analyzer {
     }
 
     void findSpecialInterfaces2(JavaClass inter, Vector si) {
-        boolean result = false;
+//        boolean result = false;
 
         JavaClass[] interfaces = inter.getAllInterfaces();
 

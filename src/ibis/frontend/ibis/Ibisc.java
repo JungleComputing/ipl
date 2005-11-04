@@ -2,8 +2,6 @@
 
 package ibis.frontend.ibis;
 
-import ibis.util.RunProcess;
-
 import ibis.frontend.generic.RunJavac;
 
 import java.io.File;

@@ -2,7 +2,6 @@
 
 package ibis.frontend.satin;
 
-import ibis.util.RunProcess;
 import ibis.frontend.generic.RunJavac;
 
 import java.io.BufferedOutputStream;

@@ -85,7 +85,7 @@ class SatinSOc {
 
             try {
 
-                PrintWriter output;
+//                PrintWriter output;
                 JavaClass subjectClass = (JavaClass) classes.get(i);
 
                 if (subjectClass.isInterface()) {
@@ -405,7 +405,7 @@ class SatinSOc {
 						     new Type[] {},
 						     Constants.INVOKESTATIC));
 	newMethodInsList.append(insFactory.createNew(SOInvocationRecordName(m, clnam, pnam)));
-	newMethodInsList.append(insFactory.createDup(1));
+	newMethodInsList.append(InstructionFactory.createDup(1));
 	newMethodInsList.append(new ALOAD(0));
 	newMethodInsList.append(insFactory.createGetField(classname,
 						       "objectId",
@@ -413,7 +413,7 @@ class SatinSOc {
 	arguments = m.getArgumentTypes();			     
 	int k1 = 0;
 	for (int k = 0; k < arguments.length; k++) {
-	    newMethodInsList.append(insFactory.createLoad(arguments[k], k1+1));
+	    newMethodInsList.append(InstructionFactory.createLoad(arguments[k], k1+1));
 	    k1 += arguments[k].getSize();
 	}
 
@@ -444,14 +444,14 @@ class SatinSOc {
 							 new ObjectType("ibis.satin.impl.Satin"),
 							 new Type[] {},
 							 Constants.INVOKESTATIC));
-	newMethodInsList.append(insFactory.createDup(1));
+	newMethodInsList.append(InstructionFactory.createDup(1));
 	newMethodInsList.append(new ASTORE(monitorVarAddr));
 	newMethodInsList.append(new MONITORENTER());
 	//call the object method
 	InstructionHandle from1 = newMethodInsList.append(new ALOAD(0));
 	k1 = 0;
 	for (int k = 0; k < arguments.length; k++) {
-	    newMethodInsList.append(insFactory.createLoad(arguments[k], k1+1));
+	    newMethodInsList.append(InstructionFactory.createLoad(arguments[k], k1+1));
 	    k1 += arguments[k].getSize();
 	}
 	returnType = m.getReturnType();
@@ -464,7 +464,7 @@ class SatinSOc {
 	newMethodInsList.append(new ALOAD(monitorVarAddr));
 	newMethodInsList.append(new MONITOREXIT());
 	//return statement
-	InstructionHandle to1 = newMethodInsList.append(insFactory.createReturn(returnType));
+	InstructionHandle to1 = newMethodInsList.append(InstructionFactory.createReturn(returnType));
 	//exception handlers
 	InstructionHandle from2 = newMethodInsList.append(new ASTORE(monitorVarAddr+1));
 	newMethodInsList.append(new ALOAD(monitorVarAddr));
