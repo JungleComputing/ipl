@@ -86,14 +86,15 @@ public abstract class Communication extends SpawnSync {
 	
 
     SendPort getReplyPortWait(IbisIdentifier id) {
-        SendPort s;
         if (ASSERTS) {
             assertLocked(this);
         }
 
+        Victim v = null; 
+
         do {
-            s = victims.getReplyPort(id);
-            if (s == null) {
+            v = victims.getVictim(id); 
+            if (v == null) {
                 if (commLogger.isDebugEnabled()) {
                     commLogger.debug("SATIN '" + ident
                             + "': could not get reply port to " + id
@@ -105,17 +106,34 @@ public abstract class Communication extends SpawnSync {
                     // Ignore.
                 }
             }
-        } while (s == null);
+        } while (v == null);
 
-        return s;
+        ReceivePortIdentifier[] receivers = v.s.connectedTo();
+        if(receivers == null || receivers.length == 0) {
+            // it was not connected yet, do it now
+            connect(v.s, v.r);
+        }
+
+        return v.s;
     }
 
     SendPort getReplyPortNoWait(IbisIdentifier id) {
         SendPort s;
+        
         if (ASSERTS) {
             assertLocked(this);
         }
-        s = victims.getReplyPort(id);
+        
+        Victim v = victims.getVictim(id); 
+        if(v == null) return null;
+        
+        ReceivePortIdentifier[] receivers = v.s.connectedTo();
+        if(receivers == null || receivers.length == 0) {
+            // it was not connected yet, do it now
+            connect(v.s, v.r);
+        }
+
+        s = v.s;
         return s;
     }
 

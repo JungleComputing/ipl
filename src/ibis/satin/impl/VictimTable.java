@@ -13,7 +13,7 @@ import java.util.Vector;
 final class VictimTable implements Config {
     private Vector victims = new Vector(); // elements are of type Victim
 
-    private HashMap victimsHash = new HashMap(); // elements are of type Victim
+    private HashMap victimsHash = new HashMap(); // keys are IbisIdentifier, elements are of type Sendport
 
     // all victims grouped by cluster
     /*
@@ -168,11 +168,7 @@ final class VictimTable implements Config {
                 v = ((Victim) victims.get(i));
             } catch (Exception e) {
                 commLogger.debug("Exception in getVictim: " + e, e);
-            }
-
-            if (ASSERTS && v == null) {
-                commLogger.fatal("getVictim: v == null!");
-                System.exit(1);
+                return null;
             }
 
             if (v.ident.equals(ident)) {
@@ -180,7 +176,7 @@ final class VictimTable implements Config {
             }
         }
 
-        throw new IbisError("EEK, victim not found in getVictim");
+        return null;
     }
 
     Victim getRandomVictim() {

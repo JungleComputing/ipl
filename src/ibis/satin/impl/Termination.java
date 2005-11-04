@@ -2,6 +2,7 @@
 
 package ibis.satin.impl;
 
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
@@ -37,6 +38,7 @@ public abstract class Termination extends Initialization {
             // algorithm.exit(); // give the algorithm time to clean up
 
             for (int i = 0; i < size; i++) {
+                Victim v = null;
                 try {
                     WriteMessage writeMessage;
                     synchronized (this) {
@@ -48,8 +50,17 @@ public abstract class Termination extends Initialization {
 
                         //System.err.println("victims size: " + victims.size()
                         // + ",i: " + i);
-                        writeMessage = victims.getPort(i).newMessage();
+
+                        v = victims.getVictim(i);
+
+                        ReceivePortIdentifier[] receivers = v.s.connectedTo();
+                        if(receivers == null || receivers.length == 0) {
+                            // it was not connected yet, do it now
+                            Communication.connect(v.s, v.r);
+                        }
                     }
+                    
+                    writeMessage = v.s.newMessage();
 
                     writeMessage.writeByte(Protocol.EXIT);
                     writeMessage.finish();
@@ -79,8 +90,6 @@ public abstract class Termination extends Initialization {
             }
         } else { // send exit ack to master
             SendPort mp = null;
-
-            // algorithm.exit(); //give the algorithm time to clean up
 
             synchronized (this) {
                 mp = getReplyPortWait(masterIdent);
