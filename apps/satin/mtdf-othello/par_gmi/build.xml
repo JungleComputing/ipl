@@ -1,0 +1,26 @@
+<project
+    name="mtdf-othello.par_gmi"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="/home1/dcvmoole/ibis-1.1-GMI-HACK"/>
+    <property name="build"       value="build"/>
+
+    <property name="main-class" value="Mtdf"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-gmi-app.xml"/>
+
+    <target name="build"
+            depends="init"
+            description="build Mtdf application">
+        <antcall inheritAll="true" inheritRefs="true" target="compile"/>
+        <antcall inheritRefs="true" target="satin"/>
+        <antcall inheritRefs="true" target="gmi"/>
+        <antcall inheritRefs="true" target="iogen"/>
+    </target>
+
+</project>
+
+

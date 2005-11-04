@@ -1,0 +1,27 @@
+<project
+    name="mtdf-othello.par_rmi"
+    default="build"
+    basedir=".">
+
+    <property environment="env" />
+    <property name="ibis" location="${env.IBIS_ROOT}"/>
+    <property name="build" value="build"/>
+
+    <property name="main-class" value="Mtdf"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+    <import file="${ibis}/build-files/apps/build-rmi-app.xml"/>
+
+    <target name="build"
+	    depends="init"
+	    description="build Mtdf-Othello application">
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="rmic-sun"/>
+	<antcall inheritRefs="true" target="satin"/>
+	<antcall inheritRefs="true" target="iogen"/>
+    </target>
+
+</project>
+
+

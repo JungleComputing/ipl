@@ -1,0 +1,17 @@
+<project
+    name="mtdf-othello.seq"
+    default="build"
+    basedir=".">
+
+    <property environment="env" />
+    <property name="ibis" location="${env.IBIS_ROOT}"/>
+    <property name="build" value="build"/>
+
+    <property name="main-class" value="Mtdf"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>
+
+
