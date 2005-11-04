@@ -34,30 +34,30 @@ class ReceivePortNameServer extends Thread implements Protocol {
     private boolean silent;
 
     private static class PortLookupRequest {
-        Socket s;
+        private final Socket s;
 
-        DataInputStream in;
+        private final DataInputStream myIn;
 
-        DataOutputStream out;
+        private final DataOutputStream myOut;
 
-        String[] names;
+        private final String[] names;
 
-        byte[][] ports;
+        private final byte[][] ports;
 
-        long timeout;
+        private final long timeout;
+               
+        private final boolean allowPartialResults;
 
         int unknown;
 
-        boolean done = false;
-        
-        boolean allowPartialResults;
+        private boolean done = false;
 
         PortLookupRequest(Socket s, DataInputStream in, DataOutputStream out,
                 String[] names, byte[][] ports, long timeout, int unknown, 
                 boolean allowPartialResults) {
             this.s = s;
-            this.in = in;
-            this.out = out;
+            this.myIn = in;
+            this.myOut = out;
             this.names = names;
             this.ports = ports;
             this.timeout = timeout;
@@ -66,31 +66,40 @@ class ReceivePortNameServer extends Thread implements Protocol {
         }
 
         public void writeResult() throws IOException {
+            
+            if (done) throw new Error("Trying to return port lookup result " 
+                    + "twice!");
+            
             try {
                 
                 if (unknown == 0 || allowPartialResults) {                 
-                    out.writeByte(PORT_KNOWN);
+                    myOut.writeByte(PORT_KNOWN);
                     for (int i = 0; i < ports.length; i++) {
-                        out.writeInt(ports[i].length);
                         
-                        if (ports[i].length > 0) {                     
-                            out.write(ports[i]);
+                        if (ports[i] == null) { 
+                            myOut.writeInt(0);
+                        } else {                         
+                            myOut.writeInt(ports[i].length);
+                        
+                            if (ports[i].length > 0) {                     
+                                myOut.write(ports[i]);
+                            }
                         }
                     }
                 } else { 
-                    out.writeByte(PORT_UNKNOWN);
-                    out.writeInt(unknown);
+                    myOut.writeByte(PORT_UNKNOWN);
+                    myOut.writeInt(unknown);
                     for (int j = 0; j < ports.length; j++) {
                         if (ports[j] == null) {
-                            out.writeUTF(names[j]);
+                            myOut.writeUTF(names[j]);
                         }
                     }
                 } 
-            } finally {
-                NameServer.closeConnection(in, out, s);
-            }
 
-            done = true;
+            } finally {
+                done = true;
+                NameServer.closeConnection(myIn, myOut, s);
+            }            
         }
     }
 
@@ -197,7 +206,6 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 PortLookupRequest p = (PortLookupRequest) v.get(i);
                 if (! p.done && p.timeout != 0) {
                     if (p.timeout <= current) {
-                        p.done = true;
                         try {
                             p.writeResult();
                         } catch (IOException e) {
@@ -350,7 +358,8 @@ class ReceivePortNameServer extends Thread implements Protocol {
             boolean mustClose = true;
 
             try {
-                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+                in = new DataInputStream(
+                        new BufferedInputStream(s.getInputStream(), 4096));
                 out = new DataOutputStream(
                         new BufferedOutputStream(s.getOutputStream(), 4096));
 

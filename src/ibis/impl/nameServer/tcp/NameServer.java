@@ -278,7 +278,7 @@ public class NameServer extends Thread implements Protocol {
     private void forwardJoin(IbisInfo dest, IbisInfo[] info, int offset) {
 
         if (! silent && logger.isDebugEnabled()) {
-            logger.debug("NameServer: forwarding joins to " + dest.name);
+            logger.debug("NameServer: forwarding joins to " + dest);
         }
 
         if (offset >= info.length) {
@@ -288,27 +288,33 @@ public class NameServer extends Thread implements Protocol {
         Socket s = null;
         DataOutputStream out2 = null;
 
-        try {
-            s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
-            out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-            out2.writeByte(IBIS_JOIN);
-            out2.writeInt(info.length - offset);
-            for (int i = offset; i < info.length; i++) {
-                out2.writeInt(info[i].serializedId.length);
-                out2.write(info[i].serializedId);
-
-                if (! silent && logger.isDebugEnabled()) {
-                    logger.debug("NameServer: forwarding join of "
-                            + info[i].name + " to " + dest.name + " DONE");
+        // QUICK HACK -- JASON
+        for (int h=0;h<3;h++) { 
+        
+            try {
+                s = NameServerClient.socketFactory.createClientSocket(
+                        dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+                out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+                out2.writeByte(IBIS_JOIN);
+                out2.writeInt(info.length - offset);
+                for (int i = offset; i < info.length; i++) {
+                    out2.writeInt(info[i].serializedId.length);
+                    out2.write(info[i].serializedId);
+                    
+                    if (! silent && logger.isDebugEnabled()) {
+                        logger.debug("NameServer: forwarding join of "
+                                + info[i].name + " to " + dest + " DONE");
+                    }
                 }
+                
+                return;
+            } catch (Exception e) {
+                if (! silent) {
+                    logger.error("Could not forward join to " + dest, e);
+                }
+            } finally {
+                closeConnection(null, out2, s);
             }
-        } catch (Exception e) {
-            if (! silent) {
-                logger.error("Could not forward join to " + dest.name, e);
-            }
-        } finally {
-            closeConnection(null, out2, s);
         }
     }
 
