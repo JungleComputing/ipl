@@ -49,9 +49,12 @@ class ReceivePortNameServer extends Thread implements Protocol {
         int unknown;
 
         boolean done = false;
+        
+        boolean allowPartialResults;
 
         PortLookupRequest(Socket s, DataInputStream in, DataOutputStream out,
-                String[] names, byte[][] ports, long timeout, int unknown) {
+                String[] names, byte[][] ports, long timeout, int unknown, 
+                boolean allowPartialResults) {
             this.s = s;
             this.in = in;
             this.out = out;
@@ -59,15 +62,30 @@ class ReceivePortNameServer extends Thread implements Protocol {
             this.ports = ports;
             this.timeout = timeout;
             this.unknown = unknown;
+            this.allowPartialResults = allowPartialResults;
         }
 
         public void writeResult() throws IOException {
             try {
-                out.writeByte(PORT_KNOWN);
-                for (int i = 0; i < ports.length; i++) {
-                    out.writeInt(ports[i].length);
-                    out.write(ports[i]);
-                }
+                
+                if (unknown == 0 || allowPartialResults) {                 
+                    out.writeByte(PORT_KNOWN);
+                    for (int i = 0; i < ports.length; i++) {
+                        out.writeInt(ports[i].length);
+                        
+                        if (ports[i].length > 0) {                     
+                            out.write(ports[i]);
+                        }
+                    }
+                } else { 
+                    out.writeByte(PORT_UNKNOWN);
+                    out.writeInt(unknown);
+                    for (int j = 0; j < ports.length; j++) {
+                        if (ports[j] == null) {
+                            out.writeUTF(names[j]);
+                        }
+                    }
+                } 
             } finally {
                 NameServer.closeConnection(in, out, s);
             }
@@ -171,70 +189,85 @@ class ReceivePortNameServer extends Thread implements Protocol {
     //end gosia	
 
     private class RequestSweeper extends Thread {
+        
+        private long checkRequest(ArrayList v, long current, long timeout) { 
+            // synchronized on requestedPorts
+            
+            for (int i = v.size() - 1; i >= 0; i--) {
+                PortLookupRequest p = (PortLookupRequest) v.get(i);
+                if (! p.done && p.timeout != 0) {
+                    if (p.timeout <= current) {
+                        p.done = true;
+                        try {
+                            p.writeResult();
+                        } catch (IOException e) {
+                            if (! silent) {
+                                System.out.println("RequestSweeper "
+                                        + "got IOException" + e);
+                                e.printStackTrace();
+                            }
+                        } 
+                        v.remove(i);
+                    } else if (p.timeout - current < timeout) {
+                        timeout = p.timeout - current;
+                    }
+                }
+            }
+            
+            return timeout;
+        } 
+                
+        private long checkTimeOuts() { 
+            // synchronized on requestedPorts
+            
+            long timeout = 1000000L;                
+            long current = System.currentTimeMillis();
+                                   
+            Enumeration names = requestedPorts.keys();
+                
+            while (names.hasMoreElements()) {
+                String name = (String) names.nextElement();
+                ArrayList v = (ArrayList) requestedPorts.get(name);
+                    
+                if (v != null) {
+                    timeout = checkRequest(v, current, timeout);
+                    
+                    if (v.size() == 0) {
+                        requestedPorts.remove(name);
+                    }    
+                }
+            }
+                
+            if (timeout < 100) {
+                timeout = 100;
+            }
+            
+            return timeout;            
+        }
+        
         public void run() {
-            long timeout = 1000000L;
+            
             while (true) {
-                long current = System.currentTimeMillis();
-                synchronized (requestedPorts) {
+                synchronized (requestedPorts) {                    
                     if (finishSweeper) {
                         return;
                     }
-                    Enumeration names = requestedPorts.keys();
-                    while (names.hasMoreElements()) {
-                        String name = (String) names.nextElement();
-                        ArrayList v = (ArrayList) requestedPorts.get(name);
-                        if (v != null) {
-                            for (int i = v.size() - 1; i >= 0; i--) {
-                                PortLookupRequest p
-                                        = (PortLookupRequest) v.get(i);
-                                if (! p.done && p.timeout != 0) {
-                                    if (p.timeout <= current) {
-                                        p.done = true;
-                                        try {
-                                            p.out.writeByte(PORT_UNKNOWN);
-                                            p.out.writeInt(p.unknown);
-                                            for (int j = 0; j < p.ports.length;
-                                                    j++) {
-                                                if (p.ports[j] == null) {
-                                                    p.out.writeUTF(p.names[j]);
-                                                }
-                                            }
-                                        } catch (IOException e) {
-                                            if (! silent) {
-                                                System.out.println("RequestSweeper "
-                                                        + "got IOException" + e);
-                                                e.printStackTrace();
-                                            }
-                                        } finally {
-                                            NameServer.closeConnection(
-                                                    p.in, p.out, p.s);
-                                        }
-                                        v.remove(i);
-                                    } else if (p.timeout - current < timeout) {
-                                        timeout = p.timeout - current;
-                                    }
-                                }
-                            }
-                            if (v.size() == 0) {
-                                requestedPorts.remove(name);
-                            }
-                        }
-                    }
+                
+                    long timeout = checkTimeOuts();
+                   
                     try {
-                        if (timeout < 100) {
-                            timeout = 100;
-                        }
-                        requestedPorts.wait(timeout);
+                        requestedPorts.wait(timeout);                        
                     } catch (InterruptedException e) {
                         // ignored
-                    }
-                }
+                    }   
+                }                   
             }
         }
     }
 
     private void handlePortLookup(Socket s) throws IOException {
 
+        boolean allowPartialResults = in.readBoolean();
         int count = in.readInt();
         String[] names = new String[count];
         byte[][] prts = new byte[count][];
@@ -255,7 +288,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
         }
 
         PortLookupRequest p = new PortLookupRequest(s, in, out, names, prts,
-                timeout, unknown);
+                timeout, unknown, allowPartialResults);
 
         if (unknown == 0) {
             p.writeResult();

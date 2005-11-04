@@ -73,7 +73,7 @@ class Registry implements ibis.ipl.Registry {
 
     public ibis.ipl.ReceivePortIdentifier[] lookupReceivePorts(String[] names)
             throws IOException {
-        return lookupReceivePorts(names, 0);
+        return lookupReceivePorts(names, 0, false);
     }
 
     public ibis.ipl.ReceivePortIdentifier lookupReceivePort(String name,
@@ -82,7 +82,7 @@ class Registry implements ibis.ipl.Registry {
     }
 
     public ibis.ipl.ReceivePortIdentifier[] lookupReceivePorts(String[] names,
-            long timeout) throws IOException {
+            long timeout, boolean allowPartialResults) throws IOException {
         ibis.ipl.ReceivePortIdentifier[] result = new ibis.ipl.ReceivePortIdentifier[names.length];
         for (int i = 0; i < names.length; i++) {
             result[i] = lookupReceivePort(names[i], timeout);
