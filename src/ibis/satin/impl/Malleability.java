@@ -41,7 +41,9 @@ public abstract class Malleability extends FaultTolerance {
                         continue;
                     }
                 } else {
-                    // connect(s, r[i]);
+                    if(!SCALABLE) {
+                        connect(s, r[i]);
+                    }
                 }
 
                 synchronized (this) {

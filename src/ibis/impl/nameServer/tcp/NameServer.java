@@ -763,7 +763,6 @@ public class NameServer extends Thread implements Protocol {
         boolean stop = false;
 
         while (!stop) {
-
             try {
                 if (! silent && logger.isInfoEnabled()) {
                     logger.info("NameServer: accepting incoming connections... ");
@@ -774,7 +773,6 @@ public class NameServer extends Thread implements Protocol {
                     logger.debug("NameServer: incoming connection from "
                             + s.toString());
                 }
-
             } catch (Exception e) {
                 if (! silent) {
                     logger.error("NameServer got an error", e);

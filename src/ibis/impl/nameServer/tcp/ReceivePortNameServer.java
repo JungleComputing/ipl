@@ -71,7 +71,6 @@ class ReceivePortNameServer extends Thread implements Protocol {
                     + "twice!");
             
             try {
-                
                 if (unknown == 0 || allowPartialResults) {                 
                     myOut.writeByte(PORT_KNOWN);
                     for (int i = 0; i < ports.length; i++) {

@@ -15,6 +15,8 @@ public interface Config {
 
     static final String PROPERTY_PREFIX = "satin.";
 
+    static final String s_scalable = PROPERTY_PREFIX + "scalable";
+
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
     static final String s_stats_spawn = PROPERTY_PREFIX + "stats.spawn";
@@ -89,7 +91,7 @@ public interface Config {
     static final String s_tuple_numbered = PROPERTY_PREFIX
             + "tuplespace.numbered";
 
-    static final String[] sysprops = { s_stats, s_stats_spawn, s_stats_steal,
+    static final String[] sysprops = { s_scalable, s_stats, s_stats_spawn, s_stats_steal,
             s_stats_abort, s_stats_tuple, s_stats_ft, s_stats_grt, s_timing,
             s_timing_steal, s_timing_abort, s_timing_idle, s_timing_poll,
             s_timing_tuple, s_timing_grt, s_timing_crash, s_timing_check,
@@ -98,6 +100,9 @@ public interface Config {
             s_masterhost, s_in_latency, s_tuple_multi, s_tuple_ordered,
             s_tuple_numbered, s_timing_so, s_so};
 
+    /** Enable this if Satin should try to be as scalable as possible */
+    static final boolean SCALABLE = TypedProperties.booleanProperty(s_scalable, true);
+    
     /** Must be enabled or there are no statistics at all. */
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
 
