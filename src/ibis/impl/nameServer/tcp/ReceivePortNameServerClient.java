@@ -72,8 +72,7 @@ class ReceivePortNameServerClient implements Protocol {
         Socket s = null;
 
         ReceivePortIdentifier[] ids = null;
-        int result;
-
+       
         try {
             
             long time = System.currentTimeMillis();
@@ -99,7 +98,7 @@ class ReceivePortNameServerClient implements Protocol {
             out.flush();
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-            result = in.readByte();
+            int result = in.readByte();
 
             switch (result) {
             case PORT_UNKNOWN:

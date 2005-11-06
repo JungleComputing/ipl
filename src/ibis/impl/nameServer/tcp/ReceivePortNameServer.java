@@ -64,8 +64,39 @@ class ReceivePortNameServer extends Thread implements Protocol {
             this.unknown = unknown;
             this.allowPartialResults = allowPartialResults;
         }
+        
+        public void addPort(String name, byte [] id) { 
+         
+            for (int j = 0; j < names.length; j++) {
+                if (names[j].equals(name)) {
+                    ports[j] = id;
+                    unknown--;
+                    if (unknown == 0) {
+                        writeResult();
+                    }
+                    break;
+                }
+            }
+        }        
 
-        public void writeResult() throws IOException {
+        public long checkTimeToWait(long current) { 
+                       
+            if (timeout == 0) {
+                // No timeout
+                return 0;                
+            }
+                
+            if (timeout <= current) {
+                // Time has expired
+                writeResult();
+                return -1;
+            } 
+
+            // Some time left
+            return timeout - current;
+        }
+        
+        private void writeResult(){
             
             if (done) throw new Error("Trying to return port lookup result " 
                     + "twice!");
@@ -94,7 +125,13 @@ class ReceivePortNameServer extends Thread implements Protocol {
                         }
                     }
                 } 
+                
+            } catch (Throwable e) { 
 
+                System.err.println("PortLookupRequest failed to return result "
+                        + " to " + s + "got IOException" + e);
+                e.printStackTrace(System.err);
+                
             } finally {
                 done = true;
                 NameServer.closeConnection(myIn, myOut, s);
@@ -151,25 +188,20 @@ class ReceivePortNameServer extends Thread implements Protocol {
         addPort(name, id);
     }
 
-    private void addPort(String name, byte[] id)
-            throws IOException {
+    private void addPort(String name, byte[] id) {
+        
         ports.put(name, id);
+        
+        ArrayList v = null;
+            
         synchronized (requestedPorts) {
-            ArrayList v = (ArrayList) requestedPorts.get(name);
+            v = (ArrayList) requestedPorts.remove(name);
+            
             if (v != null) {
-                requestedPorts.remove(name);
+                // TODO: MOVE OUT OF SYNC BLOCK ? 
                 for (int i = 0; i < v.size(); i++) {
                     PortLookupRequest p = (PortLookupRequest) v.get(i);
-                    for (int j = 0; i < p.names.length; j++) {
-                        if (p.names[j].equals(name)) {
-                            p.ports[j] = id;
-                            p.unknown--;
-                            if (p.unknown == 0) {
-                                p.writeResult();
-                            }
-                            break;
-                        }
-                    }
+                    p.addPort(name, id);
                 }
             }
         }
@@ -198,27 +230,21 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     private class RequestSweeper extends Thread {
         
-        private long checkRequest(ArrayList v, long current, long timeout) { 
+        private long checkTimeOuts(ArrayList v, long current, long timeout) { 
             // synchronized on requestedPorts
             
             for (int i = v.size() - 1; i >= 0; i--) {
                 PortLookupRequest p = (PortLookupRequest) v.get(i);
-                if (! p.done && p.timeout != 0) {
-                    if (p.timeout <= current) {
-                        try {
-                            p.writeResult();
-                        } catch (IOException e) {
-                            if (! silent) {
-                                System.out.println("RequestSweeper "
-                                        + "got IOException" + e);
-                                e.printStackTrace();
-                            }
-                        } 
-                        v.remove(i);
-                    } else if (p.timeout - current < timeout) {
-                        timeout = p.timeout - current;
-                    }
-                }
+                
+                long t = p.checkTimeToWait(current);
+                                                
+                if (t == -1) {
+                    // Timeout has expired
+                    v.remove(i);
+                } else if (t > 0 && t < timeout) {
+                    // Some time left and is shorter thn the others
+                    timeout = t;                    
+                } // else, no timeout is set
             }
             
             return timeout;
@@ -237,7 +263,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 ArrayList v = (ArrayList) requestedPorts.get(name);
                     
                 if (v != null) {
-                    timeout = checkRequest(v, current, timeout);
+                    timeout = checkTimeOuts(v, current, timeout);
                     
                     if (v.size() == 0) {
                         requestedPorts.remove(name);
@@ -293,11 +319,12 @@ class ReceivePortNameServer extends Thread implements Protocol {
         if (timeout != 0) {
             timeout += System.currentTimeMillis();
         }
-
+                
         PortLookupRequest p = new PortLookupRequest(s, in, out, names, prts,
                 timeout, unknown, allowPartialResults);
 
-        if (unknown == 0) {
+        if (unknown == 0) {            
+            // TODO: clean this up ?
             p.writeResult();
             return;
         }
