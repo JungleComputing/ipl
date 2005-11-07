@@ -2,6 +2,7 @@
 
 package ibis.satin.impl;
 
+import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortIdentifier;
@@ -18,6 +19,8 @@ public abstract class Communication extends SpawnSync {
             try {
                 s.connect(ident);
                 success = true;
+            } catch (AlreadyConnectedException x) {
+                return;
             } catch (IOException e) {
                 commLogger.info(
                     "IOException in connect to " + ident + ": " + e, e);
@@ -41,6 +44,8 @@ public abstract class Communication extends SpawnSync {
             try {
                 s.connect(ident, timeoutMillis);
                 success = true;
+            } catch (AlreadyConnectedException x) {
+                    return true;
             } catch (IOException e) {
                 /*                if (grtLogger.isInfoEnabled()) {
                  grtLogger.info("IOException in connect to " + ident + ": "
