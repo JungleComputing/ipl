@@ -966,7 +966,7 @@ public class Comm {
 			if (MPJ.LOCALCOPYIBIS) {
 				StoreBuffer stBuf = new StoreBuffer();
 			
-				StoreArrayInputStream sin = null;
+//				StoreArrayInputStream sin = null;
 				SerializationOutput mout = null;
 				SerializationInput min = null;
 
@@ -1240,7 +1240,7 @@ public class Comm {
 				
 				StoreBuffer stBuf = new StoreBuffer();
 			
-				StoreArrayInputStream sin = null;
+//				StoreArrayInputStream sin = null;
 				SerializationOutput mout = null;
 				SerializationInput min = null;
 

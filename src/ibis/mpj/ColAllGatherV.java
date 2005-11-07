@@ -8,7 +8,7 @@ package ibis.mpj;
  */
 public class ColAllGatherV {
 	
-	private final boolean DEBUG = false;
+//	private final boolean DEBUG = false;
 	
 	private Object sendbuf = null;
 	private int sendoffset = 0;
@@ -58,7 +58,7 @@ public class ColAllGatherV {
 	    int jnext = left;
 	    
 	    for (int i = 1; i < size; i++) {
-	    	Status stat = this.comm.sendrecv(recvbuf, recvoffset + displs[j] * recvtype.extent(), recvcount[j], recvtype, right, this.tag,
+	    	/*Status stat = */ this.comm.sendrecv(recvbuf, recvoffset + displs[j] * recvtype.extent(), recvcount[j], recvtype, right, this.tag,
 	    					   recvbuf, recvoffset + displs[jnext] * recvtype.extent(), recvcount[jnext], recvtype, left, this.tag);
 	    	
 	    	j = jnext;

@@ -46,7 +46,7 @@ public class ColAllGather {
 		int rightRank = getNextRank(1, rank, size);
 		int nextRank = 0;
 		int prevRank = 0;
-		int myPosition = 0;
+//		int myPosition = 0;
 		int nextPosition = 0;
 		int prevPosition = 0;
 		

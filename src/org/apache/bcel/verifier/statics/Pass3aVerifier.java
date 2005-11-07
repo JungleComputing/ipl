@@ -1268,7 +1268,7 @@ public final class Pass3aVerifier extends PassVerifier {
             // is therefore resolved/verified.
             // INVOKEINTERFACE is an InvokeInstruction, the argument and return types are resolved/verified,
             // too. So are the allowed method names.
-            Method m = findMethod(o);
+//            Method m = findMethod(o);
             String classname = o.getClassName(cpg);
             JavaClass jc = Repository.lookupClass(classname);
 
@@ -1284,7 +1284,7 @@ public final class Pass3aVerifier extends PassVerifier {
             // is therefore resolved/verified.
             // INVOKESPECIAL is an InvokeInstruction, the argument and return types are resolved/verified,
             // too. So are the allowed method names.
-            Method m = findMethod(o);
+//            Method m = findMethod(o);
             String classname = o.getClassName(cpg);
             JavaClass jc = Repository.lookupClass(classname);
 
@@ -1360,7 +1360,7 @@ public final class Pass3aVerifier extends PassVerifier {
             // too. So are the allowed method names.
             String classname = o.getClassName(cpg);
             JavaClass jc = Repository.lookupClass(classname);
-            Method m = findMethod(o);
+//            Method m = findMethod(o);
 
             if (!(jc.isClass())) {
                 constraintViolated(o, "Referenced class '" + jc.getClassName()

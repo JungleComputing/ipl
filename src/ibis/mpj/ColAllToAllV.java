@@ -46,7 +46,7 @@ public class ColAllToAllV {
 		int rank = this.comm.rank();
 		
 		
-		Status[] status = new Status[2 * size];
+//		Status[] status = new Status[2 * size];
 		Request[] request = new Request[2 * size];
 		
 		int reqCount = 0;
@@ -72,7 +72,7 @@ public class ColAllToAllV {
 			}
 		}
 		
-		status = Request.waitAll(request);
+		/* status = */ Request.waitAll(request);
 		
 	}
 }

@@ -387,7 +387,7 @@ public class MPJ {
 	// taken from LAM_MPI implementation
 	public static double wtick() {
 
-		double resolution = 0.0001;
+//		double resolution = 0.0001;
 	 	double tick = 0.0;
 	    double t;
 	    

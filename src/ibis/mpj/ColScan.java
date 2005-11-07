@@ -7,7 +7,7 @@ package ibis.mpj;
  * Implementation of the collective operation: scan.
  */
 public class ColScan {
-	private final boolean DEBUG = false;
+//	private final boolean DEBUG = false;
 	
 	private Object sendbuf = null;
 	private int sendoffset = 0;
@@ -40,7 +40,7 @@ public class ColScan {
 	
 		
 		Object tempBuf = null;
-		Object origin = null;
+//		Object origin = null;
 		
 		if (rank == 0) {
 			System.arraycopy(this.sendbuf, this.sendoffset, this.recvbuf, this.recvoffset, this.count * datatype.extent());

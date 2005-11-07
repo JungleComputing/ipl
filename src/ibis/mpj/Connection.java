@@ -12,7 +12,7 @@ import java.io.*;
 public class Connection {
 	private static Integer SENDLOCK = new Integer(0);
 	
-	private MPJObject readObj = new MPJObject();
+//	private MPJObject readObj = new MPJObject();
 	
 	private final boolean DEBUG = false;
 	
@@ -27,7 +27,7 @@ public class Connection {
 	private MPJObjectQueue recvQueue = null;
 	private ReceivePortIdentifier client = null; 
 	private Registry registry = null;
-	private boolean sync = false;
+//	private boolean sync = false;
 	private ReadMessage msg = null;
 	
 	public Connection(Registry registry, PortType portType, int myRank, int commPartnerRank) {

@@ -7,7 +7,7 @@ package ibis.mpj;
  * Implementation of the collective operation: gatherv
  */
 public class ColGatherV {
-	private final boolean DEBUG = true;
+//	private final boolean DEBUG = true;
 
 	private Object sendbuf = null;
 	private int sendoffset = 0;

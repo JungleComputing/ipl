@@ -101,7 +101,7 @@ public class ColAllreduce {
 			tempbuf = new Object[((Object[])this.recvbuf).length];		
 			StoreBuffer stBuf = new StoreBuffer();
 			
-			StoreArrayInputStream sin = null;
+//			StoreArrayInputStream sin = null;
             SerializationOutput mout = null;
             SerializationInput min = null;
 

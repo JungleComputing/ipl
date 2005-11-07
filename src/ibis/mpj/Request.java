@@ -68,7 +68,7 @@ public class Request {
 			return(null);
 		    
 		}
-		Status status;
+//		Status status;
 		if (this.ibisMPJComm.isFinished()) {
 			if (ibisMPJCommThread != null) {
 				try {
@@ -177,7 +177,7 @@ public class Request {
 		}
 		
 		Status[] status = new Status[arrayOfRequests.length];
-		int tests = 0;
+//		int tests = 0;
 		
 		
 		for (int i=0; i < arrayOfRequests.length; i++) {

@@ -244,7 +244,7 @@ public class IbisMPJComm extends Thread {
 	}
 	
 	private int nextSource(int prevSrc) throws MPJException {
-		int newSrc = prevSrc++;
+		/*int newSrc =*/ prevSrc++;
 		
 		if (prevSrc == this.comm.size()) {
 			prevSrc = 0;
@@ -598,8 +598,8 @@ public class IbisMPJComm extends Thread {
 	}
 
 	private void doProbeStandard() throws MPJException {
-		int typeSize = 1;
-		int realCount = 0;
+//		int typeSize = 1;
+//		int realCount = 0;
 		//boolean DEBUG = true;
 		
 		String mpjHostName = this.comm.group().getMPJHostName(source);
@@ -677,8 +677,8 @@ public class IbisMPJComm extends Thread {
 	
 	
 	private void doProbeAnySource() throws MPJException {
-		int typeSize = 1;
-		int realCount = 0;
+//		int typeSize = 1;
+//		int realCount = 0;
 		//boolean DEBUG = true;
 		
 		

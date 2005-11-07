@@ -16,7 +16,7 @@ public class Intracomm extends Comm {
 	private final int TAG_GATHER = -5;
 	private final int TAG_GATHERV = -6;
 	private final int TAG_ALLGATHER = -7;
-	private final int TAG_ALLGATHERV = -8;
+//	private final int TAG_ALLGATHERV = -8;
 	private final int TAG_SCATTER = -9;
 	private final int TAG_SCATTERV = -10;
 	private final int TAG_ALLTOALL = -11;
@@ -24,7 +24,7 @@ public class Intracomm extends Comm {
 	private final int TAG_REDUCESCATTER = -13;
 	private final int TAG_SCAN = -14;
 	private final int TAG_SPLIT = -15;
-	private static int TAG_MINVALUE = -15;
+//	private static int TAG_MINVALUE = -15;
 	
 	
 	public Intracomm() throws MPJException {

@@ -83,7 +83,7 @@ import org.apache.bcel.classfile.JavaClass;
  * @author David Dixon-Peugh
  */
 public class SyntheticRepository implements Repository {
-    private static final String DEFAULT_PATH = ClassPath.getClassPath();
+//    private static final String DEFAULT_PATH = ClassPath.getClassPath();
 
     private static HashMap _instances = new HashMap(); // CLASSPATH X REPOSITORY
 

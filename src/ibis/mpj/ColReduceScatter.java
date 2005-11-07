@@ -16,7 +16,7 @@ public class ColReduceScatter {
 	private Datatype datatype = null;
 	private Op op = null;
 	private Intracomm comm = null;
-	private int tag = 0;
+//	private int tag = 0;
 	
 	public ColReduceScatter(Object sendbuf, int sendoffset, Object recvbuf, int recvoffset, int[] recvcounts, 
 			  		 Datatype datatype, Op op, Intracomm comm, int tag) throws MPJException {
@@ -28,8 +28,7 @@ public class ColReduceScatter {
 		this.datatype = datatype;
 		this.op = op;
 		this.comm = comm;
-		this.tag = tag;
-		
+//		this.tag = tag;	
 	}
 
 	protected void call() throws MPJException {

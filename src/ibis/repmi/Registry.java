@@ -14,10 +14,10 @@ final class Registry {
         number = 0;
     }
 
-    private synchronized int getNumber() {
+/*    private synchronized int getNumber() {
         return number++;
     }
-
+*/
     public void handleMessage(ReadMessage r) {
 
         try {

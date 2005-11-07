@@ -1487,7 +1487,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
      * Ensures the specific preconditions of the said instruction.
      */
     public void visitGETSTATIC(GETSTATIC o) {
-        Field f = findField(o);
+        /*Field f =*/ findField(o);
         // Field must be static: see Pass 3a.
     }
 

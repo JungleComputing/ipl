@@ -15,14 +15,13 @@ public class ColSplit {
 	private int colour = 0;
 	private int key = 0;
 	private Intracomm comm = null;
-	private int tag = 0;
+//	private int tag = 0;
 	
 	public ColSplit(int colour, int key, Intracomm comm, int tag) throws MPJException {
 		this.colour = colour;
 		this.key = key;
 		this.comm = comm;
-		this.tag = tag;
-		
+//		this.tag = tag;	
 	}
 	
 	protected Intracomm call() throws MPJException {

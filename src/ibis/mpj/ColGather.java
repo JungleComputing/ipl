@@ -7,7 +7,7 @@ package ibis.mpj;
  * Implementation of the collective operation: gather
  */
 public class ColGather {
-	private final boolean DEBUG = false;
+//	private final boolean DEBUG = false;
 	
 	
 	private Object sendbuf = null;
@@ -58,8 +58,8 @@ public class ColGather {
 			
 			//this.comm.send(this.sendbuf, this.sendoffset, this.sendcount, this.sendtype, root, this.tag);
 			
-			Object recv = null;
-			int position = 0;
+//			Object recv = null;
+//			int position = 0;
 			for (int i=0; i < size; i++) {
 				
 				if (i != rank)

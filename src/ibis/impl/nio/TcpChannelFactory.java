@@ -2,7 +2,6 @@
 
 package ibis.impl.nio;
 
-import ibis.connect.IbisSocketFactory;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisError;
@@ -12,7 +11,6 @@ import ibis.util.ThreadPool;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -20,7 +18,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Enumeration;
 
 import org.apache.log4j.Logger;
 
