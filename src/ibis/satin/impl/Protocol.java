@@ -59,4 +59,7 @@ interface Protocol {
 
     static final byte SO_TRANSFER = 28;
 
+    static final byte EXIT_STAGE2 = 29;
+        
+    static final byte BARRIER_REQUEST = 30;
 }

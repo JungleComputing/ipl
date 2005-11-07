@@ -484,7 +484,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                         + "': got ASYNC steal reply message from "
                         + ident.ibis() + ": FAILED_TABLE");
             }
-
         }
 
         switch (opcode) {
@@ -1067,11 +1066,29 @@ final class MessageHandler implements Upcall, Protocol, Config {
                             + ident.ibis());
                 }
                 m.finish();
-                satin.exiting = true;
                 synchronized (satin) {
+                    satin.exiting = true;
                     satin.notifyAll();
                 }
-
+                break;
+            case EXIT_STAGE2:
+                if (commLogger.isDebugEnabled()) {
+                    commLogger.debug("SATIN '" + satin.ident
+                            + "': got exit2 message from "
+                            + ident.ibis());
+                }
+                m.finish();
+                synchronized (satin) {
+                    satin.exitStageTwo = true;
+                    satin.notifyAll();
+                }
+                break;
+            case BARRIER_REQUEST:
+                m.finish();
+                synchronized (satin) {
+                    satin.barrierRequests++;
+                    satin.notifyAll();
+                }
                 break;
             case EXIT_REPLY:
                 handleExitReply(m);

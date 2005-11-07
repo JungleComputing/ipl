@@ -9,6 +9,49 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 
 public abstract class Termination extends Initialization {
+
+    private void bcastMessage(byte opcode) {
+        int size = 0;
+        synchronized (this) {
+            size = victims.size();
+            //System.err.println("victims size: " + size);
+        }
+
+        for (int i = 0; i < size; i++) {
+            Victim v = null;
+            try {
+                WriteMessage writeMessage;
+                synchronized (this) {
+                    if (commLogger.isDebugEnabled()) {
+                        commLogger.debug("SATIN '" + ident
+                            + "': sending exit message to "
+                            + victims.getIdent(i));
+                    }
+
+                    //System.err.println("victims size: " + victims.size()
+                    // + ",i: " + i);
+
+                    v = victims.getVictim(i);
+
+                    ReceivePortIdentifier[] receivers = v.s.connectedTo();
+                    if (receivers == null || receivers.length == 0) {
+                        // it was not connected yet, do it now
+                        Communication.connect(v.s, v.r);
+                    }
+                }
+
+                writeMessage = v.s.newMessage();
+                writeMessage.writeByte(opcode);
+                writeMessage.finish();
+            } catch (IOException e) {
+                synchronized (this) {
+                    System.err.println("SATIN: Could not send bcast "
+                        + "message to " + victims.getIdent(i));
+                }
+            }
+        }
+    }
+
     /**
      * Called at the end of the rewritten "main", to do a synchronized exit.
      */
@@ -37,41 +80,9 @@ public abstract class Termination extends Initialization {
             exiting = true;
             // algorithm.exit(); // give the algorithm time to clean up
 
-            for (int i = 0; i < size; i++) {
-                Victim v = null;
-                try {
-                    WriteMessage writeMessage;
-                    synchronized (this) {
-                        if (commLogger.isDebugEnabled()) {
-                            commLogger.debug("SATIN '" + ident
-                                    + "': sending exit message to "
-                                    + victims.getIdent(i));
-                        }
-
-                        //System.err.println("victims size: " + victims.size()
-                        // + ",i: " + i);
-
-                        v = victims.getVictim(i);
-
-                        ReceivePortIdentifier[] receivers = v.s.connectedTo();
-                        if(receivers == null || receivers.length == 0) {
-                            // it was not connected yet, do it now
-                            Communication.connect(v.s, v.r);
-                        }
-                    }
-                    
-                    writeMessage = v.s.newMessage();
-
-                    writeMessage.writeByte(Protocol.EXIT);
-                    writeMessage.finish();
-                } catch (IOException e) {
-                    synchronized (this) {
-                        System.err.println("SATIN: Could not send exit "
-                                + "message to " + victims.getIdent(i));
-                    }
-                }
-            }
-
+            bcastMessage(Protocol.EXIT);
+            
+            // wait until everybody has send an ACK
             if (upcalls) {
                 synchronized (this) {
                     while (exitReplies != size) {
@@ -88,6 +99,12 @@ public abstract class Termination extends Initialization {
                     satinPoll();
                 }
             }
+
+            // OK, we have got the ack from everybody, 
+            // now we know that there will be no further communication between nodes.
+            // Broadcast this again.
+            
+            bcastMessage(Protocol.EXIT_STAGE2);
         } else { // send exit ack to master
             SendPort mp = null;
 
@@ -99,8 +116,7 @@ public abstract class Termination extends Initialization {
                 WriteMessage writeMessage;
                 if (commLogger.isDebugEnabled()) {
                     commLogger.debug("SATIN '" + ident
-                            + "': sending exit ACK message to "
-                            + masterIdent);
+                        + "': sending exit ACK message to " + masterIdent);
                 }
 
                 writeMessage = mp.newMessage();
@@ -111,11 +127,30 @@ public abstract class Termination extends Initialization {
                 writeMessage.finish();
             } catch (IOException e) {
                 System.err.println("SATIN: Could not send exit message to "
-                        + masterIdent);
+                    + masterIdent);
+            }
+
+            if (upcalls) {
+                synchronized (this) {
+                    while (!exitStageTwo) {
+                        try {
+                            wait();
+                        } catch (Exception e) {
+                            // Ignore.
+                        }
+                    }
+                }
+            } else {
+                while (!exitStageTwo) {
+                    satinPoll();
+                }
             }
         }
 
-        barrier(); // Wait until everybody agrees to exit.
+        // OK, we have got the ack from everybody, 
+        // now we know that there will be no further communication between nodes.
+        
+//        barrier(); // Wait until everybody agrees to exit.
 
         algorithm.exit(); // give the algorithm time to clean up
 
@@ -149,8 +184,7 @@ public abstract class Termination extends Initialization {
 
                     if (commLogger.isDebugEnabled()) {
                         commLogger.debug("SATIN '" + ident
-                                + "': freeing sendport to "
-                                + victims.getIdent(0));
+                            + "': freeing sendport to " + victims.getIdent(0));
                     }
                     victims.remove(0);
                 }
@@ -168,12 +202,6 @@ public abstract class Termination extends Initialization {
             receivePort.close();
             if (SUPPORT_TUPLE_MULTICAST) {
                 tupleReceivePort.close();
-            }
-
-            if (master) {
-                barrierReceivePort.close();
-            } else {
-                barrierSendPort.close();
             }
         } catch (Throwable e) {
             System.err.println("port.close() throws " + e);

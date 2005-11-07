@@ -99,17 +99,11 @@ public abstract class SatinBase implements Config {
 
     PortType tuplePortType;
 
-    protected PortType barrierPortType;
-
     PortType globalResultTablePortType;
 
     protected ReceivePort receivePort;
 
     ReceivePort tupleReceivePort;
-
-    protected ReceivePort barrierReceivePort; /* Only for the master. */
-
-    protected SendPort barrierSendPort; /* Only for the clients. */
 
     SendPort tuplePort; /* used to bcast tuples */
 
@@ -131,6 +125,8 @@ public abstract class SatinBase implements Config {
 
     volatile boolean exiting = false; // used in messageHandler
 
+    volatile boolean exitStageTwo = false; // used in messageHandler
+    
     Random random = new Random(); // used in victimTable
 
     protected MessageHandler messageHandler;
@@ -166,6 +162,8 @@ public abstract class SatinBase implements Config {
 
     /** Used to store reply messages. */
     volatile boolean gotStealReply = false; // used in messageHandler
+
+    volatile int barrierRequests = 0; // used in messageHandler
 
     volatile boolean gotBarrierReply = false; // used in messageHandler
 

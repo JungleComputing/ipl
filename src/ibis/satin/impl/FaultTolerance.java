@@ -130,25 +130,6 @@ public abstract class FaultTolerance extends Inlets {
             if (masterIdent.equals(ident)) {
                 master = true;
             }
-            //barrier ports
-            if (master) {
-                barrierReceivePort = barrierPortType.createReceivePort(
-                        "satin barrier receive port on "
-                        + ident.name());
-                barrierReceivePort.enableConnections();
-            } else {
-                barrierSendPort.close();
-                barrierSendPort = barrierPortType.createSendPort(
-                        "satin barrier send port on " + ident.name());
-                ReceivePortIdentifier barrierIdent = lookup(
-                        "satin barrier receive port on "
-                        + masterIdent.name());
-                boolean success = connect(barrierSendPort, barrierIdent, 1000);
-                if (!success && ftLogger.isInfoEnabled()) {
-                    ftLogger.info("SATIN '" + ident
-                            + "' :unable to connect to the master barrier port");
-                }                    
-            }
 
             //statistics
             if (stats && master) {

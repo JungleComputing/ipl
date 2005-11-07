@@ -7,7 +7,6 @@ import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.SendPortConnectUpcall;
@@ -169,7 +168,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
             portType = createSatinPortType(requestedProperties);
             tuplePortType = createTuplePortType(requestedProperties);
-            barrierPortType = createBarrierPortType(requestedProperties);
             globalResultTablePortType
                     = createGlobalResultTablePortType(requestedProperties);
             soPortType = createSOPortType(requestedProperties);
@@ -208,18 +206,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
                         new MessageHandler(this));
             } else {
                 tupleReceivePort = receivePort;
-            }
-
-            if (master) {
-                barrierReceivePort = barrierPortType.createReceivePort(
-                        "satin barrier receive port on " + ident.name());
-                barrierReceivePort.enableConnections();
-            } else {
-                barrierSendPort = barrierPortType.createSendPort(
-                        "satin barrier send port on " + ident.name());
-                ReceivePortIdentifier barrierIdent = lookup(
-                        "satin barrier receive port on " + masterIdent.name());
-                connect(barrierSendPort, barrierIdent);
             }
 
             // Create a multicast port to bcast tuples.
@@ -326,7 +312,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
             }
 
             barrier();
-
         }
 
         if (commLogger.isDebugEnabled()) {

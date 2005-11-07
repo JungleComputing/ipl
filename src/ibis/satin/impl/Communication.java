@@ -19,8 +19,10 @@ public abstract class Communication extends SpawnSync {
                 s.connect(ident);
                 success = true;
             } catch (IOException e) {
-                commLogger.info("IOException in connect to " + ident + ": " + e, e);
-                System.err.println("IOException in connect to " + ident + ": " + e);
+                commLogger.info(
+                    "IOException in connect to " + ident + ": " + e, e);
+                System.err.println("IOException in connect to " + ident + ": "
+                    + e);
                 e.printStackTrace();
                 try {
                     Thread.sleep(500);
@@ -40,18 +42,18 @@ public abstract class Communication extends SpawnSync {
                 s.connect(ident, timeoutMillis);
                 success = true;
             } catch (IOException e) {
-		/*                if (grtLogger.isInfoEnabled()) {
-                    grtLogger.info("IOException in connect to " + ident + ": "
-		    + e, e);*/
-		    System.err.println("IOEx in connect to " + ident + ": " + e);
-		    try {
-			Thread.sleep(500);
-		    } catch (InterruptedException e2) {
-			// ignore
-		    }
-	    }
+                /*                if (grtLogger.isInfoEnabled()) {
+                 grtLogger.info("IOException in connect to " + ident + ": "
+                 + e, e);*/
+                System.err.println("IOEx in connect to " + ident + ": " + e);
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e2) {
+                    // ignore
+                }
+            }
         } while (!success
-                && System.currentTimeMillis() - startTime < timeoutMillis);
+            && System.currentTimeMillis() - startTime < timeoutMillis);
         return success;
     }
 
@@ -65,38 +67,38 @@ public abstract class Communication extends SpawnSync {
 
     ReceivePortIdentifier lookup_wait(String portname, long timeoutMillis) {
 
-	ReceivePortIdentifier rpi = null;
-	boolean success = false;
-	long startTime = System.currentTimeMillis();
-	do {
-	    try {
-		rpi = ibis.registry().lookupReceivePort(portname);
-		success = true;
-	    } catch (IOException e) {
-		try {
-		    Thread.sleep(500);
-		} catch (InterruptedException e2) {
-		    //ignore
-		}
-	    }
-	} while (!success
-		 && System.currentTimeMillis() - startTime < timeoutMillis);
-	return rpi;
-    }	    	    
-	
+        ReceivePortIdentifier rpi = null;
+        boolean success = false;
+        long startTime = System.currentTimeMillis();
+        do {
+            try {
+                rpi = ibis.registry().lookupReceivePort(portname);
+                success = true;
+            } catch (IOException e) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e2) {
+                    //ignore
+                }
+            }
+        } while (!success
+            && System.currentTimeMillis() - startTime < timeoutMillis);
+        return rpi;
+    }
 
     SendPort getReplyPortWait(IbisIdentifier id) {
         if (ASSERTS) {
             assertLocked(this);
         }
 
-        Victim v = null; 
+        Victim v = null;
 
         do {
-            v = victims.getVictim(id); 
+            v = victims.getVictim(id);
             if (v == null) {
                 if (commLogger.isDebugEnabled()) {
-                    commLogger.debug("SATIN '" + ident
+                    commLogger
+                        .debug("SATIN '" + ident
                             + "': could not get reply port to " + id
                             + ", retrying");
                 }
@@ -109,7 +111,7 @@ public abstract class Communication extends SpawnSync {
         } while (v == null);
 
         ReceivePortIdentifier[] receivers = v.s.connectedTo();
-        if(receivers == null || receivers.length == 0) {
+        if (receivers == null || receivers.length == 0) {
             // it was not connected yet, do it now
             connect(v.s, v.r);
         }
@@ -119,16 +121,16 @@ public abstract class Communication extends SpawnSync {
 
     SendPort getReplyPortNoWait(IbisIdentifier id) {
         SendPort s;
-        
+
         if (ASSERTS) {
             assertLocked(this);
         }
-        
-        Victim v = victims.getVictim(id); 
-        if(v == null) return null;
-        
+
+        Victim v = victims.getVictim(id);
+        if (v == null) return null;
+
         ReceivePortIdentifier[] receivers = v.s.connectedTo();
-        if(receivers == null || receivers.length == 0) {
+        if (receivers == null || receivers.length == 0) {
             // it was not connected yet, do it now
             connect(v.s, v.r);
         }
@@ -141,8 +143,8 @@ public abstract class Communication extends SpawnSync {
         if (POLL_FREQ == 0) { // polling is disabled
             if (HANDLE_MESSAGES_IN_LATENCY) {
                 commLogger.fatal("Polling is disabled while messages are "
-                        + "handled in the latency.\n"
-                        + "This is a configuration error.");
+                    + "handled in the latency.\n"
+                    + "This is a configuration error.");
                 System.exit(1);
             }
             return false;
@@ -152,8 +154,8 @@ public abstract class Communication extends SpawnSync {
             // we are using upcalls, but don't want to poll
             if (HANDLE_MESSAGES_IN_LATENCY) {
                 commLogger.fatal("Polling is disabled while messages are "
-                        + "handled in the latency.\n"
-                        + "This is a configuration error.");
+                    + "handled in the latency.\n"
+                    + "This is a configuration error.");
                 System.exit(1);
             }
             return false;
@@ -177,7 +179,7 @@ public abstract class Communication extends SpawnSync {
                 m = receivePort.poll();
             } catch (IOException e) {
                 commLogger.warn("SATIN '" + ident
-                        + "': Got Exception while polling: " + e, e);
+                    + "': Got Exception while polling: " + e, e);
             }
 
             if (m != null) {
@@ -247,13 +249,13 @@ public abstract class Communication extends SpawnSync {
         }
 
         if (SHARED_OBJECTS) {
-	    if (gotSOInvocations) {
-		handleSOInvocations();
-	    }
-	    if (soInvocationsDelay > 0) {
-		sendAccumulatedSOInvocations();
-	    }
-	}
+            if (gotSOInvocations) {
+                handleSOInvocations();
+            }
+            if (soInvocationsDelay > 0) {
+                sendAccumulatedSOInvocations();
+            }
+        }
     }
 
     /* Only allowed when not stealing. */
@@ -263,9 +265,9 @@ public abstract class Communication extends SpawnSync {
         }
 
         // Close the world, no more join and leave upcalls will be received.
-	/*        if (!closed) {
-            ibis.disableResizeUpcalls();
-	    }*/
+        /*        if (!closed) {
+         ibis.disableResizeUpcalls();
+         }*/
 
         int size;
         synchronized (this) {
@@ -274,30 +276,44 @@ public abstract class Communication extends SpawnSync {
 
         try {
             if (master) {
-                for (int i = 0; i < size; i++) {
-                    ReadMessage r = barrierReceivePort.receive();
-                    r.finish();
+                synchronized (this) {
+                    while (barrierRequests != size) {
+                        try {
+                            wait();
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                    }
+
+                    barrierRequests = 0;
                 }
 
                 for (int i = 0; i < size; i++) {
-                    
                     Victim v;
                     synchronized (this) {
                         v = victims.getVictim(i);
                     }
 
                     ReceivePortIdentifier[] receivers = v.s.connectedTo();
-                    if(receivers == null || receivers.length == 0) {
+                    if (receivers == null || receivers.length == 0) {
                         // it was not connected yet, do it now
                         connect(v.s, v.r);
                     }
-                    
+
                     WriteMessage writeMessage = v.s.newMessage();
                     writeMessage.writeByte(Protocol.BARRIER_REPLY);
                     writeMessage.finish();
                 }
             } else {
-                WriteMessage writeMessage = barrierSendPort.newMessage();
+                Victim v = victims.getVictim(masterIdent);
+                ReceivePortIdentifier[] receivers = v.s.connectedTo();
+                if (receivers == null || receivers.length == 0) {
+                    // it was not connected yet, do it now
+                    connect(v.s, v.r);
+                }
+
+                WriteMessage writeMessage = v.s.newMessage();
+                writeMessage.writeByte(Protocol.BARRIER_REQUEST);
                 writeMessage.finish();
 
                 if (!upcalls) {
@@ -328,14 +344,14 @@ public abstract class Communication extends SpawnSync {
                 }
             }
         } catch (IOException e) {
-            commLogger.fatal("SATIN '" + ident + "': error in barrier: "
-                    + e, e);
+            commLogger
+                .fatal("SATIN '" + ident + "': error in barrier: " + e, e);
             System.exit(1);
         }
 
-	/*        if (!closed) {
-            ibis.enableResizeUpcalls();
-	    }*/
+        /*        if (!closed) {
+         ibis.enableResizeUpcalls();
+         }*/
 
         if (commLogger.isDebugEnabled()) {
             commLogger.debug("SATIN '" + ident + "': barrier DONE");
