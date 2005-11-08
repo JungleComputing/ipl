@@ -318,7 +318,7 @@ class SatinSOc {
                     + "_" + do_mangle(m) + "_SOInvocationRecord";
         }
         return "Satin_" + clnam + "_" + do_mangle(m)
-                + "_InvocationRecord";
+                + "_SOInvocationRecord";
     }
 
     static String SOInvocationRecordFileBase(Method m, String clnam,
