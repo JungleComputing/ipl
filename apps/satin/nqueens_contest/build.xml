@@ -10,9 +10,6 @@
     <property name="main-class" value="NQueens"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="NQueens 15 -satin-closed"/>
-    <property name="test-seq-run" value="NQueens 15 -satin-closed"/>
-
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
 </project>
