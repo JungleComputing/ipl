@@ -60,4 +60,3 @@ SATIN: USEFUL_APP_TIME:          avg. per machine 483.813 ms (43.071 %)
 STDERR:
 0: TT created
 1: TT created
-Exc in TTReceiver: java.net.SocketException: Socket closed
