@@ -1,5 +1,5 @@
 build system
-- remove stupid hostname stuff. This caused our demo to fail during the
++ remove stupid hostname stuff. This caused our demo to fail during the
   tutorial --Rob (Done Ceriel)
 
 prun:
