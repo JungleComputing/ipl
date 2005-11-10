@@ -1166,7 +1166,8 @@ imposes one restriction on the type of parameters and return type of a
 Satin job: they must be of a basic type or must be serializable.
 Since a SatinObject is serializable, all its subclasses are
 serializable as well. This restriction ensures that a Satin job can be
-stored and moved from one processor to another.
+stored and moved from one processor to another. Note that this means that
+all fields of a Satin object must be either serializable or transient.
 
 \begin{figure}[t!]
 \small{
