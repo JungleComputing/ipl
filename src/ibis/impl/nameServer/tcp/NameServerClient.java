@@ -42,6 +42,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     private Ibis ibisImpl;
 
+    private boolean needsUpcalls;
+
     private IbisIdentifier id;
 
     private volatile boolean stop = false;
@@ -55,6 +57,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     private String poolName;
 
     private InetAddress myAddress;
+
+    private boolean left = false;
 
     static IbisSocketFactory socketFactory = IbisSocketFactory.getFactory();
 
@@ -142,10 +146,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
-    protected void init(Ibis ibis) throws IOException,
-            IbisConfigurationException {
+    protected void init(Ibis ibis, boolean needsUpcalls)
+            throws IOException, IbisConfigurationException {
         this.ibisImpl = ibis;
         this.id = ibisImpl.identifier();
+        this.needsUpcalls = needsUpcalls;
 
         Properties p = System.getProperties();
 
@@ -210,6 +215,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             out.writeInt(buf.length);
             out.write(buf);
             out.writeInt(serverSocket.getLocalPort());
+            out.writeBoolean(needsUpcalls);
             out.flush();
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
@@ -241,41 +247,43 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 electionClient = new ElectionClient(myAddress, serverAddress,
                         temp);
 
-                int poolSize = in.readInt();
+                if (needsUpcalls) {
+                    int poolSize = in.readInt();
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("NameServerClient: accepted by nameserver, "
-                                + "poolsize " + poolSize);
-                }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("NameServerClient: accepted by nameserver, "
+                                    + "poolsize " + poolSize);
+                    }
 
-                // Read existing nodes (including this one).
-                for (int i = 0; i < poolSize; i++) {
-                    IbisIdentifier newid;
-                    try {
+                    // Read existing nodes (including this one).
+                    for (int i = 0; i < poolSize; i++) {
+                        IbisIdentifier newid;
+                        try {
+                            int len = in.readInt();
+                            byte[] b = new byte[len];
+                            in.readFully(b, 0, len);
+                            newid = (IbisIdentifier) Conversion.byte2object(b);
+                        } catch (ClassNotFoundException e) {
+                            throw new IOException("Receive IbisIdent of unknown class "
+                                    + e);
+                        }
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("NameServerClient: join of " + newid);
+                        }
+                        ibisImpl.joined(newid);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("NameServerClient: join of " + newid
+                                    + " DONE");
+                        }
+                    }
+
+                    // at least read the tobedeleted stuff!
+                    int tmp = in.readInt();
+                    for (int i = 0; i < tmp; i++) {
                         int len = in.readInt();
                         byte[] b = new byte[len];
                         in.readFully(b, 0, len);
-                        newid = (IbisIdentifier) Conversion.byte2object(b);
-                    } catch (ClassNotFoundException e) {
-                        throw new IOException("Receive IbisIdent of unknown class "
-                                + e);
                     }
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("NameServerClient: join of " + newid);
-                    }
-                    ibisImpl.joined(newid);
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("NameServerClient: join of " + newid
-                                + " DONE");
-                    }
-                }
-
-                // at least read the tobedeleted stuff!
-                int tmp = in.readInt();
-                for (int i = 0; i < tmp; i++) {
-                    int len = in.readInt();
-                    byte[] b = new byte[len];
-                    in.readFully(b, 0, len);
                 }
 
                 Thread t = new Thread(this, "NameServerClient accept thread");
@@ -381,13 +389,29 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             NameServer.closeConnection(in, out, s);
         }
 
+        if (! needsUpcalls) {
+            synchronized (this) {
+                stop = true;
+            }
+        } else {
+            synchronized(this) {
+                while (! left) {
+                    try {
+                        wait();
+                    } catch(Exception e) {
+                        // Ignored
+                    }
+                }
+            }
+        }
+
         logger.debug("NS client: leave DONE");
     }
 
     public void run() {
-        logger.debug("NameServerClient: stread started");
+        logger.debug("NameServerClient: thread started");
 
-        while (true) { // !stop
+        while (! stop) {
 
             Socket s;
             IbisIdentifier ibisId;
@@ -406,7 +430,14 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     } catch (IOException e1) {
                         /* do nothing */
                     }
-                    return;
+                    break;
+                }
+                if (needsUpcalls) {
+                    synchronized(this) {
+                        stop = true;
+                        left = true;
+                        notifyAll();
+                    }
                 }
                 throw new IbisRuntimeException(
                         "NameServerClient: got an error", e);
@@ -419,7 +450,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             try {
                 in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
                 int count;
-                boolean stop = false;
 
                 opcode = in.readByte();
                 logger.debug("NameServerClient: opcode " + opcode);
@@ -462,7 +492,10 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         }
                     }
                     if (stop) {
-                        return;
+                        synchronized(this) {
+                            left = true;
+                            notifyAll();
+                        }
                     }
                     break;
 
@@ -484,16 +517,17 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                             + "opcode " + opcode);
                 }
             } catch (Exception e1) {
-                System.out.println("Got an exception in NameServerClient.run "
-                        + "(opcode = " + opcode + ") " + e1.toString());
-                if (stop) {
-                    return;
+                if (! stop) {
+                    System.out.println("Got an exception in "
+                            + "NameServerClient.run "
+                            + "(opcode = " + opcode + ") " + e1.toString());
+                    e1.printStackTrace();
                 }
-                e1.printStackTrace();
             } finally {
                 NameServer.closeConnection(in, out, s);
             }
         }
+        logger.debug("NameServerClient: thread stopped");
     }
 
     public ReceivePortIdentifier lookupReceivePort(String name)

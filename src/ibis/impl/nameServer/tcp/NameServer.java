@@ -48,13 +48,16 @@ public class NameServer extends Thread implements Protocol {
         byte[] serializedId;
         int ibisNameServerport;
         InetAddress ibisNameServerAddress;
+        boolean needsUpcalls;
 
         IbisInfo(String name, byte[] serializedId,
-                InetAddress ibisNameServerAddress, int ibisNameServerport) {
+                InetAddress ibisNameServerAddress, int ibisNameServerport,
+                boolean needsUpcalls) {
             this.name = name;
             this.serializedId = serializedId;
             this.ibisNameServerAddress = ibisNameServerAddress;
             this.ibisNameServerport = ibisNameServerport;
+            this.needsUpcalls = needsUpcalls;
         }
 
         public boolean equals(Object other) {
@@ -234,12 +237,16 @@ public class NameServer extends Thread implements Protocol {
         }
         if (pool != null) {
             for (int i = 0; i < pool.length; i++) {
-                forwardLeave(pool[i], leavers);
+                if (pool[i].needsUpcalls) {
+                    forwardLeave(pool[i], leavers);
+                }
             }
         }
         if (leavers != null) {
             for (int i = 0; i < leavers.length; i++) {
-                forwardLeave(leavers[i], leavers);
+                if (leavers[i].needsUpcalls) {
+                    forwardLeave(leavers[i], leavers);
+                }
             }
         }
     }
@@ -262,11 +269,17 @@ public class NameServer extends Thread implements Protocol {
                             message[i] = (IbisInfo) inf.pool.get(i + inf.joinsSent);
                         }
                         for (int i = 0; i < inf.joinsSent; i++) {
-                            forwardJoin((IbisInfo) inf.pool.get(i), message, 0);
+                            IbisInfo ibisInf = (IbisInfo) inf.pool.get(i);
+                            if (ibisInf.needsUpcalls) {
+                                forwardJoin(ibisInf, message, 0);
+                            }
                         }
 
                         for (int i = inf.joinsSent; i < inf.pool.size(); i++) {
-                            forwardJoin((IbisInfo) inf.pool.get(i), message, i - inf.joinsSent + 1);
+                            IbisInfo ibisInf = (IbisInfo) inf.pool.get(i);
+                            if (ibisInf.needsUpcalls) {
+                                forwardJoin(ibisInf, message, i - inf.joinsSent + 1);
+                            }
                         }
                         inf.joinsSent = inf.pool.size();
                     }
@@ -380,7 +393,10 @@ public class NameServer extends Thread implements Protocol {
 
                 // ... and to all other ibis instances in this pool.
                 for (int i = 0; i < p.pool.size(); i++) {
-                    forwardDead((IbisInfo) p.pool.get(i), ibisIds);
+                    IbisInfo ibisInf = (IbisInfo) p.pool.get(i);
+                    if (ibisInf.needsUpcalls) {
+                        forwardDead(ibisInf, ibisIds);
+                    }
                 }
             }
 
@@ -450,12 +466,15 @@ public class NameServer extends Thread implements Protocol {
         }
         int port = in.readInt();
 
+        boolean needsUpcalls = in.readBoolean();
+
         if (! silent && logger.isDebugEnabled()) {
             logger.debug("NameServer: join to pool " + key + " requested by "
                     + name +", port " + port);
         }
 
-        IbisInfo info = new IbisInfo(name, serializedId, address, port);
+        IbisInfo info = new IbisInfo(name, serializedId, address, port,
+                needsUpcalls);
         RunInfo p = (RunInfo) pools.get(key);
 
         if (p == null) {
@@ -513,21 +532,23 @@ public class NameServer extends Thread implements Protocol {
 
             // first send all existing nodes (including the new one) to the
             // new one.
-            out.writeInt(p.pool.size());
+            if (needsUpcalls) {
+                out.writeInt(p.pool.size());
 
-            for (int i = 0; i < p.pool.size(); i++) {
-                IbisInfo temp = (IbisInfo) p.pool.get(i);
-                out.writeInt(temp.serializedId.length);
-                out.write(temp.serializedId);
-            }
+                for (int i = 0; i < p.pool.size(); i++) {
+                    IbisInfo temp = (IbisInfo) p.pool.get(i);
+                    out.writeInt(temp.serializedId.length);
+                    out.write(temp.serializedId);
+                }
 
-            //send all nodes about to leave to the new one
-            out.writeInt(p.toBeDeleted.size());
+                //send all nodes about to leave to the new one
+                out.writeInt(p.toBeDeleted.size());
 
-            for (int i = 0; i < p.toBeDeleted.size(); i++) {
-                IbisInfo temp = (IbisInfo) p.toBeDeleted.get(i);
-                out.writeInt(temp.serializedId.length);
-                out.write(temp.serializedId);
+                for (int i = 0; i < p.toBeDeleted.size(); i++) {
+                    IbisInfo temp = (IbisInfo) p.toBeDeleted.get(i);
+                    out.writeInt(temp.serializedId.length);
+                    out.write(temp.serializedId);
+                }
             }
             out.flush();
 

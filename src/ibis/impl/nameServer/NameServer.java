@@ -24,16 +24,23 @@ public abstract class NameServer implements ibis.ipl.Registry {
             throws IOException;
 
     /** Used internally to initialize the nameserver **/
-    protected abstract void init(Ibis ibis) throws IOException,
-            IbisConfigurationException;
+    protected abstract void init(Ibis ibis, boolean needsUpcalls)
+            throws IOException, IbisConfigurationException;
 
     /** Method to obtain a sequence number */
     public abstract long getSeqno(String name) throws IOException;
 
     /** Method to load a nameserver implementation. **/
-    public static NameServer loadNameServer(Ibis ibis)
+    public static NameServer loadNameServer(Ibis ibis) 
             throws IllegalArgumentException, IOException,
-            IbisConfigurationException {
+                            IbisConfigurationException {
+        return loadNameServer(ibis, true);
+    }
+
+    /** Method to load a nameserver implementation. **/
+    public static NameServer loadNameServer(Ibis ibis,
+            boolean needsUpcalls) throws IllegalArgumentException,
+                IOException, IbisConfigurationException {
         NameServer res = null;
 
         Properties p = System.getProperties();
@@ -65,7 +72,7 @@ public abstract class NameServer implements ibis.ipl.Registry {
                     "Could not initialize Ibis name server " + e2);
         }
 
-        res.init(ibis);
+        res.init(ibis, needsUpcalls);
         return res;
     }
 }

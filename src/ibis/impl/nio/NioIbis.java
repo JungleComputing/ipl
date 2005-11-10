@@ -38,7 +38,7 @@ public final class NioIbis extends Ibis implements Config {
 
     NameServer nameServer;
 
-    private int poolSize;
+    // private int poolSize;
 
     private Hashtable portTypeList = new Hashtable();
 
@@ -99,13 +99,13 @@ public final class NioIbis extends Ibis implements Config {
     }
 
     protected void init() throws IbisException, IOException {
-        poolSize = 1;
+        // poolSize = 1;
 
         identifier = new NioIbisIdentifier(name);
 
         logger.info("creating and initializing (Nio)Ibis: " + identifier);
 
-        nameServer = NameServer.loadNameServer(this);
+        nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 
         factory = new TcpChannelFactory();
     }
@@ -124,7 +124,7 @@ public final class NioIbis extends Ibis implements Config {
                 logger.info("ibis '" + joinIdent + "' joined");
             }
 
-            poolSize++;
+            // poolSize++;
         }
 
         if (resizeHandler != null) {
@@ -152,7 +152,7 @@ public final class NioIbis extends Ibis implements Config {
                 logger.info("ibis '" + leaveIdent + "' left");
             }
 
-            poolSize--;
+            // poolSize--;
         }
 
         if (resizeHandler != null) {
@@ -178,7 +178,7 @@ public final class NioIbis extends Ibis implements Config {
                 }
             }
 
-            poolSize -= corpses.length;
+            // poolSize -= corpses.length;
         }
 
         if (resizeHandler != null) {
@@ -203,7 +203,7 @@ public final class NioIbis extends Ibis implements Config {
                     if (joinedIbises.size() == 0) {
                         break;
                     }
-                    poolSize++;
+                    // poolSize++;
                     ident = (NioIbisIdentifier) joinedIbises.remove(0);
                 }
                 resizeHandler.joined(ident); // Don't hold the lock during
@@ -218,7 +218,7 @@ public final class NioIbis extends Ibis implements Config {
                     if (leftIbises.size() == 0) {
                         break;
                     }
-                    poolSize--;
+                    // poolSize--;
                     ident = (NioIbisIdentifier) leftIbises.remove(0);
                 }
                 resizeHandler.left(ident); // Don't hold the lock during user
@@ -230,7 +230,7 @@ public final class NioIbis extends Ibis implements Config {
                     if (diedIbises.size() == 0) {
                         break;
                     }
-                    poolSize--;
+                    // poolSize--;
                     ident = (NioIbisIdentifier) diedIbises.remove(0);
                 }
                 resizeHandler.died(ident); // Don't hold the lock during user

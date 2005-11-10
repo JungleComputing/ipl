@@ -121,11 +121,7 @@ public final class NetIbis extends Ibis {
      */
     private boolean open = false;
 
-    /**
-     * The number of {@link ibis.impl.net.NetIbis} instances in our
-     * <I>name server</I> nameServer pool.
-     */
-    private int poolSize = 0;
+    // private int poolSize = 0;
 
     /**
      * The {@link ibis.impl.net.NetIbis} instances that attempted to join our
@@ -456,7 +452,7 @@ public final class NetIbis extends Ibis {
         identifier = new NetIbisIdentifier(name, addr);
 
         /* Connects to the <I>name server<I> */
-        nameServer = NameServer.loadNameServer(this);
+        nameServer = NameServer.loadNameServer(this, resizeHandler != null);
     }
 
     public void joined(IbisIdentifier joinIdent) {
@@ -466,7 +462,7 @@ public final class NetIbis extends Ibis {
                 return;
             }
 
-            poolSize++;
+            // poolSize++;
         }
 
         if (resizeHandler != null) {
@@ -487,7 +483,7 @@ public final class NetIbis extends Ibis {
                 return;
             }
 
-            poolSize--;
+            // poolSize--;
         }
 
         if (resizeHandler != null) {
@@ -504,7 +500,7 @@ public final class NetIbis extends Ibis {
                 return;
             }
 
-            poolSize -= corpses.length;
+            // poolSize -= corpses.length;
         }
 
         if (resizeHandler != null) {
@@ -523,17 +519,17 @@ public final class NetIbis extends Ibis {
                 if (id.equals(identifier)) {
                     i_joined = true;
                 }
-                poolSize++;
+                // poolSize++;
             }
 
             while (leftIbises.size() > 0) {
                 resizeHandler.left((NetIbisIdentifier) leftIbises.remove(0));
-                poolSize--;
+                // poolSize--;
             }
 
             while (diedIbises.size() > 0) {
                 resizeHandler.died((NetIbisIdentifier) diedIbises.remove(0));
-                poolSize--;
+                // poolSize--;
             }
         }
 

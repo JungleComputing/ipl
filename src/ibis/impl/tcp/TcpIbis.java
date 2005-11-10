@@ -28,7 +28,7 @@ public final class TcpIbis extends Ibis implements Config {
 
     private NameServer nameServer;
 
-    private int poolSize;
+    // private int poolSize;
 
     private Hashtable portTypeList = new Hashtable();
 
@@ -102,7 +102,7 @@ public final class TcpIbis extends Ibis implements Config {
         if (DEBUG) {
             System.err.println("In TcpIbis.init()");
         }
-        poolSize = 1;
+        // poolSize = 1;
 
         myAddress = IPUtils.getLocalHostAddress();
         if (myAddress == null) {
@@ -116,7 +116,7 @@ public final class TcpIbis extends Ibis implements Config {
             System.err.println("Created IbisIdentifier " + ident);
         }
 
-        nameServer = NameServer.loadNameServer(this);
+        nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 
         tcpPortHandler = new TcpPortHandler(ident, socketFactory);
         if (DEBUG) {
@@ -139,7 +139,7 @@ public final class TcpIbis extends Ibis implements Config {
                         + "' joined");
             }
 
-            poolSize++;
+            // poolSize++;
         }
 
         if (resizeHandler != null) {
@@ -168,7 +168,7 @@ public final class TcpIbis extends Ibis implements Config {
                 System.out.println(name + ": Ibis '" + leaveIdent
                         + "' left");
             }
-            poolSize--;
+            // poolSize--;
         }
 
         if (resizeHandler != null) {
@@ -195,7 +195,7 @@ public final class TcpIbis extends Ibis implements Config {
                             + "' died");
                 }
             }
-            poolSize -= corpses.length;
+            // poolSize -= corpses.length;
         }
 
         if (resizeHandler != null) {
@@ -218,7 +218,7 @@ public final class TcpIbis extends Ibis implements Config {
                     if (joinedIbises.size() == 0) {
                         break;
                     }
-                    poolSize++;
+                    // poolSize++;
                     id = (TcpIbisIdentifier) joinedIbises.remove(0);
                 }
                 // Don't hold the lock during user upcall
@@ -233,7 +233,7 @@ public final class TcpIbis extends Ibis implements Config {
                     if (leftIbises.size() == 0) {
                         break;
                     }
-                    poolSize--;
+                    // poolSize--;
                     id = (TcpIbisIdentifier) leftIbises.remove(0);
                 }
                 // Don't hold the lock during user upcall
@@ -245,7 +245,7 @@ public final class TcpIbis extends Ibis implements Config {
                     if (diedIbises.size() == 0) {
                         break;
                     }
-                    poolSize--;
+                    // poolSize--;
                     id = (TcpIbisIdentifier) diedIbises.remove(0);
                 }
                 // Don't hold the lock during user upcall
