@@ -192,7 +192,8 @@ public abstract class PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case a name is invented).
+     *    in which case the port is created anonymously and is not bound
+     *    in the registry).
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -211,7 +212,8 @@ public abstract class PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case a name is invented).
+     *    in which case the port is created anonymously and is not bound
+     *    in the registry).
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
@@ -234,7 +236,8 @@ public abstract class PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case a name is invented).
+     *    in which case the port is created anonymously and is not bound
+     *    in the registry).
      * @param u the upcall handler.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
@@ -255,7 +258,8 @@ public abstract class PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case a name is invented).
+     *    in which case the port is created anonymously and is not bound
+     *    in the registry).
      * @param u the upcall handler.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
@@ -281,7 +285,8 @@ public abstract class PortType {
      * a ConnectUpcall is performed.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case a name is invented).
+     *    in which case the port is created anonymously and is not bound
+     *    in the registry).
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
      * @return the new receiveport.
@@ -305,7 +310,8 @@ public abstract class PortType {
      * a ConnectUpcall is performed.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case a name is invented).
+     *    in which case the port is created anonymously and is not bound
+     *    in the registry).
      * @param u the upcall handler.
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
@@ -330,7 +336,8 @@ public abstract class PortType {
      * a ConnectUpcall is performed.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case a name is invented).
+     *    in which case the port is created anonymously and is not bound
+     *    in the registry).
      * @param u the upcall handler.
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
@@ -372,7 +379,7 @@ public abstract class PortType {
             }
         }
         if (name == null) {
-            name = name() + " receive port " + anon_counter++;
+            name = ReceivePort.ANONYMOUS;
         }
 
         return createReceivePort(name, u, cU, connectionDowncalls);

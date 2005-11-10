@@ -15,6 +15,8 @@ public interface Registry {
      * Locates the {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifier}
      * that has been bound to the specified <code>name</code>.
      * The method blocks until a receiveport with the specified name is found.
+     * Receiveports that are created anonymously can never be obtained in this
+     * way, unless the user binds them in the registry explicitly.
      *
      * @param name name of the receiveport.
      * @return the identifier.
@@ -29,6 +31,8 @@ public interface Registry {
      * The method blocks until a receiveport with the specified name is found,
      * or the timeout expires.
      * If timeout is 0, the method behaves as if no timeout was given.
+     * Receiveports that are created anonymously can never be obtained in this
+     * way, unless the user binds them in the registry explicitly.
      *
      * @param name name of the receiveport.
      * @param timeout the timeout, in milliseconds.
@@ -45,6 +49,8 @@ public interface Registry {
      * that have been bound to the specified <code>names</code>.
      * The method blocks until the receiveports with the specified names are
      * found.
+     * Receiveports that are created anonymously can never be obtained in this
+     * way, unless the user binds them in the registry explicitly.
      *
      * @param names names of the receiveports.
      * @return the identifiers.
@@ -62,6 +68,8 @@ public interface Registry {
      * allowPartialResults is false) or any results it did find (when 
      * allowPartialResults is true). If timeout is 0, the method behaves as if 
      * no timeout was given.
+     * Receiveports that are created anonymously can never be obtained in this
+     * way, unless the user binds them in the registry explicitly.
      *
      * @param names names of the receiveports.
      * @param timeout the timeout, in milliseconds.

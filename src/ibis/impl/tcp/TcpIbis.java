@@ -10,6 +10,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
@@ -302,11 +303,15 @@ public final class TcpIbis extends Ibis implements Config {
 
     void bindReceivePort(String nm, ReceivePortIdentifier p)
             throws IOException {
-        nameServer.bind(nm, p);
+        if (! name.equals(ReceivePort.ANONYMOUS)) {
+            nameServer.bind(nm, p);
+        }
     }
 
     void unbindReceivePort(String nm) throws IOException {
-        nameServer.unbind(nm);
+        if (! name.equals(ReceivePort.ANONYMOUS)) {
+            nameServer.unbind(nm);
+        }
     }
 
     class TcpShutdown extends Thread {

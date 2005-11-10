@@ -522,7 +522,9 @@ public final class NetPortType extends PortType {
         NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu,
                 connectionAdministration);
 
-        ibis.registry().bind(name, nrp.identifier());
+        if (! name.equals(ReceivePort.ANONYMOUS)) {
+            ibis.registry().bind(name, nrp.identifier());
+        }
 
         return nrp;
     }

@@ -346,16 +346,18 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
             Ibis.myIbis.lock();
             Ibis.myIbis.bindReceivePort(this, ident.port);
             Ibis.myIbis.unlock();
-            try {
-                if (Ibis.DEBUG_RUTGER) {
-                    System.err.println("In enableConnections: "
-                            + " want to bind RPort " + this);
+            if (! name.equals(ANONYMOUS)) {
+                try {
+                    if (Ibis.DEBUG_RUTGER) {
+                        System.err.println("In enableConnections: "
+                                + " want to bind RPort " + this);
+                    }
+                    ((Registry) Ibis.myIbis.registry()).bind(name, ident);
+                } catch (IOException e) {
+                    System.err.println("registry bind of ReceivePortName fails: "
+                            + e);
+                    System.exit(4);
                 }
-                ((Registry) Ibis.myIbis.registry()).bind(name, ident);
-            } catch (IOException e) {
-                System.err.println("registry bind of ReceivePortName fails: "
-                        + e);
-                System.exit(4);
             }
         }
         allowConnections = true;
@@ -869,14 +871,16 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
         Ibis.myIbis.unlock();
 
         /* unregister with name server */
-        try {
-            if (DEBUG) {
-                System.out.println(Thread.currentThread() + name
-                        + ": unregister with name server");
+        if (! name.equals(ANONYMOUS)) {
+            try {
+                if (DEBUG) {
+                    System.out.println(Thread.currentThread() + name
+                            + ": unregister with name server");
+                }
+                type.freeReceivePort(name);
+            } catch (Exception e) {
+                // Ignore.
             }
-            type.freeReceivePort(name);
-        } catch (Exception e) {
-            // Ignore.
         }
 
         if (DEBUG) {

@@ -40,7 +40,13 @@ import java.util.Map;
  */
 public interface ReceivePort {
 
-    /** returns the type that was used to create this port */
+    /** Name for anonymous ports. */
+    public static final String ANONYMOUS = "__anonymous__";
+
+    /**
+     * Returns the type that was used to create this port.
+     * @return the type that was used to create this port.
+     */
     public PortType getType();
     
     /**
@@ -141,7 +147,7 @@ public interface ReceivePort {
     /**
      * Returns the name of the receiveport.
      * When the receiveport was created anonymously, a system-invented
-     * name will be returned.
+     * name, not suitable for lookup, will be returned.
      *
      * @return the name.
      */
@@ -214,7 +220,7 @@ public interface ReceivePort {
     public void close(long timeoutMillis) throws IOException;
 
     /**
-     * Returns the set of sendports this receiveport is connected to .
+     * Returns the set of sendports this receiveport is connected to.
      * When there are no connections, an array with 0 entries is returned.
      * @return the sendport identifiers.
      */

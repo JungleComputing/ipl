@@ -79,7 +79,9 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         ident = new NioReceivePortIdentifier(name, type.name(),
                 (NioIbisIdentifier) type.ibis.identifier(), address);
 
-        ibis.nameServer.bind(name, ident);
+        if (! name.equals(ANONYMOUS)) {
+            ibis.nameServer.bind(name, ident);
+        }
 
         dummy = new NioReadMessage(null, null, -1);
 
@@ -455,7 +457,9 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         long time;
 
         disableConnections();
-        ibis.nameServer.unbind(ident.name);
+        if (! name.equals(ANONYMOUS)) {
+            ibis.nameServer.unbind(name);
+        }
         ibis.factory.deRegister(this);
 
         closing(); // signal the subclass we are closing down
