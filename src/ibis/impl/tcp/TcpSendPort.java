@@ -293,16 +293,16 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     public synchronized void close() throws IOException {
         if (aMessageIsAlive) {
             throw new IOException(
-                    "Trying to free a sendport port while a message is alive!");
+                    "Trying to close a sendport port while a message is alive!");
         }
 
         if (ident == null) {
-            throw new IbisError("Port already freed");
+            throw new IbisError("Port already closed");
         }
 
         if (DEBUG) {
             System.err.println(type.ibis.identifier()
-                    + ": SendPort.free start");
+                    + ": SendPort.close start");
         }
 
         try {
@@ -311,7 +311,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             out.flush();
             out.close();
         } catch (IOException e) {
-            // System.err.println("Error in TcpSendPort.free: " + e);
+            // System.err.println("Error in TcpSendPort.close: " + e);
             // e.printStackTrace();
         }
 
@@ -331,7 +331,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         if (DEBUG) {
             System.err.println(type.ibis.identifier()
-                    + ": SendPort.free DONE");
+                    + ": SendPort.close DONE");
         }
     }
 

@@ -428,7 +428,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
                 throw new IbisError("TcpReceivePort: Connection handler "
                         + "not found in leave");
             }
-            // Notify threads that might be blocked in a free
+            // Notify threads that might be blocked in a close
             notifyAll();
         }
 
@@ -468,11 +468,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
     public synchronized void close() {
         if (DEBUG) {
-            System.err.println("TcpReceivePort.free: " + name + ": Starting");
+            System.err.println("TcpReceivePort.close: " + name + ": Starting");
         }
 
         if (m != null) {
-            // throw new IbisError("Doing free while a msg is alive, port = "
+            // throw new IbisError("Doing close while a msg is alive, port = "
             //         + name + " fin = " + m.isFinished);
             // No, this can happen when an application closes after
             // processing an upcall. Just let it go.
@@ -519,7 +519,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         ibis.tcpPortHandler.deRegister(this);
 
         if (DEBUG) {
-            System.err.println(name + ":done receiveport.free");
+            System.err.println(name + ":done receiveport.close");
         }
     }
 
