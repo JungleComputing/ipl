@@ -53,7 +53,7 @@ public abstract class Malleability extends FaultTolerance {
                     if (FAULT_TOLERANCE && !FT_NAIVE) {
                         globalResultTable.addReplica(joiner);
                     }
-                    victims.add(joiner, r[i], s);
+                    victims.add(new Victim(joiner, s, r[i]));
                     notifyAll();
                 }
 
@@ -171,9 +171,9 @@ public abstract class Malleability extends FaultTolerance {
             v = victims.remove(leaver);
             notifyAll();
 
-            if (v != null && v.s != null) {
+            if (v != null) {
                 try {
-                    v.s.close();
+                    v.close();
                 } catch (IOException e) {
                     System.err.println("port.close() throws " + e);
                 }

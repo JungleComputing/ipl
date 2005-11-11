@@ -91,7 +91,7 @@ public abstract class Communication extends SpawnSync {
         return rpi;
     }
 
-    SendPort getReplyPortWait(IbisIdentifier id) {
+    Victim getVictimWait(IbisIdentifier id) {
         if (ASSERTS) {
             assertLocked(this);
         }
@@ -102,8 +102,7 @@ public abstract class Communication extends SpawnSync {
             v = victims.getVictim(id);
             if (v == null) {
                 if (commLogger.isDebugEnabled()) {
-                    commLogger
-                        .debug("SATIN '" + ident
+                    commLogger.debug("SATIN '" + ident
                             + "': could not get reply port to " + id
                             + ", retrying");
                 }
@@ -115,33 +114,16 @@ public abstract class Communication extends SpawnSync {
             }
         } while (v == null);
 
-        ReceivePortIdentifier[] receivers = v.s.connectedTo();
-        if (receivers == null || receivers.length == 0) {
-            // it was not connected yet, do it now
-            connect(v.s, v.r);
-        }
-
-        return v.s;
+        return v;
     }
 
-    SendPort getReplyPortNoWait(IbisIdentifier id) {
-        SendPort s;
+    Victim getVictimNoWait(IbisIdentifier id) {
 
         if (ASSERTS) {
             assertLocked(this);
         }
 
-        Victim v = victims.getVictim(id);
-        if (v == null) return null;
-
-        ReceivePortIdentifier[] receivers = v.s.connectedTo();
-        if (receivers == null || receivers.length == 0) {
-            // it was not connected yet, do it now
-            connect(v.s, v.r);
-        }
-
-        s = v.s;
-        return s;
+        return victims.getVictim(id);
     }
 
     boolean satinPoll() {
@@ -299,25 +281,14 @@ public abstract class Communication extends SpawnSync {
                         v = victims.getVictim(i);
                     }
 
-                    ReceivePortIdentifier[] receivers = v.s.connectedTo();
-                    if (receivers == null || receivers.length == 0) {
-                        // it was not connected yet, do it now
-                        connect(v.s, v.r);
-                    }
-
-                    WriteMessage writeMessage = v.s.newMessage();
+                    WriteMessage writeMessage = v.newMessage();
                     writeMessage.writeByte(Protocol.BARRIER_REPLY);
                     writeMessage.finish();
                 }
             } else {
                 Victim v = victims.getVictim(masterIdent);
-                ReceivePortIdentifier[] receivers = v.s.connectedTo();
-                if (receivers == null || receivers.length == 0) {
-                    // it was not connected yet, do it now
-                    connect(v.s, v.r);
-                }
 
-                WriteMessage writeMessage = v.s.newMessage();
+                WriteMessage writeMessage = v.newMessage();
                 writeMessage.writeByte(Protocol.BARRIER_REQUEST);
                 writeMessage.finish();
 

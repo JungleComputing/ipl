@@ -457,7 +457,7 @@ public abstract class SatinBase implements Config {
 
     abstract void barrier();
 
-    abstract SendPort getReplyPortWait(IbisIdentifier id);
+    abstract Victim getVictimWait(IbisIdentifier id);
 
     abstract void addToExceptionList(InvocationRecord r);
 

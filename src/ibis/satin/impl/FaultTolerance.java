@@ -186,12 +186,12 @@ public abstract class FaultTolerance extends Inlets {
         }
 
         try {
-            SendPort s = getReplyPortNoWait(r.stealer);
-            if (s == null) {
+            Victim v = getVictimNoWait(r.stealer);
+            if (v == null) {
                 return;
             }
 
-            WriteMessage writeMessage = s.newMessage();
+            WriteMessage writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.ABORT_AND_STORE);
             writeMessage.writeInt(r.parentStamp);
             writeMessage.writeObject(r.parentOwner);
@@ -295,17 +295,16 @@ public abstract class FaultTolerance extends Inlets {
             gotCrashes = true;
             Victim v = victims.remove(dead);
             notifyAll();
-            if (v != null && v.s != null) {
+            if (v != null) {
                 try {
-                    v.s.close();
+                    v.close();
                 } catch (IOException e) {
                     if (ftLogger.isInfoEnabled()) {
-                        ftLogger.info("port.free() throws exception "
+                        ftLogger.info("port.close() throws exception "
                                 + e.getMessage(), e);
                     }
                 }
             }
-
         }
     }
 
@@ -389,7 +388,7 @@ public abstract class FaultTolerance extends Inlets {
             if (value.type == GlobalResultTable.Value.TYPE_POINTER) {
                 //remote result
 
-                SendPort s = null;
+                Victim v = null;
                 synchronized (this) {
                     if (deadIbises.contains(value.owner)) {
                         //the one who's got the result has crashed
@@ -404,10 +403,10 @@ public abstract class FaultTolerance extends Inlets {
                                  + "': sending a result request of " + key
                                  + " to " + value.owner);
                     }
-                    s = getReplyPortNoWait(value.owner);
+                    v = getVictimNoWait(value.owner);
                 }
 
-                if (s == null) {
+                if (v == null) {
                     if (TABLE_CHECK_TIMING) {
                         // redoTimer.stop();
                     }
@@ -420,7 +419,7 @@ public abstract class FaultTolerance extends Inlets {
                 }
                 //send a request to the remote node
                 try {
-                    WriteMessage m = s.newMessage();
+                    WriteMessage m = v.newMessage();
                     m.writeByte(Protocol.RESULT_REQUEST);
                     m.writeObject(key);
                     m.writeInt(r.stamp); //stamp and owner are not

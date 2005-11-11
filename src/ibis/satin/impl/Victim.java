@@ -5,13 +5,28 @@ package ibis.satin.impl;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 final class Victim {
+
     IbisIdentifier ident;
 
-    SendPort s;
+    private SendPort s;
 
-    ReceivePortIdentifier r;
+    private ReceivePortIdentifier r;
+
+    private boolean connected = false;
+
+    public Victim(IbisIdentifier ident, SendPort s, ReceivePortIdentifier r) {
+        this.ident = ident;
+        this.s = s;
+        this.r = r;
+        if (s != null && s.connectedTo().length != 0) {
+            connected = true;
+        }
+    }
 
     public boolean equals(Object o) {
         if (o == this) {
@@ -33,5 +48,26 @@ final class Victim {
 
     public int hashCode() {
         return ident.hashCode();
+    }
+
+    public SendPort getSendPort() {
+        if (! connected) {
+            synchronized(this) {
+                if (! connected) {
+                    Communication.connect(s, r);
+                    connected = true;
+                }
+            }
+        }
+        return s;
+    }
+
+    public WriteMessage newMessage() throws IOException {
+        return getSendPort().newMessage();
+    }
+
+    public void close() throws IOException {
+        connected = false;
+        s.close();
     }
 }

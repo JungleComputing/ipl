@@ -3,7 +3,6 @@
 package ibis.satin.impl;
 
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -25,28 +24,22 @@ public abstract class Termination extends Initialization {
                     if (commLogger.isDebugEnabled()) {
                         commLogger.debug("SATIN '" + ident
                             + "': sending exit message to "
-                            + victims.getIdent(i));
+                            + victims.getVictim(i).ident);
                     }
 
                     //System.err.println("victims size: " + victims.size()
                     // + ",i: " + i);
 
                     v = victims.getVictim(i);
-
-                    ReceivePortIdentifier[] receivers = v.s.connectedTo();
-                    if (receivers == null || receivers.length == 0) {
-                        // it was not connected yet, do it now
-                        Communication.connect(v.s, v.r);
-                    }
                 }
 
-                writeMessage = v.s.newMessage();
+                writeMessage = v.newMessage();
                 writeMessage.writeByte(opcode);
                 writeMessage.finish();
             } catch (IOException e) {
                 synchronized (this) {
                     System.err.println("SATIN: Could not send bcast "
-                        + "message to " + victims.getIdent(i));
+                        + "message to " + victims.getVictim(i).ident);
                 }
             }
         }
@@ -106,10 +99,10 @@ public abstract class Termination extends Initialization {
             
             bcastMessage(Protocol.EXIT_STAGE2);
         } else { // send exit ack to master
-            SendPort mp = null;
+            Victim mp = null;
 
             synchronized (this) {
-                mp = getReplyPortWait(masterIdent);
+                mp = getVictimWait(masterIdent);
             }
 
             try {
@@ -173,25 +166,27 @@ public abstract class Termination extends Initialization {
         // calls.
         while (true) {
             try {
-                SendPort s;
+                Victim v;
 
                 synchronized (this) {
                     if (victims.size() == 0) {
                         break;
                     }
 
-                    s = victims.getPort(0);
+                    v = victims.getVictim(0);
 
                     if (commLogger.isDebugEnabled()) {
                         commLogger.debug("SATIN '" + ident
-                            + "': freeing sendport to " + victims.getIdent(0));
+                            + "': closing sendport to "
+                            + victims.getVictim(0).ident);
                     }
-                    victims.remove(0);
                 }
 
-                if (s != null) {
-                    s.close();
+                if (v != null) {
+                    v.close();
                 }
+
+                victims.remove(0);
 
             } catch (Throwable e) {
                 System.err.println("port.close() throws " + e);

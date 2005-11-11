@@ -4,7 +4,6 @@ package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
@@ -138,7 +137,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
     // But, it is scary, then we are sending a reply while holding a lock...
     // --Rob
     void handleStealRequest(SendPortIdentifier ident, int opcode) {
-        SendPort s = null;
+        Victim v = null;
         Map table = null;
         Timer handleStealTimer = null;
         Timer invocationRecordWriteTimer = null;
@@ -205,7 +204,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 return;
             }
 
-            s = satin.getReplyPortWait(ident.ibis());
+            v = satin.getVictimWait(ident.ibis());
 
             while (true) {
                 result = satin.q.getFromTail();
@@ -255,7 +254,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
             }
 
             try {
-                WriteMessage m = s.newMessage();
+                WriteMessage m = v.newMessage();
                 if (opcode == STEAL_REQUEST
                         || opcode == BLOCKING_STEAL_REQUEST) {
                     m.writeByte(STEAL_REPLY_FAILED);
@@ -363,7 +362,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
             if (STEAL_TIMING) {
                 invocationRecordWriteTimer.start();
             }
-            WriteMessage m = s.newMessage();
+            WriteMessage m = v.newMessage();
             if (opcode == STEAL_REQUEST || opcode == BLOCKING_STEAL_REQUEST) {
                 m.writeByte(STEAL_REPLY_SUCCESS);
             } else if (opcode == ASYNC_STEAL_REQUEST) {
@@ -790,7 +789,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
     }
 
     private void handleResultRequest(ReadMessage m) {
-        SendPort s = null;
+        Victim v = null;
         GlobalResultTable.Value value = null;
         Timer handleLookupTimer = null;
 
@@ -847,9 +846,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     }
                 }
 
-                s = satin.getReplyPortNoWait(ident);
+                v = satin.getVictimNoWait(ident);
             }
-            if (s == null) {
+            if (v == null) {
                 if (commLogger.isDebugEnabled()) {
                     commLogger.debug("SATIN '" + satin.ident
                             + "': the node requesting a result died");
@@ -861,7 +860,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 return;
             }
             value.result.stamp = stamp;
-            WriteMessage w = s.newMessage();
+            WriteMessage w = v.newMessage();
             w.writeByte(Protocol.JOB_RESULT_NORMAL);
             w.writeObject(owner);
             //leave it out if you make globally unique stamps
@@ -951,7 +950,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
     public void handleSORequest(ReadMessage m) {
 	String objid = null;
 	SharedObject so = null;
-	SendPort s = null;	
+	Victim v = null;	
 	Timer handleSOTransferTimer = null;
 	Timer soSerializationTimer = null;
 	long size = 0;
@@ -977,7 +976,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	synchronized (satin) {
 	    so = satin.getSOReference(objid);
 	    //System.err.println("got object");
-	    s = satin.getReplyPortWait(m.origin().ibis());
+	    v = satin.getVictimWait(m.origin().ibis());
 	    //System.err.println("got reply port");
        
 	    if (so == null) {
@@ -998,7 +997,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	    //what's worse: the update might be executed only partially
 	    //before the object is sent
 	    try {
-		wm = s.newMessage();
+		wm = v.newMessage();
 		wm.writeByte(SO_TRANSFER);
 		wm.writeObject(so);
 	    } catch (IOException e) {

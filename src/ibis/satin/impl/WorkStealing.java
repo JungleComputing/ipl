@@ -7,14 +7,12 @@ package ibis.satin.impl;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 
 public abstract class WorkStealing extends Stats {
-
 
     protected void sendResult(InvocationRecord r, ReturnRecord rr) {
         if (/* exiting || */r.alreadySentExceptionResult) {
@@ -34,7 +32,7 @@ public abstract class WorkStealing extends Stats {
                     + (r.eek == null ? "null" : ("" + r.eek)));
         }
 
-        SendPort s = null;
+        Victim v = null;
 
         synchronized (this) {
 
@@ -56,10 +54,10 @@ public abstract class WorkStealing extends Stats {
                 }
                 globalResultTable.storeResult(r);
             }
-            s = getReplyPortNoWait(r.owner);
+            v = getVictimNoWait(r.owner);
         }
 
-        if (s == null) {
+        if (v == null) {
             //probably crashed..
             if (FAULT_TOLERANCE && !FT_NAIVE && !r.orphan) {
                 synchronized (this) {
@@ -78,15 +76,8 @@ public abstract class WorkStealing extends Stats {
                 returnRecordWriteTimer.start();
             }
             
-            ReceivePortIdentifier[] receivers = s.connectedTo();
-            if(receivers == null || receivers.length == 0) {
-                // it was not connected yet, do it now
-                Victim v = victims.getVictim(r.owner);
-                connect(s, v.r);
-            }
-            
-            WriteMessage writeMessage = s.newMessage();
-	                if (r.eek == null) {
+            WriteMessage writeMessage = v.newMessage();
+            if (r.eek == null) {
                 writeMessage.writeByte(Protocol.JOB_RESULT_NORMAL);
                 writeMessage.writeObject(r.owner);
                 writeMessage.writeObject(rr);		
@@ -171,16 +162,8 @@ public abstract class WorkStealing extends Stats {
         }
 
         try {
-            SendPort s = v.s;
+            WriteMessage writeMessage = v.newMessage();
             byte opcode = -1;
-
-            ReceivePortIdentifier[] receivers = s.connectedTo();
-            if(receivers == null || receivers.length == 0) {
-                // it was not connected yet, do it now
-                connect(s, v.r);
-            }
-
-            WriteMessage writeMessage = s.newMessage();
 
             if (synchronous) {
                 if (blocking) {

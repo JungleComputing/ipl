@@ -114,7 +114,6 @@ public class GlobalResultTable implements Upcall, Config {
     private Map toSend;
 
     /* used for communication with other replicas of the table */
-    //private SendPort send;
     private ReceivePort receive;
 
     //a quick net ibis bug fix

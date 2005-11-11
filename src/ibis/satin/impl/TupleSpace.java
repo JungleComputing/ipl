@@ -5,7 +5,6 @@ package ibis.satin.impl;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.satin.ActiveTuple;
 
@@ -356,11 +355,11 @@ public abstract class TupleSpace extends Communication {
         } else {
             for (int i = 0; i < size; i++) {
                 try {
-                    SendPort s = null;
+                    Victim v = null;
                     synchronized (this) {
-                        s = victims.getPort(i);
+                        v = victims.getVictim(i);
                     }
-                    WriteMessage writeMessage = s.newMessage();
+                    WriteMessage writeMessage = v.newMessage();
                     writeMessage.writeByte(Protocol.TUPLE_ADD);
                     writeMessage.writeString(key);
                     writeMessage.writeObject(data);
@@ -475,11 +474,11 @@ public abstract class TupleSpace extends Communication {
         } else {
             for (int i = 0; i < size; i++) {
                 try {
-                    SendPort s = null;
+                    Victim v = null;
                     synchronized (this) {
-                        s = victims.getPort(i);
+                        v = victims.getVictim(i);
                     }
-                    WriteMessage writeMessage = s.newMessage();
+                    WriteMessage writeMessage = v.newMessage();
                     writeMessage.writeByte(Protocol.TUPLE_DEL);
                     writeMessage.writeString(key);
 

@@ -440,8 +440,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	try {
 	    //System.err.println("sending so request to " + source + ", objectId: " + objectId);
 	    currentVictim = source;
-	    SendPort s = getReplyPortWait(source);
-	    WriteMessage w = s.newMessage();
+	    Victim v = getVictimWait(source);
+	    WriteMessage w = v.newMessage();
 	    w.writeByte(SO_REQUEST);
 	    w.writeString(objectId);
 	    w.finish();

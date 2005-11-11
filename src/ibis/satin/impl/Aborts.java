@@ -3,7 +3,6 @@
 package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -176,12 +175,12 @@ public abstract class Aborts extends WorkStealing {
         }
 
         try {
-            SendPort s = getReplyPortNoWait(r.stealer);
-            if (s == null) {
+            Victim v = getVictimNoWait(r.stealer);
+            if (v == null) {
                 return;
             }
 
-            WriteMessage writeMessage = s.newMessage();
+            WriteMessage writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.ABORT);
             writeMessage.writeInt(r.parentStamp);
             writeMessage.writeObject(r.parentOwner);

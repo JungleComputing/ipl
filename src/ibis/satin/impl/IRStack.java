@@ -3,7 +3,6 @@
 package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -260,9 +259,8 @@ final class IRStack implements Config {
         }
 
         if (toPush.size() > 0) {
-            SendPort sp = victim.s;
             try {
-                WriteMessage m = sp.newMessage();
+                WriteMessage m = victim.newMessage();
                 m.writeByte(Protocol.RESULT_PUSH);
                 m.writeObject(toPush);
                 long numBytes = m.finish();

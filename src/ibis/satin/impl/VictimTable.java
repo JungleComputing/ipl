@@ -4,15 +4,12 @@ package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPort;
 
 import java.util.HashMap;
 import java.util.Vector;
 
 final class VictimTable implements Config {
     private Vector victims = new Vector(); // elements are of type Victim
-
-    private HashMap victimsHash = new HashMap(); // keys are IbisIdentifier, elements are of type Sendport
 
     // all victims grouped by cluster
     /*
@@ -34,22 +31,17 @@ final class VictimTable implements Config {
         clustersHash.put(s.ident.cluster(), thisCluster);
     }
 
-    void add(IbisIdentifier ident, ReceivePortIdentifier recv, SendPort port) {
+    void add(Victim v) {
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
         }
-        Victim v = new Victim();
-        v.ident = ident;
-        v.s = port;
-        v.r = recv;
         victims.add(v);
-        victimsHash.put(ident, port);
 
-        Cluster c = (Cluster) clustersHash.get(ident.cluster());
+        Cluster c = (Cluster) clustersHash.get(v.ident.cluster());
         if (c == null) { // new cluster
             c = new Cluster(v); //v is automagically added to this cluster
             clusters.add(c);
-            clustersHash.put(ident.cluster(), c);
+            clustersHash.put(v.ident.cluster(), c);
         } else {
             c.add(v);
         }
@@ -59,8 +51,7 @@ final class VictimTable implements Config {
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
         }
-        Victim v = new Victim();
-        v.ident = ident;
+        Victim v = new Victim(ident, null, null);
 
         int i = victims.indexOf(v);
 
@@ -82,7 +73,6 @@ final class VictimTable implements Config {
         }
 
         Victim v = (Victim) victims.remove(i);
-        victimsHash.remove(v.ident);
 
         Cluster c = (Cluster) clustersHash.get(v.ident.cluster());
         c.remove(v);
@@ -97,26 +87,6 @@ final class VictimTable implements Config {
         return victims.size();
     }
 
-    SendPort getPort(int i) {
-        if (ASSERTS) {
-            SatinBase.assertLocked(satin);
-        }
-        if (i < 0 || i >= victims.size()) {
-            return null;
-        }
-        return ((Victim) victims.get(i)).s;
-    }
-
-    IbisIdentifier getIdent(int i) {
-        if (ASSERTS) {
-            SatinBase.assertLocked(satin);
-        }
-        if (i < 0 || i >= victims.size()) {
-            return null;
-        }
-        return ((Victim) victims.get(i)).ident;
-    }
-
     Victim getVictim(int i) {
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
@@ -125,10 +95,6 @@ final class VictimTable implements Config {
             return null;
         }
         return (Victim) victims.get(i);
-    }
-
-    SendPort getReplyPort(IbisIdentifier ident) {
-        return (SendPort) victimsHash.get(ident);
     }
 
     /*
