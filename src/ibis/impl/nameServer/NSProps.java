@@ -21,12 +21,14 @@ public class NSProps {
 
     public static final String s_single = PROPERTY_PREFIX + "single";
 
-    public static final String s_timeout = PROPERTY_PREFIX + "timeout";
+    public static final String s_pinger_timeout = PROPERTY_PREFIX + "pingerTimeout";
+
+    public static final String s_connect_timeout = PROPERTY_PREFIX + "connectTimeout";
 
     public static final String s_joiner_interval = PROPERTY_PREFIX + "joinerInterval";
 
     private static final String[] sysprops = { s_impl, s_host, s_key, s_port,
-            s_single, s_timeout, s_joiner_interval };
+            s_single, s_pinger_timeout, s_connect_timeout, s_joiner_interval };
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);

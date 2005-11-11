@@ -35,7 +35,11 @@ public class NameServer extends Thread implements Protocol {
             = TypedProperties.intProperty(NSProps.s_port, 9826);
 
     static final int PINGER_TIMEOUT
-        = TypedProperties.intProperty(NSProps.s_timeout, 60) * 1000;
+        = TypedProperties.intProperty(NSProps.s_pinger_timeout, 60) * 1000;
+        // Property is in seconds, convert to milliseconds.
+
+    static final int CONNECT_TIMEOUT
+        = TypedProperties.intProperty(NSProps.s_connect_timeout, 10) * 1000;
         // Property is in seconds, convert to milliseconds.
 
     static int JOINER_INTERVAL
@@ -306,7 +310,7 @@ public class NameServer extends Thread implements Protocol {
         
             try {
                 s = NameServerClient.socketFactory.createClientSocket(
-                        dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+                        dest.ibisNameServerAddress, dest.ibisNameServerport, null, CONNECT_TIMEOUT);
                 out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                 out2.writeByte(IBIS_JOIN);
                 out2.writeInt(info.length - offset);
@@ -338,7 +342,7 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, CONNECT_TIMEOUT);
             out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(IBIS_PING);
             out2.flush();
@@ -429,7 +433,7 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, CONNECT_TIMEOUT);
 
             out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(IBIS_DEAD);
@@ -603,7 +607,7 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             s = NameServerClient.socketFactory.createClientSocket(
-                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1);
+                    dest.ibisNameServerAddress, dest.ibisNameServerport, null, CONNECT_TIMEOUT);
 
             out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(IBIS_LEAVE);
@@ -635,7 +639,7 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.portTypeNameServer.getPort(), null, -1);
+                    p.portTypeNameServer.getPort(), null, CONNECT_TIMEOUT);
             out1 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out1.writeByte(PORTTYPE_EXIT);
         } catch (IOException e) {
@@ -647,7 +651,7 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             s2 = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.receivePortNameServer.getPort(), null, -1);
+                    p.receivePortNameServer.getPort(), null, CONNECT_TIMEOUT);
             out2 = new DataOutputStream(new BufferedOutputStream(s2.getOutputStream()));
             out2.writeByte(PORT_EXIT);
         } catch (IOException e) {
@@ -682,7 +686,7 @@ public class NameServer extends Thread implements Protocol {
 
         try {
             s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.electionServer.getPort(), null, -1);
+                    p.electionServer.getPort(), null, CONNECT_TIMEOUT);
             out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(ELECTION_KILL);
             out2.writeInt(ids.length);
