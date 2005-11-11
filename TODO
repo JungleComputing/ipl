@@ -15,6 +15,8 @@ nameserver+connection stuff:
 - -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft (niet alleen eerste)...
 
 ipl:
+- Registry.lookupIbis (is nooit geimplementeerd, dus ook geen gebruikers).
+  is-ie nodig? En zonee, waarom heeft een ibis instance dan een naam?
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 - add receiveports local to an ibis:
 	- receiveports not globally unique, but unique per ibis.
@@ -26,7 +28,7 @@ ipl:
   docs vertellen niet dat je niet een close mag doen terwijl een message
   levend is
   Ceriel: ??? Hoe doe je dat (in een shutdownhook belanden als er een message
-  levend is ???
+  levend is ??? En, de javadocs vertellen dat wel degelijk.
 
 rmi:
 - check Ibis RMI registry:
