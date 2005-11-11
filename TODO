@@ -3,10 +3,9 @@ prun:
   (students keep complaining about this) --Rob
   
 nameserver:
-- nameserver is single threaded: if it cannot forward a join, everything hangs.
++ nameserver is single threaded: if it cannot forward a join, everything hangs.
   --Rob
-  Ceriel: ??? -1 gespecificeerd als timeout, dus connect zou meteen moeten
-  falen. Maybe specify a timeout, f.i. 5 seconds ???
+  Ceriel: Nameserver connects now have a timeout, default 10 seconds.
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
@@ -26,6 +25,8 @@ ipl:
 - close van poorten (in shutdownhooks)
   docs vertellen niet dat je niet een close mag doen terwijl een message
   levend is
+  Ceriel: ??? Hoe doe je dat (in een shutdownhook belanden als er een message
+  levend is ???
 
 rmi:
 - check Ibis RMI registry:
@@ -34,6 +35,7 @@ rmi:
 
 satin:
 - remove tuple space alltogether now ? --Rob
+  Ceriel: lijkt me voorbarig zolang we applicaties hebben die het gebruiken.
 - add method to make deep copy for objects (use ibis.util.DeepCopy) --Rob
 - make scalable ibis / scalable satin (don't keep sockets open) --Rob
 - als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
