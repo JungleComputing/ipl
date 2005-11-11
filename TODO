@@ -1,40 +1,19 @@
-build system
-+ remove stupid hostname stuff. This caused our demo to fail during the
-  tutorial --Rob (Done Ceriel)
-
 prun:
 - add readme on how to start ibis with prun for the VU people
   (students keep complaining about this) --Rob
   
 nameserver:
-+ print warning if -ns option is not passed to ibis-run 
-  (and then do what we do now -> node where this ibis was compiled)
-  Ceriel: je krijgt al een warning als er geen -hosts en geen -ns is.
-  als er -hosts is krijg je de eerste, anders localhost.
-- allow application to specify that it does not want joins. --Rob
-- allow app to specify that it wants joins, but not globally ordered. --Rob
 - nameserver is single threaded: if it cannot forward a join, everything hangs.
   --Rob
   Ceriel: ??? -1 gespecificeerd als timeout, dus connect zou meteen moeten
-  falen.
+  falen. Maybe specify a timeout, f.i. 5 seconds ???
+
+nameserver+connection stuff:
 - enable control hub by default --Rob
 - if a control hub is started, ibises cannot connect to the normal server again? --Rob
 - allow different connection types to nameserver simulaneously: 
   one ibis should be able to connect with routed messges, while others have a direct connection --Rob
 - -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft (niet alleen eerste)...
-+ we forget to close connections on errors, see for instance forwardJoin
-  in NameServer.java --Rob (Occurred in many places. Fixed Ceriel)
-+ nameserver needs to know classes of all ibis identifiers. 
-  Not really an option for external ibises --Rob
-  (Fixed Ceriel)
-+ collect joins and leaves before sending them out to make things more scalable?
-  (Done Ceriel)
-
-general:
-+ I cannot add an "external" ibis that ibis does not know about without
-  changing the properties file in the original tree. --Rob (Fixed Ceriel)
-
-+ als ik mijn ibis ident niet herschrijf -> satin crash --Rob (Fixed Ceriel)
 
 ipl:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
@@ -52,8 +31,6 @@ rmi:
 - check Ibis RMI registry:
   - you don't have to actually start one;
   - registers url's, not names.
-+ BUGS in rmi stubs (& skeletons?) -> if there is an IOexception, messages
-  are not finished! --Rob (Done (Ceriel))
 
 satin:
 - remove tuple space alltogether now ? --Rob
@@ -61,8 +38,6 @@ satin:
 - make scalable ibis / scalable satin (don't keep sockets open) --Rob
 - als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
   print bij top of the stack.
-+ bug: throws van runtime exception worden niet doorgegooid maar genegeerd.
-  (Fixed Ceriel)
 - add semantic analysis to the compiler
 - forgotten sync statements
 - make return / throw an implicit sync again?
@@ -78,7 +53,6 @@ implementations:
    in them .... Ceriel) I did, I'll check :-) --Rob
 - NetIbis: 
     - fix performance issues in net.gm (e.g.  mpj+javagrande benchmarks)
-    + make it possible to make ipl classes use abstract. (Done Ceriel)
     - remove dependancy on "local" gm version in default set-up
     - connection cache cannot be disabled without triggering a bug:
       tcp_blk/TcpConnectionCache.java has:
