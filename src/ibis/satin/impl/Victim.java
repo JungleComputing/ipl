@@ -50,6 +50,17 @@ final class Victim {
         return ident.hashCode();
     }
 
+    public void disconnect() throws IOException {
+        if (connected) {
+            synchronized(this) {
+                if (connected) {
+                    connected = false;
+                }
+                s.disconnect(r);
+            }
+        }
+    }
+
     public SendPort getSendPort() {
         if (! connected) {
             synchronized(this) {
