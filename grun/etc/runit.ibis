@@ -121,8 +121,6 @@ if [ "$GRUN_PHASE" = run ]; then
     fi
     APPDIR=$1
     shift
-    APPCLASS=$1
-    shift
 
     ibisclasspath="$IBIS_ROOT:$IBIS_ROOT/classlibs:$IBIS_ROOT/build"
     # Add the application directory to classpath "as is" (i.e., don't
@@ -250,6 +248,21 @@ if [ "$GRUN_PHASE" = run ]; then
 	;;
     esac
 
+    # taken from ibis-prun (only without the function for sh-portability):
+    LIBCLASSPATH=""
+    DIRLIBS=${IBIS_ROOT}/3rdparty/*.jar
+    for i in ${DIRLIBS}; do
+	# if the directory is empty, then it will return the input string
+	if [ "$i" != "${DIRLIBS}" ] ; then
+	    if [ -z "$LIBCLASSPATH" ] ; then
+		LIBCLASSPATH=$i
+	    else
+		LIBCLASSPATH="$i":$LIBCLASSPATH
+	    fi
+	fi
+    done
+    classpath="$classpath:$LIBCLASSPATH"
+
     cmd="$JAVA_BINARY							      \
         -Xbootclasspath/p:$classpath					      \
 	-classpath $classpath						      \
@@ -266,7 +279,7 @@ if [ "$GRUN_PHASE" = run ]; then
 	-Dcluster=$GRUN_CLUSTER						      \
 	$IBIS_CONN_OPTS							      \
 	$IBIS_JAVA_OPTS							      \
-	$APPCLASS $*"
+	$*"
     if [ $GRUN_VERBOSE -ge 1 ]; then
 	echo $PROG: Running $cmd
     fi
