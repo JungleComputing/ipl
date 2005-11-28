@@ -520,6 +520,9 @@ Options:
         other subjobs have to complete termination after the first subjob
         exits.  After that, remaining subjobs are cancelled explicitly.
         The default is 3 minutes.
+    -X <maxretry>
+        Set maximum retry count for failed job submissions due to timeout.
+        The default is 5 retries.
     --pre '<cmdline>'
         Specifies grid job pre-execution command line to be used,
         that are used to stage files in, and possibly do additional
