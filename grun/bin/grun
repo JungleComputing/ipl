@@ -1150,9 +1150,6 @@ def run_main():
                 (Global.jobnumber, Global.jobtry, Global.exitcode))
     logging.shutdown()
 
-    if Global.out_on:
-        stop_io_servers(Global.command_list)
-
     # Keep exitcode
     terminate(Global.exitcode)
 
@@ -1221,12 +1218,18 @@ def main():
         while not (Global.terminated or Global.interrupted):
             time.sleep(1)
     except KeyboardInterrupt:
+	# Just in case we have not moved back to the original group yet:
+        posix.setpgid(0, oldgroup)
         print "Interrupted: cancelling jobs; please wait.."
         Global.exitcode = 2
         Global.interrupted = 1
         while Global.interrupt_ack == 0:
             time.sleep(1)
         print "Jobs cancelled."
+
+    if Global.out_on:
+        stop_io_servers(Global.command_list)
+        time.sleep(2)
 
     # kill process group in case external servers don't go away by themselves;
     # but don't kill ourselves in the process:
@@ -1235,6 +1238,7 @@ def main():
         posix.kill(-group, signal.SIGTERM)
     except OSError:
         # Maybe we didn't started any subprocesses, or they already exited
+	# print "Kill %d failed" % group
         pass
     sys.exit(Global.exitcode)
 
