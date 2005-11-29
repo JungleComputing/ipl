@@ -48,7 +48,7 @@
  How to use fault tolerance:
  
  STEP 1 ----------------------------------------------------------------- 
- enable fault tolerance, by passing the flag -Dibis.satin.ft=true to java.
+ enable fault tolerance, by passing the flag -Dsatin.ft=true to java.
 
  STEP 2 ------------------------------------------------------------------
  chose the flavour
@@ -78,28 +78,28 @@
  2B ----------------------------
  to use replicated Global Result Table, pass the following flag to java:
 	
-	-Dibis.satin.ft.grt.replicated=true
+	-Dsatin.ft.grt.replicated=true
  
  to use distributed Global Result Table, pass the following flag to java:
     
-	-Dibis.satin.ft.grt.replicated=false
+	-Dsatin.ft.grt.replicated=false
  (this is the default).
 	
  2C ----------------------------
  to use the "with aborts" version, pass the following flag to java:
  
-	-Dibis.satin.ft.noAborts=false
+	-Dsatin.ft.noAborts=false
  (this is the default).
  
  to use the "without aborts" version, pass the following flag to java:
 
-	-Dibis.satin.ft.noAborts=true
+	-Dsatin.ft.noAborts=true
 	
  
  2D -----------------------------
  to use the naive version, pass the following flag to java:
  
-	-Dibis.satin.ft.noTable=true -Dibis.satin.ft.noAborts=false
+	-Dsatin.ft.noTable=true -Dsatin.ft.noAborts=false
 
  
  STEP 3 -----------------------------------------------------------------
