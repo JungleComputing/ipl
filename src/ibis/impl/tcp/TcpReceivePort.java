@@ -201,9 +201,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         if (type.numbered) {
             m.setSequenceNumber(m.readLong());
         }
-        if (STATS) {
-            m.before = m.getHandler().bufferedInput.bytesRead();
-        }
         if (upcall != null) {
             return doUpcall(m);
         }
