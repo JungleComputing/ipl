@@ -18,7 +18,7 @@ final class MasterWorker extends Algorithm {
         }
 
         synchronized (satin) {
-            v = satin.victims.getVictim(satin.masterIdent);
+            v = satin.getVictimWait(satin.masterIdent);
         }
 
         return satin.stealJob(v, true); // blocks at the server side
