@@ -207,23 +207,27 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         }
         if (connection == null) {
             throw new IOException("Cannot disconnect from " + receiver
-                    + " since we are not connectted with it");
+                    + " since we are not connected with it");
         }
 
-        //close 
-        out.writeByte(CLOSE_ONE_CONNECTION);
-
-        receiverBytes = Conversion.object2byte(receiver);
-        receiverLength = new byte[Conversion.INT_SIZE];
-        Conversion.defaultConversion.int2byte(receiverBytes.length,
-                receiverLength, 0);
-        out.writeArray(receiverLength);
-        out.writeArray(receiverBytes);
-        out.flush();
-        out.close();
-
         receivers.remove(connection);
-        splitter.remove(connection.out);
+
+        //close 
+        try {
+            out.writeByte(CLOSE_ONE_CONNECTION);
+
+            receiverBytes = Conversion.object2byte(receiver);
+            receiverLength = new byte[Conversion.INT_SIZE];
+            Conversion.defaultConversion.int2byte(receiverBytes.length,
+                    receiverLength, 0);
+            out.writeArray(receiverLength);
+            out.writeArray(receiverBytes);
+            out.flush();
+            out.close();
+        } finally {
+            splitter.remove(connection.out);
+        }
+
         try {
             connection.s.close();
         } catch (Exception x) {

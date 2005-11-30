@@ -422,8 +422,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             }
 
             if (!found) {
-                throw new IbisError("TcpReceivePort: Connection handler "
-                        + "not found in leave");
+                // throw new IbisError("TcpReceivePort: Connection handler "
+                //         + "not found in leave");
+                // Ignored
             }
             // Notify threads that might be blocked in a close
             notifyAll();
