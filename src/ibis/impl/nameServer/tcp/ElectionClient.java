@@ -22,10 +22,14 @@ class ElectionClient implements Protocol {
 
     InetAddress localAddress = null;
 
-    ElectionClient(InetAddress localAddress, InetAddress server, int port) {
+    String ibisName;
+
+    ElectionClient(InetAddress localAddress, InetAddress server, int port,
+            String name) {
         this.server = server;
         this.port = port;
         this.localAddress = localAddress;
+        ibisName = name;
     }
 
     IbisIdentifier elect(String election, IbisIdentifier candidate) throws IOException,

@@ -33,6 +33,16 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     private boolean silent;
 
+    private static class Port {
+        String ibisName;
+        byte[] port;
+
+        public Port(String ibisName, byte[] port) {
+            this.ibisName = ibisName;
+            this.port = port;
+        }
+    }
+
     private static class PortLookupRequest {
         private final Socket s;
 
@@ -155,21 +165,23 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     private void handlePortNew() throws IOException {
 
-        byte[] id, storedId;
+        Port storedId;
+        byte[] id;
 
+        String ibisName = in.readUTF();
         String name = in.readUTF();
         int len = in.readInt();
         id = new byte[len];
         in.readFully(id, 0, len);
 
         /* Check wheter the name is in use. */
-        storedId = (byte[]) ports.get(name);
+        storedId = (Port) ports.get(name);
 
         if (storedId != null) {
             out.writeByte(PORT_REFUSED);
         } else {
             out.writeByte(PORT_ACCEPTED);
-            addPort(name, id);
+            addPort(name, id, ibisName);
         }
     }
 
@@ -178,6 +190,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
         byte[] id;
 
+        String ibisName = in.readUTF();
         String name = in.readUTF();
         int len = in.readInt();
         id = new byte[len];
@@ -185,12 +198,12 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
         /* Don't check whether the name is in use. */
         out.writeByte(PORT_ACCEPTED);
-        addPort(name, id);
+        addPort(name, id, ibisName);
     }
 
-    private void addPort(String name, byte[] id) {
+    private void addPort(String name, byte[] id, String ibisName) {
         
-        ports.put(name, id);
+        ports.put(name, new Port(ibisName, id));
         
         ArrayList v = null;
             
@@ -307,10 +320,14 @@ class ReceivePortNameServer extends Thread implements Protocol {
         int unknown = 0;
 
         for (int i = 0; i < count; i++) {
+            Port p;
             names[i] = in.readUTF();
-            prts[i] = (byte[]) ports.get(names[i]);
-            if (prts[i] == null) {
+            p = (Port) ports.get(names[i]);
+            if (p == null) {
                 unknown++;
+                prts[i] = null;
+            } else {
+                prts[i] = p.port;
             }
         }
 
@@ -347,17 +364,46 @@ class ReceivePortNameServer extends Thread implements Protocol {
     }
 
     private void handlePortFree() throws IOException {
-        byte[] id;
+        Port id;
 
         String name = in.readUTF();
 
-        id = (byte[]) ports.get(name);
+        id = (Port) ports.get(name);
 
         if (id == null) {
             out.writeByte(1);
         }
         ports.remove(name);
         out.writeByte(0);
+    }
+
+    private void handlePortKill() throws IOException {
+        int cnt = in.readInt();
+        String[] names = new String[cnt];
+
+        for (int i = 0; i < cnt; i++) {
+            names[i] = in.readUTF();
+        }
+
+        ArrayList v = new ArrayList();
+
+        Enumeration portnames = ports.keys();
+        while (portnames.hasMoreElements()) {
+            String name = (String) portnames.nextElement();
+            Port p = (Port) ports.get(name);
+            for (int i = 0; i < cnt; i++) {
+                if (p.ibisName.equals(names[i])) {
+                    v.add(name);
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < v.size(); i++) {
+            String name = (String) v.get(i);
+            ports.remove(name);
+        }
+        out.writeInt(0);
+        out.flush();
     }
 
     public void run() {
@@ -411,6 +457,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 case (PORT_LOOKUP):
                     mustClose = false;
                     handlePortLookup(s);
+                    break;
+
+                case (PORT_KILL):
+                    handlePortKill();
                     break;
 
                 case (PORT_EXIT):

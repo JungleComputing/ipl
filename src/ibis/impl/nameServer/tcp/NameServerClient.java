@@ -237,15 +237,15 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 int temp = in.readInt(); /* Port for the PortTypeNameServer */
                 portTypeNameServerClient
                         = new PortTypeNameServerClient(myAddress, serverAddress,
-                                temp);
+                                temp, id.name());
 
                 temp = in.readInt(); /* Port for the ReceivePortNameServer */
                 receivePortNameServerClient = new ReceivePortNameServerClient(
-                        myAddress, serverAddress, temp);
+                        myAddress, serverAddress, temp, id.name());
 
                 temp = in.readInt(); /* Port for the ElectionServer */
                 electionClient = new ElectionClient(myAddress, serverAddress,
-                        temp);
+                        temp, id.name());
 
                 if (needsUpcalls) {
                     int poolSize = in.readInt();
@@ -460,6 +460,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         out = new DataOutputStream(
                                 new BufferedOutputStream(s.getOutputStream()));
                         out.writeUTF(poolName);
+                        out.writeUTF(id.name());
                     }
                     break;
 

@@ -23,11 +23,14 @@ class PortTypeNameServerClient implements Protocol {
 
     InetAddress localAddress;
 
+    String ibisName;
+
     PortTypeNameServerClient(InetAddress localAddress, InetAddress server,
-            int port) {
+            int port, String name) {
         this.server = server;
         this.port = port;
         this.localAddress = localAddress;
+        ibisName = name;
     }
 
     public boolean newPortType(String name, StaticProperties p)

@@ -28,14 +28,17 @@ class ReceivePortNameServerClient implements Protocol {
 
     InetAddress localAddress;
 
+    String ibisName;
+
     private static Logger logger = ibis.util.GetLogger
             .getLogger(ReceivePortNameServerClient.class.getName());
 
     ReceivePortNameServerClient(InetAddress localAddress, InetAddress server,
-            int port) {
+            int port, String name) {
         this.server = server;
         this.port = port;
         this.localAddress = localAddress;
+        ibisName = name;
     }
 
     public ReceivePortIdentifier lookup(String name, long timeout)
@@ -159,14 +162,14 @@ class ReceivePortNameServerClient implements Protocol {
         bind(name, prt.identifier());
     }
 
-    public void bind(String name, ReceivePortIdentifier id) throws IOException {
+    public void bind(String name, ReceivePortIdentifier prt) throws IOException {
         Socket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
         int result;
 
         if (logger.isDebugEnabled()) {
-            logger.debug(this + ": bind \"" + name + "\" to " + id);
+            logger.debug(this + ": bind \"" + name + "\" to " + prt);
         }
 
         try {
@@ -177,8 +180,9 @@ class ReceivePortNameServerClient implements Protocol {
 
             // request a new Port.
             out.writeByte(PORT_NEW);
+            out.writeUTF(ibisName);
             out.writeUTF(name);
-            byte[] buf = Conversion.object2byte(id);
+            byte[] buf = Conversion.object2byte(prt);
             out.writeInt(buf.length);
             out.write(buf);
             out.flush();
@@ -201,11 +205,11 @@ class ReceivePortNameServerClient implements Protocol {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug(this + ": bound \"" + name + "\" to " + id);
+            logger.debug(this + ": bound \"" + name + "\" to " + prt);
         }
     }
 
-    public void rebind(String name, ReceivePortIdentifier id)
+    public void rebind(String name, ReceivePortIdentifier prt)
             throws IOException {
         Socket s = null;
         DataOutputStream out = null;
@@ -213,7 +217,7 @@ class ReceivePortNameServerClient implements Protocol {
         int result;
 
         if (logger.isDebugEnabled()) {
-            logger.debug(this + ": rebind \"" + name + "\" to " + id);
+            logger.debug(this + ": rebind \"" + name + "\" to " + prt);
         }
 
         try {
@@ -224,8 +228,9 @@ class ReceivePortNameServerClient implements Protocol {
 
             // request a rebind
             out.writeByte(PORT_REBIND);
+            out.writeUTF(ibisName);
             out.writeUTF(name);
-            byte[] buf = Conversion.object2byte(id);
+            byte[] buf = Conversion.object2byte(prt);
             out.writeInt(buf.length);
             out.write(buf);
             out.flush();
@@ -245,7 +250,7 @@ class ReceivePortNameServerClient implements Protocol {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug(this + ": rebound \"" + name + "\" to " + id);
+            logger.debug(this + ": rebound \"" + name + "\" to " + prt);
         }
     }
 
