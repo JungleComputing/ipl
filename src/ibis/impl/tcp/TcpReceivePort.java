@@ -251,22 +251,37 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
     private synchronized TcpReadMessage getMessage(long timeout)
             throws IOException {
+        
         if (no_connectionhandler_thread) {
-            while (connectionsIndex == 0) {
-                try {
-                    wait();
-                } catch (Exception e) {
-                    /* ignore */
+                       
+            // Since we don't have any threads or timeout here, this 'reader' 
+            // call directly handles the receive.              
+            do {
+                // Wait until there is a connection            
+                while (connectionsIndex == 0) {
+                    try {
+                        wait();
+                    } catch (Exception e) {
+                        /* ignore */
+                    }
                 }
-            }
-            while (m != null && !m.isFinished) {
-                try {
-                    wait();
-                } catch (Exception e) {
-                    /* ignore */
+                
+                // Wait until the current message is done
+                while (m != null && !m.isFinished) {
+                    try {
+                        wait();
+                    } catch (Exception e) {
+                        /* ignore */
+                    }
                 }
-            }
-            connections[0].reader();
+                
+                // Note: This call does NOT always result in a message!
+                // Since there is no backgroud thread, this call may handle some
+                // 'administration traffic' (like a disconnect), instead of  
+                // receiving message. We must therefore keep trying until we see
+                // that there really is a message waiting in m!
+                connections[0].reader();
+            } while (m == null);                       
         } else {
             while ((m == null || delivered) && !shouldLeave) {
                 try {
@@ -537,7 +552,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
             connections[connectionsIndex++] = con;
             if (!no_connectionhandler_thread) {
-                ThreadPool.createNew(con, "Connection Handler");
+                ThreadPool.createNew(con, "ConnectionHandler");
             }
 
             connection_setup_present = false;
