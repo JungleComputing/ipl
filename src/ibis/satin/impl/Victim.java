@@ -61,12 +61,26 @@ final class Victim {
         }
     }
 
-    public SendPort getSendPort() {
+    private SendPort getSendPort() {
         if (! connected) {
             synchronized(this) {
                 if (! connected) {
-                    Communication.connect(s, r);
-                    connected = true;
+                    if (Satin.FAULT_TOLERANCE) {
+                        if (! Communication.connect(s, r, Satin.connectTimeout)) {
+                            if (Satin.commLogger.isDebugEnabled()) {
+                                Satin.commLogger.debug("SATIN '" + s.identifier().ibis()
+
+                                        + "': unable to connect to " + r.ibis()
+                                        + ", might have crashed");
+                            }
+                            return null;
+                        } else {
+                            connected = true;
+                        }
+                    } else {
+                        Communication.connect(s, r);
+                        connected = true;
+                    }
                 }
             }
         }
@@ -74,7 +88,11 @@ final class Victim {
     }
 
     public WriteMessage newMessage() throws IOException {
-        return getSendPort().newMessage();
+        SendPort s = getSendPort();
+        if (s != null) {
+            return getSendPort().newMessage();
+        }
+        throw new IOException("Could not connect");
     }
 
     public void close() throws IOException {

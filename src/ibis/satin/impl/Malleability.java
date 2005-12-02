@@ -24,6 +24,9 @@ public abstract class Malleability extends FaultTolerance {
             commLogger.debug("SATIN '" + ident + "': dealing with "
                     + names.length + " joins");
         }
+        if (SHARED_OBJECTS) {
+            createSoReceivePorts(joiners);
+        }
         ReceivePortIdentifier[] r = null;
         try {
             r = lookup(names);
@@ -32,7 +35,7 @@ public abstract class Malleability extends FaultTolerance {
                 SendPort s = portType.createSendPort("satin sendport");
 
                 if (FAULT_TOLERANCE) {
-                    if (!connect(s, r[i], connectTimeout)) {
+                    if (! SCALABLE && !connect(s, r[i], connectTimeout)) {
                         if (commLogger.isDebugEnabled()) {
                             commLogger.debug("SATIN '" + ident
                                     + "': unable to connect to " + joiner
@@ -71,6 +74,9 @@ public abstract class Malleability extends FaultTolerance {
     }
 
     public void joined(IbisIdentifier joiner) {
+        if (commLogger.isDebugEnabled()) {
+            commLogger.debug("SATIN '" + ident + "': got join of " + joiner);
+        }
 
         if (! joinThreadRunning) {
             joinThreadRunning = true;
@@ -86,6 +92,9 @@ public abstract class Malleability extends FaultTolerance {
                         }
                         if (j != null && j.length != 0) {
                             handleJoins(j);
+                            synchronized(joiners) {
+                                joiners.notifyAll();
+                            }
                         }
                         try {
                             Thread.sleep(1000);
@@ -110,6 +119,15 @@ public abstract class Malleability extends FaultTolerance {
         allIbises.add(joiner);
 
         if (joiner.equals(ident)) {
+            synchronized(joiners) {
+                while (joiners.size() != 0) {
+                    try {
+                        joiners.wait();
+                    } catch(Exception e) {
+                        // ignored
+                    }
+                }
+            }
             return;
         }
 
@@ -140,6 +158,8 @@ public abstract class Malleability extends FaultTolerance {
             return;
         }
 
+        System.out.println("left: " + leaver);
+
         if (commLogger.isDebugEnabled()) {
             commLogger.debug("SATIN '" + ident + "': " + leaver
                     + " left");
@@ -167,6 +187,10 @@ public abstract class Malleability extends FaultTolerance {
                     gotCrashes = true;
                 }
             } 
+
+            if (SHARED_OBJECTS) {
+                removeSOConnection(leaver);
+            }
              
             v = victims.remove(leaver);
             notifyAll();

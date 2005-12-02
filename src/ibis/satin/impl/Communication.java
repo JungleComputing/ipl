@@ -36,6 +36,14 @@ public abstract class Communication extends SpawnSync {
         } while (!success);
     }
 
+    static void disconnect(SendPort s, ReceivePortIdentifier ident) {
+        try {
+            s.disconnect(ident);
+        } catch (IOException e) {
+            // ignored
+        }
+    }
+
     static boolean connect(SendPort s, ReceivePortIdentifier ident,
             long timeoutMillis) {
         boolean success = false;
@@ -71,23 +79,12 @@ public abstract class Communication extends SpawnSync {
     }
 
     ReceivePortIdentifier lookup_wait(String portname, long timeoutMillis) {
-
         ReceivePortIdentifier rpi = null;
-        boolean success = false;
-        long startTime = System.currentTimeMillis();
-        do {
-            try {
-                rpi = ibis.registry().lookupReceivePort(portname);
-                success = true;
-            } catch (IOException e) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e2) {
-                    //ignore
-                }
-            }
-        } while (!success
-            && System.currentTimeMillis() - startTime < timeoutMillis);
+        try {
+            rpi = ibis.registry().lookupReceivePort(portname, timeoutMillis);
+        } catch (Exception e) {
+            // ignored
+        }
         return rpi;
     }
 

@@ -121,7 +121,8 @@ public abstract class SatinBase implements Config {
      * Timeout for connecting to other nodes (in joined()) who might be
      * crashed.
      */
-    protected long connectTimeout = 1500000;
+    static final protected long connectTimeout
+            = TypedProperties.intProperty(s_ft_connectTimeout, 120) * 1000L;
 
     volatile boolean exiting = false; // used in messageHandler
 

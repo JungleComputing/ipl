@@ -224,6 +224,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 } catch (Exception e) {
                     // Ignore.
                 }
+                v = satin.getVictimNoWait(ident.ibis());
+                if (v == null) {
+                    // This ibis died.
+                    return;
+                }
             }
 
             if (FAULT_TOLERANCE

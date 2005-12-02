@@ -73,6 +73,8 @@ public interface Config {
 
     static final String s_ft_naive = PROPERTY_PREFIX + "ft.noTable";
 
+    static final String s_ft_connectTimeout = PROPERTY_PREFIX + "ft.connectTimeout";
+
     static final String s_masterhost = PROPERTY_PREFIX + "masterHost";
 
     static final String s_so = PROPERTY_PREFIX + "so";
@@ -91,18 +93,19 @@ public interface Config {
     static final String s_tuple_numbered = PROPERTY_PREFIX
             + "tuplespace.numbered";
 
-    static final String[] sysprops = { s_scalable, s_stats, s_stats_spawn, s_stats_steal,
-            s_stats_abort, s_stats_tuple, s_stats_ft, s_stats_grt, s_timing,
-            s_timing_steal, s_timing_abort, s_timing_idle, s_timing_poll,
-            s_timing_tuple, s_timing_grt, s_timing_crash, s_timing_check,
-            s_timing_repl, s_poll_freq, s_poll_port, s_asserts, s_aborts, s_ft,
-            s_ft_grt_repl, s_ft_grt_comb, s_ft_noAborts, s_ft_naive,
+    static final String[] sysprops = { s_scalable,
+            s_stats, s_stats_spawn, s_stats_steal, s_stats_abort,
+            s_stats_tuple, s_stats_ft, s_stats_grt,
+            s_timing, s_timing_steal, s_timing_abort, s_timing_idle,
+            s_timing_poll, s_timing_tuple, s_timing_grt, s_timing_crash,
+            s_timing_check, s_timing_repl,
+            s_poll_freq, s_poll_port,
+            s_asserts, s_aborts,
+            s_ft, s_ft_grt_repl, s_ft_grt_comb, s_ft_noAborts, s_ft_naive,
+            s_ft_connectTimeout,
             s_masterhost, s_in_latency, s_tuple_multi, s_tuple_ordered,
             s_tuple_numbered, s_timing_so, s_so};
 
-    /** Enable this if Satin should try to be as scalable as possible */
-    static final boolean SCALABLE = TypedProperties.booleanProperty(s_scalable, true);
-    
     /** Must be enabled or there are no statistics at all. */
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
 
@@ -199,6 +202,10 @@ public interface Config {
     static final boolean FAULT_TOLERANCE
             = TypedProperties.booleanProperty(s_ft, false);
 
+    /** Enable this if Satin should try to be as scalable as possible. */
+    static final boolean SCALABLE
+            = TypedProperties.booleanProperty(s_scalable, ! FAULT_TOLERANCE);
+    
     /** Determines master hostname. */
     static final String MASTER_HOST
             = TypedProperties.stringProperty(s_masterhost);

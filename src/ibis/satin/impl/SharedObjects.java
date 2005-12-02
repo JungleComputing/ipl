@@ -10,6 +10,7 @@ import ibis.satin.so.SharedObject;
 import ibis.util.messagecombining.MessageSplitter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -23,8 +24,10 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
     in the meantime, cancel the request*/
     
     HashMap sharedObjects = new HashMap();
+    private HashMap ports = new HashMap();
     boolean gotObject = false;
     SharedObject object = null;
+    ArrayList toConnect = new ArrayList();
 
     Vector soInvocationsToSend = new Vector();
     long soInvocationsToSendTimer = -1;
@@ -36,11 +39,16 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 
     final static int WAIT_FOR_OBJECT_TIME = 8000;
 
-    final static int LOOKUP_WAIT_TIME = 5000;
+    final static int LOOKUP_WAIT_TIME = 10000;
 
     public void broadcastSharedObject(SharedObject object) {
 	WriteMessage w = null;
 	long size = 0;
+
+        if (SCALABLE) {
+            doConnectSendPort();
+        }
+
 	if (SO_TIMING) {
 	    handleSOTransferTimer.start();
 	}
@@ -169,6 +177,9 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	    broadcastSOInvocationsTimer.start();
 	}
 
+        if (SCALABLE) {
+            doConnectSendPort();
+        }
 
 	if (soSendPort.connectedTo().length > 0) {
 
@@ -336,54 +347,100 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	}
     }
 
+    /**
+     * Creates SO receive ports for new Satin instances.
+     * Do this first, to make them available as soon as possible.
+     */
+    public void createSoReceivePorts(IbisIdentifier[] joiners) {
+        for (int i = 0; i < joiners.length; i++) {
+	    //create a receive port for this guy
+            try {
+                SOInvocationHandler soInvocationHandler = new SOInvocationHandler(Satin.this_satin);
+                ReceivePort rec = soPortType.createReceivePort("satin so receive port on " 
+                                                               + ident.name()
+                                                               + " for " + joiners[i].name(),
+                                                               soInvocationHandler);
+                if (soInvocationsDelay > 0) {
+                        StaticProperties s = new StaticProperties();
+                        s.add("serialization", "ibis");  
+                        soInvocationHandler.setMessageSplitter(new MessageSplitter(s, rec));
+                }
+                rec.enableConnections();
+                rec.enableUpcalls();
+            } catch(Exception e) {
+                System.err.println("SATIN '" + ident.name()
+                        + "': unable to create so receive port");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private synchronized void doConnectSendPort() {
+
+        for (int i = 0; i < toConnect.size(); i++) {
+            IbisIdentifier id = (IbisIdentifier) toConnect.get(i);
+            ReceivePortIdentifier r = lookup_wait("satin so receive port on "
+                    + id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
+            //and connect
+            if (r == null
+                    || !Satin.connect(soSendPort/*send*/, r, connectTimeout)) {
+                System.err.println("SATN '" + ident.name()
+                        + "': unable to connect to so receive port ");
+            } else {
+                ports.put(id, r);
+            }
+        }
+        toConnect.clear();
+    }
+
     /** Add a new connection to the soSendPort */
     public void addSOConnection(IbisIdentifier id) {
         if (ASSERTS) {
             Satin.assertLocked(this);
         }
 
-	try {
-	    //create a receive port for this guy
-	    SOInvocationHandler soInvocationHandler = new SOInvocationHandler(Satin.this_satin);
-	    ReceivePort rec = soPortType.createReceivePort("satin so receive port on " 
-							   + ident.name()
-							   + " for " + id.name(),
-							   soInvocationHandler);
-	    if (soInvocationsDelay > 0) {
-		    StaticProperties s = new StaticProperties();
-		    s.add("serialization", "ibis");  
-		    soInvocationHandler.setMessageSplitter(new MessageSplitter(s, rec));
-	    }
-	    rec.enableConnections();
-	    rec.enableUpcalls();
-	    
-	    //create a send port for this guy
-	    /*SendPort send = soPortType.createSendPort("satin so send port on "
-						      + ident.name()
-						      + " for " + id.name());
-	    if (soInvocationsDelay > 0) {
-		StaticProperties s = new StaticProperties();
-		s.add("serialization", "ibis");
-		MessageCombiner mc = new MessageCombiner(s, send);
-		soSendPorts.put(id, mc);
-	    } else {
-		soSendPorts.put(id, send);
-		}*/
-	    //lookup his receive port
-            ReceivePortIdentifier r = null;
-	    r = lookup_wait("satin so receive port on "
-			    + id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
-	    /*	    r = lookup_wait("satin so receive port on " + id.name(),
-		    LOOKUP_WAIT_TIME);*/
-	    //and connect
-            if (!Satin.connect(soSendPort/*send*/, r, connectTimeout)) {
-                System.err.println("SATN '" + ident.name()
-                        + "': unable to connect to so receive port ");
-            }
-	} catch (IOException e) {
+        if (SCALABLE) {
+            toConnect.add(id);
+            return;
+        }
+
+        //create a send port for this guy
+        /*SendPort send = soPortType.createSendPort("satin so send port on "
+                                                  + ident.name()
+                                                  + " for " + id.name());
+        if (soInvocationsDelay > 0) {
+            StaticProperties s = new StaticProperties();
+            s.add("serialization", "ibis");
+            MessageCombiner mc = new MessageCombiner(s, send);
+            soSendPorts.put(id, mc);
+        } else {
+            soSendPorts.put(id, send);
+            }*/
+        //lookup his receive port
+        ReceivePortIdentifier r = lookup_wait("satin so receive port on "
+                + id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
+        /*	    r = lookup_wait("satin so receive port on " + id.name(),
+                LOOKUP_WAIT_TIME);*/
+        //and connect
+        if (r == null
+                || !Satin.connect(soSendPort/*send*/, r, connectTimeout)) {
             System.err.println("SATN '" + ident.name()
-                    + "': unable to connect to so receive port");
-            e.printStackTrace();
+                    + "': unable to connect to so receive port ");
+        } else {
+            ports.put(id, r);
+        }
+    } 
+
+    /** Remove a new connection to the soSendPort */
+    public void removeSOConnection(IbisIdentifier id) {
+        if (ASSERTS) {
+            Satin.assertLocked(this);
+        }
+
+        ReceivePortIdentifier r = (ReceivePortIdentifier) ports.remove(id);
+	    //and disconnect
+        if (r != null) {
+            Satin.disconnect(soSendPort, r);
 	}
     } 
 

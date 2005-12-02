@@ -70,7 +70,10 @@ public abstract class Termination extends Initialization {
         }
 
         if (master) {
-            exiting = true;
+            synchronized(this) {
+                exiting = true;
+                notifyAll();
+            }
             // algorithm.exit(); // give the algorithm time to clean up
 
             bcastMessage(Protocol.EXIT);
@@ -84,6 +87,7 @@ public abstract class Termination extends Initialization {
                         } catch (Exception e) {
                             // Ignore.
                         }
+                        size = victims.size();
                     }
 
                 }
