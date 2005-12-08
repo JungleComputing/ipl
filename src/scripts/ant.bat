@@ -10,4 +10,8 @@ call "%DIR%\configuration.bat"
 
 call "%IBIS_ROOT%\3rdparty\apache-ant-1.6.1\bin\ant" %1 %2 %3 %4 %5
 
+if "%JAVA_HOME%"=="" (
+    set JAVA_HOME=%JAVA_ROOT%
+)
+
 if "%OS%"=="Windows_NT" @endlocal
