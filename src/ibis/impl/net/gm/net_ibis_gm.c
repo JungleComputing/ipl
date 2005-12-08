@@ -4393,9 +4393,7 @@ Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jclass driver, jlong devi
 }
 
 
-#include <jvmdi.h>
-
-static jthread
+static jobject
 currentThread(JNIEnv *env)
 {
     static jclass	cls_Thread;
@@ -4407,7 +4405,7 @@ currentThread(JNIEnv *env)
 	md_currentThread = ni_getStaticMethod(env, cls_Thread, "currentThread", "()Ljava/lang/Thread;");
     }
 
-    return (jthread)(*env)->CallStaticObjectMethod(env, cls_Thread, md_currentThread);
+    return (jobject)(*env)->CallStaticObjectMethod(env, cls_Thread, md_currentThread);
 }
 
 
@@ -4442,10 +4440,13 @@ currentThreadName(JNIEnv *env)
 
 #if PRINT_OWNED_MONITORS
 
+/* Does not exist in jdk1.6.0 :-( */
+#include <jvmdi.h>
+
 static void
 dump_monitors(JNIEnv *env)
 {
-    jthread	me = currentThread(env);
+    jobject	me = currentThread(env);
     JVMDI_owned_monitor_info info;
     int		i;
     int		n;
