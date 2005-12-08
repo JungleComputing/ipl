@@ -19,12 +19,6 @@ public abstract class WorkStealing extends Stats {
             return;
         }
 
-        if (ASSERTS && r.owner == null) {
-            stealLogger.fatal("SATIN '" + ident
-                    + "': owner is null in sendResult");
-            System.exit(1);
-        }
-
         if (stealLogger.isDebugEnabled()) {
             stealLogger.debug("SATIN '" + ident
                     + "': sending job result to " + r.owner
@@ -45,7 +39,7 @@ public abstract class WorkStealing extends Stats {
                 if (ASSERTS && value == null) {
                     grtLogger.fatal("SATIN '" + ident
                             + "': orphan not locked in the table");
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 r.owner = value.sendTo;
                 if (grtLogger.isInfoEnabled()) {
@@ -109,9 +103,8 @@ public abstract class WorkStealing extends Stats {
             }
         } catch (IOException e) {
             if (! FAULT_TOLERANCE) {
-                stealLogger.fatal("SATIN '" + ident
+                stealLogger.warn("SATIN '" + ident
                         + "': Got Exception while sending result of stolen job", e);
-                System.exit(1);
             } else {
                 ftLogger.info("SATIN '" + ident
                         + "': Got Exception while sending result of stolen job", e);
@@ -141,14 +134,18 @@ public abstract class WorkStealing extends Stats {
                 stealAttempts++;
             }
 
-            sendStealRequest(v, true, blockOnServer);
+            try {
+                sendStealRequest(v, true, blockOnServer);
+            } catch(IOException e) {
+                return null;
+            }
             return waitForStealReply();
         }
         return null;
     }
 
     protected void sendStealRequest(Victim v, boolean synchronous,
-            boolean blocking) {
+            boolean blocking) throws IOException {
 
         if (stealLogger.isDebugEnabled()) {
             if (synchronous) {
@@ -161,62 +158,54 @@ public abstract class WorkStealing extends Stats {
             }
         }
 
-        try {
-            WriteMessage writeMessage = v.newMessage();
-            byte opcode = -1;
+        WriteMessage writeMessage = v.newMessage();
+        byte opcode = -1;
 
-            if (synchronous) {
-                if (blocking) {
-                    opcode = Protocol.BLOCKING_STEAL_REQUEST;
-                } else {
-                    if (FAULT_TOLERANCE && !FT_NAIVE) {
-                        synchronized (this) {
-                            if (getTable) {
-                                opcode = Protocol.STEAL_AND_TABLE_REQUEST;
-                            } else {
-                                opcode = Protocol.STEAL_REQUEST;
-                            }
-                        }
-                    } else {
-                        opcode = Protocol.STEAL_REQUEST;
-                    }
-                }
+        if (synchronous) {
+            if (blocking) {
+                opcode = Protocol.BLOCKING_STEAL_REQUEST;
             } else {
                 if (FAULT_TOLERANCE && !FT_NAIVE) {
                     synchronized (this) {
-                        if (clusterCoordinator && getTable) {
-                            opcode = Protocol.ASYNC_STEAL_AND_TABLE_REQUEST;
+                        if (getTable) {
+                            opcode = Protocol.STEAL_AND_TABLE_REQUEST;
                         } else {
-                            if (grtLogger.isInfoEnabled() && getTable) {
-                                grtLogger.info("SATIN '" + ident
-                                        + ": EEEK sending async steal message "
-                                        + "while waiting for table!!");
-                            }
-                            opcode = Protocol.ASYNC_STEAL_REQUEST;
+                            opcode = Protocol.STEAL_REQUEST;
                         }
                     }
                 } else {
-                    opcode = Protocol.ASYNC_STEAL_REQUEST;
+                    opcode = Protocol.STEAL_REQUEST;
                 }
             }
+        } else {
+            if (FAULT_TOLERANCE && !FT_NAIVE) {
+                synchronized (this) {
+                    if (clusterCoordinator && getTable) {
+                        opcode = Protocol.ASYNC_STEAL_AND_TABLE_REQUEST;
+                    } else {
+                        if (grtLogger.isInfoEnabled() && getTable) {
+                            grtLogger.info("SATIN '" + ident
+                                    + ": EEEK sending async steal message "
+                                    + "while waiting for table!!");
+                        }
+                        opcode = Protocol.ASYNC_STEAL_REQUEST;
+                    }
+                }
+            } else {
+                opcode = Protocol.ASYNC_STEAL_REQUEST;
+            }
+        }
 
-            writeMessage.writeByte(opcode);
-            long cnt = writeMessage.finish();
-            if (STEAL_STATS) {
-                if (inDifferentCluster(v.ident)) {
-                    interClusterMessages++;
-                    interClusterBytes += cnt;
-                } else {
-                    intraClusterMessages++;
-                    intraClusterBytes += cnt;
-                }
+        writeMessage.writeByte(opcode);
+        long cnt = writeMessage.finish();
+        if (STEAL_STATS) {
+            if (inDifferentCluster(v.ident)) {
+                interClusterMessages++;
+                interClusterBytes += cnt;
+            } else {
+                intraClusterMessages++;
+                intraClusterBytes += cnt;
             }
-        } catch (IOException e) {
-            stealLogger.fatal("SATIN '" + ident
-                    + "': Got Exception while sending "
-                    + (synchronous ? "" : "a") + "synchronous"
-                    + " steal request: " + e);
-            System.exit(1);
         }
     }
 
@@ -405,12 +394,12 @@ public abstract class WorkStealing extends Stats {
             if (owner == null) {
                 stealLogger.fatal("SATIN '" + ident
                         + "': owner is null in getStolenInvocationRecord");
-                System.exit(1);
+                System.exit(1);         // Failed assertion
             }
             if (!owner.equals(ident)) {
                 stealLogger.fatal("SATIN '" + ident
                         + "': Removing wrong stamp!");
-                System.exit(1);
+                System.exit(1);         // Failed assertion
             }
         }
         return outstandingJobs.remove(stamp, owner);
@@ -451,9 +440,8 @@ public abstract class WorkStealing extends Stats {
                             + "': got result for aborted job, ignoring.");
                 }
             } else {
-                stealLogger.fatal("SATIN '" + ident
+                stealLogger.warn("SATIN '" + ident
                         + "': got result for unknown job!");
-                System.exit(1);
             }
         }
     }
@@ -483,7 +471,7 @@ public abstract class WorkStealing extends Stats {
             if (ASSERTS && r.spawnCounter != null && r.spawnCounter.value < 0) {
                 spawnLogger.fatal("Just made spawncounter < 0",
                         new Throwable());
-                System.exit(1);
+                System.exit(1);         // Failed assertion
             }
         }
 

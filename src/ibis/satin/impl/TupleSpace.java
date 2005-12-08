@@ -39,7 +39,7 @@ public abstract class TupleSpace extends Communication {
             if (this_satin != null && !this_satin.closed) {
                 tupleLogger.fatal("The tuple space currently only works with "
                         + "a closed world. Try running with -satin-closed");
-                System.exit(1);
+                System.exit(1);         // Configuration error
                 // throw new IbisError("The tuple space currently only works "
                 //         + "with a closed world. Try running with "
                 //         + "-satin-closed");
@@ -332,10 +332,10 @@ public abstract class TupleSpace extends Communication {
 
             } catch (IOException e) {
                 if (!FAULT_TOLERANCE) {
-                    tupleLogger.fatal("SATIN '" + ident
-                            + "': Got Exception while sending tuple update: "
-                            + e, e);
-                    System.exit(1);
+                    tupleLogger.error("SATIN '" + ident
+                            + "': Got Exception while sending tuple update",
+                            e);
+                    // System.exit(1);
                 }
                 //always happens after crash
             }
@@ -372,10 +372,12 @@ public abstract class TupleSpace extends Communication {
                     }
 
                 } catch (IOException e) {
-                    tupleLogger.fatal("SATIN '" + ident
-                            + "': Got Exception while sending tuple update: "
-                            + e, e);
-                    System.exit(1);
+                    if (! FAULT_TOLERANCE) {
+                        tupleLogger.error("SATIN '" + ident
+                                + "': Got Exception while sending tuple update",
+                                e);
+                        // System.exit(1);
+                    }
                 }
             }
         }
@@ -402,10 +404,10 @@ public abstract class TupleSpace extends Communication {
                     connect(tuplePort, r);
                 } catch (IOException e) {
                     if (!FAULT_TOLERANCE) {
-                        tupleLogger.fatal("SATIN '" + ident
+                        tupleLogger.error("SATIN '" + ident
                                 + "': Got Exception while connecting tuple "
-                                + "port: " + e, e);
-                        System.exit(1);
+                                + "port", e);
+                        // System.exit(1);
                     }
                 }
             }
@@ -453,10 +455,10 @@ public abstract class TupleSpace extends Communication {
 
             } catch (IOException e) {
                 if (!FAULT_TOLERANCE) {
-                    tupleLogger.fatal("SATIN '" + ident
-                            + "': Got Exception while sending tuple update: "
-                            + e, e);
-                    System.exit(1);
+                    tupleLogger.error("SATIN '" + ident
+                            + "': Got Exception while sending tuple update",
+                            e);
+                    // System.exit(1);
                 }
                 //always happen after crashes
             }
@@ -490,10 +492,10 @@ public abstract class TupleSpace extends Communication {
                     }
 
                 } catch (IOException e) {
-                    tupleLogger.fatal("SATIN '" + ident
-                            + "': Got Exception while sending tuple update: "
-                            + e, e);
-                    System.exit(1);
+                    tupleLogger.error("SATIN '" + ident
+                            + "': Got Exception while sending tuple update",
+                            e);
+                    // System.exit(1);
                 }
             }
         }

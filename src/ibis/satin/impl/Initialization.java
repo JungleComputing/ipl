@@ -127,13 +127,13 @@ public abstract class Initialization extends SatinBase {
             } else if (args[i].equals("-satin-ibis")) {
                 if (sunSerialization) {
                     System.err.println("-satin-sun and -satin-ibis specified!");
-                    System.exit(1);
+                    System.exit(1);     // Conflicting options
                 }
                 ibisSerialization = true;
             } else if (args[i].equals("-satin-sun")) {
                 if (ibisSerialization) {
                     System.err.println("-satin-sun and -satin-ibis specified!");
-                    System.exit(1);
+                    System.exit(1);     // Conflicting options
                 }
                 sunSerialization = true;
             } else if (args[i].equals("-satin-no-upcalls")) {
@@ -149,7 +149,7 @@ public abstract class Initialization extends SatinBase {
                 } catch (Exception e) {
                     System.err.println("Option -satin-queue-size needs integer "
                             + "parameter.");
-                    System.exit(1);
+                    System.exit(1);     // Wrong option
                 }
             } else if (args[i].equals("-satin-alg")) {
                 i++;
@@ -227,7 +227,7 @@ public abstract class Initialization extends SatinBase {
             System.err.println("SATIN '" + hostName + "': satin_algorithm '"
                     + alg + "' unknown");
             algorithm = null;
-            System.exit(1);
+            System.exit(1);     // Wrong option
         }
 
         mergeUserPropertiesWithParams(reqprops);
@@ -248,7 +248,7 @@ public abstract class Initialization extends SatinBase {
             if (closed && !str.equals("closed")) {
                 System.err.println("Inconsistent options: -satin-closed and "
                         + "-Dibis.worldmodel=" + str);
-                System.exit(1);
+                System.exit(1); // Conflicting options
             }
             if (str.equals("closed")) {
                 closed = true;
@@ -260,7 +260,7 @@ public abstract class Initialization extends SatinBase {
             if (s2 != null && !s2.equals(str)) {
                 System.err.println("Inconsistent options: -satin-" + s2
                         + " and -Dibis.name=" + str);
-                System.exit(1);
+                System.exit(1); // Conflicting options
             }
         }
         str = userprops.getProperty("serialization");
@@ -268,12 +268,12 @@ public abstract class Initialization extends SatinBase {
             if (ibisSerialization && !str.equals("ibis")) {
                 System.err.println("Inconsistent options: -satin-ibis and "
                         + "-Dibis.serialization=" + str);
-                System.exit(1);
+                System.exit(1); // Conflicting options
             }
             if (sunSerialization && !str.equals("sun")) {
                 System.err.println("Inconsistent options: -satin-sun and "
                         + "-Dibis.serialization=" + str);
-                System.exit(1);
+                System.exit(1); // Conflicting options
             }
             if (str.equals("ibis")) {
                 ibisSerialization = true;

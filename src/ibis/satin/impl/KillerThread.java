@@ -22,7 +22,7 @@ class KillerThread extends Thread {
         // Satin satin = Satin.this_satin;
         // if (satin.allIbises.indexOf(satin.ident)
         //         >= (satin.allIbises.size() / 2)) {
-        System.exit(1);
+        System.exit(1); // Kills this satin on purpose, this is a killerthread!
     }
 
 }

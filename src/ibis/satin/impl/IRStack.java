@@ -54,7 +54,7 @@ final class IRStack implements Config {
         if (ASSERTS && count <= 0) {
             System.err.println("popping from empty IR stack!");
             new Exception().printStackTrace();
-            System.exit(1);
+            System.exit(1);     // Failed assertion
         }
 
         count--;

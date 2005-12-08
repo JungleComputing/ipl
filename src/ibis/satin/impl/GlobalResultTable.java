@@ -258,7 +258,7 @@ public class GlobalResultTable implements Upcall, Config {
 //                int i = 0;
                 while (sendIter.hasNext()) {
                     Map.Entry entry = (Map.Entry) sendIter.next();
-                    SendPort send = (SendPort) entry.getValue();
+                    Victim send = (Victim) entry.getValue();
                     WriteMessage m = null;
 
                     try {
@@ -401,7 +401,7 @@ public class GlobalResultTable implements Upcall, Config {
 
         while (sendIter.hasNext()) {
             Map.Entry entry = (Map.Entry) sendIter.next();
-            SendPort send = (SendPort) entry.getValue();
+            Victim send = (Victim) entry.getValue();
             WriteMessage m = null;
 
             try {
@@ -517,15 +517,20 @@ public class GlobalResultTable implements Upcall, Config {
             SendPort send = satin.globalResultTablePortType.createSendPort(
                     "satin global result table send port on "
                     + satin.ident.name() + System.currentTimeMillis());
-            sends.put(ident, send);
             ReceivePortIdentifier r = null;
             r = satin.lookup("satin global result table receive port on "
                     + ident.name());
-            if (Satin.connect(send, r, satin.connectTimeout)) {
-                numReplicas++;
+            if (! SCALABLE) {
+                if (Satin.connect(send, r, satin.connectTimeout)) {
+                    numReplicas++;
+                    sends.put(ident, new Victim(ident, send, r));
+                } else {
+                    grtLogger.error("SATN '" + satin.ident
+                            + "': Transpositon table - unable to add new replica");
+                }
             } else {
-                grtLogger.error("SATN '" + satin.ident
-                        + "': Transpositon table - unable to add new replica");
+                numReplicas++;
+                sends.put(ident, new Victim(ident, send, r));
             }
         } catch (IOException e) {
             grtLogger.error("SATN '" + satin.ident
@@ -539,7 +544,14 @@ public class GlobalResultTable implements Upcall, Config {
             Satin.assertLocked(satin);
         }
 
-        if (sends.remove(ident) != null) {
+        Victim send = (Victim) sends.remove(ident);
+
+        if (send != null) {
+            try {
+                send.close();
+            } catch(IOException e) {
+                // ignored
+            }
             numReplicas--;
         }
 
@@ -551,7 +563,7 @@ public class GlobalResultTable implements Upcall, Config {
                 if (numReplicas > 0) {
                     Iterator sendIter = sends.values().iterator();
                     while (sendIter.hasNext()) {
-                        SendPort send = (SendPort) sendIter.next();
+                        Victim send = (Victim) sendIter.next();
                         send.close();
                     }
                 }

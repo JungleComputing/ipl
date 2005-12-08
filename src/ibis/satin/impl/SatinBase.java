@@ -397,7 +397,7 @@ public abstract class SatinBase implements Config {
         if (!trylock(o)) {
             System.err.println("AssertLocked failed!: ");
             new Exception().printStackTrace();
-            System.exit(1);
+            System.exit(1);     // Failed assertion
         }
     }
 

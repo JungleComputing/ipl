@@ -137,7 +137,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     spawnLogger.fatal("Just made spawncounter < 0",
                             new Throwable());
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 removeJob(i);
 
@@ -178,7 +178,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     spawnLogger.fatal("Just made spawncounter < 0",
                             new Throwable());
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 removeJob(i);
                 i--;

@@ -97,30 +97,6 @@ final class VictimTable implements Config {
         return (Victim) victims.get(i);
     }
 
-    /*
-     * Victim getMasterVictim() {
-     *     Victim v = null;
-     * 
-     *     if (ASSERTS) {
-     *         Satin.assertLocked(satin);
-     *     }
-     * 
-     *     try {
-     *         v = ((Victim)victims.get(0));
-     *     } catch (Exception e) {
-     *         commLogger.fatal("Exception in getMasterVictim: " + e, e);
-     *         System.exit(1);
-     *     }
-     * 
-     *     if(ASSERTS && v == null) {
-     *         commLogger.fatal("getMasterVictim: v == null");
-     *         System.exit(1);
-     *     }
-     * 
-     *     return v;
-     * }
-     */
-
     Victim getVictim(IbisIdentifier ident) {
         Victim v = null;
 
@@ -129,12 +105,7 @@ final class VictimTable implements Config {
         }
 
         for (int i = 0; i < victims.size(); i++) {
-            try {
-                v = ((Victim) victims.get(i));
-            } catch (Exception e) {
-                commLogger.debug("Exception in getVictim: " + e, e);
-                return null;
-            }
+            v = ((Victim) victims.get(i));
 
             if (v.ident.equals(ident)) {
                 return v;
@@ -157,18 +128,8 @@ final class VictimTable implements Config {
             return null;
         }
 
-        try {
-            index = Math.abs(satin.random.nextInt()) % victims.size();
-            v = ((Victim) victims.get(index));
-        } catch (Exception e) {
-            commLogger.fatal("Exception in getRandomVictim: " + e, e);
-            System.exit(1);
-        }
-
-        if (ASSERTS && v == null) {
-            commLogger.fatal("getRandomVictim: v == null");
-            System.exit(1);
-        }
+        index = Math.abs(satin.random.nextInt()) % victims.size();
+        v = ((Victim) victims.get(index));
 
         return v;
     }
@@ -192,11 +153,6 @@ final class VictimTable implements Config {
         index = Math.abs(satin.random.nextInt()) % clusterSize;
         v = thisCluster.get(index);
 
-        if (ASSERTS && v == null) {
-            commLogger.fatal("getRandomLocalVictim: v == null");
-            System.exit(1);
-        }
-
         return v;
     }
 
@@ -216,7 +172,7 @@ final class VictimTable implements Config {
 
         if (ASSERTS && clusters.get(0) != thisCluster) {
             commLogger.fatal("getRandomRemoteVictim: firstCluster != me");
-            System.exit(1);
+            System.exit(1);     // Failed assertion
         }
 
         remoteVictims = victims.size() - thisCluster.size();
@@ -237,11 +193,6 @@ final class VictimTable implements Config {
         }
 
         v = c.get(vIndex);
-
-        if (ASSERTS && v == null) {
-            commLogger.fatal("getRandomRemoteVictim: v == null");
-            System.exit(1);
-        }
 
         return v;
     }

@@ -52,7 +52,7 @@ final class StampVector implements Config {
             if (i >= count || i < 0) {
                 System.err.println("removeIndex of strange index: " + i);
                 new Exception().printStackTrace();
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
         }
 

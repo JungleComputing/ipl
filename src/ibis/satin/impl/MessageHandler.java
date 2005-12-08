@@ -29,18 +29,16 @@ final class MessageHandler implements Upcall, Protocol, Config {
         try {
             stamp = m.readInt();
             owner = (IbisIdentifier) m.readObject();
+            synchronized (satin) {
+                satin.addToAbortList(stamp, owner);
+            }
             // m.finish();
         } catch (IOException e) {
-            abortLogger.fatal("SATIN '" + satin.ident
+            abortLogger.error("SATIN '" + satin.ident
                     + "': got exception while reading job result: " + e, e);
-            System.exit(1);
         } catch (ClassNotFoundException e1) {
-            abortLogger.fatal("SATIN '" + satin.ident
+            abortLogger.error("SATIN '" + satin.ident
                     + "': got exception while reading job result: " + e1, e1);
-            System.exit(1);
-        }
-        synchronized (satin) {
-            satin.addToAbortList(stamp, owner);
         }
     }
 
@@ -53,20 +51,18 @@ final class MessageHandler implements Upcall, Protocol, Config {
         try {
             stamp = m.readInt();
             owner = (IbisIdentifier) m.readObject();
+            synchronized (satin) {
+                satin.addToAbortAndStoreList(stamp, owner);
+            }
             // m.finish();
         } catch (IOException e) {
-            grtLogger.fatal("SATIN '" + satin.ident
+            grtLogger.error("SATIN '" + satin.ident
                     + "': got exception while reading abort_and_store: " + e,
                     e);
-            System.exit(1);
         } catch (ClassNotFoundException e1) {
-            grtLogger.fatal("SATIN '" + satin.ident
+            grtLogger.error("SATIN '" + satin.ident
                     + "': got exception while reading abort_and_store: " + e1,
                     e1);
-            System.exit(1);
-        }
-        synchronized (satin) {
-            satin.addToAbortAndStoreList(stamp, owner);
         }
     }
 
@@ -77,6 +73,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
         int stamp = -666;
         Throwable eek = null;
         Timer returnRecordReadTimer = null;
+        boolean gotException = false;
 
         // This upcall may run in parallel with other upcalls.
         // Therefore, we cannot directly use the timer in Satin.
@@ -99,21 +96,26 @@ final class MessageHandler implements Upcall, Protocol, Config {
             }
             // m.finish();
         } catch (IOException e) {
-            spawnLogger.fatal("SATIN '" + satin.ident
+            spawnLogger.error("SATIN '" + satin.ident
                     + "': got exception while reading job result: " + e
                     + opcode, e);
-            System.exit(1);
+            gotException = true;
         } catch (ClassNotFoundException e1) {
-            spawnLogger.fatal("SATIN '" + satin.ident
+            spawnLogger.error("SATIN '" + satin.ident
                     + "': got exception while reading job result: " + e1
                     + opcode, e1);
-            System.exit(1);
+            gotException = true;
         }
+
         if (STEAL_TIMING) {
             returnRecordReadTimer.stop();
             synchronized (satin) {
                 satin.returnRecordReadTimer.add(returnRecordReadTimer);
             }
+        }
+
+        if (gotException) {
+            return;
         }
 
         if (stealLogger.isDebugEnabled()) {
@@ -298,10 +300,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
                         m.writeByte(ASYNC_STEAL_REPLY_FAILED);
                     }
                 } else {
-                    stealLogger.fatal(
+                    stealLogger.error(
                             "UNHANDLED opcode " + opcode
                             + " in handleStealRequest");
-                    System.exit(1);
+                    // System.exit(1);
                 }
 
                 long cnt = m.finish();
@@ -407,9 +409,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
                             + "': EEK!! sending a job but not a table !?");
                 }
             } else {
-                stealLogger.fatal("UNHANDLED opcode " + opcode
+                stealLogger.error("UNHANDLED opcode " + opcode
                         + " in handleStealRequest");
-                System.exit(1);
+                // System.exit(1);
             }
 
             if (TupleSpace.use_seq) { // ordered communication
@@ -502,7 +504,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 if (ASSERTS && satin.gotBarrierReply) {
                     commLogger.fatal("Got barrier reply while I already got "
                             + "one.");
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 satin.gotBarrierReply = true;
                 satin.notifyAll();
@@ -516,21 +518,21 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 //temporary
                 //tupleSpace = (Map) m.readObject();
             } catch (IOException e) {
-                stealLogger.fatal("SATIN '" + satin.ident
+                stealLogger.error("SATIN '" + satin.ident
                         + "': Got Exception while reading steal "
                         + "reply from " + ident + ", opcode:" + +opcode
                         + ", exception: " + e, e);
-                System.exit(1);
             } catch (ClassNotFoundException e1) {
-                stealLogger.fatal("SATIN '" + satin.ident
+                stealLogger.error("SATIN '" + satin.ident
                         + "': Got Exception while reading steal "
                         + "reply from " + ident + ", opcode:" + +opcode
                         + ", exception: " + e1, e1);
-                System.exit(1);
             }
-            synchronized (satin) {
-                satin.getTable = false;
-                satin.globalResultTable.addContents(table);
+            if (table != null) {
+                synchronized (satin) {
+                    satin.getTable = false;
+                    satin.globalResultTable.addContents(table);
+                }
             }
             //satin.addContents(tupleSpace);
             if (ADD_REPLICA_TIMING) {
@@ -567,17 +569,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
                             + ": stole aborted job!");
                 }
             } catch (IOException e) {
-                stealLogger.fatal("SATIN '" + satin.ident
+                stealLogger.error("SATIN '" + satin.ident
                         + "': Got Exception while reading steal "
                         + "reply from " + ident + ", opcode:" + +opcode
                         + ", exception: " + e, e);
-                System.exit(1);
             } catch (ClassNotFoundException e1) {
-                stealLogger.fatal("SATIN '" + satin.ident
+                stealLogger.error("SATIN '" + satin.ident
                         + "': Got Exception while reading steal "
                         + "reply from " + ident + ", opcode:" + +opcode
                         + ", exception: " + e1, e1);
-                System.exit(1);
             }
 
             synchronized (satin) {
@@ -585,8 +585,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     //this message arrived after the crash of its sender
                     // was detected
                     //is it anyhow possible?
-
-                    System.err.println("\n\n\n@@@@@@@2 AAAAIIEEEE @@@@@@@@@@");
+                    stealLogger.error("SATIN '" + satin.ident
+                            + "': got reply from dead ibis??? Ignored");
+                    break;
                 }
             }
 
@@ -598,21 +599,21 @@ final class MessageHandler implements Upcall, Protocol, Config {
             try {
                 table = (Map) m.readObject();
             } catch (IOException e) {
-                stealLogger.fatal("SATIN '" + satin.ident
+                stealLogger.error("SATIN '" + satin.ident
                         + "': Got Exception while reading steal "
                         + "reply from " + ident + ", opcode:" + +opcode
                         + ", exception: " + e, e);
-                System.exit(1);
             } catch (ClassNotFoundException e1) {
-                stealLogger.fatal("SATIN '" + satin.ident
+                stealLogger.error("SATIN '" + satin.ident
                         + "': Got Exception while reading steal "
                         + "reply from " + ident + ", opcode:" + +opcode
                         + ", exception: " + e1, e1);
-                System.exit(1);
             }
-            synchronized (satin) {
-                satin.getTable = false;
-                satin.globalResultTable.addContents(table);
+            if (table != null) {
+                synchronized (satin) {
+                    satin.getTable = false;
+                    satin.globalResultTable.addContents(table);
+                }
             }
             if (ADD_REPLICA_TIMING) {
                 satin.addReplicaTimer.stop();
@@ -624,8 +625,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
             break;
 
         default:
-            stealLogger.fatal("INTERNAL ERROR, opcode = " + opcode);
-            System.exit(1);
+            stealLogger.error("INTERNAL ERROR, opcode = " + opcode);
+            // System.exit(1);
             break;
         }
 
@@ -742,10 +743,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
         } catch (Exception e) {
             tupleLogger.error("SATIN '" + satin.ident
                     + "': Got Exception while reading tuple update: " + e, e);
-            if (!FAULT_TOLERANCE) {
-                System.exit(1);
-            }
-            //happens after crash
         }
 
 	/*	if (TUPLE_TIMING) {
@@ -780,9 +777,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
             }
             m.finish(); // @@@ is this one needed ? --Rob
         } catch (Exception e) {
-            tupleLogger.fatal("SATIN '" + satin.ident
+            tupleLogger.error("SATIN '" + satin.ident
                     + "': Got Exception while reading tuple remove: " + e, e);
-            System.exit(1);
+            // System.exit(1);
         }
         if (TupleSpace.use_seq) {
             if (done) {
@@ -826,7 +823,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     grtLogger.fatal("SATIN '" + satin.ident
                             + "': EEK!!! no requested result in the table: "
                             + key);
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 if (value.type == GlobalResultTable.Value.TYPE_POINTER
                         && ASSERTS) {
@@ -834,7 +831,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
                             + "': EEK!!! " + ident
                             + " requested a result: " + key
                             + " which is stored on another node: " + value);
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
 
                 if (FT_WITHOUT_ABORTS) {
@@ -934,9 +931,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 StatsMessage s = (StatsMessage) m.readObject();
                 satin.totalStats.add(s);
             } catch (Exception e) {
-                commLogger.fatal("SATIN '" + satin.ident
+                commLogger.error("SATIN '" + satin.ident
                         + "': Got Exception while reading stats: " + e, e);
-                System.exit(1);
+                // System.exit(1);
             }
         }
 
@@ -961,7 +958,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	long size = 0;
 	WriteMessage wm = null;
 
-		System.err.println("got so request");
+        soLogger.info("SATIN '" + satin.ident.name() + "': got so request");
 
 	if (SO_TIMING) {
 	    handleSOTransferTimer = satin.createTimer();
@@ -971,7 +968,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	try {
 	    objid = m.readString();
 	} catch (IOException e) {
-	    System.err.println("SATIN '" + satin.ident.name() 
+	    soLogger.warn("SATIN '" + satin.ident.name() 
 			       + "': got exception while reading"
 			       + " shared object request: " + e.getMessage());
 	}
@@ -984,12 +981,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	    v = satin.getVictimWait(m.origin().ibis());
 	    //System.err.println("got reply port");
        
-	    if (so == null) {
-		System.err.println("SATIN '" + satin.ident.name() 
+	    if (ASSERTS && so == null) {
+		soLogger.fatal("SATIN '" + satin.ident.name() 
 				   + "': EEEK, requested shared object: "
 				   + objid
 				   + " not found! Exiting..");
-		System.exit(1);
+		System.exit(1); // Failed assertion
 	    }
 
 	    if (SO_TIMING) {
@@ -1006,18 +1003,18 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		wm.writeByte(SO_TRANSFER);
 		wm.writeObject(so);
 	    } catch (IOException e) {
-		System.err.println("SATIN '" + satin.ident.name()
+		soLogger.error("SATIN '" + satin.ident.name()
 				   + "': got exception while writing"
-				   + " shared object: " + e.getMessage());
+				   + " shared object", e);
 	    }
 	}
 	try {
 	    size = wm.finish();
 	    //	    System.err.println("sent object");
 	} catch (IOException e) {
-	    System.err.println("SATIN '" + satin.ident.name() 
+	    soLogger.error("SATIN '" + satin.ident.name() 
 			       + "': got exception while sending"
-			       + " shared object: " + e.getMessage());
+			       + " shared object", e);
 	}
 	//stats
 	satin.soTransfers++;
@@ -1041,13 +1038,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	try {
 	    obj = (SharedObject) m.readObject();
 	} catch (IOException e) {
-	    System.err.println("SATIN '" + satin.ident.name() 
+	    soLogger.error("SATIN '" + satin.ident.name() 
 			       + "': got exception while reading"
-			       + " shared object: " + e.getMessage());
+			       + " shared object", e);
 	} catch (ClassNotFoundException e) {
-	    System.err.println("SATIN '" + satin.ident.name() 
+	    soLogger.error("SATIN '" + satin.ident.name() 
 			       + "': got exception while reading"
-			       + " shared object: " + e.getMessage());
+			       + " shared object", e);
 	}
 	if (SO_TIMING) {
 	    soDeserializationTimer.stop();
@@ -1160,9 +1157,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		handleSOTransfer(m);
 		break;
             default:
-                commLogger.fatal("SATIN '" + satin.ident
+                commLogger.error("SATIN '" + satin.ident
                         + "': Illegal opcode " + opcode + " in MessageHandler");
-                System.exit(1);
+                // System.exit(1);
             }
         } catch (IOException e) {
             commLogger.warn("satin msgHandler upcall: " + e, e);

@@ -129,7 +129,7 @@ public abstract class Communication extends SpawnSync {
                 commLogger.fatal("Polling is disabled while messages are "
                     + "handled in the latency.\n"
                     + "This is a configuration error.");
-                System.exit(1);
+                System.exit(1);         // Configuration error
             }
             return false;
         }
@@ -140,7 +140,7 @@ public abstract class Communication extends SpawnSync {
                 commLogger.fatal("Polling is disabled while messages are "
                     + "handled in the latency.\n"
                     + "This is a configuration error.");
-                System.exit(1);
+                System.exit(1);         // Configuration error
             }
             return false;
         }
@@ -317,9 +317,7 @@ public abstract class Communication extends SpawnSync {
                 }
             }
         } catch (IOException e) {
-            commLogger
-                .fatal("SATIN '" + ident + "': error in barrier: " + e, e);
-            System.exit(1);
+            commLogger.warn("SATIN '" + ident + "': error in barrier", e);
         }
 
         /*        if (!closed) {

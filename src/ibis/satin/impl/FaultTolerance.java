@@ -246,7 +246,7 @@ public abstract class FaultTolerance extends Inlets {
             if (ASSERTS) {
                 ftLogger.fatal("SATIN '" + ident
                         + "': parent of a restarted job on another machine!");
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
         }
         //remove the job's children list
@@ -268,7 +268,7 @@ public abstract class FaultTolerance extends Inlets {
             if (ASSERTS) {
                 ftLogger.fatal("SATIN '" + ident
                         + "': parent of a restarted job on another machine!");
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
         }
         //remove the job's children list
@@ -369,7 +369,7 @@ public abstract class FaultTolerance extends Inlets {
                 grtLogger.fatal("SATIN '" + ident
                         + "': EEK using replicated table, but got a non-result "
                         + "value!");
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
             ReturnRecord rr = value.result;
             rr.assignTo(r);
@@ -449,7 +449,7 @@ public abstract class FaultTolerance extends Inlets {
                     grtLogger.fatal("SATIN '" + ident
                             + "': found local unfinished job in the table!! "
                             + key);
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
             }
 

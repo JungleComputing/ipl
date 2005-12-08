@@ -4,6 +4,8 @@ package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
 
+import java.io.IOException;
+
 class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
         Config {
 
@@ -87,7 +89,11 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
                 if (STEAL_STATS) {
                     s.asyncStealAttempts++;
                 }
-                satin.sendStealRequest(remoteVictim, false, false);
+                try {
+                    satin.sendStealRequest(remoteVictim, false, false);
+                } catch(IOException e) {
+                    // Ignore this?
+                }
             }
         }
 

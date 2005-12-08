@@ -43,10 +43,8 @@ public abstract class Malleability extends FaultTolerance {
                         }
                         continue;
                     }
-                } else {
-                    if(!SCALABLE) {
-                        connect(s, r[i]);
-                    }
+                } else if (!SCALABLE) {
+                    connect(s, r[i]);
                 }
 
                 synchronized (this) {
@@ -66,10 +64,9 @@ public abstract class Malleability extends FaultTolerance {
                 }
             }
         } catch (Exception e) {
-            System.err.println("SATIN '" + ident
-                    + "': got an exception in Satin.join: " + e);
-            e.printStackTrace(System.err);
-            System.exit(1);
+            commLogger.error("SATIN '" + ident
+                    + "': got an exception in Satin.join", e);
+            // System.exit(1);
         }
     }
 
@@ -108,9 +105,6 @@ public abstract class Malleability extends FaultTolerance {
             p.setDaemon(true);
             p.start();
         }
-
-        // System.err.println("SATIN '" + ident + "': '" + joiner
-        //         + " is joining");
 
         if (joiner.name().equals("ControlCentreIbis")) {
             return;
@@ -158,8 +152,6 @@ public abstract class Malleability extends FaultTolerance {
             return;
         }
 
-        System.out.println("left: " + leaver);
-
         if (commLogger.isDebugEnabled()) {
             commLogger.debug("SATIN '" + ident + "': " + leaver
                     + " left");
@@ -199,7 +191,8 @@ public abstract class Malleability extends FaultTolerance {
                 try {
                     v.close();
                 } catch (IOException e) {
-                    System.err.println("port.close() throws " + e);
+                    commLogger.error("SATIN '" + ident
+                            + "': port.close() throws exception", e);
                 }
             }
         }

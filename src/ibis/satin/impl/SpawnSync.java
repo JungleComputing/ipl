@@ -38,7 +38,7 @@ public abstract class SpawnSync extends Termination {
         if (ASSERTS && s.value < 0) {
             spawnLogger.fatal("deleteSpawnCounter: spawncouner < 0, val ="
                     + s.value, new Throwable());
-            System.exit(1);
+            System.exit(1);     // Failed assertion
         }
 
         // Only put it in the cache if its value is 0.
@@ -77,21 +77,21 @@ public abstract class SpawnSync extends Termination {
                 spawnLogger.fatal("SATIN '" + ident
                         + ": EEK, r = null in callSatinFunc",
                         new Throwable());
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
 
             if (r.aborted) {
                 spawnLogger.fatal("SATIN '" + ident
                         + ": spawning aborted job!",
                         new Throwable());
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
 
             if (r.owner == null) {
                 spawnLogger.fatal("SATIN '" + ident
                         + ": EEK, r.owner = null in callSatinFunc, r = " + r,
                         new Throwable());
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
 
             if (r.owner.equals(ident)) {
@@ -100,14 +100,14 @@ public abstract class SpawnSync extends Termination {
                             + ": EEK, r.spawnCounter = null in callSatinFunc, "
                             + "r = " + r,
                             new Throwable());
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
 
                 if (r.spawnCounter.value < 0) {
                     spawnLogger.fatal("SATIN '" + ident
                             + ": spawncounter < 0 in callSatinFunc",
                             new Throwable());
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
 
                 if (ABORTS && r.parent == null && parentOwner.equals(ident)
@@ -116,7 +116,7 @@ public abstract class SpawnSync extends Termination {
                             + ": parent is null for non-root, should not "
                             + "happen here! job = " + r,
                             new Throwable());
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
             }
         }
@@ -138,7 +138,7 @@ public abstract class SpawnSync extends Termination {
                     spawnLogger.fatal("SATIN '" + ident
                             + ": Just made spawncounter < 0",
                             new Throwable());
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
             }
             return;
@@ -202,13 +202,13 @@ public abstract class SpawnSync extends Termination {
                 spawnLogger.fatal("SATIN '" + ident
                         + ": Just made spawncounter < 0",
                         new Throwable());
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
 
             if (ASSERTS && !ABORTS && r.eek != null) {
                 spawnLogger.fatal("SATIN '" + ident
                         + ": Got exception: " + r.eek, r.eek);
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
 
             if (spawnLogger.isDebugEnabled()) {
@@ -235,27 +235,14 @@ public abstract class SpawnSync extends Termination {
                         + "': RUNNING REMOTE CODE!");
             }
             ReturnRecord rr = null;
-            if (ABORTS) {
-                if (SPAWN_STATS) {
-                    jobsExecuted++;
-                }
-                try {
-                    rr = r.runRemote();
-                    // May be needed if the method did not throw an exception,
-                    // but its child did, and there is an empty inlet.
-                    rr.eek = r.eek;
-                } catch (Throwable t) {
-                    spawnLogger.fatal("SATIN '" + ident
-                            + ": OOOhh dear, got exception in runremote: " + t,
-                            t);
-                    System.exit(1);
-                }
-            } else {
-                if (SPAWN_STATS) {
-                    jobsExecuted++;
-                }
-                rr = r.runRemote();
+            if (SPAWN_STATS) {
+                jobsExecuted++;
             }
+            rr = r.runRemote();
+            if (ABORTS) {
+                rr.eek = r.eek;
+            }
+
             if (stealLogger.isDebugEnabled()) {
                 if (r.eek != null) {
                     stealLogger.debug("SATIN '" + ident
@@ -317,7 +304,7 @@ public abstract class SpawnSync extends Termination {
                     if (!ident.equals(masterIdent)) {
                         spawnLogger.fatal("with the master/worker algorithm, "
                                 + "work can only be spawned on the master!");
-                        System.exit(1);
+                        System.exit(1); // Failed assertion
                     }
                 }
             }

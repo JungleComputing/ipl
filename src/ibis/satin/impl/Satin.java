@@ -95,8 +95,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
         } catch (IbisException e) {
             commLogger.fatal("SATIN '" + hostName
                     + "': Could not start ibis: " + e, e);
-	    e.printStackTrace();
-            System.exit(1);
+            System.exit(1);     // Could not start ibis
         }
 
         if (closed) {
@@ -243,8 +242,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 	} catch (Exception e) {
 	    commLogger.fatal("SATIN '" + hostName
                     + "': Could not start ibis: " + e);
-	    e.printStackTrace();
-            System.exit(1);
+            System.exit(1);     // Could not start ibis
         }
 
         if (commLogger.isDebugEnabled()) {

@@ -144,7 +144,7 @@ public abstract class Inlets extends Aborts {
 
         if (ASSERTS && r.parentLocals != null) {
             System.err.println("parenlocals is not null in empty inlet");
-            System.exit(1);
+            System.exit(1);     // Failed assertion
         }
 
         if (inletLogger.isDebugEnabled()) {
@@ -201,7 +201,7 @@ public abstract class Inlets extends Aborts {
         if (ASSERTS && !ABORTS) {
             System.err.println("cannot handle inlets, set the system property "
                     + "satin.aborts to true.");
-            System.exit(1);
+            System.exit(1);     // Failed assertion
         }
 
         InvocationRecord r;
@@ -231,7 +231,7 @@ public abstract class Inlets extends Aborts {
             if (ASSERTS && r.spawnCounter.value < 0) {
                 out.println("Just made spawncounter < 0");
                 new Exception().printStackTrace();
-                System.exit(1);
+                System.exit(1); // Failed assertion
             }
             if (inletLogger.isDebugEnabled()) {
                 inletLogger.debug("SATIN '" + ident

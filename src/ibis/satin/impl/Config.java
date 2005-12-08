@@ -293,4 +293,8 @@ public interface Config {
     /** Logger for fault tolerance. */
     public static final Logger ftLogger
             = ibis.util.GetLogger.getLogger("ibis.satin.faultTolerance");
+
+    /** Logger for shared objects. */
+    public static final Logger soLogger
+            = ibis.util.GetLogger.getLogger("ibis.satin.so");
 }

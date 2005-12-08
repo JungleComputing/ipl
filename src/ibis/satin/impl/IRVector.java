@@ -107,8 +107,8 @@ final class IRVector implements Config {
             }
         }
 
-        System.err.println("EEK, IRVector: removeing non-existant elt: " + r);
-        System.exit(1);
+        spawnLogger.error("EEK, IRVector: removeing non-existant elt: " + r);
+        // System.exit(1);
         return null;
     }
 
@@ -138,7 +138,7 @@ final class IRVector implements Config {
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 if (ABORT_STATS) {
                     satin.abortedJobs++;
@@ -185,7 +185,7 @@ final class IRVector implements Config {
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 if (ABORT_STATS) {
                     satin.abortedJobs++;
@@ -233,7 +233,7 @@ final class IRVector implements Config {
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 // if(ABORT_STATS) {
                 //     satin.abortedJobs++;
@@ -277,7 +277,7 @@ final class IRVector implements Config {
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
-                    System.exit(1);
+                    System.exit(1);     // Failed assertion
                 }
                 removeIndex(i);
                 i--;

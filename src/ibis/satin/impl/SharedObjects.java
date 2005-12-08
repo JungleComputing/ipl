@@ -454,7 +454,10 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	
 	satisfied = r.guard();
 	if (!satisfied) {
-	    System.err.println("guard not satisfied, waiting for updates..");
+            if (soLogger.isInfoEnabled()) {
+                soLogger.info("SATIN '" + ident.name() +"': "
+                        + "guard not satisfied, waiting for updates..");
+            }
 	    startTime = System.currentTimeMillis();
 	    while (System.currentTimeMillis() - startTime < WAIT_FOR_UPDATES_TIME
 		   && !satisfied) {
@@ -463,27 +466,33 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	    }
 	    if (!satisfied) {
 		//try to ship the object from the owner of the job
-		System.err.println("guard not satisfied, trying to ship shared objects..");
+                if (soLogger.isInfoEnabled()) {
+                    soLogger.info("SATIN '" + ident.name() +"': "
+                            + "guard not satisfied, trying to ship shared objects ...");
+                }
 		Vector objRefs = r.getSOReferences();
-		if (objRefs == null) {
-		    System.err.println("oops, so references vector null!");
-		    System.exit(1);
+		if (ASSERTS && objRefs == null) {
+		    soLogger.fatal("SATIN '" + ident.name() +"': "
+                            + "oops, so references vector null!");
+		    System.exit(1);     // Failed assert
 		}
 		while (!objRefs.isEmpty()) {
 		    String ref = (String) objRefs.remove(0);
 		    shipObject(ref, r.owner);
 		}
-		System.err.println("objects shipped, checking again..");
-		if (!r.guard()) {
-		    System.err.println("SATIN '" + ident.name() +"':"
-				       + " panic! inconsistent after shipping objects");
-		    System.exit(1);
-		}
-		System.err.println("ok");
-		    
+                if (ASSERTS) {
+                    if (soLogger.isInfoEnabled()) {
+                        soLogger.info("SATIN '" + ident.name() +"': "
+                                + "objects shipped, checking again..");
+                    }
+                    if (!r.guard()) {
+                        soLogger.fatal("SATIN '" + ident.name() +"':"
+                               + " panic! inconsistent after shipping objects");
+                        System.exit(1);     // Failed assert
+                    }
+                }
 	    }
 	}
-	
     }
     
 
@@ -505,9 +514,12 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	} catch (IOException e) {
 	    //hm we've got a problem here
 	    //push the job somewhere else?
-	    System.err.println("SATIN '" + ident.name() + "': could not "
-			       + "read shared object, exiting");
-	    System.exit(1);
+            soLogger.error("SATIN '" + ident.name() + "': could not "
+			       + "write shared-object request", e);
+            if (SO_TIMING) {
+                soTransferTimer.stop();
+            }
+	    throw new SOReferenceSourceCrashedException();
 	}
 	//wait for the reply
 	while (true) {
@@ -535,7 +547,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	    sharedObjects.put(object.objectId, object);
 	}
 	object = null;	
-	System.err.println("SATIN '" + ident.name() + "': received shared object from " + source);
+        soLogger.info("SATIN '" + ident.name()
+                + "': received shared object from " + source);
 	handleDelayedMessages();
     }
 }    
