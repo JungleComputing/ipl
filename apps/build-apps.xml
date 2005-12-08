@@ -84,7 +84,7 @@
 	Test
     -->
     <target name="test"
-	    depends="-list-build-files"
+	    depends="clean,-list-build-files"
 	    description="Run tests in Ibis applications">
 	<foreach
 		list="${build.files}"
@@ -96,7 +96,7 @@
     </target>
 
     <target name="test-seq"
-	    depends="-list-build-files"
+	    depends="clean,-list-build-files"
 	    description="Run sequential tests in Ibis applications">
 	<foreach
 		list="${build.files}"
@@ -108,7 +108,7 @@
     </target>
 
     <target name="test-par"
-	    depends="-list-build-files"
+	    depends="clean,-list-build-files"
 	    description="Run parallel tests in Ibis applications">
 	<foreach
 		list="${build.files}"
@@ -120,7 +120,7 @@
     </target>
 
     <target name="test-prun"
-	    depends="-list-build-files"
+	    depends="clean,-list-build-files"
 	    description="Run parallel tests with prun in Ibis applications">
 	<foreach
 		list="${build.files}"
