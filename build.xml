@@ -95,6 +95,10 @@
 	    tofile="${ibis}/bin/ibis-run"/>
 
 	<copy
+	    file="${ibis}/src/scripts/ibis-ant"
+	    tofile="${ibis}/bin/ibis-ant"/>
+
+	<copy
 	    file="${ibis}/src/scripts/io_gen"
 	    tofile="${ibis}/bin/io_gen"/>
 
@@ -219,6 +223,10 @@
 	<copy
 	    file="${ibis}/src/scripts/ant.bat"
 	    tofile="${ibis}/bin/ant.bat"/>
+
+	<copy
+	    file="${ibis}/src/scripts/ibis-ant.bat"
+	    tofile="${ibis}/bin/ibis-ant.bat"/>
 
 	<copy
 	    file="${ibis}/src/scripts/ibis-nameserver.bat"
