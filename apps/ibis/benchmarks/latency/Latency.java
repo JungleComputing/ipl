@@ -3,6 +3,8 @@
 
 import ibis.ipl.*;
 
+import ibis.util.GetLogger;
+
 import java.util.Properties;
 import java.util.Random;
 
@@ -313,7 +315,7 @@ class UpcallSender implements Upcall {
 
 class Latency {
 
-    static Logger logger = Logger.getLogger(Latency.class.getName());
+    static Logger logger = GetLogger.getLogger(Latency.class.getName());
 
     static Ibis ibis;
 
