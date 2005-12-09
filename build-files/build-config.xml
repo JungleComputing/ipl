@@ -73,6 +73,9 @@
 		<not>
 		    <contains string="${java.version}" substring="1.5"/>
 		</not>
+		<not>
+		    <contains string="${java.version}" substring="1.6"/>
+		</not>
 	    </and>
 	    <then>
 		<fail message="Java version ${java.version} is not supported. A 1.4 or 1.5 version is required for Ibis.">
