@@ -1,11 +1,13 @@
 prun:
-- add readme on how to start ibis with prun for the VU people
++ add readme on how to start ibis with prun for the VU people
   (students keep complaining about this) --Rob
+  Added to Ibis web-page (Ceriel)
   
 nameserver:
 + nameserver is single threaded: if it cannot forward a join, everything hangs.
   --Rob
-  Ceriel: Nameserver connects now have a timeout, default 10 seconds.
+  Ceriel: Nameserver connects now have a timeout, default 10 seconds. Also,
+  it is now multithreaded.
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
