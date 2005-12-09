@@ -18,7 +18,7 @@
 	    description="build Mtdf-Othello application">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic-sun"/>
-	<antcall inheritRefs="true" target="satin"/>
+	<antcall inheritRefs="true" target="do-satin"/>
 	<antcall inheritRefs="true" target="iogen"/>
     </target>
 

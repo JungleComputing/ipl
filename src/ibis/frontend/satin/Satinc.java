@@ -3,6 +3,7 @@
 package ibis.frontend.satin;
 
 import ibis.frontend.generic.RunJavac;
+import ibis.frontend.generic.BT_Analyzer;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -73,6 +74,9 @@ import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.LocalVariableGen;
 import org.apache.bcel.generic.LocalVariableInstruction;
 import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.MONITORENTER;
+import org.apache.bcel.generic.MONITOREXIT;
+import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.POP;
@@ -107,6 +111,8 @@ import org.apache.bcel.verifier.VerifierFactory;
 public final class Satinc {
     JavaClass satinObjectClass;
 
+    JavaClass writeMethodsInterface;
+
     ObjectType spawnCounterType;
 
     ObjectType irType;
@@ -133,7 +139,7 @@ public final class Satinc {
 
     boolean invocationRecordCache;
 
-    String classname;
+    String className;
 
     String classNameNoPackage;
 
@@ -256,7 +262,7 @@ public final class Satinc {
     private static Vector javalist = new Vector();
 
     public Satinc(boolean verbose, boolean local, boolean verify, boolean keep,
-            boolean invocationRecordCache, String classname,
+            boolean invocationRecordCache, String className,
             boolean inletOpt, boolean spawnCounterOpt, boolean sharedObjects) {
 
 
@@ -269,20 +275,20 @@ public final class Satinc {
         this.spawnCounterOpt = spawnCounterOpt;
 	this.sharedObjects = sharedObjects;
 
-        c = Repository.lookupClass(classname);
+        c = Repository.lookupClass(className);
 
         if (c == null) {
-            System.out.println("class " + classname + " not found");
+            System.out.println("class " + className + " not found");
             System.exit(1);
         }
 
-        this.classname = c.getClassName();
+        this.className = c.getClassName();
         packageName = c.getPackageName();
 
         if (packageName != null && ! packageName.equals("")) {
-            classNameNoPackage = this.classname.substring(this.classname.lastIndexOf('.')+1, this.classname.length());
+            classNameNoPackage = this.className.substring(this.className.lastIndexOf('.')+1, this.className.length());
         } else {
-            classNameNoPackage = this.classname;
+            classNameNoPackage = this.className;
         }
 
         gen_c = new ClassGen(c);
@@ -293,6 +299,8 @@ public final class Satinc {
         spawnCounterType = new ObjectType("ibis.satin.impl.SpawnCounter");
         irType = new ObjectType("ibis.satin.impl.InvocationRecord");
         satinType = new ObjectType("ibis.satin.impl.Satin");
+        writeMethodsInterface = 
+	    Repository.lookupClass("ibis.satin.so.WriteMethodsInterface");
     }
 
     public String getFileBase(String pkg, String name, String pre, String post) {
@@ -1587,7 +1595,7 @@ public final class Satinc {
             parentPos++;
         }
 
-        MethodGen m = new MethodGen(mOrig, classname, cpg);
+        MethodGen m = new MethodGen(mOrig, className, cpg);
         m.setArgumentTypes(new Type[] { Type.INT,
                 new ObjectType(localRecordName(mOrig)),
                 new ObjectType("java.lang.Throwable"), irType });
@@ -2024,7 +2032,7 @@ public final class Satinc {
                 il.append(new ALOAD(2));
                 il.append(new ALOAD(3));
 
-                il.append(insf.createInvoke(classname, clone.getName(),
+                il.append(insf.createInvoke(className, clone.getName(),
                         clone.getReturnType(), clone.getArgumentTypes(),
                         clone.isStatic() ? Constants.INVOKESTATIC
                                 : Constants.INVOKEVIRTUAL));
@@ -2682,8 +2690,10 @@ public final class Satinc {
 		String guardName = "guard_" + m.getName();
 		
 		if (gen_c.containsMethod(guardName, guardSignature) != null) {
-		    System.out.println("Generating a guard function for "
-				       + m.getName());
+                    if (verbose) {
+                        System.out.println("Generating a guard function for "
+                                           + m.getName());
+                    }
 		    out.println("    public boolean guard() {");
 		    out.print("        return self.guard_" + m.getName() + "(");
 		    for (int i = 0; i < params.length; i++) {
@@ -2700,7 +2710,7 @@ public final class Satinc {
 		    }
 		    out.println(");");
 		    out.println("    }\n");
-		} else {
+		} else if (verbose) {
 		    //check if there are some misformed guards
 		    Method[] meth = gen_c.getMethods();
 		    for (int i = 0; i < meth.length; i++) {
@@ -3002,9 +3012,9 @@ public final class Satinc {
     }
 
     /*
-    void writeResultRecord(Method m, String basename, String classname)
+    void writeResultRecord(Method m, String basename, String className)
             throws IOException {
-        String name = resultRecordName(m, classname);
+        String name = resultRecordName(m, className);
         if (verbose) {
             System.out.println("writing resultrecord code to "
                     + name + ".java");
@@ -3041,8 +3051,8 @@ public final class Satinc {
 
         //assignTo method
         out.println("    public void assignTo(InvocationRecord rin) {");
-        out.println("        " + invocationRecordName(m, classname) + " r = ("
-                + invocationRecordName(m, classname) + ") rin;");
+        out.println("        " + invocationRecordName(m, className) + " r = ("
+                + invocationRecordName(m, className) + ") rin;");
         if (! returnType.equals(Type.VOID)) {
             out.println("        r.result = result;");
         }
@@ -3073,23 +3083,405 @@ public final class Satinc {
     }
     */
 
+    /* Start of SO rewriter. */
+
+    String SOInvocationRecordName(Method m, String clnam, String pnam) {
+        if (pnam != null && ! pnam.equals("")) {
+            return pnam + ".Satin_" + clnam
+                    + "_" + do_mangle(m) + "_SOInvocationRecord";
+        }
+        return "Satin_" + clnam + "_" + do_mangle(m)
+                + "_SOInvocationRecord";
+    }
+
+    String SOInvocationRecordFileBase(Method m, String clnam,
+            String pnam) {
+        return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_",
+                "_SOInvocationRecord");
+    }
+
+    String SOInvocationRecordClassName(Method m, String clnam,
+            String pnam) {
+        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_",
+                "_SOInvocationRecord");
+    }
+
+    private void writeSOInvocationRecord(Method m, String clname,
+            String pnam) throws java.io.IOException {
+        String name = SOInvocationRecordFileBase(m, clname, pnam);
+        int i;
+
+        FileOutputStream f = new FileOutputStream(name + ".java");
+        BufferedOutputStream b = new BufferedOutputStream(f);
+        DollarFilter b2 = new DollarFilter(b);
+        PrintStream out = new PrintStream(b2);
+
+        if (verbose) {
+            System.err.println("Generating inv rec for method: " + m.getName()
+			       + " with signature: " + m.getSignature());
+        }
+
+        /* Copied from MethodTable.java; I have no clue why
+           m.getArgumentTypes is not used*/
+        Type[] params = Type.getArgumentTypes(m.getSignature());
+        String[] params_types_as_names = new String[params.length];
+
+        for (i = 0; i < params.length; i++ ) {
+            if (params[i] instanceof ObjectType) {
+                String clnam = ((ObjectType) params[i]).getClassName();
+                if (!Repository.implementationOf(clnam, 
+                                                 "java.io.Serializable")) {
+                    System.err.println(clname
+                               + ": write method"
+                               + " with non-serializable parameter type "
+                               + clnam);
+                    System.err.println(clname
+                               + ": all parameters of a write method"
+                               + " must be serializable.");
+                    System.exit(1);
+                }
+            }
+            params_types_as_names[i] = params[i].toString();
+        }
+
+        if (pnam != null && ! pnam.equals("")) {
+            out.println("package " + pnam + ";");
+        }
+
+        out.println("import ibis.satin.so.*;\n");
+        out.println("import ibis.satin.impl.*;\n");
+
+        name = SOInvocationRecordClassName(m, clname, pnam);
+
+        out.println("public final class " + name 
+                + " extends SOInvocationRecord {");
+
+        //fields
+        for (i = 0; i < params_types_as_names.length; i++ ) {
+            out.println("\t" + params_types_as_names[i] + " param" 
+                        + i + ";");
+        }
+        out.println();
+
+        //constructor
+        out.print("\tpublic " + name + "(String objectId, ");
+        for (i = 0; i < params_types_as_names.length-1; i++) {
+            out.print(params_types_as_names[i] + " param" + i + ", ");
+        }
+        out.println(params_types_as_names[i] + " param" + i + ") {");
+        out.println("\t\tsuper(objectId);");
+        for (i = 0; i < params_types_as_names.length; i++) {
+            //		if (params[i] instanceof BasicType) {
+                out.println("\t\tthis.param" + i + " = param" + i + ";");
+                /*		} else {
+                //copy the parameter
+                out.println("\t\tthis.param" + i + " = (" + params_types_as_names[i]
+                            + ") cloneObject(param" + i + ");");
+                            }*/
+        }
+        out.println("\t}\n");
+
+        //invoke method
+        out.println("\tpublic void invoke(SharedObject object) {");
+        out.println("\t\t" + clname + " obj = (" + clname + ") object;");
+        out.println("\t\ttry{");
+        out.print("\t\t\tobj.so_local_" + m.getName() + "(");
+        for (i = 0; i < params_types_as_names.length-1; i++ ) {
+            out.print("param" + i + ", ");
+        }
+        out.println("param" + i + ");");
+        out.println("\t\t} catch (Throwable t) {");
+        out.println("\t\t\t/* exceptions will be only thrown at the originating node*/");
+        out.println("\t\t}");
+        out.println("\t}");
+        out.println();
+        out.println("}");
+        out.close();
+    }
+
+    void rewriteSOMethod(Method m, String clnam, String pnam) throws IOException {
+       MethodGen origMethodGen;
+       MethodGen newMethodGen;
+       InstructionList newMethodInsList;
+       Type[] arguments;
+       Type[] objectId_and_arguments;
+       Type returnType;
+       int oldAccessFlags;
+       int monitorVarAddr;
+       String classname = clnam;
+
+       if (pnam != null && ! pnam.equals("")) {
+           classname = pnam + "." + clnam;
+       }
+
+       if (verbose) {
+           System.err.println("Rewriting method: " + m.getName() 
+                              + " with signature: " + m.getSignature());
+        }
+
+       //prefix the original method name with so_local
+       origMethodGen = new MethodGen(m, classname, cpg);
+       origMethodGen.setName("so_local_" + m.getName());
+       origMethodGen.setMaxStack();
+       origMethodGen.setMaxLocals();
+       oldAccessFlags = origMethodGen.getAccessFlags();
+       origMethodGen.setAccessFlags(0x0001); //public
+       gen_c.removeMethod(m);
+       gen_c.addMethod(origMethodGen.getMethod());
+       
+       //create the new method with the following body:
+       //Satin.getSatin().
+       //broadcastSOInvocation(new Satin_methodname_SOInvocationRecord(params))
+       //synchronized(Satin.getSatin()) {
+       //return so_local_methodname(params);
+       //}
+
+	newMethodInsList = new InstructionList();
+	//broadcast 
+	newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
+						     "getSatin",
+						     new ObjectType("ibis.satin.impl.Satin"),
+						     new Type[] {},
+						     Constants.INVOKESTATIC));
+	newMethodInsList.append(ins_f.createNew(SOInvocationRecordName(m, clnam, pnam)));
+	newMethodInsList.append(InstructionFactory.createDup(1));
+	newMethodInsList.append(new ALOAD(0));
+	newMethodInsList.append(ins_f.createGetField(classname,
+						       "objectId",
+						       Type.STRING));
+	arguments = m.getArgumentTypes();			     
+	int k1 = 0;
+	for (int k = 0; k < arguments.length; k++) {
+	    newMethodInsList.append(InstructionFactory.createLoad(arguments[k], k1+1));
+	    k1 += arguments[k].getSize();
+	}
+
+	objectId_and_arguments = new Type[arguments.length+1];
+	objectId_and_arguments[0] = Type.STRING;
+	for (int k = 0; k < arguments.length; k++) {
+	    objectId_and_arguments[k+1] = arguments[k];
+	}
+
+	newMethodInsList.append(ins_f.createInvoke(SOInvocationRecordName(m, clnam, pnam), 
+						   "<init>",
+						   Type.VOID,
+						   objectId_and_arguments,
+						   Constants.INVOKESPECIAL));
+	newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
+						    "broadcastSOInvocation",
+						    Type.VOID,
+						    new Type[] 
+	    {new ObjectType("ibis.satin.impl.SOInvocationRecord")},
+						    Constants.INVOKEVIRTUAL));
+	//enter the monitor	
+	monitorVarAddr = 1;
+	for (int k = 0; k < arguments.length; k++) {
+	    monitorVarAddr += arguments[k].getSize();
+	}
+	newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
+							 "getSatin",
+							 new ObjectType("ibis.satin.impl.Satin"),
+							 new Type[] {},
+							 Constants.INVOKESTATIC));
+	newMethodInsList.append(InstructionFactory.createDup(1));
+	newMethodInsList.append(new ASTORE(monitorVarAddr));
+	newMethodInsList.append(new MONITORENTER());
+	//call the object method
+	InstructionHandle from1 = newMethodInsList.append(new ALOAD(0));
+	k1 = 0;
+	for (int k = 0; k < arguments.length; k++) {
+	    newMethodInsList.append(InstructionFactory.createLoad(arguments[k], k1+1));
+	    k1 += arguments[k].getSize();
+	}
+	returnType = m.getReturnType();
+	newMethodInsList.append(ins_f.createInvoke(classname,
+						     "so_local_" + m.getName(),
+						     returnType,
+						     arguments,
+						     Constants.INVOKEVIRTUAL));
+	//exit the monitor
+	newMethodInsList.append(new ALOAD(monitorVarAddr));
+	newMethodInsList.append(new MONITOREXIT());
+	//return statement
+	InstructionHandle to1 = newMethodInsList.append(InstructionFactory.createReturn(returnType));
+	//exception handlers
+	InstructionHandle from2 = newMethodInsList.append(new ASTORE(monitorVarAddr+1));
+	newMethodInsList.append(new ALOAD(monitorVarAddr));
+	newMethodInsList.append(new MONITOREXIT());
+	InstructionHandle to2 = newMethodInsList.append(new ALOAD(monitorVarAddr+1));
+	newMethodInsList.append(new ATHROW());
+
+	newMethodGen = new MethodGen(oldAccessFlags,
+				     returnType,
+				     arguments,
+				     origMethodGen.getArgumentNames(),
+				     m.getName(),
+				     classname,
+				     newMethodInsList,
+				     cpg);
+ 
+	newMethodGen.addExceptionHandler(from1, to1, from2, null);
+	newMethodGen.addExceptionHandler(from2, to2, from2, null);
+	newMethodGen.setMaxStack();
+	newMethodGen.setMaxLocals();
+		    
+	gen_c.addMethod(newMethodGen.getMethod());
+	 	
+    }
+
+   void rewriteSOConstructor(Method m, String clnam) throws IOException {
+
+       MethodGen methodGen = new MethodGen(m, clnam, cpg);
+       InstructionList il = methodGen.getInstructionList();
+
+       InstructionHandle ret_ih = il.getEnd();
+
+       //add 'Satin.getSatin().broadcastSharedObject(this);' at the end
+       //of the constructor
+
+       il.insert(ret_ih, 
+		 ins_f.createInvoke("ibis.satin.impl.Satin",
+					 "getSatin",
+					 new ObjectType("ibis.satin.impl.Satin"),
+					 new Type[] {},
+					 Constants.INVOKESTATIC));
+       il.insert(ret_ih, new ALOAD(0));
+       il.insert(ret_ih,
+		 ins_f.createInvoke("ibis.satin.impl.Satin",
+					 "broadcastSharedObject",
+					 Type.VOID,
+					 new Type[] {new ObjectType("ibis.satin.so.SharedObject")},
+					 Constants.INVOKEVIRTUAL));
+
+       System.err.println("il length: " + il.getLength());
+
+       methodGen.setInstructionList(il);
+       methodGen.setMaxStack();
+       methodGen.setMaxLocals();
+       gen_c.removeMethod(m);
+       gen_c.addMethod(methodGen.getMethod());
+       
+   }
+
+    void doSORewrite() throws IOException {
+        BT_Analyzer a = new BT_Analyzer(c, writeMethodsInterface, verbose);
+        a.start(false);
+
+        //		Vector methods = a.subjectSpecialMethods;
+        Method[] methods = c.getMethods();
+
+        if (methods == null) {
+            return;
+        }
+            
+        //add the $SOrewritten$ field
+        gen_c.addField(new FieldGen(Constants.ACC_STATIC, Type.BOOLEAN,
+                                    "$SOrewritten$", cpg).getField());		
+
+        //add things to the constant pool
+        /*		int getSatin = cpg.addMethodref("ibis.satin.impl.Satin",
+                               "getSatin",
+                               "()Libis/satin/impl/Satin");
+        int broadcastSOInvocation = 
+            cpg.addMethodref("ibis.satin.impl.Satin",
+                             "broadcastSOInvocation",
+                             "(Libis/satin/impl/SOInvocationRecord)V");*/
+    
+        //rewrite methods
+        for (int j = 0; j < methods.length; j ++) {		    
+            Method method = methods[j];		    
+            //		    System.err.println(method.toString());
+            if (a.isSpecial(method)) {
+                //change the name of the method to so_local_methodName
+                //create a new methodName with the following body
+                //Satin.getSatin().broadcastSOInvocation(new SOInvRecord())
+                //return so_local_methodName
+                rewriteSOMethod(method, classNameNoPackage, packageName);
+
+
+            }
+            /*	    if(method.getName().equals("<init>")) {
+                System.err.println("rewriting constructor");
+                rewriteSOConstructor(method, c.getClassName());
+                }*/
+
+        }
+
+        JavaClass newSubjectClass = gen_c.getJavaClass();
+        Repository.removeClass(c);
+        Repository.addClass(newSubjectClass);
+
+        //dump the class
+        String dst;
+        if (local) {
+            dst = className.substring(className.lastIndexOf('.')+1);
+        } else {
+            dst = className.replace('.', java.io.File.separatorChar);
+        }
+        dst = dst + ".class";
+
+        newSubjectClass.dump(dst);
+
+        ArrayList toCompiler = new ArrayList();
+        //generate so invocation records
+        for (int j = 0; j < methods.length; j ++) {
+            Method method = methods[j];
+            if (a.isSpecial(method)) {
+                //generate an SOInvocationRecord for this method
+                writeSOInvocationRecord(method, classNameNoPackage,
+                        packageName);
+
+                toCompiler.add(SOInvocationRecordFileBase(method, classNameNoPackage, packageName));
+            }
+        }
+        if (toCompiler.size() > 0) {
+            compile(toCompiler);
+            for (int j = 0; j < methods.length; j ++) {
+                Method method = methods[j];
+                if (a.isSpecial(method)) {
+                    Repository.lookupClass(SOInvocationRecordName(method, classNameNoPackage, packageName));
+                }
+            }
+        }
+    }
+
+    /* End of SO rewriter. */
+
     public void start() {
         if (isSatin()) {
             if (verbose) {
-                System.out.println(classname + " is a satin class");
+                System.out.println(className + " is a satin class");
             }
         }
 
         if (isRewritten()) {
             if (verbose) {
-                System.out.println(classname + " is already rewritten");
+                System.out.println(className + " is already rewritten");
             }
             return;
         }
 
         if (c.isInterface()) {
             if (verbose) {
-                System.out.println(classname + " is an interface");
+                System.out.println(className + " is an interface");
+            }
+            return;
+        }
+
+        if (sharedObjects
+                && Repository.instanceOf(c, "ibis.satin.so.SharedObject")) {
+
+            if (gen_c.containsField("$SOrewritten$") != null) {
+                if (verbose) {
+                    System.out.println(className + " is already rewritten");
+                }
+            } else {
+                try {
+                    doSORewrite();
+                } catch(IOException e) {
+                    System.out.println("IO error: " + e);
+                    System.exit(1);
+                }
             }
             return;
         }
@@ -3098,7 +3490,7 @@ public final class Satinc {
         Method main = gen_c.containsMethod("main", "([Ljava/lang/String;)V");
 
         if (main != null) {
-            MethodGen m = new MethodGen(main, classname,
+            MethodGen m = new MethodGen(main, className,
                     gen_c.getConstantPool());
 
             if (verbose) {
@@ -3154,7 +3546,7 @@ public final class Satinc {
 
         // now overwrite the classfile 
         String dst;
-        String clnam = classname;
+        String clnam = className;
         if (local) {
             dst = clnam.substring(clnam.lastIndexOf('.') + 1);
         } else {

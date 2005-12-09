@@ -23,59 +23,16 @@
 
     <target name="satin"
 	    depends="satin-init">
-	    <!-- Commented out description
-	    description="Preprocess all classes in the build tree for Satin"
-	    -->
-	<if>
-	    <isset property="satinc-flags"/>
-	    <then>
-		<property name="satinc-flags.value" value="${satinc-flags}"/>
-	    </then>
-	    <else>
-		<property name="satinc-flags.value" value=""/>
-	    </else>
-	</if>
-
 	<java	classname="ibis.frontend.satin.Satinc"
 		taskname="Satinc"
 		dir="${build}"
 		failonerror="true"
 		maxmemory="256M"
 		fork="true">
-		<arg line="-dir ${satinc-flags.value} ${satin-main-class}"/>
+		<arg line="-dir ${satinc-flags.value} ${satinc-files}"/>
 		<classpath refid="default.classpath"/>
 	</java>
 
-    </target>
-
-    <target name="satin-so"
-            description="Generates stubs and skeletons for Satin shared objects">
-            
-	<if>
-	    <isset property="satinsoc-flags"/>
-	    <then>
-		<property name="satinsoc-flags.value" value="${satinsoc-flags}"/>
-	    </then>
-	    <else>
-		<property name="satinsoc-flags.value" value=""/>
-	    </else>
-	</if>
-            
-        
-        <if>
-            <isset property="satin-so-classes"/>
-            <then>
-                <java   classname="ibis.frontend.satin.so.SatinSOc"
-                    taskname="SatinSOc"
-                    dir="${build}"
-                    failonerror="true"
-                    fork="true">          
-                    <arg line="-dir ${satinsoc-flags.value} ${satin-so-classes}"/>
-                    <classpath refid="default.classpath"/>
-                </java>
-            </then>
-        </if>
-        
     </target>
 
     <target name="init">
@@ -113,6 +70,7 @@
     
     <target name="build-no-so"
 	    description="Compile Satin application for parallel execution">
+	<property name="satinc-files" value="${satin-main-class}"/>
 	<if>
 	    <isset property="satinc-flags"/>
 	    <then>
@@ -122,18 +80,40 @@
 		<property name="satinc-flags.value" value="-no-so"/>
 	    </else>
 	</if>
-	    
+
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="satin"/>
     	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
 
+    <target name="do-satin">
+	<if>
+	    <isset property="satin-so-classes"/>
+	    <then>
+		<property name="satinc-files" value="${satin-main-class} ${satin-so-classes}"/>
+	    </then>
+	    <else>
+		<property name="satinc-files" value="${satin-main-class}"/>
+	    </else>
+	</if>
+
+	<if>
+	    <isset property="satinc-flags"/>
+	    <then>
+		<property name="satinc-flags.value" value="${satinc-flags}"/>
+	    </then>
+	    <else>
+		<property name="satinc-flags.value" value=""/>
+	    </else>
+	</if>
+	<antcall inheritRefs="true" target="satin"/>
+    </target>
+
     <target name="build"
 	    description="Compile Satin application for parallel execution">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
-	<antcall inheritRefs="true" target="satin"/>
-	<antcall inheritRefs="true" target="satin-so"/>
+	<antcall inheritRefs="true" target="do-satin"/>
 	<antcall inheritRefs="true" target="iogen"/>
     </target>
 

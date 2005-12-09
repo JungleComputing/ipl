@@ -16,7 +16,7 @@
             depends="init"
             description="build Mtdf application">
         <antcall inheritAll="true" inheritRefs="true" target="compile"/>
-        <antcall inheritRefs="true" target="satin"/>
+        <antcall inheritRefs="true" target="do-satin"/>
         <antcall inheritRefs="true" target="gmi"/>
         <antcall inheritRefs="true" target="iogen"/>
     </target>
