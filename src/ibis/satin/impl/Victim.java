@@ -19,6 +19,8 @@ final class Victim {
 
     private boolean connected = false;
 
+    private boolean closed = false;
+
     public Victim(IbisIdentifier ident, SendPort s, ReceivePortIdentifier r) {
         this.ident = ident;
         this.s = s;
@@ -65,6 +67,9 @@ final class Victim {
         if (! connected) {
             synchronized(this) {
                 if (! connected) {
+                    if (closed) {
+                        return null;
+                    }
                     if (Satin.FAULT_TOLERANCE) {
                         if (! Communication.connect(s, r, Satin.connectTimeout)) {
                             if (Satin.commLogger.isDebugEnabled()) {
@@ -95,8 +100,9 @@ final class Victim {
         throw new IOException("Could not connect");
     }
 
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         connected = false;
+        closed = true;
         s.close();
     }
 }
