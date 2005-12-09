@@ -11,7 +11,9 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+
 import java.util.Vector;
+import java.util.ArrayList;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
@@ -1896,17 +1898,21 @@ public final class Satinc {
         }
     }
 
-    void compile(String name) {
-        String filename = name + ".java";
-        if (! RunJavac.runJavac(new String[] { "-g" },
-                    new String[] {filename}, verbose)) {
+    void compile(ArrayList args) {
+        int sz = args.size();
+        String[] compilerArgs = new String[sz + 1];
+        compilerArgs[0] = "-g";
+        for (int i = 0; i < sz; i++) {
+            compilerArgs[i+1] = ((String) args.get(i)) + ".java";
+        }
+        if (! RunJavac.runJavac(compilerArgs, verbose)) {
             System.exit(1);
         }
 
-        Repository.lookupClass(name);
-
-        if (!keep) { // remove generated files 
-            removeFile(filename);
+        for (int i = 0; i < sz; i++) {
+            if (!keep) { // remove generated files 
+                removeFile(compilerArgs[i+1]);
+            }
         }
     }
 
@@ -1917,6 +1923,7 @@ public final class Satinc {
     // pass write the real method, and compile the whole class again.
     void generateInvocationRecords() throws IOException {
         Method[] methods = gen_c.getMethods();
+        ArrayList toCompiler = new ArrayList();
 
         for (int i = 0; i < methods.length; i++) {
             if (mtab.containsInlet(methods[i])) {
@@ -1925,7 +1932,7 @@ public final class Satinc {
                 }
 
                 writeLocalRecord(methods[i]);
-                compile(localRecordFileBase(methods[i]));
+                toCompiler.add(localRecordFileBase(methods[i]));
             }
 
             if (mtab.isSpawnable(methods[i], c)) {
@@ -1933,9 +1940,23 @@ public final class Satinc {
                 writeReturnRecord(methods[i], classNameNoPackage, packageName);
                 writeParameterRecord(methods[i]);
 
-                compile(invocationRecordFileBase(methods[i], classNameNoPackage, packageName));
-                compile(returnRecordFileBase(methods[i], classNameNoPackage, packageName));
-                compile(parameterRecordFileBase(methods[i]));
+                toCompiler.add(invocationRecordFileBase(methods[i], classNameNoPackage, packageName));
+                toCompiler.add(returnRecordFileBase(methods[i], classNameNoPackage, packageName));
+                toCompiler.add(parameterRecordFileBase(methods[i]));
+            }
+        }
+        if (toCompiler.size() > 0) {
+            compile(toCompiler);
+            for (int i = 0; i < methods.length; i++) {
+                if (mtab.containsInlet(methods[i])) {
+                    Repository.lookupClass(localRecordName(methods[i]));
+                }
+
+                if (mtab.isSpawnable(methods[i], c)) {
+                    Repository.lookupClass(invocationRecordName(methods[i], classNameNoPackage, packageName));
+                    Repository.lookupClass(returnRecordName(methods[i], classNameNoPackage, packageName));
+                    Repository.lookupClass(parameterRecordName(methods[i]));
+                }
             }
         }
     }

@@ -28,29 +28,31 @@ public class RunJavac {
     }
 
     /**
+     * Sets the compiler.
+     * @param c compiler name plus options
+     */
+    public static void setCompiler(String[] c) {
+        compiler = c;
+    }
+
+    /**
      * Runs the Java compiler with the specified options on the specified
      * class.
-     * @param options the compiler options
-     * @param files the Java files to compile
+     * @param compilerArgs the compiler arguments
      * @param verbose if <code>true</code>, prints the compilation command on
      *   standard output
      * @return <code>true</code> if the exit status of the compiler is 0,
      *   <code>false</code> otherwise.
      */
-    public static boolean runJavac(String[] options, String[] files,
-            boolean verbose) {
+    public static boolean runJavac(String[] compilerArgs, boolean verbose) {
         try {
             RunProcess p;
-            String[] cmd = new String[compiler.length + options.length + files.length];
+            String[] cmd = new String[compiler.length + compilerArgs.length];
             for (int i = 0; i < compiler.length; i++) {
                 cmd[i] = compiler[i];
             }
-            for (int i = 0; i < options.length; i++) {
-                cmd[compiler.length + i] = options[i];
-            }
-
-            for (int i = 0; i < files.length; i++) {
-                cmd[compiler.length + options.length + i] = files[i];
+            for (int i = 0; i < compilerArgs.length; i++) {
+                cmd[compiler.length + i] = compilerArgs[i];
             }
 
             if (verbose) {

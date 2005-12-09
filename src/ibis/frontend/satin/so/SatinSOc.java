@@ -189,6 +189,7 @@ class SatinSOc {
                                 packageName);
 
 			compile(SOInvocationRecordFileBase(method, classNameNoPackage, packageName));
+                        Repository.lookupClass(SOInvocationRecordName(method, classNameNoPackage, packageName));
 		    }
 		}
 
@@ -348,12 +349,9 @@ class SatinSOc {
 
     static void compile(String name) {
         String filename = name + ".java";
-        if (! RunJavac.runJavac(new String[] { "-g" },
-                    new String[] {filename}, verbose)) {
+        if (! RunJavac.runJavac(new String[] {"-g", filename}, verbose)) {
             System.exit(1);
         }
-
-        Repository.lookupClass(name);
 
         if (!keep) { // remove generated files 
             removeFile(filename);
