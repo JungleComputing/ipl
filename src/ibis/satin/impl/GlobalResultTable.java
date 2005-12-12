@@ -521,7 +521,7 @@ public class GlobalResultTable implements Upcall, Config {
             r = satin.lookup("satin global result table receive port on "
                     + ident.name());
             if (! SCALABLE) {
-                if (Satin.connect(send, r, satin.connectTimeout)) {
+                if (Satin.connect(send, r, Satin.connectTimeout)) {
                     numReplicas++;
                     sends.put(ident, new Victim(ident, send, r));
                 } else {

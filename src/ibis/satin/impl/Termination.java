@@ -2,7 +2,6 @@
 
 package ibis.satin.impl;
 
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;

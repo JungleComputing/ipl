@@ -3,7 +3,6 @@
 package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.ReceivePortIdentifier;
 
 import java.util.HashMap;
 import java.util.Vector;
