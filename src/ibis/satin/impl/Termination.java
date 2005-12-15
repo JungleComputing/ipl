@@ -37,8 +37,21 @@ public abstract class Termination extends Initialization {
                 writeMessage.finish();
             } catch (IOException e) {
                 synchronized (this) {
-                    System.err.println("SATIN: Could not send bcast "
-                        + "message to " + victims.getVictim(i).ident);
+                    if (FAULT_TOLERANCE) {
+                        ftLogger.info("SATIN '" + ident
+                                + "': could not send bcast message to "
+                                + victims.getVictim(i).ident, e);
+                        try {
+                            ibis.registry().maybeDead(victims.getVictim(i).ident);
+                        } catch(IOException e2) {
+                            ftLogger.error("SATIN '" + ident
+                                    + "': got exception in maybeDead", e2);
+                        }
+                    } else {
+                        commLogger.error("SATIN '" + ident
+                                + "': could not send bcast message to "
+                                + victims.getVictim(i).ident, e);
+                    }
                 }
             }
         }
@@ -122,8 +135,21 @@ public abstract class Termination extends Initialization {
                 }
                 writeMessage.finish();
             } catch (IOException e) {
-                System.err.println("SATIN: Could not send exit message to "
-                    + masterIdent);
+                if (FAULT_TOLERANCE) {
+                    ftLogger.info("SATIN '" + ident
+                            + "': could not send exit message to "
+                            + masterIdent, e);
+                    try {
+                        ibis.registry().maybeDead(masterIdent);
+                    } catch(IOException e2) {
+                        ftLogger.error("SATIN '" + ident
+                                + "': got exception in maybeDead", e2);
+                    }
+                } else {
+                    commLogger.error("SATIN '" + ident
+                            + "': could not send exit message to "
+                            + masterIdent, e);
+                }
             }
 
             if (upcalls) {
@@ -161,8 +187,8 @@ public abstract class Termination extends Initialization {
                 tuplePort.close();
             }
         } catch (Throwable e) {
-            System.err.println("tuplePort.close() throws " + e);
-            e.printStackTrace();
+            commLogger.error("SATIN '" + ident
+                    + "': tuplePort.close() throws exception", e);
         }
 
         // If not closed, free ports. Otherwise, ports will be freed in leave
@@ -192,7 +218,8 @@ public abstract class Termination extends Initialization {
                 victims.remove(0);
 
             } catch (Throwable e) {
-                System.err.println("port.close() throws " + e);
+                commLogger.error("SATIN '" + ident
+                        + "': port.close() throws exception", e);
             }
         }
 
@@ -202,7 +229,8 @@ public abstract class Termination extends Initialization {
                 tupleReceivePort.close();
             }
         } catch (Throwable e) {
-            System.err.println("port.close() throws " + e);
+            commLogger.error("SATIN '" + ident
+                    + "': port.close() throws exception", e);
         }
 
         if (FAULT_TOLERANCE && !FT_NAIVE) {
@@ -212,7 +240,8 @@ public abstract class Termination extends Initialization {
         try {
             ibis.end();
         } catch (Throwable e) {
-            System.err.println("ibis.end throws " + e);
+            commLogger.error("SATIN '" + ident
+                    + "': ibis.end() throws exception", e);
         }
 
         if (commLogger.isDebugEnabled()) {

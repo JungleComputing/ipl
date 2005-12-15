@@ -24,9 +24,6 @@ public abstract class Communication extends SpawnSync {
             } catch (IOException e) {
                 commLogger.info(
                     "IOException in connect to " + ident + ": " + e, e);
-                System.err.println("IOException in connect to " + ident + ": "
-                    + e);
-                e.printStackTrace();
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
@@ -55,10 +52,8 @@ public abstract class Communication extends SpawnSync {
             } catch (AlreadyConnectedException x) {
                     return true;
             } catch (IOException e) {
-                /*                if (grtLogger.isInfoEnabled()) {
-                 grtLogger.info("IOException in connect to " + ident + ": "
-                 + e, e);*/
-                System.err.println("IOEx in connect to " + ident + ": " + e);
+                commLogger.info(
+                    "IOException in connect to " + ident + ": " + e, e);
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
