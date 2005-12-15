@@ -151,7 +151,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
             } while (true);
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             try {
                 if (s != null) {
                     s.close();
