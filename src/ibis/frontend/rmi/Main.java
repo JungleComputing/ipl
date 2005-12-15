@@ -185,8 +185,7 @@ class Main {
         boolean java2ibis = false;
         JavaClass rmiInterface = null;
         boolean printOnly = false;
-        boolean useJava = false;
-        boolean useKarmi = false;
+        String remoteInterface = "ibis.rmi.Remote";
 
         if (args.length == 0) {
             System.err.println("Usage : java Main [-n] [-v] [-java2ibis] "
@@ -204,11 +203,11 @@ class Main {
                 args[i] = args[num - 1];
                 num--;
             } else if (args[i].equals("-java")) {
-                useJava = true;
+                remoteInterface = "java.rmi.Remote";
                 args[i] = args[num - 1];
                 num--;
             } else if (args[i].equals("-karmi")) {
-                useKarmi = true;
+                remoteInterface = "uka.karmi.rmi.Remote";
                 args[i] = args[num - 1];
                 num--;
             } else if (args[i].equals("-v")) {
@@ -232,14 +231,6 @@ class Main {
             }
         }
 
-        String remoteInterface;
-        if (useJava) {
-            remoteInterface = "java.rmi.Remote";
-        } else if (useKarmi) {
-            remoteInterface = "uka.karmi.rmi.Remote";
-        } else {
-            remoteInterface = "ibis.rmi.Remote";
-        }
         rmiInterface = Repository.lookupClass(remoteInterface);
 
         if (rmiInterface == null) {
