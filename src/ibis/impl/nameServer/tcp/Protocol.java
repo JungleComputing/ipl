@@ -24,6 +24,7 @@ interface Protocol {
     static final byte PORT_REBIND = 29;
     static final byte PORT_LIST = 30;
     static final byte PORT_KILL = 31;
+    static final byte PORT_WAIT = 32;
 
     static final byte PORTTYPE_NEW = 40;
     static final byte PORTTYPE_ACCEPTED = 41;

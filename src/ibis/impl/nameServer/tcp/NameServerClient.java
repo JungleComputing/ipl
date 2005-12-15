@@ -58,6 +58,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     private InetAddress myAddress;
 
+    private int localPort;
+
     private boolean left = false;
 
     static IbisSocketFactory socketFactory = IbisSocketFactory.getFactory();
@@ -195,6 +197,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         serverSocket = socketFactory.createServerSocket(0, myAddress, 50, true, null);
 
+        localPort = serverSocket.getLocalPort();
+
         Socket s = nsConnect(serverAddress, port, myAddress, true, 60);
 
         DataOutputStream out = null;
@@ -214,7 +218,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             buf = Conversion.object2byte(myAddress);
             out.writeInt(buf.length);
             out.write(buf);
-            out.writeInt(serverSocket.getLocalPort());
+            out.writeInt(localPort);
             out.writeBoolean(needsUpcalls);
             out.flush();
 
@@ -241,7 +245,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
                 temp = in.readInt(); /* Port for the ReceivePortNameServer */
                 receivePortNameServerClient = new ReceivePortNameServerClient(
-                        myAddress, serverAddress, temp, id.name());
+                        myAddress, serverAddress, temp, id.name(), localPort);
 
                 temp = in.readInt(); /* Port for the ElectionServer */
                 electionClient = new ElectionClient(myAddress, serverAddress,
@@ -443,7 +447,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         "NameServerClient: got an error", e);
             }
 
-            int opcode = 666;
+            byte opcode = 0;
             DataInputStream in = null;
             DataOutputStream out = null;
 
@@ -511,6 +515,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     }
 
                     ibisImpl.died(ids);
+                    break;
+
+                case PORT_KNOWN:
+                case PORT_UNKNOWN:
+                    receivePortNameServerClient.gotAnswer(opcode, in);
                     break;
 
                 default:

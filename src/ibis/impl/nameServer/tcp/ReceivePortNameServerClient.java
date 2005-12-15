@@ -28,17 +28,23 @@ class ReceivePortNameServerClient implements Protocol {
 
     InetAddress localAddress;
 
+    byte[] localAddressMarshalled;
+
+    int localPort;
+
     String ibisName;
 
     private static Logger logger = ibis.util.GetLogger
             .getLogger(ReceivePortNameServerClient.class.getName());
 
     ReceivePortNameServerClient(InetAddress localAddress, InetAddress server,
-            int port, String name) {
+            int port, String name, int localPort) throws IOException {
         this.server = server;
         this.port = port;
         this.localAddress = localAddress;
+        localAddressMarshalled = Conversion.object2byte(localAddress);
         ibisName = name;
+        this.localPort = localPort;
     }
 
     public ReceivePortIdentifier lookup(String name, long timeout)
@@ -67,6 +73,10 @@ class ReceivePortNameServerClient implements Protocol {
         return s.toString();
     }
 
+    ReceivePortIdentifier[] ids = null;
+    boolean gotAnswer = false;
+    String notFoundList = null;
+
     public ReceivePortIdentifier[] lookup(String[] names, long timeout, 
             boolean allowPartialResults) throws IOException {
         
@@ -74,11 +84,7 @@ class ReceivePortNameServerClient implements Protocol {
         DataInputStream in = null;
         Socket s = null;
 
-        ReceivePortIdentifier[] ids = null;
-       
         try {
-            
-            long time = System.currentTimeMillis();
             
             if (logger.isDebugEnabled()) {
                 logger.debug("Port connecting to " + namesList(names));
@@ -90,8 +96,14 @@ class ReceivePortNameServerClient implements Protocol {
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
+            ids = null;
+            gotAnswer = false;
+
             // request a new Port.
             out.writeByte(PORT_LOOKUP);
+            out.writeInt(localAddressMarshalled.length);
+            out.write(localAddressMarshalled);
+            out.writeInt(localPort);
             out.writeBoolean(allowPartialResults);       
             out.writeInt(names.length);
             for (int i = 0; i < names.length; i++) {
@@ -101,47 +113,31 @@ class ReceivePortNameServerClient implements Protocol {
             out.flush();
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-            int result = in.readByte();
+            byte result = in.readByte();
 
             switch (result) {
-            case PORT_UNKNOWN:
-                int cnt = in.readInt();
-                names = new String[cnt];
-                for (int i = 0; i < cnt; i++) {
-                    names[i] = in.readUTF();
-                }
-                String list = namesList(names);
-                if (logger.isDebugEnabled()) {
-                    
-                    long t = System.currentTimeMillis() - time;                    
-                    logger.debug("Port returns after " + t + " " + list + 
-                            ": PORT_UNKNOWN");
-                }
-                throw new ConnectionTimedOutException("could not find some ports: " + list);
-            case PORT_KNOWN:
-                ids = new ReceivePortIdentifier[names.length];
-                if (logger.isDebugEnabled()) {
-                    long t = System.currentTimeMillis() - time;
-                    
-                    logger.debug("Port returns after " + t + " " + 
-                            namesList(names) + ": PORT_KNOWN");
-                }
-                for (int i = 0; i < names.length; i++) {
-                    try {
-                        int len = in.readInt();
-                        
-                        if (len == 0) {
-                            ids[i] = null;                            
-                        } else { 
-                            byte[] b = new byte[len];
-                            in.readFully(b, 0, len);
-                            ids[i] = (ReceivePortIdentifier) Conversion.byte2object(b);
-                        } 
-                    } catch (ClassNotFoundException e) {
-                        throw new IOException("Unmarshall fails " + e);
+            case PORT_WAIT:
+                NameServer.closeConnection(in, out, s);
+                in = null;
+                out = null;
+                s = null;
+                synchronized(this) {
+                    while (! gotAnswer) {
+                        try {
+                            wait();
+                        } catch(Exception e) {
+                            // ignored
+                        }
                     }
+                    if (ids == null) {
+                    }
+                    return ids;
                 }
-                break;
+
+            case PORT_UNKNOWN:
+            case PORT_KNOWN:
+                return gotAnswer(result, in);
+
             default:
                 throw new StreamCorruptedException(
                         "Registry: lookup got illegal opcode " + result);
@@ -149,7 +145,52 @@ class ReceivePortNameServerClient implements Protocol {
         } finally {
             NameServer.closeConnection(in, out, s);
         }
+    }
 
+    public synchronized ReceivePortIdentifier[] gotAnswer(byte opcode, DataInputStream in) throws IOException {
+        int cnt = in.readInt();
+        String[] names = new String[cnt];
+
+        switch(opcode) {
+        case PORT_UNKNOWN:
+            for (int i = 0; i < cnt; i++) {
+                names[i] = in.readUTF();
+            }
+            notFoundList = namesList(names);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Port request returns " + notFoundList + 
+                        ": PORT_UNKNOWN");
+            }
+            break;
+
+        case PORT_KNOWN:
+            ids = new ReceivePortIdentifier[names.length];
+            if (logger.isDebugEnabled()) {
+                logger.debug("Port returns " + 
+                        namesList(names) + ": PORT_KNOWN");
+            }
+            for (int i = 0; i < names.length; i++) {
+                try {
+                    int len = in.readInt();
+                    
+                    if (len == 0) {
+                        ids[i] = null;                            
+                    } else { 
+                        byte[] b = new byte[len];
+                        in.readFully(b, 0, len);
+                        ids[i] = (ReceivePortIdentifier) Conversion.byte2object(b);
+                    } 
+                } catch (ClassNotFoundException e) {
+                    throw new IOException("Unmarshall fails " + e);
+                }
+            }
+            break;
+        default:
+            throw new StreamCorruptedException(
+                    "Registry: gotAnswer got illegal opcode " + opcode);
+        }
+        gotAnswer = true;
+        notifyAll();
         return ids;
     }
 
