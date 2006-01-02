@@ -2,18 +2,17 @@
 
 package ibis.impl.nameServer.tcp;
 
+import ibis.io.Conversion;
 import ibis.ipl.BindingException;
-import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.io.Conversion;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.Socket;
