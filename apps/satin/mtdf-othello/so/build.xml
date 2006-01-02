@@ -1,0 +1,24 @@
+<project
+    name="ibis.apps.satin.mtdf-othello.so"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../../.."/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value="-keep"/>
+    <property name="satinsoc-flags" value="-keep"/>
+    <property name="main-class" value="Mtdf"/>
+    <property name="satin-main-class" value="${main-class}"/>
+    <property name="satin-so-classes" value="TranspositionTable"/>
+
+    <property name="test-par-java-args" value="-Dsatin.so=true"/>
+    <property name="test-par-run"
+	      value="Mtdf 2 -satin-closed"/>
+    <property name="test-seq-java-args" value="-Dsatin.so=true"/>
+    <property name="test-seq-run"
+	      value="Mtdf 2 -satin-closed"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>
