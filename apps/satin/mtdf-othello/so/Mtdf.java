@@ -1,15 +1,3 @@
-class Shutdown extends Thread {
-    TranspositionTable tt;
-
-    Shutdown(TranspositionTable tt) {
-        this.tt = tt;
-    }
-
-    public void run() {
-        tt.stats();
-    }
-}
-
 public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface {
 
     static final boolean BEST_FIRST = true;
@@ -21,11 +9,15 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
 
     static final int INF = 10000;
 
-    static TranspositionTable tt; // must be static, each machine has its own tt
+    TranspositionTable tt;
 
     transient int pivot = 0;
 
-    static {
+    static int getTagSize() {
+        return OthelloBoard.getTagSize();
+    }
+
+    Mtdf() {
         try {
             tt = new TranspositionTable(getTagSize());
             tt.exportObject();
@@ -34,21 +26,15 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
                 + e.getMessage());
             System.exit(1);
         }
-
-        Runtime.getRuntime().addShutdownHook(new Shutdown(tt));
-    }
-
-    static int getTagSize() {
-        return OthelloBoard.getTagSize();
-    }
-
+}
+    
     public void spawn_depthFirstSearch(NodeType node, int pivot, int depth,
-            short currChild, TranspositionTable tt) throws Done {
-        depthFirstSearch(node, pivot, depth, tt);
+            short currChild) throws Done {
+        depthFirstSearch(node, pivot, depth);
         throw new Done(node.score, currChild);
     }
 
-    NodeType depthFirstSearch(NodeType node, int pivot, int depth, TranspositionTable tt) {
+    NodeType depthFirstSearch(NodeType node, int pivot, int depth) {
         NodeType children[];
         short bestChild = 0;
         short currChild = 0;
@@ -81,7 +67,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
 
         node.score = -INF;
         if (BEST_FIRST) {
-            depthFirstSearch(children[currChild], 1 - pivot, depth - 1, tt);
+            depthFirstSearch(children[currChild], 1 - pivot, depth - 1);
 
             if (-children[currChild].score > node.score) {
                 tt.scoreImprovements++;
@@ -103,7 +89,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
                 if (BEST_FIRST && i == currChild) continue;
 
                 try {
-                    spawn_depthFirstSearch(children[i], 1 - pivot, depth - 1, i, tt);
+                    spawn_depthFirstSearch(children[i], 1 - pivot, depth - 1, i);
                 } catch (Done d) {
                     if (-d.score > node.score) {
                         tt.scoreImprovements++;
@@ -124,7 +110,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
             for (short i = 0; i < children.length; i++) {
                 if (BEST_FIRST && i == currChild) continue;
 
-                depthFirstSearch(children[i], 1 - pivot, depth - 1, tt);
+                depthFirstSearch(children[i], 1 - pivot, depth - 1);
 
                 if (-children[i].score > node.score) {
                     tt.scoreImprovements++;
@@ -152,7 +138,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
             System.out.flush();
             first = false;
 
-            bestChild = depthFirstSearch(root, pivot, depth, tt);
+            bestChild = depthFirstSearch(root, pivot, depth);
 
             if (root.score < pivot) {
                 upperBound = root.score;
