@@ -10,8 +10,7 @@ class Shutdown extends Thread {
     }
 }
 
-public final class Mtdf extends ibis.satin.SatinObject implements
-        MtdfInterface, java.io.Serializable {
+public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface {
 
     static final boolean BEST_FIRST = true;
 
@@ -24,7 +23,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements
 
     static TranspositionTable tt; // must be static, each machine has its own tt
 
-    int pivot = 0;
+    transient int pivot = 0;
 
     static {
         try {
