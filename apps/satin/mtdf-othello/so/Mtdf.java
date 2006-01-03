@@ -28,6 +28,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
     static {
         try {
             tt = new TranspositionTable(getTagSize());
+            tt.exportObject();
         } catch (Exception e) {
             System.err.println("Error creating transposition table: "
                 + e.getMessage());
