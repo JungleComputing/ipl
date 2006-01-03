@@ -1,32 +1,51 @@
+class Shutdown extends Thread {
+    TranspositionTable tt;
+
+    Shutdown(TranspositionTable tt) {
+        this.tt = tt;
+    }
+
+    public void run() {
+        tt.stats();
+    }
+}
+
 public final class Mtdf extends ibis.satin.SatinObject implements
         MtdfInterface, java.io.Serializable {
-    static final int INF = 10000;
-
-    static TranspositionTable tt;
 
     static final boolean BEST_FIRST = true;
 
     static final boolean DO_ABORT = true;
 
-    static int pivot = 0;
-
-    static int threshold = ibis.util.TypedProperties.intProperty(
+    static final int THRESHOLD = ibis.util.TypedProperties.intProperty(
         "mtdf.threshold", 7);
+
+    static final int INF = 10000;
+
+    static TranspositionTable tt; // must be static, each machine has its own tt
+
+    int pivot = 0;
 
     static {
         try {
-            tt = new TranspositionTable(Main.getTagSize());
+            tt = new TranspositionTable(getTagSize());
         } catch (Exception e) {
             System.err.println("Error creating transposition table: "
                 + e.getMessage());
             System.exit(1);
         }
+
+        Runtime.getRuntime().addShutdownHook(new Shutdown(tt));
     }
 
     public void spawn_depthFirstSearch(NodeType node, int pivot, int depth,
             short currChild) throws Done {
         depthFirstSearch(node, pivot, depth);
         throw new Done(node.score, currChild);
+    }
+
+    static int getTagSize() {
+        return OthelloBoard.getTagSize();
     }
 
     NodeType depthFirstSearch(NodeType node, int pivot, int depth) {
@@ -79,7 +98,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements
             }
         }
 
-        if (depth > threshold) {
+        if (depth > THRESHOLD) {
             for (short i = (short) (children.length - 1); i >= 0; i--) {
                 if (BEST_FIRST && i == currChild) continue;
 
@@ -149,12 +168,66 @@ public final class Mtdf extends ibis.satin.SatinObject implements
         return bestChild;
     }
 
-    static NodeType doMtdf(NodeType root, int depth) {
-        Mtdf m = new Mtdf();
-        return m.mtdf(root, depth);
+    OthelloBoard search(OthelloBoard root, int depth) {
+        OthelloBoard bestChild = null;
+
+        for (int d = 1; d <= depth; d += 2) {
+            System.out.println("depth is now: " + d);
+            bestChild = (OthelloBoard) mtdf(root, d);
+        }
+
+        return bestChild;
     }
 
     public static void main(String[] args) {
-        Main.do_main(args);
+        int option = 0;
+        int depth = 13;
+        String file = null;
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-f")) {
+                file = args[++i];
+            } else if (option == 0) {
+                depth = Integer.parseInt(args[i]);
+                option++;
+            } else {
+                System.err.println("No such option: " + args[i]);
+                System.exit(1);
+            }
+        }
+
+        if (option > 1) {
+            System.err.println("Usage: java Mtdf [-f file] [depth]");
+            System.exit(1);
+        }
+
+        OthelloBoard root;
+        if (file == null) {
+            root = OthelloBoard.getRoot();
+        } else {
+            root = OthelloBoard.readBoard(file);
+        }
+
+        System.out.println("searching with root: ");
+        root.print();
+
+        Mtdf m = new Mtdf();
+
+        long start = System.currentTimeMillis();
+        OthelloBoard bestChild = m.search(root, depth);
+        long end = System.currentTimeMillis();
+
+        if (bestChild == null) {
+            System.err.println("No result! Help!");
+            System.exit(1);
+        }
+
+        System.out.println("Best move: ");
+        bestChild.invert().print();
+
+        System.out.println("application Othello (" + depth + ","
+            + (file == null ? "start" : file) + ") took "
+            + ((double) (end - start) / 1000.0) + " seconds");
+
     }
 }
