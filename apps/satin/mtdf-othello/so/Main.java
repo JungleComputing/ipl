@@ -1,4 +1,4 @@
-class Main {
+class Main implements Runnable {
     int depth;
 
     String file;
@@ -39,6 +39,9 @@ class Main {
     }
 
     void search() {
+        
+        Runtime.getRuntime().addShutdownHook(new Thread(this));
+        
         OthelloBoard root;
         OthelloBoard bestChild = null;
 
@@ -72,4 +75,10 @@ class Main {
 
         Mtdf.tt.stats();
     }
+
+    /* this class also functions as a shutdownhook */
+    public void run() {
+        Mtdf.tt.stats();
+    }
+    
 }
