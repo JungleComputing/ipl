@@ -13,33 +13,30 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
 
     transient int pivot = 0;
 
-    static int getTagSize() {
-        return OthelloBoard.getTagSize();
-    }
-
     Mtdf() {
         try {
-            tt = new TranspositionTable(getTagSize());
+            tt = new TranspositionTable();
             tt.exportObject();
         } catch (Exception e) {
             System.err.println("Error creating transposition table: "
                 + e.getMessage());
             System.exit(1);
         }
-}
-    
+    }
+
     public void spawn_depthFirstSearch(NodeType node, int pivot, int depth,
             short currChild, TranspositionTable tt) throws Done {
         depthFirstSearch(node, pivot, depth, tt);
         throw new Done(node.score, currChild);
     }
 
-    NodeType depthFirstSearch(NodeType node, int pivot, int depth, TranspositionTable tt) {
-        NodeType children[];
+    NodeType depthFirstSearch(NodeType node, int pivot, int depth,
+            TranspositionTable tt) {
+        NodeType children[] = null;
         short bestChild = 0;
         short currChild = 0;
-        int ttIndex;
-        Tag tag;
+        int ttIndex = 0;
+        Tag tag = null;
 
         tt.visited++;
 
@@ -50,22 +47,27 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
 
         tag = node.getTag();
 
-        ttIndex = tt.lookup(tag);
-        if (ttIndex != -1) {
-            tt.sorts++;
-            if (tt.depths[ttIndex] >= depth) {
-                if ((tt.lowerBounds[ttIndex] ? tt.values[ttIndex] >= pivot
-                    : tt.values[ttIndex] < pivot)) {
-                    tt.hits++;
-                    node.score = tt.values[ttIndex];
-                    return children[tt.bestChildren[ttIndex]];
+        // @@@ should maybe be sync, but satinc dies ??? --Rob
+
+//        synchronized (tt) {
+            ttIndex = tt.lookup(tag);
+            if (ttIndex != -1) {
+                tt.sorts++;
+                if (tt.depths[ttIndex] >= depth) {
+                    
+                    if ((tt.lowerBounds[ttIndex] ? tt.values[ttIndex] >= pivot
+                        : tt.values[ttIndex] < pivot)) {
+                        tt.hits++;
+                        node.score = tt.values[ttIndex];
+                        return children[tt.bestChildren[ttIndex]];
+                    }
                 }
+
+                currChild = tt.bestChildren[ttIndex];
             }
+//        }
 
-            currChild = tt.bestChildren[ttIndex];
-        }
-
-        node.score = -INF;
+              node.score = -INF;
         if (BEST_FIRST) {
             depthFirstSearch(children[currChild], 1 - pivot, depth - 1, tt);
 
@@ -83,14 +85,14 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
                 }
             }
         }
-
         if (depth > THRESHOLD) {
             for (short i = (short) (children.length - 1); i >= 0; i--) {
                 if (BEST_FIRST && i == currChild) continue;
 
                 try {
-                    spawn_depthFirstSearch(children[i], 1 - pivot, depth - 1, i, tt);
-                } catch (Done d) {
+                    spawn_depthFirstSearch(children[i], 1 - pivot, depth - 1,
+                        i, tt);
+              } catch (Done d) {
                     if (-d.score > node.score) {
                         tt.scoreImprovements++;
                         bestChild = d.currChild;

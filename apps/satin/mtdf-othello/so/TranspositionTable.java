@@ -3,44 +3,43 @@ import ibis.satin.so.SharedObject;
 final class TranspositionTable extends SharedObject implements
         TranspositionTableIntr {
 
-    static final boolean SUPPORT_TT = true;
+    private static final boolean SUPPORT_TT = true;
 
-    static final int SIZE = 1 << 23;
+    private static final int SIZE = 1 << 23;
 
-    static final int BUF_SIZE = 10000;
+    transient int lookups, hits, sorts, stores, used, overwrites, visited,
+            scoreImprovements, cutOffs;
 
-    int lookups, hits, sorts, stores, used, overwrites,
-            visited, scoreImprovements, cutOffs;
+    transient short[] values;
+    transient short[] bestChildren;
+    transient byte[] depths;
+    transient boolean[] lowerBounds;
 
-    int poolSize;
+    transient private int tagSize;
+    transient private int[] tags;
+    transient private boolean[] valid;
 
-    int rank;
+    transient boolean inited;
 
-    int tagSize;
+    private void init() {
+        values = new short[SIZE];
+        bestChildren = new short[SIZE];
+        depths = new byte[SIZE];
+        lowerBounds = new boolean[SIZE];
+        valid = new boolean[SIZE];
 
-    int[] tags;
+        tagSize = OthelloBoard.getTagSize();
+        tags = new int[SIZE * tagSize];
 
-    short[] values = new short[SIZE];
-
-    short[] bestChildren = new short[SIZE];
-
-    byte[] depths = new byte[SIZE];
-
-    boolean[] lowerBounds = new boolean[SIZE];
-
-    boolean[] valid = new boolean[SIZE];
-
-    int bufCount;
-
-    TranspositionTable(int tagSize) {
-        this.tagSize = tagSize;
-        this.tags = new int[SIZE * tagSize];
+        inited = true;
     }
 
-    synchronized int lookup(Tag tag) {
-        lookups++;
-
+    int lookup(Tag tag) {
         if (!SUPPORT_TT) return -1;
+
+        if (!inited) init();
+
+        lookups++;
 
         int index = tag.hashCode() & (SIZE - 1);
 
@@ -60,8 +59,10 @@ final class TranspositionTable extends SharedObject implements
         sharedStore(index, tag, value, bestChild, depth, lowerBound);
     }
 
-    synchronized void localStore(int index, Tag tag, short value,
+    void localStore(int index, Tag tag, short value,
             short bestChild, byte depth, boolean lowerBound) {
+        if (!inited) init();
+
         stores++;
 
         if (!valid[index])
@@ -87,8 +88,7 @@ final class TranspositionTable extends SharedObject implements
         System.err.println("tt: lookups: " + lookups + ", hits: " + hits
             + ", sorts: " + sorts + ", stores: " + stores + ", used: " + used
             + ", overwrites: " + overwrites + ", score incs: "
-            + scoreImprovements 
-            +  ", cutoffs: " + cutOffs
-            + ", visited: " + visited);
+            + scoreImprovements + ", cutoffs: " + cutOffs + ", visited: "
+            + visited);
     }
 }
