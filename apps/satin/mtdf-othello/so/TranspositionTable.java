@@ -1,5 +1,17 @@
 import ibis.satin.so.SharedObject;
 
+class Shutdown extends Thread {
+    TranspositionTable tt;
+    
+    Shutdown(TranspositionTable tt) {
+        this.tt = tt;
+    }
+    
+    public void run() {
+        tt.stats();
+    }
+}
+
 final class TranspositionTable extends SharedObject implements
         TranspositionTableIntr {
 
@@ -32,6 +44,8 @@ final class TranspositionTable extends SharedObject implements
         tags = new int[SIZE * tagSize];
 
         inited = true;
+        
+        Runtime.getRuntime().addShutdownHook(new Shutdown(this));
     }
 
     int lookup(Tag tag) {
