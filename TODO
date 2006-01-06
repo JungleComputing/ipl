@@ -67,6 +67,8 @@ satin:
 - shutdownhook -> System.exit
 - satinc does not understand monitorenter/monitor exit instructions (othello)
 - mayor abort bug: gebruik try catch ipv return null, maak nieuwe runtime exception in satin. 
+- move shared objects user API to satin package (remove satin.so package)
+- add comments to user API for shared objects
 
 implementations:
 - PandaIbis connection management broken (e.g. connectedTo())
