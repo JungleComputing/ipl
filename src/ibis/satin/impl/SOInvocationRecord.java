@@ -2,22 +2,18 @@ package ibis.satin.impl;
 
 import ibis.satin.so.SharedObject;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 public abstract class SOInvocationRecord implements java.io.Serializable {
 
     public String objectId;
 
     public SOInvocationRecord(String objectId) {
-	this.objectId = objectId;
+        this.objectId = objectId;
     }
 
     public abstract void invoke(SharedObject object);
 
+    // Ceriel already implemented a more efficient clone, use that if needed --Rob */
+    /*
     protected Object cloneObject(Object object) {
 	Object copiedObject = null;
 	
@@ -44,5 +40,5 @@ public abstract class SOInvocationRecord implements java.io.Serializable {
     
 	return copiedObject;
     }
-
+*/
 }

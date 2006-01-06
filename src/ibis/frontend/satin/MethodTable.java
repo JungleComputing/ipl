@@ -762,7 +762,7 @@ final class MethodTable {
         }
 
         new Exception().printStackTrace();
-        System.err.println("getLocal: could not find local " + localNr);
+        System.err.println("getLocal: could not find local " + localNr + " of method " + m.getName() + " instruction: " + curr);
         System.err.println("Maybe you need to initialize the variable");
         System.exit(1);
         return null;
