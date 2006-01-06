@@ -52,6 +52,7 @@ satin:
   it is assumed to be an inlet. Is this OK?
 - rob (na distro): check satin caches.
 - shutdownhook -> System.exit
+- satinc does not understand monitorenter/monitor exit instructions (othello)
 
 implementations:
 - PandaIbis connection management broken (e.g. connectedTo())
