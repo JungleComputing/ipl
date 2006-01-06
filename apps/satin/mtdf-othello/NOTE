@@ -1,1 +1,4 @@
-The par_gmi version is currently not working, and -because it is impossible to test it properly- also merely a GMI version of par_rmi, not finetuned to do only broadcasting of the "best" TT entries. It is merely here for completeness.
+The par_gmi version is currently not working, and -because it is impossible 
+to test it properly- also merely a GMI version of par_rmi, not finetuned to 
+do only broadcasting of the "best" TT entries. It is merely here for 
+completeness.
