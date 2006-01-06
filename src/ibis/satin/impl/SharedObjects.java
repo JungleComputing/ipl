@@ -162,8 +162,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
              + e);				   
              }
              }*/
+            soInvocationsDelayTimer = -1; // @@@ AARG, this line was outside the if, that can't be correct, right? Rob
         }
-        soInvocationsDelayTimer = -1;
     }
 
     /** Broadcast an so invocation*/
