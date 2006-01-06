@@ -2,7 +2,10 @@
 
 package ibis.satin;
 
+import java.io.Serializable;
+
 import ibis.satin.impl.APIMethods;
+import ibis.util.DeepCopy;
 
 /**
  * This is the magic class that should be extended by objects that invoke
@@ -69,5 +72,14 @@ public class SatinObject implements java.io.Serializable {
      */
     public static boolean localJob() {
         return APIMethods.localJob();
+    }
+
+    /**
+     * Creates and returns a deep copy of the specified object.
+     * @param o the object to be copied
+     * @return the copy.
+     */
+    public static Serializable deepCopy(Serializable o) {
+        return DeepCopy.deepCopy(o);
     }
 }
