@@ -243,6 +243,11 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             broadcastSOInvocationsTimer.stop();
         }
 
+        // @@@ I added this code, shouldn't we try to send immediately if needed?
+        // We might not reach a safe point for a considerable time
+        if (soInvocationsDelay > 0) {
+            sendAccumulatedSOInvocations();
+        }
     }
 
     /** Execute all the so invocations stored in the
