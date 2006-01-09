@@ -135,6 +135,10 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 (elapsed > soInvocationsDelay ||
                 soCurrTotalMessageSize > soMaxMessageSize)) {
             try {
+                if (SO_TIMING) {
+                    broadcastSOInvocationsTimer.start();
+                }
+
                 soMessageCombiner.sendAccumulatedMessages();
                 //WriteMessage w = soSendPort.newMessage();
                 //w.writeInt(soInvocationsToSend.size());
@@ -167,6 +171,10 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             writtenInvocations = 0;
             soCurrTotalMessageSize = 0;
             soInvocationsDelayTimer = -1; // @@@ AARG, this line was outside the if, that can't be correct, right? Rob
+
+            if (SO_TIMING) {
+                broadcastSOInvocationsTimer.stop();
+            }
         }
     }
 
@@ -247,14 +255,15 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         soInvocations++;
         soInvocationsBytes += byteCount;
 
-        if (SO_TIMING) {
-            broadcastSOInvocationsTimer.stop();
-        }
 
         // @@@ I added this code, shouldn't we try to send immediately if needed?
         // We might not reach a safe point for a considerable time
         if (soInvocationsDelay > 0) {
             sendAccumulatedSOInvocations();
+        }
+
+        if (SO_TIMING) {
+            broadcastSOInvocationsTimer.stop();
         }
     }
 
