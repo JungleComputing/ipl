@@ -207,7 +207,7 @@ public abstract class Initialization extends SatinBase {
             } else if (args[i].equals("-satin-so-size")) {
                 i++;
                 try {
-                    soMaxMessageSize = Integer.parseInt(args[i]);
+                    soMaxMessageSize = Integer.parseInt(args[i]) * 1024;
                 } catch (NumberFormatException e) {
                     System.err.println("SATIN: invalid so size");
                 }
