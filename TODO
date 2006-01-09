@@ -57,6 +57,9 @@ satin:
 - make scalable ibis / scalable satin (don't keep sockets open) --Rob
 + als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
   print bij top of the stack.
+- satinc barfs when you have a method that both spawns and has "synchronized"
+  blocks. Reason: javac generates local variables for those, without entries
+  in the local variable table.
 - add semantic analysis to the compiler
 - forgotten sync statements
 - make return / throw an implicit sync again?
