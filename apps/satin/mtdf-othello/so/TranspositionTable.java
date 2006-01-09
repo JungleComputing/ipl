@@ -70,7 +70,7 @@ final class TranspositionTable extends SharedObject implements
 
         if (valid[index] && depth < depths[index]) return;
 
-        sharedStore(index, tag, value, bestChild, depth, lowerBound);
+//        sharedStore(index, tag, value, bestChild, depth, lowerBound);
     }
 
     void localStore(int index, Tag tag, short value,
