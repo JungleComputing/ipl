@@ -136,7 +136,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 soCurrTotalMessageSize > soMaxMessageSize)) {
             try {
                 soMessageCombiner.sendAccumulatedMessages();
-                System.err.print("s");
                 //WriteMessage w = soSendPort.newMessage();
                 //w.writeInt(soInvocationsToSend.size());
                 //while(true) {
