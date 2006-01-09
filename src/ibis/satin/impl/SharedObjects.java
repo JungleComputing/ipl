@@ -218,6 +218,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 
                 if (soInvocationsDelay > 0) {
                     soCurrTotalMessageSize += byteCount;
+                } else {
+                    soRealMessageCount++;
                 }
             } catch (IOException e) {
                 System.err
@@ -264,7 +266,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         if (soInvocationsDelay > 0) {
             sendAccumulatedSOInvocations();
         }
-
     }
 
     /** Execute all the so invocations stored in the
