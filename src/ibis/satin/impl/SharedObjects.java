@@ -131,10 +131,12 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
     void sendAccumulatedSOInvocations() {
         long currTime = System.currentTimeMillis();
         long elapsed = currTime - soInvocationsDelayTimer;
-        if ((soInvocationsDelayTimer > 0 && elapsed > soInvocationsDelay) ||
-                soCurrTotalMessageSize > soMaxMessageSize) {
+        if (soInvocationsDelayTimer > 0 && 
+                (elapsed > soInvocationsDelay ||
+                soCurrTotalMessageSize > soMaxMessageSize)) {
             try {
                 soMessageCombiner.sendAccumulatedMessages();
+                System.err.print("s");
                 //WriteMessage w = soSendPort.newMessage();
                 //w.writeInt(soInvocationsToSend.size());
                 //while(true) {
