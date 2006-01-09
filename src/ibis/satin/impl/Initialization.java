@@ -127,13 +127,13 @@ public abstract class Initialization extends SatinBase {
             } else if (args[i].equals("-satin-ibis")) {
                 if (sunSerialization) {
                     System.err.println("-satin-sun and -satin-ibis specified!");
-                    System.exit(1);     // Conflicting options
+                    System.exit(1); // Conflicting options
                 }
                 ibisSerialization = true;
             } else if (args[i].equals("-satin-sun")) {
                 if (ibisSerialization) {
                     System.err.println("-satin-sun and -satin-ibis specified!");
-                    System.exit(1);     // Conflicting options
+                    System.exit(1); // Conflicting options
                 }
                 sunSerialization = true;
             } else if (args[i].equals("-satin-no-upcalls")) {
@@ -147,9 +147,10 @@ public abstract class Initialization extends SatinBase {
                 try {
                     suggestedQueueSize = Integer.parseInt(args[i]);
                 } catch (Exception e) {
-                    System.err.println("Option -satin-queue-size needs integer "
+                    System.err
+                        .println("Option -satin-queue-size needs integer "
                             + "parameter.");
-                    System.exit(1);     // Wrong option
+                    System.exit(1); // Wrong option
                 }
             } else if (args[i].equals("-satin-alg")) {
                 i++;
@@ -194,15 +195,22 @@ public abstract class Initialization extends SatinBase {
             } else if (args[i].equals("-satin-dump")) {
                 dump = true;
             } else if (args[i].equals("-satin-initial-node")) {
-		initialNode = true;
+                initialNode = true;
                 getTable = false;
-	    } else if (args[i].equals("-satin-so-delay")) {
-		i++;
-		try {
-		    soInvocationsDelay = Integer.parseInt(args[i]);
-		} catch (NumberFormatException e) {
-		    System.err.println("SATIN: invalid so delay");
-		}
+            } else if (args[i].equals("-satin-so-delay")) {
+                i++;
+                try {
+                    soInvocationsDelay = Integer.parseInt(args[i]);
+                } catch (NumberFormatException e) {
+                    System.err.println("SATIN: invalid so delay");
+                }
+            } else if (args[i].equals("-satin-so-size")) {
+                i++;
+                try {
+                    soMaxMessageSize = Integer.parseInt(args[i]);
+                } catch (NumberFormatException e) {
+                    System.err.println("SATIN: invalid so size");
+                }
             } else {
                 tempArgs.add(args[i]);
             }
@@ -211,8 +219,8 @@ public abstract class Initialization extends SatinBase {
         if (alg == null) {
             if (master) {
                 System.err.println("SATIN '" + hostName
-                        + "': satin_algorithm property not specified, "
-                        + "using RS");
+                    + "': satin_algorithm property not specified, "
+                    + "using RS");
             }
             alg = "RS";
         }
@@ -225,9 +233,9 @@ public abstract class Initialization extends SatinBase {
             algorithm = new MasterWorker(satin);
         } else {
             System.err.println("SATIN '" + hostName + "': satin_algorithm '"
-                    + alg + "' unknown");
+                + alg + "' unknown");
             algorithm = null;
-            System.exit(1);     // Wrong option
+            System.exit(1); // Wrong option
         }
 
         mergeUserPropertiesWithParams(reqprops);
@@ -247,7 +255,7 @@ public abstract class Initialization extends SatinBase {
         if (str != null) {
             if (closed && !str.equals("closed")) {
                 System.err.println("Inconsistent options: -satin-closed and "
-                        + "-Dibis.worldmodel=" + str);
+                    + "-Dibis.worldmodel=" + str);
                 System.exit(1); // Conflicting options
             }
             if (str.equals("closed")) {
@@ -259,7 +267,7 @@ public abstract class Initialization extends SatinBase {
             String s2 = reqprops.getProperty("name");
             if (s2 != null && !s2.equals(str)) {
                 System.err.println("Inconsistent options: -satin-" + s2
-                        + " and -Dibis.name=" + str);
+                    + " and -Dibis.name=" + str);
                 System.exit(1); // Conflicting options
             }
         }
@@ -267,12 +275,12 @@ public abstract class Initialization extends SatinBase {
         if (str != null) {
             if (ibisSerialization && !str.equals("ibis")) {
                 System.err.println("Inconsistent options: -satin-ibis and "
-                        + "-Dibis.serialization=" + str);
+                    + "-Dibis.serialization=" + str);
                 System.exit(1); // Conflicting options
             }
             if (sunSerialization && !str.equals("sun")) {
                 System.err.println("Inconsistent options: -satin-sun and "
-                        + "-Dibis.serialization=" + str);
+                    + "-Dibis.serialization=" + str);
                 System.exit(1); // Conflicting options
             }
             if (str.equals("ibis")) {
@@ -284,10 +292,9 @@ public abstract class Initialization extends SatinBase {
         }
     }
 
-    StaticProperties createIbisProperties(
-            StaticProperties requestedProperties) {
+    StaticProperties createIbisProperties(StaticProperties requestedProperties) {
         StaticProperties ibisProperties = new StaticProperties(
-                requestedProperties);
+            requestedProperties);
 
         if (ibisSerialization) {
             ibisProperties.add("serialization", "byte, ibis");
@@ -303,8 +310,7 @@ public abstract class Initialization extends SatinBase {
             ibisProperties.add("worldmodel", "open");
         }
 
-        String commprops
-            = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+        String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
         if (TupleSpace.use_seq) {
             commprops += ", Numbered";
         }
@@ -323,8 +329,8 @@ public abstract class Initialization extends SatinBase {
         return ibisProperties;
     }
 
-    PortType createSatinPortType(StaticProperties reqprops)
-            throws IOException, IbisException {
+    PortType createSatinPortType(StaticProperties reqprops) throws IOException,
+            IbisException {
         StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
         if (closed) {
@@ -370,8 +376,7 @@ public abstract class Initialization extends SatinBase {
             satinPortProperties.add("worldmodel", "open");
         }
 
-        String commprops
-                = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+        String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
         if (TupleSpace.use_seq) {
             commprops += ", Numbered";
         }
@@ -416,7 +421,7 @@ public abstract class Initialization extends SatinBase {
         }
 
         s.add("communication", "OneToOne, ManyToOne, Reliable, "
-                + "ExplicitReceipt");
+            + "ExplicitReceipt");
 
         return ibis.createPortType("satin barrier porttype", s);
     }
@@ -456,14 +461,14 @@ public abstract class Initialization extends SatinBase {
         }
 
         return ibis.createPortType("satin global result table porttype",
-                satinPortProperties);
+            satinPortProperties);
     }
-    
-    PortType createSOPortType(StaticProperties reqprops)
-            throws IOException, IbisException {
-            
+
+    PortType createSOPortType(StaticProperties reqprops) throws IOException,
+            IbisException {
+
         return createGlobalResultTablePortType(reqprops);
-        
+
     }
 
 }
