@@ -128,19 +128,19 @@ class StatsMessage implements java.io.Serializable {
     long soTransfersBytes;
 
     double broadcastSOInvocationsTime;
-    
+
     double handleSOInvocationsTime;
 
     double soTransferTime;
 
     double handleSOTransferTime;
-    
+
     double soSerializationTime;
 
     double soDeserializationTime;
 
     long soRealMessageCount;
-    
+
     void add(StatsMessage s) {
         spawns += s.spawns;
         jobsExecuted += s.jobsExecuted;
@@ -170,7 +170,7 @@ class StatsMessage implements java.io.Serializable {
         pollTime += s.pollTime;
         pollCount += s.pollCount;
         tupleTime += s.tupleTime;
-	handleTupleTime += s.handleTupleTime;
+        handleTupleTime += s.handleTupleTime;
         invocationRecordWriteTime += s.invocationRecordWriteTime;
         invocationRecordWriteCount += s.invocationRecordWriteCount;
         invocationRecordReadTime += s.invocationRecordReadTime;
@@ -183,7 +183,7 @@ class StatsMessage implements java.io.Serializable {
         tupleWaitCount += s.tupleWaitCount;
         tupleSeqTime += s.tupleSeqTime;
         tupleSeqCount += s.tupleSeqCount;
-	returnRecordBytes += s.returnRecordBytes;
+        returnRecordBytes += s.returnRecordBytes;
 
         //fault tolerance
         tableResultUpdates += s.tableResultUpdates;
@@ -205,16 +205,17 @@ class StatsMessage implements java.io.Serializable {
         crashHandlingTime += s.crashHandlingTime;
         addReplicaTime += s.addReplicaTime;
 
-	//shared objects
-	soInvocations += s.soInvocations;
-	soInvocationsBytes += s.soInvocationsBytes;
-	soTransfers += s.soTransfers;
-	soTransfersBytes += s.soTransfersBytes;
-	broadcastSOInvocationsTime += s.broadcastSOInvocationsTime;
-	handleSOInvocationsTime += s.handleSOInvocationsTime;
-	soTransferTime += s.soTransferTime;
-	handleSOTransferTime += s.handleSOTransferTime;
-	soSerializationTime += s.soSerializationTime;
-	soDeserializationTime += s.soDeserializationTime;
+        //shared objects
+        soInvocations += s.soInvocations;
+        soInvocationsBytes += s.soInvocationsBytes;
+        soTransfers += s.soTransfers;
+        soTransfersBytes += s.soTransfersBytes;
+        broadcastSOInvocationsTime += s.broadcastSOInvocationsTime;
+        handleSOInvocationsTime += s.handleSOInvocationsTime;
+        soTransferTime += s.soTransferTime;
+        handleSOTransferTime += s.handleSOTransferTime;
+        soSerializationTime += s.soSerializationTime;
+        soDeserializationTime += s.soDeserializationTime;
+        soRealMessageCount += s.soRealMessageCount;
     }
 }
