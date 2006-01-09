@@ -73,6 +73,27 @@ satin:
 - move shared objects user API to satin package (remove satin.so package) --Rob
 - add comments to user API for shared objects --Rob
 - mayor satin cleanup (for ibis 2.0): remove old features, fix ugly structure --Rob
+- remove all satin commandline options, use properties instead (now most options are there twice) --Rob
+
+satin-so:
+- talk to gosia about message combining bug, it basically cannot have worked --Rob
+- fix statistics with message combining on, the only measure serialization time now, not the actual send time
+  (maybe that's the reason why you thought message combining actually worked) --Rob
+- also send when combined message reaches a certain size --Rob
+- add stats to count the actual number of combined messages sent + ratio --Rob
+- count all messages+sizes for the total messages/data sent statistics --Rob
+- do not send the same object (and the same version) twice.
+  This can happen if it is both broadcast, and pulled at the same time --Rob
+- remove exportObject call somehow if possible (or at least give error message 
+  if forgotten) --Rob
+- Allow shared objects to be passed anywhere in the parameter data 
+  structures. Now only directly as a param. Maybe use stubs instead of
+  direct access? This would make the implementation much easier --Rob
+- message combining does not help because:  (--Rob)
+    - object-id is sent every time (long string)
+    - combiner is synchronized
+    - overhead of method calls, serialization
+ 
 
 implementations:
 - PandaIbis connection management broken (e.g. connectedTo())
