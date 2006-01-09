@@ -9,6 +9,9 @@ general:
 - move applications to a real tree
 - switch to subversion
 - keep a changelog, publish it on the website
+- traffic shaping
+- add calls to IPL: amount of data written/read in a message so far.
+  this is needed for traffic shaping --Rob
 
 prun:
 + add readme on how to start ibis with prun for the VU people
