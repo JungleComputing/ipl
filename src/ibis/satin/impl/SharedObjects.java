@@ -130,8 +130,9 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 
     void sendAccumulatedSOInvocations() {
         long currTime = System.currentTimeMillis();
-        if (soInvocationsDelayTimer > 0
-            && (currTime - soInvocationsDelayTimer) > soInvocationsDelay) {
+        long elapsed = currTime - soInvocationsDelayTimer;
+        if ((soInvocationsDelayTimer > 0 && elapsed > soInvocationsDelay) ||
+                soCurrTotalMessageSize > soMaxMessageSize) {
             try {
                 soMessageCombiner.sendAccumulatedMessages();
                 //WriteMessage w = soSendPort.newMessage();
@@ -146,7 +147,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 //}
                 //long byteCount = w.finish();
                 //soInvocationsBytes += byteCount;
-                writtenInvocations = 0;
             } catch (IOException e) {
                 System.err.println("SATIN '" + ident.name()
                     + "': unable to broadcast shared object invocations " + e);
@@ -162,6 +162,9 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
              + e);				   
              }
              }*/
+            soRealMessageCount++;
+            writtenInvocations = 0;
+            soCurrTotalMessageSize = 0;
             soInvocationsDelayTimer = -1; // @@@ AARG, this line was outside the if, that can't be correct, right? Rob
         }
     }
@@ -203,6 +206,10 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 w.writeObject(r);
                 byteCount = w.finish();
 
+                
+                if (soInvocationsDelay > 0) {
+                    soCurrTotalMessageSize += byteCount;
+                }
             } catch (IOException e) {
                 System.err
                     .println("SATIN '" + ident.name()

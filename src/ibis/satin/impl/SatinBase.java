@@ -53,6 +53,14 @@ public abstract class SatinBase implements Config {
     int soInvocationsDelay = 0;
     //if > 0, it is used for combining shared objects invocations
 
+    int soMaxMessageSize = 64 * 1024;
+    // The maximum message size for messagecombining for shared objects
+    
+    long soCurrTotalMessageSize = 0;
+    // the current size of the accumulated so messages
+
+    long soRealMessageCount = 0;
+    
     long soInvocationsDelayTimer = -1;
 
     protected boolean dump = false;

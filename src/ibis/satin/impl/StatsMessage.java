@@ -139,6 +139,8 @@ class StatsMessage implements java.io.Serializable {
 
     double soDeserializationTime;
 
+    long soRealMessageCount;
+    
     void add(StatsMessage s) {
         spawns += s.spawns;
         jobsExecuted += s.jobsExecuted;
