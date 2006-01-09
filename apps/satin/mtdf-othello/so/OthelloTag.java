@@ -1,4 +1,4 @@
-class OthelloTag extends Tag {
+final class OthelloTag extends Tag {
     public static final int SIZE = 4;
 
     private int[] value = new int[SIZE];
