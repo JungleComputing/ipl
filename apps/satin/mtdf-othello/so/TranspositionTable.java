@@ -19,6 +19,8 @@ final class TranspositionTable extends SharedObject implements
 
     private static final int SIZE = 1 << 23;
 
+    private static final int REPLICATED_DEPTH = 7;
+    
     transient int lookups, hits, sorts, stores, used, overwrites, visited,
             scoreImprovements, cutOffs;
 
@@ -70,7 +72,11 @@ final class TranspositionTable extends SharedObject implements
 
         if (valid[index] && depth < depths[index]) return;
 
-        sharedStore(index, tag, value, bestChild, depth, lowerBound);
+        if (depth >= REPLICATED_DEPTH) {
+            sharedStore(index, tag, value, bestChild, depth, lowerBound);
+        } else {
+            localStore(index, tag, value, bestChild, depth, lowerBound);
+        }
     }
 
     void localStore(int index, Tag tag, short value,
