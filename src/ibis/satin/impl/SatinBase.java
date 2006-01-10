@@ -474,7 +474,7 @@ public abstract class SatinBase implements Config {
 
     abstract void attachToParentToBeRestarted(InvocationRecord r);
 
-    abstract void broadcastSharedObject(ibis.satin.so.SharedObject object);
+    abstract void broadcastSharedObject(ibis.satin.SharedObject object);
 
     abstract void broadcastSOInvocation(SOInvocationRecord r);
 

@@ -7,7 +7,6 @@ import java.net.*;
 
 import ibis.util.PoolInfo;
 import ibis.satin.*;
-import ibis.satin.so.*;
 
 final class TranspositionTable extends SharedObject
     implements TranspositionTableInterface, Serializable {

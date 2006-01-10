@@ -1,4 +1,4 @@
-import ibis.satin.so.SharedObject;
+import ibis.satin.SharedObject;
 
 class Shutdown extends Thread {
     TranspositionTable tt;

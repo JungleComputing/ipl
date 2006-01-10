@@ -8,7 +8,7 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 import ibis.satin.ActiveTuple;
-import ibis.satin.so.SharedObject;
+import ibis.satin.SharedObject;
 import ibis.util.Timer;
 
 import java.io.IOException;

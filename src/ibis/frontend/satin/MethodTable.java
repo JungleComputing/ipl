@@ -744,8 +744,7 @@ final class MethodTable {
 
         for (int i = 0; i < lt.length; i++) {
             // Watch out. The first initialization seems not to be included in
-            // the range
-            // given in the local variable table!
+            // the range given in the local variable table!
             if (localNr == lt[i].getIndex()
                     && pos >= lt[i].getStart().getPrev().getPosition()
                     && pos < (lt[i].getEnd().getPosition())) {
@@ -764,6 +763,8 @@ final class MethodTable {
         new Exception().printStackTrace();
         System.err.println("getLocal: could not find local " + localNr + " of method " + m.getName() + " instruction: " + curr);
         System.err.println("Maybe you need to initialize the variable");
+        System.err.println("Class: " + c.getClassName() + ", method: " + m.getName());
+        System.err.println("Code: " + m.getInstructionList().toString());
         System.exit(1);
         return null;
     }

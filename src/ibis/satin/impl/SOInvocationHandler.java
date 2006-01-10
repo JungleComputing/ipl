@@ -2,7 +2,7 @@ package ibis.satin.impl;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.Upcall;
-import ibis.satin.so.SharedObject;
+import ibis.satin.SharedObject;
 import ibis.util.Timer;
 import ibis.util.messagecombining.MessageSplitter;
 

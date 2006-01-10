@@ -1,4 +1,4 @@
-import ibis.satin.so.*;
+import ibis.satin.WriteMethodsInterface;
 
 public interface BodiesInterface extends WriteMethodsInterface {
 

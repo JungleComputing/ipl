@@ -299,7 +299,7 @@ public final class Satinc {
         irType = new ObjectType("ibis.satin.impl.InvocationRecord");
         satinType = new ObjectType("ibis.satin.impl.Satin");
         writeMethodsInterface = 
-	    Repository.lookupClass("ibis.satin.so.WriteMethodsInterface");
+	    Repository.lookupClass("ibis.satin.WriteMethodsInterface");
     }
 
     public String getFileBase(String pkg, String name, String pre, String post) {
@@ -2220,7 +2220,7 @@ public final class Satinc {
 	if (t instanceof ObjectType) {
 	    ObjectType typ = (ObjectType) t;
 	    if (Repository.instanceOf(typ.getClassName(), 
-				      "ibis.satin.so.SharedObject")) {
+				      "ibis.satin.SharedObject")) {
 		return true;
 	    }
 	}
@@ -3147,7 +3147,7 @@ public final class Satinc {
             out.println("package " + pnam + ";");
         }
 
-        out.println("import ibis.satin.so.*;\n");
+        out.println("import ibis.satin.*;\n");
         out.println("import ibis.satin.impl.*;\n");
 
         name = SOInvocationRecordClassName(m, clname, pnam);
@@ -3349,7 +3349,7 @@ public final class Satinc {
 		 ins_f.createInvoke("ibis.satin.impl.Satin",
 					 "broadcastSharedObject",
 					 Type.VOID,
-					 new Type[] {new ObjectType("ibis.satin.so.SharedObject")},
+					 new Type[] {new ObjectType("ibis.satin.SharedObject")},
 					 Constants.INVOKEVIRTUAL));
 
        System.err.println("il length: " + il.getLength());
@@ -3468,7 +3468,7 @@ public final class Satinc {
         }
 
         if (sharedObjects
-                && Repository.instanceOf(c, "ibis.satin.so.SharedObject")) {
+                && Repository.instanceOf(c, "ibis.satin.SharedObject")) {
 
             if (gen_c.containsField("$SOrewritten$") != null) {
                 if (verbose) {

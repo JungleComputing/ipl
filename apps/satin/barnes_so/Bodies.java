@@ -1,5 +1,5 @@
 
-import ibis.satin.so.*;
+import ibis.satin.SharedObject;
 
 public class Bodies extends SharedObject implements BodiesInterface, java.io.Serializable {
 

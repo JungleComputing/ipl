@@ -1,5 +1,5 @@
 
-final public class DistanceTable extends ibis.satin.so.SharedObject
+final public class DistanceTable extends ibis.satin.SharedObject
 implements java.io.Serializable {
 
     static int MAXX = 100, MAXY = 100, INF = Integer.MAX_VALUE;

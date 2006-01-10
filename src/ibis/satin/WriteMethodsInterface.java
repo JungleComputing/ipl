@@ -1,4 +1,4 @@
-package ibis.satin.so;
+package ibis.satin;
 
 /**
  * This interface is a marker interface for methods that change the value

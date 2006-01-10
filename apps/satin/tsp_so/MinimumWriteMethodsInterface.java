@@ -1,5 +1,5 @@
 
-interface MinimumWriteMethodsInterface extends ibis.satin.so.WriteMethodsInterface {
+interface MinimumWriteMethodsInterface extends ibis.satin.WriteMethodsInterface {
     
     public void set(int val);
     

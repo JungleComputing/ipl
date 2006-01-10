@@ -5,7 +5,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
-import ibis.satin.so.SharedObject;
+import ibis.satin.SharedObject;
 import ibis.util.messagecombining.MessageSplitter;
 
 import java.io.IOException;

@@ -17,7 +17,7 @@ prun:
 + add readme on how to start ibis with prun for the VU people
   (students keep complaining about this) --Rob
   Added to Ibis web-page (Ceriel)
-  
+ 
 nameserver:
 + nameserver is single threaded: if it cannot forward a join, everything hangs.
   --Rob
@@ -73,8 +73,9 @@ satin:
 - shutdownhook -> System.exit
 - satinc does not understand monitorenter/monitor exit instructions (othello) --Rob
 - mayor abort bug: gebruik try catch ipv return null, maak nieuwe runtime exception in satin. --Rob
-- move shared objects user API to satin package (remove satin.so package) --Rob
-- add comments to user API for shared objects --Rob
++ move shared objects user API to satin package (remove satin.so package) --Rob
+  Done (Ceriel)
++ add comments to user API for shared objects --Rob  Done (Ceriel)
 - mayor satin cleanup (for ibis 2.0): remove old features, fix ugly structure --Rob
 - remove all satin commandline options, use properties instead (now most options are there twice) --Rob
 

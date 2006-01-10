@@ -1,4 +1,4 @@
-import ibis.satin.so.WriteMethodsInterface;
+import ibis.satin.WriteMethodsInterface;
 
 public interface CostArrayInterface extends WriteMethodsInterface {
 

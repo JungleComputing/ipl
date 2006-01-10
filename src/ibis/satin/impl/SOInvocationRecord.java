@@ -1,6 +1,6 @@
 package ibis.satin.impl;
 
-import ibis.satin.so.SharedObject;
+import ibis.satin.SharedObject;
 
 public abstract class SOInvocationRecord implements java.io.Serializable {
 

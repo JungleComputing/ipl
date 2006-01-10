@@ -1,6 +1,6 @@
 
 
-final class Minimum extends ibis.satin.so.SharedObject
+final class Minimum extends ibis.satin.SharedObject
     implements java.io.Serializable,MinimumWriteMethodsInterface {
 
     int val = Integer.MAX_VALUE;

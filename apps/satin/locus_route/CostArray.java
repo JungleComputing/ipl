@@ -1,5 +1,5 @@
 
-import ibis.satin.so.SharedObject;
+import ibis.satin.SharedObject;
 
 class CostArray extends SharedObject implements CostArrayInterface {
 
