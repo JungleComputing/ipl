@@ -943,7 +943,7 @@ or by installing an upcall handler for the incoming message.
 
 Before running an Ibis application it must be compiled.  Using
 \emph{ant}, this is quite easy. Assuming that the environment variable
-\texttt{IBIS\_HOME} reflects the location of your Ibis installation,
+\texttt{IBIS\_ROOT} reflects the location of your Ibis installation,
 here is a \texttt{build.xml} file
 for our example program:
 
@@ -1597,7 +1597,7 @@ our example program:
 \end{verbatim}
 \end{quote}
 
-Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
+Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
 the location of your Ibis installation.
 Also note that the Satin bytecode rewriter needs to know the main class of your
 Satin application.
@@ -1698,7 +1698,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 \end{verbatim}
 \end{quote}
 
-Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
+Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
 the location of your Ibis installation.
 
 Invoking \emph{ant build-sun} compiles a standard Java RMI version of
@@ -1707,9 +1707,9 @@ Invoking \emph{ant build} compiles the application for Ibis RMI.
 Running an Ibis RMI program is very much like running an Ibis application.
 
 To test this for yourself, it is best to start with
-an example, say \texttt{\$IBIS\_HOME/apps/rmi/tsp}. 
+an example, say \texttt{\$IBIS\_ROOT/apps/rmi/tsp}. 
 If you want to test your own application, it is easiest to just copy
-the \texttt{build.xml} file from \texttt{\$IBIS\_HOME/apps/rmi/tsp}, and adapt it for your
+the \texttt{build.xml} file from \texttt{\$IBIS\_ROOT/apps/rmi/tsp}, and adapt it for your
 application. 
 To compile the TSP example, please type
 \begin{verbatim}
@@ -2066,7 +2066,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 \end{verbatim}
 \end{quote}
 
-Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
+Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
 the location of your Ibis installation.
 
 Invoking \emph{ant build} compiles the application for GMI.
