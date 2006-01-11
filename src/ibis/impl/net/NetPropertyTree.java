@@ -3,7 +3,6 @@
 package ibis.impl.net;
 
 import java.util.HashMap;
-import java.util.Vector;
 
 /**
  * Provide a special purpose repository for NetIbis-formatted {@link

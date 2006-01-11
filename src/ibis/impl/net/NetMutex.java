@@ -2,8 +2,6 @@
 
 package ibis.impl.net;
 
-import ibis.util.TypedProperties;
-
 /**
  * Provide a synchronization mutex.
  */

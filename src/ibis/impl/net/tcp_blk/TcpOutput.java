@@ -6,7 +6,6 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
-import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceivePortIdentifier;

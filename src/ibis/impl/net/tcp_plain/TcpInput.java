@@ -4,7 +4,6 @@ package ibis.impl.net.tcp_plain;
 
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
-import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
