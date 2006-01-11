@@ -266,6 +266,10 @@ public interface Config {
     public static final Logger stealLogger
             = ibis.util.GetLogger.getLogger("ibis.satin.steal");
 
+    /** Manually enable/disable logging for spawns as the impact on performance can be big,
+     * even if we use logger.isDebugEnabled.  */
+    public static final boolean ENABLE_SPAWN_LOGGING = false;
+    
     /** Logger for spawns. */
     public static final Logger spawnLogger
             = ibis.util.GetLogger.getLogger("ibis.satin.spawn");

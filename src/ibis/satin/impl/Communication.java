@@ -118,7 +118,7 @@ public abstract class Communication extends SpawnSync {
         return victims.getVictim(id);
     }
 
-    boolean satinPoll() {
+    final protected boolean satinPoll() {
         if (POLL_FREQ == 0) { // polling is disabled
             if (HANDLE_MESSAGES_IN_LATENCY) {
                 commLogger.fatal("Polling is disabled while messages are "
@@ -185,7 +185,7 @@ public abstract class Communication extends SpawnSync {
         return m != null;
     }
 
-    void handleDelayedMessages() {
+    protected final void handleDelayedMessages() {
         if (ABORTS) {
             if (gotAborts) {
                 handleAborts();

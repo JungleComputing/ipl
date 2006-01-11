@@ -121,15 +121,14 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
             this.spawnId = spawnId;
             this.parentLocals = parentLocals;
             aborted = false;
+            alreadySentExceptionResult = false;
+            inletExecuted = false;
         } else if (FAULT_TOLERANCE) {
             this.spawnId = spawnId;
         }
 
         // parentStamps = new ArrayList();
         // parentOwners = new ArrayList();
-
-        alreadySentExceptionResult = false;
-        inletExecuted = false;
     }
 
     //.public abstract void delete();
@@ -164,14 +163,11 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         if (FAULT_TOLERANCE) {
             numSpawned = 0;
             reDone = false;
-        }
-        if (FAULT_TOLERANCE) {
             finishedChild = null;
             finishedSibling = null;
             toBeRestartedChild = null;
             toBeRestartedSibling = null;
         }
-
     }
 
     /**

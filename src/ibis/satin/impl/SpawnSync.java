@@ -8,6 +8,7 @@ import ibis.ipl.IbisIdentifier;
 public abstract class SpawnSync extends Termination {
 
     private static SpawnCounter spawnCounterCache = null;
+
     boolean idleStarted = false;
 
     /**
@@ -16,7 +17,7 @@ public abstract class SpawnSync extends Termination {
      * 
      * @return a new spawn counter.
      */
-    static public SpawnCounter newSpawnCounter() {
+    static public final SpawnCounter newSpawnCounter() {
         if (spawnCounterCache == null) {
             return new SpawnCounter();
         }
@@ -34,11 +35,11 @@ public abstract class SpawnSync extends Termination {
      * @param s
      *            the spawn counter made available.
      */
-    static public void deleteSpawnCounter(SpawnCounter s) {
+    static public final void deleteSpawnCounter(SpawnCounter s) {
         if (ASSERTS && s.value < 0) {
             spawnLogger.fatal("deleteSpawnCounter: spawncouner < 0, val ="
                     + s.value, new Throwable());
-            System.exit(1);     // Failed assertion
+            System.exit(1); // Failed assertion
         }
 
         // Only put it in the cache if its value is 0.
@@ -49,22 +50,177 @@ public abstract class SpawnSync extends Termination {
         }
     }
 
-    protected void callSatinFunction(InvocationRecord r) {
+    private final void callSatinFunctionPreAsserts(InvocationRecord r) {
+        if (r == null) {
+            spawnLogger.fatal("SATIN '" + ident
+                    + ": EEK, r = null in callSatinFunc", new Throwable());
+            System.exit(1); // Failed assertion
+        }
+
+        if (r.aborted) {
+            spawnLogger.fatal("SATIN '" + ident + ": spawning aborted job!",
+                    new Throwable());
+            System.exit(1); // Failed assertion
+        }
+
+        if (r.owner == null) {
+            spawnLogger.fatal("SATIN '" + ident
+                    + ": EEK, r.owner = null in callSatinFunc, r = " + r,
+                    new Throwable());
+            System.exit(1); // Failed assertion
+        }
+
+        if (r.owner.equals(ident)) {
+            if (r.spawnCounter == null) {
+                spawnLogger.fatal("SATIN '" + ident
+                        + ": EEK, r.spawnCounter = null in callSatinFunc, "
+                        + "r = " + r, new Throwable());
+                System.exit(1); // Failed assertion
+            }
+
+            if (r.spawnCounter.value < 0) {
+                spawnLogger.fatal("SATIN '" + ident
+                        + ": spawncounter < 0 in callSatinFunc",
+                        new Throwable());
+                System.exit(1); // Failed assertion
+            }
+
+            if (ABORTS && r.parent == null && parentOwner.equals(ident)
+                    && r.parentStamp != -1) {
+                spawnLogger.fatal("SATIN '" + ident
+                        + ": parent is null for non-root, should not "
+                        + "happen here! job = " + r, new Throwable());
+                System.exit(1); // Failed assertion
+            }
+        }
+    }
+
+    private final void callSatinFunctionPostAsserts(InvocationRecord r) {
+        if (r.spawnCounter.value < 0) {
+
+            spawnLogger.fatal("SATIN '" + ident
+                    + ": Just made spawncounter < 0", new Throwable());
+            System.exit(1); // Failed assertion
+        }
+
+        if (!ABORTS && r.eek != null) {
+            spawnLogger.fatal("SATIN '" + ident + ": Got exception: " + r.eek,
+                    r.eek);
+            System.exit(1); // Failed assertion
+        }
+    }
+
+    private final void callSatinLocalFunction(InvocationRecord r) {
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident
+                    + "': callSatinFunc: spawn counter = "
+                    + r.spawnCounter.value);
+        }
+        if (ABORTS) {
+            if (SPAWN_STATS) {
+                jobsExecuted++;
+            }
+            try {
+                r.runLocal();
+            } catch (Throwable t) {
+                // This can only happen if an inlet has thrown an
+                // exception, or if there was no try-catch block around
+                // the spawn (i.e. no inlet).
+                // The semantics of this: all work is aborted,
+                // and the exception is passed on to the spawner.
+                // The parent is aborted, it must handle the exception.
+
+                r.eek = t;
+                handleInlet(r);
+            }
+        } else { // NO aborts
+            if (SPAWN_STATS) {
+                jobsExecuted++;
+            }
+            try {
+                r.runLocal();
+            } catch (Throwable t) {
+                throw new IbisError("Unexpected exception in runLocal", t);
+            }
+        }
+
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+            r.spawnCounter.decr(r);
+        } else {
+            r.spawnCounter.value--;
+        }
+
+        if (ASSERTS) {
+            callSatinFunctionPostAsserts(r);
+        }
+
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident + ": callSatinFunc: stamp = "
+                    + r.stamp + ", parentStamp = " + r.parentStamp
+                    + ", parentOwner = " + r.parentOwner + " spawn counter = "
+                    + r.spawnCounter.value + " DONE");
+            if (r.eek != null) {
+                spawnLogger.debug("SATIN '" + ident + ": exception was "
+                        + r.eek, r.eek);
+            }
+        }
+
+        if (FAULT_TOLERANCE && !FT_WITHOUT_ABORTS && !FT_NAIVE) {
+            //job is finished
+            attachToParentFinished(r);
+        }
+    }
+
+    private final void callSatinRemoteFunction(InvocationRecord r) {
+        if (stealLogger.isDebugEnabled()) {
+            stealLogger.debug("SATIN '" + ident + "': RUNNING REMOTE CODE!");
+        }
+        ReturnRecord rr = null;
+        if (SPAWN_STATS) {
+            jobsExecuted++;
+        }
+        rr = r.runRemote();
+        if (ABORTS) {
+            rr.eek = r.eek;
+        }
+
+        if (stealLogger.isDebugEnabled()) {
+            if (r.eek != null) {
+                stealLogger.debug("SATIN '" + ident
+                        + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek,
+                        r.eek);
+            } else {
+                stealLogger.debug("SATIN '" + ident
+                        + "': RUNNING REMOTE CODE DONE!");
+            }
+        }
+
+        // send wrapper back to the owner
+        if (!r.aborted) {
+            sendResult(r, rr);
+        }
+
+        if (stealLogger.isDebugEnabled()) {
+            stealLogger.debug("SATIN '" + ident
+                    + "': REMOTE CODE SEND RESULT DONE!");
+        }
+    }
+
+    protected final void callSatinFunction(InvocationRecord r) {
         InvocationRecord oldParent = null;
         int oldParentStamp = 0;
         IbisIdentifier oldParentOwner = null;
 
-        if (idleStarted) {
+        if (IDLE_TIMING && idleStarted) {
             idleStarted = false;
             if (idleLogger.isDebugEnabled()) {
                 idleLogger.debug("SATIN '" + ident + "': idle stop");
             }
-            if (IDLE_TIMING) {
-                idleTimer.stop();
-            }
+            idleTimer.stop();
         }
 
-        handleDelayedMessages();
+        // not needed I think, already done in sync
+        // handleDelayedMessages();
 
         if (ABORTS || FAULT_TOLERANCE) {
             oldParent = parent;
@@ -73,60 +229,14 @@ public abstract class SpawnSync extends Termination {
         }
 
         if (ASSERTS) {
-            if (r == null) {
-                spawnLogger.fatal("SATIN '" + ident
-                        + ": EEK, r = null in callSatinFunc",
-                        new Throwable());
-                System.exit(1); // Failed assertion
-            }
-
-            if (r.aborted) {
-                spawnLogger.fatal("SATIN '" + ident
-                        + ": spawning aborted job!",
-                        new Throwable());
-                System.exit(1); // Failed assertion
-            }
-
-            if (r.owner == null) {
-                spawnLogger.fatal("SATIN '" + ident
-                        + ": EEK, r.owner = null in callSatinFunc, r = " + r,
-                        new Throwable());
-                System.exit(1); // Failed assertion
-            }
-
-            if (r.owner.equals(ident)) {
-                if (r.spawnCounter == null) {
-                    spawnLogger.fatal("SATIN '" + ident
-                            + ": EEK, r.spawnCounter = null in callSatinFunc, "
-                            + "r = " + r,
-                            new Throwable());
-                    System.exit(1);     // Failed assertion
-                }
-
-                if (r.spawnCounter.value < 0) {
-                    spawnLogger.fatal("SATIN '" + ident
-                            + ": spawncounter < 0 in callSatinFunc",
-                            new Throwable());
-                    System.exit(1);     // Failed assertion
-                }
-
-                if (ABORTS && r.parent == null && parentOwner.equals(ident)
-                        && r.parentStamp != -1) {
-                    spawnLogger.fatal("SATIN '" + ident
-                            + ": parent is null for non-root, should not "
-                            + "happen here! job = " + r,
-                            new Throwable());
-                    System.exit(1);     // Failed assertion
-                }
-            }
+            callSatinFunctionPreAsserts(r);
         }
 
-        if ((ABORTS || FAULT_TOLERANCE) && r.parent != null
-                && r.parent.aborted) {
+        if ((ABORTS || FAULT_TOLERANCE) && r.parent != null && r.parent.aborted) {
             if (abortLogger.isDebugEnabled()) {
                 abortLogger.debug("SATIN '" + ident
-                    + ": spawning job, parent was aborted! job = " + r
-                    + ", parent = " + r.parent);
+                        + ": spawning job, parent was aborted! job = " + r
+                        + ", parent = " + r.parent);
             }
             if (spawnLogger.isDebugEnabled()) {
                 r.spawnCounter.decr(r);
@@ -136,9 +246,8 @@ public abstract class SpawnSync extends Termination {
             if (ASSERTS) {
                 if (r.spawnCounter.value < 0) {
                     spawnLogger.fatal("SATIN '" + ident
-                            + ": Just made spawncounter < 0",
-                            new Throwable());
-                    System.exit(1);     // Failed assertion
+                            + ": Just made spawncounter < 0", new Throwable());
+                    System.exit(1); // Failed assertion
                 }
             }
             return;
@@ -151,118 +260,18 @@ public abstract class SpawnSync extends Termination {
             parentOwner = r.owner;
         }
 
-        if (spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident
-                    + "': callSatinFunc: stamp = " + r.stamp + ", owner = "
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident + "': callSatinFunc: stamp = "
+                    + r.stamp + ", owner = "
                     + (r.owner.equals(ident) ? "me" : r.owner.name())
                     + ", parentStamp = " + r.parentStamp + ", parentOwner = "
                     + r.parentOwner);
         }
 
         if (r.owner.equals(ident)) {
-            if (spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident
-                        + "': callSatinFunc: spawn counter = "
-                        + r.spawnCounter.value);
-            }
-            if (ABORTS) {
-                if (SPAWN_STATS) {
-                    jobsExecuted++;
-                }
-                try {
-                    r.runLocal();
-                } catch (Throwable t) {
-                    // This can only happen if an inlet has thrown an
-                    // exception, or if there was no try-catch block around
-                    // the spawn (i.e. no inlet).
-                    // The semantics of this: all work is aborted,
-                    // and the exception is passed on to the spawner.
-                    // The parent is aborted, it must handle the exception.
-
-                    r.eek = t;
-                    handleInlet(r);
-                }
-            } else { // NO aborts
-                if (SPAWN_STATS) {
-                    jobsExecuted++;
-                }
-                try {
-                    r.runLocal();
-                } catch (Throwable t) {
-                    throw new IbisError("Unexpected exception in runLocal", t);
-                }
-            }
-
-            if (spawnLogger.isDebugEnabled()) {
-                r.spawnCounter.decr(r);
-            } else {
-                r.spawnCounter.value--;
-            }
-            if (ASSERTS && r.spawnCounter.value < 0) {
-                spawnLogger.fatal("SATIN '" + ident
-                        + ": Just made spawncounter < 0",
-                        new Throwable());
-                System.exit(1); // Failed assertion
-            }
-
-            if (ASSERTS && !ABORTS && r.eek != null) {
-                spawnLogger.fatal("SATIN '" + ident
-                        + ": Got exception: " + r.eek, r.eek);
-                System.exit(1); // Failed assertion
-            }
-
-            if (spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident
-                        + ": callSatinFunc: stamp = " + r.stamp
-                        + ", parentStamp = " + r.parentStamp
-                        + ", parentOwner = " + r.parentOwner
-                        + " spawn counter = " + r.spawnCounter.value + " DONE");
-                if (r.eek != null) {
-                    spawnLogger.debug("SATIN '" + ident
-                            + ": exception was " + r.eek, r.eek);
-                }
-            }
-
-            if (FAULT_TOLERANCE && !FT_WITHOUT_ABORTS && !FT_NAIVE) {
-                //job is finished
-                attachToParentFinished(r);
-            }
-
-
-        } else {
-            if (stealLogger.isDebugEnabled()) {
-                stealLogger.debug("SATIN '" + ident
-                        + "': RUNNING REMOTE CODE!");
-            }
-            ReturnRecord rr = null;
-            if (SPAWN_STATS) {
-                jobsExecuted++;
-            }
-            rr = r.runRemote();
-            if (ABORTS) {
-                rr.eek = r.eek;
-            }
-
-            if (stealLogger.isDebugEnabled()) {
-                if (r.eek != null) {
-                    stealLogger.debug("SATIN '" + ident
-                            + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek,
-                            r.eek);
-                } else {
-                    stealLogger.debug("SATIN '" + ident
-                            + "': RUNNING REMOTE CODE DONE!");
-                }
-            }
-
-            // send wrapper back to the owner
-            if (!r.aborted) {
-                sendResult(r, rr);
-            }
-
-            if (stealLogger.isDebugEnabled()) {
-                stealLogger.debug("SATIN '" + ident
-                        + "': REMOTE CODE SEND RESULT DONE!");
-            }
+            callSatinLocalFunction(r);
+        } else { // we are running a job that I stole from another machine
+            callSatinRemoteFunction(r);
         }
 
         if (ABORTS || FAULT_TOLERANCE) {
@@ -273,7 +282,8 @@ public abstract class SpawnSync extends Termination {
             onStack.pop();
         }
 
-        if (abortLogger.isDebugEnabled() && r.aborted) {
+        if (ABORTS && ENABLE_SPAWN_LOGGING && abortLogger.isDebugEnabled()
+                && r.aborted) {
             if (r.eek != null) {
                 abortLogger.debug("Job on the stack was aborted: " + r.stamp
                         + " EEK = " + r.eek, r.eek);
@@ -283,9 +293,8 @@ public abstract class SpawnSync extends Termination {
             }
         }
 
-        if (spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident
-                    + "': call satin func done!");
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident + "': call satin func done!");
         }
     }
 
@@ -297,7 +306,7 @@ public abstract class SpawnSync extends Termination {
      * @param r
      *            the invocation record specifying the spawned invocation.
      */
-    public void spawn(InvocationRecord r) {
+    public final void spawn(InvocationRecord r) {
         if (ASSERTS) {
             if (algorithm instanceof MasterWorker) {
                 synchronized (this) {
@@ -312,7 +321,7 @@ public abstract class SpawnSync extends Termination {
 
         if (ABORTS && parent != null && parent.aborted) {
             abortLogger.debug("parent " + parent.stamp
-                        + " is aborted, spawn ignored");
+                    + " is aborted, spawn ignored");
             return;
         }
 
@@ -335,7 +344,7 @@ public abstract class SpawnSync extends Termination {
 
         r.owner = ident;
 
-        if (spawnLogger.isDebugEnabled()) {
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
             r.spawnCounter.incr(r);
         } else {
             r.spawnCounter.value++;
@@ -347,12 +356,9 @@ public abstract class SpawnSync extends Termination {
             r.parent = parent;
 
             /*
-             * if(parent != null) {
-             *     for (int i=0; i <parent.parentStamps.size(); i++) {
-             *         r.parentStamps.add(parent.parentStamps.get(i));
-             *         r.parentOwners.add(parent.parentOwners.get(i));
-             *     }
-             * }
+             * if(parent != null) { for (int i=0; i <parent.parentStamps.size();
+             * i++) { r.parentStamps.add(parent.parentStamps.get(i));
+             * r.parentOwners.add(parent.parentOwners.get(i)); } }
              * 
              * r.parentStamps.add(new Integer(parentStamp));
              * r.parentOwners.add(parentOwner);
@@ -360,8 +366,7 @@ public abstract class SpawnSync extends Termination {
         }
 
         if (FAULT_TOLERANCE && !FT_NAIVE) {
-            if (parent != null && parent.reDone
-                    || parent == null && restarted) {
+            if (parent != null && parent.reDone || parent == null && restarted) {
                 r.reDone = true;
             }
         }
@@ -378,12 +383,105 @@ public abstract class SpawnSync extends Termination {
 
         algorithm.jobAdded();
 
-        if (spawnLogger.isDebugEnabled()) {
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
             spawnLogger.debug("SATIN '" + ident + "': Spawn, counter = "
                     + r.spawnCounter.value + ", stamp = " + r.stamp
                     + ", parentStamp = " + r.parentStamp + ", owner = "
                     + r.owner + ", parentOwner = " + r.parentOwner);
         }
+    }
+
+    private final void noWorkInQueue() {
+        InvocationRecord r;
+
+        if (FAULT_TOLERANCE && FT_WITHOUT_ABORTS) {
+            //before you steal, check if kids need
+            //to be restarted
+            InvocationRecord curr = null;
+            if (parent != null) {
+                curr = parent.toBeRestartedChild;
+                parent.toBeRestartedChild = null;
+            } else {
+                curr = rootToBeRestartedChild;
+                rootToBeRestartedChild = null;
+            }
+            if (curr != null) {
+                int i = 0;
+                while (curr != null) {
+                    //is it really necessary??
+                    if (!globalResultTableCheck(curr)) {
+                        q.addToTail(curr);
+                    }
+                    InvocationRecord tmp = curr;
+                    curr = curr.toBeRestartedSibling;
+                    tmp.toBeRestartedSibling = null;
+                    i++;
+                }
+            } else {
+                r = algorithm.clientIteration();
+                if (r != null) {
+                    if (SHARED_OBJECTS) {
+                        //restore shared object references
+                        try {
+                            r.setSOReferences();
+                            executeGuard(r);
+                        } catch (SOReferenceSourceCrashedException e) {
+                            //the source has crashed - abort the job
+                            r = null;
+                            return;
+                        }
+
+                    }
+                    if (spawnLogger.isDebugEnabled()) {
+                        spawnLogger.debug("SATIN '" + ident
+                                + "': Sync, start stolen job");
+                    }
+                    callSatinFunction(r);
+                    if (spawnLogger.isDebugEnabled()) {
+                        spawnLogger.debug("SATIN '" + ident
+                                + "': Sync, finish stolen job");
+                    }
+                } else if (IDLE_TIMING && !idleStarted) {
+                    idleStarted = true;
+                    if (idleLogger.isDebugEnabled()) {
+                        idleLogger.debug("SATIN '" + ident
+                                + "': sync idle start");
+                    }
+                    idleTimer.start();
+                }
+            }
+        } else {
+            r = algorithm.clientIteration();
+            if (r != null) {
+                if (SHARED_OBJECTS) {
+                    //restore shared object references
+                    try {
+                        r.setSOReferences();
+                        executeGuard(r);
+                    } catch (SOReferenceSourceCrashedException e) {
+                        //the source has crashed - abort the job
+                        r = null;
+                        return;
+                    }
+                }
+                if (spawnLogger.isDebugEnabled()) {
+                    spawnLogger.debug("SATIN '" + ident
+                            + "': Sync, start stolen job");
+                }
+                callSatinFunction(r);
+                if (spawnLogger.isDebugEnabled()) {
+                    spawnLogger.debug("SATIN '" + ident
+                            + "': Sync, finish stolen job");
+                }
+            } else if (IDLE_TIMING && !idleStarted) {
+                idleStarted = true;
+                if (idleLogger.isDebugEnabled()) {
+                    idleLogger.debug("SATIN '" + ident + "': sync idle start");
+                }
+                idleTimer.start();
+            }
+        }
+
     }
 
     /**
@@ -395,143 +493,44 @@ public abstract class SpawnSync extends Termination {
      *            the spawncounter.
      */
 
-    public void sync(SpawnCounter s) {
+    public final void sync(SpawnCounter s) {
         InvocationRecord r;
 
         if (SPAWN_STATS) {
             syncs++;
         }
 
-        if (spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident
-                    + "': Sync, counter = " + s.value);
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident + "': Sync, counter = "
+                    + s.value);
         }
 
         if (s.value == 0) { // sync is poll
             satinPoll();
             handleDelayedMessages();
-            if (spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident
-                        + "': Sync returns");
+            if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+                spawnLogger.debug("SATIN '" + ident + "': Sync returns");
             }
             return;
         }
-        // int numStealAttempts = 0;
+
         while (s.value > 0) {
-            // if(exiting) {
-            //     System.err.println("EXIT FROM SYNC");
-            //     exit();
-            // }
-
-
             satinPoll();
             handleDelayedMessages();
 
             r = q.getFromHead(); // Try the local queue
             if (r != null) {
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': Sync, start own job");
                 }
                 callSatinFunction(r);
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': Sync, finish own job");
                 }
             } else {
-                if (FAULT_TOLERANCE && FT_WITHOUT_ABORTS) {
-                    //before you steal, check if kids need
-                    //to be restarted
-                    InvocationRecord curr = null;
-                    if (parent != null) {
-                        curr = parent.toBeRestartedChild;
-                        parent.toBeRestartedChild = null;
-                    } else {
-                        curr = rootToBeRestartedChild;
-                        rootToBeRestartedChild = null;
-                    }
-                    if (curr != null) {
-                        int i = 0;
-                        while (curr != null) {
-                            //is it really necessary??
-                            if (!globalResultTableCheck(curr)) {
-                                q.addToTail(curr);
-                            }
-                            InvocationRecord tmp = curr;
-                            curr = curr.toBeRestartedSibling;
-                            tmp.toBeRestartedSibling = null;
-                            i++;
-                        }
-                    } else {
-                        r = algorithm.clientIteration();
-                        if (r != null) {
-			    if (SHARED_OBJECTS) {
-				//restore shared object references  
-				try {
-				    r.setSOReferences();
-				    executeGuard(r);
-				} catch (SOReferenceSourceCrashedException e) {
-				    //the source has crashed - abort the job
-				    r = null;
-				    continue;
-				}
-				    
-			    }
-                            if (spawnLogger.isDebugEnabled()) {
-                                spawnLogger.debug("SATIN '" + ident
-                                        + "': Sync, start stolen job");
-                            }
-                            callSatinFunction(r);
-                            if (spawnLogger.isDebugEnabled()) {
-                                spawnLogger.debug("SATIN '" + ident
-                                        + "': Sync, finish stolen job");
-                            }
-                        } else if (! idleStarted) {
-                            idleStarted = true;
-                            if (idleLogger.isDebugEnabled()) {
-                                idleLogger.debug("SATIN '" + ident
-                                        + "': sync idle start");
-                            }
-                            if (IDLE_TIMING) {
-                                idleTimer.start();
-                            }
-                        }
-                    }
-
-                } else {
-                    r = algorithm.clientIteration();
-                    if (r != null) {
-			if (SHARED_OBJECTS) {
-			    //restore shared object references
-			    try {
-				r.setSOReferences();
-				executeGuard(r);
-			    } catch (SOReferenceSourceCrashedException e) {
-				//the source has crashed - abort the job
-				r = null;
-				continue;
-			    }
-			}
-                        if (spawnLogger.isDebugEnabled()) {
-                            spawnLogger.debug("SATIN '" + ident
-                                    + "': Sync, start stolen job");
-                        }
-                        callSatinFunction(r);
-                        if (spawnLogger.isDebugEnabled()) {
-                            spawnLogger.debug("SATIN '" + ident
-                                    + "': Sync, finish stolen job");
-                        }
-                    } else if (! idleStarted) {
-                        idleStarted = true;
-                        if (idleLogger.isDebugEnabled()) {
-                            idleLogger.debug("SATIN '" + ident
-                                    + "': sync idle start");
-                        }
-                        if (IDLE_TIMING) {
-                            idleTimer.start();
-                        }
-                    }
-                }
+                noWorkInQueue();
             }
         }
 
@@ -546,18 +545,15 @@ public abstract class SpawnSync extends Termination {
             }
         }
 
-        if (spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident
-                    + "': Sync returns");
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident + "': Sync returns");
         }
-
     }
 
     /**
      * Implements the main client loop: steal jobs and execute them.
      */
     public void client() {
-
         if (spawnLogger.isDebugEnabled()) {
             spawnLogger.debug("SATIN '" + ident + "': starting client!");
         }
@@ -570,17 +566,17 @@ public abstract class SpawnSync extends Termination {
 
             InvocationRecord r = algorithm.clientIteration();
             if (r != null) {
-		if (SHARED_OBJECTS) {
-		    //restore shared object references
-		    try {			
-			r.setSOReferences();
-			executeGuard(r);
-		    } catch (SOReferenceSourceCrashedException e) {
-			//the source has crashed - abort the job
-			r = null;
-			continue;
-		    }
-		}
+                if (SHARED_OBJECTS) {
+                    //restore shared object references
+                    try {
+                        r.setSOReferences();
+                        executeGuard(r);
+                    } catch (SOReferenceSourceCrashedException e) {
+                        //the source has crashed - abort the job
+                        r = null;
+                        continue;
+                    }
+                }
                 if (spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': client, start stolen job");
@@ -590,11 +586,11 @@ public abstract class SpawnSync extends Termination {
                     spawnLogger.debug("SATIN '" + ident
                             + "': client, finish stolen job");
                 }
-            } else if (! idleStarted) {
+            } else if (!idleStarted) {
                 idleStarted = true;
                 if (idleLogger.isDebugEnabled()) {
-                    idleLogger.debug("SATIN '" + ident
-                            + "': client idle start");
+                    idleLogger
+                            .debug("SATIN '" + ident + "': client idle start");
                 }
                 if (IDLE_TIMING) {
                     idleTimer.start();
