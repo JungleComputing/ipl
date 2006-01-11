@@ -3,8 +3,9 @@ general:
 - load ibisses dynamically from jar files (like JavaGAT)
 - run central nameserver on fs0
 - split up ibis.jar in multiple files (in a sane manner)
-- use a $IBIS_HOME variable instead of explicit paths in build files of
-  applications
++ use a $IBIS_HOME variable instead of explicit paths in build files of
+  applications. Done (Ceriel), with IBIS_ROOT instead of IBIS_HOME (IBIS_ROOT
+  was already used by grun).
 - make javadoc available in a file for eclipse somehow
 - move applications to a real tree
 - switch to subversion

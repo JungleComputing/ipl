@@ -15,7 +15,9 @@
 	<echo message="os.name ${os.name} os.arch ${os.arch}"/>
     </target>
 
-    <property name="ibis"        location=".."/>
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
 

@@ -9,7 +9,9 @@
 
     <property name="main-class"  value="Water"/>
 
-    <property name="ibis"        location="../../.."/>
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
     <property name="build"       location="build"/>
 
     <import file="${ibis}/build-files/apps/build-rmi-app.xml"/>

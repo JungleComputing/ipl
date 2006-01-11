@@ -959,7 +959,7 @@ for our example program:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_HOME}" />
+    <property name="ibis"   value="${env.IBIS_ROOT}" />
 
     <property name="build"  location="build"/>
 
@@ -1096,7 +1096,7 @@ Because we run the example on a single machine, we do not need to start a sepera
 To run the application, we first need to start to shells.
 Then, in both shells type:
 \begin{verbatim}
-$ $IBIS_HOME/bin/ibis-run \
+$ $IBIS_ROOT/bin/ibis-run \
     -nhosts 2 -ns localhost Example
 \end{verbatim}
 \noindent
@@ -1109,7 +1109,7 @@ If you don't use the \texttt{ibis-run} script, you have to set several propertie
 In both shells, type:
 \begin{verbatim}
 $ java \
-    -cp $IBIS_HOME/build/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.name_server.host=localhost \
     -Dibis.name_server.key=bla \
     Example
@@ -1586,7 +1586,7 @@ our example program:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_HOME}" />
+    <property name="ibis"   value="${env.IBIS_ROOT}" />
 
     <property name="satin-main-class" value="Search"/>
 
@@ -1689,7 +1689,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_HOME}" />
+    <property name="ibis"   value="${env.IBIS_ROOT}" />
 
     <property name="build"  location="build"/>
 
@@ -1720,7 +1720,7 @@ Now, this example application will be compiled with Sun RMI.
 Running the TSP example with Sun RMI can be done as follows. Run the command
 \begin{verbatim}
 $ java \
-    -cp $IBIS_HOME/build/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     Server table_15.1
 \end{verbatim}
@@ -1729,14 +1729,14 @@ in two seperate shells. The application should now run ``in parallel''
 on the local machine. Alternatively, you can use the \emph{ibis-run} script:
 
 \begin{verbatim}
-$ $IBIS_HOME/bin/ibis-run -nhosts 2 -hostno 0 Server table_15.1
+$ $IBIS_ROOT/bin/ibis-run -nhosts 2 -hostno 0 Server table_15.1
 \end{verbatim}
 
 \noindent
 in the first shell, and
 
 \begin{verbatim}
-$ $IBIS_HOME/bin/ibis-run -nhosts 2 -hostno 1 Server table_15.1
+$ $IBIS_ROOT/bin/ibis-run -nhosts 2 -hostno 1 Server table_15.1
 \end{verbatim}
 
 \noindent in the second.
@@ -1762,7 +1762,7 @@ $ ../../../ant clean build
 Now we can run it by typing the following command in two seperate shells:
 \begin{verbatim}
 $ java \
-    -cp $IBIS_HOME/build/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
     Server table_15.1 
@@ -2057,7 +2057,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_HOME}" />
+    <property name="ibis"   value="${env.IBIS_ROOT}" />
 
     <property name="build"  location="build"/>
 
