@@ -637,7 +637,7 @@
     <!--
 	Compile, run IOGenerator, compile native code for TCP Ibis
     -->
-    <target name="build-tcp"
+    <target name="build-tcp" depends="init"
 	    description="Build TCP Ibis">
 	<patternset id="build.sources-tcp">
 	    <include name="**/*.java"/>
@@ -656,7 +656,7 @@
     <!--
 	Compile, run IOGenerator, compile native code for NIO Ibis
     -->
-    <target name="build-nio"
+    <target name="build-nio" depends="init"
 	    description="Build NIO Ibis">
 	<patternset id="build.sources-nio">
 	    <include name="**/*.java"/>
@@ -675,7 +675,7 @@
     <!--
 	Compile, run IOGenerator, compile native code for Net Ibis
     -->
-    <target name="build-net"
+    <target name="build-net" depends="init"
 	    description="Build NetIbis">
 	<patternset id="build.sources-net">
 	    <include name="**/*.java"/>
@@ -696,7 +696,7 @@
     <!--
 	Compile, run IOGenerator, compile native code for MP Ibis
     -->
-    <target name="build-mp"
+    <target name="build-mp" depends="init"
 	    description="Build messagePassing Ibis">
 	<patternset id="build.sources-mp">
 	    <include name="**/*.java"/>

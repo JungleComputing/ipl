@@ -1,9 +1,14 @@
 @echo off
 
-if NOT DEFINED JAVA_HOME goto javahome
-if "%JAVA_HOME%" == "" goto javahome
-
 set DIR=%~dp0
+if exist "%DIR%configuration.bat" call "%DIR%configuration.bat"
+
+if NOT DEFINED JAVA_HOME (
+    if NOT DEFINED JAVA_ROOT goto javahome
+    set JAVA_HOME=%JAVA_ROOT%
+)
+
+if "%JAVA_HOME%" == "" goto javahome
 
 "%DIR%3rdparty\apache-ant-1.6.1\bin\ant" %1 %2 %3 %4 %5
 goto end

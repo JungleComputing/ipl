@@ -3,15 +3,6 @@
 # This script only works when it sits in the Ibis root directory.
 # You can create symbolic links to it, but not hard links.
 
-case "X$JAVA_HOME" in
-X)
-    echo The enviroment variable JAVA_HOME must be set to the current jdk 1>&2
-    echo distribution installed on your computer, which must be a 1.4 version 1>&2
-    echo or newer. 1>&2
-    exit 1
-    ;;
-esac
-
 PRG="$0"
 
 # resolve symlinks
@@ -27,5 +18,26 @@ done
 
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
+
+if [ -f "$dir"/configuration.sh ]
+then
+    . "$dir"/configuration.sh
+    export IBIS_ROOT
+    if [ ! -z "$JAVA_HOME" ]
+    then	:
+    else 
+	JAVA_HOME=$JAVA_ROOT
+    fi
+    export JAVA_HOME
+fi
+
+case "X$JAVA_HOME" in
+X)
+    echo The enviroment variable JAVA_HOME must be set to the current jdk 1>&2
+    echo distribution installed on your computer, which must be a 1.4 version 1>&2
+    echo or newer. 1>&2
+    exit 1
+    ;;
+esac
 
 "$dir/3rdparty/apache-ant-1.6.1/bin/ant" "$@"
