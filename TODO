@@ -1,34 +1,45 @@
-vgeneral:
-- ibisc
+*** Ibis 1.3 ***
+
+general:
+- keep a changelog, publish it on the website
+- update documentation
+- add a "functionality table" to website:
+	1.1 = 1.0 + ...
+	1.2 = 1.1 + MPJ + ...
+	1.3 = 1.2 + SO + ...
+- copy the source of "util" and "connect" to the distro manually
+	
+ipl:
+- add delete(IbisIdentifier[] ibisses) to registry
+- add calls to IPL: amount of data written/read in a message so far.
+  this is needed for traffic shaping
+
+satin:  
+- check Satin Shared Objects for performance bugs
+- detection of what is an inlet: now, if the invocation is inside a try-catch
+  it is assumed to be an inlet. Is this OK?
+- abort bug: throw an Exception instead of returning null. Sequential user
+  code gets confused otherwise.
+
+connect:
+- Update manual and readme files to reflect new structure.
+
+
+*** Ibis 2.0+ ***
+
+general:
+- ibisc : gmic + rmic + satinc + ... (does not replace javac)
 - load ibisses dynamically from jar files (like JavaGAT)
 - run central nameserver on fs0
 - split up ibis.jar in multiple files (in a sane manner)
 - binary release
-- use a $IBIS_HOME variable instead of explicit paths in build files of
-  applications
-+ use a $IBIS_HOME variable instead of explicit paths in build files of
-  applications. Done (Ceriel), with IBIS_ROOT instead of IBIS_HOME (IBIS_ROOT
-  was already used by grun).
 - make javadoc available in a file for eclipse somehow
 - move applications to a real tree
 - switch to subversion
-- keep a changelog, publish it on the website
 - traffic shaping
-- add calls to IPL: amount of data written/read in a message so far.
-  this is needed for traffic shaping --Rob
+- steering interface
+- remove deprecated functionality
 - while(true) {fix eclipse warnings in net ibis, panda ibis}
-
-prun:
-+ add readme on how to start ibis with prun for the VU people
-  (students keep complaining about this) --Rob
-  Added to Ibis web-page (Ceriel)
- 
-nameserver:
-+ nameserver is single threaded: if it cannot forward a join, everything hangs.
-  --Rob
-  Ceriel: Nameserver connects now have a timeout, default 10 seconds. Also,
-  it is now multithreaded.
-+ make "dead/left" forwarding also multithreaded. (Done Ceriel)
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
@@ -39,8 +50,17 @@ nameserver+connection stuff:
 - add out-of-band communication support to the Nameserver interface
 
 ipl:
-- Registry.lookupIbis (is nooit geimplementeerd, dus ook geen gebruikers).
-  is-ie nodig? En zonee, waarom heeft een ibis instance dan een naam?
+
+- add a way to create local receiveports in addition to global receiveports
+- add Registry.lookup(IbisIdentifier ibis, String receivePortName)
+- add SendPort.connect(IbisIdentifier ibis, String receivePortName)
+- remove Registry.lookupIbis()
+- remove (deprecated) createIbis(String name)
+- remove (deprecated) Ibis.name() 
+  (get a unique name for an Ibis by calling IbisIdentifier.name() )
+- change Ibis.toString() to returning a "friendly"(user-printable), but not 
+  necessarily unique, string.
+   
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 - add receiveports local to an ibis:
 	- receiveports not globally unique, but unique per ibis.
@@ -73,17 +93,14 @@ satin:
 - forgotten sync statements
 - make return / throw an implicit sync again?
 - add comments to abort / inlet machinism
-+ detection of what is an inlet: now, if the invocation is inside a try-catch
-  it is assumed to be an inlet. Is this OK? {Yes, AFAIK it is --Rob Who asked this?}
 - rob (na distro): check satin caches.
 - shutdownhook -> System.exit
 - satinc does not understand monitorenter/monitor exit instructions (othello) --Rob
-- mayor abort bug: gebruik try catch ipv return null, maak nieuwe runtime exception in satin. --Rob
 + move shared objects user API to satin package (remove satin.so package) --Rob
   Done (Ceriel)
 + add comments to user API for shared objects --Rob  Done (Ceriel)
-- mayor satin cleanup (for ibis 2.0): remove old features, fix ugly structure --Rob
-- remove all satin commandline options, use properties instead (now, most options are there twice) --Rob
+- major satin cleanup (for ibis 2.0): remove old features, fix ugly structure --Rob
+- remove all satin commandline options, use properties instead (now most options are there twice) --Rob
 
 satin-so:
 - talk to gosia about message combining bug, it basically cannot have worked --Rob
@@ -125,8 +142,6 @@ implementations:
       so: deadlock if DISABLED==true.
 
 connect stuff:
-- Rob: Update manual and readme files to reflect new structure.
-       But, first test it :-)
 - Rob: allow user to load socket types per *connection* use the 
        property map for this
 - control hub client side always binds to default local ip/port (partially fixed, but not fully correct yet --Rob)
