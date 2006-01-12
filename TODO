@@ -103,6 +103,7 @@ satin:
 + add comments to user API for shared objects --Rob  Done (Ceriel)
 - major satin cleanup: remove old features, fix ugly structure --Rob
 - remove all satin commandline options, use properties instead (now most options are there twice) --Rob
+- port Ceriel's load-balancing optimization for Barnes to the shared objects version --Rob
 
 satin-so:
 - talk to gosia about message combining bug, it basically cannot have worked --Rob
