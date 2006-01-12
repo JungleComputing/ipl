@@ -1,8 +1,11 @@
-general:
+vgeneral:
 - ibisc
 - load ibisses dynamically from jar files (like JavaGAT)
 - run central nameserver on fs0
 - split up ibis.jar in multiple files (in a sane manner)
+- binary release
+- use a $IBIS_HOME variable instead of explicit paths in build files of
+  applications
 + use a $IBIS_HOME variable instead of explicit paths in build files of
   applications. Done (Ceriel), with IBIS_ROOT instead of IBIS_HOME (IBIS_ROOT
   was already used by grun).
@@ -13,6 +16,7 @@ general:
 - traffic shaping
 - add calls to IPL: amount of data written/read in a message so far.
   this is needed for traffic shaping --Rob
+- while(true) {fix eclipse warnings in net ibis, panda ibis}
 
 prun:
 + add readme on how to start ibis with prun for the VU people
@@ -79,7 +83,7 @@ satin:
   Done (Ceriel)
 + add comments to user API for shared objects --Rob  Done (Ceriel)
 - mayor satin cleanup (for ibis 2.0): remove old features, fix ugly structure --Rob
-- remove all satin commandline options, use properties instead (now most options are there twice) --Rob
+- remove all satin commandline options, use properties instead (now, most options are there twice) --Rob
 
 satin-so:
 - talk to gosia about message combining bug, it basically cannot have worked --Rob
@@ -130,3 +134,6 @@ connect stuff:
 - use routed messages *while* trying to setup TCP splicing in the background
 - write a good anyTCP for control_links -Rob
 - support universal plug and play
+
+future projects:
+- build *Ibis: a stacking ibis
