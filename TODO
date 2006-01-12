@@ -20,6 +20,9 @@ satin:
   it is assumed to be an inlet. Is this OK?
 - abort bug: throw an Exception instead of returning null. Sequential user
   code gets confused otherwise.
+- satinc barfs when you have a method that both spawns and has "synchronized"
+  blocks. Reason: javac generates local variables for those, without entries
+  in the local variable table.
 
 connect:
 - Update manual and readme files to reflect new structure.
@@ -51,7 +54,21 @@ nameserver+connection stuff:
 
 ipl:
 
-- add a way to create local receiveports in addition to global receiveports
+- make ibis.ipl.Ibis an interface
+- add abstract classes for all classes in ibis.ipl to ibis.impl
+- add a final class ibis.ipl.IbisFactory which calls ibis.impl.IbisFactory
+  with reflection. It shouldn't import ibis.impl.IbisFactory as this would make
+  the ipl depend on ibis.impl (and ibisUtil, and IbisConnect, and....
+
+- IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
+- close van poorten (in shutdownhooks)
+  docs vertellen niet dat je niet een close mag doen terwijl een message
+  levend is
+  Ceriel: ??? Hoe doe je dat (in een shutdownhook belanden als er een message
+  levend is ??? En, de javadocs vertellen dat wel degelijk.
+
+- add a way to create local receiveports local to and Ibis
+  in addition to global receiveports
 - add Registry.lookup(IbisIdentifier ibis, String receivePortName)
 - add SendPort.connect(IbisIdentifier ibis, String receivePortName)
 - remove Registry.lookupIbis()
@@ -60,20 +77,7 @@ ipl:
   (get a unique name for an Ibis by calling IbisIdentifier.name() )
 - change Ibis.toString() to returning a "friendly"(user-printable), but not 
   necessarily unique, string.
-   
-- IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
-- add receiveports local to an ibis:
-	- receiveports not globally unique, but unique per ibis.
-	- lookup method: recPortIdent lookup (ibisIdent, name)
-	- and: recPortIdent[] lookup(name)
-	- PortType.createReceivePort(..., ..., ..., boolean local); ??
-- make classes in ipl abstract as much as possible
-- close van poorten (in shutdownhooks)
-  docs vertellen niet dat je niet een close mag doen terwijl een message
-  levend is
-  Ceriel: ??? Hoe doe je dat (in een shutdownhook belanden als er een message
-  levend is ??? En, de javadocs vertellen dat wel degelijk.
-
+  
 rmi:
 - check Ibis RMI registry:
   - you don't have to actually start one;
@@ -86,20 +90,18 @@ satin:
 - make scalable ibis / scalable satin (don't keep sockets open) --Rob
 + als exception gegooid wordt zonder catch krijgen we nu aborts... / geen
   print bij top of the stack.
-- satinc barfs when you have a method that both spawns and has "synchronized"
-  blocks. Reason: javac generates local variables for those, without entries
-  in the local variable table.
+
 - add semantic analysis to the compiler
 - forgotten sync statements
 - make return / throw an implicit sync again?
 - add comments to abort / inlet machinism
-- rob (na distro): check satin caches.
+- check satin caches.
 - shutdownhook -> System.exit
 - satinc does not understand monitorenter/monitor exit instructions (othello) --Rob
 + move shared objects user API to satin package (remove satin.so package) --Rob
   Done (Ceriel)
 + add comments to user API for shared objects --Rob  Done (Ceriel)
-- major satin cleanup (for ibis 2.0): remove old features, fix ugly structure --Rob
+- major satin cleanup: remove old features, fix ugly structure --Rob
 - remove all satin commandline options, use properties instead (now most options are there twice) --Rob
 
 satin-so:
