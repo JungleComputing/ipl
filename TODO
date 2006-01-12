@@ -24,6 +24,7 @@ nameserver:
   --Rob
   Ceriel: Nameserver connects now have a timeout, default 10 seconds. Also,
   it is now multithreaded.
++ make "dead/left" forwarding also multithreaded. (Done Ceriel)
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
