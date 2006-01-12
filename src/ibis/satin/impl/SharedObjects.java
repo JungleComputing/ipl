@@ -50,6 +50,11 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         WriteMessage w = null;
         long size = 0;
 
+        if(!SHARED_OBJECTS) {
+            System.err.println("Shared objects are disabled.");
+            System.exit(1);
+        }
+        
         if (SCALABLE) {
             doConnectSendPort();
         }
@@ -184,6 +189,11 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         long byteCount = 0;
         //	int numToSend;
         WriteMessage w = null;
+
+        if(!SHARED_OBJECTS) {
+            System.err.println("Shared objects are disabled.");
+            System.exit(1);
+        }
 
         if (SO_TIMING) {
             broadcastSOInvocationsTimer.start();
