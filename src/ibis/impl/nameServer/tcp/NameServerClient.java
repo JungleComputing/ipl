@@ -348,6 +348,30 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
+    public void mustLeave(IbisIdentifier[] ibisses) throws IOException {
+        Socket s = null;
+        DataOutputStream out = null;
+
+        try {
+            s = socketFactory.createClientSocket(serverAddress, port, myAddress,
+                    0, -1, null);
+
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+
+            out.writeByte(IBIS_MUSTLEAVE);
+            out.writeUTF(poolName);
+            out.writeInt(ibisses.length);
+            for (int i = 0; i < ibisses.length; i++) {
+                out.writeUTF(ibisses[i].name());
+            }
+            logger.debug("NS client: mustLeave sent");
+        } catch (ConnectionTimedOutException e) {
+            return;
+        } finally {
+            NameServer.closeConnection(null, out, s);
+        }
+    }
+
     public boolean newPortType(String name, StaticProperties p)
             throws IOException {
         return portTypeNameServerClient.newPortType(name, p);
@@ -454,6 +478,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             try {
                 in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
                 int count;
+                IbisIdentifier[] ids;
 
                 opcode = in.readByte();
                 logger.debug("NameServerClient: opcode " + opcode);
@@ -506,7 +531,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
                 case (IBIS_DEAD):
                     count = in.readInt();
-                    IbisIdentifier[] ids = new IbisIdentifier[count];
+                    ids = new IbisIdentifier[count];
                     for (int i = 0; i < count; i++) {
                         int sz = in.readInt();
                         byte[] buf = new byte[sz];
@@ -515,6 +540,19 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     }
 
                     ibisImpl.died(ids);
+                    break;
+
+                case (IBIS_MUSTLEAVE):
+                    count = in.readInt();
+                    ids = new IbisIdentifier[count];
+                    for (int i = 0; i < count; i++) {
+                        int sz = in.readInt();
+                        byte[] buf = new byte[sz];
+                        in.readFully(buf, 0, sz);
+                        ids[i] = (IbisIdentifier) Conversion.byte2object(buf);
+                    }
+
+                    ibisImpl.mustLeave(ids);
                     break;
 
                 case PORT_KNOWN:

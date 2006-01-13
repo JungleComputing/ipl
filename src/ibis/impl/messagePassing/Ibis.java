@@ -187,6 +187,12 @@ public class Ibis extends ibis.ipl.Ibis {
         }
     }
 
+    public void mustLeave(ibis.ipl.IbisIdentifier[] ids) {
+        if (resizeHandler != null) {
+            resizeHandler.mustLeave(ids);
+        }
+    }
+
     private static void dumpStack() {
         new Throwable().printStackTrace();
     }

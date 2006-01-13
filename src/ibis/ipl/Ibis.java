@@ -920,4 +920,15 @@ public abstract class Ibis {
      *  identifiers} of the Ibis instances that died.
      */
     public abstract void died(IbisIdentifier[] corpses);
+
+    /**
+     * Notifies this Ibis instance that some Ibis instances are requested
+     * to leave.
+     * <strong>
+     * Note: used by the nameserver, do not call from outside Ibis.
+     * </strong>
+     * @param ibisses the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     *  identifiers} of the Ibis instances that are requested to leave.
+     */
+    public abstract void mustLeave(IbisIdentifier[] ibisses);
 }

@@ -8,9 +8,13 @@ general:
 	1.2 = 1.1 + MPJ + ...
 	1.3 = 1.2 + SO + ...
 - copy the source of "util" and "connect" to the distro manually
+
+nameserver:
+- lookup of ibisses that died/left/mustleave is sequential now. Could become
+  bottleneck.
 	
 ipl:
-- add delete(IbisIdentifier[] ibisses) to registry
++ add delete(IbisIdentifier[] ibisses) to registry (Done Ceriel; is called "mustLeave").
 - add calls to IPL: amount of data written/read in a message so far.
   this is needed for traffic shaping
 

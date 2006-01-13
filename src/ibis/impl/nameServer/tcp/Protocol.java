@@ -7,6 +7,7 @@ interface Protocol {
     static final byte IBIS_JOIN = 0;
     static final byte IBIS_REFUSED = 1;
     static final byte IBIS_ACCEPTED = 2;
+    static final byte IBIS_MUSTLEAVE = 3;
     static final byte IBIS_LEAVE = 4;
     static final byte IBIS_PING = 5;
     static final byte IBIS_ISALIVE = 6;

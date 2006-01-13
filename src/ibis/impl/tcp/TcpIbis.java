@@ -41,6 +41,8 @@ public final class TcpIbis extends Ibis implements Config {
 
     private ArrayList diedIbises = new ArrayList();
 
+    private ArrayList mustLeaveIbisses = new ArrayList();
+
     TcpPortHandler tcpPortHandler;
 
     private boolean ended = false;
@@ -206,6 +208,33 @@ public final class TcpIbis extends Ibis implements Config {
         }
     }
 
+    /**
+     * This method forwards the mustLeave to the application running on top of
+     * ibis.
+     */
+    public void mustLeave(IbisIdentifier[] ibisses) {
+        synchronized (this) {
+            if (!open && resizeHandler != null) {
+                for (int i = 0; i < ibisses.length; i++) {
+                    mustLeaveIbisses.add(ibisses[i]);
+                }
+                return;
+            }
+
+            if (DEBUG) {
+                for (int i = 0; i < ibisses.length; i++) {
+                    System.out.println(name + ": Ibis '" + ibisses[i]
+                            + "' died");
+                }
+            }
+            // poolSize -= corpses.length;
+        }
+
+        if (resizeHandler != null) {
+            resizeHandler.mustLeave(ibisses);
+        }
+    }
+
     public PortType getPortType(String nm) {
         return (PortType) portTypeList.get(nm);
     }
@@ -251,7 +280,17 @@ public final class TcpIbis extends Ibis implements Config {
                 }
                 // Don't hold the lock during user upcall
                 resizeHandler.died(id);
+            }
 
+            IbisIdentifier[] ids = new IbisIdentifier[0];
+            synchronized(this) {
+                if (mustLeaveIbisses.size() != 0) {
+                    ids = (IbisIdentifier[]) mustLeaveIbisses.toArray(ids);
+                    mustLeaveIbisses.clear();
+                }
+            }
+            if (ids.length != 0) {
+                resizeHandler.mustLeave(ids);
             }
         }
 

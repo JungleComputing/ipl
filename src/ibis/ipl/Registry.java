@@ -218,4 +218,15 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public void dead(IbisIdentifier ibis) throws IOException;
+
+    /**
+     * Requests some Ibis instances to leave.
+     * This results in a {@link ResizeHandler#mustLeave(IbisIdentifier[])} upcall on
+     * all Ibis instances in the current run. It is up to the application
+     * to react accordingly.
+     * @param ibisses the ibisses which are told to leave. Multiple ibisses
+     * may be ordered to leave when, for instance, an entire cluster is killed.
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
+    public void mustLeave(IbisIdentifier[] ibisses) throws IOException;
 }

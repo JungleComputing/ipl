@@ -19,6 +19,7 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -140,6 +141,8 @@ public final class NetIbis extends Ibis {
      * was {@linkplain #open closed}.
      */
     private Vector diedIbises = new Vector();
+
+    private ArrayList mustLeaveIbisses = new ArrayList();
 
     /**
      * Make end() reentrant
@@ -510,6 +513,25 @@ public final class NetIbis extends Ibis {
         }
     }
 
+    /**
+     * This method forwards the mustLeave to the application running on top of
+     * ibis.
+     */
+    public void mustLeave(IbisIdentifier[] ibisses) {
+        synchronized (this) {
+            if (!open && resizeHandler != null) {
+                for (int i = 0; i < ibisses.length; i++) {
+                    mustLeaveIbisses.add(ibisses[i]);
+                }
+                return;
+            }
+        }
+
+        if (resizeHandler != null) {
+            resizeHandler.mustLeave(ibisses);
+        }
+    }
+
     public void enableResizeUpcalls() {
         if (resizeHandler != null) {
             while (joinedIbises.size() > 0) {
@@ -530,6 +552,13 @@ public final class NetIbis extends Ibis {
             while (diedIbises.size() > 0) {
                 resizeHandler.died((NetIbisIdentifier) diedIbises.remove(0));
                 // poolSize--;
+            }
+
+            IbisIdentifier[] ids = new IbisIdentifier[0];
+            if (mustLeaveIbisses.size() != 0) {
+                ids = (IbisIdentifier[]) mustLeaveIbisses.toArray(ids);
+                mustLeaveIbisses.clear();
+                resizeHandler.mustLeave(ids);
             }
         }
 

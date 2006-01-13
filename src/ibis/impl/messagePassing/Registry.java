@@ -113,6 +113,10 @@ class Registry implements ibis.ipl.Registry {
         /* not implemented yet */
     }
 
+    public void mustLeave(ibis.ipl.IbisIdentifier[] id) throws IOException {
+        /* not implemented yet */
+    }
+
     public String[] listNames(String pattern) throws IOException {
         /* not implemented yet */
         return null;

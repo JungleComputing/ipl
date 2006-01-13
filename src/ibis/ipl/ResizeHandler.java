@@ -44,12 +44,11 @@ public interface ResizeHandler {
     public void died(IbisIdentifier corpse);
 
     /**
-     * Upcall generated when one or more Ibisses are ordered to leave.
+     * Upcall generated when one or more Ibisses are requested to leave.
      *
-     * An ibis may be given some time to leave before it is actually
-     * forced to quit. A left or died signal will be issued when the node
-     * actually leaves the run, depending on if it left in time, or was
-     * explicitly killed.
+     * This call can only be the result of a {@link Registry#mustLeave(IbisIdentifier[])}
+     * call. It is always the result of a call by the application.
+     * How the receiver of this upcall reacts to this is up to the application.
      * @param ibisses the ibisses which are told to leave. Multiple ibisses
      * may be ordered to leave when, for instance, an entire cluster is killed.
      */
