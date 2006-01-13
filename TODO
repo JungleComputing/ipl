@@ -31,6 +31,8 @@ satin:
 connect:
 - Update manual and readme files to reflect new structure.
 
+apps:
+- satin SO barnes should use the barnes_inline heuristic for spawning.
 
 *** Ibis 2.0+ ***
 
