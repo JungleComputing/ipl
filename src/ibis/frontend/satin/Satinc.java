@@ -1192,7 +1192,8 @@ public final class Satinc {
 
             if (in instanceof LocalVariableInstruction) {
                 LocalVariableInstruction curr = (LocalVariableInstruction) in;
-                if (curr.getIndex() < m.getMaxLocals() - 5
+                if (mtab.getLocal(m, curr, ins[i].getPosition()) != null
+                        && curr.getIndex() < m.getMaxLocals() - 5
                         && !mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
                     if (curr instanceof IINC) {
                         ins[i].setInstruction(new NOP());
@@ -1498,6 +1499,9 @@ public final class Satinc {
         LocalVariableInstruction curr
                 = (LocalVariableInstruction) (i.getInstruction());
         Type type = mtab.getLocalType(m, curr, i.getPosition());
+        if (type == null) {
+            return i;
+        }
         String name = mtab.getLocalName(m, curr, i.getPosition());
         String fieldName = MethodTable.generatedLocalName(type, name);
 
@@ -1521,6 +1525,9 @@ public final class Satinc {
         LocalVariableInstruction curr
                 = (LocalVariableInstruction) (i.getInstruction());
         Type type = mtab.getLocalType(m, curr, i.getPosition());
+        if (type == null) {
+            return i;
+        }
         String name = mtab.getLocalName(m, curr, i.getPosition());
         String fieldName = MethodTable.generatedLocalName(type, name);
 
@@ -1776,6 +1783,9 @@ public final class Satinc {
                             i.getPosition());
                     Type fieldType = mtab.getLocalType(m, curr,
                             i.getPosition());
+                    if (fieldType == null) {
+                        continue;
+                    }
 
                     i.setInstruction(new ALOAD(maxLocals));
                     i = i.getNext();

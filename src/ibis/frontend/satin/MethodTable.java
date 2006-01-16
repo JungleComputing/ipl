@@ -4,6 +4,7 @@ package ibis.frontend.satin;
 
 import ibis.frontend.generic.BT_Analyzer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -16,6 +17,7 @@ import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.CodeExceptionGen;
+import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
@@ -259,7 +261,7 @@ final class MethodTable {
     }
 
     // Make each stack position indicate a single type of variable.
-    void rewriteLocals(MethodGen m) {
+    private void rewriteLocals(MethodGen m, ConstantPoolGen cpg) {
         // First, analyze how many stack positions are for parameters.
         // We won't touch those.
         int parameterpos = m.isStatic() ? 0 : 1;
@@ -309,6 +311,42 @@ final class MethodTable {
                 }
             }
         }
+
+        // Rewrite all locals that are not in the LocalVariableTable.
+        // Javac sometimes generates these for synchronized blocks.
+        // Here, we give them a new index, so that they at least do not
+        // collide with locals in the LocalVariableTable.
+        // For now, if they occur in an inlet handler, they will not be
+        // rewritten!
+        ArrayList newLocals = new ArrayList();
+        for (InstructionHandle h = m.getInstructionList().getStart(); h != null;
+                h = h.getNext()) {
+            Instruction ins = h.getInstruction();
+            if (ins instanceof LocalVariableInstruction) {
+                LocalVariableInstruction lins = (LocalVariableInstruction) ins;
+                int pos = lins.getIndex();
+                if (pos >= parameterpos) {
+                    // Stay away from the method parameters.
+                    LocalVariableGen lg = getLocal(m, lins, h.getPosition());
+                    if (lg == null) {
+                        int local = lins.getIndex();
+                        Type tp = lins.getType(cpg);
+                        while (local >= newLocals.size()) {
+                            newLocals.add(null);
+                        }
+                        if (newLocals.get(local) == null) {
+                            newLocals.set(local, new Integer(maxpos));
+                            maxpos++;
+                            if (tp.equals(Type.LONG) || tp.equals(Type.DOUBLE)) {
+                                maxpos++;
+                            }
+                        }
+                        Integer i = (Integer) newLocals.get(local);
+                        lins.setIndex(i.intValue());
+                    }
+                }
+            }
+        }
     }
 
     // Rewrite instructions where local is used.
@@ -346,7 +384,7 @@ final class MethodTable {
             Method m = methods[i];
             MethodGen mg = new MethodGen(m, c.getClassName(),
                     gen_c.getConstantPool());
-            rewriteLocals(mg);
+            rewriteLocals(mg, gen_c.getConstantPool());
             mg.setMaxLocals();
             mg.setMaxStack();
             gen_c.removeMethod(m);
@@ -421,6 +459,11 @@ final class MethodTable {
             int startPC = e.getStartPC().getPosition();
             int endPC = e.getEndPC().getPosition();
             int PC = spawnIns.getPosition();
+
+            if (verbose) {
+                System.err.println("startPC = " + startPC + ", endPC = "
+                        + endPC + ", PC = " + PC);
+            }
 
             if (PC >= startPC && PC <= endPC) {
                 /* ok, we have an inlet, add try-catch block info to table */
@@ -737,7 +780,7 @@ final class MethodTable {
         return findMethod(m).typesOfParams[paramNr];
     }
 
-    private final LocalVariableGen getLocal(MethodGen m,
+    final LocalVariableGen getLocal(MethodGen m,
             LocalVariableInstruction curr, int pos) {
         int localNr = curr.getIndex();
         LocalVariableGen[] lt = getLocalTable(m);
@@ -745,38 +788,40 @@ final class MethodTable {
         for (int i = 0; i < lt.length; i++) {
             // Watch out. The first initialization seems not to be included in
             // the range given in the local variable table!
-            if (localNr == lt[i].getIndex()
-                    && pos >= lt[i].getStart().getPrev().getPosition()
-                    && pos < (lt[i].getEnd().getPosition())) {
-                return lt[i];
-            }
 
-            // if (localNr == lt[i].getIndex()) {
-            //     System.err.println("Looking for local " + localNr
-            //             + " on position " + pos);
-            //     System.err.println("found one with range "
-            //             + lt[i].getStart().getPrev().getPosition() + ", "
-            //             + lt[i].getEnd().getPosition());
-            // }
+            if (localNr == lt[i].getIndex()) {
+//                System.err.println("Looking for local " + localNr
+//                        + " on position " + pos);
+//                System.err.println("found one with range "
+//                        + lt[i].getStart().getPrev().getPosition() + ", "
+//                        + lt[i].getEnd().getPosition());
+
+                if (pos >= lt[i].getStart().getPrev().getPosition()
+                    && pos < (lt[i].getEnd().getPosition())) {
+                    return lt[i];
+                }
+            }
         }
 
-        new Exception().printStackTrace();
-        System.err.println("getLocal: could not find local " + localNr + " of method " + m.getName() + " instruction: " + curr);
-        System.err.println("Maybe you need to initialize the variable");
-        System.err.println("Class: " + c.getClassName() + ", method: " + m.getName());
-        System.err.println("Code: " + m.getInstructionList().toString());
-        System.exit(1);
         return null;
     }
 
     String getLocalName(MethodGen m, LocalVariableInstruction curr, int pos) {
         LocalVariableGen a = getLocal(m, curr, pos);
 
+        if (a == null) {
+            return null;
+        }
+
         return a.getName();
     }
 
     Type getLocalType(MethodGen m, LocalVariableInstruction curr, int pos) {
         LocalVariableGen a = getLocal(m, curr, pos);
+
+        if (a == null) {
+            return null;
+        }
 
         return a.getType();
     }
