@@ -14,7 +14,8 @@ nameserver:
   bottleneck.
 	
 ipl:
-+ add delete(IbisIdentifier[] ibisses) to registry (Done Ceriel; is called "mustLeave").
++ add delete(IbisIdentifier[] ibisses) to registry (Done Ceriel; is called
+  "mustLeave").
 - add calls to IPL: amount of data written/read in a message so far.
   this is needed for traffic shaping
 
@@ -24,15 +25,17 @@ satin:
   it is assumed to be an inlet. Is this OK?
 - abort bug: throw an Exception instead of returning null. Sequential user
   code gets confused otherwise.
-- satinc barfs when you have a method that both spawns and has "synchronized"
++ satinc barfs when you have a method that both spawns and has "synchronized"
   blocks. Reason: javac generates local variables for those, without entries
-  in the local variable table.
+  in the local variable table. (Fixed Ceriel: Satinc should stay away from
+  locals it does not know about).
 
 connect:
 - Update manual and readme files to reflect new structure.
 
 apps:
-- satin SO barnes should use the barnes_inline heuristic for spawning.
++ satin SO barnes should use the barnes_inline heuristic for spawning. (No,
+  was already done).
 
 *** Ibis 2.0+ ***
 
