@@ -559,8 +559,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             }
             throw new SOReferenceSourceCrashedException();
         }
-        
-        // @@@ This loop is not a smart idea. why not use a wait/notify? --Rob
+
         //wait for the reply
         while (true) {
             //	    handleDelayedMessages();
@@ -574,7 +573,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                     currentVictimCrashed = false;
                     break;
                 }
-                
+
                 try {
                     wait();
                 } catch (Exception e) {
@@ -582,7 +581,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 }
             }
         }
-        
+
         if (SO_TIMING) {
             soTransferTimer.stop();
         }
@@ -609,17 +608,23 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 
     void handleSORequests() {
         gotSORequests = false;
+        WriteMessage wm;
+        long size;
+        IbisIdentifier origin;
+        String objid;
 
-        while (SORequestList.getCount() != 0) {
+        while (true) {
             if (SO_TIMING) {
                 handleSOTransferTimer = createTimer();
                 handleSOTransferTimer.start();
             }
-            WriteMessage wm;
-            long size;
-            IbisIdentifier origin = SORequestList.getRequester(0);
-            String objid = SORequestList.getobjID(0);
-            SORequestList.removeIndex(0);
+
+            synchronized (this) {
+                if (SORequestList.getCount() == 0) return;
+                origin = SORequestList.getRequester(0);
+                objid = SORequestList.getobjID(0);
+                SORequestList.removeIndex(0);
+            }
 
             SharedObject so = getSOReference(objid);
             //System.err.println("got object");
