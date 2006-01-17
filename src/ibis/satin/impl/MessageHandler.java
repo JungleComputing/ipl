@@ -949,12 +949,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
     public void handleSORequest(ReadMessage m) {
 	String objid = null;
-	SharedObject so = null;
-	Victim v = null;	
+//	SharedObject so = null;
+//	Victim v = null;	
 	Timer handleSOTransferTimer = null;
-	Timer soSerializationTimer = null;
-	long size = 0;
-	WriteMessage wm = null;
+//	Timer soSerializationTimer = null;
+//	long size = 0;
+//	WriteMessage wm = null;
 	IbisIdentifier origin = m.origin().ibis();
 
         soLogger.info("SATIN '" + satin.ident.name() + "': got so request");
@@ -974,7 +974,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			       + "': got exception while reading"
 			       + " shared object request: " + e.getMessage());
 	}
-
+    
+    synchronized (satin) {
+        satin.addToSORequestList(origin, objid);
+    }
+    
+/*
 	//	System.err.println("read objid: " + objid);
 	synchronized (satin) {
 	    so = satin.getSOReference(objid);
@@ -1026,6 +1031,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	    soSerializationTimer.stop();
 	    satin.soSerializationTimer.add(soSerializationTimer);
 	}
+    */
     }
 
     public void handleSOTransfer(ReadMessage m) { // normal so transfer (not exportObject)

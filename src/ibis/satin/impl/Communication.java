@@ -228,6 +228,10 @@ public abstract class Communication extends SpawnSync {
         }
 
         if (SHARED_OBJECTS) {
+            if(gotSORequests) {
+                handleSORequests();
+            }
+                
             if (gotSOInvocations) {
                 handleSOInvocations();
             }

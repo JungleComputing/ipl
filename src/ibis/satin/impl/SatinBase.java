@@ -163,6 +163,9 @@ public abstract class SatinBase implements Config {
     /** Abort messages are queued until the sync. */
     protected StampVector abortList = new StampVector();
 
+    /** List that stores requests for shared object transfers */
+    protected SORequestList SORequestList = new SORequestList();
+    
     /** Used for fault tolerance. */
     protected StampVector abortAndStoreList;    
 
@@ -250,6 +253,8 @@ public abstract class SatinBase implements Config {
     protected volatile boolean gotExceptions = false;
 
     protected volatile boolean gotAborts = false;
+
+    protected volatile boolean gotSORequests = false;
 
     protected volatile boolean gotCrashes = false;
 
@@ -437,7 +442,9 @@ public abstract class SatinBase implements Config {
     abstract void handleActiveTuples();
 
     abstract void handleSOInvocations();
-
+    
+    abstract void handleSORequests();
+        
     abstract void handleCrashes();
 
     abstract void handleAbortsAndStores();
