@@ -614,16 +614,17 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         String objid;
 
         while (true) {
-            if (SO_TIMING) {
-                handleSOTransferTimer = createTimer();
-                handleSOTransferTimer.start();
-            }
 
             synchronized (this) {
                 if (SORequestList.getCount() == 0) return;
                 origin = SORequestList.getRequester(0);
                 objid = SORequestList.getobjID(0);
                 SORequestList.removeIndex(0);
+            }
+
+            if (SO_TIMING) {
+                handleSOTransferTimer = createTimer();
+                handleSOTransferTimer.start();
             }
 
             SharedObject so = getSOReference(objid);
