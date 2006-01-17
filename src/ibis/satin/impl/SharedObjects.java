@@ -369,6 +369,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         synchronized (this) {
             gotObject = true;
             object = obj;
+            notifyAll();
         }
     }
 
@@ -558,6 +559,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             }
             throw new SOReferenceSourceCrashedException();
         }
+        
+        // @@@ This loop is not a smart idea. why not use a wait/notify? --Rob
         //wait for the reply
         while (true) {
             //	    handleDelayedMessages();
@@ -571,8 +574,15 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                     currentVictimCrashed = false;
                     break;
                 }
+                
+                try {
+                    wait();
+                } catch (Exception e) {
+                    // ignore
+                }
             }
         }
+        
         if (SO_TIMING) {
             soTransferTimer.stop();
         }
