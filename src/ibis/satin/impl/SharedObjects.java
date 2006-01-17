@@ -47,6 +47,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
     final static int LOOKUP_WAIT_TIME = 10000;
 
     public void broadcastSharedObject(SharedObject object) {
+/*
+
         WriteMessage w = null;
         long size = 0;
 
@@ -88,34 +90,34 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 + "': unable to broadcast a shared object: " + e);
         }
 
-        /*Iterator iter = soSendPorts.values().iterator();
-         while (iter.hasNext()) {
-         try {
-         if (soInvocationsDelay > 0) {
-         MessageCombiner mc = (MessageCombiner) iter.next();
-         w = mc.newMessage();
-         if (soInvocationsDelayTimer == -1) {
-         soInvocationsDelayTimer = System.currentTimeMillis();
-         }
-         } else {
-         SendPort send = (SendPort) iter.next();
-         w = send.newMessage();
-         }
-         if (SO_TIMING) {
-         soSerializationTimer.start();
-         }		
-         w.writeByte(SO_TRANSFER);
-         w.writeObject(object);
-         size = w.finish();
-         if (SO_TIMING) {
-         soSerializationTimer.stop();
-         }
-         } catch (IOException e) {
-         System.err.println("SATIN '" + ident.name()
-         + "': unable to send a shared object: "
-         + e);
-         }
-         }*/
+//         Iterator iter = soSendPorts.values().iterator();
+//          while (iter.hasNext()) {
+//          try {
+//          if (soInvocationsDelay > 0) {
+//          MessageCombiner mc = (MessageCombiner) iter.next();
+//          w = mc.newMessage();
+//          if (soInvocationsDelayTimer == -1) {
+//          soInvocationsDelayTimer = System.currentTimeMillis();
+//          }
+//          } else {
+//          SendPort send = (SendPort) iter.next();
+//          w = send.newMessage();
+//          }
+//          if (SO_TIMING) {
+//          soSerializationTimer.start();
+//          }		
+//          w.writeByte(SO_TRANSFER);
+//          w.writeObject(object);
+//          size = w.finish();
+//          if (SO_TIMING) {
+//          soSerializationTimer.stop();
+//          }
+//          } catch (IOException e) {
+//          System.err.println("SATIN '" + ident.name()
+//          + "': unable to send a shared object: "
+//          + e);
+//          }
+//          }
 
         //stats
         soTransfers += soSendPort.connectedTo().length;
@@ -124,6 +126,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         if (SO_TIMING) {
             handleSOTransferTimer.stop();
         }
+*/
     }
 
     /** Add an object to the object table*/

@@ -31,7 +31,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
         try {
             byte opt_code = m.readByte();
             switch (opt_code) {
-            case SO_TRANSFER:
+            case SO_TRANSFER: // exportObject
+		System.err.println("X");
                 if (SO_TIMING) {
                     soTransferTimer = satin.createTimer();
                     soTransferTimer.start();
@@ -54,7 +55,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                  + "': received broadcast shared object from " 
                  + m.origin());	    */
                 break;
-            case SO_INVOCATION:
+            case SO_INVOCATION: // normal invocation, can be message combined
+		System.err.println("Y");
                 if (SO_TIMING) {
                     handleSOInvocationsTimer = satin.createTimer();
                     handleSOInvocationsTimer.start();

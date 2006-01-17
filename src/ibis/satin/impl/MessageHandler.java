@@ -955,6 +955,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	Timer soSerializationTimer = null;
 	long size = 0;
 	WriteMessage wm = null;
+	IbisIdentifier origin = m.origin().ibis();
 
         soLogger.info("SATIN '" + satin.ident.name() + "': got so request");
 
@@ -965,18 +966,20 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	
 	try {
 	    objid = m.readString();
+
+	    // we must finish the message before doing communication. --Rob
+	    m.finish();
 	} catch (IOException e) {
 	    soLogger.warn("SATIN '" + satin.ident.name() 
 			       + "': got exception while reading"
 			       + " shared object request: " + e.getMessage());
 	}
 
-
 	//	System.err.println("read objid: " + objid);
 	synchronized (satin) {
 	    so = satin.getSOReference(objid);
 	    //System.err.println("got object");
-	    v = satin.getVictimWait(m.origin().ibis());
+	    v = satin.getVictimWait(origin);
 	    //System.err.println("got reply port");
        
 	    if (ASSERTS && so == null) {
@@ -1025,7 +1028,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	}
     }
 
-    public void handleSOTransfer(ReadMessage m) {
+    public void handleSOTransfer(ReadMessage m) { // normal so transfer (not exportObject)
 	SharedObject obj = null;
 	Timer soDeserializationTimer = null;
 
@@ -1048,6 +1051,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	    soDeserializationTimer.stop();
 	    satin.soDeserializationTimer.add(soDeserializationTimer);
 	}
+
+        // no need to finish the read message here. 
+        // We don't block and don't do any communication
+
 	satin.receiveObject(obj);
     }
 
@@ -1149,9 +1156,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 handleResultPush(m);
                 break;
 	    case SO_REQUEST:
+		System.err.print("r");
 		handleSORequest(m);
 		break;
 	    case SO_TRANSFER:
+		System.err.print("t");
 		handleSOTransfer(m);
 		break;
             default:
