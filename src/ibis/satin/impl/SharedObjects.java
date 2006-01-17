@@ -601,6 +601,10 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         gotSORequests = false;
 
         while (SORequestList.getCount() != 0) {
+            if (SO_TIMING) {
+                handleSOTransferTimer = createTimer();
+                handleSOTransferTimer.start();
+            }
             WriteMessage wm;
             long size;
             IbisIdentifier origin = SORequestList.getRequester(0);

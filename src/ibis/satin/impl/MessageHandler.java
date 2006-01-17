@@ -951,7 +951,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	String objid = null;
 //	SharedObject so = null;
 //	Victim v = null;	
-	Timer handleSOTransferTimer = null;
+//	Timer handleSOTransferTimer = null;
 //	Timer soSerializationTimer = null;
 //	long size = 0;
 //	WriteMessage wm = null;
@@ -959,11 +959,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
         soLogger.info("SATIN '" + satin.ident.name() + "': got so request");
 
-	if (SO_TIMING) {
-	    handleSOTransferTimer = satin.createTimer();
-	    handleSOTransferTimer.start();
-	}
-	
 	try {
 	    objid = m.readString();
 
