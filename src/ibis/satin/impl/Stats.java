@@ -85,7 +85,7 @@ public abstract class Stats extends SharedObjects {
             s.soTransferTime = soTransferTimer.totalTimeVal();
             s.handleSOTransferTime = handleSOTransferTimer.totalTimeVal();
             s.soSerializationTime = soSerializationTimer.totalTimeVal();
-            s.soDeserializationTime = soDeserializationTimer.totalTimeVal();
+            s.soDeserializationTime = soDeserializationTimer.totalTimeVal() + soBroadcastDeserializationTimer.totalTimeVal();
             s.soRealMessageCount = soRealMessageCount;
         }
 
