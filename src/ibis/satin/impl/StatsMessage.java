@@ -133,8 +133,6 @@ class StatsMessage implements java.io.Serializable {
 
     double soTransferTime;
 
-    double handleSOTransferTime;
-
     double soSerializationTime;
 
     double soDeserializationTime;
@@ -213,7 +211,6 @@ class StatsMessage implements java.io.Serializable {
         broadcastSOInvocationsTime += s.broadcastSOInvocationsTime;
         handleSOInvocationsTime += s.handleSOInvocationsTime;
         soTransferTime += s.soTransferTime;
-        handleSOTransferTime += s.handleSOTransferTime;
         soSerializationTime += s.soSerializationTime;
         soDeserializationTime += s.soDeserializationTime;
         soRealMessageCount += s.soRealMessageCount;

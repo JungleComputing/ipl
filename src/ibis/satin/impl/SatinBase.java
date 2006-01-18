@@ -365,8 +365,6 @@ public abstract class SatinBase implements Config {
 
     Timer soTransferTimer = Timer.createTimer();
 
-    Timer handleSOTransferTimer = Timer.createTimer();
-
     Timer soSerializationTimer = Timer.createTimer();
 
     Timer soDeserializationTimer = Timer.createTimer();
@@ -380,8 +378,6 @@ public abstract class SatinBase implements Config {
     long returnRecordBytes = 0;
 
     long prevPoll = 0;
-
-    // float MHz = Timer.getMHz();
 
     java.io.PrintStream out = System.out;
 

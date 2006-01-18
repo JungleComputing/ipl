@@ -83,7 +83,6 @@ public abstract class Stats extends SharedObjects {
             s.broadcastSOInvocationsTime = broadcastSOInvocationsTimer
                 .totalTimeVal();
             s.soTransferTime = soTransferTimer.totalTimeVal();
-            s.handleSOTransferTime = handleSOTransferTimer.totalTimeVal();
             s.soSerializationTime = soSerializationTimer.totalTimeVal();
             s.soDeserializationTime = soDeserializationTimer.totalTimeVal() + soBroadcastDeserializationTimer.totalTimeVal();
             s.soRealMessageCount = soRealMessageCount;
@@ -340,11 +339,6 @@ public abstract class Stats extends SharedObjects {
                 + " time/transf "
                 + Timer.format(perStats(totalStats.soTransferTime,
                     totalStats.soTransfers)));
-            out.println("SATIN: HANDLE_SO_TRANSFERS:    total "
-                + Timer.format(totalStats.handleSOTransferTime)
-                + " time/transf "
-                + Timer.format(perStats(totalStats.handleSOTransferTime,
-                    totalStats.soTransfers)));
             out.println("SATIN: SO_SERIALIZATION:       total "
                 + Timer.format(totalStats.soSerializationTime)
                 + " time/transf "
@@ -424,9 +418,6 @@ public abstract class Stats extends SharedObjects {
         double soTransferTime = totalStats.soTransferTime / size;
         double soTransferPerc = soTransferTime / totalTimer.totalTimeVal()
             * 100;
-        double handleSOTransferTime = totalStats.handleSOTransferTime / size;
-        double handleSOTransferPerc = handleSOTransferTime
-            / totalTimer.totalTimeVal() * 100;
         double soSerializationTime = totalStats.soSerializationTime / size;
         double soSerializationPerc = soSerializationTime
             / totalTimer.totalTimeVal() * 100;
@@ -446,7 +437,6 @@ public abstract class Stats extends SharedObjects {
             + handleSOInvocationsTime
             + broadcastSOInvocationsTime
             + soTransferTime
-            + handleSOTransferTime
             + (totalStats.stealTime + totalStats.handleStealTime
                 + totalStats.returnRecordReadTime + totalStats.returnRecordWriteTime)
             / size;
@@ -536,9 +526,6 @@ public abstract class Stats extends SharedObjects {
             out.println("SATIN: SO_TRANSFERS:             avg. per machine "
                 + Timer.format(soTransferTime) + " ("
                 + pf.format(soTransferPerc) + " %)");
-            out.println("SATIN: HANDLE_SO_TRANSFERS:      avg. per machine "
-                + Timer.format(handleSOTransferTime) + " ("
-                + pf.format(handleSOTransferPerc) + " %)");
             out.println("SATIN: SO_SERIALIZATION:         avg. per machine "
                 + Timer.format(soSerializationTime) + " ("
                 + pf.format(soSerializationPerc) + " %)");

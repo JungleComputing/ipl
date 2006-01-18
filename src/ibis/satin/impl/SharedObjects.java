@@ -510,7 +510,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             }
 
             if (SO_TIMING) {
-                handleSOTransferTimer.start();
+                soTransferTimer.start();
             }
 
             SharedObject so = getSOReference(objid);
@@ -546,7 +546,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 soTransfersBytes += size;
 
                 if (SO_TIMING) {
-                    handleSOTransferTimer.stop();
+                    soTransferTimer.stop();
                 }
             } catch (IOException e) {
                 soLogger.error("SATIN '" + ident.name()
