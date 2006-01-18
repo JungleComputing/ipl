@@ -20,7 +20,7 @@ ipl:
   this is needed for traffic shaping
 
 satin:  
-- check Satin Shared Objects for performance bugs
+- check Satin Shared Objects for performance bugs --> move to 2.0? --Rob
 - detection of what is an inlet: now, if the invocation is inside a try-catch
   it is assumed to be an inlet. Is this OK?
 - abort bug: throw an Exception instead of returning null. Sequential user

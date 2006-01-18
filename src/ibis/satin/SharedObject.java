@@ -44,5 +44,4 @@ public class SharedObject implements java.io.Serializable {
             System.exit(1);
         }
     }
-
 }

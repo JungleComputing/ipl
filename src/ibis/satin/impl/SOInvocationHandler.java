@@ -3,7 +3,6 @@ package ibis.satin.impl;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.Upcall;
 import ibis.satin.SharedObject;
-import ibis.util.Timer;
 import ibis.util.messagecombining.MessageSplitter;
 
 import java.io.IOException;
@@ -24,51 +23,37 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
     private void handleMessage(ReadMessage m) {
         SharedObject obj = null;
         SOInvocationRecord soir = null;
-        Timer handleSOInvocationsTimer = null;
-        Timer soTransferTimer = null;
-        Timer soDeserializationTimer = null;
 
         try {
             byte opt_code = m.readByte();
             switch (opt_code) {
             case SO_TRANSFER: // exportObject
-		System.err.print("X");
+                System.err.print("X");
                 if (SO_TIMING) {
-                    soTransferTimer = satin.createTimer();
-                    soTransferTimer.start();
-                    soDeserializationTimer = satin.createTimer();
-                    soDeserializationTimer.start();
+                    satin.soDeserializationTimer.start();
                 }
                 obj = (SharedObject) m.readObject();
-
                 if (SO_TIMING) {
-                    soTransferTimer.stop();
-                    satin.soTransferTimer.add(soTransferTimer);
-                    soDeserializationTimer.stop();
-                    satin.soDeserializationTimer.add(soDeserializationTimer);
+                    satin.soDeserializationTimer.stop();
                 }
-                m.finish();
+
+                // no need to finish the message
                 synchronized (satin) {
                     satin.sharedObjects.put(obj.objectId, obj);
                 }
-                /*		System.err.println("SATIN '" + satin.ident.name() 
-                 + "': received broadcast shared object from " 
-                 + m.origin());	    */
                 break;
             case SO_INVOCATION: // normal invocation, can be message combined
-		System.err.print("Y");
+                System.err.print("Y");
                 if (SO_TIMING) {
-                    handleSOInvocationsTimer = satin.createTimer();
-                    handleSOInvocationsTimer.start();
+                    satin.soDeserializationTimer.start();
                 }
                 soir = (SOInvocationRecord) m.readObject();
-                m.finish();
-                satin.addSOInvocation(soir);
                 if (SO_TIMING) {
-                    handleSOInvocationsTimer.stop();
-                    satin.handleSOInvocationsTimer
-                        .add(handleSOInvocationsTimer);
+                    satin.soDeserializationTimer.stop();
                 }
+
+                // no need to finish here
+                satin.addSOInvocation(soir);
                 break;
             default:
                 System.err.println("SATIN '" + satin.ident.name()
@@ -86,19 +71,14 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
     }
 
     public void upcall(ReadMessage m) {
-        //	SOInvocationRecord soir = null;
-        //	int num = 0;
-
-        /*	System.err.println("SATIN '" + satin.ident.name()
-         + "': got so invocation");*/
-
         try {
-            if (satin.soInvocationsDelay > 0) {
-                //		System.err.println("reading a combined message");
+            if (satin.soInvocationsDelay > 0) { // message combining enabled
                 messageSplitter.setMessageToSplit(m);
                 ReadMessage m1 = messageSplitter.receive();
                 while (m1 != null) {
-                    handleMessage(m1); //finishes the message
+                    handleMessage(m1);
+                    // message combining needs all messages to be finished
+                    m1.finish();
                     m1 = messageSplitter.receive();
                 }
             } else {
@@ -109,7 +89,5 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 + "': got exception while reading"
                 + " opcode in SOInvocationHandler: " + e.getMessage());
         }
-
     }
-
 }

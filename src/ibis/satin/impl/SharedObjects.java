@@ -46,88 +46,54 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 
     final static int LOOKUP_WAIT_TIME = 10000;
 
-/** This basicaly is optional, if nodes don't have the object, they will retrieve it.
-    However, one broadcast is more efficient (serialization is done only once).
-*/
+    /** This basicaly is optional, if nodes don't have the object, they will retrieve it.
+         However, one broadcast is more efficient (serialization is done only once).
+         This is called from exportObject only, so don't use message combining.
+     */
     public void broadcastSharedObject(SharedObject object) {
+        WriteMessage w = null;
+        long size = 0;
 
-         WriteMessage w = null;
-         long size = 0;
+        if (SO_TIMING) {
+            soBroadcastTransferTimer.start();
+        }
 
-         if(!SHARED_OBJECTS) {
-         System.err.println("Shared objects are disabled.");
-         System.exit(1);
-         }
-         
-         if (SCALABLE) {
-         doConnectSendPort();
-         }
+        if (!SHARED_OBJECTS) {
+            System.err.println("Shared objects are disabled.");
+            System.exit(1);
+        }
 
-         if (SO_TIMING) {
-         handleSOTransferTimer.start();
-         }
-         try {
-         if (soInvocationsDelay > 0) {
-         //do message combining
-         w = soMessageCombiner.newMessage();
-         } else {
-         w = soSendPort.newMessage();
-         }
+        if (SCALABLE) {
+            doConnectSendPort();
+        }
 
-         if (SO_TIMING) {
-         soSerializationTimer.start();
-         }
-         w.writeByte(SO_TRANSFER);
-         w.writeObject(object);
-         size = w.finish();
-         if (SO_TIMING) {
-         soSerializationTimer.stop();
-         }
-         if (soInvocationsDelay > 0) {
-         soMessageCombiner.sendAccumulatedMessages();
-         }
+        try {
+            w = soSendPort.newMessage();
 
-         } catch (IOException e) {
-         System.err.println("SATIN '" + ident.name()
-         + "': unable to broadcast a shared object: " + e);
-         }
+            w.writeByte(SO_TRANSFER);
+            if (SO_TIMING) {
+                soSerializationTimer.start();
+            }
+            w.writeObject(object);
+            if (SO_TIMING) {
+                soSerializationTimer.stop();
+            }
+            size = w.finish();
+            if (soInvocationsDelay > 0) {
+                soMessageCombiner.sendAccumulatedMessages();
+            }
+        } catch (IOException e) {
+            System.err.println("SATIN '" + ident.name()
+                + "': unable to broadcast a shared object: " + e);
+        }
 
-         //         Iterator iter = soSendPorts.values().iterator();
-         //          while (iter.hasNext()) {
-         //          try {
-         //          if (soInvocationsDelay > 0) {
-         //          MessageCombiner mc = (MessageCombiner) iter.next();
-         //          w = mc.newMessage();
-         //          if (soInvocationsDelayTimer == -1) {
-         //          soInvocationsDelayTimer = System.currentTimeMillis();
-         //          }
-         //          } else {
-         //          SendPort send = (SendPort) iter.next();
-         //          w = send.newMessage();
-         //          }
-         //          if (SO_TIMING) {
-         //          soSerializationTimer.start();
-         //          }		
-         //          w.writeByte(SO_TRANSFER);
-         //          w.writeObject(object);
-         //          size = w.finish();
-         //          if (SO_TIMING) {
-         //          soSerializationTimer.stop();
-         //          }
-         //          } catch (IOException e) {
-         //          System.err.println("SATIN '" + ident.name()
-         //          + "': unable to send a shared object: "
-         //          + e);
-         //          }
-         //          }
+        //stats
+        soTransfers += soSendPort.connectedTo().length;
+        soTransfersBytes += size;
 
-         //stats
-         soTransfers += soSendPort.connectedTo().length;
-         //soTransfers += soSendPorts.size();
-         soTransfersBytes += size;
-         if (SO_TIMING) {
-         handleSOTransferTimer.stop();
-         }
+        if (SO_TIMING) {
+            soBroadcastTransferTimer.stop();
+        }
     }
 
     /** Add an object to the object table*/
@@ -148,37 +114,15 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 }
 
                 soMessageCombiner.sendAccumulatedMessages();
-                //WriteMessage w = soSendPort.newMessage();
-                //w.writeInt(soInvocationsToSend.size());
-                //while(true) {
-                //    if( soInvocationsToSend.size() == 0) {
-                //	break;
-                //    }
-                //    SOInvocationRecord soir = 
-                //	(SOInvocationRecord) soInvocationsToSend.remove(0);
-                //    w.writeObject(soir);
-                //}
-                //long byteCount = w.finish();
-                //soInvocationsBytes += byteCount;
             } catch (IOException e) {
                 System.err.println("SATIN '" + ident.name()
                     + "': unable to broadcast shared object invocations " + e);
             }
-            /*Iterator iter = soSendPorts.values().iterator();
-             while (iter.hasNext()) {
-             try {
-             MessageCombiner mc = (MessageCombiner) iter.next();
-             mc.sendAccumulatedMessages();
-             } catch (IOException e) {
-             System.err.println("SATIN '" + ident.name()
-             + "': unable to send shared object invocations "
-             + e);				   
-             }
-             }*/
+
             soRealMessageCount++;
             writtenInvocations = 0;
             soCurrTotalMessageSize = 0;
-            soInvocationsDelayTimer = -1; // @@@ AARG, this line was outside the if, that can't be correct, right? Rob
+            soInvocationsDelayTimer = -1;
 
             if (SO_TIMING) {
                 broadcastSOInvocationsTimer.stop();
@@ -188,9 +132,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 
     /** Broadcast an so invocation*/
     public void broadcastSOInvocation(SOInvocationRecord r) {
-
         long byteCount = 0;
-        //	int numToSend;
         WriteMessage w = null;
 
         if (!SHARED_OBJECTS) {
@@ -207,21 +149,15 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         }
 
         if (soSendPort.connectedTo().length > 0) {
-
             try {
-                if (soInvocationsDelay > 0) {
-                    //do message combining 
+                if (soInvocationsDelay > 0) { // do message combining
                     w = soMessageCombiner.newMessage();
-                    //soInvocationsToSend.add(r);
                     if (soInvocationsDelayTimer == -1) {
                         soInvocationsDelayTimer = System.currentTimeMillis();
                     }
                     writtenInvocations++;
                 } else {
                     w = soSendPort.newMessage();
-                    //   w.writeInt(1);
-                    //w.writeObject(r);
-                    //byteCount = w.finish();
                 }
 
                 w.writeByte(SO_INVOCATION);
@@ -241,31 +177,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             }
         }
 
-        /*Iterator iter = soSendPorts.values().iterator();
-         while (iter.hasNext()) {
-         try {
-         if (soInvocationsDelay > 0) {
-         MessageCombiner mc = (MessageCombiner) iter.next();
-         w = mc.newMessage();
-         if (soInvocationsDelayTimer == -1) {
-         soInvocationsDelayTimer = System.currentTimeMillis();
-         }
-         } else {
-         SendPort send = (SendPort) iter.next();
-         w = send.newMessage();
-         }
-         
-         w.writeByte(SO_INVOCATION);
-         w.writeObject(r);
-         byteCount = w.finish();
-         } catch (IOException e) {
-         System.err.println("SATIN '" + ident.name()
-         + "': unable to send a shared object invocation: "
-         + e);
-         }
-         }*/
-
-        //stats
+        // stats
         soInvocations++;
         soInvocationsBytes += byteCount;
 
@@ -273,8 +185,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             broadcastSOInvocationsTimer.stop();
         }
 
-        // @@@ I added this code, shouldn't we try to send immediately if needed?
-        // We might not reach a safe point for a considerable time
+        // I added this code, shouldn't we try to send immediately if needed?
+        // We might not reach a safe point for a considerable time --Rob
         if (soInvocationsDelay > 0) {
             sendAccumulatedSOInvocations();
         }
@@ -312,13 +224,13 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             //invoke while holding a lock. 
             //otherwise object transfer requests can be handled
             //in the middle of a method invocation
-            soir.invoke(so);
-            //	    }
+            // Not anymore: transfers are also delayed until a safe point is reached --Rob
             if (SO_TIMING) {
                 handleSOInvocationsTimer.stop();
             }
+            soir.invoke(so);
+            //	    }
         }
-
     }
 
     /** Return a reference to a shared object */
@@ -335,7 +247,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
     /** Check if the given shared object is in the table,
      if not, ship it from source */
     public void setSOReference(String objectId, IbisIdentifier source)
-            throws SOReferenceSourceCrashedException {
+        throws SOReferenceSourceCrashedException {
         SharedObject obj = null;
 
         synchronized (this) {
@@ -414,7 +326,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
     }
 
     private synchronized void doConnectSendPort() {
-
         for (int i = 0; i < toConnect.size(); i++) {
             IbisIdentifier id = (IbisIdentifier) toConnect.get(i);
             ReceivePortIdentifier r = lookup_wait("satin so receive port on "
@@ -442,23 +353,9 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             return;
         }
 
-        //create a send port for this guy
-        /*SendPort send = soPortType.createSendPort("satin so send port on "
-         + ident.name()
-         + " for " + id.name());
-         if (soInvocationsDelay > 0) {
-         StaticProperties s = new StaticProperties();
-         s.add("serialization", "ibis");
-         MessageCombiner mc = new MessageCombiner(s, send);
-         soSendPorts.put(id, mc);
-         } else {
-         soSendPorts.put(id, send);
-         }*/
         //lookup his receive port
         ReceivePortIdentifier r = lookup_wait("satin so receive port on "
             + id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
-        /*	    r = lookup_wait("satin so receive port on " + id.name(),
-         LOOKUP_WAIT_TIME);*/
         //and connect
         if (r == null || !Satin.connect(soSendPort/*send*/, r, connectTimeout)) {
             System.err.println("SATN '" + ident.name()
@@ -485,7 +382,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
      wait for updates, if necessary,
      ship objects if necessary */
     void executeGuard(InvocationRecord r)
-            throws SOReferenceSourceCrashedException {
+        throws SOReferenceSourceCrashedException {
         boolean satisfied;
         long startTime;
 
@@ -537,13 +434,9 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 
     /** Ship a shared object from another node */
     private void shipObject(String objectId, IbisIdentifier source)
-            throws SOReferenceSourceCrashedException {
+        throws SOReferenceSourceCrashedException {
         //request the shared object from the source
-        if (SO_TIMING) {
-            soTransferTimer.start();
-        }
         try {
-            //System.err.println("sending so request to " + source + ", objectId: " + objectId);
             currentVictim = source;
             Victim v = getVictimWait(source);
             WriteMessage w = v.newMessage();
@@ -555,9 +448,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             //push the job somewhere else?
             soLogger.error("SATIN '" + ident.name() + "': could not "
                 + "write shared-object request", e);
-            if (SO_TIMING) {
-                soTransferTimer.stop();
-            }
             throw new SOReferenceSourceCrashedException();
         }
 
@@ -583,9 +473,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             }
         }
 
-        if (SO_TIMING) {
-            soTransferTimer.stop();
-        }
         if (object == null) {
             //the source has crashed, abort the job
             throw new SOReferenceSourceCrashedException();
@@ -596,7 +483,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         object = null;
         soLogger.info("SATIN '" + ident.name()
             + "': received shared object from " + source);
-        handleDelayedMessages();
+        // handleDelayedMessages();
     }
 
     void addToSORequestList(IbisIdentifier requester, String objID) {
@@ -615,7 +502,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         String objid;
 
         while (true) {
-
             synchronized (this) {
                 if (SORequestList.getCount() == 0) return;
                 origin = SORequestList.getRequester(0);
@@ -624,14 +510,11 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
             }
 
             if (SO_TIMING) {
-                handleSOTransferTimer = createTimer();
                 handleSOTransferTimer.start();
             }
 
             SharedObject so = getSOReference(objid);
-            //System.err.println("got object");
             Victim v = getVictimWait(origin);
-            //System.err.println("got reply port");
 
             if (ASSERTS && so == null) {
                 soLogger.fatal("SATIN '" + ident.name()
@@ -640,29 +523,30 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
                 System.exit(1); // Failed assertion
             }
 
-            if (SO_TIMING) {
-                soSerializationTimer = createTimer();
-                soSerializationTimer.start();
-            }
-
             //we need to hold the lock while writing the object
             //otherwise some update might change the state of the object
             //what's worse: the update might be executed only partially
             //before the object is sent
+            // not anymore, delayed until safe point --Rob
             try {
                 wm = v.newMessage();
                 wm.writeByte(SO_TRANSFER);
+
+                if (SO_TIMING) {
+                    soSerializationTimer.start();
+                }
                 wm.writeObject(so);
+                if (SO_TIMING) {
+                    soSerializationTimer.stop();
+                }
                 size = wm.finish();
-                //      System.err.println("sent object");
+
                 //stats
                 soTransfers++;
                 soTransfersBytes += size;
+
                 if (SO_TIMING) {
                     handleSOTransferTimer.stop();
-                    handleSOTransferTimer.add(handleSOTransferTimer);
-                    soSerializationTimer.stop();
-                    soSerializationTimer.add(soSerializationTimer);
                 }
             } catch (IOException e) {
                 soLogger.error("SATIN '" + ident.name()
