@@ -46,8 +46,10 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 
     final static int LOOKUP_WAIT_TIME = 10000;
 
+/** This basicaly is optional, if nodes don't have the object, they will retrieve it.
+    However, one broadcast is more efficient (serialization is done only once).
+*/
     public void broadcastSharedObject(SharedObject object) {
-        /*
 
          WriteMessage w = null;
          long size = 0;
@@ -126,7 +128,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
          if (SO_TIMING) {
          handleSOTransferTimer.stop();
          }
-         */
     }
 
     /** Add an object to the object table*/

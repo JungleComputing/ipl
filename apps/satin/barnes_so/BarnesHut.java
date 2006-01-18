@@ -38,12 +38,11 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 
     static final double END_TIME = 0.175;
 
-    static int ITERATIONS;
+    static int ITERATIONS = 7;
 
     private static int numBodies;
 
     private static int maxLeafBodies;
-
 
     BarnesHut() {}
 
@@ -165,7 +164,6 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 				    int threshold, Bodies bodies) {
 	int lastValidChild = -1;
 	LinkedList result, result1;
-	LinkedList res[] = new LinkedList[8];
 	BodyTreeNode treeNode; 
 	boolean spawned = false;
 
@@ -173,32 +171,32 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 	if (treeNode.children == null || treeNode.bodyCount < threshold) {
 	    /*it is a leaf node, do sequential computation*/
 	    return treeNode.computeForcesSequentially(bodies.bodyTreeRoot);
-	} else {
-	    for (int i = 0; i < 8; i++) {
-		BodyTreeNode ch = treeNode.children[i];
-		if (ch != null) {
-		    if (ch.children == null) {
-			res[i] = ch.computeForcesSequentially(bodies.bodyTreeRoot);
-		    } else {
-			/*spawn child jobs*/
-			byte[] newNodeId = new byte[nodeId.length + 1];
-			System.arraycopy(nodeId, 0, newNodeId, 0, nodeId.length);
-			newNodeId[nodeId.length] = (byte) i;
-			res[i] = /*spawn*/ computeForces(newNodeId, iteration,
-							 threshold, bodies);
-			spawned = true;
-		    }
-		    lastValidChild = i;
-		}
-	    }
-	    if (spawned) {
-		/*if we spawned, we have to sync*/
-		sync();
-		return combineResults(res, lastValidChild);
-	    } else {
-		return optimizeList(combineResults(res, lastValidChild));
-	    }
+	} 
 
+	LinkedList res[] = new LinkedList[8];
+	for (int i = 0; i < 8; i++) {
+	    BodyTreeNode ch = treeNode.children[i];
+	    if (ch != null) {
+		if (ch.children == null) {
+		    res[i] = ch.computeForcesSequentially(bodies.bodyTreeRoot);
+		} else {
+		    /*spawn child jobs*/
+		    byte[] newNodeId = new byte[nodeId.length + 1];
+		    System.arraycopy(nodeId, 0, newNodeId, 0, nodeId.length);
+		    newNodeId[nodeId.length] = (byte) i;
+		    res[i] = /*spawn*/ computeForces(newNodeId, iteration,
+						     threshold, bodies);
+		    spawned = true;
+		}
+		lastValidChild = i;
+	    }
+	}
+	if (spawned) {
+	    /*if we spawned, we have to sync*/
+	    sync();
+	    return combineResults(res, lastValidChild);
+	} else {
+	    return optimizeList(combineResults(res, lastValidChild));
 	}
     }	
 
@@ -207,36 +205,38 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 					int threshold) {
 
 	int lastValidChild = -1;
-	LinkedList[] res = new LinkedList[8];
 	LinkedList result;
 	boolean spawned = false;
 	
 	if(treeNode.children == null || treeNode.bodyCount < threshold) {
 	    return treeNode.computeForcesSequentially(interactTree);
-	} else {
-	    for (int i = 0; i < 8; i++) {
-		BodyTreeNode ch = treeNode.children[i];
-		if (ch != null) {
-		    if (ch.children == null) {
-			res[i] = ch.computeForcesSequentially(interactTree);
-		    } else {
-			//necessaryTree creation
-			BodyTreeNode necessaryTree = (ch == interactTree) ? interactTree
-			    : new BodyTreeNode(interactTree, ch);
-			res[i] = /*spawn*/ computeForcesNoSO(ch, necessaryTree, threshold);
-			spawned = true;
-		    }
-		    lastValidChild = i;
+	} 
+
+	LinkedList[] res = new LinkedList[8];
+
+	for (int i = 0; i < 8; i++) {
+	    BodyTreeNode ch = treeNode.children[i];
+	    if (ch != null) {
+		if (ch.children == null) {
+		    res[i] = ch.computeForcesSequentially(interactTree);
+		} else {
+		    //necessaryTree creation
+		    BodyTreeNode necessaryTree = (ch == interactTree) ? interactTree
+			: new BodyTreeNode(interactTree, ch);
+		    res[i] = /*spawn*/ computeForcesNoSO(ch, necessaryTree, threshold);
+		    spawned = true;
 		}
-	    }
-	    if (spawned) {
-		sync();
-		result = combineResults(res, lastValidChild);
-	    } else {
-		//this was a sequential job, optimize!
-		result = optimizeList(combineResults(res, lastValidChild));
+		lastValidChild = i;
 	    }
 	}
+	if (spawned) {
+	    sync();
+	    result = combineResults(res, lastValidChild);
+	} else {
+	    //this was a sequential job, optimize!
+	    result = optimizeList(combineResults(res, lastValidChild));
+	}
+
 	return result;
     }
 
@@ -285,6 +285,11 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
                 if (spawn_threshold_bodies < 0)
                     throw new IllegalArgumentException(
                             "Illegal argument to -t: Spawn threshold must be >= 0 !");
+            } else if (argv[i].equals("-iter")) {
+                ITERATIONS = Integer.parseInt(argv[++i]);
+                if (ITERATIONS < 0)
+                    throw new IllegalArgumentException(
+                            "Illegal argument to -iter: must be >= 0 !");
             } else if (argv[i].equals("-timing")) {
                 phase_timing = true;
             } else if (argv[i].equals("-no_timing")) {
@@ -352,8 +357,6 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 	accs_y = new double[numBodies];
 	accs_z = new double[numBodies];
 
-	//ITERATIONS = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
-        ITERATIONS = 7;
 	forceCalcTimes = new long[ITERATIONS];
 
         System.out.println("Iterations: " + ITERATIONS);
