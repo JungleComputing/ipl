@@ -326,12 +326,12 @@ public abstract class Stats extends SharedObjects {
         if (SHARED_OBJECTS && SO_TIMING) {
             out.println("SATIN: BROADCAST_SO_INVOCATIONS: total "
                 + Timer.format(totalStats.broadcastSOInvocationsTime)
-                + " time/inv "
+                + " time/inv    "
                 + Timer.format(perStats(totalStats.broadcastSOInvocationsTime,
                     totalStats.soInvocations)));
             out.println("SATIN: HANDLE_SO_INVOCATIONS:    total "
                 + Timer.format(totalStats.handleSOInvocationsTime)
-                + " time/inv "
+                + " time/inv    "
                 + Timer.format(perStats(totalStats.handleSOInvocationsTime,
                     totalStats.soInvocations * (size - 1))));
             out.println("SATIN: SO_TRANSFERS:             total "
@@ -341,12 +341,12 @@ public abstract class Stats extends SharedObjects {
                     totalStats.soTransfers)));
             out.println("SATIN: SO_SERIALIZATION:       total "
                 + Timer.format(totalStats.soSerializationTime)
-                + " time/transf "
+                + " time/transf   "
                 + Timer.format(perStats(totalStats.soSerializationTime,
                     totalStats.soTransfers)));
             out.println("SATIN: SO_DESERIALIZATION:     total "
                 + Timer.format(totalStats.soDeserializationTime)
-                + " time/transf "
+                + " time/transf   "
                 + Timer.format(perStats(totalStats.soDeserializationTime,
                     totalStats.soTransfers)));
         }
@@ -518,19 +518,19 @@ public abstract class Stats extends SharedObjects {
 
         if (SHARED_OBJECTS && SO_TIMING) {
             out.println("SATIN: BROADCAST_SO_INVOCATIONS: avg. per machine "
-                + Timer.format(broadcastSOInvocationsTime) + " ("
+                + Timer.format(broadcastSOInvocationsTime) + " ( "
                 + pf.format(broadcastSOInvocationsPerc) + " %)");
             out.println("SATIN: HANDLE_SO_INVOCATIONS:    avg. per machine "
-                + Timer.format(handleSOInvocationsTime) + " ("
+                + Timer.format(handleSOInvocationsTime) + " ( "
                 + pf.format(handleSOInvocationsPerc) + " %)");
             out.println("SATIN: SO_TRANSFERS:             avg. per machine "
-                + Timer.format(soTransferTime) + " ("
+                + Timer.format(soTransferTime) + " ( "
                 + pf.format(soTransferPerc) + " %)");
             out.println("SATIN: SO_SERIALIZATION:         avg. per machine "
-                + Timer.format(soSerializationTime) + " ("
+                + Timer.format(soSerializationTime) + " ( "
                 + pf.format(soSerializationPerc) + " %)");
             out.println("SATIN: SO_DESERIALIZATION:       avg. per machine "
-                + Timer.format(soDeserializationTime) + " ("
+                + Timer.format(soDeserializationTime) + " ( "
                 + pf.format(soDeserializationPerc) + " %)");
         }
 
