@@ -1,12 +1,18 @@
+*** Website ***
+
+- add reference to Computer Systems and Computer Science to website
+- add a "functionality table" to website:
+	1.1 = 1.0 + ...
+	1.2 = 1.1 + MPJ + ...
+	1.3 = 1.2 + SO + ...
+- change "related work" to "links" (like the ProActive site)
+- change UDP in documentation picture to being incomple (striped)
+
 *** Ibis 1.3 ***
 
 general:
 - keep a changelog, publish it on the website
 - update documentation
-- add a "functionality table" to website:
-	1.1 = 1.0 + ...
-	1.2 = 1.1 + MPJ + ...
-	1.3 = 1.2 + SO + ...
 - copy the source of "util" and "connect" to the distro manually
 
 nameserver:
@@ -14,29 +20,30 @@ nameserver:
   bottleneck.
 	
 ipl:
-+ add delete(IbisIdentifier[] ibisses) to registry (Done Ceriel; is called
-  "mustLeave").
 - add calls to IPL: amount of data written/read in a message so far.
   this is needed for traffic shaping
+- make oneToMany+manyToOne illegal
+- add a sendport.disconnect(timeout) and sendport.close(timeout) if needed
 
 satin:  
-- check Satin Shared Objects for performance bugs --> move to 2.0? --Rob
+- check Satin Shared Objects for (performance) bugs
 - detection of what is an inlet: now, if the invocation is inside a try-catch
   it is assumed to be an inlet. Is this OK?
 - abort bug: throw an Exception instead of returning null. Sequential user
   code gets confused otherwise.
-+ satinc barfs when you have a method that both spawns and has "synchronized"
-  blocks. Reason: javac generates local variables for those, without entries
-  in the local variable table. (Fixed Ceriel: Satinc should stay away from
-  locals it does not know about).
 
 connect:
 - Update manual and readme files to reflect new structure.
 
 apps:
-+ satin SO barnes should use the barnes_inline heuristic for spawning. (No,
-  was already done).
 - check results of the different barnes versions
+- check satin barnes performance drop since Gosia's paper
+
+implementations:
+- TcpIbis: handle IOException thrown in upcall _after_ 
+  finish of message properly
+- TcpIbis: always print errors in ConnectionHandler, not only if debug is
+  enabled
 
 *** Ibis 2.0+ ***
 
@@ -49,10 +56,11 @@ general:
 - make javadoc available in a file for eclipse somehow
 - move applications to a real tree
 - switch to subversion
-- traffic shaping
+- network(cluster) simulator
 - steering interface
 - remove deprecated functionality
-- while(true) {fix eclipse warnings in net ibis, panda ibis}
+- while(true) {fix eclipse warnings}
+- change codmon performance measurements to "sane" benchmarks
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
@@ -132,9 +140,18 @@ satin-so:
     - object-id is sent every time (long string)
     - combiner is synchronized
     - overhead of method calls, serialization
- 
+
+abstract implementation:
+- check _all_ properties in _every_ Ibis
+- add support for properties in a ".ibis" config file
+- if closed.world is selected, check if ibis.pool.hosts is set, and ignore
+  joins beyond total hosts, and all leaves.
 
 implementations:
+- (re)implement MPIIbis
+- implement stacking Ibis
+- remove PandaIbis
+- remove NetIbis
 - PandaIbis connection management broken (e.g. connectedTo())
   (who reported this? Please check if this is still actual ... I placed locks
    in them .... Ceriel) I did, I'll check :-) --Rob
