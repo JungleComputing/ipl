@@ -196,12 +196,13 @@ public abstract class Stats extends SharedObjects {
         }
 
         if (SHARED_OBJECTS && SO_STATS) {
-            out.println("SATIN: SHARED_OBJECTS: nr invocations "
-                + nf.format(totalStats.soInvocations) + ", bytes "
-                + nf.format(totalStats.soInvocationsBytes) + ", messages "
-                + nf.format(totalStats.soRealMessageCount) 
-                + ", object transfers " + nf.format(totalStats.soTransfers)
-                + ", bytes " + nf.format(totalStats.soTransfersBytes));
+            out.println("SATIN: SO_INVOCATIONS:  "
+                + nf.format(totalStats.soInvocations) + " invocations " 
+                + nf.format(totalStats.soInvocationsBytes) + " bytes, "
+                + nf.format(totalStats.soRealMessageCount) + " messages");
+            out.println("SATIN: SO_TRANSFERS:    " 
+                + nf.format(totalStats.soTransfers) + " transfers "  
+                + nf.format(totalStats.soTransfersBytes) + " bytes ");
         }
 
         out.println("-------------------------------SATIN TOTAL TIMES"
