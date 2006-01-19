@@ -227,7 +227,7 @@ class StatsMessage implements java.io.Serializable {
         soBcastSerializationTime += s.soBcastSerializationTime;
         soBcastDeserializationTime += s.soBcastDeserializationTime;
         soRealMessageCount += s.soRealMessageCount;
-        soBcasts += soBcasts;
-        soBcastBytes += soBcastBytes;
+        soBcasts += s.soBcasts;
+        soBcastBytes += s.soBcastBytes;
     }
 }

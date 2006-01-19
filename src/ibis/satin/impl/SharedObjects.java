@@ -85,7 +85,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         }
 
         //stats
-        soBcasts ++;
+        soBcasts++;
         soBcastBytes += size;
 
         if (SO_TIMING) {
