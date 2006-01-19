@@ -2,8 +2,8 @@
 
 package ibis.frontend.satin;
 
-import ibis.frontend.generic.RunJavac;
 import ibis.frontend.generic.BT_Analyzer;
+import ibis.frontend.generic.RunJavac;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -12,9 +12,8 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-
-import java.util.Vector;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
@@ -23,7 +22,6 @@ import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ACONST_NULL;
 import org.apache.bcel.generic.ALOAD;
-import org.apache.bcel.generic.ARETURN;
 import org.apache.bcel.generic.ASTORE;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.ArrayInstruction;
@@ -36,13 +34,11 @@ import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.DCONST;
 import org.apache.bcel.generic.DLOAD;
-import org.apache.bcel.generic.DRETURN;
 import org.apache.bcel.generic.DSTORE;
 import org.apache.bcel.generic.DUP;
 import org.apache.bcel.generic.DUP_X2;
 import org.apache.bcel.generic.FCONST;
 import org.apache.bcel.generic.FLOAD;
-import org.apache.bcel.generic.FRETURN;
 import org.apache.bcel.generic.FSTORE;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.GOTO;
@@ -58,7 +54,6 @@ import org.apache.bcel.generic.ILOAD;
 import org.apache.bcel.generic.INSTANCEOF;
 import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.IOR;
-import org.apache.bcel.generic.IRETURN;
 import org.apache.bcel.generic.ISTORE;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionFactory;
@@ -68,14 +63,13 @@ import org.apache.bcel.generic.InstructionTargeter;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LCONST;
 import org.apache.bcel.generic.LLOAD;
-import org.apache.bcel.generic.LRETURN;
 import org.apache.bcel.generic.LSTORE;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.LocalVariableGen;
 import org.apache.bcel.generic.LocalVariableInstruction;
-import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.MONITORENTER;
 import org.apache.bcel.generic.MONITOREXIT;
+import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.POP;
