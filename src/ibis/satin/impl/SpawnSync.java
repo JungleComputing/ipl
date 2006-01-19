@@ -219,8 +219,10 @@ public abstract class SpawnSync extends Termination {
             idleTimer.stop();
         }
 
-        // not needed I think, already done in sync
-        // handleDelayedMessages();
+        // not needed I think, already done in sync (Rob)
+        // It IS needed. callSatinFunc is not only called from sync,
+        // and we MUST make sure that steals don't overtake aborts. (Ceriel)
+        handleDelayedMessages();
 
         if (ABORTS || FAULT_TOLERANCE) {
             oldParent = parent;
