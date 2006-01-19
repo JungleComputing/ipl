@@ -36,6 +36,7 @@ connect:
 apps:
 + satin SO barnes should use the barnes_inline heuristic for spawning. (No,
   was already done).
+- check results of the different barnes versions
 
 *** Ibis 2.0+ ***
 
