@@ -85,8 +85,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
         }
 
         //stats
-        soTransfers += soSendPort.connectedTo().length;
-        soTransfersBytes += size;
+        soBcasts ++;
+        soBcastBytes += size;
 
         if (SO_TIMING) {
             soBroadcastTransferTimer.stop();
