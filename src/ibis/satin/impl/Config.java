@@ -93,6 +93,8 @@ public interface Config {
     static final String s_tuple_numbered = PROPERTY_PREFIX
             + "tuplespace.numbered";
 
+    static final String s_logging_spawn = PROPERTY_PREFIX + "logging.spawn";
+
     static final String[] sysprops = { s_scalable,
             s_stats, s_stats_spawn, s_stats_steal, s_stats_abort,
             s_stats_tuple, s_stats_ft, s_stats_grt,
@@ -104,7 +106,7 @@ public interface Config {
             s_ft, s_ft_grt_repl, s_ft_grt_comb, s_ft_noAborts, s_ft_naive,
             s_ft_connectTimeout,
             s_masterhost, s_in_latency, s_tuple_multi, s_tuple_ordered,
-            s_tuple_numbered, s_timing_so, s_so};
+            s_tuple_numbered, s_timing_so, s_so, s_logging_spawn};
 
     /** Must be enabled or there are no statistics at all. */
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
@@ -268,7 +270,8 @@ public interface Config {
 
     /** Manually enable/disable logging for spawns as the impact on performance can be big,
      * even if we use logger.isDebugEnabled.  */
-    public static final boolean ENABLE_SPAWN_LOGGING = false;
+    public static final boolean ENABLE_SPAWN_LOGGING
+            = TypedProperties.booleanProperty(s_logging_spawn, false);
     
     /** Logger for spawns. */
     public static final Logger spawnLogger

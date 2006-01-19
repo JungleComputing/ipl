@@ -144,8 +144,11 @@ final class DEQueueNormal extends DEQueue implements Config {
                             + ", it depends on " + targetStamp);
                 }
 
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
+                    spawnLogger.debug("DequeueNormal.killChildrenOf: spawnCounter = "
+                            + curr.spawnCounter
+                            + "(" + curr.spawnCounter.value + ")");
                 } else {
                     curr.spawnCounter.value--;
                 }
@@ -194,8 +197,11 @@ final class DEQueueNormal extends DEQueue implements Config {
                     || Aborts.isDescendentOf1(curr, owner)
                     || curr.owner.equals(owner)) {
                 //shouldn't happen
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
+                    spawnLogger.debug("DequeueNormal.killSubtreeOf: spawnCounter = "
+                            + curr.spawnCounter
+                            + "(" + curr.spawnCounter.value + ")");
                 } else {
                     curr.spawnCounter.value--;
                 }

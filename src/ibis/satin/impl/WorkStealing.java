@@ -18,8 +18,8 @@ public abstract class WorkStealing extends Stats {
             return;
         }
 
-        if (stealLogger.isDebugEnabled()) {
-            stealLogger.debug("SATIN '" + ident
+        if (stealLogger.isInfoEnabled()) {
+            stealLogger.info("SATIN '" + ident
                     + "': sending job result to " + r.owner
                     + ", exception = "
                     + (r.eek == null ? "null" : ("" + r.eek)));
@@ -454,8 +454,13 @@ public abstract class WorkStealing extends Stats {
 		handleInlet(r);
 	    }
 	    
-	    if (spawnLogger.isDebugEnabled()) {
+	    if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
 		r.spawnCounter.decr(r);
+                spawnLogger.debug("SATIN '" + ident
+                        + "': got result for stolen job, "
+                        + "spawncounter = " + r.spawnCounter
+                        + "(" + r.spawnCounter.value + ")"
+                        );
 	    } else {
 		r.spawnCounter.value--;
 	    }

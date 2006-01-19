@@ -282,7 +282,11 @@ public abstract class Communication extends SpawnSync {
                     writeMessage.finish();
                 }
             } else {
-                Victim v = victims.getVictim(masterIdent);
+                Victim v;
+                
+                synchronized(this) {
+                    v = victims.getVictim(masterIdent);
+                }
 
                 WriteMessage writeMessage = v.newMessage();
                 writeMessage.writeByte(Protocol.BARRIER_REQUEST);

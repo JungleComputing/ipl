@@ -129,9 +129,14 @@ public abstract class SpawnSync extends Termination {
                 // The semantics of this: all work is aborted,
                 // and the exception is passed on to the spawner.
                 // The parent is aborted, it must handle the exception.
-
-                r.eek = t;
-                handleInlet(r);
+                // Note: this can now also happen on an abort. Check for
+                // the AbortException!
+                if (! (t instanceof AbortException)) {
+                    r.eek = t;
+                    handleInlet(r);
+                } else if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("Caught abort exception " + t, t);
+                }
             }
         } else { // NO aborts
             if (SPAWN_STATS) {
@@ -158,7 +163,8 @@ public abstract class SpawnSync extends Termination {
             spawnLogger.debug("SATIN '" + ident + ": callSatinFunc: stamp = "
                     + r.stamp + ", parentStamp = " + r.parentStamp
                     + ", parentOwner = " + r.parentOwner + " spawn counter = "
-                    + r.spawnCounter.value + " DONE");
+                    + r.spawnCounter + "("
+                    + r.spawnCounter.value + ") DONE");
             if (r.eek != null) {
                 spawnLogger.debug("SATIN '" + ident + ": exception was "
                         + r.eek, r.eek);
@@ -172,8 +178,8 @@ public abstract class SpawnSync extends Termination {
     }
 
     private final void callSatinRemoteFunction(InvocationRecord r) {
-        if (stealLogger.isDebugEnabled()) {
-            stealLogger.debug("SATIN '" + ident + "': RUNNING REMOTE CODE!");
+        if (stealLogger.isInfoEnabled()) {
+            stealLogger.info("SATIN '" + ident + "': RUNNING REMOTE CODE!");
         }
         ReturnRecord rr = null;
         if (SPAWN_STATS) {
@@ -184,13 +190,13 @@ public abstract class SpawnSync extends Termination {
             rr.eek = r.eek;
         }
 
-        if (stealLogger.isDebugEnabled()) {
+        if (stealLogger.isInfoEnabled()) {
             if (r.eek != null) {
-                stealLogger.debug("SATIN '" + ident
+                stealLogger.info("SATIN '" + ident
                         + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek,
                         r.eek);
             } else {
-                stealLogger.debug("SATIN '" + ident
+                stealLogger.info("SATIN '" + ident
                         + "': RUNNING REMOTE CODE DONE!");
             }
         }
@@ -200,8 +206,8 @@ public abstract class SpawnSync extends Termination {
             sendResult(r, rr);
         }
 
-        if (stealLogger.isDebugEnabled()) {
-            stealLogger.debug("SATIN '" + ident
+        if (stealLogger.isInfoEnabled()) {
+            stealLogger.info("SATIN '" + ident
                     + "': REMOTE CODE SEND RESULT DONE!");
         }
     }
@@ -235,15 +241,17 @@ public abstract class SpawnSync extends Termination {
         }
 
         if ((ABORTS || FAULT_TOLERANCE) && r.parent != null && r.parent.aborted) {
-            if (abortLogger.isDebugEnabled()) {
-                abortLogger.debug("SATIN '" + ident
-                        + ": spawning job, parent was aborted! job = " + r
-                        + ", parent = " + r.parent);
-            }
-            if (spawnLogger.isDebugEnabled()) {
+            if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                 r.spawnCounter.decr(r);
             } else {
                 r.spawnCounter.value--;
+            }
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + ident
+                        + "' spawnCounter = " + r.spawnCounter
+                        + "(" + r.spawnCounter.value + ")"
+                        + " spawning job, parent was aborted! job = " + r
+                        + ", parent = " + r.parent);
             }
             if (ASSERTS) {
                 if (r.spawnCounter.value < 0) {
@@ -284,7 +292,7 @@ public abstract class SpawnSync extends Termination {
             onStack.pop();
         }
 
-        if (ABORTS && ENABLE_SPAWN_LOGGING && abortLogger.isDebugEnabled()
+        if (ABORTS && abortLogger.isDebugEnabled()
                 && r.aborted) {
             if (r.eek != null) {
                 abortLogger.debug("Job on the stack was aborted: " + r.stamp
@@ -387,7 +395,8 @@ public abstract class SpawnSync extends Termination {
 
         if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
             spawnLogger.debug("SATIN '" + ident + "': Spawn, counter = "
-                    + r.spawnCounter.value + ", stamp = " + r.stamp
+                    + r.spawnCounter + "(" + r.spawnCounter.value + ")"
+                    + ", stamp = " + r.stamp
                     + ", parentStamp = " + r.parentStamp + ", owner = "
                     + r.owner + ", parentOwner = " + r.parentOwner);
         }
@@ -434,12 +443,12 @@ public abstract class SpawnSync extends Termination {
                         }
 
                     }
-                    if (spawnLogger.isDebugEnabled()) {
+                    if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                         spawnLogger.debug("SATIN '" + ident
                                 + "': Sync, start stolen job");
                     }
                     callSatinFunction(r);
-                    if (spawnLogger.isDebugEnabled()) {
+                    if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                         spawnLogger.debug("SATIN '" + ident
                                 + "': Sync, finish stolen job");
                     }
@@ -466,12 +475,12 @@ public abstract class SpawnSync extends Termination {
                         return;
                     }
                 }
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': Sync, start stolen job");
                 }
                 callSatinFunction(r);
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': Sync, finish stolen job");
                 }
@@ -504,14 +513,14 @@ public abstract class SpawnSync extends Termination {
 
         if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
             spawnLogger.debug("SATIN '" + ident + "': Sync, counter = "
-                    + s.value);
+                    + s + "(" + s.value + ")");
         }
 
         if (s.value == 0) { // sync is poll
             satinPoll();
             handleDelayedMessages();
             if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident + "': Sync returns");
+                spawnLogger.debug("SATIN '" + ident + "': Sync of counter " + s + " returns");
             }
             return;
         }
@@ -548,7 +557,8 @@ public abstract class SpawnSync extends Termination {
         }
 
         if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
-            spawnLogger.debug("SATIN '" + ident + "': Sync returns");
+            spawnLogger.debug("SATIN '" + ident + "': Sync of counter "
+                    + s + "(" + s.value + ") returns");
         }
     }
 
@@ -556,7 +566,7 @@ public abstract class SpawnSync extends Termination {
      * Implements the main client loop: steal jobs and execute them.
      */
     public void client() {
-        if (spawnLogger.isDebugEnabled()) {
+        if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
             spawnLogger.debug("SATIN '" + ident + "': starting client!");
         }
 
@@ -579,12 +589,12 @@ public abstract class SpawnSync extends Termination {
                         continue;
                     }
                 }
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': client, start stolen job");
                 }
                 callSatinFunction(r);
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     spawnLogger.debug("SATIN '" + ident
                             + "': client, finish stolen job");
                 }

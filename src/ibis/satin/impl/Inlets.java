@@ -106,8 +106,8 @@ public abstract class Inlets extends Aborts {
                     inletLogger.debug("SATIN '" + ident
                             + ": prematurely sending exception result");
                 }
-                if (stealLogger.isDebugEnabled()) {
-                    stealLogger.debug("SATIN '" + ident
+                if (stealLogger.isInfoEnabled()) {
+                    stealLogger.info("SATIN '" + ident
                             + ": prematurely sending exception result");
                 }
                 sendResult(r.parent, null);
@@ -167,8 +167,8 @@ public abstract class Inlets extends Aborts {
                 inletLogger.debug("SATIN '" + ident
                         + ": prematurely sending exception result");
             }
-            if (stealLogger.isDebugEnabled()) {
-                stealLogger.debug("SATIN '" + ident
+            if (stealLogger.isInfoEnabled()) {
+                stealLogger.info("SATIN '" + ident
                         + ": prematurely sending exception result");
             }
             sendResult(r.parent, null);
@@ -223,8 +223,11 @@ public abstract class Inlets extends Aborts {
             //  If there is an inlet, call it.
             handleInlet(r);
 
-            if (spawnLogger.isDebugEnabled()) {
+            if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                 r.spawnCounter.decr(r);
+                spawnLogger.debug("SATIN '" + ident
+                        + ": got remote exception. Spawncounter is "
+                        + r.spawnCounter + "(" + r.spawnCounter.value + ")");
             } else {
                 r.spawnCounter.value--;
             }

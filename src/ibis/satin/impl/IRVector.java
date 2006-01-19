@@ -130,8 +130,11 @@ final class IRVector implements Config {
                     abortLogger.debug("found stolen child: " + curr.stamp
                             + ", it depends on " + targetStamp);
                 }
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
+                    spawnLogger.debug("IRVector.killChildrenOf: spawnCounter = "
+                            + curr.spawnCounter
+                            + "(" + curr.spawnCounter.value + ")");
                 } else {
                     curr.spawnCounter.value--;
                 }
@@ -177,8 +180,11 @@ final class IRVector implements Config {
                     abortLogger.debug("found stolen child: " + curr.stamp
                             + ", it depends on " + targetStamp);
                 }
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
+                    spawnLogger.debug("IRVector.killAndStoreChildrenOf: spawnCounter = "
+                            + curr.spawnCounter
+                            + "(" + curr.spawnCounter.value + ")");
                 } else {
                     curr.spawnCounter.value--;
                 }
@@ -225,8 +231,11 @@ final class IRVector implements Config {
                     abortLogger.debug("found stolen child: " + curr.stamp
                             + ", it depends on " + targetOwner);
                 }
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
+                    spawnLogger.debug("IRVector.killSubtreeOf: spawnCounter = "
+                            + curr.spawnCounter
+                            + "(" + curr.spawnCounter.value + ")");
                 } else {
                     curr.spawnCounter.value--;
                 }
@@ -269,8 +278,11 @@ final class IRVector implements Config {
                     || curr.owner.equals(targetOwner)) {
                 //this shouldnt happen, actually
                 curr.aborted = true;
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
+                    spawnLogger.debug("IRVector.killAndStoreSubtreeOf: spawnCounter = "
+                            + curr.spawnCounter
+                            + "(" + curr.spawnCounter.value + ")");
                 } else {
                     curr.spawnCounter.value--;
                 }
@@ -297,8 +309,11 @@ final class IRVector implements Config {
         for (int i = 0; i < count; i++) {
             curr = l[i];
             curr.aborted = true;
-            if (spawnLogger.isDebugEnabled()) {
+            if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                 curr.spawnCounter.decr(curr);
+                spawnLogger.debug("IRVector.killAll: spawnCounter = "
+                        + curr.spawnCounter
+                        + "(" + curr.spawnCounter.value + ")");
             } else {
                 curr.spawnCounter.value--;
             }

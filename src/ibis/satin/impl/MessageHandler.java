@@ -117,13 +117,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
             return;
         }
 
-        if (stealLogger.isDebugEnabled()) {
+        if (stealLogger.isInfoEnabled()) {
             if (eek != null) {
-                stealLogger.debug("SATIN '" + satin.ident
-                    + "': handleJobResult: exception result: " + eek, eek);
+                stealLogger.info("SATIN '" + satin.ident
+                        + "': handleJobResult: exception result: " + eek, eek);
             } else {
-                stealLogger.debug("SATIN '" + satin.ident
-                    + "': handleJobResult: normal result");
+                stealLogger.info("SATIN '" + satin.ident
+                        + "': handleJobResult: normal result");
             }
         }
 
@@ -343,19 +343,20 @@ final class MessageHandler implements Upcall, Protocol, Config {
             satin.stolenJobs++;
         }
 
-        if (stealLogger.isDebugEnabled()) {
-            stealLogger.debug("SATIN '" + satin.ident
-                + "': sending SUCCESS and #" + result.stamp + " back to "
-                + ident.ibis());
+        if (stealLogger.isInfoEnabled()) {
+            stealLogger.info("SATIN '" + satin.ident
+                    + "': sending SUCCESS and #" + result.stamp + " back to "
+                    + ident.ibis());
 
             if (opcode == ASYNC_STEAL_REQUEST) {
-                stealLogger.debug("SATIN '" + satin.ident
-                    + "': sending SUCCESS back to " + ident.ibis());
+                stealLogger.info("SATIN '" + satin.ident
+                        + "': sending SUCCESS back to " + ident.ibis());
             }
 
             if (opcode == ASYNC_STEAL_AND_TABLE_REQUEST) {
-                stealLogger.debug("SATIN '" + satin.ident
-                    + "': sending SUCCESS_TABLE back to " + ident.ibis());
+                stealLogger.info("SATIN '" + satin.ident
+                        + "': sending SUCCESS_TABLE back to "
+                        + ident.ibis());
             }
         }
 
@@ -413,6 +414,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
             }
 
             m.writeObject(result);
+            if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+                spawnLogger.debug("job with spawnCounter "
+                        + result.spawnCounter + "("
+                        + result.spawnCounter.value + ") is stolen");
+            }
 
             long cnt = m.finish();
             if (STEAL_TIMING) {
@@ -1037,9 +1043,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 break;
             case JOB_RESULT_NORMAL:
             case JOB_RESULT_EXCEPTION:
-                if (stealLogger.isDebugEnabled()) {
-                    stealLogger.debug("SATIN '" + satin.ident
-                        + "': got job result message from " + ident.ibis());
+                if (stealLogger.isInfoEnabled()) {
+                    stealLogger.info("SATIN '" + satin.ident
+                            + "': got job result message from "
+                            + ident.ibis());
                 }
 
                 handleJobResult(m, opcode);

@@ -898,10 +898,10 @@ public final class Satinc {
         // Generates:
         //   if (Config.FAULT_TOLERANCE || Config.ABORTS) {
         //       if (satin.getParent() != null && satin.getParent().aborted) {
-        //           return null;
+        //           throw new ibis.satin.impl.AbortException();
         //       }
         //   }
-        InstructionHandle abo = insertNullReturn(m, il, pos);
+        InstructionHandle abo = insertThrowAbort(m, il, pos);
 
         il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
                 "FAULT_TOLERANCE", Type.BOOLEAN, Constants.GETSTATIC));
@@ -946,30 +946,13 @@ public final class Satinc {
         */
     }
 
-    InstructionHandle insertNullReturn(MethodGen m, InstructionList il,
+    InstructionHandle insertThrowAbort(MethodGen m, InstructionList il,
             InstructionHandle pos) {
-        Type returnType = m.getReturnType();
         InstructionHandle retval;
 
-        if (returnType instanceof ReferenceType) {
-            // a reference type
-            retval = il.insert(pos, new ACONST_NULL());
-            il.insert(pos, new ARETURN());
-        } else if (returnType.equals(Type.VOID)) {
-            retval = il.insert(pos, new RETURN());
-        } else if (returnType.equals(Type.FLOAT)) {
-            retval = il.insert(pos, new FCONST(0));
-            il.insert(pos, new FRETURN());
-        } else if (returnType.equals(Type.DOUBLE)) {
-            retval = il.insert(pos, new DCONST(0.0));
-            il.insert(pos, new DRETURN());
-        } else if (returnType.equals(Type.LONG)) {
-            retval = il.insert(pos, new LCONST(0));
-            il.insert(pos, new LRETURN());
-        } else { // boolean, byte, char short or int
-            retval = il.insert(pos, new ICONST(0));
-            il.insert(pos, new IRETURN());
-        }
+        retval = il.insert(pos, ins_f.createNew("ibis.satin.impl.AbortException"));
+        il.insert(pos, new ATHROW());
+
         return retval;
     }
 
@@ -2512,38 +2495,36 @@ public final class Satinc {
                 }
             }
             out.println(");");
-            out.println("            } catch (Throwable e) {");
             out.println(
-                    "            if (Config.inletLogger.isDebugEnabled()) {");
-            out.println(
-                    "                    Config.inletLogger.debug("
-                    + "\"caught exception in runlocal: "
-                    + "\" + e, e);");
-            out.println("                }");
-            out.println("                eek = e;");
-            out.println("            }");
-
-            out.println("            if (eek != null && !inletExecuted) {");
-            out.println(
-                    "            if (Config.inletLogger.isDebugEnabled()) {");
-            out.println(
-                    "                    Config.inletLogger.debug("
-                    + "\"runlocal: calling inlet for: "
-                    + "\" + this);");
-            out.println("                }");
-            out.println("                if(parentLocals != null)");
-            out.println("                    parentLocals"
-                    + ".handleException(spawnId, eek, this);");
-            out.println(
-                    "            if (Config.inletLogger.isDebugEnabled()) {");
-            out.println("                    Config"
-                    + ".inletLogger.debug(\"runlocal: "
-                    + "calling inlet for: \" + this + \" DONE\");");
-            out.println("                }");
-            out.println("                if(parentLocals == null)");
-            out.println("                    throw eek;");
-            out.println("            }");
-            out.println("        } else {");
+                      "            } catch (Throwable e) {\n"
+                    + "                if (Config.inletLogger.isDebugEnabled()) {\n"
+                    + "                    Config.inletLogger.debug("
+                    +                        "\"caught exception in runlocal: "
+                    +                        "\" + e, e);\n"
+                    + "                }\n"
+                    + "                if (! (e instanceof ibis.satin.impl.AbortException)) {\n"
+                    + "                    eek = e;\n"
+                    + "                } else if (Config.abortLogger.isDebugEnabled()) {\n"
+                    + "                    Config.abortLogger.debug("
+                    +                         "\"got AbortException \" + e, e);\n"
+                    + "                }\n"
+                    + "            }\n"
+                    + "            if (eek != null && !inletExecuted) {\n"
+                    + "                if (Config.inletLogger.isDebugEnabled()) {\n"
+                    + "                    Config.inletLogger.debug("
+                    +                         "\"runlocal: calling inlet for: "
+                    +                         "\" + this);\n"
+                    + "                }\n"
+                    + "                if (parentLocals != null)\n"
+                    + "                    parentLocals.handleException(spawnId, eek, this);\n"
+                    + "                if (Config.inletLogger.isDebugEnabled()) {\n"
+                    + "                    Config.inletLogger.debug(\"runlocal:"
+                    +                          " calling inlet for: \" + this + \" DONE\");\n"
+                    + "                }\n"
+                    + "                if (parentLocals == null)\n"
+                    + "                    throw eek;\n"
+                    + "            }\n"
+                    + "        } else {\n");
             if (!returnType.equals(Type.VOID)) {
                 out.print("            result = ");
             }
@@ -2589,7 +2570,12 @@ public final class Satinc {
             out.println(");");
             out.println("        } catch (Throwable e) {");
             out.println("            if (ibis.satin.impl.Config.ABORTS) {");
-            out.println("                eek = e;");
+            out.println("                if (! (e instanceof ibis.satin.impl.AbortException)) {");
+            out.println("                    eek = e;");
+            out.println("                } else if (Config.abortLogger.isDebugEnabled()) {");
+           out.println("                    Config.abortLogger.debug("
+                    + "\"got AbortException \" + e, e);");
+            out.println("                }");
             out.println("            } else {");
             out.println("                if (e instanceof Error) {");
             out.println("                    throw (Error) e;");

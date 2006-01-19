@@ -33,7 +33,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 
     void addToHead(InvocationRecord r) {
         if (head == size) {
-            if (spawnLogger.isDebugEnabled()) {
+            if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                 spawnLogger.debug("doubling DEq, new size = " + (size*2));
             }
 
@@ -129,8 +129,11 @@ final class DEQueueDijkstra extends DEQueue implements Config {
                 if (ABORT_STATS) {
                     satin.abortedJobs++;
                 }
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
+                    spawnLogger.debug("DequeueDijkstra.killChildrenOf: spawnCounter = "
+                            + curr.spawnCounter
+                            + "(" + curr.spawnCounter.value + ")");
                 } else {
                     curr.spawnCounter.value--;
                 }
@@ -170,8 +173,11 @@ final class DEQueueDijkstra extends DEQueue implements Config {
                     || curr.owner.equals(owner)) {
                 // Should'nt happen.
                 curr.aborted = true;
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
+                    spawnLogger.debug("DequeueDijkstra.killSubtreeOf: spawnCounter = "
+                            + curr.spawnCounter
+                            + "(" + curr.spawnCounter.value + ")");
                 } else {
                     curr.spawnCounter.value--;
                 }

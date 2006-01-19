@@ -215,7 +215,9 @@ public abstract class Termination extends Initialization {
                     v.close();
                 }
 
-                victims.remove(0);
+                synchronized(this) {
+                    victims.remove(0);
+                }
 
             } catch (Throwable e) {
                 commLogger.error("SATIN '" + ident

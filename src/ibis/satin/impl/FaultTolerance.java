@@ -374,7 +374,7 @@ public abstract class FaultTolerance extends Inlets {
             }
             ReturnRecord rr = value.result;
             rr.assignTo(r);
-            if (spawnLogger.isDebugEnabled()) {
+            if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                 r.spawnCounter.decr(r);
             } else {
                 r.spawnCounter.value--;
@@ -458,7 +458,7 @@ public abstract class FaultTolerance extends Inlets {
                 //local result, handle normally
                 ReturnRecord rr = value.result;
                 rr.assignTo(r);
-                if (spawnLogger.isDebugEnabled()) {
+                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
                     r.spawnCounter.decr(r);
                 } else {
                     r.spawnCounter.value--;
