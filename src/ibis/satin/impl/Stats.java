@@ -84,8 +84,13 @@ public abstract class Stats extends SharedObjects {
                 .totalTimeVal();
             s.soTransferTime = soTransferTimer.totalTimeVal();
             s.soSerializationTime = soSerializationTimer.totalTimeVal();
-            s.soDeserializationTime = soDeserializationTimer.totalTimeVal() + soBroadcastDeserializationTimer.totalTimeVal();
+            s.soDeserializationTime = soDeserializationTimer.totalTimeVal();
+            s.soBcastTime = soBroadcastTransferTimer.totalTimeVal();
+            s.soBcastSerializationTime = soBroadcastSerializationTimer.totalTimeVal();
+            s.soBcastDeserializationTime = soBroadcastDeserializationTimer.totalTimeVal();
             s.soRealMessageCount = soRealMessageCount;
+            s.soBcasts = soBcasts;
+            s.soBcastBytes = soBcastBytes;
         }
 
         return s;
@@ -203,6 +208,9 @@ public abstract class Stats extends SharedObjects {
             out.println("SATIN: SO_TRANSFER: " 
                 + nf.format(totalStats.soTransfers) + " transfers "  
                 + nf.format(totalStats.soTransfersBytes) + " bytes ");
+            out.println("SATIN: SO_BCAST   : " 
+                + nf.format(totalStats.soBcasts) + " bcasts    "  
+                + nf.format(totalStats.soBcastBytes) + " bytes ");
         }
 
         out.println("-------------------------------SATIN TOTAL TIMES"
@@ -340,17 +348,32 @@ public abstract class Stats extends SharedObjects {
                 + " time/transf "
                 + Timer.format(perStats(totalStats.soTransferTime,
                     totalStats.soTransfers)));
-            out.println("SATIN: SO_SERIALIZATION:       total "
+            out.println("SATIN: SO_SERIALIZATION:         total "
                 + Timer.format(totalStats.soSerializationTime)
-                + " time/transf   "
+                + " time/transf "
                 + Timer.format(perStats(totalStats.soSerializationTime,
                     totalStats.soTransfers)));
-            out.println("SATIN: SO_DESERIALIZATION:     total "
+            out.println("SATIN: SO_DESERIALIZATION:       total "
                 + Timer.format(totalStats.soDeserializationTime)
-                + " time/transf   "
+                + " time/transf "
                 + Timer.format(perStats(totalStats.soDeserializationTime,
                     totalStats.soTransfers)));
-        }
+            out.println("SATIN: SO_BCASTS   :             total "
+                + Timer.format(totalStats.soBcastTime)
+                + " time/bcast  "
+                + Timer.format(perStats(totalStats.soBcastTime,
+                    totalStats.soBcasts)));
+            out.println("SATIN: SO_BCAST_SERIALIZATION    total "
+                + Timer.format(totalStats.soBcastSerializationTime)
+                + " time/bcast  "
+                + Timer.format(perStats(totalStats.soBcastSerializationTime,
+                    totalStats.soBcasts)));
+            out.println("SATIN: SO_BCAST_DESERIALIZATION: total "
+                + Timer.format(totalStats.soBcastDeserializationTime)
+                + " time/bcast  "
+                + Timer.format(perStats(totalStats.soBcastDeserializationTime,
+                    totalStats.soBcasts)));
+}
 
         out.println("-------------------------------SATIN RUN TIME "
             + "BREAKDOWN------------------------");

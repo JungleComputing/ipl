@@ -137,7 +137,17 @@ class StatsMessage implements java.io.Serializable {
 
     double soDeserializationTime;
 
+    double soBcastTime;
+
+    double soBcastSerializationTime;
+
+    double soBcastDeserializationTime;
+
     long soRealMessageCount;
+
+    long soBcasts;
+
+    long soBcastBytes;
 
     void add(StatsMessage s) {
         spawns += s.spawns;
@@ -213,6 +223,11 @@ class StatsMessage implements java.io.Serializable {
         soTransferTime += s.soTransferTime;
         soSerializationTime += s.soSerializationTime;
         soDeserializationTime += s.soDeserializationTime;
+        soBcastTime += s.soBcastTime;
+        soBcastSerializationTime += s.soBcastSerializationTime;
+        soBcastDeserializationTime += s.soBcastDeserializationTime;
         soRealMessageCount += s.soRealMessageCount;
+        soBcasts += soBcasts;
+        soBcastBytes += soBcastBytes;
     }
 }

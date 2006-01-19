@@ -240,6 +240,10 @@ public abstract class SatinBase implements Config {
 
     long soTransfersBytes = 0;
 
+    long soBcasts = 0;
+    
+    long soBcastBytes = 0;
+    
     StatsMessage totalStats; // used in messageHandler
 
     /* Variables that contain data of the current job*/
@@ -371,10 +375,10 @@ public abstract class SatinBase implements Config {
 
     Timer soBroadcastDeserializationTimer = Timer.createTimer();
 
+    Timer soBroadcastSerializationTimer = Timer.createTimer();
+
     Timer soBroadcastTransferTimer = Timer.createTimer();
 
-    Timer handleSOBroadcastTransferTimer = Timer.createTimer();
-    
     long returnRecordBytes = 0;
 
     long prevPoll = 0;
