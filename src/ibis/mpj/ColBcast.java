@@ -55,7 +55,7 @@ public class ColBcast {
 
 		rank_rel = rel_rank(rank, root, size);
 
-		for (mask = 1; mask < size; mask *= 2);
+		for (mask = 1; mask < size; mask *= 2) {/* do nothing */ }
 
 		mask /= 2;
 		sum = 0;

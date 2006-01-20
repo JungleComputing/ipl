@@ -9,7 +9,7 @@ package ibis.mpj;
 public class Cartcomm extends Intracomm{
 	
 	Cartcomm() throws MPJException {
-		
+		// does nothing
 	}
 	
 	/**
@@ -35,7 +35,7 @@ public class Cartcomm extends Intracomm{
 	 * @throws MPJException 
 	 */
 	static public void dimsCreate(int nnodes, int[] dims) throws MPJException {
-		
+		// not implemented
 	}
 	
 	

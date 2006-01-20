@@ -3188,7 +3188,7 @@ public final class Satinc {
         out.close();
     }
 
-    void rewriteSOMethod(Method m, String clnam, String pnam) throws IOException {
+    void rewriteSOMethod(Method m, String clnam, String pnam) {
        MethodGen origMethodGen;
        MethodGen newMethodGen;
        InstructionList newMethodInsList;
@@ -3318,7 +3318,7 @@ public final class Satinc {
 	 	
     }
 
-   void rewriteSOConstructor(Method m, String clnam) throws IOException {
+   void rewriteSOConstructor(Method m, String clnam) {
 
        MethodGen methodGen = new MethodGen(m, clnam, cpg);
        InstructionList il = methodGen.getInstructionList();

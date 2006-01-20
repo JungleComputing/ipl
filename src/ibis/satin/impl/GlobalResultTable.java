@@ -37,28 +37,25 @@ public class GlobalResultTable implements Upcall, Config {
             Key otherKey = (Key) other;
             if (Satin.this_satin.branchingFactor > 0) {
                 return this.stamp == otherKey.stamp;
-            } else {
-                if (other == null) {
-                    return false;
-                }
-                return this.parameters.equals(otherKey.parameters);
             }
+			if (other == null) {
+			    return false;
+			}
+			return this.parameters.equals(otherKey.parameters);
         }
 
         public int hashCode() {
             if (Satin.this_satin.branchingFactor > 0) {
                 return this.stamp;
-            } else {
-                return this.parameters.hashCode();
             }
+			return this.parameters.hashCode();
         }
 
         public String toString() {
             if (Satin.this_satin.branchingFactor > 0) {
                 return Integer.toString(stamp);
-            } else {
-                return parameters.toString();
             }
+			return parameters.toString();
         }
     }
 
@@ -464,29 +461,28 @@ public class GlobalResultTable implements Upcall, Config {
 
         if (GLOBAL_RESULT_TABLE_REPLICATED) {
             return (Map) ((Hashtable) entries).clone();
-        } else {
-            //replace "real" results with pointer values
-            Map newEntries = new Hashtable();
-            Iterator iter = entries.entrySet().iterator();
-            while (iter.hasNext()) {
-                Map.Entry element = (Map.Entry) iter.next();
-                Value value = (Value) element.getValue();
-                Key key = (Key) element.getKey();
-                switch (value.type) {
-                case Value.TYPE_RESULT:
-                case Value.TYPE_LOCK:
-                    newEntries.put(key, pointerValue);
-                    break;
-                case Value.TYPE_POINTER:
-                    newEntries.put(key, value);
-                    break;
-                default:
-                    grtLogger.error("SATIN '" + satin.ident
-                            + "': EEK invalid value type in getContents()");
-                }
-            }
-            return newEntries;
         }
+		//replace "real" results with pointer values
+		Map newEntries = new Hashtable();
+		Iterator iter = entries.entrySet().iterator();
+		while (iter.hasNext()) {
+		    Map.Entry element = (Map.Entry) iter.next();
+		    Value value = (Value) element.getValue();
+		    Key key = (Key) element.getKey();
+		    switch (value.type) {
+		    case Value.TYPE_RESULT:
+		    case Value.TYPE_LOCK:
+		        newEntries.put(key, pointerValue);
+		        break;
+		    case Value.TYPE_POINTER:
+		        newEntries.put(key, value);
+		        break;
+		    default:
+		        grtLogger.error("SATIN '" + satin.ident
+		                + "': EEK invalid value type in getContents()");
+		    }
+		}
+		return newEntries;
     }
 
     void addContents(Map contents) {

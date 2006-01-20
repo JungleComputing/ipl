@@ -384,91 +384,90 @@ public abstract class FaultTolerance extends Inlets {
             }
             return true;
 
-        } else {
-            //distributed table
-            if (value.type == GlobalResultTable.Value.TYPE_POINTER) {
-                //remote result
-
-                Victim v = null;
-                synchronized (this) {
-                    if (deadIbises.contains(value.owner)) {
-                        //the one who's got the result has crashed
-                        if (TABLE_CHECK_TIMING) {
-                            // redoTimer.stop();
-                        }
-                        return false;
-                    }
-
-                    if (grtLogger.isDebugEnabled()) {
-                        grtLogger.debug("SATIN '" + ident
-                                 + "': sending a result request of " + key
-                                 + " to " + value.owner);
-                    }
-                    v = getVictimNoWait(value.owner);
-                }
-
-                if (v == null) {
-                    if (TABLE_CHECK_TIMING) {
-                        // redoTimer.stop();
-                    }
-                    return false;
-                }
-                //put the job in the stolen jobs list.
-                synchronized (this) {
-                    r.stealer = value.owner;
-                    addToOutstandingJobList(r);
-                }
-                //send a request to the remote node
-                try {
-                    WriteMessage m = v.newMessage();
-                    m.writeByte(Protocol.RESULT_REQUEST);
-                    m.writeObject(key);
-                    m.writeInt(r.stamp); //stamp and owner are not
-                    // neccessary when using
-                    m.writeObject(r.owner);//globally unique stamps, but
-                    // let's not make things too
-                    // complicated..
-                    m.finish();
-                } catch (IOException e) {
-                    grtLogger.warn("SATIN '" + ident
-                            + "': trying to send RESULT_REQUEST but got "
-                            + "exception: " + e, e);
-                    synchronized (this) {
-                        outstandingJobs.remove(r);
-                    }
-                    return false;
-                }
-                if (TABLE_CHECK_TIMING) {
-                    // redoTimer.stop();
-                }
-                return true;
-            }
-
-            if (FT_WITHOUT_ABORTS && ASSERTS) {
-                if (value.type == GlobalResultTable.Value.TYPE_LOCK) {
-                    //i don't think that should happen
-                    grtLogger.fatal("SATIN '" + ident
-                            + "': found local unfinished job in the table!! "
-                            + key);
-                    System.exit(1);     // Failed assertion
-                }
-            }
-
-            if (value.type == GlobalResultTable.Value.TYPE_RESULT) {
-                //local result, handle normally
-                ReturnRecord rr = value.result;
-                rr.assignTo(r);
-                if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
-                    r.spawnCounter.decr(r);
-                } else {
-                    r.spawnCounter.value--;
-                }
-                if (TABLE_CHECK_TIMING) {
-                    // redoTimer.stop();
-                }
-                return true;
-            }
         }
+		//distributed table
+		if (value.type == GlobalResultTable.Value.TYPE_POINTER) {
+		    //remote result
+
+		    Victim v = null;
+		    synchronized (this) {
+		        if (deadIbises.contains(value.owner)) {
+		            //the one who's got the result has crashed
+		            if (TABLE_CHECK_TIMING) {
+		                // redoTimer.stop();
+		            }
+		            return false;
+		        }
+
+		        if (grtLogger.isDebugEnabled()) {
+		            grtLogger.debug("SATIN '" + ident
+		                     + "': sending a result request of " + key
+		                     + " to " + value.owner);
+		        }
+		        v = getVictimNoWait(value.owner);
+		    }
+
+		    if (v == null) {
+		        if (TABLE_CHECK_TIMING) {
+		            // redoTimer.stop();
+		        }
+		        return false;
+		    }
+		    //put the job in the stolen jobs list.
+		    synchronized (this) {
+		        r.stealer = value.owner;
+		        addToOutstandingJobList(r);
+		    }
+		    //send a request to the remote node
+		    try {
+		        WriteMessage m = v.newMessage();
+		        m.writeByte(Protocol.RESULT_REQUEST);
+		        m.writeObject(key);
+		        m.writeInt(r.stamp); //stamp and owner are not
+		        // neccessary when using
+		        m.writeObject(r.owner);//globally unique stamps, but
+		        // let's not make things too
+		        // complicated..
+		        m.finish();
+		    } catch (IOException e) {
+		        grtLogger.warn("SATIN '" + ident
+		                + "': trying to send RESULT_REQUEST but got "
+		                + "exception: " + e, e);
+		        synchronized (this) {
+		            outstandingJobs.remove(r);
+		        }
+		        return false;
+		    }
+		    if (TABLE_CHECK_TIMING) {
+		        // redoTimer.stop();
+		    }
+		    return true;
+		}
+
+		if (FT_WITHOUT_ABORTS && ASSERTS) {
+		    if (value.type == GlobalResultTable.Value.TYPE_LOCK) {
+		        //i don't think that should happen
+		        grtLogger.fatal("SATIN '" + ident
+		                + "': found local unfinished job in the table!! "
+		                + key);
+		        System.exit(1);     // Failed assertion
+		    }
+		}
+
+		if (value.type == GlobalResultTable.Value.TYPE_RESULT) {
+		    //local result, handle normally
+		    ReturnRecord rr = value.result;
+		    rr.assignTo(r);
+		    if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
+		        r.spawnCounter.decr(r);
+		    } else {
+		        r.spawnCounter.value--;
+		    }
+		    if (TABLE_CHECK_TIMING) {
+		        // redoTimer.stop();
+		    }
+		    return true;
+		}
 
         return false;
 

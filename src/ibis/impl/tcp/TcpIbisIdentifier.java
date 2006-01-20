@@ -60,8 +60,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     }
 
     // no need to serialize super class fields, this is done automatically
-    private void readObject(java.io.ObjectInputStream in) throws IOException,
-            ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream in) throws IOException {
         int handle = in.readInt();
         if (handle < 0) {
             String addr = in.readUTF();

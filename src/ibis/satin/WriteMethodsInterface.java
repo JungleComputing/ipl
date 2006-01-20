@@ -8,4 +8,6 @@ package ibis.satin;
  * putting these methods in an interface that extends this marker interface.
  * The shared object class must implement this interface.
  */
-public interface WriteMethodsInterface {};
+public interface WriteMethodsInterface { 
+	/* just a marker interface, no methods */
+}

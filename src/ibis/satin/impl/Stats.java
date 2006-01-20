@@ -162,7 +162,7 @@ public abstract class Stats extends SharedObjects {
                 + " attempts, "
                 + nf.format(totalStats.stealSuccess)
                 + " successes ("
-                + pf.format(perStats((double) totalStats.stealSuccess,
+                + pf.format(perStats(totalStats.stealSuccess,
                     totalStats.stealAttempts) * 100.0) + " %)");
 
             if (totalStats.asyncStealAttempts != 0) {
@@ -171,7 +171,7 @@ public abstract class Stats extends SharedObjects {
                     + " attempts, "
                     + nf.format(totalStats.asyncStealSuccess)
                     + " successes ("
-                    + pf.format(perStats((double) totalStats.asyncStealSuccess,
+                    + pf.format(perStats(totalStats.asyncStealSuccess,
                         totalStats.asyncStealAttempts) * 100.0) + " %)");
             }
 
@@ -596,7 +596,7 @@ public abstract class Stats extends SharedObjects {
 
             out.println("SATIN '" + ident + "': STEAL_STATS 1: attempts = "
                 + stealAttempts + " success = " + stealSuccess + " ("
-                + (perStats((double) stealSuccess, stealAttempts) * 100.0)
+                + (perStats(stealSuccess, stealAttempts) * 100.0)
                 + " %)");
 
             out.println("SATIN '" + ident + "': STEAL_STATS 2: requests = "

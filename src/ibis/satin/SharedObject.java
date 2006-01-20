@@ -19,6 +19,7 @@ public class SharedObject implements java.io.Serializable {
     private static int sharedObjectsCounter = 0;
 
     protected SharedObject() {
+    	// does nothing
     }
 
     /**

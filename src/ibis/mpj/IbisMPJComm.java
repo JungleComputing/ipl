@@ -42,9 +42,8 @@ public class IbisMPJComm extends Thread {
     
     protected boolean finished = false;
     
-
     public IbisMPJComm() {
-    	
+    	// does nothing by default
     }
     
     public IbisMPJComm(Comm comm, int myRank, Object buf, int offset, int count, 
@@ -108,130 +107,125 @@ public class IbisMPJComm extends Thread {
 				src = nextSource(src);
 				continue;
 			}
-			else {
+			// 	first check the object queue and hold the monitor on it
+			synchronized(queue) {
 				
-				// 	first check the object queue and hold the monitor on it
-				synchronized(queue) {
-					
-					// set Lock to inform another irecv using MPJ.ANY_SOURCE
-					queue.lock();
-					
-					obj = null;
-					obj = queue.getObject(contextId, tag);
-					
-					// if queue has not the requested object, try to connect to the receiveport
-					if (obj == null) {
-						
+				// set Lock to inform another irecv using MPJ.ANY_SOURCE
+				queue.lock();
 				
-						obj = new MPJObject();
-						msg = null;
-									
-									
-						msg = con.pollForMessage();
+				obj = null;
+				obj = queue.getObject(contextId, tag);
+				
+				// if queue has not the requested object, try to connect to the receiveport
+				if (obj == null) {
+					
+			
+					obj = new MPJObject();
+					msg = null;
 								
-						if (msg == null) {
-							src = nextSource(src);
+								
+					msg = con.pollForMessage();
+							
+					if (msg == null) {
+						src = nextSource(src);
 
-							queue.release();
-							if (DEBUG) System.out.println("message was null... go to next rank");
-							continue;
-						}
-						else {
-							// 	get message header
-							con.receiveHeader(msg, obj.desc);
-							
-							if(DEBUG) {
-								System.out.println("recv tag:       " + obj.getTag());
-								System.out.println("recv contextId: " + obj.getContextId());
-								System.out.println("recv type:      " + obj.getBaseDatatype());
-								System.out.println("recv count:     " + obj.getNumberOfElements());
-								System.out.println("recv offset:    " + offset);
-								
-								System.out.println("supposed count: " + count * datatype.extent());
+						queue.release();
+						if (DEBUG) System.out.println("message was null... go to next rank");
+						continue;
+					}
+					// 	get message header
+					con.receiveHeader(msg, obj.desc);
+					
+					if(DEBUG) {
+						System.out.println("recv tag:       " + obj.getTag());
+						System.out.println("recv contextId: " + obj.getContextId());
+						System.out.println("recv type:      " + obj.getBaseDatatype());
+						System.out.println("recv count:     " + obj.getNumberOfElements());
+						System.out.println("recv offset:    " + offset);
+						
+						System.out.println("supposed count: " + count * datatype.extent());
+					}
+					
+					
+					// 	the message was expected
+					if (((obj.getTag() == tag) || 
+						((tag == MPJ.ANY_TAG) && (obj.getTag() >= 0))) && 
+						(obj.getContextId() == contextId)) {
+						
+						
+						if (!obj.isBuffered()) {
+							// 	if count is larger than the array received 
+							// and message NOT buffered -> cut count
+							if ((count*datatype.extent() > obj.getNumberOfElements()) && (!obj.isBuffered())) {
+								count = obj.getNumberOfElements();
+								con.receiveData(msg, buf, offset, count * datatype.extent());	
 							}
-							
-							
-							// 	the message was expected
-							if (((obj.getTag() == tag) || 
-								((tag == MPJ.ANY_TAG) && (obj.getTag() >= 0))) && 
-								(obj.getContextId() == contextId)) {
+							// 	if count is smaller than the array received
+							// 	and message NOT buffered -> copy buffer
+							else if(((count*datatype.extent()) < obj.getNumberOfElements()) && (!obj.isBuffered())) {
 								
-								
-								if (!obj.isBuffered()) {
-									// 	if count is larger than the array received 
-									// and message NOT buffered -> cut count
-									if ((count*datatype.extent() > obj.getNumberOfElements()) && (!obj.isBuffered())) {
-										count = obj.getNumberOfElements();
-										con.receiveData(msg, buf, offset, count * datatype.extent());	
-									}
-									// 	if count is smaller than the array received
-									// 	and message NOT buffered -> copy buffer
-									else if(((count*datatype.extent()) < obj.getNumberOfElements()) && (!obj.isBuffered())) {
-										
-										obj.initBuffer();
-										con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
-											
-										castBuffer(obj, buf, offset, count*extent);
-											
-									}
-		
-									// count is equal to received array size 
-									// and message NOT buffered -> receive it directly
-									else if (!obj.isBuffered()){
-										con.receiveData(msg, buf, offset, count * datatype.extent());
-									}
-										
-										
-											
-								}							
-								// else the message was buffered -> unbuffer it
-								else {
-									byte[] byteBuf = new byte[obj.getNumberOfElements()+1];
-									
-									con.receiveData(msg, byteBuf, 0, obj.getNumberOfElements());
-									
-									realCount = BufferOps.unBuffer(byteBuf, buf, offset, count * extent);
-								}
-								
-								typeSize = datatype.byteSize;
-								realCount = count * datatype.extent();
-								msgReceived = true;						
-							}
-							//		the message was NOT expected -> move to queue
-							else {
-								if(DEBUG) {
-									System.out.println("Message was NOT expected -> move to queue");
-								}
 								obj.initBuffer();
 								con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
-								
-								queue.addObject(obj);
-								msgReceived = false;
-								
-								src = nextSource(src);
-							
+									
+								castBuffer(obj, buf, offset, count*extent);
+									
 							}
+
+							// count is equal to received array size 
+							// and message NOT buffered -> receive it directly
+							else if (!obj.isBuffered()){
+								con.receiveData(msg, buf, offset, count * datatype.extent());
+							}
+								
+								
+									
+						}							
+						// else the message was buffered -> unbuffer it
+						else {
+							byte[] byteBuf = new byte[obj.getNumberOfElements()+1];
+							
+							con.receiveData(msg, byteBuf, 0, obj.getNumberOfElements());
+							
+							realCount = BufferOps.unBuffer(byteBuf, buf, offset, count * extent);
 						}
+						
+						typeSize = datatype.byteSize;
+						realCount = count * datatype.extent();
+						msgReceived = true;						
+					}
+					//		the message was NOT expected -> move to queue
+					else {
+						if(DEBUG) {
+							System.out.println("Message was NOT expected -> move to queue");
+						}
+						obj.initBuffer();
+						con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
+						
+						queue.addObject(obj);
+						msgReceived = false;
+						
+						src = nextSource(src);
 					
 					}
-						// found the object inside the queue
-					else {
-						if (DEBUG) System.out.println("found the object inside the queue");
-						
-						typeSize = datatype.getByteSize();
-						// 	message was NOT buffered -> normal copy
-						if (!obj.isBuffered()) {
-							realCount = castBuffer(obj, buf, offset, count*extent);
-						}
-							
-						// 	message was buffered -> unbuffer it
-						else {
-							realCount = BufferOps.unBuffer(obj.getObjectData(), buf, offset, count * (extent));
-						}
-						msgReceived = true;
-					}
-					queue.release();
+				
 				}
+					// found the object inside the queue
+				else {
+					if (DEBUG) System.out.println("found the object inside the queue");
+					
+					typeSize = datatype.getByteSize();
+					// 	message was NOT buffered -> normal copy
+					if (!obj.isBuffered()) {
+						realCount = castBuffer(obj, buf, offset, count*extent);
+					}
+						
+					// 	message was buffered -> unbuffer it
+					else {
+						realCount = BufferOps.unBuffer(obj.getObjectData(), buf, offset, count * (extent));
+					}
+					msgReceived = true;
+				}
+				queue.release();
 			}
 		}
 		
@@ -726,37 +720,34 @@ public class IbisMPJComm extends Thread {
 						queue.release();
 						continue;
 					}
-					else {
-						
-						// 	get message header
-						con.receiveHeader(msg, obj.desc);
-				
-						if(DEBUG) {
-							System.out.println("iprobe tag:       " + obj.getTag());
-							System.out.println("iprobe contextId: " + obj.getContextId());
-							System.out.println("iprobe type:      " + obj.getBaseDatatype());
-							System.out.println("iprobe count:     " + obj.getNumberOfElements());
-							System.out.println("iprobe offset:    " + offset);
-						}
+					// 	get message header
+					con.receiveHeader(msg, obj.desc);
 
-						obj.initBuffer();
-						con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
-						queue.addObject(obj);
-					
-						// 	the message was expected
-						if (((obj.getTag() == tag) || 
-								((tag == MPJ.ANY_TAG) && (obj.getTag() >= 0))) && 
-								(obj.getContextId() == contextId)) {
-							this.status = new Status();
-							this.status.setSource(src);
-							this.status.setTag(obj.getTag());
-							this.status.setCount(obj.getNumberOfElements());
-							this.status.setSize(obj.getNumberOfElements());
-							msgFound = true;
-							
-						}
-						msg = null;
+					if(DEBUG) {
+						System.out.println("iprobe tag:       " + obj.getTag());
+						System.out.println("iprobe contextId: " + obj.getContextId());
+						System.out.println("iprobe type:      " + obj.getBaseDatatype());
+						System.out.println("iprobe count:     " + obj.getNumberOfElements());
+						System.out.println("iprobe offset:    " + offset);
 					}
+
+					obj.initBuffer();
+					con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
+					queue.addObject(obj);
+
+					// 	the message was expected
+					if (((obj.getTag() == tag) || 
+							((tag == MPJ.ANY_TAG) && (obj.getTag() >= 0))) && 
+							(obj.getContextId() == contextId)) {
+						this.status = new Status();
+						this.status.setSource(src);
+						this.status.setTag(obj.getTag());
+						this.status.setCount(obj.getNumberOfElements());
+						this.status.setSize(obj.getNumberOfElements());
+						msgFound = true;
+						
+					}
+					msg = null;
 				}
 				else {
 					msgFound = true;

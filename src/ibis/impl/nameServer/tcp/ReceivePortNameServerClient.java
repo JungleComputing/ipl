@@ -128,8 +128,8 @@ class ReceivePortNameServerClient implements Protocol {
                             // ignored
                         }
                     }
-                    if (ids == null) {
-                    }
+//                    if (ids == null) {
+//                    }
                     return ids;
                 }
 

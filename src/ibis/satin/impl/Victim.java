@@ -79,9 +79,8 @@ final class Victim {
                                         + ", might have crashed");
                             }
                             return null;
-                        } else {
-                            connected = true;
                         }
+						connected = true;
                     } else {
                         Communication.connect(s, r);
                         connected = true;
