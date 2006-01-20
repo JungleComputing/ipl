@@ -126,7 +126,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
             switch (opcode) {
             case NEW_RECEIVER:
                 if (DEBUG) {
-                    System.out.println(port.name + ": Got a NEW_RECEIVER");
+                    System.err.println(port.name + ": Got a NEW_RECEIVER");
                 }
                 in.close();
                 createNewStream();
@@ -149,7 +149,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                 break;
             case CLOSE_ALL_CONNECTIONS:
                 if (DEBUG) {
-                    System.out.println(port.name + ": Got a FREE from "
+                    System.err.println(port.name + ": Got a FREE from "
                             + origin);
                 }
                 close(null);
@@ -169,7 +169,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                             Conversion.byte2object(receiverBytes);
                     if (identifier.equals(port.identifier())) {
                         if (DEBUG) {
-                            System.out.println(port.name
+                            System.err.println(port.name
                                     + ": got a disconnect from: " + origin);
                         }
                         close(null);
@@ -179,10 +179,9 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                     in.close();
                     createNewStream();
                 } catch(ClassNotFoundException e) {
-                    if (DEBUG) {
-                        System.out.println(port.name + ": disconnect from: "
-                                 + origin + " failed");
-                    }
+                    System.err.println("TcpIbis: internal error, "
+                            + port.name + ": disconnect from: " + origin
+                            + " failed: " + e);
                 }
                 break;
             default:
