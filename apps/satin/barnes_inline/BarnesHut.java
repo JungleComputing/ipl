@@ -42,10 +42,10 @@ final class BarnesHut {
 	private long[] forceCalcTimes;
 
 	//Parameters for the BarnesHut algorithm / simulation
-	private static final double THETA = 2.0; //cell subdivision tolerance
+	private static final double THETA = 5.0; //cell subdivision tolerance
 
-	//private static final double DT = 0.025; // default integration time-step
-	private static final double DT = 10.5; //integration time-step
+	private static final double DT = 0.025; // default integration time-step
+    //private static final double DT = 10.5; //integration time-step
 
 	//we do 7 iterations (first one isn't measured)
 	static final double START_TIME = 0.0;
