@@ -85,6 +85,7 @@ public class JGFGatherBench implements JGFSection1{
 
 /* Carryout the broadcast operation */
         for (int k=0; k<size; k++){
+//            System.err.println("iter: " + k + ", size = " + send_arr.length);
           MPJ.COMM_WORLD.gather(send_arr,0,send_arr.length,MPJ.DOUBLE,recv_arr,0,send_arr.length,MPJ.DOUBLE,0);
           MPJ.COMM_WORLD.barrier();
 

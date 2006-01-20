@@ -1,7 +1,7 @@
 
 import ibis.satin.SharedObject;
 
-public class Bodies extends SharedObject implements BodiesInterface, java.io.Serializable {
+final public class Bodies extends SharedObject implements BodiesInterface {
 
     Body[] bodyArray;
     
