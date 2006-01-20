@@ -208,7 +208,7 @@ public abstract class Stats extends SharedObjects {
             out.println("SATIN: SO_TRANSFER: " 
                 + nf.format(totalStats.soTransfers) + " transfers, "  
                 + nf.format(totalStats.soTransfersBytes) + " bytes ");
-            out.println("SATIN: SO_BCAST   : " 
+            out.println("SATIN: SO_BCAST:    " 
                 + nf.format(totalStats.soBcasts) + " bcasts, "  
                 + nf.format(totalStats.soBcastBytes) + " bytes ");
         }
@@ -358,12 +358,12 @@ public abstract class Stats extends SharedObjects {
                 + " time/transf "
                 + Timer.format(perStats(totalStats.soDeserializationTime,
                     totalStats.soTransfers)));
-            out.println("SATIN: SO_BCASTS   :             total "
+            out.println("SATIN: SO_BCASTS:                total "
                 + Timer.format(totalStats.soBcastTime)
                 + " time/bcast  "
                 + Timer.format(perStats(totalStats.soBcastTime,
                     totalStats.soBcasts)));
-            out.println("SATIN: SO_BCAST_SERIALIZATION    total "
+            out.println("SATIN: SO_BCAST_SERIALIZATION:   total "
                 + Timer.format(totalStats.soBcastSerializationTime)
                 + " time/bcast  "
                 + Timer.format(perStats(totalStats.soBcastSerializationTime,
