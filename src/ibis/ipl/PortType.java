@@ -31,7 +31,9 @@ public abstract class PortType {
      * a <code>PortType</code> is created using the
      * {@link Ibis#createPortType(String, StaticProperties)} method. 
      */
-    public PortType() {}
+    public PortType() {
+    	// does nothing
+    }
 
     /**
      * Returns the name given to this PortType upon creation. 
