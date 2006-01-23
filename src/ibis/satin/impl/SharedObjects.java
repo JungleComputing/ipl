@@ -72,8 +72,13 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 		}
 
 		try {
-			w = soSendPort.newMessage();
-
+            if (soInvocationsDelay > 0) {
+                //do message combining
+                w = soMessageCombiner.newMessage();
+            } else {
+                w = soSendPort.newMessage();
+            }
+		
 			w.writeByte(SO_TRANSFER);
 			if (SO_TIMING) {
 				soBroadcastSerializationTimer.start();
@@ -83,6 +88,12 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 				soBroadcastSerializationTimer.stop();
 			}
 			size = w.finish();
+			if (SO_TIMING) {
+                soSerializationTimer.stop();
+            }
+            if (soInvocationsDelay > 0) {
+                soMessageCombiner.sendAccumulatedMessages();
+            }
 		} catch (IOException e) {
 			System.err.println("SATIN '" + ident.name()
 					+ "': unable to broadcast a shared object: " + e);
