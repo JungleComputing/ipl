@@ -51,8 +51,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	/**
 	 * This basicaly is optional, if nodes don't have the object, they will
 	 * retrieve it. However, one broadcast is more efficient (serialization is
-	 * done only once). This is called from exportObject only, so don't use
-	 * message combining.
+	 * done only once). We MUST use message combining here, we use the same receiveport
+     * as the SO invocation messages.
 	 */
 	public void broadcastSharedObject(SharedObject object) {
 		WriteMessage w = null;
