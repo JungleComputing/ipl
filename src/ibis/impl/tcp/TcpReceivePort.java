@@ -121,8 +121,19 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         } catch (IOException e) {
             // An error occured on receiving (or finishing!) the message during
             // the upcall.
-            finishMessage(e);
-            return false; // no need to start a new handler thread...
+            System.err.println("Got IO Exception in upcall(): " + e);
+            e.printStackTrace();
+            if (! msg.isFinished) {
+                finishMessage(e);
+                return false;
+            }
+            return true;
+        } catch(Throwable e2) {
+            System.err.println("Got exception in upcall(): " + e);
+            e.printStackTrace();
+            if (msg.isFinished) {
+                return true;
+            }
         }
 
         /* The code below was so terribly wrong.
