@@ -129,8 +129,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             }
             return true;
         } catch(Throwable e2) {
-            System.err.println("Got exception in upcall(): " + e);
-            e.printStackTrace();
+            System.err.println("Got exception in upcall(): " + e2);
+            e2.printStackTrace();
             if (msg.isFinished) {
                 return true;
             }
