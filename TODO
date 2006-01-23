@@ -40,8 +40,7 @@ connect:
 - Update manual and readme files to reflect new structure.
 
 apps:
-- check results of the different barnes versions
-- check satin barnes performance drop since Gosia's paper
++ check satin barnes performance drop since Gosia's paper
 
 implementations:
 - TcpIbis: handle IOException thrown in upcall _after_ 
@@ -185,3 +184,6 @@ connect stuff:
 
 future projects:
 - build *Ibis: a stacking ibis
+
+apps:
+- check results of the different barnes versions (post 1.3)
