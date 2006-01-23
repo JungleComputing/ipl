@@ -88,9 +88,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 				soBroadcastSerializationTimer.stop();
 			}
 			size = w.finish();
-			if (SO_TIMING) {
-                soSerializationTimer.stop();
-            }
             if (soInvocationsDelay > 0) {
                 soMessageCombiner.sendAccumulatedMessages();
             }
