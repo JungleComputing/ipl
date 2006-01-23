@@ -1070,11 +1070,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 handleResultPush(m);
                 break;
             case SO_REQUEST:
-                System.err.print("r");
+//                System.err.print("r");
                 handleSORequest(m);
                 break;
             case SO_TRANSFER:
-                System.err.print("t");
+//                System.err.print("t");
                 handleSOTransfer(m);
                 break;
             default:

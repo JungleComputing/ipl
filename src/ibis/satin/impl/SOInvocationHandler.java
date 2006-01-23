@@ -28,7 +28,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
             byte opt_code = m.readByte();
             switch (opt_code) {
             case SO_TRANSFER: // exportObject
-                System.err.print("X");
+//                System.err.print("X");
                 if (SO_TIMING) {
                     satin.soBroadcastDeserializationTimer.start();
                 }
@@ -43,7 +43,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 }
                 break;
             case SO_INVOCATION: // normal invocation, can be message combined
-                System.err.print("Y");
+//                System.err.print("Y");
                 soir = (SOInvocationRecord) m.readObject();
 
                 // no need to finish here
