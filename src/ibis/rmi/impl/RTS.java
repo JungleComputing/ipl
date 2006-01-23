@@ -295,7 +295,6 @@ public final class RTS {
             requestProps.add("worldmodel", "open");
             requestProps.add("communication",
                     "OneToOne, ManyToOne, Reliable, AutoUpcalls");
-            requestPortType = ibis.createPortType("RMI", requestProps);
 
             StaticProperties replyProps = new StaticProperties();
             replyProps.add("serialization", "object");
