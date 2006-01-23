@@ -43,8 +43,8 @@ apps:
 + check satin barnes performance drop since Gosia's paper
 
 implementations:
-- TcpIbis: handle IOException thrown in upcall _after_ 
-  finish of message properly
++ TcpIbis: handle IOException thrown in upcall _after_ 
+  finish of message properly (Done Ceriel)
 + TcpIbis: always print errors in ConnectionHandler, not only if debug is
   enabled (Done Ceriel)
 
