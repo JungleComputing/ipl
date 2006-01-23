@@ -29,7 +29,7 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
     private static long[] forceCalcTimes;
 
     //Parameters for the BarnesHut algorithm / simulation
-    private static final double THETA = 5.0; //cell subdivision tolerance
+    private static final double THETA = 2.0; //cell subdivision tolerance
 
     static final double DT = 0.025; //integration time-step, used in Bodies
 
