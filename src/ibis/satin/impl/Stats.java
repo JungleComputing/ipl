@@ -449,6 +449,17 @@ public abstract class Stats extends SharedObjects {
         double soDeserializationPerc = soDeserializationTime
             / totalTimer.totalTimeVal() * 100;
 
+        double soBcastTime = totalStats.soBcastTime / size;
+        double soBcastPerc = soBcastTime / totalTimer.totalTimeVal()
+            * 100;
+        double soBcastSerializationTime = totalStats.soBcastSerializationTime / size;
+        double soBcastSerializationPerc = soBcastSerializationTime
+            / totalTimer.totalTimeVal() * 100;
+        double soBcastDeserializationTime = totalStats.soBcastDeserializationTime / size;
+        double soBcastDeserializationPerc = soBcastDeserializationTime
+            / totalTimer.totalTimeVal() * 100;
+        
+        
         double totalOverhead = abortTime
             + tupleTime
             + handleTupleTime
@@ -460,7 +471,8 @@ public abstract class Stats extends SharedObjects {
             + tableHandleLookupTime
             + handleSOInvocationsTime
             + broadcastSOInvocationsTime
-            + soTransferTime
+            + soTransferTime + soDeserializationTime
+            + soBcastTime + soBcastDeserializationTime
             + (totalStats.stealTime + totalStats.handleStealTime
                 + totalStats.returnRecordReadTime + totalStats.returnRecordWriteTime)
             / size;
@@ -556,8 +568,17 @@ public abstract class Stats extends SharedObjects {
             out.println("SATIN: SO_DESERIALIZATION:       avg. per machine "
                 + Timer.format(soDeserializationTime) + " ( "
                 + pf.format(soDeserializationPerc) + " %)");
+            out.println("SATIN: SO_BCASTS:                avg. per machine "
+                + Timer.format(soBcastTime) + " ( "
+                + pf.format(soBcastPerc) + " %)");
+            out.println("SATIN: SO_BCAST_SERIALIZATION:   avg. per machine "
+                + Timer.format(soBcastSerializationTime) + " ( "
+                + pf.format(soBcastSerializationPerc) + " %)");
+            out.println("SATIN: SO_BCAST_DESERIALIZATION: avg. per machine "
+                + Timer.format(soBcastDeserializationTime) + " ( "
+                + pf.format(soBcastDeserializationPerc) + " %)");
         }
-
+        
         out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine "
             + Timer.format(totalOverhead) + " (" + (totalPerc < 10 ? " " : "")
             + pf.format(totalPerc) + " %)");
