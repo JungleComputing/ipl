@@ -98,6 +98,10 @@ public class CombiningWriteMessage implements WriteMessage {
         // TODO: Handle the exception here ??
     }
 
+    public long bytesWritten() throws IOException {
+	throw new IOException("Bytes Written not supported");
+    }
+
     /* (non-Javadoc)
      * @see ibis.ipl.WriteMessage#localPort()
      */

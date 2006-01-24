@@ -54,6 +54,10 @@ public class CombiningReadMessage implements ReadMessage {
         // TODO Auto-generated method stub
     }
 
+    public long bytesRead() throws IOException {
+	throw new IOException("Bytes Read not supported");
+    }
+
     /* (non-Javadoc)
      * @see ibis.ipl.ReadMessage#localPort()
      */
