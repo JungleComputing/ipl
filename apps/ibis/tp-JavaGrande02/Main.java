@@ -286,7 +286,11 @@ final class Main {
 
 	    StaticProperties s = new StaticProperties();
 	    s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
-	    s.add("serialization", "object");
+	    if(ibisSer) {
+		s.add("serialization", "ibis");
+	    } else {
+		s.add("serialization", "sun");
+	    }
 	    s.add("worldmodel", "closed");
 	    ibis = Ibis.createIbis(s, null);
 

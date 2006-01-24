@@ -61,13 +61,17 @@ final public class Bodies extends SharedObject implements BodiesInterface {
 
     private void readObject(java.io.ObjectInputStream in)
             throws java.io.IOException, ClassNotFoundException {
-        long start = System.currentTimeMillis();
+//        long start = System.currentTimeMillis();
+        
         in.defaultReadObject();
-        double time = System.currentTimeMillis() - start;
-        long rebuildStart = System.currentTimeMillis(); 
+        
+//        double time = System.currentTimeMillis() - start;
+//        long rebuildStart = System.currentTimeMillis(); 
+
         bodyTreeRoot = new BodyTreeNode(bodyArray, maxLeafBodies, theta);
         bodyTreeRoot.computeCentersOfMass();
-        double rebuildTime = System.currentTimeMillis() - rebuildStart;
-        System.err.println("readTree: deserializtion = " + time + " ms, rebuild = " + rebuildTime + " ms");
+        
+//        double rebuildTime = System.currentTimeMillis() - rebuildStart;
+//        System.err.println("readTree: deserialization = " + time + " ms, rebuild = " + rebuildTime + " ms");
     }
 }

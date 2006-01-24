@@ -55,6 +55,8 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
      * as the SO invocation messages.
 	 */
 	public void broadcastSharedObject(SharedObject object) {
+//	    if(true) return;
+
 		WriteMessage w = null;
 		long size = 0;
 

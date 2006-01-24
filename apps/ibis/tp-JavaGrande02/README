@@ -19,7 +19,7 @@ The possible program options are:
 -array
     Send arrays of bytes, ints, and doubles. Total size of the arrays is <size>.
 
--oarray
+-objectarray
     Send arrays of <len> objects with elements of type "Data".
 
 -list
