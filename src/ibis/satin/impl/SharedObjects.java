@@ -269,8 +269,6 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 			obj = (SharedObject) sharedObjects.get(objectId);
 		}
 		if (obj == null) {
-            shipObject(objectId, source);
-            /*
 			if (!initialNode) {
 				shipObject(objectId, source);
 			} else {
@@ -289,9 +287,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 					shipObject(objectId, source);
 				}
 			}
-            */
 		}
-
 	}
 
 	/**
