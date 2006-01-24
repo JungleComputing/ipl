@@ -32,7 +32,7 @@ ipl:
    because it waits for the senders to close (Ceriel)).
 
 satin:  
-- check Satin Shared Objects for (performance) bugs
++ check Satin Shared Objects for (performance) bugs
 - detection of what is an inlet: now, if the invocation is inside a try-catch
   it is assumed to be an inlet. Is this OK?
 + abort bug: throw an Exception instead of returning null. Sequential user
@@ -66,6 +66,9 @@ general:
 - remove deprecated functionality
 - while(true) {fix eclipse warnings}
 - change codmon performance measurements to "sane" benchmarks
+- more efficient clone? Maybe generate code that clones without using serialization. Could be done for objects passes as a param
+  to a spawn, for instance. If code is not there, fall back to current impl.
+- add code to efficiently (de)serialize arrays of final objects (Body[] in barnes!) --Rob
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
