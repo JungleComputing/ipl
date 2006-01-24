@@ -332,7 +332,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
             return;
         }
 
-        /* else */
+        /* else: we stole a job */
 
         if (ASSERTS && result.aborted) {
             stealLogger.warn("SATIN '" + satin.ident
@@ -440,6 +440,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 + "': trying to send a job back, but got exception: " + e, e);
         }
 
+        /* If we don't use fault tolerance, we can set the object parameters to null,
+         * so the GC can clean them up --Rob */
+        if(!FAULT_TOLERANCE) {
+            result.clearParams();
+        }
+        
         if (STEAL_TIMING) {
             handleStealTimer.stop();
             satin.handleStealTimer.add(handleStealTimer);

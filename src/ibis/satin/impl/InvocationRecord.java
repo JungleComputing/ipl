@@ -264,4 +264,6 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
     protected abstract ReturnRecord runRemote();
 
-}
+    protected abstract void clearParams();
+    
+    }

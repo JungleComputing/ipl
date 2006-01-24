@@ -2710,7 +2710,18 @@ public final class Satinc {
 		}
 	    }
 
-            out.println("}");
+        // method to clear object params to allow th e GC to clean them up --Rob
+        out.println("    protected void clearParams() {");
+        for (int i = 0; i < params.length; i++) {
+            if (!sharedObjects || !isSharedObject(params[i])) {
+                if (params[i] instanceof ObjectType || params[i] instanceof ArrayType) {
+                    out.println("        param" + i + " = null;");
+                }
+            }
+        }
+        out.println("    }");
+        
+        out.println("}");
         } finally {
             out.close();
         }
