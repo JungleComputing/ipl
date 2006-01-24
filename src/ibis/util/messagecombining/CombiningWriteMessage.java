@@ -25,6 +25,11 @@ public class CombiningWriteMessage implements WriteMessage {
         this.ser = ser;
     }
 
+    public long bytesWritten() throws IOException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
     protected void clear() {
         if (out == null) {
             out = SerializationBase.createSerializationOutput(ser, storeOut);
