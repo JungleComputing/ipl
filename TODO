@@ -14,14 +14,16 @@ general:
 - keep a changelog, publish it on the website
 - update documentation
 - copy the source of "util" and "connect" to the distro manually
+- make sure all source files have a cvs id.
+- try it on windows 2000, windows XP, cygwin, MacOS.
 
 nameserver:
 - lookup of ibisses that died/left/mustleave is sequential now. Could become
   bottleneck.
 	
 ipl:
-- add calls to IPL: amount of data written/read in a message so far.
-  this is needed for traffic shaping
++ add calls to IPL: amount of data written/read in a message so far.
+  this is needed for traffic shaping (Done Ceriel)
 - make oneToMany+manyToOne illegal in port types. May cause deadlocks because
   of lack of flow-control in multicasts. Current users: tuplespace and
   globalresulttable in Satin.
