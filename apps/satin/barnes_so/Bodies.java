@@ -67,7 +67,7 @@ final public class Bodies extends SharedObject implements BodiesInterface {
         long rebuildStart = System.currentTimeMillis(); 
         bodyTreeRoot = new BodyTreeNode(bodyArray, maxLeafBodies, theta);
         bodyTreeRoot.computeCentersOfMass();
-        double rebuildTime = System.currentTimeMillis() - start;
+        double rebuildTime = System.currentTimeMillis() - rebuildStart;
         System.err.println("readTree: deserializtion = " + time + " ms, rebuild = " + rebuildTime + " ms");
     }
 }
