@@ -6,7 +6,7 @@ public final class DITree implements TestObject {
 
     static final int KARMI_SIZE = 4 * 4;
 
-    static final int LEN = (1024) - 1;
+    static final int LEN = (50000);
 
     DITree left;
 

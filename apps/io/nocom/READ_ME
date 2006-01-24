@@ -7,8 +7,8 @@ The program recognizes the following options:
 
 -read		measure read performance
 -write  	measure write performance
--conv   	meaasure performance with conversion (this is the default)
--noconv   	meaasure performance without conversion (only for ibis
+-conv   	measure performance with conversion (this is the default)
+-noconv   	measure performance without conversion (only for ibis
 		serialization).
 
 -object <classname>

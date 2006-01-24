@@ -24,7 +24,10 @@ public class StoreInputStream extends InputStream {
     }
 
     public final int read() {
-        return buf.byte_store[byte_count++];
+        if (byte_count >= buf.byteLen) {
+            return -1;
+        }
+        return (buf.byte_store[byte_count++] & 255);
     }
 
     public final int read(byte[] b) {
@@ -32,7 +35,7 @@ public class StoreInputStream extends InputStream {
     }
 
     public final int read(byte[] b, int off, int len) {
-        int left = buf.byte_store.length - byte_count;
+        int left = buf.byteLen - byte_count;
 
         if (len < left) {
             System.arraycopy(buf.byte_store, byte_count, b, off, len);
