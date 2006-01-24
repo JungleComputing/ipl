@@ -28,6 +28,7 @@
 		doctitle="Ibis Documentation"
 		bottom="The Ibis project">
 	    <classpath refid="default.classpath"/>
+	    <link href="http://java.sun.com/j2se/1.4.2/docs/api/"/>
 	    <package name="ibis.ipl"/>
 	    <!--
 	    <package name="ibis.io"/>
@@ -86,6 +87,7 @@
 		doctitle="Ibis Documentation"
 		bottom="The Ibis project">
 	    <classpath refid="default.classpath"/>
+	    <link href="http://java.sun.com/j2se/1.4.2/docs/api/"/>
 	    <package name="ibis.ipl"/>
 	    <package name="ibis.impl.*"/>
 	    <package name="ibis.io"/>
