@@ -22,7 +22,7 @@ public final class HandleHash {
      * before the hashmap is resized. Lower value means less chaining, but
      * larger hashtable.
      */
-    private static final float RESIZE_FACTOR = 1;
+    private static final float RESIZE_FACTOR = 1.0F;
 
     /** Maps handle to object. */
     private Object[] dataBucket;
@@ -121,7 +121,13 @@ public final class HandleHash {
 
     static final int getHashCode(Object ref) {
         int h = System.identityHashCode(ref);
-        return ((h >>> 5) ^ (h & ((1 << 16) - 1)));
+
+        h += ~(h << 9);
+        h ^=  (h >>> 14);
+        h +=  (h << 4);
+        h ^=  (h >>> 10);
+
+        return h;
     }
 
     public final int find(Object ref) {
