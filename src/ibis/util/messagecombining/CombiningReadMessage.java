@@ -28,11 +28,6 @@ public class CombiningReadMessage implements ReadMessage {
         this.ser = ser;
     }
 
-    public long bytesRead() throws IOException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
     protected void clear() {
         if (in == null) {
             in = SerializationBase.createSerializationInput(ser, storeIn);
