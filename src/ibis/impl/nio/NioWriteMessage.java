@@ -48,6 +48,10 @@ final class NioWriteMessage implements WriteMessage, Config {
         port.finish(e);
     }
 
+    public long bytesWritten() throws IOException {
+	return port.bytesWritten();
+    }
+
     public SendPort localPort() {
         return port;
     }

@@ -81,6 +81,14 @@ public interface WriteMessage {
     public void finish(IOException e);
 
     /**
+     * Returns the number of bytes written to this message. This number
+     * is not exact, because of buffering in underlying output streams.
+     * @return the number of bytes written sofar to this message.
+     * @exception java.io.IOException	an error occurred.
+     */
+    public long bytesWritten() throws IOException;
+
+    /**
      * Returns the {@link SendPort} of this <code>WriteMessage</code>.
      *
      * @return the {@link SendPort} of this <code>WriteMessage</code>.

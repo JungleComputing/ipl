@@ -60,6 +60,10 @@ final class NioReadMessage implements ReadMessage, Config {
         isFinished = true;
     }
 
+    public long bytesRead() throws IOException {
+	return dissipator.bytesRead();
+    }
+
     public SendPortIdentifier origin() {
         return dissipator.peer;
     }

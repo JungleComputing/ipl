@@ -66,6 +66,10 @@ class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    public long bytesWritten() throws IOException {
+        return out.getCount() - before;
+    }
+
     public void sync(int ticketno) throws IOException {
         Ibis.myIbis.lock();
         try {

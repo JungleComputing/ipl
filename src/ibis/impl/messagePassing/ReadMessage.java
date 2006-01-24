@@ -137,6 +137,10 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         }
     }
 
+    public long bytesRead() throws IOException {
+	return in.getCount() - before;
+    }
+
     public ibis.ipl.SendPortIdentifier origin() {
         return shadowSendPort.identifier();
     }

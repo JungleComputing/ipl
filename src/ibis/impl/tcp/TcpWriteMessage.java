@@ -123,6 +123,11 @@ final class TcpWriteMessage implements WriteMessage {
         sport.finishMessage();
     }
 
+    public long bytesWritten() throws IOException {
+	long after = sport.bufferedStream.bytesWritten();
+	return after - before;
+    }
+
     public void reset() throws IOException {
         if (isFinished) {
             throw new IbisError(

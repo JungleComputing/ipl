@@ -64,6 +64,11 @@ final class TcpReadMessage implements ReadMessage {
         return in.available();
     }
 
+    public long bytesRead() throws IOException {
+	long after = handler.bufferedInput.bytesRead();
+	return after - before;
+    }
+
     public long finish() throws IOException {
         long retval = 0;
 

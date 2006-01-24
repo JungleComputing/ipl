@@ -260,6 +260,10 @@ public final class NioSendPort implements SendPort, Config, Protocol {
         return message;
     }
 
+    long bytesWritten() {
+        return accumulator.bytesWritten();
+    }
+
     synchronized long finish() {
         long messageCount = accumulator.getAndResetBytesWritten();
         count += messageCount;

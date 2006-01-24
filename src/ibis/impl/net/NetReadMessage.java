@@ -91,6 +91,10 @@ public final class NetReadMessage implements ReadMessage {
         }
     }
 
+    public long bytesRead() throws IOException {
+	throw new IOException("Bytes Read not supported");
+    }
+
     public SendPortIdentifier origin() {
         log.in();
         SendPortIdentifier spi = port.getActiveSendPortIdentifier();

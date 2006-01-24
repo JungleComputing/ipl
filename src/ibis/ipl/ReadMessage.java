@@ -48,6 +48,7 @@ public interface ReadMessage {
      * the runtime system can reuse the upcall thread!
      *
      * @return the number of bytes read from this message.
+     * @exception java.io.IOException	an error occurred.
      **/
     public long finish() throws IOException;
 
@@ -60,6 +61,14 @@ public interface ReadMessage {
      * @param e the exception that was thrown. 
      */
     public void finish(IOException e);
+
+    /**
+     * Returns the number of bytes read from this message. This number
+     * is not exact, because of buffering in underlying input streams.
+     * @return the number of bytes read sofar from this message.
+     * @exception java.io.IOException	an error occurred.
+     */
+    public long bytesRead() throws IOException;
 
     /**
      * Returns the {@link ibis.ipl.ReceivePort receiveport} of this

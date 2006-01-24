@@ -104,6 +104,10 @@ public final class NetWriteMessage implements WriteMessage {
         }
     }
 
+    public long bytesWritten() throws IOException {
+	throw new IOException("Bytes Written not supported");
+    }
+
     /**
      * Unconditionnaly completes the message transmission and
      * releases the send port. The writeMessage is kept by
