@@ -48,11 +48,13 @@ class IOProps {
 
     static final String s_hash_timings = PROPERTY_PREFIX + "hash.timings";
 
+    static final String s_hash_resize = PROPERTY_PREFIX + "hash.resize";
+
     private static final String[] sysprops = { s_stats_nonrewritten,
             s_stats_written, s_classloader, s_timer,
             s_conversion, s_cache, s_cache_max, s_cache_stats, s_dbg,
             s_asserts, s_small_array_bound, s_hash_asserts, s_hash_stats,
-            s_hash_timings, s_buffer_size };
+            s_hash_timings, s_hash_resize, s_buffer_size };
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);

@@ -18,11 +18,13 @@ public final class HandleHash {
     private static final int MIN_BUCKETS = 32;
 
     /*
-     * Choose this value between 0.5 and 5. It determines the amount of chaining
+     * Choose this value between 50 and 200.
+     * It determines the amount of chaining
      * before the hashmap is resized. Lower value means less chaining, but
      * larger hashtable.
      */
-    private static final float RESIZE_FACTOR = 1.0F;
+    private static final int RESIZE_PERCENTAGE = TypedProperties
+            .intProperty(IOProps.s_hash_resize, 100);
 
     /** Maps handle to object. */
     private Object[] dataBucket;
@@ -52,6 +54,8 @@ public final class HandleHash {
     private ibis.util.Timer t_find;
 
     private ibis.util.Timer t_rebuild;
+
+    private ibis.util.Timer t_growbucket;
 
     /** Initial size of buckets. */
     private int initSize;
@@ -91,6 +95,7 @@ public final class HandleHash {
             t_insert = Timer.createTimer();
             t_find = Timer.createTimer();
             t_rebuild = Timer.createTimer();
+            t_growbucket = Timer.createTimer();
         }
         if (STATS || TIMINGS) {
             Runtime.getRuntime().addShutdownHook(
@@ -103,7 +108,7 @@ public final class HandleHash {
     }
 
     private void init(int sz) {
-        sizeThreshold = (int) (sz * RESIZE_FACTOR);
+        sizeThreshold = (sz * RESIZE_PERCENTAGE) / 100;
 
         map = new int[sz];
         nextBucket = new int[sz];
@@ -174,7 +179,7 @@ public final class HandleHash {
         if (map.length > mapsize) {
             mapsize = map.length;
         }
-        sizeThreshold = (int) (map.length * RESIZE_FACTOR);
+        sizeThreshold = (map.length * RESIZE_PERCENTAGE) / 100;
 
         for (int i = 0; i < size; i++) {
             if (dataBucket[i] != null) {
@@ -196,6 +201,9 @@ public final class HandleHash {
     }
 
     private void growBuckets(int sz) {
+        if (TIMINGS) {
+            t_growbucket.start();
+        }
         int newsize = (sz << 1) + 1;
         if (newsize > maxsize) {
             maxsize = newsize;
@@ -206,6 +214,9 @@ public final class HandleHash {
         System.arraycopy(dataBucket, 0, newDataBucket, 0, sz);
         nextBucket = newNextBucket;
         dataBucket = newDataBucket;
+        if (TIMINGS) {
+            t_growbucket.stop();
+        }
     }
 
     /**
@@ -226,12 +237,12 @@ public final class HandleHash {
             growMap();
         }
 
-        if (TIMINGS) {
-            t_insert.start();
-        }
-
         if (handle >= dataBucket.length) {
             growBuckets(handle);
+        }
+
+        if (TIMINGS) {
+            t_insert.start();
         }
 
         int h = mod(hashcode, map.length);
@@ -323,12 +334,15 @@ public final class HandleHash {
                     + collisions + " (rebuild " + rebuild_collisions + ")");
         }
         if (TIMINGS) {
-            System.err.println(this + " insert(" + t_insert.nrTimes() + ") "
-                    + Timer.format(t_insert.totalTimeVal()) + " find("
-                    + t_find.nrTimes() + ") "
-                    + Timer.format(t_find.totalTimeVal()) + " rebuild("
-                    + t_rebuild.nrTimes() + ") "
-                    + Timer.format(t_rebuild.totalTimeVal()));
+            System.err.println(this +
+                    " insert(" + t_insert.nrTimes() + ") "
+                    + Timer.format(t_insert.totalTimeVal())
+                    + " find(" + t_find.nrTimes() + ") "
+                    + Timer.format(t_find.totalTimeVal())
+                    + " rebuild(" + t_rebuild.nrTimes() + ") "
+                    + Timer.format(t_rebuild.totalTimeVal())
+                    + " growBucket(" + t_growbucket.nrTimes() + ") "
+                    + Timer.format(t_growbucket.totalTimeVal()));
         }
     }
 }
