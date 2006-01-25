@@ -1,8 +1,5 @@
 /* $Id$ */
 
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.ReceivePort;
-
 import java.util.LinkedList;
 
 interface BodyTreeNodeInterface extends ibis.satin.Spawnable {
