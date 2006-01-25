@@ -3,7 +3,6 @@
 package ibis.satin;
 
 // @@@ make tuple space objects, not static.
-import ibis.satin.impl.Config;
 import ibis.satin.impl.TupleSpace;
 
 import java.io.Serializable;
@@ -14,10 +13,14 @@ import java.io.Serializable;
  * data is <strong>not </strong> immutable, because the
  * {@link #get(String) get()}method does not make a copy.
  */
-public class SatinTupleSpace implements Config {
+public class SatinTupleSpace {
 
     static {
         TupleSpace.initTupleSpace();
+    }
+
+    /** Prevent construction. */
+    private SatinTupleSpace() {
     }
 
     /**

@@ -18,6 +18,12 @@ import ibis.util.DeepCopy;
 public class SatinObject implements java.io.Serializable {
 
     /**
+     * Prevents constructor from being public.
+     */
+    protected SatinObject() {
+    }
+
+    /**
      * Waits until all spawned methods in the current method are finished.
      */
     public void sync() {
