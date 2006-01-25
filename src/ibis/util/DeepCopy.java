@@ -1309,7 +1309,7 @@ public class DeepCopy {
         }
     }
 
-    public static class StoreArrayOutputStream extends ibis.io.DataOutputStream {
+    static class StoreArrayOutputStream extends ibis.io.DataOutputStream {
 
         Store buf;
 
