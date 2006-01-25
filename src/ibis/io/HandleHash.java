@@ -185,6 +185,11 @@ public final class HandleHash {
             if (dataBucket[i] != null) {
                 int hashcode = getHashCode(dataBucket[i]);
                 int h = mod(hashcode, map.length);
+                if (STATS) {
+                    if (map[h] != 0) {
+                        collisions++;
+                    }
+                }
                 nextBucket[i] = map[h];
                 map[h] = i;
             }
