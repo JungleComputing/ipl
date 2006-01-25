@@ -177,7 +177,6 @@ public class IbisSerializationOutputStream
         types_clear();
 
         next_type = PRIMITIVE_TYPES;
-        references.clear();
         next_handle = CONTROL_HANDLES;
     }
 
@@ -189,7 +188,6 @@ public class IbisSerializationOutputStream
         types_clear();
 
         next_type = PRIMITIVE_TYPES;
-        references.clear();
         next_handle = CONTROL_HANDLES;
     }
 

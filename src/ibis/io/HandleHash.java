@@ -320,10 +320,6 @@ public final class HandleHash {
         } else {
             init(initSize);
         }
-
-        if (STATS) {
-            // finds = 0;
-        }
     }
 
     public final void finalize() {
