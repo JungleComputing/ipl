@@ -13,7 +13,7 @@ final class Mmult extends ibis.satin.SatinObject implements MmultInterface,
             result = new byte[1];
         } else {
             result = new byte[srcPos.length + 1];
-            System.arraycopy(srcPos, 0, result, 0, result.length-1);
+            System.arraycopy(srcPos, 0, result, 0, srcPos.length);
         }
         
         result[result.length-1] = (byte) direction;
@@ -81,6 +81,9 @@ final class Mmult extends ibis.satin.SatinObject implements MmultInterface,
             task = Integer.parseInt(args[0]);
             rec = Integer.parseInt(args[1]);
             loop = Integer.parseInt(args[2]);
+            if(loop%2==1) {
+                System.err.println("The loop size must be even");
+            }
         } else if (args.length != 0) {
             System.out.println("usage: mmult [task rec loop]");
             System.exit(66);
