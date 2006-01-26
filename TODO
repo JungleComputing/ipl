@@ -14,8 +14,9 @@ general:
 - keep a changelog, publish it on the website
 - update documentation
 - copy the source of "util" and "connect" to the distro manually
-- make sure all source files have a cvs id.
++ make sure all source files have a cvs id. (Done Ceriel)
 - try it on windows 2000, windows XP, cygwin, MacOS.
+- check copyright notices of apps, 3rdparty, etc.
 
 nameserver:
 - lookup of ibisses that died/left/mustleave is sequential now. Could become
@@ -29,7 +30,7 @@ ipl:
   multicast for tuplespace is no longer default.
 
 connect:
-+ Rob: Update manual and readme files to reflect new structure.
++ Rob: Update manual and readme files to reflect new structure. (Done Rob)
 
 *** Ibis 2.0+ ***
 
