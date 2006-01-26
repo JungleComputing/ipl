@@ -39,6 +39,10 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface,
 
     static int minimum = Integer.MAX_VALUE;
 
+    static {
+        System.setProperty( "satin.tuplespace.multicast", "true" );
+    }
+
     static boolean present(int city, int hops, byte path[]) {
         for (int i = 0; i < hops; i++) {
             if (path[i] == city) {

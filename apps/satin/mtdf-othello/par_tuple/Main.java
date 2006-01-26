@@ -3,6 +3,10 @@ class Main {
 
     String file;
 
+    static {
+        System.setProperty( "satin.tuplespace.multicast", "true" );
+    }
+
     Main(int depth, String file) {
         this.depth = depth;
         this.file = file;

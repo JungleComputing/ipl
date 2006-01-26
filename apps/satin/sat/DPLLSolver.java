@@ -23,6 +23,10 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean printOptimizerStats = true;
     private static int label = 0;
 
+    static {
+        System.setProperty( "satin.tuplespace.multicast", "true" );
+    }
+
     /**
      * Solve the leaf part of a SAT problem.
      * The method throws a SATResultException if it finds a solution,

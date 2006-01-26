@@ -21,6 +21,10 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
     Genes maxGenes = BreederSolver.getMaxGenes();
     Genes minGenes = BreederSolver.getMinGenes();
 
+    static {
+        System.setProperty( "satin.tuplespace.multicast", "true" );
+    }
+
     static final class CutoffUpdater implements ibis.satin.ActiveTuple {
         int limit;
 

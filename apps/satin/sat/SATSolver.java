@@ -28,6 +28,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
     static {
         System.setProperty( "satin.tuplespace.ordered", "true" );
+        System.setProperty( "satin.tuplespace.multicast", "true" );
     }
 
     final static class ProblemAssigner implements ibis.satin.ActiveTuple {

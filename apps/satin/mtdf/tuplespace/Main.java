@@ -7,6 +7,10 @@ class Main {
 
     String file;
 
+    static {
+        System.setProperty( "satin.tuplespace.multicast", "true" );
+    }
+
     Main(int depth, boolean verbose, String file) {
         this.depth = depth;
         this.verbose = verbose;

@@ -63,6 +63,10 @@ final class BarnesHut {
 	//Indicates if we are the root divide-and-conquer node
 	static boolean I_AM_ROOT = false;
 
+        static {
+            System.setProperty( "satin.tuplespace.multicast", "true" );
+        }
+
 	BarnesHut(int n, int m) {
 		I_AM_ROOT = true; //constructor is only called at the root node
 
