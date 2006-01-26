@@ -165,6 +165,9 @@ public class IbisSerializationOutputStream
 
     private int stack_size = 0;
 
+    private Class lastClass;
+    private int   lastTypeno;
+
     /**
      * Constructor with an <code>DataOutputStream</code>.
      * @param out		the underlying <code>DataOutputStream</code>
@@ -293,6 +296,7 @@ public class IbisSerializationOutputStream
      * Initializes the type hash by adding arrays of primitive types.
      */
     private void types_clear() {
+        lastClass = null;
         types.clear();
         types.put(classBooleanArray, TYPE_BOOLEAN | TYPE_BIT);
         types.put(classByteArray, TYPE_BYTE | TYPE_BIT);
@@ -688,7 +692,15 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown when an IO error occurs.
      */
     private void writeType(Class clazz) throws IOException {
-        int type_number = types.find(clazz);
+        int type_number;
+
+        if (clazz == lastClass) {
+            type_number = lastTypeno;
+        } else {
+            type_number = types.find(clazz);
+            lastClass = clazz;
+            lastTypeno = type_number;
+        }
 
         if (type_number != 0) {
             writeHandle(type_number); // TYPE_BIT is set, receiver sees it
@@ -701,6 +713,7 @@ public class IbisSerializationOutputStream
         }
 
         type_number = newType(clazz);
+        lastTypeno = type_number;
         writeHandle(type_number); // TYPE_BIT is set, receiver sees it
         if (DEBUG) {
             dbPrint("wrote NEW type number 0x"

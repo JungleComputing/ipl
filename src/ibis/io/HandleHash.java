@@ -17,6 +17,8 @@ public final class HandleHash {
 
     private static final int MIN_BUCKETS = 32;
 
+    private static final boolean CACHE_HASH = false;
+
     /*
      * Choose this value between 50 and 200.
      * It determines the amount of chaining
@@ -28,6 +30,9 @@ public final class HandleHash {
 
     /** Maps handle to object. */
     private Object[] dataBucket;
+
+    /** Maps handle to hashcode. */
+    private int[] hashBucket;   // if (CACHE_HASH)
 
     /** Maps handle to next with same hash value. */
     private int[] nextBucket;
@@ -112,6 +117,9 @@ public final class HandleHash {
 
         map = new int[sz];
         nextBucket = new int[sz];
+        if (CACHE_HASH) {
+            hashBucket = new int[sz];
+        }
         dataBucket = new Object[sz];
         size = 1;
         present = 0;
@@ -183,8 +191,14 @@ public final class HandleHash {
 
         for (int i = 0; i < size; i++) {
             if (dataBucket[i] != null) {
-                int hashcode = getHashCode(dataBucket[i]);
-                int h = mod(hashcode, map.length);
+                int h;
+                if (CACHE_HASH) {
+                    h = hashBucket[i];
+                } else {
+                    h = getHashCode(dataBucket[i]);
+                }
+                h = mod(h, map.length);
+
                 if (STATS) {
                     if (map[h] != 0) {
                         collisions++;
@@ -213,12 +227,17 @@ public final class HandleHash {
         if (newsize > maxsize) {
             maxsize = newsize;
         }
-        Object[] newDataBucket = new Object[newsize];
         int[] newNextBucket = new int[newsize];
         System.arraycopy(nextBucket, 0, newNextBucket, 0, sz);
-        System.arraycopy(dataBucket, 0, newDataBucket, 0, sz);
         nextBucket = newNextBucket;
+        Object[] newDataBucket = new Object[newsize];
+        System.arraycopy(dataBucket, 0, newDataBucket, 0, sz);
         dataBucket = newDataBucket;
+        if (CACHE_HASH) {
+            int[] newHashBucket = new int[newsize];
+            System.arraycopy(hashBucket, 0, newHashBucket, 0, sz);
+            hashBucket = newHashBucket;
+        }
         if (TIMINGS) {
             t_growbucket.stop();
         }
@@ -252,6 +271,9 @@ public final class HandleHash {
 
         int h = mod(hashcode, map.length);
         dataBucket[handle] = ref;
+        if (CACHE_HASH) {
+            hashBucket[handle] = hashcode;
+        }
         if (STATS) {
             if (map[h] != 0) {
                 collisions++;
