@@ -16,6 +16,12 @@ public class GroupInvocation extends InvocationScheme {
         super(InvocationScheme.I_GROUP);
     }
     
+    /**
+     * Creates a <code>GroupInvocation</code> with specified targets.
+     * @param targets the targets.
+     * @exception ConfigurationException is thrown when the parameter does
+     * not specify targets.
+     */
     public GroupInvocation(int [] targets) throws ConfigurationException {
         super(InvocationScheme.I_GROUP);
         

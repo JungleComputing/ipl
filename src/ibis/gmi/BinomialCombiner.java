@@ -15,6 +15,10 @@ package ibis.gmi;
  */
 public class BinomialCombiner implements java.io.Serializable {
 
+    /** Disallow construction from outside. */
+    protected BinomialCombiner() {
+    }
+
     /**
      * Combine method without a result. Note that if any exception is to
      * be propagated, the combine should throw an exception.

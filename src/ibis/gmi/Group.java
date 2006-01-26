@@ -33,7 +33,7 @@ import org.apache.log4j.Logger;
  */
 public final class Group implements GroupProtocol {
 
-    public static Logger logger
+    static Logger logger
             = GetLogger.getLogger(Group.class.getName());
      
     /** Ibis rank number in this run. */
@@ -358,6 +358,11 @@ public final class Group implements GroupProtocol {
             System.exit(1);
         }
     }
+
+    /** Disable construction. */
+    protected Group() {
+    }
+
 
     /**
      * Gets a multicast send port using an identification to see if we

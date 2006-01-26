@@ -42,4 +42,8 @@ public final class GroupMessage {
 
     /** The reply, in case the invocation resulted in an exception. */
     public Exception exceptionResult;
+
+    /** Disable construction from outside. */
+    protected GroupMessage() {
+    }
 }

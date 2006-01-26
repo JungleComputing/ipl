@@ -35,6 +35,10 @@ public class Forwarder implements GroupProtocol {
      */ 
     private GroupStub stub;
 
+    /** Disable construction from outside. */
+    protected Forwarder() {
+    }
+
     /**
      * Invoked when a "void" result is received.
      *

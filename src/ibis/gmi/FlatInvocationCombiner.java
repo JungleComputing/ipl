@@ -8,6 +8,10 @@ package ibis.gmi;
  */
 public abstract class FlatInvocationCombiner {
 
+    /** Disable construction from outside. */
+    protected FlatInvocationCombiner() {
+    }
+
     /**
      * The parameter combiner. The {@link ParameterVector}s in the "in" array
      * are combined into one {@link ParameterVector} "out".

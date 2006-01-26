@@ -9,6 +9,10 @@ package ibis.gmi;
  */
 public abstract class Personalizer {
 
+    /** Prevent construction from outside. */
+    protected Personalizer() {
+    }
+
     /**
      * Splits the specified list of parameters, and writes them into
      * the specified array of parameter lists.

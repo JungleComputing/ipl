@@ -7,6 +7,11 @@ package ibis.gmi;
  * for user-defined binomial invocation combiners.
  */
 public abstract class BinomialInvocationCombiner {
+
+    /** Disallow construction from outside. */
+    protected BinomialInvocationCombiner() {
+    }
+
     /**
      * The combine method, to be defined by any class that extends
      * the {@link BinomialInvocationCombiner} class.

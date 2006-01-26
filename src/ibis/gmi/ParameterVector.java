@@ -25,6 +25,10 @@ public abstract class ParameterVector {
      */
     protected boolean[] set;
 
+    /** Disable construction from outside. */
+    protected ParameterVector() {
+    }
+
     /**
      * Resets the parameter vector to uninitialized. Should be redefined by
      * generated parameter vector classes, to reset its additional fields.

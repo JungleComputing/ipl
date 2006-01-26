@@ -13,6 +13,10 @@ package ibis.gmi;
  */
 public class FlatCombiner {
 
+    /** Disable construction from outside. */
+    protected FlatCombiner() {
+    }
+
     /**
      * Combine with a void result. May throw an exception that is the result
      * of an exception combine.

@@ -125,7 +125,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * Constructor.
      */
-    public GroupSkeleton() {
+    protected GroupSkeleton() {
         // empty constructor
     }
 

@@ -8,6 +8,10 @@ package ibis.gmi;
  */
 public class ReplyPersonalizer implements java.io.Serializable {
 
+    /** Creates a copying <code>ReplyPersonalizer</code>.
+    public ReplyPersonalizer() {
+    }
+
     /**
      * Personalize method for booleans.
      *
