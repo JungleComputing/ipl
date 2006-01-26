@@ -13,8 +13,7 @@ The communications methods for WAN mainly address two problems:
 -- performance issues.
 
 These mechanisms are implemented in the src/ibis/connect hierarchy.
-In the current Ibis, they are disabled by default. To activate these
-methods, you must set the Java property "ibis.connect.enable".
+In the current Ibis, they are enabled by default. 
 Althgough theoretically they may be used by any Ibis implementation,
 only TCPIbis and NetIbis are able to use them in the current implementation.
 
@@ -28,14 +27,26 @@ negociation.  Therefore we call them "brokered links".
 You can choose which method you want to use for control links and
 service links through the Java properties "ibis.connect.control_links"
 and "ibis.connect.data_links". The following methods are implemented:
-Plain TCP, RoutedMessages, TCPSplice. Note: TCPSplice can only be used
-for data links, as it is a brokered link only.
+
+method                control  data
+-----------------------------------------
+PlainTCP              yes      yes
+NIOTCP                yes      yes
+TCPSplice             no       yes
+RoutedMessages        yes      yes
+ParallelStreams       no       yes
+NIOParallelStreams    no       yes
+PortRange             yes      yes
+AnyTCP                no       yes
+
 
 * Connection Establishment Methods
   --------------------------------
 
   -- PlainTCP: this is the plain TCP protocol, usable for both control
      and data links. It cannot cross firewalls.
+
+  -- NIOTCP: the same as PlainTCP, but using the java.nio interface.
 
   -- RoutedMessages: this protocol routes messages through a "hub". It
      crosses firewalls and offers both client/server and brokered
@@ -53,6 +64,17 @@ for data links, as it is a brokered link only.
      outgoing connections). If that fails as well, TCPSplice is used.
      This method is brokered only.
 
+   -- PortRange: this is plain TCP, but you can set a port range that was opened
+      in your firewall. Use -Dibis.connect.port_range=XXX-YYY to set the range.
+
+   -- ParallelStreams: use multiple parallel TCP streams to improve the performace.
+      This is usefull for wide area links that have a long latency and a large bandwidth
+      You can use the flag -Dibis.connect.NumWays=X to set the number of parallel streams.
+      
+   -- NIOParallelStreams: same as ParallelStreams, but use the java.nio interface.
+      The advantage is that nio offers a select prminitve, so this implementation is
+      much more efficient than ParallelStreams
+   
 * Example
   -------
 
@@ -61,11 +83,12 @@ with TCPSplice.
 
 -- Step 1- build Ibis :-)
 
--- Step 2- configure your application to use NetIbis with one of the
+-- Step 2- configure your application to use TCPIbis.
+
+Alternatively, configure your application to use NetIbis with one of the
 TCP variants: tcp, tcp_plain, or tcp_blk, for instance by using
 -Dibis.name=net.bytes.gen.tcp_blk.
 
-Alternatively, configure your application to use TCPIbis.
 
 -- Step 3- start the Ibis name server on a machine visible from every 
 computing node, with the -controlhub flag, e.g.:
@@ -76,7 +99,6 @@ If you want a specific port number for the control hub, you can use
 the "-hubport <portnum>" flag.
 
 -- Step 4- run the application as usual, but add the following flags:
--Dibis.connect.enable 
 -Dibis.connect.data_links=TCPSplice 
 -Dibis.connect.control_links=RoutedMessages
 
@@ -92,14 +114,11 @@ If TCPSplice fails, you can try
 
 Java properties:
 
--- ibis.connect.enable
-   Enable/disable ibis.connect.
-   Optional. Default is: disabled.
-
 -- ibis.connect.control_links=<method for control links>
 -- ibis.connect.data_links=<method for data links>
    Chooses which method to use for control and data communications.
-   Available methods are: PlainTCP, RoutedMessages, TCPSplice, AnyTCP.
+   Available methods are: PlainTCP, NIOTCP, TCPSplice, RoutedMessages, 
+   ParallelStreams, NIOParallelStreams, PortRange, AnyTCP
    Optional. Default is: PlainTCP for both.
 
 -- ibis.connect.hub.host=<hostname where the hub is running>
