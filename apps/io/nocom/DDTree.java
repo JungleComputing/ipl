@@ -1,12 +1,14 @@
 /* $Id$ */
 
+import ibis.util.TypedProperties;
+
 public final class DDTree implements TestObject {
 
     static final int OBJECT_SIZE = 2 * 4 + 8 + 2 * 4;
 
     static final int KARMI_SIZE = 2 * 4 + 8;
 
-    static final int LEN = (1024) - 1;
+    static final int LEN = TypedProperties.intProperty("len", 1023);
 
     DDTree left;
 

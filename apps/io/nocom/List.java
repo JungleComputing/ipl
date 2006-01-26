@@ -1,12 +1,14 @@
 /* $Id$ */
 
+import ibis.util.TypedProperties;
+
 public final class List implements TestObject {
 
     static final int OBJECT_SIZE = 4 * 4 + 1 * 4;
 
     static final int KARMI_SIZE = 4 * 4;
 
-    static final int LEN = 1023;
+    static final int LEN = TypedProperties.intProperty("len", 1023);
 
     List next;
 
