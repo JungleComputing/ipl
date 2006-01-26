@@ -784,6 +784,13 @@ public abstract class Ibis {
             System.out.println("Creating port type " + nm
                     + " with properties\n" + p);
         }
+        if (p.isProp("communication", "manytoone") &&
+                p.isProp("communication", "onetomany")) {
+            System.err.println("WARNING: combining ManyToOne and OneToMany in "
+                    + "a port type may result in\ndeadlocks! Most systems "
+                    + "don't have a working flow control when multiple\n"
+                    + "senders do multicasts.");
+        }
         return newPortType(nm, p);
     }
 
