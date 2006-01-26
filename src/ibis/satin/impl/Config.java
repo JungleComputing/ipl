@@ -253,7 +253,7 @@ public interface Config {
      * yet.
      */
     static final boolean SUPPORT_TUPLE_MULTICAST
-            = TypedProperties.booleanProperty(s_tuple_multi, true);
+            = TypedProperties.booleanProperty(s_tuple_multi, false);
 
     static final boolean TUPLE_ORDERED
             = TypedProperties.booleanProperty(s_tuple_ordered, false)

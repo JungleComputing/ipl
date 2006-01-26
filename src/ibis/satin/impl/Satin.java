@@ -166,9 +166,14 @@ public final class Satin extends APIMethods implements ResizeHandler,
             }
 
             portType = createSatinPortType(requestedProperties);
-            tuplePortType = createTuplePortType(requestedProperties);
-            globalResultTablePortType
+            
+            if (SUPPORT_TUPLE_MULTICAST) {
+                tuplePortType = createTuplePortType(requestedProperties);
+            }
+            if (FAULT_TOLERANCE) {
+                globalResultTablePortType
                     = createGlobalResultTablePortType(requestedProperties);
+            }
             soPortType = createSOPortType(requestedProperties);
             // do the same for tuple space @@@@
             // but this needs a seperate receive port... --Rob
@@ -241,7 +246,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
 	} catch (Exception e) {
 	    commLogger.fatal("SATIN '" + hostName
-                    + "': Could not start ibis: " + e);
+                    + "': Could not start ibis: " + e, e);
             System.exit(1);     // Could not start ibis
         }
 

@@ -2,7 +2,6 @@
 
 package ibis.satin;
 
-// @@@ make tuple space objects, not static.
 import ibis.satin.impl.TupleSpace;
 
 import java.io.Serializable;
@@ -12,6 +11,8 @@ import java.io.Serializable;
  * key (a String) and its associated data (a serializable object). Note that the
  * data is <strong>not </strong> immutable, because the
  * {@link #get(String) get()}method does not make a copy.
+ * @deprecated The Satin TupleSpace is deprecated, in favor of shared objects
+ * (see {@link SharedObject}).
  */
 public class SatinTupleSpace {
 

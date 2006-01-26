@@ -405,6 +405,7 @@ public abstract class Initialization extends SatinBase {
         }
 
         return ibis.createPortType("satin tuple porttype", satinPortProperties);
+        /* Needs fixing! OneToMany+ManyToOne */
     }
 
     // The barrier port type is different from the satin port type.
@@ -426,7 +427,7 @@ public abstract class Initialization extends SatinBase {
         return ibis.createPortType("satin barrier porttype", s);
     }
 
-    PortType createGlobalResultTablePortType(StaticProperties reqprops)
+    PortType createSOPortType(StaticProperties reqprops)
             throws IOException, IbisException {
         StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
@@ -436,7 +437,7 @@ public abstract class Initialization extends SatinBase {
             satinPortProperties.add("worldmodel", "open");
         }
 
-        String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+        String commprops = "OneToOne, OneToMany, ExplicitReceipt, Reliable";
         if (FAULT_TOLERANCE) {
             commprops += ", ConnectionUpcalls";
         }
@@ -460,15 +461,43 @@ public abstract class Initialization extends SatinBase {
             satinPortProperties.add("serialization", "object");
         }
 
-        return ibis.createPortType("satin global result table porttype",
+        return ibis.createPortType("satin SO porttype",
             satinPortProperties);
     }
 
-    PortType createSOPortType(StaticProperties reqprops) throws IOException,
-            IbisException {
+    PortType createGlobalResultTablePortType(StaticProperties reqprops)
+            throws IOException, IbisException {
+        StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
-        return createGlobalResultTablePortType(reqprops);
+        if (closed) {
+            satinPortProperties.add("worldmodel", "closed");
+        } else {
+            satinPortProperties.add("worldmodel", "open");
+        }
 
+        String commprops = "OneToOne, ManyToOne, ExplicitReceipt, Reliable";
+        commprops += ", ConnectionUpcalls";
+        if (upcalls) {
+            if (upcallPolling) {
+                commprops += ", PollUpcalls";
+            } else {
+                commprops += ", AutoUpcalls";
+            }
+        }
+        satinPortProperties.add("communication", commprops);
+
+        if (ibisSerialization) {
+            satinPortProperties.add("Serialization", "ibis");
+            // if (master) {
+            //     System.err.println("SATIN: using Ibis serialization");
+            // }
+        } else if (sunSerialization) {
+            satinPortProperties.add("Serialization", "sun");
+        } else {
+            satinPortProperties.add("serialization", "object");
+        }
+
+        return ibis.createPortType("satin global result table porttype",
+            satinPortProperties);
     }
-
 }

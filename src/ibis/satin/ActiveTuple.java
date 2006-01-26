@@ -7,6 +7,8 @@ package ibis.satin;
  * this interface. When an active tuple is added to the tuple space (as data
  * element), the handleTuple method will be invoked on all machines, including
  * the one that inserted the element.
+ * @deprecated The Satin TupleSpace is deprecated, in favor of shared objects
+ * (see {@link SharedObject}).
  */
 public interface ActiveTuple extends java.io.Serializable {
     /**
