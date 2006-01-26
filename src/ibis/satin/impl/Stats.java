@@ -381,7 +381,8 @@ public abstract class Stats extends SharedObjects {
             + Timer.format(totalTimer.totalTimeVal()));
 
         double lbTime = (totalStats.stealTime + totalStats.handleStealTime
-            - totalStats.invocationRecordReadTime - totalStats.invocationRecordWriteTime)
+            - totalStats.invocationRecordReadTime - totalStats.invocationRecordWriteTime 
+            - totalStats.returnRecordReadTime - totalStats.returnRecordWriteTime)
             / size;
         if (lbTime < 0.0) {
             lbTime = 0.0;
