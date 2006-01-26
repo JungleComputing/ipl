@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /*
  * File         : type_size.java
  * Author       : Sung-Hoon Ko

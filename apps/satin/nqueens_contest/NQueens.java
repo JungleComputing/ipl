@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import java.io.Serializable;
 import ibis.satin.SatinObject;
 

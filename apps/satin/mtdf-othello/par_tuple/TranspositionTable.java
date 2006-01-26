@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import ibis.satin.SatinTupleSpace;
 
 final class TranspositionTable {

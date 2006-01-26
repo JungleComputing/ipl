@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class OthelloTag extends Tag {
     public static final int SIZE = 4;
 

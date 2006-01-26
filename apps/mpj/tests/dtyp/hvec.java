@@ -1,3 +1,5 @@
+/* $Id$ */
+
 // This test is from MPICH test suite.
 
 /* The original version of this was sent by  

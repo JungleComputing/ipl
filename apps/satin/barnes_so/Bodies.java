@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import ibis.satin.SharedObject;
 
 final public class Bodies extends SharedObject implements BodiesInterface {

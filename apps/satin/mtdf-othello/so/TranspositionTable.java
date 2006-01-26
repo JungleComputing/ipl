@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import ibis.satin.SharedObject;
 
 class Shutdown extends Thread {

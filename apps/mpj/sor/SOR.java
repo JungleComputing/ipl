@@ -1,3 +1,5 @@
+/* $Id$ */
+
  /*
  * Successive over relaxation
  * MPI version implementing a red-black SOR, based on earlier Orca source.

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.util.messagecombining;
 
 import java.io.IOException;

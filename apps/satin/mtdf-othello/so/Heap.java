@@ -1,3 +1,5 @@
+/* $Id$ */
+
 // special-purpose heap sorting class
 class Heap {
     private NodeType[] array;

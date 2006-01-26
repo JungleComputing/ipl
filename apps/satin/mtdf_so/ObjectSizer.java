@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /**
 * Measures the approximate size of an object in memory, given a Class which
 * has a no-argument constructor.

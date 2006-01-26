@@ -1,3 +1,4 @@
+/* $Id$ */
 
 class Wire implements java.io.Serializable {
 

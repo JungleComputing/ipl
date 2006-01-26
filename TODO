@@ -22,9 +22,11 @@ nameserver:
   bottleneck.
 	
 ipl:
-- make oneToMany+manyToOne illegal in port types. May cause deadlocks because
++ make oneToMany+manyToOne illegal in port types. May cause deadlocks because
   of lack of flow-control in multicasts. Current users: tuplespace and
   globalresulttable in Satin. for now make it deprecated with a warning.
+  (Done Ceriel) GlobalResultTable actually only uses ManyToOne, and
+  multicast for tuplespace is no longer default.
 
 connect:
 + Rob: Update manual and readme files to reflect new structure.

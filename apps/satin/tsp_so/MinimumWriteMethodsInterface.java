@@ -1,3 +1,4 @@
+/* $Id$ */
 
 interface MinimumWriteMethodsInterface extends ibis.satin.WriteMethodsInterface {
     

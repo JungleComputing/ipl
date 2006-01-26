@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class AbortTest extends ibis.satin.SatinObject implements AbortTestInterface, java.io.Serializable  {
 	public void foo() throws Exception {
 	    throw new Exception();

@@ -1,4 +1,4 @@
-
+/* $Id$ */
 
 class Ecology {
     static private boolean haveAtLeastState( int v, byte lu, byte l, byte ld, byte u, byte d, byte ru, byte r, byte rd )

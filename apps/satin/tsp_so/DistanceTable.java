@@ -1,3 +1,4 @@
+/* $Id$ */
 
 final public class DistanceTable extends ibis.satin.SharedObject
 implements java.io.Serializable {

@@ -1,4 +1,4 @@
-
+/* $Id$ */
 
 import java.io.*;
 class test implements Serializable{

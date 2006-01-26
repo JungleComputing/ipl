@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import ibis.mpj.*;
 
 public class ObjectPingPong {

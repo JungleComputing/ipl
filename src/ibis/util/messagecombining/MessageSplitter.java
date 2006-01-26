@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.util.messagecombining;
 
 import ibis.ipl.ReadMessage;

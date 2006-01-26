@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class Done extends ibis.satin.Inlet {
     short score;
 

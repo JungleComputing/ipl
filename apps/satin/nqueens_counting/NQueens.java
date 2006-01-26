@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class NQueens extends ibis.satin.SatinObject implements NQueensInterface, java.io.Serializable  {
 
 	static final int THRESHOLD = 4;

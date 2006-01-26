@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class TranspositionTableWrapper implements java.io.Serializable {
     public int rank;
     public int[] index, tag;

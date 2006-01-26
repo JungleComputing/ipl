@@ -1,3 +1,4 @@
+/* $Id$ */
 
 import ibis.satin.WriteMethodsInterface;
 

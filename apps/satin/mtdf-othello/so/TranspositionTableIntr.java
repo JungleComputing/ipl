@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import ibis.satin.WriteMethodsInterface;
 
 public interface TranspositionTableIntr extends WriteMethodsInterface {

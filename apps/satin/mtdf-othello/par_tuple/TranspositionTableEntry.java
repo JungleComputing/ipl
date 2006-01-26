@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class TranspositionTableEntry implements java.io.Serializable {
     Tag tag;
 

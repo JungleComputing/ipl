@@ -1,3 +1,5 @@
+/* $Id$ */
+
 abstract class Tag implements java.io.Serializable {
     abstract public boolean equals(Object o);
 

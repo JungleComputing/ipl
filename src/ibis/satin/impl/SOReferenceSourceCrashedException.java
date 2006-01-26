@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.satin.impl;
 
 public class SOReferenceSourceCrashedException extends Exception {

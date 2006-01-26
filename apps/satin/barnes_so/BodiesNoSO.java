@@ -1,4 +1,4 @@
-
+/* $Id$ */
 
 public class BodiesNoSO implements java.io.Serializable {
 

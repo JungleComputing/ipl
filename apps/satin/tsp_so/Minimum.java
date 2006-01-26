@@ -1,4 +1,4 @@
-
+/* $Id$ */
 
 final class Minimum extends ibis.satin.SharedObject
     implements java.io.Serializable,MinimumWriteMethodsInterface {

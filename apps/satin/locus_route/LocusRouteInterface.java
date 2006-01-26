@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import ibis.satin.Spawnable;
 import java.util.LinkedList;
 
