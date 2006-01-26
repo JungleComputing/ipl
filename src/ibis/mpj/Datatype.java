@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /*
  * Created on 21.01.2005
  */
@@ -10,16 +12,16 @@ import java.io.*;
  */
 public class Datatype implements Serializable {
     protected static final int BASE_TYPE_BYTE = 1; 
-	protected static final int BASE_TYPE_CHAR = 2;
-	protected static final int BASE_TYPE_SHORT = 3;
-	protected static final int BASE_TYPE_BOOLEAN = 4;
-	protected static final int BASE_TYPE_INT = 5;
-	protected static final int BASE_TYPE_LONG = 6;
-	protected static final int BASE_TYPE_FLOAT = 7;
-	protected static final int BASE_TYPE_DOUBLE = 8;
-	protected static final int BASE_TYPE_OBJECT = 9;   
+    protected static final int BASE_TYPE_CHAR = 2;
+    protected static final int BASE_TYPE_SHORT = 3;
+    protected static final int BASE_TYPE_BOOLEAN = 4;
+    protected static final int BASE_TYPE_INT = 5;
+    protected static final int BASE_TYPE_LONG = 6;
+    protected static final int BASE_TYPE_FLOAT = 7;
+    protected static final int BASE_TYPE_DOUBLE = 8;
+    protected static final int BASE_TYPE_OBJECT = 9;   
 
-	
+
     protected int byteSize = 0;
     protected int type;
     protected int size = 1;
@@ -28,27 +30,27 @@ public class Datatype implements Serializable {
     protected int[] displacements;
     protected boolean hasMPJLB = false;
     protected boolean hasMPJUB = false;
-    
+
     Datatype() {
-    	displacements = new int[1];
-    	displacements[0] = 1;
+        displacements = new int[1];
+        displacements[0] = 1;
     }
-    
+
     protected int[] getDisplacements() {
-    	return (this.displacements);
+        return (this.displacements);
     }
-    
-    
+
+
     protected int getByteSize() {
-    	return (byteSize);
+        return (byteSize);
     }
-    
-    
+
+
     protected int getType() {
-    	return(type);
+        return(type);
     }
-    
-    
+
+
 
     /**
      * Construct new datatype representing replication of old datatype into contiguous locations.
@@ -58,59 +60,59 @@ public class Datatype implements Serializable {
      */
     public Datatype contiguous(int count) throws MPJException {
 
-    	Datatype contDatatype = new Datatype();
-    	contDatatype.byteSize = this.byteSize;
-    	contDatatype.type = this.type;
-    	contDatatype.size = this.size;
-    	contDatatype.hasMPJLB = this.hasMPJLB;
-    	contDatatype.hasMPJUB = this.hasMPJUB;
-    	
-    	contDatatype.displacements = new int[count * this.size()];
-    	
-    	
-    	if(count > 0) {
+        Datatype contDatatype = new Datatype();
+        contDatatype.byteSize = this.byteSize;
+        contDatatype.type = this.type;
+        contDatatype.size = this.size;
+        contDatatype.hasMPJLB = this.hasMPJLB;
+        contDatatype.hasMPJUB = this.hasMPJUB;
 
-    		int displIndex = 0 ;
+        contDatatype.displacements = new int[count * this.size()];
 
-    		for (int i = 0 ; i < count ; i++) {
-            	int nextItem = i * (this.extent()-1);
 
-            	for (int j = 0; j < this.size()-1; j++) {
-            		contDatatype.displacements[displIndex] = nextItem + this.displacements[j];
-            		displIndex++;
-            	}
+        if(count > 0) {
+
+            int displIndex = 0 ;
+
+            for (int i = 0 ; i < count ; i++) {
+                int nextItem = i * (this.extent()-1);
+
+                for (int j = 0; j < this.size()-1; j++) {
+                    contDatatype.displacements[displIndex] = nextItem + this.displacements[j];
+                    displIndex++;
+                }
             }
-    	}
-    	
-    	if (contDatatype.hasMPJLB) {
-    		contDatatype.lb = this.lb;
-    	}
-    	else {
-    		contDatatype.lb = Integer.MAX_VALUE;
-    		for (int i=0; i < contDatatype.displacements.length; i++) {
-    			if (contDatatype.lb > contDatatype.displacements[i]) {
-    				contDatatype.lb = contDatatype.displacements[i];
-    			}
-    		}
-    	}
-    	
-    	if (contDatatype.hasMPJUB) {
-    		contDatatype.ub = this.ub + ((count-1) * (this.extent()-1));
-    	}
-    	else {
-    		contDatatype.ub = Integer.MIN_VALUE;
-    		for (int i=0; i < contDatatype.displacements.length; i++) {
-    			if (contDatatype.ub < (contDatatype.displacements[i] + 1)) {
-    				contDatatype.ub = contDatatype.displacements[i] + 1;
-    			}
-    		}
-    	}
-    	
-    	return(contDatatype);
+        }
+
+        if (contDatatype.hasMPJLB) {
+            contDatatype.lb = this.lb;
+        }
+        else {
+            contDatatype.lb = Integer.MAX_VALUE;
+            for (int i=0; i < contDatatype.displacements.length; i++) {
+                if (contDatatype.lb > contDatatype.displacements[i]) {
+                    contDatatype.lb = contDatatype.displacements[i];
+                }
+            }
+        }
+
+        if (contDatatype.hasMPJUB) {
+            contDatatype.ub = this.ub + ((count-1) * (this.extent()-1));
+        }
+        else {
+            contDatatype.ub = Integer.MIN_VALUE;
+            for (int i=0; i < contDatatype.displacements.length; i++) {
+                if (contDatatype.ub < (contDatatype.displacements[i] + 1)) {
+                    contDatatype.ub = contDatatype.displacements[i] + 1;
+                }
+            }
+        }
+
+        return(contDatatype);
     }
 
-    
-    
+
+
     /**
      * <strong> NOT IMPLEMENTED YET. </strong>
      * Construct new datatype representing replication of old datatype into locations that consist of equally spaced blocks.
@@ -123,12 +125,12 @@ public class Datatype implements Serializable {
      */
     public Datatype vector(int count, int blocklength, int stride) throws MPJException { 
 
-    	Datatype dummy = new Datatype();
+        Datatype dummy = new Datatype();
 
-    	return(dummy);
+        return(dummy);
 
     }
-    
+
 
     /**
      * <strong> NOT IMPLEMENTED YET. </strong>
@@ -142,9 +144,9 @@ public class Datatype implements Serializable {
      */
     public Datatype hvector(int count, int blocklength, int stride) throws MPJException {
 
-    	Datatype dummy = new Datatype();
+        Datatype dummy = new Datatype();
 
-    	return(dummy);
+        return(dummy);
 
     }
 
@@ -159,10 +161,10 @@ public class Datatype implements Serializable {
      * @throws MPJException
      */
     public Datatype indexed(int [] arrayofBlocklengths, int [] arrayofDisplacements) throws MPJException { 
-	
-    	Datatype dummy = new Datatype();
 
-    	return(dummy);
+        Datatype dummy = new Datatype();
+
+        return(dummy);
 
     }
 
@@ -178,9 +180,9 @@ public class Datatype implements Serializable {
      */
     public Datatype hindexed(int [] arrayofBlocklengths, int [] arrayofDisplacements) throws MPJException {
 
-    	Datatype dummy = new Datatype();
-    	
-    	return(dummy);
+        Datatype dummy = new Datatype();
+
+        return(dummy);
 
     }
 
@@ -196,11 +198,11 @@ public class Datatype implements Serializable {
      * @throws MPJException
      */
     public static Datatype struct(int [] arrayofBlocklengths, int [] arrayofDisplacements,
-				  Datatype [] arrayOfTypes) throws MPJException { 
+            Datatype [] arrayOfTypes) throws MPJException { 
 
-    	Datatype dummy = new Datatype();
-    	
-    	return(dummy);
+        Datatype dummy = new Datatype();
+
+        return(dummy);
 
     }
 
@@ -212,8 +214,8 @@ public class Datatype implements Serializable {
      * @throws MPJException
      */
     public int extent() throws MPJException { 
-    	
-    	return(this.ub - this.lb +1);
+
+        return(this.ub - this.lb +1);
     }
 
     /**
@@ -222,9 +224,9 @@ public class Datatype implements Serializable {
      * @throws MPJException
      */
     public int lb() throws MPJException { 
-    	return(lb);
+        return(lb);
     }
-    
+
 
     /**
      * Find the upper bound of a datatype - the greatest value in its displacement sequence.
@@ -232,7 +234,7 @@ public class Datatype implements Serializable {
      * @throws MPJException
      */
     public int ub() throws MPJException { 
-    	return(ub);
+        return(ub);
     }
 
 
@@ -242,7 +244,7 @@ public class Datatype implements Serializable {
      * @throws MPJException
      */
     public int size() throws MPJException { 
-    	return(this.displacements.length);
+        return(this.displacements.length);
     }
 
 
@@ -258,4 +260,4 @@ public class Datatype implements Serializable {
     public void finalize() throws MPJException { }
 
 }
-               
+

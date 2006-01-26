@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /*
  * Created on 07.04.2005
  */
@@ -8,8 +10,8 @@ package ibis.mpj;
  */
 public class ShiftParms {
 
-	//Return type of Cartcomm.shift()
-	
-	public int rankSource;
-	public int rankDest;
+    //Return type of Cartcomm.shift()
+
+    public int rankSource;
+    public int rankDest;
 }

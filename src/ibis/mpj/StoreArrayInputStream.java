@@ -116,18 +116,18 @@ public class StoreArrayInputStream extends ibis.io.DataInputStream {
     }
 
     public void readArray(double[] a, int off, int len) {
-//        System.err.println("stream read double array, off = " + off + " len = " + len);
+        //        System.err.println("stream read double array, off = " + off + " len = " + len);
         System.arraycopy(buf.double_store, double_count, a, off, len);
         double_count += len;
     }
 
-/*    
-    public void readArray(double[] a, int off, int len) {
-        System.err.println("stream read double array, off = " + off + " len = " + len);
-        buf.readArray(a, off, len);
-        double_count += len;
-    }
-  */  
+    /*    
+          public void readArray(double[] a, int off, int len) {
+          System.err.println("stream read double array, off = " + off + " len = " + len);
+          buf.readArray(a, off, len);
+          double_count += len;
+          }
+          */  
     public int read() {
         if (buf.byte_store.length <= byte_count) {
             return -1;

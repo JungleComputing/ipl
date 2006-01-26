@@ -11,7 +11,7 @@ final class StoreBuffer {
     int intLen = 0;
     int floatLen = 0;
     int longLen = 0;
-    
+
     boolean[] boolean_store = null;
 
     byte[] byte_store = null;
@@ -239,7 +239,7 @@ final class StoreBuffer {
         count += len * 4;
     }
 
-/* this is the smarter copying verstion that doubles the destination buffer */
+    /* this is the smarter copying verstion that doubles the destination buffer */
     public void writeArray(double[] a, int off, int len) {
         if (double_store == null) {
             double_store = new double[len];

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /*
  * Created on 19.02.2005
  */
@@ -10,51 +12,51 @@ import java.util.*;
  * Collection of all MPJ connections.
  */
 public class ConnectionTable {
-	private HashMap conTable = null;
-	private String myMPJHostName = null;
-	
-	public ConnectionTable() {
-		this.conTable = new HashMap();
-		
-	}
-	
-	protected String addConnection(String ibisHostName, Connection con) {
-		int i = 0;
-		String host =  ibisHostName + "_" + i;
-		
-		boolean written = false;
-		
-		while(!written) {
-			if (conTable.containsKey(host)) {
-				i++;
-				host =  ibisHostName + "_" + i;
-			}
-			else {
-				
-				conTable.put((String)host, (Connection)con);
-				written = true;
-			}
-		}
-		return host;
-	}
-	
-	protected Connection getConnection(String mpjHostName) throws MPJException {
-		if (conTable.containsKey((String)mpjHostName)) {
-			return (Connection)conTable.get((String)mpjHostName);
-		}
-		else {
-			throw new MPJException(mpjHostName + " not found in ConnectionTable.");
-		}
-			
-	}
-	
-	
-	
-	protected void setMyMPJHostName(String hostName) {
-		myMPJHostName = hostName;
-	}
-	
-	protected String getMyMPJHostName() {
-		return(myMPJHostName);
-	}
+    private HashMap conTable = null;
+    private String myMPJHostName = null;
+
+    public ConnectionTable() {
+        this.conTable = new HashMap();
+
+    }
+
+    protected String addConnection(String ibisHostName, Connection con) {
+        int i = 0;
+        String host =  ibisHostName + "_" + i;
+
+        boolean written = false;
+
+        while(!written) {
+            if (conTable.containsKey(host)) {
+                i++;
+                host =  ibisHostName + "_" + i;
+            }
+            else {
+
+                conTable.put((String)host, (Connection)con);
+                written = true;
+            }
+        }
+        return host;
+    }
+
+    protected Connection getConnection(String mpjHostName) throws MPJException {
+        if (conTable.containsKey((String)mpjHostName)) {
+            return (Connection)conTable.get((String)mpjHostName);
+        }
+        else {
+            throw new MPJException(mpjHostName + " not found in ConnectionTable.");
+        }
+
+    }
+
+
+
+    protected void setMyMPJHostName(String hostName) {
+        myMPJHostName = hostName;
+    }
+
+    protected String getMyMPJHostName() {
+        return(myMPJHostName);
+    }
 }

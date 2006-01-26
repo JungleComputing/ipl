@@ -1,4 +1,6 @@
- /*
+/* $Id$ */
+
+/*
  * Created on 25.01.2005
  */
 
@@ -10,19 +12,19 @@ package ibis.mpj;
  * extend this class. 
  */
 public abstract class Op {
-	protected boolean commute;
-	
-	public Op(boolean commute) throws MPJException {
-		this.commute = commute;
-	}
-	
-    
-	public abstract void call(Object invec, int inoffset, Object inoutvec, int outoffset, int count, Datatype datatype) throws MPJException;
-	
-	public boolean isCommute() {
-		return commute;
-	}
-	
-	void Finalize() throws MPJException { }
+    protected boolean commute;
+
+    public Op(boolean commute) throws MPJException {
+        this.commute = commute;
+    }
+
+
+    public abstract void call(Object invec, int inoffset, Object inoutvec, int outoffset, int count, Datatype datatype) throws MPJException;
+
+    public boolean isCommute() {
+        return commute;
+    }
+
+    void Finalize() throws MPJException { }
 
 }
